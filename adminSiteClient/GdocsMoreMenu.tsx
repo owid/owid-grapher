@@ -7,7 +7,7 @@ import {
     faBug,
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { OwidArticleType } from "@ourworldindata/utils"
+import { OwidDocument } from "@ourworldindata/utils"
 
 enum GdocsMoreMenuAction {
     Debug = "debug",
@@ -21,7 +21,7 @@ export const GdocsMoreMenu = ({
     onUnpublish,
     onDelete,
 }: {
-    gdoc: OwidArticleType
+    gdoc: OwidDocument
     onDebug: VoidFunction
     onUnpublish: VoidFunction
     onDelete: VoidFunction

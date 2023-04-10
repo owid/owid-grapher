@@ -3,9 +3,9 @@ import ReactDOM from "react-dom"
 import { ArticleBlocks } from "./ArticleBlocks.js"
 import Footnotes from "./Footnotes.js"
 import {
-    OwidArticleType,
+    OwidDocument,
     formatDate,
-    getArticleFromJSON,
+    getDocumentFromJSON,
     ImageMetadata,
 } from "@ourworldindata/utils"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -17,7 +17,7 @@ import { formatAuthors } from "../clientFormatting.js"
 import { DebugProvider } from "./DebugContext.js"
 
 export const AttachmentsContext = createContext<{
-    linkedDocuments: Record<string, OwidArticleType>
+    linkedDocuments: Record<string, OwidDocument>
     imageMetadata: Record<string, ImageMetadata>
 }>({ linkedDocuments: {}, imageMetadata: {} })
 
@@ -25,7 +25,7 @@ export const ArticleContext = createContext<{ isPreviewing: boolean }>({
     isPreviewing: false,
 })
 
-type OwidArticleProps = OwidArticleType & {
+type OwidArticleProps = OwidDocument & {
     isPreviewing?: boolean
 }
 
@@ -224,7 +224,7 @@ export function OwidArticle({
 
 export const hydrateOwidArticle = (debug?: boolean, isPreviewing?: boolean) => {
     const wrapper = document.querySelector("#owid-article-root")
-    const props = getArticleFromJSON(window._OWID_ARTICLE_PROPS)
+    const props = getDocumentFromJSON(window._OWID_ARTICLE_PROPS)
     ReactDOM.hydrate(
         <React.StrictMode>
             <DebugProvider debug={debug}>

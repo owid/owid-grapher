@@ -7,7 +7,7 @@ import {
     RawBlockHeading,
 } from "@ourworldindata/utils"
 import { spanToHtmlString } from "./gdocUtils.js"
-import { owidRawArticleBlockToArchieMLString } from "./rawToArchie.js"
+import { OwidRawDocumentBlockToArchieMLString } from "./rawToArchie.js"
 import { match, P } from "ts-pattern"
 
 export async function gdocToArchie(
@@ -56,7 +56,7 @@ export async function gdocToArchie(
                                 level: headingLevel,
                             },
                         }
-                        return owidRawArticleBlockToArchieMLString(heading)
+                        return OwidRawDocumentBlockToArchieMLString(heading)
                     }
                     return text
                 }
@@ -74,7 +74,7 @@ export async function gdocToArchie(
                     const fragmentText = match(parsedParagraph)
                         .with(
                             { type: P.union("horizontal-rule") },
-                            owidRawArticleBlockToArchieMLString
+                            OwidRawDocumentBlockToArchieMLString
                         )
                         .with({ spanType: P.any }, (s) => spanToHtmlString(s))
                         .with(P.nullish, () => "")

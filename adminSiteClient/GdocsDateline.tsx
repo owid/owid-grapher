@@ -2,8 +2,8 @@ import { Col, Row } from "antd"
 import { Dayjs } from "dayjs"
 import {
     dayjs,
-    OwidArticleType,
-    OwidArticleErrorMessage,
+    OwidDocument,
+    OwidDocumentErrorMessage,
 } from "@ourworldindata/utils"
 import React from "react"
 import DatePicker from "./DatePicker.js"
@@ -16,9 +16,9 @@ export const GdocsDateline = ({
     setGdoc,
     errors,
 }: {
-    gdoc: OwidArticleType
-    setGdoc: (gdoc: OwidArticleType) => void
-    errors?: OwidArticleErrorMessage[]
+    gdoc: OwidDocument
+    setGdoc: (gdoc: OwidDocument) => void
+    errors?: OwidDocumentErrorMessage[]
 }) => {
     const { publishedAt } = gdoc
 

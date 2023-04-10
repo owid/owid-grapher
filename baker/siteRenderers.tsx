@@ -49,7 +49,7 @@ import {
     FullPost,
     JsonError,
     KeyInsight,
-    OwidArticleType,
+    OwidDocument,
     PostRow,
     Url,
     IndexPost,
@@ -152,7 +152,7 @@ export const renderGdocsPageBySlug = async (
     return renderGdocsArticle(gdoc)
 }
 
-export const renderGdocsArticle = (article: OwidArticleType) => {
+export const renderGdocsArticle = (article: OwidDocument) => {
     return renderToHtmlPage(
         <OwidArticlePage baseUrl={BAKED_BASE_URL} article={article} />
     )

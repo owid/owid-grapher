@@ -1,13 +1,13 @@
 import {
-    OwidArticleContent,
-    OwidArticleType,
-    OwidArticleErrorMessage,
-    OwidArticleErrorMessageType,
+    OwidDocumentContent,
+    OwidDocument,
+    OwidDocumentErrorMessage,
+    OwidDocumentErrorMessageType,
 } from "@ourworldindata/utils"
 
 interface Handler {
     setNext: (handler: Handler) => Handler
-    handle: (gdoc: OwidArticleType, messages: OwidArticleErrorMessage[]) => null
+    handle: (gdoc: OwidDocument, messages: OwidDocumentErrorMessage[]) => null
 }
 
 abstract class AbstractHandler implements Handler {
@@ -18,14 +18,14 @@ abstract class AbstractHandler implements Handler {
         return handler
     }
 
-    handle(gdoc: OwidArticleType, messages: OwidArticleErrorMessage[]) {
+    handle(gdoc: OwidDocument, messages: OwidDocumentErrorMessage[]) {
         if (this.#nextHandler) return this.#nextHandler.handle(gdoc, messages)
         return null
     }
 }
 
 class BodyHandler extends AbstractHandler {
-    handle(gdoc: OwidArticleType, messages: OwidArticleErrorMessage[]) {
+    handle(gdoc: OwidDocument, messages: OwidDocumentErrorMessage[]) {
         const { body } = gdoc.content
         if (!body) {
             messages.push(getMissingContentPropertyError("body"))
@@ -36,7 +36,7 @@ class BodyHandler extends AbstractHandler {
 }
 
 class TitleHandler extends AbstractHandler {
-    handle(gdoc: OwidArticleType, messages: OwidArticleErrorMessage[]) {
+    handle(gdoc: OwidDocument, messages: OwidDocumentErrorMessage[]) {
         const { title } = gdoc.content
         if (!title) {
             messages.push(getMissingContentPropertyError("title"))
@@ -47,18 +47,18 @@ class TitleHandler extends AbstractHandler {
 }
 
 class SlugHandler extends AbstractHandler {
-    handle(gdoc: OwidArticleType, messages: OwidArticleErrorMessage[]) {
+    handle(gdoc: OwidDocument, messages: OwidDocumentErrorMessage[]) {
         const { slug } = gdoc
         if (!slug) {
             messages.push({
                 property: "slug",
-                type: OwidArticleErrorMessageType.Error,
+                type: OwidDocumentErrorMessageType.Error,
                 message: `Missing slug`,
             })
         } else if (!slug.match(/^[a-z0-9-]+$/)) {
             messages.push({
                 property: "slug",
-                type: OwidArticleErrorMessageType.Error,
+                type: OwidDocumentErrorMessageType.Error,
                 message: `Slug must only contain lowercase letters, numbers and hyphens`,
             })
         }
@@ -68,12 +68,12 @@ class SlugHandler extends AbstractHandler {
 }
 
 class PublishedAtHandler extends AbstractHandler {
-    handle(gdoc: OwidArticleType, messages: OwidArticleErrorMessage[]) {
+    handle(gdoc: OwidDocument, messages: OwidDocumentErrorMessage[]) {
         const { publishedAt } = gdoc
         if (!publishedAt) {
             messages.push({
                 property: "publishedAt",
-                type: OwidArticleErrorMessageType.Warning,
+                type: OwidDocumentErrorMessageType.Warning,
                 message: `The publication date will be set to the current date on publishing.`,
             })
         }
@@ -84,14 +84,14 @@ class PublishedAtHandler extends AbstractHandler {
 
 export class ExcerptHandler extends AbstractHandler {
     static maxLength = 150
-    handle(gdoc: OwidArticleType, messages: OwidArticleErrorMessage[]) {
+    handle(gdoc: OwidDocument, messages: OwidDocumentErrorMessage[]) {
         const { excerpt } = gdoc.content
         if (!excerpt) {
             messages.push(getMissingContentPropertyError("excerpt"))
         } else if (excerpt.length > ExcerptHandler.maxLength) {
             messages.push({
                 property: "excerpt",
-                type: OwidArticleErrorMessageType.Warning,
+                type: OwidDocumentErrorMessageType.Warning,
                 message: `Long excerpts may not display well in our list of articles or on social media.`,
             })
         }
@@ -101,7 +101,7 @@ export class ExcerptHandler extends AbstractHandler {
 }
 
 export class AttachmentsHandler extends AbstractHandler {
-    handle(gdoc: OwidArticleType, messages: OwidArticleErrorMessage[]) {
+    handle(gdoc: OwidDocument, messages: OwidDocumentErrorMessage[]) {
         // These errors come from the server and we can't currently easily match them to their origin
         // So instead we just render them all on the settings drawer
         gdoc.errors?.forEach((error) => messages.push(error))
@@ -113,11 +113,11 @@ export class AttachmentsHandler extends AbstractHandler {
 // raised in front-end admin code at the moment (search for
 // #gdocsvalidationclient in codebase), but should ultimately be performed in
 // server code too (see #gdocsvalidationserver). The checks performed here
-// should match the list of required fields in OwidArticleTypePublished and
-// OwidArticleContentPublished types, so that gdocs coming from the DB effectively
+// should match the list of required fields in OwidDocumentPublished and
+// OwidDocumentContentPublished types, so that gdocs coming from the DB effectively
 // honor the type cast (and subsequent assumptions) in getPublishedGdocs()
-export const getErrors = (gdoc: OwidArticleType): OwidArticleErrorMessage[] => {
-    const errors: OwidArticleErrorMessage[] = []
+export const getErrors = (gdoc: OwidDocument): OwidDocumentErrorMessage[] => {
+    const errors: OwidDocumentErrorMessage[] = []
 
     const bodyHandler = new BodyHandler()
 
@@ -134,33 +134,35 @@ export const getErrors = (gdoc: OwidArticleType): OwidArticleErrorMessage[] => {
 }
 
 export const getPropertyFirstErrorOfType = (
-    type: OwidArticleErrorMessageType,
-    property: keyof OwidArticleType | keyof OwidArticleContent,
-    errors?: OwidArticleErrorMessage[]
+    type: OwidDocumentErrorMessageType,
+    property: keyof OwidDocument | keyof OwidDocumentContent,
+    errors?: OwidDocumentErrorMessage[]
 ) => errors?.find((error) => error.property === property && error.type === type)
 
 export const getPropertyMostCriticalError = (
-    property: keyof OwidArticleType | keyof OwidArticleContent,
-    errors: OwidArticleErrorMessage[] | undefined
-): OwidArticleErrorMessage | undefined => {
+    property: keyof OwidDocument | keyof OwidDocumentContent,
+    errors: OwidDocumentErrorMessage[] | undefined
+): OwidDocumentErrorMessage | undefined => {
     return (
         getPropertyFirstErrorOfType(
-            OwidArticleErrorMessageType.Error,
+            OwidDocumentErrorMessageType.Error,
             property,
             errors
         ) ||
         getPropertyFirstErrorOfType(
-            OwidArticleErrorMessageType.Warning,
+            OwidDocumentErrorMessageType.Warning,
             property,
             errors
         )
     )
 }
 
-const getMissingContentPropertyError = (property: keyof OwidArticleContent) => {
+const getMissingContentPropertyError = (
+    property: keyof OwidDocumentContent
+) => {
     return {
         property,
-        type: OwidArticleErrorMessageType.Error,
+        type: OwidDocumentErrorMessageType.Error,
         message: `Missing ${property}. Add "${property}: ..." at the top of the Google Doc.`,
     }
 }

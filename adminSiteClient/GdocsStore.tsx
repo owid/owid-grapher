@@ -1,9 +1,9 @@
 import React, { useContext, createContext, useState } from "react"
 import { observable } from "mobx"
 import {
-    getArticleFromJSON,
-    OwidArticleType,
-    OwidArticleTypeJSON,
+    getDocumentFromJSON,
+    OwidDocument,
+    OwidDocumentJSON,
 } from "@ourworldindata/utils"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { Admin } from "./Admin.js"
@@ -16,7 +16,7 @@ import { Admin } from "./Admin.js"
  * Today, this store acts as CRUD proxy for requests to API endpoints.
  */
 export class GdocsStore {
-    @observable gdocs: OwidArticleType[] = []
+    @observable gdocs: OwidDocument[] = []
     admin: Admin
 
     constructor(admin: Admin) {
@@ -27,22 +27,18 @@ export class GdocsStore {
         await this.admin.requestJSON(`/api/gdocs/${id}`, {}, "PUT")
     }
 
-    async update(gdoc: OwidArticleType): Promise<OwidArticleType> {
+    async update(gdoc: OwidDocument): Promise<OwidDocument> {
         return this.admin
-            .requestJSON<OwidArticleTypeJSON>(
-                `/api/gdocs/${gdoc.id}`,
-                gdoc,
-                "PUT"
-            )
-            .then(getArticleFromJSON)
+            .requestJSON<OwidDocumentJSON>(`/api/gdocs/${gdoc.id}`, gdoc, "PUT")
+            .then(getDocumentFromJSON)
     }
 
-    async publish(gdoc: OwidArticleType): Promise<OwidArticleType> {
+    async publish(gdoc: OwidDocument): Promise<OwidDocument> {
         const publishedGdoc = await this.update({ ...gdoc, published: true })
         return publishedGdoc
     }
 
-    async unpublish(gdoc: OwidArticleType): Promise<OwidArticleType> {
+    async unpublish(gdoc: OwidDocument): Promise<OwidDocument> {
         const unpublishedGdoc = await this.update({
             ...gdoc,
             publishedAt: null,
@@ -52,7 +48,7 @@ export class GdocsStore {
         return unpublishedGdoc
     }
 
-    async delete(gdoc: OwidArticleType) {
+    async delete(gdoc: OwidDocument) {
         await this.admin.requestJSON(`/api/gdocs/${gdoc.id}`, {}, "DELETE")
     }
 }

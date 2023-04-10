@@ -1,12 +1,12 @@
 import React from "react"
 import { Help } from "./Forms.js"
-import { OwidArticleErrorMessage } from "@ourworldindata/utils"
+import { OwidDocumentErrorMessage } from "@ourworldindata/utils"
 
 export const GdocsErrorHelp = ({
     error,
     help,
 }: {
-    error?: OwidArticleErrorMessage
+    error?: OwidDocumentErrorMessage
     help?: string
 }) => {
     return error ? (

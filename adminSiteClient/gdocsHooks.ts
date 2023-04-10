@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react"
-import { OwidArticleType } from "@ourworldindata/utils"
+import { OwidDocument } from "@ourworldindata/utils"
 import { useDebounceCallback } from "../site/hooks.js"
 import { checkHasChanges, checkIsLightningUpdate } from "./gdocsDeploy.js"
 import { useGdocsStore } from "./GdocsStore.js"
 
 export const useGdocsChanged = (
-    prevGdoc: OwidArticleType | undefined,
-    nextGdoc: OwidArticleType | undefined
+    prevGdoc: OwidDocument | undefined,
+    nextGdoc: OwidDocument | undefined
 ) => {
     const [hasChanges, setHasChanges] = useState(false)
 
@@ -19,8 +19,8 @@ export const useGdocsChanged = (
 }
 
 export const useLightningUpdate = (
-    prevGdoc: OwidArticleType | undefined,
-    nextGdoc: OwidArticleType | undefined,
+    prevGdoc: OwidDocument | undefined,
+    nextGdoc: OwidDocument | undefined,
     hasChanges: boolean
 ) => {
     const [isLightningDeploy, setLightningUpdate] = useState(false)
@@ -36,12 +36,12 @@ export const useLightningUpdate = (
 }
 
 export const useAutoSaveDraft = (
-    currentGdoc: OwidArticleType | undefined,
+    currentGdoc: OwidDocument | undefined,
     hasChanges: boolean
 ) => {
     const store = useGdocsStore()
 
-    const saveDraft = useDebounceCallback((currentGdoc: OwidArticleType) => {
+    const saveDraft = useDebounceCallback((currentGdoc: OwidDocument) => {
         store.update(currentGdoc)
     }, 2000)
 

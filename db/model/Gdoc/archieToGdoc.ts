@@ -1,12 +1,12 @@
 import {
-    OwidArticleContent,
+    OwidDocumentContent,
     EnrichedBlockText,
     EnrichedBlockSimpleText,
 } from "@ourworldindata/utils"
 import {
     propertyToArchieMLString,
     encloseLinesAsPropertyPossiblyMultiline,
-    owidRawArticleBlockToArchieMLStringGenerator,
+    OwidRawDocumentBlockToArchieMLStringGenerator,
 } from "./rawToArchie.js"
 import { GDOCS_BACKPORTING_TARGET_FOLDER } from "../../../settings/serverSettings.js"
 import { enrichedBlockToRawBlock } from "./enrichtedToRaw.js"
@@ -15,15 +15,15 @@ import { Gdoc } from "./Gdoc.js"
 import * as cheerio from "cheerio"
 
 function* yieldMultiBlockPropertyIfDefined(
-    property: keyof OwidArticleContent,
-    article: OwidArticleContent,
+    property: keyof OwidDocumentContent,
+    article: OwidDocumentContent,
     target: (EnrichedBlockText | EnrichedBlockSimpleText)[] | undefined
 ): Generator<string, void, undefined> {
     if (property in article && target) {
         yield* encloseLinesAsPropertyPossiblyMultiline(
             property,
             target.flatMap((item) => [
-                ...owidRawArticleBlockToArchieMLStringGenerator(
+                ...OwidRawDocumentBlockToArchieMLStringGenerator(
                     enrichedBlockToRawBlock(item)
                 ),
             ])
@@ -32,7 +32,7 @@ function* yieldMultiBlockPropertyIfDefined(
 }
 
 function* owidArticleToArchieMLStringGenerator(
-    article: OwidArticleContent
+    article: OwidDocumentContent
 ): Generator<string, void, undefined> {
     yield* propertyToArchieMLString("title", article)
     yield* propertyToArchieMLString("subtitle", article)
@@ -53,7 +53,7 @@ function* owidArticleToArchieMLStringGenerator(
         for (const block of article.body) {
             const rawBlock = enrichedBlockToRawBlock(block)
             const lines = [
-                ...owidRawArticleBlockToArchieMLStringGenerator(rawBlock),
+                ...OwidRawDocumentBlockToArchieMLStringGenerator(rawBlock),
             ]
             yield* lines
             yield ""
@@ -163,7 +163,7 @@ function* lineToBatchUpdates(line: Line): Generator<docs_v1.Schema$Request> {
 }
 
 function articleToBatchUpdates(
-    content: OwidArticleContent
+    content: OwidDocumentContent
 ): docs_v1.Schema$Request[] {
     const archieMlLines = [...owidArticleToArchieMLStringGenerator(content)]
 
@@ -263,8 +263,8 @@ async function createGdoc(
     return createResp.data.id!
 }
 
-export async function createGdocAndInsertOwidArticleContent(
-    content: OwidArticleContent,
+export async function createGdocAndInsertOwidDocumentContent(
+    content: OwidDocumentContent,
     existingGdocId: string | null
 ): Promise<string> {
     const batchUpdates = articleToBatchUpdates(content)

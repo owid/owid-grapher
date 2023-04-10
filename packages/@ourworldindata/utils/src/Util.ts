@@ -146,11 +146,11 @@ import {
     HorizontalAlign,
     IDEAL_PLOT_ASPECT_RATIO,
     GridParameters,
-    OwidArticleType,
-    OwidArticleTypeJSON,
+    OwidDocument,
+    OwidDocumentJSON,
     TimeBound,
     TimeBoundValue,
-    OwidEnrichedArticleBlock,
+    OwidEnrichedDocumentBlock,
     Span,
 } from "./owidTypes.js"
 import { PointVector } from "./PointVector.js"
@@ -1272,9 +1272,7 @@ export const formatDate = (date: Date): string => {
  * write a custom JSON parser to handle that automatically for all keys. At this
  * stage, the manual approach is probably simpler.
  */
-export const getArticleFromJSON = (
-    json: OwidArticleTypeJSON
-): OwidArticleType => {
+export const getDocumentFromJSON = (json: OwidDocumentJSON): OwidDocument => {
     return {
         ...json,
         createdAt: new Date(json.createdAt),
@@ -1347,10 +1345,10 @@ export const imemo = <Type>(
 }
 
 export function recursivelyMapArticleContent<
-    Node extends OwidEnrichedArticleBlock | Span
+    Node extends OwidEnrichedDocumentBlock | Span
 >(
     node: Node,
-    callback: <Child extends OwidEnrichedArticleBlock | Span>(
+    callback: <Child extends OwidEnrichedDocumentBlock | Span>(
         node: Child
     ) => Child
 ): Node {
@@ -1379,7 +1377,7 @@ export function recursivelyMapArticleContent<
 }
 
 export function checkNodeIsSpan(
-    node: OwidEnrichedArticleBlock | Span
+    node: OwidEnrichedDocumentBlock | Span
 ): node is Span {
     return "spanType" in node
 }

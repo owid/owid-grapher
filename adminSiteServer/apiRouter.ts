@@ -24,14 +24,14 @@ import {
     camelCaseProperties,
     chartBulkUpdateAllowedColumnNamesAndTypes,
     GdocsContentSource,
-    getArticleFromJSON,
+    getDocumentFromJSON,
     GrapherConfigPatch,
     isEmpty,
     JsonError,
     omit,
     OperationContext,
-    OwidArticleTypeJSON,
-    OwidArticleType,
+    OwidDocumentJSON,
+    OwidDocument,
     parseIntOrUndefined,
     parseToOperation,
     PostRow,
@@ -80,7 +80,7 @@ import {
     checkIsLightningUpdate,
 } from "../adminSiteClient/gdocsDeploy.js"
 import { dataSource } from "../db/dataSource.js"
-import { createGdocAndInsertOwidArticleContent } from "../db/model/Gdoc/archieToGdoc.js"
+import { createGdocAndInsertOwidDocumentContent } from "../db/model/Gdoc/archieToGdoc.js"
 import { Link } from "../db/model/Link.js"
 
 const apiRouter = new FunctionalRouter()
@@ -2279,8 +2279,8 @@ apiRouter.post("/posts/:postId/createGdoc", async (req: Request) => {
             400
         )
     }
-    const archieMl = JSON.parse(post.archieml) as OwidArticleType
-    const gdocId = await createGdocAndInsertOwidArticleContent(
+    const archieMl = JSON.parse(post.archieml) as OwidDocument
+    const gdocId = await createGdocAndInsertOwidDocumentContent(
         archieMl.content,
         post.gdocSuccessorId
     )
@@ -2706,7 +2706,7 @@ apiRouter.get("/gdocs/:id", async (req, res) => {
  */
 apiRouter.put("/gdocs/:id", async (req, res) => {
     const { id } = req.params
-    const nextGdocJSON: OwidArticleTypeJSON = req.body
+    const nextGdocJSON: OwidDocumentJSON = req.body
 
     if (isEmpty(nextGdocJSON)) {
         const newGdoc = new Gdoc(id)
@@ -2721,7 +2721,7 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
 
     const nextGdoc = dataSource
         .getRepository(Gdoc)
-        .create(getArticleFromJSON(nextGdocJSON))
+        .create(getDocumentFromJSON(nextGdocJSON))
 
     // Deleting and recreating these is simpler than tracking orphans over the next code block
     await GdocXImage.delete({ gdocId: id })

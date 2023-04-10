@@ -1,9 +1,9 @@
 import { Col, Input, Row, Space, Switch } from "antd"
 import React, { useEffect, useState } from "react"
 import {
-    OwidArticleType,
+    OwidDocument,
     slugify,
-    OwidArticleErrorMessage,
+    OwidDocumentErrorMessage,
 } from "@ourworldindata/utils"
 import { Help } from "./Forms.js"
 import { getPropertyMostCriticalError } from "./gdocsValidation.js"
@@ -13,9 +13,9 @@ export const GdocsSlug = ({
     setGdoc,
     errors,
 }: {
-    gdoc: OwidArticleType
-    setGdoc: (gdoc: OwidArticleType) => void
-    errors?: OwidArticleErrorMessage[]
+    gdoc: OwidDocument
+    setGdoc: (gdoc: OwidDocument) => void
+    errors?: OwidDocumentErrorMessage[]
 }) => {
     const [isSlugSyncing, setSlugSyncing] = useState(false)
     const {

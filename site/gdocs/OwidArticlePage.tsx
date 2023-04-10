@@ -7,7 +7,7 @@ import { CitationMeta } from "../CitationMeta.js"
 import { OwidArticle } from "./OwidArticle.js"
 import { get } from "lodash"
 
-import { OwidArticleType, SiteFooterContext } from "@ourworldindata/utils"
+import { OwidDocument, SiteFooterContext } from "@ourworldindata/utils"
 import { DebugProvider } from "./DebugContext.js"
 
 declare global {
@@ -23,7 +23,7 @@ export default function OwidArticlePage({
     isPreviewing = false,
 }: {
     baseUrl: string
-    article: OwidArticleType
+    article: OwidDocument
     debug?: boolean
     isPreviewing?: boolean
 }) {

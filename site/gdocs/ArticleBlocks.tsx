@@ -1,7 +1,7 @@
 import React from "react"
 import ArticleBlock, { Container } from "./ArticleBlock.js"
 import {
-    OwidEnrichedArticleBlock,
+    OwidEnrichedDocumentBlock,
     TocHeadingWithTitleSupertitle,
 } from "@ourworldindata/utils"
 
@@ -10,12 +10,12 @@ export const ArticleBlocks = ({
     containerType = "default",
     toc,
 }: {
-    blocks: OwidEnrichedArticleBlock[]
+    blocks: OwidEnrichedDocumentBlock[]
     containerType?: Container
     toc?: TocHeadingWithTitleSupertitle[]
 }) => (
     <>
-        {blocks.map((block: OwidEnrichedArticleBlock, i: number) => {
+        {blocks.map((block: OwidEnrichedDocumentBlock, i: number) => {
             return (
                 <ArticleBlock
                     key={i}
