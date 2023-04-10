@@ -5,7 +5,7 @@ import * as cheerio from "cheerio"
 
 import {
     OwidDocumentPublicationContext,
-    OwidDocument,
+    OwidDocumentInterface,
     sortBy,
     OwidArticleBackportingStatistics,
     OwidDocumentType,
@@ -79,7 +79,7 @@ const migrate = async (): Promise<void> => {
                 post.authors
             )
 
-            const archieMlFieldContent: OwidDocument = {
+            const archieMlFieldContent: OwidDocumentInterface = {
                 id: `wp-${post.id}`,
                 slug: post.slug,
                 content: {

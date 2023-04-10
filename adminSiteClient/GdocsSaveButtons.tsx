@@ -6,7 +6,10 @@ import {
     faBolt,
 } from "@fortawesome/free-solid-svg-icons"
 import { GdocsDiff } from "./GdocsDiff.js"
-import { OwidDocument, OwidDocumentErrorMessage } from "@ourworldindata/utils"
+import {
+    OwidDocumentInterface,
+    OwidDocumentErrorMessage,
+} from "@ourworldindata/utils"
 
 export const GdocsSaveButtons = ({
     published,
@@ -20,8 +23,8 @@ export const GdocsSaveButtons = ({
     doPublish,
 }: {
     published: boolean
-    originalGdoc: OwidDocument | undefined
-    currentGdoc: OwidDocument
+    originalGdoc: OwidDocumentInterface | undefined
+    currentGdoc: OwidDocumentInterface
     errors: OwidDocumentErrorMessage[] | undefined
     hasErrors: boolean
     hasWarnings: boolean

@@ -82,7 +82,7 @@ export {
     type OwidDocumentErrorMessage,
     OwidDocumentErrorMessageType,
     type OwidDocumentLinkJSON,
-    type OwidDocument,
+    type OwidDocumentInterface,
     OwidDocumentType,
     type OwidDocumentJSON,
     type OwidDocumentPublished,

@@ -2,7 +2,7 @@ import React, { useContext, createContext, useState } from "react"
 import { observable } from "mobx"
 import {
     getDocumentFromJSON,
-    OwidDocument,
+    OwidDocumentInterface,
     OwidDocumentJSON,
 } from "@ourworldindata/utils"
 import { AdminAppContext } from "./AdminAppContext.js"
@@ -16,7 +16,7 @@ import { Admin } from "./Admin.js"
  * Today, this store acts as CRUD proxy for requests to API endpoints.
  */
 export class GdocsStore {
-    @observable gdocs: OwidDocument[] = []
+    @observable gdocs: OwidDocumentInterface[] = []
     admin: Admin
 
     constructor(admin: Admin) {
@@ -27,18 +27,20 @@ export class GdocsStore {
         await this.admin.requestJSON(`/api/gdocs/${id}`, {}, "PUT")
     }
 
-    async update(gdoc: OwidDocument): Promise<OwidDocument> {
+    async update(gdoc: OwidDocumentInterface): Promise<OwidDocumentInterface> {
         return this.admin
             .requestJSON<OwidDocumentJSON>(`/api/gdocs/${gdoc.id}`, gdoc, "PUT")
             .then(getDocumentFromJSON)
     }
 
-    async publish(gdoc: OwidDocument): Promise<OwidDocument> {
+    async publish(gdoc: OwidDocumentInterface): Promise<OwidDocumentInterface> {
         const publishedGdoc = await this.update({ ...gdoc, published: true })
         return publishedGdoc
     }
 
-    async unpublish(gdoc: OwidDocument): Promise<OwidDocument> {
+    async unpublish(
+        gdoc: OwidDocumentInterface
+    ): Promise<OwidDocumentInterface> {
         const unpublishedGdoc = await this.update({
             ...gdoc,
             publishedAt: null,
@@ -48,7 +50,7 @@ export class GdocsStore {
         return unpublishedGdoc
     }
 
-    async delete(gdoc: OwidDocument) {
+    async delete(gdoc: OwidDocumentInterface) {
         await this.admin.requestJSON(`/api/gdocs/${gdoc.id}`, {}, "DELETE")
     }
 }

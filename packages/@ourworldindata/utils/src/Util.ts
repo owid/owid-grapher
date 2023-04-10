@@ -146,7 +146,7 @@ import {
     HorizontalAlign,
     IDEAL_PLOT_ASPECT_RATIO,
     GridParameters,
-    OwidDocument,
+    OwidDocumentInterface,
     OwidDocumentJSON,
     TimeBound,
     TimeBoundValue,
@@ -1273,7 +1273,9 @@ export const formatDate = (date: Date): string => {
  * write a custom JSON parser to handle that automatically for all keys. At this
  * stage, the manual approach is probably simpler.
  */
-export const getDocumentFromJSON = (json: OwidDocumentJSON): OwidDocument => {
+export const getDocumentFromJSON = (
+    json: OwidDocumentJSON
+): OwidDocumentInterface => {
     return {
         ...json,
         createdAt: new Date(json.createdAt),

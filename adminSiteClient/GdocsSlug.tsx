@@ -1,7 +1,7 @@
 import { Col, Input, Row, Space, Switch } from "antd"
 import React, { useEffect, useState } from "react"
 import {
-    OwidDocument,
+    OwidDocumentInterface,
     slugify,
     OwidDocumentErrorMessage,
 } from "@ourworldindata/utils"
@@ -13,8 +13,8 @@ export const GdocsSlug = ({
     setGdoc,
     errors,
 }: {
-    gdoc: OwidDocument
-    setGdoc: (gdoc: OwidDocument) => void
+    gdoc: OwidDocumentInterface
+    setGdoc: (gdoc: OwidDocumentInterface) => void
     errors?: OwidDocumentErrorMessage[]
 }) => {
     const [isSlugSyncing, setSlugSyncing] = useState(false)

@@ -14,7 +14,7 @@ import { ENV } from "../settings/serverSettings.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import {
     renderExplorerPage,
-    renderGdocsArticle,
+    renderGdoc,
     renderPreview,
 } from "../baker/siteRenderers.js"
 import { GitCmsServer } from "../gitCms/GitCmsServer.js"
@@ -182,7 +182,7 @@ adminRouter.get("/posts/compare/:postId", async (req, res) => {
     const errorList = `<ul>${errorItems.join("")}</ul>`
 
     const archieMl = getDocumentFromJSON(archieMlJson)
-    const archieMlPage = renderGdocsArticle(archieMl)
+    const archieMlPage = renderGdoc(archieMl)
 
     res.send(`<!doctype html>
     <html>

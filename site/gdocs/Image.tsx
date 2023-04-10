@@ -10,7 +10,7 @@ import {
     IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH,
     IMAGE_HOSTING_CDN_URL,
 } from "../../settings/clientSettings.js"
-import { ArticleContext } from "./OwidArticle.js"
+import { DocumentContext } from "./OwidDocument.js"
 import { Container } from "./ArticleBlock.js"
 import { useImage } from "./utils.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
@@ -47,7 +47,7 @@ export default function Image(props: {
     containerType?: ImageParentContainer
 }) {
     const { filename, className = "", containerType = "default" } = props
-    const { isPreviewing } = useContext(ArticleContext)
+    const { isPreviewing } = useContext(DocumentContext)
     const image = useImage(filename)
     if (!image) {
         if (isPreviewing) {

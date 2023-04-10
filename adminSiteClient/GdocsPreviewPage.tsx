@@ -13,7 +13,7 @@ import {
     checkIsPlainObjectWithGuard,
     GdocsContentSource,
     getDocumentFromJSON,
-    OwidDocument,
+    OwidDocumentInterface,
     OwidDocumentJSON,
     OwidDocumentErrorMessage,
     OwidDocumentErrorMessageType,
@@ -47,12 +47,12 @@ import { useInterval } from "../site/hooks.js"
 export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     const { id } = match.params
     const [gdoc, setGdoc] = useState<{
-        original?: OwidDocument
-        current?: OwidDocument
+        original?: OwidDocumentInterface
+        current?: OwidDocumentInterface
     }>({ original: undefined, current: undefined })
     const originalGdoc = gdoc.original
     const currentGdoc = gdoc.current
-    const setCurrentGdoc = (current: OwidDocument | undefined) =>
+    const setCurrentGdoc = (current: OwidDocumentInterface | undefined) =>
         setGdoc({ original: gdoc.original, current })
     const hasChanges = useGdocsChanged(originalGdoc, currentGdoc)
     const [isSettingsOpen, setSettingsOpen] = useState(false)

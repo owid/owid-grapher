@@ -30,7 +30,7 @@ import {
     renderCountryProfile,
     flushCache as siteBakingFlushCache,
     renderPost,
-    renderGdocsArticle,
+    renderGdoc,
 } from "../baker/siteRenderers.js"
 import {
     bakeGrapherUrls,
@@ -185,7 +185,7 @@ export class SiteBaker {
 
     // Bake an individual post/page
     async bakeGDocPost(post: OwidDocumentPublished) {
-        const html = renderGdocsArticle(post)
+        const html = renderGdoc(post)
         const outPath = path.join(this.bakedSiteDir, `${post.slug}.html`)
         await fs.mkdirp(path.dirname(outPath))
         await this.stageWrite(outPath, html)

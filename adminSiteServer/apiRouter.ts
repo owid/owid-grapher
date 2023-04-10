@@ -31,7 +31,7 @@ import {
     omit,
     OperationContext,
     OwidDocumentJSON,
-    OwidDocument,
+    OwidDocumentInterface,
     parseIntOrUndefined,
     parseToOperation,
     PostRow,
@@ -2279,7 +2279,7 @@ apiRouter.post("/posts/:postId/createGdoc", async (req: Request) => {
             400
         )
     }
-    const archieMl = JSON.parse(post.archieml) as OwidDocument
+    const archieMl = JSON.parse(post.archieml) as OwidDocumentInterface
     const gdocId = await createGdocAndInsertOwidDocumentContent(
         archieMl.content,
         post.gdocSuccessorId

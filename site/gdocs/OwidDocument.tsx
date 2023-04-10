@@ -3,7 +3,7 @@ import ReactDOM from "react-dom"
 import { ArticleBlocks } from "./ArticleBlocks.js"
 import Footnotes from "./Footnotes.js"
 import {
-    OwidDocument,
+    OwidDocumentInterface,
     formatDate,
     getDocumentFromJSON,
     ImageMetadata,
@@ -132,26 +132,26 @@ function OwidDocumentHeader(props: {
 }
 
 export const AttachmentsContext = createContext<{
-    linkedDocuments: Record<string, OwidDocument>
+    linkedDocuments: Record<string, OwidDocumentInterface>
     imageMetadata: Record<string, ImageMetadata>
 }>({ linkedDocuments: {}, imageMetadata: {} })
 
-export const ArticleContext = createContext<{ isPreviewing: boolean }>({
+export const DocumentContext = createContext<{ isPreviewing: boolean }>({
     isPreviewing: false,
 })
 
-type OwidArticleProps = OwidDocument & {
+type OwidDocumentProps = OwidDocumentInterface & {
     isPreviewing?: boolean
 }
 
-export function OwidArticle({
+export function OwidDocument({
     content,
     publishedAt,
     slug,
     linkedDocuments = {},
     imageMetadata = {},
     isPreviewing = false,
-}: OwidArticleProps) {
+}: OwidDocumentProps) {
     // Until authors comes as structured data, we need to parse them from the byline string
     const authors = content?.byline?.replace(/\s*,\s*/g, ",").split(",") || [
         "Our World in Data",
@@ -176,7 +176,7 @@ export function OwidArticle({
 
     return (
         <AttachmentsContext.Provider value={{ linkedDocuments, imageMetadata }}>
-            <ArticleContext.Provider value={{ isPreviewing }}>
+            <DocumentContext.Provider value={{ isPreviewing }}>
                 <article className="centered-article-container grid grid-cols-12-full-width">
                     <OwidDocumentHeader
                         content={content}
@@ -275,18 +275,21 @@ export function OwidArticle({
                         </div>
                     </section>
                 </article>
-            </ArticleContext.Provider>
+            </DocumentContext.Provider>
         </AttachmentsContext.Provider>
     )
 }
 
-export const hydrateOwidArticle = (debug?: boolean, isPreviewing?: boolean) => {
+export const hydrateOwidDocument = (
+    debug?: boolean,
+    isPreviewing?: boolean
+) => {
     const wrapper = document.querySelector("#owid-article-root")
-    const props = getDocumentFromJSON(window._OWID_ARTICLE_PROPS)
+    const props = getDocumentFromJSON(window._OWID_DOCUMENT_PROPS)
     ReactDOM.hydrate(
         <React.StrictMode>
             <DebugProvider debug={debug}>
-                <OwidArticle {...props} isPreviewing={isPreviewing} />
+                <OwidDocument {...props} isPreviewing={isPreviewing} />
             </DebugProvider>
         </React.StrictMode>,
         wrapper

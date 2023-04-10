@@ -1,6 +1,6 @@
 import {
     OwidDocumentContent,
-    OwidDocument,
+    OwidDocumentInterface,
     OwidDocumentErrorMessage,
     OwidDocumentErrorMessageType,
     OwidDocumentType,
@@ -9,7 +9,10 @@ import {
 
 interface Handler {
     setNext: (handler: Handler) => Handler
-    handle: (gdoc: OwidDocument, messages: OwidDocumentErrorMessage[]) => null
+    handle: (
+        gdoc: OwidDocumentInterface,
+        messages: OwidDocumentErrorMessage[]
+    ) => null
 }
 
 abstract class AbstractHandler implements Handler {
@@ -20,14 +23,14 @@ abstract class AbstractHandler implements Handler {
         return handler
     }
 
-    handle(gdoc: OwidDocument, messages: OwidDocumentErrorMessage[]) {
+    handle(gdoc: OwidDocumentInterface, messages: OwidDocumentErrorMessage[]) {
         if (this.#nextHandler) return this.#nextHandler.handle(gdoc, messages)
         return null
     }
 }
 
 class BodyHandler extends AbstractHandler {
-    handle(gdoc: OwidDocument, messages: OwidDocumentErrorMessage[]) {
+    handle(gdoc: OwidDocumentInterface, messages: OwidDocumentErrorMessage[]) {
         const { body } = gdoc.content
         if (!body) {
             messages.push(getMissingContentPropertyError("body"))
@@ -38,7 +41,7 @@ class BodyHandler extends AbstractHandler {
 }
 
 class TitleHandler extends AbstractHandler {
-    handle(gdoc: OwidDocument, messages: OwidDocumentErrorMessage[]) {
+    handle(gdoc: OwidDocumentInterface, messages: OwidDocumentErrorMessage[]) {
         const { title } = gdoc.content
         if (!title) {
             messages.push(getMissingContentPropertyError("title"))
@@ -49,7 +52,7 @@ class TitleHandler extends AbstractHandler {
 }
 
 class SlugHandler extends AbstractHandler {
-    handle(gdoc: OwidDocument, messages: OwidDocumentErrorMessage[]) {
+    handle(gdoc: OwidDocumentInterface, messages: OwidDocumentErrorMessage[]) {
         const { slug } = gdoc
         if (!slug) {
             messages.push({
@@ -70,7 +73,7 @@ class SlugHandler extends AbstractHandler {
 }
 
 class PublishedAtHandler extends AbstractHandler {
-    handle(gdoc: OwidDocument, messages: OwidDocumentErrorMessage[]) {
+    handle(gdoc: OwidDocumentInterface, messages: OwidDocumentErrorMessage[]) {
         const { publishedAt } = gdoc
         if (!publishedAt) {
             messages.push({
@@ -86,7 +89,7 @@ class PublishedAtHandler extends AbstractHandler {
 
 export class ExcerptHandler extends AbstractHandler {
     static maxLength = 150
-    handle(gdoc: OwidDocument, messages: OwidDocumentErrorMessage[]) {
+    handle(gdoc: OwidDocumentInterface, messages: OwidDocumentErrorMessage[]) {
         const { excerpt } = gdoc.content
         if (!excerpt) {
             messages.push(getMissingContentPropertyError("excerpt"))
@@ -103,7 +106,7 @@ export class ExcerptHandler extends AbstractHandler {
 }
 
 export class AttachmentsHandler extends AbstractHandler {
-    handle(gdoc: OwidDocument, messages: OwidDocumentErrorMessage[]) {
+    handle(gdoc: OwidDocumentInterface, messages: OwidDocumentErrorMessage[]) {
         // These errors come from the server and we can't currently easily match them to their origin
         // So instead we just render them all on the settings drawer
         gdoc.errors?.forEach((error) => messages.push(error))
@@ -112,7 +115,7 @@ export class AttachmentsHandler extends AbstractHandler {
 }
 
 export class DocumentTypeHandler extends AbstractHandler {
-    handle(gdoc: OwidDocument, messages: OwidDocumentErrorMessage[]) {
+    handle(gdoc: OwidDocumentInterface, messages: OwidDocumentErrorMessage[]) {
         if (!gdoc.content.type || !checkIsOwidDocumentType(gdoc.content.type)) {
             messages.push({
                 property: "content",
@@ -133,7 +136,9 @@ export class DocumentTypeHandler extends AbstractHandler {
 // should match the list of required fields in OwidDocumentPublished and
 // OwidDocumentContentPublished types, so that gdocs coming from the DB effectively
 // honor the type cast (and subsequent assumptions) in getPublishedGdocs()
-export const getErrors = (gdoc: OwidDocument): OwidDocumentErrorMessage[] => {
+export const getErrors = (
+    gdoc: OwidDocumentInterface
+): OwidDocumentErrorMessage[] => {
     const errors: OwidDocumentErrorMessage[] = []
 
     const bodyHandler = new BodyHandler()
@@ -153,12 +158,12 @@ export const getErrors = (gdoc: OwidDocument): OwidDocumentErrorMessage[] => {
 
 export const getPropertyFirstErrorOfType = (
     type: OwidDocumentErrorMessageType,
-    property: keyof OwidDocument | keyof OwidDocumentContent,
+    property: keyof OwidDocumentInterface | keyof OwidDocumentContent,
     errors?: OwidDocumentErrorMessage[]
 ) => errors?.find((error) => error.property === property && error.type === type)
 
 export const getPropertyMostCriticalError = (
-    property: keyof OwidDocument | keyof OwidDocumentContent,
+    property: keyof OwidDocumentInterface | keyof OwidDocumentContent,
     errors: OwidDocumentErrorMessage[] | undefined
 ): OwidDocumentErrorMessage | undefined => {
     return (

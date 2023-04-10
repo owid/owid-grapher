@@ -912,7 +912,7 @@ export enum OwidDocumentType {
     Fragment = "fragment",
 }
 
-export interface OwidDocument {
+export interface OwidDocumentInterface {
     id: string
     slug: string
     content: OwidDocumentContent
@@ -922,7 +922,7 @@ export interface OwidDocument {
     updatedAt: Date | null
     publicationContext: OwidDocumentPublicationContext
     revisionId: string | null
-    linkedDocuments?: Record<string, OwidDocument>
+    linkedDocuments?: Record<string, OwidDocumentInterface>
     imageMetadata?: Record<string, ImageMetadata>
     errors?: OwidDocumentErrorMessage[]
 }
@@ -933,21 +933,24 @@ export enum OwidDocumentErrorMessageType {
 }
 
 export interface OwidDocumentErrorMessage {
-    property: keyof OwidDocument | keyof OwidDocumentContent
+    property: keyof OwidDocumentInterface | keyof OwidDocumentContent
     type: OwidDocumentErrorMessageType
     message: string
 }
 
 // see also: getDocumentFromJSON()
 export interface OwidDocumentJSON
-    extends Omit<OwidDocument, "createdAt" | "publishedAt" | "updatedAt"> {
+    extends Omit<
+        OwidDocumentInterface,
+        "createdAt" | "publishedAt" | "updatedAt"
+    > {
     createdAt: string
     publishedAt: string | null
     updatedAt: string | null
 }
 
 export interface OwidDocumentLinkJSON {
-    source: OwidDocument
+    source: OwidDocumentInterface
     linkType: "gdoc" | "url"
     target: string
     componentType: string
@@ -958,7 +961,7 @@ export interface OwidDocumentLinkJSON {
  * See ../adminSiteClient/gdocsValidation/getErrors() where these existence
  * constraints are surfaced at runtime on the draft article
  */
-export interface OwidDocumentPublished extends OwidDocument {
+export interface OwidDocumentPublished extends OwidDocumentInterface {
     publishedAt: Date
     updatedAt: Date
     content: OwidDocumentContentPublished
@@ -1016,7 +1019,7 @@ export interface OwidDocumentContentPublished extends OwidDocumentContent {
     excerpt: string
 }
 
-export type GdocsPatch = Partial<OwidDocument>
+export type GdocsPatch = Partial<OwidDocumentInterface>
 
 export enum GdocsContentSource {
     Internal = "internal",
@@ -1024,7 +1027,7 @@ export enum GdocsContentSource {
 }
 
 export enum SiteFooterContext {
-    gdocsArticle = "gdocsArticle", // the rendered version (on the site)
+    gdocsDocument = "gdocsDocument", // the rendered version (on the site)
     grapherPage = "grapherPage",
     explorerPage = "explorerPage",
     default = "default",

@@ -1,7 +1,7 @@
 import { Col, Radio, RadioChangeEvent, Row } from "antd"
 import {
     OwidDocumentPublicationContext,
-    OwidDocument,
+    OwidDocumentInterface,
 } from "@ourworldindata/utils"
 import React from "react"
 import { GdocsErrorHelp } from "./GdocsErrorHelp.js"
@@ -10,8 +10,8 @@ export const GdocsPublicationContext = ({
     gdoc,
     setGdoc,
 }: {
-    gdoc: OwidDocument
-    setGdoc: (gdoc: OwidDocument) => void
+    gdoc: OwidDocumentInterface
+    setGdoc: (gdoc: OwidDocumentInterface) => void
 }) => {
     const { publicationContext } = gdoc
 

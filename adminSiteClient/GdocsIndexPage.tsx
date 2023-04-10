@@ -4,7 +4,7 @@ import { Modal } from "./Forms.js"
 import { faCirclePlus } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { AdminAppContext } from "./AdminAppContext.js"
-import { OwidDocument } from "@ourworldindata/utils"
+import { OwidDocumentInterface } from "@ourworldindata/utils"
 import { Route, RouteComponentProps } from "react-router-dom"
 import { Link } from "./Link.js"
 import { GdocsAdd } from "./GdocsAdd.js"
@@ -23,7 +23,9 @@ export const GdocsIndexPage = ({ match, history }: GdocsMatchProps) => {
 
     useEffect(() => {
         const fetchGdocs = async () => {
-            const gdocs = (await admin.getJSON("/api/gdocs")) as OwidDocument[]
+            const gdocs = (await admin.getJSON(
+                "/api/gdocs"
+            )) as OwidDocumentInterface[]
 
             runInAction(() => {
                 store.gdocs = gdocs

@@ -1,6 +1,6 @@
 import React from "react"
 import {
-    OwidDocument,
+    OwidDocumentInterface,
     OwidDocumentErrorMessage,
     OwidDocumentErrorMessageType,
 } from "@ourworldindata/utils"
@@ -18,8 +18,8 @@ export const GdocsSettingsForm = ({
     setGdoc,
     errors,
 }: {
-    gdoc: OwidDocument
-    setGdoc: (gdoc: OwidDocument) => void
+    gdoc: OwidDocumentInterface
+    setGdoc: (gdoc: OwidDocumentInterface) => void
     errors?: OwidDocumentErrorMessage[]
 }) => {
     const attachmentMessages = errors?.filter((error) =>

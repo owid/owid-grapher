@@ -4,30 +4,30 @@ import { Head } from "../Head.js"
 import { SiteHeader } from "../SiteHeader.js"
 import { SiteFooter } from "../SiteFooter.js"
 import { CitationMeta } from "../CitationMeta.js"
-import { OwidArticle } from "./OwidArticle.js"
+import { OwidDocument } from "./OwidDocument.js"
 import { get } from "lodash"
 
-import { OwidDocument, SiteFooterContext } from "@ourworldindata/utils"
+import { OwidDocumentInterface, SiteFooterContext } from "@ourworldindata/utils"
 import { DebugProvider } from "./DebugContext.js"
 
 declare global {
     interface Window {
-        _OWID_ARTICLE_PROPS: any
+        _OWID_DOCUMENT_PROPS: any
     }
 }
 
-export default function OwidArticlePage({
+export default function OwidDocumentPage({
     baseUrl,
-    article,
+    document,
     debug,
     isPreviewing = false,
 }: {
     baseUrl: string
-    article: OwidDocument
+    document: OwidDocumentInterface
     debug?: boolean
     isPreviewing?: boolean
 }) {
-    const { content, slug, createdAt, updatedAt } = article
+    const { content, slug, createdAt, updatedAt } = document
 
     const canonicalUrl = `${baseUrl}/${slug}`
 
@@ -59,22 +59,25 @@ export default function OwidArticlePage({
 
                 <script
                     dangerouslySetInnerHTML={{
-                        __html: `window._OWID_ARTICLE_PROPS = ${JSON.stringify(
-                            article
+                        __html: `window._OWID_DOCUMENT_PROPS = ${JSON.stringify(
+                            document
                         )}`,
                     }}
                 ></script>
             </Head>
             <body>
                 <SiteHeader baseUrl={baseUrl} />
-                <div id="owid-article-root">
+                <div id="owid-document-root">
                     <DebugProvider debug={debug}>
-                        <OwidArticle {...article} isPreviewing={isPreviewing} />
+                        <OwidDocument
+                            {...document}
+                            isPreviewing={isPreviewing}
+                        />
                     </DebugProvider>
                 </div>
                 <SiteFooter
                     baseUrl={baseUrl}
-                    context={SiteFooterContext.gdocsArticle}
+                    context={SiteFooterContext.gdocsDocument}
                     debug={debug}
                     isPreviewing={isPreviewing}
                 />

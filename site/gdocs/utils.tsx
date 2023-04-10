@@ -5,13 +5,15 @@ import {
     getUrlTarget,
     Span,
     SpanLink,
-    OwidDocument,
+    OwidDocumentInterface,
     ImageMetadata,
 } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
-import { AttachmentsContext } from "./OwidArticle.js"
+import { AttachmentsContext } from "./OwidDocument.js"
 
-export const useLinkedDocument = (url: string): OwidDocument | undefined => {
+export const useLinkedDocument = (
+    url: string
+): OwidDocumentInterface | undefined => {
     const { linkedDocuments } = useContext(AttachmentsContext)
     const urlTarget = getUrlTarget(url)
     const linkedDocument = linkedDocuments?.[urlTarget]

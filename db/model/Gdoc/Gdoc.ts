@@ -7,7 +7,7 @@ import {
 } from "typeorm"
 import {
     OwidDocumentContent,
-    OwidDocument,
+    OwidDocumentInterface,
     OwidDocumentPublished,
     OwidDocumentPublicationContext,
     GdocsContentSource,
@@ -38,7 +38,7 @@ import { Link } from "../Link.js"
 import { imageStore } from "../Image.js"
 
 @Entity("posts_gdocs")
-export class Gdoc extends BaseEntity implements OwidDocument {
+export class Gdoc extends BaseEntity implements OwidDocumentInterface {
     @PrimaryColumn() id!: string
     @Column() slug: string = ""
     @Column({ default: "{}", type: "json" }) content!: OwidDocumentContent
@@ -278,7 +278,7 @@ export class Gdoc extends BaseEntity implements OwidDocument {
     static async getGdocFromContentSource(
         id: string,
         contentSource?: GdocsContentSource
-    ): Promise<OwidDocument> {
+    ): Promise<OwidDocumentInterface> {
         const gdoc = await Gdoc.findOneBy({ id })
 
         if (!gdoc) throw new JsonError(`No Google Doc with id ${id} found`)

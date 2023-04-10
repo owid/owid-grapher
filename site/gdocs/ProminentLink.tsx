@@ -3,7 +3,7 @@ import cx from "classnames"
 
 import Image from "./Image.js"
 import { useLinkedDocument } from "./utils.js"
-import { ArticleContext } from "./OwidArticle.js"
+import { DocumentContext } from "./OwidDocument.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
 import { getLinkType } from "@ourworldindata/utils"
 
@@ -17,7 +17,7 @@ export const ProminentLink = (props: {
     const { url, className = "" } = props
     const linkType = getLinkType(url)
     const linkedDocument = useLinkedDocument(url)
-    const { isPreviewing } = useContext(ArticleContext)
+    const { isPreviewing } = useContext(DocumentContext)
     if (linkType == "gdoc") {
         let error: Error | undefined = undefined
         if (!linkedDocument) {

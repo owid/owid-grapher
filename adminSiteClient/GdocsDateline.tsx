@@ -2,7 +2,7 @@ import { Col, Row } from "antd"
 import { Dayjs } from "dayjs"
 import {
     dayjs,
-    OwidDocument,
+    OwidDocumentInterface,
     OwidDocumentErrorMessage,
 } from "@ourworldindata/utils"
 import React from "react"
@@ -16,8 +16,8 @@ export const GdocsDateline = ({
     setGdoc,
     errors,
 }: {
-    gdoc: OwidDocument
-    setGdoc: (gdoc: OwidDocument) => void
+    gdoc: OwidDocumentInterface
+    setGdoc: (gdoc: OwidDocumentInterface) => void
     errors?: OwidDocumentErrorMessage[]
 }) => {
     const { publishedAt } = gdoc

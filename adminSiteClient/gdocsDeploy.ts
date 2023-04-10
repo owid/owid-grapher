@@ -1,13 +1,13 @@
 import {
     OwidDocumentContent,
-    OwidDocument,
+    OwidDocumentInterface,
     isEqual,
     omit,
 } from "@ourworldindata/utils"
 
 export const checkFullDeployFallback = (
-    prevGdoc: OwidDocument,
-    nextGdoc: OwidDocument,
+    prevGdoc: OwidDocumentInterface,
+    nextGdoc: OwidDocumentInterface,
     hasChanges: boolean
 ) => {
     return hasChanges && (prevGdoc.published || nextGdoc.published)
@@ -21,11 +21,11 @@ export const checkFullDeployFallback = (
  *
  */
 export const checkIsLightningUpdate = (
-    prevGdoc: OwidDocument,
-    nextGdoc: OwidDocument,
+    prevGdoc: OwidDocumentInterface,
+    nextGdoc: OwidDocumentInterface,
     hasChanges: boolean
 ) => {
-    const lightningArticleProps: Array<keyof OwidDocument> = [
+    const lightningArticleProps: Array<keyof OwidDocumentInterface> = [
         "updatedAt",
         "linkedDocuments",
         "imageMetadata",
@@ -55,7 +55,7 @@ export const checkIsLightningUpdate = (
         // When this function is called from server-side code and a Gdoc object
         // is passed in, the omit() call will surface Gdoc class members. The
         // comparison will then fail if the other operand in the comparison is
-        // an OwidDocument object. To avoid this, we spread into new objects
+        // an OwidDocumentInterface object. To avoid this, we spread into new objects
         // in order to compare the same types.
         isEqual(
             omit({ ...prevGdoc }, lightningProps),
@@ -65,8 +65,8 @@ export const checkIsLightningUpdate = (
 }
 
 export const checkHasChanges = (
-    prevGdoc: OwidDocument,
-    nextGdoc: OwidDocument
+    prevGdoc: OwidDocumentInterface,
+    nextGdoc: OwidDocumentInterface
 ) =>
     !isEqual(
         // Ignore non-deterministic attachments
