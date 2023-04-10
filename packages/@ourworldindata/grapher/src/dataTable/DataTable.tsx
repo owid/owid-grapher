@@ -31,6 +31,8 @@ import {
     ColumnSlug,
     TickFormattingOptions,
     Tippy,
+    countries,
+    historicalCountries,
 } from "@ourworldindata/utils"
 import { SortIcon } from "../controls/SortIcon"
 import { makeSelectionArray } from "../chart/ChartUtils"
@@ -66,6 +68,10 @@ const columnNameByType: Record<ColumnKey, string> = {
 
 const inverseSortOrder = (order: SortOrder): SortOrder =>
     order === SortOrder.asc ? SortOrder.desc : SortOrder.asc
+
+const countryNames = countries.map(c => c.name).concat(
+    historicalCountries.map(c => [c.name, ...(c.variantNames ?? [])]).flat()
+)
 
 export interface DataTableManager {
     table: OwidTable
@@ -168,6 +174,13 @@ export class DataTable extends React.Component<{
 
             return value
         }
+    }
+
+    @computed private get sortCountryOrAggregateMapper(): (
+        row: DataTableRow
+    ) => number {
+        return (row: DataTableRow): number =>
+            countryNames.includes(row.entityName) ? 0 : 1
     }
 
     @computed private get hasSubheaders(): boolean {
@@ -352,7 +365,14 @@ export class DataTable extends React.Component<{
     ): JSX.Element {
         const { sort } = this.tableState
         return (
-            <tr key={row.entityName}>
+            <tr
+                key={row.entityName}
+                className={classnames({
+                    aggregate:
+                        this.manager.entityType == "country" &&
+                        !countryNames.includes(row.entityName),
+                })}
+            >
                 <td
                     key="entity"
                     className={classnames({
@@ -711,7 +731,11 @@ export class DataTable extends React.Component<{
 
     @computed private get sortedRows(): DataTableRow[] {
         const { order } = this.tableState.sort
-        return orderBy(this.displayRows, this.sortValueMapper, [order])
+        return orderBy(
+            this.displayRows,
+            [this.sortCountryOrAggregateMapper, this.sortValueMapper],
+            ["asc", order]
+        )
     }
 
     @computed private get displayRows(): DataTableRow[] {

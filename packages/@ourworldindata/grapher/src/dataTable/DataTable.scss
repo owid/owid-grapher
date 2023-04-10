@@ -45,6 +45,7 @@ $cell-border: 1px solid rgba(0, 0, 0, 0.08);
     border: none;
     background: white;
     width: 100%;
+    border-collapse: collapse;
     border-spacing: 0px;
     box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 2px 0px,
         rgba(0, 0, 0, 0.25) 0px 2px 2px 0px;
@@ -168,6 +169,15 @@ $cell-border: 1px solid rgba(0, 0, 0, 0.08);
     .entity {
         text-align: left;
         font-weight: 700;
+    }
+
+    tr:not(.aggregate) + tr.aggregate {
+        border-top: 6px solid #aaa;
+    }
+
+    .aggregate .entity {
+        font-style: italic;
+        font-weight: 400;
     }
 
     .dimension {
