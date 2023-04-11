@@ -15,6 +15,7 @@ import {
     capitalize,
     getIndexableKeys,
     Detail,
+    RawPageview,
 } from "@ourworldindata/utils"
 import { Grapher, Topic, GrapherInterface } from "@ourworldindata/grapher"
 import { Admin } from "./Admin.js"
@@ -48,7 +49,6 @@ import {
 } from "./VisionDeficiencies.js"
 import { EditorMarimekkoTab } from "./EditorMarimekkoTab.js"
 import { get, has, set } from "lodash"
-import { RawPageview } from "@ourworldindata/utils/dist/owidTypes.js"
 
 @observer
 class TabBinder extends React.Component<{ editor: ChartEditor }> {
