@@ -43,7 +43,6 @@ import {
     VariableAnnotationsResponseRow,
     Detail,
     isUndefined,
-    keyBy,
 } from "@ourworldindata/utils"
 import {
     GrapherInterface,

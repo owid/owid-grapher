@@ -39,7 +39,6 @@ import { archieToEnriched } from "./archieToEnriched.js"
 import { Link } from "../Link.js"
 import { imageStore } from "../Image.js"
 import { Chart } from "../Chart.js"
-import { getChartsRecords } from "../../contentGraph.js"
 import { excludeNullish } from "@ourworldindata/utils/dist/Util.js"
 import {
     BAKED_BASE_URL,
