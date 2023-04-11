@@ -31,8 +31,7 @@ import {
     ColumnSlug,
     TickFormattingOptions,
     Tippy,
-    countries,
-    historicalCountries,
+    isCountryName,
 } from "@ourworldindata/utils"
 import { SortIcon } from "../controls/SortIcon"
 import { makeSelectionArray } from "../chart/ChartUtils"
@@ -68,14 +67,6 @@ const columnNameByType: Record<ColumnKey, string> = {
 
 const inverseSortOrder = (order: SortOrder): SortOrder =>
     order === SortOrder.asc ? SortOrder.desc : SortOrder.asc
-
-const countryNames = countries
-    .map((c) => c.name)
-    .concat(
-        historicalCountries
-            .map((c) => [c.name, ...(c.variantNames ?? [])])
-            .flat()
-    )
 
 export interface DataTableManager {
     table: OwidTable
@@ -184,7 +175,7 @@ export class DataTable extends React.Component<{
         row: DataTableRow
     ) => number {
         return (row: DataTableRow): number =>
-            countryNames.includes(row.entityName) ? 0 : 1
+            isCountryName(row.entityName) ? 0 : 1
     }
 
     @computed private get hasSubheaders(): boolean {
@@ -374,7 +365,7 @@ export class DataTable extends React.Component<{
                 className={classnames({
                     aggregate:
                         this.manager.entityType == "country" &&
-                        !countryNames.includes(row.entityName),
+                        !isCountryName(row.entityName),
                 })}
             >
                 <td
