@@ -770,11 +770,11 @@ function cheerioToArchieML(
                         content: [
                             {
                                 type: "image",
-                                // TODO ike
                                 filename: image?.attribs["src"] ?? "",
                                 alt: image?.attribs["alt"] ?? "",
                                 parseErrors: [],
                                 originalWidth: undefined,
+                                caption: figcaptionElement?.value,
                                 size: BlockImageSize.Wide,
                             },
                         ],
