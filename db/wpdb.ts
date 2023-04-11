@@ -33,7 +33,7 @@ import {
     GraphType,
     memoize,
     IndexPost,
-    OwidArticleTypePublished,
+    OwidGdocPublished,
     orderBy,
 } from "@ourworldindata/utils"
 import { Topic } from "@ourworldindata/grapher"
@@ -731,9 +731,7 @@ export const getBlogIndex = memoize(async (): Promise<IndexPost[]> => {
     )
 })
 
-const mapGdocsToWordpressPosts = (
-    gdocs: OwidArticleTypePublished[]
-): IndexPost[] => {
+const mapGdocsToWordpressPosts = (gdocs: OwidGdocPublished[]): IndexPost[] => {
     return gdocs.map((gdoc) => ({
         title: gdoc.content.title,
         slug: gdoc.slug,

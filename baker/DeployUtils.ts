@@ -3,7 +3,7 @@ import { BakeStepConfig, SiteBaker } from "../baker/SiteBaker.js"
 import { warn, logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
 import { DeployQueueServer } from "./DeployQueueServer.js"
 import { BAKED_SITE_DIR, BAKED_BASE_URL } from "../settings/serverSettings.js"
-import { DeployChange, OwidArticleTypePublished } from "@ourworldindata/utils"
+import { DeployChange, OwidGdocPublished } from "@ourworldindata/utils"
 import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
 
 const deployQueueServer = new DeployQueueServer()
@@ -40,7 +40,7 @@ const bakeAndDeploy = async (
                 const gdoc = (await Gdoc.findOneByOrFail({
                     published: true,
                     slug: change.slug,
-                })) as OwidArticleTypePublished
+                })) as OwidGdocPublished
                 await baker.bakeGDocPost(gdoc)
             }
         } else {
