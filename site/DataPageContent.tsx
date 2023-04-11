@@ -118,8 +118,8 @@ export const DataPageContent = ({
                                     }}
                                 />
                             )}
-                            {!!datapage.faqs?.items?.length && (
-                                <a className="learn-more" href="#faq">
+                            {faqsArticle?.content.body && (
+                                <a className="learn-more" href="#faqs">
                                     Learn more in the FAQs
                                     <FontAwesomeIcon icon={faArrowDown} />
                                 </a>
@@ -267,26 +267,26 @@ export const DataPageContent = ({
                         </div>
                     </div>
                 )}
-                <div
-                    style={{
-                        backgroundColor: "#f7f7f7",
-                        padding: "48px 0",
-                    }}
-                >
-                    <div className="faq grid wrapper">
-                        <h2 className="span-cols-2">
-                            What you should know about this data
-                        </h2>
-                        <div className="faq__items grid grid-cols-8 span-cols-8">
-                            {faqsArticle?.content.body && (
+                {faqsArticle?.content.body && (
+                    <div
+                        style={{
+                            backgroundColor: "#f7f7f7",
+                            padding: "48px 0",
+                        }}
+                    >
+                        <div className="faq grid wrapper">
+                            <h2 className="span-cols-2" id="faqs">
+                                What you should know about this data
+                            </h2>
+                            <div className="faq__items grid grid-cols-8 span-cols-8">
                                 <ArticleBlocks
                                     blocks={faqsArticle.content.body}
                                     containerType="datapage"
                                 />
-                            )}
+                            </div>
                         </div>
                     </div>
-                </div>
+                )}
                 <div
                     className="DataPageContent__section-border wrapper"
                     style={{
