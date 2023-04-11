@@ -54,6 +54,7 @@ import {
 import { Dataset } from "../db/model/Dataset.js"
 import { User } from "../db/model/User.js"
 import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
+import { Pageview } from "../db/model/Pageview.js"
 import {
     syncDatasetToGitRepo,
     removeDatasetFromGitRepo,
@@ -487,6 +488,24 @@ apiRouter.get(
             parseInt(req.params.chartId as string)
         ),
     })
+)
+
+apiRouter.get(
+    "/charts/:chartId.pageviews.json",
+    async (req: Request, res: Response) => {
+        const slug = await Chart.getById(
+            parseInt(req.params.chartId as string)
+        ).then((chart) => chart?.config?.slug)
+        if (!slug) return {}
+
+        const pageviewsByUrl = await Pageview.findOneBy({
+            url: `https://ourworldindata.org/grapher/${slug}`,
+        })
+
+        return {
+            pageviews: pageviewsByUrl ?? undefined,
+        }
+    }
 )
 
 apiRouter.get("/topics.json", async (req: Request, res: Response) => ({
@@ -2695,7 +2714,7 @@ apiRouter.get("/gdocs/:id", async (req, res) => {
         res.set("Cache-Control", "no-store")
         res.send(gdoc)
     } catch (error) {
-        throw new JsonError(`Error fetching document ${error}`, 500)
+        res.status(500).json({ error: { message: String(error), status: 500 } })
     }
 })
 
