@@ -268,7 +268,12 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
             return ""
         }
 
-        if ("url" in node) {
+        // Don't track the ref links e.g. "#note-1"
+        function checkIsRefAnchor(link: string): boolean {
+            return new RegExp(/^#note-\d+$/).test(link)
+        }
+
+        if ("url" in node && !checkIsRefAnchor(node.url)) {
             const link: Link = Link.create({
                 linkType: getLinkType(node.url),
                 source: this,
