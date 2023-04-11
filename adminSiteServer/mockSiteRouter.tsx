@@ -222,7 +222,9 @@ mockSiteRouter.get("/*", async (req, res) => {
 
     try {
         res.send(await renderGdocsPageBySlug(slug))
-    } catch (e) {}
+    } catch (e) {
+        console.error(e)
+    }
 
     try {
         res.send(await renderPageBySlug(slug))

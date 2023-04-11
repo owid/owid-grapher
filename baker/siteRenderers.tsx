@@ -144,12 +144,24 @@ export const renderGdocsPageBySlug = async (
     slug: string
 ): Promise<string | undefined> => {
     const gdoc = await Gdoc.findOneBy({ slug })
-
     if (!gdoc) {
-        throw new Error("Failed to render an unknown GDocs post: ${slug}.")
+        throw new Error(`Failed to render an unknown GDocs post: ${slug}.`)
     }
+    if (!gdoc.published) {
+        throw new Error(
+            `A Gdoc exists with slug "${slug}" but it is not published.`
+        )
+    }
+    const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
+    const publishedExplorersBySlug =
+        await explorerAdminServer.getAllPublishedExplorersBySlug()
 
-    return renderGdocsArticle(gdoc)
+    const gdocWithAttachments = await Gdoc.getGdocFromContentSource(
+        gdoc.id,
+        publishedExplorersBySlug
+    )
+
+    return renderGdocsArticle(gdocWithAttachments)
 }
 
 export const renderGdocsArticle = (article: OwidArticleType) => {
