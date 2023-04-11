@@ -124,18 +124,16 @@ export const DataPageContent = ({
                                     <FontAwesomeIcon icon={faArrowDown} />
                                 </a>
                             )}
-                            {datapage.sourceVariableDescription?.title &&
-                                datapage.sourceVariableDescription?.content && (
+                            {datapage.descriptionFromSource?.title &&
+                                datapage.descriptionFromSource?.content && (
                                     <div style={{ marginTop: 8 }}>
                                         <ExpandableAnimatedToggle
                                             label={
-                                                datapage
-                                                    .sourceVariableDescription
+                                                datapage.descriptionFromSource
                                                     .title
                                             }
                                             contentHtml={
-                                                datapage
-                                                    .sourceVariableDescription
+                                                datapage.descriptionFromSource
                                                     .content
                                             }
                                         />
@@ -339,7 +337,7 @@ export const DataPageContent = ({
                                             collection:
                                         </h4>
                                         <ul className="featured-variables">
-                                            {datapage.dataset.featuredVariables.map(
+                                            {datapage.dataset.datasetFeaturedVariables.map(
                                                 (
                                                     variable: any,
                                                     idx: number
@@ -403,9 +401,11 @@ export const DataPageContent = ({
                                             </div>
                                         </div>
                                     </div>
-                                    {datapage.dataset?.codeUrl && (
+                                    {datapage.dataset?.datasetCodeUrl && (
                                         <a
-                                            href={datapage.dataset.codeUrl}
+                                            href={
+                                                datapage.dataset.datasetCodeUrl
+                                            }
                                             className="data-collection__code-link"
                                         >
                                             <FontAwesomeIcon icon={faGithub} />
@@ -429,13 +429,15 @@ export const DataPageContent = ({
                                     {datapage.sources.map((source: any) => (
                                         <div
                                             className="sources__item"
-                                            key={source.name}
+                                            key={source.sourceName}
                                         >
                                             <ExpandableAnimatedToggle
-                                                label={source.name}
-                                                contentHtml={source.description}
+                                                label={source.sourceName}
+                                                contentHtml={
+                                                    source.sourceDescription
+                                                }
                                                 content={
-                                                    source.retrievedOn && (
+                                                    source.sourceRetrievedOn && (
                                                         <div className="key-info--gridded grid grid-cols-2">
                                                             <div className="key-info__data">
                                                                 <div className="title">
@@ -443,7 +445,7 @@ export const DataPageContent = ({
                                                                 </div>
                                                                 <div>
                                                                     {
-                                                                        source.retrievedOn
+                                                                        source.sourceRetrievedOn
                                                                     }
                                                                 </div>
                                                             </div>
@@ -489,13 +491,13 @@ export const DataPageContent = ({
                                                                 <div>
                                                                     <a
                                                                         href={
-                                                                            source.retrievedFromUrl
+                                                                            source.sourceRetrievedFromUrl
                                                                         }
                                                                         target="_blank"
                                                                         rel="noreferrer"
                                                                     >
                                                                         {
-                                                                            source.retrievedFromUrl
+                                                                            source.sourceRetrievedFromUrl
                                                                         }
                                                                     </a>
                                                                 </div>
