@@ -1418,14 +1418,12 @@ export function isArrayOfNumbers(arr: unknown[]): arr is number[] {
 }
 
 export function greatestCommonDivisor(a: number, b: number): number {
-    if (a === 0) return b
+    if (a === 0) return Math.abs(b)
     return greatestCommonDivisor(b % a, a)
 }
 
-export function findGreatestCommonDivisorOfArray(arr: number[]): number {
-    let result = arr[0]
-    for (let i = 1; i < arr.length; i++) {
-        result = greatestCommonDivisor(result, arr[i])
-    }
-    return result
+export function findGreatestCommonDivisorOfArray(arr: number[]): number | null {
+    if (arr.length === 0) return null
+    if (arr.includes(1)) return 1
+    return uniq(arr).reduce((acc, num) => greatestCommonDivisor(acc, num))
 }

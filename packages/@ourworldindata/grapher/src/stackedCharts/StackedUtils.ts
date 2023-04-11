@@ -6,6 +6,7 @@ import {
     range,
     isArrayOfNumbers,
     findGreatestCommonDivisorOfArray,
+    rollingMap,
 } from "@ourworldindata/utils"
 import { StackedPointPositionType, StackedSeries } from "./StackedConstants"
 
@@ -27,11 +28,10 @@ export const stackSeries = <PositionType extends StackedPointPositionType>(
 }
 
 // Makes sure that values are evenly spaced
-function withUniformSpacing(values: number[]): number[] {
-    const deltas = values
-        .slice(0, -1)
-        .map((xVal, index) => values[index + 1] - xVal)
+export function withUniformSpacing(values: number[]): number[] {
+    const deltas = rollingMap(values, (a, b) => b - a)
     const gcd = findGreatestCommonDivisorOfArray(deltas)
+    if (gcd == null) return values
     return range(values[0], values[values.length - 1] + gcd, gcd)
 }
 
