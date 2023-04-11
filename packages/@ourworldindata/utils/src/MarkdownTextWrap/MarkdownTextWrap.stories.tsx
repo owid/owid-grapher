@@ -6,7 +6,7 @@ import {
     parsimmonToTextTokens,
     IRToken,
 } from "./MarkdownTextWrap"
-import { mdParser } from "./parser"
+import { mdParser } from "./parser.js"
 import { TextWrap } from "../TextWrap/TextWrap.js"
 
 export default {

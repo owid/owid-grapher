@@ -1,12 +1,6 @@
 import { keyBy } from "lodash"
 import { Entity, Column, BaseEntity } from "typeorm"
-
-export interface RawPageview {
-    day: Date
-    url: string
-    views_7d: number
-    views_14d: number
-}
+import { RawPageview } from "@ourworldindata/utils"
 
 @Entity("pageviews")
 export class Pageview extends BaseEntity implements RawPageview {

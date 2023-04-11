@@ -6,6 +6,7 @@
  */
 
 import { Grapher, GrapherInterface, Topic } from "@ourworldindata/grapher"
+import type { RawPageview } from "@ourworldindata/utils"
 import { computed, observable, runInAction, when } from "mobx"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
 import { Admin } from "./Admin.js"
@@ -76,6 +77,7 @@ export interface ChartEditorManager {
     logs: Log[]
     references: PostReference[]
     redirects: ChartRedirect[]
+    pageviews?: RawPageview
     allTopics: Topic[]
     details: GrapherInterface["details"]
     invalidDetailReferences: Record<"subtitle" | "note", [string, string][]>
@@ -133,6 +135,10 @@ export class ChartEditor {
 
     @computed get redirects() {
         return this.manager.redirects
+    }
+
+    @computed get pageviews() {
+        return this.manager.pageviews
     }
 
     @computed get allTopics() {
