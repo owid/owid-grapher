@@ -319,16 +319,14 @@ export const DataPageContent = ({
                                         <FontAwesomeIcon icon={faTable} />
                                         <span
                                             dangerouslySetInnerHTML={{
-                                                __html: datapage.dataset
-                                                    .datasetName,
+                                                __html: datapage.datasetName,
                                             }}
                                         />
                                     </div>
                                     <div
                                         className="data-collection__description"
                                         dangerouslySetInnerHTML={{
-                                            __html: datapage.dataset
-                                                .datasetDescription,
+                                            __html: datapage.datasetDescription,
                                         }}
                                     />
                                 </div>
@@ -339,7 +337,7 @@ export const DataPageContent = ({
                                             collection:
                                         </h4>
                                         <ul className="featured-variables">
-                                            {datapage.dataset.datasetFeaturedVariables.map(
+                                            {datapage.datasetFeaturedVariables.map(
                                                 (
                                                     variable: any,
                                                     idx: number
@@ -387,7 +385,7 @@ export const DataPageContent = ({
                                             <div>
                                                 <a
                                                     href={
-                                                        datapage.dataset
+                                                        datapage
                                                             .datasetLicenseLink
                                                             .url
                                                     }
@@ -395,7 +393,7 @@ export const DataPageContent = ({
                                                     rel="noreferrer"
                                                 >
                                                     {
-                                                        datapage.dataset
+                                                        datapage
                                                             .datasetLicenseLink
                                                             .title
                                                     }
@@ -403,11 +401,9 @@ export const DataPageContent = ({
                                             </div>
                                         </div>
                                     </div>
-                                    {datapage.dataset?.datasetCodeUrl && (
+                                    {datapage.datasetCodeUrl && (
                                         <a
-                                            href={
-                                                datapage.dataset.datasetCodeUrl
-                                            }
+                                            href={datapage.datasetCodeUrl}
                                             className="data-collection__code-link"
                                         >
                                             <FontAwesomeIcon icon={faGithub} />
