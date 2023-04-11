@@ -451,40 +451,6 @@ export const DataPageContent = ({
                                                             </div>
                                                             <div className="key-info__data">
                                                                 <div className="title">
-                                                                    Licence
-                                                                </div>
-                                                                <div>
-                                                                    <a
-                                                                        href={
-                                                                            source
-                                                                                .licenseLink
-                                                                                .url
-                                                                        }
-                                                                        target="_blank"
-                                                                        rel="noreferrer"
-                                                                    >
-                                                                        {
-                                                                            source
-                                                                                .licenseLink
-                                                                                .title
-                                                                        }
-                                                                    </a>
-                                                                </div>
-                                                            </div>
-                                                            <div className="key-info__data">
-                                                                <div className="title">
-                                                                    Next
-                                                                    expected
-                                                                    update
-                                                                </div>
-                                                                <div>
-                                                                    {
-                                                                        source.nextUpdate
-                                                                    }
-                                                                </div>
-                                                            </div>
-                                                            <div className="key-info__data">
-                                                                <div className="title">
                                                                     Retrieved
                                                                     from
                                                                 </div>
