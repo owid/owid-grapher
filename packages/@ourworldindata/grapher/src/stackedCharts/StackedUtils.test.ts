@@ -43,6 +43,7 @@ describe(withUniformSpacing, () => {
         expect(withUniformSpacing([1, 2, 4, 8])).toEqual([
             1, 2, 3, 4, 5, 6, 7, 8,
         ])
+        expect(withUniformSpacing([7, 12, 17])).toEqual([7, 12, 17])
     })
 })
 
