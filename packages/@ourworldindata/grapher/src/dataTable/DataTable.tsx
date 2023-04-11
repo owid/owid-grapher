@@ -528,6 +528,7 @@ export class DataTable extends React.Component<{
             : column.formatValueShort(value, {
                   numberAbbreviation: false,
                   trailingZeroes: true,
+                  useNoBreakSpace: true,
                   ...formattingOverrides,
               })
     }
