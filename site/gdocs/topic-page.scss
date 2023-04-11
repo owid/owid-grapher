@@ -1,0 +1,24 @@
+/* 
+* Topic Page
+**/
+
+.topic-page-header {
+    background-color: $blue-10;
+    color: $blue-90;
+
+    h1 {
+        margin-bottom: 0;
+    }
+
+    .topic-page-header__subtitle {
+        margin: 0;
+    }
+
+    .topic-page-header__byline {
+        color: $blue-60;
+        margin-bottom: 34px;
+        a {
+            @include owid-link-60;
+        }
+    }
+}
