@@ -1,6 +1,10 @@
 #! /usr/bin/env jest
 
-import { stackSeries, withMissingValuesAsZeroes } from "./StackedUtils"
+import {
+    stackSeries,
+    withMissingValuesAsZeroes,
+    withUniformSpacing,
+} from "./StackedUtils"
 
 const seriesArr = [
     {
@@ -29,26 +33,43 @@ const seriesArr = [
     },
 ]
 
-it("can add fake points", () => {
-    expect(seriesArr[1].points[1]).toEqual(undefined)
-    const series = withMissingValuesAsZeroes(seriesArr)
-    expect(series[1].points[1].position).toEqual(2002)
-})
-
-it("can enforce uniform spacing on the x-axis", () => {
-    expect(seriesArr[1].points[1]).toEqual(undefined)
-    expect(seriesArr[1].points[2]).toEqual(undefined)
-    expect(seriesArr[1].points[3]).toEqual(undefined)
-    const series = withMissingValuesAsZeroes(seriesArr, {
-        enforceUniformSpacing: true,
+describe(withUniformSpacing, () => {
+    it("can add values to make an array evenly spaced", () => {
+        expect(withUniformSpacing([])).toEqual([])
+        expect(withUniformSpacing([5])).toEqual([5])
+        expect(withUniformSpacing([5, 10])).toEqual([5, 10])
+        expect(withUniformSpacing([5, 10, 15])).toEqual([5, 10, 15])
+        expect(withUniformSpacing([2, 4, 8])).toEqual([2, 4, 6, 8])
+        expect(withUniformSpacing([1, 2, 4, 8])).toEqual([
+            1, 2, 3, 4, 5, 6, 7, 8,
+        ])
     })
-    expect(series[1].points[1].position).toEqual(2001)
-    expect(series[1].points[2].position).toEqual(2002)
-    expect(series[1].points[3].position).toEqual(2003)
 })
 
-it("can stack series", () => {
-    expect(seriesArr[1].points[0].valueOffset).toEqual(0)
-    const series = stackSeries(withMissingValuesAsZeroes(seriesArr))
-    expect(series[1].points[0].valueOffset).toEqual(10)
+describe(withMissingValuesAsZeroes, () => {
+    it("can add fake points", () => {
+        expect(seriesArr[1].points[1]).toEqual(undefined)
+        const series = withMissingValuesAsZeroes(seriesArr)
+        expect(series[1].points[1].position).toEqual(2002)
+    })
+
+    it("can enforce uniform spacing on the x-axis", () => {
+        expect(seriesArr[1].points[1]).toEqual(undefined)
+        expect(seriesArr[1].points[2]).toEqual(undefined)
+        expect(seriesArr[1].points[3]).toEqual(undefined)
+        const series = withMissingValuesAsZeroes(seriesArr, {
+            enforceUniformSpacing: true,
+        })
+        expect(series[1].points[1].position).toEqual(2001)
+        expect(series[1].points[2].position).toEqual(2002)
+        expect(series[1].points[3].position).toEqual(2003)
+    })
+})
+
+describe(stackSeries, () => {
+    it("can stack series", () => {
+        expect(seriesArr[1].points[0].valueOffset).toEqual(0)
+        const series = stackSeries(withMissingValuesAsZeroes(seriesArr))
+        expect(series[1].points[0].valueOffset).toEqual(10)
+    })
 })

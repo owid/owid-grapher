@@ -530,6 +530,15 @@ describe(greatestCommonDivisor, () => {
         expect(greatestCommonDivisor(6, 8)).toEqual(2)
         expect(greatestCommonDivisor(6, 6)).toEqual(6)
     })
+
+    it("works with negative numbers", () => {
+        expect(greatestCommonDivisor(-10, 5)).toEqual(5)
+        expect(greatestCommonDivisor(-5, 10)).toEqual(5)
+        expect(greatestCommonDivisor(10, -5)).toEqual(5)
+        expect(greatestCommonDivisor(5, -10)).toEqual(5)
+        expect(greatestCommonDivisor(-10, -5)).toEqual(5)
+        expect(greatestCommonDivisor(-5, -10)).toEqual(5)
+    })
 })
 
 describe(findGreatestCommonDivisorOfArray, () => {
@@ -537,5 +546,6 @@ describe(findGreatestCommonDivisorOfArray, () => {
         expect(findGreatestCommonDivisorOfArray([6, 9, 12])).toEqual(3)
         expect(findGreatestCommonDivisorOfArray([6, 8, 12])).toEqual(2)
         expect(findGreatestCommonDivisorOfArray([6, 6, 6])).toEqual(6)
+        expect(findGreatestCommonDivisorOfArray([15])).toEqual(15)
     })
 })
