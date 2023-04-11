@@ -143,7 +143,9 @@ export const DataPageContent = ({
                         <div className="key-info__right">
                             <div className="key-info__data">
                                 <div className="title">Source</div>
-                                <div className="name">{sourceShortName}</div>
+                                <div className="name">
+                                    {datapage.nameOfSource}
+                                </div>
                                 {datapage.owidProcessingLevel && (
                                     <div
                                         dangerouslySetInnerHTML={{
