@@ -276,6 +276,9 @@ export {
     spansToUnformattedPlainText,
     findDuplicates,
     checkIsOwidGdocType,
+    isArrayOfNumbers,
+    greatestCommonDivisor,
+    findGreatestCommonDivisorOfArray,
 } from "./Util.js"
 
 export {
