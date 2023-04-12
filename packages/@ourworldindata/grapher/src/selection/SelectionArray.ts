@@ -71,13 +71,6 @@ export class SelectionArray {
         return new Set<EntityName>(this.selectedEntityNames)
     }
 
-    @computed get allSelectedEntityIds(): EntityId[] {
-        const map = this.entityNameToIdMap
-        return this.selectedEntityNames
-            .map((name) => map.get(name))
-            .filter(isPresent)
-    }
-
     // Clears and sets selected entities
     @action.bound setSelectedEntities(entityNames: EntityName[]): this {
         this.clearSelection()

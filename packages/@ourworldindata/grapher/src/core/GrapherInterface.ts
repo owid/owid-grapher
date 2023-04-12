@@ -89,7 +89,6 @@ export interface GrapherInterface extends SortConfig {
     includedEntities?: number[]
     selectedEntityNames?: EntityName[]
     selectedEntityColors?: { [entityName: string]: string | undefined }
-    selectedEntityIds?: EntityId[]
     facet?: FacetStrategy
 
     xAxis?: Partial<AxisConfigInterface>
@@ -180,7 +179,6 @@ export const grapherKeysToSerialize = [
     "dimensions",
     "selectedEntityNames",
     "selectedEntityColors",
-    "selectedEntityIds",
     "sortBy",
     "sortOrder",
     "sortColumnSlug",
