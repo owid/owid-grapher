@@ -163,7 +163,7 @@ export function OwidGdoc({
 }
 
 export const hydrateOwidGdoc = (debug?: boolean, isPreviewing?: boolean) => {
-    const wrapper = document.querySelector("#owid-article-root")
+    const wrapper = document.querySelector("#owid-document-root")
     const props = getOwidGdocFromJSON(window._OWID_GDOC_PROPS)
     ReactDOM.hydrate(
         <React.StrictMode>
