@@ -1,36 +1,8 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-import { entityNameById } from "./data/entityNameById.js"
-import { GrapherInterface } from "@ourworldindata/grapher"
-
-interface GrapherInterfaceBeforeMigration extends GrapherInterface {
-    selectedEntityIds?: number[]
-}
-
 export class MigrateSelectedEntityIds1681310285750
     implements MigrationInterface
 {
-    static transformConfig(
-        legacyConfig: GrapherInterfaceBeforeMigration | undefined
-    ): GrapherInterface {
-        if (!legacyConfig || legacyConfig.selectedEntityNames !== null)
-            return legacyConfig ?? {}
-
-        const selectedEntityNames = legacyConfig.selectedEntityIds?.map(
-            (id) => {
-                const name = entityNameById[id]
-                if (!name) throw new Error(`Entity name not found for id ${id}`)
-                return name
-            }
-        )
-
-        return {
-            ...legacyConfig,
-            selectedEntityNames,
-            selectedEntityIds: undefined,
-        }
-    }
-
     public async up(queryRunner: QueryRunner): Promise<void> {
         const tables = {
             charts: "config",
@@ -39,26 +11,40 @@ export class MigrateSelectedEntityIds1681310285750
         }
 
         for (const [tableName, columnName] of Object.entries(tables)) {
-            const rows = await queryRunner.query(
-                `
-                SELECT id, ${columnName} AS json
-                FROM ${tableName}
-                WHERE JSON_CONTAINS_PATH(${columnName}, 'one', '$.selectedEntityIds')
-                `
+            // This query touches all configs where `selectedEntityIds` is present and `selectedEntityNames` is not yet present.
+            // Then, it converts the existing array of ids to an array of names, and sets it on the config.
+            // Example:
+            // -  `selectedEntityIds`: [23, 31416, 8, 6, 3, 1, 13]
+            // => `selectedEntityNames`: ["Australia", "Korea", "Italy", "Germany", "France", "United Kingdom", "United States"]
+            await queryRunner.query(
+                `-- sql
+                with migrated as (
+                    (SELECT t.id,
+                            ${columnName} -> "$.selectedEntityIds" AS selectedEntityIds,
+                            JSON_ARRAYAGG(entities.name)    AS migratedSelectedEntityNames
+                    FROM ${tableName} t,
+                        JSON_TABLE(
+                                t.${columnName},
+                                '$.selectedEntityIds[*]' COLUMNS (id INT PATH '$')
+                            ) AS json_ids
+                            JOIN entities ON json_ids.id = entities.id
+                    WHERE ${columnName} -> "$.selectedEntityIds" IS NOT NULL
+                    GROUP BY t.id))
+                UPDATE ${tableName}
+                    INNER JOIN migrated ON ${tableName}.id = migrated.id
+                SET ${columnName} = JSON_SET(${columnName}, "$.selectedEntityNames", migrated.migratedSelectedEntityNames)
+                WHERE ${columnName} -> "$.selectedEntityNames" IS NULL
+            `
             )
-            for (const row of rows) {
-                const config = JSON.parse(
-                    row.json
-                ) as GrapherInterfaceBeforeMigration
-                const newConfig =
-                    MigrateSelectedEntityIds1681310285750.transformConfig(
-                        config
-                    )
-                await queryRunner.query(
-                    `UPDATE ${tableName} SET ${columnName} = ? WHERE id = ?`,
-                    [JSON.stringify(newConfig), row.id]
-                )
-            }
+
+            // Now that `selectedEntityNames` is set, we can drop `selectedEntityIds`.
+            await queryRunner.query(
+                `-- sql
+                UPDATE ${tableName}
+                SET ${columnName} = JSON_REMOVE(${columnName}, "$.selectedEntityIds")
+                WHERE ${columnName} -> "$.selectedEntityIds" IS NOT NULL
+            `
+            )
         }
     }
 
