@@ -8,7 +8,7 @@ import { GrapherWithFallback } from "./GrapherWithFallback.js"
 import { formatAuthors } from "./clientFormatting.js"
 import {
     GdocsContentSource,
-    OwidArticleType,
+    OwidEnrichedArticleBlock,
     getArticleFromJSON,
     getLinkType,
     getUrlTarget,
@@ -34,8 +34,8 @@ export const DataPageContent = ({
     grapherConfig: GrapherInterface
 }) => {
     const [grapher, setGrapher] = React.useState<Grapher | undefined>(undefined)
-    const [faqsArticle, setFaqsArticle] = React.useState<
-        OwidArticleType | undefined
+    const [gdocKeyedBlocks, setGdocKeyedBlocks] = React.useState<
+        { [key: string]: OwidEnrichedArticleBlock[] } | undefined
     >(undefined)
 
     const sourceShortName =
@@ -50,12 +50,31 @@ export const DataPageContent = ({
 
     // Not suitable for production, only for prototyping
     useEffect(() => {
-        const fetchFaqsArticle = async (googleDocId: string) => {
+        const fetchGdocKeyedContent = async (googleDocId: string) => {
             const response = await fetch(
                 `/admin/api/gdocs/${googleDocId}?contentSource=${GdocsContentSource.Gdocs}`
             )
             const json = await response.json()
-            setFaqsArticle(getArticleFromJSON(json))
+            const gdoc = getArticleFromJSON(json)
+            if (!gdoc.content?.body) return
+
+            // use heading 1s as makeshit archie block separators until we gain
+            // confidence in the datapage architecture and its source of truth
+            let currentKey = ""
+            const keyedBlocks: { [key: string]: OwidEnrichedArticleBlock[] } =
+                {}
+            gdoc.content.body.forEach((block: any) => {
+                if (block.type === "heading" && block.level === 1) {
+                    currentKey = block.text[0].text // use heading 1s' text as key through a very raw version of "spansToSimpleText"
+                } else {
+                    keyedBlocks[currentKey] = [
+                        ...(keyedBlocks[currentKey] || []),
+                        block,
+                    ]
+                }
+            })
+
+            setGdocKeyedBlocks(keyedBlocks)
         }
 
         if (
@@ -64,7 +83,7 @@ export const DataPageContent = ({
         )
             return
         const googleDocId = getUrlTarget(datapage.faqsGoogleDocEditLink)
-        fetchFaqsArticle(googleDocId)
+        fetchGdocKeyedContent(googleDocId)
     }, [datapage.faqsGoogleDocEditLink])
 
     return (
@@ -118,7 +137,7 @@ export const DataPageContent = ({
                                     }}
                                 />
                             )}
-                            {faqsArticle?.content.body && (
+                            {gdocKeyedBlocks?.faqs && (
                                 <a className="learn-more" href="#faqs">
                                     Learn more in the FAQs
                                     <FontAwesomeIcon icon={faArrowDown} />
@@ -267,7 +286,7 @@ export const DataPageContent = ({
                         </div>
                     </div>
                 )}
-                {faqsArticle?.content.body && (
+                {gdocKeyedBlocks?.faqs && (
                     <div
                         style={{
                             backgroundColor: "#f7f7f7",
@@ -280,7 +299,7 @@ export const DataPageContent = ({
                             </h2>
                             <div className="faq__items grid grid-cols-8 span-cols-8">
                                 <ArticleBlocks
-                                    blocks={faqsArticle.content.body}
+                                    blocks={gdocKeyedBlocks.faqs}
                                     containerType="datapage"
                                 />
                             </div>
