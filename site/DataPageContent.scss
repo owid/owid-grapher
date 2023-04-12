@@ -3,6 +3,10 @@
 }
 
 .DataPageContent {
+    .article-block__list {
+        @include HACK-fix-bullets-outside;
+    }
+
     .header__wrapper {
         @include grid(12);
         padding-top: 48px;
@@ -78,7 +82,6 @@
             margin: 0;
         }
         ul {
-            margin-left: 16px;
             @include row-gap(16px);
             li {
                 @include body-2-regular;
