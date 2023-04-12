@@ -341,12 +341,16 @@ export const DataPageContent = ({
                                             }}
                                         />
                                     </div>
-                                    <div
-                                        className="data-collection__description"
-                                        dangerouslySetInnerHTML={{
-                                            __html: datapage.datasetDescription,
-                                        }}
-                                    />
+                                    {gdocKeyedBlocks?.datasetDescription && (
+                                        <div className="data-collection__description">
+                                            <ArticleBlocks
+                                                blocks={
+                                                    gdocKeyedBlocks.datasetDescription
+                                                }
+                                                containerType="datapage"
+                                            />
+                                        </div>
+                                    )}
                                 </div>
                                 <div>
                                     <div style={{ marginBottom: "24px" }}>
