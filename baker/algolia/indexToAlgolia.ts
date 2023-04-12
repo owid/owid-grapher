@@ -17,7 +17,7 @@ import { htmlToText } from "html-to-text"
 import { PageRecord, PageType } from "../../site/search/searchTypes.js"
 import { Pageview } from "../../db/model/Pageview.js"
 import { Gdoc } from "../../db/model/Gdoc/Gdoc.js"
-import ArticleBlock from "../../site/gdocs/ArticleBlock.js"
+import { ArticleBlocks } from "../../site/gdocs/ArticleBlocks.js"
 import React from "react"
 import { logErrorAndMaybeSendToSlack } from "../../serverUtils/slackLog.js"
 
@@ -141,12 +141,13 @@ function generateGdocRecords(
 ): PageRecord[] {
     const records: PageRecord[] = []
     for (const gdoc of gdocs) {
+        if (!gdoc.content.body) continue
         // Only rendering the blocks - not the page nav, title, byline, etc
         const renderedPostContent = ReactDOMServer.renderToStaticMarkup(
             React.createElement(
                 "div",
                 {},
-                gdoc.content.body?.map((block) => ArticleBlock({ b: block }))
+                ArticleBlocks({ blocks: gdoc.content.body })
             )
         )
         const chunks = generateChunksFromHtmlText(renderedPostContent)
@@ -164,8 +165,8 @@ function generateGdocRecords(
                 excerpt: gdoc.content.excerpt,
                 date: gdoc.publishedAt!.toISOString(),
                 modifiedDate: gdoc.updatedAt!.toISOString(),
+                tags: gdoc.tags.map((t) => t.name),
                 // authors: gdoc.content.byline, // different format
-                // tags: string[] // not supported
             }
             const score = computeScore(record)
             records.push({ ...record, score })
