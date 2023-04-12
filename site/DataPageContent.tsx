@@ -17,6 +17,7 @@ import { ArticleBlocks } from "./gdocs/ArticleBlocks.js"
 import { faTable } from "@fortawesome/free-solid-svg-icons/faTable"
 import { faGithub } from "@fortawesome/free-brands-svg-icons/faGithub"
 import { RelatedCharts } from "./blocks/RelatedCharts.js"
+import { FallbackGdocFieldExplain } from "./FallbackFieldExplain.js"
 
 declare global {
     interface Window {
@@ -460,42 +461,38 @@ export const DataPageContent = ({
                                                     label={source.sourceName}
                                                     content={
                                                         <>
-                                                            <>
-                                                                {gdocKeyedBlocks?.[
-                                                                    `sourceDescription${
-                                                                        idx + 1
-                                                                    }`
-                                                                ] ? (
-                                                                    <ArticleBlocks
-                                                                        blocks={
-                                                                            gdocKeyedBlocks[
-                                                                                `sourceDescription${
-                                                                                    idx +
-                                                                                    1
-                                                                                }`
-                                                                            ]
-                                                                        }
-                                                                        containerType="datapage"
-                                                                    />
-                                                                ) : (
-                                                                    <span
-                                                                        style={{
-                                                                            color: "red",
-                                                                        }}
-                                                                    >
-                                                                        {`Edit in
-                                                                        google
-                                                                        doc by
-                                                                        adding a
-                                                                        "sourceDescription${
+                                                            <FallbackGdocFieldExplain
+                                                                googleDocEditLink={
+                                                                    datapage.googleDocEditLink
+                                                                }
+                                                                fieldName={`sourceDescription${
+                                                                    idx + 1
+                                                                }`}
+                                                                render={(
+                                                                    fallback: JSX.Element
+                                                                ) =>
+                                                                    gdocKeyedBlocks?.[
+                                                                        `sourceDescription${
                                                                             idx +
                                                                             1
-                                                                        }"
-                                                                        heading
-                                                                        1.`}
-                                                                    </span>
-                                                                )}
-                                                            </>
+                                                                        }`
+                                                                    ] ? (
+                                                                        <ArticleBlocks
+                                                                            blocks={
+                                                                                gdocKeyedBlocks[
+                                                                                    `sourceDescription${
+                                                                                        idx +
+                                                                                        1
+                                                                                    }`
+                                                                                ]
+                                                                            }
+                                                                            containerType="datapage"
+                                                                        />
+                                                                    ) : (
+                                                                        fallback
+                                                                    )
+                                                                }
+                                                            />
                                                             <>
                                                                 {source.sourceRetrievedOn &&
                                                                     source.sourceRetrievedFrom && (

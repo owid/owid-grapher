@@ -20,7 +20,10 @@ export const ExpandableAnimatedToggle = ({
         <div className="ExpandableAnimatedToggle">
             <button onClick={toggle}>
                 <h4>{label}</h4>
-                <FontAwesomeIcon icon={faPlus} />
+                <FontAwesomeIcon
+                    className="ExpandableAnimatedToggle__icon"
+                    icon={faPlus}
+                />
             </button>
             <AnimateHeight height={height} animateOpacity>
                 <div className="content-wrapper">{content}</div>
