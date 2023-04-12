@@ -78,13 +78,13 @@ export const DataPageContent = ({
         }
 
         if (
-            !datapage.faqsGoogleDocEditLink ||
-            getLinkType(datapage.faqsGoogleDocEditLink) !== "gdoc"
+            !datapage.googleDocEditLink ||
+            getLinkType(datapage.googleDocEditLink) !== "gdoc"
         )
             return
-        const googleDocId = getUrlTarget(datapage.faqsGoogleDocEditLink)
+        const googleDocId = getUrlTarget(datapage.googleDocEditLink)
         fetchGdocKeyedContent(googleDocId)
-    }, [datapage.faqsGoogleDocEditLink])
+    }, [datapage.googleDocEditLink])
 
     return (
         <>
