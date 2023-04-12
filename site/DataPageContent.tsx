@@ -143,16 +143,20 @@ export const DataPageContent = ({
                                 </a>
                             )}
                             {datapage.descriptionFromSource?.title &&
-                                datapage.descriptionFromSource?.content && (
-                                    <div style={{ marginTop: 8 }}>
+                                gdocKeyedBlocks?.descriptionFromSource && (
+                                    <div className="key-info__description-source">
                                         <ExpandableAnimatedToggle
                                             label={
                                                 datapage.descriptionFromSource
                                                     .title
                                             }
-                                            contentHtml={
-                                                datapage.descriptionFromSource
-                                                    .content
+                                            content={
+                                                <ArticleBlocks
+                                                    blocks={
+                                                        gdocKeyedBlocks.descriptionFromSource
+                                                    }
+                                                    containerType="datapage"
+                                                />
                                             }
                                         />
                                     </div>

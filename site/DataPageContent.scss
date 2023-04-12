@@ -98,6 +98,13 @@
         }
     }
 
+    .key-info__description-source {
+        margin-top: 8px;
+        .article-block__text {
+            @include body-2-regular;
+        }
+    }
+
     .key-info__right {
         grid-column: 9 / span 3;
         display: flex;
