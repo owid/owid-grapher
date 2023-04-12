@@ -7,12 +7,12 @@ export const FallbackGdocFieldExplain = ({
     fieldName,
     googleDocEditLink,
     render,
-    level = "info",
+    level,
 }: {
     fieldName: string
     googleDocEditLink: string
     render: (fallback: JSX.Element) => JSX.Element
-    level?: "info" | "error"
+    level: "info" | "error"
 }) => {
     const icon = level === "info" ? faExclamationCircle : faExclamationTriangle
     const styles =
@@ -22,8 +22,8 @@ export const FallbackGdocFieldExplain = ({
                   borderColor: "#91caff",
               }
             : {
-                  backgroundColor: "#fffbe6",
-                  borderColor: "#ffe58f",
+                  backgroundColor: "#fff2f0",
+                  borderColor: "#ffccc7",
               }
 
     return render(
@@ -33,6 +33,7 @@ export const FallbackGdocFieldExplain = ({
                 padding: "8px 12px",
                 border: `1px solid ${styles.borderColor}`,
                 borderRadius: 8,
+                margin: "8px 0",
             }}
         >
             <FontAwesomeIcon style={{ marginRight: 8 }} icon={icon} /> Edit in
@@ -40,7 +41,7 @@ export const FallbackGdocFieldExplain = ({
             <a href={googleDocEditLink} target="_blank" rel="noreferrer">
                 google doc
             </a>{" "}
-            by adding a "{fieldName}" heading 1
+            by adding content below a "{fieldName}" heading 1
         </div>
     )
 }

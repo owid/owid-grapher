@@ -131,37 +131,57 @@ export const DataPageContent = ({
                     <div className="key-info__wrapper wrapper">
                         <div className="key-info__left">
                             <h2>Key information</h2>
-                            {gdocKeyedBlocks?.keyInfoText && (
-                                <ArticleBlocks
-                                    blocks={gdocKeyedBlocks.keyInfoText}
-                                    containerType="datapage"
-                                />
-                            )}
+                            <FallbackGdocFieldExplain
+                                googleDocEditLink={datapage.googleDocEditLink}
+                                fieldName="keyInfoText"
+                                level="error"
+                                render={(fallback) =>
+                                    gdocKeyedBlocks?.keyInfoText ? (
+                                        <ArticleBlocks
+                                            blocks={gdocKeyedBlocks.keyInfoText}
+                                            containerType="datapage"
+                                        />
+                                    ) : (
+                                        fallback
+                                    )
+                                }
+                            />
+
                             {gdocKeyedBlocks?.faqs && (
                                 <a className="learn-more" href="#faqs">
                                     Learn more in the FAQs
                                     <FontAwesomeIcon icon={faArrowDown} />
                                 </a>
                             )}
-                            {datapage.descriptionFromSource?.title &&
-                                gdocKeyedBlocks?.descriptionFromSource && (
-                                    <div className="key-info__description-source">
-                                        <ExpandableAnimatedToggle
-                                            label={
-                                                datapage.descriptionFromSource
-                                                    .title
-                                            }
-                                            content={
-                                                <ArticleBlocks
-                                                    blocks={
-                                                        gdocKeyedBlocks.descriptionFromSource
-                                                    }
-                                                    containerType="datapage"
-                                                />
-                                            }
-                                        />
-                                    </div>
-                                )}
+                            <FallbackGdocFieldExplain
+                                googleDocEditLink={datapage.googleDocEditLink}
+                                fieldName="descriptionFromSource"
+                                level="info"
+                                render={(fallback) =>
+                                    datapage.descriptionFromSource?.title &&
+                                    gdocKeyedBlocks?.descriptionFromSource ? (
+                                        <div className="key-info__description-source">
+                                            <ExpandableAnimatedToggle
+                                                label={
+                                                    datapage
+                                                        .descriptionFromSource
+                                                        .title
+                                                }
+                                                content={
+                                                    <ArticleBlocks
+                                                        blocks={
+                                                            gdocKeyedBlocks.descriptionFromSource
+                                                        }
+                                                        containerType="datapage"
+                                                    />
+                                                }
+                                            />
+                                        </div>
+                                    ) : (
+                                        fallback
+                                    )
+                                }
+                            />
                         </div>
                         <div className="key-info__right">
                             <div className="key-info__data">
@@ -290,34 +310,45 @@ export const DataPageContent = ({
                         </div>
                     </div>
                 )}
-                {gdocKeyedBlocks?.faqs && (
-                    <div
-                        style={{
-                            backgroundColor: "#f7f7f7",
-                            padding: "48px 0",
-                        }}
-                    >
-                        <div className="faq grid wrapper">
-                            <h2 className="span-cols-2" id="faqs">
-                                What you should know about this data
-                            </h2>
-                            <div className="faq__items grid grid-cols-8 span-cols-8">
-                                <ArticleBlocks
-                                    blocks={gdocKeyedBlocks.faqs}
-                                    containerType="datapage"
-                                />
-                            </div>
-                        </div>
-                    </div>
-                )}
-                <div
-                    className="DataPageContent__section-border wrapper"
-                    style={{
-                        backgroundColor: "#f7f7f7",
-                    }}
-                >
-                    <hr />
-                </div>
+                <FallbackGdocFieldExplain
+                    googleDocEditLink={datapage.googleDocEditLink}
+                    fieldName="faqs"
+                    level="info"
+                    render={(fallback) =>
+                        gdocKeyedBlocks?.faqs ? (
+                            <>
+                                <div
+                                    style={{
+                                        backgroundColor: "#f7f7f7",
+                                        padding: "48px 0",
+                                    }}
+                                >
+                                    <div className="faq grid wrapper">
+                                        <h2 className="span-cols-2" id="faqs">
+                                            What you should know about this data
+                                        </h2>
+                                        <div className="faq__items grid grid-cols-8 span-cols-8">
+                                            <ArticleBlocks
+                                                blocks={gdocKeyedBlocks.faqs}
+                                                containerType="datapage"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div
+                                    className="DataPageContent__section-border wrapper"
+                                    style={{
+                                        backgroundColor: "#f7f7f7",
+                                    }}
+                                >
+                                    <hr />
+                                </div>
+                            </>
+                        ) : (
+                            fallback
+                        )
+                    }
+                />
                 <div
                     style={{
                         backgroundColor: "#f7f7f7",
@@ -346,16 +377,27 @@ export const DataPageContent = ({
                                             }}
                                         />
                                     </div>
-                                    {gdocKeyedBlocks?.datasetDescription && (
-                                        <div className="data-collection__description">
-                                            <ArticleBlocks
-                                                blocks={
-                                                    gdocKeyedBlocks.datasetDescription
-                                                }
-                                                containerType="datapage"
-                                            />
-                                        </div>
-                                    )}
+                                    <FallbackGdocFieldExplain
+                                        googleDocEditLink={
+                                            datapage.googleDocEditLink
+                                        }
+                                        fieldName="datasetDescription"
+                                        level="error"
+                                        render={(fallback) =>
+                                            gdocKeyedBlocks?.datasetDescription ? (
+                                                <div className="data-collection__description">
+                                                    <ArticleBlocks
+                                                        blocks={
+                                                            gdocKeyedBlocks.datasetDescription
+                                                        }
+                                                        containerType="datapage"
+                                                    />
+                                                </div>
+                                            ) : (
+                                                fallback
+                                            )
+                                        }
+                                    />
                                 </div>
                                 <div>
                                     <div style={{ marginBottom: "24px" }}>
@@ -468,8 +510,9 @@ export const DataPageContent = ({
                                                                 fieldName={`sourceDescription${
                                                                     idx + 1
                                                                 }`}
+                                                                level="info"
                                                                 render={(
-                                                                    fallback: JSX.Element
+                                                                    fallback
                                                                 ) =>
                                                                     gdocKeyedBlocks?.[
                                                                         `sourceDescription${
