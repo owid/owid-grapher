@@ -130,11 +130,10 @@ export const DataPageContent = ({
                     <div className="key-info__wrapper wrapper">
                         <div className="key-info__left">
                             <h2>Key information</h2>
-                            {datapage.keyInfoText && (
-                                <div
-                                    dangerouslySetInnerHTML={{
-                                        __html: datapage.keyInfoText,
-                                    }}
+                            {gdocKeyedBlocks?.keyInfoText && (
+                                <ArticleBlocks
+                                    blocks={gdocKeyedBlocks.keyInfoText}
+                                    containerType="datapage"
                                 />
                             )}
                             {gdocKeyedBlocks?.faqs && (

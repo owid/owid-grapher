@@ -81,6 +81,7 @@
             margin-left: 16px;
             @include row-gap(16px);
             li {
+                @include body-2-regular;
                 display: list-item;
             }
         }
