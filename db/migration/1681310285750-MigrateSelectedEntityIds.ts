@@ -1,5 +1,9 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
+/**
+ * BEFORE this migration, we had a legacy `selectedEntityIds` property on most old chart configs.
+ * It was used _only_ in case the `selectedEntityNames` property was not present.
+ */
 export class MigrateSelectedEntityIds1681310285750
     implements MigrationInterface
 {
