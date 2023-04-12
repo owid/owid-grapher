@@ -146,12 +146,13 @@ import {
     HorizontalAlign,
     IDEAL_PLOT_ASPECT_RATIO,
     GridParameters,
-    OwidArticleType,
-    OwidArticleTypeJSON,
+    OwidGdocInterface,
+    OwidGdocJSON,
     TimeBound,
     TimeBoundValue,
-    OwidEnrichedArticleBlock,
+    OwidEnrichedGdocBlock,
     Span,
+    OwidGdocType,
 } from "./owidTypes.js"
 import { PointVector } from "./PointVector.js"
 import React from "react"
@@ -1272,9 +1273,7 @@ export const formatDate = (date: Date): string => {
  * write a custom JSON parser to handle that automatically for all keys. At this
  * stage, the manual approach is probably simpler.
  */
-export const getArticleFromJSON = (
-    json: OwidArticleTypeJSON
-): OwidArticleType => {
+export const getOwidGdocFromJSON = (json: OwidGdocJSON): OwidGdocInterface => {
     return {
         ...json,
         createdAt: new Date(json.createdAt),
@@ -1347,12 +1346,10 @@ export const imemo = <Type>(
 }
 
 export function recursivelyMapArticleContent<
-    Node extends OwidEnrichedArticleBlock | Span
+    Node extends OwidEnrichedGdocBlock | Span
 >(
     node: Node,
-    callback: <Child extends OwidEnrichedArticleBlock | Span>(
-        node: Child
-    ) => Child
+    callback: <Child extends OwidEnrichedGdocBlock | Span>(node: Child) => Child
 ): Node {
     if (checkNodeIsSpan(node)) {
         if ("children" in node) {
@@ -1379,7 +1376,7 @@ export function recursivelyMapArticleContent<
 }
 
 export function checkNodeIsSpan(
-    node: OwidEnrichedArticleBlock | Span
+    node: OwidEnrichedGdocBlock | Span
 ): node is Span {
     return "spanType" in node
 }
@@ -1409,4 +1406,25 @@ export function spansToUnformattedPlainText(spans: Span[]): string {
                 .exhaustive()
         )
         .join("")
+}
+
+export function checkIsOwidGdocType(
+    documentType: unknown
+): documentType is OwidGdocType {
+    return Object.values(OwidGdocType).includes(documentType as any)
+}
+
+export function isArrayOfNumbers(arr: unknown[]): arr is number[] {
+    return arr.every((item) => typeof item === "number")
+}
+
+export function greatestCommonDivisor(a: number, b: number): number {
+    if (a === 0) return Math.abs(b)
+    return greatestCommonDivisor(b % a, a)
+}
+
+export function findGreatestCommonDivisorOfArray(arr: number[]): number | null {
+    if (arr.length === 0) return null
+    if (arr.includes(1)) return 1
+    return uniq(arr).reduce((acc, num) => greatestCommonDivisor(acc, num))
 }

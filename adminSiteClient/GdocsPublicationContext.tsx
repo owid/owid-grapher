@@ -1,7 +1,7 @@
 import { Col, Radio, RadioChangeEvent, Row } from "antd"
 import {
-    OwidArticlePublicationContext,
-    OwidArticleType,
+    OwidGdocPublicationContext,
+    OwidGdocInterface,
 } from "@ourworldindata/utils"
 import React from "react"
 import { GdocsErrorHelp } from "./GdocsErrorHelp.js"
@@ -10,8 +10,8 @@ export const GdocsPublicationContext = ({
     gdoc,
     setGdoc,
 }: {
-    gdoc: OwidArticleType
-    setGdoc: (gdoc: OwidArticleType) => void
+    gdoc: OwidGdocInterface
+    setGdoc: (gdoc: OwidGdocInterface) => void
 }) => {
     const { publicationContext } = gdoc
 
@@ -34,11 +34,11 @@ export const GdocsPublicationContext = ({
                         value={publicationContext}
                         optionType="button"
                     >
-                        <Radio value={OwidArticlePublicationContext.unlisted}>
-                            {OwidArticlePublicationContext.unlisted}
+                        <Radio value={OwidGdocPublicationContext.unlisted}>
+                            {OwidGdocPublicationContext.unlisted}
                         </Radio>
-                        <Radio value={OwidArticlePublicationContext.listed}>
-                            {OwidArticlePublicationContext.listed}
+                        <Radio value={OwidGdocPublicationContext.listed}>
+                            {OwidGdocPublicationContext.listed}
                         </Radio>
                     </Radio.Group>
                     <GdocsErrorHelp

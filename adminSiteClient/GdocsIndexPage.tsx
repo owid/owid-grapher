@@ -4,7 +4,7 @@ import { EditableTags, Modal } from "./Forms.js"
 import { faCirclePlus } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { AdminAppContext } from "./AdminAppContext.js"
-import { OwidArticleTag, OwidArticleType } from "@ourworldindata/utils"
+import { OwidGdocTag, OwidGdocInterface } from "@ourworldindata/utils"
 import { Route, RouteComponentProps } from "react-router-dom"
 import { Link } from "./Link.js"
 import { GdocsAdd } from "./GdocsAdd.js"
@@ -25,7 +25,7 @@ export const GdocsIndexPage = ({ match, history }: GdocsMatchProps) => {
         const fetchGdocs = async () => {
             const gdocs = (await admin.getJSON(
                 "/api/gdocs"
-            )) as OwidArticleType[]
+            )) as OwidGdocInterface[]
 
             runInAction(() => {
                 store.gdocs = gdocs
@@ -43,7 +43,7 @@ export const GdocsIndexPage = ({ match, history }: GdocsMatchProps) => {
     }, [admin, store])
 
     const updateTags = useCallback(
-        async (gdoc: OwidArticleType, tags: OwidArticleTag[]) => {
+        async (gdoc: OwidGdocInterface, tags: OwidGdocTag[]) => {
             const json = await admin.requestJSON(
                 `/api/gdocs/${gdoc.id}/setTags`,
                 { tagIds: tags.map((t) => t.id) },

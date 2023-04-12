@@ -268,7 +268,7 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                         label="Variant name"
                         field="variantName"
                         store={grapher}
-                        placeholder="e.g. IHME data"
+                        placeholder="e.g. IHME"
                         helpText="Optional variant name for distinguishing charts with the same title"
                     />
                 </Section>

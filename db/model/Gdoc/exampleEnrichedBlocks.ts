@@ -2,7 +2,7 @@ import {
     BlockImageSize,
     EnrichedBlockChart,
     EnrichedBlockText,
-    OwidEnrichedArticleBlock,
+    OwidEnrichedGdocBlock,
     Span,
     SpanSimpleText,
 } from "@ourworldindata/utils"
@@ -47,8 +47,8 @@ const enrichedChart: EnrichedBlockChart = {
 }
 
 export const enrichedBlockExamples: Record<
-    OwidEnrichedArticleBlock["type"],
-    OwidEnrichedArticleBlock
+    OwidEnrichedGdocBlock["type"],
+    OwidEnrichedGdocBlock
 > = {
     text: enrichedBlockText,
     "simple-text": {

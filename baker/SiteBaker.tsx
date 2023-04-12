@@ -30,7 +30,7 @@ import {
     renderCountryProfile,
     flushCache as siteBakingFlushCache,
     renderPost,
-    renderGdocsArticle,
+    renderGdoc,
 } from "../baker/siteRenderers.js"
 import {
     bakeGrapherUrls,
@@ -42,7 +42,7 @@ import { bakeCountries } from "../baker/countryProfiles.js"
 import {
     countries,
     FullPost,
-    OwidArticleTypePublished,
+    OwidGdocPublished,
     ImageMetadata,
     clone,
     getFilenameWithoutExtension,
@@ -184,8 +184,8 @@ export class SiteBaker {
     }
 
     // Bake an individual post/page
-    async bakeGDocPost(post: OwidArticleTypePublished) {
-        const html = renderGdocsArticle(post)
+    async bakeGDocPost(post: OwidGdocPublished) {
+        const html = renderGdoc(post)
         const outPath = path.join(this.bakedSiteDir, `${post.slug}.html`)
         await fs.mkdirp(path.dirname(outPath))
         await this.stageWrite(outPath, html)
@@ -318,7 +318,7 @@ export class SiteBaker {
                         .join("\n  ")}`
                 )
             }
-            await this.bakeGDocPost(publishedGdoc as OwidArticleTypePublished)
+            await this.bakeGDocPost(publishedGdoc as OwidGdocPublished)
         }
 
         this.progressBar.tick({ name: "✅ baked google doc posts" })

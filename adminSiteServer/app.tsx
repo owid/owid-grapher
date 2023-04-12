@@ -31,7 +31,7 @@ import { publicApiRouter } from "./publicApiRouter.js"
 import { mockSiteRouter } from "./mockSiteRouter.js"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import { GdocsContentSource } from "@ourworldindata/utils"
-import OwidArticlePage from "../site/gdocs/OwidArticlePage.js"
+import OwidGdocPage from "../site/gdocs/OwidGdocPage.js"
 import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
 
 // library does not provide type definitions
@@ -118,7 +118,7 @@ export class OwidAdminApp {
             )
         })
 
-        // Public preview of a Gdoc article
+        // Public preview of a Gdoc document
         app.get("/gdocs/:id/preview", async (req, res) => {
             try {
                 const gdoc = await Gdoc.getGdocFromContentSource(
@@ -128,9 +128,9 @@ export class OwidAdminApp {
                 res.set("X-Robots-Tag", "noindex")
                 res.send(
                     renderToHtmlPage(
-                        <OwidArticlePage
+                        <OwidGdocPage
                             baseUrl={BAKED_BASE_URL}
-                            article={gdoc}
+                            gdoc={gdoc}
                             debug
                             isPreviewing
                         />
