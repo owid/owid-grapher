@@ -112,7 +112,6 @@ import { ComparisonLineConfig } from "../scatterCharts/ComparisonLine"
 import {
     ColumnSlugs,
     Time,
-    EntityId,
     EntityName,
     OwidColumnDef,
     OwidVariableRow,

@@ -21,12 +21,7 @@ import { ComparisonLineConfig } from "../scatterCharts/ComparisonLine"
 import { LogoOption } from "../captionedChart/Logos"
 import { ColorScaleConfigInterface } from "../color/ColorScaleConfig"
 import { MapConfigWithLegacyInterface } from "../mapCharts/MapConfig"
-import {
-    ColumnSlugs,
-    Time,
-    EntityId,
-    EntityName,
-} from "@ourworldindata/core-table"
+import { ColumnSlugs, Time, EntityName } from "@ourworldindata/core-table"
 import { ColorSchemeName } from "../color/ColorConstants"
 
 // This configuration represents the entire persistent state of a grapher

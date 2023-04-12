@@ -1,5 +1,5 @@
 import { EntityCode, EntityId, EntityName } from "@ourworldindata/core-table"
-import { difference, mapBy, isPresent } from "@ourworldindata/utils"
+import { difference, mapBy } from "@ourworldindata/utils"
 import { action, computed, observable } from "mobx"
 
 export interface Entity {
