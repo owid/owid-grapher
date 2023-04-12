@@ -103,7 +103,10 @@
 
     .key-info__description-source {
         margin-top: 8px;
-        .article-block__text {
+        .article-block__text,
+        .article-block__list,
+        .article-block__html,
+        .article-block__numbered-list {
             @include body-2-regular;
         }
     }
@@ -335,7 +338,10 @@
             margin-top: 8px;
             color: $blue-60;
 
-            .article-block__text {
+            .article-block__text,
+            .article-block__list,
+            .article-block__html,
+            .article-block__numbered-list {
                 @include body-3-medium;
             }
 
@@ -381,6 +387,13 @@
 
         .sources {
             margin-top: 48px;
+
+            .article-block__text,
+            .article-block__list,
+            .article-block__html,
+            .article-block__numbered-list {
+                @include body-2-regular;
+            }
         }
 
         .sources__heading {
