@@ -5,13 +5,13 @@ import {
     RawBlockAdditionalCharts,
     EnrichedBlockHeading,
     RawBlockHeading,
-    OwidRawArticleBlock,
+    OwidRawGdocBlock,
     omitUndefinedValues,
     RawBlockText,
 } from "@ourworldindata/utils"
 import { spansToHtmlString } from "./model/Gdoc/gdocUtils.js"
 import { archieToEnriched } from "./model/Gdoc/archieToEnriched.js"
-import { owidRawArticleBlockToArchieMLString } from "./model/Gdoc/rawToArchie.js"
+import { OwidRawGdocBlockToArchieMLString } from "./model/Gdoc/rawToArchie.js"
 import { enrichedBlockExamples } from "./model/Gdoc/exampleEnrichedBlocks.js"
 import { enrichedBlockToRawBlock } from "./model/Gdoc/enrichtedToRaw.js"
 import { load } from "archieml"
@@ -88,7 +88,7 @@ level: 2
         }
 
         const serializedRawBlock =
-            owidRawArticleBlockToArchieMLString(expectedRawBlock)
+            OwidRawGdocBlockToArchieMLString(expectedRawBlock)
         expect(serializedRawBlock).toEqual(archieMLString)
     })
 
@@ -144,7 +144,7 @@ level: 2
         }
 
         const serializedRawBlock =
-            owidRawArticleBlockToArchieMLString(expectedRawBlock)
+            OwidRawGdocBlockToArchieMLString(expectedRawBlock)
         expect(serializedRawBlock).toEqual(archieMLString)
     })
 
@@ -153,13 +153,13 @@ level: 2
         (example) => {
             const rawBlock = enrichedBlockToRawBlock(example)
             const serializedRawBlock =
-                owidRawArticleBlockToArchieMLString(rawBlock)
+                OwidRawGdocBlockToArchieMLString(rawBlock)
             const simpleArchieMLDocument = `[+body]
             ${serializedRawBlock}
             []
             `
             const deserializedRawBlock = load(simpleArchieMLDocument)
-            const bodyNodes: OwidRawArticleBlock[] = deserializedRawBlock.body
+            const bodyNodes: OwidRawGdocBlock[] = deserializedRawBlock.body
             let deserializedEnrichedBlocks = bodyNodes.map(
                 parseRawBlocksToEnrichedBlocks
             )

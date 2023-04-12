@@ -11,7 +11,7 @@ import NumberedList from "./NumberedList.js"
 import Image from "./Image.js"
 import {
     get,
-    OwidEnrichedArticleBlock,
+    OwidEnrichedGdocBlock,
     spansToUnformattedPlainText,
     TocHeadingWithTitleSupertitle,
     Url,
@@ -124,7 +124,7 @@ export default function ArticleBlock({
     containerType = "default",
     toc,
 }: {
-    b: OwidEnrichedArticleBlock
+    b: OwidEnrichedGdocBlock
     containerType?: Container
     toc?: TocHeadingWithTitleSupertitle[]
 }) {
@@ -484,7 +484,7 @@ export default function ArticleBlock({
     //     try {
     //         columns =
     //             +b.value.find(
-    //                 (_d: OwidRawArticleBlock) => _d.type === "columns"
+    //                 (_d: OwidRawGdocBlock) => _d.type === "columns"
     //             ).value || 1
     //     } catch (e) {}
 
@@ -499,8 +499,8 @@ export default function ArticleBlock({
     //             }}
     //         >
     //             {d.value
-    //                 .filter((_d: OwidRawArticleBlock) => _d.type === "chart")
-    //                 .map((_d: OwidRawArticleBlock, i: number) => {
+    //                 .filter((_d: OwidRawGdocBlock) => _d.type === "chart")
+    //                 .map((_d: OwidRawGdocBlock, i: number) => {
     //                     return <Chart d={_d} key={i} />
     //                 })}
     //         </div>

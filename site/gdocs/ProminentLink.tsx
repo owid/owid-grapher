@@ -4,7 +4,7 @@ import { getLinkType } from "@ourworldindata/utils"
 
 import Image from "./Image.js"
 import { useLinkedChart, useLinkedDocument } from "./utils.js"
-import { ArticleContext } from "./OwidArticle.js"
+import { DocumentContext } from "./OwidGdoc.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
 
 export const ProminentLink = (props: {
@@ -20,7 +20,7 @@ export const ProminentLink = (props: {
     const { linkedChart, errorMessage: linkedChartErrorMessage } =
         useLinkedChart(props.url)
     const errorMessage = linkedDocumentErrorMessage || linkedChartErrorMessage
-    const { isPreviewing } = useContext(ArticleContext)
+    const { isPreviewing } = useContext(DocumentContext)
 
     if (errorMessage) {
         if (isPreviewing) {

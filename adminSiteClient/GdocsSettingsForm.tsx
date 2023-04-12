@@ -1,8 +1,8 @@
 import React from "react"
 import {
-    OwidArticleType,
-    OwidArticleErrorMessage,
-    OwidArticleErrorMessageType,
+    OwidGdocInterface,
+    OwidGdocErrorMessage,
+    groupBy,
 } from "@ourworldindata/utils"
 import { ExcerptHandler } from "./gdocsValidation.js"
 import { GdocsSlug } from "./GdocsSlug.js"
@@ -18,26 +18,17 @@ export const GdocsSettingsForm = ({
     setGdoc,
     errors,
 }: {
-    gdoc: OwidArticleType
-    setGdoc: (gdoc: OwidArticleType) => void
-    errors?: OwidArticleErrorMessage[]
+    gdoc: OwidGdocInterface
+    setGdoc: (gdoc: OwidGdocInterface) => void
+    errors?: OwidGdocErrorMessage[]
 }) => {
-    const attachmentMessages = errors?.filter(
-        (error) =>
-            ["linkedDocuments", "imageMetadata"].includes(error.property) ||
-            (error.property === "content" &&
-                error.message.startsWith("Grapher chart")) ||
-            (error.property === "content" &&
-                error.message.startsWith("Explorer chart"))
+    // These errors don't have a specific form field to render them in. We just show them at the bottom of the drawer
+    const errorsToShowInDrawer = groupBy(
+        (errors || []).filter(({ property }) =>
+            ["content", "linkedDocuments", "linkedCharts"].includes(property)
+        ),
+        "type"
     )
-    const attachmentErrors =
-        attachmentMessages?.filter(
-            ({ type }) => type === OwidArticleErrorMessageType.Error
-        ) ?? []
-    const attachmentWarnings =
-        attachmentMessages?.filter(
-            ({ type }) => type === OwidArticleErrorMessageType.Warning
-        ) ?? []
 
     return gdoc ? (
         <form className="GdocsSettingsForm">
@@ -80,21 +71,21 @@ export const GdocsSettingsForm = ({
                 )}
             />
             <div className="form-group">
-                {attachmentErrors.length ? (
+                {errorsToShowInDrawer.error?.length ? (
                     <>
                         <p>Document errors</p>
                         <ul>
-                            {attachmentErrors?.map((error) => (
+                            {errorsToShowInDrawer.error.map((error) => (
                                 <li key={error.message}>{error.message}</li>
                             ))}
                         </ul>
                     </>
                 ) : null}
-                {attachmentWarnings.length ? (
+                {errorsToShowInDrawer.warning?.length ? (
                     <>
                         <p>Document warnings</p>
                         <ul>
-                            {attachmentWarnings?.map((error) => (
+                            {errorsToShowInDrawer.warning.map((error) => (
                                 <li key={error.message}>{error.message}</li>
                             ))}
                         </ul>

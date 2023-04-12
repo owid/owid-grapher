@@ -1,9 +1,9 @@
 import React, { useContext, createContext, useState } from "react"
 import { observable } from "mobx"
 import {
-    getArticleFromJSON,
-    OwidArticleType,
-    OwidArticleTypeJSON,
+    getOwidGdocFromJSON,
+    OwidGdocInterface,
+    OwidGdocJSON,
 } from "@ourworldindata/utils"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { Admin } from "./Admin.js"
@@ -16,7 +16,7 @@ import { Admin } from "./Admin.js"
  * Today, this store acts as CRUD proxy for requests to API endpoints.
  */
 export class GdocsStore {
-    @observable gdocs: OwidArticleType[] = []
+    @observable gdocs: OwidGdocInterface[] = []
     admin: Admin
 
     constructor(admin: Admin) {
@@ -27,22 +27,18 @@ export class GdocsStore {
         await this.admin.requestJSON(`/api/gdocs/${id}`, {}, "PUT")
     }
 
-    async update(gdoc: OwidArticleType): Promise<OwidArticleType> {
+    async update(gdoc: OwidGdocInterface): Promise<OwidGdocInterface> {
         return this.admin
-            .requestJSON<OwidArticleTypeJSON>(
-                `/api/gdocs/${gdoc.id}`,
-                gdoc,
-                "PUT"
-            )
-            .then(getArticleFromJSON)
+            .requestJSON<OwidGdocJSON>(`/api/gdocs/${gdoc.id}`, gdoc, "PUT")
+            .then(getOwidGdocFromJSON)
     }
 
-    async publish(gdoc: OwidArticleType): Promise<OwidArticleType> {
+    async publish(gdoc: OwidGdocInterface): Promise<OwidGdocInterface> {
         const publishedGdoc = await this.update({ ...gdoc, published: true })
         return publishedGdoc
     }
 
-    async unpublish(gdoc: OwidArticleType): Promise<OwidArticleType> {
+    async unpublish(gdoc: OwidGdocInterface): Promise<OwidGdocInterface> {
         const unpublishedGdoc = await this.update({
             ...gdoc,
             publishedAt: null,
@@ -52,7 +48,7 @@ export class GdocsStore {
         return unpublishedGdoc
     }
 
-    async delete(gdoc: OwidArticleType) {
+    async delete(gdoc: OwidGdocInterface) {
         await this.admin.requestJSON(`/api/gdocs/${gdoc.id}`, {}, "DELETE")
     }
 }

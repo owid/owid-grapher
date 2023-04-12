@@ -4,7 +4,7 @@ import { runBlocks } from "./blocks/index.js"
 import { hydrateProminentLink } from "./blocks/ProminentLink.js"
 import { runCookiePreferencesManager } from "./CookiePreferencesManager.js"
 import { runFootnotes } from "./Footnote.js"
-import { hydrateOwidArticle } from "./gdocs/OwidArticle.js"
+import { hydrateOwidGdoc } from "./gdocs/OwidGdoc.js"
 import { runLightbox } from "./Lightbox.js"
 import { MultiEmbedderSingleton } from "./multiembedder/MultiEmbedder.js"
 import { runSiteNavigation } from "./SiteNavigation.js"
@@ -32,8 +32,8 @@ export const runSiteFooterScripts = (
             runSiteTools()
             runCookiePreferencesManager()
             break
-        case SiteFooterContext.gdocsArticle:
-            hydrateOwidArticle(debug, isPreviewing)
+        case SiteFooterContext.gdocsDocument:
+            hydrateOwidGdoc(debug, isPreviewing)
         // no break here, we additionally want to run the default scripts
         default:
             runSiteNavigation(BAKED_BASE_URL)

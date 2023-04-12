@@ -3,35 +3,32 @@ import ReactDOM from "react-dom"
 import { ArticleBlocks } from "./ArticleBlocks.js"
 import Footnotes from "./Footnotes.js"
 import {
-    OwidArticleType,
-    formatDate,
-    getArticleFromJSON,
     LinkedChart,
+    OwidGdocInterface,
+    getOwidGdocFromJSON,
     ImageMetadata,
 } from "@ourworldindata/utils"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faBook } from "@fortawesome/free-solid-svg-icons"
-import { faCreativeCommons } from "@fortawesome/free-brands-svg-icons"
 import { CodeSnippet } from "../blocks/CodeSnippet.js"
 import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
 import { formatAuthors } from "../clientFormatting.js"
 import { DebugProvider } from "./DebugContext.js"
+import { OwidGdocHeader } from "./OwidGdocHeader.js"
 
 export const AttachmentsContext = createContext<{
     linkedCharts: Record<string, LinkedChart>
-    linkedDocuments: Record<string, OwidArticleType>
+    linkedDocuments: Record<string, OwidGdocInterface>
     imageMetadata: Record<string, ImageMetadata>
 }>({ linkedDocuments: {}, imageMetadata: {}, linkedCharts: {} })
 
-export const ArticleContext = createContext<{ isPreviewing: boolean }>({
+export const DocumentContext = createContext<{ isPreviewing: boolean }>({
     isPreviewing: false,
 })
 
-type OwidArticleProps = OwidArticleType & {
+type OwidGdocProps = OwidGdocInterface & {
     isPreviewing?: boolean
 }
 
-export function OwidArticle({
+export function OwidGdoc({
     content,
     publishedAt,
     slug,
@@ -39,16 +36,7 @@ export function OwidArticle({
     linkedDocuments = {},
     imageMetadata = {},
     isPreviewing = false,
-}: OwidArticleProps) {
-    const coverStyle = content["cover-image"]
-        ? {
-              background: `url(${content["cover-image"][0].value.src})`,
-              backgroundSize: "cover",
-          }
-        : content["cover-color"]
-        ? { backgroundColor: `var(--${content["cover-color"]})` }
-        : {}
-
+}: OwidGdocProps) {
     // Until authors comes as structured data, we need to parse them from the byline string
     const authors = content?.byline?.replace(/\s*,\s*/g, ",").split(",") || [
         "Our World in Data",
@@ -75,61 +63,13 @@ export function OwidArticle({
         <AttachmentsContext.Provider
             value={{ linkedDocuments, imageMetadata, linkedCharts }}
         >
-            <ArticleContext.Provider value={{ isPreviewing }}>
+            <DocumentContext.Provider value={{ isPreviewing }}>
                 <article className="centered-article-container grid grid-cols-12-full-width">
-                    <div className="article-banner" style={coverStyle}></div>
-                    <header className="centered-article-header align-center grid grid-cols-8 col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
-                        <div className="centered-article-header__title-container col-start-2 span-cols-6">
-                            {content.supertitle ? (
-                                <h3 className="centered-article-header__supertitle span-cols-8">
-                                    {content.supertitle}
-                                </h3>
-                            ) : null}
-                            <h1 className="centered-article-header__title">
-                                {content.title}
-                            </h1>
-                        </div>
-                        {content.subtitle ? (
-                            <h2 className="centered-article-header__subtitle col-start-2 span-cols-6">
-                                {content.subtitle}
-                            </h2>
-                        ) : null}
-                        <div className="centered-article-header__meta-container col-start-2 span-cols-6 grid grid-cols-2">
-                            <div className="span-cols-1 span-sm-cols-2">
-                                <div className="centered-article-header__byline">
-                                    {"By: "}
-                                    <a href="/team">
-                                        {formatAuthors({
-                                            authors,
-                                        })}
-                                    </a>
-                                </div>
-                                <div className="centered-article-header__dateline body-3-medium-italic">
-                                    {content.dateline ||
-                                        (publishedAt &&
-                                            formatDate(publishedAt))}
-                                </div>
-                            </div>
-                            <div className="span-cols-1 span-sm-cols-2">
-                                <a
-                                    href="#article-citation"
-                                    className="body-1-regular display-block"
-                                >
-                                    <FontAwesomeIcon icon={faBook} />
-                                    Cite this article
-                                </a>
-
-                                <a
-                                    href="#article-licence"
-                                    className="body-3-medium display-block"
-                                >
-                                    <FontAwesomeIcon icon={faCreativeCommons} />
-                                    Reuse our work freely
-                                </a>
-                            </div>
-                        </div>
-                    </header>
-
+                    <OwidGdocHeader
+                        content={content}
+                        authors={authors}
+                        publishedAt={publishedAt}
+                    />
                     {content.summary ? (
                         <details
                             className="article-summary col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12"
@@ -222,18 +162,18 @@ export function OwidArticle({
                         </div>
                     </section>
                 </article>
-            </ArticleContext.Provider>
+            </DocumentContext.Provider>
         </AttachmentsContext.Provider>
     )
 }
 
-export const hydrateOwidArticle = (debug?: boolean, isPreviewing?: boolean) => {
-    const wrapper = document.querySelector("#owid-article-root")
-    const props = getArticleFromJSON(window._OWID_ARTICLE_PROPS)
+export const hydrateOwidGdoc = (debug?: boolean, isPreviewing?: boolean) => {
+    const wrapper = document.querySelector("#owid-document-root")
+    const props = getOwidGdocFromJSON(window._OWID_GDOC_PROPS)
     ReactDOM.hydrate(
         <React.StrictMode>
             <DebugProvider debug={debug}>
-                <OwidArticle {...props} isPreviewing={isPreviewing} />
+                <OwidGdoc {...props} isPreviewing={isPreviewing} />
             </DebugProvider>
         </React.StrictMode>,
         wrapper

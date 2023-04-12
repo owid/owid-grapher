@@ -1,4 +1,4 @@
-import { OwidArticleLinkJSON } from "./owidTypes.js"
+import { OwidGdocLinkJSON } from "./owidTypes.js"
 import { Url } from "./urls/Url.js"
 
 // Works for:
@@ -8,9 +8,7 @@ import { Url } from "./urls/Url.js"
 // https://docs.google.com/document/u/0/d/abcd-1234/edit?usp=sharing
 export const gdocUrlRegex = /https:\/\/docs\.google\.com\/.+?\/([-\w]+)\/edit/
 
-export function getLinkType(
-    urlString: string
-): OwidArticleLinkJSON["linkType"] {
+export function getLinkType(urlString: string): OwidGdocLinkJSON["linkType"] {
     const url = Url.fromURL(urlString)
     if (url.isGoogleDoc) {
         return "gdoc"
