@@ -61,7 +61,7 @@ import {
     WorldRegionName,
     WorldRegionToProjection,
 } from "./WorldRegionsToProjection"
-import { ColorSchemeName } from "../color/ColorConstants"
+import { ColorSchemeName, OwidNoDataGray } from "../color/ColorConstants"
 import {
     autoDetectYColumnSlugs,
     makeClipPath,
@@ -460,7 +460,11 @@ export class MapChart
                 !bin.isHidden
         )
         for (const bin of bins)
-            if (bin instanceof CategoricalBin && bin.value === "No data")
+            if (
+                bin instanceof CategoricalBin &&
+                bin.value === "No data" &&
+                bin.color === OwidNoDataGray
+            )
                 bin.props = {
                     ...bin.props,
                     patternRef: Patterns.noDataPattern,
@@ -479,7 +483,7 @@ export class MapChart
                 bin instanceof CategoricalBin && !bin.isHidden
         )
         for (const bin of bins)
-            if (bin.value === "No data")
+            if (bin.value === "No data" && bin.color === OwidNoDataGray)
                 bin.props = {
                     ...bin.props,
                     patternRef: Patterns.noDataPattern,
@@ -955,6 +959,10 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
                                 const strokeOpacity = outOfFocusBracket
                                     ? blurStrokeOpacity
                                     : 1
+                                const fill =
+                                    defaultFill === OwidNoDataGray
+                                        ? `url(#${Patterns.noDataPatternForMapChart}-${this.manager.projection})`
+                                        : defaultFill
                                 return (
                                     <path
                                         key={feature.id}
@@ -966,7 +974,7 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
                                         stroke={stroke}
                                         strokeOpacity={strokeOpacity}
                                         cursor="pointer"
-                                        fill={`url(#${Patterns.noDataPatternForMapChart}-${this.manager.projection})`}
+                                        fill={fill}
                                         fillOpacity={fillOpacity}
                                         onClick={(ev: SVGMouseEvent): void =>
                                             this.manager.onClick(
