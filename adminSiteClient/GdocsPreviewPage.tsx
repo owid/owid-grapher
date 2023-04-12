@@ -340,7 +340,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                     resets on every change)
                 */}
                 <iframe
-                    src={`/gdocs/${currentGdoc.id}/preview#owid-article-root`}
+                    src={`/gdocs/${currentGdoc.id}/preview#owid-document-root`}
                     style={{ width: "100%", border: "none" }}
                     key={currentGdoc.revisionId}
                 />
