@@ -1412,6 +1412,7 @@ export function checkIsOwidGdocType(
     documentType: unknown
 ): documentType is OwidGdocType {
     return Object.values(OwidGdocType).includes(documentType as any)
+}
 
 export function isArrayOfNumbers(arr: unknown[]): arr is number[] {
     return arr.every((item) => typeof item === "number")
