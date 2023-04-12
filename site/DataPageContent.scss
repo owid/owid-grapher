@@ -354,6 +354,22 @@
             }
         }
 
+        .variable-processing-info__header {
+            @include overline-black-caps;
+            color: $blue-50;
+            text-transform: uppercase;
+            margin: 16px 0 8px;
+        }
+
+        .variable-processing-info__description {
+            .article-block__text,
+            .article-block__list,
+            .article-block__html,
+            .article-block__numbered-list {
+                @include body-3-medium;
+            }
+        }
+
         .metrics-list__header {
             @include h4-semibold;
             margin: 0;

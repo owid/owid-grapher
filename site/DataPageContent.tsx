@@ -398,6 +398,33 @@ export const DataPageContent = ({
                                             )
                                         }
                                     />
+                                    <FallbackGdocFieldExplain
+                                        googleDocEditLink={
+                                            datapage.googleDocEditLink
+                                        }
+                                        fieldName="datasetVariableProcessingInfo"
+                                        level="info"
+                                        render={(fallback) =>
+                                            gdocKeyedBlocks?.datasetVariableProcessingInfo ? (
+                                                <div>
+                                                    <div className="variable-processing-info__header">
+                                                        Particular steps taken
+                                                        to prepare this metric:
+                                                    </div>
+                                                    <div className="variable-processing-info__description">
+                                                        <ArticleBlocks
+                                                            blocks={
+                                                                gdocKeyedBlocks.datasetVariableProcessingInfo
+                                                            }
+                                                            containerType="datapage"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                fallback
+                                            )
+                                        }
+                                    />
                                 </div>
                                 <div>
                                     <div style={{ marginBottom: "24px" }}>
