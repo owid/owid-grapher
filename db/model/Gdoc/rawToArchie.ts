@@ -195,22 +195,19 @@ function* rawBlockHorizontalRuleToArchieMLString(
 function* rawBlockRecircToArchieMLString(
     block: RawBlockRecirc
 ): Generator<string, void, undefined> {
-    yield "[.recirc]"
-    if (typeof block.value !== "string") {
-        for (const item of block.value) {
-            yield* propertyToArchieMLString("title", item)
-            if (item.list) {
-                yield "[.list]"
-                for (const subItem of item.list) {
-                    yield* propertyToArchieMLString("author", subItem)
-                    yield* propertyToArchieMLString("article", subItem)
-                    yield* propertyToArchieMLString("url", subItem)
-                }
-                yield "[]"
+    yield "{.recirc}"
+    if (block.value) {
+        yield* propertyToArchieMLString("title", block.value)
+        const links = block.value.links
+        if (links) {
+            yield "[.links]"
+            for (const link of links) {
+                yield* propertyToArchieMLString("url", link)
             }
+            yield "[]"
         }
     }
-    yield "[]"
+    yield "{}"
 }
 
 function escapeRawText(text: string): string {

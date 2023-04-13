@@ -153,6 +153,7 @@ import {
     OwidEnrichedGdocBlock,
     Span,
     OwidGdocType,
+    EnrichedRecircLink,
 } from "./owidTypes.js"
 import { PointVector } from "./PointVector.js"
 import React from "react"
@@ -1346,10 +1347,12 @@ export const imemo = <Type>(
 }
 
 export function recursivelyMapArticleContent<
-    Node extends OwidEnrichedGdocBlock | Span
+    Node extends OwidEnrichedGdocBlock | Span | EnrichedRecircLink
 >(
     node: Node,
-    callback: <Child extends OwidEnrichedGdocBlock | Span>(node: Child) => Child
+    callback: <Child extends OwidEnrichedGdocBlock | Span | EnrichedRecircLink>(
+        node: Child
+    ) => Child
 ): Node {
     if (checkNodeIsSpan(node)) {
         if ("children" in node) {
@@ -1357,6 +1360,9 @@ export function recursivelyMapArticleContent<
                 recursivelyMapArticleContent(node, callback)
             )
         }
+    } else if (node.type === "recirc") {
+        // slightly strange case where we need to iterate through recirc.links to extract URLs
+        node.links.map((link) => callback(link))
     } else if (node.type === "gray-section") {
         node.items.map((block) => recursivelyMapArticleContent(block, callback))
     } else if (
@@ -1376,7 +1382,7 @@ export function recursivelyMapArticleContent<
 }
 
 export function checkNodeIsSpan(
-    node: OwidEnrichedGdocBlock | Span
+    node: OwidEnrichedGdocBlock | Span | EnrichedRecircLink
 ): node is Span {
     return "spanType" in node
 }

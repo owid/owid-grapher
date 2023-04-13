@@ -150,11 +150,10 @@ export const enrichedBlockExamples: Record<
     recirc: {
         type: "recirc",
         title: spanSimpleText,
-        items: [
+        links: [
             {
-                article: spanSimpleText,
-                author: spanSimpleText,
-                url: "https://ourworldindata.org/grapher/total-cases-covid-19",
+                url: "https://docs.google.com/document/d/abcd-1234/edit",
+                type: "recirc-link",
             },
         ],
         parseErrors: [],

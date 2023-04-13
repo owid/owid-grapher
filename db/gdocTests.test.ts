@@ -13,7 +13,7 @@ import { spansToHtmlString } from "./model/Gdoc/gdocUtils.js"
 import { archieToEnriched } from "./model/Gdoc/archieToEnriched.js"
 import { OwidRawGdocBlockToArchieMLString } from "./model/Gdoc/rawToArchie.js"
 import { enrichedBlockExamples } from "./model/Gdoc/exampleEnrichedBlocks.js"
-import { enrichedBlockToRawBlock } from "./model/Gdoc/enrichtedToRaw.js"
+import { enrichedBlockToRawBlock } from "./model/Gdoc/enrichedToRaw.js"
 import { load } from "archieml"
 import {
     parseRawBlocksToEnrichedBlocks,

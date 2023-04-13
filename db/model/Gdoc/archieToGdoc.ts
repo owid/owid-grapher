@@ -9,7 +9,7 @@ import {
     OwidRawGdocBlockToArchieMLStringGenerator,
 } from "./rawToArchie.js"
 import { GDOCS_BACKPORTING_TARGET_FOLDER } from "../../../settings/serverSettings.js"
-import { enrichedBlockToRawBlock } from "./enrichtedToRaw.js"
+import { enrichedBlockToRawBlock } from "./enrichedToRaw.js"
 import { google, docs_v1, drive_v3 } from "googleapis"
 import { Gdoc } from "./Gdoc.js"
 import * as cheerio from "cheerio"

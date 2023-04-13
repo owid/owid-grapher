@@ -18,7 +18,7 @@ import {
     RawBlockSDGGrid,
     RawBlockText,
     Span,
-    RawRecircItem,
+    RawRecircLink,
     RawBlockHorizontalRule,
     RawSDGGridItem,
     RawBlockSDGToc,
@@ -143,18 +143,14 @@ export function enrichedBlockToRawBlock(
             { type: "recirc" },
             (b): RawBlockRecirc => ({
                 type: b.type,
-                value: [
-                    {
-                        title: spansToHtmlText([b.title]),
-                        list: b.items.map(
-                            (listItem): RawRecircItem => ({
-                                article: listItem.article.text,
-                                author: listItem.author.text,
-                                url: listItem.url,
-                            })
-                        ),
-                    },
-                ],
+                value: {
+                    title: spansToHtmlText([b.title]),
+                    links: b.links.map(
+                        (link): RawRecircLink => ({
+                            url: link.url!,
+                        })
+                    ),
+                },
             })
         )
         .with(

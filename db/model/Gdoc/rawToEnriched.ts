@@ -26,7 +26,7 @@ import {
     EnrichedBlockStickyRightContainer,
     EnrichedBlockText,
     EnrichedChartStoryItem,
-    EnrichedRecircItem,
+    EnrichedRecircLink,
     EnrichedScrollerItem,
     EnrichedSDGGridItem,
     isArray,
@@ -524,88 +524,43 @@ const parseRecirc = (raw: RawBlockRecirc): EnrichedBlockRecirc => {
     const createError = (
         error: ParseError,
         title: SpanSimpleText = { spanType: "span-simple-text", text: "" },
-        items: EnrichedRecircItem[] = []
+        links: EnrichedRecircLink[] = []
     ): EnrichedBlockRecirc => ({
         type: "recirc",
         title,
-        items,
+        links,
         parseErrors: [error],
     })
 
-    if (typeof raw.value === "string")
+    if (!raw.value?.title) {
         return createError({
-            message: "Value is a string, not an object with properties",
+            message: "Recirc must have a title",
         })
+    }
 
-    if (raw.value.length === 0)
+    if (!raw.value?.links || !raw.value?.links.length) {
         return createError({
-            message: "Recirc must have at least one item",
+            message: "Recirc must have at least one link",
         })
+    }
 
-    const title = raw.value[0].title
-    if (!title)
+    const linkWithMissingUrl = raw.value.links.find((link) => !link.url)
+    if (linkWithMissingUrl) {
         return createError({
-            message: "Title property is missing or empty",
+            message: "Recirc link missing url property",
         })
+    }
 
-    if (!raw.value[0].list)
-        return createError({
-            message: "Recirc must have at least one entry",
-        })
-
-    const items: (EnrichedRecircItem | ParseError[])[] = raw.value[0].list.map(
-        (item): EnrichedRecircItem | ParseError[] => {
-            if (typeof item?.article !== "string")
-                return [
-                    {
-                        message:
-                            "Item is missing article property or it is not a string value",
-                    },
-                ]
-            if (typeof item?.author !== "string")
-                return [
-                    {
-                        message:
-                            "Item is missing author property or it is not a string value",
-                    },
-                ]
-            if (typeof item?.url !== "string")
-                return [
-                    {
-                        message:
-                            "Item is missing url property or it is not a string value",
-                    },
-                ]
-
-            const article = htmlToSimpleTextBlock(item.article)
-            const author = htmlToSimpleTextBlock(item.author)
-
-            const errors = article.parseErrors.concat(author.parseErrors)
-
-            if (errors.length > 0) return errors
-
-            return {
-                url: item.url,
-                article: article.value,
-                author: author.value,
-            }
-        }
-    )
-
-    const [errors, enrichedItems] = partition(
-        items,
-        (item: EnrichedRecircItem | ParseError[]): item is ParseError[] =>
-            isArray(item)
-    )
-
-    const flattenedErrors = errors.flat()
-    const parsedTitle = htmlToSimpleTextBlock(title)
+    const parsedTitle = htmlToSimpleTextBlock(raw.value.title)
 
     return {
         type: "recirc",
         title: parsedTitle.value,
-        items: enrichedItems,
-        parseErrors: [...flattenedErrors, ...parsedTitle.parseErrors],
+        links: raw.value.links.map((link) => ({
+            type: "recirc-link",
+            url: link.url!,
+        })),
+        parseErrors: [],
     }
 }
 

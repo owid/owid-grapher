@@ -635,31 +635,27 @@ export type EnrichedBlockHorizontalRule = {
     value?: Record<string, never> // dummy value to unify block shapes
 } & EnrichedBlockWithParseErrors
 
-export type RawRecircItem = {
-    article?: string
-    author?: string
+export type RawRecircLink = {
     url?: string
 }
 
-export type RawBlockRecircValue = {
-    title?: string
-    list?: RawRecircItem[]
-}
 export type RawBlockRecirc = {
     type: "recirc"
-    value: RawBlockRecircValue[] | ArchieMLUnexpectedNonObjectValue
+    value?: {
+        title?: string
+        links?: RawRecircLink[]
+    }
 }
 
-export type EnrichedRecircItem = {
-    article: SpanSimpleText
-    author: SpanSimpleText
+export type EnrichedRecircLink = {
     url: string
+    type: "recirc-link"
 }
 
 export type EnrichedBlockRecirc = {
     type: "recirc"
     title: SpanSimpleText
-    items: EnrichedRecircItem[]
+    links: EnrichedRecircLink[]
 } & EnrichedBlockWithParseErrors
 
 export type RawBlockText = {

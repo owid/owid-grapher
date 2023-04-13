@@ -25,6 +25,7 @@ import {
     excludeUndefined,
     OwidGdocErrorMessage,
     OwidGdocErrorMessageType,
+    EnrichedRecircLink,
 } from "@ourworldindata/utils"
 import {
     GDOCS_CLIENT_EMAIL,
@@ -198,8 +199,12 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
     }
 
     // If the node has a URL in it, create a Link object
-    extractLinkFromNode(node: OwidEnrichedGdocBlock | Span): Link | void {
-        function getText(node: OwidEnrichedGdocBlock | Span): string {
+    extractLinkFromNode(
+        node: OwidEnrichedGdocBlock | Span | EnrichedRecircLink
+    ): Link | void {
+        function getText(
+            node: OwidEnrichedGdocBlock | Span | EnrichedRecircLink
+        ): string {
             // Can add component-specific text accessors here
             if (checkNodeIsSpan(node)) {
                 if (node.spanType == "span-link") {
@@ -264,7 +269,6 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
             },
             []
         )
-
         this.errors = [...filenameErrors, ...linkErrors]
     }
 
