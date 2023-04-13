@@ -2777,7 +2777,9 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
             id: id,
         },
     })
-    await dataSource.getRepository(Link).save(nextGdoc.links)
+    if (nextGdoc.published) {
+        await dataSource.getRepository(Link).save(nextGdoc.links)
+    }
 
     //todo #gdocsvalidationserver: run validation before saving published
     //articles, in addition to the first pass performed in front-end code (see
