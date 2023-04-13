@@ -2,11 +2,14 @@ import { OwidGdocLinkJSON } from "./owidTypes.js"
 import { Url } from "./urls/Url.js"
 
 // Works for:
+// https://docs.google.com/document/d/abcd1234
+// https://docs.google.com/document/d/abcd1234/
 // https://docs.google.com/document/d/abcd1234/edit
 // https://docs.google.com/document/d/abcd-1234/edit
 // https://docs.google.com/document/u/0/d/abcd-1234/edit
 // https://docs.google.com/document/u/0/d/abcd-1234/edit?usp=sharing
-export const gdocUrlRegex = /https:\/\/docs\.google\.com\/.+?\/([-\w]+)\/edit/
+export const gdocUrlRegex =
+    /https:\/\/docs\.google\.com\/.+?\/d\/([-\w]+)\/?(edit)?/
 
 export function getLinkType(urlString: string): OwidGdocLinkJSON["linkType"] {
     const url = Url.fromURL(urlString)
