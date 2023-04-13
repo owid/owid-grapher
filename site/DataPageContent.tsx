@@ -140,6 +140,8 @@ export const DataPageContent = ({
                                             blocks={gdocKeyedBlocks.keyInfoText}
                                             containerType="datapage"
                                         />
+                                    ) : datapage.subtitle ? (
+                                        <div>{datapage.subtitle}</div>
                                     ) : (
                                         fallback
                                     )
