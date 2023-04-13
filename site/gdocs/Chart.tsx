@@ -31,6 +31,7 @@ export default function Chart({
         <div
             className={cx(d.position, className)}
             style={{ gridRow: d.row, gridColumn: d.column }}
+            ref={refChartContainer}
         >
             <figure
                 // Use unique `key` to force React to re-render tree

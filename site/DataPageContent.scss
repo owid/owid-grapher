@@ -3,6 +3,10 @@
 }
 
 .DataPageContent {
+    .article-block__list {
+        @include HACK-fix-bullets-outside;
+    }
+
     .header__wrapper {
         @include grid(12);
         padding-top: 48px;
@@ -18,12 +22,12 @@
         h1 {
             @include display-2-semibold;
             display: inline;
-            margin: 0;
+            margin: 0 16px 0 0;
         }
         .source {
+            display: inline-block;
             @include body-1-regular;
             color: $blue-50;
-            margin-left: 16px;
         }
     }
 
@@ -78,9 +82,9 @@
             margin: 0;
         }
         ul {
-            margin-left: 16px;
             @include row-gap(16px);
             li {
+                @include body-2-regular;
                 display: list-item;
             }
         }
@@ -94,6 +98,16 @@
                 font-size: 0.75em;
                 margin-left: 12px;
             }
+        }
+    }
+
+    .key-info__description-source {
+        margin-top: 8px;
+        .article-block__text,
+        .article-block__list,
+        .article-block__html,
+        .article-block__numbered-list {
+            @include body-2-regular;
         }
     }
 
@@ -111,6 +125,312 @@
         @include body-3-medium;
         .title {
             color: $blue-50;
+        }
+        a {
+            @include owid-link-90;
+        }
+    }
+
+    .related-research {
+        padding-top: 48px;
+        padding-bottom: 48px;
+        background-color: $white;
+        h2 {
+            @include h2-bold;
+            margin: 0;
+        }
+
+        .related-research__items {
+            @include grid(9);
+            row-gap: 24px;
+        }
+
+        .related-research__item {
+            @include grid(4);
+            &:hover h3 {
+                text-decoration: underline;
+            }
+        }
+
+        h3 {
+            @include h3-bold;
+            margin: 0;
+            color: $blue-90;
+        }
+
+        .authors {
+            color: $blue-50;
+        }
+    }
+
+    .DataPageContent__section-border {
+        hr {
+            border-top: 1px solid $blue-20;
+            padding: 0;
+            margin: 0;
+        }
+    }
+
+    .related-data {
+        padding-top: 48px;
+        padding-bottom: 48px;
+
+        h2 {
+            @include h2-bold;
+            margin: 0;
+        }
+
+        .related-data__items {
+            @include grid(9);
+        }
+
+        .related-data__item--padded {
+            padding: 24px;
+            background-color: $blue-10;
+        }
+
+        .related-data__type {
+            @include overline-black-caps;
+            color: $blue-50;
+            flex: 1;
+        }
+
+        h3 {
+            @include h3-bold;
+            margin: 0;
+            color: $blue-90;
+        }
+
+        h4 {
+            @include h4-semibold;
+            margin: 0;
+            color: $blue-90;
+        }
+
+        .related-data__source {
+            @include h3-bold;
+            color: $blue-50;
+            margin: 0;
+        }
+
+        .related-data__content {
+            @include body-3-medium;
+            color: $blue-60;
+            margin-top: 8px;
+        }
+
+        .related-data__items {
+            > div {
+                display: grid;
+                row-gap: 24px;
+            }
+
+            > div:nth-child(1) {
+                .related-data__item {
+                    display: flex;
+                    flex-direction: column;
+                    height: 100%;
+                }
+            }
+
+            > div:nth-child(3) {
+                height: fit-content;
+                .related-data__source {
+                    @include body-3-medium;
+                    color: $blue-60;
+                    margin-top: 4px;
+                }
+            }
+        }
+    }
+
+    .related-charts-wrapper {
+        padding-top: 48px;
+        padding-bottom: 48px;
+
+        h2 {
+            @include h2-bold;
+            margin: 0 0 32px;
+        }
+
+        // copied from content.scss
+        .wp-block-columns {
+            @include grid(12);
+
+            // default is first column is full-width, second column should be empty
+            .wp-block-column {
+                grid-column: 1 / 13;
+                // necessary for Grapher resizing in all column-types
+                width: 100%;
+            }
+
+            @include md-up {
+                &.is-style-sticky-right {
+                    .wp-block-column:nth-child(1) {
+                        grid-column: 1 / 6;
+                    }
+                    .wp-block-column:nth-child(2) {
+                        grid-column: 6 / 13;
+                    }
+                    .wp-block-column .wp-sticky-container {
+                        @include sticky-child;
+                    }
+                }
+            }
+        }
+
+        figure[data-grapher-src] {
+            height: 575px;
+        }
+    }
+
+    .faq {
+        > h2 {
+            @include h2-bold;
+            margin: 0;
+        }
+
+        .faq__items > *:first-child {
+            margin-top: 0;
+        }
+
+        .article-block__text,
+        .article-block__list,
+        .article-block__html,
+        .article-block__numbered-list {
+            @include body-2-regular;
+            color: $blue-60;
+        }
+    }
+
+    .dataset {
+        h2 {
+            @include h2-bold;
+            margin: 0;
+        }
+
+        .data-collection {
+            display: flex;
+            flex-direction: column;
+            @include row-gap(32px);
+            background-color: $white;
+            margin: 24px -24px 0;
+            padding: 24px;
+        }
+
+        .data-collection__header {
+            @include overline-black-caps;
+            color: $blue-50;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+
+        .data-collection__name {
+            @include h3-bold;
+            margin: 0;
+
+            svg {
+                margin-right: 8px;
+            }
+        }
+
+        .data-collection__description {
+            margin-top: 8px;
+            color: $blue-60;
+
+            .article-block__text,
+            .article-block__list,
+            .article-block__html,
+            .article-block__numbered-list {
+                @include body-3-medium;
+            }
+
+            > *:first-child {
+                margin-top: 0;
+            }
+
+            > *:last-child {
+                margin-bottom: 0;
+            }
+        }
+
+        .variable-processing-info__header {
+            @include overline-black-caps;
+            color: $blue-50;
+            text-transform: uppercase;
+            margin: 16px 0 8px;
+        }
+
+        .variable-processing-info__description {
+            .article-block__text,
+            .article-block__list,
+            .article-block__html,
+            .article-block__numbered-list {
+                @include body-3-medium;
+            }
+        }
+
+        .metrics-list__header {
+            @include h4-semibold;
+            margin: 0;
+            color: $blue-50;
+        }
+
+        .featured-variables {
+            list-style-type: none;
+            @include body-3-medium;
+            li {
+                margin-top: 8px;
+            }
+        }
+
+        .key-info--gridded {
+            gap: 24px;
+            row-gap: 16px;
+        }
+
+        .data-collection__code-link {
+            display: inline-block;
+            padding: 8px;
+            background-color: $blue-10;
+            @include body-3-medium;
+            color: $blue-90;
+
+            svg {
+                margin-right: 8px;
+            }
+        }
+
+        .sources {
+            margin-top: 48px;
+
+            .article-block__text,
+            .article-block__list,
+            .article-block__html,
+            .article-block__numbered-list {
+                @include body-2-regular;
+            }
+        }
+
+        .sources__heading {
+            @include h3-bold;
+            margin: 0;
+        }
+
+        .sources__item .ExpandableAnimatedToggle {
+            > button {
+                padding-top: 16px;
+                padding-bottom: 16px;
+            }
+            .content-wrapper {
+                padding-bottom: 16px;
+            }
+        }
+
+        .sources__item + .sources__item {
+            .ExpandableAnimatedToggle {
+                border-top: 0;
+            }
         }
     }
 }

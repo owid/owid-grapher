@@ -69,7 +69,10 @@ export const renderDataPageOrGrapherPage = async (
             // We only want to render datapages on selected charts, even if the
             // variable found on the chart has a datapage configuration.
             datapage.showDataPageOnChartIds?.includes(grapher.id) &&
-            (datapage.status === "published" || isPreviewing)
+            isPreviewing
+            // todo: we're not ready to publish datapages yet, so we only want to
+            // render them if we're previewing.
+            // (datapage.status === "published" || isPreviewing)
         ) {
             return renderToHtmlPage(
                 <DataPage

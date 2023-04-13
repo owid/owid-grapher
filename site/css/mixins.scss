@@ -333,3 +333,8 @@
         display: none;
     }
 }
+
+// should be removed when fixed in centered-article
+@mixin HACK-fix-bullets-outside {
+    margin-left: 16px;
+}
