@@ -5,7 +5,6 @@ import { ChartManager } from "../chart/ChartManager"
 import {
     BASE_FONT_SIZE,
     FacetStrategy,
-    SeriesName,
     SeriesStrategy,
 } from "../core/GrapherConstants"
 import {
@@ -30,13 +29,13 @@ import {
     autoDetectYColumnSlugs,
     makeSelectionArray,
 } from "../chart/ChartUtils"
-import { ScaleOrdinal, scaleOrdinal } from "d3-scale"
 import { easeLinear } from "d3-ease"
 import { select } from "d3-selection"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { SelectionArray } from "../selection/SelectionArray"
 import { CategoricalBin } from "../color/ColorScaleBin"
 import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends"
+import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner.js"
 
 export interface AbstractStackedChartProps {
     bounds?: Bounds
@@ -266,25 +265,22 @@ export class AbstractStackedChart
         return ""
     }
 
-    @computed private get colorScheme(): ScaleOrdinal<string, string> {
-        const scheme =
-            (this.manager.baseColorScheme
-                ? ColorSchemes[this.manager.baseColorScheme]
-                : null) ?? ColorSchemes.stackedAreaDefault
+    @computed private get categoricalColorAssigner(): CategoricalColorAssigner {
         const seriesCount = this.isEntitySeries
             ? this.selectionArray.numSelectedEntities
             : this.yColumns.length
-        const baseColors = scheme.getColors(seriesCount)
-        if (this.manager.invertColorScheme) baseColors.reverse()
-        return scaleOrdinal(baseColors)
-    }
-
-    getColorForSeries(seriesName: SeriesName): string {
-        const table = this.transformedTable
-        const color = this.isEntitySeries
-            ? table.getColorForEntityName(seriesName)
-            : table.getColorForColumnByDisplayName(seriesName)
-        return color ?? this.colorScheme(seriesName) ?? "#ddd"
+        return new CategoricalColorAssigner({
+            colorScheme:
+                (this.manager.baseColorScheme
+                    ? ColorSchemes[this.manager.baseColorScheme]
+                    : null) ?? ColorSchemes.stackedAreaDefault,
+            invertColorScheme: this.manager.invertColorScheme,
+            colorMap: this.isEntitySeries
+                ? this.inputTable.entityNameColorIndex
+                : this.inputTable.columnDisplayNameToColorMap,
+            autoColorMapCache: this.manager.seriesColorMap,
+            numColorsInUse: seriesCount,
+        })
     }
 
     @computed protected get selectionArray(): SelectionArray {
@@ -351,7 +347,7 @@ export class AbstractStackedChart
                             valueOffset: 0,
                         }
                     }),
-                    color: this.getColorForSeries(seriesName),
+                    color: this.categoricalColorAssigner.assign(seriesName),
                 }
             }) as StackedSeries<number>[]
     }
