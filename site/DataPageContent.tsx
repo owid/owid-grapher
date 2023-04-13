@@ -8,8 +8,8 @@ import { GrapherWithFallback } from "./GrapherWithFallback.js"
 import { formatAuthors } from "./clientFormatting.js"
 import {
     GdocsContentSource,
-    OwidEnrichedArticleBlock,
-    getArticleFromJSON,
+    OwidEnrichedGdocBlock,
+    getOwidGdocFromJSON,
     getLinkType,
     getUrlTarget,
 } from "@ourworldindata/utils"
@@ -36,7 +36,7 @@ export const DataPageContent = ({
 }) => {
     const [grapher, setGrapher] = React.useState<Grapher | undefined>(undefined)
     const [gdocKeyedBlocks, setGdocKeyedBlocks] = React.useState<
-        { [key: string]: OwidEnrichedArticleBlock[] } | undefined
+        { [key: string]: OwidEnrichedGdocBlock[] } | undefined
     >(undefined)
 
     const sourceShortName =
@@ -56,14 +56,13 @@ export const DataPageContent = ({
                 `/admin/api/gdocs/${googleDocId}?contentSource=${GdocsContentSource.Gdocs}`
             )
             const json = await response.json()
-            const gdoc = getArticleFromJSON(json)
+            const gdoc = getOwidGdocFromJSON(json)
             if (!gdoc.content?.body) return
 
             // use heading 1s as makeshit archie block separators until we gain
             // confidence in the datapage architecture and its source of truth
             let currentKey = ""
-            const keyedBlocks: { [key: string]: OwidEnrichedArticleBlock[] } =
-                {}
+            const keyedBlocks: { [key: string]: OwidEnrichedGdocBlock[] } = {}
             gdoc.content.body.forEach((block: any) => {
                 if (block.type === "heading" && block.level === 1) {
                     currentKey = block.text[0].text // use heading 1s' text as key through a very raw version of "spansToSimpleText"
