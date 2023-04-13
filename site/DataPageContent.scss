@@ -79,8 +79,16 @@
 
         figure[data-grapher-src] {
             grid-column: 2 / span 10;
-            height: 575px;
+            height: 600px; // height of svg exports
             margin: 0;
+        }
+
+        .GrapherWithFallback__fallback {
+            display: flex;
+            flex-direction: column;
+            img {
+                margin: auto;
+            }
         }
     }
 
