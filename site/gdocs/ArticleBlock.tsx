@@ -342,7 +342,9 @@ export default function ArticleBlock({
                 dangerouslySetInnerHTML={{ __html: block.value }}
             />
         ))
-        .with({ type: "horizontal-rule" }, () => <hr></hr>)
+        .with({ type: "horizontal-rule" }, () => (
+            <hr className={getLayout("horizontal-rule", containerType)} />
+        ))
         .with({ type: "sdg-grid" }, (block) => (
             <SDGGrid
                 className={getLayout("sdg-grid", containerType)}

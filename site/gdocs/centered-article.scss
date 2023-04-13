@@ -282,6 +282,16 @@ h3.article-block__heading.has-supertitle {
     text-align: center;
 }
 
+.article-block__horizontal-rule {
+    border-top: 1px solid $blue-10;
+    padding: 0;
+    margin: 48px 0;
+
+    ~ .article-block__heading {
+        margin: 0;
+    }
+}
+
 .article-block__recirc {
     margin-bottom: 24px;
 
