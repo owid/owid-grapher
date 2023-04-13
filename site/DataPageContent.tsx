@@ -97,13 +97,13 @@ export const DataPageContent = ({
             <div className="DataPageContent">
                 <div className="header__wrapper wrapper">
                     <div className="header__left">
-                        <div className="supertitle">DATA</div>
-                        <h1>{datapage.title}</h1>
-                        <div className="source">{sourceShortName}</div>
+                        <div className="header__supertitle">Data</div>
+                        <h1 className="header__title">{datapage.title}</h1>
+                        <div className="header__source">{sourceShortName}</div>
                     </div>
                     <div className="header__right">
-                        <div className="label">
-                            SEE ALL DATA AND RESEARCH ON:
+                        <div className="topic-tags__label">
+                            See all data and research on:
                         </div>
                         <div className="topic-tags">
                             {datapage.topicTagsLinks.map((topic: any) => (
@@ -129,7 +129,7 @@ export const DataPageContent = ({
                     />
                     <div className="key-info__wrapper wrapper">
                         <div className="key-info__left">
-                            <h2>Key information</h2>
+                            <h2 className="key-info__title">Key information</h2>
                             <FallbackGdocFieldExplain
                                 googleDocEditLink={datapage.googleDocEditLink}
                                 fieldName="keyInfoText"
@@ -147,7 +147,10 @@ export const DataPageContent = ({
                             />
 
                             {gdocKeyedBlocks?.faqs && (
-                                <a className="learn-more" href="#faqs">
+                                <a
+                                    className="key-info__learn-more"
+                                    href="#faqs"
+                                >
                                     Learn more in the FAQs
                                     <FontAwesomeIcon icon={faArrowDown} />
                                 </a>
@@ -183,11 +186,9 @@ export const DataPageContent = ({
                             />
                         </div>
                         <div className="key-info__right">
-                            <div className="key-info__data">
-                                <div className="title">Source</div>
-                                <div className="name">
-                                    {datapage.nameOfSource}
-                                </div>
+                            <div className="key-data">
+                                <div className="key-data__title">Source</div>
+                                <div>{datapage.nameOfSource}</div>
                                 {datapage.owidProcessingLevel && (
                                     <div
                                         dangerouslySetInnerHTML={{
@@ -196,16 +197,20 @@ export const DataPageContent = ({
                                     ></div>
                                 )}
                             </div>
-                            <div className="key-info__data">
-                                <div className="title">Date range</div>
+                            <div className="key-data">
+                                <div className="key-data__title">
+                                    Date range
+                                </div>
                                 <div>{datapage.dateRange}</div>
                             </div>
-                            <div className="key-info__data">
-                                <div className="title">Last updated</div>
+                            <div className="key-data">
+                                <div className="key-data__title">
+                                    Last updated
+                                </div>
                                 <div>{datapage.lastUpdated}</div>
                             </div>
-                            <div className="key-info__data">
-                                <div className="title">
+                            <div className="key-data">
+                                <div className="key-data__title">
                                     Next expected update
                                 </div>
                                 <div>{datapage.nextUpdate}</div>
@@ -213,8 +218,8 @@ export const DataPageContent = ({
                         </div>
                     </div>
                 </div>
-                <div className="related-research grid wrapper">
-                    <h2 className="span-cols-3">
+                <div className="related-research__wrapper grid wrapper">
+                    <h2 className="related-research__title span-cols-3">
                         Related research and writing
                     </h2>
                     <div className="related-research__items span-cols-9">
@@ -226,8 +231,10 @@ export const DataPageContent = ({
                             >
                                 <img src={research.imageUrl} alt="" />
                                 <div className="span-cols-3">
-                                    <h3>{research.title}</h3>
-                                    <div className="authors body-3-medium-italic">
+                                    <h3 className="related-article__title">
+                                        {research.title}
+                                    </h3>
+                                    <div className="related-article__authors body-3-medium-italic">
                                         {formatAuthors({
                                             authors: research.authors,
                                         })}
@@ -240,23 +247,27 @@ export const DataPageContent = ({
                 <div className="DataPageContent__section-border wrapper">
                     <hr />
                 </div>
-                <div className="related-data wrapper grid">
-                    <h2 className="span-cols-3">Related data</h2>
+                <div className="related-data__wrapper wrapper grid">
+                    <h2 className="related-data__title span-cols-3">
+                        Related data
+                    </h2>
                     <div className="related-data__items span-cols-9">
                         <div className="span-cols-3">
                             <a
                                 href={datapage.relatedData[0].url}
                                 key={datapage.relatedData[0].url}
-                                className="related-data__item related-data__item--padded"
+                                className="related-data-item related-data-item--medium"
                             >
-                                <div className="related-data__type">
+                                <div className="related-data-item__type">
                                     {datapage.relatedData[0].type}
                                 </div>
-                                <h3>{datapage.relatedData[0].title}</h3>
-                                <div className="related-data__source">
+                                <h3 className="related-data-item__title">
+                                    {datapage.relatedData[0].title}
+                                </h3>
+                                <div className="related-data-item__source">
                                     {datapage.relatedData[0].source}
                                 </div>
-                                <div className="related-data__content">
+                                <div className="related-data-item__content">
                                     {datapage.relatedData[0].content}
                                 </div>
                             </a>
@@ -268,13 +279,15 @@ export const DataPageContent = ({
                                     <a
                                         href={data.url}
                                         key={data.url}
-                                        className="related-data__item related-data__item--padded"
+                                        className="related-data-item related-data-item--medium"
                                     >
-                                        <h3>{data.title}</h3>
-                                        <div className="related-data__source">
+                                        <h3 className="related-data-item__title">
+                                            {data.title}
+                                        </h3>
+                                        <div className="related-data-item__source">
                                             {data.source}
                                         </div>
-                                        <div className="related-data__content">
+                                        <div className="related-data-item__content">
                                             {data.content}
                                         </div>
                                     </a>
@@ -285,10 +298,12 @@ export const DataPageContent = ({
                                 <a
                                     href={data.url}
                                     key={data.url}
-                                    className="related-data__item"
+                                    className="related-data-item--small"
                                 >
-                                    <h4>{data.title}</h4>
-                                    <div className="related-data__source">
+                                    <h4 className="related-data-item__title">
+                                        {data.title}
+                                    </h4>
+                                    <div className="related-data-item__source">
                                         {data.source}
                                     </div>
                                 </a>
@@ -300,8 +315,10 @@ export const DataPageContent = ({
                     <hr />
                 </div>
                 {datapage.relatedCharts.items.length > 0 && (
-                    <div className="related-charts-wrapper wrapper">
-                        <h2>Explore charts that include this data</h2>
+                    <div className="related-charts__wrapper wrapper">
+                        <h2 className="related-charts__title">
+                            Explore charts that include this data
+                        </h2>
                         <div>
                             <RelatedCharts
                                 charts={datapage.relatedCharts.items}
@@ -322,11 +339,14 @@ export const DataPageContent = ({
                                         padding: "48px 0",
                                     }}
                                 >
-                                    <div className="faq grid wrapper">
-                                        <h2 className="span-cols-2" id="faqs">
+                                    <div className="faqs__wrapper grid wrapper">
+                                        <h2
+                                            className="faqs__title span-cols-2"
+                                            id="faqs"
+                                        >
                                             What you should know about this data
                                         </h2>
-                                        <div className="faq__items grid grid-cols-8 span-cols-8">
+                                        <div className="faqs__items grid grid-cols-8 span-cols-8">
                                             <ArticleBlocks
                                                 blocks={gdocKeyedBlocks.faqs}
                                                 containerType="datapage"
@@ -354,8 +374,10 @@ export const DataPageContent = ({
                         padding: "48px 0",
                     }}
                 >
-                    <div className="dataset grid wrapper">
-                        <h2 className="span-cols-3">Sources and Processing</h2>
+                    <div className="dataset__wrapper grid wrapper">
+                        <h2 className="dataset__title span-cols-3">
+                            Sources and Processing
+                        </h2>
                         <div className="dataset__content span-cols-6">
                             <div className="body-2-regular">
                                 In preparing data for our visualizations, Our
@@ -427,11 +449,11 @@ export const DataPageContent = ({
                                 </div>
                                 <div>
                                     <div style={{ marginBottom: "24px" }}>
-                                        <h4 className="metrics-list__header">
+                                        <h4 className="featured-variables__header">
                                             Metrics included in this data
                                             collection:
                                         </h4>
-                                        <ul className="featured-variables">
+                                        <ul className="featured-variables__list">
                                             {datapage.datasetFeaturedVariables.map(
                                                 (
                                                     variable: any,
@@ -463,20 +485,22 @@ export const DataPageContent = ({
                                         className="key-info--gridded grid grid-cols-2"
                                         style={{ marginBottom: "24px" }}
                                     >
-                                        <div className="key-info__data">
-                                            <div className="title">
+                                        <div className="key-data">
+                                            <div className="key-data__title">
                                                 Last updated
                                             </div>
                                             <div>{datapage.lastUpdated}</div>
                                         </div>
-                                        <div className="key-info__data">
-                                            <div className="title">
+                                        <div className="key-data">
+                                            <div className="key-data__title">
                                                 Next expected update
                                             </div>
                                             <div>{datapage.nextUpdate}</div>
                                         </div>
-                                        <div className="key-info__data">
-                                            <div className="title">Licence</div>
+                                        <div className="key-data">
+                                            <div className="key-data__title">
+                                                Licence
+                                            </div>
                                             <div>
                                                 <a
                                                     href={
@@ -514,15 +538,15 @@ export const DataPageContent = ({
                             </div>
                         </div>
                         {datapage.sources.length > 0 && (
-                            <div className="sources grid span-cols-12">
-                                <h3 className="sources__heading span-cols-3">
+                            <div className="datacollection-sources grid span-cols-12">
+                                <h3 className="datacollection-sources__heading span-cols-3">
                                     This data is based on the following sources:
                                 </h3>
                                 <div className="span-cols-6">
                                     {datapage.sources.map(
                                         (source: any, idx: number) => (
                                             <div
-                                                className="sources__item"
+                                                className="datacollection-source-item"
                                                 key={source.sourceName}
                                             >
                                                 <ExpandableAnimatedToggle
@@ -566,8 +590,8 @@ export const DataPageContent = ({
                                                                 {source.sourceRetrievedOn &&
                                                                     source.sourceRetrievedFrom && (
                                                                         <div className="key-info--gridded grid grid-cols-2">
-                                                                            <div className="key-info__data">
-                                                                                <div className="title">
+                                                                            <div className="key-data">
+                                                                                <div className="key-data__title">
                                                                                     Retrieved
                                                                                     on
                                                                                 </div>
@@ -577,8 +601,8 @@ export const DataPageContent = ({
                                                                                     }
                                                                                 </div>
                                                                             </div>
-                                                                            <div className="key-info__data">
-                                                                                <div className="title">
+                                                                            <div className="key-data">
+                                                                                <div className="key-data__title">
                                                                                     Retrieved
                                                                                     from
                                                                                 </div>
