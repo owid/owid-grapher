@@ -4,7 +4,6 @@ import {
     GrapherInterface,
 } from "@ourworldindata/grapher"
 import {
-    flatten,
     uniq,
     SiteFooterContext,
     MarkdownTextWrap,
@@ -81,21 +80,19 @@ export const DataPage = (props: {
                     figure[data-grapher-src] { display: none !important; }
                 `}</style>
                 </noscript>
-                {flatten(
-                    variableIds.map((variableId) =>
-                        [
-                            getVariableDataRoute(variableId),
-                            getVariableMetadataRoute(variableId),
-                        ].map((href) => (
-                            <link
-                                key={href}
-                                rel="preload"
-                                href={href}
-                                as="fetch"
-                                crossOrigin="anonymous"
-                            />
-                        ))
-                    )
+                {variableIds.flatMap((variableId) =>
+                    [
+                        getVariableDataRoute(variableId),
+                        getVariableMetadataRoute(variableId),
+                    ].map((href) => (
+                        <link
+                            key={href}
+                            rel="preload"
+                            href={href}
+                            as="fetch"
+                            crossOrigin="anonymous"
+                        />
+                    ))
                 )}
             </Head>
             <body className="DataPage">
