@@ -133,7 +133,7 @@ export const DataPageContent = ({
                             <FallbackGdocFieldExplain
                                 googleDocEditLink={datapage.googleDocEditLink}
                                 fieldName="keyInfoText"
-                                level="error"
+                                level="info"
                                 render={(fallback) =>
                                     gdocKeyedBlocks?.keyInfoText ? (
                                         <ArticleBlocks
@@ -178,6 +178,10 @@ export const DataPageContent = ({
                                                         }
                                                         containerType="datapage"
                                                     />
+                                                }
+                                                isExpandedDefault={
+                                                    !datapage.subtitle &&
+                                                    !gdocKeyedBlocks?.keyInfoText
                                                 }
                                             />
                                         </div>

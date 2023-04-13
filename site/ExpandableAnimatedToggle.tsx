@@ -6,11 +6,15 @@ import AnimateHeight from "react-animate-height"
 export const ExpandableAnimatedToggle = ({
     label,
     content,
+    isExpandedDefault = false,
 }: {
     label: string
     content?: React.ReactNode
+    isExpandedDefault?: boolean
 }) => {
-    const [height, setHeight] = useState<"auto" | 0>(0)
+    const [height, setHeight] = useState<"auto" | 0>(
+        isExpandedDefault ? "auto" : 0
+    )
 
     const toggle = () => {
         setHeight(height === 0 ? "auto" : 0)
