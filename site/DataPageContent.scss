@@ -7,6 +7,20 @@
         @include HACK-fix-bullets-outside;
     }
 
+    .ExpandableAnimatedToggle {
+        > button {
+            padding-top: 16px;
+            padding-bottom: 16px;
+        }
+        .content-wrapper {
+            padding-bottom: 16px;
+
+            > *:last-child {
+                margin-bottom: 0;
+            }
+        }
+    }
+
     .header__wrapper {
         @include grid(12);
         padding-top: 48px;
@@ -419,16 +433,6 @@
     .datacollection-sources__heading {
         @include h3-bold;
         margin: 0;
-    }
-
-    .datacollection-source-item .ExpandableAnimatedToggle {
-        > button {
-            padding-top: 16px;
-            padding-bottom: 16px;
-        }
-        .content-wrapper {
-            padding-bottom: 16px;
-        }
     }
 
     .datacollection-source-item + .datacollection-source-item {
