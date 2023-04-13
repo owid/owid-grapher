@@ -103,10 +103,10 @@ const renderGrapherPage = async (grapher: GrapherInterface) => {
         post && isWordpressDBEnabled
             ? await getRelatedCharts(post.id)
             : undefined
-    const relatedArticles = undefined
-    grapher.id && isWordpressAPIEnabled
-        ? await getRelatedArticles(grapher.id)
-        : undefined
+    const relatedArticles =
+        grapher.id && isWordpressAPIEnabled
+            ? await getRelatedArticles(grapher.id)
+            : undefined
 
     return renderToHtmlPage(
         <GrapherPage
