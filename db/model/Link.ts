@@ -6,11 +6,11 @@ import {
     ManyToOne,
     Relation,
 } from "typeorm"
-import { OwidArticleLinkJSON } from "@ourworldindata/utils"
+import { OwidGdocLinkJSON } from "@ourworldindata/utils"
 import { Gdoc } from "./Gdoc/Gdoc.js"
 
 @Entity("posts_gdocs_links")
-export class Link extends BaseEntity implements OwidArticleLinkJSON {
+export class Link extends BaseEntity implements OwidGdocLinkJSON {
     @PrimaryGeneratedColumn() id!: number
     @ManyToOne(() => Gdoc, (gdoc) => gdoc.id) source!: Relation<Gdoc>
     @Column() linkType!: "gdoc" | "url"

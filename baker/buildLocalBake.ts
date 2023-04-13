@@ -14,10 +14,8 @@ const bakeDomainToFolder = async (
     dir = normalize(dir)
     fs.mkdirp(dir)
     const baker = new SiteBaker(dir, baseUrl, bakeSteps)
-    console.log(
-        `Baking site sans Wordpress with baseUrl '${baseUrl}' to dir '${dir}'`
-    )
-    await baker.bakeNonWordpressPages()
+    console.log(`Baking site locally with baseUrl '${baseUrl}' to dir '${dir}'`)
+    await baker.bakeAll()
 }
 
 yargs(hideBin(process.argv))

@@ -7,9 +7,6 @@
 # https://unix.stackexchange.com/questions/352316/finding-out-the-default-shell-of-a-user-within-a-shell-script
 LOGIN_SHELL = $(shell finger $(USER) | grep 'Shell:*' | cut -f3 -d ":")
 
-# what is the staging environment we should use
-STAGING ?= staging
-
 # setting .env variables as Make variables for validate.env targets
 # https://lithic.tech/blog/2020-05/makefile-dot-env/
 ifneq (,$(wildcard ./.env))
@@ -241,6 +238,11 @@ deploy:
 	yarn buildAndDeploySite live
 
 stage:
+	@if [[ ! "$(STAGING)" ]]; then \
+		echo 'ERROR: must set the staging environment'; \
+		echo '       e.g. STAGING=halley make stage'; \
+		exit 1; \
+	fi
 	@echo '==> Preparing to deploy to $(STAGING)'
 	@echo '==> Starting from a clean slate...'
 	rm -rf itsJustJavascript
@@ -298,7 +300,7 @@ svgtest: ../owid-grapher-svgs
 	cd ../owid-grapher-svgs && git fetch && git checkout -f master && git reset --hard origin/master
 
 	@# generate a full new set of svgs
-	node itsJustJavascript/devTools/svgTester/verify-graphs.js -i ../owid-grapher-svgs/configs -o ../owid-grapher-svgs/svg -r ../owid-grapher-svgs/svg
+	node --enable-source-maps itsJustJavascript/devTools/svgTester/verify-graphs.js -i ../owid-grapher-svgs/configs -o ../owid-grapher-svgs/svg -r ../owid-grapher-svgs/svg
 
 	@# summarize differences
 	cd ../owid-grapher-svgs && git diff --stat

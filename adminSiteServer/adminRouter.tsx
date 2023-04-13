@@ -14,16 +14,16 @@ import { ENV } from "../settings/serverSettings.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import {
     renderExplorerPage,
-    renderGdocsArticle,
+    renderGdoc,
     renderPreview,
 } from "../baker/siteRenderers.js"
 import { GitCmsServer } from "../gitCms/GitCmsServer.js"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import {
-    getArticleFromJSON,
+    getOwidGdocFromJSON,
     JsonError,
     OwidArticleBackportingStatistics,
-    OwidArticleTypeJSON,
+    OwidGdocJSON,
     parseIntOrUndefined,
     slugify,
     stringifyUnkownError,
@@ -172,9 +172,7 @@ adminRouter.get("/posts/compare/:postId", async (req, res) => {
         "archieml",
         "archieml_update_statistics"
     ).from(db.knexTable(Post.postsTable).where({ id: postId }))
-    const archieMlJson = JSON.parse(
-        archieMlText[0].archieml
-    ) as OwidArticleTypeJSON
+    const archieMlJson = JSON.parse(archieMlText[0].archieml) as OwidGdocJSON
     const updateStatsJson = JSON.parse(
         archieMlText[0].archieml_update_statistics
     ) as OwidArticleBackportingStatistics
@@ -184,8 +182,8 @@ adminRouter.get("/posts/compare/:postId", async (req, res) => {
     )
     const errorList = `<ul>${errorItems.join("")}</ul>`
 
-    const archieMl = getArticleFromJSON(archieMlJson)
-    const archieMlPage = renderGdocsArticle(archieMl)
+    const archieMl = getOwidGdocFromJSON(archieMlJson)
+    const archieMlPage = renderGdoc(archieMl)
 
     res.send(`<!doctype html>
     <html>

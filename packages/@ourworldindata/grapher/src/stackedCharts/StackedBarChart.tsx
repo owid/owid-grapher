@@ -27,6 +27,7 @@ import { ColorSchemeName } from "../color/ColorConstants"
 import { stackSeries, withMissingValuesAsZeroes } from "./StackedUtils"
 import { makeClipPath } from "../chart/ChartUtils"
 import { ColorScaleConfigDefaults } from "../color/ColorScaleConfig"
+import { ColumnTypeMap } from "@ourworldindata/core-table"
 
 interface StackedBarSegmentProps extends React.SVGAttributes<SVGGElement> {
     bar: StackedPoint<Time>
@@ -262,7 +263,8 @@ export class StackedBarChart
             point: series.points.find((bar) => bar.position === hoverTime),
         }))
         const totalValue = sum(seriesRows.map((bar) => bar.point?.value ?? 0))
-        const showTotalValue: boolean = seriesRows.length > 1
+        const allFake = seriesRows.every((bar) => bar.point?.fake)
+        const showTotalValue = seriesRows.length > 1 && !allFake
         return (
             <Tooltip
                 id={this.renderUid}
@@ -586,6 +588,15 @@ export class StackedBarChart
     defaultBaseColorScheme = ColorSchemeName.stackedAreaDefault
 
     @computed get series(): readonly StackedSeries<number>[] {
-        return stackSeries(withMissingValuesAsZeroes(this.unstackedSeries))
+        // TODO: remove once monthly data is supported (https://github.com/owid/owid-grapher/issues/2007)
+        const enforceUniformSpacing = !(
+            this.transformedTable.timeColumn instanceof ColumnTypeMap.Day
+        )
+
+        return stackSeries(
+            withMissingValuesAsZeroes(this.unstackedSeries, {
+                enforceUniformSpacing,
+            })
+        )
     }
 }

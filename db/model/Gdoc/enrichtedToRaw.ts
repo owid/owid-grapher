@@ -1,6 +1,6 @@
 import {
-    OwidEnrichedArticleBlock,
-    OwidRawArticleBlock,
+    OwidEnrichedGdocBlock,
+    OwidRawGdocBlock,
     RawBlockAdditionalCharts,
     RawBlockAside,
     RawBlockChart,
@@ -32,8 +32,8 @@ function spansToHtmlText(spans: Span[]): string {
     return spans.map(spanToHtmlString).join("")
 }
 export function enrichedBlockToRawBlock(
-    block: OwidEnrichedArticleBlock
-): OwidRawArticleBlock {
+    block: OwidEnrichedGdocBlock
+): OwidRawGdocBlock {
     return match(block)
         .with(
             { type: "text" },
@@ -201,7 +201,7 @@ export function enrichedBlockToRawBlock(
         )
         .with(
             { type: P.union("side-by-side", "sticky-left", "sticky-right") },
-            (b): OwidRawArticleBlock => ({
+            (b): OwidRawGdocBlock => ({
                 type: b.type,
                 value: {
                     left: b.left.map(enrichedBlockToRawBlock),

@@ -80,14 +80,18 @@ class DimensionSlotView extends React.Component<{
         this.updateDimensionsAndRebuildTable()
     }
 
-    private updateDefaults() {
+    @action.bound private updateDefaults() {
         const { grapher } = this.props.editor
         const { selection } = grapher
         const { availableEntityNames, availableEntityNameSet } = selection
 
         if (grapher.isScatter || grapher.isSlopeChart || grapher.isMarimekko) {
             selection.clearSelection()
-        } else if (grapher.yColumnsFromDimensions.length > 1) {
+        } else if (
+            grapher.yColumnsFromDimensions.length > 1 &&
+            !grapher.isStackedArea &&
+            !grapher.isStackedBar
+        ) {
             const entity = availableEntityNameSet.has(WorldEntityName)
                 ? WorldEntityName
                 : sample(availableEntityNames)
@@ -96,7 +100,7 @@ class DimensionSlotView extends React.Component<{
         } else {
             selection.setSelectedEntities(
                 availableEntityNames.length > 10
-                    ? sampleSize(availableEntityNames, 3)
+                    ? sampleSize(availableEntityNames, 4)
                     : availableEntityNames
             )
             grapher.addCountryMode = EntitySelectionMode.MultipleEntities
@@ -109,11 +113,10 @@ class DimensionSlotView extends React.Component<{
             () => this.grapher.isReady,
             () => {
                 this.disposers.push(
+                    reaction(() => this.grapher.type, this.updateDefaults),
                     reaction(
-                        () =>
-                            this.grapher.type &&
-                            this.grapher.yColumnsFromDimensions.length,
-                        () => this.updateDefaults()
+                        () => this.grapher.yColumnsFromDimensions.length,
+                        this.updateDefaults
                     )
                 )
             }

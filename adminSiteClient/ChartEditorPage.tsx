@@ -15,6 +15,7 @@ import {
     capitalize,
     getIndexableKeys,
     Detail,
+    RawPageview,
 } from "@ourworldindata/utils"
 import { Grapher, Topic, GrapherInterface } from "@ourworldindata/grapher"
 import { Admin } from "./Admin.js"
@@ -106,6 +107,7 @@ export class ChartEditorPage
     @observable logs: Log[] = []
     @observable references: PostReference[] = []
     @observable redirects: ChartRedirect[] = []
+    @observable pageviews?: RawPageview = undefined
     @observable allTopics: Topic[] = []
     @observable details: GrapherInterface["details"] = {}
 
@@ -195,6 +197,16 @@ export class ChartEditorPage
         runInAction(() => (this.redirects = json.redirects))
     }
 
+    async fetchPageviews(): Promise<void> {
+        const { grapherId } = this.props
+        const { admin } = this.context
+        const json =
+            grapherId === undefined
+                ? []
+                : await admin.getJSON(`/api/charts/${grapherId}.pageviews.json`)
+        runInAction(() => (this.pageviews = json.pageviews))
+    }
+
     async fetchTopics(): Promise<void> {
         const { admin } = this.context
         const json = await admin.getJSON(`/api/topics.json`)
@@ -272,6 +284,7 @@ export class ChartEditorPage
         this.fetchLogs()
         this.fetchRefs()
         this.fetchRedirects()
+        this.fetchPageviews()
         this.fetchTopics()
     }
 

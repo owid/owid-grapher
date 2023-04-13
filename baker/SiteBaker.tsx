@@ -30,7 +30,7 @@ import {
     renderCountryProfile,
     flushCache as siteBakingFlushCache,
     renderPost,
-    renderGdocsArticle,
+    renderGdoc,
 } from "../baker/siteRenderers.js"
 import {
     bakeGrapherUrls,
@@ -42,7 +42,7 @@ import { bakeCountries } from "../baker/countryProfiles.js"
 import {
     countries,
     FullPost,
-    OwidArticleTypePublished,
+    OwidGdocPublished,
     ImageMetadata,
     clone,
     getFilenameWithoutExtension,
@@ -64,7 +64,6 @@ import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
 import { Image } from "../db/model/Image.js"
 import sharp from "sharp"
 import { generateEmbedSnippet } from "../site/viteUtils.js"
-import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 
 // These aren't all "wordpress" steps
 // But they're only run when you have the full stack available
@@ -185,8 +184,8 @@ export class SiteBaker {
     }
 
     // Bake an individual post/page
-    async bakeGDocPost(post: OwidArticleTypePublished) {
-        const html = renderGdocsArticle(post)
+    async bakeGDocPost(post: OwidGdocPublished) {
+        const html = renderGdoc(post)
         const outPath = path.join(this.bakedSiteDir, `${post.slug}.html`)
         await fs.mkdirp(path.dirname(outPath))
         await this.stageWrite(outPath, html)
@@ -319,7 +318,7 @@ export class SiteBaker {
                         .join("\n  ")}`
                 )
             }
-            await this.bakeGDocPost(publishedGdoc as OwidArticleTypePublished)
+            await this.bakeGDocPost(publishedGdoc as OwidGdocPublished)
         }
 
         this.progressBar.tick({ name: "✅ baked google doc posts" })
@@ -513,7 +512,7 @@ export class SiteBaker {
 
         await fs.writeFile(
             `${this.bakedSiteDir}/grapher/embedCharts.js`,
-            generateEmbedSnippet(BAKED_BASE_URL)
+            generateEmbedSnippet()
         )
         this.stage(`${this.bakedSiteDir}/grapher/embedCharts.js`)
         this.progressBar.tick({ name: "✅ baked assets" })

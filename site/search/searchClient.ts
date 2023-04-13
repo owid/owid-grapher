@@ -1,4 +1,4 @@
-import algoliasearch, { SearchClient } from "algoliasearch/lite"
+import algoliasearch, { SearchClient } from "algoliasearch/lite.js"
 import { countries } from "@ourworldindata/utils"
 import {
     ALGOLIA_ID,

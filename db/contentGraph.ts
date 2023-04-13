@@ -10,11 +10,9 @@ import {
 import { queryMysql } from "./db.js"
 import { ENTRIES_CATEGORY_ID, getDocumentsInfo } from "./wpdb.js"
 
-// no defintions exist
-// eslint-disable-next-line  @typescript-eslint/no-var-requires
-const fortune = require("fortune")
-// eslint-disable-next-line  @typescript-eslint/no-var-requires
-const MemoryAdapter = require("fortune/lib/adapter/adapters/memory")
+import fortune from "fortune"
+import MemoryAdapter from "fortune/lib/adapter/adapters/memory/index.js"
+
 const {
     errors: { ConflictError },
 } = fortune

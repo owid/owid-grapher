@@ -4,24 +4,24 @@ import {
     faExclamationTriangle,
     faExclamationCircle,
 } from "@fortawesome/free-solid-svg-icons"
-import { OwidArticleErrorMessageType } from "@ourworldindata/utils"
+import { OwidGdocErrorMessageType } from "@ourworldindata/utils"
 import { Badge } from "antd"
 
 export const IconBadge = ({
     status,
     children,
 }: {
-    status: OwidArticleErrorMessageType | null
+    status: OwidGdocErrorMessageType | null
     children: React.ReactNode
 }) => {
     if (!status) return <>{children}</>
 
     let icon
     switch (status) {
-        case OwidArticleErrorMessageType.Warning:
+        case OwidGdocErrorMessageType.Warning:
             icon = faExclamationTriangle
             break
-        case OwidArticleErrorMessageType.Error:
+        case OwidGdocErrorMessageType.Error:
             icon = faExclamationCircle
             break
     }
