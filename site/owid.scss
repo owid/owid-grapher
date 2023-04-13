@@ -85,10 +85,12 @@
 @import "./gdocs/SDGTableOfContents.scss";
 @import "./gdocs/MissingData.scss";
 @import "./gdocs/AdditionalCharts.scss";
+@import "./DataPage.scss";
+@import "./DataPageContent.scss";
+@import "./ExpandableAnimatedToggle.scss";
 
 /* HACK (Mispy): Fix search autozooming on iPhone Safari.
    http://stackoverflow.com/questions/2989263/disable-auto-zoom-in-input-text-tag-safari-on-iphone */
-
 @media screen and (-webkit-min-device-pixel-ratio: 0) {
     select,
     textarea,
