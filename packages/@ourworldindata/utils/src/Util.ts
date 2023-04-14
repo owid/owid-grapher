@@ -1373,6 +1373,10 @@ export function recursivelyMapArticleContent<
         node.value.map((node) =>
             recursivelyMapArticleContent(node as any, callback)
         )
+    } else if (node.type === "additional-charts") {
+        node.items.map((spans) =>
+            spans.map((span) => recursivelyMapArticleContent(span, callback))
+        )
     }
 
     return callback(node)
