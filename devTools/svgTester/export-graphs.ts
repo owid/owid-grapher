@@ -6,17 +6,26 @@ import * as fs from "fs-extra"
 
 import * as path from "path"
 import workerpool from "workerpool"
+
+function parseArgAsList(arg?: string): string[] {
+    return (arg ?? "")
+        .toString()
+        .split(",")
+        .map(String)
+        .filter((entry: string) => entry)
+}
+
 async function main(parsedArgs: parseArgs.ParsedArgs) {
     try {
         const inDir = parsedArgs["i"] ?? "grapherData"
         let outDir = parsedArgs["o"] ?? "grapherSvgs"
-        const targetConfigs: string[] = (parsedArgs["c"] ?? "")
-            .toString()
-            .split(",")
-            .map(String)
-            .filter((entry: string) => entry)
+        const targetConfigs: string[] = parseArgAsList(parsedArgs["c"])
+        const targetChartTypes: string[] = parseArgAsList(parsedArgs["t"])
 
-        if (targetConfigs.length) {
+        // create a directory that contains the old and new svgs for easy comparing
+        const enableComparisons =
+            targetConfigs.length || targetChartTypes.length
+        if (enableComparisons) {
             outDir = path.join(outDir, "comparisons")
         }
 
@@ -28,13 +37,31 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         const directories = []
         for await (const entry of dir) {
             if (entry.isDirectory()) {
-                if (!targetConfigs.length) {
+                if (!targetConfigs.length && !targetChartTypes.length) {
                     directories.push(entry.name)
-                } else if (targetConfigs.includes(entry.name)) {
+                    continue
+                }
+
+                if (targetConfigs.includes(entry.name)) {
                     directories.push(entry.name)
+                    continue
+                }
+
+                const configPath = path.join(inDir, entry.name, "config.json")
+                const config = JSON.parse(fs.readFileSync(configPath, "utf8"))
+
+                if (
+                    targetChartTypes.includes(config.type) ||
+                    (!config.type && targetChartTypes.includes("LineChart"))
+                ) {
+                    directories.push(entry.name)
+                    continue
                 }
             }
         }
+
+        const n = directories.length
+        console.log(`Generating ${n} SVG${n > 0 ? "s" : ""}...`)
 
         const jobDescriptions: utils.RenderSvgAndSaveJobDescription[] =
             directories.map((dir) => ({ dir: path.join(inDir, dir), outDir }))
@@ -49,7 +76,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         )
 
         // Copy over copies from master for easy comparing
-        if (targetConfigs.length) {
+        if (enableComparisons) {
             const comparisonDir = await fs.opendir(outDir)
             const filenames: string[] = []
             for await (const file of comparisonDir) {
@@ -86,12 +113,13 @@ if (parsedArgs["h"] || parsedArgs["help"]) {
     console.log(`export-graphs.js - utility to export grapher svg renderings and a summary csv file
 
 Usage:
-    export-graphs.js (-i DIR) (-o DIR) (-c ID)
+    export-graphs.js (-i DIR) (-o DIR) (-c ID) (-t TYPE)
 
 Options:
     -i DIR         Input directory containing the data. [default: grapherData]
     -o DIR         Output directory that will contain the csv file and one svg file per grapher [default: grapherSvgs]
     -c ID          A comma-separated list of config IDs that you want to run instead of generating SVGs from all configs [default: undefined]
+    -t TYPE        A comma-separated list of chart types that you want to run instead of generating SVGs from all configs [default: undefined]
     `)
     process.exit(0)
 } else {
