@@ -44,6 +44,7 @@ import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_EXPORTS_BASE_URL,
 } from "../../../settings/clientSettings.js"
+import { EXPLORERS_ROUTE_FOLDER } from "../../../explorer/ExplorerConstants.js"
 
 @Entity("posts_gdocs")
 export class Gdoc extends BaseEntity implements OwidGdocInterface {
@@ -229,7 +230,7 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
                 const linkedChart: LinkedChart = {
                     slug,
                     title: explorer?.explorerTitle ?? "",
-                    path: `${BAKED_BASE_URL}/explorers/${slug}`,
+                    path: `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${slug}`,
                     thumbnail: `${BAKED_BASE_URL}/default-thumbnail.jpg`,
                 }
                 return linkedChart
