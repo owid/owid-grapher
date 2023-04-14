@@ -1390,7 +1390,8 @@ export class Grapher
 
         const isPopulationVariableId = (id: string): boolean =>
             id === "525709" || // "Population (historical + projections), Gapminder, HYDE & UN"
-            id === "525711" // "Population (historical estimates), Gapminder, HYDE & UN"
+            id === "525711" || // "Population (historical estimates), Gapminder, HYDE & UN"
+            id === "597929" // "Population (various sources, 2023.1)"
 
         const columnSlugs = [...yColumnSlugs]
 
