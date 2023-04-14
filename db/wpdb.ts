@@ -633,11 +633,10 @@ export const getRelatedArticles = async (
     if (!chartRecord.payload.count) return
 
     const chart = chartRecord.payload.records[0]
-    const publishedLinksToChart = await Link.find({
-        where: { target: chart.slug, linkType: "grapher" },
-        relations: ["source"],
-    }).then((links) => links.filter((link) => link.source.published))
-
+    const publishedLinksToChart = await Link.getPublishedLinksTo(
+        [chart.slug],
+        "grapher"
+    )
     const publishedGdocPostsThatReferenceChart: PostReference[] =
         publishedLinksToChart.map((link) => ({
             id: link.source.id,
