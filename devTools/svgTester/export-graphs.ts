@@ -61,7 +61,12 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         }
 
         const n = directories.length
-        console.log(`Generating ${n} SVG${n > 0 ? "s" : ""}...`)
+        if (n === 0) {
+            console.log("No matching configs found")
+            process.exit(0)
+        } else {
+            console.log(`Generating ${n} SVG${n > 0 ? "s" : ""}...`)
+        }
 
         const jobDescriptions: utils.RenderSvgAndSaveJobDescription[] =
             directories.map((dir) => ({ dir: path.join(inDir, dir), outDir }))
