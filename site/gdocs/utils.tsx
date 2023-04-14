@@ -58,6 +58,7 @@ export const useImage = (
 const LinkedA = ({ span }: { span: SpanLink }): JSX.Element => {
     const linkType = getLinkType(span.url)
     const { linkedDocument } = useLinkedDocument(span.url)
+    const { linkedChart } = useLinkedChart(span.url)
 
     if (linkType === "url") {
         return (
@@ -67,6 +68,13 @@ const LinkedA = ({ span }: { span: SpanLink }): JSX.Element => {
                 rel="noopener noreferrer"
                 className="span-link"
             >
+                {renderSpans(span.children)}
+            </a>
+        )
+    }
+    if (linkedChart) {
+        return (
+            <a href={`/${linkedChart.slug}`} className="span-link">
                 {renderSpans(span.children)}
             </a>
         )

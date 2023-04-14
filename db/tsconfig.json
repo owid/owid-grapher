@@ -5,5 +5,9 @@
         "rootDir": ".",
         "emitDecoratorMetadata": true // must be enabled for typeorm
     },
-    "references": [{ "path": "../settings" }, { "path": "../explorer" }]
+    "references": [
+        { "path": "../settings" },
+        { "path": "../explorer" },
+        { "path": "../site" }
+    ]
 }

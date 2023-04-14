@@ -45,6 +45,7 @@ import {
     BAKED_GRAPHER_EXPORTS_BASE_URL,
 } from "../../../settings/clientSettings.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../../../explorer/ExplorerConstants.js"
+import { formatUrls } from "../../../site/formatting.js"
 
 @Entity("posts_gdocs")
 export class Gdoc extends BaseEntity implements OwidGdocInterface {
@@ -279,7 +280,7 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
             const link: Link = Link.create({
                 linkType: getLinkType(node.url),
                 source: this,
-                target: getUrlTarget(node.url),
+                target: getUrlTarget(formatUrls(node.url)),
                 componentType: checkNodeIsSpan(node) ? "span-link" : node.type,
                 text: getText(node),
             })
