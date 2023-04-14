@@ -1377,6 +1377,10 @@ export function recursivelyMapArticleContent<
         node.items.map((spans) =>
             spans.map((span) => recursivelyMapArticleContent(span, callback))
         )
+    } else if (node.type === "chart-story") {
+        node.items.map((item) =>
+            recursivelyMapArticleContent(item.chart, callback)
+        )
     }
 
     return callback(node)
