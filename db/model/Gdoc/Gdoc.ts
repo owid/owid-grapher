@@ -210,7 +210,8 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
             [...uniqueSlugsByLinkType.grapher.values()].map(async (slug) => {
                 const chartId = slugToIdMap[slug]
                 const chart = await Chart.findOneBy({ id: chartId })
-                const resolvedSlug = chart?.config.slug ?? ""
+                if (!chart) return
+                const resolvedSlug = chart.config.slug ?? ""
                 const linkedChart: LinkedChart = {
                     slug: resolvedSlug,
                     title: chart?.config.title ?? "",
@@ -222,8 +223,9 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
         ).then(excludeNullish)
 
         const linkedExplorerCharts = await Promise.all(
-            [...uniqueSlugsByLinkType.explorer.values()].map(async (slug) => {
+            [...uniqueSlugsByLinkType.explorer.values()].map((slug) => {
                 const explorer = publishedExplorersBySlug[slug]
+                if (!explorer) return
                 const linkedChart: LinkedChart = {
                     slug,
                     title: explorer?.explorerTitle ?? "",
