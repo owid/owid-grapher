@@ -29,6 +29,7 @@ export const checkIsLightningUpdate = (
         "updatedAt",
         "linkedDocuments",
         "imageMetadata",
+        "linkedCharts",
         "errors",
     ]
 
