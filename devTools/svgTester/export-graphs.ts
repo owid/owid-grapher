@@ -17,8 +17,8 @@ function parseArgAsList(arg?: string): string[] {
 
 async function main(parsedArgs: parseArgs.ParsedArgs) {
     try {
-        const inDir = parsedArgs["i"] ?? "grapherData"
-        let outDir = parsedArgs["o"] ?? "grapherSvgs"
+        const inDir = parsedArgs["i"] ?? "../owid-grapher-svgs/configs"
+        let outDir = parsedArgs["o"] ?? "../owid-grapher-svgs/svg"
         const targetConfigs: string[] = parseArgAsList(parsedArgs["c"])
         const targetChartTypes: string[] = parseArgAsList(parsedArgs["t"])
 
@@ -116,8 +116,8 @@ Usage:
     export-graphs.js (-i DIR) (-o DIR) (-c ID) (-t TYPE)
 
 Options:
-    -i DIR         Input directory containing the data. [default: grapherData]
-    -o DIR         Output directory that will contain the csv file and one svg file per grapher [default: grapherSvgs]
+    -i DIR         Input directory containing the data. [default: ../owid-grapher-svgs/configs]
+    -o DIR         Output directory that will contain the csv file and one svg file per grapher [default: ../owid-grapher-svgs/svg]
     -c ID          A comma-separated list of config IDs that you want to run instead of generating SVGs from all configs [default: undefined]
     -t TYPE        A comma-separated list of chart types that you want to run instead of generating SVGs from all configs [default: undefined]
     `)
