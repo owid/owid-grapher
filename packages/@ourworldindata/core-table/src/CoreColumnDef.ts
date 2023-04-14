@@ -12,6 +12,7 @@ export enum ColumnTypeNames {
     Region = "Region",
     SeriesAnnotation = "SeriesAnnotation",
     Categorical = "Categorical",
+    Ordinal = "Ordinal",
     Continent = "Continent",
     EntityName = "EntityName",
     EntityId = "EntityId",

@@ -545,8 +545,9 @@ const variableTypeToColumnType = (
     type: OwidVariableTypeOptions
 ): ColumnTypeNames => {
     switch (type) {
-        case "string":
         case "ordinal":
+            return ColumnTypeNames.Ordinal
+        case "string":
             return ColumnTypeNames.String
         case "float":
         case "int":

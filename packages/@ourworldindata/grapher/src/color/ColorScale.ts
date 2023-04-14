@@ -130,13 +130,7 @@ export class ColorScale {
     }
 
     @computed private get categoricalValues(): any[] {
-        const { sortedUniqNonEmptyStringVals, allowedValuesSorted } =
-            this.colorScaleColumn ?? {}
-
-        if (allowedValuesSorted && allowedValuesSorted.length > 0)
-            return allowedValuesSorted
-
-        return sortedUniqNonEmptyStringVals ?? []
+        return this.colorScaleColumn?.sortedUniqNonEmptyStringVals ?? []
     }
 
     @computed private get colorScheme(): ColorScheme {
