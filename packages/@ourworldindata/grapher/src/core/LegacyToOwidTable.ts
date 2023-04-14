@@ -600,7 +600,9 @@ const columnDefFromOwidVariable = (
         owidVariableId: variable.id,
         type: isContinent
             ? ColumnTypeNames.Continent
-            : variableTypeToColumnType(type),
+            : type
+            ? variableTypeToColumnType(type)
+            : ColumnTypeNames.NumberOrString,
         sort,
     }
 }

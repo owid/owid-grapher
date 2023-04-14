@@ -73,6 +73,7 @@ export type OwidVariableWithSource = {
     coverage?: string
     nonRedistributable?: boolean
     source?: OwidSource
+    type?: OwidVariableTypeOptions
 } & OwidVariableTypeFields
 
 export type OwidVariableWithSourceAndDimension = OwidVariableWithSource & {
