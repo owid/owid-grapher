@@ -31,6 +31,7 @@ import {
     ColumnSlug,
     EPOCH_DATE,
     OwidChartDimensionInterface,
+    OwidVariableTypeOptions,
 } from "@ourworldindata/utils"
 
 export const legacyToOwidTableAndDimensions = (
@@ -540,6 +541,22 @@ const fullJoinTables = (
     )
 }
 
+const variableTypeToColumnType = (
+    type: OwidVariableTypeOptions
+): ColumnTypeNames => {
+    switch (type) {
+        case "string":
+        case "ordinal":
+            return ColumnTypeNames.String
+        case "float":
+        case "int":
+            return ColumnTypeNames.Numeric
+        case "mixed":
+        default:
+            return ColumnTypeNames.NumberOrString
+    }
+}
+
 const columnDefFromOwidVariable = (
     variable: OwidVariableWithSourceAndDimension
 ): OwidColumnDef => {
@@ -555,6 +572,7 @@ const columnDefFromOwidVariable = (
         display,
         nonRedistributable,
         sort,
+        type,
     } = variable
 
     // Without this the much used var 123 appears as "Countries Continent". We could rename in Grapher but not sure the effects of that.
@@ -582,7 +600,7 @@ const columnDefFromOwidVariable = (
         owidVariableId: variable.id,
         type: isContinent
             ? ColumnTypeNames.Continent
-            : ColumnTypeNames.NumberOrString,
+            : variableTypeToColumnType(type),
         sort,
     }
 }
