@@ -30,7 +30,7 @@ export const ProminentLink = (props: {
                         className="span-cols-6 span-md-cols-10 span-sm-cols-12"
                         error={{
                             name: "Error with prominent link",
-                            message: `${errorMessage}\nThis block won't render when the page is published`,
+                            message: `${errorMessage} This block won't render when the page is published`,
                         }}
                     />
                 </div>

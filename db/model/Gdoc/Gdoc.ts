@@ -200,7 +200,7 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
         const slugToIdMap = await Chart.mapSlugsToIds()
         const uniqueSlugsByLinkType = this.links.reduce(
             (slugsByLinkType, { linkType, target }) => {
-                if (linkType == "grapher" || linkType == "explorer") {
+                if (linkType === "grapher" || linkType === "explorer") {
                     slugsByLinkType[linkType].add(target)
                 }
                 return slugsByLinkType
@@ -264,7 +264,7 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
         function getText(node: OwidEnrichedGdocBlock | Span): string {
             // Can add component-specific text accessors here
             if (checkNodeIsSpan(node)) {
-                if (node.spanType == "span-link") {
+                if (node.spanType === "span-link") {
                     return spansToUnformattedPlainText(node.children)
                 }
             } else if (node.type === "prominent-link") return node.title || ""
@@ -292,21 +292,24 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
         publishedExplorersBySlug: Record<string, any>
     ): Promise<void> {
         const filenameErrors: OwidGdocErrorMessage[] = this.filenames.reduce(
-            (acc: OwidGdocErrorMessage[], filename): OwidGdocErrorMessage[] => {
+            (
+                errors: OwidGdocErrorMessage[],
+                filename
+            ): OwidGdocErrorMessage[] => {
                 if (!this.imageMetadata[filename]) {
-                    acc.push({
+                    errors.push({
                         property: "imageMetadata",
                         message: `No image named ${filename} found in Drive`,
                         type: OwidGdocErrorMessageType.Error,
                     })
                 } else if (!this.imageMetadata[filename].defaultAlt) {
-                    acc.push({
+                    errors.push({
                         property: "imageMetadata",
                         message: `${filename} is missing a default alt text`,
                         type: OwidGdocErrorMessageType.Error,
                     })
                 }
-                return acc
+                return errors
             },
             []
         )
@@ -314,13 +317,13 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
         const chartIdsBySlug = await Chart.mapSlugsToIds()
 
         const linkErrors: OwidGdocErrorMessage[] = this.links.reduce(
-            (acc: OwidGdocErrorMessage[], link): OwidGdocErrorMessage[] => {
-                if (link.linkType == "gdoc") {
+            (errors: OwidGdocErrorMessage[], link): OwidGdocErrorMessage[] => {
+                if (link.linkType === "gdoc") {
                     const id = getUrlTarget(link.target)
                     const doesGdocExist = Boolean(this.linkedDocuments[id])
                     const isGdocPublished = this.linkedDocuments[id]?.published
                     if (!doesGdocExist || !isGdocPublished) {
-                        acc.push({
+                        errors.push({
                             property: "linkedDocuments",
                             message: `${link.componentType} with text "${
                                 link.text
@@ -331,25 +334,25 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
                         })
                     }
                 }
-                if (link.linkType == "grapher") {
+                if (link.linkType === "grapher") {
                     if (!chartIdsBySlug[link.target]) {
-                        acc.push({
+                        errors.push({
                             property: "content",
                             message: `Grapher chart with slug ${link.target} does not exist or is not published`,
                             type: OwidGdocErrorMessageType.Error,
                         })
                     }
                 }
-                if (link.linkType == "explorer") {
+                if (link.linkType === "explorer") {
                     if (!publishedExplorersBySlug[link.target]) {
-                        acc.push({
+                        errors.push({
                             property: "content",
                             message: `Explorer chart with slug ${link.target} does not exist or is not published`,
                             type: OwidGdocErrorMessageType.Error,
                         })
                     }
                 }
-                return acc
+                return errors
             },
             []
         )
