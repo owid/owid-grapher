@@ -982,12 +982,11 @@ export interface OwidGdocContent {
     byline?: string
     dateline?: string
     excerpt?: string
-    cover?: string
     refs?: EnrichedBlockText[]
     summary?: EnrichedBlockText[]
     citation?: EnrichedBlockSimpleText[]
     toc?: TocHeadingWithTitleSupertitle[]
-    "cover-image"?: any
+    "cover-image"?: string
     "cover-color"?:
         | "sdg-color-1"
         | "sdg-color-2"

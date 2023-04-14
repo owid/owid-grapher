@@ -9,13 +9,25 @@
 }
 
 $banner-height: 200px;
-.article-banner {
+.centered-article-header__banner {
     position: absolute;
     left: 0;
     right: 0;
     height: $banner-height;
     background: #f7c020;
     z-index: -1;
+}
+
+// Pretty sure we don't want this
+.centered-article-header__cover-image {
+    max-height: 200px;
+    overflow: hidden;
+    position: absolute;
+    width: 100%;
+    z-index: -1;
+    img {
+        width: 100%;
+    }
 }
 
 .article-summary {

@@ -27,7 +27,7 @@ const gridSpan5 = generateResponsiveSizes(5)
 const gridSpan6 = generateResponsiveSizes(6)
 const gridSpan7 = generateResponsiveSizes(7)
 
-type ImageParentContainer = Container | "thumbnail"
+type ImageParentContainer = Container | "thumbnail" | "full-width"
 
 const containerSizes: Record<ImageParentContainer, string> = {
     ["default"]: gridSpan6,
@@ -39,6 +39,7 @@ const containerSizes: Record<ImageParentContainer, string> = {
     ["summary"]: gridSpan6,
     ["thumbnail"]: "350px",
     ["datapage"]: gridSpan6,
+    ["full-width"]: "100vw",
 }
 
 export default function Image(props: {
@@ -46,8 +47,14 @@ export default function Image(props: {
     alt?: string
     className?: string
     containerType?: ImageParentContainer
+    shouldLightbox?: boolean
 }) {
-    const { filename, className = "", containerType = "default" } = props
+    const {
+        filename,
+        className = "",
+        containerType = "default",
+        shouldLightbox = true,
+    } = props
     const { isPreviewing } = useContext(DocumentContext)
     const image = useImage(filename)
     if (!image) {
@@ -67,7 +74,9 @@ export default function Image(props: {
 
     const alt = props.alt ?? image.defaultAlt
     const maybeLightboxClassName =
-        containerType === "thumbnail" ? "" : LIGHTBOX_IMAGE_CLASS
+        containerType === "thumbnail" || !shouldLightbox
+            ? ""
+            : LIGHTBOX_IMAGE_CLASS
 
     if (isPreviewing) {
         return (

@@ -53,7 +53,7 @@ export const ProminentLink = (props: {
     const anchorTagProps = linkedDocument
         ? {}
         : { target: "_blank", rel: "noopener noreferrer" }
-    const thumbnail = props.thumbnail || linkedDocument?.content.cover
+    const thumbnail = props.thumbnail || linkedDocument?.content["cover-image"]
     const textContainerClassName = thumbnail
         ? "col-sm-start-4 col-md-start-3 col-start-2 col-end-limit"
         : "col-start-1 col-end-limit"

@@ -128,8 +128,8 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
     get filenames(): string[] {
         const filenames: Set<string> = new Set()
 
-        if (this.content.cover) {
-            filenames.add(this.content.cover)
+        if (this.content["cover-image"]) {
+            filenames.add(this.content["cover-image"])
         }
 
         this.content.body?.forEach((node) =>
@@ -151,7 +151,7 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
 
     async loadImageMetadata(): Promise<void> {
         const covers: string[] = Object.values(this.linkedDocuments)
-            .map((gdoc: Gdoc) => gdoc.content.cover)
+            .map((gdoc: Gdoc) => gdoc.content["cover-image"])
             .filter((cover?: string): cover is string => !!cover)
 
         const filenamesToLoad: string[] = [...this.filenames, ...covers]

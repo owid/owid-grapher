@@ -8,6 +8,7 @@ import { formatAuthors } from "../clientFormatting.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faBook } from "@fortawesome/free-solid-svg-icons"
 import { faCreativeCommons } from "@fortawesome/free-brands-svg-icons"
+import Image from "./Image.js"
 
 function OwidArticleHeader({
     content,
@@ -18,17 +19,26 @@ function OwidArticleHeader({
     authors: string[]
     publishedAt: Date | null
 }) {
-    const coverStyle = content["cover-image"]
-        ? {
-              background: `url(${content["cover-image"][0].value.src})`,
-              backgroundSize: "cover",
-          }
-        : content["cover-color"]
+    const coverStyle = content["cover-color"]
         ? { backgroundColor: `var(--${content["cover-color"]})` }
-        : {}
+        : undefined
+
     return (
         <>
-            <div className="article-banner" style={coverStyle}></div>
+            <div
+                className="centered-article-header__banner"
+                style={coverStyle}
+            ></div>
+            {/* Pretty sure we don't want this */}
+            {content["cover-image"] ? (
+                <div className="centered-article-header__cover-image span-cols-14">
+                    <Image
+                        filename={content["cover-image"]}
+                        containerType="full-width"
+                        shouldLightbox={false}
+                    />
+                </div>
+            ) : null}
             <header className="centered-article-header align-center grid grid-cols-8 col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
                 <div className="centered-article-header__title-container col-start-2 span-cols-6">
                     {content.supertitle ? (
