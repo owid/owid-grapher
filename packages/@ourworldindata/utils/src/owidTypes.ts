@@ -814,6 +814,38 @@ export type EnrichedBlockCallout = {
     text: Span[][]
 } & EnrichedBlockWithParseErrors
 
+export type RawBlockTopicPageIntro = {
+    type: "topic-page-intro"
+    value: {
+        "download-button":
+            | {
+                  text: string
+                  url: string
+              }
+            | undefined
+        "related-topics":
+            | {
+                  text: string
+                  url: string
+              }[]
+            | undefined
+        content: RawBlockText[]
+    }
+}
+
+export type EnrichedBlockTopicPageIntro = {
+    type: "topic-page-intro"
+    downloadButton?: {
+        text: string
+        url: string
+    }
+    relatedTopics?: {
+        text: string
+        url: string
+    }[]
+    content: Span[][]
+} & EnrichedBlockWithParseErrors
+
 export type RawBlockSDGToc = {
     type: "sdg-toc"
     value?: Record<string, never>
@@ -870,6 +902,7 @@ export type OwidRawGdocBlock =
     | RawBlockMissingData
     | RawBlockAdditionalCharts
     | RawBlockNumberedList
+    | RawBlockTopicPageIntro
 
 export type OwidEnrichedGdocBlock =
     | EnrichedBlockText
@@ -896,6 +929,7 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockAdditionalCharts
     | EnrichedBlockNumberedList
     | EnrichedBlockSimpleText
+    | EnrichedBlockTopicPageIntro
 
 export enum OwidGdocPublicationContext {
     unlisted = "unlisted",

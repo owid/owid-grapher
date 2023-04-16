@@ -61,6 +61,8 @@ import {
     checkIsInternalLink,
     BlockImageSize,
     checkIsBlockImageSize,
+    RawBlockTopicPageIntro,
+    EnrichedBlockTopicPageIntro,
 } from "@ourworldindata/utils"
 import { extractUrl, getTitleSupertitleFromHeadingText } from "./gdocUtils.js"
 import {
@@ -112,6 +114,7 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "side-by-side" }, parseSideBySide)
         .with({ type: "gray-section" }, parseGraySection)
         .with({ type: "prominent-link" }, parseProminentLink)
+        .with({ type: "topic-page-intro" }, parseTopicPageIntro)
         .with(
             { type: "sdg-toc" },
             (b): EnrichedBlockSDGToc => ({
@@ -905,5 +908,60 @@ function parseCallout(raw: RawBlockCallout): EnrichedBlockCallout {
         parseErrors: [],
         text,
         title: raw.value.title,
+    }
+}
+
+function parseTopicPageIntro(
+    raw: RawBlockTopicPageIntro
+): EnrichedBlockTopicPageIntro {
+    const createError = (error: ParseError): EnrichedBlockTopicPageIntro => ({
+        type: "topic-page-intro",
+        parseErrors: [error],
+        content: [],
+    })
+
+    if (!raw.value.content) {
+        return createError({
+            message: "Missing content",
+        })
+    }
+
+    const downloadButton = raw.value["download-button"]
+    if (downloadButton) {
+        if (!downloadButton.text) {
+            return createError({
+                message: "Download button specified but missing text value",
+            })
+        }
+
+        if (!downloadButton.url) {
+            return createError({
+                message: "Download button specified but missing url value",
+            })
+        }
+    }
+
+    const relatedTopics = raw.value["related-topics"]
+    if (relatedTopics) {
+        for (const relatedTopic of relatedTopics) {
+            if (!relatedTopic.text) {
+                return createError({
+                    message: "A related topic is missing text",
+                })
+            }
+            if (!relatedTopic.url) {
+                return createError({
+                    message: "A related topic is missing a url",
+                })
+            }
+        }
+    }
+
+    return {
+        type: "topic-page-intro",
+        relatedTopics,
+        downloadButton,
+        content: raw.value.content.map((rawText) => htmlToSpans(rawText.value)),
+        parseErrors: [],
     }
 }

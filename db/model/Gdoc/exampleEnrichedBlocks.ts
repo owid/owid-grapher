@@ -221,4 +221,30 @@ export const enrichedBlockExamples: Record<
         value: {},
         parseErrors: [],
     },
+    "topic-page-intro": {
+        type: "topic-page-intro",
+        downloadButton: {
+            text: "Download all data on poverty",
+            url: "https://github.com/owid/etl",
+        },
+        relatedTopics: [
+            {
+                text: "Poverty",
+                url: "https://ourworldindata.org/poverty",
+            },
+        ],
+        content: [
+            [
+                {
+                    spanType: "span-simple-text",
+                    text: "I am the first paragraph of the intro to the topic page.",
+                },
+                {
+                    spanType: "span-simple-text",
+                    text: "I am the second paragraph of the intro to the topic page.",
+                },
+            ],
+        ],
+        parseErrors: [],
+    },
 }

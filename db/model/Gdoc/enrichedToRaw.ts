@@ -27,6 +27,7 @@ import {
 } from "@ourworldindata/utils"
 import { spanToHtmlString } from "./gdocUtils.js"
 import { match, P } from "ts-pattern"
+import { RawBlockTopicPageIntro } from "@ourworldindata/utils/dist/owidTypes.js"
 
 function spansToHtmlText(spans: Span[]): string {
     return spans.map(spanToHtmlString).join("")
@@ -263,6 +264,27 @@ export function enrichedBlockToRawBlock(
                 value: {
                     position: b.position,
                     caption: spansToHtmlText(b.caption),
+                },
+            })
+        )
+        .with(
+            { type: "topic-page-intro" },
+            (b): RawBlockTopicPageIntro => ({
+                type: b.type,
+                value: {
+                    "download-button": b.downloadButton
+                        ? {
+                              url: b.downloadButton.url,
+                              text: b.downloadButton.text,
+                          }
+                        : undefined,
+                    "related-topics": b.relatedTopics
+                        ? b.relatedTopics
+                        : undefined,
+                    content: b.content.map((span) => ({
+                        type: "text",
+                        value: spansToHtmlText(span),
+                    })),
                 },
             })
         )

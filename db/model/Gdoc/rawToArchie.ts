@@ -24,6 +24,7 @@ import {
     RawBlockAdditionalCharts,
     RawBlockCallout,
 } from "@ourworldindata/utils"
+import { RawBlockTopicPageIntro } from "@ourworldindata/utils/dist/owidTypes.js"
 import { match } from "ts-pattern"
 
 export function appendDotEndIfMultiline(
@@ -370,6 +371,33 @@ function* rawBlockAdditionalChartsToArchieMLString(
     yield "[]"
 }
 
+function* rawBlockTopicPageIntroToArchieMLString(
+    block: RawBlockTopicPageIntro
+): Generator<string, void, undefined> {
+    yield "{.topic-page-intro}"
+    yield "[.+content]"
+    for (const content of block.value.content)
+        yield* OwidRawGdocBlockToArchieMLStringGenerator(content)
+    yield "[]"
+    const downloadButton = block.value["download-button"]
+    if (downloadButton) {
+        yield "{.download-button}"
+        propertyToArchieMLString("text", downloadButton)
+        propertyToArchieMLString("url", downloadButton)
+        yield "{}"
+    }
+    const relatedTopics = block.value["related-topics"]
+    if (relatedTopics && relatedTopics.length) {
+        yield "{.related-topics}"
+        for (const relatedTopic of relatedTopics) {
+            yield* propertyToArchieMLString("text", relatedTopic)
+            yield* propertyToArchieMLString("url", relatedTopic)
+        }
+        yield "{}"
+    }
+    yield "{}"
+}
+
 export function* OwidRawGdocBlockToArchieMLStringGenerator(
     block: OwidRawGdocBlock
 ): Generator<string, void, undefined> {
@@ -414,6 +442,10 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
         .with({ type: "prominent-link" }, RawBlockProminentLinkToArchieMLString)
         .with({ type: "sdg-toc" }, rawBlockSDGTocToArchieMLString)
         .with({ type: "missing-data" }, rawBlockMissingDataToArchieMLString)
+        .with(
+            { type: "topic-page-intro" },
+            rawBlockTopicPageIntroToArchieMLString
+        )
         .exhaustive()
     yield* content
 }
