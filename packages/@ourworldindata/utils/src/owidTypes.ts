@@ -1003,6 +1003,7 @@ export interface OwidGdocContent {
         | "sdg-color-16"
         | "sdg-color-17"
     "featured-image"?: any
+    "sticky-nav"?: { target: string; text: string }[]
 }
 
 export interface OwidGdocContentPublished extends OwidGdocContent {

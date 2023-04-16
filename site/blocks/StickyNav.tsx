@@ -35,6 +35,7 @@ interface StickyNavLink {
 
 interface StickyNavProps {
     links: StickyNavLink[]
+    className?: string
 }
 class StickyNav extends React.Component<
     StickyNavProps,
@@ -52,6 +53,8 @@ class StickyNav extends React.Component<
         headingPositions: [] as HeadingPosition[],
         links: this.props.links,
     }
+
+    className = this.props.className ?? ""
 
     handleResize = () => {
         window.requestAnimationFrame(() => this.setHeadingPositions())
@@ -177,7 +180,10 @@ class StickyNav extends React.Component<
                         top: 70px;
                     }`}
                 </style>
-                <ul className="sticky-nav-container" ref={this.ulRef}>
+                <ul
+                    className={`sticky-nav-container ${this.className}`}
+                    ref={this.ulRef}
+                >
                     {this.state.links.map((link, i) => (
                         <li key={link.target}>
                             <a

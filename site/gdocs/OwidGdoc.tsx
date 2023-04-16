@@ -12,6 +12,7 @@ import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
 import { formatAuthors } from "../clientFormatting.js"
 import { DebugProvider } from "./DebugContext.js"
 import { OwidGdocHeader } from "./OwidGdocHeader.js"
+import StickyNav from "../blocks/StickyNav.js"
 
 export const AttachmentsContext = createContext<{
     linkedDocuments: Record<string, OwidGdocInterface>
@@ -55,6 +56,7 @@ export function OwidGdoc({
     year = {${publishedAt?.getFullYear()}},
     note = {${BAKED_BASE_URL}/${slug}}
 }`
+    const stickyNavLinks = content["sticky-nav"]
 
     return (
         <AttachmentsContext.Provider value={{ linkedDocuments, imageMetadata }}>
@@ -65,6 +67,15 @@ export function OwidGdoc({
                         authors={authors}
                         publishedAt={publishedAt}
                     />
+                    {content.type === "topic-page" && stickyNavLinks ? (
+                        <nav className="sticky-nav span-cols-14 grid grid-cols-12-full-width">
+                            <StickyNav
+                                links={stickyNavLinks}
+                                className="span-cols-12 col-start-2"
+                            />
+                        </nav>
+                    ) : null}
+
                     {content.summary ? (
                         <details
                             className="article-summary col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12"
