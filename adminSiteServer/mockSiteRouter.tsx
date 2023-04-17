@@ -35,7 +35,7 @@ import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.
 import { grapherToSVG } from "../baker/GrapherImageBaker.js"
 import { getVariableData } from "../db/model/Variable.js"
 import { MultiEmbedderTestPage } from "../site/multiembedder/MultiEmbedderTestPage.js"
-import { JsonError } from "@ourworldindata/utils"
+import { GdocsContentSource, JsonError } from "@ourworldindata/utils"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import { isWordpressAPIEnabled } from "../db/wpdb.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants.js"
@@ -43,6 +43,7 @@ import { getExplorerRedirectForPath } from "../explorerAdminServer/ExplorerRedir
 import { explorerUrlMigrationsById } from "../explorer/urlMigrations/ExplorerUrlMigrations.js"
 import { generateEmbedSnippet } from "../site/viteUtils.js"
 import { renderDataPageOrGrapherPage } from "../baker/GrapherBaker.js"
+import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
 
 require("express-async-errors")
 
@@ -219,6 +220,14 @@ mockSiteRouter.get("/multiEmbedderTest", async (req, res) =>
         )
     )
 )
+
+mockSiteRouter.get("/dods.json", async (req, res) => {
+    const dodGdoc = await Gdoc.getGdocFromContentSource(
+        "1pwTrbEKOy4D3LPbpbNaivQyYVv2KTePpw-P4F5fMNjA",
+        GdocsContentSource.Gdocs
+    )
+    res.send(dodGdoc.content.details)
+})
 
 mockSiteRouter.get("/*", async (req, res) => {
     const slug = req.path.replace(/^\//, "").replace("/", "__")

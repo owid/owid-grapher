@@ -424,6 +424,12 @@ export type SpanRef = {
     url: string
 }
 
+export type SpanDod = {
+    spanType: "span-dod"
+    children: Span[]
+    id: string
+}
+
 export type SpanNewline = {
     spanType: "span-newline"
 }
@@ -461,6 +467,7 @@ export type UnformattedSpan = SpanSimpleText | SpanNewline
 
 export type Span =
     | SpanSimpleText
+    | SpanDod
     | SpanLink
     | SpanRef
     | SpanNewline
@@ -1007,6 +1014,7 @@ export interface OwidGdocContent {
         | "sdg-color-16"
         | "sdg-color-17"
     "featured-image"?: any
+    details?: Record<string, { id: string; text: Span[] }>
 }
 
 export interface OwidGdocContentPublished extends OwidGdocContent {

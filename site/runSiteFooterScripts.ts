@@ -10,6 +10,7 @@ import { runLightbox } from "./Lightbox.js"
 import { MultiEmbedderSingleton } from "./multiembedder/MultiEmbedder.js"
 import { runSiteNavigation } from "./SiteNavigation.js"
 import { runSiteTools } from "./SiteTools.js"
+import { runGlobalDetailsOnDemand } from "./globalDetailsOnDemand.js"
 
 export const runSiteFooterScripts = (
     args:
@@ -48,6 +49,7 @@ export const runSiteFooterScripts = (
             runFootnotes()
             runSiteTools()
             runCookiePreferencesManager()
+            runGlobalDetailsOnDemand()
             break
     }
 }

@@ -1,0 +1,18 @@
+.global-dod {
+    padding: 16px;
+
+    > p:first-child {
+        font-weight: bold;
+        font-size: 1rem;
+    }
+
+    p {
+        font-size: 0.875rem;
+    }
+}
+
+.dod-span {
+    span {
+        pointer-events: none;
+    }
+}

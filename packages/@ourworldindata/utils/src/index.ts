@@ -136,6 +136,7 @@ export {
     SortOrder,
     type Span,
     type SpanBold,
+    type SpanDod,
     type SpanFallback,
     type SpanItalic,
     type SpanLink,

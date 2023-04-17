@@ -10,6 +10,7 @@ import {
     SpanSubscript,
     SpanUnderline,
     SpanRef,
+    SpanDod,
     EnrichedBlockSimpleText,
     SpanSimpleText,
     OwidEnrichedGdocBlock,
@@ -111,13 +112,17 @@ export function cheerioToSpan(element: CheerioElement): Span | undefined {
         }
     else if (element.type === "tag") {
         return match(element.tagName)
-            .with("a", (): SpanLink | SpanRef => {
+            .with("a", (): SpanLink | SpanRef | SpanDod => {
                 const url = element.attribs.href
                 const className = element.attribs.class
                 const children =
                     compact(element.children?.map(cheerioToSpan)) ?? []
                 if (className === "ref") {
                     return { spanType: "span-ref", children, url }
+                }
+                const dod = url.match(/#dod-(\w+)$/)
+                if (dod) {
+                    return { spanType: "span-dod", children, id: dod[1] }
                 }
                 return { spanType: "span-link", children, url }
             })

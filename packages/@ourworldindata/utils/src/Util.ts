@@ -1397,7 +1397,8 @@ export function spansToUnformattedPlainText(spans: Span[]): string {
                             "span-superscript",
                             "span-subscript",
                             "span-underline",
-                            "span-ref"
+                            "span-ref",
+                            "span-dod"
                         ),
                     },
                     (span) => spansToUnformattedPlainText(span.children)

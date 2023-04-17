@@ -296,9 +296,9 @@ export class IRDetailOnDemand extends IRElement {
     }
     toHTML(key?: React.Key): JSX.Element {
         return (
-            <DoDWrapper key={key} term={this.term} category={this.category}>
+            <a key={key} className="dod-span" data-id={this.term}>
                 {this.children.map((child, i) => child.toHTML(i))}
-            </DoDWrapper>
+            </a>
         )
     }
     toSVG(key?: React.Key): JSX.Element {

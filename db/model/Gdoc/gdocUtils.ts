@@ -11,6 +11,7 @@ export function spanToSimpleString(s: Span): string {
                 spanType: P.union(
                     "span-link",
                     "span-ref",
+                    "span-dod",
                     "span-italic",
                     "span-bold",
                     "span-underline",
@@ -39,6 +40,15 @@ export function spanToHtmlString(s: Span): string {
                 `<a href="${span.url}" class="ref">${spansToHtmlString(
                     span.children
                 )}</a>`
+        )
+        .with(
+            { spanType: "span-dod" },
+            (span) =>
+                `<span><a href="#dod-${span.id}" data-dod-id="${
+                    span.id
+                }"  class="dod-span">${spansToHtmlString(
+                    span.children
+                )}</a></span>`
         )
         .with({ spanType: "span-newline" }, () => "</br>")
         .with(
