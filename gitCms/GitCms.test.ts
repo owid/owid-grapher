@@ -11,8 +11,9 @@ import { jest } from "@jest/globals"
 jest.setTimeout(10000) // wait for up to 10s for the server to respond
 
 describe("client/server integration tests", () => {
-    const baseDir = url.fileURLToPath(new URL(".", import.meta.url))
-    ;+"/integrationTestTempDirectoryOkToDelete"
+    const baseDir =
+        url.fileURLToPath(new URL(".", import.meta.url)) +
+        "/integrationTestTempDirectoryOkToDelete"
 
     // Arrange
     const testPort = 3456
