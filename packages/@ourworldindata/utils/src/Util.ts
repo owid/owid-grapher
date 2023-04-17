@@ -1631,6 +1631,15 @@ export function findGreatestCommonDivisorOfArray(arr: number[]): number | null {
     if (arr.includes(1)) return 1
     return uniq(arr).reduce((acc, num) => greatestCommonDivisor(acc, num))
 }
+
+export function isRunningInNode(): boolean {
+    // taken from https://www.npmjs.com/package/detect-node-es
+    return (
+        Object.prototype.toString.call(
+            typeof process !== "undefined" ? process : 0
+        ) === "[object process]"
+    )
+}
 export function lowercaseObjectKeys(
     obj: Record<string, unknown>
 ): Record<string, unknown> {

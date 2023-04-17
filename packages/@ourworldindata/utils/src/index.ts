@@ -317,6 +317,7 @@ export {
     isArrayOfNumbers,
     greatestCommonDivisor,
     findGreatestCommonDivisorOfArray,
+    isRunningInNode,
     type NodeWithUrl,
     filterValidStringValues,
     traverseEnrichedSpan,
