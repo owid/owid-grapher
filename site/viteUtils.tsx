@@ -138,7 +138,8 @@ const prodAssets = (entry: string, baseUrl: string): Assets => {
         manifest = fs.readJSONSync(manifestPath) as Manifest
     } catch (err) {
         throw new Error(
-            `Could not read build manifest ('${manifestPath}'), which is required for production.`,
+            `Could not read build manifest ('${manifestPath}'), which is required for production.
+            If you're running in VITE_PREVIEW mode, wait for the build to finish and then reload this page.`,
             { cause: err }
         )
     }
