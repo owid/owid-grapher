@@ -1,7 +1,11 @@
 import React from "react"
 import findBaseDir from "../settings/findBaseDir.js"
 import fs from "fs-extra"
-import { ENV, BAKED_BASE_URL } from "../settings/serverSettings.js"
+import {
+    ENV,
+    BAKED_BASE_URL,
+    VITE_PREVIEW,
+} from "../settings/serverSettings.js"
 import { GOOGLE_FONTS_URL, POLYFILL_URL } from "./SiteConstants.js"
 import type { Manifest } from "vite"
 import { sortBy } from "@ourworldindata/utils"
@@ -153,7 +157,7 @@ const prodAssets = (entry: string, baseUrl: string): Assets => {
 }
 
 export const viteAssets = (entry: string) =>
-    ENV === "production"
+    ENV === "production" || VITE_PREVIEW
         ? prodAssets(entry, BAKED_BASE_URL)
         : devAssets(entry, VITE_DEV_URL)
 
