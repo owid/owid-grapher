@@ -4870,7 +4870,7 @@ __metadata:
     "@types/d3-format": ^2
     "@types/jest": ^29.0.3
     "@types/linkifyjs": ^2.1.4
-    "@types/lodash": ^4.14.185
+    "@types/lodash-es": ^4.17.7
     "@types/parsimmon": ^1.10.6
     "@types/react": ^16.14.23
     "@types/react-tag-autocomplete": ^6.1.1
@@ -4883,7 +4883,7 @@ __metadata:
     jest: ^29.0.3
     json8-pointer: ^1.0.6
     linkifyjs: ^2.1.9
-    lodash: ^4.17.20
+    lodash-es: ^4.17.21
     mobx: ^5.15.7
     mobx-react: 5
     parsimmon: ^1.18.1
@@ -5914,7 +5914,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/lodash@npm:*, @types/lodash@npm:^4.14.185":
+"@types/lodash@npm:*":
   version: 4.14.192
   resolution: "@types/lodash@npm:4.14.192"
   checksum: 31e1f0543a04158d2c429c45efd7c77882736630d0652f82eb337d6159ec0c249c5d175c0af731537b53271e665ff8d76f43221d75d03646d31cb4bd6f0056b1
