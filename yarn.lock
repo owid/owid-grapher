@@ -2480,12 +2480,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@handsontable/react@npm:^12.1.2":
-  version: 12.1.2
-  resolution: "@handsontable/react@npm:12.1.2"
+"@handsontable/react@npm:^12.3.3":
+  version: 12.3.3
+  resolution: "@handsontable/react@npm:12.3.3"
   peerDependencies:
     handsontable: ">=12.0.0"
-  checksum: 34ad1b05ffb23c1c254a0c4f1b32e55c794d1f221349f9f96b04bf24c7ecf35dd0bbc5d0c54f3d0fc868ae99169461824aed1b48b422d25068cb5ab86f2e5ac1
+  checksum: 0243eb6def086a281dfc12eedcfc0ed3f57581011b0778bcca13008c2afa02fd2ea5cc5a2d16814596a518e61eeba3c34bd4d25b55170f9910cb0de5c819d56a
   languageName: node
   linkType: hard
 
@@ -13916,7 +13916,7 @@ __metadata:
     "@fortawesome/free-brands-svg-icons": ^6.4.0
     "@fortawesome/free-solid-svg-icons": ^6.4.0
     "@fortawesome/react-fontawesome": ^0.2.0
-    "@handsontable/react": ^12.1.2
+    "@handsontable/react": ^12.3.3
     "@ourworldindata/core-table": "workspace:^"
     "@ourworldindata/grapher": "workspace:^"
     "@ourworldindata/utils": "workspace:^"
@@ -14020,7 +14020,7 @@ __metadata:
     get-stream: ^6.0.1
     glob: ^8.0.3
     googleapis: ^108.0.0
-    handsontable: ^12.1.2
+    handsontable: ^12.3.3
     html-to-text: ^8.2.0
     http-server: ^14.1.1
     jest: ^29.0.3
@@ -14156,9 +14156,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"handsontable@npm:^12.1.2":
-  version: 12.1.2
-  resolution: "handsontable@npm:12.1.2"
+"handsontable@npm:^12.3.3":
+  version: 12.3.3
+  resolution: "handsontable@npm:12.3.3"
   dependencies:
     "@types/pikaday": 1.7.4
     core-js: ^3.0.0
@@ -14170,7 +14170,7 @@ __metadata:
   dependenciesMeta:
     hyperformula:
       optional: true
-  checksum: 69a58e6b236ec238107c355f9780db31c5c172dee9459ebe35a8a689d33175da83a72b31edcff6187bffd9fcc645ff53c0f03278a01b420514675b04e2058c46
+  checksum: 71cfc748cd8b790b33bf8d76a6ad2193221d7a04a18fb30cc873bb04772567fac014f3e3c132d18a021c280c5d066c87305eda22735b1cfcbf2eb7ff68f2a2b8
   languageName: node
   linkType: hard
 
