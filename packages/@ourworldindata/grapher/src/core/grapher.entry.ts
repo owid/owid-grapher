@@ -1,7 +1,7 @@
 import "./grapher.scss"
 
 // Enable mobx-formatters
-import * as Mobx from "mobx"
+import Mobx from "mobx"
 import mobxFormatters from "mobx-formatters"
 mobxFormatters(Mobx)
 //Mobx.useStrict(true)

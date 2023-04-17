@@ -57,7 +57,7 @@ import {
     ColorScaleBin,
     NumericBin,
 } from "../color/ColorScaleBin"
-import * as topojson from "topojson-client"
+import topojson from "topojson-client"
 import { MapTopology } from "./MapTopology"
 import {
     WorldRegionName,

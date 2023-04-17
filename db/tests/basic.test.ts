@@ -4,7 +4,7 @@ import { dbTestConfig } from "./dbTestConfig.js"
 import { dataSource } from "./dataSource.dbtests.js"
 import { knex, Knex } from "knex"
 import { getConnection } from "../db.js"
-import * as typeorm from "typeorm"
+import typeorm from "typeorm"
 import { User } from "../model/User.js"
 import { Chart } from "../model/Chart.js"
 
