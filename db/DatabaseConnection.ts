@@ -1,4 +1,4 @@
-import * as mysql from "mysql"
+import mysql from "mysql"
 
 class TransactionContext {
     conn: mysql.PoolConnection

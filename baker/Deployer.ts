@@ -1,5 +1,5 @@
-import * as fs from "fs-extra"
-import * as prompts from "prompts"
+import fs from "fs-extra"
+import prompts from "prompts"
 import ProgressBar from "progress"
 import { execWrapper } from "../db/execWrapper.js"
 import { spawn } from "child_process"

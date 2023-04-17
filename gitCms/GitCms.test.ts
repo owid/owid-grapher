@@ -4,7 +4,7 @@ import { GitCmsClient } from "./GitCmsClient.js"
 import { GitCmsServer } from "./GitCmsServer.js"
 import { removeSync } from "fs-extra"
 import express from "express"
-import * as nodeFetch from "node-fetch"
+import nodeFetch from "node-fetch"
 
 jest.setTimeout(10000) // wait for up to 10s for the server to respond
 

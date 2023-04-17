@@ -4,8 +4,8 @@ import {
     GrapherProgrammaticInterface,
 } from "@ourworldindata/grapher"
 import { MultipleOwidVariableDataDimensionsMap } from "@ourworldindata/utils"
-import * as fs from "fs-extra"
-import * as path from "path"
+import fs from "fs-extra"
+import path from "path"
 import sharp from "sharp"
 import svgo from "svgo"
 import * as db from "../db/db.js"

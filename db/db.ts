@@ -1,7 +1,7 @@
-import * as mysql from "mysql"
-import * as typeorm from "typeorm"
+import mysql from "mysql"
+import typeorm from "typeorm"
 import { dataSource } from "./dataSource.js"
-import { Knex, knex } from "knex"
+import knex, { Knex } from "knex"
 import {
     GRAPHER_DB_HOST,
     GRAPHER_DB_USER,

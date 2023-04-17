@@ -18,7 +18,7 @@ import {
     isWordpressAPIEnabled,
     isWordpressDBEnabled,
 } from "../db/wpdb.js"
-import * as fs from "fs-extra"
+import fs from "fs-extra"
 import * as lodash from "lodash"
 import { bakeGraphersToPngs } from "./GrapherImageBaker.js"
 import {
@@ -29,7 +29,7 @@ import {
     DATA_FILES_CHECKSUMS_DIRECTORY,
 } from "../settings/serverSettings.js"
 import * as db from "../db/db.js"
-import * as glob from "glob"
+import glob from "glob"
 import { isPathRedirectedToExplorer } from "../explorerAdminServer/ExplorerRedirects.js"
 import { getPostBySlug } from "../db/model/Post.js"
 import {

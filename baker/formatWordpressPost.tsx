@@ -1,4 +1,4 @@
-import * as cheerio from "cheerio"
+import cheerio from "cheerio"
 import urlSlug from "url-slug"
 import React from "react"
 import ReactDOMServer from "react-dom/server.js"

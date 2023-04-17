@@ -1,4 +1,4 @@
-import * as cheerio from "cheerio"
+import cheerio from "cheerio"
 import React from "react"
 import ReactDOMServer from "react-dom/server.js"
 import {

@@ -1,4 +1,4 @@
-import * as cheerio from "cheerio"
+import cheerio from "cheerio"
 import { WP_ColumnStyle } from "@ourworldindata/utils"
 import {
     GRAPHER_PREVIEW_CLASS,

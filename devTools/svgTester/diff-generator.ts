@@ -2,8 +2,7 @@
 
 import parseArgs from "minimist"
 import * as utils from "./utils.js"
-import * as fs from "fs-extra"
-import readline from "readline"
+import fs from "fs-extra"
 import _ from "lodash"
 import cheerio from "cheerio"
 
