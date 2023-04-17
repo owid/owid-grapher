@@ -8,8 +8,8 @@ import { sortBy } from "@ourworldindata/utils"
 
 const VITE_DEV_URL = process.env.VITE_DEV_URL ?? "http://localhost:8090"
 
-export const VITE_SITE_ASSET = "site/owid.entry.ts"
-export const VITE_ADMIN_ASSET = "admin/admin.entry.ts"
+export const VITE_ASSET_SITE_ENTRY = "site/owid.entry.ts"
+export const VITE_ASSET_ADMIN_ENTRY = "adminSiteClient/admin.entry.ts"
 
 // We ALWAYS load Google Fonts and polyfills.
 
@@ -158,7 +158,7 @@ export const viteAssets = (entry: string) =>
         : devAssets(entry, VITE_DEV_URL)
 
 export const generateEmbedSnippet = () => {
-    const assets = viteAssets("site/owid.entry.ts")
+    const assets = viteAssets(VITE_ASSET_SITE_ENTRY)
     const serializedAssets = [...assets.forHeader, ...assets.forFooter].map(
         (el) => ({
             tag: el.type,

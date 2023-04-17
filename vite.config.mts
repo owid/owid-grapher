@@ -3,7 +3,10 @@ import pluginReact from "@vitejs/plugin-react"
 import pluginChecker from "vite-plugin-checker"
 import { warmup as pluginWarmup } from "vite-plugin-warmup"
 import * as clientSettings from "./settings/clientSettings.js"
-import { VITE_SITE_ASSET } from "./site/viteUtils.js"
+import {
+    VITE_ASSET_ADMIN_ENTRY,
+    VITE_ASSET_SITE_ENTRY,
+} from "./site/viteUtils.js"
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -45,8 +48,8 @@ export default defineConfig({
         rollupOptions: {
             cache: false, // https://github.com/vitejs/vite/issues/2433#issuecomment-1361094727
             input: {
-                owid: "./site/owid.entry.ts",
-                admin: "./adminSiteClient/admin.entry.ts",
+                owid: VITE_ASSET_SITE_ENTRY,
+                admin: VITE_ASSET_ADMIN_ENTRY,
             },
             output: {
                 /**
@@ -99,7 +102,7 @@ export default defineConfig({
                 tsconfigPath: "tsconfig.vite-checker.json",
             },
         }),
-        pluginWarmup({ clientFiles: [VITE_SITE_ASSET] }),
+        pluginWarmup({ clientFiles: [VITE_ASSET_SITE_ENTRY] }),
     ],
     server: {
         port: 8090,
