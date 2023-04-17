@@ -1244,7 +1244,7 @@ export class Grapher
         )
             text += this.timeTitleSuffix
 
-        return "Hello " + text.trim()
+        return text.trim()
     }
 
     /**
