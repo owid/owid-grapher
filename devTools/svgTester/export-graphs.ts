@@ -93,6 +93,10 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
                         path.join(svgPath, file.name),
                         path.join(outDir, file.name.replace(".svg", "_old.svg"))
                     )
+                    await fs.copyFile(
+                        path.join(outDir, file.name),
+                        path.join(svgPath, file.name)
+                    )
                 }
             }
         }
