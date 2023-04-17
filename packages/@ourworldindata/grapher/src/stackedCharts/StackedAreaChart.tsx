@@ -220,7 +220,7 @@ export class StackedAreaChart
         ])
         if (externalLegendFocusBin) {
             focusedSeriesNames.push(
-                ...this.series
+                ...this.rawSeries
                     .map((s) => s.seriesName)
                     .filter((name) => externalLegendFocusBin.contains(name))
             )
