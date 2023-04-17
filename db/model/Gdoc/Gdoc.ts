@@ -8,9 +8,9 @@ import {
     JoinTable,
 } from "typeorm"
 import {
-    OwidGdocTag,
     LinkedChart,
-    OwidGdocContent,
+    type OwidGdocTag,
+    type OwidGdocContent,
     OwidGdocInterface,
     OwidGdocPublished,
     OwidGdocPublicationContext,
