@@ -4,11 +4,11 @@ import React from "react"
 import { Grapher } from "../core/Grapher"
 import { legacyMapGrapher } from "./MapChart.sample"
 
-import { configure, mount } from "enzyme"
+import Enzyme from "enzyme"
 import Adapter from "enzyme-adapter-react-16"
-configure({ adapter: new Adapter() })
+Enzyme.configure({ adapter: new Adapter() })
 
-const grapherWrapper = mount(<Grapher {...legacyMapGrapher} />)
+const grapherWrapper = Enzyme.mount(<Grapher {...legacyMapGrapher} />)
 
 test("map tooltip renders iff mouseenter", () => {
     expect(grapherWrapper.find(".map-tooltip")).toHaveLength(0)

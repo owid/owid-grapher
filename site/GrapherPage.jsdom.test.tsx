@@ -12,9 +12,9 @@ import { GrapherPage } from "./GrapherPage.js"
 import { SiteFooter } from "./SiteFooter.js"
 import { SiteHeader } from "./SiteHeader.js"
 
-import { configure, shallow, ShallowWrapper } from "enzyme"
+import Enzyme, { ShallowWrapper } from "enzyme"
 import Adapter from "enzyme-adapter-react-16"
-configure({ adapter: new Adapter() })
+Enzyme.configure({ adapter: new Adapter() })
 
 const mockGrapher: GrapherInterface = {
     version: 5,
@@ -63,7 +63,7 @@ describe("when the page is rendered", () => {
 
     beforeAll(
         () =>
-            (view = shallow(
+            (view = Enzyme.shallow(
                 <GrapherPage
                     post={post}
                     grapher={grapher}
