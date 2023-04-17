@@ -7,11 +7,10 @@ import * as fs from "fs-extra"
 import * as path from "path"
 import workerpool from "workerpool"
 
-function parseArgAsList(arg?: string): string[] {
+function parseArgAsList(arg?: unknown): string[] {
     return (arg ?? "")
         .toString()
         .split(",")
-        .map(String)
         .filter((entry: string) => entry)
 }
 
@@ -48,12 +47,9 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
                 }
 
                 const configPath = path.join(inDir, entry.name, "config.json")
-                const config = JSON.parse(fs.readFileSync(configPath, "utf8"))
+                const config = await fs.readJson(configPath)
 
-                if (
-                    targetChartTypes.includes(config.type) ||
-                    (!config.type && targetChartTypes.includes("LineChart"))
-                ) {
+                if (targetChartTypes.includes(config.type ?? "LineChart")) {
                     directories.push(entry.name)
                     continue
                 }
@@ -65,7 +61,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
             console.log("No matching configs found")
             process.exit(0)
         } else {
-            console.log(`Generating ${n} SVG${n > 0 ? "s" : ""}...`)
+            console.log(`Generating ${n} SVG${n > 1 ? "s" : ""}...`)
         }
 
         const jobDescriptions: utils.RenderSvgAndSaveJobDescription[] =
