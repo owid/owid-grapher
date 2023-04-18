@@ -152,6 +152,9 @@ export const GDOCS_HOMEPAGE_CONFIG_DOCUMENT_ID: string =
 
 export const GDOCS_SHARED_DRIVE_ID = serverSettings.GDOCS_SHARED_DRIVE_ID ?? ""
 
+export const GDOCS_DETAILS_ON_DEMAND_ID =
+    serverSettings.GDOCS_DETAILS_ON_DEMAND_ID ?? ""
+
 export const IMAGE_HOSTING_SPACE_URL: string =
     serverSettings.IMAGE_HOSTING_SPACE_URL || ""
 export const IMAGE_HOSTING_CDN_URL: string =

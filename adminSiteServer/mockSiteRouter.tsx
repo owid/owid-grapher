@@ -21,6 +21,7 @@ import {
     WORDPRESS_DIR,
     BASE_DIR,
     BAKED_SITE_DIR,
+    GDOCS_DETAILS_ON_DEMAND_ID,
 } from "../settings/serverSettings.js"
 
 import { expectInt, renderToHtmlPage } from "../serverUtils/serverUtil.js"
@@ -221,10 +222,9 @@ mockSiteRouter.get("/multiEmbedderTest", async (req, res) =>
     )
 )
 
-mockSiteRouter.get("/dods.json", async (req, res) => {
+mockSiteRouter.get("/dods.json", async (_, res) => {
     const dodGdoc = await Gdoc.getGdocFromContentSource(
-        "1pwTrbEKOy4D3LPbpbNaivQyYVv2KTePpw-P4F5fMNjA",
-        GdocsContentSource.Gdocs
+        GDOCS_DETAILS_ON_DEMAND_ID
     )
     res.send(dodGdoc.content.details)
 })
