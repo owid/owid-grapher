@@ -1,12 +1,13 @@
 .dod-container {
     padding: 16px;
 
-    > p:first-child {
+    > p.article-block__text:first-child {
         font-weight: bold;
         font-size: 1rem;
     }
 
-    p {
+    > p.article-block__text:not(:first-child) {
+        margin-top: 8px;
         font-size: 0.875rem;
     }
 }
