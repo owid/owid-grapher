@@ -310,3 +310,31 @@
         }
     }
 }
+
+// Adapted from https://coryrylan.com/blog/css-gap-space-with-flexbox
+@mixin gap-wrap($row-gap, $col-gap) {
+    display: flex;
+    flex-wrap: wrap;
+    margin: -#{$row-gap} 0 0 -#{$col-gap};
+    width: calc(100% + #{$col-gap});
+
+    & > * {
+        margin: #{$row-gap} 0 0 #{$col-gap};
+    }
+}
+
+@mixin hide-site-chrome {
+    .site-header,
+    .alert-banner,
+    .offset-subnavigation,
+    .donate-footer,
+    .cookie-notice,
+    .site-footer {
+        display: none;
+    }
+}
+
+// should be removed when fixed in centered-article
+@mixin HACK-fix-bullets-outside {
+    margin-left: 16px;
+}

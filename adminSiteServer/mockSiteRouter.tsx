@@ -16,7 +16,6 @@ import {
     countryProfileCountryPage,
     renderExplorerPage,
 } from "../baker/siteRenderers.js"
-import { grapherSlugToHtmlPage } from "../baker/GrapherBaker.js"
 import {
     BAKED_BASE_URL,
     WORDPRESS_DIR,
@@ -30,7 +29,7 @@ import {
     countriesIndexPage,
 } from "../baker/countryProfiles.js"
 import { makeSitemap } from "../baker/sitemap.js"
-import { OldChart } from "../db/model/Chart.js"
+import { Chart, OldChart } from "../db/model/Chart.js"
 import { countryProfileSpecs } from "../site/countryProfileProjects.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { grapherToSVG } from "../baker/GrapherImageBaker.js"
@@ -43,6 +42,7 @@ import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants.js"
 import { getExplorerRedirectForPath } from "../explorerAdminServer/ExplorerRedirects.js"
 import { explorerUrlMigrationsById } from "../explorer/urlMigrations/ExplorerUrlMigrations.js"
 import { generateEmbedSnippet } from "../site/viteUtils.js"
+import { renderDataPageOrGrapherPage } from "../baker/GrapherBaker.js"
 
 require("express-async-errors")
 
@@ -125,9 +125,12 @@ mockSiteRouter.get("/*", async (req, res, next) => {
 })
 
 mockSiteRouter.get("/grapher/:slug", async (req, res) => {
+    const entity = await Chart.getBySlug(req.params.slug)
+    if (!entity) throw new JsonError("No such chart", 404)
+
     // XXX add dev-prod parity for this
     res.set("Access-Control-Allow-Origin", "*")
-    res.send(await grapherSlugToHtmlPage(req.params.slug))
+    res.send(await renderDataPageOrGrapherPage(entity.config))
 })
 
 mockSiteRouter.get("/", async (req, res) => {

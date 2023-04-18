@@ -1,0 +1,36 @@
+.ExpandableAnimatedToggle {
+    border-top: 1px solid #d0dae3;
+    border-bottom: 1px solid #d0dae3;
+    padding: 0 8px;
+    > button {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        padding: 12px 0;
+        color: $blue-90;
+        background-color: transparent;
+        border: none;
+        cursor: pointer;
+    }
+    h4 {
+        @include h4-semibold;
+        margin: 0;
+    }
+    .ExpandableAnimatedToggle__icon {
+        font-size: 0.75em;
+        margin: 0 12px;
+    }
+    .content-wrapper {
+        padding-bottom: 12px;
+    }
+
+    .content__html {
+        > *:first-child {
+            margin-top: 0;
+        }
+        > *:last-child {
+            margin-bottom: 0;
+        }
+    }
+}

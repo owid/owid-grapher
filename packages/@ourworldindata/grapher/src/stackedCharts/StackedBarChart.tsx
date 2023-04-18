@@ -169,7 +169,7 @@ export class StackedBarChart
                   )
         if (externalLegendFocusBin) {
             hoverKeys.push(
-                ...this.series
+                ...this.rawSeries
                     .map((g) => g.seriesName)
                     .filter((name) => externalLegendFocusBin.contains(name))
             )
