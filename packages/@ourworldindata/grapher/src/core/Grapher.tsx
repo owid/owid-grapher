@@ -1973,7 +1973,7 @@ export class Grapher
         } = this
 
         // show facet control for some chart types by default
-        if (hideFacetControl != undefined) {
+        if (hideFacetControl == undefined) {
             hideFacetControl = [
                 ChartTypeName.StackedArea,
                 ChartTypeName.StackedBar,
