@@ -14,6 +14,7 @@ import {
     WORDPRESS_DIR,
     IMAGE_HOSTING_CDN_URL,
     IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH,
+    GDOCS_DETAILS_ON_DEMAND_ID,
 } from "../settings/serverSettings.js"
 
 import {
@@ -84,6 +85,7 @@ const nonWordpressSteps = [
     "charts",
     "gdocPosts",
     "gdriveImages",
+    "dods",
 ] as const
 
 export const bakeSteps = [...wordpressSteps, ...nonWordpressSteps]
@@ -373,6 +375,30 @@ export class SiteBaker {
         this.progressBar.tick({ name: "✅ baked special pages" })
     }
 
+    private async bakeDetailsOnDemand() {
+        if (!this.bakeSteps.has("dods")) return
+
+        const {
+            content: { details },
+        } = await Gdoc.getGdocFromContentSource(GDOCS_DETAILS_ON_DEMAND_ID)
+
+        if (details) {
+            await this.stageWrite(
+                `${this.bakedSiteDir}/dods.json`,
+                JSON.stringify(details)
+            )
+            // This task completes too quickly and doesn't tick correctly without this
+            await new Promise((resolve) => {
+                setTimeout(() => {
+                    this.progressBar.tick({ name: "✅ baked dods.json" })
+                    resolve(true)
+                }, 250)
+            })
+        } else {
+            throw Error("Details on demand not found")
+        }
+    }
+
     // Pages that are expected by google scholar for indexing
     private async bakeGoogleScholar() {
         if (!this.bakeSteps.has("googleScholar")) return
@@ -553,6 +579,7 @@ export class SiteBaker {
                 name: "✅ bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers",
             })
         }
+        await this.bakeDetailsOnDemand()
         await this.bakeGDocPosts()
         await this.bakeDriveImages()
     }

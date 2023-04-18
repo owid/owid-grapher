@@ -14,3 +14,6 @@
 
 /headerMenu.json
     Access-Control-Allow-Origin: *
+
+/dods.json
+    Access-Control-Allow-Origin: *
