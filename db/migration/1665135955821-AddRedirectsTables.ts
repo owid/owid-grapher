@@ -1,7 +1,21 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
+import { readFile } from "fs/promises"
+import Papa from "papaparse"
 
 export class AddRedirectsTables1665135955821 implements MigrationInterface {
     public async up(db: QueryRunner): Promise<void> {
+        const wordpressRedirects = await readFile("wp-redirects.csv", {
+            encoding: "utf-8",
+        })
+        const wordpressRedirectsResult = Papa.parse(wordpressRedirects)
+        if (wordpressRedirectsResult.errors.length > 0) {
+            console.error(wordpressRedirectsResult.errors)
+            throw new Error(
+                "Encountered errors reading wordpress redirects file. Expected wp-redirects.csv to be parsed without errors"
+            )
+        }
+
+        // TODO: add posts_gdocs to the logic below
         // #region #### Table definitions ####
         await db.query(
             `-- sql
@@ -14,12 +28,12 @@ export class AddRedirectsTables1665135955821 implements MigrationInterface {
             manual_bulk_redirects (
                 id int auto_increment primary key,
                 -- source slug, i.e. what should be matched by this redirect
-                -- will be sanizited by triggers to never include a trailing slash unless it is the root path
+                -- will be sanitized by triggers to never include a trailing slash unless it is the root path
                 slug varchar(2048) not null,
                 -- target domain to link to, can be empty which is understood to mean ourworldindata.org
                 targetDomain varchar(255) not null default '',
                 -- target path, e.g. /some/path
-                -- will be sanizited by triggers to never include a trailing slash unless it is the root path
+                -- will be sanitized by triggers to never include a trailing slash unless it is the root path
                 targetPath varchar(2048) not null,
                 -- target query (e.g. ?somekey=somevalue )
                 targetQuery varchar(2048) not null default '',
@@ -63,7 +77,7 @@ export class AddRedirectsTables1665135955821 implements MigrationInterface {
                 -- target domain to link to, can be empty which is understood to mean ourworldindata.org
                 targetDomain varchar(255) not null default '',
                 -- target path, e.g. /some/path
-                -- will be sanizited by triggers to never include a trailing slash unless it is the root path
+                -- will be sanitized by triggers to never include a trailing slash unless it is the root path
                 targetPath varchar(2048) not null,
                 -- target query (e.g. ?somekey=somevalue )
                 targetQuery varchar(2048) not null default '',
@@ -103,7 +117,7 @@ export class AddRedirectsTables1665135955821 implements MigrationInterface {
                 -- target domain to link to, can be empty which is understood to mean ourworldindata.org
                 targetDomain varchar(255) not null default '',
                 -- target path, e.g. /some/path
-                -- will be sanizited by triggers to never include a trailing slash unless it is the root path
+                -- will be sanitized by triggers to never include a trailing slash unless it is the root path
                 targetPath varchar(2048) not null,
                 -- target query (e.g. ?somekey=somevalue )
                 targetQuery varchar(2048) not null default '',
@@ -146,7 +160,7 @@ export class AddRedirectsTables1665135955821 implements MigrationInterface {
                 -- target domain to link to, can be empty which is understood to mean ourworldindata.org
                 targetDomain varchar(255) not null default '',
                 -- target path, e.g. /some/path
-                -- will be sanizited by triggers to never include a trailing slash unless it is the root path
+                -- will be sanitized by triggers to never include a trailing slash unless it is the root path
                 targetPath varchar(2048) not null,
                 -- target query (e.g. ?somekey=somevalue )
                 targetQuery varchar(2048) not null default '',
@@ -181,11 +195,21 @@ export class AddRedirectsTables1665135955821 implements MigrationInterface {
 
         await db.query(
             `-- sql
+            -- final slug table. This collects all slugs and points to the item that occupies this slug.
+            -- This has to include all types of content. All charts, all explorers, all old wp posts, all
+            -- new gdoc posts, all redirects of all kinds and all special pages that are created during baking.
+            -- TODO: as of now it is missing some of those
+            -- this table can be used to:
+            --   * see if a given slug is free
+            --   * see if there are multiple items occupying the same slug (should not happen but is not disallowed with a
+            --     constraint for now as then all places that insert need to check for an insert/update failing)
+            --   * find out what kind of content is found at a certain slug
+            --   * help in cases when you delete a content item and need to figure out redirects etc
             create table
                 final_slugs (
                     id int auto_increment primary key,
                     slug varchar(2048) not null,
-                    slugMd5 char(32) generated always as (md5(slug)) stored unique not null,
+                    slugMd5 char(32) generated always as (md5(slug)) stored not null,
                     chartId int references charts(id),
                     -- explorerId int references explorers(id),
                     postId int references posts(id),
@@ -201,6 +225,19 @@ export class AddRedirectsTables1665135955821 implements MigrationInterface {
                 );
             `,
             []
+        )
+
+        await db.query(
+            `-- sql
+            -- This view shows all the slugs that have more than one content/redirect claiming them.
+            -- This view should usually be empty. It is useful for debugging issues with slugs/redirects.
+            create view final_slug_collisions as (
+                select slugMd5, slug, count(*)
+                from final_slugs
+                group by slugMd5
+                having count(*) > 1
+            )
+            `
         )
 
         // #endregion
@@ -828,6 +865,10 @@ export class AddRedirectsTables1665135955821 implements MigrationInterface {
                 ON complete_redirects
             FOR EACH ROW
             BEGIN
+                -- This is a bit easy to misread. TargetDomain empty means it is
+                -- a target within OWID, nonempty is a redirect to an external domain (rare).
+                -- We need to make sure that if the internal/external status changes
+                -- we correctly insert/delete the slug
                 IF NEW.targetDomain = '' and OLD.targetDomain <> '' THEN
                     INSERT INTO
                     final_slugs (
@@ -1050,35 +1091,33 @@ export class AddRedirectsTables1665135955821 implements MigrationInterface {
         // #endregion
 
         // #region #### Wordpress redirects ####
-
-        await db.query(
-            `-- sql
-            -- insert all existing wordpress redirects
-            insert into
-                wordpress_redirects_candidates(
-                wordpressId,
-                slug,
-                targetDomain,
-                targetPath,
-                targetQuery,
-                targetFragment,
-                statusCode
+        // TODO: check how to do this as a bulk insert?
+        for (const row of wordpressRedirectsResult.data)
+            await db.query(
+                `-- sql
+                -- insert all existing wordpress redirects
+                insert into
+                    wordpress_redirects_candidates(
+                    wordpressId,
+                    slug,
+                    targetDomain,
+                    targetPath,
+                    targetQuery,
+                    targetFragment,
+                    statusCode
+                )
+                values (
+                    :0,
+                    :1,
+                    extract_url_domain(:2),
+                    extract_url_path(:2),
+                    extract_url_query(:2),
+                    extract_url_fragment(:2),
+                    :3
+                );
+                `,
+                row // TODO: check if we can just get an array of values instead of a record
             )
-            SELECT
-                id,
-                url,
-                extract_url_domain(action_data),
-                extract_url_path(action_data),
-                extract_url_query(action_data),
-                extract_url_fragment(action_data),
-                action_code
-            FROM
-                wordpress.wp_redirection_items
-            WHERE
-                status = 'enabled';
-            `,
-            []
-        )
 
         await db.query(
             `-- sql
@@ -1169,7 +1208,7 @@ export class AddRedirectsTables1665135955821 implements MigrationInterface {
         await db.query(
             `-- sql
             -- Some wordpress redirects may point to target paths that are
-            -- already pointing to charts. For these we want to create new entries
+            -- pointing to a chart that is now redirected via chart_slug_redirets. For these we want to create new entries
             -- in chart_slug_redirects and mark the ones in wordpress_redirects_candidates
             -- as invalid.
             update
@@ -1205,7 +1244,7 @@ export class AddRedirectsTables1665135955821 implements MigrationInterface {
         await db.query(
             `-- sql
             -- Similar to the chart_slug_redirects that can "shadow" some charts, a similar thing
-            -- can happen with wordress_redirects. Slugs that are no longer reachable because a
+            -- can happen with wordpress_redirects. Slugs that are no longer reachable because a
             -- wordpress_redirect will take precedence for a slug get renamed now (prefixed with "superseded-"),
             -- so that there will be no collisions in final_slugs
             update charts
