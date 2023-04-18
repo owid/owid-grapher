@@ -120,7 +120,7 @@ export function cheerioToSpan(element: CheerioElement): Span | undefined {
                 if (className === "ref") {
                     return { spanType: "span-ref", children, url }
                 }
-                const dod = url.match(/#dod-(\w+)$/)
+                const dod = url.match(/#dod:(\w+)$/)
                 if (dod) {
                     return { spanType: "span-dod", children, id: dod[1] }
                 }
