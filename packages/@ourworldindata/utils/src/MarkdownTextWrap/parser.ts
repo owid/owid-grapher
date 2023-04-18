@@ -93,7 +93,6 @@ type DetailsOnDemandContent =
 
 interface DetailOnDemand {
     type: "detailOnDemand"
-    category: string
     term: string
     children: DetailsOnDemandContent[]
 }
@@ -326,7 +325,7 @@ const detailOnDemandContentParser: (
         r.nonBracketWord
     )
 
-export const detailOnDemandRegex = /\(hover::(\w+)::(\w+)\)/
+export const detailOnDemandRegex = /\(#dod:(\w+)\)/
 
 const detailOnDemandParser: (r: MdParser) => P.Parser<DetailOnDemand> = (
     r: MdParser
@@ -338,14 +337,11 @@ const detailOnDemandParser: (r: MdParser) => P.Parser<DetailOnDemand> = (
     }>(
         P.string("["),
         ["children", r.detailOnDemandContent.atLeast(1)],
-        P.string("](hover::"),
-        ["category", r.dodCategory],
-        P.string("::"),
+        P.string("](#dod:"),
         ["term", r.dodTerm],
         P.string(")")
-    ).map(({ children, category, term }) => ({
+    ).map(({ children, term }) => ({
         type: "detailOnDemand",
-        category: category.value,
         term: term.value,
         children,
     }))

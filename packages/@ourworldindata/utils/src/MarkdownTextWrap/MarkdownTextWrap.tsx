@@ -279,7 +279,6 @@ export class IRLink extends IRElement {
 
 export class IRDetailOnDemand extends IRElement {
     constructor(
-        public category: string,
         public term: string,
         children: IRToken[],
         fontParams?: IRFontParams
@@ -287,18 +286,15 @@ export class IRDetailOnDemand extends IRElement {
         super(children, fontParams)
     }
     getClone(children: IRToken[]): IRDetailOnDemand {
-        return new IRDetailOnDemand(
-            this.category,
-            this.term,
-            children,
-            this.fontParams
-        )
+        return new IRDetailOnDemand(this.term, children, this.fontParams)
     }
     toHTML(key?: React.Key): JSX.Element {
         return (
-            <a key={key} className="dod-span" data-id={this.term}>
-                {this.children.map((child, i) => child.toHTML(i))}
-            </a>
+            <span key={key}>
+                <a className="dod-span" data-id={this.term}>
+                    {this.children.map((child, i) => child.toHTML(i))}
+                </a>
+            </span>
         )
     }
     toSVG(key?: React.Key): JSX.Element {
@@ -524,7 +520,6 @@ export function parsimmonToTextTokens(
             )
         } else if (node.type === "detailOnDemand") {
             return new IRDetailOnDemand(
-                node.category,
                 node.term,
                 parsimmonToTextTokens(node.children, fontParams)
             )
@@ -611,9 +606,7 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
                     if (token instanceof IRDetailOnDemand) {
                         const referenceIndex =
                             references.findIndex(
-                                ({ category, term }) =>
-                                    category === token.category &&
-                                    term === token.term
+                                ({ term }) => term === token.term
                             ) + 1
                         if (referenceIndex === 0) return token
                         token.children.push(
