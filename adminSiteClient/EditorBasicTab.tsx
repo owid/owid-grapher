@@ -303,13 +303,13 @@ export class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
 
         if (!hasColor)
             grapher.addDimension({
-                variableId: 123,
+                variableId: 123, // "Countries Continents"
                 property: DimensionProperty.color,
             })
 
         if (!hasSize)
             grapher.addDimension({
-                variableId: 525709,
+                variableId: 597929, // "Population (various sources, 2023.1)"
                 property: DimensionProperty.size,
             })
     }

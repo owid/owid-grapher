@@ -3,6 +3,17 @@ $slide-content-height: $grapher-height;
 @import "react-horizontal-scrolling-menu/styles.css";
 
 .wp-block-owid-key-insights {
+    .react-horizontal-scrolling-menu--wrapper {
+        position: relative;
+    }
+
+    .react-horizontal-scrolling-menu--scroll-container {
+        &::-webkit-scrollbar {
+            display: none;
+        }
+        scrollbar-width: none;
+    }
+
     .arrow {
         position: absolute;
         z-index: $zindex-input;
