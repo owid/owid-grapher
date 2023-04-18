@@ -1,41 +1,54 @@
 import React from "react"
 import { tippy } from "@tippyjs/react"
+import { Instance } from "tippy.js"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import { renderToStaticMarkup } from "react-dom/server.js"
 import { EnrichedBlockText } from "@ourworldindata/utils/dist/owidTypes.js"
 import { ArticleBlocks } from "./gdocs/ArticleBlocks.js"
 
+type Tippyfied<E> = E & {
+    _tippy?: Instance
+}
+
+export interface Detail {
+    id: string
+    text: EnrichedBlockText[]
+}
+
+declare global {
+    interface Window {
+        details?: Record<string, Detail>
+    }
+}
+
 export async function runGlobalDetailsOnDemand() {
-    const details = await fetch(`${BAKED_BASE_URL}/dods.json`, {
-        method: "GET",
-        credentials: "same-origin",
-        headers: {
-            Accept: "application/json",
-        },
-    }).then((res) => res.json())
+    const details: Record<string, Detail> = await fetch(
+        `${BAKED_BASE_URL}/dods.json`,
+        {
+            method: "GET",
+            credentials: "same-origin",
+            headers: {
+                Accept: "application/json",
+            },
+        }
+    ).then((res) => res.json())
 
-    ;(window as any).details = details
+    window.details = details
 
-    document.addEventListener("mouseover", handleEvent)
-    document.addEventListener("touchstart", handleEvent)
-
-    // hack to initialize tippy
-    const body = document.body as any
-    tippy(body)
-    body._tippy.show()
+    document.addEventListener("mouseover", handleEvent, { passive: true })
+    document.addEventListener("touchstart", handleEvent, { passive: true })
 
     function handleEvent(event: MouseEvent | TouchEvent) {
-        const target = event.target as Element
+        const target = event.target as Tippyfied<Element>
         if (target?.classList.contains("dod-span")) {
             showDod(target)
         }
     }
 
-    function showDod(element: Element) {
+    function showDod(element: Tippyfied<Element>) {
         const id = element.attributes.getNamedItem("data-id")?.nodeValue
         if (!id) return
-        const dod: { id: string; text: EnrichedBlockText[] } = (window as any)
-            .details[id]
+        const dod = window.details?.[id]
         if (!dod) return
 
         const content = renderToStaticMarkup(
@@ -43,8 +56,8 @@ export async function runGlobalDetailsOnDemand() {
                 <ArticleBlocks blocks={dod.text} />
             </div>
         )
-        if ((element as any)._tippy) {
-            ;(element as any)._tippy.show()
+        if (element._tippy) {
+            element._tippy.show()
         } else {
             tippy(element, {
                 content,
