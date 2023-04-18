@@ -14,8 +14,8 @@ import {
     Bounds,
     capitalize,
     getIndexableKeys,
-    Detail,
     RawPageview,
+    DetailDictionary,
 } from "@ourworldindata/utils"
 import { Grapher, Topic, GrapherInterface } from "@ourworldindata/grapher"
 import { Admin } from "./Admin.js"
@@ -109,7 +109,7 @@ export class ChartEditorPage
     @observable redirects: ChartRedirect[] = []
     @observable pageviews?: RawPageview = undefined
     @observable allTopics: Topic[] = []
-    @observable details: GrapherInterface["details"] = {}
+    @observable details: DetailDictionary = {}
 
     @observable.ref grapherElement?: JSX.Element
 
@@ -214,16 +214,12 @@ export class ChartEditorPage
     }
 
     async fetchDetails(): Promise<void> {
-        const data = (await this.context.admin.getJSON(`/api/details`)) as {
-            details: Detail[]
-        }
+        const details: DetailDictionary = await this.context.admin.getJSON(
+            `/dods.json`
+        )
 
         runInAction(() => {
-            this.details = data.details.reduce(
-                (acc, detail) =>
-                    set(acc, [detail.category, detail.term], detail),
-                {}
-            )
+            this.details = details
         })
     }
 

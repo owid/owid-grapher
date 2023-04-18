@@ -28,6 +28,7 @@ export {
     type DeployChange,
     DeployStatus,
     type Detail,
+    type DetailDictionary,
     DimensionProperty,
     type DocumentNode,
     type EnrichedBlockAdditionalCharts,
@@ -525,11 +526,6 @@ export {
 } from "./MarkdownTextWrap/MarkdownTextWrap.js"
 
 export { detailOnDemandRegex, mdParser } from "./MarkdownTextWrap/parser.js"
-
-export {
-    DoDWrapper,
-    globalDetailsOnDemand,
-} from "./DetailsOnDemand/detailsOnDemand.js"
 
 export {
     gdocUrlRegex,

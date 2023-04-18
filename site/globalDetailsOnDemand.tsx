@@ -3,26 +3,21 @@ import { tippy } from "@tippyjs/react"
 import { Instance } from "tippy.js"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import { renderToStaticMarkup } from "react-dom/server.js"
-import { EnrichedBlockText } from "@ourworldindata/utils/dist/owidTypes.js"
 import { ArticleBlocks } from "./gdocs/ArticleBlocks.js"
+import { DetailDictionary } from "@ourworldindata/utils"
 
 type Tippyfied<E> = E & {
     _tippy?: Instance
 }
 
-export interface Detail {
-    id: string
-    text: EnrichedBlockText[]
-}
-
 declare global {
     interface Window {
-        details?: Record<string, Detail>
+        details?: DetailDictionary
     }
 }
 
 export async function runGlobalDetailsOnDemand() {
-    const details: Record<string, Detail> = await fetch(
+    const details: DetailDictionary = await fetch(
         `${BAKED_BASE_URL}/dods.json`,
         {
             method: "GET",

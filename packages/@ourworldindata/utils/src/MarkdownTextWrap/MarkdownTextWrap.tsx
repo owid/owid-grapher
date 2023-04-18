@@ -3,7 +3,6 @@ import { computed } from "mobx"
 import { EveryMarkdownNode, MarkdownRoot, mdParser } from "./parser"
 import { excludeUndefined, last, sum, imemo } from "../Util.js"
 import { Bounds, FontFamily } from "../Bounds.js"
-import { DoDWrapper } from "../DetailsOnDemand/detailsOnDemand.js"
 import { TextWrap } from "../TextWrap/TextWrap.js"
 
 export interface IRFontParams {

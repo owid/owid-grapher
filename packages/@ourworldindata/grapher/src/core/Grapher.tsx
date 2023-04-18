@@ -39,7 +39,6 @@ import {
     DEFAULT_BOUNDS,
     Detail,
     detailOnDemandRegex,
-    globalDetailsOnDemand,
     MarkdownTextWrap,
     minTimeBoundFromJSONOrNegativeInfinity,
     maxTimeBoundFromJSONOrPositiveInfinity,
@@ -375,7 +374,7 @@ export class Grapher
     @action.bound private updateGlobalDetailsOnDemand(): void {
         this.disposers.push(
             autorun(() => {
-                globalDetailsOnDemand.addDetails(this.details)
+                // globalDetailsOnDemand.addDetails(this.details)
             })
         )
     }
@@ -1181,10 +1180,8 @@ export class Grapher
                 let text = `**${i + 1}.** `
                 const detail = this.details[category][term]
                 if (detail) {
-                    text += `**${detail.title}**: ${detail.content.replaceAll(
-                        /\n\n/g,
-                        " "
-                    )}`
+                    // TODO: baking static grapher details
+                    text += `**${detail.id}**: ${detail.text}`
                 }
                 return new MarkdownTextWrap({
                     text,
@@ -2208,8 +2205,8 @@ export class Grapher
         exposeInstanceOnWindow(this, "grapher")
         if (this.props.bindUrlToWindow) this.bindToWindow()
         if (this.props.enableKeyboardShortcuts) this.bindKeyboardShortcuts()
-        if (this.props.details)
-            globalDetailsOnDemand.addDetails(this.props.details)
+        // if (this.props.details)
+        // globalDetailsOnDemand.addDetails(this.props.details)
     }
 
     private _shortcutsBound = false

@@ -1039,13 +1039,20 @@ export enum SiteFooterContext {
     default = "default",
 }
 
+// export interface Detail {
+//     category: string
+//     term: string
+//     title: string
+//     content: string
+//     id: number
+// }
+
 export interface Detail {
-    category: string
-    term: string
-    title: string
-    content: string
-    id: number
+    id: string
+    text: EnrichedBlockText[]
 }
+
+export type DetailDictionary = Record<string, Detail>
 
 /**
  * An unbounded value (±Infinity) or a concrete point in time (year or date).
