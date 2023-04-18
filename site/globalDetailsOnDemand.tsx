@@ -17,6 +17,7 @@ declare global {
 }
 
 export async function runGlobalDetailsOnDemand() {
+    console.log("runGlobalDetailsOnDemand")
     const details: DetailDictionary = await fetch(
         `${BAKED_BASE_URL}/dods.json`,
         {
@@ -47,7 +48,7 @@ export async function runGlobalDetailsOnDemand() {
         if (!dod) return
 
         const content = renderToStaticMarkup(
-            <div className="global-dod">
+            <div className="dod-container">
                 <ArticleBlocks blocks={dod.text} />
             </div>
         )

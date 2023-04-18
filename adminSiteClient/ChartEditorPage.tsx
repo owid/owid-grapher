@@ -16,6 +16,7 @@ import {
     getIndexableKeys,
     RawPageview,
     DetailDictionary,
+    detailOnDemandRegex,
 } from "@ourworldindata/utils"
 import { Grapher, Topic, GrapherInterface } from "@ourworldindata/grapher"
 import { Admin } from "./Admin.js"
@@ -49,6 +50,7 @@ import {
 } from "./VisionDeficiencies.js"
 import { EditorMarimekkoTab } from "./EditorMarimekkoTab.js"
 import { get, has, set } from "lodash"
+import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 
 @observer
 class TabBinder extends React.Component<{ editor: ChartEditor }> {
@@ -84,13 +86,8 @@ class TabBinder extends React.Component<{ editor: ChartEditor }> {
     }
 }
 
-function extractDetailsFromSyntax(str: string): [string, string][] {
-    const pattern = /\(hover::(\w+)::(\w+)\)/g
-
-    return [...str.matchAll(pattern)].map(([_, category, term]) => [
-        category,
-        term,
-    ])
+function extractDetailsFromSyntax(str: string): string[] {
+    return [...str.matchAll(detailOnDemandRegex)].map(([_, term]) => term)
 }
 
 @observer
@@ -215,7 +212,7 @@ export class ChartEditorPage
 
     async fetchDetails(): Promise<void> {
         const details: DetailDictionary = await this.context.admin.getJSON(
-            `/dods.json`
+            `${BAKED_BASE_URL}/dods.json`
         )
 
         runInAction(() => {
@@ -223,8 +220,8 @@ export class ChartEditorPage
         })
     }
 
-    // unvalidated tuples extracted from the subtitle and note fields
-    // these may point to non-existent details e.g. ["not_a_real_category", "not_a_real_term"]
+    // unvalidated terms extracted from the subtitle and note fields
+    // these may point to non-existent details e.g. ["not_a_real_term", "pvotery"]
     @computed get currentDetailReferences() {
         return {
             subtitle: extractDetailsFromSyntax(this.grapher.subtitle),
@@ -237,10 +234,10 @@ export class ChartEditorPage
         const grapherConfigDetails: GrapherInterface["details"] = {}
         const allReferences = Object.values(this.currentDetailReferences).flat()
 
-        allReferences.forEach((categoryAndTerm) => {
-            const detail = get(this.details, categoryAndTerm)
+        allReferences.forEach((term) => {
+            const detail = get(this.details, term)
             if (detail) {
-                set(grapherConfigDetails, categoryAndTerm, detail)
+                set(grapherConfigDetails, term, detail)
             }
         })
 
@@ -248,19 +245,11 @@ export class ChartEditorPage
     }
 
     @computed get invalidDetailReferences() {
-        const keys = getIndexableKeys(this.currentDetailReferences)
-
-        const invalidReferences = keys.reduce(
-            (acc, key) => ({
-                ...acc,
-                [key]: this.currentDetailReferences[key].filter(
-                    (path) => !has(this.details, path)
-                ),
-            }),
-            {} as typeof this.currentDetailReferences
-        )
-
-        return invalidReferences
+        const { subtitle, note } = this.currentDetailReferences
+        return {
+            subtitle: subtitle.filter((key) => !this.details[key]),
+            note: note.filter((key) => !this.details[key]),
+        }
     }
 
     @computed get admin(): Admin {
@@ -303,14 +292,14 @@ export class ChartEditorPage
             )
         )
 
-        this.disposers.push(
-            reaction(
-                () => this.currentlyReferencedDetails,
-                (currentlyReferencedDetails = {}) => {
-                    this.grapher.details = currentlyReferencedDetails
-                }
-            )
-        )
+        // this.disposers.push(
+        //     reaction(
+        //         () => this.currentlyReferencedDetails,
+        //         (currentlyReferencedDetails = {}) => {
+        //             this.grapher.details = currentlyReferencedDetails
+        //         }
+        //     )
+        // )
     }
 
     // This funny construction allows the "new chart" link to work by forcing an update

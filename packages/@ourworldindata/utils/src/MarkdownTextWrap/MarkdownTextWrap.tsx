@@ -536,7 +536,7 @@ type MarkdownTextWrapProps = {
     lineHeight?: number
     maxWidth?: number
     style?: CSSProperties
-    detailsOrderedByReference?: { category: string; term: string }[]
+    detailsOrderedByReference?: Set<string>
 }
 
 export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
@@ -559,11 +559,8 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
     @computed get text(): string {
         return this.props.text
     }
-    @computed get detailsOrderedByReference(): {
-        category: string
-        term: string
-    }[] {
-        return this.props.detailsOrderedByReference || []
+    @computed get detailsOrderedByReference(): Set<string> {
+        return this.props.detailsOrderedByReference || new Set()
     }
     @computed get ast(): MarkdownRoot["children"] {
         if (!this.text) return []
@@ -587,8 +584,7 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
     // We render DoDs differently for SVG (superscript reference  numbers) so we need to calculate
     // their width differently. Height should remain the same.
     @computed get svgLines(): IRToken[][] {
-        const references: { category: string; term: string }[] =
-            this.detailsOrderedByReference
+        const references = this.detailsOrderedByReference
         function appendReferenceNumbers(tokens: IRToken[]): IRToken[] {
             function traverse(
                 token: IRToken,
@@ -604,8 +600,8 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
                 traverse(token, (token: IRToken) => {
                     if (token instanceof IRDetailOnDemand) {
                         const referenceIndex =
-                            references.findIndex(
-                                ({ term }) => term === token.term
+                            [...references].findIndex(
+                                (term) => term === token.term
                             ) + 1
                         if (referenceIndex === 0) return token
                         token.children.push(

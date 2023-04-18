@@ -80,7 +80,7 @@ export interface ChartEditorManager {
     pageviews?: RawPageview
     allTopics: Topic[]
     details: DetailDictionary
-    invalidDetailReferences: Record<"subtitle" | "note", [string, string][]>
+    invalidDetailReferences: Record<"subtitle" | "note", string[]>
 }
 
 interface VariableIdUsageRecord {

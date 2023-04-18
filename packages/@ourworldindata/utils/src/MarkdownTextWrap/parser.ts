@@ -325,7 +325,7 @@ const detailOnDemandContentParser: (
         r.nonBracketWord
     )
 
-export const detailOnDemandRegex = /\(#dod:(\w+)\)/
+export const detailOnDemandRegex = /\(#dod:(\w+)\)/g
 
 const detailOnDemandParser: (r: MdParser) => P.Parser<DetailOnDemand> = (
     r: MdParser

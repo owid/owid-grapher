@@ -203,30 +203,3 @@ $zindex-Tooltip: 20;
         height: 50%;
     }
 }
-
-span.dod-term {
-    border-bottom: 1px dotted #666;
-    color: #666;
-}
-
-.dod-tippy-container {
-    overflow-y: auto;
-    max-height: 100%;
-}
-
-.dod-tooltip {
-    margin: 16px;
-
-    h3 {
-        margin: 0;
-        margin-bottom: 8px;
-    }
-
-    a {
-        color: $controls-color;
-    }
-
-    p {
-        margin-bottom: 8px;
-    }
-}

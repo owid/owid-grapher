@@ -1039,14 +1039,6 @@ export enum SiteFooterContext {
     default = "default",
 }
 
-// export interface Detail {
-//     category: string
-//     term: string
-//     title: string
-//     content: string
-//     id: number
-// }
-
 export interface Detail {
     id: string
     text: EnrichedBlockText[]
