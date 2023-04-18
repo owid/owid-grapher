@@ -27,9 +27,6 @@ import {
     debounce,
     isInIFrame,
     differenceObj,
-    isEmpty,
-    get,
-    set,
     QueryParams,
     MultipleOwidVariableDataDimensionsMap,
     OwidVariableDataMetadataDimensions,
@@ -37,7 +34,6 @@ import {
     OwidVariableWithSourceAndDimension,
     Bounds,
     DEFAULT_BOUNDS,
-    Detail,
     detailOnDemandRegex,
     MarkdownTextWrap,
     minTimeBoundFromJSONOrNegativeInfinity,
@@ -65,6 +61,9 @@ import {
     TopicId,
     OwidChartDimensionInterface,
     firstOfNonEmptyArray,
+    spansToUnformattedPlainText,
+    Span,
+    Detail,
 } from "@ourworldindata/utils"
 import {
     ChartTypeName,
@@ -1152,10 +1151,14 @@ export class Grapher
     @computed get detailRenderers(): MarkdownTextWrap[] {
         return [...this.detailsOrderedByReference].map((term, i) => {
             let text = `**${i + 1}.** `
-            // TODO: baking static grapher details
-            const detail = window.details[term]
+            const detail: Detail = window.details[term]
             if (detail) {
-                text += `**${detail.id}**: ${detail.text}`
+                const plainText = detail.text.map(({ value }) =>
+                    spansToUnformattedPlainText(value)
+                )
+                plainText[0] = `**${plainText[0]}**:`
+
+                text += `${plainText.join(" ")}`
             }
             return new MarkdownTextWrap({
                 text,
