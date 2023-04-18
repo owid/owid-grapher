@@ -253,6 +253,15 @@ class FacetSection extends React.Component<{ editor: ChartEditor }> {
                 </div>
                 <FieldsRow>
                     <Toggle
+                        label={`Hide facet control`}
+                        value={this.grapher.hideFacetControl || false}
+                        onValue={(value) => {
+                            this.grapher.hideFacetControl = value || undefined
+                        }}
+                    />
+                </FieldsRow>
+                <FieldsRow>
+                    <Toggle
                         label={`Facets have uniform y-axis`}
                         value={
                             yAxisConfig.facetDomain === FacetAxisDomain.shared
