@@ -36,7 +36,7 @@ import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.
 import { grapherToSVG } from "../baker/GrapherImageBaker.js"
 import { getVariableData } from "../db/model/Variable.js"
 import { MultiEmbedderTestPage } from "../site/multiembedder/MultiEmbedderTestPage.js"
-import { GdocsContentSource, JsonError } from "@ourworldindata/utils"
+import { JsonError } from "@ourworldindata/utils"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import { isWordpressAPIEnabled } from "../db/wpdb.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants.js"

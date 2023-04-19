@@ -62,7 +62,6 @@ import {
     OwidChartDimensionInterface,
     firstOfNonEmptyArray,
     spansToUnformattedPlainText,
-    Span,
     Detail,
 } from "@ourworldindata/utils"
 import {

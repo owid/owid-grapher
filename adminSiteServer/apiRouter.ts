@@ -28,7 +28,6 @@ import {
     GrapherConfigPatch,
     isEmpty,
     JsonError,
-    omit,
     OperationContext,
     OwidGdocJSON,
     OwidGdocInterface,
@@ -36,12 +35,9 @@ import {
     parseToOperation,
     PostRow,
     PostRowWithGdocPublishStatus,
-    set,
     SuggestedChartRevisionStatus,
-    trimObject,
     variableAnnotationAllowedColumnNamesAndTypes,
     VariableAnnotationsResponseRow,
-    Detail,
 } from "@ourworldindata/utils"
 import {
     GrapherInterface,

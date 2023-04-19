@@ -13,10 +13,11 @@ import { Prompt, Redirect } from "react-router-dom"
 import {
     Bounds,
     capitalize,
-    getIndexableKeys,
     RawPageview,
     DetailDictionary,
     detailOnDemandRegex,
+    get,
+    set,
 } from "@ourworldindata/utils"
 import { Grapher, Topic, GrapherInterface } from "@ourworldindata/grapher"
 import { Admin } from "./Admin.js"
@@ -49,7 +50,6 @@ import {
     VisionDeficiencyEntity,
 } from "./VisionDeficiencies.js"
 import { EditorMarimekkoTab } from "./EditorMarimekkoTab.js"
-import { get, has, set } from "lodash"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 
 @observer

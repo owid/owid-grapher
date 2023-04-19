@@ -5,7 +5,6 @@ import {
     Bounds,
     DEFAULT_BOUNDS,
     exposeInstanceOnWindow,
-    isEmpty,
     MarkdownTextWrap,
     sumTextWrapHeights,
 } from "@ourworldindata/utils"

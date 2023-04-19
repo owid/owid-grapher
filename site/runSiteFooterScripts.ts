@@ -22,7 +22,6 @@ export const runSiteFooterScripts = (
           }
         | undefined
 ) => {
-    console.log("site footer scripts")
     // We used to destructure this in the function signature, but that caused
     // a weird issue reported by bugsnag: https://app.bugsnag.com/our-world-in-data/our-world-in-data-website/errors/63ca39b631e8660009464eb4?event_id=63d384c500acc25fc0810000&i=sk&m=ef
     // So now we define the object as potentially undefined and then destructure it here.
