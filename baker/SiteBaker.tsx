@@ -1,7 +1,7 @@
 import fs from "fs-extra"
 import { writeFile } from "node:fs/promises"
 import path from "path"
-import glob from "glob"
+import { glob } from "glob"
 import { keyBy, without, uniq } from "lodash"
 import cheerio from "cheerio"
 import fetch from "node-fetch"

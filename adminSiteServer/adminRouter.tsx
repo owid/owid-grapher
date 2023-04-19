@@ -1,6 +1,5 @@
 // Misc non-SPA views
-import { Request, Response, Router } from "express"
-import express from "express"
+import express, { Request, Response, Router } from "express"
 import rateLimit from "express-rate-limit"
 import filenamify from "filenamify"
 import React from "react"

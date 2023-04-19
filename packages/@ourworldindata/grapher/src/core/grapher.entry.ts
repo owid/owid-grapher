@@ -1,7 +1,7 @@
 import "./grapher.scss"
 
 // Enable mobx-formatters
-import Mobx from "mobx"
+import * as Mobx from "mobx"
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const mobxFormatters = require("mobx-formatters").default
 mobxFormatters(Mobx)

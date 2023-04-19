@@ -29,7 +29,7 @@ import {
     DATA_FILES_CHECKSUMS_DIRECTORY,
 } from "../settings/serverSettings.js"
 import * as db from "../db/db.js"
-import glob from "glob"
+import { glob } from "glob"
 import { isPathRedirectedToExplorer } from "../explorerAdminServer/ExplorerRedirects.js"
 import { getPostBySlug } from "../db/model/Post.js"
 import {

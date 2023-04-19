@@ -2,9 +2,9 @@
 import sqlFixtures from "sql-fixtures"
 import { dbTestConfig } from "./dbTestConfig.js"
 import { dataSource } from "./dataSource.dbtests.js"
-import knex, { Knex } from "knex"
+import { knex, Knex } from "knex"
 import { getConnection } from "../db.js"
-import typeorm from "typeorm"
+import * as typeorm from "typeorm"
 import { User } from "../model/User.js"
 import { Chart } from "../model/Chart.js"
 
