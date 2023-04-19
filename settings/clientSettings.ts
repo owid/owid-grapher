@@ -15,8 +15,9 @@ if (typeof __dirname !== "undefined") {
 
 import { parseIntOrUndefined } from "@ourworldindata/utils"
 
-export const ENV: "development" | "production" =
-    process.env.ENV === "production" ? "production" : "development"
+export type Environment = "development" | "staging" | "production"
+
+export const ENV = (process.env.ENV ?? "development") as Environment
 
 export const BUGSNAG_API_KEY: string | undefined = process.env.BUGSNAG_API_KEY
 export const ADMIN_SERVER_PORT: number =

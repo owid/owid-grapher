@@ -5,6 +5,7 @@ import { observable, computed, action } from "mobx"
 import urljoin from "url-join"
 
 import { AdminApp } from "./AdminApp.js"
+import { Environment } from "../settings/clientSettings.js"
 import {
     Json,
     stringifyUnkownError,
@@ -14,7 +15,7 @@ import {
 type HTTPMethod = "GET" | "PUT" | "POST" | "DELETE" | "PATCH"
 
 interface ClientSettings {
-    ENV: "development" | "production"
+    ENV: Environment
     GITHUB_USERNAME: string
     DATA_API_FOR_ADMIN_UI?: string
 }

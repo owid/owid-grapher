@@ -150,7 +150,7 @@ const prodAssets = (entry: string, baseUrl: string): Assets => {
 }
 
 export const viteAssets = (entry: string) =>
-    ENV === "production"
+    ENV === "production" || ENV === "staging"
         ? prodAssets(entry, BAKED_BASE_URL)
         : devAssets(entry, VITE_DEV_URL)
 

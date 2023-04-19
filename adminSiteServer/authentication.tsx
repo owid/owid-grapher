@@ -93,7 +93,7 @@ export async function authCloudflareSSOMiddleware(
     res.cookie("sessionid", sessionId, {
         httpOnly: true,
         sameSite: "lax",
-        secure: ENV === "production",
+        secure: ENV === "production" || req.protocol === "https",
     })
 
     // Prevents redirect to external URLs

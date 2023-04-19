@@ -16,7 +16,7 @@ import { parseIntOrUndefined } from "@ourworldindata/utils"
 const serverSettings = process.env ?? {}
 
 export const BASE_DIR: string = baseDir
-export const ENV: "development" | "production" = clientSettings.ENV
+export const ENV = clientSettings.ENV
 
 export const ADMIN_SERVER_PORT: number = clientSettings.ADMIN_SERVER_PORT
 export const ADMIN_SERVER_HOST: string = clientSettings.ADMIN_SERVER_HOST
