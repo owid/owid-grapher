@@ -149,7 +149,7 @@ level: 2
         expect(serializedRawBlock).toEqual(archieMLString)
     })
 
-    it.only("can parse a recirc block", () => {
+    it("surfaces missing support for external urls in recirc block", () => {
         const archieMLString = `
             {.recirc}
                 title: More Articles on Mammals
@@ -170,7 +170,6 @@ level: 2
                     type: "recirc-link",
                 },
                 {
-                    // TODO: surface no support for external links in parseErrors?
                     url: "https://ourworldindata.org/large-mammals-extinction",
                     type: "recirc-link",
                 },
@@ -179,6 +178,16 @@ level: 2
                 text: "More Articles on Mammals",
                 spanType: "span-simple-text",
             },
+            parseErrors: [
+                {
+                    message: "External urls are not supported in recirc blocks",
+                    isWarning: true,
+                },
+            ],
+        }
+
+        expect(article?.body?.[0]).toEqual(expectedEnrichedBlock)
+    })
             parseErrors: [],
         }
 
