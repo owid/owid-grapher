@@ -195,11 +195,12 @@ $zindex-Tooltip: 20;
     .markdown-text-wrap__line:last-child {
         margin-bottom: 2px;
     }
-}
 
-.interactive-tippy-wrapper {
-    > div {
-        display: inline-block; // fix https://github.com/owid/owid-grapher/issues/1790
-        height: 50%;
+    a.dod-span {
+        border-bottom: 1px dotted #666;
+
+        &:hover {
+            text-decoration: none;
+        }
     }
 }

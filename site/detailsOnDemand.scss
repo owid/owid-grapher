@@ -12,6 +12,11 @@
     }
 }
 
+// Need to overwrite the Grapher styles
+.GrapherComponent .dod-container a.span-link {
+    @include owid-link-60;
+}
+
 .dod-span {
     color: inherit;
     border-bottom: 1px dotted #1d3d63;

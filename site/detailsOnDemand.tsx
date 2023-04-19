@@ -16,7 +16,7 @@ declare global {
     }
 }
 
-export async function runGlobalDetailsOnDemand() {
+export async function runDetailsOnDemand() {
     const details: DetailDictionary = await fetch(
         `${BAKED_BASE_URL}/dods.json`,
         {

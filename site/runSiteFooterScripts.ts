@@ -10,7 +10,7 @@ import { runLightbox } from "./Lightbox.js"
 import { MultiEmbedderSingleton } from "./multiembedder/MultiEmbedder.js"
 import { runSiteNavigation } from "./SiteNavigation.js"
 import { runSiteTools } from "./SiteTools.js"
-import { runGlobalDetailsOnDemand } from "./globalDetailsOnDemand.js"
+import { runDetailsOnDemand } from "./detailsOnDemand.js"
 
 export const runSiteFooterScripts = (
     args:
@@ -36,7 +36,7 @@ export const runSiteFooterScripts = (
             runSiteNavigation(BAKED_BASE_URL)
             runSiteTools()
             runCookiePreferencesManager()
-            runGlobalDetailsOnDemand()
+            runDetailsOnDemand()
             break
         case SiteFooterContext.gdocsDocument:
             hydrateOwidGdoc(debug, isPreviewing)
@@ -51,7 +51,7 @@ export const runSiteFooterScripts = (
             runFootnotes()
             runSiteTools()
             runCookiePreferencesManager()
-            runGlobalDetailsOnDemand()
+            runDetailsOnDemand()
             break
     }
 }
