@@ -1014,7 +1014,7 @@ export interface OwidGdocContent {
         | "sdg-color-16"
         | "sdg-color-17"
     "featured-image"?: any
-    details?: Record<string, { id: string; text: Span[] }>
+    details?: DetailDictionary
 }
 
 export interface OwidGdocContentPublished extends OwidGdocContent {
