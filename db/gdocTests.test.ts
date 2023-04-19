@@ -8,6 +8,7 @@ import {
     OwidRawGdocBlock,
     omitUndefinedValues,
     RawBlockText,
+    EnrichedBlockRecirc,
 } from "@ourworldindata/utils"
 import { spansToHtmlString } from "./model/Gdoc/gdocUtils.js"
 import { archieToEnriched } from "./model/Gdoc/archieToEnriched.js"
@@ -146,6 +147,42 @@ level: 2
         const serializedRawBlock =
             OwidRawGdocBlockToArchieMLString(expectedRawBlock)
         expect(serializedRawBlock).toEqual(archieMLString)
+    })
+
+    it.only("can parse a recirc block", () => {
+        const archieMLString = `
+            {.recirc}
+                title: More Articles on Mammals
+
+                [.links]
+                    url:https://docs.google.com/document/d/1__qnfvbuEsT5EkU-3-TF65jShUuOefyxvy5CUmZRAvI/edit
+                    url:https://ourworldindata.org/large-mammals-extinction
+                []
+            {}
+        `
+        const doc = getArchieMLDocWithContent(archieMLString)
+        const article = archieToEnriched(doc)
+        const expectedEnrichedBlock: EnrichedBlockRecirc = {
+            type: "recirc",
+            links: [
+                {
+                    url: "https://docs.google.com/document/d/1__qnfvbuEsT5EkU-3-TF65jShUuOefyxvy5CUmZRAvI/edit",
+                    type: "recirc-link",
+                },
+                {
+                    // TODO: surface no support for external links in parseErrors?
+                    url: "https://ourworldindata.org/large-mammals-extinction",
+                    type: "recirc-link",
+                },
+            ],
+            title: {
+                text: "More Articles on Mammals",
+                spanType: "span-simple-text",
+            },
+            parseErrors: [],
+        }
+
+        expect(article?.body?.[0]).toEqual(expectedEnrichedBlock)
     })
 
     it.each(Object.values(enrichedBlockExamples))(
