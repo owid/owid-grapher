@@ -61,6 +61,7 @@ export async function runDetailsOnDemand() {
                 hideOnClick: false,
                 arrow: false,
                 theme: "light",
+                appendTo: document.body,
             })
         }
     }

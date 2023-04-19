@@ -254,6 +254,15 @@ h6:hover .deep-link {
     @include owid-link-90;
 }
 
+/* Header
+--------------------------------------------- */
+.site-header {
+    position: relative;
+    // Must be specified for the search overlay to stack above Grapher charts,
+    // but below Tippy tooltips
+    z-index: 2;
+}
+
 /* Homepage
 --------------------------------------------- */
 
