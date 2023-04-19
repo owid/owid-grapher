@@ -1966,7 +1966,6 @@ export class Grapher
 
     @computed get showFacetControl(): boolean {
         let {
-            type,
             hideFacetControl,
             filledDimensions,
             yColumnSlugs,
@@ -1975,12 +1974,11 @@ export class Grapher
 
         // show facet control for some chart types by default
         if (hideFacetControl == undefined) {
-            hideFacetControl = ![
-                ChartTypeName.StackedArea,
-                ChartTypeName.StackedBar,
-                ChartTypeName.StackedDiscreteBar,
-                ChartTypeName.LineChart,
-            ].includes(type)
+            hideFacetControl =
+                !this.isStackedArea &&
+                !this.isStackedBar &&
+                !this.isStackedDiscreteBar &&
+                !this.isLineChart
         }
 
         const hasProjection = filledDimensions.some(
