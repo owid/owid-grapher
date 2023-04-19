@@ -44,7 +44,6 @@ import workerpool from "workerpool"
 import ProgressBar from "progress"
 import { getVariableData } from "../db/model/Variable.js"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
-import { readFile } from "fs-extra"
 import { logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
 
 /**
@@ -63,7 +62,7 @@ export const renderDataPageOrGrapherPage = async (
     const fullPath = `${GIT_CMS_DIR}/datapages/${id}.json`
     let datapage
     try {
-        const datapageJson = await readFile(fullPath, "utf8")
+        const datapageJson = await fs.readFile(fullPath, "utf8")
         datapage = JSON.parse(datapageJson)
         if (
             // We only want to render datapages on selected charts, even if the
