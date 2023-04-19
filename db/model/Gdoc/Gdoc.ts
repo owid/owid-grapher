@@ -29,6 +29,7 @@ import {
 import {
     GDOCS_CLIENT_EMAIL,
     GDOCS_CLIENT_ID,
+    GDOCS_DETAILS_ON_DEMAND_ID,
     GDOCS_PRIVATE_KEY,
 } from "../../../settings/serverSettings.js"
 import { google, Auth, docs_v1 } from "googleapis"
@@ -149,6 +150,22 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
         return [...filenames]
     }
 
+    get details(): string[] {
+        const details: Set<string> = new Set()
+
+        this.content.body?.forEach((node) =>
+            recursivelyMapArticleContent(node, (item) => {
+                if (checkNodeIsSpan(item)) {
+                    if (item.spanType === "span-dod") {
+                        details.add(item.id)
+                    }
+                }
+                return item
+            })
+        )
+        return [...details]
+    }
+
     async loadImageMetadata(): Promise<void> {
         const covers: string[] = Object.values(this.linkedDocuments)
             .map((gdoc: Gdoc) => gdoc.content.cover)
@@ -265,7 +282,32 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
             []
         )
 
-        this.errors = [...filenameErrors, ...linkErrors]
+        let dodErrors: OwidGdocErrorMessage[] = []
+        // Validating the DoD document is infinitely recursive :)
+        if (this.id !== GDOCS_DETAILS_ON_DEMAND_ID) {
+            const detailsGdoc = await Gdoc.getGdocFromContentSource(
+                GDOCS_DETAILS_ON_DEMAND_ID
+            )
+            const details = detailsGdoc.content.details
+            dodErrors = this.details.reduce(
+                (
+                    acc: OwidGdocErrorMessage[],
+                    detailId
+                ): OwidGdocErrorMessage[] => {
+                    if (details && !details[detailId]) {
+                        acc.push({
+                            type: OwidGdocErrorMessageType.Error,
+                            message: `Invalid DoD referenced: "${detailId}"`,
+                            property: "content",
+                        })
+                    }
+                    return acc
+                },
+                []
+            )
+        }
+
+        this.errors = [...filenameErrors, ...linkErrors, ...dodErrors]
     }
 
     static async getGdocFromContentSource(
