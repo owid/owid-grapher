@@ -9,6 +9,7 @@ import {
     omitUndefinedValues,
     RawBlockText,
     EnrichedBlockRecirc,
+    EnrichedBlockTopicPageIntro,
 } from "@ourworldindata/utils"
 import { spansToHtmlString } from "./model/Gdoc/gdocUtils.js"
 import { archieToEnriched } from "./model/Gdoc/archieToEnriched.js"
@@ -188,7 +189,74 @@ level: 2
 
         expect(article?.body?.[0]).toEqual(expectedEnrichedBlock)
     })
-            parseErrors: [],
+
+    it("surfaces block type restriction in topic-page-intro content", () => {
+        const archieMLString = `
+        {.topic-page-intro}
+            {.download-button}
+                text: Download all data on blah
+                url: https://github.com
+            {}
+        
+            [.related-topics]
+                text: Poverty
+                url: https://docs.google.com/d/1234
+        
+                text: GDP Growth
+                url: https://docs.google.com/d/abcd
+            []
+        
+            [+.content]
+                <b>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</b> Suspendisse dictum consectetur turpis sit amet vestibulum.
+                {.prominent-link}
+                    url: https://docs.google.com/d/1234
+                {}
+            []
+        {}
+        `
+        const doc = getArchieMLDocWithContent(archieMLString)
+        const article = archieToEnriched(doc)
+        const expectedEnrichedBlock: EnrichedBlockTopicPageIntro = {
+            type: "topic-page-intro",
+            content: [
+                [
+                    {
+                        children: [
+                            {
+                                text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+                                spanType: "span-simple-text",
+                            },
+                        ],
+                        spanType: "span-bold",
+                    },
+                    {
+                        text: " Suspendisse dictum consectetur turpis sit amet vestibulum.",
+                        spanType: "span-simple-text",
+                    },
+                ],
+                [],
+            ],
+            parseErrors: [
+                {
+                    message:
+                        "Only paragraphs are supported in topic-page-intro blocks.",
+                    isWarning: true,
+                },
+            ],
+            relatedTopics: [
+                {
+                    url: "https://docs.google.com/d/1234",
+                    text: "Poverty",
+                },
+                {
+                    url: "https://docs.google.com/d/abcd",
+                    text: "GDP Growth",
+                },
+            ],
+            downloadButton: {
+                url: "https://github.com",
+                text: "Download all data on blah",
+            },
         }
 
         expect(article?.body?.[0]).toEqual(expectedEnrichedBlock)
