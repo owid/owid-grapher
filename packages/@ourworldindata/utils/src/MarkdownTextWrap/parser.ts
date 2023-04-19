@@ -327,6 +327,10 @@ const detailOnDemandContentParser: (
 
 export const detailOnDemandRegex = /\(#dod:(\w+)\)/g
 
+export function extractDetailsFromSyntax(str: string): string[] {
+    return [...str.matchAll(detailOnDemandRegex)].map(([_, term]) => term)
+}
+
 const detailOnDemandParser: (r: MdParser) => P.Parser<DetailOnDemand> = (
     r: MdParser
 ) =>

@@ -525,7 +525,11 @@ export {
     sumTextWrapHeights,
 } from "./MarkdownTextWrap/MarkdownTextWrap.js"
 
-export { detailOnDemandRegex, mdParser } from "./MarkdownTextWrap/parser.js"
+export {
+    detailOnDemandRegex,
+    extractDetailsFromSyntax,
+    mdParser,
+} from "./MarkdownTextWrap/parser.js"
 
 export {
     gdocUrlRegex,

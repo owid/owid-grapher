@@ -47,6 +47,7 @@ import {
     ImageMetadata,
     clone,
     getFilenameWithoutExtension,
+    extractDetailsFromSyntax,
 } from "@ourworldindata/utils"
 import { execWrapper } from "../db/execWrapper.js"
 import { logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
@@ -102,6 +103,8 @@ function getProgressBarTotal(bakeSteps: BakeStepConfig): number {
     let total = minimum + bakeSteps.size
     // Redirects has two progress bar ticks
     if (bakeSteps.has("redirects")) total++
+    // Add a tick for the validation step that occurs when these two steps run
+    if (bakeSteps.has("dods") && bakeSteps.has("charts")) total++
     return total
 }
 
@@ -375,6 +378,46 @@ export class SiteBaker {
         this.progressBar.tick({ name: "✅ baked special pages" })
     }
 
+    private async validateGrapherDodReferences() {
+        if (!this.bakeSteps.has("dods") || !this.bakeSteps.has("charts")) return
+
+        const {
+            content: { details },
+        } = await Gdoc.getGdocFromContentSource(GDOCS_DETAILS_ON_DEMAND_ID)
+
+        if (!details) {
+            this.progressBar.tick({
+                name: "✅ no details exist. skipping grapher dod validation step",
+            })
+            return
+        }
+
+        const charts: { slug: string; subtitle: string; note: string }[] =
+            await db.queryMysql(`
+            SELECT config->>'$.slug' as slug, config->>'$.subtitle' as subtitle, config->>'$.note' as note
+            FROM charts
+            WHERE JSON_EXTRACT(config, "$.isPublished") = true
+            AND JSON_EXTRACT(config, "$.subtitle") LIKE "%#dod:%"
+            OR JSON_EXTRACT(config, "$.note") LIKE "%#dod:%"
+            ORDER BY JSON_EXTRACT(config, "$.slug") ASC
+        `)
+
+        for (const chart of charts) {
+            const detailIds = new Set(
+                extractDetailsFromSyntax(`${chart.note} ${chart.subtitle}`)
+            )
+            for (const detailId of detailIds) {
+                if (!details[detailId]) {
+                    logErrorAndMaybeSendToSlack(
+                        `Grapher with slug ${chart.slug} references dod "${detailId}" which does not exist`
+                    )
+                }
+            }
+        }
+
+        this.progressBar.tick({ name: "✅ validated grapher dods" })
+    }
+
     private async bakeDetailsOnDemand() {
         if (!this.bakeSteps.has("dods")) return
 
@@ -580,6 +623,7 @@ export class SiteBaker {
             })
         }
         await this.bakeDetailsOnDemand()
+        await this.validateGrapherDodReferences()
         await this.bakeGDocPosts()
         await this.bakeDriveImages()
     }

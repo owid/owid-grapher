@@ -15,7 +15,7 @@ import {
     capitalize,
     RawPageview,
     DetailDictionary,
-    detailOnDemandRegex,
+    extractDetailsFromSyntax,
     get,
     set,
 } from "@ourworldindata/utils"
@@ -84,10 +84,6 @@ class TabBinder extends React.Component<{ editor: ChartEditor }> {
                 this.props.editor.tab = tab
         }
     }
-}
-
-function extractDetailsFromSyntax(str: string): string[] {
-    return [...str.matchAll(detailOnDemandRegex)].map(([_, term]) => term)
 }
 
 @observer
