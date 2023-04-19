@@ -17,6 +17,11 @@
     @include owid-link-60;
 }
 
+// Needed to stop text from getting pushed out of the way when a tooltip appears
+[data-tippy-root] {
+    display: inline;
+}
+
 .dod-span {
     color: inherit;
     border-bottom: 1px dotted #1d3d63;
