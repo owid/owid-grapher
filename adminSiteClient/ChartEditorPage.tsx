@@ -291,15 +291,6 @@ export class ChartEditorPage
                 }
             )
         )
-
-        // this.disposers.push(
-        //     reaction(
-        //         () => this.currentlyReferencedDetails,
-        //         (currentlyReferencedDetails = {}) => {
-        //             this.grapher.details = currentlyReferencedDetails
-        //         }
-        //     )
-        // )
     }
 
     // This funny construction allows the "new chart" link to work by forcing an update
