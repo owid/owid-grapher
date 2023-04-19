@@ -1,0 +1,1659 @@
+# Region definitions (see more details in the description of the 'regions' garden step).
+# Each region must contain the following fields:
+# code: Region code (unique for each region).
+# name: Region name.
+#
+# Additionally, each region can contain the following fields:
+# short_name: Short version of the region name. If not given, 'name' will be used.
+# region_type: Region type (country, continent, aggregate, other). If not given, 'country' will be used.
+# defined_by: Institution that used the region in a dataset. If not given, 'owid' will be used.
+# is_historical: True if region does not exist anymore. If not given, False will be used.
+# end_year: Last year when a historical region existed. If not given, pd.NA will be used.
+# successors: List of successors of a historical region. If not given, an empty list will be used.
+# members: List of members of the region. If not given, an empty list will be used.
+# aliases: List of alternative names for the region. If not given, an empty list will be used.
+# related: List of related members of the region. If not given, an empty list will be used.
+- code: "OWID_ABK"
+  name: "Abkhazia"
+  region_type: "other"
+
+- code: "AFG"
+  name: "Afghanistan"
+
+- code: "OWID_AFR"
+  name: "Africa"
+  region_type: "continent"
+  members:
+    - "AGO"
+    - "BDI"
+    - "BEN"
+    - "BFA"
+    - "BWA"
+    - "CAF"
+    - "CIV"
+    - "CMR"
+    - "COD"
+    - "COG"
+    - "COM"
+    - "CPV"
+    - "DJI"
+    - "DZA"
+    - "EGY"
+    - "ERI"
+    - "ESH"
+    - "ETH"
+    - "GAB"
+    - "GHA"
+    - "GIN"
+    - "GMB"
+    - "GNB"
+    - "GNQ"
+    - "KEN"
+    - "LBR"
+    - "LBY"
+    - "LSO"
+    - "MAR"
+    - "MDG"
+    - "MLI"
+    - "MOZ"
+    - "MRT"
+    - "MUS"
+    - "MWI"
+    - "MYT"
+    - "NAM"
+    - "NER"
+    - "NGA"
+    - "OWID_ERE"
+    - "REU"
+    - "RWA"
+    - "SDN"
+    - "SEN"
+    - "SHN"
+    - "SLE"
+    - "SOM"
+    - "SSD"
+    - "STP"
+    - "SWZ"
+    - "SYC"
+    - "TCD"
+    - "TGO"
+    - "TUN"
+    - "TZA"
+    - "UGA"
+    - "ZAF"
+    - "ZMB"
+    - "ZWE"
+
+- code: "OWID_AKD"
+  name: "Akrotiri and Dhekelia"
+  region_type: "other"
+
+- code: "ALA"
+  name: "Aland Islands"
+  aliases:
+    - "\u00c3\u0081EEland Islands"
+    - "\u00c5land Islands"
+
+- code: "ALB"
+  name: "Albania"
+
+- code: "DZA"
+  name: "Algeria"
+
+- code: "ASM"
+  name: "American Samoa"
+
+- code: "AND"
+  name: "Andorra"
+
+- code: "AGO"
+  name: "Angola"
+
+- code: "AIA"
+  name: "Anguilla"
+
+- code: "ATA"
+  name: "Antarctica"
+
+- code: "ATG"
+  name: "Antigua and Barbuda"
+  aliases:
+    - "Antigua & Barb."
+
+- code: "ARG"
+  name: "Argentina"
+
+- code: "ARM"
+  name: "Armenia"
+
+- code: "ABW"
+  name: "Aruba"
+
+- code: "OWID_ASI"
+  name: "Asia"
+  region_type: "continent"
+  members:
+    - "AFG"
+    - "ARE"
+    - "ARM"
+    - "AZE"
+    - "BGD"
+    - "BHR"
+    - "BRN"
+    - "BTN"
+    - "CCK"
+    - "CHN"
+    - "CXR"
+    - "GEO"
+    - "HKG"
+    - "IDN"
+    - "IND"
+    - "IOT"
+    - "IRN"
+    - "IRQ"
+    - "ISR"
+    - "JOR"
+    - "JPN"
+    - "KAZ"
+    - "KGZ"
+    - "KHM"
+    - "KOR"
+    - "KWT"
+    - "LAO"
+    - "LBN"
+    - "LKA"
+    - "MAC"
+    - "MDV"
+    - "MMR"
+    - "MNG"
+    - "MYS"
+    - "NPL"
+    - "OMN"
+    - "OWID_KRU"
+    - "OWID_RVN"
+    - "OWID_YAR"
+    - "OWID_YPR"
+    - "PAK"
+    - "PHL"
+    - "PRK"
+    - "PSE"
+    - "QAT"
+    - "SAU"
+    - "SGP"
+    - "SYR"
+    - "THA"
+    - "TJK"
+    - "TKM"
+    - "TLS"
+    - "TUR"
+    - "TWN"
+    - "UZB"
+    - "VNM"
+    - "YEM"
+
+- code: "AUS"
+  name: "Australia"
+  aliases:
+    - "Autralia"
+  related:
+    - "CXR"
+    - "HMD"
+    - "NFK"
+
+- code: "AUT"
+  name: "Austria"
+
+- code: "OWID_AUH"
+  name: "Austria-Hungary"
+  is_historical: True
+  end_year: 1918
+  successors:
+    - "AUT"
+    - "CHN"
+    - "HUN"
+    - "ITA"
+    - "OWID_CZS"
+    - "OWID_YGS"
+    - "POL"
+    - "ROU"
+    - "UKR"
+
+- code: "AZE"
+  name: "Azerbaijan"
+  related:
+    - "OWID_NAG"
+
+- code: "BHS"
+  name: "Bahamas"
+  aliases:
+    - "Bahamas (the)"
+    - "Bahamas, The"
+    - "The Bahamas"
+
+- code: "BHR"
+  name: "Bahrain"
+
+- code: "BGD"
+  name: "Bangladesh"
+
+- code: "BRB"
+  name: "Barbados"
+
+- code: "BLR"
+  name: "Belarus"
+
+- code: "BEL"
+  name: "Belgium"
+
+- code: "BLZ"
+  name: "Belize"
+
+- code: "BEN"
+  name: "Benin"
+
+- code: "BMU"
+  name: "Bermuda"
+
+- code: "BTN"
+  name: "Bhutan"
+
+- code: "BOL"
+  name: "Bolivia"
+  aliases:
+    - "Bolivia (Plurinational State of)"
+    - "Bolivia, Plurinational State Of"
+
+- code: "BES"
+  name: "Bonaire Sint Eustatius and Saba"
+  aliases:
+    - "BES Islands"
+    - "Bonaire, Saint Eustatius And Saba"
+    - "Bonaire, Sint Eustatius and Saba"
+    - "Caribbean Netherlands"
+
+- code: "BIH"
+  name: "Bosnia and Herzegovina"
+  aliases:
+    - "Bosnia Herzegovina"
+    - "Bsnia.&Hrzgvna."
+
+- code: "BWA"
+  name: "Botswana"
+
+- code: "BVT"
+  name: "Bouvet Island"
+
+- code: "BRA"
+  name: "Brazil"
+
+- code: "IOT"
+  name: "British Indian Ocean Territory"
+
+- code: "VGB"
+  name: "British Virgin Islands"
+  aliases:
+    - "Br.Virgin Is."
+    - "Virgin Islands (British)"
+    - "Virgin Islands, British"
+
+- code: "BRN"
+  name: "Brunei"
+  aliases:
+    - "Brunei Darussalam"
+
+- code: "BGR"
+  name: "Bulgaria"
+
+- code: "BFA"
+  name: "Burkina Faso"
+
+- code: "BDI"
+  name: "Burundi"
+
+- code: "KHM"
+  name: "Cambodia"
+
+- code: "CMR"
+  name: "Cameroon"
+
+- code: "CAN"
+  name: "Canada"
+
+- code: "CPV"
+  name: "Cape Verde"
+  aliases:
+    - "Cabo Verde"
+
+- code: "CYM"
+  name: "Cayman Islands"
+  aliases:
+    - "Cayman Islands (the)"
+
+- code: "CAF"
+  name: "Central African Republic"
+  aliases:
+    - "Central African Rep."
+    - "Central African Republic (the)"
+
+- code: "TCD"
+  name: "Chad"
+
+- code: "OWID_CIS"
+  name: "Channel Islands"
+  region_type: "aggregate"
+  members:
+    - "GGY"
+    - "JEY"
+
+- code: "CHL"
+  name: "Chile"
+
+- code: "CHN"
+  name: "China"
+  aliases:
+    - "China, mainland"
+  related:
+    - "HKG"
+    - "MAC"
+
+- code: "CXR"
+  name: "Christmas Island"
+  aliases:
+    - "Christmas Isl."
+
+- code: "CCK"
+  name: "Cocos Islands"
+  aliases:
+    - "Cocos (Keeling) Isl."
+    - "Cocos (Keeling) Islands"
+
+- code: "COL"
+  name: "Colombia"
+
+- code: "COM"
+  name: "Comoros"
+  aliases:
+    - "Comoros (the)"
+
+- code: "COG"
+  name: "Congo"
+  aliases:
+    - "Congo (the)"
+    - "Congo, Rep."
+    - "Congo-Brazzaville"
+    - "Republic of Congo"
+
+- code: "COK"
+  name: "Cook Islands"
+  aliases:
+    - "Cook Islands (the)"
+
+- code: "CRI"
+  name: "Costa Rica"
+
+- code: "CIV"
+  name: "Cote d'Ivoire"
+  aliases:
+    - "C\u00c3\u00b4te D'Ivoire"
+    - "C\u00f4te d'Ivoire"
+    - "C\u00f4te d\u2019Ivoire"
+    - "Ivory Coast"
+
+- code: "HRV"
+  name: "Croatia"
+
+- code: "CUB"
+  name: "Cuba"
+
+- code: "CUW"
+  name: "Curacao"
+  aliases:
+    - "Cura\u00c3\u00a7ao"
+    - "Cura\u00e7ao"
+
+- code: "CYP"
+  name: "Cyprus"
+  related:
+    - "OWID_CYN"
+
+- code: "CZE"
+  name: "Czechia"
+  aliases:
+    - "Czech Rep."
+    - "Czech Republic"
+
+- code: "OWID_CZS"
+  name: "Czechoslovakia"
+  is_historical: True
+  aliases:
+    - "Former Czechoslovakia"
+  end_year: 1992
+  successors:
+    - "CZE"
+    - "SVK"
+
+- code: "COD"
+  name: "Democratic Republic of Congo"
+  short_name: "DR Congo"
+  aliases:
+    - "Congo (the Democratic Republic of the)"
+    - "Congo, Dem. Rep."
+    - "Congo, The Democratic Republic Of The"
+    - "Congo-Kinshasa"
+    - "D.R. of the Congo"
+    - "Democratic Republic of the Congo"
+    - "Zaire/ Congo , Dem. Rep."
+
+- code: "DNK"
+  name: "Denmark"
+  related:
+    - "FRO"
+
+- code: "DJI"
+  name: "Djibouti"
+
+- code: "DMA"
+  name: "Dominica"
+
+- code: "DOM"
+  name: "Dominican Republic"
+  aliases:
+    - "Dominican Rep."
+    - "Dominican Republic (the)"
+
+- code: "OWID_GDR"
+  name: "East Germany"
+  is_historical: True
+  aliases:
+    - "Germany, East"
+  end_year: 1990
+  successors:
+    - "DEU"
+
+- code: "TLS"
+  name: "East Timor"
+  aliases:
+    - "East Timor"
+    - "Timor-Leste"
+
+- code: "ECU"
+  name: "Ecuador"
+
+- code: "EGY"
+  name: "Egypt"
+  aliases:
+    - "Egypt, Arab Rep."
+
+- code: "SLV"
+  name: "El Salvador"
+
+- code: "GNQ"
+  name: "Equatorial Guinea"
+  aliases:
+    - "Eq. Guinea"
+
+- code: "ERI"
+  name: "Eritrea"
+
+- code: "OWID_ERE"
+  name: "Eritrea and Ethiopia"
+  is_historical: True
+  aliases:
+    - "Ethiopia PDR"
+  end_year: 1993
+  successors:
+    - "ERI"
+    - "ETH"
+
+- code: "EST"
+  name: "Estonia"
+
+- code: "SWZ"
+  name: "Eswatini"
+  aliases:
+    - "Swaziland"
+
+- code: "ETH"
+  name: "Ethiopia"
+
+- code: "OWID_EUR"
+  name: "Europe"
+  region_type: "continent"
+  members:
+    - "ALA"
+    - "ALB"
+    - "AND"
+    - "AUT"
+    - "BEL"
+    - "BGR"
+    - "BIH"
+    - "BLR"
+    - "CHE"
+    - "CYP"
+    - "CZE"
+    - "DEU"
+    - "DNK"
+    - "ESP"
+    - "EST"
+    - "FIN"
+    - "FRA"
+    - "FRO"
+    - "GBR"
+    - "GGY"
+    - "GIB"
+    - "GRC"
+    - "HRV"
+    - "HUN"
+    - "IMN"
+    - "IRL"
+    - "ISL"
+    - "ITA"
+    - "JEY"
+    - "LIE"
+    - "LTU"
+    - "LUX"
+    - "LVA"
+    - "MCO"
+    - "MDA"
+    - "MKD"
+    - "MLT"
+    - "MNE"
+    - "NLD"
+    - "NOR"
+    - "OWID_AUH"
+    - "OWID_CZS"
+    - "OWID_GDR"
+    - "OWID_GFR"
+    - "OWID_KOS"
+    - "OWID_SEK"
+    - "OWID_SRM"
+    - "OWID_USS"
+    - "OWID_YGS"
+    - "POL"
+    - "PRT"
+    - "ROU"
+    - "RUS"
+    - "SMR"
+    - "SRB"
+    - "SVK"
+    - "SVN"
+    - "SWE"
+    - "UKR"
+    - "VAT"
+
+- code: "OWID_EU27"
+  name: "European Union (27)"
+  region_type: "aggregate"
+  aliases:
+    - "EU"
+    - "EU-27"
+    - "EU27"
+  members:
+    - "AUT"
+    - "BEL"
+    - "BGR"
+    - "CYP"
+    - "CZE"
+    - "DEU"
+    - "DNK"
+    - "ESP"
+    - "EST"
+    - "FIN"
+    - "FRA"
+    - "GRC"
+    - "HRV"
+    - "HUN"
+    - "IRL"
+    - "ITA"
+    - "LTU"
+    - "LUX"
+    - "LVA"
+    - "MLT"
+    - "NLD"
+    - "POL"
+    - "PRT"
+    - "ROU"
+    - "SVK"
+    - "SVN"
+    - "SWE"
+
+- code: "FRO"
+  name: "Faeroe Islands"
+  aliases:
+    - "Faroe Islands"
+    - "Faroe Islands (the)"
+
+- code: "FLK"
+  name: "Falkland Islands"
+  aliases:
+    - "Falkland Is."
+    - "Falkland Islands (Malvinas)"
+    - "Falkland Islands (the) [Malvinas]"
+
+- code: "FJI"
+  name: "Fiji"
+
+- code: "FIN"
+  name: "Finland"
+  related:
+    - "ALA"
+
+- code: "FRA"
+  name: "France"
+  related:
+    - "ATF"
+    - "BLM"
+    - "GLP"
+    - "GUF"
+    - "MAF"
+    - "MTQ"
+    - "MYT"
+    - "NCL"
+    - "PYF"
+    - "REU"
+    - "SPM"
+    - "WLF"
+
+- code: "GUF"
+  name: "French Guiana"
+  aliases:
+    - "French Guyana"
+
+- code: "PYF"
+  name: "French Polynesia"
+
+- code: "ATF"
+  name: "French Southern Territories"
+
+- code: "GAB"
+  name: "Gabon"
+
+- code: "GMB"
+  name: "Gambia"
+  aliases:
+    - "Gambia (the)"
+    - "Gambia, The"
+
+- code: "PS_GZA"
+  name: "Gaza Strip"
+
+- code: "GEO"
+  name: "Georgia"
+  related:
+    - "OWID_ABK"
+    - "OWID_SOS"
+
+- code: "DEU"
+  name: "Germany"
+
+- code: "GHA"
+  name: "Ghana"
+
+- code: "GIB"
+  name: "Gibraltar"
+
+- code: "GRC"
+  name: "Greece"
+
+- code: "GRL"
+  name: "Greenland"
+
+- code: "GRD"
+  name: "Grenada"
+
+- code: "GLP"
+  name: "Guadeloupe"
+  aliases:
+    - "Guadaloupe"
+
+- code: "GUM"
+  name: "Guam"
+
+- code: "GTM"
+  name: "Guatemala"
+
+- code: "GGY"
+  name: "Guernsey"
+
+- code: "GIN"
+  name: "Guinea"
+
+- code: "GNB"
+  name: "Guinea-Bissau"
+
+- code: "GUY"
+  name: "Guyana"
+
+- code: "HTI"
+  name: "Haiti"
+
+- code: "HMD"
+  name: "Heard Island and McDonald Islands"
+  aliases:
+    - "Heard and McDonald Isl."
+    - "Heard and McDonald Islands"
+
+- code: "HND"
+  name: "Honduras"
+
+- code: "HKG"
+  name: "Hong Kong"
+  aliases:
+    - "China Hong Kong SAR"
+    - "China, Hong Kong SAR"
+    - "Hong Kong SAR"
+    - "Hong Kong SAR, China"
+    - "Hong Kong Special Administrative Region (China)"
+    - "Hong Kong, China"
+
+- code: "HUN"
+  name: "Hungary"
+
+- code: "ISL"
+  name: "Iceland"
+
+- code: "IND"
+  name: "India"
+
+- code: "IDN"
+  name: "Indonesia"
+
+- code: "IRN"
+  name: "Iran"
+  aliases:
+    - "Iran (Islamic Republic of)"
+    - "Iran, Isl.Rep.of"
+    - "Iran, Islamic Rep."
+    - "Iran, Islamic Republic Of"
+
+- code: "IRQ"
+  name: "Iraq"
+
+- code: "IRL"
+  name: "Ireland"
+
+- code: "IMN"
+  name: "Isle of Man"
+
+- code: "ISR"
+  name: "Israel"
+
+- code: "ITA"
+  name: "Italy"
+
+- code: "JAM"
+  name: "Jamaica"
+
+- code: "JPN"
+  name: "Japan"
+
+- code: "JEY"
+  name: "Jersey"
+
+- code: "JOR"
+  name: "Jordan"
+
+- code: "KAZ"
+  name: "Kazakhstan"
+
+- code: "KEN"
+  name: "Kenya"
+
+- code: "KIR"
+  name: "Kiribati"
+
+- code: "OWID_KOS"
+  name: "Kosovo"
+
+- code: "KWT"
+  name: "Kuwait"
+
+- code: "KGZ"
+  name: "Kyrgyzstan"
+  aliases:
+    - "Kyrgyz Republic"
+
+- code: "LAO"
+  name: "Laos"
+  aliases:
+    - "Lao"
+    - "Lao PDR"
+    - "Lao People's DR"
+    - "Lao People's Democratic Republic"
+    - "Lao People's Democratic Republic (the)"
+
+- code: "LVA"
+  name: "Latvia"
+
+- code: "LBN"
+  name: "Lebanon"
+
+- code: "LSO"
+  name: "Lesotho"
+
+- code: "LBR"
+  name: "Liberia"
+
+- code: "LBY"
+  name: "Libya"
+  aliases:
+    - "Libyan A.J."
+
+- code: "LIE"
+  name: "Liechtenstein"
+
+- code: "LTU"
+  name: "Lithuania"
+
+- code: "LUX"
+  name: "Luxembourg"
+
+- code: "MAC"
+  name: "Macao"
+  aliases:
+    - "China, Macao SAR"
+    - "Macao SAR, China"
+    - "Macao Special Administrative Region (China)"
+    - "Macau"
+
+- code: "MDG"
+  name: "Madagascar"
+
+- code: "MWI"
+  name: "Malawi"
+
+- code: "MYS"
+  name: "Malaysia"
+
+- code: "MDV"
+  name: "Maldives"
+
+- code: "MLI"
+  name: "Mali"
+
+- code: "MLT"
+  name: "Malta"
+
+- code: "MHL"
+  name: "Marshall Islands"
+
+- code: "MTQ"
+  name: "Martinique"
+
+- code: "MRT"
+  name: "Mauritania"
+
+- code: "MUS"
+  name: "Mauritius"
+
+- code: "MYT"
+  name: "Mayotte"
+
+- code: "OWID_MNS"
+  name: "Melanesia"
+  region_type: "aggregate"
+  members:
+    - "FJI"
+    - "PNG"
+    - "SLB"
+    - "VUT"
+
+- code: "MEX"
+  name: "Mexico"
+
+- code: "FSM"
+  name: "Micronesia (country)"
+  aliases:
+    - "Micronesia"
+    - "Micronesia (Fed. States of)"
+    - "Micronesia (Federated States of)"
+    - "Micronesia, Fed. Sts."
+
+- code: "MDA"
+  name: "Moldova"
+  aliases:
+    - "Rep. of Moldova"
+    - "Republic of Moldova"
+  related:
+    - "OWID_TRS"
+
+- code: "MCO"
+  name: "Monaco"
+
+- code: "MNG"
+  name: "Mongolia"
+
+- code: "MNE"
+  name: "Montenegro"
+
+- code: "MSR"
+  name: "Montserrat"
+
+- code: "MAR"
+  name: "Morocco"
+  related:
+    - "ESH"
+
+- code: "MOZ"
+  name: "Mozambique"
+
+- code: "MMR"
+  name: "Myanmar"
+  aliases:
+    - "Burma"
+
+- code: "OWID_NAG"
+  name: "Nagorno-Karabakh"
+  region_type: "other"
+
+- code: "NAM"
+  name: "Namibia"
+
+- code: "NRU"
+  name: "Nauru"
+
+- code: "NPL"
+  name: "Nepal"
+
+- code: "NLD"
+  name: "Netherlands"
+  related:
+    - "ABW"
+    - "CUW"
+    - "SXM"
+
+- code: "ANT"
+  name: "Netherlands Antilles"
+  is_historical: True
+  aliases:
+    - "Neth.Antilles"
+    - "Netherlands Antilles (former)"
+  end_year: 2010
+  successors:
+    - "ABW"
+    - "BES"
+    - "CUW"
+    - "SXM"
+
+- code: "NCL"
+  name: "New Caledonia"
+
+- code: "NZL"
+  name: "New Zealand"
+  related:
+    - "TKL"
+
+- code: "NIC"
+  name: "Nicaragua"
+
+- code: "NER"
+  name: "Niger"
+  aliases:
+    - "Niger (the)"
+
+- code: "NGA"
+  name: "Nigeria"
+
+- code: "NIU"
+  name: "Niue"
+
+- code: "NFK"
+  name: "Norfolk Island"
+  aliases:
+    - "Norfolk Isl."
+
+- code: "OWID_NAM"
+  name: "North America"
+  region_type: "continent"
+  members:
+    - "ABW"
+    - "AIA"
+    - "ANT"
+    - "ATG"
+    - "BES"
+    - "BHS"
+    - "BLM"
+    - "BLZ"
+    - "BMU"
+    - "BRB"
+    - "CAN"
+    - "CRI"
+    - "CUB"
+    - "CUW"
+    - "CYM"
+    - "DMA"
+    - "DOM"
+    - "GLP"
+    - "GRD"
+    - "GRL"
+    - "GTM"
+    - "HND"
+    - "HTI"
+    - "JAM"
+    - "KNA"
+    - "LCA"
+    - "MAF"
+    - "MEX"
+    - "MSR"
+    - "MTQ"
+    - "NIC"
+    - "PAN"
+    - "PRI"
+    - "SLV"
+    - "SPM"
+    - "SXM"
+    - "TCA"
+    - "TTO"
+    - "USA"
+    - "VCT"
+    - "VGB"
+    - "VIR"
+
+- code: "PRK"
+  name: "North Korea"
+  aliases:
+    - "D.P.R. of Korea"
+    - "Dem.Rep.,Korea"
+    - "Democratic People's Republic of Korea"
+    - "Korea (the Democratic People's Republic of)"
+    - "Korea, Dem. People's Rep."
+
+- code: "MKD"
+  name: "North Macedonia"
+  aliases:
+    - "Macedonia"
+    - "Macedonia, FYR"
+    - "Macedonia, The Former Yugoslav Republic Of"
+    - "TFYR Macedonia"
+    - "TFYR of Macedonia"
+
+- code: "OWID_CYN"
+  name: "Northern Cyprus"
+  region_type: "other"
+
+- code: "MNP"
+  name: "Northern Mariana Islands"
+  aliases:
+    - "Northern Mariana"
+
+- code: "NOR"
+  name: "Norway"
+  related:
+    - "BVT"
+    - "SJM"
+
+- code: "OWID_OCE"
+  name: "Oceania"
+  region_type: "continent"
+  members:
+    - "ASM"
+    - "AUS"
+    - "COK"
+    - "FJI"
+    - "FSM"
+    - "GUM"
+    - "KIR"
+    - "MHL"
+    - "MNP"
+    - "NCL"
+    - "NFK"
+    - "NIU"
+    - "NRU"
+    - "NZL"
+    - "PCN"
+    - "PLW"
+    - "PNG"
+    - "PYF"
+    - "SLB"
+    - "TKL"
+    - "TON"
+    - "TUV"
+    - "UMI"
+    - "VUT"
+    - "WLF"
+    - "WSM"
+
+- code: "OMN"
+  name: "Oman"
+
+- code: "PAK"
+  name: "Pakistan"
+
+- code: "PLW"
+  name: "Palau"
+  aliases:
+    - "Pacific Islands (Palau)"
+
+- code: "PSE"
+  name: "Palestine"
+  aliases:
+    - "Occupied Palestinian Terr."
+    - "Occupied Palestinian Territory"
+    - "Palestine, State of"
+    - "Palestinian Territories"
+    - "State of Palestine"
+    - "West Bank and Gaza"
+  related:
+    - "PS_GZA"
+
+- code: "PAN"
+  name: "Panama"
+
+- code: "PNG"
+  name: "Papua New Guinea"
+
+- code: "PRY"
+  name: "Paraguay"
+
+- code: "PER"
+  name: "Peru"
+
+- code: "PHL"
+  name: "Philippines"
+  aliases:
+    - "Philippines (the)"
+
+- code: "PCN"
+  name: "Pitcairn"
+
+- code: "POL"
+  name: "Poland"
+
+- code: "OWID_PYA"
+  name: "Polynesia"
+  region_type: "aggregate"
+  members:
+    - "ASM"
+    - "COK"
+    - "NFK"
+    - "NIU"
+    - "NZL"
+    - "PCN"
+    - "PYF"
+    - "TKL"
+    - "TON"
+    - "TUV"
+    - "WLF"
+    - "WSM"
+
+- code: "PRT"
+  name: "Portugal"
+
+- code: "PRI"
+  name: "Puerto Rico"
+
+- code: "QAT"
+  name: "Qatar"
+
+- code: "OWID_RVN"
+  name: "Republic of Vietnam"
+  is_historical: True
+  end_year: 1975
+  successors:
+    - "VNM"
+
+- code: "REU"
+  name: "Reunion"
+  aliases:
+    - "R\u00e9union"
+
+- code: "ROU"
+  name: "Romania"
+
+- code: "RUS"
+  name: "Russia"
+  aliases:
+    - "Russian Fed."
+    - "Russian Federation"
+    - "Russian Federation (the)"
+
+- code: "RWA"
+  name: "Rwanda"
+
+- code: "BLM"
+  name: "Saint Barthelemy"
+  aliases:
+    - "Saint Barthlemy"
+    - "Saint Barth\u00e9lemy"
+    - "St Barth"
+
+- code: "SHN"
+  name: "Saint Helena"
+  aliases:
+    - "Saint Helena, Ascension and Tristan da Cunha"
+    - "St. Helena"
+
+- code: "KNA"
+  name: "Saint Kitts and Nevis"
+  aliases:
+    - "St. Kitts and Nevis"
+    - "St.Kitts & Nevis"
+
+- code: "LCA"
+  name: "Saint Lucia"
+  aliases:
+    - "St. Lucia"
+
+- code: "MAF"
+  name: "Saint Martin (French part)"
+  aliases:
+    - "Saint-Martin (French part)"
+    - "St. Martin (French part)"
+
+- code: "SPM"
+  name: "Saint Pierre and Miquelon"
+  aliases:
+    - "St.Pierre & Miq."
+
+- code: "VCT"
+  name: "Saint Vincent and the Grenadines"
+  aliases:
+    - "Saint Vincent/Grenadines"
+    - "St. Vincent and the Grenadines"
+    - "St.Vin. & Gren."
+
+- code: "WSM"
+  name: "Samoa"
+
+- code: "SMR"
+  name: "San Marino"
+
+- code: "STP"
+  name: "Sao Tome and Principe"
+  aliases:
+    - "Sao Tome & Pr."
+
+- code: "SAU"
+  name: "Saudi Arabia"
+
+- code: "SEN"
+  name: "Senegal"
+
+- code: "SRB"
+  name: "Serbia"
+
+- code: "OWID_SRM"
+  name: "Serbia and Montenegro"
+  is_historical: True
+  aliases:
+    - "Former Serbia and Montenegro"
+  end_year: 2006
+  successors:
+    - "MNE"
+    - "SRB"
+
+- code: "OWID_SEK"
+  name: "Serbia excluding Kosovo"
+  region_type: "other"
+
+- code: "SYC"
+  name: "Seychelles"
+
+- code: "SLE"
+  name: "Sierra Leone"
+
+- code: "SGP"
+  name: "Singapore"
+
+- code: "SXM"
+  name: "Sint Maarten (Dutch part)"
+
+- code: "SVK"
+  name: "Slovakia"
+  aliases:
+    - "Slovak Republic"
+
+- code: "SVN"
+  name: "Slovenia"
+
+- code: "SLB"
+  name: "Solomon Islands"
+
+- code: "SOM"
+  name: "Somalia"
+  related:
+    - "OWID_SML"
+
+- code: "OWID_SML"
+  name: "Somaliland"
+  region_type: "other"
+
+- code: "ZAF"
+  name: "South Africa"
+
+- code: "OWID_SAM"
+  name: "South America"
+  region_type: "continent"
+  members:
+    - "ARG"
+    - "BOL"
+    - "BRA"
+    - "CHL"
+    - "COL"
+    - "ECU"
+    - "FLK"
+    - "GUF"
+    - "GUY"
+    - "PER"
+    - "PRY"
+    - "SGS"
+    - "SUR"
+    - "URY"
+    - "VEN"
+
+- code: "SGS"
+  name: "South Georgia and the South Sandwich Islands"
+
+- code: "KOR"
+  name: "South Korea"
+  aliases:
+    - "Korea, Rep."
+    - "Korea, Republic Of"
+    - "Republic of Korea"
+
+- code: "OWID_SOS"
+  name: "South Ossetia"
+  region_type: "other"
+
+- code: "SSD"
+  name: "South Sudan"
+
+- code: "ESP"
+  name: "Spain"
+
+- code: "LKA"
+  name: "Sri Lanka"
+
+- code: "SDN"
+  name: "Sudan"
+  aliases:
+    - "Sudan (the)"
+
+- code: "OWID_SDN"
+  name: "Sudan (former)"
+  is_historical: True
+  end_year: 2011
+  successors:
+    - "SDN"
+    - "SSD"
+
+- code: "SUR"
+  name: "Suriname"
+
+- code: "SJM"
+  name: "Svalbard and Jan Mayen"
+  region_type: "other"
+  aliases:
+    - "Svalbard & Jan Mayen Isl."
+    - "Svalbard and Jan Mayen Islands"
+
+- code: "SWE"
+  name: "Sweden"
+
+- code: "CHE"
+  name: "Switzerland"
+
+- code: "SYR"
+  name: "Syria"
+  aliases:
+    - "Syrian Arab Rep."
+    - "Syrian Arab Republic"
+    - "Syrian Arab Republic (the)"
+
+- code: "TWN"
+  name: "Taiwan"
+  aliases:
+    - "China, Taiwan Province of"
+    - "Chinese Taipei"
+    - "Taiwan (Province of China)"
+    - "Taiwan, Province Of China"
+
+- code: "TJK"
+  name: "Tajikistan"
+
+- code: "TZA"
+  name: "Tanzania"
+  aliases:
+    - "Tanzania, United Republic Of"
+    - "Tanzania, the United Republic of"
+    - "U.R. Tanzania"
+    - "U.R. of Tanzania: Mainland"
+    - "United Republic of Tanzania"
+  related:
+    - "OWID_ZAN"
+
+- code: "THA"
+  name: "Thailand"
+
+- code: "TGO"
+  name: "Togo"
+
+- code: "TKL"
+  name: "Tokelau"
+
+- code: "TON"
+  name: "Tonga"
+
+- code: "OWID_TRS"
+  name: "Transnistria"
+  region_type: "other"
+
+- code: "TTO"
+  name: "Trinidad and Tobago"
+  aliases:
+    - "Trin. & Tobago"
+    - "Trinidad & Tobago"
+
+- code: "TUN"
+  name: "Tunisia"
+
+- code: "TUR"
+  name: "Turkey"
+
+- code: "TKM"
+  name: "Turkmenistan"
+
+- code: "TCA"
+  name: "Turks and Caicos Islands"
+  aliases:
+    - "Turks & Caicos"
+    - "Turks and Caicos Islands (the)"
+
+- code: "TUV"
+  name: "Tuvalu"
+
+- code: "OWID_USS"
+  name: "USSR"
+  is_historical: True
+  aliases:
+    - "Former U.S.S.R."
+    - "Former USSR"
+    - "Soviet Union"
+  end_year: 1991
+  successors:
+    - "ARM"
+    - "AZE"
+    - "BLR"
+    - "EST"
+    - "GEO"
+    - "KAZ"
+    - "KGZ"
+    - "LTU"
+    - "LVA"
+    - "MDA"
+    - "RUS"
+    - "TJK"
+    - "TKM"
+    - "UKR"
+    - "UZB"
+
+- code: "UGA"
+  name: "Uganda"
+
+- code: "UKR"
+  name: "Ukraine"
+
+- code: "ARE"
+  name: "United Arab Emirates"
+  aliases:
+    - "U.Arab Emirates"
+    - "United Arab Em"
+
+- code: "GBR"
+  name: "United Kingdom"
+  aliases:
+    - "UK"
+    - "United Kingdom of Great Britain and Northern Ireland"
+  related:
+    - "AIA"
+    - "BMU"
+    - "CYM"
+    - "FLK"
+    - "GGY"
+    - "GIB"
+    - "IMN"
+    - "IOT"
+    - "JEY"
+    - "MSR"
+    - "OWID_AKD"
+    - "PCN"
+    - "SGS"
+    - "SHN"
+    - "TCA"
+    - "VGB"
+
+- code: "OWID_KRU"
+  name: "United Korea"
+  is_historical: True
+  end_year: 1948
+  successors:
+    - "KOR"
+    - "PRK"
+
+- code: "USA"
+  name: "United States"
+  aliases:
+    - "US"
+    - "USA"
+    - "United States of America"
+  related:
+    - "ASM"
+    - "GUM"
+    - "MNP"
+    - "PRI"
+    - "UMI"
+    - "VIR"
+
+- code: "UMI"
+  name: "United States Minor Outlying Islands"
+  region_type: "other"
+
+- code: "VIR"
+  name: "United States Virgin Islands"
+  aliases:
+    - "U.S. Virgin Is."
+    - "U.S. Virgin Islands"
+    - "Virgin Islands (U.S.)"
+    - "Virgin Islands, U.S."
+
+- code: "URY"
+  name: "Uruguay"
+
+- code: "UZB"
+  name: "Uzbekistan"
+
+- code: "VUT"
+  name: "Vanuatu"
+
+- code: "VAT"
+  name: "Vatican"
+  aliases:
+    - "Holy See"
+
+- code: "VEN"
+  name: "Venezuela"
+  aliases:
+    - "Venezuela (Bolivarian Republic of)"
+    - "Venezuela, Bolivarian Republic Of"
+    - "Venezuela, RB"
+
+- code: "VNM"
+  name: "Vietnam"
+  aliases:
+    - "Viet Nam"
+
+- code: "WLF"
+  name: "Wallis and Futuna"
+  aliases:
+    - "Wallis & Futuna"
+    - "Wallis and Futuna Islands"
+
+- code: "OWID_GFR"
+  name: "West Germany"
+  is_historical: True
+  aliases:
+    - "Germany, West"
+  end_year: 1990
+  successors:
+    - "DEU"
+
+- code: "ESH"
+  name: "Western Sahara"
+
+- code: "OWID_WRL"
+  name: "World"
+  region_type: "aggregate"
+  aliases:
+    - "Global"
+  members:
+    - "OWID_AFR"
+    - "OWID_ASI"
+    - "OWID_EUR"
+    - "OWID_NAM"
+    - "OWID_OCE"
+    - "OWID_SAM"
+
+- code: "YEM"
+  name: "Yemen"
+  aliases:
+    - "Yemen, Rep."
+
+- code: "OWID_YAR"
+  name: "Yemen Arab Republic"
+  is_historical: True
+  end_year: 1990
+  successors:
+    - "YEM"
+
+- code: "OWID_YPR"
+  name: "Yemen People's Republic"
+  is_historical: True
+  end_year: 1990
+  successors:
+    - "YEM"
+
+- code: "OWID_YGS"
+  name: "Yugoslavia"
+  is_historical: True
+  aliases:
+    - "Former Yugoslavia"
+    - "Yugoslav SFR"
+  end_year: 1992
+  successors:
+    - "BIH"
+    - "HRV"
+    - "MKD"
+    - "MNE"
+    - "OWID_KOS"
+    - "SRB"
+    - "SVN"
+
+- code: "ZMB"
+  name: "Zambia"
+
+- code: "OWID_ZAN"
+  name: "Zanzibar"
+
+- code: "ZWE"
+  name: "Zimbabwe"
+

@@ -19,6 +19,7 @@
         "fixLint": "eslint . --fix",
         "fixPrettierAll": "yarn prettier --write \"**/*.{tsx,ts,jsx,js,json,md,html,css,scss,yml,php}\"",
         "fixPrettierChanged": "yarn pretty-quick --pattern \"**/*.{tsx,ts,jsx,js,json,md,html,css,scss,yml,php}\"",
+        "importRegions": "node --enable-source-maps ./itsJustJavascript/devTools/regionsImporter/compare.js",
         "runDbMigrations": "yarn typeorm migration:run -d itsJustJavascript/db/dataSource.js",
         "revertLastDbMigration": "yarn typeorm migration:revert -d itsJustJavascript/db/dataSource.js",
         "runPostUpdateHook": "node --enable-source-maps ./itsJustJavascript/baker/postUpdatedHook.js",
@@ -223,6 +224,7 @@
         "@testing-library/react": "^12",
         "@types/jest": "^29.0.3",
         "@types/opener": "^1.4.0",
+        "@types/yaml": "^1.9.7",
         "@typescript-eslint/eslint-plugin": "^5.57.0",
         "@typescript-eslint/parser": "^5.57.0",
         "@vitejs/plugin-react": "^3.1.0",
@@ -240,7 +242,8 @@
         "tmex": "^1.0.8",
         "tsc-watch": "^4.2.9",
         "vite": "^4.2.0",
-        "vite-plugin-checker": "^0.5.6"
+        "vite-plugin-checker": "^0.5.6",
+        "yaml": "^2.2.1"
     },
     "resolutions": {
         "react-codemirror2@^7.2.1": "patch:react-codemirror2@npm%3A7.2.1#./.yarn/patches/react-codemirror2-npm-7.2.1-dcadbb9383.patch"
