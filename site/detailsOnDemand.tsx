@@ -60,7 +60,7 @@ export async function runDetailsOnDemand() {
                 interactive: true,
                 hideOnClick: false,
                 arrow: false,
-                theme: "light",
+                theme: "light dod",
                 appendTo: document.body,
             })
         }
