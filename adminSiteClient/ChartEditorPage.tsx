@@ -167,7 +167,7 @@ export class ChartEditorPage
         const { admin } = this.context
         const json =
             grapherId === undefined
-                ? []
+                ? { logs: [] }
                 : await admin.getJSON(`/api/charts/${grapherId}.logs.json`)
         runInAction(() => (this.logs = json.logs))
     }
@@ -177,7 +177,7 @@ export class ChartEditorPage
         const { admin } = this.context
         const json =
             grapherId === undefined
-                ? []
+                ? { logs: [] }
                 : await admin.getJSON(
                       `/api/charts/${grapherId}.references.json`
                   )
@@ -189,7 +189,7 @@ export class ChartEditorPage
         const { admin } = this.context
         const json =
             grapherId === undefined
-                ? []
+                ? { logs: [] }
                 : await admin.getJSON(`/api/charts/${grapherId}.redirects.json`)
         runInAction(() => (this.redirects = json.redirects))
     }
@@ -199,7 +199,7 @@ export class ChartEditorPage
         const { admin } = this.context
         const json =
             grapherId === undefined
-                ? []
+                ? { logs: [] }
                 : await admin.getJSON(`/api/charts/${grapherId}.pageviews.json`)
         runInAction(() => (this.pageviews = json.pageviews))
     }
