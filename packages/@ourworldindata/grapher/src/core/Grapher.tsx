@@ -1591,22 +1591,28 @@ export class Grapher
     }
 
     @computed get canToggleRelativeMode(): boolean {
-        if (this.isLineChart)
+        const {
+            isLineChart,
+            hideRelativeToggle,
+            areHandlesOnSameTime,
+            yScaleType,
+            hasSingleMetricInFacets,
+            xColumnSlug,
+            isMarimekko,
+        } = this
+
+        if (isLineChart)
             return (
-                !this.hideRelativeToggle &&
-                !this.areHandlesOnSameTime &&
-                this.yScaleType !== ScaleType.log
+                !hideRelativeToggle &&
+                !areHandlesOnSameTime &&
+                yScaleType !== ScaleType.log
             )
 
         // actually trying to exclude relative mode with just one metric
-        if (
-            this.isStackedDiscreteBar &&
-            this.facetStrategy !== FacetStrategy.none
-        )
-            return false
+        if (hasSingleMetricInFacets) return false
 
-        if (this.isMarimekko && this.xColumnSlug === undefined) return false
-        return !this.hideRelativeToggle
+        if (isMarimekko && xColumnSlug === undefined) return false
+        return !hideRelativeToggle
     }
 
     // Filter data to what can be display on the map (across all times)
@@ -2014,6 +2020,16 @@ export class Grapher
         return this.yColumnSlugs.length > 1
     }
 
+    @computed private get hasSingleMetricInFacets(): boolean {
+        return (
+            (this.isStackedDiscreteBar &&
+                this.selectedFacetStrategy !== FacetStrategy.none) ||
+            ((this.isStackedArea || this.isStackedBar) &&
+                this.selection.numSelectedEntities === 1 &&
+                this.facetStrategy === FacetStrategy.metric)
+        )
+    }
+
     @computed get availableFacetStrategies(): FacetStrategy[] {
         return this.chartInstance.availableFacetStrategies?.length
             ? this.chartInstance.availableFacetStrategies
@@ -2034,10 +2050,7 @@ export class Grapher
     set facetStrategy(facet: FacetStrategy) {
         this.selectedFacetStrategy = facet
 
-        if (
-            this.isStackedDiscreteBar &&
-            this.selectedFacetStrategy !== FacetStrategy.none
-        ) {
+        if (this.hasSingleMetricInFacets) {
             // actually trying to exclude relative mode with just one metric
             this.stackMode = StackMode.absolute
         }
