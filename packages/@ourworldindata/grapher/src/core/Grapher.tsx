@@ -1596,6 +1596,7 @@ export class Grapher
             hideRelativeToggle,
             areHandlesOnSameTime,
             yScaleType,
+            hasSingleEntityInFacets,
             hasSingleMetricInFacets,
             xColumnSlug,
             isMarimekko,
@@ -1608,8 +1609,8 @@ export class Grapher
                 yScaleType !== ScaleType.log
             )
 
-        // actually trying to exclude relative mode with just one metric
-        if (hasSingleMetricInFacets) return false
+        // actually trying to exclude relative mode with just one metric or entity
+        if (hasSingleEntityInFacets || hasSingleMetricInFacets) return false
 
         if (isMarimekko && xColumnSlug === undefined) return false
         return !hideRelativeToggle
@@ -2022,11 +2023,16 @@ export class Grapher
 
     @computed private get hasSingleMetricInFacets(): boolean {
         return (
-            (this.isStackedDiscreteBar &&
-                this.selectedFacetStrategy !== FacetStrategy.none) ||
-            ((this.isStackedArea || this.isStackedBar) &&
-                this.selection.numSelectedEntities === 1 &&
-                this.facetStrategy === FacetStrategy.metric)
+            this.isStackedDiscreteBar &&
+            this.selectedFacetStrategy !== FacetStrategy.none
+        )
+    }
+
+    @computed private get hasSingleEntityInFacets(): boolean {
+        return (
+            (this.isStackedArea || this.isStackedBar) &&
+            this.selection.numSelectedEntities === 1 &&
+            this.facetStrategy === FacetStrategy.metric
         )
     }
 
@@ -2050,8 +2056,8 @@ export class Grapher
     set facetStrategy(facet: FacetStrategy) {
         this.selectedFacetStrategy = facet
 
-        if (this.hasSingleMetricInFacets) {
-            // actually trying to exclude relative mode with just one metric
+        if (this.hasSingleMetricInFacets || this.hasSingleEntityInFacets) {
+            // actually trying to exclude relative mode with just one metric or entity
             this.stackMode = StackMode.absolute
         }
     }
