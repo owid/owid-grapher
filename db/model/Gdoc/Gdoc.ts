@@ -284,7 +284,11 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
 
         let dodErrors: OwidGdocErrorMessage[] = []
         // Validating the DoD document is infinitely recursive :)
-        if (this.id !== GDOCS_DETAILS_ON_DEMAND_ID) {
+        if (!GDOCS_DETAILS_ON_DEMAND_ID) {
+            console.error(
+                "GDOCS_DETAILS_ON_DEMAND_ID unset. Unable to validate dods"
+            )
+        } else if (this.id !== GDOCS_DETAILS_ON_DEMAND_ID) {
             const detailsGdoc = await Gdoc.getGdocFromContentSource(
                 GDOCS_DETAILS_ON_DEMAND_ID
             )

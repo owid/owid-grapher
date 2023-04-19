@@ -223,10 +223,17 @@ mockSiteRouter.get("/multiEmbedderTest", async (req, res) =>
 )
 
 mockSiteRouter.get("/dods.json", async (_, res) => {
-    const dodGdoc = await Gdoc.getGdocFromContentSource(
-        GDOCS_DETAILS_ON_DEMAND_ID
-    )
-    res.send(dodGdoc.content.details)
+    if (!GDOCS_DETAILS_ON_DEMAND_ID) {
+        console.error(
+            "GDOCS_DETAILS_ON_DEMAND_ID not set. Unable to generate dods.json"
+        )
+        res.send([])
+    } else {
+        const dodGdoc = await Gdoc.getGdocFromContentSource(
+            GDOCS_DETAILS_ON_DEMAND_ID
+        )
+        res.send(dodGdoc.content.details)
+    }
 })
 
 mockSiteRouter.get("/*", async (req, res) => {

@@ -380,6 +380,12 @@ export class SiteBaker {
 
     private async validateGrapherDodReferences() {
         if (!this.bakeSteps.has("dods") || !this.bakeSteps.has("charts")) return
+        if (!GDOCS_DETAILS_ON_DEMAND_ID) {
+            console.error(
+                "GDOCS_DETAILS_ON_DEMAND_ID not set. Unable to validate dods."
+            )
+            return
+        }
 
         const {
             content: { details },
@@ -420,6 +426,12 @@ export class SiteBaker {
 
     private async bakeDetailsOnDemand() {
         if (!this.bakeSteps.has("dods")) return
+        if (!GDOCS_DETAILS_ON_DEMAND_ID) {
+            console.error(
+                "GDOCS_DETAILS_ON_DEMAND_ID not set. Unable to bake dods."
+            )
+            return
+        }
 
         const {
             content: { details },
