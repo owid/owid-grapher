@@ -74,8 +74,8 @@ def main():
           entity['short_code'] = row['iso_alpha2']
 
 
-  with open('grapher-regions.json', 'w', encoding='utf-8') as f:
-    json.dump(list(entities.values()), f)
+  with open('../../packages/@ourworldindata/utils/src/countryData.json', 'w', encoding='utf-8') as f:
+    json.dump(list(entities.values()), f, indent=2)
 
   with open('grapher-regions.csv', 'w', newline='', encoding='utf-8') as f:
     writer = csv.DictWriter(f, grapher_keys)
