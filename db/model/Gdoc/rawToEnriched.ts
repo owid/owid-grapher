@@ -63,6 +63,7 @@ import {
     checkIsBlockImageSize,
     RawBlockTopicPageIntro,
     EnrichedBlockTopicPageIntro,
+    Url,
 } from "@ourworldindata/utils"
 import { extractUrl, getTitleSupertitleFromHeadingText } from "./gdocUtils.js"
 import {
@@ -954,16 +955,17 @@ function parseTopicPageIntro(
     const relatedTopics = raw.value["related-topics"]
     if (relatedTopics) {
         for (const relatedTopic of relatedTopics) {
-            if (!relatedTopic.text) {
-                return createError({
-                    message: "A related topic is missing text",
-                })
-            }
             if (!relatedTopic.url) {
                 return createError({
                     message: "A related topic is missing a url",
                 })
             }
+            // const {isGdoc} = Url.fromURL(relatedTopic.url)
+            // if (!isGdoc && !relatedTopic.text) {
+            //     return createError({
+            //         message: "A title must be provided for related topics that aren't linked to via Gdocs",
+            //     })
+            // }
         }
     }
 
