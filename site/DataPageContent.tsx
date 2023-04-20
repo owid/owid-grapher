@@ -59,7 +59,7 @@ export const DataPageContent = ({
             const gdoc = getOwidGdocFromJSON(json)
             if (!gdoc.content?.body) return
 
-            // use heading 1s as makeshit archie block separators until we gain
+            // use heading 1s as makeshift archie block separators until we gain
             // confidence in the datapage architecture and its source of truth
             let currentKey = ""
             const keyedBlocks: { [key: string]: OwidEnrichedGdocBlock[] } = {}
