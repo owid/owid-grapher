@@ -1,6 +1,13 @@
 {
     "extends": "./tsconfig.json",
-    "include": ["**/*.ts", "**/*.tsx"],
+    "include": [
+        "**/*.ts",
+        "**/*.tsx",
+        "**/*.mts",
+        "**/*.mtsx",
+        "**/*.cts",
+        "**/*.ctsx"
+    ],
     "compilerOptions": {
         // ensure that nobody can accidentally use this config for a build
         "noEmit": true
