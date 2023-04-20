@@ -111,12 +111,8 @@ html.IsInIframe .StandaloneGrapherOrExplorerPage {
         max-width: none;
     }
 
-    .site-header,
-    .alert-banner,
-    .offset-subnavigation,
-    .donate-footer,
-    .cookie-notice,
-    .site-footer,
+    @include hide-site-chrome;
+
     .related-research-data,
     .explorerContentContainer {
         display: none;

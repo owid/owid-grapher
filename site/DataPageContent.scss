@@ -1,0 +1,451 @@
+.DataPageContent__grapher-for-embed {
+    display: none;
+}
+
+.DataPageContent {
+    .article-block__list {
+        @include HACK-fix-bullets-outside;
+    }
+
+    .ExpandableAnimatedToggle {
+        > button {
+            padding-top: 16px;
+            padding-bottom: 16px;
+        }
+        .content-wrapper {
+            padding-bottom: 16px;
+
+            > *:last-child {
+                margin-bottom: 0;
+            }
+        }
+    }
+
+    .header__wrapper {
+        @include grid(12);
+        padding-top: 48px;
+        padding-bottom: 48px;
+    }
+
+    .header__left {
+        grid-column: 1 / span 8;
+    }
+
+    .header__supertitle {
+        @include overline-black-caps;
+        color: $blue-50;
+    }
+    .header__title {
+        @include display-2-semibold;
+        display: inline;
+        margin: 0 16px 0 0;
+    }
+    .header__source {
+        display: inline-block;
+        @include body-1-regular;
+        color: $blue-50;
+    }
+
+    .header__right {
+        grid-column: 10 / span 3;
+        padding-left: 24px;
+        border-left: 1px solid $blue-10;
+        align-self: start;
+    }
+
+    .topic-tags__label {
+        margin-bottom: 16px;
+        @include overline-black-caps;
+        color: $blue-50;
+    }
+
+    .topic-tags {
+        @include gap-wrap(12px, 16px);
+
+        a {
+            background-color: $blue-10;
+            border-radius: 24px;
+            padding: 6px 16px;
+            @include body-3-medium;
+            color: $blue-90;
+        }
+    }
+
+    .GrapherWithFallback {
+        margin-top: 32px;
+        margin-bottom: 40px;
+        width: 100%;
+        @include grid(12);
+
+        figure[data-grapher-src] {
+            grid-column: 2 / span 10;
+            height: 600px; // height of svg exports
+            margin: 0;
+        }
+
+        .GrapherWithFallback__fallback {
+            display: flex;
+            flex-direction: column;
+            img {
+                margin: auto;
+            }
+        }
+    }
+
+    .key-info__wrapper {
+        @include grid(12);
+        margin-bottom: 48px;
+    }
+
+    .key-info__left {
+        grid-column: 2 / span 7;
+        @include row-gap(24px);
+        ul {
+            @include row-gap(16px);
+            li {
+                @include body-2-regular;
+                display: list-item;
+            }
+        }
+    }
+
+    .key-info__title {
+        @include h2-bold;
+        margin: 0;
+    }
+
+    .key-info__learn-more {
+        display: inline-block;
+        padding: 8px 24px;
+        color: $blue-90;
+        background-color: $blue-10;
+        @include body-3-medium;
+        svg {
+            font-size: 0.75em;
+            margin-left: 12px;
+        }
+    }
+
+    .key-info__description-source {
+        margin-top: 8px;
+        .article-block__text,
+        .article-block__list,
+        .article-block__html,
+        .article-block__numbered-list {
+            @include body-2-regular;
+        }
+    }
+
+    .key-info__right {
+        grid-column: 9 / span 3;
+        display: flex;
+        flex-direction: column;
+        padding-left: 24px;
+        border-left: 1px solid $blue-20;
+        @include row-gap(24px);
+        align-self: flex-start;
+    }
+
+    .key-data {
+        @include body-3-medium;
+        a {
+            @include owid-link-90;
+        }
+    }
+
+    .key-data__title {
+        color: $blue-50;
+    }
+
+    .related-research__wrapper {
+        padding-top: 48px;
+        padding-bottom: 48px;
+        background-color: $white;
+    }
+
+    .related-research__title {
+        @include h2-bold;
+        margin: 0;
+    }
+
+    .related-research__items {
+        @include grid(9);
+        row-gap: 24px;
+    }
+
+    .related-research__item {
+        @include grid(4);
+        &:hover h3 {
+            text-decoration: underline;
+        }
+    }
+
+    .related-article__title {
+        @include h3-bold;
+        margin: 0;
+        color: $blue-90;
+    }
+
+    .related-article__authors {
+        color: $blue-50;
+    }
+
+    .DataPageContent__section-border {
+        hr {
+            border-top: 1px solid $blue-20;
+            padding: 0;
+            margin: 0;
+        }
+    }
+
+    .related-data__wrapper {
+        padding-top: 48px;
+        padding-bottom: 48px;
+    }
+
+    .related-data__title {
+        @include h2-bold;
+        margin: 0;
+    }
+
+    .related-data__items {
+        @include grid(9);
+
+        > div {
+            display: grid;
+            row-gap: 24px;
+        }
+
+        > div:nth-child(1) {
+            .related-data-item {
+                display: flex;
+                flex-direction: column;
+                height: 100%;
+            }
+        }
+
+        > div:nth-child(3) {
+            height: fit-content;
+            .related-data-item__source {
+                @include body-3-medium;
+                color: $blue-60;
+                margin-top: 4px;
+            }
+        }
+    }
+
+    .related-data-item--medium {
+        padding: 24px;
+        background-color: $blue-10;
+        .related-data-item__title {
+            @include h3-bold;
+            margin: 0;
+            color: $blue-90;
+        }
+    }
+
+    .related-data-item__type {
+        @include overline-black-caps;
+        color: $blue-50;
+        flex: 1;
+    }
+
+    .related-data-item--small {
+        .related-data-item__title {
+            @include h4-semibold;
+            margin: 0;
+            color: $blue-90;
+        }
+    }
+
+    .related-data-item__source {
+        @include h3-bold;
+        color: $blue-50;
+        margin: 0;
+    }
+
+    .related-data-item__content {
+        @include body-3-medium;
+        color: $blue-60;
+        margin-top: 8px;
+    }
+
+    .related-charts__wrapper {
+        padding-top: 48px;
+        padding-bottom: 48px;
+
+        // copied from content.scss
+        .wp-block-columns {
+            @include grid(12);
+
+            // default is first column is full-width, second column should be empty
+            .wp-block-column {
+                grid-column: 1 / 13;
+                // necessary for Grapher resizing in all column-types
+                width: 100%;
+            }
+
+            @include md-up {
+                &.is-style-sticky-right {
+                    .wp-block-column:nth-child(1) {
+                        grid-column: 1 / 6;
+                    }
+                    .wp-block-column:nth-child(2) {
+                        grid-column: 6 / 13;
+                    }
+                    .wp-block-column .wp-sticky-container {
+                        @include sticky-child;
+                    }
+                }
+            }
+        }
+
+        figure[data-grapher-src] {
+            height: 575px;
+        }
+    }
+
+    .related-charts__title {
+        @include h2-bold;
+        margin: 0 0 32px;
+    }
+
+    .faqs__wrapper {
+        .article-block__text,
+        .article-block__list,
+        .article-block__html,
+        .article-block__numbered-list {
+            @include body-2-regular;
+            color: $blue-60;
+        }
+    }
+
+    .faqs__title {
+        @include h2-bold;
+        margin: 0;
+    }
+
+    .faqs__items > *:first-child {
+        margin-top: 0;
+    }
+
+    .dataset__title {
+        @include h2-bold;
+        margin: 0;
+    }
+
+    .data-collection {
+        display: flex;
+        flex-direction: column;
+        @include row-gap(32px);
+        background-color: $white;
+        margin: 24px -24px 0;
+        padding: 24px;
+    }
+
+    .data-collection__header {
+        @include overline-black-caps;
+        color: $blue-50;
+        text-transform: uppercase;
+        margin-bottom: 16px;
+    }
+
+    .data-collection__name {
+        @include h3-bold;
+        margin: 0;
+
+        svg {
+            margin-right: 8px;
+        }
+    }
+
+    .data-collection__description {
+        margin-top: 8px;
+        color: $blue-60;
+
+        .article-block__text,
+        .article-block__list,
+        .article-block__html,
+        .article-block__numbered-list {
+            @include body-3-medium;
+        }
+
+        > *:first-child {
+            margin-top: 0;
+        }
+
+        > *:last-child {
+            margin-bottom: 0;
+        }
+    }
+
+    .variable-processing-info__header {
+        @include overline-black-caps;
+        color: $blue-50;
+        text-transform: uppercase;
+        margin: 16px 0 8px;
+    }
+
+    .variable-processing-info__description {
+        .article-block__text,
+        .article-block__list,
+        .article-block__html,
+        .article-block__numbered-list {
+            @include body-3-medium;
+        }
+    }
+
+    .featured-variables__header {
+        @include h4-semibold;
+        margin: 0;
+        color: $blue-50;
+    }
+
+    .featured-variables__list {
+        list-style-type: none;
+        @include body-3-medium;
+    }
+
+    .featured-variables__item {
+        margin-top: 8px;
+    }
+
+    .key-info--gridded {
+        gap: 24px;
+        row-gap: 16px;
+    }
+
+    .data-collection__code-link {
+        display: inline-block;
+        padding: 8px;
+        background-color: $blue-10;
+        @include body-3-medium;
+        color: $blue-90;
+
+        svg {
+            margin-right: 8px;
+        }
+    }
+
+    .datacollection-sources {
+        margin-top: 48px;
+
+        .article-block__text,
+        .article-block__list,
+        .article-block__html,
+        .article-block__numbered-list {
+            @include body-2-regular;
+        }
+    }
+
+    .datacollection-sources__heading {
+        @include h3-bold;
+        margin: 0;
+    }
+
+    .datacollection-source-item + .datacollection-source-item {
+        .ExpandableAnimatedToggle {
+            border-top: 0;
+        }
+    }
+}

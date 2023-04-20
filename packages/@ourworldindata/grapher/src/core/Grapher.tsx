@@ -258,6 +258,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     enableKeyboardShortcuts?: boolean
     bindUrlToWindow?: boolean
     isEmbeddedInAnOwidPage?: boolean
+    isEmbeddedInADataPage?: boolean
 
     manager?: GrapherManager
 }
@@ -413,6 +414,8 @@ export class Grapher
     @computed get dataTableSlugs(): ColumnSlug[] {
         return this.tableSlugs ? this.tableSlugs.split(" ") : this.newSlugs
     }
+
+    isEmbeddedInADataPage?: boolean = this.props.isEmbeddedInADataPage
 
     /**
      * todo: factor this out and make more RAII.
@@ -1387,7 +1390,8 @@ export class Grapher
 
         const isPopulationVariableId = (id: string): boolean =>
             id === "525709" || // "Population (historical + projections), Gapminder, HYDE & UN"
-            id === "525711" // "Population (historical estimates), Gapminder, HYDE & UN"
+            id === "525711" || // "Population (historical estimates), Gapminder, HYDE & UN"
+            id === "597929" // "Population (various sources, 2023.1)"
 
         const columnSlugs = [...yColumnSlugs]
 
@@ -1701,8 +1705,9 @@ export class Grapher
             isInIFrame,
         } = this
 
-        // For these, defer to the bounds that is set externally
+        // For these, defer to the bounds that are set externally
         if (
+            this.props.isEmbeddedInADataPage ||
             this.props.isEmbeddedInAnOwidPage ||
             this.props.manager ||
             isInIFrame

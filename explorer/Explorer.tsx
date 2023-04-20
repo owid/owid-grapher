@@ -52,7 +52,7 @@ import {
     ExplorerControlPanel,
 } from "../explorer/ExplorerControls.js"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
-import { BAKED_BASE_URL } from "../settings/clientSettings.js"
+import { ADMIN_BASE_URL, BAKED_BASE_URL } from "../settings/clientSettings.js"
 import {
     ExplorerChoiceParams,
     ExplorerContainerId,
@@ -636,6 +636,7 @@ export class Explorer
                     this.mobileCustomizeButton}
                 <div className="ExplorerFigure" ref={this.grapherContainerRef}>
                     <Grapher
+                        adminBaseUrl={ADMIN_BASE_URL}
                         bounds={this.grapherBounds}
                         enableKeyboardShortcuts={true}
                         manager={this}
