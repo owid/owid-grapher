@@ -926,6 +926,16 @@ function parseTopicPageIntro(
         })
     }
 
+    if (
+        raw.value.content.find((element) => {
+            return element.type !== "text"
+        })
+    ) {
+        return createError({
+            message: "Invalid content type. Only simple text is allowed.",
+        })
+    }
+
     const downloadButton = raw.value["download-button"]
     if (downloadButton) {
         if (!downloadButton.text) {
