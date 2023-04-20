@@ -825,7 +825,7 @@ export type RawBlockTopicPageIntro = {
             | undefined
         "related-topics":
             | {
-                  text: string
+                  text?: string
                   url: string
               }[]
             | undefined
@@ -833,16 +833,22 @@ export type RawBlockTopicPageIntro = {
     }
 }
 
+export type EnrichedTopicPageIntroRelatedTopic = {
+    text?: string
+    url: string
+    type: "topic-page-intro-related-topic"
+}
+
+export type EnrichedTopicPageIntroDownloadButton = {
+    text: string
+    url: string
+    type: "topic-page-intro-download-button"
+}
+
 export type EnrichedBlockTopicPageIntro = {
     type: "topic-page-intro"
-    downloadButton?: {
-        text: string
-        url: string
-    }
-    relatedTopics?: {
-        text: string
-        url: string
-    }[]
+    downloadButton?: EnrichedTopicPageIntroDownloadButton
+    relatedTopics?: EnrichedTopicPageIntroRelatedTopic[]
     content: Span[][]
 } & EnrichedBlockWithParseErrors
 

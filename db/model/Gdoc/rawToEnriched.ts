@@ -64,6 +64,7 @@ import {
     RawBlockTopicPageIntro,
     EnrichedBlockTopicPageIntro,
     Url,
+    EnrichedTopicPageIntroRelatedTopic,
 } from "@ourworldindata/utils"
 import { extractUrl, getTitleSupertitleFromHeadingText } from "./gdocUtils.js"
 import {
@@ -73,6 +74,7 @@ import {
 } from "./htmlToEnriched.js"
 import { match } from "ts-pattern"
 import { parseInt } from "lodash"
+import { EnrichedTopicPageIntroDownloadButton } from "@ourworldindata/utils/dist/owidTypes.js"
 
 export function parseRawBlocksToEnrichedBlocks(
     block: OwidRawGdocBlock
@@ -952,7 +954,16 @@ function parseTopicPageIntro(
         }
     }
 
+    const enrichedDownloadButton: EnrichedBlockTopicPageIntro["downloadButton"] =
+        downloadButton
+            ? {
+                  ...downloadButton,
+                  type: "topic-page-intro-download-button",
+              }
+            : undefined
+
     const relatedTopics = raw.value["related-topics"]
+    const enrichedRelatedTopics: EnrichedTopicPageIntroRelatedTopic[] = []
     if (relatedTopics) {
         for (const relatedTopic of relatedTopics) {
             if (!relatedTopic.url) {
@@ -960,19 +971,32 @@ function parseTopicPageIntro(
                     message: "A related topic is missing a url",
                 })
             }
-            // const {isGdoc} = Url.fromURL(relatedTopic.url)
-            // if (!isGdoc && !relatedTopic.text) {
-            //     return createError({
-            //         message: "A title must be provided for related topics that aren't linked to via Gdocs",
-            //     })
-            // }
+
+            const url = extractUrl(relatedTopic.url)
+            const { isGoogleDoc } = Url.fromURL(relatedTopic.url)
+            if (!isGoogleDoc && !relatedTopic.text) {
+                return createError({
+                    message:
+                        "A title must be provided for related topics that aren't linked via Gdocs",
+                })
+            }
+
+            // If we've validated that it's a Gdoc link without a title,
+            // or a regular link *with* a title, then we're good to go
+            const enrichedRelatedTopic: EnrichedTopicPageIntroRelatedTopic = {
+                type: "topic-page-intro-related-topic",
+                url,
+                text: relatedTopic.text,
+            }
+
+            enrichedRelatedTopics.push(enrichedRelatedTopic)
         }
     }
 
     return {
         type: "topic-page-intro",
-        relatedTopics,
-        downloadButton,
+        downloadButton: enrichedDownloadButton,
+        relatedTopics: enrichedRelatedTopics,
         content: raw.value.content.map((rawText) => htmlToSpans(rawText.value)),
         parseErrors: [],
     }

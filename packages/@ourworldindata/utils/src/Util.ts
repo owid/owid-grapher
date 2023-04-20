@@ -154,6 +154,8 @@ import {
     Span,
     OwidGdocType,
     EnrichedRecircLink,
+    EnrichedTopicPageIntroRelatedTopic,
+    EnrichedTopicPageIntroDownloadButton,
 } from "./owidTypes.js"
 import { PointVector } from "./PointVector.js"
 import React from "react"
@@ -1349,14 +1351,20 @@ export const imemo = <Type>(
     }
 }
 
-export function recursivelyMapArticleContent<
-    Node extends OwidEnrichedGdocBlock | Span | EnrichedRecircLink
->(
-    node: Node,
-    callback: <Child extends OwidEnrichedGdocBlock | Span | EnrichedRecircLink>(
-        node: Child
-    ) => Child
-): Node {
+// These are all the types that we need to be able to iterate through to extract their URLs.
+// It's more than just the EnrichedBlocks and Spans, because some EnrichedBlocks have nested children
+// that contain URLs
+export type NodeWithUrl =
+    | OwidEnrichedGdocBlock
+    | Span
+    | EnrichedRecircLink
+    | EnrichedTopicPageIntroRelatedTopic
+    | EnrichedTopicPageIntroDownloadButton
+
+export function recursivelyMapArticleContent(
+    node: NodeWithUrl,
+    callback: (node: NodeWithUrl) => NodeWithUrl
+): NodeWithUrl {
     if (checkNodeIsSpan(node)) {
         if ("children" in node) {
             node.children.map((node) =>
@@ -1364,8 +1372,15 @@ export function recursivelyMapArticleContent<
             )
         }
     } else if (node.type === "recirc") {
-        // slightly strange case where we need to iterate through recirc.links to extract URLs
         node.links.map((link) => callback(link))
+    } else if (node.type === "topic-page-intro") {
+        if (node.downloadButton) callback(node.downloadButton)
+        node.relatedTopics?.forEach((relatedTopic) => callback(relatedTopic))
+        node.content.forEach((spans) =>
+            spans.forEach((span) =>
+                recursivelyMapArticleContent(span, callback)
+            )
+        )
     } else if (node.type === "gray-section") {
         node.items.map((block) => recursivelyMapArticleContent(block, callback))
     } else if (
@@ -1376,9 +1391,7 @@ export function recursivelyMapArticleContent<
         node.left.map((node) => recursivelyMapArticleContent(node, callback))
         node.right.map((node) => recursivelyMapArticleContent(node, callback))
     } else if (node.type === "text") {
-        node.value.map((node) =>
-            recursivelyMapArticleContent(node as any, callback)
-        )
+        node.value.map((node) => recursivelyMapArticleContent(node, callback))
     } else if (node.type === "additional-charts") {
         node.items.map((spans) =>
             spans.map((span) => recursivelyMapArticleContent(span, callback))
@@ -1392,9 +1405,7 @@ export function recursivelyMapArticleContent<
     return callback(node)
 }
 
-export function checkNodeIsSpan(
-    node: OwidEnrichedGdocBlock | Span | EnrichedRecircLink
-): node is Span {
+export function checkNodeIsSpan(node: NodeWithUrl): node is Span {
     return "spanType" in node
 }
 

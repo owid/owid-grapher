@@ -15,18 +15,17 @@ import {
     JsonError,
     checkNodeIsSpan,
     spansToUnformattedPlainText,
-    Span,
     getUrlTarget,
     getLinkType,
     keyBy,
     excludeNull,
-    OwidEnrichedGdocBlock,
     recursivelyMapArticleContent,
     ImageMetadata,
     excludeUndefined,
     OwidGdocErrorMessage,
     OwidGdocErrorMessageType,
-    EnrichedRecircLink,
+    NodeWithUrl,
+    excludeNullish,
 } from "@ourworldindata/utils"
 import {
     BAKED_GRAPHER_URL,
@@ -40,7 +39,6 @@ import { archieToEnriched } from "./archieToEnriched.js"
 import { Link } from "../Link.js"
 import { imageStore } from "../Image.js"
 import { Chart } from "../Chart.js"
-import { excludeNullish } from "@ourworldindata/utils/dist/Util.js"
 import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_EXPORTS_BASE_URL,
@@ -260,12 +258,8 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
     }
 
     // Assumes that the property will be named "url"
-    extractLinkFromNode(
-        node: OwidEnrichedGdocBlock | Span | EnrichedRecircLink
-    ): Link | void {
-        function getText(
-            node: OwidEnrichedGdocBlock | Span | EnrichedRecircLink
-        ): string {
+    extractLinkFromNode(node: NodeWithUrl): Link | void {
+        function getText(node: NodeWithUrl): string {
             // Can add component-specific text accessors here
             if (checkNodeIsSpan(node)) {
                 if (node.spanType === "span-link") {

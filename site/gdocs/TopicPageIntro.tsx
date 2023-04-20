@@ -1,9 +1,31 @@
-import { EnrichedBlockTopicPageIntro } from "@ourworldindata/utils"
-import React from "react"
-import { renderSpans } from "./utils.js"
+import {
+    EnrichedTopicPageIntroRelatedTopic,
+    EnrichedBlockTopicPageIntro,
+} from "@ourworldindata/utils"
+import React, { useContext } from "react"
+import { renderSpans, useLinkedDocument } from "./utils.js"
+import { DocumentContext } from "./OwidGdoc.js"
 
 type TopicPageIntroProps = EnrichedBlockTopicPageIntro & {
     className?: string
+}
+
+function TopicPageRelatedTopic({
+    text,
+    url,
+}: EnrichedTopicPageIntroRelatedTopic) {
+    const { linkedDocument, errorMessage } = useLinkedDocument(url)
+    const { isPreviewing } = useContext(DocumentContext)
+    if (errorMessage && isPreviewing) {
+        return <li>{errorMessage}</li>
+    }
+    const topicText = linkedDocument?.content.title || text
+    const topicUrl = `/${linkedDocument?.slug}` || url
+    return (
+        <li>
+            <a href={topicUrl}>{topicText}</a>
+        </li>
+    )
 }
 
 export function TopicPageIntro(props: TopicPageIntroProps) {
@@ -24,10 +46,11 @@ export function TopicPageIntro(props: TopicPageIntroProps) {
                     <aside className="topic-page-intro__related-topics">
                         <h4 className="overline-black-caps">Related topics</h4>
                         <ul>
-                            {props.relatedTopics.map(({ text, url }) => (
-                                <li key={text}>
-                                    <a href={url}>{text}</a>
-                                </li>
+                            {props.relatedTopics.map((relatedTopic) => (
+                                <TopicPageRelatedTopic
+                                    key={relatedTopic.url}
+                                    {...relatedTopic}
+                                />
                             ))}
                         </ul>
                     </aside>

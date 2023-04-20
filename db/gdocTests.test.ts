@@ -247,15 +247,18 @@ level: 2
                 {
                     url: "https://docs.google.com/d/1234",
                     text: "Poverty",
+                    type: "topic-page-intro-related-topic",
                 },
                 {
                     url: "https://docs.google.com/d/abcd",
                     text: "GDP Growth",
+                    type: "topic-page-intro-related-topic",
                 },
             ],
             downloadButton: {
                 url: "https://github.com",
                 text: "Download all data on blah",
+                type: "topic-page-intro-download-button",
             },
         }
 

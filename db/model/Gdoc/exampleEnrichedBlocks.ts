@@ -226,11 +226,13 @@ export const enrichedBlockExamples: Record<
         downloadButton: {
             text: "Download all data on poverty",
             url: "https://github.com/owid/etl",
+            type: "topic-page-intro-download-button",
         },
         relatedTopics: [
             {
                 text: "Poverty",
                 url: "https://ourworldindata.org/poverty",
+                type: "topic-page-intro-related-topic",
             },
         ],
         content: [

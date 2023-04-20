@@ -54,6 +54,8 @@ export {
     type EnrichedBlockStickyLeftContainer,
     type EnrichedBlockStickyRightContainer,
     type EnrichedBlockText,
+    type EnrichedTopicPageIntroRelatedTopic,
+    type EnrichedTopicPageIntroDownloadButton,
     type EnrichedBlockTopicPageIntro,
     type EnrichedChartStoryItem,
     type EnrichedRecircLink,
@@ -282,6 +284,7 @@ export {
     isArrayOfNumbers,
     greatestCommonDivisor,
     findGreatestCommonDivisorOfArray,
+    type NodeWithUrl,
 } from "./Util.js"
 
 export {
