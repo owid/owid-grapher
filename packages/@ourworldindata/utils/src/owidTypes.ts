@@ -256,7 +256,7 @@ export interface ChartRecord {
 }
 
 export interface PostReference {
-    id: number
+    id: number | string
     title: string
     slug: string
 }
@@ -906,6 +906,14 @@ export enum OwidGdocPublicationContext {
     listed = "listed",
 }
 
+// A minimal object containing metadata needed for rendering prominent links etc in the client
+export interface LinkedChart {
+    slug: string
+    path: string
+    title: string
+    thumbnail?: string
+}
+
 export enum OwidGdocType {
     Article = "article",
     TopicPage = "topic-page",
@@ -922,6 +930,7 @@ export interface OwidGdocInterface {
     updatedAt: Date | null
     publicationContext: OwidGdocPublicationContext
     revisionId: string | null
+    linkedCharts?: Record<string, LinkedChart>
     linkedDocuments?: Record<string, OwidGdocInterface>
     imageMetadata?: Record<string, ImageMetadata>
     errors?: OwidGdocErrorMessage[]
@@ -948,7 +957,7 @@ export interface OwidGdocJSON
 
 export interface OwidGdocLinkJSON {
     source: OwidGdocInterface
-    linkType: "gdoc" | "url"
+    linkType: "gdoc" | "url" | "grapher" | "explorer"
     target: string
     componentType: string
     text: string
