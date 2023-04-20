@@ -1,6 +1,6 @@
 import React, { createRef } from "react"
 import ReactDOM from "react-dom"
-import classnames from "classnames"
+import cx from "classnames"
 import { throttle } from "@ourworldindata/utils"
 
 function getTotalOffset(element: HTMLElement): {
@@ -53,8 +53,6 @@ class StickyNav extends React.Component<
         headingPositions: [] as HeadingPosition[],
         links: this.props.links,
     }
-
-    className = this.props.className ?? ""
 
     handleResize = () => {
         window.requestAnimationFrame(() => this.setHeadingPositions())
@@ -181,14 +179,14 @@ class StickyNav extends React.Component<
                     }`}
                 </style>
                 <ul
-                    className={`sticky-nav-container ${this.className}`}
+                    className={cx("sticky-nav-container", this.props.className)}
                     ref={this.ulRef}
                 >
                     {this.state.links.map((link, i) => (
                         <li key={link.target}>
                             <a
                                 tabIndex={0}
-                                className={classnames({
+                                className={cx({
                                     active:
                                         i === this.state.currentHeadingIndex,
                                 })}

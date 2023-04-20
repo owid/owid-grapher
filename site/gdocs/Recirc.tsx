@@ -8,7 +8,7 @@ function RecircItem({ url }: { url: string }) {
     if (!linkedDocument) return null
 
     return (
-        <div className="recirc-article-container">
+        <aside className="recirc-article-container">
             <h3 className="h3-bold">
                 <a href={`/${linkedDocument.slug}`}>
                     {linkedDocument.content.title}
@@ -23,7 +23,7 @@ function RecircItem({ url }: { url: string }) {
                     })}
                 </div>
             ) : null}
-        </div>
+        </aside>
     )
 }
 

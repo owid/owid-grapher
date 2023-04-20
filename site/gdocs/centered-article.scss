@@ -287,8 +287,8 @@ h3.article-block__heading.has-supertitle {
     padding: 0;
     margin: 48px 0;
 
-    ~ .article-block__heading {
-        margin: 0;
+    + .article-block__heading {
+        margin-top: 0;
     }
 }
 
@@ -546,7 +546,7 @@ h3.article-block__heading.has-supertitle {
             }
         }
 
-        @include sm-only {
+        @include md-down {
             margin-top: 32px;
         }
     }
@@ -555,7 +555,7 @@ h3.article-block__heading.has-supertitle {
         border-left: 1px solid $blue-10;
         padding-left: 24px;
         margin-top: 48px;
-        @include sm-only {
+        @include md-down {
             display: none;
         }
 
