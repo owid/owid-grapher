@@ -22,4 +22,82 @@
             @include owid-link-60;
         }
     }
+
+    + .sticky-nav {
+        margin-top: -48px;
+    }
+}
+
+.article-block__topic-page-intro {
+    margin-top: 48px;
+
+    .topic-page-intro__content {
+        p:first-child {
+            margin-top: 0;
+        }
+    }
+
+    .topic-page-intro__download-button {
+        a {
+            padding: 8px 24px;
+            border: 1px solid $vermillion;
+            color: $vermillion;
+            display: inline-block;
+            cursor: pointer;
+            line-height: 30px;
+            text-align: center;
+        }
+
+        &:hover {
+            a {
+                color: $accent-vermillion;
+                border-color: $accent-vermillion;
+            }
+        }
+
+        @include md-down {
+            margin-top: 32px;
+        }
+    }
+
+    .topic-page-intro__related-topics {
+        border-left: 1px solid $blue-10;
+        padding-left: 24px;
+        margin-top: 48px;
+        @include md-down {
+            display: none;
+        }
+
+        h4 {
+            color: $blue-40;
+        }
+
+        ul {
+            list-style-type: none;
+
+            li {
+                margin-top: 16px;
+
+                a {
+                    @include body-3-medium;
+                    color: $blue-90;
+                    position: relative;
+
+                    &:after {
+                        content: "";
+                        background-color: $blue-90;
+                        mask: url($right-arrow) no-repeat;
+                        -webkit-mask: url($right-arrow) no-repeat;
+                        position: absolute;
+                        width: 9px;
+                        top: 0;
+                        height: 12px;
+                        background-repeat: no-repeat;
+                        margin-top: 4px;
+                        margin-left: 6px;
+                    }
+                }
+            }
+        }
+    }
 }
