@@ -15,6 +15,7 @@ import {
     spansToUnformattedPlainText,
     TocHeadingWithTitleSupertitle,
     Url,
+    convertHeadingTextToId,
 } from "@ourworldindata/utils"
 import SDGGrid from "./SDGGrid.js"
 import { BlockErrorBoundary, BlockErrorFallback } from "./BlockErrorBoundary.js"
@@ -250,7 +251,7 @@ export default function ArticleBlock({
                     "h1-semibold",
                     getLayout("heading", containerType)
                 )}
-                id={urlSlug(spansToUnformattedPlainText(block.text))}
+                id={convertHeadingTextToId(block.text)}
             >
                 {renderSpans(block.text)}
             </h1>
@@ -264,7 +265,7 @@ export default function ArticleBlock({
                           supertitle
                       )}-${spansToUnformattedPlainText(text)}`
                   )
-                : urlSlug(spansToUnformattedPlainText(block.text))
+                : convertHeadingTextToId(block.text)
 
             return (
                 <>
@@ -301,7 +302,7 @@ export default function ArticleBlock({
                           supertitle
                       )}-${spansToUnformattedPlainText(text)}`
                   )
-                : urlSlug(spansToUnformattedPlainText(block.text))
+                : convertHeadingTextToId(block.text)
             return (
                 <h3
                     className={cx(
@@ -330,7 +331,7 @@ export default function ArticleBlock({
                     "h4-semibold",
                     getLayout("heading", containerType)
                 )}
-                id={urlSlug(spansToUnformattedPlainText(block.text))}
+                id={convertHeadingTextToId(block.text)}
             >
                 {renderSpans(block.text)}
             </h4>
@@ -341,7 +342,7 @@ export default function ArticleBlock({
                     "overline-black-caps",
                     getLayout("heading", containerType)
                 )}
-                id={urlSlug(spansToUnformattedPlainText(block.text))}
+                id={convertHeadingTextToId(block.text)}
             >
                 {renderSpans(block.text)}
             </h5>

@@ -88,6 +88,7 @@ export {
     type OwidGdocLinkJSON,
     type OwidGdocInterface,
     OwidGdocType,
+    type OwidGdocStickyNavItem,
     type OwidGdocJSON,
     type OwidGdocPublished,
     type OwidEnrichedGdocBlock,
@@ -541,4 +542,5 @@ export {
     getLinkType,
     getUrlTarget,
     checkIsInternalLink,
+    convertHeadingTextToId,
 } from "./GdocsUtils.js"
