@@ -338,6 +338,9 @@ export const excludeUndefined = <T>(arr: (T | undefined)[]): T[] =>
 export const excludeNull = <T>(arr: (T | null)[]): T[] =>
     arr.filter((x) => x !== null) as T[]
 
+export const excludeNullish = <T>(arr: (T | null | undefined)[]): T[] =>
+    arr.filter((x) => x !== null && x !== undefined) as T[]
+
 export const firstOfNonEmptyArray = <T>(arr: T[]): T => {
     if (arr.length < 1) throw new Error("array is empty")
     return first(arr) as T
@@ -1375,6 +1378,14 @@ export function recursivelyMapArticleContent<
     } else if (node.type === "text") {
         node.value.map((node) =>
             recursivelyMapArticleContent(node as any, callback)
+        )
+    } else if (node.type === "additional-charts") {
+        node.items.map((spans) =>
+            spans.map((span) => recursivelyMapArticleContent(span, callback))
+        )
+    } else if (node.type === "chart-story") {
+        node.items.map((item) =>
+            recursivelyMapArticleContent(item.chart, callback)
         )
     }
 

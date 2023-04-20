@@ -10,7 +10,6 @@ import { logInWithCredentials, logOut } from "./authentication.js"
 import { LoginPage } from "./LoginPage.js"
 import * as db from "../db/db.js"
 import { Dataset } from "../db/model/Dataset.js"
-import { ENV } from "../settings/serverSettings.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import {
     renderExplorerPage,
@@ -107,10 +106,14 @@ adminRouter.post(
                 req.body.username,
                 req.body.password
             )
+            // secure cookie when using https
+            // (our staging servers use http and passing insecure cookie wouldn't work)
+            const secure = req.protocol === "https"
+
             res.cookie("sessionid", session.id, {
                 httpOnly: true,
                 sameSite: "lax",
-                secure: ENV === "production",
+                secure: secure,
             })
             res.redirect((req.query.next as string) || "/admin")
         } catch (err) {

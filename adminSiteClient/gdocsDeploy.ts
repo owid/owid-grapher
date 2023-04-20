@@ -29,6 +29,7 @@ export const checkIsLightningUpdate = (
         "updatedAt",
         "linkedDocuments",
         "imageMetadata",
+        "linkedCharts",
         "errors",
     ]
 
@@ -70,6 +71,16 @@ export const checkHasChanges = (
 ) =>
     !isEqual(
         // Ignore non-deterministic attachments
-        omit(prevGdoc, ["linkedDocuments", "imageMetadata", "errors"]),
-        omit(nextGdoc, ["linkedDocuments", "imageMetadata", "errors"])
+        omit(prevGdoc, [
+            "linkedDocuments",
+            "imageMetadata",
+            "linkedCharts",
+            "errors",
+        ]),
+        omit(nextGdoc, [
+            "linkedDocuments",
+            "imageMetadata",
+            "linkedCharts",
+            "errors",
+        ])
     )

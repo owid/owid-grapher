@@ -33,6 +33,7 @@ import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import { GdocsContentSource } from "@ourworldindata/utils"
 import OwidGdocPage from "../site/gdocs/OwidGdocPage.js"
 import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
+import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 
 // library does not provide type definitions
 // eslint-disable-next-line
@@ -120,9 +121,13 @@ export class OwidAdminApp {
 
         // Public preview of a Gdoc document
         app.get("/gdocs/:id/preview", async (req, res) => {
+            const adminExplorerServer = new ExplorerAdminServer(GIT_CMS_DIR)
+            const publishedExplorersBySlug =
+                await adminExplorerServer.getAllPublishedExplorersBySlug()
             try {
                 const gdoc = await Gdoc.getGdocFromContentSource(
                     req.params.id,
+                    publishedExplorersBySlug,
                     GdocsContentSource.Gdocs
                 )
                 res.set("X-Robots-Tag", "noindex")

@@ -342,6 +342,7 @@ function* RawBlockProminentLinkToArchieMLString(
     yield* propertyToArchieMLString("url", block.value)
     yield* propertyToArchieMLString("title", block.value)
     yield* propertyToArchieMLString("description", block.value)
+    yield* propertyToArchieMLString("thumbnail", block.value)
     yield "{}"
 }
 

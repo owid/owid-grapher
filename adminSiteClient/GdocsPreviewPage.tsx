@@ -52,8 +52,10 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     }>({ original: undefined, current: undefined })
     const originalGdoc = gdoc.original
     const currentGdoc = gdoc.current
-    const setCurrentGdoc = (current: OwidGdocInterface | undefined) =>
+    const setCurrentGdoc = (current: OwidGdocInterface | undefined) => {
+        cancelAllRequests()
         setGdoc({ original: gdoc.original, current })
+    }
     const hasChanges = useGdocsChanged(originalGdoc, currentGdoc)
     const [isSettingsOpen, setSettingsOpen] = useState(false)
     const [hasSyncingError, setHasSyncingError] = useState(false)

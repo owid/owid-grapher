@@ -14,14 +14,6 @@ export default function Chart({
     const refChartContainer = useRef<HTMLDivElement>(null)
     useEmbedChart(0, refChartContainer)
 
-    // handle cases where url has been wrapped in an a tag
-    if (d.url.startsWith("<a href=")) {
-        const results = /<a [^>]+>(.*?)<\/a>/g.exec(d.url)
-        if (results && results.length > 1) {
-            d.url = results[1]
-        }
-    }
-
     const url = Url.fromURL(d.url)
     const isExplorer = url.isExplorer
     const hasControls = url.queryParams.hideControls !== "true"

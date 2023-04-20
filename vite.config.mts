@@ -1,7 +1,9 @@
 import { defineConfig } from "vite"
 import pluginReact from "@vitejs/plugin-react"
 import pluginChecker from "vite-plugin-checker"
+import { warmup as pluginWarmup } from "vite-plugin-warmup"
 import * as clientSettings from "./settings/clientSettings.js"
+import { VITE_SITE_ASSET } from "./site/viteUtils.js"
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -97,6 +99,7 @@ export default defineConfig({
                 tsconfigPath: "tsconfig.vite-checker.json",
             },
         }),
+        pluginWarmup({ clientFiles: [VITE_SITE_ASSET] }),
     ],
     server: {
         port: 8090,

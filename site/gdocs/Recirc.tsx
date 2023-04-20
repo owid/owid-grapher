@@ -4,7 +4,7 @@ import { renderSpan, useLinkedDocument } from "./utils.js"
 import { formatAuthors } from "../clientFormatting.js"
 
 function RecircItem({ url }: { url: string }) {
-    const linkedDocument = useLinkedDocument(url)
+    const { linkedDocument } = useLinkedDocument(url)
     if (!linkedDocument) return null
 
     return (
