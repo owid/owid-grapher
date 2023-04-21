@@ -22,6 +22,8 @@ export interface CategoricalColorAssignerProps {
      * both states.
      */
     autoColorMapCache?: CategoricalColorMap
+
+    numColorsInUse?: number
 }
 
 /**
@@ -37,12 +39,14 @@ export class CategoricalColorAssigner {
     private invertColorScheme: boolean
     private colorMap: CategoricalColorMapReadonly
     private autoColorMapCache: CategoricalColorMap
+    private numColorsInUse?: number
 
     constructor(props: CategoricalColorAssignerProps) {
         this.colorScheme = props.colorScheme
         this.invertColorScheme = props.invertColorScheme ?? false
         this.colorMap = props.colorMap ?? new Map()
         this.autoColorMapCache = props.autoColorMapCache ?? new Map()
+        this.numColorsInUse = props.numColorsInUse
     }
 
     private get usedColors(): Color[] {
@@ -55,7 +59,11 @@ export class CategoricalColorAssigner {
 
     private get availableColors(): Color[] {
         // copy the colors array because we might need to reverse it
-        const colors = last(this.colorScheme.colorSets)?.slice() ?? []
+        const colors =
+            (this.numColorsInUse != undefined
+                ? this.colorScheme.getColors(this.numColorsInUse)
+                : last(this.colorScheme.colorSets)
+            )?.slice() ?? []
         if (this.invertColorScheme) colors.reverse()
         return colors
     }

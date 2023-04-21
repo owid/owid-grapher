@@ -42,6 +42,7 @@ import {
     variableAnnotationAllowedColumnNamesAndTypes,
     VariableAnnotationsResponseRow,
     Detail,
+    isUndefined,
 } from "@ourworldindata/utils"
 import {
     GrapherInterface,
@@ -68,7 +69,7 @@ import { DeployQueueServer } from "../baker/DeployQueueServer.js"
 import { FunctionalRouter } from "./FunctionalRouter.js"
 import { escape } from "mysql"
 import Papa from "papaparse"
-
+import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import {
     postsTable,
     setTagsForPost,
@@ -84,8 +85,10 @@ import { dataSource } from "../db/dataSource.js"
 import { createGdocAndInsertOwidGdocContent } from "../db/model/Gdoc/archieToGdoc.js"
 import { Link } from "../db/model/Link.js"
 import { In } from "typeorm"
+import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 
 const apiRouter = new FunctionalRouter()
+const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
 
 // Call this to trigger build and deployment of static charts on change
 const triggerStaticBuild = async (user: CurrentUser, commitMessage: string) => {
@@ -156,9 +159,12 @@ const getReferencesByChartId = async (
         [chartId, chartId]
     )
 
-    const slugs = rows.map(
-        (row: { slug?: string }) => row.slug && row.slug.replace(/^"|"$/g, "")
-    )
+    const slugs: string[] = rows
+        .map(
+            (row: { slug?: string }) =>
+                row.slug && row.slug.replace(/^"|"$/g, "")
+        )
+        .filter((slug: string | undefined) => !isUndefined(slug))
 
     if (!slugs || slugs.length === 0) return []
 
@@ -196,7 +202,20 @@ const getReferencesByChartId = async (
         // We can ignore errors due to not being able to connect.
     }
     const permalinks = await wpdb.getPermalinks()
-    return posts.map((post) => {
+    const publishedLinksToChart = await Link.getPublishedLinksTo(
+        slugs,
+        "grapher"
+    )
+    const publishedGdocPostsThatReferenceChart = publishedLinksToChart.map(
+        (link) => ({
+            id: link.source.id,
+            title: link.source.content.title,
+            slug: link.source.slug,
+            url: `${BAKED_BASE_URL}/${link.source.slug}`,
+        })
+    )
+
+    const publishedWPPostsThatReferenceChart = posts.map((post) => {
         const slug = permalinks.get(post.ID, post.post_name)
         return {
             id: post.ID,
@@ -205,6 +224,11 @@ const getReferencesByChartId = async (
             url: `${BAKED_BASE_URL}/${slug}`,
         }
     })
+
+    return [
+        ...publishedGdocPostsThatReferenceChart,
+        ...publishedWPPostsThatReferenceChart,
+    ]
 }
 
 const getRedirectsByChartId = async (
@@ -695,6 +719,13 @@ apiRouter.put("/charts/:chartId", async (req: Request, res: Response) => {
 
 apiRouter.delete("/charts/:chartId", async (req: Request, res: Response) => {
     const chart = await expectChartById(req.params.chartId)
+    const links = await Link.getPublishedLinksTo([chart.slug!])
+    if (links.length) {
+        const sources = links.map((link) => link.source.slug).join(", ")
+        throw new Error(
+            `Cannot delete chart in-use in the following published documents: ${sources}`
+        )
+    }
 
     await db.transaction(async (t) => {
         await t.execute(`DELETE FROM chart_dimensions WHERE chartId=?`, [
@@ -2716,7 +2747,14 @@ apiRouter.get("/gdocs/:id", async (req, res) => {
         | undefined
 
     try {
-        const gdoc = await Gdoc.getGdocFromContentSource(id, contentSource)
+        const publishedExplorersBySlug =
+            await explorerAdminServer.getAllPublishedExplorersBySlug()
+
+        const gdoc = await Gdoc.getGdocFromContentSource(
+            id,
+            publishedExplorersBySlug,
+            contentSource
+        )
         res.set("Cache-Control", "no-store")
         res.send(gdoc)
     } catch (error) {

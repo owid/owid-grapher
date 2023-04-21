@@ -217,7 +217,7 @@ const parseChart = (raw: RawBlockChart): EnrichedBlockChart => {
                 ""
             )
 
-        const url = val.url
+        const url = extractUrl(val.url)
 
         const warnings: ParseError[] = []
 
@@ -920,8 +920,8 @@ function parseProminentLink(
         parseErrors: [],
         title: raw.value.title,
         url,
-        description: raw.value.description || "",
-        thumbnail: raw.value.thumbnail || "",
+        description: raw.value.description,
+        thumbnail: raw.value.thumbnail,
     }
 }
 

@@ -8,7 +8,7 @@ import {
     ExplorersRouteResponse,
 } from "../explorer/ExplorerConstants.js"
 import { simpleGit, SimpleGit } from "simple-git"
-import { GitCommit } from "@ourworldindata/utils"
+import { GitCommit, keyBy } from "@ourworldindata/utils"
 
 export class ExplorerAdminServer {
     constructor(gitDir: string) {
@@ -75,6 +75,12 @@ export class ExplorerAdminServer {
     async getAllPublishedExplorers() {
         const explorers = await this.getAllExplorers()
         return explorers.filter((exp) => exp.isPublished)
+    }
+
+    async getAllPublishedExplorersBySlug() {
+        return this.getAllPublishedExplorers().then((publishedExplorers) =>
+            keyBy(publishedExplorers, "slug")
+        )
     }
 
     async getAllExplorers() {

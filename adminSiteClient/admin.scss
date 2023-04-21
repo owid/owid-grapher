@@ -1329,3 +1329,10 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
         }
     }
 }
+
+.input-group-append,
+.input-group-prepend {
+    .btn {
+        z-index: 0;
+    }
+}

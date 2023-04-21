@@ -10,7 +10,6 @@ import { logInWithCredentials, logOut } from "./authentication.js"
 import { LoginPage } from "./LoginPage.js"
 import * as db from "../db/db.js"
 import { Dataset } from "../db/model/Dataset.js"
-import { ENV } from "../settings/serverSettings.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import {
     renderExplorerPage,
@@ -21,6 +20,7 @@ import { GitCmsServer } from "../gitCms/GitCmsServer.js"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import {
     getOwidGdocFromJSON,
+    JsonError,
     OwidArticleBackportingStatistics,
     OwidGdocJSON,
     parseIntOrUndefined,
@@ -38,6 +38,8 @@ import {
 } from "../explorer/ExplorerProgram.js"
 import { existsSync } from "fs-extra"
 import * as Post from "../db/model/Post.js"
+import { renderDataPageOrGrapherPage } from "../baker/GrapherBaker.js"
+import { Chart } from "../db/model/Chart.js"
 
 // Used for rate-limiting important endpoints (login, register) to prevent brute force attacks
 const limiterMiddleware = (
@@ -104,10 +106,14 @@ adminRouter.post(
                 req.body.username,
                 req.body.password
             )
+            // secure cookie when using https
+            // (our staging servers use http and passing insecure cookie wouldn't work)
+            const secure = req.protocol === "https"
+
             res.cookie("sessionid", session.id, {
                 httpOnly: true,
                 sameSite: "lax",
-                secure: ENV === "production",
+                secure: secure,
             })
             res.redirect((req.query.next as string) || "/admin")
         } catch (err) {
@@ -245,6 +251,13 @@ adminRouter.get(`/${EXPLORERS_PREVIEW_ROUTE}/:slug`, async (req, res) => {
         return res.send(`File not found`)
     const explorer = await explorerAdminServer.getExplorerFromFile(filename)
     return res.send(await renderExplorerPage(explorer))
+})
+
+adminRouter.get("/grapher/:slug", async (req, res) => {
+    const entity = await Chart.getBySlug(req.params.slug)
+    if (!entity) throw new JsonError("No such chart", 404)
+
+    res.send(await renderDataPageOrGrapherPage(entity.config, true))
 })
 
 const gitCmsServer = new GitCmsServer({

@@ -9,6 +9,7 @@ import {
 } from "typeorm"
 import {
     OwidGdocTag,
+    LinkedChart,
     OwidGdocContent,
     OwidGdocInterface,
     OwidGdocPublished,
@@ -30,6 +31,7 @@ import {
     OwidGdocErrorMessageType,
 } from "@ourworldindata/utils"
 import {
+    BAKED_GRAPHER_URL,
     GDOCS_CLIENT_EMAIL,
     GDOCS_CLIENT_ID,
     GDOCS_PRIVATE_KEY,
@@ -39,6 +41,14 @@ import { gdocToArchie } from "./gdocToArchie.js"
 import { archieToEnriched } from "./archieToEnriched.js"
 import { Link } from "../Link.js"
 import { imageStore } from "../Image.js"
+import { Chart } from "../Chart.js"
+import { excludeNullish } from "@ourworldindata/utils/dist/Util.js"
+import {
+    BAKED_BASE_URL,
+    BAKED_GRAPHER_EXPORTS_BASE_URL,
+} from "../../../settings/clientSettings.js"
+import { EXPLORERS_ROUTE_FOLDER } from "../../../explorer/ExplorerConstants.js"
+import { formatUrls } from "../../../site/formatting.js"
 
 @Entity("tags")
 export class Tag extends BaseEntity implements OwidGdocTag {
@@ -80,6 +90,7 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
     })
     tags!: Tag[]
 
+    linkedCharts: Record<string, LinkedChart> = {}
     linkedDocuments: Record<string, Gdoc> = {}
     imageMetadata: Record<string, ImageMetadata> = {}
     errors: OwidGdocErrorMessage[] = []
@@ -214,6 +225,56 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
         this.linkedDocuments = keyBy(linkedDocuments, "id")
     }
 
+    async loadLinkedCharts(
+        publishedExplorersBySlug: Record<string, any>
+    ): Promise<void> {
+        const slugToIdMap = await Chart.mapSlugsToIds()
+        const uniqueSlugsByLinkType = this.links.reduce(
+            (slugsByLinkType, { linkType, target }) => {
+                if (linkType === "grapher" || linkType === "explorer") {
+                    slugsByLinkType[linkType].add(target)
+                }
+                return slugsByLinkType
+            },
+            { grapher: new Set<string>(), explorer: new Set<string>() }
+        )
+
+        const linkedGrapherCharts = await Promise.all(
+            [...uniqueSlugsByLinkType.grapher.values()].map(async (slug) => {
+                const chartId = slugToIdMap[slug]
+                const chart = await Chart.findOneBy({ id: chartId })
+                if (!chart) return
+                const resolvedSlug = chart.config.slug ?? ""
+                const linkedChart: LinkedChart = {
+                    slug: resolvedSlug,
+                    title: chart?.config.title ?? "",
+                    path: `${BAKED_GRAPHER_URL}/${slug}`,
+                    thumbnail: `${BAKED_GRAPHER_EXPORTS_BASE_URL}/${chart?.config.slug}.svg`,
+                }
+                return linkedChart
+            })
+        ).then(excludeNullish)
+
+        const linkedExplorerCharts = await Promise.all(
+            [...uniqueSlugsByLinkType.explorer.values()].map((slug) => {
+                const explorer = publishedExplorersBySlug[slug]
+                if (!explorer) return
+                const linkedChart: LinkedChart = {
+                    slug,
+                    title: explorer?.explorerTitle ?? "",
+                    path: `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${slug}`,
+                    thumbnail: `${BAKED_BASE_URL}/default-thumbnail.jpg`,
+                }
+                return linkedChart
+            })
+        ).then(excludeNullish)
+
+        this.linkedCharts = keyBy(
+            [...linkedGrapherCharts, ...linkedExplorerCharts],
+            "slug"
+        )
+    }
+
     get links(): Link[] {
         const links: Link[] = []
         if (this.content.body) {
@@ -229,22 +290,28 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
     }
 
     // If the node has a URL in it, create a Link object
+    // Assumes that the property will be named "url"
     extractLinkFromNode(node: OwidEnrichedGdocBlock | Span): Link | void {
         function getText(node: OwidEnrichedGdocBlock | Span): string {
             // Can add component-specific text accessors here
             if (checkNodeIsSpan(node)) {
-                if (node.spanType == "span-link") {
+                if (node.spanType === "span-link") {
                     return spansToUnformattedPlainText(node.children)
                 }
             } else if (node.type === "prominent-link") return node.title || ""
             return ""
         }
 
-        if ("url" in node) {
+        // Don't track the ref links e.g. "#note-1"
+        function checkIsRefAnchor(link: string): boolean {
+            return new RegExp(/^#note-\d+$/).test(link)
+        }
+
+        if ("url" in node && !checkIsRefAnchor(node.url)) {
             const link: Link = Link.create({
                 linkType: getLinkType(node.url),
                 source: this,
-                target: getUrlTarget(node.url),
+                target: getUrlTarget(formatUrls(node.url)),
                 componentType: checkNodeIsSpan(node) ? "span-link" : node.type,
                 text: getText(node),
             })
@@ -252,35 +319,42 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
         }
     }
 
-    async validate(): Promise<void> {
+    async validate(
+        publishedExplorersBySlug: Record<string, any>
+    ): Promise<void> {
         const filenameErrors: OwidGdocErrorMessage[] = this.filenames.reduce(
-            (acc: OwidGdocErrorMessage[], filename): OwidGdocErrorMessage[] => {
+            (
+                errors: OwidGdocErrorMessage[],
+                filename
+            ): OwidGdocErrorMessage[] => {
                 if (!this.imageMetadata[filename]) {
-                    acc.push({
+                    errors.push({
                         property: "imageMetadata",
                         message: `No image named ${filename} found in Drive`,
                         type: OwidGdocErrorMessageType.Error,
                     })
                 } else if (!this.imageMetadata[filename].defaultAlt) {
-                    acc.push({
+                    errors.push({
                         property: "imageMetadata",
                         message: `${filename} is missing a default alt text`,
                         type: OwidGdocErrorMessageType.Error,
                     })
                 }
-                return acc
+                return errors
             },
             []
         )
 
+        const chartIdsBySlug = await Chart.mapSlugsToIds()
+
         const linkErrors: OwidGdocErrorMessage[] = this.links.reduce(
-            (acc: OwidGdocErrorMessage[], link): OwidGdocErrorMessage[] => {
-                if (link.linkType == "gdoc") {
+            (errors: OwidGdocErrorMessage[], link): OwidGdocErrorMessage[] => {
+                if (link.linkType === "gdoc") {
                     const id = getUrlTarget(link.target)
                     const doesGdocExist = Boolean(this.linkedDocuments[id])
                     const isGdocPublished = this.linkedDocuments[id]?.published
                     if (!doesGdocExist || !isGdocPublished) {
-                        acc.push({
+                        errors.push({
                             property: "linkedDocuments",
                             message: `${link.componentType} with text "${
                                 link.text
@@ -291,7 +365,25 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
                         })
                     }
                 }
-                return acc
+                if (link.linkType === "grapher") {
+                    if (!chartIdsBySlug[link.target]) {
+                        errors.push({
+                            property: "content",
+                            message: `Grapher chart with slug ${link.target} does not exist or is not published`,
+                            type: OwidGdocErrorMessageType.Error,
+                        })
+                    }
+                }
+                if (link.linkType === "explorer") {
+                    if (!publishedExplorersBySlug[link.target]) {
+                        errors.push({
+                            property: "content",
+                            message: `Explorer chart with slug ${link.target} does not exist or is not published`,
+                            type: OwidGdocErrorMessageType.Error,
+                        })
+                    }
+                }
+                return errors
             },
             []
         )
@@ -301,6 +393,7 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
 
     static async getGdocFromContentSource(
         id: string,
+        publishedExplorersBySlug: Record<string, any>,
         contentSource?: GdocsContentSource
     ): Promise<OwidGdocInterface> {
         const gdoc = await Gdoc.findOne({
@@ -318,7 +411,9 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
 
         await gdoc.loadLinkedDocuments()
         await gdoc.loadImageMetadata()
-        await gdoc.validate()
+        await gdoc.loadLinkedCharts(publishedExplorersBySlug)
+
+        await gdoc.validate(publishedExplorersBySlug)
 
         return gdoc
     }

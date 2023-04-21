@@ -309,11 +309,18 @@ h3.article-block__heading.has-supertitle {
     }
 }
 
-.article-block__chart {
+.sticky-column-wrapper {
+    .article-block__chart,
+    .article-block__explorer {
+        margin-top: 0;
+    }
+}
+
+.article-block__chart,
+.article-block__explorer {
     // width is necessary for containerNode.getBoundingClientRect() in Grapher.renderGrapherIntoContainer
     width: 100%;
-    margin-top: 24px;
-    margin-bottom: 32px;
+    margin: 24px 0 48px 0;
 
     figure {
         margin: 0;
@@ -361,10 +368,11 @@ h3.article-block__heading.has-supertitle {
     }
 
     .chart-story__chart {
-        margin-top: 32px 0;
+        margin-top: 32px;
+        margin-bottom: 48px;
         // width is necessary for containerNode.getBoundingClientRect() in Grapher.renderGrapherIntoContainer
         width: 100%;
-        > figure {
+        > div {
             margin: 0;
             width: 100%;
             > figure {
