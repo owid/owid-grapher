@@ -2748,7 +2748,7 @@ apiRouter.get("/gdocs/:id", async (req, res) => {
 
     try {
         const publishedExplorersBySlug =
-            await explorerAdminServer.getAllPublishedExplorersBySlug()
+            await explorerAdminServer.getAllPublishedExplorersBySlugCached()
 
         const gdoc = await Gdoc.getGdocFromContentSource(
             id,
