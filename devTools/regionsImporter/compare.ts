@@ -95,6 +95,7 @@ async function findChanges(){
   let entities = await loadEntities(),
       regions = entities.filter((e:any) => !!e?.region_type && e.region_type!='other'),
       continents = entities.filter((e:any) => e.region_type=='continent'),
+      countriesOnly = entities.filter((e:any) => !e?.region_type),
       countries = entities.filter((e:any) => !e?.region_type || e.region_type=='other'),
       countriesOrAggregates = entities.filter((e:any) => !e?.region_type || ['other', 'aggregate'].includes(e.region_type))
 
@@ -164,6 +165,16 @@ async function findChanges(){
   console.log(_.mapValues(missingFromETL, (codes:string[]) => {
     return _.map(codes, code => `${code} (${entities.find((c:any) => c.code==code)?.name})`)
   }))
+
+
+  let origCodes = origCountries.map((c:any) => c.code),
+      etlCodes = countriesOnly.map((c:any) => c.code),
+      newCodes = _.difference(etlCodes, origCodes),
+      oldCodes = _.difference(origCodes, etlCodes)
+
+
+  // console.log({origCodes, etlCodes})
+      console.log({newCodes, oldCodes})
 }
 
 findChanges()
