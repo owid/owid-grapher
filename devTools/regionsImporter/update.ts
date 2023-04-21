@@ -53,7 +53,8 @@ async function main(){
       entity.members = [...entity.members, ..._.get(ADDITIONAL_CONTINENT_MEMBERS, entity.name, [])]
     }
 
-    return entity
+    // convert keys to camelCase
+    return _.mapKeys(entity, (val, key) => _.camelCase(key))
   })
 
   // generate new regions.json file and report changes (if any)
