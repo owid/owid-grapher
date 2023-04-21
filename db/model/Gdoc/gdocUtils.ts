@@ -1,4 +1,8 @@
-import { Span } from "@ourworldindata/utils"
+import {
+    OwidEnrichedGdocBlock,
+    OwidGdocInterface,
+    Span,
+} from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
 import cheerio from "cheerio"
 
@@ -114,4 +118,29 @@ export const getTitleSupertitleFromHeadingText = (
         afterSeparator || beforeSeparator,
         afterSeparator ? beforeSeparator : undefined,
     ]
+}
+
+export const splitGdocContentUsingHeadingOneTextsAsKeys = (
+    gdoc: OwidGdocInterface
+): Record<string, OwidEnrichedGdocBlock[]> => {
+    let currentKey = ""
+    const keyedBlocks: Record<string, OwidEnrichedGdocBlock[]> = {}
+
+    // We want to split the content of the gdoc into sections based on the
+    // heading 1s. Each section will be stored under a new key named after the
+    // preceeding heading 1's text, which have been specially crafted for this
+    // purpose
+    gdoc.content.body?.forEach((block: any) => {
+        if (block.type === "heading" && block.level === 1) {
+            // use the heading 1's text as a key through a very raw version of
+            // "spansToSimpleText"
+            currentKey = block.text[0].text
+        } else {
+            keyedBlocks[currentKey] = [
+                ...(keyedBlocks[currentKey] || []),
+                block,
+            ]
+        }
+    })
+    return keyedBlocks
 }
