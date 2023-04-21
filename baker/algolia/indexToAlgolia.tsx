@@ -10,7 +10,7 @@ import {
     keyBy,
     type RawPageview,
 } from "@ourworldindata/utils"
-import { formatPost } from "../../baker/formatWordpressPost.js"
+import { formatPost } from "../formatWordpressPost.js"
 import ReactDOMServer from "react-dom/server.js"
 import { getAlgoliaClient } from "./configureAlgolia.js"
 import { htmlToText } from "html-to-text"
@@ -144,11 +144,9 @@ function generateGdocRecords(
         if (!gdoc.content.body) continue
         // Only rendering the blocks - not the page nav, title, byline, etc
         const renderedPostContent = ReactDOMServer.renderToStaticMarkup(
-            React.createElement(
-                "div",
-                {},
-                ArticleBlocks({ blocks: gdoc.content.body })
-            )
+            <div>
+                <ArticleBlocks blocks={gdoc.content.body} />
+            </div>
         )
         const chunks = generateChunksFromHtmlText(renderedPostContent)
         let i = 0
