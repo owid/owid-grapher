@@ -61,11 +61,6 @@ export class Tag extends BaseEntity implements OwidGdocTag {
     @Column() isBulkImport!: boolean
     @Column() specialType!: string
     @ManyToMany(() => Gdoc, (gdoc) => gdoc.tags)
-    @JoinTable({
-        name: "posts_gdocs_x_tags",
-        joinColumn: { name: "tagId", referencedColumnName: "id" },
-        inverseJoinColumn: { name: "gdocId", referencedColumnName: "id" },
-    })
     gdocs!: Gdoc[]
 }
 
