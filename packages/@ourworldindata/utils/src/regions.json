@@ -3,1204 +3,1204 @@
     "code": "ABW",
     "name": "Aruba",
     "slug": "aruba",
-    "short_code": "AW"
+    "shortCode": "AW"
   },
   {
     "code": "AFG",
     "name": "Afghanistan",
     "slug": "afghanistan",
-    "is_mappable": true,
-    "short_code": "AF"
+    "isMappable": true,
+    "shortCode": "AF"
   },
   {
     "code": "AGO",
     "name": "Angola",
     "slug": "angola",
-    "is_mappable": true,
-    "short_code": "AO"
+    "isMappable": true,
+    "shortCode": "AO"
   },
   {
     "code": "AIA",
     "name": "Anguilla",
     "slug": "anguilla",
-    "short_code": "AI"
+    "shortCode": "AI"
   },
   {
     "code": "ALA",
     "name": "Aland Islands",
     "slug": "aland-islands",
-    "omit_country_page": true,
-    "short_code": "AX"
+    "omitCountryPage": true,
+    "shortCode": "AX"
   },
   {
     "code": "ALB",
     "name": "Albania",
     "slug": "albania",
-    "is_mappable": true,
-    "short_code": "AL"
+    "isMappable": true,
+    "shortCode": "AL"
   },
   {
     "code": "AND",
     "name": "Andorra",
     "slug": "andorra",
-    "is_mappable": true,
-    "short_code": "AD"
+    "isMappable": true,
+    "shortCode": "AD"
   },
   {
     "code": "ANT",
     "name": "Netherlands Antilles",
     "slug": "netherlands-antilles",
-    "omit_country_page": true,
-    "short_code": "AN"
+    "omitCountryPage": true,
+    "shortCode": "AN"
   },
   {
     "code": "ARE",
     "name": "United Arab Emirates",
     "slug": "united-arab-emirates",
-    "is_mappable": true,
-    "short_code": "AE"
+    "isMappable": true,
+    "shortCode": "AE"
   },
   {
     "code": "ARG",
     "name": "Argentina",
     "slug": "argentina",
-    "is_mappable": true,
-    "short_code": "AR"
+    "isMappable": true,
+    "shortCode": "AR"
   },
   {
     "code": "ARM",
     "name": "Armenia",
     "slug": "armenia",
-    "is_mappable": true,
-    "short_code": "AM"
+    "isMappable": true,
+    "shortCode": "AM"
   },
   {
     "code": "ASM",
     "name": "American Samoa",
     "slug": "american-samoa",
-    "short_code": "AS"
+    "shortCode": "AS"
   },
   {
     "code": "ATA",
     "name": "Antarctica",
     "slug": "antarctica",
-    "omit_country_page": true,
-    "short_code": "AQ"
+    "omitCountryPage": true,
+    "shortCode": "AQ"
   },
   {
     "code": "ATF",
     "name": "French Southern Territories",
     "slug": "french-southern-territories",
-    "is_mappable": true,
-    "omit_country_page": true,
-    "short_code": "TF"
+    "isMappable": true,
+    "omitCountryPage": true,
+    "shortCode": "TF"
   },
   {
     "code": "ATG",
     "name": "Antigua and Barbuda",
     "slug": "antigua-and-barbuda",
-    "is_mappable": true,
-    "short_code": "AG"
+    "isMappable": true,
+    "shortCode": "AG"
   },
   {
     "code": "AUS",
     "name": "Australia",
     "slug": "australia",
-    "is_mappable": true,
-    "short_code": "AU"
+    "isMappable": true,
+    "shortCode": "AU"
   },
   {
     "code": "AUT",
     "name": "Austria",
     "slug": "austria",
-    "is_mappable": true,
-    "short_code": "AT"
+    "isMappable": true,
+    "shortCode": "AT"
   },
   {
     "code": "AZE",
     "name": "Azerbaijan",
     "slug": "azerbaijan",
-    "is_mappable": true,
-    "short_code": "AZ"
+    "isMappable": true,
+    "shortCode": "AZ"
   },
   {
     "code": "BDI",
     "name": "Burundi",
     "slug": "burundi",
-    "is_mappable": true,
-    "short_code": "BI"
+    "isMappable": true,
+    "shortCode": "BI"
   },
   {
     "code": "BEL",
     "name": "Belgium",
     "slug": "belgium",
-    "is_mappable": true,
-    "short_code": "BE"
+    "isMappable": true,
+    "shortCode": "BE"
   },
   {
     "code": "BEN",
     "name": "Benin",
     "slug": "benin",
-    "is_mappable": true,
-    "short_code": "BJ"
+    "isMappable": true,
+    "shortCode": "BJ"
   },
   {
     "code": "BES",
     "name": "Bonaire Sint Eustatius and Saba",
     "slug": "bonaire-sint-eustatius-and-saba",
-    "omit_country_page": true,
-    "short_code": "BQ"
+    "omitCountryPage": true,
+    "shortCode": "BQ"
   },
   {
     "code": "BFA",
     "name": "Burkina Faso",
     "slug": "burkina-faso",
-    "is_mappable": true,
-    "short_code": "BF"
+    "isMappable": true,
+    "shortCode": "BF"
   },
   {
     "code": "BGD",
     "name": "Bangladesh",
     "slug": "bangladesh",
-    "is_mappable": true,
-    "short_code": "BD"
+    "isMappable": true,
+    "shortCode": "BD"
   },
   {
     "code": "BGR",
     "name": "Bulgaria",
     "slug": "bulgaria",
-    "is_mappable": true,
-    "short_code": "BG"
+    "isMappable": true,
+    "shortCode": "BG"
   },
   {
     "code": "BHR",
     "name": "Bahrain",
     "slug": "bahrain",
-    "is_mappable": true,
-    "short_code": "BH"
+    "isMappable": true,
+    "shortCode": "BH"
   },
   {
     "code": "BHS",
     "name": "Bahamas",
     "slug": "bahamas",
-    "is_mappable": true,
-    "short_code": "BS"
+    "isMappable": true,
+    "shortCode": "BS"
   },
   {
     "code": "BIH",
     "name": "Bosnia and Herzegovina",
     "slug": "bosnia-and-herzegovina",
-    "is_mappable": true,
-    "short_code": "BA"
+    "isMappable": true,
+    "shortCode": "BA"
   },
   {
     "code": "BLM",
     "name": "Saint Barthelemy",
     "slug": "saint-barthelemy",
-    "short_code": "BL"
+    "shortCode": "BL"
   },
   {
     "code": "BLR",
     "name": "Belarus",
     "slug": "belarus",
-    "is_mappable": true,
-    "short_code": "BY"
+    "isMappable": true,
+    "shortCode": "BY"
   },
   {
     "code": "BLZ",
     "name": "Belize",
     "slug": "belize",
-    "is_mappable": true,
-    "short_code": "BZ"
+    "isMappable": true,
+    "shortCode": "BZ"
   },
   {
     "code": "BMU",
     "name": "Bermuda",
     "slug": "bermuda",
-    "short_code": "BM"
+    "shortCode": "BM"
   },
   {
     "code": "BOL",
     "name": "Bolivia",
     "slug": "bolivia",
-    "is_mappable": true,
-    "short_code": "BO"
+    "isMappable": true,
+    "shortCode": "BO"
   },
   {
     "code": "BRA",
     "name": "Brazil",
     "slug": "brazil",
-    "is_mappable": true,
-    "short_code": "BR"
+    "isMappable": true,
+    "shortCode": "BR"
   },
   {
     "code": "BRB",
     "name": "Barbados",
     "slug": "barbados",
-    "is_mappable": true,
-    "short_code": "BB"
+    "isMappable": true,
+    "shortCode": "BB"
   },
   {
     "code": "BRN",
     "name": "Brunei",
     "slug": "brunei",
-    "is_mappable": true,
-    "short_code": "BN"
+    "isMappable": true,
+    "shortCode": "BN"
   },
   {
     "code": "BTN",
     "name": "Bhutan",
     "slug": "bhutan",
-    "is_mappable": true,
-    "short_code": "BT"
+    "isMappable": true,
+    "shortCode": "BT"
   },
   {
     "code": "BVT",
     "name": "Bouvet Island",
     "slug": "bouvet-island",
-    "omit_country_page": true,
-    "short_code": "BV"
+    "omitCountryPage": true,
+    "shortCode": "BV"
   },
   {
     "code": "BWA",
     "name": "Botswana",
     "slug": "botswana",
-    "is_mappable": true,
-    "short_code": "BW"
+    "isMappable": true,
+    "shortCode": "BW"
   },
   {
     "code": "CAF",
     "name": "Central African Republic",
     "slug": "central-african-republic",
-    "is_mappable": true,
-    "short_code": "CF"
+    "isMappable": true,
+    "shortCode": "CF"
   },
   {
     "code": "CAN",
     "name": "Canada",
     "slug": "canada",
-    "is_mappable": true,
-    "short_code": "CA"
+    "isMappable": true,
+    "shortCode": "CA"
   },
   {
     "code": "CCK",
     "name": "Cocos Islands",
     "slug": "cocos-islands",
-    "omit_country_page": true,
-    "short_code": "CC"
+    "omitCountryPage": true,
+    "shortCode": "CC"
   },
   {
     "code": "CHE",
     "name": "Switzerland",
     "slug": "switzerland",
-    "is_mappable": true,
-    "short_code": "CH"
+    "isMappable": true,
+    "shortCode": "CH"
   },
   {
     "code": "CHL",
     "name": "Chile",
     "slug": "chile",
-    "is_mappable": true,
-    "short_code": "CL"
+    "isMappable": true,
+    "shortCode": "CL"
   },
   {
     "code": "CHN",
     "name": "China",
     "slug": "china",
-    "is_mappable": true,
-    "short_code": "CN"
+    "isMappable": true,
+    "shortCode": "CN"
   },
   {
     "code": "CIV",
     "name": "Cote d'Ivoire",
     "slug": "cote-divoire",
-    "is_mappable": true,
-    "short_code": "CI"
+    "isMappable": true,
+    "shortCode": "CI"
   },
   {
     "code": "CMR",
     "name": "Cameroon",
     "slug": "cameroon",
-    "is_mappable": true,
-    "short_code": "CM"
+    "isMappable": true,
+    "shortCode": "CM"
   },
   {
     "code": "COD",
     "name": "Democratic Republic of Congo",
-    "short_name": "DR Congo",
+    "shortName": "DR Congo",
     "slug": "democratic-republic-of-congo",
-    "is_mappable": true,
-    "short_code": "CD"
+    "isMappable": true,
+    "shortCode": "CD"
   },
   {
     "code": "COG",
     "name": "Congo",
     "slug": "congo",
-    "is_mappable": true,
-    "short_code": "CG"
+    "isMappable": true,
+    "shortCode": "CG"
   },
   {
     "code": "COK",
     "name": "Cook Islands",
     "slug": "cook-islands",
-    "omit_country_page": true,
-    "short_code": "CK"
+    "omitCountryPage": true,
+    "shortCode": "CK"
   },
   {
     "code": "COL",
     "name": "Colombia",
     "slug": "colombia",
-    "is_mappable": true,
-    "short_code": "CO"
+    "isMappable": true,
+    "shortCode": "CO"
   },
   {
     "code": "COM",
     "name": "Comoros",
     "slug": "comoros",
-    "is_mappable": true,
-    "short_code": "KM"
+    "isMappable": true,
+    "shortCode": "KM"
   },
   {
     "code": "CPV",
     "name": "Cape Verde",
     "slug": "cape-verde",
-    "is_mappable": true,
-    "short_code": "CV"
+    "isMappable": true,
+    "shortCode": "CV"
   },
   {
     "code": "CRI",
     "name": "Costa Rica",
     "slug": "costa-rica",
-    "is_mappable": true,
-    "short_code": "CR"
+    "isMappable": true,
+    "shortCode": "CR"
   },
   {
     "code": "CUB",
     "name": "Cuba",
     "slug": "cuba",
-    "is_mappable": true,
-    "short_code": "CU"
+    "isMappable": true,
+    "shortCode": "CU"
   },
   {
     "code": "CUW",
     "name": "Curacao",
     "slug": "curacao",
-    "omit_country_page": true,
-    "short_code": "CW"
+    "omitCountryPage": true,
+    "shortCode": "CW"
   },
   {
     "code": "CXR",
     "name": "Christmas Island",
     "slug": "christmas-island",
-    "short_code": "CX"
+    "shortCode": "CX"
   },
   {
     "code": "CYM",
     "name": "Cayman Islands",
     "slug": "cayman-islands",
-    "short_code": "KY"
+    "shortCode": "KY"
   },
   {
     "code": "CYP",
     "name": "Cyprus",
     "slug": "cyprus",
-    "is_mappable": true,
-    "short_code": "CY"
+    "isMappable": true,
+    "shortCode": "CY"
   },
   {
     "code": "CZE",
     "name": "Czechia",
     "slug": "czech-republic",
-    "is_mappable": true,
-    "short_code": "CZ"
+    "isMappable": true,
+    "shortCode": "CZ"
   },
   {
     "code": "DEU",
     "name": "Germany",
     "slug": "germany",
-    "is_mappable": true,
-    "short_code": "DE"
+    "isMappable": true,
+    "shortCode": "DE"
   },
   {
     "code": "DJI",
     "name": "Djibouti",
     "slug": "djibouti",
-    "is_mappable": true,
-    "short_code": "DJ"
+    "isMappable": true,
+    "shortCode": "DJ"
   },
   {
     "code": "DMA",
     "name": "Dominica",
     "slug": "dominica",
-    "is_mappable": true,
-    "short_code": "DM"
+    "isMappable": true,
+    "shortCode": "DM"
   },
   {
     "code": "DNK",
     "name": "Denmark",
     "slug": "denmark",
-    "is_mappable": true,
-    "short_code": "DK"
+    "isMappable": true,
+    "shortCode": "DK"
   },
   {
     "code": "DOM",
     "name": "Dominican Republic",
     "slug": "dominican-republic",
-    "is_mappable": true,
-    "short_code": "DO"
+    "isMappable": true,
+    "shortCode": "DO"
   },
   {
     "code": "DZA",
     "name": "Algeria",
     "slug": "algeria",
-    "is_mappable": true,
-    "short_code": "DZ"
+    "isMappable": true,
+    "shortCode": "DZ"
   },
   {
     "code": "ECU",
     "name": "Ecuador",
     "slug": "ecuador",
-    "is_mappable": true,
-    "short_code": "EC"
+    "isMappable": true,
+    "shortCode": "EC"
   },
   {
     "code": "EGY",
     "name": "Egypt",
     "slug": "egypt",
-    "is_mappable": true,
-    "short_code": "EG"
+    "isMappable": true,
+    "shortCode": "EG"
   },
   {
     "code": "ERI",
     "name": "Eritrea",
     "slug": "eritrea",
-    "is_mappable": true,
-    "short_code": "ER"
+    "isMappable": true,
+    "shortCode": "ER"
   },
   {
     "code": "ESH",
     "name": "Western Sahara",
     "slug": "western-sahara",
-    "is_mappable": true,
-    "omit_country_page": true,
-    "short_code": "EH"
+    "isMappable": true,
+    "omitCountryPage": true,
+    "shortCode": "EH"
   },
   {
     "code": "ESP",
     "name": "Spain",
     "slug": "spain",
-    "is_mappable": true,
-    "short_code": "ES"
+    "isMappable": true,
+    "shortCode": "ES"
   },
   {
     "code": "EST",
     "name": "Estonia",
     "slug": "estonia",
-    "is_mappable": true,
-    "short_code": "EE"
+    "isMappable": true,
+    "shortCode": "EE"
   },
   {
     "code": "ETH",
     "name": "Ethiopia",
     "slug": "ethiopia",
-    "is_mappable": true,
-    "short_code": "ET"
+    "isMappable": true,
+    "shortCode": "ET"
   },
   {
     "code": "FIN",
     "name": "Finland",
     "slug": "finland",
-    "is_mappable": true,
-    "short_code": "FI"
+    "isMappable": true,
+    "shortCode": "FI"
   },
   {
     "code": "FJI",
     "name": "Fiji",
     "slug": "fiji",
-    "is_mappable": true,
-    "short_code": "FJ"
+    "isMappable": true,
+    "shortCode": "FJ"
   },
   {
     "code": "FLK",
     "name": "Falkland Islands",
     "slug": "falkland-islands",
-    "short_code": "FK"
+    "shortCode": "FK"
   },
   {
     "code": "FRA",
     "name": "France",
     "slug": "france",
-    "is_mappable": true,
-    "short_code": "FR"
+    "isMappable": true,
+    "shortCode": "FR"
   },
   {
     "code": "FRO",
     "name": "Faeroe Islands",
     "slug": "faeroe-islands",
-    "short_code": "FO"
+    "shortCode": "FO"
   },
   {
     "code": "FSM",
     "name": "Micronesia (country)",
     "slug": "micronesia-country",
-    "is_mappable": true,
-    "short_code": "FM"
+    "isMappable": true,
+    "shortCode": "FM"
   },
   {
     "code": "GAB",
     "name": "Gabon",
     "slug": "gabon",
-    "is_mappable": true,
-    "short_code": "GA"
+    "isMappable": true,
+    "shortCode": "GA"
   },
   {
     "code": "GBR",
     "name": "United Kingdom",
     "slug": "united-kingdom",
-    "is_mappable": true,
-    "short_code": "GB"
+    "isMappable": true,
+    "shortCode": "GB"
   },
   {
     "code": "GEO",
     "name": "Georgia",
     "slug": "georgia",
-    "is_mappable": true,
-    "short_code": "GE"
+    "isMappable": true,
+    "shortCode": "GE"
   },
   {
     "code": "GGY",
     "name": "Guernsey",
     "slug": "guernsey",
-    "omit_country_page": true,
-    "short_code": "GG"
+    "omitCountryPage": true,
+    "shortCode": "GG"
   },
   {
     "code": "GHA",
     "name": "Ghana",
     "slug": "ghana",
-    "is_mappable": true,
-    "short_code": "GH"
+    "isMappable": true,
+    "shortCode": "GH"
   },
   {
     "code": "GIB",
     "name": "Gibraltar",
     "slug": "gibraltar",
-    "short_code": "GI"
+    "shortCode": "GI"
   },
   {
     "code": "GIN",
     "name": "Guinea",
     "slug": "guinea",
-    "is_mappable": true,
-    "short_code": "GN"
+    "isMappable": true,
+    "shortCode": "GN"
   },
   {
     "code": "GLP",
     "name": "Guadeloupe",
     "slug": "guadeloupe",
-    "omit_country_page": true,
-    "short_code": "GP"
+    "omitCountryPage": true,
+    "shortCode": "GP"
   },
   {
     "code": "GMB",
     "name": "Gambia",
     "slug": "gambia",
-    "is_mappable": true,
-    "short_code": "GM"
+    "isMappable": true,
+    "shortCode": "GM"
   },
   {
     "code": "GNB",
     "name": "Guinea-Bissau",
     "slug": "guinea-bissau",
-    "is_mappable": true,
-    "short_code": "GW"
+    "isMappable": true,
+    "shortCode": "GW"
   },
   {
     "code": "GNQ",
     "name": "Equatorial Guinea",
     "slug": "equatorial-guinea",
-    "is_mappable": true,
-    "short_code": "GQ"
+    "isMappable": true,
+    "shortCode": "GQ"
   },
   {
     "code": "GRC",
     "name": "Greece",
     "slug": "greece",
-    "is_mappable": true,
-    "short_code": "GR"
+    "isMappable": true,
+    "shortCode": "GR"
   },
   {
     "code": "GRD",
     "name": "Grenada",
     "slug": "grenada",
-    "is_mappable": true,
-    "short_code": "GD"
+    "isMappable": true,
+    "shortCode": "GD"
   },
   {
     "code": "GRL",
     "name": "Greenland",
     "slug": "greenland",
-    "is_mappable": true,
-    "short_code": "GL"
+    "isMappable": true,
+    "shortCode": "GL"
   },
   {
     "code": "GTM",
     "name": "Guatemala",
     "slug": "guatemala",
-    "is_mappable": true,
-    "short_code": "GT"
+    "isMappable": true,
+    "shortCode": "GT"
   },
   {
     "code": "GUF",
     "name": "French Guiana",
     "slug": "french-guiana",
-    "is_mappable": true,
-    "short_code": "GF"
+    "isMappable": true,
+    "shortCode": "GF"
   },
   {
     "code": "GUM",
     "name": "Guam",
     "slug": "guam",
-    "short_code": "GU"
+    "shortCode": "GU"
   },
   {
     "code": "GUY",
     "name": "Guyana",
     "slug": "guyana",
-    "is_mappable": true,
-    "short_code": "GY"
+    "isMappable": true,
+    "shortCode": "GY"
   },
   {
     "code": "HKG",
     "name": "Hong Kong",
     "slug": "hong-kong",
-    "short_code": "HK"
+    "shortCode": "HK"
   },
   {
     "code": "HMD",
     "name": "Heard Island and McDonald Islands",
     "slug": "heard-island-and-mcdonald-islands",
-    "omit_country_page": true,
-    "short_code": "HM"
+    "omitCountryPage": true,
+    "shortCode": "HM"
   },
   {
     "code": "HND",
     "name": "Honduras",
     "slug": "honduras",
-    "is_mappable": true,
-    "short_code": "HN"
+    "isMappable": true,
+    "shortCode": "HN"
   },
   {
     "code": "HRV",
     "name": "Croatia",
     "slug": "croatia",
-    "is_mappable": true,
-    "short_code": "HR"
+    "isMappable": true,
+    "shortCode": "HR"
   },
   {
     "code": "HTI",
     "name": "Haiti",
     "slug": "haiti",
-    "is_mappable": true,
-    "short_code": "HT"
+    "isMappable": true,
+    "shortCode": "HT"
   },
   {
     "code": "HUN",
     "name": "Hungary",
     "slug": "hungary",
-    "is_mappable": true,
-    "short_code": "HU"
+    "isMappable": true,
+    "shortCode": "HU"
   },
   {
     "code": "IDN",
     "name": "Indonesia",
     "slug": "indonesia",
-    "is_mappable": true,
-    "short_code": "ID"
+    "isMappable": true,
+    "shortCode": "ID"
   },
   {
     "code": "IMN",
     "name": "Isle of Man",
     "slug": "isle-of-man",
-    "short_code": "IM"
+    "shortCode": "IM"
   },
   {
     "code": "IND",
     "name": "India",
     "slug": "india",
-    "is_mappable": true,
-    "short_code": "IN"
+    "isMappable": true,
+    "shortCode": "IN"
   },
   {
     "code": "IOT",
     "name": "British Indian Ocean Territory",
     "slug": "british-indian-ocean-territory",
-    "omit_country_page": true,
-    "short_code": "IO"
+    "omitCountryPage": true,
+    "shortCode": "IO"
   },
   {
     "code": "IRL",
     "name": "Ireland",
     "slug": "ireland",
-    "is_mappable": true,
-    "short_code": "IE"
+    "isMappable": true,
+    "shortCode": "IE"
   },
   {
     "code": "IRN",
     "name": "Iran",
     "slug": "iran",
-    "is_mappable": true,
-    "short_code": "IR"
+    "isMappable": true,
+    "shortCode": "IR"
   },
   {
     "code": "IRQ",
     "name": "Iraq",
     "slug": "iraq",
-    "is_mappable": true,
-    "short_code": "IQ"
+    "isMappable": true,
+    "shortCode": "IQ"
   },
   {
     "code": "ISL",
     "name": "Iceland",
     "slug": "iceland",
-    "is_mappable": true,
-    "short_code": "IS"
+    "isMappable": true,
+    "shortCode": "IS"
   },
   {
     "code": "ISR",
     "name": "Israel",
     "slug": "israel",
-    "is_mappable": true,
-    "short_code": "IL"
+    "isMappable": true,
+    "shortCode": "IL"
   },
   {
     "code": "ITA",
     "name": "Italy",
     "slug": "italy",
-    "is_mappable": true,
-    "short_code": "IT"
+    "isMappable": true,
+    "shortCode": "IT"
   },
   {
     "code": "JAM",
     "name": "Jamaica",
     "slug": "jamaica",
-    "is_mappable": true,
-    "short_code": "JM"
+    "isMappable": true,
+    "shortCode": "JM"
   },
   {
     "code": "JEY",
     "name": "Jersey",
     "slug": "jersey",
-    "short_code": "JE"
+    "shortCode": "JE"
   },
   {
     "code": "JOR",
     "name": "Jordan",
     "slug": "jordan",
-    "is_mappable": true,
-    "short_code": "JO"
+    "isMappable": true,
+    "shortCode": "JO"
   },
   {
     "code": "JPN",
     "name": "Japan",
     "slug": "japan",
-    "is_mappable": true,
-    "short_code": "JP"
+    "isMappable": true,
+    "shortCode": "JP"
   },
   {
     "code": "KAZ",
     "name": "Kazakhstan",
     "slug": "kazakhstan",
-    "is_mappable": true,
-    "short_code": "KZ"
+    "isMappable": true,
+    "shortCode": "KZ"
   },
   {
     "code": "KEN",
     "name": "Kenya",
     "slug": "kenya",
-    "is_mappable": true,
-    "short_code": "KE"
+    "isMappable": true,
+    "shortCode": "KE"
   },
   {
     "code": "KGZ",
     "name": "Kyrgyzstan",
     "slug": "kyrgyzstan",
-    "is_mappable": true,
-    "short_code": "KG"
+    "isMappable": true,
+    "shortCode": "KG"
   },
   {
     "code": "KHM",
     "name": "Cambodia",
     "slug": "cambodia",
-    "is_mappable": true,
-    "short_code": "KH"
+    "isMappable": true,
+    "shortCode": "KH"
   },
   {
     "code": "KIR",
     "name": "Kiribati",
     "slug": "kiribati",
-    "is_mappable": true,
-    "short_code": "KI"
+    "isMappable": true,
+    "shortCode": "KI"
   },
   {
     "code": "KNA",
     "name": "Saint Kitts and Nevis",
     "slug": "saint-kitts-and-nevis",
-    "is_mappable": true,
-    "short_code": "KN"
+    "isMappable": true,
+    "shortCode": "KN"
   },
   {
     "code": "KOR",
     "name": "South Korea",
     "slug": "south-korea",
-    "is_mappable": true,
-    "short_code": "KR"
+    "isMappable": true,
+    "shortCode": "KR"
   },
   {
     "code": "KWT",
     "name": "Kuwait",
     "slug": "kuwait",
-    "is_mappable": true,
-    "short_code": "KW"
+    "isMappable": true,
+    "shortCode": "KW"
   },
   {
     "code": "LAO",
     "name": "Laos",
     "slug": "laos",
-    "is_mappable": true,
-    "short_code": "LA"
+    "isMappable": true,
+    "shortCode": "LA"
   },
   {
     "code": "LBN",
     "name": "Lebanon",
     "slug": "lebanon",
-    "is_mappable": true,
-    "short_code": "LB"
+    "isMappable": true,
+    "shortCode": "LB"
   },
   {
     "code": "LBR",
     "name": "Liberia",
     "slug": "liberia",
-    "is_mappable": true,
-    "short_code": "LR"
+    "isMappable": true,
+    "shortCode": "LR"
   },
   {
     "code": "LBY",
     "name": "Libya",
     "slug": "libya",
-    "is_mappable": true,
-    "short_code": "LY"
+    "isMappable": true,
+    "shortCode": "LY"
   },
   {
     "code": "LCA",
     "name": "Saint Lucia",
     "slug": "saint-lucia",
-    "is_mappable": true,
-    "short_code": "LC"
+    "isMappable": true,
+    "shortCode": "LC"
   },
   {
     "code": "LIE",
     "name": "Liechtenstein",
     "slug": "liechtenstein",
-    "is_mappable": true,
-    "short_code": "LI"
+    "isMappable": true,
+    "shortCode": "LI"
   },
   {
     "code": "LKA",
     "name": "Sri Lanka",
     "slug": "sri-lanka",
-    "is_mappable": true,
-    "short_code": "LK"
+    "isMappable": true,
+    "shortCode": "LK"
   },
   {
     "code": "LSO",
     "name": "Lesotho",
     "slug": "lesotho",
-    "is_mappable": true,
-    "short_code": "LS"
+    "isMappable": true,
+    "shortCode": "LS"
   },
   {
     "code": "LTU",
     "name": "Lithuania",
     "slug": "lithuania",
-    "is_mappable": true,
-    "short_code": "LT"
+    "isMappable": true,
+    "shortCode": "LT"
   },
   {
     "code": "LUX",
     "name": "Luxembourg",
     "slug": "luxembourg",
-    "is_mappable": true,
-    "short_code": "LU"
+    "isMappable": true,
+    "shortCode": "LU"
   },
   {
     "code": "LVA",
     "name": "Latvia",
     "slug": "latvia",
-    "is_mappable": true,
-    "short_code": "LV"
+    "isMappable": true,
+    "shortCode": "LV"
   },
   {
     "code": "MAC",
     "name": "Macao",
     "slug": "macao",
-    "short_code": "MO"
+    "shortCode": "MO"
   },
   {
     "code": "MAF",
     "name": "Saint Martin (French part)",
     "slug": "saint-martin-french-part",
-    "omit_country_page": true,
-    "short_code": "MF"
+    "omitCountryPage": true,
+    "shortCode": "MF"
   },
   {
     "code": "MAR",
     "name": "Morocco",
     "slug": "morocco",
-    "is_mappable": true,
-    "short_code": "MA"
+    "isMappable": true,
+    "shortCode": "MA"
   },
   {
     "code": "MCO",
     "name": "Monaco",
     "slug": "monaco",
-    "is_mappable": true,
-    "short_code": "MC"
+    "isMappable": true,
+    "shortCode": "MC"
   },
   {
     "code": "MDA",
     "name": "Moldova",
     "slug": "moldova",
-    "is_mappable": true,
-    "short_code": "MD"
+    "isMappable": true,
+    "shortCode": "MD"
   },
   {
     "code": "MDG",
     "name": "Madagascar",
     "slug": "madagascar",
-    "is_mappable": true,
-    "short_code": "MG"
+    "isMappable": true,
+    "shortCode": "MG"
   },
   {
     "code": "MDV",
     "name": "Maldives",
     "slug": "maldives",
-    "is_mappable": true,
-    "short_code": "MV"
+    "isMappable": true,
+    "shortCode": "MV"
   },
   {
     "code": "MEX",
     "name": "Mexico",
     "slug": "mexico",
-    "is_mappable": true,
-    "short_code": "MX"
+    "isMappable": true,
+    "shortCode": "MX"
   },
   {
     "code": "MHL",
     "name": "Marshall Islands",
     "slug": "marshall-islands",
-    "is_mappable": true,
-    "short_code": "MH"
+    "isMappable": true,
+    "shortCode": "MH"
   },
   {
     "code": "MKD",
     "name": "North Macedonia",
     "slug": "macedonia",
-    "is_mappable": true,
-    "short_code": "MK"
+    "isMappable": true,
+    "shortCode": "MK"
   },
   {
     "code": "MLI",
     "name": "Mali",
     "slug": "mali",
-    "is_mappable": true,
-    "short_code": "ML"
+    "isMappable": true,
+    "shortCode": "ML"
   },
   {
     "code": "MLT",
     "name": "Malta",
     "slug": "malta",
-    "is_mappable": true,
-    "short_code": "MT"
+    "isMappable": true,
+    "shortCode": "MT"
   },
   {
     "code": "MMR",
     "name": "Myanmar",
     "slug": "myanmar",
-    "is_mappable": true,
-    "short_code": "MM"
+    "isMappable": true,
+    "shortCode": "MM"
   },
   {
     "code": "MNE",
     "name": "Montenegro",
     "slug": "montenegro",
-    "is_mappable": true,
-    "short_code": "ME"
+    "isMappable": true,
+    "shortCode": "ME"
   },
   {
     "code": "MNG",
     "name": "Mongolia",
     "slug": "mongolia",
-    "is_mappable": true,
-    "short_code": "MN"
+    "isMappable": true,
+    "shortCode": "MN"
   },
   {
     "code": "MNP",
     "name": "Northern Mariana Islands",
     "slug": "northern-mariana-islands",
-    "short_code": "MP"
+    "shortCode": "MP"
   },
   {
     "code": "MOZ",
     "name": "Mozambique",
     "slug": "mozambique",
-    "is_mappable": true,
-    "short_code": "MZ"
+    "isMappable": true,
+    "shortCode": "MZ"
   },
   {
     "code": "MRT",
     "name": "Mauritania",
     "slug": "mauritania",
-    "is_mappable": true,
-    "short_code": "MR"
+    "isMappable": true,
+    "shortCode": "MR"
   },
   {
     "code": "MSR",
     "name": "Montserrat",
     "slug": "montserrat",
-    "omit_country_page": true,
-    "short_code": "MS"
+    "omitCountryPage": true,
+    "shortCode": "MS"
   },
   {
     "code": "MTQ",
     "name": "Martinique",
     "slug": "martinique",
-    "short_code": "MQ"
+    "shortCode": "MQ"
   },
   {
     "code": "MUS",
     "name": "Mauritius",
     "slug": "mauritius",
-    "is_mappable": true,
-    "short_code": "MU"
+    "isMappable": true,
+    "shortCode": "MU"
   },
   {
     "code": "MWI",
     "name": "Malawi",
     "slug": "malawi",
-    "is_mappable": true,
-    "short_code": "MW"
+    "isMappable": true,
+    "shortCode": "MW"
   },
   {
     "code": "MYS",
     "name": "Malaysia",
     "slug": "malaysia",
-    "is_mappable": true,
-    "short_code": "MY"
+    "isMappable": true,
+    "shortCode": "MY"
   },
   {
     "code": "MYT",
     "name": "Mayotte",
     "slug": "mayotte",
-    "short_code": "YT"
+    "shortCode": "YT"
   },
   {
     "code": "NAM",
     "name": "Namibia",
     "slug": "namibia",
-    "is_mappable": true
+    "isMappable": true
   },
   {
     "code": "NCL",
     "name": "New Caledonia",
     "slug": "new-caledonia",
-    "is_mappable": true,
-    "short_code": "NC"
+    "isMappable": true,
+    "shortCode": "NC"
   },
   {
     "code": "NER",
     "name": "Niger",
     "slug": "niger",
-    "is_mappable": true,
-    "short_code": "NE"
+    "isMappable": true,
+    "shortCode": "NE"
   },
   {
     "code": "NFK",
     "name": "Norfolk Island",
     "slug": "norfolk-island",
-    "short_code": "NF"
+    "shortCode": "NF"
   },
   {
     "code": "NGA",
     "name": "Nigeria",
     "slug": "nigeria",
-    "is_mappable": true,
-    "short_code": "NG"
+    "isMappable": true,
+    "shortCode": "NG"
   },
   {
     "code": "NIC",
     "name": "Nicaragua",
     "slug": "nicaragua",
-    "is_mappable": true,
-    "short_code": "NI"
+    "isMappable": true,
+    "shortCode": "NI"
   },
   {
     "code": "NIU",
     "name": "Niue",
     "slug": "niue",
-    "short_code": "NU"
+    "shortCode": "NU"
   },
   {
     "code": "NLD",
     "name": "Netherlands",
     "slug": "netherlands",
-    "is_mappable": true,
-    "short_code": "NL"
+    "isMappable": true,
+    "shortCode": "NL"
   },
   {
     "code": "NOR",
     "name": "Norway",
     "slug": "norway",
-    "is_mappable": true,
-    "short_code": "NO"
+    "isMappable": true,
+    "shortCode": "NO"
   },
   {
     "code": "NPL",
     "name": "Nepal",
     "slug": "nepal",
-    "is_mappable": true,
-    "short_code": "NP"
+    "isMappable": true,
+    "shortCode": "NP"
   },
   {
     "code": "NRU",
     "name": "Nauru",
     "slug": "nauru",
-    "is_mappable": true,
-    "short_code": "NR"
+    "isMappable": true,
+    "shortCode": "NR"
   },
   {
     "code": "NZL",
     "name": "New Zealand",
     "slug": "new-zealand",
-    "is_mappable": true,
-    "short_code": "NZ"
+    "isMappable": true,
+    "shortCode": "NZ"
   },
   {
     "code": "OMN",
     "name": "Oman",
     "slug": "oman",
-    "is_mappable": true,
-    "short_code": "OM"
+    "isMappable": true,
+    "shortCode": "OM"
   },
   {
     "code": "OWID_ABK",
     "name": "Abkhazia",
-    "region_type": "other"
+    "regionType": "other"
   },
   {
     "code": "OWID_AFR",
     "name": "Africa",
-    "region_type": "continent",
+    "regionType": "continent",
     "members": [
       "AGO",
       "BDI",
@@ -1268,12 +1268,12 @@
   {
     "code": "OWID_AKD",
     "name": "Akrotiri and Dhekelia",
-    "region_type": "other"
+    "regionType": "other"
   },
   {
     "code": "OWID_ASI",
     "name": "Asia",
-    "region_type": "continent",
+    "regionType": "continent",
     "members": [
       "AFG",
       "ARE",
@@ -1347,7 +1347,7 @@
   {
     "code": "OWID_CIS",
     "name": "Channel Islands",
-    "region_type": "aggregate",
+    "regionType": "aggregate",
     "members": [
       "GGY",
       "JEY"
@@ -1356,7 +1356,7 @@
   {
     "code": "OWID_CYN",
     "name": "Northern Cyprus",
-    "region_type": "other"
+    "regionType": "other"
   },
   {
     "code": "OWID_CZS",
@@ -1371,7 +1371,7 @@
   {
     "code": "OWID_EU27",
     "name": "European Union (27)",
-    "region_type": "aggregate",
+    "regionType": "aggregate",
     "members": [
       "AUT",
       "BEL",
@@ -1405,7 +1405,7 @@
   {
     "code": "OWID_EUR",
     "name": "Europe",
-    "region_type": "continent",
+    "regionType": "continent",
     "members": [
       "ALA",
       "ALB",
@@ -1486,7 +1486,7 @@
     "code": "OWID_KOS",
     "name": "Kosovo",
     "slug": "kosovo",
-    "is_mappable": true
+    "isMappable": true
   },
   {
     "code": "OWID_KRU",
@@ -1496,7 +1496,7 @@
   {
     "code": "OWID_MNS",
     "name": "Melanesia",
-    "region_type": "aggregate",
+    "regionType": "aggregate",
     "members": [
       "FJI",
       "PNG",
@@ -1507,12 +1507,12 @@
   {
     "code": "OWID_NAG",
     "name": "Nagorno-Karabakh",
-    "region_type": "other"
+    "regionType": "other"
   },
   {
     "code": "OWID_NAM",
     "name": "North America",
-    "region_type": "continent",
+    "regionType": "continent",
     "members": [
       "ABW",
       "AIA",
@@ -1561,7 +1561,7 @@
   {
     "code": "OWID_OCE",
     "name": "Oceania",
-    "region_type": "continent",
+    "regionType": "continent",
     "members": [
       "ASM",
       "AUS",
@@ -1594,7 +1594,7 @@
   {
     "code": "OWID_PYA",
     "name": "Polynesia",
-    "region_type": "aggregate",
+    "regionType": "aggregate",
     "members": [
       "ASM",
       "COK",
@@ -1618,7 +1618,7 @@
   {
     "code": "OWID_SAM",
     "name": "South America",
-    "region_type": "continent",
+    "regionType": "continent",
     "members": [
       "ARG",
       "BOL",
@@ -1645,17 +1645,17 @@
   {
     "code": "OWID_SEK",
     "name": "Serbia excluding Kosovo",
-    "region_type": "other"
+    "regionType": "other"
   },
   {
     "code": "OWID_SML",
     "name": "Somaliland",
-    "region_type": "other"
+    "regionType": "other"
   },
   {
     "code": "OWID_SOS",
     "name": "South Ossetia",
-    "region_type": "other"
+    "regionType": "other"
   },
   {
     "code": "OWID_SRM",
@@ -1665,7 +1665,7 @@
   {
     "code": "OWID_TRS",
     "name": "Transnistria",
-    "region_type": "other"
+    "regionType": "other"
   },
   {
     "code": "OWID_USS",
@@ -1675,7 +1675,7 @@
   {
     "code": "OWID_WRL",
     "name": "World",
-    "region_type": "aggregate",
+    "regionType": "aggregate",
     "members": [
       "OWID_AFR",
       "OWID_ASI",
@@ -1709,536 +1709,536 @@
     "code": "PAK",
     "name": "Pakistan",
     "slug": "pakistan",
-    "is_mappable": true,
-    "short_code": "PK"
+    "isMappable": true,
+    "shortCode": "PK"
   },
   {
     "code": "PAN",
     "name": "Panama",
     "slug": "panama",
-    "is_mappable": true,
-    "short_code": "PA"
+    "isMappable": true,
+    "shortCode": "PA"
   },
   {
     "code": "PCN",
     "name": "Pitcairn",
     "slug": "pitcairn",
-    "short_code": "PN"
+    "shortCode": "PN"
   },
   {
     "code": "PER",
     "name": "Peru",
     "slug": "peru",
-    "is_mappable": true,
-    "short_code": "PE"
+    "isMappable": true,
+    "shortCode": "PE"
   },
   {
     "code": "PHL",
     "name": "Philippines",
     "slug": "philippines",
-    "is_mappable": true,
-    "short_code": "PH"
+    "isMappable": true,
+    "shortCode": "PH"
   },
   {
     "code": "PLW",
     "name": "Palau",
     "slug": "palau",
-    "is_mappable": true,
-    "short_code": "PW"
+    "isMappable": true,
+    "shortCode": "PW"
   },
   {
     "code": "PNG",
     "name": "Papua New Guinea",
     "slug": "papua-new-guinea",
-    "is_mappable": true,
-    "short_code": "PG"
+    "isMappable": true,
+    "shortCode": "PG"
   },
   {
     "code": "POL",
     "name": "Poland",
     "slug": "poland",
-    "is_mappable": true,
-    "short_code": "PL"
+    "isMappable": true,
+    "shortCode": "PL"
   },
   {
     "code": "PRI",
     "name": "Puerto Rico",
     "slug": "puerto-rico",
-    "is_mappable": true,
-    "short_code": "PR"
+    "isMappable": true,
+    "shortCode": "PR"
   },
   {
     "code": "PRK",
     "name": "North Korea",
     "slug": "north-korea",
-    "is_mappable": true,
-    "short_code": "KP"
+    "isMappable": true,
+    "shortCode": "KP"
   },
   {
     "code": "PRT",
     "name": "Portugal",
     "slug": "portugal",
-    "is_mappable": true,
-    "short_code": "PT"
+    "isMappable": true,
+    "shortCode": "PT"
   },
   {
     "code": "PRY",
     "name": "Paraguay",
     "slug": "paraguay",
-    "is_mappable": true,
-    "short_code": "PY"
+    "isMappable": true,
+    "shortCode": "PY"
   },
   {
     "code": "PSE",
     "name": "Palestine",
     "slug": "palestine",
-    "is_mappable": true,
-    "short_code": "PS"
+    "isMappable": true,
+    "shortCode": "PS"
   },
   {
     "code": "PS_GZA",
     "name": "Gaza Strip",
     "slug": "gaza-strip",
-    "short_code": "PS-GZA"
+    "shortCode": "PS-GZA"
   },
   {
     "code": "PYF",
     "name": "French Polynesia",
     "slug": "french-polynesia",
-    "short_code": "PF"
+    "shortCode": "PF"
   },
   {
     "code": "QAT",
     "name": "Qatar",
     "slug": "qatar",
-    "is_mappable": true,
-    "short_code": "QA"
+    "isMappable": true,
+    "shortCode": "QA"
   },
   {
     "code": "REU",
     "name": "Reunion",
     "slug": "reunion",
-    "short_code": "RE"
+    "shortCode": "RE"
   },
   {
     "code": "ROU",
     "name": "Romania",
     "slug": "romania",
-    "is_mappable": true,
-    "short_code": "RO"
+    "isMappable": true,
+    "shortCode": "RO"
   },
   {
     "code": "RUS",
     "name": "Russia",
     "slug": "russia",
-    "is_mappable": true,
-    "short_code": "RU"
+    "isMappable": true,
+    "shortCode": "RU"
   },
   {
     "code": "RWA",
     "name": "Rwanda",
     "slug": "rwanda",
-    "is_mappable": true,
-    "short_code": "RW"
+    "isMappable": true,
+    "shortCode": "RW"
   },
   {
     "code": "SAU",
     "name": "Saudi Arabia",
     "slug": "saudi-arabia",
-    "is_mappable": true,
-    "short_code": "SA"
+    "isMappable": true,
+    "shortCode": "SA"
   },
   {
     "code": "SDN",
     "name": "Sudan",
     "slug": "sudan",
-    "is_mappable": true,
-    "short_code": "SD"
+    "isMappable": true,
+    "shortCode": "SD"
   },
   {
     "code": "SEN",
     "name": "Senegal",
     "slug": "senegal",
-    "is_mappable": true,
-    "short_code": "SN"
+    "isMappable": true,
+    "shortCode": "SN"
   },
   {
     "code": "SGP",
     "name": "Singapore",
     "slug": "singapore",
-    "is_mappable": true,
-    "short_code": "SG"
+    "isMappable": true,
+    "shortCode": "SG"
   },
   {
     "code": "SGS",
     "name": "South Georgia and the South Sandwich Islands",
     "slug": "south-georgia-and-the-south-sandwich-islands",
-    "omit_country_page": true,
-    "short_code": "GS"
+    "omitCountryPage": true,
+    "shortCode": "GS"
   },
   {
     "code": "SHN",
     "name": "Saint Helena",
     "slug": "saint-helena",
-    "omit_country_page": true,
-    "short_code": "SH"
+    "omitCountryPage": true,
+    "shortCode": "SH"
   },
   {
     "code": "SJM",
     "name": "Svalbard and Jan Mayen",
-    "region_type": "other",
-    "omit_country_page": true,
-    "short_code": "SJ"
+    "regionType": "other",
+    "omitCountryPage": true,
+    "shortCode": "SJ"
   },
   {
     "code": "SLB",
     "name": "Solomon Islands",
     "slug": "solomon-islands",
-    "is_mappable": true,
-    "short_code": "SB"
+    "isMappable": true,
+    "shortCode": "SB"
   },
   {
     "code": "SLE",
     "name": "Sierra Leone",
     "slug": "sierra-leone",
-    "is_mappable": true,
-    "short_code": "SL"
+    "isMappable": true,
+    "shortCode": "SL"
   },
   {
     "code": "SLV",
     "name": "El Salvador",
     "slug": "el-salvador",
-    "is_mappable": true,
-    "short_code": "SV"
+    "isMappable": true,
+    "shortCode": "SV"
   },
   {
     "code": "SMR",
     "name": "San Marino",
     "slug": "san-marino",
-    "is_mappable": true,
-    "short_code": "SM"
+    "isMappable": true,
+    "shortCode": "SM"
   },
   {
     "code": "SOM",
     "name": "Somalia",
     "slug": "somalia",
-    "is_mappable": true,
-    "short_code": "SO"
+    "isMappable": true,
+    "shortCode": "SO"
   },
   {
     "code": "SPM",
     "name": "Saint Pierre and Miquelon",
     "slug": "saint-pierre-and-miquelon",
-    "short_code": "PM"
+    "shortCode": "PM"
   },
   {
     "code": "SRB",
     "name": "Serbia",
     "slug": "serbia",
-    "is_mappable": true,
-    "short_code": "RS"
+    "isMappable": true,
+    "shortCode": "RS"
   },
   {
     "code": "SSD",
     "name": "South Sudan",
     "slug": "south-sudan",
-    "is_mappable": true,
-    "short_code": "SS"
+    "isMappable": true,
+    "shortCode": "SS"
   },
   {
     "code": "STP",
     "name": "Sao Tome and Principe",
     "slug": "sao-tome-and-principe",
-    "is_mappable": true,
-    "short_code": "ST"
+    "isMappable": true,
+    "shortCode": "ST"
   },
   {
     "code": "SUR",
     "name": "Suriname",
     "slug": "suriname",
-    "is_mappable": true,
-    "short_code": "SR"
+    "isMappable": true,
+    "shortCode": "SR"
   },
   {
     "code": "SVK",
     "name": "Slovakia",
     "slug": "slovakia",
-    "is_mappable": true,
-    "short_code": "SK"
+    "isMappable": true,
+    "shortCode": "SK"
   },
   {
     "code": "SVN",
     "name": "Slovenia",
     "slug": "slovenia",
-    "is_mappable": true,
-    "short_code": "SI"
+    "isMappable": true,
+    "shortCode": "SI"
   },
   {
     "code": "SWE",
     "name": "Sweden",
     "slug": "sweden",
-    "is_mappable": true,
-    "short_code": "SE"
+    "isMappable": true,
+    "shortCode": "SE"
   },
   {
     "code": "SWZ",
     "name": "Eswatini",
     "slug": "swaziland",
-    "is_mappable": true,
-    "short_code": "SZ"
+    "isMappable": true,
+    "shortCode": "SZ"
   },
   {
     "code": "SXM",
     "name": "Sint Maarten (Dutch part)",
     "slug": "sint-maarten-dutch-part",
-    "short_code": "SX"
+    "shortCode": "SX"
   },
   {
     "code": "SYC",
     "name": "Seychelles",
     "slug": "seychelles",
-    "is_mappable": true,
-    "short_code": "SC"
+    "isMappable": true,
+    "shortCode": "SC"
   },
   {
     "code": "SYR",
     "name": "Syria",
     "slug": "syria",
-    "is_mappable": true,
-    "short_code": "SY"
+    "isMappable": true,
+    "shortCode": "SY"
   },
   {
     "code": "TCA",
     "name": "Turks and Caicos Islands",
     "slug": "turks-and-caicos-islands",
-    "short_code": "TC"
+    "shortCode": "TC"
   },
   {
     "code": "TCD",
     "name": "Chad",
     "slug": "chad",
-    "is_mappable": true,
-    "short_code": "TD"
+    "isMappable": true,
+    "shortCode": "TD"
   },
   {
     "code": "TGO",
     "name": "Togo",
     "slug": "togo",
-    "is_mappable": true,
-    "short_code": "TG"
+    "isMappable": true,
+    "shortCode": "TG"
   },
   {
     "code": "THA",
     "name": "Thailand",
     "slug": "thailand",
-    "is_mappable": true,
-    "short_code": "TH"
+    "isMappable": true,
+    "shortCode": "TH"
   },
   {
     "code": "TJK",
     "name": "Tajikistan",
     "slug": "tajikistan",
-    "is_mappable": true,
-    "short_code": "TJ"
+    "isMappable": true,
+    "shortCode": "TJ"
   },
   {
     "code": "TKL",
     "name": "Tokelau",
     "slug": "tokelau",
-    "short_code": "TK"
+    "shortCode": "TK"
   },
   {
     "code": "TKM",
     "name": "Turkmenistan",
     "slug": "turkmenistan",
-    "is_mappable": true,
-    "short_code": "TM"
+    "isMappable": true,
+    "shortCode": "TM"
   },
   {
     "code": "TLS",
     "name": "East Timor",
     "slug": "timor",
-    "is_mappable": true,
-    "short_code": "TL"
+    "isMappable": true,
+    "shortCode": "TL"
   },
   {
     "code": "TON",
     "name": "Tonga",
     "slug": "tonga",
-    "is_mappable": true,
-    "short_code": "TO"
+    "isMappable": true,
+    "shortCode": "TO"
   },
   {
     "code": "TTO",
     "name": "Trinidad and Tobago",
     "slug": "trinidad-and-tobago",
-    "is_mappable": true,
-    "short_code": "TT"
+    "isMappable": true,
+    "shortCode": "TT"
   },
   {
     "code": "TUN",
     "name": "Tunisia",
     "slug": "tunisia",
-    "is_mappable": true,
-    "short_code": "TN"
+    "isMappable": true,
+    "shortCode": "TN"
   },
   {
     "code": "TUR",
     "name": "Turkey",
     "slug": "turkey",
-    "is_mappable": true,
-    "short_code": "TR"
+    "isMappable": true,
+    "shortCode": "TR"
   },
   {
     "code": "TUV",
     "name": "Tuvalu",
     "slug": "tuvalu",
-    "is_mappable": true,
-    "short_code": "TV"
+    "isMappable": true,
+    "shortCode": "TV"
   },
   {
     "code": "TWN",
     "name": "Taiwan",
     "slug": "taiwan",
-    "is_mappable": true,
-    "short_code": "TW"
+    "isMappable": true,
+    "shortCode": "TW"
   },
   {
     "code": "TZA",
     "name": "Tanzania",
     "slug": "tanzania",
-    "is_mappable": true,
-    "short_code": "TZ"
+    "isMappable": true,
+    "shortCode": "TZ"
   },
   {
     "code": "UGA",
     "name": "Uganda",
     "slug": "uganda",
-    "is_mappable": true,
-    "short_code": "UG"
+    "isMappable": true,
+    "shortCode": "UG"
   },
   {
     "code": "UKR",
     "name": "Ukraine",
     "slug": "ukraine",
-    "is_mappable": true,
-    "short_code": "UA"
+    "isMappable": true,
+    "shortCode": "UA"
   },
   {
     "code": "UMI",
     "name": "United States Minor Outlying Islands",
-    "region_type": "other",
-    "omit_country_page": true,
-    "short_code": "UM"
+    "regionType": "other",
+    "omitCountryPage": true,
+    "shortCode": "UM"
   },
   {
     "code": "URY",
     "name": "Uruguay",
     "slug": "uruguay",
-    "is_mappable": true,
-    "short_code": "UY"
+    "isMappable": true,
+    "shortCode": "UY"
   },
   {
     "code": "USA",
     "name": "United States",
     "slug": "united-states",
-    "is_mappable": true,
-    "short_code": "US"
+    "isMappable": true,
+    "shortCode": "US"
   },
   {
     "code": "UZB",
     "name": "Uzbekistan",
     "slug": "uzbekistan",
-    "is_mappable": true,
-    "short_code": "UZ"
+    "isMappable": true,
+    "shortCode": "UZ"
   },
   {
     "code": "VAT",
     "name": "Vatican",
     "slug": "vatican",
-    "short_code": "VA"
+    "shortCode": "VA"
   },
   {
     "code": "VCT",
     "name": "Saint Vincent and the Grenadines",
     "slug": "saint-vincent-and-the-grenadines",
-    "is_mappable": true,
-    "short_code": "VC"
+    "isMappable": true,
+    "shortCode": "VC"
   },
   {
     "code": "VEN",
     "name": "Venezuela",
     "slug": "venezuela",
-    "is_mappable": true,
-    "short_code": "VE"
+    "isMappable": true,
+    "shortCode": "VE"
   },
   {
     "code": "VGB",
     "name": "British Virgin Islands",
     "slug": "british-virgin-islands",
-    "short_code": "VG"
+    "shortCode": "VG"
   },
   {
     "code": "VIR",
     "name": "United States Virgin Islands",
     "slug": "united-states-virgin-islands",
-    "short_code": "VI"
+    "shortCode": "VI"
   },
   {
     "code": "VNM",
     "name": "Vietnam",
     "slug": "vietnam",
-    "is_mappable": true,
-    "short_code": "VN"
+    "isMappable": true,
+    "shortCode": "VN"
   },
   {
     "code": "VUT",
     "name": "Vanuatu",
     "slug": "vanuatu",
-    "is_mappable": true,
-    "short_code": "VU"
+    "isMappable": true,
+    "shortCode": "VU"
   },
   {
     "code": "WLF",
     "name": "Wallis and Futuna",
     "slug": "wallis-and-futuna",
-    "omit_country_page": true,
-    "short_code": "WF"
+    "omitCountryPage": true,
+    "shortCode": "WF"
   },
   {
     "code": "WSM",
     "name": "Samoa",
     "slug": "samoa",
-    "is_mappable": true,
-    "short_code": "WS"
+    "isMappable": true,
+    "shortCode": "WS"
   },
   {
     "code": "YEM",
     "name": "Yemen",
     "slug": "yemen",
-    "is_mappable": true,
-    "short_code": "YE"
+    "isMappable": true,
+    "shortCode": "YE"
   },
   {
     "code": "ZAF",
     "name": "South Africa",
     "slug": "south-africa",
-    "is_mappable": true,
-    "short_code": "ZA"
+    "isMappable": true,
+    "shortCode": "ZA"
   },
   {
     "code": "ZMB",
     "name": "Zambia",
     "slug": "zambia",
-    "is_mappable": true,
-    "short_code": "ZM"
+    "isMappable": true,
+    "shortCode": "ZM"
   },
   {
     "code": "ZWE",
     "name": "Zimbabwe",
     "slug": "zimbabwe",
-    "is_mappable": true,
-    "short_code": "ZW"
+    "isMappable": true,
+    "shortCode": "ZW"
   },
   {}
 ]
