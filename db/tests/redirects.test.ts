@@ -39,7 +39,7 @@ test("manual bulk redirects virtual properties and helper functions works", asyn
         extract_url_fragment('${targetUrl}'),
         302
     )`)
-    const rows = knexInstance!.raw(`-- sql
+    const rows = await knexInstance!.raw(`-- sql
         select * from manual_bulk_redirects
         `)
     expect(rows.length).toBe(1)
