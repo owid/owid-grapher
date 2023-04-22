@@ -251,54 +251,6 @@ export class ExplorerProgram extends GridProgram {
         return columnDefs
     }
 
-    async replaceTableWithInlineDataAndAutofilledColumnDefsCommand(
-        tableSlug?: string
-    ) {
-        const clone = this.clone
-
-        const colDefRow = clone.getRowMatchingWords(
-            ExplorerGrammar.columns.keyword,
-            tableSlug
-        )
-        if (colDefRow > -1) {
-            clone.deleteBlock(colDefRow)
-            clone.deleteLine(colDefRow)
-        }
-
-        const table = await clone.constructTable(tableSlug)
-
-        const tableDefRow = clone.getRowMatchingWords(
-            ExplorerGrammar.table.keyword,
-            undefined,
-            tableSlug
-        )
-        if (tableDefRow > -1) {
-            clone.deleteBlock(tableDefRow)
-            clone.deleteLine(tableDefRow)
-        }
-
-        const newCols = table!.autodetectedColumnDefs
-        const missing = newCols
-            .appendColumns([
-                {
-                    slug: ColumnGrammar.notes.keyword,
-                    values: newCols.indices.map(() => `Unreviewed`),
-                },
-            ])
-            .select([
-                ColumnGrammar.slug.keyword,
-                ,
-                ColumnGrammar.name.keyword,
-                ,
-                ColumnGrammar.type.keyword,
-                ColumnGrammar.notes.keyword,
-            ] as string[])
-
-        clone.appendBlock(ExplorerGrammar.table.keyword, table!.toTsv())
-        clone.appendBlock(ExplorerGrammar.columns.keyword, missing.toTsv())
-        return clone
-    }
-
     async autofillMissingColumnDefinitionsForTableCommand(tableSlug?: string) {
         const clone = this.clone
         const remoteTable = await clone.constructTable(tableSlug)

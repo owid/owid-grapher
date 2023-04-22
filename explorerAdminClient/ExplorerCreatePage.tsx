@@ -31,7 +31,6 @@ import { isEmpty } from "../gridLang/GrammarUtils.js"
 import { AdminManager } from "./AdminManager.js"
 import {
     AutofillColDefCommand,
-    InlineDataCommand,
     SelectAllHitsCommand,
 } from "./ExplorerCommands.js"
 
@@ -381,10 +380,6 @@ class HotEditor extends React.Component<{
             contextMenu: {
                 items: {
                     AutofillColDefCommand: new AutofillColDefCommand(
-                        program,
-                        (newProgram: string) => this.props.onChange(newProgram)
-                    ).toHotCommand(),
-                    InlineDataCommand: new InlineDataCommand(
                         program,
                         (newProgram: string) => this.props.onChange(newProgram)
                     ).toHotCommand(),
