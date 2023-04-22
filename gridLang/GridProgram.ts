@@ -82,7 +82,7 @@ export class GridProgram {
     }
 
     private ring(position: CellPosition) {
-        const matrix = this.asArrays
+        const matrix = this.matrix
         const numRows = matrix.length
         if (!numRows)
             return (function* generator() {
@@ -212,7 +212,7 @@ export class GridProgram {
         return line ? line[position.column] : undefined
     }
 
-    @imemo private get matrix() {
+    @imemo get matrix(): string[][] {
         return this.lines.map((line) => line.split(this.cellDelimiter))
     }
 
@@ -299,26 +299,22 @@ export class GridProgram {
         words.every((word, index) => word === undefined || line[index] === word)
 
     getRowMatchingWords(...words: (string | undefined)[]): number {
-        return this.asArrays.findIndex((line) =>
+        return this.matrix.findIndex((line) =>
             GridProgram.lineMatchesWords(line, words)
         )
     }
 
     getAllRowsMatchingWords(...words: (string | undefined)[]): number[] {
         const rows: number[] = []
-        this.asArrays.forEach((line: string[], rowIndex: number) => {
+        this.matrix.forEach((line: string[], rowIndex: number) => {
             if (GridProgram.lineMatchesWords(line, words)) rows.push(rowIndex)
         })
         return rows
     }
 
-    get asArrays(): string[][] {
-        return this.lines.map((line) => line.split(this.cellDelimiter))
-    }
-
     // The max number of columns in any row when you view a program as a spreadsheet
     get width() {
-        return Math.max(...this.asArrays.map((arr) => arr.length))
+        return Math.max(...this.matrix.map((arr) => arr.length))
     }
 
     toString() {
@@ -326,7 +322,7 @@ export class GridProgram {
     }
 
     protected prettify() {
-        return trimMatrix(this.asArrays)
+        return trimMatrix(this.matrix)
             .map((line) => line.join(this.cellDelimiter))
             .join(this.nodeDelimiter)
     }

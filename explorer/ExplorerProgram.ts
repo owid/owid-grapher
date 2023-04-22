@@ -234,7 +234,7 @@ export class ExplorerProgram extends GridProgram {
             ExplorerGrammar.columns.keyword
         )
 
-        const matrix = this.asArrays
+        const matrix = this.matrix
         for (const row of colDefsRows) {
             const tableSlugs = matrix[row].slice(1)
             const columnDefinitions: CoreColumnDef[] =
