@@ -222,17 +222,6 @@ export class ExplorerProgram extends GridProgram {
         ).length
     }
 
-    get inlineTableCount() {
-        return this.lines
-            .filter((line) => line.startsWith(ExplorerGrammar.table.keyword))
-            .filter((line) => {
-                const data = this.getTableDef(
-                    line.split(this.cellDelimiter)[1]
-                )?.inlineData
-                return data ? data.trim() : false
-            }).length
-    }
-
     get tableSlugs(): (TableSlug | undefined)[] {
         return this.lines
             .filter((line) => line.startsWith(ExplorerGrammar.table.keyword))
