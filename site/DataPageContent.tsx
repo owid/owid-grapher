@@ -6,13 +6,6 @@ import { ExpandableAnimatedToggle } from "./ExpandableAnimatedToggle.js"
 import ReactDOM from "react-dom"
 import { GrapherWithFallback } from "./GrapherWithFallback.js"
 import { formatAuthors } from "./clientFormatting.js"
-import {
-    GdocsContentSource,
-    OwidEnrichedGdocBlock,
-    getOwidGdocFromJSON,
-    getLinkType,
-    getUrlTarget,
-} from "@ourworldindata/utils"
 import { ArticleBlocks } from "./gdocs/ArticleBlocks.js"
 import { faTable } from "@fortawesome/free-solid-svg-icons/faTable"
 import { faGithub } from "@fortawesome/free-brands-svg-icons/faGithub"
@@ -27,6 +20,14 @@ declare global {
 
 export const OWID_DATAPAGE_CONTENT_ROOT_ID = "owid-datapage-root"
 
+export const ALLOWED_DATAPAGE_GDOC_FIELDS = [
+    "keyInfoText",
+    "faqs",
+    "descriptionFromSource",
+    "datasetDescription",
+    "datasetVariableProcessingInfo",
+] as const
+
 export const DataPageContent = ({
     datapage,
     grapherConfig,
@@ -35,9 +36,6 @@ export const DataPageContent = ({
     grapherConfig: GrapherInterface
 }) => {
     const [grapher, setGrapher] = React.useState<Grapher | undefined>(undefined)
-    const [gdocKeyedBlocks, setGdocKeyedBlocks] = React.useState<
-        { [key: string]: OwidEnrichedGdocBlock[] } | undefined
-    >(undefined)
 
     const sourceShortName =
         datapage.variantDescription1 && datapage.variantDescription2
@@ -48,43 +46,6 @@ export const DataPageContent = ({
     useEffect(() => {
         setGrapher(new Grapher(grapherConfig))
     }, [grapherConfig])
-
-    // Not suitable for production, only for prototyping
-    useEffect(() => {
-        const fetchGdocKeyedContent = async (googleDocId: string) => {
-            const response = await fetch(
-                `/admin/api/gdocs/${googleDocId}?contentSource=${GdocsContentSource.Gdocs}`
-            )
-            const json = await response.json()
-            const gdoc = getOwidGdocFromJSON(json)
-            if (!gdoc.content?.body) return
-
-            // use heading 1s as makeshift archie block separators until we gain
-            // confidence in the datapage architecture and its source of truth
-            let currentKey = ""
-            const keyedBlocks: { [key: string]: OwidEnrichedGdocBlock[] } = {}
-            gdoc.content.body.forEach((block: any) => {
-                if (block.type === "heading" && block.level === 1) {
-                    currentKey = block.text[0].text // use heading 1s' text as key through a very raw version of "spansToSimpleText"
-                } else {
-                    keyedBlocks[currentKey] = [
-                        ...(keyedBlocks[currentKey] || []),
-                        block,
-                    ]
-                }
-            })
-
-            setGdocKeyedBlocks(keyedBlocks)
-        }
-
-        if (
-            !datapage.googleDocEditLink ||
-            getLinkType(datapage.googleDocEditLink) !== "gdoc"
-        )
-            return
-        const googleDocId = getUrlTarget(datapage.googleDocEditLink)
-        fetchGdocKeyedContent(googleDocId)
-    }, [datapage.googleDocEditLink])
 
     return (
         <>
@@ -135,9 +96,9 @@ export const DataPageContent = ({
                                 fieldName="keyInfoText"
                                 level="info"
                                 render={(fallback) =>
-                                    gdocKeyedBlocks?.keyInfoText ? (
+                                    datapage?.keyInfoText ? (
                                         <ArticleBlocks
-                                            blocks={gdocKeyedBlocks.keyInfoText}
+                                            blocks={datapage.keyInfoText}
                                             containerType="datapage"
                                         />
                                     ) : datapage.subtitle ? (
@@ -148,7 +109,7 @@ export const DataPageContent = ({
                                 }
                             />
 
-                            {gdocKeyedBlocks?.faqs && (
+                            {datapage?.faqs && (
                                 <a
                                     className="key-info__learn-more"
                                     href="#faqs"
@@ -163,7 +124,7 @@ export const DataPageContent = ({
                                 level="info"
                                 render={(fallback) =>
                                     datapage.descriptionFromSource?.title &&
-                                    gdocKeyedBlocks?.descriptionFromSource ? (
+                                    datapage?.descriptionFromSource ? (
                                         <div className="key-info__description-source">
                                             <ExpandableAnimatedToggle
                                                 label={
@@ -174,14 +135,14 @@ export const DataPageContent = ({
                                                 content={
                                                     <ArticleBlocks
                                                         blocks={
-                                                            gdocKeyedBlocks.descriptionFromSource
+                                                            datapage.descriptionFromSource
                                                         }
                                                         containerType="datapage"
                                                     />
                                                 }
                                                 isExpandedDefault={
                                                     !datapage.subtitle &&
-                                                    !gdocKeyedBlocks?.keyInfoText
+                                                    !datapage?.keyInfoText
                                                 }
                                             />
                                         </div>
@@ -337,7 +298,7 @@ export const DataPageContent = ({
                     fieldName="faqs"
                     level="info"
                     render={(fallback) =>
-                        gdocKeyedBlocks?.faqs ? (
+                        datapage?.faqs ? (
                             <>
                                 <div
                                     style={{
@@ -354,7 +315,7 @@ export const DataPageContent = ({
                                         </h2>
                                         <div className="faqs__items grid grid-cols-8 span-cols-8">
                                             <ArticleBlocks
-                                                blocks={gdocKeyedBlocks.faqs}
+                                                blocks={datapage.faqs}
                                                 containerType="datapage"
                                             />
                                         </div>
@@ -411,11 +372,11 @@ export const DataPageContent = ({
                                         fieldName="datasetDescription"
                                         level="error"
                                         render={(fallback) =>
-                                            gdocKeyedBlocks?.datasetDescription ? (
+                                            datapage?.datasetDescription ? (
                                                 <div className="data-collection__description">
                                                     <ArticleBlocks
                                                         blocks={
-                                                            gdocKeyedBlocks.datasetDescription
+                                                            datapage.datasetDescription
                                                         }
                                                         containerType="datapage"
                                                     />
@@ -432,7 +393,7 @@ export const DataPageContent = ({
                                         fieldName="datasetVariableProcessingInfo"
                                         level="info"
                                         render={(fallback) =>
-                                            gdocKeyedBlocks?.datasetVariableProcessingInfo ? (
+                                            datapage?.datasetVariableProcessingInfo ? (
                                                 <div>
                                                     <div className="variable-processing-info__header">
                                                         Particular steps taken
@@ -441,7 +402,7 @@ export const DataPageContent = ({
                                                     <div className="variable-processing-info__description">
                                                         <ArticleBlocks
                                                             blocks={
-                                                                gdocKeyedBlocks.datasetVariableProcessingInfo
+                                                                datapage.datasetVariableProcessingInfo
                                                             }
                                                             containerType="datapage"
                                                         />
@@ -570,7 +531,7 @@ export const DataPageContent = ({
                                                                 render={(
                                                                     fallback
                                                                 ) =>
-                                                                    gdocKeyedBlocks?.[
+                                                                    datapage?.[
                                                                         `sourceDescription${
                                                                             idx +
                                                                             1
@@ -578,7 +539,7 @@ export const DataPageContent = ({
                                                                     ] ? (
                                                                         <ArticleBlocks
                                                                             blocks={
-                                                                                gdocKeyedBlocks[
+                                                                                datapage[
                                                                                     `sourceDescription${
                                                                                         idx +
                                                                                         1

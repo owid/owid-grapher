@@ -11,6 +11,11 @@ import {
     OwidVariableMixedData,
     OwidVariableWithSourceAndDimension,
     uniq,
+    GdocsContentSource,
+    OwidEnrichedGdocBlock,
+    pick,
+    getUrlTarget,
+    getLinkType,
 } from "@ourworldindata/utils"
 import {
     getRelatedArticles,
@@ -45,6 +50,9 @@ import ProgressBar from "progress"
 import { getVariableData } from "../db/model/Variable.js"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import { logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
+import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
+import { splitGdocContentUsingHeadingOneTextsAsKeys } from "../db/model/Gdoc/gdocUtils.js"
+import { ALLOWED_DATAPAGE_GDOC_FIELDS } from "../site/DataPageContent.js"
 
 /**
  *
@@ -60,14 +68,49 @@ export const renderDataPageOrGrapherPage = async (
     // render a datapage corresponding to the first variable found.
     const id = variableIds[0]
     const fullPath = `${GIT_CMS_DIR}/datapages/${id}.json`
-    let datapage
     try {
-        const datapageJson = await fs.readFile(fullPath, "utf8")
-        datapage = JSON.parse(datapageJson)
+        // Get the datapage JSON file from the owid-content git repo that has
+        // been updated separately by an author
+        const datapageJsonFile = await fs.readFile(fullPath, "utf8")
+        const datapageJson = JSON.parse(datapageJsonFile)
+
+        // Compliment the text-only content from the JSON with rich text
+        // from the companion gdoc. When previewing, we want to render the
+        // datapage from the live gdoc. Otherwise, we're baking from the gdoc
+        // parsed and saved in the database following a previewing session
+        const googleDocId =
+            getLinkType(datapageJson.googleDocEditLink) === "gdoc"
+                ? getUrlTarget(datapageJson.googleDocEditLink)
+                : undefined
+
+        const datapageGdoc =
+            isPreviewing && googleDocId
+                ? await Gdoc.getGdocFromContentSource(
+                      googleDocId,
+                      GdocsContentSource.Gdocs
+                  )
+                : await Gdoc.findOneBy({ id: googleDocId })
+
+        // Split the gdoc content into fields using the heading one texts as
+        // field names, only allowing a subset of the fields found through. This
+        // means the gdoc can contain extra heading one texts (e.g. for
+        // documentation) that will be ignored.
+        const datapageGdocContentByHeadingOneTexts:
+            | Record<
+                  (typeof ALLOWED_DATAPAGE_GDOC_FIELDS)[number],
+                  OwidEnrichedGdocBlock[]
+              >
+            | undefined = datapageGdoc
+            ? pick(
+                  splitGdocContentUsingHeadingOneTextsAsKeys(datapageGdoc),
+                  ALLOWED_DATAPAGE_GDOC_FIELDS
+              )
+            : undefined
+
+        // We only want to render datapages on selected charts, even if the
+        // variable found on the chart has a datapage configuration.
         if (
-            // We only want to render datapages on selected charts, even if the
-            // variable found on the chart has a datapage configuration.
-            datapage.showDataPageOnChartIds?.includes(grapher.id) &&
+            datapageJson.showDataPageOnChartIds?.includes(grapher.id) &&
             isPreviewing
             // todo: we're not ready to publish datapages yet, so we only want to
             // render them if we're previewing.
@@ -76,7 +119,16 @@ export const renderDataPageOrGrapherPage = async (
             return renderToHtmlPage(
                 <DataPage
                     grapher={grapher}
-                    datapage={datapage}
+                    // Even though datapageGdocContentByHeadingOneTexts can
+                    // technically override keys of datapageJson, these two
+                    // objects' keys are considered mutually exclusive. The gdoc
+                    // is indeed not supposed to act as an override mechanism
+                    // for JSON keys but rather as a source of additional rich
+                    // content.
+                    datapage={{
+                        ...datapageJson,
+                        ...datapageGdocContentByHeadingOneTexts,
+                    }}
                     baseUrl={BAKED_BASE_URL}
                     baseGrapherUrl={BAKED_GRAPHER_URL}
                 />
@@ -86,12 +138,13 @@ export const renderDataPageOrGrapherPage = async (
         // Do not throw an error if the datapage JSON does not exist, but rather
         // if it does and it fails to parse or render.
         if (e.code !== "ENOENT") {
-            logErrorAndMaybeSendToSlack(
-                `Failed to render datapage ${fullPath}. Error: ${e}`
-            )
+            logErrorAndMaybeSendToSlack(e)
         }
     }
-    // fallback to regular grapher page
+
+    // Fallback to rendering a regular grapher page whether the datapage was
+    // supposed to render and failed or if it was not supposed to render just
+    // yet (e.g. not published, JSON not yet provided)
     return renderGrapherPage(grapher)
 }
 
