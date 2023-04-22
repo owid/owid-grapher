@@ -41,7 +41,7 @@ columns\tb`
         )
 
         it("can get blocks", () => {
-            expect(program.getBlock(0)).toEqual(`slug\ncountry`)
+            expect(program.getBlock(0)).toEqual([["slug"], ["country"]])
         })
 
         it("can search", () => {
@@ -54,8 +54,10 @@ columns\tb`
         })
 
         it("can update blocks", () => {
-            const newBlock = `slug\tname
-country\tCountry`
+            const newBlock = [
+                ["slug", "name"],
+                ["country", "Country"],
+            ]
             const newProgram = program.updateBlock(0, newBlock)
             expect(newProgram.getBlock(0)).toEqual(newBlock)
         })
