@@ -61,13 +61,18 @@ const ExplorerRootDef: CellDef = {
 export class ExplorerProgram extends GridProgram {
     constructor(slug: string, tsv: string, lastCommit?: GitCommit) {
         super(slug, tsv, lastCommit, ExplorerRootDef)
-        this.decisionMatrix = new DecisionMatrix(
-            this.decisionMatrixCode ?? "",
-            lastCommit?.hash
-        )
     }
 
-    decisionMatrix: DecisionMatrix
+    private _decisionMatrix?: DecisionMatrix
+    get decisionMatrix() {
+        if (!this._decisionMatrix) {
+            this._decisionMatrix = new DecisionMatrix(
+                this.decisionMatrixCode ?? "",
+                this.lastCommit?.hash
+            )
+        }
+        return this._decisionMatrix
+    }
 
     static fromJson(json: SerializedGridProgram) {
         return new ExplorerProgram(json.slug, json.program, json.lastCommit)
