@@ -28,7 +28,7 @@ export class ExplorerAdminServer {
             this._simpleGit = simpleGit({
                 baseDir: this.gitDir,
                 binary: "git",
-                maxConcurrentProcesses: 1,
+                maxConcurrentProcesses: 16, // we're getting one "git log" per explorer file, so concurrency makes a massive difference
             })
         return this._simpleGit
     }
@@ -88,20 +88,16 @@ export class ExplorerAdminServer {
         )
     }
 
-    async getAllExplorers() {
+    async getAllExplorers(): Promise<ExplorerProgram[]> {
         if (!existsSync(this.absoluteFolderPath)) return []
         const files = await readdir(this.absoluteFolderPath)
         const explorerFiles = files.filter((filename) =>
             filename.endsWith(EXPLORER_FILE_SUFFIX)
         )
 
-        const explorers: ExplorerProgram[] = []
-        for (const filename of explorerFiles) {
-            const explorer = await this.getExplorerFromFile(filename)
-
-            explorers.push(explorer)
-        }
-        return explorers
+        return Promise.all(
+            explorerFiles.map((filename) => this.getExplorerFromFile(filename))
+        )
     }
 
     async getAllPublishedExplorersBySlugCached() {
