@@ -208,7 +208,7 @@ export class ExplorerProgram extends GridProgram {
         )
         if (keywordIndex === -1) return undefined
         return this.getBlock(keywordIndex)
-            .map((row) => row.join(this.cellDelimiter))
+            ?.map((row) => row.join(this.cellDelimiter))
             .join("\n")
     }
 
@@ -237,8 +237,8 @@ export class ExplorerProgram extends GridProgram {
         for (const row of colDefsRows) {
             const tableSlugs = matrix[row].slice(1)
             const columnDefinitions: CoreColumnDef[] =
-                columnDefinitionsFromInput(this.getBlock(row)).map((row) =>
-                    trimAndParseObject(row, ColumnGrammar)
+                columnDefinitionsFromInput(this.getBlock(row) ?? "").map(
+                    (row) => trimAndParseObject(row, ColumnGrammar)
                 )
             if (tableSlugs.length === 0)
                 columnDefs.set(undefined, columnDefinitions)

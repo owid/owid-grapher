@@ -185,11 +185,14 @@ export class GridProgram {
         return line?.[1]
     }
 
-    protected getBlockLocation(blockRowNumber: number): BlockLocation {
+    protected getBlockLocation(
+        blockRowNumber: number
+    ): BlockLocation | undefined {
         const startRow = blockRowNumber + 1
         let numRows = this.lines
             .slice(startRow)
             .findIndex((line) => line.length && line[0] !== "")
+        if (numRows === 0) return undefined
         if (numRows === -1) numRows = this.lines.slice(startRow).length
         return { startRow, endRow: startRow + numRows, numRows }
     }
@@ -243,6 +246,7 @@ export class GridProgram {
 
     getBlock(keywordIndex: number) {
         const location = this.getBlockLocation(keywordIndex)
+        if (!location) return undefined
         return this.lines
             .slice(location.startRow, location.endRow)
             .map((line) => line.slice(1))
@@ -250,6 +254,7 @@ export class GridProgram {
 
     updateBlock(rowNumber: number, value: string[][]) {
         const location = this.getBlockLocation(rowNumber)
+        if (!location) throw new Error("Block not found")
         this.lines.splice(
             location.startRow,
             location.numRows,
