@@ -6,9 +6,9 @@ import React from "react"
 import { ScaleType } from "../core/GrapherConstants"
 import { DualAxis } from "./Axis"
 
-import { configure, shallow } from "enzyme"
+import Enzyme from "enzyme"
 import Adapter from "enzyme-adapter-react-16"
-configure({ adapter: new Adapter() })
+Enzyme.configure({ adapter: new Adapter() })
 
 it("can create horizontal axis", () => {
     const axisConfig = new AxisConfig({
@@ -17,7 +17,7 @@ it("can create horizontal axis", () => {
         max: 100,
     })
 
-    const view = shallow(
+    const view = Enzyme.shallow(
         <HorizontalAxisGridLines
             horizontalAxis={axisConfig.toHorizontalAxis()}
         />
@@ -43,6 +43,6 @@ it("can render a dual axis", () => {
         horizontalAxis,
     })
 
-    const view = shallow(<DualAxisComponent dualAxis={dualAxis} />)
+    const view = Enzyme.shallow(<DualAxisComponent dualAxis={dualAxis} />)
     expect(view).toBeTruthy()
 })

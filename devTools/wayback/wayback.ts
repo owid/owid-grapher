@@ -2,8 +2,8 @@
 
 import express from "express"
 import path from "path"
-import * as fs from "fs-extra"
-import * as mime from "mime-types"
+import fs from "fs-extra"
+import mime from "mime-types"
 
 const PORT = 4433
 const app = express()

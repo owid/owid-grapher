@@ -1,9 +1,8 @@
 #! /usr/bin/env node
 
 import parseArgs from "minimist"
-import * as utils from "./utils.js"
-import * as fs from "fs-extra"
-import * as path from "path"
+import fs from "fs-extra"
+import path from "path"
 
 async function main(parsedArgs: parseArgs.ParsedArgs) {
     // perpare and check arguments

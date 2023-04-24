@@ -1,4 +1,4 @@
-import * as colorbrewer from "colorbrewer"
+import colorbrewer from "colorbrewer"
 import { Color } from "@ourworldindata/core-table"
 import { ColorSchemeInterface, ColorSchemeName } from "./ColorConstants"
 

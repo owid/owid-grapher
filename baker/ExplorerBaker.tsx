@@ -1,4 +1,4 @@
-import { mkdirp, writeFile, remove } from "fs-extra"
+import fs from "fs-extra"
 import path from "path"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { explorerUrlMigrationsById } from "../explorer/urlMigrations/ExplorerUrlMigrations.js"
@@ -11,8 +11,8 @@ export const bakeAllPublishedExplorers = async (
     explorerAdminServer: ExplorerAdminServer
 ) => {
     // remove all existing explorers, since we're re-baking every single one anyway
-    remove(outputFolder)
-    mkdirp(outputFolder)
+    fs.remove(outputFolder)
+    fs.mkdirp(outputFolder)
 
     const published = await explorerAdminServer.getAllPublishedExplorers()
     await bakeExplorersToDir(outputFolder, published)
@@ -63,7 +63,7 @@ export const bakeAllExplorerRedirects = async (
 
 // todo: merge with SiteBaker's?
 const write = async (outPath: string, content: string) => {
-    await mkdirp(path.dirname(outPath))
-    await writeFile(outPath, content)
+    await fs.mkdirp(path.dirname(outPath))
+    await fs.writeFile(outPath, content)
     console.log(outPath)
 }

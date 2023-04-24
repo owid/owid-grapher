@@ -1,6 +1,6 @@
 // Script to export the data_values for all variables attached to charts
 
-import * as path from "path"
+import path from "path"
 import * as db from "./db.js"
 import * as lodash from "lodash"
 import {

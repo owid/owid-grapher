@@ -153,7 +153,7 @@ import {
     TimelineController,
     TimelineManager,
 } from "../timeline/TimelineController"
-import * as Mousetrap from "mousetrap"
+import Mousetrap from "mousetrap"
 import { SlideShowController } from "../slideshowController/SlideShowController"
 import {
     ChartComponentClassMap,
