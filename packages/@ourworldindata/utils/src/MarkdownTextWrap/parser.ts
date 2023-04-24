@@ -326,7 +326,9 @@ const detailOnDemandContentParser: (
     )
 
 export function extractDetailsFromSyntax(str: string): string[] {
-    return [...str.matchAll(detailOnDemandRegex)].map(([_, term]) => term)
+    return [...str.matchAll(new RegExp(detailOnDemandRegex, "g"))].map(
+        ([_, term]) => term
+    )
 }
 
 const detailOnDemandParser: (r: MdParser) => P.Parser<DetailOnDemand> = (

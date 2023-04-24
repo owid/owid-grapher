@@ -16,7 +16,7 @@ export const gdocUrlRegex =
 // #dod:text-hyphenated
 // #dod:text_underscored
 // #dod:text_underscored-and-hyphenated
-export const detailOnDemandRegex = /#dod:([\w\-_]+)$/g
+export const detailOnDemandRegex = /#dod:([\w\-_]+)/
 
 export function getLinkType(urlString: string): OwidGdocLinkJSON["linkType"] {
     const url = Url.fromURL(urlString)
