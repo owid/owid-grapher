@@ -84,6 +84,7 @@ export {
     OwidGdocErrorMessageType,
     type OwidGdocLinkJSON,
     type OwidGdocInterface,
+    type OwidGdocTag,
     OwidGdocType,
     type OwidGdocJSON,
     type OwidGdocPublished,

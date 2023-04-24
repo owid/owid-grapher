@@ -54,7 +54,7 @@ import {
 } from "../adminSiteClient/CountryNameFormat.js"
 import { Dataset } from "../db/model/Dataset.js"
 import { User } from "../db/model/User.js"
-import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
+import { Gdoc, Tag } from "../db/model/Gdoc/Gdoc.js"
 import { Pageview } from "../db/model/Pageview.js"
 import {
     syncDatasetToGitRepo,
@@ -2330,6 +2330,9 @@ apiRouter.post("/posts/:postId/createGdoc", async (req: Request) => {
             400
         )
     }
+    const tagsByPostId = await getTagsByPostId()
+    const tags =
+        tagsByPostId.get(postId)?.map(({ id }) => Tag.create({ id })) || []
     const archieMl = JSON.parse(post.archieml) as OwidGdocInterface
     const gdocId = await createGdocAndInsertOwidGdocContent(
         archieMl.content,
@@ -2350,10 +2353,12 @@ apiRouter.post("/posts/:postId/createGdoc", async (req: Request) => {
 
         const gdoc = new Gdoc(gdocId)
         gdoc.slug = post.slug
+        gdoc.tags = tags
+        gdoc.content.title = post.title
         gdoc.published = false
         gdoc.createdAt = new Date()
         gdoc.publishedAt = post.published_at
-        await dataSource.getRepository(Gdoc).insert(gdoc)
+        await dataSource.getRepository(Gdoc).save(gdoc)
     }
 
     return { googleDocsId: gdocId }
@@ -2733,7 +2738,7 @@ apiRouter.put("/details/:id", async (req, res) => {
     return { success: true }
 })
 
-apiRouter.get("/gdocs", async () => Gdoc.find())
+apiRouter.get("/gdocs", async () => Gdoc.find({ relations: ["tags"] }))
 
 apiRouter.get("/gdocs/:id", async (req, res) => {
     const id = req.params.id
@@ -2743,7 +2748,7 @@ apiRouter.get("/gdocs/:id", async (req, res) => {
 
     try {
         const publishedExplorersBySlug =
-            await explorerAdminServer.getAllPublishedExplorersBySlug()
+            await explorerAdminServer.getAllPublishedExplorersBySlugCached()
 
         const gdoc = await Gdoc.getGdocFromContentSource(
             id,
@@ -2859,6 +2864,11 @@ apiRouter.delete("/gdocs/:id", async (req, res) => {
     const gdoc = await Gdoc.findOneBy({ id })
     if (!gdoc) throw new JsonError(`No Google Doc with id ${id} found`)
 
+    await db
+        .knexTable("posts")
+        .where({ gdocSuccessorId: gdoc.id })
+        .update({ gdocSuccessorId: null })
+
     await Link.delete({
         source: {
             id,
@@ -2869,5 +2879,22 @@ apiRouter.delete("/gdocs/:id", async (req, res) => {
     await triggerStaticBuild(res.locals.user, `Deleting ${gdoc.slug}`)
     return {}
 })
+
+apiRouter.post(
+    "/gdocs/:gdocId/setTags",
+    async (req: Request, res: Response) => {
+        const { gdocId } = req.params
+        const { tagIds } = req.body
+
+        const gdoc = await Gdoc.findOneBy({ id: gdocId })
+        if (!gdoc) return Error(`Unable to find Gdoc with ID: ${gdocId}`)
+        const tags = await dataSource
+            .getRepository(Tag)
+            .findBy({ id: In(tagIds) })
+        gdoc.tags = tags
+        await gdoc.save()
+        return { success: true }
+    }
+)
 
 export { apiRouter }

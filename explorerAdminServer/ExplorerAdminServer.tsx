@@ -9,13 +9,18 @@ import {
 } from "../explorer/ExplorerConstants.js"
 import { simpleGit, SimpleGit } from "simple-git"
 import { GitCommit, keyBy } from "@ourworldindata/utils"
+import { Dictionary } from "lodash"
 
 export class ExplorerAdminServer {
     constructor(gitDir: string) {
         this.gitDir = gitDir
+        this._cachedExplorers = null
+        this._cacheTime = new Date(0)
     }
 
     private gitDir: string
+    private _cachedExplorers: null | Dictionary<ExplorerProgram>
+    private _cacheTime: Date
 
     private _simpleGit?: SimpleGit
     private get simpleGit() {
@@ -93,5 +98,23 @@ export class ExplorerAdminServer {
         return Promise.all(
             explorerFiles.map((filename) => this.getExplorerFromFile(filename))
         )
+    }
+
+    // This operation takes ~5 seconds on prod, which is annoying for gdocs
+    // where we update the page every 5 seconds, so I'm caching the result every 30 minutes
+    // until we have Explorers in MySQL.
+    async getAllPublishedExplorersBySlugCached() {
+        // Check if the cached value is available and fresh
+        if (
+            this._cachedExplorers !== null &&
+            Date.now() - this._cacheTime.getTime() < 1000 * 60 * 30
+        ) {
+            return this._cachedExplorers
+        }
+
+        // Recalculate the value and cache it
+        this._cachedExplorers = await this.getAllPublishedExplorersBySlug()
+        this._cacheTime = new Date()
+        return this._cachedExplorers
     }
 }

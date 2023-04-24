@@ -906,6 +906,16 @@ export enum OwidGdocPublicationContext {
     listed = "listed",
 }
 
+export interface OwidGdocTag {
+    id: number
+    name: string
+    createdAt: Date
+    updatedAt: Date
+    parentId: number
+    isBulkImport: boolean
+    specialType: string
+}
+
 // A minimal object containing metadata needed for rendering prominent links etc in the client
 export interface LinkedChart {
     slug: string
@@ -934,6 +944,7 @@ export interface OwidGdocInterface {
     linkedDocuments?: Record<string, OwidGdocInterface>
     imageMetadata?: Record<string, ImageMetadata>
     errors?: OwidGdocErrorMessage[]
+    tags?: OwidGdocTag[]
 }
 
 export enum OwidGdocErrorMessageType {

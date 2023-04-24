@@ -4,8 +4,11 @@ import {
     BaseEntity,
     UpdateDateColumn,
     PrimaryColumn,
+    ManyToMany,
+    JoinTable,
 } from "typeorm"
 import {
+    OwidGdocTag,
     LinkedChart,
     OwidGdocContent,
     OwidGdocInterface,
@@ -47,6 +50,20 @@ import {
 import { EXPLORERS_ROUTE_FOLDER } from "../../../explorer/ExplorerConstants.js"
 import { formatUrls } from "../../../site/formatting.js"
 
+@Entity("tags")
+export class Tag extends BaseEntity implements OwidGdocTag {
+    static table = "tags"
+    @PrimaryColumn() id!: number
+    @Column() name!: string
+    @Column() createdAt!: Date
+    @Column({ nullable: true }) updatedAt!: Date
+    @Column({ nullable: true }) parentId!: number
+    @Column() isBulkImport!: boolean
+    @Column() specialType!: string
+    @ManyToMany(() => Gdoc, (gdoc) => gdoc.tags)
+    gdocs!: Gdoc[]
+}
+
 @Entity("posts_gdocs")
 export class Gdoc extends BaseEntity implements OwidGdocInterface {
     @PrimaryColumn() id!: string
@@ -59,6 +76,15 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
     @Column({ type: Date, nullable: true }) publishedAt: Date | null = null
     @UpdateDateColumn({ nullable: true }) updatedAt: Date | null = null
     @Column({ type: String, nullable: true }) revisionId: string | null = null
+
+    @ManyToMany(() => Tag)
+    @JoinTable({
+        name: "posts_gdocs_x_tags",
+        joinColumn: { name: "gdocId", referencedColumnName: "id" },
+        inverseJoinColumn: { name: "tagId", referencedColumnName: "id" },
+    })
+    tags!: Tag[]
+
     linkedCharts: Record<string, LinkedChart> = {}
     linkedDocuments: Record<string, Gdoc> = {}
     imageMetadata: Record<string, ImageMetadata> = {}
@@ -365,7 +391,12 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
         publishedExplorersBySlug: Record<string, any>,
         contentSource?: GdocsContentSource
     ): Promise<OwidGdocInterface> {
-        const gdoc = await Gdoc.findOneBy({ id })
+        const gdoc = await Gdoc.findOne({
+            where: {
+                id,
+            },
+            relations: ["tags"],
+        })
 
         if (!gdoc) throw new JsonError(`No Google Doc with id ${id} found`)
 
@@ -395,7 +426,7 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
         // mapGdocsToWordpressPosts(). This would make the Gdoc entity coming from
         // the database dependent on the mapping function, which is more practical
         // but also makes it less of a source of truth when considered in isolation.
-        return Gdoc.findBy({ published: true })
+        return Gdoc.find({ where: { published: true }, relations: ["tags"] })
     }
 
     static async getListedGdocs(): Promise<OwidGdocPublished[]> {
