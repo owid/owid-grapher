@@ -1587,22 +1587,29 @@ export class Grapher
     }
 
     @computed get canToggleRelativeMode(): boolean {
-        if (this.isLineChart)
+        const {
+            isLineChart,
+            hideRelativeToggle,
+            areHandlesOnSameTime,
+            yScaleType,
+            hasSingleEntityInFacets,
+            hasSingleMetricInFacets,
+            xColumnSlug,
+            isMarimekko,
+        } = this
+
+        if (isLineChart)
             return (
-                !this.hideRelativeToggle &&
-                !this.areHandlesOnSameTime &&
-                this.yScaleType !== ScaleType.log
+                !hideRelativeToggle &&
+                !areHandlesOnSameTime &&
+                yScaleType !== ScaleType.log
             )
 
-        // actually trying to exclude relative mode with just one metric
-        if (
-            this.isStackedDiscreteBar &&
-            this.facetStrategy !== FacetStrategy.none
-        )
-            return false
+        // actually trying to exclude relative mode with just one metric or entity
+        if (hasSingleEntityInFacets || hasSingleMetricInFacets) return false
 
-        if (this.isMarimekko && this.xColumnSlug === undefined) return false
-        return !this.hideRelativeToggle
+        if (isMarimekko && xColumnSlug === undefined) return false
+        return !hideRelativeToggle
     }
 
     // Filter data to what can be display on the map (across all times)
@@ -2010,6 +2017,21 @@ export class Grapher
         return this.yColumnSlugs.length > 1
     }
 
+    @computed private get hasSingleMetricInFacets(): boolean {
+        return (
+            this.isStackedDiscreteBar &&
+            this.selectedFacetStrategy !== FacetStrategy.none
+        )
+    }
+
+    @computed private get hasSingleEntityInFacets(): boolean {
+        return (
+            (this.isStackedArea || this.isStackedBar) &&
+            this.selection.numSelectedEntities === 1 &&
+            this.facetStrategy === FacetStrategy.metric
+        )
+    }
+
     @computed get availableFacetStrategies(): FacetStrategy[] {
         return this.chartInstance.availableFacetStrategies?.length
             ? this.chartInstance.availableFacetStrategies
@@ -2030,11 +2052,8 @@ export class Grapher
     set facetStrategy(facet: FacetStrategy) {
         this.selectedFacetStrategy = facet
 
-        if (
-            this.isStackedDiscreteBar &&
-            this.selectedFacetStrategy !== FacetStrategy.none
-        ) {
-            // actually trying to exclude relative mode with just one metric
+        if (this.hasSingleMetricInFacets || this.hasSingleEntityInFacets) {
+            // actually trying to exclude relative mode with just one metric or entity
             this.stackMode = StackMode.absolute
         }
     }
