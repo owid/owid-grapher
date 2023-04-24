@@ -29,7 +29,12 @@ import {
     AbstractStackedChart,
     AbstractStackedChartProps,
 } from "../stackedCharts/AbstractStackedChart"
-import { StackedPoint, StackedSeries } from "./StackedConstants"
+import {
+    StackedPlacedPoint,
+    StackedPlacedSeries,
+    StackedPoint,
+    StackedSeries,
+} from "./StackedConstants"
 import { stackSeries, withMissingValuesAsZeroes } from "./StackedUtils"
 import { makeClipPath } from "../chart/ChartUtils"
 import { bind } from "decko"
@@ -51,7 +56,7 @@ class Areas extends React.Component<AreasProps> {
         )
     }
 
-    @bind placePoint(point: StackedPoint<number>): [number, number] {
+    @bind placePoint(point: StackedPoint<number>): StackedPlacedPoint {
         const { dualAxis } = this.props
         const { horizontalAxis, verticalAxis } = dualAxis
         return [
@@ -60,62 +65,83 @@ class Areas extends React.Component<AreasProps> {
         ]
     }
 
-    @computed private get areas(): JSX.Element[] {
-        const { dualAxis, seriesArr } = this.props
+    // This places a whole series, but the points only represent the top of the area.
+    // Later steps are necessary to display them as a filled area.
+    @bind placeSeries(
+        series: StackedSeries<number>
+    ): Array<StackedPlacedPoint> {
+        const { dualAxis } = this.props
         const { horizontalAxis, verticalAxis } = dualAxis
 
-        // Stacked area chart stacks each series upon the previous series, so we must keep track of the last point set we used
-        let prevPoints = [] as Array<[number, number]>
-        return seriesArr.map((series) => {
-            let mainPoints: [number, number][] = []
-            if (series.points.length > 1) {
-                mainPoints = series.points.map(this.placePoint)
-            } else if (series.points.length === 1) {
-                // We only have one point, so make it so it stretches out over the whole x axis range
-                // There are two cases here that we need to consider:
-                // (1) In unfaceted charts, the x domain will be a single year, so we need to ensure that the area stretches
-                //     out over the full range of the x axis. We do this using AxisAlign.start and AxisAlign.end.
-                // (2) In faceted charts, the x domain may span multiple years, so we need to ensure that the area stretches
-                //     out only over year - 0.5 to year + 0.5, making sure we don't put points outside the x range.
-                //
-                // -@marcelgerber, 2023-04-24
-                const point = series.points[0]
-                const y = verticalAxis.place(point.value + point.valueOffset)
-                const singleValueXDomain =
-                    horizontalAxis.domain[0] === horizontalAxis.domain[1]
+        if (series.points.length > 1) {
+            return series.points.map(this.placePoint)
+        } else if (series.points.length === 1) {
+            // We only have one point, so make it so it stretches out over the whole x axis range
+            // There are two cases here that we need to consider:
+            // (1) In unfaceted charts, the x domain will be a single year, so we need to ensure that the area stretches
+            //     out over the full range of the x axis. We do this using AxisAlign.start and AxisAlign.end.
+            // (2) In faceted charts, the x domain may span multiple years, so we need to ensure that the area stretches
+            //     out only over year - 0.5 to year + 0.5, making sure we don't put points outside the x range.
+            //
+            // -@marcelgerber, 2023-04-24
+            const point = series.points[0]
+            const y = verticalAxis.place(point.value + point.valueOffset)
+            const singleValueXDomain =
+                horizontalAxis.domain[0] === horizontalAxis.domain[1]
 
-                if (singleValueXDomain) {
-                    // Case (1)
-                    mainPoints = [
-                        [horizontalAxis.range[0], y],
-                        [horizontalAxis.range[1], y],
-                    ]
-                } else {
-                    // Case (2)
-                    const leftX = Math.max(
-                        horizontalAxis.place(point.position - 0.5),
-                        horizontalAxis.range[0]
-                    )
-                    const rightX = Math.min(
-                        horizontalAxis.place(point.position + 0.5),
-                        horizontalAxis.range[1]
-                    )
+            if (singleValueXDomain) {
+                // Case (1)
+                return [
+                    [horizontalAxis.range[0], y],
+                    [horizontalAxis.range[1], y],
+                ]
+            } else {
+                // Case (2)
+                const leftX = Math.max(
+                    horizontalAxis.place(point.position - 0.5),
+                    horizontalAxis.range[0]
+                )
+                const rightX = Math.min(
+                    horizontalAxis.place(point.position + 0.5),
+                    horizontalAxis.range[1]
+                )
 
-                    mainPoints = [
-                        [leftX, y],
-                        [rightX, y],
-                    ]
-                }
-            }
-            if (!prevPoints.length && mainPoints.length) {
-                // If we're rendering the first series, we need to add a point at the bottom left and bottom right
-                prevPoints = [
-                    [mainPoints[0][0], verticalAxis.range[0]],
-                    [lastOfNonEmptyArray(mainPoints)[0], verticalAxis.range[0]],
+                return [
+                    [leftX, y],
+                    [rightX, y],
                 ]
             }
-            const points = mainPoints.concat(reverse(clone(prevPoints)) as any)
-            prevPoints = mainPoints
+        } else return []
+    }
+
+    @computed get placedSeriesArr(): StackedPlacedSeries<number>[] {
+        const { seriesArr } = this.props
+        return seriesArr.map((series) => ({
+            ...series,
+            placedPoints: this.placeSeries(series),
+        }))
+    }
+
+    @computed private get areas(): JSX.Element[] {
+        const { placedSeriesArr } = this
+        const { dualAxis } = this.props
+        const { verticalAxis } = dualAxis
+
+        return placedSeriesArr.map((series, index) => {
+            const { placedPoints } = series
+            let prevPoints: Array<StackedPlacedPoint>
+            if (index > 0) {
+                prevPoints = placedSeriesArr[index - 1].placedPoints
+            } else {
+                prevPoints = prevPoints = [
+                    [placedPoints[0][0], verticalAxis.range[0]],
+                    [
+                        lastOfNonEmptyArray(placedPoints)[0],
+                        verticalAxis.range[0],
+                    ],
+                ]
+            }
+            const points = [...placedPoints, ...reverse(clone(prevPoints))]
 
             return (
                 <path
@@ -132,19 +158,21 @@ class Areas extends React.Component<AreasProps> {
     }
 
     @computed private get borders(): JSX.Element[] {
-        const { seriesArr } = this.props
+        const { placedSeriesArr } = this
 
-        return seriesArr.map((series) => {
-            const points = series.points.map(this.placePoint)
-
+        return placedSeriesArr.map((placedSeries) => {
             return (
                 <path
-                    className={makeSafeForCSS(series.seriesName) + "-border"}
-                    key={series.seriesName + "-border"}
+                    className={
+                        makeSafeForCSS(placedSeries.seriesName) + "-border"
+                    }
+                    key={placedSeries.seriesName + "-border"}
                     strokeLinecap="round"
-                    d={pointsToPath(points)}
+                    d={pointsToPath(placedSeries.placedPoints)}
                     stroke={rgb(
-                        this.seriesIsBlur(series) ? BLUR_COLOR : series.color
+                        this.seriesIsBlur(placedSeries)
+                            ? BLUR_COLOR
+                            : placedSeries.color
                     )
                         .darker(0.5)
                         .toString()}
