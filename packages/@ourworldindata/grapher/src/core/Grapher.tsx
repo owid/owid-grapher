@@ -109,7 +109,6 @@ import { ComparisonLineConfig } from "../scatterCharts/ComparisonLine"
 import {
     ColumnSlugs,
     Time,
-    EntityId,
     EntityName,
     OwidColumnDef,
     OwidVariableRow,
@@ -150,7 +149,7 @@ import {
     TimelineController,
     TimelineManager,
 } from "../timeline/TimelineController"
-import * as Mousetrap from "mousetrap"
+import Mousetrap from "mousetrap"
 import { SlideShowController } from "../slideshowController/SlideShowController"
 import {
     ChartComponentClassMap,
@@ -355,7 +354,6 @@ export class Grapher
     @observable selectedEntityColors: {
         [entityName: string]: string | undefined
     } = {}
-    @observable selectedEntityIds: EntityId[] = []
     @observable excludedEntities?: number[] = undefined
     /** IncludedEntities are ususally empty which means use all available entites. When
         includedEntities is set it means "only use these entities". excludedEntities
@@ -819,8 +817,6 @@ export class Grapher
     @action.bound private applyOriginalSelectionAsAuthored(): void {
         if (this.selectedEntityNames.length)
             this.selection.setSelectedEntities(this.selectedEntityNames)
-        else if (this.selectedEntityIds.length)
-            this.selection.setSelectedEntitiesByEntityId(this.selectedEntityIds)
     }
 
     @observable private _baseFontSize = BASE_FONT_SIZE
@@ -1362,7 +1358,8 @@ export class Grapher
 
         const isPopulationVariableId = (id: string): boolean =>
             id === "525709" || // "Population (historical + projections), Gapminder, HYDE & UN"
-            id === "525711" // "Population (historical estimates), Gapminder, HYDE & UN"
+            id === "525711" || // "Population (historical estimates), Gapminder, HYDE & UN"
+            id === "597929" // "Population (various sources, 2023.1)"
 
         const columnSlugs = [...yColumnSlugs]
 
@@ -2335,18 +2332,19 @@ export class Grapher
         | undefined {
         const authoredConfig = this.legacyConfigAsAuthored
 
-        const originalSelectedEntityIds = authoredConfig.selectedEntityIds ?? []
-        const currentSelectedEntityIds = this.selection.allSelectedEntityIds
+        const originalSelectedEntityNames =
+            authoredConfig.selectedEntityNames ?? []
+        const currentSelectedEntityNames = this.selection.selectedEntityNames
 
-        const entityIdsThatTheUserDeselected = difference(
-            currentSelectedEntityIds,
-            originalSelectedEntityIds
+        const entityNamesThatTheUserDeselected = difference(
+            currentSelectedEntityNames,
+            originalSelectedEntityNames
         )
 
         if (
-            currentSelectedEntityIds.length !==
-                originalSelectedEntityIds.length ||
-            entityIdsThatTheUserDeselected.length
+            currentSelectedEntityNames.length !==
+                originalSelectedEntityNames.length ||
+            entityNamesThatTheUserDeselected.length
         )
             return this.selection.selectedEntityNames
 

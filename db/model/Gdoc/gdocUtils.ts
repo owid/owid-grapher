@@ -1,6 +1,6 @@
 import { Span } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
-import * as cheerio from "cheerio"
+import cheerio from "cheerio"
 
 export function spanToSimpleString(s: Span): string {
     return match(s)

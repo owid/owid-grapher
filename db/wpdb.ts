@@ -43,6 +43,7 @@ import {
 } from "./contentGraph.js"
 import { TOPICS_CONTENT_GRAPH } from "../settings/clientSettings.js"
 import { Gdoc } from "./model/Gdoc/Gdoc.js"
+import { Link } from "./model/Link.js"
 
 let _knexInstance: Knex
 
@@ -632,6 +633,16 @@ export const getRelatedArticles = async (
     if (!chartRecord.payload.count) return
 
     const chart = chartRecord.payload.records[0]
+    const publishedLinksToChart = await Link.getPublishedLinksTo(
+        [chart.slug],
+        "grapher"
+    )
+    const publishedGdocPostsThatReferenceChart: PostReference[] =
+        publishedLinksToChart.map((link) => ({
+            id: link.source.id,
+            title: link.source.content.title!,
+            slug: link.source.slug,
+        }))
     const relatedArticles: PostReference[] = await Promise.all(
         chart.embeddedIn.map(async (postId: any) => {
             const postRecord = await graph.find(GraphType.Document, postId)
@@ -643,7 +654,7 @@ export const getRelatedArticles = async (
             }
         })
     )
-    return relatedArticles
+    return [...relatedArticles, ...publishedGdocPostsThatReferenceChart]
 }
 
 export const getBlockContent = async (

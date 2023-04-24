@@ -599,11 +599,6 @@
         "editor": "numeric"
     },
     {
-        "type": "array",
-        "pointer": "/selectedEntityIds",
-        "editor": "primitiveListEditor"
-    },
-    {
         "type": "string",
         "pointer": "/addCountryMode",
         "default": "add-country",

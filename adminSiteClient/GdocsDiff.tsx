@@ -12,12 +12,22 @@ export const GdocsDiff = ({
 }) => (
     <ReactDiffViewer
         oldValue={stringify(
-            omit(originalGdoc, ["linkedDocuments", "imageMetadata", "errors"]),
+            omit(originalGdoc, [
+                "errors",
+                "imageMetadata",
+                "linkedCharts",
+                "linkedDocuments",
+            ]),
             null,
             2
         )}
         newValue={stringify(
-            omit(currentGdoc, ["linkedDocuments", "imageMetadata", "errors"]),
+            omit(currentGdoc, [
+                "errors",
+                "imageMetadata",
+                "linkedCharts",
+                "linkedDocuments",
+            ]),
             null,
             2
         )}

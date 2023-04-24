@@ -1,6 +1,6 @@
-import * as express from "express"
-import * as crypto from "crypto"
-import * as randomstring from "randomstring"
+import express from "express"
+import crypto from "crypto"
+import randomstring from "randomstring"
 import { User } from "../db/model/User.js"
 import * as db from "../db/db.js"
 import {

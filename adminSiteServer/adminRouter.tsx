@@ -1,6 +1,5 @@
 // Misc non-SPA views
-import { Request, Response, Router } from "express"
-import * as express from "express"
+import express, { Request, Response, Router } from "express"
 import rateLimit from "express-rate-limit"
 import filenamify from "filenamify"
 import React from "react"
@@ -10,7 +9,6 @@ import { logInWithCredentials, logOut } from "./authentication.js"
 import { LoginPage } from "./LoginPage.js"
 import * as db from "../db/db.js"
 import { Dataset } from "../db/model/Dataset.js"
-import { ENV } from "../settings/serverSettings.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import {
     renderExplorerPage,
@@ -37,7 +35,7 @@ import {
     ExplorerProgram,
     EXPLORER_FILE_SUFFIX,
 } from "../explorer/ExplorerProgram.js"
-import { existsSync } from "fs-extra"
+import fs from "fs-extra"
 import * as Post from "../db/model/Post.js"
 import { renderDataPageOrGrapherPage } from "../baker/GrapherBaker.js"
 import { Chart } from "../db/model/Chart.js"
@@ -107,10 +105,14 @@ adminRouter.post(
                 req.body.username,
                 req.body.password
             )
+            // secure cookie when using https
+            // (our staging servers use http and passing insecure cookie wouldn't work)
+            const secure = req.protocol === "https"
+
             res.cookie("sessionid", session.id, {
                 httpOnly: true,
                 sameSite: "lax",
-                secure: ENV === "production",
+                secure: secure,
             })
             res.redirect((req.query.next as string) || "/admin")
         } catch (err) {
@@ -244,7 +246,10 @@ adminRouter.get(`/${EXPLORERS_PREVIEW_ROUTE}/:slug`, async (req, res) => {
                 new ExplorerProgram(DefaultNewExplorerSlug, "")
             )
         )
-    if (!slug || !existsSync(explorerAdminServer.absoluteFolderPath + filename))
+    if (
+        !slug ||
+        !fs.existsSync(explorerAdminServer.absoluteFolderPath + filename)
+    )
         return res.send(`File not found`)
     const explorer = await explorerAdminServer.getExplorerFromFile(filename)
     return res.send(await renderExplorerPage(explorer))

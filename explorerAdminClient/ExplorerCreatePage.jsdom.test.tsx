@@ -3,12 +3,12 @@
 import React from "react"
 import { ExplorerCreatePage } from "./ExplorerCreatePage.js"
 
-import { configure, mount } from "enzyme"
+import Enzyme from "enzyme"
 import Adapter from "enzyme-adapter-react-16"
-configure({ adapter: new Adapter() })
+Enzyme.configure({ adapter: new Adapter() })
 
 describe(ExplorerCreatePage, () => {
-    const element = mount(
+    const element = Enzyme.mount(
         <ExplorerCreatePage
             slug={"sample"}
             gitCmsBranchName={"dev"}

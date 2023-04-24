@@ -3,6 +3,7 @@ import ReactDOM from "react-dom"
 import { ArticleBlocks } from "./ArticleBlocks.js"
 import Footnotes from "./Footnotes.js"
 import {
+    LinkedChart,
     OwidGdocInterface,
     getOwidGdocFromJSON,
     ImageMetadata,
@@ -14,9 +15,10 @@ import { DebugProvider } from "./DebugContext.js"
 import { OwidGdocHeader } from "./OwidGdocHeader.js"
 
 export const AttachmentsContext = createContext<{
+    linkedCharts: Record<string, LinkedChart>
     linkedDocuments: Record<string, OwidGdocInterface>
     imageMetadata: Record<string, ImageMetadata>
-}>({ linkedDocuments: {}, imageMetadata: {} })
+}>({ linkedDocuments: {}, imageMetadata: {}, linkedCharts: {} })
 
 export const DocumentContext = createContext<{ isPreviewing: boolean }>({
     isPreviewing: false,
@@ -30,6 +32,7 @@ export function OwidGdoc({
     content,
     publishedAt,
     slug,
+    linkedCharts = {},
     linkedDocuments = {},
     imageMetadata = {},
     isPreviewing = false,
@@ -57,7 +60,9 @@ export function OwidGdoc({
 }`
 
     return (
-        <AttachmentsContext.Provider value={{ linkedDocuments, imageMetadata }}>
+        <AttachmentsContext.Provider
+            value={{ linkedDocuments, imageMetadata, linkedCharts }}
+        >
             <DocumentContext.Provider value={{ isPreviewing }}>
                 <article className="centered-article-container grid grid-cols-12-full-width">
                     <OwidGdocHeader

@@ -1,4 +1,4 @@
-import { existsSync, readdir, readFile } from "fs-extra"
+import fs from "fs-extra"
 import {
     EXPLORER_FILE_SUFFIX,
     ExplorerProgram,
@@ -8,14 +8,19 @@ import {
     ExplorersRouteResponse,
 } from "../explorer/ExplorerConstants.js"
 import { simpleGit, SimpleGit } from "simple-git"
-import { GitCommit } from "@ourworldindata/utils"
+import { GitCommit, keyBy } from "@ourworldindata/utils"
+import { Dictionary } from "lodash"
 
 export class ExplorerAdminServer {
     constructor(gitDir: string) {
         this.gitDir = gitDir
+        this._cachedExplorers = null
+        this._cacheTime = new Date(0)
     }
 
     private gitDir: string
+    private _cachedExplorers: null | Dictionary<ExplorerProgram>
+    private _cacheTime: Date
 
     private _simpleGit?: SimpleGit
     private get simpleGit() {
@@ -23,7 +28,7 @@ export class ExplorerAdminServer {
             this._simpleGit = simpleGit({
                 baseDir: this.gitDir,
                 binary: "git",
-                maxConcurrentProcesses: 1,
+                maxConcurrentProcesses: 16, // we're getting one "git log" per explorer file, so concurrency makes a massive difference
             })
         return this._simpleGit
     }
@@ -59,7 +64,7 @@ export class ExplorerAdminServer {
     // todo: make private? once we remove covid legacy stuff?
     async getExplorerFromFile(filename: string) {
         const fullPath = this.absoluteFolderPath + filename
-        const content = await readFile(fullPath, "utf8")
+        const content = await fs.readFile(fullPath, "utf8")
         const commits = await this.simpleGit.log({ file: fullPath, n: 1 })
         return new ExplorerProgram(
             filename.replace(EXPLORER_FILE_SUFFIX, ""),
@@ -77,19 +82,39 @@ export class ExplorerAdminServer {
         return explorers.filter((exp) => exp.isPublished)
     }
 
-    async getAllExplorers() {
-        if (!existsSync(this.absoluteFolderPath)) return []
-        const files = await readdir(this.absoluteFolderPath)
+    async getAllPublishedExplorersBySlug() {
+        return this.getAllPublishedExplorers().then((publishedExplorers) =>
+            keyBy(publishedExplorers, "slug")
+        )
+    }
+
+    async getAllExplorers(): Promise<ExplorerProgram[]> {
+        if (!fs.existsSync(this.absoluteFolderPath)) return []
+        const files = await fs.readdir(this.absoluteFolderPath)
         const explorerFiles = files.filter((filename) =>
             filename.endsWith(EXPLORER_FILE_SUFFIX)
         )
 
-        const explorers: ExplorerProgram[] = []
-        for (const filename of explorerFiles) {
-            const explorer = await this.getExplorerFromFile(filename)
+        return Promise.all(
+            explorerFiles.map((filename) => this.getExplorerFromFile(filename))
+        )
+    }
 
-            explorers.push(explorer)
+    // This operation takes ~5 seconds on prod, which is annoying for gdocs
+    // where we update the page every 5 seconds, so I'm caching the result every 30 minutes
+    // until we have Explorers in MySQL.
+    async getAllPublishedExplorersBySlugCached() {
+        // Check if the cached value is available and fresh
+        if (
+            this._cachedExplorers !== null &&
+            Date.now() - this._cacheTime.getTime() < 1000 * 60 * 30
+        ) {
+            return this._cachedExplorers
         }
-        return explorers
+
+        // Recalculate the value and cache it
+        this._cachedExplorers = await this.getAllPublishedExplorersBySlug()
+        this._cacheTime = new Date()
+        return this._cachedExplorers
     }
 }

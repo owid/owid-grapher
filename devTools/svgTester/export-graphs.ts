@@ -2,21 +2,29 @@
 
 import parseArgs from "minimist"
 import * as utils from "./utils.js"
-import * as fs from "fs-extra"
+import fs from "fs-extra"
 
-import * as path from "path"
+import path from "path"
 import workerpool from "workerpool"
+
+function parseArgAsList(arg?: unknown): string[] {
+    return (arg ?? "")
+        .toString()
+        .split(",")
+        .filter((entry: string) => entry)
+}
+
 async function main(parsedArgs: parseArgs.ParsedArgs) {
     try {
-        const inDir = parsedArgs["i"] ?? "grapherData"
-        let outDir = parsedArgs["o"] ?? "grapherSvgs"
-        const targetConfigs: string[] = (parsedArgs["c"] ?? "")
-            .toString()
-            .split(",")
-            .map(String)
-            .filter((entry: string) => entry)
+        const inDir = parsedArgs["i"] ?? "../owid-grapher-svgs/configs"
+        let outDir = parsedArgs["o"] ?? "../owid-grapher-svgs/svg"
+        const targetConfigs: string[] = parseArgAsList(parsedArgs["c"])
+        const targetChartTypes: string[] = parseArgAsList(parsedArgs["t"])
 
-        if (targetConfigs.length) {
+        // create a directory that contains the old and new svgs for easy comparing
+        const enableComparisons =
+            targetConfigs.length || targetChartTypes.length
+        if (enableComparisons) {
             outDir = path.join(outDir, "comparisons")
         }
 
@@ -28,12 +36,32 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         const directories = []
         for await (const entry of dir) {
             if (entry.isDirectory()) {
-                if (!targetConfigs.length) {
+                if (!targetConfigs.length && !targetChartTypes.length) {
                     directories.push(entry.name)
-                } else if (targetConfigs.includes(entry.name)) {
+                    continue
+                }
+
+                if (targetConfigs.includes(entry.name)) {
                     directories.push(entry.name)
+                    continue
+                }
+
+                const configPath = path.join(inDir, entry.name, "config.json")
+                const config = await fs.readJson(configPath)
+
+                if (targetChartTypes.includes(config.type ?? "LineChart")) {
+                    directories.push(entry.name)
+                    continue
                 }
             }
+        }
+
+        const n = directories.length
+        if (n === 0) {
+            console.log("No matching configs found")
+            process.exit(0)
+        } else {
+            console.log(`Generating ${n} SVG${n > 1 ? "s" : ""}...`)
         }
 
         const jobDescriptions: utils.RenderSvgAndSaveJobDescription[] =
@@ -49,7 +77,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         )
 
         // Copy over copies from master for easy comparing
-        if (targetConfigs.length) {
+        if (enableComparisons) {
             const comparisonDir = await fs.opendir(outDir)
             const filenames: string[] = []
             for await (const file of comparisonDir) {
@@ -64,6 +92,10 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
                     await fs.copyFile(
                         path.join(svgPath, file.name),
                         path.join(outDir, file.name.replace(".svg", "_old.svg"))
+                    )
+                    await fs.copyFile(
+                        path.join(outDir, file.name),
+                        path.join(svgPath, file.name)
                     )
                 }
             }
@@ -86,12 +118,13 @@ if (parsedArgs["h"] || parsedArgs["help"]) {
     console.log(`export-graphs.js - utility to export grapher svg renderings and a summary csv file
 
 Usage:
-    export-graphs.js (-i DIR) (-o DIR) (-c ID)
+    export-graphs.js (-i DIR) (-o DIR) (-c ID) (-t TYPE)
 
 Options:
-    -i DIR         Input directory containing the data. [default: grapherData]
-    -o DIR         Output directory that will contain the csv file and one svg file per grapher [default: grapherSvgs]
+    -i DIR         Input directory containing the data. [default: ../owid-grapher-svgs/configs]
+    -o DIR         Output directory that will contain the csv file and one svg file per grapher [default: ../owid-grapher-svgs/svg]
     -c ID          A comma-separated list of config IDs that you want to run instead of generating SVGs from all configs [default: undefined]
+    -t TYPE        A comma-separated list of chart types that you want to run instead of generating SVGs from all configs [default: undefined]
     `)
     process.exit(0)
 } else {

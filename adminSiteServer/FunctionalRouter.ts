@@ -1,5 +1,4 @@
-import * as express from "express"
-import { Router } from "express"
+import express, { Router } from "express"
 import { Request, Response } from "./authentication.js"
 
 // Little wrapper to automatically send returned objects as JSON, makes

@@ -1,5 +1,5 @@
 import express, { Router } from "express"
-import * as path from "path"
+import path from "path"
 import {
     renderFrontPage,
     renderGdocsPageBySlug,
@@ -229,10 +229,8 @@ mockSiteRouter.get("/dods.json", async (_, res) => {
         )
         res.send([])
     } else {
-        const dodGdoc = await Gdoc.getGdocFromContentSource(
-            GDOCS_DETAILS_ON_DEMAND_ID
-        )
-        res.send(dodGdoc.content.details)
+        const details = await Gdoc.getDetailsOnDemandGdoc()
+        res.send(details)
     }
 })
 
@@ -241,7 +239,9 @@ mockSiteRouter.get("/*", async (req, res) => {
 
     try {
         res.send(await renderGdocsPageBySlug(slug))
-    } catch (e) {}
+    } catch (e) {
+        console.error(e)
+    }
 
     try {
         res.send(await renderPageBySlug(slug))

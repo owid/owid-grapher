@@ -29,7 +29,12 @@ interface EntitySelection {
     color?: string
 }
 
-interface GrapherInterfaceBeforeMigration extends GrapherInterface {
+interface GrapherInterfaceAfterMigration extends GrapherInterface {
+    selectedEntityIds?: number[]
+}
+
+interface GrapherInterfaceBeforeMigration
+    extends GrapherInterfaceAfterMigration {
     selectedData?: EntitySelection[]
 }
 

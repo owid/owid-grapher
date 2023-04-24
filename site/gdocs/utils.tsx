@@ -7,17 +7,43 @@ import {
     SpanLink,
     OwidGdocInterface,
     ImageMetadata,
+    LinkedChart,
 } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
 import { AttachmentsContext } from "./OwidGdoc.js"
 
 export const useLinkedDocument = (
     url: string
-): OwidGdocInterface | undefined => {
+): { linkedDocument?: OwidGdocInterface; errorMessage?: string } => {
+    let errorMessage: string | undefined = undefined
     const { linkedDocuments } = useContext(AttachmentsContext)
     const urlTarget = getUrlTarget(url)
+    const linkType = getLinkType(url)
     const linkedDocument = linkedDocuments?.[urlTarget]
-    return linkedDocument
+    if (linkType === "gdoc") {
+        if (!linkedDocument) {
+            errorMessage = `Google doc URL ${url} isn't registered.`
+        } else if (!linkedDocument.published) {
+            errorMessage = `Article with slug "${linkedDocument.slug}" isn't published.`
+        }
+    }
+    return { linkedDocument, errorMessage }
+}
+
+export const useLinkedChart = (
+    url: string
+): { linkedChart?: LinkedChart; errorMessage?: string } => {
+    let errorMessage: string | undefined = undefined
+    const { linkedCharts } = useContext(AttachmentsContext)
+    const urlTarget = getUrlTarget(url)
+    const linkType = getLinkType(url)
+    const linkedChart = linkedCharts?.[urlTarget]
+    if (linkType === "grapher" || linkType === "explorer") {
+        if (!linkedChart) {
+            errorMessage = `${linkType} chart with slug ${urlTarget} not found`
+        }
+    }
+    return { linkedChart, errorMessage }
 }
 
 export const useImage = (
@@ -31,7 +57,8 @@ export const useImage = (
 
 const LinkedA = ({ span }: { span: SpanLink }): JSX.Element => {
     const linkType = getLinkType(span.url)
-    const linkedDocument = useLinkedDocument(span.url)
+    const { linkedDocument } = useLinkedDocument(span.url)
+    const { linkedChart } = useLinkedChart(span.url)
 
     if (linkType === "url") {
         return (
@@ -41,6 +68,13 @@ const LinkedA = ({ span }: { span: SpanLink }): JSX.Element => {
                 rel="noopener noreferrer"
                 className="span-link"
             >
+                {renderSpans(span.children)}
+            </a>
+        )
+    }
+    if (linkedChart) {
+        return (
+            <a href={`/${linkedChart.slug}`} className="span-link">
                 {renderSpans(span.children)}
             </a>
         )

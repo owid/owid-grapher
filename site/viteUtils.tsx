@@ -8,6 +8,9 @@ import { sortBy } from "@ourworldindata/utils"
 
 const VITE_DEV_URL = process.env.VITE_DEV_URL ?? "http://localhost:8090"
 
+export const VITE_SITE_ASSET = "site/owid.entry.ts"
+export const VITE_ADMIN_ASSET = "admin/admin.entry.ts"
+
 // We ALWAYS load Google Fonts and polyfills.
 
 const googleFontsStyles = (

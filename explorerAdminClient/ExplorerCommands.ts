@@ -126,11 +126,3 @@ export class AutofillColDefCommand extends HotCommand {
             : true
     }
 }
-
-export class InlineDataCommand extends AutofillColDefCommand {
-    name() {
-        return "⚡ Inline data and autofill columns"
-    }
-    commandName: keyof ExplorerProgram =
-        "replaceTableWithInlineDataAndAutofilledColumnDefsCommand"
-}

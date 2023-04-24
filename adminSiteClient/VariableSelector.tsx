@@ -403,9 +403,11 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
     }
 
     @action.bound onSearchInput(input: string) {
-        this.searchInput = input
-        this.rowOffset = 0
-        this.scrollElement.scrollTop = 0
+        if (this.searchInput !== input) {
+            this.searchInput = input
+            this.rowOffset = 0
+            this.scrollElement.scrollTop = 0
+        }
     }
 
     @action.bound selectVariable(variable: Variable) {

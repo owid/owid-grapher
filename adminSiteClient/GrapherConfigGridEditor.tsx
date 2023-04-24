@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import {
     GrapherConfigPatch,
     applyPatch,
@@ -14,6 +14,7 @@ import {
     Operation,
     getWindowUrl,
     setWindowUrl,
+    excludeNull,
 } from "@ourworldindata/utils"
 import {
     DragDropContext,
@@ -113,7 +114,7 @@ function HotColorScaleRenderer() {
  * at the same time we don't want the user to be able to edit the cells directly (instead
  * they should use the sidebar editor)
  */
-class HotColorScaleEditor extends BaseEditorComponent<Record<string, never>> {
+class HotColorScaleEditor extends BaseEditorComponent<any> {
     constructor(props: Record<string, never>) {
         super(props)
     }
@@ -849,7 +850,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             afterChange: (changes, source) =>
                 this.processChangedCells(changes, source),
             beforeChange: (changes, source) =>
-                this.validateCellChanges(changes, source),
+                this.validateCellChanges(excludeNull(changes), source),
             afterSelectionEnd: (row, column, row2, column2 /*, layer*/) => {
                 this.updateSelection(row, column, row2, column2)
             },
