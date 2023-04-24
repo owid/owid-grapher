@@ -2606,53 +2606,6 @@ apiRouter.put("/deploy", async (req: Request, res: Response) => {
     triggerStaticBuild(res.locals.user, "Manually triggered deploy")
 })
 
-apiRouter.get("/details", async () => ({
-    details: await db.queryMysql(
-        `SELECT id, category, term, title, content FROM details`
-    ),
-}))
-
-apiRouter.post("/details", async (req) => {
-    const { category, term, title, content } = req.body
-    const result = await db.execute(
-        `INSERT INTO details (category, term,title, content) VALUES (?, ?, ?, ?)`,
-        [category, term, title, content]
-    )
-
-    return {
-        success: true,
-        id: result.insertId,
-    }
-})
-
-apiRouter.delete("/details/:id", async (req) => {
-    const { id } = req.params
-    const matches = await db.queryMysql(
-        `SELECT id, category, term, title, content FROM details WHERE id = ?`,
-        [id]
-    )
-
-    if (!matches.length) {
-        throw new JsonError(`No detail with id ${id} found`)
-    }
-
-    const match = matches[0]
-
-    const references: { id: number; config: string }[] = await db.queryMysql(
-        `SELECT id, config FROM charts WHERE config LIKE '%(hover::${match.category}::${match.term})%'`
-    )
-
-    if (references.length) {
-        const ids = references.map((x) => x.id).join(", ")
-        throw new JsonError(
-            `Detail is being used by the following Graphers: ${ids}`
-        )
-    }
-
-    await db.execute(`DELETE FROM details WHERE id=?`, [id])
-    return { success: true }
-})
-
 apiRouter.get("/gdocs", async () => Gdoc.find())
 
 apiRouter.get("/gdocs/:id", async (req, res) => {
