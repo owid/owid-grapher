@@ -100,6 +100,9 @@ export class ExplorerAdminServer {
         )
     }
 
+    // This operation takes ~5 seconds on prod, which is annoying for gdocs
+    // where we update the page every 5 seconds, so I'm caching the result every 30 minutes
+    // until we have Explorers in MySQL.
     async getAllPublishedExplorersBySlugCached() {
         // Check if the cached value is available and fresh
         if (
