@@ -1991,8 +1991,7 @@ export class Grapher
 
         return (
             showFacetControlChartType &&
-            !hasProjection &&
-            yColumnSlugs.length <= 2
+            (!hasProjection || yColumnSlugs.length <= 2)
         )
     }
 
