@@ -10,7 +10,7 @@ import {
     excludeUndefined,
     isMobile,
     Time,
-    AxisAlign,
+    lastOfNonEmptyArray,
 } from "@ourworldindata/utils"
 import { computed, action, observable } from "mobx"
 import { SeriesName } from "../core/GrapherConstants"
@@ -111,7 +111,7 @@ class Areas extends React.Component<AreasProps> {
                 // If we're rendering the first series, we need to add a point at the bottom left and bottom right
                 prevPoints = [
                     [mainPoints[0][0], verticalAxis.range[0]],
-                    [mainPoints.at(-1)![0], verticalAxis.range[0]],
+                    [lastOfNonEmptyArray(mainPoints)[0], verticalAxis.range[0]],
                 ]
             }
             const points = mainPoints.concat(reverse(clone(prevPoints)) as any)
@@ -132,18 +132,10 @@ class Areas extends React.Component<AreasProps> {
     }
 
     @computed private get borders(): JSX.Element[] {
-        const { dualAxis, seriesArr } = this.props
-        const { horizontalAxis, verticalAxis } = dualAxis
+        const { seriesArr } = this.props
 
-        // Stacked area chart stacks each series upon the previous series, so we must keep track of the last point set we used
         return seriesArr.map((series) => {
-            const points = series.points.map(
-                (point) =>
-                    [
-                        horizontalAxis.place(point.position),
-                        verticalAxis.place(point.value + point.valueOffset),
-                    ] as [number, number]
-            )
+            const points = series.points.map(this.placePoint)
 
             return (
                 <path
