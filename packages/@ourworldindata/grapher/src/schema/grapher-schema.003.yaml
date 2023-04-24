@@ -478,12 +478,6 @@ properties:
                     description: The variable id to get the values for this time series
                     minimum: 0
             additionalProperties: false
-    selectedEntityIds:
-        type: array
-        description: The selected entities
-        items:
-            type: integer
-            minimum: 0
     addCountryMode:
         type: string
         description: Whether the user can change countries, add additional ones or neither
