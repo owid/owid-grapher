@@ -526,13 +526,13 @@ export {
 } from "./MarkdownTextWrap/MarkdownTextWrap.js"
 
 export {
-    detailOnDemandRegex,
     extractDetailsFromSyntax,
     mdParser,
 } from "./MarkdownTextWrap/parser.js"
 
 export {
     gdocUrlRegex,
+    detailOnDemandRegex,
     getLinkType,
     getUrlTarget,
     checkIsInternalLink,

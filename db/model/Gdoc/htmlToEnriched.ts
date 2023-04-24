@@ -24,6 +24,7 @@ import {
     EnrichedBlockNumberedList,
     EnrichedBlockProminentLink,
     BlockImageSize,
+    detailOnDemandRegex,
 } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
 import { compact, flatten, isPlainObject, partition } from "lodash"
@@ -120,7 +121,7 @@ export function cheerioToSpan(element: CheerioElement): Span | undefined {
                 if (className === "ref") {
                     return { spanType: "span-ref", children, url }
                 }
-                const dod = url.match(/#dod:([\w\-_]+)$/)
+                const dod = url.match(detailOnDemandRegex)
                 if (dod) {
                     return { spanType: "span-dod", children, id: dod[1] }
                 }

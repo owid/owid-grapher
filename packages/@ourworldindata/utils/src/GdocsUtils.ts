@@ -7,6 +7,10 @@ import { OwidGdocLinkJSON } from "./owidTypes.js"
 // https://docs.google.com/document/u/0/d/abcd-1234/edit?usp=sharing
 export const gdocUrlRegex = /https:\/\/docs\.google\.com\/.+?\/([-\w]+)\/edit/
 
+// Works for:
+
+export const detailOnDemandRegex = /#dod:([\w\-_]+)$/g
+
 export function getLinkType(url: string): OwidGdocLinkJSON["linkType"] {
     if (url.match(gdocUrlRegex)) {
         return "gdoc"

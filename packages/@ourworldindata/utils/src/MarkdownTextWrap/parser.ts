@@ -1,5 +1,5 @@
 import P from "parsimmon"
-
+import { detailOnDemandRegex } from "../GdocsUtils.js"
 // An AST inspired by MDAST
 // Deviates because we want to track individual words, whitespace, and newlines to use with MarkdownTextWrap and our SVG exporter
 
@@ -324,8 +324,6 @@ const detailOnDemandContentParser: (
         r.plainItalic,
         r.nonBracketWord
     )
-
-export const detailOnDemandRegex = /\(#dod:(\w+)\)/g
 
 export function extractDetailsFromSyntax(str: string): string[] {
     return [...str.matchAll(detailOnDemandRegex)].map(([_, term]) => term)

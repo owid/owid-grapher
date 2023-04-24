@@ -203,9 +203,7 @@ describe("mdast parsers", () => {
     })
 
     it("mdParser can parse detail on demand syntax", () => {
-        expect(
-            mdParser.markdown.parse("[**dod**](hover::general::thing)")
-        ).toEqual({
+        expect(mdParser.markdown.parse("[**dod**](#dod:thing)")).toEqual({
             status: true,
             value: {
                 type: "MarkdownRoot",
@@ -223,16 +221,13 @@ describe("mdast parsers", () => {
                                 ],
                             },
                         ],
-                        category: "general",
                         term: "thing",
                     },
                 ],
             },
         })
         expect(
-            mdParser.markdown.parse(
-                "[a dod with multiple words](hover::general::thing)"
-            )
+            mdParser.markdown.parse("[a dod with multiple words](#dod:thing)")
         ).toEqual({
             status: true,
             value: {
