@@ -1965,32 +1965,34 @@ export class Grapher
     }
 
     @computed get showFacetControl(): boolean {
-        let {
+        const {
             hideFacetControl,
             filledDimensions,
             yColumnSlugs,
             availableFacetStrategies,
+            isStackedArea,
+            isStackedBar,
+            isStackedDiscreteBar,
+            isLineChart,
         } = this
 
-        // show facet control for some chart types by default
-        if (hideFacetControl == undefined) {
-            hideFacetControl =
-                !this.isStackedArea &&
-                !this.isStackedBar &&
-                !this.isStackedDiscreteBar &&
-                !this.isLineChart
-        }
+        if (hideFacetControl != undefined) return !hideFacetControl
+
+        // heuristic: if the chart doesn't make sense unfaceted, then it probably
+        // also makes sense to let the user switch between entity/metric facets
+        if (!availableFacetStrategies.includes(FacetStrategy.none)) return true
+
+        const showFacetControlChartType =
+            isStackedArea || isStackedBar || isStackedDiscreteBar || isLineChart
 
         const hasProjection = filledDimensions.some(
             (dim) => dim.display.isProjection
         )
 
         return (
-            (!hasProjection || yColumnSlugs.length <= 2) &&
-            (!hideFacetControl ||
-                // heuristic: if the chart doesn't make sense unfaceted, then it probably
-                // also makes sense to let the user switch between entity/metric facets
-                !availableFacetStrategies.includes(FacetStrategy.none))
+            showFacetControlChartType &&
+            !hasProjection &&
+            yColumnSlugs.length <= 2
         )
     }
 
