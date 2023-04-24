@@ -96,7 +96,12 @@ export const renderDataPageOrGrapherPage = async (
 
     const datapageGdoc = !googleDocId
         ? undefined
-        : isPreviewing
+        : // When previewing, we want to render the datapage from the live gdoc,
+        // but only if the user has set up the necessary auth keys to access the
+        // Google Doc API. This won't be the case for external contributors or
+        // possibly data engineers focusing on the data pipeline. In those
+        // cases, we grab the gdoc found in the database, if any.
+        isPreviewing && Gdoc.areGdocAuthKeysSet()
         ? await Gdoc.getGdocFromContentSource(
               googleDocId,
               GdocsContentSource.Gdocs
