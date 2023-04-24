@@ -57,6 +57,14 @@ const legacySlugs = {
   TLS: "timor",
 }
 
+const aliasNames = {
+  ARE: ["UAE"],
+  CZE: ["Czech Republic"],
+  GBR: ["UK"],
+  MKD: ["Macedonia"],
+  SWZ: ["Swaziland"],
+  USA: ["US", "USA"],
+}
 
 /*
  * Copies of the original grapher mappings from countries.ts, EntityCodes.ts, and WorldRegionsToProjection.ts
@@ -113,6 +121,26 @@ async function findChanges(){
   }
   console.log('Note: "Caribbean Netherlands" (OWID_NLC) is now an alias for "Bonaire Sint Eustatius and Saba" (BES)')
 
+  console.log('\nAdded entities:')
+  let outlinedStates = _.map(origMapTopology.objects.world.geometries, 'id')
+  let HISTORICAL_ENTITIES = [
+    'OWID_AUH', 'OWID_CZS', 'OWID_GDR', 'OWID_ERE', 'ANT',
+    'OWID_RVN', 'OWID_SRM', 'OWID_SDN', 'OWID_USS', 'OWID_KRU',
+    'OWID_GFR', 'OWID_YAR', 'OWID_YPR', 'OWID_YGS'
+  ]
+
+  for (let state of countries){
+    if (!origCountries.find((c:any) => c.code==state.code)){
+      let mappable = outlinedStates.includes(state.name) ? "✅" : "❌",
+          historical = HISTORICAL_ENTITIES.includes(state.code) ? "✅" : "❌",
+          getsPage = "❌"
+      console.log(`  ${state?.code}: ${state?.name} (map:${ mappable } historical:${historical}, page:${getsPage})`)
+
+
+    }
+  }
+
+
   console.log('\nChanged entity names:')
   for (let code of _.keys(origEntityCodes)){
     let reference = entities.find((c:any) => c.code===code)
@@ -128,6 +156,13 @@ async function findChanges(){
 
     if (refSlug !== country?.slug){
       console.log(`  ${country?.code}: ${country?.slug} → ${refSlug}`)
+    }
+  }
+
+  console.log('\nAlternate names for search:')
+  for (let {code, variantNames} of _.values(origCountries)){
+    if (!!variantNames){
+      console.log(`  ${code}: ${variantNames}`)
     }
   }
 
