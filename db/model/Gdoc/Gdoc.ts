@@ -70,7 +70,9 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
         if (id) {
             this.id = id
         }
-        this.content = {}
+        this.content = {
+            authors: ["Our World In Data"],
+        }
     }
     static table = "posts_gdocs"
     static cachedGoogleReadonlyAuth?: Auth.GoogleAuth

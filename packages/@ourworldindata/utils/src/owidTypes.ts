@@ -1024,7 +1024,7 @@ export interface OwidGdocContent {
     supertitle?: string
     subtitle?: string
     template?: string
-    byline?: string
+    authors: string[]
     dateline?: string
     excerpt?: string
     cover?: string
@@ -1060,7 +1060,6 @@ export type OwidGdocStickyNavItem = { target: string; text: string }
 export interface OwidGdocContentPublished extends OwidGdocContent {
     body: OwidEnrichedGdocBlock[]
     title: string
-    byline: string
     excerpt: string
 }
 

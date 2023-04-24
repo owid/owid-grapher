@@ -38,20 +38,15 @@ export function OwidGdoc({
     imageMetadata = {},
     isPreviewing = false,
 }: OwidGdocProps) {
-    // Until authors comes as structured data, we need to parse them from the byline string
-    const authors = content?.byline?.replace(/\s*,\s*/g, ",").split(",") || [
-        "Our World in Data",
-    ]
-
     const citationText = `${formatAuthors({
-        authors,
+        authors: content.authors,
     })} (${publishedAt?.getFullYear()}) - "${
         content.title
     }". Published online at OurWorldInData.org. Retrieved from: '${`${BAKED_BASE_URL}/${slug}`}' [Online Resource]`
 
     const bibtex = `@article{owid${slug.replace(/-/g, "")},
     author = {${formatAuthors({
-        authors,
+        authors: content.authors,
         forBibtex: true,
     })}},
     title = {${content.title}},
@@ -69,7 +64,7 @@ export function OwidGdoc({
                 <article className="centered-article-container grid grid-cols-12-full-width">
                     <OwidGdocHeader
                         content={content}
-                        authors={authors}
+                        authors={content.authors}
                         publishedAt={publishedAt}
                     />
                     {content.type === "topic-page" && stickyNavLinks ? (

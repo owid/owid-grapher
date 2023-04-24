@@ -1371,16 +1371,6 @@ export function recursivelyMapArticleContent(
                 recursivelyMapArticleContent(node, callback)
             )
         }
-    } else if (node.type === "recirc") {
-        node.links.map((link) => callback(link))
-    } else if (node.type === "topic-page-intro") {
-        if (node.downloadButton) callback(node.downloadButton)
-        node.relatedTopics?.forEach((relatedTopic) => callback(relatedTopic))
-        node.content.forEach((spans) =>
-            spans.forEach((span) =>
-                recursivelyMapArticleContent(span, callback)
-            )
-        )
     } else if (node.type === "gray-section") {
         node.items.map((block) => recursivelyMapArticleContent(block, callback))
     } else if (
@@ -1400,6 +1390,13 @@ export function recursivelyMapArticleContent(
         node.items.map((item) =>
             recursivelyMapArticleContent(item.chart, callback)
         )
+    } else if (node.type === "recirc") {
+        node.links.map((link) => callback(link))
+    } else if (node.type === "topic-page-intro") {
+        const { downloadButton, relatedTopics, content } = node
+        content.forEach((spans) => spans.forEach(callback))
+        if (downloadButton) callback(downloadButton)
+        if (relatedTopics) relatedTopics.forEach(callback)
     }
 
     return callback(node)

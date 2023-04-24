@@ -14,12 +14,10 @@ function RecircItem({ url }: { url: string }) {
                     {linkedDocument.content.title}
                 </a>
             </h3>
-            {linkedDocument.content.byline ? (
+            {linkedDocument.content.authors ? (
                 <div className="body-3-medium-italic">
                     {formatAuthors({
-                        authors: linkedDocument.content.byline
-                            .replace(/\s*,\s*/g, ",")
-                            .split(","),
+                        authors: linkedDocument.content.authors,
                     })}
                 </div>
             ) : null}

@@ -38,7 +38,7 @@ function* owidArticleToArchieMLStringGenerator(
     yield* propertyToArchieMLString("subtitle", article)
     yield* propertyToArchieMLString("supertitle", article)
     yield* propertyToArchieMLString("template", article)
-    yield* propertyToArchieMLString("byline", article)
+    yield* propertyToArchieMLString("authors", article)
     yield* propertyToArchieMLString("dateline", article)
     yield* propertyToArchieMLString("excerpt", article)
     // TODO: inline refs
