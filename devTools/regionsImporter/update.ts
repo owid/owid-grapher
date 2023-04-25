@@ -116,20 +116,16 @@ async function main() {
             .value()
     })
 
-    // generate new regions.json file compare to old version
+    // generate new regions.json file and compare to old version
     let newRegions = prettifiedJson(entities),
         oldRegions = await readFile(GRAPHER_REGIONS_PATH).catch((e) => ""),
         newHash = createHash("md5").update(newRegions).digest("hex"),
-        oldHash = createHash("md5").update(oldRegions).digest("hex")
+        oldHash = createHash("md5").update(oldRegions).digest("hex"),
+        message = newHash === oldHash ? "No changes" : "Contents changed"
     await writeFile(GRAPHER_REGIONS_PATH, newRegions)
 
     // report changes (if any)
-    console.log(
-        `${
-            newHash === oldHash ? "No changes" : "Contents changed"
-        }: ${GRAPHER_REGIONS_PATH}`
-    )
-
+    console.log(`${message}: ${GRAPHER_REGIONS_PATH}`)
     if (newHash !== oldHash) {
         let diff = execFileSync("git", [
             "diff",
@@ -137,7 +133,9 @@ async function main() {
             GRAPHER_REGIONS_PATH,
         ])
         console.log(diff.toString())
-        console.log("Be sure to set up redirects for any slugs that have changed")
+        console.log(
+            "Be sure to set up redirects for any slugs that have changed"
+        )
     }
 }
 
