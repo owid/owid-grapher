@@ -22,6 +22,20 @@ const ETL_REGIONS_URL = "https://catalog-staging.ourworldindata.org/grapher/regi
         USA: ["US", "USA"],
       }
 
+interface Entity {
+    code: string,
+    short_code?: string,
+    name: string,
+    short_name?: string,
+    slug?: string,
+    region_type?: string,
+    is_mappable?: boolean,
+    is_historical?: boolean,
+    omit_country_page?: boolean,
+    aliases?: string[],
+    members?: string[],
+}
+
 function csvToJson(val:string, col:string){
   switch (col){
     case 'is_mappable':
@@ -47,24 +61,29 @@ async function main(){
   // strip out empty rows and make sure entities are sorted
   data = _.sortBy(data, 'code').filter((c:any) => !!c.code)
 
-  let entities = data.map((row:any) => {
-    // drop unused/redundant attrs
-    let entity = _.pickBy(row, val => !!val)
+  let entities = _.map(data as Entity[], (entity) => {
+    // drop redundant attrs
     if (entity.short_name===entity.name) delete entity.short_name
     if (entity.region_type!=='country') delete entity.is_mappable
 
     // add back countries removed from the ETL's continents list
     if (entity.region_type==='continent'){
-      entity.members = [...entity.members, ..._.get(ADDITIONAL_CONTINENT_MEMBERS, entity.name, [])]
+      entity.members = [...entity.members ?? [], ..._.get(ADDITIONAL_CONTINENT_MEMBERS, entity.name, [])]
     }
 
+    // merge in alternate search terms
+    entity.aliases = _.get(SEARCH_ALIASES, entity.code)
+
     return _(entity).mapKeys((val, key) =>
-      // convert keys to camelCase
+      // rename keys to camelCase
       key==='omit_country_page' ? 'isUnlisted' : _.camelCase(key)
+    ).pickBy(
+      // omit dangling keys
+      val => !!val
     ).pick(
       // give keys a consistent ordering
       "code", "shortCode", "name", "shortName", "slug", "regionType",
-      "isMappable", "isHistorical", "isUnlisted", "members"
+      "isMappable", "isHistorical", "isUnlisted", "aliases", "members"
     ).value()
   })
 

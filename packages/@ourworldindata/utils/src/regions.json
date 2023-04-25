@@ -68,7 +68,10 @@
     "name": "United Arab Emirates",
     "slug": "united-arab-emirates",
     "regionType": "country",
-    "isMappable": true
+    "isMappable": true,
+    "aliases": [
+      "UAE"
+    ]
   },
   {
     "code": "ARG",
@@ -473,7 +476,10 @@
     "name": "Czechia",
     "slug": "czech-republic",
     "regionType": "country",
-    "isMappable": true
+    "isMappable": true,
+    "aliases": [
+      "Czech Republic"
+    ]
   },
   {
     "code": "DEU",
@@ -640,7 +646,10 @@
     "name": "United Kingdom",
     "slug": "united-kingdom",
     "regionType": "country",
-    "isMappable": true
+    "isMappable": true,
+    "aliases": [
+      "UK"
+    ]
   },
   {
     "code": "GEO",
@@ -1154,7 +1163,10 @@
     "name": "North Macedonia",
     "slug": "macedonia",
     "regionType": "country",
-    "isMappable": true
+    "isMappable": true,
+    "aliases": [
+      "Macedonia"
+    ]
   },
   {
     "code": "MLI",
@@ -2227,7 +2239,10 @@
     "name": "Eswatini",
     "slug": "swaziland",
     "regionType": "country",
-    "isMappable": true
+    "isMappable": true,
+    "aliases": [
+      "Swaziland"
+    ]
   },
   {
     "code": "SXM",
@@ -2407,7 +2422,11 @@
     "name": "United States",
     "slug": "united-states",
     "regionType": "country",
-    "isMappable": true
+    "isMappable": true,
+    "aliases": [
+      "US",
+      "USA"
+    ]
   },
   {
     "code": "UZB",
