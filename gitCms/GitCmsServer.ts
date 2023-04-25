@@ -2,6 +2,7 @@ import { Router, Request, Response, RequestHandler } from "express"
 import {
     GIT_DEFAULT_USERNAME,
     GIT_DEFAULT_EMAIL,
+    ENV,
 } from "../settings/serverSettings.js"
 import { simpleGit, SimpleGit } from "simple-git"
 import fs from "fs-extra"
@@ -184,14 +185,20 @@ export class GitCmsServer {
             const pull = await this.autopull()
             if (!pull.success) throw pull.error
 
-            await this.commitFile(
-                filepath,
-                `Deleted ${filepath}`,
-                authorName,
-                authorEmail
-            )
+            console.log(`Deleted ${filepath}`)
 
-            await this.autopush()
+            // do not push in dev
+            // XXX: we should not push in staging either!
+            if (ENV == "production") {
+                await this.commitFile(
+                    filepath,
+                    `Deleted ${filepath}`,
+                    authorName,
+                    authorEmail
+                )
+
+                await this.autopush()
+            }
             return { success: true }
         } catch (error) {
             const err = error as Error
@@ -219,14 +226,23 @@ export class GitCmsServer {
             const pull = await this.autopull()
             if (!pull.success) throw pull.error
 
-            const commitMsg = commitMessage
-                ? commitMessage
-                : fs.existsSync(absolutePath)
-                ? `Updating ${filename}`
-                : `Adding ${filename}`
+            // do not push in dev
+            // XXX: we should not push in staging either!
+            if (ENV == "production") {
+                const commitMsg = commitMessage
+                    ? commitMessage
+                    : fs.existsSync(absolutePath)
+                    ? `Updating ${filename}`
+                    : `Adding ${filename}`
 
-            await this.commitFile(filename, commitMsg, authorName, authorEmail)
-            await this.autopush()
+                await this.commitFile(
+                    filename,
+                    commitMsg,
+                    authorName,
+                    authorEmail
+                )
+                await this.autopush()
+            }
             return { success: true }
         } catch (error) {
             const err = error as Error
