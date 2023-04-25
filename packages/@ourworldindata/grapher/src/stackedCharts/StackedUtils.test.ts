@@ -1,15 +1,20 @@
 #! /usr/bin/env jest
 
+import { ColumnTypeMap, OwidTable } from "@ourworldindata/core-table"
 import {
     stackSeries,
     withMissingValuesAsZeroes,
     withUniformSpacing,
 } from "./StackedUtils"
 
+const yColumn = new ColumnTypeMap.NumberOrString(new OwidTable(), {
+    slug: "var",
+})
+
 const seriesArr = [
     {
+        yColumn,
         seriesName: "Canada",
-        columnSlug: "var",
         color: "red",
         points: [
             { position: 2000, time: 2000, value: 10, valueOffset: 0 },
@@ -17,14 +22,14 @@ const seriesArr = [
         ],
     },
     {
+        yColumn,
         seriesName: "USA",
-        columnSlug: "var",
         color: "red",
         points: [{ position: 2000, time: 2000, value: 2, valueOffset: 0 }],
     },
     {
+        yColumn,
         seriesName: "France",
-        columnSlug: "var",
         color: "red",
         points: [
             { position: 2000, time: 2000, value: 6, valueOffset: 0 },

@@ -280,7 +280,7 @@ export class StackedDiscreteBarChart
                         totalValue += point.value
                         return {
                             point,
-                            columnSlug: series.columnSlug!,
+                            columnSlug: series.yColumn.slug,
                             color: series.color,
                             seriesName: series.seriesName,
                         }
@@ -866,7 +866,7 @@ export class StackedDiscreteBarChart
                 .map((col, i) => {
                     return {
                         seriesName: col.displayName,
-                        columnSlug: col.slug,
+                        yColumn: col,
                         color:
                             col.def.color ??
                             this.colorScheme.getColors(this.yColumns.length)[i],

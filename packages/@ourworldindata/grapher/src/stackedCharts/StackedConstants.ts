@@ -1,4 +1,4 @@
-import { OwidVariableRow } from "@ourworldindata/core-table"
+import { CoreColumn, OwidVariableRow } from "@ourworldindata/core-table"
 import { ChartSeries } from "../chart/ChartInterface"
 import { SeriesName } from "../core/GrapherConstants"
 
@@ -15,6 +15,7 @@ export interface StackedPoint<PositionType extends StackedPointPositionType> {
 
 export interface StackedSeries<PositionType extends StackedPointPositionType>
     extends ChartSeries {
+    yColumn: CoreColumn
     points: StackedPoint<PositionType>[]
     columnSlug?: string
     isProjection?: boolean
@@ -23,6 +24,7 @@ export interface StackedSeries<PositionType extends StackedPointPositionType>
 export interface StackedRawSeries<
     PositionType extends StackedPointPositionType
 > {
+    yColumn: CoreColumn
     seriesName: SeriesName
     isProjection?: boolean
     rows: OwidVariableRow<PositionType>[]

@@ -315,7 +315,7 @@ export class StackedAreaChart
     @computed private get tooltip(): JSX.Element | undefined {
         if (this.hoveredPointIndex === undefined) return undefined
 
-        const { hoveredPointIndex, dualAxis, series } = this
+        const { hoveredPointIndex, dualAxis, series, manager } = this
 
         // Grab the first value to get the year from
         const bottomSeriesPoint = series[0].points[hoveredPointIndex]
@@ -335,7 +335,21 @@ export class StackedAreaChart
         const lastStackedPoint = last(series)!.points[hoveredPointIndex]
         const totalValue = lastStackedPoint.value + lastStackedPoint.valueOffset
 
-        const yColumn = this.yColumns[0] // Assumes same type for all columns.
+        const yColumn = this.yColumns[0] // used to format time and the total value
+
+        // determine which unit to use for the total value
+        let totalValueUnit: string | undefined
+        if (manager.isRelativeMode) {
+            totalValueUnit = "%"
+        } else {
+            const uniqueUnits = new Set(
+                this.series.map(({ yColumn }) => yColumn.unit)
+            )
+            const hasMultipleUnits = uniqueUnits.size > 1
+
+            // omit unit if multiple units are in use
+            totalValueUnit = hasMultipleUnits ? "" : yColumn.unit
+        }
 
         return (
             <Tooltip
@@ -393,7 +407,7 @@ export class StackedAreaChart
                                         <td style={{ textAlign: "right" }}>
                                             {point.fake
                                                 ? "No data"
-                                                : yColumn.formatValueLong(
+                                                : series.yColumn.formatValueLong(
                                                       point.value,
                                                       { trailingZeroes: true }
                                                   )}
@@ -418,7 +432,10 @@ export class StackedAreaChart
                                         <strong>
                                             {yColumn.formatValueLong(
                                                 totalValue,
-                                                { trailingZeroes: true }
+                                                {
+                                                    trailingZeroes: true,
+                                                    unit: totalValueUnit,
+                                                }
                                             )}
                                         </strong>
                                     </span>

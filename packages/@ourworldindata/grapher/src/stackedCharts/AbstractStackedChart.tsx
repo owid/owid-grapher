@@ -223,6 +223,7 @@ export class AbstractStackedChart
         return this.yColumns
             .map((col) => {
                 return {
+                    yColumn: col,
                     isProjection: col.isProjection,
                     seriesName: col.displayName,
                     rows: col.owidRows,
@@ -233,10 +234,12 @@ export class AbstractStackedChart
 
     @computed
     private get entitiesAsSeries(): readonly StackedRawSeries<number>[] {
-        const { isProjection, owidRowsByEntityName } = this.yColumns[0]
+        const yColumn = this.yColumns[0]
+        const { isProjection, owidRowsByEntityName } = yColumn
         return this.selectionArray.selectedEntityNames
             .map((seriesName) => {
                 return {
+                    yColumn,
                     isProjection,
                     seriesName,
                     rows: owidRowsByEntityName.get(seriesName) || [],
@@ -335,10 +338,11 @@ export class AbstractStackedChart
                         series.rows.some((row) => row.value !== 0))
             )
             .map((series) => {
-                const { isProjection, seriesName, rows } = series
+                const { isProjection, seriesName, rows, yColumn } = series
                 return {
                     seriesName,
                     isProjection,
+                    yColumn,
                     points: rows.map((row) => {
                         return {
                             position: row.time,

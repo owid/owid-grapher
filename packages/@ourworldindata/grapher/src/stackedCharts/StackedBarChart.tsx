@@ -233,7 +233,7 @@ export class StackedBarChart
             mapXValueToOffset,
             barWidth,
             dualAxis,
-            yColumns,
+            manager,
             hoverSeries,
             series,
             hoveredTick,
@@ -255,8 +255,24 @@ export class StackedBarChart
         const xPos = mapXValueToOffset.get(hoverTime)
         if (xPos === undefined) return
 
-        const yColumn = yColumns[0] // we can just use the first column for formatting, b/c we assume all columns have same type
+        const yColumn = this.yColumns[0] // used to format time and the total value
+
+        // determine which unit to use for the total value
+        let totalValueUnit: string | undefined
+        if (manager.isRelativeMode) {
+            totalValueUnit = "%"
+        } else {
+            const uniqueUnits = new Set(
+                this.series.map(({ yColumn }) => yColumn.unit)
+            )
+            const hasMultipleUnits = uniqueUnits.size > 1
+
+            // omit unit if multiple units are in use
+            totalValueUnit = hasMultipleUnits ? "" : yColumn.unit
+        }
+
         const seriesRows = [...series].reverse().map((series) => ({
+            yColumn: series.yColumn,
             seriesName: series.seriesName,
             color: series.color,
             isHovered: hoverSeries?.seriesName === series.seriesName,
@@ -282,7 +298,13 @@ export class StackedBarChart
                             </td>
                         </tr>
                         {seriesRows.map(
-                            ({ seriesName, color, isHovered, point }) => (
+                            ({
+                                seriesName,
+                                color,
+                                isHovered,
+                                point,
+                                yColumn,
+                            }) => (
                                 <tr
                                     key={seriesName}
                                     style={{
@@ -339,6 +361,7 @@ export class StackedBarChart
                                 >
                                     {yColumn.formatValueLong(totalValue, {
                                         trailingZeroes: true,
+                                        unit: totalValueUnit,
                                     })}
                                 </td>
                             </tr>
