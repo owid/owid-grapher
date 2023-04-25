@@ -79,6 +79,11 @@ async function main() {
         if (entity.short_name === entity.name) delete entity.short_name
         if (entity.region_type !== "country") delete entity.is_mappable
 
+        // make sure all state-level entities have a slug
+        if (entity.region_type === "other"){
+          entity.slug ||= entity.name.toLowerCase().replace(/ /g, "-").replace(/[^\w\-]/g, "")
+        }
+
         // add back countries removed from the ETL's continents list
         if (entity.region_type === "continent") {
             entity.members = [
