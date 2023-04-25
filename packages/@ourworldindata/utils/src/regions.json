@@ -37,6 +37,7 @@
         "regionType": "country",
         "isUnlisted": true
     },
+
     {
         "code": "ALB",
         "shortCode": "AL",
@@ -1370,11 +1371,7 @@
         "regionType": "country",
         "isMappable": true
     },
-    {
-        "code": "OWID_ABK",
-        "name": "Abkhazia",
-        "regionType": "other"
-    },
+    { "code": "OWID_ABK", "name": "Abkhazia", "regionType": "other" },
     {
         "code": "OWID_AFR",
         "name": "Africa",
@@ -1530,11 +1527,7 @@
         "regionType": "aggregate",
         "members": ["GGY", "JEY"]
     },
-    {
-        "code": "OWID_CYN",
-        "name": "Northern Cyprus",
-        "regionType": "other"
-    },
+    { "code": "OWID_CYN", "name": "Northern Cyprus", "regionType": "other" },
     {
         "code": "OWID_CZS",
         "name": "Czechoslovakia",
@@ -1687,11 +1680,7 @@
         "regionType": "aggregate",
         "members": ["FJI", "PNG", "SLB", "VUT"]
     },
-    {
-        "code": "OWID_NAG",
-        "name": "Nagorno-Karabakh",
-        "regionType": "other"
-    },
+    { "code": "OWID_NAG", "name": "Nagorno-Karabakh", "regionType": "other" },
     {
         "code": "OWID_NAM",
         "name": "North America",
@@ -1834,16 +1823,8 @@
         "name": "Serbia excluding Kosovo",
         "regionType": "other"
     },
-    {
-        "code": "OWID_SML",
-        "name": "Somaliland",
-        "regionType": "other"
-    },
-    {
-        "code": "OWID_SOS",
-        "name": "South Ossetia",
-        "regionType": "other"
-    },
+    { "code": "OWID_SML", "name": "Somaliland", "regionType": "other" },
+    { "code": "OWID_SOS", "name": "South Ossetia", "regionType": "other" },
     {
         "code": "OWID_SRM",
         "name": "Serbia and Montenegro",
@@ -1851,11 +1832,7 @@
         "regionType": "country",
         "isHistorical": true
     },
-    {
-        "code": "OWID_TRS",
-        "name": "Transnistria",
-        "regionType": "other"
-    },
+    { "code": "OWID_TRS", "name": "Transnistria", "regionType": "other" },
     {
         "code": "OWID_USS",
         "name": "USSR",

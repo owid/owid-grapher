@@ -2,6 +2,7 @@ import { readFile, writeFile } from "fs/promises"
 import { execFileSync } from "child_process"
 import { createHash } from "crypto"
 import { parse } from "papaparse"
+import prettier from "prettier"
 import fetch from "node-fetch"
 import _ from "lodash"
 
@@ -35,6 +36,14 @@ interface Entity {
     omit_country_page?: boolean
     variant_names?: string[]
     members?: string[]
+}
+
+function prettifiedJson(obj) {
+    // make sure the json we emit is diff-able even after running prettier on the repo
+    return prettier.format(JSON.stringify(obj), {
+        parser: "json",
+        tabWidth: 4,
+    })
 }
 
 function csvToJson(val: string, col: string) {
@@ -108,7 +117,7 @@ async function main() {
     })
 
     // generate new regions.json file and report changes (if any)
-    let newRegions = JSON.stringify(entities, null, "    "),
+    let newRegions = prettifiedJson(entities),
         oldRegions = await readFile(GRAPHER_REGIONS_PATH).catch((e) => ""),
         newHash = createHash("md5").update(newRegions).digest("hex"),
         oldHash = createHash("md5").update(oldRegions).digest("hex")
