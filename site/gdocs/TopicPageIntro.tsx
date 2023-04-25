@@ -3,7 +3,7 @@ import {
     EnrichedBlockTopicPageIntro,
 } from "@ourworldindata/utils"
 import React, { useContext } from "react"
-import { renderSpans, useLinkedDocument } from "./utils.js"
+import { useLinkedDocument } from "./utils.js"
 import { DocumentContext } from "./OwidGdoc.js"
 import Paragraph from "./Paragraph.js"
 
