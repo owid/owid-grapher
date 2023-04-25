@@ -4,10 +4,10 @@ This script retrieves the ETL's [country & region data](https://github.com/owid/
 
 The data file is used primarily for:
 
--   associating country names and codes (see EntityCodes.ts)
--   determining whether a given country is mappable (see EntitiesOnTheMap.ts)
--   determining whether entities are states and which of those have country pages (see regions.ts)
--   establishing region -> country mappings (see WorldRegionsToProjection.ts)
+-   associating country names and codes (see `EntityCodes.ts`)
+-   determining whether a given country is mappable (see `EntitiesOnTheMap.ts`)
+-   determining whether entities are states and which of those have country pages (see `regions.ts`)
+-   establishing region → country mappings (see `WorldRegionsToProjection.ts`)
 
 
 ## Updating Region Data
