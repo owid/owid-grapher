@@ -225,7 +225,6 @@
         "@testing-library/react": "^12",
         "@types/jest": "^29.0.3",
         "@types/opener": "^1.4.0",
-        "@types/yaml": "^1.9.7",
         "@typescript-eslint/eslint-plugin": "^5.57.0",
         "@typescript-eslint/parser": "^5.57.0",
         "@vitejs/plugin-react": "^4.0.0",
