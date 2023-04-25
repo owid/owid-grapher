@@ -61,13 +61,18 @@ const ExplorerRootDef: CellDef = {
 export class ExplorerProgram extends GridProgram {
     constructor(slug: string, tsv: string, lastCommit?: GitCommit) {
         super(slug, tsv, lastCommit, ExplorerRootDef)
-        this.decisionMatrix = new DecisionMatrix(
-            this.decisionMatrixCode ?? "",
-            lastCommit?.hash
-        )
     }
 
-    decisionMatrix: DecisionMatrix
+    private _decisionMatrix?: DecisionMatrix
+    get decisionMatrix() {
+        if (!this._decisionMatrix) {
+            this._decisionMatrix = new DecisionMatrix(
+                this.decisionMatrixCode ?? "",
+                this.lastCommit?.hash
+            )
+        }
+        return this._decisionMatrix
+    }
 
     static fromJson(json: SerializedGridProgram) {
         return new ExplorerProgram(json.slug, json.program, json.lastCommit)
@@ -217,17 +222,6 @@ export class ExplorerProgram extends GridProgram {
         ).length
     }
 
-    get inlineTableCount() {
-        return this.lines
-            .filter((line) => line.startsWith(ExplorerGrammar.table.keyword))
-            .filter((line) => {
-                const data = this.getTableDef(
-                    line.split(this.cellDelimiter)[1]
-                )?.inlineData
-                return data ? data.trim() : false
-            }).length
-    }
-
     get tableSlugs(): (TableSlug | undefined)[] {
         return this.lines
             .filter((line) => line.startsWith(ExplorerGrammar.table.keyword))
@@ -255,54 +249,6 @@ export class ExplorerProgram extends GridProgram {
                 })
         }
         return columnDefs
-    }
-
-    async replaceTableWithInlineDataAndAutofilledColumnDefsCommand(
-        tableSlug?: string
-    ) {
-        const clone = this.clone
-
-        const colDefRow = clone.getRowMatchingWords(
-            ExplorerGrammar.columns.keyword,
-            tableSlug
-        )
-        if (colDefRow > -1) {
-            clone.deleteBlock(colDefRow)
-            clone.deleteLine(colDefRow)
-        }
-
-        const table = await clone.constructTable(tableSlug)
-
-        const tableDefRow = clone.getRowMatchingWords(
-            ExplorerGrammar.table.keyword,
-            undefined,
-            tableSlug
-        )
-        if (tableDefRow > -1) {
-            clone.deleteBlock(tableDefRow)
-            clone.deleteLine(tableDefRow)
-        }
-
-        const newCols = table!.autodetectedColumnDefs
-        const missing = newCols
-            .appendColumns([
-                {
-                    slug: ColumnGrammar.notes.keyword,
-                    values: newCols.indices.map(() => `Unreviewed`),
-                },
-            ])
-            .select([
-                ColumnGrammar.slug.keyword,
-                ,
-                ColumnGrammar.name.keyword,
-                ,
-                ColumnGrammar.type.keyword,
-                ColumnGrammar.notes.keyword,
-            ] as string[])
-
-        clone.appendBlock(ExplorerGrammar.table.keyword, table!.toTsv())
-        clone.appendBlock(ExplorerGrammar.columns.keyword, missing.toTsv())
-        return clone
     }
 
     async autofillMissingColumnDefinitionsForTableCommand(tableSlug?: string) {

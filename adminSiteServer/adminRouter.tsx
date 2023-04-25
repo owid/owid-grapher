@@ -1,6 +1,5 @@
 // Misc non-SPA views
-import { Request, Response, Router } from "express"
-import * as express from "express"
+import express, { Request, Response, Router } from "express"
 import rateLimit from "express-rate-limit"
 import filenamify from "filenamify"
 import React from "react"
@@ -36,7 +35,7 @@ import {
     ExplorerProgram,
     EXPLORER_FILE_SUFFIX,
 } from "../explorer/ExplorerProgram.js"
-import { existsSync } from "fs-extra"
+import fs from "fs-extra"
 import * as Post from "../db/model/Post.js"
 import { renderDataPageOrGrapherPage } from "../baker/GrapherBaker.js"
 import { Chart } from "../db/model/Chart.js"
@@ -247,7 +246,10 @@ adminRouter.get(`/${EXPLORERS_PREVIEW_ROUTE}/:slug`, async (req, res) => {
                 new ExplorerProgram(DefaultNewExplorerSlug, "")
             )
         )
-    if (!slug || !existsSync(explorerAdminServer.absoluteFolderPath + filename))
+    if (
+        !slug ||
+        !fs.existsSync(explorerAdminServer.absoluteFolderPath + filename)
+    )
         return res.send(`File not found`)
     const explorer = await explorerAdminServer.getExplorerFromFile(filename)
     return res.send(await renderExplorerPage(explorer))

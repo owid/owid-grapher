@@ -1,5 +1,5 @@
 import { EntityCode, EntityId, EntityName } from "@ourworldindata/core-table"
-import { difference, mapBy, isPresent } from "@ourworldindata/utils"
+import { difference, mapBy } from "@ourworldindata/utils"
 import { action, computed, observable } from "mobx"
 
 export interface Entity {
@@ -69,13 +69,6 @@ export class SelectionArray {
 
     @computed get selectedSet(): Set<EntityName> {
         return new Set<EntityName>(this.selectedEntityNames)
-    }
-
-    @computed get allSelectedEntityIds(): EntityId[] {
-        const map = this.entityNameToIdMap
-        return this.selectedEntityNames
-            .map((name) => map.get(name))
-            .filter(isPresent)
     }
 
     // Clears and sets selected entities

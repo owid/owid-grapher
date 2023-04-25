@@ -4,6 +4,7 @@ import {
     getOwidGdocFromJSON,
     OwidGdocInterface,
     OwidGdocJSON,
+    OwidGdocTag,
 } from "@ourworldindata/utils"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { Admin } from "./Admin.js"
@@ -17,6 +18,7 @@ import { Admin } from "./Admin.js"
  */
 export class GdocsStore {
     @observable gdocs: OwidGdocInterface[] = []
+    @observable availableTags: OwidGdocTag[] = []
     admin: Admin
 
     constructor(admin: Admin) {

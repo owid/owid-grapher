@@ -4,7 +4,7 @@ import { Deployer } from "./Deployer.js"
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 import os from "os"
-import * as path from "path"
+import path from "path"
 import { BakeStep, bakeSteps } from "./SiteBaker.js"
 import { DeployTarget } from "./DeployTarget.js"
 

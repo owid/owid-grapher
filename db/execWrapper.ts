@@ -1,5 +1,5 @@
-import * as shell from "shelljs"
-import * as util from "util"
+import shell from "shelljs"
+import util from "util"
 import { quote } from "shell-quote"
 
 interface ExecReturn {

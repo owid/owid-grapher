@@ -112,7 +112,6 @@ import { ComparisonLineConfig } from "../scatterCharts/ComparisonLine"
 import {
     ColumnSlugs,
     Time,
-    EntityId,
     EntityName,
     OwidColumnDef,
     OwidVariableRow,
@@ -153,7 +152,7 @@ import {
     TimelineController,
     TimelineManager,
 } from "../timeline/TimelineController"
-import * as Mousetrap from "mousetrap"
+import Mousetrap from "mousetrap"
 import { SlideShowController } from "../slideshowController/SlideShowController"
 import {
     ChartComponentClassMap,
@@ -358,7 +357,6 @@ export class Grapher
     @observable selectedEntityColors: {
         [entityName: string]: string | undefined
     } = {}
-    @observable selectedEntityIds: EntityId[] = []
     @observable excludedEntities?: number[] = undefined
     /** IncludedEntities are ususally empty which means use all available entites. When
         includedEntities is set it means "only use these entities". excludedEntities
@@ -835,8 +833,6 @@ export class Grapher
     @action.bound private applyOriginalSelectionAsAuthored(): void {
         if (this.selectedEntityNames.length)
             this.selection.setSelectedEntities(this.selectedEntityNames)
-        else if (this.selectedEntityIds.length)
-            this.selection.setSelectedEntitiesByEntityId(this.selectedEntityIds)
     }
 
     @observable private _baseFontSize = BASE_FONT_SIZE
@@ -1591,22 +1587,29 @@ export class Grapher
     }
 
     @computed get canToggleRelativeMode(): boolean {
-        if (this.isLineChart)
+        const {
+            isLineChart,
+            hideRelativeToggle,
+            areHandlesOnSameTime,
+            yScaleType,
+            hasSingleEntityInFacets,
+            hasSingleMetricInFacets,
+            xColumnSlug,
+            isMarimekko,
+        } = this
+
+        if (isLineChart)
             return (
-                !this.hideRelativeToggle &&
-                !this.areHandlesOnSameTime &&
-                this.yScaleType !== ScaleType.log
+                !hideRelativeToggle &&
+                !areHandlesOnSameTime &&
+                yScaleType !== ScaleType.log
             )
 
-        // actually trying to exclude relative mode with just one metric
-        if (
-            this.isStackedDiscreteBar &&
-            this.facetStrategy !== FacetStrategy.none
-        )
-            return false
+        // actually trying to exclude relative mode with just one metric or entity
+        if (hasSingleEntityInFacets || hasSingleMetricInFacets) return false
 
-        if (this.isMarimekko && this.xColumnSlug === undefined) return false
-        return !this.hideRelativeToggle
+        if (isMarimekko && xColumnSlug === undefined) return false
+        return !hideRelativeToggle
     }
 
     // Filter data to what can be display on the map (across all times)
@@ -2014,6 +2017,21 @@ export class Grapher
         return this.yColumnSlugs.length > 1
     }
 
+    @computed private get hasSingleMetricInFacets(): boolean {
+        return (
+            this.isStackedDiscreteBar &&
+            this.selectedFacetStrategy !== FacetStrategy.none
+        )
+    }
+
+    @computed private get hasSingleEntityInFacets(): boolean {
+        return (
+            (this.isStackedArea || this.isStackedBar) &&
+            this.selection.numSelectedEntities === 1 &&
+            this.facetStrategy === FacetStrategy.metric
+        )
+    }
+
     @computed get availableFacetStrategies(): FacetStrategy[] {
         return this.chartInstance.availableFacetStrategies?.length
             ? this.chartInstance.availableFacetStrategies
@@ -2034,11 +2052,8 @@ export class Grapher
     set facetStrategy(facet: FacetStrategy) {
         this.selectedFacetStrategy = facet
 
-        if (
-            this.isStackedDiscreteBar &&
-            this.selectedFacetStrategy !== FacetStrategy.none
-        ) {
-            // actually trying to exclude relative mode with just one metric
+        if (this.hasSingleMetricInFacets || this.hasSingleEntityInFacets) {
+            // actually trying to exclude relative mode with just one metric or entity
             this.stackMode = StackMode.absolute
         }
     }
@@ -2367,18 +2382,19 @@ export class Grapher
         | undefined {
         const authoredConfig = this.legacyConfigAsAuthored
 
-        const originalSelectedEntityIds = authoredConfig.selectedEntityIds ?? []
-        const currentSelectedEntityIds = this.selection.allSelectedEntityIds
+        const originalSelectedEntityNames =
+            authoredConfig.selectedEntityNames ?? []
+        const currentSelectedEntityNames = this.selection.selectedEntityNames
 
-        const entityIdsThatTheUserDeselected = difference(
-            currentSelectedEntityIds,
-            originalSelectedEntityIds
+        const entityNamesThatTheUserDeselected = difference(
+            currentSelectedEntityNames,
+            originalSelectedEntityNames
         )
 
         if (
-            currentSelectedEntityIds.length !==
-                originalSelectedEntityIds.length ||
-            entityIdsThatTheUserDeselected.length
+            currentSelectedEntityNames.length !==
+                originalSelectedEntityNames.length ||
+            entityNamesThatTheUserDeselected.length
         )
             return this.selection.selectedEntityNames
 

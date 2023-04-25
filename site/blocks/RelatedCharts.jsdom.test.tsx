@@ -3,13 +3,13 @@
 import React from "react"
 import { RelatedCharts } from "./RelatedCharts.js"
 
-import { configure, mount } from "enzyme"
+import Enzyme from "enzyme"
 import Adapter from "enzyme-adapter-react-16"
 import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_EXPORTS_BASE_URL,
 } from "../../settings/clientSettings.js"
-configure({ adapter: new Adapter() })
+Enzyme.configure({ adapter: new Adapter() })
 
 const charts = [
     {
@@ -25,7 +25,7 @@ const charts = [
 ]
 
 it("renders active chart links and loads respective chart on click", () => {
-    const wrapper = mount(<RelatedCharts charts={charts} />)
+    const wrapper = Enzyme.mount(<RelatedCharts charts={charts} />)
 
     expect(wrapper.find("li")).toHaveLength(2)
 

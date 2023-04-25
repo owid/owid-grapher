@@ -1,6 +1,6 @@
 #! /usr/bin/env jest
 
-import * as timezoneMock from "timezone-mock"
+import timezoneMock from "timezone-mock"
 import {
     findClosestTime,
     getStartEndValues,

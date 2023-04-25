@@ -2,9 +2,9 @@
 
 import parseArgs from "minimist"
 import * as utils from "./utils.js"
-import * as fs from "fs-extra"
+import fs from "fs-extra"
 
-import * as path from "path"
+import path from "path"
 import workerpool from "workerpool"
 
 function parseArgAsList(arg?: unknown): string[] {

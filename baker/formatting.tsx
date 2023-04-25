@@ -1,4 +1,4 @@
-import * as cheerio from "cheerio"
+import cheerio from "cheerio"
 import {
     DataValueConfiguration,
     DataValueQueryArgs,
@@ -18,7 +18,7 @@ import { BAKED_BASE_URL } from "../settings/serverSettings.js"
 import { DATA_VALUE } from "../site/DataValue.js"
 import { legacyToOwidTableAndDimensions } from "@ourworldindata/grapher"
 import { getBodyHtml } from "../site/formatting.js"
-import * as path from "path"
+import path from "path"
 
 export const DEEP_LINK_CLASS = "deep-link"
 

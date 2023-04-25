@@ -4,7 +4,7 @@ import express, { NextFunction } from "express"
 require("express-async-errors") // todo: why the require?
 import cookieParser from "cookie-parser"
 import "reflect-metadata"
-import * as http from "http"
+import http from "http"
 import Bugsnag from "@bugsnag/js"
 
 import {
@@ -119,11 +119,11 @@ export class OwidAdminApp {
             )
         })
 
+        const adminExplorerServer = new ExplorerAdminServer(GIT_CMS_DIR)
         // Public preview of a Gdoc document
         app.get("/gdocs/:id/preview", async (req, res) => {
-            const adminExplorerServer = new ExplorerAdminServer(GIT_CMS_DIR)
             const publishedExplorersBySlug =
-                await adminExplorerServer.getAllPublishedExplorersBySlug()
+                await adminExplorerServer.getAllPublishedExplorersBySlugCached()
             try {
                 const gdoc = await Gdoc.getGdocFromContentSource(
                     req.params.id,

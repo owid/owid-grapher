@@ -501,7 +501,7 @@ export const isMobile = (): boolean =>
 
 export const isTouchDevice = (): boolean => !!("ontouchstart" in window)
 
-// General type reperesenting arbitrary json data; basically a non-nullable 'any'
+// General type representing arbitrary json data; basically a non-nullable 'any'
 export interface Json {
     [x: string]: any
 }

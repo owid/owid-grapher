@@ -199,7 +199,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
         const { admin } = this.context
         const json =
             chartId === undefined
-                ? []
+                ? {}
                 : await admin.getJSON(`/api/charts/${chartId}.references.json`)
         this.chartReferences = json.references || []
     }

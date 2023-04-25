@@ -1,10 +1,10 @@
-import React, { useContext, useEffect } from "react"
+import React, { useCallback, useContext, useEffect } from "react"
 import { AdminLayout } from "./AdminLayout.js"
-import { Modal } from "./Forms.js"
+import { EditableTags, Modal } from "./Forms.js"
 import { faCirclePlus } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { AdminAppContext } from "./AdminAppContext.js"
-import { OwidGdocInterface } from "@ourworldindata/utils"
+import { OwidGdocTag, OwidGdocInterface } from "@ourworldindata/utils"
 import { Route, RouteComponentProps } from "react-router-dom"
 import { Link } from "./Link.js"
 import { GdocsAdd } from "./GdocsAdd.js"
@@ -34,6 +34,29 @@ export const GdocsIndexPage = ({ match, history }: GdocsMatchProps) => {
         fetchGdocs()
     }, [admin, store])
 
+    useEffect(() => {
+        const fetchTags = async () => {
+            const json = await admin.getJSON("/api/tags.json")
+            runInAction(() => (store.availableTags = json.tags))
+        }
+        fetchTags()
+    }, [admin, store])
+
+    const updateTags = useCallback(
+        async (gdoc: OwidGdocInterface, tags: OwidGdocTag[]) => {
+            const json = await admin.requestJSON(
+                `/api/gdocs/${gdoc.id}/setTags`,
+                { tagIds: tags.map((t) => t.id) },
+                "POST"
+            )
+            if (json.success) {
+                const gdocToUpdate = store.gdocs.find((g) => g.id === gdoc.id)
+                gdocToUpdate!.tags = tags
+            }
+        },
+        [admin, store.gdocs]
+    )
+
     return (
         <AdminLayout title="Google Docs">
             <Observer>
@@ -62,6 +85,7 @@ export const GdocsIndexPage = ({ match, history }: GdocsMatchProps) => {
                                     <th>Status</th>
                                     <th>Context</th>
                                     <th>Last Updated</th>
+                                    <th>Categories</th>
                                     <th></th>
                                 </tr>
                             </thead>
@@ -78,6 +102,22 @@ export const GdocsIndexPage = ({ match, history }: GdocsMatchProps) => {
                                         </td>
                                         <td>{gdoc.publicationContext}</td>
                                         <td>{gdoc.updatedAt}</td>
+                                        <td>
+                                            {gdoc.tags ? (
+                                                <EditableTags
+                                                    tags={gdoc.tags}
+                                                    onSave={(tags) =>
+                                                        updateTags(
+                                                            gdoc,
+                                                            tags as any
+                                                        )
+                                                    }
+                                                    suggestions={
+                                                        store.availableTags
+                                                    }
+                                                />
+                                            ) : null}
+                                        </td>
                                         <td>
                                             <Link
                                                 to={`${match.path}/${gdoc.id}/preview`}
