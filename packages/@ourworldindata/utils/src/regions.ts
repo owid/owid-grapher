@@ -6,7 +6,7 @@ export interface Country {
     name: string
     shortName?: string
     slug: string
-    regionType: "country" | "other"
+    regionType?: "country" | "other"
     isMappable?: boolean
     isHistorical?: boolean
     isUnlisted?: boolean
