@@ -9,7 +9,7 @@ export const WorldRegionToProjection = Object.fromEntries(
                     regions.find((c) => c.code === code)?.name,
                     name.replace(/ /, "") as MapProjectionName,
                 ])
-                .filter(([name, projection]) => !!name)
+                .filter(([name, _projection]) => !!name)
         )
         .flat()
 )
