@@ -41,7 +41,7 @@ export const GdocsSettingsForm = ({
                 <GdocsSlug gdoc={gdoc} setGdoc={setGdoc} errors={errors} />
             </div>
             <GdocsSettingsContentField
-                property="byline"
+                property="authors"
                 gdoc={gdoc}
                 errors={errors}
             />
