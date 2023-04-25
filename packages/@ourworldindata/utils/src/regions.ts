@@ -38,7 +38,10 @@ export type Region = Country | Aggregate | Continent
 export const regions: Region[] = entities as Region[]
 
 export const countries: Country[] = regions.filter(
-    (entity: any) => entity.regionType === "country" && !entity.isUnlisted
+    (entity: any) =>
+        entity.regionType === "country" &&
+        !entity.isUnlisted &&
+        !entity.isHistorical
 ) as Country[]
 
 export const others: Country[] = entities.filter(
