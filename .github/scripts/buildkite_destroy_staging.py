@@ -16,7 +16,7 @@ headers = {
 
 payload = {
     "commit": "HEAD",
-    "branch": os.environ["TARGET_BRANCH"],
+    "branch": os.environ["BRANCH"],
     "message": "Triggered build via Github action in owid-grapher repository",
 }
 
