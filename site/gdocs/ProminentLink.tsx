@@ -1,11 +1,11 @@
 import React, { useContext } from "react"
 import cx from "classnames"
+import { getLinkType } from "@ourworldindata/utils"
 
 import Image from "./Image.js"
-import { useLinkedDocument } from "./utils.js"
+import { useLinkedChart, useLinkedDocument } from "./utils.js"
 import { DocumentContext } from "./OwidGdoc.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
-import { getLinkType } from "@ourworldindata/utils"
 
 export const ProminentLink = (props: {
     url: string
@@ -14,64 +14,82 @@ export const ProminentLink = (props: {
     description?: string
     thumbnail?: string
 }) => {
-    const { url, className = "" } = props
-    const linkType = getLinkType(url)
-    const linkedDocument = useLinkedDocument(url)
+    const linkType = getLinkType(props.url)
+    const { linkedDocument, errorMessage: linkedDocumentErrorMessage } =
+        useLinkedDocument(props.url)
+    const { linkedChart, errorMessage: linkedChartErrorMessage } =
+        useLinkedChart(props.url)
+    const errorMessage = linkedDocumentErrorMessage || linkedChartErrorMessage
     const { isPreviewing } = useContext(DocumentContext)
-    if (linkType == "gdoc") {
-        let error: Error | undefined = undefined
-        if (!linkedDocument) {
-            error = {
-                name: "Error in prominent link",
-                message: `Google doc URL ${url} isn't registered. This block will not render when the page is baked.`,
-            }
-        } else if (!linkedDocument.published) {
-            error = {
-                name: "Error in prominent link",
-                message: `Article with slug "${linkedDocument.slug}" isn't published. This block will not render when the page is baked.`,
-            }
-        }
-        if (error) {
-            if (isPreviewing) {
-                return (
-                    <div className={className}>
-                        <BlockErrorFallback
-                            className="span-cols-6"
-                            error={error}
-                        />
-                    </div>
-                )
-            } else return null
-        }
+
+    if (errorMessage) {
+        if (isPreviewing) {
+            return (
+                <div className={props.className}>
+                    <BlockErrorFallback
+                        className="span-cols-6 span-md-cols-10 span-sm-cols-12"
+                        error={{
+                            name: "Error with prominent link",
+                            message: `${errorMessage} This block won't render when the page is published`,
+                        }}
+                    />
+                </div>
+            )
+        } else return null
     }
 
-    // If the link points to a gdoc_post, we can use its metadata
+    // If the link points to a gdoc_post or chart, we can use its metadata
     // But we still allow for overrides written in archie
-    const title = props.title || linkedDocument?.content.title
-    const description = props.description || linkedDocument?.content.excerpt
-    const href = linkedDocument ? `/${linkedDocument.slug}` : url
-    const anchorTagProps = linkedDocument
-        ? {}
-        : { target: "_blank", rel: "noopener noreferrer" }
-    const thumbnail = props.thumbnail || linkedDocument?.content["cover-image"]
+    let href: string = props.url
+    let title: string | undefined = props.title
+    let description: string | undefined = props.description
+    let thumbnail: string | undefined = props.thumbnail
+    if (linkType === "gdoc") {
+        href = `/${linkedDocument?.slug}`
+        title = title ?? linkedDocument?.content.title
+        description = description ?? linkedDocument?.content.excerpt
+        thumbnail = thumbnail ?? linkedDocument?.content["cover-image"]
+    } else if (linkType === "grapher" || linkType === "explorer") {
+        href = `${linkedChart?.path}`
+        title = title ?? linkedChart?.title
+        thumbnail = thumbnail ?? linkedChart?.thumbnail
+        description =
+            // Adding extra context for graphers by default.
+            // Not needed for Explorers as their titles are self-explanatory
+            description ?? linkType === "grapher"
+                ? "See the data in our interactive visualization"
+                : ""
+    }
+
+    const anchorTagProps =
+        linkType === "url"
+            ? { target: "_blank", rel: "noopener noreferrer" }
+            : undefined
+
     const textContainerClassName = thumbnail
         ? "col-sm-start-4 col-md-start-3 col-start-2 col-end-limit"
         : "col-start-1 col-end-limit"
 
     return (
         <a
-            className={cx(className, "prominent-link")}
+            className={cx(props.className, "prominent-link")}
             href={href}
             {...anchorTagProps}
         >
             {thumbnail ? (
                 <div className="prominent-link__image span-sm-cols-3 span-md-cols-2">
-                    <Image filename={thumbnail} containerType="thumbnail" />
+                    {linkType === "gdoc" ? (
+                        <Image filename={thumbnail} containerType="thumbnail" />
+                    ) : (
+                        <img loading="lazy" src={thumbnail} />
+                    )}
                 </div>
             ) : null}
             <div className={textContainerClassName}>
                 <h3 className="h3-bold">{title}</h3>
-                <p className="body-3-medium">{description}</p>
+                {description ? (
+                    <p className="body-3-medium">{description}</p>
+                ) : null}
             </div>
         </a>
     )

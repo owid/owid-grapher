@@ -1,5 +1,5 @@
 import express, { Router } from "express"
-import * as path from "path"
+import path from "path"
 import {
     renderFrontPage,
     renderGdocsPageBySlug,
@@ -225,7 +225,9 @@ mockSiteRouter.get("/*", async (req, res) => {
 
     try {
         res.send(await renderGdocsPageBySlug(slug))
-    } catch (e) {}
+    } catch (e) {
+        console.error(e)
+    }
 
     try {
         res.send(await renderPageBySlug(slug))

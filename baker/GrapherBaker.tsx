@@ -18,7 +18,7 @@ import {
     isWordpressAPIEnabled,
     isWordpressDBEnabled,
 } from "../db/wpdb.js"
-import * as fs from "fs-extra"
+import fs from "fs-extra"
 import * as lodash from "lodash"
 import { bakeGraphersToPngs } from "./GrapherImageBaker.js"
 import {
@@ -29,7 +29,7 @@ import {
     DATA_FILES_CHECKSUMS_DIRECTORY,
 } from "../settings/serverSettings.js"
 import * as db from "../db/db.js"
-import * as glob from "glob"
+import { glob } from "glob"
 import { isPathRedirectedToExplorer } from "../explorerAdminServer/ExplorerRedirects.js"
 import { getPostBySlug } from "../db/model/Post.js"
 import {
@@ -44,7 +44,6 @@ import workerpool from "workerpool"
 import ProgressBar from "progress"
 import { getVariableData } from "../db/model/Variable.js"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
-import { readFile } from "fs-extra"
 import { logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
 
 /**
@@ -63,7 +62,7 @@ export const renderDataPageOrGrapherPage = async (
     const fullPath = `${GIT_CMS_DIR}/datapages/${id}.json`
     let datapage
     try {
-        const datapageJson = await readFile(fullPath, "utf8")
+        const datapageJson = await fs.readFile(fullPath, "utf8")
         datapage = JSON.parse(datapageJson)
         if (
             // We only want to render datapages on selected charts, even if the

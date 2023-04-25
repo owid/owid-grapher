@@ -4,7 +4,7 @@ import express, { NextFunction } from "express"
 require("express-async-errors") // todo: why the require?
 import cookieParser from "cookie-parser"
 import "reflect-metadata"
-import * as http from "http"
+import http from "http"
 import Bugsnag from "@bugsnag/js"
 
 import {
@@ -33,6 +33,7 @@ import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import { GdocsContentSource } from "@ourworldindata/utils"
 import OwidGdocPage from "../site/gdocs/OwidGdocPage.js"
 import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
+import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 
 // library does not provide type definitions
 // eslint-disable-next-line
@@ -118,11 +119,15 @@ export class OwidAdminApp {
             )
         })
 
+        const adminExplorerServer = new ExplorerAdminServer(GIT_CMS_DIR)
         // Public preview of a Gdoc document
         app.get("/gdocs/:id/preview", async (req, res) => {
+            const publishedExplorersBySlug =
+                await adminExplorerServer.getAllPublishedExplorersBySlugCached()
             try {
                 const gdoc = await Gdoc.getGdocFromContentSource(
                     req.params.id,
+                    publishedExplorersBySlug,
                     GdocsContentSource.Gdocs
                 )
                 res.set("X-Robots-Tag", "noindex")

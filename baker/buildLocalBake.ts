@@ -3,7 +3,7 @@
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 import { BakeStep, BakeStepConfig, bakeSteps, SiteBaker } from "./SiteBaker.js"
-import * as fs from "fs-extra"
+import fs from "fs-extra"
 import { normalize } from "path"
 
 const bakeDomainToFolder = async (

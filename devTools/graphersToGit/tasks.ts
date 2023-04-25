@@ -9,7 +9,7 @@ import {
     LegacyGrapherInterface,
 } from "@ourworldindata/grapher"
 import { isPresent, mapToObjectLiteral } from "@ourworldindata/utils"
-import * as fs from "fs"
+import fs from "fs"
 import parseArgs from "minimist"
 import { getPublishedGraphersBySlug } from "../../baker/GrapherImageBaker.js"
 import { closeTypeOrmAndKnexConnections } from "../../db/db.js"

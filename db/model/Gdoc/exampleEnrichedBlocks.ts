@@ -209,7 +209,7 @@ export const enrichedBlockExamples: Record<
         url: "https://ourworldindata.org/grapher/total-cases-covid-19",
         title: "A test title",
         description: "A test description",
-        thumbnail: "",
+        thumbnail: "filename.svg",
         parseErrors: [],
     },
     "sdg-toc": {

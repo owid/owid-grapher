@@ -1,9 +1,9 @@
-import * as fs from "fs-extra"
+import fs from "fs-extra"
 import { writeFile } from "node:fs/promises"
-import * as path from "path"
-import * as glob from "glob"
+import path from "path"
+import { glob } from "glob"
 import { keyBy, without, uniq } from "lodash"
-import * as cheerio from "cheerio"
+import cheerio from "cheerio"
 import fetch from "node-fetch"
 import ProgressBar from "progress"
 import * as wpdb from "../db/wpdb.js"
@@ -108,6 +108,7 @@ export class SiteBaker {
     private bakedSiteDir: string
     baseUrl: string
     progressBar: ProgressBar
+    explorerAdminServer: ExplorerAdminServer
     bakeSteps: BakeStepConfig
 
     constructor(
@@ -124,6 +125,7 @@ export class SiteBaker {
                 total: getProgressBarTotal(bakeSteps),
             }
         )
+        this.explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
     }
 
     private async bakeEmbeds() {
@@ -308,7 +310,10 @@ export class SiteBaker {
         for (const publishedGdoc of publishedGdocs) {
             publishedGdoc.imageMetadata = imageMetadataDictionary
             publishedGdoc.linkedDocuments = publishedGdocsDictionary
-            await publishedGdoc.validate()
+            const publishedExplorersBySlug =
+                await this.explorerAdminServer.getAllPublishedExplorersBySlug()
+
+            await publishedGdoc.validate(publishedExplorersBySlug)
             if (publishedGdoc.errors.length) {
                 await logErrorAndMaybeSendToSlack(
                     `Error(s) baking "${
@@ -352,23 +357,24 @@ export class SiteBaker {
             await renderMenuJson()
         )
 
-        const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
-
         await this.stageWrite(
             `${this.bakedSiteDir}/sitemap.xml`,
-            await makeSitemap(explorerAdminServer)
+            await makeSitemap(this.explorerAdminServer)
         )
 
-        await bakeAllExplorerRedirects(this.bakedSiteDir, explorerAdminServer)
+        await bakeAllExplorerRedirects(
+            this.bakedSiteDir,
+            this.explorerAdminServer
+        )
 
         await bakeAllPublishedExplorers(
             `${this.bakedSiteDir}/${EXPLORERS_ROUTE_FOLDER}`,
-            explorerAdminServer
+            this.explorerAdminServer
         )
 
         await this.stageWrite(
             `${this.bakedSiteDir}/charts.html`,
-            await renderChartsPage(explorerAdminServer)
+            await renderChartsPage(this.explorerAdminServer)
         )
         this.progressBar.tick({ name: "✅ baked special pages" })
     }

@@ -6,11 +6,11 @@ import {
     OwidVariableWithSourceAndDimension,
     TESTING_ONLY_reset_guid,
 } from "@ourworldindata/utils"
-import * as fs from "fs-extra"
+import fs from "fs-extra"
 import getStream from "get-stream"
 import md5 from "md5"
-import * as path from "path"
-import * as stream from "stream"
+import path from "path"
+import stream from "stream"
 import { createGunzip, createGzip } from "zlib"
 import {
     buildSvgOutFilename,
@@ -20,7 +20,7 @@ import { getVariableData } from "../../db/model/Variable.js"
 
 import { GrapherInterface } from "@ourworldindata/grapher"
 import _ from "lodash"
-import * as util from "util"
+import util from "util"
 import {
     BAKED_GRAPHER_URL,
     BAKED_BASE_URL,

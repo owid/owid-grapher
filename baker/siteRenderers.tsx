@@ -23,7 +23,7 @@ import {
     getGrapherExportsByUrl,
     GrapherExports,
 } from "../baker/GrapherBakingUtils.js"
-import * as cheerio from "cheerio"
+import cheerio from "cheerio"
 import {
     BAKED_BASE_URL,
     BLOG_POSTS_PER_PAGE,
@@ -144,12 +144,24 @@ export const renderGdocsPageBySlug = async (
     slug: string
 ): Promise<string | undefined> => {
     const gdoc = await Gdoc.findOneBy({ slug })
-
     if (!gdoc) {
-        throw new Error("Failed to render an unknown GDocs post: ${slug}.")
+        throw new Error(`Failed to render an unknown GDocs post: ${slug}.`)
     }
+    if (!gdoc.published) {
+        throw new Error(
+            `A Gdoc exists with slug "${slug}" but it is not published.`
+        )
+    }
+    const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
+    const publishedExplorersBySlug =
+        await explorerAdminServer.getAllPublishedExplorersBySlug()
 
-    return renderGdoc(gdoc)
+    const gdocWithAttachments = await Gdoc.getGdocFromContentSource(
+        gdoc.id,
+        publishedExplorersBySlug
+    )
+
+    return renderGdoc(gdocWithAttachments)
 }
 
 export const renderGdoc = (gdoc: OwidGdocInterface) => {
@@ -231,7 +243,8 @@ export const renderFrontPage = async () => {
     let featuredWork: IndexPost[]
     try {
         const frontPageConfigGdoc = await Gdoc.getGdocFromContentSource(
-            GDOCS_HOMEPAGE_CONFIG_DOCUMENT_ID
+            GDOCS_HOMEPAGE_CONFIG_DOCUMENT_ID,
+            {}
         )
         const frontPageConfig: any = frontPageConfigGdoc.content
         const featuredPosts: { slug: string; position: number }[] =

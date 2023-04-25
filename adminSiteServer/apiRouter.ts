@@ -42,6 +42,7 @@ import {
     variableAnnotationAllowedColumnNamesAndTypes,
     VariableAnnotationsResponseRow,
     Detail,
+    isUndefined,
 } from "@ourworldindata/utils"
 import {
     GrapherInterface,
@@ -53,7 +54,7 @@ import {
 } from "../adminSiteClient/CountryNameFormat.js"
 import { Dataset } from "../db/model/Dataset.js"
 import { User } from "../db/model/User.js"
-import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
+import { Gdoc, Tag } from "../db/model/Gdoc/Gdoc.js"
 import { Pageview } from "../db/model/Pageview.js"
 import {
     syncDatasetToGitRepo,
@@ -68,7 +69,7 @@ import { DeployQueueServer } from "../baker/DeployQueueServer.js"
 import { FunctionalRouter } from "./FunctionalRouter.js"
 import { escape } from "mysql"
 import Papa from "papaparse"
-
+import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import {
     postsTable,
     setTagsForPost,
@@ -83,8 +84,11 @@ import {
 import { dataSource } from "../db/dataSource.js"
 import { createGdocAndInsertOwidGdocContent } from "../db/model/Gdoc/archieToGdoc.js"
 import { Link } from "../db/model/Link.js"
+import { In } from "typeorm"
+import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 
 const apiRouter = new FunctionalRouter()
+const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
 
 // Call this to trigger build and deployment of static charts on change
 const triggerStaticBuild = async (user: CurrentUser, commitMessage: string) => {
@@ -155,9 +159,12 @@ const getReferencesByChartId = async (
         [chartId, chartId]
     )
 
-    const slugs = rows.map(
-        (row: { slug?: string }) => row.slug && row.slug.replace(/^"|"$/g, "")
-    )
+    const slugs: string[] = rows
+        .map(
+            (row: { slug?: string }) =>
+                row.slug && row.slug.replace(/^"|"$/g, "")
+        )
+        .filter((slug: string | undefined) => !isUndefined(slug))
 
     if (!slugs || slugs.length === 0) return []
 
@@ -195,7 +202,20 @@ const getReferencesByChartId = async (
         // We can ignore errors due to not being able to connect.
     }
     const permalinks = await wpdb.getPermalinks()
-    return posts.map((post) => {
+    const publishedLinksToChart = await Link.getPublishedLinksTo(
+        slugs,
+        "grapher"
+    )
+    const publishedGdocPostsThatReferenceChart = publishedLinksToChart.map(
+        (link) => ({
+            id: link.source.id,
+            title: link.source.content.title,
+            slug: link.source.slug,
+            url: `${BAKED_BASE_URL}/${link.source.slug}`,
+        })
+    )
+
+    const publishedWPPostsThatReferenceChart = posts.map((post) => {
         const slug = permalinks.get(post.ID, post.post_name)
         return {
             id: post.ID,
@@ -204,6 +224,11 @@ const getReferencesByChartId = async (
             url: `${BAKED_BASE_URL}/${slug}`,
         }
     })
+
+    return [
+        ...publishedGdocPostsThatReferenceChart,
+        ...publishedWPPostsThatReferenceChart,
+    ]
 }
 
 const getRedirectsByChartId = async (
@@ -694,6 +719,13 @@ apiRouter.put("/charts/:chartId", async (req: Request, res: Response) => {
 
 apiRouter.delete("/charts/:chartId", async (req: Request, res: Response) => {
     const chart = await expectChartById(req.params.chartId)
+    const links = await Link.getPublishedLinksTo([chart.slug!])
+    if (links.length) {
+        const sources = links.map((link) => link.source.slug).join(", ")
+        throw new Error(
+            `Cannot delete chart in-use in the following published documents: ${sources}`
+        )
+    }
 
     await db.transaction(async (t) => {
         await t.execute(`DELETE FROM chart_dimensions WHERE chartId=?`, [
@@ -2298,6 +2330,9 @@ apiRouter.post("/posts/:postId/createGdoc", async (req: Request) => {
             400
         )
     }
+    const tagsByPostId = await getTagsByPostId()
+    const tags =
+        tagsByPostId.get(postId)?.map(({ id }) => Tag.create({ id })) || []
     const archieMl = JSON.parse(post.archieml) as OwidGdocInterface
     const gdocId = await createGdocAndInsertOwidGdocContent(
         archieMl.content,
@@ -2318,10 +2353,12 @@ apiRouter.post("/posts/:postId/createGdoc", async (req: Request) => {
 
         const gdoc = new Gdoc(gdocId)
         gdoc.slug = post.slug
+        gdoc.tags = tags
+        gdoc.content.title = post.title
         gdoc.published = false
         gdoc.createdAt = new Date()
         gdoc.publishedAt = post.published_at
-        await dataSource.getRepository(Gdoc).insert(gdoc)
+        await dataSource.getRepository(Gdoc).save(gdoc)
     }
 
     return { googleDocsId: gdocId }
@@ -2701,7 +2738,7 @@ apiRouter.put("/details/:id", async (req, res) => {
     return { success: true }
 })
 
-apiRouter.get("/gdocs", async () => Gdoc.find())
+apiRouter.get("/gdocs", async () => Gdoc.find({ relations: ["tags"] }))
 
 apiRouter.get("/gdocs/:id", async (req, res) => {
     const id = req.params.id
@@ -2710,7 +2747,14 @@ apiRouter.get("/gdocs/:id", async (req, res) => {
         | undefined
 
     try {
-        const gdoc = await Gdoc.getGdocFromContentSource(id, contentSource)
+        const publishedExplorersBySlug =
+            await explorerAdminServer.getAllPublishedExplorersBySlugCached()
+
+        const gdoc = await Gdoc.getGdocFromContentSource(
+            id,
+            publishedExplorersBySlug,
+            contentSource
+        )
         res.set("Cache-Control", "no-store")
         res.send(gdoc)
     } catch (error) {
@@ -2771,7 +2815,9 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
             id: id,
         },
     })
-    await dataSource.getRepository(Link).save(nextGdoc.links)
+    if (nextGdoc.published) {
+        await dataSource.getRepository(Link).save(nextGdoc.links)
+    }
 
     //todo #gdocsvalidationserver: run validation before saving published
     //articles, in addition to the first pass performed in front-end code (see
@@ -2818,6 +2864,11 @@ apiRouter.delete("/gdocs/:id", async (req, res) => {
     const gdoc = await Gdoc.findOneBy({ id })
     if (!gdoc) throw new JsonError(`No Google Doc with id ${id} found`)
 
+    await db
+        .knexTable("posts")
+        .where({ gdocSuccessorId: gdoc.id })
+        .update({ gdocSuccessorId: null })
+
     await Link.delete({
         source: {
             id,
@@ -2828,5 +2879,22 @@ apiRouter.delete("/gdocs/:id", async (req, res) => {
     await triggerStaticBuild(res.locals.user, `Deleting ${gdoc.slug}`)
     return {}
 })
+
+apiRouter.post(
+    "/gdocs/:gdocId/setTags",
+    async (req: Request, res: Response) => {
+        const { gdocId } = req.params
+        const { tagIds } = req.body
+
+        const gdoc = await Gdoc.findOneBy({ id: gdocId })
+        if (!gdoc) return Error(`Unable to find Gdoc with ID: ${gdocId}`)
+        const tags = await dataSource
+            .getRepository(Tag)
+            .findBy({ id: In(tagIds) })
+        gdoc.tags = tags
+        await gdoc.save()
+        return { success: true }
+    }
+)
 
 export { apiRouter }

@@ -210,7 +210,7 @@ export class FacetChart
     }
 
     // Passing this color map is important to ensure that all facets use the same entity colors
-    seriesColorMap: SeriesColorMap = new Map()
+    seriesColorMap: SeriesColorMap = this.manager?.seriesColorMap ?? new Map()
 
     /**
      * Holds the intermediate render properties for chart views, before axes are synchronized,
