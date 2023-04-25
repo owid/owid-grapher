@@ -280,11 +280,14 @@ export function enrichedBlockToRawBlock(
                           }
                         : undefined,
                     "related-topics": b.relatedTopics
-                        ? b.relatedTopics
+                        ? b.relatedTopics.map((relatedTopic) => ({
+                              text: relatedTopic.text,
+                              url: relatedTopic.url,
+                          }))
                         : undefined,
-                    content: b.content.map((span) => ({
+                    content: b.content.map((textBlock) => ({
                         type: "text",
-                        value: spansToHtmlText(span),
+                        value: spansToHtmlText(textBlock.value),
                     })),
                 },
             })

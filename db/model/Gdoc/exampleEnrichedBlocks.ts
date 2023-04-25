@@ -236,16 +236,26 @@ export const enrichedBlockExamples: Record<
             },
         ],
         content: [
-            [
-                {
-                    spanType: "span-simple-text",
-                    text: "I am the first paragraph of the intro to the topic page.",
-                },
-                {
-                    spanType: "span-simple-text",
-                    text: "I am the second paragraph of the intro to the topic page.",
-                },
-            ],
+            {
+                type: "text",
+                parseErrors: [],
+                value: [
+                    {
+                        spanType: "span-simple-text",
+                        text: "I am the first paragraph of the intro to the topic page.",
+                    },
+                ],
+            },
+            {
+                type: "text",
+                parseErrors: [],
+                value: [
+                    {
+                        spanType: "span-simple-text",
+                        text: "I am the second paragraph of the intro to the topic page.",
+                    },
+                ],
+            },
         ],
         parseErrors: [],
     },

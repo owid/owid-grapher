@@ -74,7 +74,6 @@ import {
 } from "./htmlToEnriched.js"
 import { match } from "ts-pattern"
 import { parseInt } from "lodash"
-import { EnrichedTopicPageIntroDownloadButton } from "@ourworldindata/utils/dist/owidTypes.js"
 
 export function parseRawBlocksToEnrichedBlocks(
     block: OwidRawGdocBlock
@@ -550,11 +549,18 @@ const parseRecirc = (raw: RawBlockRecirc): EnrichedBlockRecirc => {
         })
     }
 
-    const linkWithMissingUrl = raw.value.links.find((link) => !link.url)
-    if (linkWithMissingUrl) {
-        return createError({
-            message: "Recirc link missing url property",
-        })
+    const linkErrors: ParseError[] = []
+    for (const link of raw.value.links) {
+        if (!link.url) {
+            linkErrors.push({
+                message: "Recirc link missing url property",
+            })
+        } else if (!Url.fromURL(link.url).isGoogleDoc) {
+            linkErrors.push({
+                message: "External urls are not supported in recirc blocks",
+                isWarning: true,
+            })
+        }
     }
 
     const parsedTitle = htmlToSimpleTextBlock(raw.value.title)
@@ -566,7 +572,7 @@ const parseRecirc = (raw: RawBlockRecirc): EnrichedBlockRecirc => {
             type: "recirc-link",
             url: link.url!,
         })),
-        parseErrors: [],
+        parseErrors: [...linkErrors],
     }
 }
 
@@ -929,13 +935,15 @@ function parseTopicPageIntro(
         })
     }
 
-    if (
-        raw.value.content.find((element) => {
-            return element.type !== "text"
-        })
-    ) {
-        return createError({
-            message: "Invalid content type. Only simple text is allowed.",
+    const contentErrors: ParseError[] = []
+    const textOnlyContent = raw.value.content.filter(
+        (element) => element.type === "text"
+    )
+    if (raw.value.content.length !== textOnlyContent.length) {
+        contentErrors.push({
+            message:
+                "Only paragraphs are supported in topic-page-intro blocks.",
+            isWarning: true,
         })
     }
 
@@ -997,7 +1005,7 @@ function parseTopicPageIntro(
         type: "topic-page-intro",
         downloadButton: enrichedDownloadButton,
         relatedTopics: enrichedRelatedTopics,
-        content: raw.value.content.map((rawText) => htmlToSpans(rawText.value)),
-        parseErrors: [],
+        content: textOnlyContent.map((rawText) => htmlToEnrichedTextBlock(rawText.value)),
+        parseErrors: [...contentErrors],
     }
 }

@@ -1394,9 +1394,9 @@ export function recursivelyMapArticleContent(
         node.links.map((link) => callback(link))
     } else if (node.type === "topic-page-intro") {
         const { downloadButton, relatedTopics, content } = node
-        content.forEach((spans) => spans.forEach(callback))
         if (downloadButton) callback(downloadButton)
         if (relatedTopics) relatedTopics.forEach(callback)
+        content.forEach(callback)
     }
 
     return callback(node)

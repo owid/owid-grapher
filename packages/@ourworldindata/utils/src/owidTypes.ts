@@ -849,7 +849,7 @@ export type EnrichedBlockTopicPageIntro = {
     type: "topic-page-intro"
     downloadButton?: EnrichedTopicPageIntroDownloadButton
     relatedTopics?: EnrichedTopicPageIntroRelatedTopic[]
-    content: Span[][]
+    content: EnrichedBlockText[]
 } & EnrichedBlockWithParseErrors
 
 export type RawBlockSDGToc = {

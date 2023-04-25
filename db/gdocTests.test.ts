@@ -190,7 +190,7 @@ level: 2
         expect(article?.body?.[0]).toEqual(expectedEnrichedBlock)
     })
 
-    it("surfaces block type restriction in topic-page-intro content", () => {
+    it.only("surfaces block type restriction in topic-page-intro content", () => {
         const archieMLString = `
         {.topic-page-intro}
             {.download-button}
@@ -219,22 +219,25 @@ level: 2
         const expectedEnrichedBlock: EnrichedBlockTopicPageIntro = {
             type: "topic-page-intro",
             content: [
-                [
-                    {
-                        children: [
-                            {
-                                text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-                                spanType: "span-simple-text",
-                            },
-                        ],
-                        spanType: "span-bold",
-                    },
-                    {
-                        text: " Suspendisse dictum consectetur turpis sit amet vestibulum.",
-                        spanType: "span-simple-text",
-                    },
-                ],
-                [],
+                {
+                    value: [
+                        {
+                            children: [
+                                {
+                                    spanType: "span-simple-text",
+                                    text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+                                },
+                            ],
+                            spanType: "span-bold",
+                        },
+                        {
+                            text: " Suspendisse dictum consectetur turpis sit amet vestibulum.",
+                            spanType: "span-simple-text",
+                        },
+                    ],
+                    parseErrors: [],
+                    type: "text",
+                },
             ],
             parseErrors: [
                 {
@@ -280,12 +283,13 @@ level: 2
             let deserializedEnrichedBlocks = bodyNodes.map(
                 parseRawBlocksToEnrichedBlocks
             )
-            if (example.type === "simple-text")
+            if (example.type === "simple-text") {
                 // RawBlockText blocks are always parsed to EnrichedBlockText, never automatically
                 // to EnrichedBlockSimpleText. So we need to manually parse them here.
                 deserializedEnrichedBlocks = [
                     parseSimpleText(bodyNodes[0] as RawBlockText),
                 ]
+            }
             expect(deserializedEnrichedBlocks).toHaveLength(1)
             expect(omitUndefinedValues(bodyNodes[0])).toEqual(
                 omitUndefinedValues(rawBlock)

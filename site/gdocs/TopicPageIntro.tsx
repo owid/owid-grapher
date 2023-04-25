@@ -5,6 +5,7 @@ import {
 import React, { useContext } from "react"
 import { renderSpans, useLinkedDocument } from "./utils.js"
 import { DocumentContext } from "./OwidGdoc.js"
+import Paragraph from "./Paragraph.js"
 
 type TopicPageIntroProps = EnrichedBlockTopicPageIntro & {
     className?: string
@@ -32,8 +33,8 @@ export function TopicPageIntro(props: TopicPageIntroProps) {
     return (
         <div className={props.className} id="introduction">
             <div className="topic-page-intro__content body-1-regular span-cols-6 span-md-cols-8 span-sm-cols-12">
-                {props.content.map((spans, i) => (
-                    <p key={i}>{renderSpans(spans)}</p>
+                {props.content.map((text, i) => (
+                    <Paragraph d={text} key={i} />
                 ))}
             </div>
             <div className="topic-page-intro__links col-start-9 span-cols-4 col-md-start-1 span-md-cols-12">
