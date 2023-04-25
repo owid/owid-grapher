@@ -137,6 +137,7 @@ async function main() {
             GRAPHER_REGIONS_PATH,
         ])
         console.log(diff.toString())
+        console.log("Be sure to set up redirects for any slugs that have changed")
     }
 }
 
