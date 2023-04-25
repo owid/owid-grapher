@@ -5,7 +5,7 @@ export interface Country {
     shortCode?: string
     name: string
     shortName?: string
-    slug?: string // probably shouldn't be optional (even if isUnlisted==true)
+    slug: string
     regionType?: "country" | "other"
     isMappable?: boolean
     isHistorical?: boolean
