@@ -4,6 +4,8 @@ import { SeriesName } from "../core/GrapherConstants"
 
 export type StackedPointPositionType = string | number
 
+export type StackedPlacedPoint = [number, number]
+
 // PositionType can be categorical (e.g. country names), or ordinal (e.g. years).
 export interface StackedPoint<PositionType extends StackedPointPositionType> {
     position: PositionType
@@ -18,6 +20,12 @@ export interface StackedSeries<PositionType extends StackedPointPositionType>
     points: StackedPoint<PositionType>[]
     columnSlug?: string
     isProjection?: boolean
+}
+
+export interface StackedPlacedSeries<
+    PositionType extends StackedPointPositionType
+> extends StackedSeries<PositionType> {
+    placedPoints: Array<StackedPlacedPoint>
 }
 
 export interface StackedRawSeries<
