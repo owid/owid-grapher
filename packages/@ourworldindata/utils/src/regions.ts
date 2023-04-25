@@ -1,4 +1,4 @@
-import regions from './regions.json'
+import entities from './regions.json'
 
 export interface Country {
     code: string,
@@ -29,9 +29,9 @@ export interface Continent {
 
 export type Region = Country | Aggregate | Continent
 
-export const entities: Region[] = regions as Region[]
+export const regions: Region[] = entities as Region[]
 
-export const countries: Country[] = entities.filter(
+export const countries: Country[] = regions.filter(
     (entity:any) => entity.regionType === 'country' && !entity.isUnlisted
 ) as Country[]
 
