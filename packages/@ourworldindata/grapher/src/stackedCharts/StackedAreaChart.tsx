@@ -29,7 +29,11 @@ import {
     AbstractStackedChartProps,
 } from "../stackedCharts/AbstractStackedChart"
 import { StackedSeries } from "./StackedConstants"
-import { stackSeries, withMissingValuesAsZeroes } from "./StackedUtils"
+import {
+    formatTotalValue,
+    stackSeries,
+    withMissingValuesAsZeroes,
+} from "./StackedUtils"
 import { makeClipPath } from "../chart/ChartUtils"
 
 interface AreasProps extends React.SVGAttributes<SVGGElement> {
@@ -335,22 +339,6 @@ export class StackedAreaChart
         const lastStackedPoint = last(series)!.points[hoveredPointIndex]
         const totalValue = lastStackedPoint.value + lastStackedPoint.valueOffset
 
-        const yColumn = this.yColumns[0] // used to format time and the total value
-
-        // determine which unit to use for the total value
-        let totalValueUnit: string | undefined
-        if (manager.isRelativeMode) {
-            totalValueUnit = "%"
-        } else {
-            const uniqueUnits = new Set(
-                this.series.map(({ yColumn }) => yColumn.unit)
-            )
-            const hasMultipleUnits = uniqueUnits.size > 1
-
-            // omit unit if multiple units are in use
-            totalValueUnit = hasMultipleUnits ? "" : yColumn.unit
-        }
-
         return (
             <Tooltip
                 id={this.renderUid}
@@ -368,7 +356,7 @@ export class StackedAreaChart
                         <tr>
                             <td>
                                 <strong>
-                                    {yColumn.formatTime(
+                                    {this.yColumns[0].formatTime(
                                         bottomSeriesPoint.position
                                     )}
                                 </strong>
@@ -430,11 +418,13 @@ export class StackedAreaChart
                                 <td style={{ textAlign: "right" }}>
                                     <span>
                                         <strong>
-                                            {yColumn.formatValueLong(
+                                            {formatTotalValue(
                                                 totalValue,
+
                                                 {
-                                                    trailingZeroes: true,
-                                                    unit: totalValueUnit,
+                                                    series,
+                                                    isRelativeMode:
+                                                        manager.isRelativeMode,
                                                 }
                                             )}
                                         </strong>

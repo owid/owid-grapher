@@ -75,3 +75,33 @@ export const withMissingValuesAsZeroes = <
         }
     })
 }
+
+export function formatTotalValue<PositionType extends StackedPointPositionType>(
+    value: number,
+    {
+        series,
+        isRelativeMode,
+    }: {
+        series: readonly StackedSeries<PositionType>[]
+        isRelativeMode?: boolean
+    }
+): string {
+    const yColumn = series[0].yColumn
+
+    // determine which unit to use
+    let totalValueUnit: string | undefined
+    if (isRelativeMode) {
+        totalValueUnit = "%"
+    } else {
+        const uniqueUnits = new Set(series.map(({ yColumn }) => yColumn.unit))
+        const hasMultipleUnits = uniqueUnits.size > 1
+
+        // omit unit if multiple units are in use
+        totalValueUnit = hasMultipleUnits ? "" : yColumn.unit
+    }
+
+    return yColumn.formatValueLong(value, {
+        trailingZeroes: true,
+        unit: totalValueUnit,
+    })
+}

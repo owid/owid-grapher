@@ -24,7 +24,11 @@ import {
 import { StackedPoint, StackedSeries } from "./StackedConstants"
 import { VerticalAxis } from "../axis/Axis"
 import { ColorSchemeName } from "../color/ColorConstants"
-import { stackSeries, withMissingValuesAsZeroes } from "./StackedUtils"
+import {
+    formatTotalValue,
+    stackSeries,
+    withMissingValuesAsZeroes,
+} from "./StackedUtils"
 import { makeClipPath } from "../chart/ChartUtils"
 import { ColorScaleConfigDefaults } from "../color/ColorScaleConfig"
 import { ColumnTypeMap } from "@ourworldindata/core-table"
@@ -255,22 +259,6 @@ export class StackedBarChart
         const xPos = mapXValueToOffset.get(hoverTime)
         if (xPos === undefined) return
 
-        const yColumn = this.yColumns[0] // used to format time and the total value
-
-        // determine which unit to use for the total value
-        let totalValueUnit: string | undefined
-        if (manager.isRelativeMode) {
-            totalValueUnit = "%"
-        } else {
-            const uniqueUnits = new Set(
-                this.series.map(({ yColumn }) => yColumn.unit)
-            )
-            const hasMultipleUnits = uniqueUnits.size > 1
-
-            // omit unit if multiple units are in use
-            totalValueUnit = hasMultipleUnits ? "" : yColumn.unit
-        }
-
         const seriesRows = [...series].reverse().map((series) => ({
             yColumn: series.yColumn,
             seriesName: series.seriesName,
@@ -294,7 +282,9 @@ export class StackedBarChart
                     <tbody>
                         <tr>
                             <td colSpan={3}>
-                                <strong>{yColumn.formatTime(hoverTime)}</strong>
+                                <strong>
+                                    {this.yColumns[0].formatTime(hoverTime)}
+                                </strong>
                             </td>
                         </tr>
                         {seriesRows.map(
@@ -359,9 +349,9 @@ export class StackedBarChart
                                         whiteSpace: "nowrap",
                                     }}
                                 >
-                                    {yColumn.formatValueLong(totalValue, {
-                                        trailingZeroes: true,
-                                        unit: totalValueUnit,
+                                    {formatTotalValue(totalValue, {
+                                        series,
+                                        isRelativeMode: manager.isRelativeMode,
                                     })}
                                 </td>
                             </tr>
