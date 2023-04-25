@@ -13,7 +13,7 @@ jobs:
               uses: actions/checkout@v3
 
             - name: Set up Python
-              uses: actions/setup-python@v2
+              uses: actions/setup-python@v4
               with:
                   python-version: 3.x
 
@@ -23,6 +23,6 @@ jobs:
             - name: Run script
               env:
                   BUILDKITE_API_ACCESS_TOKEN: ${{ secrets.BUILDKITE_API_ACCESS_TOKEN }}
-                  TARGET_BRANCH: ${{ github.event.pull_request.base.ref }}
+                  BRANCH: ${{ github.event.pull_request.head.ref }}
               run: |
                   python .github/scripts/buildkite_destroy_staging.py
