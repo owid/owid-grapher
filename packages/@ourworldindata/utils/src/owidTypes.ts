@@ -1035,7 +1035,6 @@ export interface OwidGdocContent {
     title?: string
     supertitle?: string
     subtitle?: string
-    template?: string
     authors: string[]
     dateline?: string
     excerpt?: string
