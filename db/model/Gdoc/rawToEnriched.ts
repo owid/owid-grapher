@@ -1005,7 +1005,9 @@ function parseTopicPageIntro(
         type: "topic-page-intro",
         downloadButton: enrichedDownloadButton,
         relatedTopics: enrichedRelatedTopics,
-        content: textOnlyContent.map((rawText) => htmlToEnrichedTextBlock(rawText.value)),
+        content: textOnlyContent.map((rawText) =>
+            htmlToEnrichedTextBlock(rawText.value)
+        ),
         parseErrors: [...contentErrors],
     }
 }
