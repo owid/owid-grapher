@@ -131,6 +131,9 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
         if (this.content["cover-image"]) {
             filenames.add(this.content["cover-image"])
         }
+        if (this.content["featured-image"]) {
+            filenames.add(this.content["featured-image"])
+        }
 
         this.content.body?.forEach((node) =>
             recursivelyMapArticleContent(node, (item) => {
