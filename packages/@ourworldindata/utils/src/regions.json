@@ -69,7 +69,7 @@
     "slug": "united-arab-emirates",
     "regionType": "country",
     "isMappable": true,
-    "aliases": [
+    "variantNames": [
       "UAE"
     ]
   },
@@ -477,7 +477,7 @@
     "slug": "czech-republic",
     "regionType": "country",
     "isMappable": true,
-    "aliases": [
+    "variantNames": [
       "Czech Republic"
     ]
   },
@@ -647,7 +647,7 @@
     "slug": "united-kingdom",
     "regionType": "country",
     "isMappable": true,
-    "aliases": [
+    "variantNames": [
       "UK"
     ]
   },
@@ -1164,7 +1164,7 @@
     "slug": "macedonia",
     "regionType": "country",
     "isMappable": true,
-    "aliases": [
+    "variantNames": [
       "Macedonia"
     ]
   },
@@ -2240,7 +2240,7 @@
     "slug": "swaziland",
     "regionType": "country",
     "isMappable": true,
-    "aliases": [
+    "variantNames": [
       "Swaziland"
     ]
   },
@@ -2423,7 +2423,7 @@
     "slug": "united-states",
     "regionType": "country",
     "isMappable": true,
-    "aliases": [
+    "variantNames": [
       "US",
       "USA"
     ]
