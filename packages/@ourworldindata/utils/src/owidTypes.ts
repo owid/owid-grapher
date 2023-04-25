@@ -532,7 +532,8 @@ export type RawBlockScroller = {
 }
 
 export type EnrichedScrollerItem = {
-    url: string // TODO: should this be transformed into an EnrichedBlockChart?
+    type: "enriched-scroller-item"
+    url: string
     text: EnrichedBlockText
 }
 

@@ -81,6 +81,7 @@ export const enrichedBlockExamples: Record<
             {
                 url: "https://ourworldindata.org/grapher/total-cases-covid-19",
                 text: enrichedBlockText,
+                type: "enriched-scroller-item",
             },
         ],
         parseErrors: [],

@@ -156,6 +156,7 @@ import {
     EnrichedRecircLink,
     EnrichedTopicPageIntroRelatedTopic,
     EnrichedTopicPageIntroDownloadButton,
+    EnrichedScrollerItem,
 } from "./owidTypes.js"
 import { PointVector } from "./PointVector.js"
 import React from "react"
@@ -1360,6 +1361,7 @@ export type NodeWithUrl =
     | EnrichedRecircLink
     | EnrichedTopicPageIntroRelatedTopic
     | EnrichedTopicPageIntroDownloadButton
+    | EnrichedScrollerItem
 
 export function recursivelyMapArticleContent(
     node: NodeWithUrl,
@@ -1397,6 +1399,8 @@ export function recursivelyMapArticleContent(
         if (downloadButton) callback(downloadButton)
         if (relatedTopics) relatedTopics.forEach(callback)
         content.forEach(callback)
+    } else if (node.type === "scroller") {
+        node.blocks.forEach(callback)
     }
 
     return callback(node)

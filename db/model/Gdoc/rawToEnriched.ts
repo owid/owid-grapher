@@ -272,6 +272,7 @@ const parseScroller = (raw: RawBlockScroller): EnrichedBlockScroller => {
     const blocks: EnrichedScrollerItem[] = []
     let currentBlock: EnrichedScrollerItem = {
         url: "",
+        type: "enriched-scroller-item",
         text: { type: "text", value: [], parseErrors: [] },
     }
     const warnings: ParseError[] = []
@@ -281,6 +282,7 @@ const parseScroller = (raw: RawBlockScroller): EnrichedBlockScroller => {
                 if (currentBlock.url !== "") {
                     blocks.push(currentBlock)
                     currentBlock = {
+                        type: "enriched-scroller-item",
                         url: "",
                         text: {
                             type: "text",

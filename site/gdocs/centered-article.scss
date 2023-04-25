@@ -412,6 +412,10 @@ h3.article-block__heading.has-supertitle {
     margin-bottom: 32px;
     position: relative;
 
+    .scroller__chart {
+        margin: 0;
+    }
+
     @include sm-up {
         .scroller__paragraph {
             height: 50vh;
