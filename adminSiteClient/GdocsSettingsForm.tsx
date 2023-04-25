@@ -25,7 +25,9 @@ export const GdocsSettingsForm = ({
     // These errors don't have a specific form field to render them in. We just show them at the bottom of the drawer
     const errorsToShowInDrawer = groupBy(
         (errors || []).filter(({ property }) =>
-            ["content", "linkedDocuments", "linkedCharts"].includes(property)
+            ["content", "linkedDocuments", "linkedCharts", "body"].includes(
+                property
+            )
         ),
         "type"
     )

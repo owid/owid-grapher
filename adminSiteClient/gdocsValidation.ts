@@ -31,6 +31,18 @@ class BodyHandler extends AbstractHandler {
         const { body } = gdoc.content
         if (!body) {
             messages.push(getMissingContentPropertyError("body"))
+        } else {
+            for (const block of body) {
+                messages.push(
+                    ...block.parseErrors.map((parseError) => ({
+                        message: parseError.message,
+                        type: parseError.isWarning
+                            ? OwidGdocErrorMessageType.Warning
+                            : OwidGdocErrorMessageType.Error,
+                        property: "body" as const,
+                    }))
+                )
+            }
         }
 
         return super.handle(gdoc, messages)
