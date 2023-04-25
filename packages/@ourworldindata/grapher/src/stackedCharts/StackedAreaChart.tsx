@@ -79,9 +79,9 @@ class Areas extends React.Component<AreasProps> {
             // We only have one point, so make it so it stretches out over the whole x axis range
             // There are two cases here that we need to consider:
             // (1) In unfaceted charts, the x domain will be a single year, so we need to ensure that the area stretches
-            //     out over the full range of the x axis. We do this using AxisAlign.start and AxisAlign.end.
+            //     out over the full range of the x axis.
             // (2) In faceted charts, the x domain may span multiple years, so we need to ensure that the area stretches
-            //     out only over year - 0.5 to year + 0.5, making sure we don't put points outside the x range.
+            //     out only over year - 0.5 to year + 0.5, additionally making sure we don't put points outside the x range.
             //
             // -@marcelgerber, 2023-04-24
             const point = series.points[0]
@@ -134,9 +134,12 @@ class Areas extends React.Component<AreasProps> {
                 prevPoints = placedSeriesArr[index - 1].placedPoints
             } else {
                 prevPoints = prevPoints = [
-                    [placedPoints[0][0], verticalAxis.range[0]],
                     [
-                        lastOfNonEmptyArray(placedPoints)[0],
+                        placedPoints[0][0], // placed x coord of first (= leftmost) point in chart
+                        verticalAxis.range[0],
+                    ],
+                    [
+                        lastOfNonEmptyArray(placedPoints)[0], // placed x coord of last (= rightmost) point in chart
                         verticalAxis.range[0],
                     ],
                 ]
