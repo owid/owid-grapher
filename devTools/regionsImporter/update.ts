@@ -32,7 +32,7 @@ interface Entity {
     is_mappable?: boolean,
     is_historical?: boolean,
     omit_country_page?: boolean,
-    aliases?: string[],
+    variant_names?: string[],
     members?: string[],
 }
 
@@ -72,7 +72,7 @@ async function main(){
     }
 
     // merge in alternate search terms
-    entity.aliases = _.get(SEARCH_ALIASES, entity.code)
+    entity.variant_names = _.get(SEARCH_ALIASES, entity.code)
 
     return _(entity).mapKeys((val, key) =>
       // rename keys to camelCase
@@ -83,7 +83,7 @@ async function main(){
     ).pick(
       // give keys a consistent ordering
       "code", "shortCode", "name", "shortName", "slug", "regionType",
-      "isMappable", "isHistorical", "isUnlisted", "aliases", "members"
+      "isMappable", "isHistorical", "isUnlisted", "variantNames", "members"
     ).value()
   })
 
