@@ -38,7 +38,7 @@ interface Entity {
     members?: string[]
 }
 
-function prettifiedJson(obj) {
+function prettifiedJson(obj:any) {
     // make sure the json we emit is diff-able even after running prettier on the repo
     return prettier.format(JSON.stringify(obj), {
         parser: "json",
@@ -116,13 +116,14 @@ async function main() {
             .value()
     })
 
-    // generate new regions.json file and report changes (if any)
+    // generate new regions.json file compare to old version
     let newRegions = prettifiedJson(entities),
         oldRegions = await readFile(GRAPHER_REGIONS_PATH).catch((e) => ""),
         newHash = createHash("md5").update(newRegions).digest("hex"),
         oldHash = createHash("md5").update(oldRegions).digest("hex")
-
     await writeFile(GRAPHER_REGIONS_PATH, newRegions)
+
+    // report changes (if any)
     console.log(
         `${
             newHash === oldHash ? "No changes" : "Contents changed"
