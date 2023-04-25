@@ -5046,6 +5046,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@sinclair/typebox@npm:^0.28.5":
+  version: 0.28.5
+  resolution: "@sinclair/typebox@npm:0.28.5"
+  checksum: 64ff979b6ef8a60433c65e06bbc88d2c4587199d966df3c03afcd07bbf6f774fc8d920579ece44a40086eca9f9713d4040c2f9b64d64bf6bbf27f7d9e33e2da4
+  languageName: node
+  linkType: hard
+
 "@sindresorhus/is@npm:^0.7.0":
   version: 0.7.0
   resolution: "@sindresorhus/is@npm:0.7.0"
@@ -13884,6 +13891,7 @@ __metadata:
     "@ourworldindata/utils": "workspace:^"
     "@prettier/plugin-php": ^0.14.3
     "@react-awesome-query-builder/antd": ^6.1.1
+    "@sinclair/typebox": ^0.28.5
     "@testing-library/jest-dom": ^5.16.5
     "@testing-library/react": ^12
     "@tippyjs/react": ^4.2.6

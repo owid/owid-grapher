@@ -16,6 +16,7 @@ import {
     pick,
     getUrlTarget,
     getLinkType,
+    JsonError,
 } from "@ourworldindata/utils"
 import {
     getRelatedArticles,
@@ -32,6 +33,7 @@ import {
     BAKED_GRAPHER_URL,
     MAX_NUM_BAKE_PROCESSES,
     DATA_FILES_CHECKSUMS_DIRECTORY,
+    ADMIN_BASE_URL,
 } from "../settings/serverSettings.js"
 import * as db from "../db/db.js"
 import { glob } from "glob"
@@ -53,6 +55,7 @@ import { splitGdocContentUsingHeadingOneTextsAsKeys } from "../db/model/Gdoc/gdo
 import { ALLOWED_DATAPAGE_GDOC_FIELDS } from "../site/DataPageContent.js"
 import { dataSource } from "../db/dataSource.js"
 import { getDatapageJson } from "../datapage/Datapage.js"
+import { logContentErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
 
 /**
  *
@@ -69,16 +72,40 @@ export const renderDataPageOrGrapherPage = async (
     const id = variableIds[0]
 
     // Get the datapage JSON file from the owid-content git repo that has
-    // been updated and pulled separately by an author
-    const datapageJson = await getDatapageJson(id)
+    // been updated and pulled separately by an author.
+    const { datapageJson, parseErrors } = await getDatapageJson(id)
+
+    // When previewing a datapage we want to show all discrepancies with the
+    // expected JSON schema in the browser. When baking, a single error by
+    // datapage will be sent to slack while falling back to rendering a regular
+    // grapher page.
+    if (parseErrors.length > 0) {
+        if (isPreviewing) {
+            return renderToHtmlPage(
+                <pre>{JSON.stringify(parseErrors, null, 2)}</pre>
+            )
+        } else {
+            logContentErrorAndMaybeSendToSlack(
+                new JsonError(
+                    `Data page error: please check ${ADMIN_BASE_URL}/admin/grapher/${grapher.slug}`
+                )
+            )
+        }
+    }
 
     // Fallback to rendering a regular grapher page whether the datapage JSON
-    // wasn't found or failed to parse or if the datapage was not supposed to render just
-    // yet
+    // wasn't found or failed to parse or if the datapage is not fully
+    // configured for publishing yet
     if (
+        // This could be folded into the showDataPageOnChartIds check below, but
+        // is kept separate to reiterate that that abscence of a datapageJson leads to
+        // rendering a grapher page
+        !datapageJson ||
+        parseErrors.length > 0 ||
         // We only want to render datapages on selected charts, even if the
         // variable found on the chart has a datapage configuration.
-        !datapageJson?.showDataPageOnChartIds?.includes(grapher.id) ||
+        !grapher.id ||
+        !datapageJson.showDataPageOnChartIds.includes(grapher.id) ||
         // Fall back to rendering a regular grapher page if the datapage is not
         // published or if we're not previewing
         !(datapageJson.status === "published" || isPreviewing)
@@ -130,12 +157,16 @@ export const renderDataPageOrGrapherPage = async (
     return renderToHtmlPage(
         <DataPage
             grapher={grapher}
-            // Even though datapageGdocContentByHeadingOneTexts can
-            // technically override keys of datapageJson, these two
-            // objects' keys are considered mutually exclusive. The gdoc
-            // is indeed not supposed to act as an override mechanism
-            // for JSON keys but rather as a source of additional rich
-            // content.
+            // Even though datapageGdocContentByHeadingOneTexts can technically
+            // override keys of datapageJson, these two objects' keys are
+            // considered mutually exclusive. The gdoc is indeed not supposed to
+            // act as an override mechanism for JSON keys but rather as a source
+            // of additional rich content. This exclusion is enforced by the
+            // ALLOWED_DATAPAGE_GDOC_FIELDS constant and the
+            // "additionalProperties" property in the datapage JSON schema.
+            // Without it, it would be possible to define e.g. a keyInfoText
+            // property in the JSON as a string which would then break the
+            // ArticleBlocks rendering, which is expecting an array of blocks.
             datapage={{
                 ...datapageJson,
                 ...datapageGdocContentByHeadingOneTexts,

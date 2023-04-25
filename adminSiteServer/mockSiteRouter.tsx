@@ -130,7 +130,7 @@ mockSiteRouter.get("/grapher/:slug", async (req, res) => {
 
     // XXX add dev-prod parity for this
     res.set("Access-Control-Allow-Origin", "*")
-    res.send(await renderDataPageOrGrapherPage(entity.config))
+    res.send(await renderDataPageOrGrapherPage(entity.config, true))
 })
 
 mockSiteRouter.get("/", async (req, res) => {
