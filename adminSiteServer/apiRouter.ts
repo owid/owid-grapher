@@ -84,6 +84,7 @@ import {
 import { dataSource } from "../db/dataSource.js"
 import { createGdocAndInsertOwidGdocContent } from "../db/model/Gdoc/archieToGdoc.js"
 import { Link } from "../db/model/Link.js"
+import { In } from "typeorm"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 
 const apiRouter = new FunctionalRouter()
