@@ -38,7 +38,7 @@ interface Entity {
     members?: string[]
 }
 
-function prettifiedJson(obj:any) {
+function prettifiedJson(obj: any) {
     // make sure the json we emit is diff-able even after running prettier on the repo
     return prettier.format(JSON.stringify(obj), {
         parser: "json",
