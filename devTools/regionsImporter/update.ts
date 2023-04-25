@@ -70,8 +70,9 @@ async function main(){
 
   // generate new regions.json file and report changes (if any)
   let newRegions = JSON.stringify(entities, null, "  "),
+      oldRegions = await readFile(GRAPHER_REGIONS_PATH).catch(e => ""),
       newHash = createHash("md5").update(newRegions).digest("hex"),
-      oldHash = createHash("md5").update(await readFile(GRAPHER_REGIONS_PATH)).digest("hex")
+      oldHash = createHash("md5").update(oldRegions).digest("hex")
 
   await writeFile(GRAPHER_REGIONS_PATH, newRegions)
   console.log(`${
