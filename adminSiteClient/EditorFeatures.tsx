@@ -1,4 +1,3 @@
-import { EntitySelectionMode } from "@ourworldindata/grapher"
 import { computed } from "mobx"
 import { ChartEditor } from "./ChartEditor.js"
 
