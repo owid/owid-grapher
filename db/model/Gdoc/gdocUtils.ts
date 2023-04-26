@@ -2,9 +2,11 @@ import {
     OwidEnrichedGdocBlock,
     OwidGdocInterface,
     Span,
+    pick,
 } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
 import cheerio from "cheerio"
+import { ALLOWED_DATAPAGE_GDOC_FIELDS } from "../../../site/DataPageContent.js"
 
 export function spanToSimpleString(s: Span): string {
     return match(s)
@@ -120,9 +122,12 @@ export const getTitleSupertitleFromHeadingText = (
     ]
 }
 
-export const splitGdocContentUsingHeadingOneTextsAsKeys = (
+export const splitGdocContentUsingAllowedHeadingOneTextsAsKeys = (
     gdoc: OwidGdocInterface
-): Record<string, OwidEnrichedGdocBlock[]> => {
+): Record<
+    (typeof ALLOWED_DATAPAGE_GDOC_FIELDS)[number],
+    OwidEnrichedGdocBlock[]
+> => {
     let currentKey = ""
     const keyedBlocks: Record<string, OwidEnrichedGdocBlock[]> = {}
 
@@ -142,5 +147,5 @@ export const splitGdocContentUsingHeadingOneTextsAsKeys = (
             ]
         }
     })
-    return keyedBlocks
+    return pick(keyedBlocks, ALLOWED_DATAPAGE_GDOC_FIELDS)
 }

@@ -6,9 +6,9 @@ import {
     OwidGdocInterface,
     OwidGdocPublicationContext,
 } from "@ourworldindata/utils/dist/owidTypes.js"
-import { splitGdocContentUsingHeadingOneTextsAsKeys } from "./gdocUtils.js"
+import { splitGdocContentUsingAllowedHeadingOneTextsAsKeys } from "./gdocUtils.js"
 
-it("splits a datapage gdoc into keyed sections", () => {
+it("splits a datapage gdoc into allowed keyed sections", () => {
     const getHeadingBlock = (text: string): EnrichedBlockHeading => {
         return {
             text: [
@@ -47,6 +47,8 @@ it("splits a datapage gdoc into keyed sections", () => {
             body: [
                 getHeadingBlock("title"),
                 getTextBlock("Gini coefficient"),
+                getHeadingBlock("datasetDescription"),
+                getTextBlock("The dataset description"),
                 getHeadingBlock("keyInfoText"),
                 getTextBlock(
                     "The Gini coefficient is a measure of inequality that ranges between 0 and 1, where higher values indicate higher inequality."
@@ -57,9 +59,11 @@ it("splits a datapage gdoc into keyed sections", () => {
             ],
         },
     }
-    const keyedContentBlocks = splitGdocContentUsingHeadingOneTextsAsKeys(gdoc)
+    const keyedContentBlocks =
+        splitGdocContentUsingAllowedHeadingOneTextsAsKeys(gdoc)
     expect(keyedContentBlocks).toEqual({
-        title: gdoc.content.body!.slice(1, 2),
-        keyInfoText: gdoc.content.body!.slice(3, 5),
+        // title is ignored because it's not in ALLOWED_DATAPAGE_GDOC_FIELDS
+        datasetDescription: gdoc.content.body!.slice(3, 4),
+        keyInfoText: gdoc.content.body!.slice(5, 7),
     })
 })

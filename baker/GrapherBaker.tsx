@@ -13,7 +13,6 @@ import {
     uniq,
     GdocsContentSource,
     OwidEnrichedGdocBlock,
-    pick,
     getUrlTarget,
     getLinkType,
     JsonError,
@@ -51,7 +50,7 @@ import workerpool from "workerpool"
 import ProgressBar from "progress"
 import { getVariableData } from "../db/model/Variable.js"
 import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
-import { splitGdocContentUsingHeadingOneTextsAsKeys } from "../db/model/Gdoc/gdocUtils.js"
+import { splitGdocContentUsingAllowedHeadingOneTextsAsKeys } from "../db/model/Gdoc/gdocUtils.js"
 import { ALLOWED_DATAPAGE_GDOC_FIELDS } from "../site/DataPageContent.js"
 import { getDatapageJson } from "../datapage/Datapage.js"
 import { logContentErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
@@ -147,10 +146,7 @@ export const renderDataPageOrGrapherPage = async (
               OwidEnrichedGdocBlock[]
           >
         | undefined = datapageGdoc
-        ? pick(
-              splitGdocContentUsingHeadingOneTextsAsKeys(datapageGdoc),
-              ALLOWED_DATAPAGE_GDOC_FIELDS
-          )
+        ? splitGdocContentUsingAllowedHeadingOneTextsAsKeys(datapageGdoc)
         : undefined
 
     return renderToHtmlPage(
