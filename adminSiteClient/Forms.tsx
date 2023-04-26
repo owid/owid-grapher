@@ -619,8 +619,8 @@ export class AutoTextField extends React.Component<AutoTextFieldProps> {
         return (
             <TextField
                 {...props}
-                value={props.isAuto ? undefined : props.value}
-                placeholder={props.isAuto ? props.value : undefined}
+                value={props.value}
+                placeholder={props.placeholder}
                 buttonContent={
                     <div
                         title={

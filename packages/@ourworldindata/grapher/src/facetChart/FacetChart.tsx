@@ -554,6 +554,12 @@ export class FacetChart
         if (!hasBins) return false
         if (isNumericLegend) return true
         if (
+            this.props.chartTypeName === ChartTypeName.StackedDiscreteBar &&
+            this.facetStrategy === FacetStrategy.metric
+        ) {
+            return false
+        }
+        if (
             categoricalLegendData.length > 1 ||
             // If the facetStrategy is metric, then the legend (probably?) shows entity items.
             // If the user happens to select only a single entity, we don't want to collapse the

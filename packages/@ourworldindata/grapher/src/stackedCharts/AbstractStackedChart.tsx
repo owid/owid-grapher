@@ -213,7 +213,7 @@ export class AbstractStackedChart
         const axis = this.yAxisConfig.toVerticalAxis()
         // Use user settings for axis, unless relative mode
         if (this.manager.isRelativeMode) axis.domain = [0, 100]
-        else axis.updateDomainPreservingUserSettings([0, max(yValues) ?? 100]) // Stacked area chart must have its own y domain)
+        else axis.updateDomainPreservingUserSettings([0, max(yValues) ?? 0]) // Stacked area chart must have its own y domain)
         axis.formatColumn = this.yColumns[0]
         return axis
     }
