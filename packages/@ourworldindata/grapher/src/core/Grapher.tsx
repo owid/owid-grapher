@@ -380,7 +380,7 @@ export class Grapher
 
     @observable.ref annotation?: Annotation = undefined
 
-    @observable hideFacetControl?: boolean = true
+    @observable.ref hideFacetControl?: boolean = undefined
 
     // the desired faceting strategy, which might not be possible if we change the data
     @observable selectedFacetStrategy?: FacetStrategy = undefined
@@ -1968,11 +1968,33 @@ export class Grapher
     }
 
     @computed get showFacetControl(): boolean {
+        const {
+            hideFacetControl,
+            filledDimensions,
+            yColumnSlugs,
+            availableFacetStrategies,
+            isStackedArea,
+            isStackedBar,
+            isStackedDiscreteBar,
+            isLineChart,
+        } = this
+
+        if (hideFacetControl != undefined) return !hideFacetControl
+
+        // heuristic: if the chart doesn't make sense unfaceted, then it probably
+        // also makes sense to let the user switch between entity/metric facets
+        if (!availableFacetStrategies.includes(FacetStrategy.none)) return true
+
+        const showFacetControlChartType =
+            isStackedArea || isStackedBar || isStackedDiscreteBar || isLineChart
+
+        const hasProjection = filledDimensions.some(
+            (dim) => dim.display.isProjection
+        )
+
         return (
-            !this.hideFacetControl ||
-            // heuristic: if the chart doesn't make sense unfaceted, then it probably
-            // also makes sense to let the user switch between entity/metric facets
-            !this.availableFacetStrategies.includes(FacetStrategy.none)
+            showFacetControlChartType &&
+            (!hasProjection || yColumnSlugs.length <= 2)
         )
     }
 
