@@ -128,9 +128,19 @@ mockSiteRouter.get("/grapher/:slug", async (req, res) => {
     const entity = await Chart.getBySlug(req.params.slug)
     if (!entity) throw new JsonError("No such chart", 404)
 
+    const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
+    const publishedExplorersBySlug =
+        await explorerAdminServer.getAllPublishedExplorersBySlug()
+
     // XXX add dev-prod parity for this
     res.set("Access-Control-Allow-Origin", "*")
-    res.send(await renderDataPageOrGrapherPage(entity.config, true))
+    res.send(
+        await renderDataPageOrGrapherPage(
+            entity.config,
+            true,
+            publishedExplorersBySlug
+        )
+    )
 })
 
 mockSiteRouter.get("/", async (req, res) => {

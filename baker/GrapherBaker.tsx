@@ -56,6 +56,7 @@ import { ALLOWED_DATAPAGE_GDOC_FIELDS } from "../site/DataPageContent.js"
 import { dataSource } from "../db/dataSource.js"
 import { getDatapageJson } from "../datapage/Datapage.js"
 import { logContentErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
+import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 
 /**
  *
@@ -64,7 +65,8 @@ import { logContentErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
  */
 export const renderDataPageOrGrapherPage = async (
     grapher: GrapherInterface,
-    isPreviewing: boolean = false
+    isPreviewing: boolean,
+    publishedExplorersBySlug?: Record<string, ExplorerProgram>
 ) => {
     const variableIds = uniq(grapher.dimensions!.map((d) => d.variableId))
     // this shows that multi-metric charts are not really supported, and will
@@ -128,9 +130,10 @@ export const renderDataPageOrGrapherPage = async (
         // Google Doc API. This won't be the case for external contributors or
         // possibly data engineers focusing on the data pipeline. In those
         // cases, we grab the gdoc found in the database, if any.
-        isPreviewing && Gdoc.areGdocAuthKeysSet()
+        isPreviewing && publishedExplorersBySlug && Gdoc.areGdocAuthKeysSet()
         ? await Gdoc.getGdocFromContentSource(
               googleDocId,
+              publishedExplorersBySlug,
               GdocsContentSource.Gdocs
           )
         : // Simply using Gdoc.findOneBy works when developing locally
@@ -245,7 +248,10 @@ const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
 
     // Always bake the html for every chart; it's cheap to do so
     const outPath = `${bakedSiteDir}/grapher/${grapher.slug}.html`
-    await fs.writeFile(outPath, await renderDataPageOrGrapherPage(grapher))
+    await fs.writeFile(
+        outPath,
+        await renderDataPageOrGrapherPage(grapher, false)
+    )
     console.log(outPath)
 
     const variableIds = lodash.uniq(

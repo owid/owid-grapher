@@ -259,7 +259,17 @@ adminRouter.get("/grapher/:slug", async (req, res) => {
     const entity = await Chart.getBySlug(req.params.slug)
     if (!entity) throw new JsonError("No such chart", 404)
 
-    res.send(await renderDataPageOrGrapherPage(entity.config, true))
+    const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
+    const publishedExplorersBySlug =
+        await explorerAdminServer.getAllPublishedExplorersBySlug()
+
+    res.send(
+        await renderDataPageOrGrapherPage(
+            entity.config,
+            true,
+            publishedExplorersBySlug
+        )
+    )
 })
 
 const gitCmsServer = new GitCmsServer({
