@@ -404,13 +404,21 @@ export class SiteBaker {
 
         const charts: { slug: string; subtitle: string; note: string }[] =
             await db.queryMysql(`
-            SELECT config->>'$.slug' as slug, config->>'$.subtitle' as subtitle, config->>'$.note' as note
-            FROM charts
-            WHERE JSON_EXTRACT(config, "$.isPublished") = true
-            AND (JSON_EXTRACT(config, "$.subtitle") LIKE "%#dod:%")
-            OR (JSON_EXTRACT(config, "$.note") LIKE "%#dod:%")
-            ORDER BY JSON_EXTRACT(config, "$.slug") ASC
-        `)
+                SELECT 
+                    config ->> '$.slug' as slug, 
+                    config ->> '$.subtitle' as subtitle, 
+                    config ->> '$.note' as note 
+                FROM 
+                    charts 
+                WHERE 
+                    JSON_EXTRACT(config, "$.isPublished") = true 
+                AND (
+                    JSON_EXTRACT(config, "$.subtitle") LIKE "%#dod:%" 
+                    OR JSON_EXTRACT(config, "$.note") LIKE "%#dod:%"
+                ) 
+                ORDER BY 
+                    JSON_EXTRACT(config, "$.slug") ASC
+            `)
 
         for (const chart of charts) {
             const detailIds = new Set(
