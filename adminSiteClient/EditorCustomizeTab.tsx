@@ -601,34 +601,31 @@ export class EditorCustomizeTab extends React.Component<{
                         }}
                     />
                 )}
-                {features.hideLegend && (
-                    <Section name="Legend">
+                <Section name="Legend">
+                    {features.hideLegend && (
                         <FieldsRow>
-                            {features.hideLegend && (
-                                <Toggle
-                                    label={`Hide legend`}
-                                    value={!!grapher.hideLegend}
-                                    onValue={(value) =>
-                                        (grapher.hideLegend =
-                                            value || undefined)
-                                    }
-                                />
-                            )}
-                        </FieldsRow>
-                        <FieldsRow>
-                            <BindString
-                                label="Entity name (singular)"
-                                field="entityType"
-                                store={grapher}
-                            />
-                            <BindString
-                                label="Entity name (plural)"
-                                field="entityTypePlural"
-                                store={grapher}
+                            <Toggle
+                                label={`Hide legend`}
+                                value={!!grapher.hideLegend}
+                                onValue={(value) =>
+                                    (grapher.hideLegend = value || undefined)
+                                }
                             />
                         </FieldsRow>
-                    </Section>
-                )}
+                    )}
+                    <FieldsRow>
+                        <BindString
+                            label="Entity name (singular)"
+                            field="entityType"
+                            store={grapher}
+                        />
+                        <BindString
+                            label="Entity name (plural)"
+                            field="entityTypePlural"
+                            store={grapher}
+                        />
+                    </FieldsRow>
+                </Section>
                 {features.relativeModeToggle && (
                     <Section name="Controls">
                         <FieldsRow>
