@@ -50,7 +50,7 @@ function csvToJson(val: string, col: string) {
     switch (col) {
         case "is_mappable":
         case "is_historical":
-        case "omit_country_page":
+        case "is_unlisted":
             return val === "True"
 
         case "members":
@@ -79,14 +79,6 @@ async function main() {
         if (entity.short_name === entity.name) delete entity.short_name
         if (entity.region_type !== "country") delete entity.is_mappable
 
-        // make sure all state-level entities have a slug
-        if (entity.region_type === "other") {
-            entity.slug ||= entity.name
-                .toLowerCase()
-                .replace(/ /g, "-")
-                .replace(/[^\w\-]/g, "")
-        }
-
         // add back countries removed from the ETL's continents list
         if (entity.region_type === "continent") {
             entity.members = [
@@ -101,7 +93,7 @@ async function main() {
         return _(entity)
             .mapKeys((val, key) =>
                 // rename keys to camelCase
-                key === "omit_country_page" ? "isUnlisted" : _.camelCase(key)
+                _.camelCase(key)
             )
             .pickBy(
                 // omit dangling keys
@@ -142,7 +134,7 @@ async function main() {
         ])
         console.log(diff.toString())
         console.log(
-            "Be sure to set up redirects for any slugs that have changed"
+            "Be sure to set up redirects for any slugs that have changed at:\nhttps://owid.cloud/wp/wp-admin/tools.php?page=redirection.php"
         )
     }
 }

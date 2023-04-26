@@ -472,7 +472,7 @@
         "code": "CZE",
         "shortCode": "CZ",
         "name": "Czechia",
-        "slug": "czech-republic",
+        "slug": "czechia",
         "regionType": "country",
         "isMappable": true,
         "variantNames": ["Czech Republic"]
@@ -1155,7 +1155,7 @@
         "code": "MKD",
         "shortCode": "MK",
         "name": "North Macedonia",
-        "slug": "macedonia",
+        "slug": "north-macedonia",
         "regionType": "country",
         "isMappable": true,
         "variantNames": ["Macedonia"]
@@ -1379,6 +1379,7 @@
     {
         "code": "OWID_AFR",
         "name": "Africa",
+        "slug": "africa",
         "regionType": "continent",
         "members": [
             "AGO",
@@ -1453,6 +1454,7 @@
     {
         "code": "OWID_ASI",
         "name": "Asia",
+        "slug": "asia",
         "regionType": "continent",
         "members": [
             "AFG",
@@ -1529,6 +1531,7 @@
     {
         "code": "OWID_CIS",
         "name": "Channel Islands",
+        "slug": "channel-islands",
         "regionType": "aggregate",
         "members": ["GGY", "JEY"]
     },
@@ -1555,6 +1558,7 @@
     {
         "code": "OWID_EU27",
         "name": "European Union (27)",
+        "slug": "european-union-27",
         "regionType": "aggregate",
         "members": [
             "AUT",
@@ -1589,6 +1593,7 @@
     {
         "code": "OWID_EUR",
         "name": "Europe",
+        "slug": "europe",
         "regionType": "continent",
         "members": [
             "ALA",
@@ -1687,6 +1692,7 @@
     {
         "code": "OWID_MNS",
         "name": "Melanesia",
+        "slug": "melanesia",
         "regionType": "aggregate",
         "members": ["FJI", "PNG", "SLB", "VUT"]
     },
@@ -1699,6 +1705,7 @@
     {
         "code": "OWID_NAM",
         "name": "North America",
+        "slug": "north-america",
         "regionType": "continent",
         "members": [
             "ABW",
@@ -1748,6 +1755,7 @@
     {
         "code": "OWID_OCE",
         "name": "Oceania",
+        "slug": "oceania",
         "regionType": "continent",
         "members": [
             "ASM",
@@ -1781,6 +1789,7 @@
     {
         "code": "OWID_PYA",
         "name": "Polynesia",
+        "slug": "polynesia",
         "regionType": "aggregate",
         "members": [
             "ASM",
@@ -1807,6 +1816,7 @@
     {
         "code": "OWID_SAM",
         "name": "South America",
+        "slug": "south-america",
         "regionType": "continent",
         "members": [
             "ARG",
@@ -1874,6 +1884,7 @@
     {
         "code": "OWID_WRL",
         "name": "World",
+        "slug": "world",
         "regionType": "aggregate",
         "members": [
             "OWID_AFR",
@@ -2230,7 +2241,7 @@
         "code": "SWZ",
         "shortCode": "SZ",
         "name": "Eswatini",
-        "slug": "swaziland",
+        "slug": "eswatini",
         "regionType": "country",
         "isMappable": true,
         "variantNames": ["Swaziland"]
@@ -2316,7 +2327,7 @@
         "code": "TLS",
         "shortCode": "TL",
         "name": "East Timor",
-        "slug": "timor",
+        "slug": "east-timor",
         "regionType": "country",
         "isMappable": true
     },
