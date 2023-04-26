@@ -66,10 +66,6 @@ export class EditorFeatures {
         return this.grapher.isStackedArea
     }
 
-    @computed get entityType() {
-        return this.grapher.addCountryMode !== EntitySelectionMode.Disabled
-    }
-
     @computed get relativeModeToggle() {
         return (
             this.grapher.isStackedArea ||
