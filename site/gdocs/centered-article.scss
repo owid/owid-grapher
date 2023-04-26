@@ -47,6 +47,15 @@ $banner-height: 200px;
     }
 }
 
+.article-block__sticky-left,
+.article-block__sticky-right {
+    @include md-up {
+        .article-block__image:first-child {
+            margin-top: 0;
+        }
+    }
+}
+
 .article-block__image-caption {
     @include body-3-medium-italic;
     text-align: center;
