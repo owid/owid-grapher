@@ -136,10 +136,7 @@ export const renderDataPageOrGrapherPage = async (
               publishedExplorersBySlug,
               GdocsContentSource.Gdocs
           )
-        : // Simply using Gdoc.findOneBy works when developing locally
-          // but not when baking ("datasource is not set for this
-          // entity" error)
-          await dataSource.getRepository(Gdoc).findOneBy({ id: googleDocId })
+        : await Gdoc.findOneBy({ id: googleDocId })
 
     // Split the gdoc content into fields using the heading one texts as
     // field names, only allowing a subset of the fields found through. This
@@ -245,6 +242,14 @@ const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
     } catch (err) {
         if ((err as any).code !== "ENOENT") console.error(err)
     }
+
+    // Need to set up the connection for using TypeORM in
+    // renderDataPageOrGrapherPage() when baking using multiple worker threads
+    // (MAX_NUM_BAKE_PROCESSES > 1). It could be done in
+    // renderDataPageOrGrapherPage() too, but given that this render function is also used
+    // for rendering a datapage preview in the admin where worker threads are
+    // not used, lifting the connection set up here seems more appropriate.
+    await db.getConnection()
 
     // Always bake the html for every chart; it's cheap to do so
     const outPath = `${bakedSiteDir}/grapher/${grapher.slug}.html`
