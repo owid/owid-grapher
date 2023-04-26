@@ -22,7 +22,9 @@ const sendErrorToSlack = async (err: any, slackWebhook: string | undefined) => {
         return `_${title}_${tripleBackticks}${code}${tripleBackticks}\n`
     }
 
-    const blocks = [{ title: "Stack", code: err.stack }]
+    const stack = err.stack ?? Error("dummy_error_for_stacktrace").stack
+
+    const blocks = [{ title: "Stack", code: stack }]
 
     if (err.stderr) {
         blocks.push({
