@@ -231,6 +231,10 @@ adminRouter.get("/errorTest.csv", async (req, res) => {
     return `Simulating code ${code}`
 })
 
+adminRouter.get("/nodeVersion", (req, res) => {
+    res.send(process.version)
+})
+
 const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
 
 adminRouter.get(`/${GetAllExplorersRoute}`, async (req, res) => {
