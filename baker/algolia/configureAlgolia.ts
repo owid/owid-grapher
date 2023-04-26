@@ -183,7 +183,7 @@ export const configureAlgolia = async () => {
             "neural network",
             "chatgpt", // added in 2023-03, we might want to remove this in the future
         ],
-        ["hdi", "human development index"],
+        ["hdi", "human development index", "idh" /* spanish, french */],
         ["drug", "drugs", "substance use"],
         ["r&d", "r & d", "research"],
         [
