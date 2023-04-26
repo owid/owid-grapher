@@ -16,8 +16,11 @@ headers = {
 
 payload = {
     "commit": "HEAD",
-    "branch": os.environ["BRANCH"],
+    "branch": "master",
     "message": "Triggered build via Github action in owid-grapher repository",
+    "env": {
+        "BRANCH": os.environ["BRANCH"],
+    },
 }
 
 response = requests.post(url, headers=headers, data=json.dumps(payload))
