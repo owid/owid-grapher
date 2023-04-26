@@ -601,7 +601,7 @@ export class EditorCustomizeTab extends React.Component<{
                         }}
                     />
                 )}
-                {(features.hideLegend || features.entityType) && (
+                {features.hideLegend && (
                     <Section name="Legend">
                         <FieldsRow>
                             {features.hideLegend && (
@@ -615,20 +615,18 @@ export class EditorCustomizeTab extends React.Component<{
                                 />
                             )}
                         </FieldsRow>
-                        {features.entityType && (
-                            <FieldsRow>
-                                <BindString
-                                    label="Entity name (singular)"
-                                    field="entityType"
-                                    store={grapher}
-                                />
-                                <BindString
-                                    label="Entity name (plural)"
-                                    field="entityTypePlural"
-                                    store={grapher}
-                                />
-                            </FieldsRow>
-                        )}
+                        <FieldsRow>
+                            <BindString
+                                label="Entity name (singular)"
+                                field="entityType"
+                                store={grapher}
+                            />
+                            <BindString
+                                label="Entity name (plural)"
+                                field="entityTypePlural"
+                                store={grapher}
+                            />
+                        </FieldsRow>
                     </Section>
                 )}
                 {features.relativeModeToggle && (
