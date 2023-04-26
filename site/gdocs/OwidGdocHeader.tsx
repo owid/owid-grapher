@@ -29,7 +29,6 @@ function OwidArticleHeader({
                 className="centered-article-header__banner"
                 style={coverStyle}
             ></div>
-            {/* Pretty sure we don't want this */}
             {content["cover-image"] ? (
                 <div className="centered-article-header__cover-image span-cols-14">
                     <Image
