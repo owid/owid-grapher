@@ -211,6 +211,13 @@ export const configureAlgolia = async () => {
         ["homicide", "murder", "murders"],
         ["inflation", "price change", "price changes", "change in price"],
         ["gun", "guns", "firearm", "firearms"],
+        [
+            "happiness",
+            "happy",
+            "happyness" /* common typo */,
+            "satisfaction",
+            "life satisfaction",
+        ],
     ]
 
     // Send all our country variant names to algolia as synonyms
