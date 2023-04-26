@@ -56,6 +56,11 @@ it("splits a datapage gdoc into allowed keyed sections", () => {
                 getTextBlock(
                     "Depending on the country and year, the data relates to either disposable income or consumption per capita, depending on the country and year."
                 ),
+                getHeadingBlock("descriptionFromSource.content"),
+                getTextBlock("The description from source content"),
+                getHeadingBlock("sources[0].sourceDescription"),
+                getTextBlock("Beginning of source description"),
+                getTextBlock("End of source description"),
             ],
         },
     }
@@ -65,5 +70,7 @@ it("splits a datapage gdoc into allowed keyed sections", () => {
         // title is ignored because it's not in ALLOWED_DATAPAGE_GDOC_FIELDS
         datasetDescription: gdoc.content.body!.slice(3, 4),
         keyInfoText: gdoc.content.body!.slice(5, 7),
+        descriptionFromSource: { content: gdoc.content.body!.slice(8, 9) },
+        sources: [{ sourceDescription: gdoc.content.body!.slice(10, 12) }],
     })
 })
