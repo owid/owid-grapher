@@ -1,14 +1,6 @@
-import {
-    OwidEnrichedGdocBlock,
-    OwidGdocInterface,
-    Span,
-    get,
-    pick,
-    set,
-} from "@ourworldindata/utils"
+import { Span } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
 import cheerio from "cheerio"
-import { ALLOWED_DATAPAGE_GDOC_FIELDS } from "../../../site/DataPageContent.js"
 
 export function spanToSimpleString(s: Span): string {
     return match(s)
@@ -122,40 +114,4 @@ export const getTitleSupertitleFromHeadingText = (
         afterSeparator || beforeSeparator,
         afterSeparator ? beforeSeparator : undefined,
     ]
-}
-/*
- * Takes a gdoc and splits its content into sections based on the
- * heading 1s. The heading 1 texts are used as keys, which can represent a
- * nested structure, e.g. `descriptionFromSource.content`
- *  */
-export const splitGdocContentUsingAllowedHeadingOneTextsAsKeys = (
-    gdoc: OwidGdocInterface
-): Record<
-    (typeof ALLOWED_DATAPAGE_GDOC_FIELDS)[number],
-    OwidEnrichedGdocBlock[]
-> => {
-    let currentKey = ""
-    const keyedBlocks: Record<string, OwidEnrichedGdocBlock[]> = {}
-
-    // We want to split the content of the gdoc into sections based on the
-    // heading 1s. Each section will be stored under a new key named after the
-    // preceeding heading 1's text, which have been specially crafted for this
-    // purpose
-    gdoc.content.body?.forEach((block: any) => {
-        if (block.type === "heading" && block.level === 1) {
-            // Use the heading 1's text as a key through a very raw version of
-            // "spansToSimpleText". `currentKey` can represent a nested key, e.g.
-            // `descriptionFromSource.content`
-            currentKey = block.text[0].text
-        } else {
-            // If the current block is not a heading 1, we append its value to
-            // the content of the current key (which can be nested, hence the
-            // use of lodash's `set` and `get`)
-            set(keyedBlocks, currentKey, [
-                ...(get(keyedBlocks, currentKey) || []),
-                block,
-            ])
-        }
-    })
-    return pick(keyedBlocks, ALLOWED_DATAPAGE_GDOC_FIELDS)
 }

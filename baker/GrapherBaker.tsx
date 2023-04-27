@@ -11,10 +11,6 @@ import {
     OwidVariableMixedData,
     OwidVariableWithSourceAndDimension,
     uniq,
-    GdocsContentSource,
-    OwidEnrichedGdocBlock,
-    getUrlTarget,
-    getLinkType,
     JsonError,
 } from "@ourworldindata/utils"
 import {
@@ -49,10 +45,7 @@ import {
 import workerpool from "workerpool"
 import ProgressBar from "progress"
 import { getVariableData } from "../db/model/Variable.js"
-import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
-import { splitGdocContentUsingAllowedHeadingOneTextsAsKeys } from "../db/model/Gdoc/gdocUtils.js"
-import { ALLOWED_DATAPAGE_GDOC_FIELDS } from "../site/DataPageContent.js"
-import { getDatapageJson } from "../datapage/Datapage.js"
+import { getDatapageGdoc, getDatapageJson } from "../datapage/Datapage.js"
 import { logContentErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 
@@ -60,6 +53,9 @@ import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
  *
  * Render a datapage if available, otherwise render a grapher page.
  *
+ * Rendering a datapage requires a datapage JSON file to be present in the
+ * owid-content repository, and optionally a companion gdoc to be registered in
+ * the posts_gdocs table
  */
 export const renderDataPageOrGrapherPage = async (
     grapher: GrapherInterface,
@@ -87,7 +83,7 @@ export const renderDataPageOrGrapherPage = async (
         } else {
             logContentErrorAndMaybeSendToSlack(
                 new JsonError(
-                    `Data page error: please check ${ADMIN_BASE_URL}/admin/grapher/${grapher.slug}`
+                    `Data page error in ${id}.json: please check ${ADMIN_BASE_URL}/admin/grapher/${grapher.slug}`
                 )
             )
         }
@@ -113,41 +109,12 @@ export const renderDataPageOrGrapherPage = async (
         return renderGrapherPage(grapher)
 
     // Compliment the text-only content from the JSON with rich text from the
-    // companion gdoc. When previewing, we want to render the datapage from the
-    // live gdoc. Otherwise, we're baking from the gdoc parsed and saved in the
-    // database following a visit to /admin/gdocs/[googleDocId]/preview
-    const googleDocId =
-        getLinkType(datapageJson.googleDocEditLink) === "gdoc"
-            ? getUrlTarget(datapageJson.googleDocEditLink)
-            : undefined
-
-    const datapageGdoc = !googleDocId
-        ? undefined
-        : // When previewing, we want to render the datapage from the live gdoc,
-        // but only if the user has set up the necessary auth keys to access the
-        // Google Doc API. This won't be the case for external contributors or
-        // possibly data engineers focusing on the data pipeline. In those
-        // cases, we grab the gdoc found in the database, if any.
-        isPreviewing && publishedExplorersBySlug && Gdoc.areGdocAuthKeysSet()
-        ? await Gdoc.getGdocFromContentSource(
-              googleDocId,
-              publishedExplorersBySlug,
-              GdocsContentSource.Gdocs
-          )
-        : await Gdoc.findOneBy({ id: googleDocId })
-
-    // Split the gdoc content into fields using the heading one texts as
-    // field names, only allowing a subset of the fields found through. This
-    // means the gdoc can contain extra heading one texts (e.g. for
-    // documentation) that will be ignored.
-    const datapageGdocContentByHeadingOneTexts:
-        | Record<
-              (typeof ALLOWED_DATAPAGE_GDOC_FIELDS)[number],
-              OwidEnrichedGdocBlock[]
-          >
-        | undefined = datapageGdoc
-        ? splitGdocContentUsingAllowedHeadingOneTextsAsKeys(datapageGdoc)
-        : undefined
+    // companion gdoc
+    const datapageGdoc = await getDatapageGdoc(
+        datapageJson,
+        isPreviewing,
+        publishedExplorersBySlug
+    )
 
     return renderToHtmlPage(
         <DataPage
@@ -164,7 +131,7 @@ export const renderDataPageOrGrapherPage = async (
             // ArticleBlocks rendering, which is expecting an array of blocks.
             datapage={{
                 ...datapageJson,
-                ...datapageGdocContentByHeadingOneTexts,
+                ...datapageGdoc,
             }}
             baseUrl={BAKED_BASE_URL}
             baseGrapherUrl={BAKED_GRAPHER_URL}

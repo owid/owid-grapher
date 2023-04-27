@@ -4,5 +4,9 @@
         "outDir": "../itsJustJavascript/datapage",
         "rootDir": "."
     },
-    "references": [{ "path": "../gitCms" }]
+    "references": [
+        { "path": "../gitCms" },
+        { "path": "../explorer" },
+        { "path": "../db" }
+    ]
 }

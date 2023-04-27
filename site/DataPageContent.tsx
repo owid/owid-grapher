@@ -20,14 +20,6 @@ declare global {
 
 export const OWID_DATAPAGE_CONTENT_ROOT_ID = "owid-datapage-root"
 
-export const ALLOWED_DATAPAGE_GDOC_FIELDS = [
-    "keyInfoText",
-    "faqs",
-    "descriptionFromSource",
-    "datasetDescription",
-    "datasetVariableProcessingInfo",
-] as const
-
 export const DataPageContent = ({
     datapage,
     grapherConfig,

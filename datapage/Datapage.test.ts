@@ -6,9 +6,9 @@ import {
     OwidGdocInterface,
     OwidGdocPublicationContext,
 } from "@ourworldindata/utils/dist/owidTypes.js"
-import { splitGdocContentUsingAllowedHeadingOneTextsAsKeys } from "./gdocUtils.js"
+import { parseGdocContentFromAllowedLevelOneHeadings } from "./Datapage.js"
 
-it("splits a datapage gdoc into allowed keyed sections", () => {
+it("parsed a datapage gdoc into allowed keyed sections", () => {
     const getHeadingBlock = (text: string): EnrichedBlockHeading => {
         return {
             text: [
@@ -64,8 +64,7 @@ it("splits a datapage gdoc into allowed keyed sections", () => {
             ],
         },
     }
-    const keyedContentBlocks =
-        splitGdocContentUsingAllowedHeadingOneTextsAsKeys(gdoc)
+    const keyedContentBlocks = parseGdocContentFromAllowedLevelOneHeadings(gdoc)
     expect(keyedContentBlocks).toEqual({
         // title is ignored because it's not in ALLOWED_DATAPAGE_GDOC_FIELDS
         datasetDescription: gdoc.content.body!.slice(3, 4),
