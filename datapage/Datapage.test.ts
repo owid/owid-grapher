@@ -66,7 +66,7 @@ it("parsed a datapage gdoc into allowed keyed sections", () => {
     }
     const keyedContentBlocks = parseGdocContentFromAllowedLevelOneHeadings(gdoc)
     expect(keyedContentBlocks).toEqual({
-        // title is ignored because it's not in ALLOWED_DATAPAGE_GDOC_FIELDS
+        // title is ignored because it's not in AllowedDataPageGdocFields
         datasetDescription: gdoc.content.body!.slice(3, 4),
         keyInfoText: gdoc.content.body!.slice(5, 7),
         descriptionFromSource: { content: gdoc.content.body!.slice(8, 9) },

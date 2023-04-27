@@ -14,7 +14,7 @@ import {
     DataPageJson,
     DataPageJsonTypeObject,
     DataPageParseError,
-    ALLOWED_DATAPAGE_GDOC_FIELDS,
+    AllowedDataPageGdocFields,
 } from "@ourworldindata/utils"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
@@ -105,7 +105,7 @@ export const getDatapageGdoc = async (
     if (!rawDatapageGdoc) return null
 
     // Split the gdoc content into fields using the heading one texts as field
-    // names. Any top level key that is not in ALLOWED_DATAPAGE_GDOC_FIELDS will
+    // names. Any top level key that is not in AllowedDataPageGdocFields will
     // be silently filtered out. Beyond that, any allowed field can contain the
     // whole range of OwidEnrichedGdocBlock types.
     return parseGdocContentFromAllowedLevelOneHeadings(rawDatapageGdoc)
@@ -118,7 +118,7 @@ export const getDatapageGdoc = async (
  * e.g. `descriptionFromSource.content`. 
  *
  * Validation: only a subset of the possible fields found is allowed (see
- * ALLOWED_DATAPAGE_GDOC_FIELDS). This means the gdoc can contain extra heading
+ * AllowedDataPageGdocFields). This means the gdoc can contain extra heading
  * one texts (e.g. for documentation) that will be ignored without raising
  * errors.
  *  */
@@ -150,5 +150,5 @@ export const parseGdocContentFromAllowedLevelOneHeadings = (
     })
 
     // We only keep the allowed keys, silently filtering out the rest
-    return pick(keyedBlocks, ALLOWED_DATAPAGE_GDOC_FIELDS)
+    return pick(keyedBlocks, AllowedDataPageGdocFields)
 }

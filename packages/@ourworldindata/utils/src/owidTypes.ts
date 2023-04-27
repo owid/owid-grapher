@@ -1095,7 +1095,7 @@ export interface RawPageview {
     views_14d: number
 }
 
-export const ALLOWED_DATAPAGE_GDOC_FIELDS = [
+export const AllowedDataPageGdocFields = [
     "keyInfoText",
     "faqs",
     "descriptionFromSource",
@@ -1108,7 +1108,7 @@ export const ALLOWED_DATAPAGE_GDOC_FIELDS = [
 ] as const
 
 export type DataPageGdoc = Record<
-    (typeof ALLOWED_DATAPAGE_GDOC_FIELDS)[number],
+    (typeof AllowedDataPageGdocFields)[number],
     OwidEnrichedGdocBlock[]
 >
 
