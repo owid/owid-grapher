@@ -22,7 +22,12 @@ const sendErrorToSlack = async (err: any, slackWebhook: string | undefined) => {
         return `_${title}_${tripleBackticks}${code}${tripleBackticks}\n`
     }
 
-    const stack = err.stack ?? Error("dummy_error_for_stacktrace").stack
+    // Node doesn't include stack traces for fs errors :(
+    // So, if we don't have a stack trace, create one that's slightly inaccurate (because it's created here rather than
+    // where the error was thrown), but that's still better than no trace at all!
+    let stack = err.stack
+    if (!stack || !stack.includes("\n"))
+        stack = Error("dummy_error_for_stacktrace").stack
 
     const blocks = [{ title: "Stack", code: stack }]
 
