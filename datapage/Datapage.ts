@@ -4,9 +4,7 @@ import { Value } from "@sinclair/typebox/value"
 import {
     OwidEnrichedGdocBlock,
     OwidGdocInterface,
-    get,
     pick,
-    set,
     getLinkType,
     getUrlTarget,
     GdocsContentSource,
@@ -140,12 +138,11 @@ export const parseGdocContentFromAllowedLevelOneHeadings = (
             currentKey = block.text[0].text
         } else {
             // If the current block is not a heading 1, we append its value to
-            // the content of the current key (which can be nested, hence the
-            // use of lodash's `set` and `get`)
-            set(keyedBlocks, currentKey, [
-                ...(get(keyedBlocks, currentKey) || []),
+            // the content of the current key
+            keyedBlocks[currentKey] = [
+                ...(keyedBlocks[currentKey] || []),
                 block,
-            ])
+            ]
         }
     })
 
