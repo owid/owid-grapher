@@ -134,7 +134,7 @@ export const configureAlgolia = async () => {
         ["ch4", "CH₄", "methane"],
         ["n2o", "N₂O", "nitrous oxide"],
         ["NOx", "NOₓ", "nitrogen dioxide"],
-        ["price", "cost"],
+        ["price", "prices", "pricing", "cost", "costs"],
         [
             "immunization",
             "immunizations",
