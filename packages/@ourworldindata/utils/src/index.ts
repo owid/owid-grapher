@@ -170,6 +170,11 @@ export {
     type PostRowWithGdocPublishStatus,
     ToleranceStrategy,
     type RawPageview,
+    type DataPageGdoc,
+    DataPageJsonTypeObject,
+    type DataPageJson,
+    type DataPageParseError,
+    ALLOWED_DATAPAGE_GDOC_FIELDS,
 } from "./owidTypes.js"
 
 export {

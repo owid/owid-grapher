@@ -7,6 +7,8 @@ import {
     uniq,
     SiteFooterContext,
     MarkdownTextWrap,
+    DataPageGdoc,
+    DataPageJson,
 } from "@ourworldindata/utils"
 import React from "react"
 import urljoin from "url-join"
@@ -25,11 +27,13 @@ import { IFrameDetector } from "./IframeDetector.js"
 
 export const DataPage = (props: {
     grapher: GrapherInterface
-    datapage?: any
+    datapageJson: DataPageJson
+    datapageGdoc: DataPageGdoc | null
     baseUrl: string
     baseGrapherUrl: string
 }) => {
-    const { grapher, datapage, baseGrapherUrl, baseUrl } = props
+    const { grapher, datapageJson, datapageGdoc, baseGrapherUrl, baseUrl } =
+        props
     const pageTitle = grapher.title
     const canonicalUrl = urljoin(baseGrapherUrl, grapher.slug as string)
     let pageDesc: string
@@ -103,7 +107,8 @@ export const DataPage = (props: {
                             dangerouslySetInnerHTML={{
                                 __html: `window._OWID_DATAPAGE_PROPS = ${JSON.stringify(
                                     {
-                                        datapage,
+                                        datapageJson,
+                                        datapageGdoc,
                                         grapherConfig,
                                     }
                                 )}`,
@@ -111,7 +116,8 @@ export const DataPage = (props: {
                         />
                         <div id={OWID_DATAPAGE_CONTENT_ROOT_ID}>
                             <DataPageContent
-                                datapage={datapage}
+                                datapageJson={datapageJson}
+                                datapageGdoc={datapageGdoc}
                                 grapherConfig={grapherConfig}
                             />
                         </div>

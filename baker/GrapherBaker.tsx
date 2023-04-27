@@ -119,20 +119,8 @@ export const renderDataPageOrGrapherPage = async (
     return renderToHtmlPage(
         <DataPage
             grapher={grapher}
-            // Even though datapageGdocContentByHeadingOneTexts can technically
-            // override keys of datapageJson, these two objects' keys are
-            // considered mutually exclusive. The gdoc is indeed not supposed to
-            // act as an override mechanism for JSON keys but rather as a source
-            // of additional rich content. This exclusion is enforced by the
-            // ALLOWED_DATAPAGE_GDOC_FIELDS constant and the
-            // "additionalProperties" property in the datapage JSON schema.
-            // Without it, it would be possible to define e.g. a keyInfoText
-            // property in the JSON as a string which would then break the
-            // ArticleBlocks rendering, which is expecting an array of blocks.
-            datapage={{
-                ...datapageJson,
-                ...datapageGdoc,
-            }}
+            datapageJson={datapageJson}
+            datapageGdoc={datapageGdoc}
             baseUrl={BAKED_BASE_URL}
             baseGrapherUrl={BAKED_GRAPHER_URL}
         />

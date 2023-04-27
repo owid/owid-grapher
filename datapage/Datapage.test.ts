@@ -5,7 +5,7 @@ import {
     EnrichedBlockText,
     OwidGdocInterface,
     OwidGdocPublicationContext,
-} from "@ourworldindata/utils/dist/owidTypes.js"
+} from "@ourworldindata/utils"
 import { parseGdocContentFromAllowedLevelOneHeadings } from "./Datapage.js"
 
 it("parsed a datapage gdoc into allowed keyed sections", () => {
