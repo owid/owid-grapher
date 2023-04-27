@@ -1971,7 +1971,6 @@ export class Grapher
         const {
             hideFacetControl,
             filledDimensions,
-            yColumnSlugs,
             availableFacetStrategies,
             isStackedArea,
             isStackedBar,
@@ -1992,10 +1991,7 @@ export class Grapher
             (dim) => dim.display.isProjection
         )
 
-        return (
-            showFacetControlChartType &&
-            (!hasProjection || yColumnSlugs.length <= 2)
-        )
+        return showFacetControlChartType && !hasProjection
     }
 
     @action.bound private toggleFacetControlVisibility(): void {
