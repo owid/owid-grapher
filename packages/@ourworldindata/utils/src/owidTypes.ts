@@ -1185,9 +1185,9 @@ export const DataPageJsonTypeObject = Type.Object(
     // We are not allowing to have any additional properties in the JSON file,
     // in part because the JSON is added as-is to the page source for hydration,
     // and we don't want to risk exposing unwanted draft or internal content.
-    // Note that this only concerns top level properties, not the ones inside
-    // nested Type.Object()s. We could additionally restrict those if we deem it
-    // necessary.
+
+    // Todo: this doesn't to work for nested objects, even when adding
+    // "additionalProperties" keys to each individual ones.
     { additionalProperties: false }
 )
 export type DataPageJson = Static<typeof DataPageJsonTypeObject>
