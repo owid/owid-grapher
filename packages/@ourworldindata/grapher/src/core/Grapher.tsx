@@ -2040,10 +2040,19 @@ export class Grapher
     }
 
     @computed private get hasSingleMetricInFacets(): boolean {
-        return (
-            this.isStackedDiscreteBar &&
-            this.selectedFacetStrategy !== FacetStrategy.none
-        )
+        if (this.isStackedDiscreteBar) {
+            return this.selectedFacetStrategy !== FacetStrategy.none
+        }
+
+        if (this.isStackedArea || this.isStackedBar) {
+            return (
+                this.facetStrategy === FacetStrategy.metric ||
+                (this.facetStrategy === FacetStrategy.entity &&
+                    this.validDimensions.length === 1)
+            )
+        }
+
+        return false
     }
 
     @computed private get hasSingleEntityInFacets(): boolean {
