@@ -43,7 +43,7 @@ export function TopicPageIntro(props: TopicPageIntroProps) {
                         <a>{props.downloadButton.text}</a>
                     </div>
                 ) : null}
-                {props.relatedTopics ? (
+                {props.relatedTopics?.length ? (
                     <aside className="topic-page-intro__related-topics">
                         <h4 className="overline-black-caps">Related topics</h4>
                         <ul>
