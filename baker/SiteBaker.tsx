@@ -323,7 +323,13 @@ export class SiteBaker {
                         .join("\n  ")}`
                 )
             }
-            await this.bakeGDocPost(publishedGdoc as OwidGdocPublished)
+            try {
+                await this.bakeGDocPost(publishedGdoc as OwidGdocPublished)
+            } catch (e) {
+                logErrorAndMaybeSendToSlack(
+                    `Error baking gdoc post with id "${publishedGdoc.id}" and slug "${publishedGdoc.slug}": ${e}`
+                )
+            }
         }
 
         this.progressBar.tick({ name: "✅ baked google doc posts" })
