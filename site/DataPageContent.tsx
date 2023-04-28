@@ -515,7 +515,7 @@ export const DataPageContent = ({
                                 </h3>
                                 <div className="span-cols-6">
                                     {datapageJson.sources.map(
-                                        (source: any, idx: number) => (
+                                        (source, idx: number) => (
                                             <div
                                                 className="datacollection-source-item"
                                                 key={source.sourceName}
@@ -559,7 +559,7 @@ export const DataPageContent = ({
                                                             />
                                                             <>
                                                                 {source.sourceRetrievedOn &&
-                                                                    source.sourceRetrievedFrom && (
+                                                                    source.sourceRetrievedFromUrl && (
                                                                         <div className="key-info--gridded grid grid-cols-2">
                                                                             <div className="key-data">
                                                                                 <div className="key-data__title">
