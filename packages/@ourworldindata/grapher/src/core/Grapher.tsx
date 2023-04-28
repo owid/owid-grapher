@@ -2048,7 +2048,7 @@ export class Grapher
             return (
                 this.facetStrategy === FacetStrategy.metric ||
                 (this.facetStrategy === FacetStrategy.entity &&
-                    this.validDimensions.length === 1)
+                    !this.hasMultipleYColumns)
             )
         }
 
@@ -2056,11 +2056,15 @@ export class Grapher
     }
 
     @computed private get hasSingleEntityInFacets(): boolean {
-        return (
-            (this.isStackedArea || this.isStackedBar) &&
-            this.selection.numSelectedEntities === 1 &&
-            this.facetStrategy === FacetStrategy.metric
-        )
+        if (this.isStackedArea || this.isStackedBar) {
+            return (
+                this.facetStrategy === FacetStrategy.entity ||
+                (this.facetStrategy === FacetStrategy.metric &&
+                    this.selection.numSelectedEntities === 1)
+            )
+        }
+
+        return false
     }
 
     @computed get availableFacetStrategies(): FacetStrategy[] {
