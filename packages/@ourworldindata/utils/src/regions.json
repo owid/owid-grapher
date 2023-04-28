@@ -1920,7 +1920,7 @@
         "code": "OWID_ZAN",
         "name": "Zanzibar",
         "slug": "zanzibar",
-        "regionType": "country"
+        "regionType": "other"
     },
     {
         "code": "PAK",
@@ -2030,7 +2030,8 @@
         "shortCode": "PS-GZA",
         "name": "Gaza Strip",
         "slug": "gaza-strip",
-        "regionType": "country"
+        "regionType": "country",
+        "isUnlisted": true
     },
     {
         "code": "PYF",
@@ -2251,7 +2252,8 @@
         "shortCode": "SX",
         "name": "Sint Maarten (Dutch part)",
         "slug": "sint-maarten-dutch-part",
-        "regionType": "country"
+        "regionType": "country",
+        "isUnlisted": true
     },
     {
         "code": "SYC",
