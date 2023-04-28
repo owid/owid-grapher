@@ -1162,17 +1162,21 @@ export const DataPageJsonTypeObject = Type.Object(
             ),
         }),
         datasetName: Type.String(),
-        datasetFeaturedVariables: Type.Array(
+        datasetFeaturedVariables: Type.Optional(
+            Type.Array(
+                Type.Object({
+                    variableName: Type.String(),
+                    variableSubtitle: Type.Optional(Type.String()),
+                })
+            )
+        ),
+        datasetCodeUrl: Type.Optional(Type.String()),
+        datasetLicenseLink: Type.Optional(
             Type.Object({
-                variableName: Type.String(),
-                variableSubtitle: Type.Optional(Type.String()),
+                title: Type.String(),
+                url: Type.String(),
             })
         ),
-        datasetCodeUrl: Type.String(),
-        datasetLicenseLink: Type.Object({
-            title: Type.String(),
-            url: Type.String(),
-        }),
         sources: Type.Array(
             Type.Object({
                 sourceName: Type.String(),

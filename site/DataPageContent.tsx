@@ -417,39 +417,42 @@ export const DataPageContent = ({
                                     />
                                 </div>
                                 <div>
-                                    <div style={{ marginBottom: "24px" }}>
-                                        <h4 className="featured-variables__header">
-                                            Metrics included in this data
-                                            collection:
-                                        </h4>
-                                        <ul className="featured-variables__list">
-                                            {datapageJson.datasetFeaturedVariables.map(
-                                                (
-                                                    variable: any,
-                                                    idx: number
-                                                ) => (
-                                                    <li
-                                                        className="featured-variables__item"
-                                                        key={
-                                                            variable.variableName
-                                                        }
-                                                    >
-                                                        {idx !== 0 ? (
-                                                            variable.variableName
-                                                        ) : (
-                                                            <strong>
-                                                                {`${variable.variableName} `}
-                                                                <em>
-                                                                    (currently
-                                                                    viewing)
-                                                                </em>
-                                                            </strong>
-                                                        )}
-                                                    </li>
-                                                )
-                                            )}
-                                        </ul>
-                                    </div>
+                                    {!!datapageJson.datasetFeaturedVariables
+                                        ?.length && (
+                                        <div style={{ marginBottom: "24px" }}>
+                                            <h4 className="featured-variables__header">
+                                                Metrics included in this data
+                                                collection:
+                                            </h4>
+                                            <ul className="featured-variables__list">
+                                                {datapageJson.datasetFeaturedVariables.map(
+                                                    (
+                                                        variable: any,
+                                                        idx: number
+                                                    ) => (
+                                                        <li
+                                                            className="featured-variables__item"
+                                                            key={
+                                                                variable.variableName
+                                                            }
+                                                        >
+                                                            {idx !== 0 ? (
+                                                                variable.variableName
+                                                            ) : (
+                                                                <strong>
+                                                                    {`${variable.variableName} `}
+                                                                    <em>
+                                                                        (currently
+                                                                        viewing)
+                                                                    </em>
+                                                                </strong>
+                                                            )}
+                                                        </li>
+                                                    )
+                                                )}
+                                            </ul>
+                                        </div>
+                                    )}
                                     <div
                                         className="key-info--gridded grid grid-cols-2"
                                         style={{ marginBottom: "24px" }}
@@ -468,28 +471,30 @@ export const DataPageContent = ({
                                             </div>
                                             <div>{datapageJson.nextUpdate}</div>
                                         </div>
-                                        <div className="key-data">
-                                            <div className="key-data__title">
-                                                Licence
+                                        {datapageJson.datasetLicenseLink && (
+                                            <div className="key-data">
+                                                <div className="key-data__title">
+                                                    Licence
+                                                </div>
+                                                <div>
+                                                    <a
+                                                        href={
+                                                            datapageJson
+                                                                .datasetLicenseLink
+                                                                .url
+                                                        }
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                    >
+                                                        {
+                                                            datapageJson
+                                                                .datasetLicenseLink
+                                                                .title
+                                                        }
+                                                    </a>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <a
-                                                    href={
-                                                        datapageJson
-                                                            .datasetLicenseLink
-                                                            .url
-                                                    }
-                                                    target="_blank"
-                                                    rel="noreferrer"
-                                                >
-                                                    {
-                                                        datapageJson
-                                                            .datasetLicenseLink
-                                                            .title
-                                                    }
-                                                </a>
-                                            </div>
-                                        </div>
+                                        )}
                                     </div>
                                     {datapageJson.datasetCodeUrl && (
                                         <a
