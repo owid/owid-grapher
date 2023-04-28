@@ -507,10 +507,10 @@ export const DataPageContent = ({
                                         </a>
                                     )}
                                 </div>
-                                <ExpandableAnimatedToggle
+                                {/* <ExpandableAnimatedToggle
                                     label="Download all metrics"
                                     content="TBD"
-                                />
+                                /> */}
                             </div>
                         </div>
                         {datapageJson.sources.length > 0 && (
