@@ -20,7 +20,7 @@ import {
 import { ShareMenu, ShareMenuManager } from "./ShareMenu"
 import { TimelineController } from "../timeline/TimelineController"
 import { AxisConfig } from "../axis/AxisConfig"
-import { Tippy, Bounds } from "@ourworldindata/utils"
+import { Tippy } from "@ourworldindata/utils"
 import classnames from "classnames"
 
 export interface NoDataAreaToggleManager {
@@ -180,10 +180,7 @@ export class FacetStrategyDropdown extends React.Component<{
                 placement={"bottom-start"}
                 arrow={false}
             >
-                <div
-                    className="FacetStrategyDropdown"
-                    style={{ width: this.dropDownWidth }}
-                >
+                <div className="FacetStrategyDropdown">
                     {this.facetStrategyLabels[this.facetStrategy]}
                     <div>
                         <FontAwesomeIcon icon={faChevronDown} />
@@ -194,15 +191,11 @@ export class FacetStrategyDropdown extends React.Component<{
     }
 
     @computed get facetStrategyLabels(): { [key in FacetStrategy]: string } {
-        // arbitrary entity names can be too long for our current design; as a trade-off,
-        // we accept them only if they are not too long, otherwise we just use "item"
         const entityType = this.props.manager.entityType ?? "country"
-        const entityLabel =
-            entityType.length > "country".length ? "item" : entityType
 
         return {
             [FacetStrategy.none]: "All together",
-            [FacetStrategy.entity]: `Split by ${entityLabel}`,
+            [FacetStrategy.entity]: `Split by ${entityType}`,
             [FacetStrategy.metric]: "Split by metric",
         }
     }
@@ -215,18 +208,6 @@ export class FacetStrategyDropdown extends React.Component<{
                 FacetStrategy.metric,
             ]
         )
-    }
-
-    @computed get dropDownWidth(): string {
-        const maxWidth = Math.max(
-            ...this.strategies.map(
-                (s) =>
-                    Bounds.forText(this.facetStrategyLabels[s], {
-                        fontSize: 12,
-                    }).width
-            )
-        )
-        return `${maxWidth + 45}px` // leave room for the chevron
     }
 
     // A hovering visual display giving options to be selected from
@@ -261,10 +242,10 @@ export class FacetStrategyDropdown extends React.Component<{
                             this.props.manager.facetStrategy = value
                         }}
                     >
-                        <div className="FacetStrategyLabel">{label}</div>
                         <div className={`FacetStrategyPreview-parent`}>
                             {children}
                         </div>
+                        <div className="FacetStrategyLabel">{label}</div>
                     </a>
                 </div>
             )
