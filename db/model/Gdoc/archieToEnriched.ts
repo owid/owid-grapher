@@ -163,7 +163,7 @@ export const archieToEnriched = (text: string): OwidGdocContent => {
             value.type === "side-by-side"
         ) {
             if (value.value?.left && isArray(value.value.left)) {
-                pointer = pointer.concat(["value", "left"])
+                pointer.push(...["value", "left"])
                 const pointerLength = pointer.length
                 value.value.left.forEach((value, index) => {
                     pointer[pointerLength] = index
@@ -172,7 +172,7 @@ export const archieToEnriched = (text: string): OwidGdocContent => {
                 pointer = pointer.slice(0, -3)
             }
             if (value.value?.right && isArray(value.value.right)) {
-                pointer = pointer.concat(["value", "right"])
+                pointer.push(...["value", "right"])
                 const pointerLength = pointer.length
                 value.value.right.forEach((value, index) => {
                     pointer[pointerLength] = index
@@ -180,6 +180,21 @@ export const archieToEnriched = (text: string): OwidGdocContent => {
                 })
                 pointer = pointer.slice(0, -3)
             }
+        } else if (value.type === "key-insights") {
+            pointer.push(...["value", "insights"])
+            value.value.insights?.forEach((insight, insightIndex) => {
+                pointer[pointer.length] = insightIndex
+                if (insight.content) {
+                    pointer.push("content")
+                    insight.content.forEach((block, blockIndex) => {
+                        pointer[pointer.length] = blockIndex
+                        callback(block)
+                        pointer = pointer.slice(0, -1)
+                    })
+                    pointer = pointer.slice(0, -1)
+                }
+            })
+            pointer = pointer.slice(0, -2)
         } else {
             callback(value)
         }
@@ -210,11 +225,15 @@ export const archieToEnriched = (text: string): OwidGdocContent => {
                 if (isArray(list.value)) {
                     // push a copy of the item into the <ul> parent
                     list.value.push(child.value.replace("* ", "").trim())
-                    // delete the original value
+                    // set the original value to undefined
+                    // we can't splice it out without messing up all the pointer logic
+                    // so we have to handle potential undefineds before ts-pattern encounters them
+                    // TODO: refactor traverseBlocks to use a for loop so that we can mutate parsed.body
+                    // without skipping over items
                     unset(parsed.body, pointer)
                 }
             }
-        } else {
+        } else if (isInList) {
             isInList = false
         }
 

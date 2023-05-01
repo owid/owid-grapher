@@ -101,3 +101,22 @@
         }
     }
 }
+
+.article-block__key-insights {
+    figure {
+        margin: 0;
+    }
+
+    img {
+        width: 100%;
+    }
+
+    .article-block__key-insights-content-column {
+        max-height: 575px;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        @include md-up {
+            margin-right: 16px;
+        }
+    }
+}

@@ -157,6 +157,7 @@ import {
     EnrichedTopicPageIntroRelatedTopic,
     EnrichedTopicPageIntroDownloadButton,
     EnrichedScrollerItem,
+    EnrichedBlockKeyInsightsSlide,
 } from "./owidTypes.js"
 import { PointVector } from "./PointVector.js"
 import React from "react"
@@ -1352,9 +1353,9 @@ export const imemo = <Type>(
     }
 }
 
-// These are all the types that we need to be able to iterate through to extract their URLs.
+// These are all the types that we need to be able to iterate through to extract their URLs/filenames.
 // It's more than just the EnrichedBlocks and Spans, because some EnrichedBlocks have nested children
-// that contain URLs
+// that contain URLs/filenames
 export type NodeWithUrl =
     | OwidEnrichedGdocBlock
     | Span
@@ -1362,6 +1363,7 @@ export type NodeWithUrl =
     | EnrichedTopicPageIntroRelatedTopic
     | EnrichedTopicPageIntroDownloadButton
     | EnrichedScrollerItem
+    | EnrichedBlockKeyInsightsSlide
 
 export function recursivelyMapArticleContent(
     node: NodeWithUrl,
@@ -1393,6 +1395,7 @@ export function recursivelyMapArticleContent(
             recursivelyMapArticleContent(item.chart, callback)
         )
     } else if (node.type === "recirc") {
+        console.log("node", node)
         node.links.map((link) => callback(link))
     } else if (node.type === "topic-page-intro") {
         const { downloadButton, relatedTopics, content } = node
@@ -1401,6 +1404,11 @@ export function recursivelyMapArticleContent(
         content.forEach(callback)
     } else if (node.type === "scroller") {
         node.blocks.forEach(callback)
+    } else if (node.type === "key-insights") {
+        node.insights.forEach((insight) => {
+            callback(insight)
+            insight.content.forEach(callback)
+        })
     }
 
     return callback(node)

@@ -28,6 +28,7 @@ import { MissingData } from "./MissingData.js"
 import { AdditionalCharts } from "./AdditionalCharts.js"
 import { ProminentLink } from "./ProminentLink.js"
 import { TopicPageIntro } from "./TopicPageIntro.js"
+import { KeyInsights } from "./KeyInsights.js"
 
 export type Container =
     | "default"
@@ -60,6 +61,7 @@ const layouts: { [key in Container]: Layouts} = {
         ["image--narrow"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12 ",
         ["image--wide"]: "col-start-4 span-cols-8 col-md-start-2 span-md-cols-12 col-sm-start-2 span-sm-cols-12 ",
         ["image-caption"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
+        ["key-insights"]: "col-start-2 span-cols-12",
         ["list"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["numbered-list"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["prominent-link"]: "grid grid-cols-6 span-cols-6 col-start-5 span-md-cols-10 col-md-start-3 grid-md-cols-10 span-sm-cols-12 col-sm-start-2 grid-sm-cols-12",
@@ -491,6 +493,12 @@ export default function ArticleBlock({
             <TopicPageIntro
                 {...block}
                 className={getLayout("topic-page-intro", containerType)}
+            />
+        ))
+        .with({ type: "key-insights" }, (block) => (
+            <KeyInsights
+                {...block}
+                className={getLayout("key-insights", containerType)}
             />
         ))
         .exhaustive()

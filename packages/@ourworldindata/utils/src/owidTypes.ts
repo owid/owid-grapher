@@ -593,7 +593,7 @@ export type EnrichedBlockImage = {
     size: BlockImageSize
 } & EnrichedBlockWithParseErrors
 
-// TODO: This is what lists staring with * are converted to in gdocToArhcieml
+// TODO: This is what lists staring with * are converted to in archieToEnriched
 // It might also be what is used inside recirc elements but there it's not a simple
 // string IIRC - check this
 export type RawBlockList = {
@@ -853,6 +853,35 @@ export type EnrichedBlockTopicPageIntro = {
     content: EnrichedBlockText[]
 } & EnrichedBlockWithParseErrors
 
+export type RawBlockKeyInsightsSlide = {
+    title?: string
+    filename?: string
+    url?: string
+    content?: OwidRawGdocBlock[]
+}
+
+export type RawBlockKeyInsights = {
+    type: "key-insights"
+    value: {
+        heading?: string
+        insights?: RawBlockKeyInsightsSlide[]
+    }
+}
+
+export type EnrichedBlockKeyInsightsSlide = {
+    type: "key-insight-slide"
+    title: string
+    filename?: string
+    url?: string
+    content: OwidEnrichedGdocBlock[]
+}
+
+export type EnrichedBlockKeyInsights = {
+    type: "key-insights"
+    heading: string
+    insights: EnrichedBlockKeyInsightsSlide[]
+} & EnrichedBlockWithParseErrors
+
 export type RawBlockSDGToc = {
     type: "sdg-toc"
     value?: Record<string, never>
@@ -910,6 +939,7 @@ export type OwidRawGdocBlock =
     | RawBlockAdditionalCharts
     | RawBlockNumberedList
     | RawBlockTopicPageIntro
+    | RawBlockKeyInsights
 
 export type OwidEnrichedGdocBlock =
     | EnrichedBlockText
@@ -937,6 +967,7 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockNumberedList
     | EnrichedBlockSimpleText
     | EnrichedBlockTopicPageIntro
+    | EnrichedBlockKeyInsights
 
 export enum OwidGdocPublicationContext {
     unlisted = "unlisted",

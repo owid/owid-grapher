@@ -173,7 +173,7 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
         this.content.body?.forEach((node) =>
             recursivelyMapArticleContent(node, (item) => {
                 if ("type" in item) {
-                    if (item.type === "image") {
+                    if ("filename" in item && item.filename) {
                         filenames.add(item.filename)
                     }
                     if (item.type === "prominent-link" && item.thumbnail) {
@@ -302,7 +302,7 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
             return new RegExp(/^#note-\d+$/).test(link)
         }
 
-        if ("url" in node && !checkIsRefAnchor(node.url)) {
+        if ("url" in node && node.url && !checkIsRefAnchor(node.url)) {
             const link: Link = Link.create({
                 linkType: getLinkType(node.url),
                 source: this,

@@ -11,6 +11,7 @@ import {
     EnrichedBlockHorizontalRule,
     EnrichedBlockHtml,
     EnrichedBlockImage,
+    EnrichedBlockKeyInsights,
     EnrichedBlockList,
     EnrichedBlockNumberedList,
     EnrichedBlockMissingData,
@@ -43,6 +44,7 @@ import {
     RawBlockHeading,
     RawBlockHtml,
     RawBlockImage,
+    RawBlockKeyInsights,
     RawBlockList,
     RawBlockNumberedList,
     RawBlockProminentLink,
@@ -74,6 +76,7 @@ import {
 } from "./htmlToEnriched.js"
 import { match } from "ts-pattern"
 import { parseInt } from "lodash"
+import { EnrichedBlockKeyInsightsSlide } from "@ourworldindata/utils/dist/owidTypes.js"
 
 export function parseRawBlocksToEnrichedBlocks(
     block: OwidRawGdocBlock
@@ -117,6 +120,7 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "gray-section" }, parseGraySection)
         .with({ type: "prominent-link" }, parseProminentLink)
         .with({ type: "topic-page-intro" }, parseTopicPageIntro)
+        .with({ type: "key-insights" }, parseKeyInsights)
         .with(
             { type: "sdg-toc" },
             (b): EnrichedBlockSDGToc => ({
@@ -1011,5 +1015,78 @@ function parseTopicPageIntro(
             htmlToEnrichedTextBlock(rawText.value)
         ),
         parseErrors: [...contentErrors],
+    }
+}
+
+function parseKeyInsights(raw: RawBlockKeyInsights): EnrichedBlockKeyInsights {
+    const createError = (error: ParseError): EnrichedBlockKeyInsights => ({
+        type: "key-insights",
+        parseErrors: [error],
+        heading: "",
+        insights: [],
+    })
+
+    if (!raw.value.insights?.length) {
+        return createError({ message: "No insights included" })
+    }
+
+    if (!raw.value.heading) {
+        return createError({ message: "No heading for key insights block" })
+    }
+
+    const enrichedInsights: EnrichedBlockKeyInsightsSlide[] = []
+    const enrichedInsightParseErrors: ParseError[] = []
+    for (const rawInsight of raw.value.insights) {
+        const parseErrors: ParseError[] = []
+        if (!rawInsight.title) {
+            parseErrors.push({ message: "Key insight is missing a title" })
+        }
+        if (!rawInsight.url && !rawInsight.filename) {
+            parseErrors.push({
+                message:
+                    "Key insight is missing a url or filename. One of these two fields must be specified.",
+            })
+        }
+        if (rawInsight.url && rawInsight.filename) {
+            parseErrors.push({
+                message:
+                    "Key insight has both a url and a filename. Only one of these two fields can be specified.",
+            })
+        }
+        if (rawInsight.url) {
+            const url = Url.fromURL(rawInsight.url)
+            if (!url.isExplorer && !url.isGrapher) {
+                parseErrors.push({
+                    message:
+                        "Key insight has url that isn't an explorer or grapher",
+                })
+            }
+        }
+        const enrichedContent: OwidEnrichedGdocBlock[] = []
+        if (!rawInsight.content) {
+            parseErrors.push({ message: "Key insight is missing content" })
+        } else {
+            for (const rawContent of compact(rawInsight.content)) {
+                const enrichedBlock = parseRawBlocksToEnrichedBlocks(rawContent)
+                if (enrichedBlock) enrichedContent.push(enrichedBlock)
+            }
+        }
+        enrichedInsightParseErrors.push(...parseErrors)
+        if (rawInsight.title) {
+            enrichedInsights.push({
+                type: "key-insight-slide",
+                title: rawInsight.title,
+                url: rawInsight.url,
+                filename: rawInsight.filename,
+                content: enrichedContent,
+            })
+        }
+    }
+
+    return {
+        type: "key-insights",
+        heading: raw.value.heading,
+        insights: enrichedInsights,
+        parseErrors: [...enrichedInsightParseErrors],
     }
 }

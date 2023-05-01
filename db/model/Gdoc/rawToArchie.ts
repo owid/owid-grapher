@@ -24,7 +24,10 @@ import {
     RawBlockAdditionalCharts,
     RawBlockCallout,
 } from "@ourworldindata/utils"
-import { RawBlockTopicPageIntro } from "@ourworldindata/utils/dist/owidTypes.js"
+import {
+    RawBlockKeyInsights,
+    RawBlockTopicPageIntro,
+} from "@ourworldindata/utils/dist/owidTypes.js"
 import { match } from "ts-pattern"
 
 export function appendDotEndIfMultiline(
@@ -400,6 +403,30 @@ function* rawBlockTopicPageIntroToArchieMLString(
     yield "{}"
 }
 
+function* rawKeyInsightsToArchieMLString(
+    block: RawBlockKeyInsights
+): Generator<string, void, undefined> {
+    yield "{.key-insights}"
+    yield* propertyToArchieMLString("heading", block.value)
+    if (block.value.insights) {
+        yield "[.insights]"
+        for (const insight of block.value.insights) {
+            yield* propertyToArchieMLString("title", insight)
+            yield* propertyToArchieMLString("filename", insight)
+            yield* propertyToArchieMLString("url", insight)
+            if (insight.content) {
+                yield "[.+content]"
+                for (const content of insight.content) {
+                    yield* OwidRawGdocBlockToArchieMLStringGenerator(content)
+                }
+            }
+            yield "[]"
+        }
+    }
+    yield "[]"
+    yield "{}"
+}
+
 export function* OwidRawGdocBlockToArchieMLStringGenerator(
     block: OwidRawGdocBlock
 ): Generator<string, void, undefined> {
@@ -448,6 +475,7 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
             { type: "topic-page-intro" },
             rawBlockTopicPageIntroToArchieMLString
         )
+        .with({ type: "key-insights" }, rawKeyInsightsToArchieMLString)
         .exhaustive()
     yield* content
 }

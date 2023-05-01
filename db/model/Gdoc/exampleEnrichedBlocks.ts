@@ -260,4 +260,65 @@ export const enrichedBlockExamples: Record<
         ],
         parseErrors: [],
     },
+    "key-insights": {
+        type: "key-insights",
+        heading: "Key Insights on Poverty",
+        insights: [
+            {
+                title: "Key insight number 1",
+                type: "key-insight-slide",
+                filename: "static_chart.svg",
+                content: [
+                    {
+                        type: "text",
+                        parseErrors: [],
+                        value: [
+                            {
+                                spanType: "span-simple-text",
+                                text: "I am the first paragraph of the first insight.",
+                            },
+                        ],
+                    },
+                    {
+                        type: "text",
+                        parseErrors: [],
+                        value: [
+                            {
+                                spanType: "span-simple-text",
+                                text: "I am the second paragraph of the first insight.",
+                            },
+                        ],
+                    },
+                ],
+            },
+            {
+                title: "Key insight number 2",
+                type: "key-insight-slide",
+                url: "https://ourworldindata.org/grapher/some_grapher",
+                content: [
+                    {
+                        type: "text",
+                        parseErrors: [],
+                        value: [
+                            {
+                                spanType: "span-simple-text",
+                                text: "I am the first paragraph of the second insight.",
+                            },
+                        ],
+                    },
+                    {
+                        type: "text",
+                        parseErrors: [],
+                        value: [
+                            {
+                                spanType: "span-simple-text",
+                                text: "I am the second paragraph of the second insight.",
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
+        parseErrors: [],
+    },
 }

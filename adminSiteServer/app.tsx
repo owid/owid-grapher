@@ -142,6 +142,7 @@ export class OwidAdminApp {
                     )
                 )
             } catch (error) {
+                console.error("Error fetching gdoc preview", error)
                 res.status(500).json({
                     error: { message: String(error), status: 500 },
                 })
