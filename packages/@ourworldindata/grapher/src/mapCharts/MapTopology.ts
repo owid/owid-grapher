@@ -778,7 +778,7 @@ export const MapTopology = {
                     arcs: [[-396, 674, -430, 675, -1]],
                     id: "Turkmenistan",
                 },
-                { type: "Polygon", arcs: [[676, -376]], id: "Timor" },
+                { type: "Polygon", arcs: [[676, -376]], id: "East Timor" },
                 { type: "Polygon", arcs: [[677]], id: "Trinidad and Tobago" },
                 { type: "Polygon", arcs: [[-275, 678, -471]], id: "Tunisia" },
                 {
