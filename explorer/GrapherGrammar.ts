@@ -154,12 +154,6 @@ export const GrapherGrammar: Grammar = {
         description:
             "Default is 'country', but you can specify a different one such as 'state' or 'region'.",
     },
-    entityTypePlural: {
-        ...StringCellDef,
-        keyword: "entityTypePlural",
-        description:
-            "Default is 'countries'. Should match the specified `entityType`.",
-    },
     baseColorScheme: {
         ...EnumCellDef,
         keyword: "baseColorScheme",

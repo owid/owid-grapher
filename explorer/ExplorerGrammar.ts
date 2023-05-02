@@ -151,13 +151,6 @@ export const ExplorerGrammar: Grammar = {
         description:
             "Default is 'country', but you can specify a different one such as 'state' or 'region'.",
     },
-    entityTypePlural: {
-        ...StringCellDef,
-        keyword: "entityTypePlural",
-        valuePlaceholder: "regions",
-        description:
-            "Default is 'countries'. Should match the specified `entityType`.",
-    },
     pickerColumnSlugs: {
         ...SlugsDeclarationCellDef,
         keyword: "pickerColumnSlugs",
