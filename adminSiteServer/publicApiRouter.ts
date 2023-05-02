@@ -3,7 +3,7 @@ import { Request, Response } from "./authentication.js"
 import { writeVariableCSV } from "../db/model/Variable.js"
 import { expectInt } from "../serverUtils/serverUtil.js"
 import * as db from "../db/db.js"
-import { stringifyUnkownError } from "@ourworldindata/utils"
+import { stringifyUnknownError } from "@ourworldindata/utils"
 import { Writable } from "stream"
 
 export const publicApiRouter = new FunctionalRouter()
@@ -25,7 +25,7 @@ publicApiRouter.router.get(
             await writeVariableCSV(variableIds, writeStream)
             res.end()
         } catch (error) {
-            res.send(`Error: ${stringifyUnkownError(error)}`)
+            res.send(`Error: ${stringifyUnknownError(error)}`)
         }
     }
 )

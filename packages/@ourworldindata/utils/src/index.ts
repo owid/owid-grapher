@@ -263,7 +263,7 @@ export {
     textAnchorFromAlign,
     dyFromAlign,
     values,
-    stringifyUnkownError,
+    stringifyUnknownError,
     toRectangularMatrix,
     checkIsPlainObjectWithGuard,
     checkIsStringIndexable,
