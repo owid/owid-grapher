@@ -852,7 +852,7 @@ export const MapTopology = {
                     arcs: [[[714]], [[715]]],
                     id: "Vanuatu",
                 },
-                { type: "Polygon", arcs: [[-425, -412]], id: "West Bank" },
+                { type: "Polygon", arcs: [[-425, -412]], id: "Palestine" },
                 { type: "Polygon", arcs: [[716, -635, -550]], id: "Yemen" },
                 {
                     type: "Polygon",
