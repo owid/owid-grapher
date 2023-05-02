@@ -191,7 +191,7 @@ export class FacetStrategyDropdown extends React.Component<{
     }
 
     @computed get facetStrategyLabels(): { [key in FacetStrategy]: string } {
-        const entityType = this.props.manager.entityType ?? "country"
+        const entityType = this.props.manager.entityType ?? "country or region"
 
         return {
             [FacetStrategy.none]: "All together",
