@@ -326,7 +326,7 @@ class HotEditor extends React.Component<{
         const { program, programOnDisk } = this
 
         // replace literal `\n` with newlines
-        const data = program.asArrays.map((row) =>
+        const data = program.lines.map((row) =>
             row.map((cell) => cell.replace(/\\n/g, "\n"))
         )
 

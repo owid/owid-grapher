@@ -1,5 +1,5 @@
 import {
-    columnDefinitionsFromDelimited,
+    columnDefinitionsFromInput,
     CoreColumnDef,
     CoreMatrix,
     CoreTable,
@@ -39,7 +39,7 @@ export const EXPLORER_FILE_SUFFIX = ".explorer.tsv"
 export interface TableDef {
     url?: string
     columnDefinitions?: CoreColumnDef[]
-    inlineData?: string
+    inlineData?: string[][]
 }
 
 interface ExplorerGrapherInterface extends GrapherInterface {
@@ -156,9 +156,7 @@ export class ExplorerProgram extends GridProgram {
     }
 
     get selection() {
-        return this.getLine(ExplorerGrammar.selection.keyword)
-            ?.split(this.cellDelimiter)
-            .slice(1)
+        return this.getLine(ExplorerGrammar.selection.keyword)?.slice(1)
     }
 
     get pickerColumnSlugs() {
@@ -210,6 +208,8 @@ export class ExplorerProgram extends GridProgram {
         )
         if (keywordIndex === -1) return undefined
         return this.getBlock(keywordIndex)
+            ?.map((row) => row.join(this.cellDelimiter))
+            .join("\n")
     }
 
     get grapherCount() {
@@ -217,15 +217,14 @@ export class ExplorerProgram extends GridProgram {
     }
 
     get tableCount() {
-        return this.lines.filter((line) =>
-            line.startsWith(ExplorerGrammar.table.keyword)
-        ).length
+        return this.getRowNumbersStartingWith(ExplorerGrammar.table.keyword)
+            .length
     }
 
     get tableSlugs(): (TableSlug | undefined)[] {
         return this.lines
-            .filter((line) => line.startsWith(ExplorerGrammar.table.keyword))
-            .map((line) => line.split(this.cellDelimiter)[2])
+            .filter((line) => line[0] === ExplorerGrammar.table.keyword)
+            .map((line) => line[2])
     }
 
     get columnDefsByTableSlug(): Map<TableSlug | undefined, CoreColumnDef[]> {
@@ -234,12 +233,12 @@ export class ExplorerProgram extends GridProgram {
             ExplorerGrammar.columns.keyword
         )
 
-        const matrix = this.asArrays
+        const matrix = this.lines
         for (const row of colDefsRows) {
             const tableSlugs = matrix[row].slice(1)
             const columnDefinitions: CoreColumnDef[] =
-                columnDefinitionsFromDelimited(this.getBlock(row)).map((row) =>
-                    trimAndParseObject(row, ColumnGrammar)
+                columnDefinitionsFromInput(this.getBlock(row) ?? "").map(
+                    (row) => trimAndParseObject(row, ColumnGrammar)
                 )
             if (tableSlugs.length === 0)
                 columnDefs.set(undefined, columnDefinitions)
@@ -290,14 +289,14 @@ export class ExplorerProgram extends GridProgram {
                 colDefsRow,
                 new CoreTable(clone.getBlock(colDefsRow))
                     .concat([missing])
-                    .toTsv()
+                    .toMatrix()
             )
         else
             clone.appendBlock(
                 `${ExplorerGrammar.columns.keyword}${
                     tableSlug ? this.cellDelimiter + tableSlug : ""
                 }`,
-                missing.toTsv()
+                missing.toMatrix()
             )
         return clone
     }
@@ -368,9 +367,7 @@ export class ExplorerProgram extends GridProgram {
         if (tableDefRow === -1) return undefined
 
         const inlineData = this.getBlock(tableDefRow)
-        let url = inlineData
-            ? undefined
-            : this.lines[tableDefRow].split(this.cellDelimiter)[1]
+        let url = inlineData ? undefined : this.lines[tableDefRow][1]
 
         if (url && !url.startsWith("http")) {
             const owidDatasetSlug = encodeURIComponent(url)
