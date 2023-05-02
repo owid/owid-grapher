@@ -385,7 +385,7 @@ export {
     type Region,
     countries,
     type Country,
-    getCountry,
+    getCountryBySlug,
     getCountryDetectionRedirects,
     continents,
     type Continent,
