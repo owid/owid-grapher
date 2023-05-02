@@ -4,7 +4,7 @@ import { MapProjectionName } from "./MapProjections"
 export const WorldRegionToProjection: Map<string, MapProjectionName> =
     Object.fromEntries(
         continents
-            .map(({ name, members }) =>
+            .flatMap(({ name, members }) =>
                 members
                     .map((code) => [
                         regions.find((c) => c.code === code)?.name,
@@ -12,7 +12,6 @@ export const WorldRegionToProjection: Map<string, MapProjectionName> =
                     ])
                     .filter(([name, _projection]) => !!name)
             )
-            .flat()
     )
 
 export type WorldRegionName = keyof typeof WorldRegionToProjection
