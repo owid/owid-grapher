@@ -2,7 +2,7 @@ import React from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faAngleRight } from "@fortawesome/free-solid-svg-icons"
 import { SiteFooterContext } from "@ourworldindata/utils"
-import { viteAssets } from "./viteUtils.js"
+import { VITE_ASSET_SITE_ENTRY, viteAssets } from "./viteUtils.js"
 
 interface SiteFooterProps {
     hideDonate?: boolean
@@ -260,7 +260,7 @@ export const SiteFooter = (props: SiteFooterProps) => (
                 </div>
             </div>
             <div className="site-tools" />
-            {viteAssets("site/owid.entry.ts").forFooter}
+            {viteAssets(VITE_ASSET_SITE_ENTRY).forFooter}
             <script
                 type="module"
                 dangerouslySetInnerHTML={{
