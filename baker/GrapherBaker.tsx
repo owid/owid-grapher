@@ -80,7 +80,13 @@ export const renderDataPageOrGrapherPage = async (
             return renderToHtmlPage(
                 <pre>{JSON.stringify(parseErrors, null, 2)}</pre>
             )
-        } else {
+            // We want to log an error for published data pages. This means we
+            // also want to log an error in case we can't parse the JSON and
+            // hence don't know if the data page is published or not.
+        } else if (
+            datapageJson === null ||
+            datapageJson.status === "published"
+        ) {
             logContentErrorAndMaybeSendToSlack(
                 new JsonError(
                     `Data page error in ${id}.json: please check ${ADMIN_BASE_URL}/admin/grapher/${grapher.slug}`
