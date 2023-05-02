@@ -1,12 +1,19 @@
 import entities from "./regions.json"
 
+export enum RegionType {
+    Country = "country",
+    Other = "other",
+    Aggregate = "aggregate",
+    Continent = "continent",
+}
+
 export interface Country {
     code: string
     shortCode?: string
     name: string
     shortName?: string
     slug: string
-    regionType?: "country" | "other"
+    regionType: "country" | "other"
     isMappable?: boolean
     isHistorical?: boolean
     isUnlisted?: boolean
