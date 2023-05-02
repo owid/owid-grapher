@@ -380,7 +380,7 @@ export class Grapher
 
     @observable.ref annotation?: Annotation = undefined
 
-    @observable hideFacetControl?: boolean = true
+    @observable.ref hideFacetControl?: boolean = undefined
 
     // the desired faceting strategy, which might not be possible if we change the data
     @observable selectedFacetStrategy?: FacetStrategy = undefined
@@ -1968,12 +1968,30 @@ export class Grapher
     }
 
     @computed get showFacetControl(): boolean {
-        return (
-            !this.hideFacetControl ||
-            // heuristic: if the chart doesn't make sense unfaceted, then it probably
-            // also makes sense to let the user switch between entity/metric facets
-            !this.availableFacetStrategies.includes(FacetStrategy.none)
+        const {
+            hideFacetControl,
+            filledDimensions,
+            availableFacetStrategies,
+            isStackedArea,
+            isStackedBar,
+            isStackedDiscreteBar,
+            isLineChart,
+        } = this
+
+        if (hideFacetControl != undefined) return !hideFacetControl
+
+        // heuristic: if the chart doesn't make sense unfaceted, then it probably
+        // also makes sense to let the user switch between entity/metric facets
+        if (!availableFacetStrategies.includes(FacetStrategy.none)) return true
+
+        const showFacetControlChartType =
+            isStackedArea || isStackedBar || isStackedDiscreteBar || isLineChart
+
+        const hasProjection = filledDimensions.some(
+            (dim) => dim.display.isProjection
         )
+
+        return showFacetControlChartType && !hasProjection
     }
 
     @action.bound private toggleFacetControlVisibility(): void {
@@ -2018,18 +2036,38 @@ export class Grapher
     }
 
     @computed private get hasSingleMetricInFacets(): boolean {
-        return (
-            this.isStackedDiscreteBar &&
-            this.selectedFacetStrategy !== FacetStrategy.none
-        )
+        const {
+            isStackedDiscreteBar,
+            isStackedArea,
+            isStackedBar,
+            facetStrategy,
+            hasMultipleYColumns,
+        } = this
+
+        if (isStackedDiscreteBar) {
+            return facetStrategy !== FacetStrategy.none
+        }
+
+        if (isStackedArea || isStackedBar) {
+            return (
+                facetStrategy === FacetStrategy.entity && !hasMultipleYColumns
+            )
+        }
+
+        return false
     }
 
     @computed private get hasSingleEntityInFacets(): boolean {
-        return (
-            (this.isStackedArea || this.isStackedBar) &&
-            this.selection.numSelectedEntities === 1 &&
-            this.facetStrategy === FacetStrategy.metric
-        )
+        const { isStackedArea, isStackedBar, facetStrategy, selection } = this
+
+        if (isStackedArea || isStackedBar) {
+            return (
+                facetStrategy === FacetStrategy.metric &&
+                selection.numSelectedEntities === 1
+            )
+        }
+
+        return false
     }
 
     @computed get availableFacetStrategies(): FacetStrategy[] {

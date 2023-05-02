@@ -1,5 +1,5 @@
 import React from "react"
-import { viteAssets } from "./viteUtils.js"
+import { VITE_ASSET_SITE_ENTRY, viteAssets } from "./viteUtils.js"
 
 export const Head = (props: {
     canonicalUrl: string
@@ -20,7 +20,7 @@ export const Head = (props: {
         "Research and data to make progress against the world’s largest problems"
     const imageUrl = props.imageUrl || `${baseUrl}/default-thumbnail.jpg`
 
-    const stylesheets = viteAssets("site/owid.entry.ts").forHeader
+    const stylesheets = viteAssets(VITE_ASSET_SITE_ENTRY).forHeader
 
     return (
         <head>

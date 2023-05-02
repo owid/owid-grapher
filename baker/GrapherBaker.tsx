@@ -178,20 +178,26 @@ export const bakeVariableData = async (
     return bakeArgs
 }
 
+const chartIsSameVersion = async (
+    htmlPath: string,
+    grapherVersion: number | undefined
+): Promise<boolean> => {
+    if (fs.existsSync(htmlPath)) {
+        // If the chart is the same version, we can potentially skip baking the data and exports (which is by far the slowest part)
+        const html = await fs.readFile(htmlPath, "utf8")
+        const savedVersion = deserializeJSONFromHTML(html)
+        return savedVersion?.version === grapherVersion
+    } else {
+        return false
+    }
+}
+
 const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
     bakedSiteDir: string,
     grapher: GrapherInterface
 ) => {
     const htmlPath = `${bakedSiteDir}/grapher/${grapher.slug}.html`
-    let isSameVersion = false
-    try {
-        // If the chart is the same version, we can potentially skip baking the data and exports (which is by far the slowest part)
-        const html = await fs.readFile(htmlPath, "utf8")
-        const savedVersion = deserializeJSONFromHTML(html)
-        isSameVersion = savedVersion?.version === grapher.version
-    } catch (err) {
-        if ((err as any).code !== "ENOENT") console.error(err)
-    }
+    const isSameVersion = await chartIsSameVersion(htmlPath, grapher.version)
 
     // Need to set up the connection for using TypeORM in
     // renderDataPageOrGrapherPage() when baking using multiple worker threads
@@ -214,58 +220,41 @@ const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
     )
     if (!variableIds.length) return
 
-    try {
-        await fs.mkdirp(`${bakedSiteDir}/grapher/exports/`)
-        const svgPath = `${bakedSiteDir}/grapher/exports/${grapher.slug}.svg`
-        const pngPath = `${bakedSiteDir}/grapher/exports/${grapher.slug}.png`
-        if (
-            !isSameVersion ||
-            !fs.existsSync(svgPath) ||
-            !fs.existsSync(pngPath)
-        ) {
-            const loadDataMetadataPromises: Promise<OwidVariableDataMetadataDimensions>[] =
-                variableIds.map(async (variableId) => {
-                    const metadataPath = `${bakedSiteDir}${getVariableMetadataRoute(
-                        variableId
-                    )}`
-                    const metadataString = await fs.readFile(
-                        metadataPath,
-                        "utf8"
-                    )
-                    const metadataJson = JSON.parse(
-                        metadataString
-                    ) as OwidVariableWithSourceAndDimension
+    await fs.mkdirp(`${bakedSiteDir}/grapher/exports/`)
+    const svgPath = `${bakedSiteDir}/grapher/exports/${grapher.slug}.svg`
+    const pngPath = `${bakedSiteDir}/grapher/exports/${grapher.slug}.png`
+    if (!isSameVersion || !fs.existsSync(svgPath) || !fs.existsSync(pngPath)) {
+        const loadDataMetadataPromises: Promise<OwidVariableDataMetadataDimensions>[] =
+            variableIds.map(async (variableId) => {
+                const metadataPath = `${bakedSiteDir}${getVariableMetadataRoute(
+                    variableId
+                )}`
+                const metadataString = await fs.readFile(metadataPath, "utf8")
+                const metadataJson = JSON.parse(
+                    metadataString
+                ) as OwidVariableWithSourceAndDimension
 
-                    const dataPath = `${bakedSiteDir}${getVariableDataRoute(
-                        variableId
-                    )}`
-                    const dataString = await fs.readFile(dataPath, "utf8")
-                    const dataJson = JSON.parse(
-                        dataString
-                    ) as OwidVariableMixedData
+                const dataPath = `${bakedSiteDir}${getVariableDataRoute(
+                    variableId
+                )}`
+                const dataString = await fs.readFile(dataPath, "utf8")
+                const dataJson = JSON.parse(dataString) as OwidVariableMixedData
 
-                    return {
-                        data: dataJson,
-                        metadata: metadataJson,
-                    }
-                })
-            const variableDataMetadata = await Promise.all(
-                loadDataMetadataPromises
-            )
-            const variableDataMedadataMap = new Map(
-                variableDataMetadata.map((item) => [item.metadata.id, item])
-            )
-            await bakeGraphersToPngs(
-                `${bakedSiteDir}/grapher/exports`,
-                grapher,
-                variableDataMedadataMap,
-                OPTIMIZE_SVG_EXPORTS
-            )
-            console.log(svgPath)
-            console.log(pngPath)
-        }
-    } catch (err) {
-        console.error(err)
+                return {
+                    data: dataJson,
+                    metadata: metadataJson,
+                }
+            })
+        const variableDataMetadata = await Promise.all(loadDataMetadataPromises)
+        const variableDataMedadataMap = new Map(
+            variableDataMetadata.map((item) => [item.metadata.id, item])
+        )
+        await bakeGraphersToPngs(
+            `${bakedSiteDir}/grapher/exports`,
+            grapher,
+            variableDataMedadataMap,
+            OPTIMIZE_SVG_EXPORTS
+        )
     }
 }
 

@@ -201,6 +201,8 @@ mockSiteRouter.use(
     express.static(path.join(BAKED_SITE_DIR, "exports"))
 )
 
+mockSiteRouter.use("/assets", express.static("dist/assets"))
+
 mockSiteRouter.use("/grapher/exports/:slug.svg", async (req, res) => {
     const grapher = await OldChart.getBySlug(req.params.slug)
     const vardata = await grapher.getVariableData()
