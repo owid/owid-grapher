@@ -24,7 +24,7 @@ import {
     OwidGdocJSON,
     parseIntOrUndefined,
     slugify,
-    stringifyUnkownError,
+    stringifyUnknownError,
 } from "@ourworldindata/utils"
 import {
     DefaultNewExplorerSlug,
@@ -120,7 +120,7 @@ adminRouter.post(
                 renderToHtmlPage(
                     <LoginPage
                         next={req.query.next as string}
-                        errorMessage={stringifyUnkownError(err)}
+                        errorMessage={stringifyUnknownError(err)}
                     />
                 )
             )

@@ -6,7 +6,7 @@ import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { every, sortBy } from "lodash"
 import { Controlled } from "react-codemirror2"
-import { stringifyUnkownError } from "@ourworldindata/utils"
+import { stringifyUnknownError } from "@ourworldindata/utils"
 
 interface Detail {
     category: string
@@ -58,7 +58,7 @@ class DetailRow extends React.Component<DetailRowProps> {
                 this.context.admin.setErrorMessage({
                     title: "Unable to update detail",
                     content:
-                        stringifyUnkownError(error) ||
+                        stringifyUnknownError(error) ||
                         "Check the developer console for more information.",
                 })
             }
@@ -216,7 +216,7 @@ class NewDetail extends React.Component<{
             this.context.admin.setErrorMessage({
                 title: "Unable to save detail",
                 content:
-                    stringifyUnkownError(error) ||
+                    stringifyUnknownError(error) ||
                     "Check the developer console for more information.",
             })
         }
@@ -294,7 +294,7 @@ export class DetailsOnDemandPage extends React.Component {
             this.context.admin.setErrorMessage({
                 title: "Unable to delete detail",
                 content:
-                    stringifyUnkownError(error) ||
+                    stringifyUnknownError(error) ||
                     "Check the developer console for more information.",
             })
         }

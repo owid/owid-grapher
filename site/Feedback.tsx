@@ -10,7 +10,7 @@ import {
 import { observable, action, toJS, computed } from "mobx"
 import classnames from "classnames"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
-import { stringifyUnkownError } from "@ourworldindata/utils"
+import { stringifyUnknownError } from "@ourworldindata/utils"
 
 const sendFeedback = async (feedback: Feedback) => {
     const json = {
@@ -135,7 +135,7 @@ export class FeedbackForm extends React.Component<{
             this.feedback.clear()
             this.done = true
         } catch (err) {
-            this.error = stringifyUnkownError(err)
+            this.error = stringifyUnknownError(err)
         } finally {
             this.loading = false
         }

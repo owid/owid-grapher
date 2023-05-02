@@ -1159,7 +1159,7 @@ export const values = <Obj extends Record<string, any>>(
     return Object.values(obj)
 }
 
-export function stringifyUnkownError(error: unknown): string | undefined {
+export function stringifyUnknownError(error: unknown): string | undefined {
     if (error === undefined || error === null) return undefined
     if (error instanceof Error) {
         return error.message
