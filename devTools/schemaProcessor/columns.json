@@ -493,7 +493,7 @@
     {
         "type": "string",
         "pointer": "/entityType",
-        "default": "country",
+        "default": "country or region",
         "editor": "textfield"
     },
     {
@@ -801,7 +801,7 @@
     {
         "type": "string",
         "pointer": "/entityTypePlural",
-        "default": "countries",
+        "default": "countries or regions",
         "editor": "textfield"
     }
 ]

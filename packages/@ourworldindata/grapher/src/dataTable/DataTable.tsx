@@ -128,7 +128,7 @@ export class DataTable extends React.Component<{
         return (
             this.props.manager ?? {
                 table: BlankOwidTable(),
-                entityType: "country",
+                entityType: "country or region",
             }
         )
     }
@@ -196,6 +196,7 @@ export class DataTable extends React.Component<{
     private get entityHeader(): JSX.Element {
         const { sort } = this.tableState
         return (
+            // TODO
             <ColumnHeader
                 key="entity"
                 sortable={true}

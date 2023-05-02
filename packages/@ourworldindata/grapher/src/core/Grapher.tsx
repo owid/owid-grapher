@@ -312,8 +312,8 @@ export class Grapher
     @observable.ref logo?: LogoOption = undefined
     @observable.ref hideLogo?: boolean = undefined
     @observable.ref hideRelativeToggle? = true
-    @observable.ref entityType = "country"
-    @observable.ref entityTypePlural = "countries"
+    @observable.ref entityType = "country or region"
+    @observable.ref entityTypePlural = "countries or regions"
     @observable.ref hideTimeline?: boolean = undefined
     @observable.ref hideScatterLabels?: boolean = undefined
     @observable.ref zoomToSelection?: boolean = undefined
