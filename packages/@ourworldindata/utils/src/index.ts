@@ -384,6 +384,7 @@ export {
 } from "./TimeBounds.js"
 
 export {
+    RegionType,
     regions,
     type Region,
     countries,
