@@ -1162,7 +1162,7 @@ export const values = <Obj extends Record<string, any>>(
 export function stringifyUnknownError(error: unknown): string | undefined {
     if (error === undefined || error === null) return undefined
     if (error instanceof Error) {
-        return error.message
+        return `${error.name}: ${error.message}`
     }
     if (typeof error === "function") {
         // Within this branch, `error` has type `Function`,
