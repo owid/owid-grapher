@@ -5,8 +5,12 @@ import {
 } from "../settings/serverSettings.js"
 import Slack from "slack-node"
 import * as lodash from "lodash"
+import { stringifyUnknownError } from "@ourworldindata/utils"
 
-const sendErrorToSlack = async (err: any, slackWebhook: string | undefined) => {
+const sendErrorToSlack = async (
+    err: unknown,
+    slackWebhook: string | undefined
+) => {
     if (!slackWebhook) return
 
     const slack = new Slack()
@@ -22,16 +26,19 @@ const sendErrorToSlack = async (err: any, slackWebhook: string | undefined) => {
         return `_${title}_${tripleBackticks}${code}${tripleBackticks}\n`
     }
 
+    const errorMessage = stringifyUnknownError(err)
+    const blocks = []
+
     // Node doesn't include stack traces for fs errors :(
     // So, if we don't have a stack trace, create one that's slightly inaccurate (because it's created here rather than
     // where the error was thrown), but that's still better than no trace at all!
-    let stack = err.stack
+    let stack = err instanceof Error ? err.stack : undefined
     if (!stack || !stack.includes("\n"))
         stack = Error("dummy_error_for_stacktrace").stack
 
-    const blocks = [{ title: "Stack", code: stack }]
+    blocks.push({ title: "Stack", code: stack })
 
-    if (err.stderr) {
+    if (err instanceof Error && "stderr" in err) {
         blocks.push({
             title: "stderr",
             code: err.stderr,
@@ -39,16 +46,9 @@ const sendErrorToSlack = async (err: any, slackWebhook: string | undefined) => {
     }
 
     const attachment = {
-        fallback: `${err.name}: ${err.message}`,
-        color: err.status < 500 ? "warning" : "danger",
-        //   author_name: req.headers.host,
-        title: `${err.name}: ${err.message}`,
-        //   fields: [
-        //     { title: 'Request URL', value: req.url, short: true },
-        //     { title: 'Request Method', value: req.method, short: true },
-        //     { title: 'Status Code', value: err.status, short: true },
-        //     { title: 'Remote Address', value: getRemoteAddress(req), short: true }
-        //   ],
+        title: errorMessage,
+        fallback: errorMessage,
+        color: "danger",
         text: blocks
             .map((data) => createCodeBlock(data.title, data.code))
             .join(""),
