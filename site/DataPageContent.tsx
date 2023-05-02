@@ -6,18 +6,12 @@ import { ExpandableAnimatedToggle } from "./ExpandableAnimatedToggle.js"
 import ReactDOM from "react-dom"
 import { GrapherWithFallback } from "./GrapherWithFallback.js"
 import { formatAuthors } from "./clientFormatting.js"
-import {
-    GdocsContentSource,
-    OwidEnrichedGdocBlock,
-    getOwidGdocFromJSON,
-    getLinkType,
-    getUrlTarget,
-} from "@ourworldindata/utils"
 import { ArticleBlocks } from "./gdocs/ArticleBlocks.js"
 import { faTable } from "@fortawesome/free-solid-svg-icons/faTable"
 import { faGithub } from "@fortawesome/free-brands-svg-icons/faGithub"
 import { RelatedCharts } from "./blocks/RelatedCharts.js"
 import { FallbackGdocFieldExplain } from "./FallbackFieldExplain.js"
+import { DataPageGdoc, DataPageJson } from "@ourworldindata/utils"
 
 declare global {
     interface Window {
@@ -25,66 +19,29 @@ declare global {
     }
 }
 
-export const OWID_DATAPAGE_CONTENT_ROOT_ID = "owid-datapage-root"
+export const OWID_DATAPAGE_CONTENT_ROOT_ID = "owid-datapageJson-root"
 
 export const DataPageContent = ({
-    datapage,
+    datapageJson,
+    datapageGdoc,
     grapherConfig,
 }: {
-    datapage: any
+    datapageJson: DataPageJson
+    datapageGdoc: DataPageGdoc | null
     grapherConfig: GrapherInterface
 }) => {
     const [grapher, setGrapher] = React.useState<Grapher | undefined>(undefined)
-    const [gdocKeyedBlocks, setGdocKeyedBlocks] = React.useState<
-        { [key: string]: OwidEnrichedGdocBlock[] } | undefined
-    >(undefined)
 
     const sourceShortName =
-        datapage.variantDescription1 && datapage.variantDescription2
-            ? `${datapage.variantDescription1} - ${datapage.variantDescription2}`
-            : datapage.variantDescription1 || datapage.variantDescription2
+        datapageJson.variantDescription1 && datapageJson.variantDescription2
+            ? `${datapageJson.variantDescription1} - ${datapageJson.variantDescription2}`
+            : datapageJson.variantDescription1 ||
+              datapageJson.variantDescription2
 
     // Initialize the grapher for client-side rendering
     useEffect(() => {
         setGrapher(new Grapher(grapherConfig))
     }, [grapherConfig])
-
-    // Not suitable for production, only for prototyping
-    useEffect(() => {
-        const fetchGdocKeyedContent = async (googleDocId: string) => {
-            const response = await fetch(
-                `/admin/api/gdocs/${googleDocId}?contentSource=${GdocsContentSource.Gdocs}`
-            )
-            const json = await response.json()
-            const gdoc = getOwidGdocFromJSON(json)
-            if (!gdoc.content?.body) return
-
-            // use heading 1s as makeshit archie block separators until we gain
-            // confidence in the datapage architecture and its source of truth
-            let currentKey = ""
-            const keyedBlocks: { [key: string]: OwidEnrichedGdocBlock[] } = {}
-            gdoc.content.body.forEach((block: any) => {
-                if (block.type === "heading" && block.level === 1) {
-                    currentKey = block.text[0].text // use heading 1s' text as key through a very raw version of "spansToSimpleText"
-                } else {
-                    keyedBlocks[currentKey] = [
-                        ...(keyedBlocks[currentKey] || []),
-                        block,
-                    ]
-                }
-            })
-
-            setGdocKeyedBlocks(keyedBlocks)
-        }
-
-        if (
-            !datapage.googleDocEditLink ||
-            getLinkType(datapage.googleDocEditLink) !== "gdoc"
-        )
-            return
-        const googleDocId = getUrlTarget(datapage.googleDocEditLink)
-        fetchGdocKeyedContent(googleDocId)
-    }, [datapage.googleDocEditLink])
 
     return (
         <>
@@ -98,7 +55,7 @@ export const DataPageContent = ({
                 <div className="header__wrapper wrapper">
                     <div className="header__left">
                         <div className="header__supertitle">Data</div>
-                        <h1 className="header__title">{datapage.title}</h1>
+                        <h1 className="header__title">{datapageJson.title}</h1>
                         <div className="header__source">{sourceShortName}</div>
                     </div>
                     <div className="header__right">
@@ -106,7 +63,7 @@ export const DataPageContent = ({
                             See all data and research on:
                         </div>
                         <div className="topic-tags">
-                            {datapage.topicTagsLinks.map((topic: any) => (
+                            {datapageJson.topicTagsLinks.map((topic: any) => (
                                 <a href={topic.url} key={topic.url}>
                                     {topic.title}
                                 </a>
@@ -131,24 +88,26 @@ export const DataPageContent = ({
                         <div className="key-info__left">
                             <h2 className="key-info__title">Key information</h2>
                             <FallbackGdocFieldExplain
-                                googleDocEditLink={datapage.googleDocEditLink}
+                                googleDocEditLink={
+                                    datapageJson.googleDocEditLink
+                                }
                                 fieldName="keyInfoText"
                                 level="info"
                                 render={(fallback) =>
-                                    gdocKeyedBlocks?.keyInfoText ? (
+                                    datapageGdoc?.keyInfoText ? (
                                         <ArticleBlocks
-                                            blocks={gdocKeyedBlocks.keyInfoText}
+                                            blocks={datapageGdoc.keyInfoText}
                                             containerType="datapage"
                                         />
-                                    ) : datapage.subtitle ? (
-                                        <div>{datapage.subtitle}</div>
+                                    ) : datapageJson.subtitle ? (
+                                        <div>{datapageJson.subtitle}</div>
                                     ) : (
                                         fallback
                                     )
                                 }
                             />
 
-                            {gdocKeyedBlocks?.faqs && (
+                            {datapageGdoc?.faqs && (
                                 <a
                                     className="key-info__learn-more"
                                     href="#faqs"
@@ -158,30 +117,32 @@ export const DataPageContent = ({
                                 </a>
                             )}
                             <FallbackGdocFieldExplain
-                                googleDocEditLink={datapage.googleDocEditLink}
+                                googleDocEditLink={
+                                    datapageJson.googleDocEditLink
+                                }
                                 fieldName="descriptionFromSource"
                                 level="info"
                                 render={(fallback) =>
-                                    datapage.descriptionFromSource?.title &&
-                                    gdocKeyedBlocks?.descriptionFromSource ? (
+                                    datapageJson.descriptionFromSource.title &&
+                                    datapageGdoc?.descriptionFromSource ? (
                                         <div className="key-info__description-source">
                                             <ExpandableAnimatedToggle
                                                 label={
-                                                    datapage
+                                                    datapageJson
                                                         .descriptionFromSource
                                                         .title
                                                 }
                                                 content={
                                                     <ArticleBlocks
                                                         blocks={
-                                                            gdocKeyedBlocks.descriptionFromSource
+                                                            datapageGdoc.descriptionFromSource
                                                         }
                                                         containerType="datapage"
                                                     />
                                                 }
                                                 isExpandedDefault={
-                                                    !datapage.subtitle &&
-                                                    !gdocKeyedBlocks?.keyInfoText
+                                                    !datapageJson.subtitle &&
+                                                    !datapageGdoc.keyInfoText
                                                 }
                                             />
                                         </div>
@@ -194,11 +155,11 @@ export const DataPageContent = ({
                         <div className="key-info__right">
                             <div className="key-data">
                                 <div className="key-data__title">Source</div>
-                                <div>{datapage.nameOfSource}</div>
-                                {datapage.owidProcessingLevel && (
+                                <div>{datapageJson.nameOfSource}</div>
+                                {datapageJson.owidProcessingLevel && (
                                     <div
                                         dangerouslySetInnerHTML={{
-                                            __html: datapage.owidProcessingLevel,
+                                            __html: datapageJson.owidProcessingLevel,
                                         }}
                                     ></div>
                                 )}
@@ -207,19 +168,19 @@ export const DataPageContent = ({
                                 <div className="key-data__title">
                                     Date range
                                 </div>
-                                <div>{datapage.dateRange}</div>
+                                <div>{datapageJson.dateRange}</div>
                             </div>
                             <div className="key-data">
                                 <div className="key-data__title">
                                     Last updated
                                 </div>
-                                <div>{datapage.lastUpdated}</div>
+                                <div>{datapageJson.lastUpdated}</div>
                             </div>
                             <div className="key-data">
                                 <div className="key-data__title">
                                     Next expected update
                                 </div>
-                                <div>{datapage.nextUpdate}</div>
+                                <div>{datapageJson.nextUpdate}</div>
                             </div>
                         </div>
                     </div>
@@ -229,7 +190,7 @@ export const DataPageContent = ({
                         Related research and writing
                     </h2>
                     <div className="related-research__items span-cols-9">
-                        {datapage.relatedResearch.map((research: any) => (
+                        {datapageJson.relatedResearch.map((research: any) => (
                             <a
                                 href={research.url}
                                 key={research.url}
@@ -260,26 +221,26 @@ export const DataPageContent = ({
                     <div className="related-data__items span-cols-9">
                         <div className="span-cols-3">
                             <a
-                                href={datapage.relatedData[0].url}
-                                key={datapage.relatedData[0].url}
+                                href={datapageJson.relatedData[0].url}
+                                key={datapageJson.relatedData[0].url}
                                 className="related-data-item related-data-item--medium"
                             >
                                 <div className="related-data-item__type">
-                                    {datapage.relatedData[0].type}
+                                    {datapageJson.relatedData[0].type}
                                 </div>
                                 <h3 className="related-data-item__title">
-                                    {datapage.relatedData[0].title}
+                                    {datapageJson.relatedData[0].title}
                                 </h3>
                                 <div className="related-data-item__source">
-                                    {datapage.relatedData[0].source}
+                                    {datapageJson.relatedData[0].source}
                                 </div>
                                 <div className="related-data-item__content">
-                                    {datapage.relatedData[0].content}
+                                    {datapageJson.relatedData[0].content}
                                 </div>
                             </a>
                         </div>
                         <div className="span-cols-3">
-                            {datapage.relatedData
+                            {datapageJson.relatedData
                                 .slice(1, 3)
                                 .map((data: any) => (
                                     <a
@@ -300,44 +261,46 @@ export const DataPageContent = ({
                                 ))}
                         </div>
                         <div className="span-cols-3">
-                            {datapage.relatedData.slice(3).map((data: any) => (
-                                <a
-                                    href={data.url}
-                                    key={data.url}
-                                    className="related-data-item--small"
-                                >
-                                    <h4 className="related-data-item__title">
-                                        {data.title}
-                                    </h4>
-                                    <div className="related-data-item__source">
-                                        {data.source}
-                                    </div>
-                                </a>
-                            ))}
+                            {datapageJson.relatedData
+                                .slice(3)
+                                .map((data: any) => (
+                                    <a
+                                        href={data.url}
+                                        key={data.url}
+                                        className="related-data-item--small"
+                                    >
+                                        <h4 className="related-data-item__title">
+                                            {data.title}
+                                        </h4>
+                                        <div className="related-data-item__source">
+                                            {data.source}
+                                        </div>
+                                    </a>
+                                ))}
                         </div>
                     </div>
                 </div>
                 <div className="DataPageContent__section-border wrapper">
                     <hr />
                 </div>
-                {datapage.relatedCharts.items.length > 0 && (
+                {datapageJson.relatedCharts.items.length > 0 && (
                     <div className="related-charts__wrapper wrapper">
                         <h2 className="related-charts__title">
                             Explore charts that include this data
                         </h2>
                         <div>
                             <RelatedCharts
-                                charts={datapage.relatedCharts.items}
+                                charts={datapageJson.relatedCharts.items}
                             />
                         </div>
                     </div>
                 )}
                 <FallbackGdocFieldExplain
-                    googleDocEditLink={datapage.googleDocEditLink}
+                    googleDocEditLink={datapageJson.googleDocEditLink}
                     fieldName="faqs"
                     level="info"
                     render={(fallback) =>
-                        gdocKeyedBlocks?.faqs ? (
+                        datapageGdoc?.faqs ? (
                             <>
                                 <div
                                     style={{
@@ -354,7 +317,7 @@ export const DataPageContent = ({
                                         </h2>
                                         <div className="faqs__items grid grid-cols-8 span-cols-8">
                                             <ArticleBlocks
-                                                blocks={gdocKeyedBlocks.faqs}
+                                                blocks={datapageGdoc.faqs}
                                                 containerType="datapage"
                                             />
                                         </div>
@@ -400,22 +363,22 @@ export const DataPageContent = ({
                                         <FontAwesomeIcon icon={faTable} />
                                         <span
                                             dangerouslySetInnerHTML={{
-                                                __html: datapage.datasetName,
+                                                __html: datapageJson.datasetName,
                                             }}
                                         />
                                     </div>
                                     <FallbackGdocFieldExplain
                                         googleDocEditLink={
-                                            datapage.googleDocEditLink
+                                            datapageJson.googleDocEditLink
                                         }
                                         fieldName="datasetDescription"
                                         level="error"
                                         render={(fallback) =>
-                                            gdocKeyedBlocks?.datasetDescription ? (
+                                            datapageGdoc?.datasetDescription ? (
                                                 <div className="data-collection__description">
                                                     <ArticleBlocks
                                                         blocks={
-                                                            gdocKeyedBlocks.datasetDescription
+                                                            datapageGdoc.datasetDescription
                                                         }
                                                         containerType="datapage"
                                                     />
@@ -427,12 +390,12 @@ export const DataPageContent = ({
                                     />
                                     <FallbackGdocFieldExplain
                                         googleDocEditLink={
-                                            datapage.googleDocEditLink
+                                            datapageJson.googleDocEditLink
                                         }
                                         fieldName="datasetVariableProcessingInfo"
                                         level="info"
                                         render={(fallback) =>
-                                            gdocKeyedBlocks?.datasetVariableProcessingInfo ? (
+                                            datapageGdoc?.datasetVariableProcessingInfo ? (
                                                 <div>
                                                     <div className="variable-processing-info__header">
                                                         Particular steps taken
@@ -441,7 +404,7 @@ export const DataPageContent = ({
                                                     <div className="variable-processing-info__description">
                                                         <ArticleBlocks
                                                             blocks={
-                                                                gdocKeyedBlocks.datasetVariableProcessingInfo
+                                                                datapageGdoc.datasetVariableProcessingInfo
                                                             }
                                                             containerType="datapage"
                                                         />
@@ -454,39 +417,42 @@ export const DataPageContent = ({
                                     />
                                 </div>
                                 <div>
-                                    <div style={{ marginBottom: "24px" }}>
-                                        <h4 className="featured-variables__header">
-                                            Metrics included in this data
-                                            collection:
-                                        </h4>
-                                        <ul className="featured-variables__list">
-                                            {datapage.datasetFeaturedVariables.map(
-                                                (
-                                                    variable: any,
-                                                    idx: number
-                                                ) => (
-                                                    <li
-                                                        className="featured-variables__item"
-                                                        key={
-                                                            variable.variableName
-                                                        }
-                                                    >
-                                                        {idx !== 0 ? (
-                                                            variable.variableName
-                                                        ) : (
-                                                            <strong>
-                                                                {`${variable.variableName} `}
-                                                                <em>
-                                                                    (currently
-                                                                    viewing)
-                                                                </em>
-                                                            </strong>
-                                                        )}
-                                                    </li>
-                                                )
-                                            )}
-                                        </ul>
-                                    </div>
+                                    {!!datapageJson.datasetFeaturedVariables
+                                        ?.length && (
+                                        <div style={{ marginBottom: "24px" }}>
+                                            <h4 className="featured-variables__header">
+                                                Metrics included in this data
+                                                collection:
+                                            </h4>
+                                            <ul className="featured-variables__list">
+                                                {datapageJson.datasetFeaturedVariables.map(
+                                                    (
+                                                        variable: any,
+                                                        idx: number
+                                                    ) => (
+                                                        <li
+                                                            className="featured-variables__item"
+                                                            key={
+                                                                variable.variableName
+                                                            }
+                                                        >
+                                                            {idx !== 0 ? (
+                                                                variable.variableName
+                                                            ) : (
+                                                                <strong>
+                                                                    {`${variable.variableName} `}
+                                                                    <em>
+                                                                        (currently
+                                                                        viewing)
+                                                                    </em>
+                                                                </strong>
+                                                            )}
+                                                        </li>
+                                                    )
+                                                )}
+                                            </ul>
+                                        </div>
+                                    )}
                                     <div
                                         className="key-info--gridded grid grid-cols-2"
                                         style={{ marginBottom: "24px" }}
@@ -495,40 +461,44 @@ export const DataPageContent = ({
                                             <div className="key-data__title">
                                                 Last updated
                                             </div>
-                                            <div>{datapage.lastUpdated}</div>
+                                            <div>
+                                                {datapageJson.lastUpdated}
+                                            </div>
                                         </div>
                                         <div className="key-data">
                                             <div className="key-data__title">
                                                 Next expected update
                                             </div>
-                                            <div>{datapage.nextUpdate}</div>
+                                            <div>{datapageJson.nextUpdate}</div>
                                         </div>
-                                        <div className="key-data">
-                                            <div className="key-data__title">
-                                                Licence
+                                        {datapageJson.datasetLicenseLink && (
+                                            <div className="key-data">
+                                                <div className="key-data__title">
+                                                    Licence
+                                                </div>
+                                                <div>
+                                                    <a
+                                                        href={
+                                                            datapageJson
+                                                                .datasetLicenseLink
+                                                                .url
+                                                        }
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                    >
+                                                        {
+                                                            datapageJson
+                                                                .datasetLicenseLink
+                                                                .title
+                                                        }
+                                                    </a>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <a
-                                                    href={
-                                                        datapage
-                                                            .datasetLicenseLink
-                                                            .url
-                                                    }
-                                                    target="_blank"
-                                                    rel="noreferrer"
-                                                >
-                                                    {
-                                                        datapage
-                                                            .datasetLicenseLink
-                                                            .title
-                                                    }
-                                                </a>
-                                            </div>
-                                        </div>
+                                        )}
                                     </div>
-                                    {datapage.datasetCodeUrl && (
+                                    {datapageJson.datasetCodeUrl && (
                                         <a
-                                            href={datapage.datasetCodeUrl}
+                                            href={datapageJson.datasetCodeUrl}
                                             className="data-collection__code-link"
                                         >
                                             <FontAwesomeIcon icon={faGithub} />
@@ -537,20 +507,20 @@ export const DataPageContent = ({
                                         </a>
                                     )}
                                 </div>
-                                <ExpandableAnimatedToggle
+                                {/* <ExpandableAnimatedToggle
                                     label="Download all metrics"
                                     content="TBD"
-                                />
+                                /> */}
                             </div>
                         </div>
-                        {datapage.sources.length > 0 && (
+                        {datapageJson.sources.length > 0 && (
                             <div className="datacollection-sources grid span-cols-12">
                                 <h3 className="datacollection-sources__heading span-cols-3">
                                     This data is based on the following sources:
                                 </h3>
                                 <div className="span-cols-6">
-                                    {datapage.sources.map(
-                                        (source: any, idx: number) => (
+                                    {datapageJson.sources.map(
+                                        (source, idx: number) => (
                                             <div
                                                 className="datacollection-source-item"
                                                 key={source.sourceName}
@@ -561,7 +531,7 @@ export const DataPageContent = ({
                                                         <>
                                                             <FallbackGdocFieldExplain
                                                                 googleDocEditLink={
-                                                                    datapage.googleDocEditLink
+                                                                    datapageJson.googleDocEditLink
                                                                 }
                                                                 fieldName={`sourceDescription${
                                                                     idx + 1
@@ -570,7 +540,7 @@ export const DataPageContent = ({
                                                                 render={(
                                                                     fallback
                                                                 ) =>
-                                                                    gdocKeyedBlocks?.[
+                                                                    datapageGdoc?.[
                                                                         `sourceDescription${
                                                                             idx +
                                                                             1
@@ -578,7 +548,7 @@ export const DataPageContent = ({
                                                                     ] ? (
                                                                         <ArticleBlocks
                                                                             blocks={
-                                                                                gdocKeyedBlocks[
+                                                                                datapageGdoc[
                                                                                     `sourceDescription${
                                                                                         idx +
                                                                                         1
@@ -594,7 +564,7 @@ export const DataPageContent = ({
                                                             />
                                                             <>
                                                                 {source.sourceRetrievedOn &&
-                                                                    source.sourceRetrievedFrom && (
+                                                                    source.sourceRetrievedFromUrl && (
                                                                         <div className="key-info--gridded grid grid-cols-2">
                                                                             <div className="key-data">
                                                                                 <div className="key-data__title">

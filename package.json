@@ -53,6 +53,7 @@
         "@ourworldindata/utils": "workspace:^",
         "@prettier/plugin-php": "^0.14.3",
         "@react-awesome-query-builder/antd": "^6.1.1",
+        "@sinclair/typebox": "^0.28.5",
         "@tippyjs/react": "^4.2.6",
         "@types/amplitude-js": "^7.0.1",
         "@types/bcrypt": "^5.0.0",

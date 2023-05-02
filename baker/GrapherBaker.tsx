@@ -11,6 +11,7 @@ import {
     OwidVariableMixedData,
     OwidVariableWithSourceAndDimension,
     uniq,
+    JsonError,
 } from "@ourworldindata/utils"
 import {
     getRelatedArticles,
@@ -27,6 +28,7 @@ import {
     BAKED_GRAPHER_URL,
     MAX_NUM_BAKE_PROCESSES,
     DATA_FILES_CHECKSUMS_DIRECTORY,
+    ADMIN_BASE_URL,
 } from "../settings/serverSettings.js"
 import * as db from "../db/db.js"
 import { glob } from "glob"
@@ -43,56 +45,86 @@ import {
 import workerpool from "workerpool"
 import ProgressBar from "progress"
 import { getVariableData } from "../db/model/Variable.js"
-import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
-import { logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
+import { getDatapageGdoc, getDatapageJson } from "../datapage/Datapage.js"
+import { logContentErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
+import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 
 /**
  *
  * Render a datapage if available, otherwise render a grapher page.
  *
+ * Rendering a datapage requires a datapage JSON file to be present in the
+ * owid-content repository, and optionally a companion gdoc to be registered in
+ * the posts_gdocs table
  */
 export const renderDataPageOrGrapherPage = async (
     grapher: GrapherInterface,
-    isPreviewing: boolean = false
+    isPreviewing: boolean,
+    publishedExplorersBySlug?: Record<string, ExplorerProgram>
 ) => {
     const variableIds = uniq(grapher.dimensions!.map((d) => d.variableId))
     // this shows that multi-metric charts are not really supported, and will
     // render a datapage corresponding to the first variable found.
     const id = variableIds[0]
-    const fullPath = `${GIT_CMS_DIR}/datapages/${id}.json`
-    let datapage
-    try {
-        const datapageJson = await fs.readFile(fullPath, "utf8")
-        datapage = JSON.parse(datapageJson)
-        if (
-            // We only want to render datapages on selected charts, even if the
-            // variable found on the chart has a datapage configuration.
-            datapage.showDataPageOnChartIds?.includes(grapher.id) &&
-            isPreviewing
-            // todo: we're not ready to publish datapages yet, so we only want to
-            // render them if we're previewing.
-            // (datapage.status === "published" || isPreviewing)
-        ) {
+
+    // Get the datapage JSON file from the owid-content git repo that has
+    // been updated and pulled separately by an author.
+    const { datapageJson, parseErrors } = await getDatapageJson(id)
+
+    // When previewing a datapage we want to show all discrepancies with the
+    // expected JSON schema in the browser. When baking, a single error by
+    // datapage will be sent to slack while falling back to rendering a regular
+    // grapher page.
+    if (parseErrors.length > 0) {
+        if (isPreviewing) {
             return renderToHtmlPage(
-                <DataPage
-                    grapher={grapher}
-                    datapage={datapage}
-                    baseUrl={BAKED_BASE_URL}
-                    baseGrapherUrl={BAKED_GRAPHER_URL}
-                />
+                <pre>{JSON.stringify(parseErrors, null, 2)}</pre>
             )
-        }
-    } catch (e: any) {
-        // Do not throw an error if the datapage JSON does not exist, but rather
-        // if it does and it fails to parse or render.
-        if (e.code !== "ENOENT") {
-            logErrorAndMaybeSendToSlack(
-                `Failed to render datapage ${fullPath}. Error: ${e}`
+        } else {
+            logContentErrorAndMaybeSendToSlack(
+                new JsonError(
+                    `Data page error in ${id}.json: please check ${ADMIN_BASE_URL}/admin/grapher/${grapher.slug}`
+                )
             )
         }
     }
-    // fallback to regular grapher page
-    return renderGrapherPage(grapher)
+
+    // Fallback to rendering a regular grapher page whether the datapage JSON
+    // wasn't found or failed to parse or if the datapage is not fully
+    // configured for publishing yet
+    if (
+        // This could be folded into the showDataPageOnChartIds check below, but
+        // is kept separate to reiterate that that abscence of a datapageJson leads to
+        // rendering a grapher page
+        !datapageJson ||
+        parseErrors.length > 0 ||
+        // We only want to render datapages on selected charts, even if the
+        // variable found on the chart has a datapage configuration.
+        !grapher.id ||
+        !datapageJson.showDataPageOnChartIds.includes(grapher.id) ||
+        // Fall back to rendering a regular grapher page if the datapage is not
+        // published or if we're not previewing
+        !(datapageJson.status === "published" || isPreviewing)
+    )
+        return renderGrapherPage(grapher)
+
+    // Compliment the text-only content from the JSON with rich text from the
+    // companion gdoc
+    const datapageGdoc = await getDatapageGdoc(
+        datapageJson,
+        isPreviewing,
+        publishedExplorersBySlug
+    )
+
+    return renderToHtmlPage(
+        <DataPage
+            grapher={grapher}
+            datapageJson={datapageJson}
+            datapageGdoc={datapageGdoc}
+            baseUrl={BAKED_BASE_URL}
+            baseGrapherUrl={BAKED_GRAPHER_URL}
+        />
+    )
 }
 
 const renderGrapherPage = async (grapher: GrapherInterface) => {
@@ -167,9 +199,20 @@ const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
     const htmlPath = `${bakedSiteDir}/grapher/${grapher.slug}.html`
     const isSameVersion = await chartIsSameVersion(htmlPath, grapher.version)
 
+    // Need to set up the connection for using TypeORM in
+    // renderDataPageOrGrapherPage() when baking using multiple worker threads
+    // (MAX_NUM_BAKE_PROCESSES > 1). It could be done in
+    // renderDataPageOrGrapherPage() too, but given that this render function is also used
+    // for rendering a datapage preview in the admin where worker threads are
+    // not used, lifting the connection set up here seems more appropriate.
+    await db.getConnection()
+
     // Always bake the html for every chart; it's cheap to do so
     const outPath = `${bakedSiteDir}/grapher/${grapher.slug}.html`
-    await fs.writeFile(outPath, await renderDataPageOrGrapherPage(grapher))
+    await fs.writeFile(
+        outPath,
+        await renderDataPageOrGrapherPage(grapher, false)
+    )
     console.log(outPath)
 
     const variableIds = lodash.uniq(

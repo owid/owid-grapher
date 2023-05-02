@@ -10,6 +10,7 @@
         { "path": "./gridLang" },
         { "path": "./gitCms" },
         { "path": "./explorer" },
+        { "path": "./datapage" },
         { "path": "./site" },
         { "path": "./settings" },
         { "path": "./adminSiteClient" },
