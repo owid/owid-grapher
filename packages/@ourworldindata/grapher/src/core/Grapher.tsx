@@ -2036,18 +2036,38 @@ export class Grapher
     }
 
     @computed private get hasSingleMetricInFacets(): boolean {
-        return (
-            this.isStackedDiscreteBar &&
-            this.selectedFacetStrategy !== FacetStrategy.none
-        )
+        const {
+            isStackedDiscreteBar,
+            isStackedArea,
+            isStackedBar,
+            facetStrategy,
+            hasMultipleYColumns,
+        } = this
+
+        if (isStackedDiscreteBar) {
+            return facetStrategy !== FacetStrategy.none
+        }
+
+        if (isStackedArea || isStackedBar) {
+            return (
+                facetStrategy === FacetStrategy.entity && !hasMultipleYColumns
+            )
+        }
+
+        return false
     }
 
     @computed private get hasSingleEntityInFacets(): boolean {
-        return (
-            (this.isStackedArea || this.isStackedBar) &&
-            this.selection.numSelectedEntities === 1 &&
-            this.facetStrategy === FacetStrategy.metric
-        )
+        const { isStackedArea, isStackedBar, facetStrategy, selection } = this
+
+        if (isStackedArea || isStackedBar) {
+            return (
+                facetStrategy === FacetStrategy.metric &&
+                selection.numSelectedEntities === 1
+            )
+        }
+
+        return false
     }
 
     @computed get availableFacetStrategies(): FacetStrategy[] {
