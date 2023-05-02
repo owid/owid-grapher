@@ -1596,6 +1596,7 @@ export class Grapher
             hasSingleMetricInFacets,
             xColumnSlug,
             isMarimekko,
+            isStackedChartSplitByMetric,
         } = this
 
         if (isLineChart)
@@ -1606,7 +1607,12 @@ export class Grapher
             )
 
         // actually trying to exclude relative mode with just one metric or entity
-        if (hasSingleEntityInFacets || hasSingleMetricInFacets) return false
+        if (
+            hasSingleEntityInFacets ||
+            hasSingleMetricInFacets ||
+            isStackedChartSplitByMetric
+        )
+            return false
 
         if (isMarimekko && xColumnSlug === undefined) return false
         return !hideRelativeToggle
@@ -2070,6 +2076,19 @@ export class Grapher
         return false
     }
 
+    // TODO: remove once #2136 is fixed
+    // issue #2136 describes a serious bug that relates to relative mode and
+    // affects all stacked area/bar charts that are split by metric. for now,
+    // we simply turn off relative mode in such cases. once the bug is properly
+    // addressed, this computed property and its references can be removed
+    @computed
+    private get isStackedChartSplitByMetric(): boolean {
+        return (
+            (this.isStackedArea || this.isStackedBar) &&
+            this.facetStrategy === FacetStrategy.metric
+        )
+    }
+
     @computed get availableFacetStrategies(): FacetStrategy[] {
         return this.chartInstance.availableFacetStrategies?.length
             ? this.chartInstance.availableFacetStrategies
@@ -2090,7 +2109,11 @@ export class Grapher
     set facetStrategy(facet: FacetStrategy) {
         this.selectedFacetStrategy = facet
 
-        if (this.hasSingleMetricInFacets || this.hasSingleEntityInFacets) {
+        if (
+            this.hasSingleMetricInFacets ||
+            this.hasSingleEntityInFacets ||
+            this.isStackedChartSplitByMetric
+        ) {
             // actually trying to exclude relative mode with just one metric or entity
             this.stackMode = StackMode.absolute
         }
