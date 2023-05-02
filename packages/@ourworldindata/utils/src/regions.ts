@@ -56,8 +56,12 @@ export const continents: Continent[] = entities.filter(
     (entity) => entity.regionType === "continent"
 ) as Continent[]
 
+const countriesBySlug: Record<string, Country> = Object.fromEntries(
+    countries.map((country) => [country.slug, country])
+)
+
 export const getCountryBySlug = (slug: string): Country | undefined =>
-    countries.find((c) => c.slug === slug)
+    countriesBySlug[slug]
 
 export const getCountryDetectionRedirects = (): string[] =>
     countries
