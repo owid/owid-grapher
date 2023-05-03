@@ -1131,7 +1131,7 @@ export const DataPageJsonTypeObject = Type.Object(
         dateRange: Type.String(),
         lastUpdated: Type.String(),
         nextUpdate: Type.String(),
-        subtitle: Type.String(),
+        subtitle: Type.Optional(Type.String()),
         descriptionFromSource: Type.Object({
             title: Type.String(),
         }),
