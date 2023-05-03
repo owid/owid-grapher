@@ -357,13 +357,7 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
             json_table(c.config, '$.dimensions[*]' columns (varID integer path '$.variableId') ) as vars
             where JSON_EXTRACT(c.config, '$.isPublished')=true`)
 
-        await bakeAllPublishedChartsVariableDataAndMetadata(
-            bakedSiteDir,
-            variablesToBake.map((v) => v.varId),
-            DATA_FILES_CHECKSUMS_DIRECTORY
-        )
-
-        const rows: { id: number; config: string; slug: string }[] =
+        const chartsToBake: { id: number; config: string; slug: string }[] =
             await db.queryMysql(`
                 SELECT
                     id, config, config->>'$.slug' as slug
@@ -371,20 +365,29 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
                 ORDER BY JSON_EXTRACT(config, "$.slug") ASC
                 `)
 
-        const newSlugs = rows.map((row) => row.slug)
+        // NOTE: this has to be run after `chartsToBake` in case someone edits chart variable that hasn't been baked yet
+        await bakeAllPublishedChartsVariableDataAndMetadata(
+            bakedSiteDir,
+            variablesToBake.map((v) => v.varId),
+            DATA_FILES_CHECKSUMS_DIRECTORY
+        )
+
+        const newSlugs = chartsToBake.map((row) => row.slug)
         await fs.mkdirp(bakedSiteDir + "/grapher")
-        const jobs: BakeSingleGrapherChartArguments[] = rows.map((row) => ({
-            id: row.id,
-            config: row.config,
-            bakedSiteDir: bakedSiteDir,
-            slug: row.slug,
-        }))
+        const jobs: BakeSingleGrapherChartArguments[] = chartsToBake.map(
+            (row) => ({
+                id: row.id,
+                config: row.config,
+                bakedSiteDir: bakedSiteDir,
+                slug: row.slug,
+            })
+        )
 
         const progressBar = new ProgressBar(
             "bake grapher page [:bar] :current/:total :elapseds :rate/s :etas :name\n",
             {
                 width: 20,
-                total: rows.length + 1,
+                total: chartsToBake.length + 1,
             }
         )
 
