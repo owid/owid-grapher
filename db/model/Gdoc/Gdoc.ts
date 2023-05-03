@@ -473,6 +473,7 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
         const gdoc = await Gdoc.findOne({
             where: {
                 id: GDOCS_DETAILS_ON_DEMAND_ID,
+                published: true,
             },
         })
 
@@ -481,7 +482,7 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
                 details: {},
                 parseErrors: [
                     {
-                        message: `Details on demand document with id "${GDOCS_DETAILS_ON_DEMAND_ID}" isn't registered. Please add it via ${ADMIN_BASE_URL}/admin/gdocs`,
+                        message: `Details on demand document with id "${GDOCS_DETAILS_ON_DEMAND_ID}" isn't registered and/or published. Please add it via ${ADMIN_BASE_URL}/admin/gdocs`,
                     },
                 ],
             }
