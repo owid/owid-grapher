@@ -22,13 +22,8 @@
     }
 
     .header__wrapper {
-        @include grid(12);
         padding-top: 48px;
         padding-bottom: 48px;
-    }
-
-    .header__left {
-        grid-column: 1 / span 8;
     }
 
     .header__supertitle {
@@ -47,10 +42,16 @@
     }
 
     .header__right {
-        grid-column: 10 / span 3;
-        padding-left: 24px;
-        border-left: 1px solid $blue-10;
-        align-self: start;
+        @include sm-only {
+            padding-top: 24px;
+            margin-top: 24px;
+            border-top: 1px solid $blue-10;
+        }
+        @include sm-up {
+            padding-left: 24px;
+            border-left: 1px solid $blue-10;
+            align-self: start;
+        }
     }
 
     .topic-tags__label {

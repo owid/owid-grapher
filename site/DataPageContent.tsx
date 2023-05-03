@@ -51,13 +51,13 @@ export const DataPageContent = ({
                 />
             </div>
             <div className="DataPageContent">
-                <div className="header__wrapper wrapper">
-                    <div className="header__left">
+                <div className="header__wrapper wrapper grid grid-cols-12 ">
+                    <div className="header__left span-cols-8 span-sm-cols-12">
                         <div className="header__supertitle">Data</div>
                         <h1 className="header__title">{datapageJson.title}</h1>
                         <div className="header__source">{sourceShortName}</div>
                     </div>
-                    <div className="header__right">
+                    <div className="header__right col-start-10 span-cols-3 col-md-start-9 span-md-cols-4 span-sm-cols-12">
                         <div className="topic-tags__label">
                             See all data and research on:
                         </div>
