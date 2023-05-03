@@ -1,15 +1,19 @@
 import React from "react"
 import findBaseDir from "../settings/findBaseDir.js"
 import fs from "fs-extra"
-import { ENV, BAKED_BASE_URL } from "../settings/serverSettings.js"
+import {
+    ENV,
+    BAKED_BASE_URL,
+    VITE_PREVIEW,
+} from "../settings/serverSettings.js"
 import { GOOGLE_FONTS_URL, POLYFILL_URL } from "./SiteConstants.js"
 import type { Manifest } from "vite"
 import { sortBy } from "@ourworldindata/utils"
 
 const VITE_DEV_URL = process.env.VITE_DEV_URL ?? "http://localhost:8090"
 
-export const VITE_SITE_ASSET = "site/owid.entry.ts"
-export const VITE_ADMIN_ASSET = "admin/admin.entry.ts"
+export const VITE_ASSET_SITE_ENTRY = "site/owid.entry.ts"
+export const VITE_ASSET_ADMIN_ENTRY = "adminSiteClient/admin.entry.ts"
 
 // We ALWAYS load Google Fonts and polyfills.
 
@@ -134,7 +138,8 @@ const prodAssets = (entry: string, baseUrl: string): Assets => {
         manifest = fs.readJSONSync(manifestPath) as Manifest
     } catch (err) {
         throw new Error(
-            `Could not read build manifest ('${manifestPath}'), which is required for production.`,
+            `Could not read build manifest ('${manifestPath}'), which is required for production.
+            If you're running in VITE_PREVIEW mode, wait for the build to finish and then reload this page.`,
             { cause: err }
         )
     }
@@ -153,12 +158,12 @@ const prodAssets = (entry: string, baseUrl: string): Assets => {
 }
 
 export const viteAssets = (entry: string) =>
-    ENV === "production"
+    ENV === "production" || VITE_PREVIEW
         ? prodAssets(entry, BAKED_BASE_URL)
         : devAssets(entry, VITE_DEV_URL)
 
 export const generateEmbedSnippet = () => {
-    const assets = viteAssets("site/owid.entry.ts")
+    const assets = viteAssets(VITE_ASSET_SITE_ENTRY)
     const serializedAssets = [...assets.forHeader, ...assets.forFooter].map(
         (el) => ({
             tag: el.type,

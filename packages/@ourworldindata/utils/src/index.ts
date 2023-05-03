@@ -173,6 +173,11 @@ export {
     type PostRowWithGdocPublishStatus,
     ToleranceStrategy,
     type RawPageview,
+    type DataPageGdoc,
+    DataPageJsonTypeObject,
+    type DataPageJson,
+    type DataPageParseError,
+    AllowedDataPageGdocFields,
 } from "./owidTypes.js"
 
 export {
@@ -261,7 +266,7 @@ export {
     textAnchorFromAlign,
     dyFromAlign,
     values,
-    stringifyUnkownError,
+    stringifyUnknownError,
     toRectangularMatrix,
     checkIsPlainObjectWithGuard,
     checkIsStringIndexable,

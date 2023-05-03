@@ -134,7 +134,7 @@ export const configureAlgolia = async () => {
         ["ch4", "CH₄", "methane"],
         ["n2o", "N₂O", "nitrous oxide"],
         ["NOx", "NOₓ", "nitrogen dioxide"],
-        ["price", "cost"],
+        ["price", "prices", "pricing", "cost", "costs"],
         [
             "immunization",
             "immunizations",
@@ -183,7 +183,7 @@ export const configureAlgolia = async () => {
             "neural network",
             "chatgpt", // added in 2023-03, we might want to remove this in the future
         ],
-        ["hdi", "human development index"],
+        ["hdi", "human development index", "idh" /* spanish, french */],
         ["drug", "drugs", "substance use"],
         ["r&d", "r & d", "research"],
         [
@@ -211,6 +211,13 @@ export const configureAlgolia = async () => {
         ["homicide", "murder", "murders"],
         ["inflation", "price change", "price changes", "change in price"],
         ["gun", "guns", "firearm", "firearms"],
+        [
+            "happiness",
+            "happy",
+            "happyness" /* common typo */,
+            "satisfaction",
+            "life satisfaction",
+        ],
     ]
 
     // Send all our country variant names to algolia as synonyms

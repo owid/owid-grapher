@@ -2,7 +2,7 @@ import { action, observable } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"
 
-import { Grapher } from "@ourworldindata/grapher"
+import { Grapher, GrapherProgrammaticInterface } from "@ourworldindata/grapher"
 import { Bounds } from "@ourworldindata/utils"
 import {
     ADMIN_BASE_URL,
@@ -31,8 +31,9 @@ export class GrapherFigureView extends React.Component<{ grapher: Grapher }> {
     }
 
     render() {
-        const props = {
-            ...this.props.grapher,
+        const props: GrapherProgrammaticInterface = {
+            ...this.props.grapher.toObject(),
+            isEmbeddedInADataPage: this.props.grapher.isEmbeddedInADataPage,
             bounds: this.bounds,
             dataApiUrlForAdmin:
                 this.context?.admin?.settings?.DATA_API_FOR_ADMIN_UI, // passed this way because clientSettings are baked and need a recompile to be updated

@@ -161,32 +161,34 @@ export class SiteBaker {
 
     private async bakeCountryProfiles() {
         if (!this.bakeSteps.has("countryProfiles")) return
-        countryProfileSpecs.forEach(async (spec) => {
-            // Delete all country profiles before regenerating them
-            await fs.remove(`${this.bakedSiteDir}/${spec.rootPath}`)
+        await Promise.all(
+            countryProfileSpecs.map(async (spec) => {
+                // Delete all country profiles before regenerating them
+                await fs.remove(`${this.bakedSiteDir}/${spec.rootPath}`)
 
-            // Not necessary, as this is done by stageWrite already
-            // await this.ensureDir(profile.rootPath)
-            for (const country of countries) {
-                const html = await renderCountryProfile(
-                    spec,
-                    country,
-                    this.grapherExports
-                ).catch(() =>
-                    console.error(
-                        `${country.name} country profile not baked for project "${spec.project}". Check that both pages "${spec.landingPageSlug}" and "${spec.genericProfileSlug}" exist and are published.`
+                // Not necessary, as this is done by stageWrite already
+                // await this.ensureDir(profile.rootPath)
+                for (const country of countries) {
+                    const html = await renderCountryProfile(
+                        spec,
+                        country,
+                        this.grapherExports
+                    ).catch(() =>
+                        console.error(
+                            `${country.name} country profile not baked for project "${spec.project}". Check that both pages "${spec.landingPageSlug}" and "${spec.genericProfileSlug}" exist and are published.`
+                        )
                     )
-                )
 
-                if (html) {
-                    const outPath = path.join(
-                        this.bakedSiteDir,
-                        `${spec.rootPath}/${country.slug}.html`
-                    )
-                    await this.stageWrite(outPath, html)
+                    if (html) {
+                        const outPath = path.join(
+                            this.bakedSiteDir,
+                            `${spec.rootPath}/${country.slug}.html`
+                        )
+                        await this.stageWrite(outPath, html)
+                    }
                 }
-            }
-        })
+            })
+        )
         this.progressBar.tick({ name: "✅ baked country profiles" })
     }
 

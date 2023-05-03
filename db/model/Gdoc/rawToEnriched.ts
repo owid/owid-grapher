@@ -961,7 +961,6 @@ export function parseDetails(details: unknown): {
     details: DetailDictionary
     parseErrors: ParseError[]
 } {
-    console.log("details", details)
     if (!Array.isArray(details))
         return {
             details: {},

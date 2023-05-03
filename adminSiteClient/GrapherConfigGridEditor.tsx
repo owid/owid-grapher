@@ -8,7 +8,7 @@ import {
     FieldType,
     EditorOption,
     Bounds,
-    stringifyUnkownError,
+    stringifyUnknownError,
     excludeUndefined,
     moveArrayItemToIndex,
     Operation,
@@ -269,7 +269,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                         this.context.admin.setErrorMessage({
                             title: `Failed to fetch variable annotations`,
                             content:
-                                stringifyUnkownError(err) ??
+                                stringifyUnknownError(err) ??
                                 "unexpected error value in setErrorMessage",
                             isFatal: false,
                         })

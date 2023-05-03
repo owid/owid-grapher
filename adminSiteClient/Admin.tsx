@@ -7,7 +7,7 @@ import urljoin from "url-join"
 import { AdminApp } from "./AdminApp.js"
 import {
     Json,
-    stringifyUnkownError,
+    stringifyUnknownError,
     queryParamsToStr,
 } from "@ourworldindata/utils"
 
@@ -146,7 +146,7 @@ export class Admin {
                         `Failed to ${method} ${targetPath}` +
                         (response ? ` (${response.status})` : ""),
                     content:
-                        (stringifyUnkownError(err) || text) ??
+                        (stringifyUnknownError(err) || text) ??
                         "unexpected error value in setErrorMessage",
                     isFatal: response?.status !== 404,
                 })

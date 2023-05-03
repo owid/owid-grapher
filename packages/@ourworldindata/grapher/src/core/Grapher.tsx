@@ -365,7 +365,7 @@ export class Grapher
 
     @observable.ref annotation?: Annotation = undefined
 
-    @observable hideFacetControl?: boolean = true
+    @observable.ref hideFacetControl?: boolean = undefined
 
     // the desired faceting strategy, which might not be possible if we change the data
     @observable selectedFacetStrategy?: FacetStrategy = undefined
@@ -1559,22 +1559,35 @@ export class Grapher
     }
 
     @computed get canToggleRelativeMode(): boolean {
-        if (this.isLineChart)
+        const {
+            isLineChart,
+            hideRelativeToggle,
+            areHandlesOnSameTime,
+            yScaleType,
+            hasSingleEntityInFacets,
+            hasSingleMetricInFacets,
+            xColumnSlug,
+            isMarimekko,
+            isStackedChartSplitByMetric,
+        } = this
+
+        if (isLineChart)
             return (
-                !this.hideRelativeToggle &&
-                !this.areHandlesOnSameTime &&
-                this.yScaleType !== ScaleType.log
+                !hideRelativeToggle &&
+                !areHandlesOnSameTime &&
+                yScaleType !== ScaleType.log
             )
 
-        // actually trying to exclude relative mode with just one metric
+        // actually trying to exclude relative mode with just one metric or entity
         if (
-            this.isStackedDiscreteBar &&
-            this.facetStrategy !== FacetStrategy.none
+            hasSingleEntityInFacets ||
+            hasSingleMetricInFacets ||
+            isStackedChartSplitByMetric
         )
             return false
 
-        if (this.isMarimekko && this.xColumnSlug === undefined) return false
-        return !this.hideRelativeToggle
+        if (isMarimekko && xColumnSlug === undefined) return false
+        return !hideRelativeToggle
     }
 
     // Filter data to what can be display on the map (across all times)
@@ -1933,12 +1946,30 @@ export class Grapher
     }
 
     @computed get showFacetControl(): boolean {
-        return (
-            !this.hideFacetControl ||
-            // heuristic: if the chart doesn't make sense unfaceted, then it probably
-            // also makes sense to let the user switch between entity/metric facets
-            !this.availableFacetStrategies.includes(FacetStrategy.none)
+        const {
+            hideFacetControl,
+            filledDimensions,
+            availableFacetStrategies,
+            isStackedArea,
+            isStackedBar,
+            isStackedDiscreteBar,
+            isLineChart,
+        } = this
+
+        if (hideFacetControl != undefined) return !hideFacetControl
+
+        // heuristic: if the chart doesn't make sense unfaceted, then it probably
+        // also makes sense to let the user switch between entity/metric facets
+        if (!availableFacetStrategies.includes(FacetStrategy.none)) return true
+
+        const showFacetControlChartType =
+            isStackedArea || isStackedBar || isStackedDiscreteBar || isLineChart
+
+        const hasProjection = filledDimensions.some(
+            (dim) => dim.display.isProjection
         )
+
+        return showFacetControlChartType && !hasProjection
     }
 
     @action.bound private toggleFacetControlVisibility(): void {
@@ -1982,6 +2013,54 @@ export class Grapher
         return this.yColumnSlugs.length > 1
     }
 
+    @computed private get hasSingleMetricInFacets(): boolean {
+        const {
+            isStackedDiscreteBar,
+            isStackedArea,
+            isStackedBar,
+            facetStrategy,
+            hasMultipleYColumns,
+        } = this
+
+        if (isStackedDiscreteBar) {
+            return facetStrategy !== FacetStrategy.none
+        }
+
+        if (isStackedArea || isStackedBar) {
+            return (
+                facetStrategy === FacetStrategy.entity && !hasMultipleYColumns
+            )
+        }
+
+        return false
+    }
+
+    @computed private get hasSingleEntityInFacets(): boolean {
+        const { isStackedArea, isStackedBar, facetStrategy, selection } = this
+
+        if (isStackedArea || isStackedBar) {
+            return (
+                facetStrategy === FacetStrategy.metric &&
+                selection.numSelectedEntities === 1
+            )
+        }
+
+        return false
+    }
+
+    // TODO: remove once #2136 is fixed
+    // issue #2136 describes a serious bug that relates to relative mode and
+    // affects all stacked area/bar charts that are split by metric. for now,
+    // we simply turn off relative mode in such cases. once the bug is properly
+    // addressed, this computed property and its references can be removed
+    @computed
+    private get isStackedChartSplitByMetric(): boolean {
+        return (
+            (this.isStackedArea || this.isStackedBar) &&
+            this.facetStrategy === FacetStrategy.metric
+        )
+    }
+
     @computed get availableFacetStrategies(): FacetStrategy[] {
         return this.chartInstance.availableFacetStrategies?.length
             ? this.chartInstance.availableFacetStrategies
@@ -2003,10 +2082,11 @@ export class Grapher
         this.selectedFacetStrategy = facet
 
         if (
-            this.isStackedDiscreteBar &&
-            this.selectedFacetStrategy !== FacetStrategy.none
+            this.hasSingleMetricInFacets ||
+            this.hasSingleEntityInFacets ||
+            this.isStackedChartSplitByMetric
         ) {
-            // actually trying to exclude relative mode with just one metric
+            // actually trying to exclude relative mode with just one metric or entity
             this.stackMode = StackMode.absolute
         }
     }

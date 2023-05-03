@@ -253,6 +253,15 @@ class FacetSection extends React.Component<{ editor: ChartEditor }> {
                 </div>
                 <FieldsRow>
                     <Toggle
+                        label={`Hide facet control`}
+                        value={this.grapher.hideFacetControl || false}
+                        onValue={(value) => {
+                            this.grapher.hideFacetControl = value || undefined
+                        }}
+                    />
+                </FieldsRow>
+                <FieldsRow>
+                    <Toggle
                         label={`Facets have uniform y-axis`}
                         value={
                             yAxisConfig.facetDomain === FacetAxisDomain.shared
@@ -592,36 +601,31 @@ export class EditorCustomizeTab extends React.Component<{
                         }}
                     />
                 )}
-                {(features.hideLegend || features.entityType) && (
-                    <Section name="Legend">
+                <Section name="Legend">
+                    {features.hideLegend && (
                         <FieldsRow>
-                            {features.hideLegend && (
-                                <Toggle
-                                    label={`Hide legend`}
-                                    value={!!grapher.hideLegend}
-                                    onValue={(value) =>
-                                        (grapher.hideLegend =
-                                            value || undefined)
-                                    }
-                                />
-                            )}
+                            <Toggle
+                                label={`Hide legend`}
+                                value={!!grapher.hideLegend}
+                                onValue={(value) =>
+                                    (grapher.hideLegend = value || undefined)
+                                }
+                            />
                         </FieldsRow>
-                        {features.entityType && (
-                            <FieldsRow>
-                                <BindString
-                                    label="Entity name (singular)"
-                                    field="entityType"
-                                    store={grapher}
-                                />
-                                <BindString
-                                    label="Entity name (plural)"
-                                    field="entityTypePlural"
-                                    store={grapher}
-                                />
-                            </FieldsRow>
-                        )}
-                    </Section>
-                )}
+                    )}
+                    <FieldsRow>
+                        <BindString
+                            label="Entity name (singular)"
+                            field="entityType"
+                            store={grapher}
+                        />
+                        <BindString
+                            label="Entity name (plural)"
+                            field="entityTypePlural"
+                            store={grapher}
+                        />
+                    </FieldsRow>
+                </Section>
                 {features.relativeModeToggle && (
                     <Section name="Controls">
                         <FieldsRow>

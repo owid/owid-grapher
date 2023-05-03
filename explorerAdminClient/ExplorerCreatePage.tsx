@@ -33,6 +33,7 @@ import {
     AutofillColDefCommand,
     SelectAllHitsCommand,
 } from "./ExplorerCommands.js"
+import { ENV } from "../settings/clientSettings.js"
 
 const RESERVED_NAMES = [DefaultNewExplorerSlug, "index", "new", "create"] // don't allow authors to save explorers with these names, otherwise might create some annoying situations.
 
@@ -182,11 +183,17 @@ export class ExplorerCreatePage extends React.Component<{
     }
 
     @action.bound private async save() {
-        const commitMessage = prompt(
-            `Enter a message describing this change. Your change will be pushed to the '${this.props.gitCmsBranchName}' on GitHub.`,
-            `Updated ${this.program.slug}`
-        )
-        if (!commitMessage) return
+        let commitMessage
+        if (ENV == "production") {
+            commitMessage = prompt(
+                `Enter a message describing this change. Your change will be pushed to the '${this.props.gitCmsBranchName}' on GitHub.`,
+                `Updated ${this.program.slug}`
+            )
+            if (!commitMessage) return
+        } else {
+            // will not get committed
+            commitMessage = "Dummy message"
+        }
         await this._save(this.program.slug, commitMessage)
     }
 
@@ -319,7 +326,7 @@ class HotEditor extends React.Component<{
         const { program, programOnDisk } = this
 
         // replace literal `\n` with newlines
-        const data = program.asArrays.map((row) =>
+        const data = program.lines.map((row) =>
             row.map((cell) => cell.replace(/\\n/g, "\n"))
         )
 

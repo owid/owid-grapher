@@ -4,7 +4,7 @@ import { ChartEditor, ChartRedirect } from "./ChartEditor.js"
 import { computed, action, observable, runInAction } from "mobx"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
-import { stringifyUnkownError, formatValue } from "@ourworldindata/utils"
+import { stringifyUnknownError, formatValue } from "@ourworldindata/utils"
 
 const BASE_URL = BAKED_GRAPHER_URL.replace(/^https?:\/\//, "")
 
@@ -172,7 +172,7 @@ class AddRedirectForm extends React.Component<{
             } catch (error) {
                 runInAction(() => {
                     this.isLoading = false
-                    this.errorMessage = stringifyUnkownError(error)
+                    this.errorMessage = stringifyUnknownError(error)
                 })
             }
         }
