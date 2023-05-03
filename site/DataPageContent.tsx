@@ -161,18 +161,22 @@ export const DataPageContent = ({
                     </div>
                 </div>
                 <div className="related-research__wrapper grid wrapper">
-                    <h2 className="related-research__title span-cols-3">
+                    <h2 className="related-research__title span-cols-3 span-lg-cols-12">
                         Related research and writing
                     </h2>
-                    <div className="related-research__items span-cols-9">
+                    <div className="related-research__items grid grid-cols-9 grid-lg-cols-12 span-cols-9 span-lg-cols-12">
                         {datapageJson.relatedResearch.map((research: any) => (
                             <a
                                 href={research.url}
                                 key={research.url}
-                                className="related-research__item span-cols-4"
+                                className="related-research__item grid grid-cols-4 grid-lg-cols-6 grid-sm-cols-12 span-cols-4 span-lg-cols-6 span-sm-cols-12"
                             >
-                                <img src={research.imageUrl} alt="" />
-                                <div className="span-cols-3">
+                                <img
+                                    src={research.imageUrl}
+                                    alt=""
+                                    className="span-lg-cols-2 span-sm-cols-3"
+                                />
+                                <div className="span-cols-3 span-lg-cols-4 span-sm-cols-9">
                                     <h3 className="related-article__title">
                                         {research.title}
                                     </h3>
