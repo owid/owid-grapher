@@ -7,12 +7,11 @@ import {
     RelatedQuestionsConfig,
     Topic,
 } from "@ourworldindata/grapher"
-import { getIndexableKeys } from "@ourworldindata/utils"
+import { getIndexableKeys, slugify } from "@ourworldindata/utils"
 import { action, computed, runInAction } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"
 import Select from "react-select"
-import slugify from "slugify"
 import { TOPICS_CONTENT_GRAPH } from "../settings/clientSettings.js"
 import { ChartEditor } from "./ChartEditor.js"
 import {
@@ -29,7 +28,7 @@ import {
 @observer
 export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
     @action.bound onSlug(slug: string) {
-        this.props.editor.grapher.slug = slugify(slug).toLowerCase()
+        this.props.editor.grapher.slug = slugify(slug)
     }
 
     @action.bound onChangeLogo(value: string) {

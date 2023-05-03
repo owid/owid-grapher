@@ -14066,7 +14066,6 @@ __metadata:
     simple-git: ^3.16.1
     simple-statistics: ^7.3.2
     slack-node: ^0.1.8
-    slugify: ^1.3.4
     smooth-scroll: ^16.1.0
     sql-fixtures: ^1.0.4
     string-pixel-width: ^1.10.0
@@ -22973,13 +22972,6 @@ __metadata:
     ansi-styles: ^6.0.0
     is-fullwidth-code-point: ^4.0.0
   checksum: 7e600a2a55e333a21ef5214b987c8358fe28bfb03c2867ff2cbf919d62143d1812ac27b4297a077fdaf27a03da3678e49551c93e35f9498a3d90221908a1180e
-  languageName: node
-  linkType: hard
-
-"slugify@npm:^1.3.4":
-  version: 1.3.4
-  resolution: "slugify@npm:1.3.4"
-  checksum: d285ff885c40bbbc72e221362d8ccd6229a88a9326448f88bf8794154edfeea853159c2f9e6c8f05f761411e0df92f439e4b8ffa51460bdcf2071e207c1c2c99
   languageName: node
   linkType: hard
 
