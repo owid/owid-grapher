@@ -27,13 +27,22 @@ import { IFrameDetector } from "./IframeDetector.js"
 
 export const DataPage = (props: {
     grapher: GrapherInterface
+    variableId: number
     datapageJson: DataPageJson
     datapageGdoc: DataPageGdoc | null
     baseUrl: string
     baseGrapherUrl: string
+    isPreviewing: boolean
 }) => {
-    const { grapher, datapageJson, datapageGdoc, baseGrapherUrl, baseUrl } =
-        props
+    const {
+        grapher,
+        variableId,
+        datapageJson,
+        datapageGdoc,
+        baseGrapherUrl,
+        baseUrl,
+        isPreviewing,
+    } = props
     const pageTitle = grapher.title
     const canonicalUrl = urljoin(baseGrapherUrl, grapher.slug as string)
     let pageDesc: string
@@ -100,6 +109,26 @@ export const DataPage = (props: {
                 )}
             </Head>
             <body className="DataPage">
+                {isPreviewing && (
+                    <div className="DataPage__edit-links">
+                        <a
+                            href={datapageJson.googleDocEditLink}
+                            target="_blank"
+                            rel="noopener"
+                            className="DataPage__edit-link"
+                        >
+                            Edit Google Doc
+                        </a>
+                        <a
+                            href={`https://github.com/owid/owid-content/blob/master/datapages/${variableId}.json`}
+                            target="_blank"
+                            rel="noopener"
+                            className="DataPage__edit-link"
+                        >
+                            Edit JSON
+                        </a>
+                    </div>
+                )}
                 <SiteHeader baseUrl={baseUrl} />
                 <main>
                     <>

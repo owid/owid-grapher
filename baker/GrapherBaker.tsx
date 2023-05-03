@@ -125,10 +125,12 @@ export const renderDataPageOrGrapherPage = async (
     return renderToHtmlPage(
         <DataPage
             grapher={grapher}
+            variableId={id}
             datapageJson={datapageJson}
             datapageGdoc={datapageGdoc}
             baseUrl={BAKED_BASE_URL}
             baseGrapherUrl={BAKED_GRAPHER_URL}
+            isPreviewing={isPreviewing}
         />
     )
 }
