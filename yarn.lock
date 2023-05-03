@@ -14077,7 +14077,7 @@ __metadata:
     tmex: ^1.0.8
     topojson-client: ^3.1.0
     ts-pattern: ^4.0.4
-    tsc-watch: ^4.2.9
+    tsc-watch: ^6.0.4
     typeorm: ^0.3.14
     typescript: ~5.0.2
     unidecode: ^0.1.8
@@ -23434,10 +23434,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"string-argv@npm:^0.1.1":
-  version: 0.1.2
-  resolution: "string-argv@npm:0.1.2"
-  checksum: 6877bd72af145f6e6eafa932818014a57b2f39225c924562b7fccb50f1fcee73717bbcd5e528fd4d86cec32835c14749c32a9d35f06e0bf96637d1e73158203f
+"string-argv@npm:^0.3.1":
+  version: 0.3.2
+  resolution: "string-argv@npm:0.3.2"
+  checksum: 8703ad3f3db0b2641ed2adbb15cf24d3945070d9a751f9e74a924966db9f325ac755169007233e8985a39a6a292f14d4fee20482989b89b96e473c4221508a0f
   languageName: node
   linkType: hard
 
@@ -24476,20 +24476,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tsc-watch@npm:^4.2.9":
-  version: 4.2.9
-  resolution: "tsc-watch@npm:4.2.9"
+"tsc-watch@npm:^6.0.4":
+  version: 6.0.4
+  resolution: "tsc-watch@npm:6.0.4"
   dependencies:
     cross-spawn: ^7.0.3
     node-cleanup: ^2.1.2
     ps-tree: ^1.2.0
-    string-argv: ^0.1.1
-    strip-ansi: ^6.0.0
+    string-argv: ^0.3.1
   peerDependencies:
     typescript: "*"
   bin:
-    tsc-watch: index.js
-  checksum: b2d3232e28cae538a10977de7f0a13fc950b91e5faed51bb1470eabeb86110426d481cd0fb0dd08f1eef61dd24c608107c3b03bff45e6200225f17f50c2c249e
+    tsc-watch: dist/lib/tsc-watch.js
+  checksum: f7bf7eefbc5a8bbf7c989edd1e5199ac95ad1654b11ea39bfe7fc2e5a83480926928bd405aebe2cbd783fc6ffac521b9ad650cb300d51d4a9b616b7c69da02da
   languageName: node
   linkType: hard
 
