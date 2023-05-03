@@ -83,8 +83,8 @@ export const DataPageContent = ({
                         slug={grapherConfig.slug}
                         className="wrapper"
                     />
-                    <div className="key-info__wrapper wrapper">
-                        <div className="key-info__left">
+                    <div className="key-info__wrapper wrapper grid grid-cols-12">
+                        <div className="key-info__left col-start-2 span-cols-7 span-lg-cols-8 span-sm-cols-12">
                             <h2 className="key-info__title">Key information</h2>
                             {datapageGdoc?.keyInfoText ? (
                                 <ArticleBlocks
@@ -127,8 +127,8 @@ export const DataPageContent = ({
                                 </div>
                             )}
                         </div>
-                        <div className="key-info__right">
-                            <div className="key-data">
+                        <div className="key-info__right grid grid-cols-12 col-start-9 span-cols-3 span-lg-cols-4 span-sm-cols-12">
+                            <div className="key-data span-cols-12">
                                 <div className="key-data__title">Source</div>
                                 <div>{datapageJson.nameOfSource}</div>
                                 {datapageJson.owidProcessingLevel && (
@@ -139,19 +139,19 @@ export const DataPageContent = ({
                                     ></div>
                                 )}
                             </div>
-                            <div className="key-data">
+                            <div className="key-data span-cols-12 span-sm-cols-6">
                                 <div className="key-data__title">
                                     Date range
                                 </div>
                                 <div>{datapageJson.dateRange}</div>
                             </div>
-                            <div className="key-data">
+                            <div className="key-data span-cols-12 span-sm-cols-6">
                                 <div className="key-data__title">
                                     Last updated
                                 </div>
                                 <div>{datapageJson.lastUpdated}</div>
                             </div>
-                            <div className="key-data">
+                            <div className="key-data span-cols-12 span-sm-cols-6">
                                 <div className="key-data__title">
                                     Next expected update
                                 </div>

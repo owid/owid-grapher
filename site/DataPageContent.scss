@@ -80,7 +80,7 @@
 
         figure[data-grapher-src] {
             grid-column: span 12;
-            @include md-up {
+            @include lg-up {
                 grid-column: 2 / span 10;
             }
             height: 600px; // height of svg exports
@@ -97,12 +97,10 @@
     }
 
     .key-info__wrapper {
-        @include grid(12);
         margin-bottom: 48px;
     }
 
     .key-info__left {
-        grid-column: 2 / span 7;
         @include row-gap(24px);
         ul {
             @include row-gap(16px);
@@ -119,7 +117,10 @@
     }
 
     .key-info__learn-more {
-        display: inline-block;
+        @include sm-up {
+            display: inline-block;
+        }
+        text-align: center;
         padding: 8px 24px;
         color: $blue-90;
         background-color: $blue-10;
@@ -141,13 +142,14 @@
     }
 
     .key-info__right {
-        grid-column: 9 / span 3;
-        display: flex;
-        flex-direction: column;
-        padding-left: 24px;
-        border-left: 1px solid $blue-20;
-        @include row-gap(24px);
-        align-self: flex-start;
+        @include sm-only {
+            margin-top: 32px;
+        }
+        @include sm-up {
+            padding-left: 24px;
+            border-left: 1px solid $blue-20;
+        }
+        row-gap: 24px;
     }
 
     .key-data {
