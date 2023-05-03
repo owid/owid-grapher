@@ -15,6 +15,7 @@ export async function gdocToArchie(
 ): Promise<{ text: string }> {
     // prepare the text holder
     let text = ""
+    let isInList = false
 
     // check if the body key and content key exists, and give up if not
     if (!document.body) return { text }
@@ -29,6 +30,10 @@ export async function gdocToArchie(
 
             // this is a list
             const needsBullet = paragraph.bullet != null
+            if (needsBullet && !isInList) {
+                isInList = true
+                text += `[.list]\n`
+            }
 
             if (paragraph.elements) {
                 // all values in the element
@@ -70,7 +75,7 @@ export async function gdocToArchie(
                     const prefix = needsBullet && isFirstValue ? "* " : ""
 
                     // concat the text
-                    const parsedParagraph = await parseParagraph(value)
+                    const parsedParagraph = parseParagraph(value)
                     const fragmentText = match(parsedParagraph)
                         .with(
                             { type: P.union("horizontal-rule") },
@@ -83,6 +88,10 @@ export async function gdocToArchie(
                     idx++
                 }
                 text += taggedText(elementText)
+                if (!needsBullet && isInList) {
+                    isInList = false
+                    text += `[]\n`
+                }
             }
         }
     }
@@ -90,9 +99,9 @@ export async function gdocToArchie(
     return { text }
 }
 
-async function parseParagraph(
+function parseParagraph(
     element: docs_v1.Schema$ParagraphElement
-): Promise<Span | RawBlockHorizontalRule | null> {
+): Span | RawBlockHorizontalRule | null {
     // pull out the text
 
     const textRun = element.textRun

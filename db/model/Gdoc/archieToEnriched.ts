@@ -132,76 +132,35 @@ export const archieToEnriched = (text: string): OwidGdocContent => {
 
     const parsed = load(noLeadingWSLinks)
     const toc: TocHeadingWithTitleSupertitle[] = []
-    let pointer: Array<string | number> = []
-    // archie doesn't have a nested list structure. it treats as a series of text blocks
-    // we want to put them into a nested (for now only <ul>) structure
-    // we create a copy of where the list began so that we can push its siblings into it
-    let listPointer: Array<string | number> = []
-    let isInList = false
 
     // Traverse the tree, tracking a pointer and nesting when appropriate
     function traverseBlocks(
-        value: OwidRawGdocBlock,
-        callback: (child: OwidRawGdocBlock) => void
+        node: OwidRawGdocBlock | OwidRawGdocBlock[],
+        callback: (node: OwidRawGdocBlock) => void
     ): void {
-        // top-level
-        if (isArray(value)) {
-            value.forEach((value, index) => {
-                pointer[0] = index
-                traverseBlocks(value, callback)
-            })
-        } else if (value.type === "gray-section") {
-            const pointerLength = pointer.length
-            value.value.forEach((value, index) => {
-                pointer[pointerLength] = index
-                traverseBlocks(value, callback)
-            })
-            pointer = pointer.slice(0, -1)
+        if (isArray(node)) {
+            node.forEach((value) => traverseBlocks(value, callback))
+        } else if (node.type === "gray-section") {
+            traverseBlocks(node.value, callback)
         } else if (
-            value.type === "sticky-left" ||
-            value.type === "sticky-right" ||
-            value.type === "side-by-side"
+            node.type === "sticky-left" ||
+            node.type === "sticky-right" ||
+            node.type === "side-by-side"
         ) {
-            if (value.value?.left && isArray(value.value.left)) {
-                pointer.push(...["value", "left"])
-                const pointerLength = pointer.length
-                value.value.left.forEach((value, index) => {
-                    pointer[pointerLength] = index
-                    traverseBlocks(value, callback)
-                })
-                pointer = pointer.slice(0, -3)
-            }
-            if (value.value?.right && isArray(value.value.right)) {
-                pointer.push(...["value", "right"])
-                const pointerLength = pointer.length
-                value.value.right.forEach((value, index) => {
-                    pointer[pointerLength] = index
-                    traverseBlocks(value, callback)
-                })
-                pointer = pointer.slice(0, -3)
-            }
-        } else if (value.type === "key-insights") {
-            pointer.push(...["value", "insights"])
-            value.value.insights?.forEach((insight, insightIndex) => {
-                pointer[pointer.length] = insightIndex
+            traverseBlocks(node.value.left, callback)
+            traverseBlocks(node.value.right, callback)
+        } else if (node.type === "key-insights") {
+            node.value.insights?.forEach((insight) => {
                 if (insight.content) {
-                    pointer.push("content")
-                    insight.content.forEach((block, blockIndex) => {
-                        pointer[pointer.length] = blockIndex
-                        callback(block)
-                        pointer = pointer.slice(0, -1)
-                    })
-                    pointer = pointer.slice(0, -1)
+                    traverseBlocks(insight.content, callback)
                 }
             })
-            pointer = pointer.slice(0, -2)
         } else {
-            callback(value)
+            callback(node)
         }
     }
 
     // Traverse the tree:
-    // mutate it to nest lists correctly
     // track h2s and h3s for the SDG table of contents
     traverseBlocks(parsed.body, (child: OwidRawGdocBlock) => {
         // ensure keys are lowercase
@@ -209,33 +168,6 @@ export const archieToEnriched = (text: string): OwidGdocContent => {
             (acc, [key, value]) => ({ ...acc, [key.toLowerCase()]: value }),
             {} as OwidRawGdocBlock
         )
-
-        // nest list items
-        if (child.type === "text" && child.value.startsWith("* ")) {
-            if (!isInList) {
-                // initiate the <ul> list
-                isInList = true
-                listPointer = [...pointer]
-                set(parsed.body, listPointer, {
-                    type: "list",
-                    value: [child.value.replace("* ", "").trim()],
-                })
-            } else {
-                const list: RawBlockList = get(parsed.body, listPointer)
-                if (isArray(list.value)) {
-                    // push a copy of the item into the <ul> parent
-                    list.value.push(child.value.replace("* ", "").trim())
-                    // set the original value to undefined
-                    // we can't splice it out without messing up all the pointer logic
-                    // so we have to handle potential undefineds before ts-pattern encounters them
-                    // TODO: refactor traverseBlocks to use a for loop so that we can mutate parsed.body
-                    // without skipping over items
-                    unset(parsed.body, pointer)
-                }
-            }
-        } else if (isInList) {
-            isInList = false
-        }
 
         // populate toc with h2's and h3's
         if (child.type === "heading" && isObject(child.value)) {
