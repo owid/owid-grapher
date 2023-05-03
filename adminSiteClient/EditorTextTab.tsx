@@ -201,6 +201,7 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                         helpText="Any important clarification needed to avoid miscommunication"
                         softCharacterLimit={140}
                         errorMessage={this.errorMessages.note}
+                        textarea
                     />
                 </Section>
 
