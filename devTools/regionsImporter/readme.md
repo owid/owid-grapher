@@ -10,6 +10,7 @@ The data file is used primarily for:
 -   establishing region → country mappings (see `WorldRegionsToProjection.ts`)
 
 In addition, the script regenerates [TopoJSON file](../../packages/@ourworldindata/grapher/src/mapCharts/MapTopology.ts) containing country outlines for the world map. It fetches the current, low-res version of the data from [worldmap-sensitive](https://github.com/alexabruck/worldmap-sensitive) and applies the following transformations to it:
+
 -   Greenland’s outline is separated out from Denmark’s
 -   The placeholder code for Kosovo gets replaced with `OWID_KOS`
 -   French Southern Territories isn’t present in the source map and is added manually
