@@ -243,9 +243,7 @@
         "vite-plugin-warmup": "^0.1.0"
     },
     "resolutions": {
-        "react-codemirror2@^7.2.1": "patch:react-codemirror2@npm%3A7.2.1#./.yarn/patches/react-codemirror2-npm-7.2.1-dcadbb9383.patch",
-        "react-select@^5.4.0": "patch:react-select@npm%3A5.7.2#./.yarn/patches/react-select-npm-5.7.2-61895e3d88.patch",
-        "react-select@^5.7.2": "patch:react-select@npm%3A5.7.2#./.yarn/patches/react-select-npm-5.7.2-61895e3d88.patch"
+        "react-codemirror2@^7.2.1": "patch:react-codemirror2@npm%3A7.2.1#./.yarn/patches/react-codemirror2-npm-7.2.1-dcadbb9383.patch"
     },
     "prettier": {
         "semi": false
