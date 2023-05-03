@@ -197,7 +197,7 @@ class MissingDataSection extends React.Component<{ editor: ChartEditor }> {
         return (
             <Section name="Missing data">
                 <SelectField
-                    label="Missing data strategy (for when some variables are missing data)"
+                    label="Missing data strategy (for when one or more variables are missing for an entity)"
                     value={grapher.missingDataStrategy}
                     options={this.missingDataStrategyOptions}
                     onValue={this.onSelectMissingDataStrategy}
