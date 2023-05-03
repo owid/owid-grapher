@@ -79,7 +79,10 @@
         @include grid(12);
 
         figure[data-grapher-src] {
-            grid-column: 2 / span 10;
+            grid-column: span 12;
+            @include md-up {
+                grid-column: 2 / span 10;
+            }
             height: 600px; // height of svg exports
             margin: 0;
         }
