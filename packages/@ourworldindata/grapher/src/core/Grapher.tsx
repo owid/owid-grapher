@@ -62,7 +62,7 @@ import {
     OwidChartDimensionInterface,
     firstOfNonEmptyArray,
     spansToUnformattedPlainText,
-    Detail,
+    EnrichedDetail,
 } from "@ourworldindata/utils"
 import {
     ChartTypeName,
@@ -1146,7 +1146,7 @@ export class Grapher
     @computed get detailRenderers(): MarkdownTextWrap[] {
         return [...this.detailsOrderedByReference].map((term, i) => {
             let text = `**${i + 1}.** `
-            const detail: Detail = window.details[term]
+            const detail: EnrichedDetail = window.details[term]
             if (detail) {
                 const plainText = detail.text.map(({ value }) =>
                     spansToUnformattedPlainText(value)

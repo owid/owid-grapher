@@ -30,6 +30,8 @@ import {
     OwidGdocErrorMessage,
     OwidGdocErrorMessageType,
     DetailDictionary,
+    excludeNullish,
+    ParseError,
 } from "@ourworldindata/utils"
 import {
     BAKED_GRAPHER_URL,
@@ -44,13 +46,14 @@ import { archieToEnriched } from "./archieToEnriched.js"
 import { Link } from "../Link.js"
 import { imageStore } from "../Image.js"
 import { Chart } from "../Chart.js"
-import { excludeNullish } from "@ourworldindata/utils/dist/Util.js"
 import {
+    ADMIN_BASE_URL,
     BAKED_BASE_URL,
     BAKED_GRAPHER_EXPORTS_BASE_URL,
 } from "../../../settings/clientSettings.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../../../explorer/ExplorerConstants.js"
 import { formatUrls } from "../../../site/formatting.js"
+import { parseDetails } from "./rawToEnriched.js"
 
 @Entity("tags")
 export class Tag extends BaseEntity implements OwidGdocTag {
@@ -408,7 +411,7 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
                 "GDOCS_DETAILS_ON_DEMAND_ID unset. Unable to validate dods"
             )
         } else if (this.id !== GDOCS_DETAILS_ON_DEMAND_ID) {
-            const details = await Gdoc.getDetailsOnDemandGdoc()
+            const { details } = await Gdoc.getDetailsOnDemandGdoc()
             dodErrors = this.details.reduce(
                 (
                     acc: OwidGdocErrorMessage[],
@@ -457,15 +460,34 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
         return gdoc
     }
 
-    static async getDetailsOnDemandGdoc(): Promise<
-        DetailDictionary | undefined
-    > {
-        const gdoc = await Gdoc.getGdocFromContentSource(
-            GDOCS_DETAILS_ON_DEMAND_ID,
-            {}
-        )
+    static async getDetailsOnDemandGdoc(): Promise<{
+        details: DetailDictionary
+        parseErrors: ParseError[]
+    }> {
+        if (!GDOCS_DETAILS_ON_DEMAND_ID) {
+            console.error(
+                "GDOCS_DETAILS_ON_DEMAND_ID unset. No details can be loaded"
+            )
+            return { details: {}, parseErrors: [] }
+        }
+        const gdoc = await Gdoc.findOne({
+            where: {
+                id: GDOCS_DETAILS_ON_DEMAND_ID,
+            },
+        })
 
-        return gdoc.content.details
+        if (!gdoc) {
+            return {
+                details: {},
+                parseErrors: [
+                    {
+                        message: `Details on demand document with id "${GDOCS_DETAILS_ON_DEMAND_ID}" isn't registered. Please add it via ${ADMIN_BASE_URL}/admin/gdocs`,
+                    },
+                ],
+            }
+        }
+
+        return parseDetails(gdoc.content.details)
     }
 
     static async getPublishedGdocs(): Promise<Gdoc[]> {

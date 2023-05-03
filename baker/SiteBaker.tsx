@@ -393,7 +393,7 @@ export class SiteBaker {
             return
         }
 
-        const details = await Gdoc.getDetailsOnDemandGdoc()
+        const { details } = await Gdoc.getDetailsOnDemandGdoc()
 
         if (!details) {
             this.progressBar.tick({
@@ -445,7 +445,14 @@ export class SiteBaker {
             return
         }
 
-        const details = await Gdoc.getDetailsOnDemandGdoc()
+        const { details, parseErrors } = await Gdoc.getDetailsOnDemandGdoc()
+        if (parseErrors.length) {
+            logErrorAndMaybeSendToSlack(
+                `Error(s) baking details: ${parseErrors
+                    .map((e) => e.message)
+                    .join(", ")}`
+            )
+        }
 
         if (details) {
             await this.stageWrite(

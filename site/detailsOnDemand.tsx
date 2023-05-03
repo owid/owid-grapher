@@ -4,7 +4,7 @@ import { Instance } from "tippy.js"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import { renderToStaticMarkup } from "react-dom/server.js"
 import { ArticleBlocks } from "./gdocs/ArticleBlocks.js"
-import { DetailDictionary } from "@ourworldindata/utils"
+import { DetailDictionary, ParseError } from "@ourworldindata/utils"
 
 type Tippyfied<E> = E & {
     _tippy?: Instance
@@ -17,7 +17,9 @@ declare global {
 }
 
 export async function runDetailsOnDemand() {
-    const details: DetailDictionary = await fetch(
+    const {
+        details,
+    }: { details: DetailDictionary; parseErrors: ParseError[] } = await fetch(
         `${BAKED_BASE_URL}/dods.json`,
         {
             method: "GET",

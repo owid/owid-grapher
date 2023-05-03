@@ -229,7 +229,7 @@ mockSiteRouter.get("/dods.json", async (_, res) => {
         )
         res.send([])
     } else {
-        const details = await Gdoc.getDetailsOnDemandGdoc()
+        const { details } = await Gdoc.getDetailsOnDemandGdoc()
         res.send(details)
     }
 })
