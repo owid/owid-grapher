@@ -16,6 +16,7 @@ export const gdocUrlRegex =
 // #dod:text-hyphenated
 // #dod:text_underscored
 // #dod:text_underscored-and-hyphenated
+// Duplicated in parser.ts
 export const detailOnDemandRegex = /#dod:([\w\-_]+)/
 
 export function getLinkType(urlString: string): OwidGdocLinkJSON["linkType"] {
