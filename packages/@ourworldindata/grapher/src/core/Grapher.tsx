@@ -314,6 +314,7 @@ export class Grapher
     @observable.ref hideRelativeToggle? = true
     @observable.ref entityType = "country or region"
     @observable.ref entityTypePlural = "countries or regions"
+    @observable.ref yVariableType = "metric"
     @observable.ref hideTimeline?: boolean = undefined
     @observable.ref hideScatterLabels?: boolean = undefined
     @observable.ref zoomToSelection?: boolean = undefined

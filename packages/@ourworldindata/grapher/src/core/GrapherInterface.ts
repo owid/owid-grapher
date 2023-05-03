@@ -149,6 +149,7 @@ export const grapherKeysToSerialize = [
     "hideRelativeToggle",
     "entityType",
     "entityTypePlural",
+    "yVariableType",
     "hideTimeline",
     "zoomToSelection",
     "showYearLabels",

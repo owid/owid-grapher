@@ -626,6 +626,15 @@ export class EditorCustomizeTab extends React.Component<{
                             store={grapher}
                         />
                     </FieldsRow>
+                    {features.canCustomizeVariableType && (
+                        <FieldsRow>
+                            <BindString
+                                label="Group name for y-variables"
+                                field="yVariableType"
+                                store={grapher}
+                            />
+                        </FieldsRow>
+                    )}
                 </Section>
                 {features.relativeModeToggle && (
                     <Section name="Controls">

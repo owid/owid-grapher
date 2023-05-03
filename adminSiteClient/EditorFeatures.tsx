@@ -97,6 +97,10 @@ export class EditorFeatures {
         return this.grapher.isStackedDiscreteBar
     }
 
+    @computed get canCustomizeVariableType() {
+        return this.grapher.hasMultipleYColumns
+    }
+
     @computed get canSpecifyMissingDataStrategy() {
         return (
             this.grapher.hasMultipleYColumns &&
