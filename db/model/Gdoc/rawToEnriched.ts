@@ -1034,6 +1034,12 @@ function parseKeyInsights(raw: RawBlockKeyInsights): EnrichedBlockKeyInsights {
         return createError({ message: "No heading for key insights block" })
     }
 
+    if (typeof raw.value.heading !== "string") {
+        return createError({
+            message: "Heading for key insights block must be a string",
+        })
+    }
+
     const enrichedInsights: EnrichedBlockKeyInsightsSlide[] = []
     const enrichedInsightParseErrors: ParseError[] = []
     for (const rawInsight of raw.value.insights) {
