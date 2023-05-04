@@ -33,6 +33,9 @@ export async function gdocToArchie(
             if (needsBullet && !isInList) {
                 isInList = true
                 text += `[.list]\n`
+            } else if (!needsBullet && isInList) {
+                isInList = false
+                text += `[]\n`
             }
 
             if (paragraph.elements) {
@@ -71,7 +74,6 @@ export async function gdocToArchie(
                     const isFirstValue = idx === 0
 
                     // prepend an asterisk if this is a list item
-                    // TODO: I think the ArchieML spec says that every element needs the *
                     const prefix = needsBullet && isFirstValue ? "* " : ""
 
                     // concat the text
@@ -88,10 +90,6 @@ export async function gdocToArchie(
                     idx++
                 }
                 text += taggedText(elementText)
-                if (!needsBullet && isInList) {
-                    isInList = false
-                    text += `[]\n`
-                }
             }
         }
     }
