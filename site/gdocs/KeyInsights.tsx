@@ -1,6 +1,6 @@
 import React from "react"
 import cx from "classnames"
-import { EnrichedBlockKeyInsights, slugify } from "@ourworldindata/utils"
+import { EnrichedBlockKeyInsightsSlide, slugify } from "@ourworldindata/utils"
 import {
     KEY_INSIGHTS_CLASS_NAME,
     KEY_INSIGHTS_SLIDES_CLASS_NAME,
@@ -12,12 +12,17 @@ import { ArticleBlocks } from "./ArticleBlocks.js"
 import Image from "./Image.js"
 import Chart from "./Chart.js"
 
-type KeyInsightsProps = EnrichedBlockKeyInsights & {
+type KeyInsightsProps = {
     className?: string
+    insights: EnrichedBlockKeyInsightsSlide[]
+    heading: string
 }
 
-export function KeyInsights(props: KeyInsightsProps) {
-    const { insights, heading } = props
+export const KeyInsights = ({
+    insights,
+    heading,
+    className,
+}: KeyInsightsProps) => {
     function renderAssetForInsight({
         filename,
         url,
@@ -40,7 +45,7 @@ export function KeyInsights(props: KeyInsightsProps) {
         return null
     }
     return (
-        <div className={cx(props.className, KEY_INSIGHTS_CLASS_NAME)}>
+        <div className={cx(className, KEY_INSIGHTS_CLASS_NAME)}>
             <h2 className="display-2-semibold">{heading}</h2>
             <div>
                 <KeyInsightsThumbs

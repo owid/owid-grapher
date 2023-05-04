@@ -3,12 +3,7 @@ import ReactDOM from "react-dom"
 import { ScrollMenu, VisibilityContext } from "react-horizontal-scrolling-menu"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faAngleRight } from "@fortawesome/free-solid-svg-icons"
-import {
-    KeyInsight,
-    getWindowUrl,
-    setWindowUrl,
-    urlToSlug,
-} from "@ourworldindata/utils"
+import { KeyInsight, getWindowUrl, setWindowUrl } from "@ourworldindata/utils"
 
 export const KEY_INSIGHTS_CLASS_NAME = "wp-block-owid-key-insights"
 export const KEY_INSIGHTS_INSIGHT_PARAM = "insight"
@@ -63,22 +58,14 @@ export const KeyInsightsThumbs = ({ titles }: { titles: string[] }) => {
     // on first render, which would be before)
     // https://reactjs.org/docs/hooks-faq.html#how-can-i-measure-a-dom-node
     const thumbsRef = useCallback((node) => {
-        console.log("node", node)
         if (node !== null) {
             const keyInsightsNode = node.parentElement?.parentElement
-            console.log("node.parentElement", node.parentElement)
-            console.log("keyInsightsNode", keyInsightsNode)
 
             const tempSlides = keyInsightsNode?.querySelector(
                 `.${KEY_INSIGHTS_SLIDES_CLASS_NAME}`
             )
-            console.log("tempSlides", tempSlides)
             setSlides(tempSlides)
             // get slug from previous <h3>
-            console.log(
-                `keyInsightsNode?.previousElementSibling?.getAttribute("id")`,
-                keyInsightsNode?.previousElementSibling?.getAttribute("id")
-            )
             setSlug(keyInsightsNode?.previousElementSibling?.getAttribute("id"))
         }
     }, [])
@@ -113,9 +100,7 @@ export const KeyInsightsThumbs = ({ titles }: { titles: string[] }) => {
 
     // Select active slide when corresponding thumb selected
     useEffect(() => {
-        console.log("useEffect")
         if (!slides) return
-        console.log("slides", slides)
 
         // A less imperative, more React way to do this would be preferred. To
         // switch between slides, I aimed to keep their content untouched

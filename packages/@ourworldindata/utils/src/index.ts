@@ -41,6 +41,7 @@ export {
     type EnrichedBlockHtml,
     type EnrichedBlockImage,
     type EnrichedBlockKeyInsights,
+    type EnrichedBlockKeyInsightsSlide,
     type EnrichedBlockList,
     type EnrichedBlockMissingData,
     type EnrichedBlockNumberedList,
