@@ -13,7 +13,7 @@ import fetch from "node-fetch"
 import _ from "lodash"
 
 const ETL_REGIONS_URL =
-        "https://catalog-staging.ourworldindata.org/grapher/regions/latest/regions/regions.csv",
+        "https://catalog.ourworldindata.org/grapher/regions/latest/regions/regions.csv",
     GEO_JSON_URL =
         "https://raw.githubusercontent.com/alexabruck/worldmap-sensitive/master/dist/world.geo.json",
     GRAPHER_ROOT = __dirname.replace(/\/(itsJustJavascript\/)?devTools.*/, ""),
