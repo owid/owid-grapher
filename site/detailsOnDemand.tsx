@@ -4,7 +4,7 @@ import { Instance } from "tippy.js"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import { renderToStaticMarkup } from "react-dom/server.js"
 import { ArticleBlocks } from "./gdocs/ArticleBlocks.js"
-import { DetailDictionary, ParseError } from "@ourworldindata/utils"
+import { DetailDictionary } from "@ourworldindata/utils"
 
 type Tippyfied<E> = E & {
     _tippy?: Instance

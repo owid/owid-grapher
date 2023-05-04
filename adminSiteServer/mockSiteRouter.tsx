@@ -21,7 +21,6 @@ import {
     WORDPRESS_DIR,
     BASE_DIR,
     BAKED_SITE_DIR,
-    GDOCS_DETAILS_ON_DEMAND_ID,
 } from "../settings/serverSettings.js"
 
 import { expectInt, renderToHtmlPage } from "../serverUtils/serverUtil.js"
