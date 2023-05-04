@@ -20,6 +20,7 @@ export interface StackedSeries<PositionType extends StackedPointPositionType>
     points: StackedPoint<PositionType>[]
     columnSlug?: string
     isProjection?: boolean
+    isAllZeros?: boolean
 }
 
 export interface StackedPlacedSeries<

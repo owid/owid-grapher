@@ -295,11 +295,6 @@ export class AbstractStackedChart
         return this.series.map((series) => series.color)
     }
 
-    /** Whether we want to display series with only zeroes. Defaults to true but e.g. StackedArea charts want to set this to false */
-    get showAllZeroSeries(): boolean {
-        return true
-    }
-
     @computed get availableFacetStrategies(): FacetStrategy[] {
         const strategies: FacetStrategy[] = []
 
@@ -327,29 +322,26 @@ export class AbstractStackedChart
     }
 
     @computed get unstackedSeries(): readonly StackedSeries<number>[] {
-        return this.rawSeries
-            .filter(
-                (series) =>
-                    series.rows.length &&
-                    (this.showAllZeroSeries ||
-                        series.rows.some((row) => row.value !== 0))
-            )
-            .map((series) => {
-                const { isProjection, seriesName, rows } = series
+        return this.rawSeries.map((series) => {
+            const { isProjection, seriesName, rows } = series
+
+            const points = rows.map((row) => {
                 return {
-                    seriesName,
-                    isProjection,
-                    points: rows.map((row) => {
-                        return {
-                            position: row.time,
-                            time: row.time,
-                            value: row.value,
-                            valueOffset: 0,
-                        }
-                    }),
-                    color: this.categoricalColorAssigner.assign(seriesName),
+                    position: row.time,
+                    time: row.time,
+                    value: row.value,
+                    valueOffset: 0,
                 }
-            }) as StackedSeries<number>[]
+            })
+
+            return {
+                seriesName,
+                isProjection,
+                points,
+                isAllZeros: points.every((point) => point.value === 0),
+                color: this.categoricalColorAssigner.assign(seriesName),
+            }
+        }) as StackedSeries<number>[]
     }
 
     @computed get series(): readonly StackedSeries<number>[] {
