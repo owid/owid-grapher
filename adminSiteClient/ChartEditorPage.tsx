@@ -207,9 +207,9 @@ export class ChartEditorPage
     }
 
     async fetchDetails(): Promise<void> {
-        const details = await this.context.admin.getJSON<DetailDictionary>(
+        const details: DetailDictionary = await fetch(
             `${BAKED_BASE_URL}/dods.json`
-        )
+        ).then((res) => res.json())
 
         runInAction(() => {
             this.details = details

@@ -235,6 +235,7 @@ mockSiteRouter.get("/multiEmbedderTest", async (req, res) =>
 )
 
 mockSiteRouter.get("/dods.json", async (_, res) => {
+    res.set("Access-Control-Allow-Origin", "*")
     const { details, parseErrors } = await Gdoc.getDetailsOnDemandGdoc()
     if (parseErrors.length) {
         console.error(
