@@ -322,26 +322,29 @@ export class AbstractStackedChart
     }
 
     @computed get unstackedSeries(): readonly StackedSeries<number>[] {
-        return this.rawSeries.map((series) => {
-            const { isProjection, seriesName, rows } = series
+        return this.rawSeries
+            .filter((series) => series.rows.length > 0)
 
-            const points = rows.map((row) => {
+            .map((series) => {
+                const { isProjection, seriesName, rows } = series
+
+                const points = rows.map((row) => {
+                    return {
+                        position: row.time,
+                        time: row.time,
+                        value: row.value,
+                        valueOffset: 0,
+                    }
+                })
+
                 return {
-                    position: row.time,
-                    time: row.time,
-                    value: row.value,
-                    valueOffset: 0,
+                    seriesName,
+                    isProjection,
+                    points,
+                    isAllZeros: points.every((point) => point.value === 0),
+                    color: this.categoricalColorAssigner.assign(seriesName),
                 }
-            })
-
-            return {
-                seriesName,
-                isProjection,
-                points,
-                isAllZeros: points.every((point) => point.value === 0),
-                color: this.categoricalColorAssigner.assign(seriesName),
-            }
-        }) as StackedSeries<number>[]
+            }) as StackedSeries<number>[]
     }
 
     @computed get series(): readonly StackedSeries<number>[] {

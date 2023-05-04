@@ -90,6 +90,21 @@ it("shows a failure message if there are columns but no series", () => {
     expect(chart.failMessage).toBeTruthy()
 })
 
+it("can filter a series when there are no points", () => {
+    const table = SynthesizeFruitTable({
+        entityCount: 2,
+        timeRange: [2000, 2003],
+    }).replaceRandomCells(6, [SampleColumnSlugs.Fruit])
+    const chart = new StackedAreaChart({
+        manager: {
+            selection: table.sampleEntityName(1),
+            table,
+        },
+    })
+
+    expect(chart.series.length).toEqual(0)
+})
+
 it("filters non-numeric values", () => {
     const table = SynthesizeFruitTableWithStringValues(
         {
