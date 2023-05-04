@@ -63,7 +63,7 @@ function csvToJson(val: string, col: string) {
             return val === "True"
 
         case "members":
-            return val && val.split(';') || undefined
+            return (val && val.split(";")) || undefined
 
         default:
             return val
