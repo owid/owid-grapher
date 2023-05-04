@@ -62,6 +62,10 @@
                     border: 1px solid transparent;
                 }
 
+                a {
+                    @include owid-link-90;
+                }
+
                 a:hover img {
                     @include image-hover;
                 }
@@ -84,14 +88,15 @@
         }
 
         &:last-child {
-            > *:last-child {
-                margin-bottom: 0;
+            figure {
+                @include figure-grapher-reset;
             }
 
             .gallery-navigation {
                 display: flex;
                 justify-content: space-around;
                 align-items: center;
+                margin-bottom: 0;
             }
         }
     }

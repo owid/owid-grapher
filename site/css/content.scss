@@ -32,12 +32,7 @@
 
 .article-content figure[data-grapher-src],
 .SearchResults figure[data-grapher-src] {
-    margin-left: auto;
-    margin-right: auto;
-    margin-bottom: 1rem;
-    text-align: center;
-    line-height: 0;
-    width: 100%;
+    @include figure-grapher-reset;
 
     > a {
         border-bottom: none !important;
