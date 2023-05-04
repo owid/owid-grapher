@@ -118,5 +118,13 @@
         @include md-up {
             margin-right: 16px;
         }
+        ul {
+            margin-bottom: 32px;
+            padding-left: 40px;
+            li {
+                @include body-2-regular;
+                margin-bottom: 8px;
+            }
+        }
     }
 }
