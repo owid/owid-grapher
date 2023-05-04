@@ -192,7 +192,7 @@ export const FrontPage = (props: {
                                     <ul>
                                         {featuredWork.map((post) => (
                                             <li key={post.slug}>
-                                                <PostCard post={post} />
+                                                <PostCard post={post} hideDate={true} />
                                             </li>
                                         ))}
                                     </ul>

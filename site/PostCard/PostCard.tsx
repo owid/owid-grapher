@@ -3,7 +3,7 @@ import { IndexPost, formatDate } from "@ourworldindata/utils"
 import { formatUrls } from "../formatting.js"
 import { formatAuthors } from "../clientFormatting.js"
 
-const PostCard = ({ post }: { post: IndexPost }) => {
+const PostCard = ({ post, hideDate = false }: { post: IndexPost, hideDate?: boolean }) => {
     return (
         <article className="post-card">
             <a href={`/${post.slug}`}>
@@ -28,7 +28,9 @@ const PostCard = ({ post }: { post: IndexPost }) => {
                         <span className="authors">{`By ${formatAuthors({
                             authors: post.authors,
                         })}`}</span>{" "}
-                        &mdash; <time>{formatDate(post.date)}</time>
+                        {
+                            hideDate ? null : <>&mdash; <time>{formatDate(post.date)}</time></>
+                        }
                     </div>
                 </div>
             </a>
