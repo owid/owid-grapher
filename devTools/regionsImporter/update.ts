@@ -42,7 +42,7 @@ interface Entity {
     region_type?: string
     is_mappable?: boolean
     is_historical?: boolean
-    omit_country_page?: boolean
+    is_unlisted?: boolean
     variant_names?: string[]
     members?: string[]
 }
@@ -63,8 +63,7 @@ function csvToJson(val: string, col: string) {
             return val === "True"
 
         case "members":
-            // use eval since pandas produces non-json arrays using single-quoted strings
-            return val ? eval(val) : undefined
+            return val && val.split(';') || undefined
 
         default:
             return val
