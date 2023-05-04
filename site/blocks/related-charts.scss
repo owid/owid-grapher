@@ -12,8 +12,14 @@
         // Making space for border shadow
         margin-left: -16px;
         padding-left: 16px;
-        padding-top: 16px;
-        margin-top: -16px;
+
+        // This does frees enough space for the top border shadow, but it also
+        // makes the thumbnails scroll past the top border of the chart, and
+        // into the block title's space. Commenting out for now until we can
+        // have our cake and eat it.
+
+        //padding-top: 16px;
+        //margin-top: -16px;
 
         // Shifting margin to padding to make space for scrollbar
         margin-right: -16px;
