@@ -194,10 +194,10 @@ export const DataPageContent = ({
                     <hr />
                 </div>
                 <div className="related-data__wrapper wrapper grid">
-                    <h2 className="related-data__title span-cols-3">
+                    <h2 className="related-data__title span-cols-3 span-lg-cols-12">
                         Related data
                     </h2>
-                    <div className="related-data__items span-cols-9">
+                    <div className="related-data__items span-cols-9 span-lg-cols-12">
                         <div className="span-cols-3">
                             <a
                                 href={datapageJson.relatedData[0].url}
