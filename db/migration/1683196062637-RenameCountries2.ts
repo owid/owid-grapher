@@ -66,14 +66,16 @@ export class RenameCountries21683196062637 implements MigrationInterface {
 
                 // refresh updatedAt timestamp of affected variables
                 // to trigger datasync that will refresh their JSON files on S3
-                await queryRunner.query(
-                    `
-                    UPDATE variables
-                    SET updatedAt = NOW()
-                    WHERE id IN (?)
-                `,
-                    [affectedVariablesIds]
-                )
+                if (affectedVariablesIds.length > 0) {
+                    await queryRunner.query(
+                        `
+                        UPDATE variables
+                        SET updatedAt = NOW()
+                        WHERE id IN (?)
+                    `,
+                        [affectedVariablesIds]
+                    )
+                }
             }
 
             await queryRunner.query(
