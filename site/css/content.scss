@@ -27,7 +27,7 @@
 }
 
 .article-content figure {
-    margin: 0 0 1rem;
+    @include figure-margin;
 }
 
 .article-content figure[data-grapher-src],

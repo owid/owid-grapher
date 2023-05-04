@@ -348,8 +348,12 @@
 @mixin HACK-fix-bullets-outside {
     margin-left: 16px;
 }
+@mixin figure-margin {
+    margin: 0 0 1rem;
+}
 
 @mixin figure-grapher-reset {
+    @include figure-margin;
     margin-left: auto;
     margin-right: auto;
     margin-bottom: 1rem;
