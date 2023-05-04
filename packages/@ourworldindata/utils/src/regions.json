@@ -99,8 +99,7 @@
         "shortCode": "AQ",
         "name": "Antarctica",
         "slug": "antarctica",
-        "regionType": "country",
-        "isUnlisted": true
+        "regionType": "other"
     },
     {
         "code": "ATF",
