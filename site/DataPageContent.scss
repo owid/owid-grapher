@@ -22,8 +22,12 @@
     }
 
     .header__wrapper {
-        padding-top: 48px;
-        padding-bottom: 48px;
+        padding-top: 24px;
+        padding-bottom: 24px;
+        @include sm-up {
+            padding-top: 48px;
+            padding-bottom: 48px;
+        }
     }
 
     .header__supertitle {
@@ -73,8 +77,12 @@
     }
 
     .GrapherWithFallback {
-        margin-top: 32px;
-        margin-bottom: 40px;
+        margin-top: 16px;
+        margin-bottom: 24px;
+        @include sm-up {
+            margin-top: 32px;
+            margin-bottom: 40px;
+        }
         width: 100%;
         @include grid(12);
 
@@ -97,12 +105,18 @@
     }
 
     .key-info__wrapper {
-        margin-bottom: 48px;
+        margin-bottom: 24px;
+        @include sm-up {
+            margin-bottom: 48px;
+        }
     }
 
     .key-info__left {
-        @include row-gap(24px);
         ul {
+            margin-bottom: 16px;
+            @include sm-up {
+                margin-bottom: 24px;
+            }
             @include row-gap(16px);
             li {
                 @include body-2-regular;
@@ -113,10 +127,14 @@
 
     .key-info__title {
         @include h2-bold;
-        margin: 0;
+        margin: 0 0 16px;
+        @include sm-up {
+            margin: 0 0 24px;
+        }
     }
 
     .key-info__learn-more {
+        display: block;
         @include sm-up {
             display: inline-block;
         }
@@ -132,7 +150,7 @@
     }
 
     .key-info__description-source {
-        margin-top: 8px;
+        margin-top: 32px;
         .article-block__text,
         .article-block__list,
         .article-block__html,
@@ -164,8 +182,12 @@
     }
 
     .related-research__wrapper {
-        padding-top: 48px;
-        padding-bottom: 48px;
+        padding-top: 32px;
+        padding-bottom: 32px;
+        @include sm-up {
+            padding-top: 48px;
+            padding-bottom: 48px;
+        }
         background-color: $white;
     }
 
