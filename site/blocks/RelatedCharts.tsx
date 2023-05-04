@@ -30,9 +30,9 @@ export const RelatedCharts = ({ charts }: { charts: RelatedChart[] }) => {
 
     return (
         <div className={RELATED_CHARTS_CLASS_NAME}>
-            <div className="wp-block-columns is-style-sticky-right">
-                <div className="wp-block-column">
-                    <ul>
+            <div className="grid grid-cols-12">
+                <div className="related-charts__thumbnails span-cols-5 span-md-cols-12">
+                    <ul className="related-charts__list">
                         {sortedCharts.map((chart, idx) => (
                             <AllChartsListItem
                                 chart={chart}
@@ -44,8 +44,7 @@ export const RelatedCharts = ({ charts }: { charts: RelatedChart[] }) => {
                     </ul>
                 </div>
                 <div
-                    className="wp-block-column"
-                    id="all-charts-preview"
+                    className="related-charts__chart span-cols-7 span-md-cols-12"
                     ref={refChartContainer}
                 >
                     <figure

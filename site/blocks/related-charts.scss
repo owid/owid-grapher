@@ -1,80 +1,53 @@
 .related-charts {
     margin-bottom: $vertical-spacing;
-    .wp-block-columns .wp-block-column {
-        &:first-child {
-            // refactor: merge with KeyInsights.css
-            @include md-up {
-                height: 575px;
-                overflow-y: auto;
-                -webkit-mask-image: linear-gradient(
-                    180deg,
-                    #000 90%,
-                    transparent
-                );
-                > *:last-child {
-                    margin-bottom: 3rem;
-                }
+}
 
-                // Making space for border shadow
-                margin-left: -16px;
-                padding-left: 16px;
-                padding-top: 16px;
-                margin-top: -16px;
+.related-charts__thumbnails {
+    // refactor: merge with KeyInsights.css
+    @include md-up {
+        height: 575px;
+        overflow-y: auto;
+        -webkit-mask-image: linear-gradient(180deg, #000 90%, transparent);
 
-                // Shifting margin to padding to make space for scrollbar
-                margin-right: 0;
-                padding-right: $padding-x-md * 0.5;
-            }
+        // Making space for border shadow
+        margin-left: -16px;
+        padding-left: 16px;
+        padding-top: 16px;
+        margin-top: -16px;
 
-            ul {
-                list-style-type: none;
-                padding: 0;
-                margin: 0;
+        // Shifting margin to padding to make space for scrollbar
+        margin-right: -16px;
+        padding-right: 16px;
+    }
+}
 
-                @include md-down {
-                    display: flex;
-                    overflow-x: auto;
+// Increasing specificity without nesting, to override the specificity of
+// .article-content ul when related charts blocks are embedded in Wordpress
+// articles
+.related-charts__list.related-charts__list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0 0 3rem;
 
-                    // Making space for border shadow
-                    margin-left: -16px;
-                    padding-left: 16px;
-                    padding-top: 16px;
-                    margin-top: -16px;
+    @include md-down {
+        display: flex;
+        overflow-x: auto;
 
-                    // making space for the scrollbar
-                    margin-bottom: $vertical-spacing * 0.5;
-                    padding-bottom: 1.5rem;
-                    li {
-                        flex: 0 0 min(50vw, 13rem);
-                        margin-right: 1rem;
-                    }
-                }
+        // Making space for border shadow
+        margin-left: -16px;
+        padding-left: 16px;
+        padding-top: 16px;
+        margin-top: -16px;
 
-                @include md-up {
-                    display: grid;
-                    grid-template-columns: repeat(2, 1fr);
-                    gap: $vertical-spacing;
-                }
+        // making space for the scrollbar
+        margin-bottom: $vertical-spacing * 0.5;
+        padding-bottom: 1.5rem;
 
-                img {
-                    @include image-shadow;
-                    margin-bottom: $vertical-spacing * 0.5;
-                    border: 1px solid transparent;
-                }
+        li {
+            flex: 0 0 min(50vw, 13rem);
+            margin-right: 1rem;
 
-                a {
-                    @include owid-link-90;
-                }
-
-                a:hover img {
-                    @include image-hover;
-                }
-
-                font-size: 14px;
-                line-height: 1.2;
-            }
-
-            .active {
+            &.active {
                 pointer-events: none;
 
                 img {
@@ -86,18 +59,41 @@
                 }
             }
         }
+    }
 
-        &:last-child {
-            figure {
-                @include figure-grapher-reset;
-            }
+    @include md-up {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: $vertical-spacing;
+    }
 
-            .gallery-navigation {
-                display: flex;
-                justify-content: space-around;
-                align-items: center;
-                margin-bottom: 0;
-            }
-        }
+    img {
+        @include image-shadow;
+        margin-bottom: $vertical-spacing * 0.5;
+        border: 1px solid transparent;
+    }
+
+    a {
+        @include owid-link-90;
+    }
+
+    a:hover img {
+        @include image-hover;
+    }
+
+    font-size: 14px;
+    line-height: 1.2;
+}
+
+.related-charts__chart {
+    figure {
+        @include figure-grapher-reset;
+    }
+
+    .gallery-navigation {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        margin-bottom: 0;
     }
 }
