@@ -455,7 +455,10 @@
     }
 
     .datacollection-sources {
-        margin-top: 48px;
+        margin-top: 32px;
+        @include md-up {
+            margin-top: 48px;
+        }
 
         .article-block__text,
         .article-block__list,
@@ -467,7 +470,7 @@
 
     .datacollection-sources__heading {
         @include h3-bold;
-        margin: 0;
+        margin: 0 0 24px;
     }
 
     .datacollection-source-item + .datacollection-source-item {

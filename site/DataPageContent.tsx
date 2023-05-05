@@ -450,10 +450,10 @@ export const DataPageContent = ({
                         </div>
                         {datapageJson.sources.length > 0 && (
                             <div className="datacollection-sources grid span-cols-12">
-                                <h3 className="datacollection-sources__heading span-cols-3">
-                                    This data is based on the following sources:
+                                <h3 className="datacollection-sources__heading span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+                                    This data is based on the following sources
                                 </h3>
-                                <div className="span-cols-6">
+                                <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
                                     {datapageJson.sources.map(
                                         (source, idx: number) => (
                                             <div
