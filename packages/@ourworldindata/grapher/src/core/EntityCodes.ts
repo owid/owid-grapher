@@ -1,8 +1,8 @@
-import { invert, countries } from "@ourworldindata/utils"
+import { invert, regions } from "@ourworldindata/utils"
 import { EntityName } from "@ourworldindata/core-table"
 
 export const entityCodesToEntityNames: Record<string, string> =
-    Object.fromEntries(countries.map(({ code, name }) => [code, name]))
+    Object.fromEntries(regions.map(({ code, name }) => [code, name]))
 
 export const entityNamesToEntityCodes = invert(entityCodesToEntityNames)
 
