@@ -20,6 +20,6 @@
         { "path": "./devTools/dodParserTestGenerator" },
         { "path": "./devTools/uploadWordpressImagesToObjStorage" },
         { "path": "./devTools/explorerTools" },
-        { "path": "./devTools/regionsImporter" }
+        { "path": "./devTools/regionsUpdater" }
     ]
 }
