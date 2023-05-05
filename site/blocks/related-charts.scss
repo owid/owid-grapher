@@ -52,18 +52,6 @@
         li {
             flex: 0 0 min(50vw, 13rem);
             margin-right: 1rem;
-
-            &.active {
-                pointer-events: none;
-
-                img {
-                    border: 1px solid $oxford-blue;
-                }
-
-                a {
-                    text-decoration: none;
-                }
-            }
         }
     }
 
@@ -72,13 +60,25 @@
         grid-template-columns: repeat(2, 1fr);
         gap: $vertical-spacing;
 
-        // Hack to workraround the top border shadow being cropped for the first
+        // Hack to work raround the top border shadow being cropped for the first
         // two thumbnails. See also unsatisfactory solution above.
         li {
             &:nth-child(1),
             &:nth-child(2) {
                 border-top: 1px solid rgba(0, 0, 0, 0.001);
             }
+        }
+    }
+
+    li.active {
+        pointer-events: none;
+
+        img {
+            border: 1px solid $oxford-blue;
+        }
+
+        a {
+            text-decoration: none;
         }
     }
 
