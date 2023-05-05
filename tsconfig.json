@@ -19,7 +19,6 @@
         { "path": "./devTools/schemaProcessor" },
         { "path": "./devTools/dodParserTestGenerator" },
         { "path": "./devTools/uploadWordpressImagesToObjStorage" },
-        { "path": "./devTools/explorerTools" },
-        { "path": "./devTools/regionsUpdater" }
+        { "path": "./devTools/explorerTools" }
     ]
 }

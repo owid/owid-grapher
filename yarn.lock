@@ -5743,13 +5743,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/geojson@npm:^7946.0.10":
-  version: 7946.0.10
-  resolution: "@types/geojson@npm:7946.0.10"
-  checksum: 12c407c2dc93ecb26c08af533ee732f1506a9b29456616ba7ba1d525df96206c28ddf44a528f6a5415d7d22893e9d967420940a9c095ee5e539c1eba5fefc1f4
-  languageName: node
-  linkType: hard
-
 "@types/glob@npm:*, @types/glob@npm:^8.0.0":
   version: 8.0.0
   resolution: "@types/glob@npm:8.0.0"
@@ -6381,16 +6374,6 @@ __metadata:
     "@types/geojson": "*"
     "@types/topojson-specification": "*"
   checksum: 09f101803b2ba86a10929eb7467e56f7185a5b3f2964e48a81905c8b19de922b75ffcf37ea1b362b5f5971b1659b5da6d6a0f10caa8419c642807ca7612cab6b
-  languageName: node
-  linkType: hard
-
-"@types/topojson-server@npm:^3.0.1":
-  version: 3.0.1
-  resolution: "@types/topojson-server@npm:3.0.1"
-  dependencies:
-    "@types/geojson": "*"
-    "@types/topojson-specification": "*"
-  checksum: 47d4f24950e06184023cc2b09bce985e459e54372f2ea43d1e1d24ebe48786b330cd726829015bc9cab9b8e25c7f5c1b27a8ccd1b199ac5731c13e895b6adced
   languageName: node
   linkType: hard
 
@@ -13936,7 +13919,6 @@ __metadata:
     "@types/express-rate-limit": ^5.1.0
     "@types/fs-extra": ^11.0.1
     "@types/fuzzyset": ^1.0.2
-    "@types/geojson": ^7946.0.10
     "@types/glob": ^8.0.0
     "@types/google.analytics": ^0.0.40
     "@types/html-to-text": ^8.1.1
@@ -13969,7 +13951,6 @@ __metadata:
     "@types/string-pixel-width": ^1.7.2
     "@types/svgo": ^2.6.4
     "@types/topojson-client": ^3.1.1
-    "@types/topojson-server": ^3.0.1
     "@types/unidecode": ^0.1.1
     "@types/url-join": ^4.0.1
     "@types/url-parse": ^1.4.8
@@ -14094,7 +14075,6 @@ __metadata:
     timezone-mock: ^1.0.18
     tmex: ^1.0.8
     topojson-client: ^3.1.0
-    topojson-server: ^3.0.1
     ts-pattern: ^4.0.4
     tsc-watch: ^6.0.4
     typeorm: ^0.3.14
@@ -24348,17 +24328,6 @@ __metadata:
     topomerge: bin/topomerge
     topoquantize: bin/topoquantize
   checksum: 8c029a4f18324ace0b8b55dd90edbd40c9e3c6de18bafbb5da37ca20ebf20e26fbd4420891acb3c2c264e214185f7557871f5651a9eee517028663be98d836de
-  languageName: node
-  linkType: hard
-
-"topojson-server@npm:^3.0.1":
-  version: 3.0.1
-  resolution: "topojson-server@npm:3.0.1"
-  dependencies:
-    commander: 2
-  bin:
-    geo2topo: bin/geo2topo
-  checksum: 471ad1149672b19eb4733e5ff29a3e3e91d9f065524d13460949f64fabdd7c63cc2bd4309aa6a2982d1fa46e7e057568362267f46eb1114f364c1a7442726cee
   languageName: node
   linkType: hard
 
