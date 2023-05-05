@@ -51,7 +51,6 @@ const allEntities = sortBy(countries, (c) => c.name)
             name: WorldEntityName,
             code: "OWID_WRL",
             slug: "world",
-            regionType: "other",
         },
     ])
 

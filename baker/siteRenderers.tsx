@@ -41,7 +41,7 @@ import {
 } from "../site/EntriesByYearPage.js"
 import { FeedbackPage } from "../site/FeedbackPage.js"
 import {
-    getCountryBySlug,
+    getCountry,
     Country,
     memoize,
     FormattedPost,
@@ -475,7 +475,7 @@ export const countryProfileCountryPage = async (
     profileSpec: CountryProfileSpec,
     countrySlug: string
 ) => {
-    const country = getCountryBySlug(countrySlug)
+    const country = getCountry(countrySlug)
     if (!country) throw new JsonError(`No such country ${countrySlug}`, 404)
 
     // Voluntarily not dealing with grapherExports on devServer for simplicity
