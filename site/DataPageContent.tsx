@@ -51,13 +51,13 @@ export const DataPageContent = ({
                 />
             </div>
             <div className="DataPageContent">
-                <div className="header__wrapper wrapper">
-                    <div className="header__left">
+                <div className="header__wrapper wrapper grid grid-cols-12 ">
+                    <div className="header__left span-cols-8 span-sm-cols-12">
                         <div className="header__supertitle">Data</div>
                         <h1 className="header__title">{datapageJson.title}</h1>
                         <div className="header__source">{sourceShortName}</div>
                     </div>
-                    <div className="header__right">
+                    <div className="header__right col-start-10 span-cols-3 col-md-start-9 span-md-cols-4 span-sm-cols-12">
                         <div className="topic-tags__label">
                             See all data and research on:
                         </div>
@@ -83,8 +83,8 @@ export const DataPageContent = ({
                         slug={grapherConfig.slug}
                         className="wrapper"
                     />
-                    <div className="key-info__wrapper wrapper">
-                        <div className="key-info__left">
+                    <div className="key-info__wrapper wrapper grid grid-cols-12">
+                        <div className="key-info__left col-start-2 span-cols-7 span-lg-cols-8 span-sm-cols-12">
                             <h2 className="key-info__title">Key information</h2>
                             {datapageGdoc?.keyInfoText ? (
                                 <ArticleBlocks
@@ -127,8 +127,8 @@ export const DataPageContent = ({
                                 </div>
                             )}
                         </div>
-                        <div className="key-info__right">
-                            <div className="key-data">
+                        <div className="key-info__right grid grid-cols-3 grid-lg-cols-4 grid-sm-cols-12 span-cols-3 span-lg-cols-4 span-sm-cols-12">
+                            <div className="key-data span-cols-3 span-lg-cols-4 span-sm-cols-12">
                                 <div className="key-data__title">Source</div>
                                 <div>{datapageJson.nameOfSource}</div>
                                 {datapageJson.owidProcessingLevel && (
@@ -139,19 +139,19 @@ export const DataPageContent = ({
                                     ></div>
                                 )}
                             </div>
-                            <div className="key-data">
+                            <div className="key-data span-cols-3 span-lg-cols-4 span-sm-cols-6">
                                 <div className="key-data__title">
                                     Date range
                                 </div>
                                 <div>{datapageJson.dateRange}</div>
                             </div>
-                            <div className="key-data">
+                            <div className="key-data span-cols-3 span-lg-cols-4 span-sm-cols-6">
                                 <div className="key-data__title">
                                     Last updated
                                 </div>
                                 <div>{datapageJson.lastUpdated}</div>
                             </div>
-                            <div className="key-data">
+                            <div className="key-data span-cols-3 span-lg-cols-4 span-sm-cols-6">
                                 <div className="key-data__title">
                                     Next expected update
                                 </div>
@@ -161,18 +161,22 @@ export const DataPageContent = ({
                     </div>
                 </div>
                 <div className="related-research__wrapper grid wrapper">
-                    <h2 className="related-research__title span-cols-3">
+                    <h2 className="related-research__title span-cols-3 span-lg-cols-12">
                         Related research and writing
                     </h2>
-                    <div className="related-research__items span-cols-9">
+                    <div className="related-research__items grid grid-cols-9 grid-lg-cols-12 span-cols-9 span-lg-cols-12">
                         {datapageJson.relatedResearch.map((research: any) => (
                             <a
                                 href={research.url}
                                 key={research.url}
-                                className="related-research__item span-cols-4"
+                                className="related-research__item grid grid-cols-4 grid-lg-cols-6 grid-sm-cols-12 span-cols-4 span-lg-cols-6 span-sm-cols-12"
                             >
-                                <img src={research.imageUrl} alt="" />
-                                <div className="span-cols-3">
+                                <img
+                                    src={research.imageUrl}
+                                    alt=""
+                                    className="span-lg-cols-2 span-sm-cols-3"
+                                />
+                                <div className="span-cols-3 span-lg-cols-4 span-sm-cols-9">
                                     <h3 className="related-article__title">
                                         {research.title}
                                     </h3>
@@ -190,10 +194,10 @@ export const DataPageContent = ({
                     <hr />
                 </div>
                 <div className="related-data__wrapper wrapper grid">
-                    <h2 className="related-data__title span-cols-3">
+                    <h2 className="related-data__title span-cols-3 span-lg-cols-12">
                         Related data
                     </h2>
-                    <div className="related-data__items span-cols-9">
+                    <div className="related-data__items span-cols-9 span-lg-cols-12">
                         <div className="span-cols-3">
                             <a
                                 href={datapageJson.relatedData[0].url}
@@ -272,20 +276,12 @@ export const DataPageContent = ({
                 )}
                 {datapageGdoc?.faqs && (
                     <>
-                        <div
-                            style={{
-                                backgroundColor: "#f7f7f7",
-                                padding: "48px 0",
-                            }}
-                        >
+                        <div className="gray-wrapper">
                             <div className="faqs__wrapper grid wrapper">
-                                <h2
-                                    className="faqs__title span-cols-2"
-                                    id="faqs"
-                                >
+                                <h2 className="faqs__title span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
                                     What you should know about this data
                                 </h2>
-                                <div className="faqs__items grid grid-cols-8 span-cols-8">
+                                <div className="faqs__items grid grid-cols-10 grid-lg-cols-9 grid-md-cols-12 span-cols-10 span-lg-cols-9 span-md-cols-12 span-sm-cols-12">
                                     <ArticleBlocks
                                         blocks={datapageGdoc.faqs}
                                         containerType="datapage"
@@ -303,17 +299,12 @@ export const DataPageContent = ({
                         </div>
                     </>
                 )}
-                <div
-                    style={{
-                        backgroundColor: "#f7f7f7",
-                        padding: "48px 0",
-                    }}
-                >
+                <div className="gray-wrapper">
                     <div className="dataset__wrapper grid wrapper">
-                        <h2 className="dataset__title span-cols-3">
+                        <h2 className="dataset__title span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
                             Sources and Processing
                         </h2>
-                        <div className="dataset__content span-cols-6">
+                        <div className="dataset__content col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
                             <div className="body-2-regular">
                                 In preparing data for our visualizations, Our
                                 World in Data prepares datasets from original
@@ -459,10 +450,10 @@ export const DataPageContent = ({
                         </div>
                         {datapageJson.sources.length > 0 && (
                             <div className="datacollection-sources grid span-cols-12">
-                                <h3 className="datacollection-sources__heading span-cols-3">
-                                    This data is based on the following sources:
+                                <h3 className="datacollection-sources__heading span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+                                    This data is based on the following sources
                                 </h3>
-                                <div className="span-cols-6">
+                                <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
                                     {datapageJson.sources.map(
                                         (source, idx: number) => (
                                             <div

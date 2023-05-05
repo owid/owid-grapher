@@ -76,8 +76,8 @@ const layouts: { [key in Container]: Layouts} = {
         ["text"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
     },
     ["datapage"]: {
-        ["default"]: "col-start-2 span-cols-6",
-        ["chart"]: "col-start-1 span-cols-8",
+        ["default"]: "col-start-2 span-cols-6 col-lg-start-2 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12",
+        ["chart"]: "span-cols-8 span-lg-cols-9 span-md-cols-12",
     },
     ["sticky-right-left-column"]: {
         ["chart"]: "span-cols-5 col-start-1 span-md-cols-10 col-md-start-2 span-sm-cols-12 col-sm-start-1",
