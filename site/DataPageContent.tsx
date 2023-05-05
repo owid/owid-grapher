@@ -127,8 +127,8 @@ export const DataPageContent = ({
                                 </div>
                             )}
                         </div>
-                        <div className="key-info__right grid grid-cols-12 col-start-9 span-cols-3 span-lg-cols-4 span-sm-cols-12">
-                            <div className="key-data span-cols-12">
+                        <div className="key-info__right grid grid-cols-3 grid-lg-cols-4 grid-sm-cols-12 span-cols-3 span-lg-cols-4 span-sm-cols-12">
+                            <div className="key-data span-cols-3 span-lg-cols-4 span-sm-cols-12">
                                 <div className="key-data__title">Source</div>
                                 <div>{datapageJson.nameOfSource}</div>
                                 {datapageJson.owidProcessingLevel && (
@@ -139,19 +139,19 @@ export const DataPageContent = ({
                                     ></div>
                                 )}
                             </div>
-                            <div className="key-data span-cols-12 span-sm-cols-6">
+                            <div className="key-data span-cols-3 span-lg-cols-4 span-sm-cols-6">
                                 <div className="key-data__title">
                                     Date range
                                 </div>
                                 <div>{datapageJson.dateRange}</div>
                             </div>
-                            <div className="key-data span-cols-12 span-sm-cols-6">
+                            <div className="key-data span-cols-3 span-lg-cols-4 span-sm-cols-6">
                                 <div className="key-data__title">
                                     Last updated
                                 </div>
                                 <div>{datapageJson.lastUpdated}</div>
                             </div>
-                            <div className="key-data span-cols-12 span-sm-cols-6">
+                            <div className="key-data span-cols-3 span-lg-cols-4 span-sm-cols-6">
                                 <div className="key-data__title">
                                     Next expected update
                                 </div>
