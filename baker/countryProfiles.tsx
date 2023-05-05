@@ -8,7 +8,7 @@ import {
     CountryProfilePage,
 } from "../site/CountryProfilePage.js"
 import { SiteBaker } from "./SiteBaker.js"
-import { countries, getCountry, JsonError } from "@ourworldindata/utils"
+import { countries, getCountryBySlug, JsonError } from "@ourworldindata/utils"
 import { renderToHtmlPage } from "./siteRenderers.js"
 import {
     parseVariableRows,
@@ -150,7 +150,7 @@ export const countryProfilePage = async (
     countrySlug: string,
     baseUrl: string
 ) => {
-    const country = getCountry(countrySlug)
+    const country = getCountryBySlug(countrySlug)
     if (!country) throw new JsonError(`No such country ${countrySlug}`, 404)
 
     const graphers = await countryIndicatorGraphers()

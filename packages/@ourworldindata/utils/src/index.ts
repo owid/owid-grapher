@@ -381,11 +381,19 @@ export {
 } from "./TimeBounds.js"
 
 export {
+    RegionType,
+    regions,
+    type Region,
     countries,
     type Country,
-    getCountry,
+    getCountryBySlug,
     getCountryDetectionRedirects,
-} from "./countries.js"
+    continents,
+    type Continent,
+    aggregates,
+    type Aggregate,
+    others,
+} from "./regions.js"
 
 export { getStylesForTargetHeight } from "./react-select.js"
 
