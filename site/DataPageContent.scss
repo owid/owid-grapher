@@ -329,7 +329,7 @@
         }
     }
 
-    .faqs__grey-wrapper {
+    .gray-wrapper {
         background-color: #f7f7f7;
         padding: 32px 0;
         @include sm-up {
@@ -358,7 +358,7 @@
 
     .dataset__title {
         @include h2-bold;
-        margin: 0;
+        margin: 0 0 16px;
     }
 
     .data-collection {

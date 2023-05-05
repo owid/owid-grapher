@@ -276,7 +276,7 @@ export const DataPageContent = ({
                 )}
                 {datapageGdoc?.faqs && (
                     <>
-                        <div className="faqs__grey-wrapper">
+                        <div className="gray-wrapper">
                             <div className="faqs__wrapper grid wrapper">
                                 <h2 className="faqs__title span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
                                     What you should know about this data
@@ -299,17 +299,12 @@ export const DataPageContent = ({
                         </div>
                     </>
                 )}
-                <div
-                    style={{
-                        backgroundColor: "#f7f7f7",
-                        padding: "48px 0",
-                    }}
-                >
+                <div className="gray-wrapper">
                     <div className="dataset__wrapper grid wrapper">
-                        <h2 className="dataset__title span-cols-3">
+                        <h2 className="dataset__title span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
                             Sources and Processing
                         </h2>
-                        <div className="dataset__content span-cols-6">
+                        <div className="dataset__content col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
                             <div className="body-2-regular">
                                 In preparing data for our visualizations, Our
                                 World in Data prepares datasets from original
