@@ -410,11 +410,7 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
 
         let dodErrors: OwidGdocErrorMessage[] = []
         // Validating the DoD document is infinitely recursive :)
-        if (!GDOCS_DETAILS_ON_DEMAND_ID) {
-            console.error(
-                "GDOCS_DETAILS_ON_DEMAND_ID unset. Unable to validate dods"
-            )
-        } else if (this.id !== GDOCS_DETAILS_ON_DEMAND_ID) {
+        if (this.id !== GDOCS_DETAILS_ON_DEMAND_ID) {
             const { details } = await Gdoc.getDetailsOnDemandGdoc()
             dodErrors = this.details.reduce(
                 (
@@ -434,7 +430,29 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
             )
         }
 
-        this.errors = [...filenameErrors, ...linkErrors, ...dodErrors]
+        // A one-off custom validation for this particular case
+        // Until we implement a more robust validation abstraction for fragments
+        // This is to validate the details document itself
+        // Whereas dodErrors is to validate *other documents* that are referencing dods
+        const dodDocumentErrors: OwidGdocErrorMessage[] = []
+        if (this.id === GDOCS_DETAILS_ON_DEMAND_ID) {
+            const results = parseDetails(this.content.details)
+            const errors: OwidGdocErrorMessage[] = results.parseErrors.map(
+                (parseError) => ({
+                    ...parseError,
+                    property: "details",
+                    type: OwidGdocErrorMessageType.Error,
+                })
+            )
+            dodDocumentErrors.push(...errors)
+        }
+
+        this.errors = [
+            ...filenameErrors,
+            ...linkErrors,
+            ...dodErrors,
+            ...dodDocumentErrors,
+        ]
     }
 
     static async getGdocFromContentSource(
