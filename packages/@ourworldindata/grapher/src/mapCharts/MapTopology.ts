@@ -271,7 +271,6 @@ export const MapTopology = {
                     type: "Polygon",
                     arcs: [[256, 257]],
                 },
-                { id: "East Timor", type: "Polygon", arcs: [[668, -366]] },
                 { id: "Ecuador", type: "Polygon", arcs: [[266, -229, 267]] },
                 { id: "Egypt", type: "Polygon", arcs: [[268, 269, 270]] },
                 {
@@ -850,6 +849,7 @@ export const MapTopology = {
                     type: "Polygon",
                     arcs: [[663, -518, 664, -489, -455, -442]],
                 },
+                { id: "Timor", type: "Polygon", arcs: [[668, -366]] },
                 { id: "Togo", type: "Polygon", arcs: [[662, -324, -72, -65]] },
                 {
                     id: "Tonga",
