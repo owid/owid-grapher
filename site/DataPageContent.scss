@@ -329,6 +329,14 @@
         }
     }
 
+    .faqs__grey-wrapper {
+        background-color: #f7f7f7;
+        padding: 32px 0;
+        @include sm-up {
+            padding: 48px 0;
+        }
+    }
+
     .faqs__wrapper {
         .article-block__text,
         .article-block__list,
@@ -341,7 +349,7 @@
 
     .faqs__title {
         @include h2-bold;
-        margin: 0;
+        margin: 0 0 24px;
     }
 
     .faqs__items > *:first-child {

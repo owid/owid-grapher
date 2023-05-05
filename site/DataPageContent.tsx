@@ -276,20 +276,12 @@ export const DataPageContent = ({
                 )}
                 {datapageGdoc?.faqs && (
                     <>
-                        <div
-                            style={{
-                                backgroundColor: "#f7f7f7",
-                                padding: "48px 0",
-                            }}
-                        >
+                        <div className="faqs__grey-wrapper">
                             <div className="faqs__wrapper grid wrapper">
-                                <h2
-                                    className="faqs__title span-cols-2"
-                                    id="faqs"
-                                >
+                                <h2 className="faqs__title span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
                                     What you should know about this data
                                 </h2>
-                                <div className="faqs__items grid grid-cols-8 span-cols-8">
+                                <div className="faqs__items grid grid-cols-10 grid-lg-cols-9 grid-md-cols-12 span-cols-10 span-lg-cols-9 span-md-cols-12 span-sm-cols-12">
                                     <ArticleBlocks
                                         blocks={datapageGdoc.faqs}
                                         containerType="datapage"
