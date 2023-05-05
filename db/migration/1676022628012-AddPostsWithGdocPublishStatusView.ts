@@ -14,7 +14,7 @@ export class AddPostsWithGdocPublishStatusView1676022628012
 
     public async down(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
-        drop view posts_with_gdoc_publish_status;
+        drop view if exists posts_with_gdoc_publish_status;
         `)
     }
 }
