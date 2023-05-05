@@ -32,6 +32,7 @@ import {
     DetailDictionary,
     excludeNullish,
     ParseError,
+    OwidGdocType,
 } from "@ourworldindata/utils"
 import {
     BAKED_GRAPHER_URL,
@@ -526,7 +527,14 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
         // mapGdocsToWordpressPosts(). This would make the Gdoc entity coming from
         // the database dependent on the mapping function, which is more practical
         // but also makes it less of a source of truth when considered in isolation.
-        return Gdoc.find({ where: { published: true }, relations: ["tags"] })
+        return Gdoc.find({
+            where: { published: true },
+            relations: ["tags"],
+        }).then((gdocs) =>
+            gdocs.filter(
+                ({ content: { type } }) => type !== OwidGdocType.Fragment
+            )
+        )
     }
 
     static async getListedGdocs(): Promise<OwidGdocPublished[]> {
