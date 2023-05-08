@@ -19,3 +19,19 @@ html.IsInIframe body.DataPage {
 
     @include hide-site-chrome;
 }
+
+.DataPage__edit-links {
+    display: flex;
+    justify-content: flex-end;
+    gap: 16px;
+    padding: 8px 16px;
+    background-color: $blue-10;
+}
+
+.DataPage__edit-link {
+    font-size: 0.8rem;
+    text-decoration: underline;
+    &:hover {
+        text-decoration: none;
+    }
+}

@@ -1,4 +1,4 @@
-export { CoreTable, columnDefinitionsFromDelimited } from "./CoreTable.js"
+export { CoreTable, columnDefinitionsFromInput } from "./CoreTable.js"
 export {
     SynthesizeNonCountryTable,
     SampleColumnSlugs,

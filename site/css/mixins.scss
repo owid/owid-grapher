@@ -266,6 +266,16 @@
     }
 }
 
+@mixin image-shadow {
+    display: block;
+    margin: 0 auto 1rem;
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 2px 0px,
+        rgba(0, 0, 0, 0.25) 0px 1px 2px 0px;
+    padding: 10px;
+    background-color: #fff;
+    transition: all 300ms ease;
+}
+
 @mixin image-hover {
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     opacity: 0.9;
@@ -337,4 +347,17 @@
 // should be removed when fixed in centered-article
 @mixin HACK-fix-bullets-outside {
     margin-left: 16px;
+}
+@mixin figure-margin {
+    margin: 0 0 1rem;
+}
+
+@mixin figure-grapher-reset {
+    @include figure-margin;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 1rem;
+    text-align: center;
+    line-height: 0;
+    width: 100%;
 }

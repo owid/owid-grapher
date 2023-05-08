@@ -1,3 +1,4 @@
+import path from "path"
 import {
     Span,
     EnrichedBlockText,
@@ -770,7 +771,10 @@ function cheerioToArchieML(
                         content: [
                             {
                                 type: "image",
-                                filename: image?.attribs["src"] ?? "",
+                                // src is the entire path. we only want the filename
+                                filename: path.basename(
+                                    image?.attribs["src"] ?? ""
+                                ),
                                 alt: image?.attribs["alt"] ?? "",
                                 parseErrors: [],
                                 originalWidth: undefined,

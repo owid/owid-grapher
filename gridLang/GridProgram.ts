@@ -1,6 +1,5 @@
 import { trimMatrix } from "@ourworldindata/core-table"
 import {
-    imemo,
     isPresent,
     GitCommit,
     SerializedGridProgram,
@@ -16,6 +15,7 @@ import {
     Origin,
     ParsedCell,
 } from "./GridLangConstants.js"
+import { tsvToMatrix } from "./GrammarUtils.js"
 
 /**
  * Block location for the below would be like (numRows = 2)
@@ -36,7 +36,7 @@ export class GridProgram {
         lastCommit?: GitCommit,
         grammar?: CellDef
     ) {
-        this.lines = tsv.replace(/\r/g, "").split(this.nodeDelimiter)
+        this.lines = tsvToMatrix(tsv.replace(/\r/g, ""))
         this.slug = slug
         this.lastCommit = lastCommit
         this.grammar = grammar
@@ -53,7 +53,7 @@ export class GridProgram {
     private nodeDelimiter = GRID_NODE_DELIMITER
     cellDelimiter = GRID_CELL_DELIMITER
     private edgeDelimiter = GRID_EDGE_DELIMITER
-    lines: string[]
+    lines: string[][]
 
     toJson(): SerializedGridProgram {
         return {
@@ -82,8 +82,8 @@ export class GridProgram {
     }
 
     private ring(position: CellPosition) {
-        const matrix = this.asArrays
-        const numRows = matrix.length
+        const lines = this.lines
+        const numRows = lines.length
         if (!numRows)
             return (function* generator() {
                 // no rows to iterate over
@@ -96,7 +96,7 @@ export class GridProgram {
         }
         if (pointer.row >= numRows) pointer.endRow = numRows - 1
 
-        const lastLine = matrix[pointer.endRow]
+        const lastLine = lines[pointer.endRow]
         pointer.endCol =
             lastLine[pointer.endCol] === undefined
                 ? lastLine.length
@@ -112,8 +112,8 @@ export class GridProgram {
                 pointer.started = true
 
                 if (
-                    matrix[pointer.row] === undefined ||
-                    matrix[pointer.row][pointer.column] === undefined
+                    lines[pointer.row] === undefined ||
+                    lines[pointer.row][pointer.column] === undefined
                 ) {
                     pointer.row++
                     pointer.column = 0
@@ -168,52 +168,46 @@ export class GridProgram {
     get tuplesObject() {
         const obj: { [key: string]: any } = {}
         this.lines
-            .filter((line) => !line.startsWith(this.edgeDelimiter))
+            .filter((line) => line[0] !== "")
             .forEach((line) => {
-                const words = line.split(this.cellDelimiter)
-                const key = words.shift()
-                if (key) obj[key.trim()] = words.join(this.cellDelimiter).trim()
+                const [key, ...rest] = line
+                if (key) obj[key.trim()] = rest.join(this.cellDelimiter).trim()
             })
         return obj
     }
 
     getLine(keyword: string) {
-        return this.lines.find((line) =>
-            line.startsWith(keyword + this.cellDelimiter)
-        )
+        return this.lines.find((line) => line[0] === keyword)
     }
 
     getLineValue(keyword: string) {
         const line = this.getLine(keyword)
-        return line ? line.split(this.cellDelimiter)[1] : undefined
+        return line?.[1]
     }
 
-    protected getBlockLocation(blockRowNumber: number): BlockLocation {
+    protected getBlockLocation(
+        blockRowNumber: number
+    ): BlockLocation | undefined {
         const startRow = blockRowNumber + 1
         let numRows = this.lines
             .slice(startRow)
-            .findIndex((line) => line && !line.startsWith(this.edgeDelimiter))
+            .findIndex((line) => line.length && line[0] !== "")
+        if (numRows === 0) return undefined
         if (numRows === -1) numRows = this.lines.slice(startRow).length
         return { startRow, endRow: startRow + numRows, numRows }
     }
 
     protected getKeywordIndex(key: string) {
-        return this.lines.findIndex(
-            (line) => line.startsWith(key + this.cellDelimiter) || line === key
-        )
+        return this.lines.findIndex((line) => line[0] === key)
     }
 
     getCell(position: CellPosition): ParsedCell {
-        return new GridCell(this.matrix, position, this.grammar!)
+        return new GridCell(this.lines, position, this.grammar!)
     }
 
     getCellContents(position: CellPosition) {
-        const line = this.matrix[position.row]
+        const line = this.lines[position.row]
         return line ? line[position.column] : undefined
-    }
-
-    @imemo private get matrix() {
-        return this.lines.map((line) => line.split(this.cellDelimiter))
     }
 
     deleteBlock(row?: number) {
@@ -232,63 +226,51 @@ export class GridProgram {
     }
 
     appendLine(line: string) {
-        this.lines.push(line)
+        this.lines.push(line.split(this.cellDelimiter))
         return this
     }
 
     // todo: make immutable and return a new copy
     setCell(row: number, col: number, value: string) {
-        const line = this.lines[row]
-        const words = line.split(this.cellDelimiter)
-        words[col] = value
-        this.lines[row] = words.join(this.cellDelimiter)
+        this.lines[row][col] = value
         return this
     }
 
     setLineValue(key: string, value: string | undefined) {
         const index = this.getKeywordIndex(key)
-        const newLine = `${key}${this.cellDelimiter}${value}`
-        if (index === -1 && value !== undefined) this.lines.push(newLine)
+        if (index === -1 && value !== undefined) this.lines.push([key, value])
         else if (value === undefined) this.deleteLine(index)
-        else this.lines[index] = newLine
+        else this.lines[index] = [key, value]
         return this
     }
 
     getBlock(keywordIndex: number) {
         const location = this.getBlockLocation(keywordIndex)
+        if (!location) return undefined
         return this.lines
             .slice(location.startRow, location.endRow)
-            .map((line) => line.substr(1))
-            .join(this.nodeDelimiter)
+            .map((line) => line.slice(1))
     }
 
-    updateBlock(rowNumber: number, value: string) {
+    updateBlock(rowNumber: number, value: string[][]) {
         const location = this.getBlockLocation(rowNumber)
+        if (!location) throw new Error("Block not found")
         this.lines.splice(
             location.startRow,
             location.numRows,
-            ...value
-                .split(this.nodeDelimiter)
-                .map((line) => this.edgeDelimiter + line)
+            ...value.map((line) => ["", ...line])
         )
         return this
     }
 
-    protected appendBlock(key: string, value: string) {
-        this.lines.push(key)
-        value
-            .split(this.nodeDelimiter)
-            .forEach((line) => this.lines.push(this.edgeDelimiter + line))
+    protected appendBlock(key: string, value: string[][]) {
+        this.lines.push([key])
+        value.forEach((line) => this.lines.push(["", ...line]))
     }
 
     getRowNumbersStartingWith(startsWith: string) {
         return this.lines
-            .map((line, index) =>
-                line.startsWith(startsWith + this.cellDelimiter) ||
-                line === startsWith
-                    ? index
-                    : null
-            )
+            .map((line, index) => (line[0] === startsWith ? index : null))
             .filter(isPresent)
     }
 
@@ -299,26 +281,22 @@ export class GridProgram {
         words.every((word, index) => word === undefined || line[index] === word)
 
     getRowMatchingWords(...words: (string | undefined)[]): number {
-        return this.asArrays.findIndex((line) =>
+        return this.lines.findIndex((line) =>
             GridProgram.lineMatchesWords(line, words)
         )
     }
 
     getAllRowsMatchingWords(...words: (string | undefined)[]): number[] {
         const rows: number[] = []
-        this.asArrays.forEach((line: string[], rowIndex: number) => {
+        this.lines.forEach((line: string[], rowIndex: number) => {
             if (GridProgram.lineMatchesWords(line, words)) rows.push(rowIndex)
         })
         return rows
     }
 
-    get asArrays(): string[][] {
-        return this.lines.map((line) => line.split(this.cellDelimiter))
-    }
-
     // The max number of columns in any row when you view a program as a spreadsheet
     get width() {
-        return Math.max(...this.asArrays.map((arr) => arr.length))
+        return Math.max(...this.lines.map((arr) => arr.length))
     }
 
     toString() {
@@ -326,7 +304,7 @@ export class GridProgram {
     }
 
     protected prettify() {
-        return trimMatrix(this.asArrays)
+        return trimMatrix(this.lines)
             .map((line) => line.join(this.cellDelimiter))
             .join(this.nodeDelimiter)
     }

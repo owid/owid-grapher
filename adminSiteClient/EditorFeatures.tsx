@@ -1,4 +1,3 @@
-import { EntitySelectionMode } from "@ourworldindata/grapher"
 import { computed } from "mobx"
 import { ChartEditor } from "./ChartEditor.js"
 
@@ -64,10 +63,6 @@ export class EditorFeatures {
 
     @computed get stackedArea() {
         return this.grapher.isStackedArea
-    }
-
-    @computed get entityType() {
-        return this.grapher.addCountryMode !== EntitySelectionMode.Disabled
     }
 
     @computed get relativeModeToggle() {

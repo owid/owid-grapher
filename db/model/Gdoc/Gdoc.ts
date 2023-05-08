@@ -105,6 +105,10 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
     static cachedGoogleReadWriteAuth?: Auth.GoogleAuth
     static cachedGoogleClient?: docs_v1.Docs
 
+    static areGdocAuthKeysSet(): boolean {
+        return !!(GDOCS_PRIVATE_KEY && GDOCS_CLIENT_EMAIL && GDOCS_CLIENT_ID)
+    }
+
     static getGoogleReadWriteAuth(): Auth.GoogleAuth {
         if (!Gdoc.cachedGoogleReadWriteAuth) {
             Gdoc.cachedGoogleReadWriteAuth = new google.auth.GoogleAuth({
