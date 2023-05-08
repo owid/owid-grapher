@@ -1,82 +1,114 @@
 .related-charts {
     margin-bottom: $vertical-spacing;
-    .wp-block-columns .wp-block-column {
-        &:first-child {
-            // refactor: merge with KeyInsights.css
-            @include md-up {
-                height: 575px;
-                overflow-y: auto;
-                -webkit-mask-image: linear-gradient(
-                    180deg,
-                    #000 90%,
-                    transparent
-                );
-                > *:last-child {
-                    margin-bottom: 3rem;
-                }
-                // Shifting margin to padding to make space for scrollbar
-                margin-right: 0;
-                padding-right: $padding-x-md * 0.5;
-            }
+}
 
-            ul {
-                list-style-type: none;
-                padding: 0;
-                margin: 0;
+.related-charts__thumbnails {
+    // refactor: merge with KeyInsights.css
+    @include md-up {
+        height: 575px;
+        overflow-y: auto;
+        -webkit-mask-image: linear-gradient(180deg, #000 90%, transparent);
 
-                @include md-down {
-                    display: flex;
-                    overflow-x: auto;
-                    margin-bottom: $vertical-spacing * 0.5; // making space for the scrollbar
-                    padding-bottom: 1.5rem;
-                    li {
-                        flex: 0 0 min(50vw, 13rem);
-                        margin-right: 1rem;
-                    }
-                }
+        // Making space for border shadow
+        margin-left: -16px;
+        padding-left: 16px;
 
-                @include md-up {
-                    display: grid;
-                    grid-template-columns: repeat(2, 1fr);
-                    gap: $vertical-spacing;
-                }
+        // This does frees enough space for the top border shadow, but it also
+        // makes the thumbnails scroll past the top border of the chart, and
+        // into the block title's space. Commenting out for now until we can
+        // have our cake and eat it.
 
-                img {
-                    margin-bottom: $vertical-spacing * 0.5;
-                    border: 1px solid transparent;
-                }
+        //padding-top: 16px;
+        //margin-top: -16px;
 
-                a:hover img {
-                    @include image-hover;
-                }
+        // Shifting margin to padding to make space for scrollbar
+        margin-right: -16px;
+        padding-right: 16px;
+    }
+}
 
-                font-size: 14px;
-                line-height: 1.2;
-            }
+// Increasing specificity without nesting, to override the specificity of
+// .article-content ul when related charts blocks are embedded in Wordpress
+// articles
+.related-charts__list.related-charts__list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0 0 3rem;
 
-            .active {
-                pointer-events: none;
+    @include md-down {
+        display: flex;
+        overflow-x: auto;
 
-                img {
-                    border: 1px solid $oxford-blue;
-                }
+        // Making space for border shadow
+        margin-left: -16px;
+        padding-left: 16px;
+        padding-top: 16px;
+        margin-top: -16px;
 
-                a {
-                    text-decoration: none;
-                }
+        // making space for the scrollbar
+        margin-bottom: $vertical-spacing * 0.5;
+        padding-bottom: 1.5rem;
+
+        li {
+            flex: 0 0 min(50vw, 13rem);
+            margin-right: 1rem;
+        }
+    }
+
+    @include md-up {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: $vertical-spacing;
+
+        // Hack to work raround the top border shadow being cropped for the first
+        // two thumbnails. See also unsatisfactory solution above.
+        li {
+            &:nth-child(1),
+            &:nth-child(2) {
+                border-top: 1px solid rgba(0, 0, 0, 0.001);
             }
         }
+    }
 
-        &:last-child {
-            > *:last-child {
-                margin-bottom: 0;
-            }
+    li.active {
+        pointer-events: none;
 
-            .gallery-navigation {
-                display: flex;
-                justify-content: space-around;
-                align-items: center;
-            }
+        img {
+            border: 1px solid $oxford-blue;
         }
+
+        a {
+            text-decoration: none;
+        }
+    }
+
+    img {
+        @include image-shadow;
+        margin-bottom: $vertical-spacing * 0.5;
+        border: 1px solid transparent;
+    }
+
+    a {
+        @include owid-link-90;
+    }
+
+    a:hover img {
+        @include image-hover;
+    }
+
+    font-size: 14px;
+    line-height: 1.2;
+}
+
+.related-charts__chart {
+    figure {
+        @include figure-grapher-reset;
+    }
+
+    .gallery-navigation {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        margin-bottom: 0;
     }
 }

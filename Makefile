@@ -124,7 +124,7 @@ migrate:
 	@echo '==> Running DB migrations'
 	yarn && yarn buildTsc && yarn runDbMigrations
 
-refresh: sync-images
+refresh:
 	@echo '==> Downloading chart data'
 	./devTools/docker/download-grapher-mysql.sh
 
@@ -149,7 +149,7 @@ sync-images:
 	@echo '==> Syncing S3 images'
 	@. ./.env && ./devTools/docker/sync-s3-images.sh
 
-refresh.full: refresh refresh.wp
+refresh.full: refresh refresh.wp sync-images
 
 down:
 	@echo '==> Stopping services'
