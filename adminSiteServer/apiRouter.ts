@@ -28,7 +28,6 @@ import {
     GrapherConfigPatch,
     isEmpty,
     JsonError,
-    omit,
     OperationContext,
     OwidGdocJSON,
     OwidGdocInterface,
@@ -36,12 +35,9 @@ import {
     parseToOperation,
     PostRow,
     PostRowWithGdocPublishStatus,
-    set,
     SuggestedChartRevisionStatus,
-    trimObject,
     variableAnnotationAllowedColumnNamesAndTypes,
     VariableAnnotationsResponseRow,
-    Detail,
     isUndefined,
 } from "@ourworldindata/utils"
 import {
@@ -2645,97 +2641,6 @@ apiRouter.get("/deploys.json", async () => ({
 
 apiRouter.put("/deploy", async (req: Request, res: Response) => {
     triggerStaticBuild(res.locals.user, "Manually triggered deploy")
-})
-
-apiRouter.get("/details", async () => ({
-    details: await db.queryMysql(
-        `SELECT id, category, term, title, content FROM details`
-    ),
-}))
-
-apiRouter.post("/details", async (req) => {
-    const { category, term, title, content } = req.body
-    const result = await db.execute(
-        `INSERT INTO details (category, term,title, content) VALUES (?, ?, ?, ?)`,
-        [category, term, title, content]
-    )
-
-    return {
-        success: true,
-        id: result.insertId,
-    }
-})
-
-apiRouter.delete("/details/:id", async (req) => {
-    const { id } = req.params
-    const matches = await db.queryMysql(
-        `SELECT id, category, term, title, content FROM details WHERE id = ?`,
-        [id]
-    )
-
-    if (!matches.length) {
-        throw new JsonError(`No detail with id ${id} found`)
-    }
-
-    const match = matches[0]
-
-    const references: { id: number; config: string }[] = await db.queryMysql(
-        `SELECT id, config FROM charts WHERE config LIKE '%(hover::${match.category}::${match.term})%'`
-    )
-
-    if (references.length) {
-        const ids = references.map((x) => x.id).join(", ")
-        throw new JsonError(
-            `Detail is being used by the following Graphers: ${ids}`
-        )
-    }
-
-    await db.execute(`DELETE FROM details WHERE id=?`, [id])
-    return { success: true }
-})
-
-apiRouter.put("/details/:id", async (req, res) => {
-    const {
-        params: { id },
-        body: detail,
-    } = req
-    const { category, term, title, content }: Detail = detail
-
-    const [original]: Detail[] = await db.execute(
-        `SELECT * FROM details WHERE id=?`,
-        [id]
-    )
-
-    await db.execute(
-        `UPDATE details SET category=?, term=?, title=?, content=? WHERE id=?`,
-        [category, term, title, content, id]
-    )
-
-    const references: { id: string; config: string }[] = await db.queryMysql(
-        `SELECT id, config FROM charts WHERE config LIKE '%(hover::${original.category}::${original.term})%'`
-    )
-
-    for (let { config: jsonConfig } of references) {
-        const originalConfig = JSON.parse(jsonConfig)
-
-        // replace syntax references with new category and term
-        jsonConfig = jsonConfig.replaceAll(
-            new RegExp(`hover::${original.category}::${original.term}`, "g"),
-            `hover::${category}::${term}`
-        )
-        // replace old detail definition, remove any empty categories, and add new one
-        const newConfig = JSON.parse(jsonConfig)
-        const originalPath = `${original.category}.${original.term}`
-        newConfig.details = omit(newConfig.details, originalPath)
-        newConfig.details = trimObject(newConfig.details)
-        newConfig.details = set(newConfig.details, [category, term], detail)
-
-        await db.transaction(async (t) => {
-            return saveGrapher(t, res.locals.user, newConfig, originalConfig)
-        })
-    }
-
-    return { success: true }
 })
 
 apiRouter.get("/gdocs", async () => Gdoc.find({ relations: ["tags"] }))

@@ -27,7 +27,8 @@ export {
     type Deploy,
     type DeployChange,
     DeployStatus,
-    type Detail,
+    type EnrichedDetail,
+    type DetailDictionary,
     DimensionProperty,
     type DocumentNode,
     type EnrichedBlockAdditionalCharts,
@@ -127,6 +128,7 @@ export {
     type RawBlockText,
     type RawBlockUrl,
     type RawChartStoryValue,
+    type RawDetail,
     type RawRecircItem,
     type RawSDGGridItem,
     type RelatedChart,
@@ -138,6 +140,7 @@ export {
     SortOrder,
     type Span,
     type SpanBold,
+    type SpanDod,
     type SpanFallback,
     type SpanItalic,
     type SpanLink,
@@ -531,15 +534,14 @@ export {
     sumTextWrapHeights,
 } from "./MarkdownTextWrap/MarkdownTextWrap.js"
 
-export { detailOnDemandRegex, mdParser } from "./MarkdownTextWrap/parser.js"
-
 export {
-    DoDWrapper,
-    globalDetailsOnDemand,
-} from "./DetailsOnDemand/detailsOnDemand.js"
+    extractDetailsFromSyntax,
+    mdParser,
+} from "./MarkdownTextWrap/parser.js"
 
 export {
     gdocUrlRegex,
+    detailOnDemandRegex,
     getLinkType,
     getUrlTarget,
     checkIsInternalLink,
