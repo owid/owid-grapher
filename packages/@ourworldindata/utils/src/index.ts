@@ -392,6 +392,7 @@ export {
     type Country,
     getCountryBySlug,
     getCountryDetectionRedirects,
+    isCountryName,
     continents,
     type Continent,
     aggregates,
