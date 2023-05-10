@@ -5,7 +5,6 @@ import {
     Bounds,
     DEFAULT_BOUNDS,
     exposeInstanceOnWindow,
-    isEmpty,
     MarkdownTextWrap,
     sumTextWrapHeights,
 } from "@ourworldindata/utils"
@@ -333,10 +332,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     }
 
     renderSVGDetails(): JSX.Element | null {
-        if (
-            isEmpty(this.manager.details) ||
-            !this.manager.shouldIncludeDetailsInStaticExport
-        ) {
+        if (!this.manager.shouldIncludeDetailsInStaticExport) {
             return null
         }
 

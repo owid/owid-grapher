@@ -27,7 +27,7 @@ newlines!**
 
 These DoDs won't render on hover because there's no data for them, but they'll demonstrate the superscript on SVG:
 
-[A dod](hover::general::term1) [another dod.](hover::general::term2) [The other dod](hover::general::term1)
+[A dod](#dod:term1) [another dod.](#dod:term2) [The other dod](#dod:term1)
 
 [links can contain _formatting_ too](http://ourworldindata.org). Averylongtokenthatcantbesplitbutshouldbeincludedanyway.**Canhavebold**withoutlinebreak.
 

@@ -27,7 +27,8 @@ export {
     type Deploy,
     type DeployChange,
     DeployStatus,
-    type Detail,
+    type EnrichedDetail,
+    type DetailDictionary,
     DimensionProperty,
     type DocumentNode,
     type EnrichedBlockAdditionalCharts,
@@ -135,6 +136,7 @@ export {
     type RawBlockUrl,
     type RawChartStoryValue,
     type RawRecircLink,
+    type RawDetail,
     type RawSDGGridItem,
     type RelatedChart,
     ScaleType,
@@ -145,6 +147,7 @@ export {
     SortOrder,
     type Span,
     type SpanBold,
+    type SpanDod,
     type SpanFallback,
     type SpanItalic,
     type SpanLink,
@@ -389,11 +392,19 @@ export {
 } from "./TimeBounds.js"
 
 export {
+    RegionType,
+    regions,
+    type Region,
     countries,
     type Country,
-    getCountry,
+    getCountryBySlug,
     getCountryDetectionRedirects,
-} from "./countries.js"
+    continents,
+    type Continent,
+    aggregates,
+    type Aggregate,
+    others,
+} from "./regions.js"
 
 export { getStylesForTargetHeight } from "./react-select.js"
 
@@ -539,15 +550,14 @@ export {
     sumTextWrapHeights,
 } from "./MarkdownTextWrap/MarkdownTextWrap.js"
 
-export { detailOnDemandRegex, mdParser } from "./MarkdownTextWrap/parser.js"
-
 export {
-    DoDWrapper,
-    globalDetailsOnDemand,
-} from "./DetailsOnDemand/detailsOnDemand.js"
+    extractDetailsFromSyntax,
+    mdParser,
+} from "./MarkdownTextWrap/parser.js"
 
 export {
     gdocUrlRegex,
+    detailOnDemandRegex,
     getLinkType,
     getUrlTarget,
     checkIsInternalLink,

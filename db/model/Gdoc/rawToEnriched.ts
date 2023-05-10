@@ -67,6 +67,11 @@ import {
     EnrichedBlockTopicPageIntro,
     Url,
     EnrichedTopicPageIntroRelatedTopic,
+    DetailDictionary,
+    EnrichedDetail,
+    checkIsPlainObjectWithGuard,
+    EnrichedBlockKeyInsightsSlide,
+    keyBy,
 } from "@ourworldindata/utils"
 import { extractUrl, getTitleSupertitleFromHeadingText } from "./gdocUtils.js"
 import {
@@ -76,7 +81,7 @@ import {
 } from "./htmlToEnriched.js"
 import { match } from "ts-pattern"
 import { parseInt } from "lodash"
-import { EnrichedBlockKeyInsightsSlide } from "@ourworldindata/utils/dist/owidTypes.js"
+import { GDOCS_DETAILS_ON_DEMAND_ID } from "../../../settings/serverSettings.js"
 
 export function parseRawBlocksToEnrichedBlocks(
     block: OwidRawGdocBlock
@@ -582,7 +587,7 @@ const parseRecirc = (raw: RawBlockRecirc): EnrichedBlockRecirc => {
     }
 }
 
-const parseText = (raw: RawBlockText): EnrichedBlockText => {
+export const parseText = (raw: RawBlockText): EnrichedBlockText => {
     const createError = (
         error: ParseError,
         value: Span[] = []
@@ -1094,5 +1099,70 @@ function parseKeyInsights(raw: RawBlockKeyInsights): EnrichedBlockKeyInsights {
         heading: raw.value.heading,
         insights: enrichedInsights,
         parseErrors: [...enrichedInsightParseErrors],
+    }
+}
+
+export function parseDetails(details: unknown): {
+    details: DetailDictionary
+    parseErrors: ParseError[]
+} {
+    if (!Array.isArray(details))
+        return {
+            details: {},
+            parseErrors: [
+                {
+                    message: `No details defined in document with id "${GDOCS_DETAILS_ON_DEMAND_ID}"`,
+                },
+            ],
+        }
+
+    function parseDetail(detail: unknown): EnrichedDetail {
+        const createError = (
+            error: ParseError,
+            id: string = "",
+            text: EnrichedBlockText[] = []
+        ): EnrichedDetail => ({
+            id,
+            text,
+            parseErrors: [error],
+        })
+
+        if (!checkIsPlainObjectWithGuard(detail))
+            return createError({
+                message: "Detail is not a plain-object and cannot be parsed",
+            })
+        if (typeof detail.id !== "string")
+            return createError({
+                message: "Detail does not have an id",
+            })
+        if (!Array.isArray(detail.text) || !detail.text.length)
+            return createError({
+                message: `Detail with id "${detail.id}" does not have any text`,
+            })
+
+        const enrichedText = detail.text.map(parseText)
+
+        return {
+            id: detail.id,
+            text: enrichedText,
+            parseErrors: [
+                ...enrichedText.flatMap((text) =>
+                    text.parseErrors.map((parseError) => ({
+                        ...parseError,
+                        message: `Text parse error in detail with id "${detail.id}": ${parseError.message}`,
+                    }))
+                ),
+            ],
+        }
+    }
+
+    const [enrichedDetails, detailsWithErrors] = partition(
+        details.map(parseDetail),
+        (detail) => !detail.parseErrors.length
+    )
+
+    return {
+        details: keyBy(enrichedDetails, "id"),
+        parseErrors: detailsWithErrors.flatMap((detail) => detail.parseErrors),
     }
 }

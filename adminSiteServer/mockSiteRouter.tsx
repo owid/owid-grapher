@@ -43,6 +43,7 @@ import { getExplorerRedirectForPath } from "../explorerAdminServer/ExplorerRedir
 import { explorerUrlMigrationsById } from "../explorer/urlMigrations/ExplorerUrlMigrations.js"
 import { generateEmbedSnippet } from "../site/viteUtils.js"
 import { renderDataPageOrGrapherPage } from "../baker/GrapherBaker.js"
+import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
 
 require("express-async-errors")
 
@@ -231,6 +232,19 @@ mockSiteRouter.get("/multiEmbedderTest", async (req, res) =>
         )
     )
 )
+
+mockSiteRouter.get("/dods.json", async (_, res) => {
+    res.set("Access-Control-Allow-Origin", "*")
+    const { details, parseErrors } = await Gdoc.getDetailsOnDemandGdoc()
+    if (parseErrors.length) {
+        console.error(
+            `Error(s) parsing details: ${parseErrors
+                .map((e) => e.message)
+                .join(", ")}`
+        )
+    }
+    res.send(details)
+})
 
 mockSiteRouter.get("/*", async (req, res) => {
     const slug = req.path.replace(/^\//, "").replace("/", "__")

@@ -15,7 +15,7 @@ import {
     ColumnSlug,
     SortConfig,
     TopicId,
-    Detail,
+    DetailDictionary,
 } from "@ourworldindata/utils"
 import { ComparisonLineConfig } from "../scatterCharts/ComparisonLine"
 import { LogoOption } from "../captionedChart/Logos"
@@ -65,7 +65,7 @@ export interface GrapherInterface extends SortConfig {
     tab?: GrapherTabOption
     overlay?: GrapherTabOption
     relatedQuestions?: RelatedQuestionsConfig[]
-    details?: Record<string, Record<string, Detail>>
+    details?: DetailDictionary
     internalNotes?: string
     variantName?: string
     originUrl?: string

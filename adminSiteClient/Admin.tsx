@@ -175,7 +175,10 @@ export class Admin {
         )
     }
 
-    async getJSON(path: string, params: Json = {}): Promise<Json> {
-        return this.requestJSON(path, params, "GET")
+    async getJSON<T extends Json = Json>(
+        path: string,
+        params: Json = {}
+    ): Promise<T> {
+        return this.requestJSON<T>(path, params, "GET")
     }
 }

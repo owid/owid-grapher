@@ -44,7 +44,7 @@ const encodeTests = [
     {
         entities: ["North America"],
         inputQueryStr: "?country=~North%20America",
-        outputQueryStr: "?country=~North+America",
+        outputQueryStr: "?country=~OWID_NAM",
     },
     {
         entities: [],

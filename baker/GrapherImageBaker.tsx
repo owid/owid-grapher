@@ -64,7 +64,7 @@ export async function getPublishedGraphersBySlug() {
     const graphersById: Map<number, GrapherInterface> = new Map()
 
     // Select all graphers that are published
-    const sql = `SELECT * FROM charts WHERE config->>"$.isPublished" = "true"`
+    const sql = `SELECT id, config FROM charts WHERE config->>"$.isPublished" = "true"`
 
     const query = db.queryMysql(sql)
     for (const row of await query) {

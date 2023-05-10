@@ -14,6 +14,7 @@ import {
     WORDPRESS_DIR,
     IMAGE_HOSTING_CDN_URL,
     IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH,
+    GDOCS_DETAILS_ON_DEMAND_ID,
 } from "../settings/serverSettings.js"
 
 import {
@@ -46,6 +47,7 @@ import {
     ImageMetadata,
     clone,
     getFilenameWithoutExtension,
+    extractDetailsFromSyntax,
 } from "@ourworldindata/utils"
 import { execWrapper } from "../db/execWrapper.js"
 import { logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
@@ -84,6 +86,7 @@ const nonWordpressSteps = [
     "charts",
     "gdocPosts",
     "gdriveImages",
+    "dods",
 ] as const
 
 export const bakeSteps = [...wordpressSteps, ...nonWordpressSteps]
@@ -100,6 +103,8 @@ function getProgressBarTotal(bakeSteps: BakeStepConfig): number {
     let total = minimum + bakeSteps.size
     // Redirects has two progress bar ticks
     if (bakeSteps.has("redirects")) total++
+    // Add a tick for the validation step that occurs when these two steps run
+    if (bakeSteps.has("dods") && bakeSteps.has("charts")) total++
     return total
 }
 
@@ -387,6 +392,93 @@ export class SiteBaker {
         this.progressBar.tick({ name: "✅ baked special pages" })
     }
 
+    private async validateGrapherDodReferences() {
+        if (!this.bakeSteps.has("dods") || !this.bakeSteps.has("charts")) return
+        if (!GDOCS_DETAILS_ON_DEMAND_ID) {
+            console.error(
+                "GDOCS_DETAILS_ON_DEMAND_ID not set. Unable to validate dods."
+            )
+            return
+        }
+
+        const { details } = await Gdoc.getDetailsOnDemandGdoc()
+
+        if (!details) {
+            this.progressBar.tick({
+                name: "✅ no details exist. skipping grapher dod validation step",
+            })
+            return
+        }
+
+        const charts: { slug: string; subtitle: string; note: string }[] =
+            await db.queryMysql(`
+                SELECT 
+                    config ->> '$.slug' as slug, 
+                    config ->> '$.subtitle' as subtitle, 
+                    config ->> '$.note' as note 
+                FROM 
+                    charts 
+                WHERE 
+                    JSON_EXTRACT(config, "$.isPublished") = true 
+                AND (
+                    JSON_EXTRACT(config, "$.subtitle") LIKE "%#dod:%" 
+                    OR JSON_EXTRACT(config, "$.note") LIKE "%#dod:%"
+                ) 
+                ORDER BY 
+                    JSON_EXTRACT(config, "$.slug") ASC
+            `)
+
+        for (const chart of charts) {
+            const detailIds = new Set(
+                extractDetailsFromSyntax(`${chart.note} ${chart.subtitle}`)
+            )
+            for (const detailId of detailIds) {
+                if (!details[detailId]) {
+                    logErrorAndMaybeSendToSlack(
+                        `Grapher with slug ${chart.slug} references dod "${detailId}" which does not exist`
+                    )
+                }
+            }
+        }
+
+        this.progressBar.tick({ name: "✅ validated grapher dods" })
+    }
+
+    private async bakeDetailsOnDemand() {
+        if (!this.bakeSteps.has("dods")) return
+        if (!GDOCS_DETAILS_ON_DEMAND_ID) {
+            console.error(
+                "GDOCS_DETAILS_ON_DEMAND_ID not set. Unable to bake dods."
+            )
+            return
+        }
+
+        const { details, parseErrors } = await Gdoc.getDetailsOnDemandGdoc()
+        if (parseErrors.length) {
+            logErrorAndMaybeSendToSlack(
+                `Error(s) baking details: ${parseErrors
+                    .map((e) => e.message)
+                    .join(", ")}`
+            )
+        }
+
+        if (details) {
+            await this.stageWrite(
+                `${this.bakedSiteDir}/dods.json`,
+                JSON.stringify(details)
+            )
+            // This task completes too quickly and doesn't tick correctly without this
+            await new Promise((resolve) => {
+                setTimeout(() => {
+                    this.progressBar.tick({ name: "✅ baked dods.json" })
+                    resolve(true)
+                }, 250)
+            })
+        } else {
+            throw Error("Details on demand not found")
+        }
+    }
+
     // Pages that are expected by google scholar for indexing
     private async bakeGoogleScholar() {
         if (!this.bakeSteps.has("googleScholar")) return
@@ -567,6 +659,8 @@ export class SiteBaker {
                 name: "✅ bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers",
             })
         }
+        await this.bakeDetailsOnDemand()
+        await this.validateGrapherDodReferences()
         await this.bakeGDocPosts()
         await this.bakeDriveImages()
     }
