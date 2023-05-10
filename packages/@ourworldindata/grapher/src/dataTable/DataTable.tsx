@@ -364,7 +364,7 @@ export class DataTable extends React.Component<{
                 key={row.entityName}
                 className={classnames({
                     aggregate:
-                        this.manager.entityType == "country" &&
+                        this.manager.entityType.match(/\bcountry\b/i) &&
                         !isCountryName(row.entityName),
                 })}
             >
