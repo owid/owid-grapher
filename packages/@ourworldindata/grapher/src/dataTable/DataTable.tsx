@@ -138,6 +138,10 @@ export class DataTable extends React.Component<{
         return this.manager.entityType
     }
 
+    @computed private get entitiesAreCountryLike(): boolean {
+        return !!this.manager.entityType.match(/\bcountry\b/i)
+    }
+
     @computed private get sortValueMapper(): (
         row: DataTableRow
     ) => number | string {
@@ -364,7 +368,7 @@ export class DataTable extends React.Component<{
                 key={row.entityName}
                 className={classnames({
                     aggregate:
-                        this.manager.entityType.match(/\bcountry\b/i) &&
+                        this.entitiesAreCountryLike &&
                         !isCountryName(row.entityName),
                 })}
             >
