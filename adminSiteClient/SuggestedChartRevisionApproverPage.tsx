@@ -9,6 +9,7 @@ import {
     getStylesForTargetHeight,
     SortOrder,
     SuggestedChartRevisionStatus,
+    Tippy,
 } from "@ourworldindata/utils"
 import { Grapher } from "@ourworldindata/grapher"
 import {
@@ -405,6 +406,13 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
         // Render the approval tool
         return this.numTotalRows > 0 || !this.listMode ? (
             <React.Fragment>
+                <div>
+                    <select>
+                        <option value="fruit">Fruit</option>
+                        <option value="vegetable">Vegetable</option>
+                        <option value="meat">Meat</option>
+                    </select>
+                </div>
                 {this.renderGraphers()}
                 {this.renderControls()}
                 {this.renderMeta()}
@@ -429,16 +437,25 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                     <div
                         className="chart-view"
                         style={{
-                            height: this.grapherBounds.height + 50,
+                            height: this.grapherBounds.height + 10,
                             width: this.grapherBounds.width,
                         }}
                     >
                         {this.suggestedChartRevision && (
                             <React.Fragment>
-                                <div className="header">
-                                    <h2>Original chart</h2>
+                                <div
+                                    className="header"
+                                    style={{
+                                        paddingBottom: "1rem",
+                                    }}
+                                >
+                                    <Tippy content="This is what the chart looked like when the suggested revision was created.">
+                                        <h3 className="grapherChart">
+                                            Original
+                                        </h3>
+                                    </Tippy>
                                     <span className="text-muted">
-                                        {`(#${this.suggestedChartRevision.chartId}, V${this.suggestedChartRevision.originalConfig.version})`}
+                                        {/* {`(#${this.suggestedChartRevision.chartId}, V${this.suggestedChartRevision.originalConfig.version})`} */}
                                     </span>
                                     <Link
                                         className="btn btn-outline-secondary"
@@ -453,13 +470,13 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                                         />
                                     </Link>
                                 </div>
-                                <p
+                                {/* <p
                                     className="text-muted"
                                     style={{ fontWeight: 300 }}
                                 >
                                     This is what the chart looked like when the
                                     suggested revision was created.
-                                </p>
+                                </p> */}
                             </React.Fragment>
                         )}
                         {this._isGraphersSet &&
@@ -472,14 +489,23 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                         <div
                             className="chart-view"
                             style={{
-                                height: this.grapherBounds.height + 50,
+                                height: this.grapherBounds.height + 10,
                                 width: this.grapherBounds.width,
                             }}
                         >
                             {this.suggestedChartRevision && (
                                 <React.Fragment>
-                                    <div className="header">
-                                        <h2>Existing chart</h2>
+                                    <div
+                                        className="header"
+                                        style={{
+                                            paddingBottom: "1rem",
+                                        }}
+                                    >
+                                        <Tippy content="This is what the chart looks like right now on the OWID website.">
+                                            <h3 className="grapherChart">
+                                                Existing
+                                            </h3>
+                                        </Tippy>
                                         <span className="text-muted">
                                             {`(#${this.suggestedChartRevision.chartId}, V${this.suggestedChartRevision.existingConfig.version})`}
                                         </span>
@@ -496,13 +522,12 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                                             />
                                         </Link>
                                     </div>
-                                    <p
+                                    {/* <p
                                         className="text-muted"
                                         style={{ fontWeight: 300 }}
                                     >
-                                        This is what the chart looks like right
-                                        now on the OWID website.
-                                    </p>
+                                        This is what the chart looks like right now on the OWID website.
+                                    </p> */}
                                 </React.Fragment>
                             )}
                             {this._isGraphersSet &&
@@ -515,16 +540,25 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                     <div
                         className="chart-view"
                         style={{
-                            height: this.grapherBounds.height + 50,
+                            height: this.grapherBounds.height + 10,
                             width: this.grapherBounds.width,
                         }}
                     >
                         {this.suggestedChartRevision && (
                             <React.Fragment>
-                                <div className="header">
-                                    <h2>Suggested chart</h2>
+                                <div
+                                    className="header"
+                                    style={{
+                                        paddingBottom: "1rem",
+                                    }}
+                                >
+                                    <Tippy content="This is what the chart will look like if the suggested revision is approved.">
+                                        <h3 className="grapherChart">
+                                            Suggested
+                                        </h3>
+                                    </Tippy>
                                     <span className="text-muted">
-                                        {`(#${this.suggestedChartRevision.chartId}, V${this.suggestedChartRevision.suggestedConfig.version})`}
+                                        {/* {`(#${this.suggestedChartRevision.chartId}, V${this.suggestedChartRevision.suggestedConfig.version})`} */}
                                     </span>
                                     <Link
                                         className="btn btn-outline-secondary"
@@ -547,13 +581,12 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                                         />
                                     </Link>
                                 </div>
-                                <p
+                                {/* <p
                                     className="text-muted"
                                     style={{ fontWeight: 300 }}
                                 >
-                                    This is what the chart will look like if the
-                                    suggested revision is approved.
-                                </p>
+                                    This is what the chart will look like if the suggested revision is approved.
+                                </p> */}
                             </React.Fragment>
                         )}
                         {this._isGraphersSet &&
@@ -904,7 +937,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                 <h4>Terminology</h4>
                 <ul>
                     <li>
-                        <b>Suggested chart revision.</b> A suggested chart
+                        <b>Suggested (chart revision).</b> A suggested chart
                         revision is simply an amended OWID chart, but where the
                         amendments have not yet been applied to the chart in
                         question. A suggested chart revision is housed in the{" "}
@@ -914,12 +947,13 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                         (which overwrites and republishes the chart).
                     </li>
                     <li>
-                        <b>Original chart.</b> The chart as it originally was
-                        when the suggested chart revision was created.
+                        <b>Original (Original chart).</b> The chart as it
+                        originally was when the suggested chart revision was
+                        created.
                     </li>
                     <li>
-                        <b>Existing chart.</b> The chart as it currently exists
-                        on the OWID website.
+                        <b>Existing (Existing chart).</b> The chart as it
+                        currently exists on the OWID website.
                     </li>
                 </ul>
                 <h4>How to use</h4>

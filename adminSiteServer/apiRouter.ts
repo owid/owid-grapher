@@ -798,7 +798,7 @@ apiRouter.get(
         }
 
         const suggestedChartRevisions = await db.queryMysql(
-            `
+            `-- sql
             SELECT scr.id, scr.chartId, scr.updatedAt, scr.createdAt,
                 scr.suggestedReason, scr.decisionReason, scr.status,
                 scr.suggestedConfig, scr.originalConfig, scr.changesInDataSummary,

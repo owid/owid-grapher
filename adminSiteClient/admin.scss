@@ -1123,6 +1123,13 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
             margin-bottom: 0.5em;
         }
     }
+
+    h3.grapherChart {
+        // border-bottom: 1px darkgray dotted;
+        text-decoration: underline;
+        text-decoration-style: dotted;
+        text-decoration-color: darkgray;
+    }
 }
 
 .SuggestedChartRevisionListPage {
