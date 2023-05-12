@@ -442,7 +442,7 @@ export class DiscreteBarChart
                         : yAxis.place(series.value) - barX
                     const barColor = series.color
                     const label = this.formatValue(series)
-                    const labelX = isNegative
+                    const labelX = isNegative && showLabels
                         ? barX - label.width - labelToTextPadding
                         : barX - labelToBarPadding
 
