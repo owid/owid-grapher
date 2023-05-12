@@ -489,6 +489,14 @@ export class StackedDiscreteBarChart
                     opacity={0}
                     fill="rgba(255,255,255,0)"
                 />
+                {/* zero line */}
+                <line
+                    x1={yAxis.place(0)}
+                    y1={this.innerBounds.bottom.toFixed(2)}
+                    x2={yAxis.place(0)}
+                    y2={this.innerBounds.top.toFixed(2)}
+                    stroke="#999"
+                />
                 {this.showHorizontalAxis && (
                     <React.Fragment>
                         <HorizontalAxisComponent
