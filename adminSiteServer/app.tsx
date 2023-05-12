@@ -13,7 +13,6 @@ import {
     BAKED_BASE_URL,
     BUGSNAG_NODE_API_KEY,
     ENV,
-    SLACK_ERRORS_WEBHOOK_URL,
 } from "../settings/serverSettings.js"
 import * as db from "../db/db.js"
 import * as wpdb from "../db/wpdb.js"
@@ -35,12 +34,7 @@ import OwidGdocPage from "../site/gdocs/OwidGdocPage.js"
 import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 
-// library does not provide type definitions
-// eslint-disable-next-line
-const expressErrorSlack = require("express-error-slack")
-
 interface OwidAdminAppOptions {
-    slackErrorsWebHookUrl?: string
     gitCmsDir: string
     isDev: boolean
     quiet?: boolean
@@ -161,15 +155,6 @@ export class OwidAdminApp {
         // error handler if it exists.
         if (bugsnagMiddleware) app.use(bugsnagMiddleware.errorHandler)
 
-        // Send errors to Slack
-        // The middleware passes all errors onto the next error-handling middleware
-        if (this.options.slackErrorsWebHookUrl)
-            app.use(
-                expressErrorSlack({
-                    webhookUri: this.options.slackErrorsWebHookUrl,
-                })
-            )
-
         // todo: we probably always want to have this, and can remove the isDev
         if (this.options.isDev) app.use("/", mockSiteRouter)
 
@@ -276,7 +261,6 @@ export class OwidAdminApp {
 
 if (!module.parent)
     new OwidAdminApp({
-        slackErrorsWebHookUrl: SLACK_ERRORS_WEBHOOK_URL,
         gitCmsDir: GIT_CMS_DIR,
         isDev: ENV === "development",
     }).startListening(ADMIN_SERVER_PORT, ADMIN_SERVER_HOST)

@@ -12237,15 +12237,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"express-error-slack@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "express-error-slack@npm:2.0.0"
-  dependencies:
-    slack-node: ^0.1.8
-  checksum: 0f6d6462dc7abe6cbd4958bd890bfd1fe8a715238b577b1d69682c84dbd641625ba68dfdf8e9d9c42edae34569540be2170a8013d3d9e64e30c84375f461db18
-  languageName: node
-  linkType: hard
-
 "express-logging@npm:^1.1.1":
   version: 1.1.1
   resolution: "express-logging@npm:1.1.1"
@@ -14029,7 +14020,6 @@ __metadata:
     expr-eval: ^2.0.2
     express: ^4.18.1
     express-async-errors: ^3.1.1
-    express-error-slack: ^2.0.0
     express-rate-limit: ^5.1.3
     fast-cartesian: ^5.1.0
     filenamify: ^4.1.0
