@@ -29,6 +29,7 @@ import {
 import {
     HorizontalAxisComponent,
     HorizontalAxisGridLines,
+    HorizontalAxisZeroLine,
 } from "../axis/AxisViews"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { AxisConfig, FontSizeManager } from "../axis/AxisConfig"
@@ -415,14 +416,6 @@ export class DiscreteBarChart
                 {this.hasColorLegend && (
                     <HorizontalNumericColorLegend manager={this} />
                 )}
-                {/* zero line */}
-                <line
-                    x1={yAxis.place(0)}
-                    y1={this.innerBounds.bottom.toFixed(2)}
-                    x2={yAxis.place(0)}
-                    y2={this.innerBounds.top.toFixed(2)}
-                    stroke="#999"
-                />
                 {this.showHorizontalAxis && (
                     <React.Fragment>
                         <HorizontalAxisComponent
@@ -511,6 +504,10 @@ export class DiscreteBarChart
                         return result
                     })}
                 </g>
+                <HorizontalAxisZeroLine
+                    horizontalAxis={yAxis}
+                    bounds={innerBounds}
+                />
             </g>
         )
     }

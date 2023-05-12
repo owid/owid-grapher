@@ -83,31 +83,69 @@ export class HorizontalAxisGridLines extends React.Component<{
 
         return (
             <g className={classNames("AxisGridLines", "verticalLines")}>
-                {axis.getTickValues().map((t, i) => {
-                    const color = t.faint
-                        ? FAINT_TICK_COLOR
-                        : t.solid
-                        ? SOLID_TICK_COLOR
-                        : TICK_COLOR
+                {axis
+                    .getTickValues()
+                    .filter((t) => t.value !== 0)
+                    .map((t, i) => {
+                        const color = t.faint
+                            ? FAINT_TICK_COLOR
+                            : t.solid
+                            ? SOLID_TICK_COLOR
+                            : TICK_COLOR
 
-                    return (
-                        <line
-                            key={i}
-                            x1={axis.place(t.value)}
-                            y1={bounds.bottom.toFixed(2)}
-                            x2={axis.place(t.value)}
-                            y2={bounds.top.toFixed(2)}
-                            stroke={color}
-                            strokeDasharray={
-                                t.solid
-                                    ? undefined
-                                    : dasharrayFromFontSize(
-                                          horizontalAxis.tickFontSize
-                                      )
-                            }
-                        />
-                    )
-                })}
+                        return (
+                            <line
+                                key={i}
+                                x1={axis.place(t.value)}
+                                y1={bounds.bottom.toFixed(2)}
+                                x2={axis.place(t.value)}
+                                y2={bounds.top.toFixed(2)}
+                                stroke={color}
+                                strokeDasharray={
+                                    t.solid
+                                        ? undefined
+                                        : dasharrayFromFontSize(
+                                              horizontalAxis.tickFontSize
+                                          )
+                                }
+                            />
+                        )
+                    })}
+            </g>
+        )
+    }
+}
+
+@observer
+export class HorizontalAxisZeroLine extends React.Component<{
+    horizontalAxis: HorizontalAxis
+    bounds?: Bounds
+}> {
+    @computed get bounds(): Bounds {
+        return this.props.bounds ?? DEFAULT_BOUNDS
+    }
+
+    render(): JSX.Element {
+        const { horizontalAxis } = this.props
+        const { bounds } = this
+        const axis = horizontalAxis.clone()
+        axis.range = bounds.xRange()
+
+        return (
+            <g
+                className={classNames(
+                    "AxisGridLines",
+                    "verticalLines",
+                    "zeroLine"
+                )}
+            >
+                <line
+                    x1={axis.place(0)}
+                    y1={bounds.bottom.toFixed(2)}
+                    x2={axis.place(0)}
+                    y2={bounds.top.toFixed(2)}
+                    stroke={SOLID_TICK_COLOR}
+                />
             </g>
         )
     }
