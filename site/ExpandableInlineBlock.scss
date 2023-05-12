@@ -1,9 +1,0 @@
-.expandable-inline-block {
-    button {
-        @include expandable-block-button;
-    }
-}
-
-.expandable-block-button {
-    @include expandable-block-button;
-}
