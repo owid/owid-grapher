@@ -43,7 +43,6 @@ import {
 } from "./VisionDeficiencies.js"
 import { SuggestedChartRevisionSerialized } from "./SuggestedChartRevision.js"
 import { match } from "ts-pattern"
-// import { Tab, Tabs, TabList, TabPanel } from "react-tabs"
 
 @observer
 export class SuggestedChartRevisionApproverPage extends React.Component<{
@@ -352,100 +351,64 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
     }
 
     render() {
-        const { ALL_TABS, activeTab } = this
         return (
             <AdminLayout
                 title="Approval tool for suggested chart revisions"
                 noSidebar
             >
                 <main className="SuggestedChartRevisionApproverPage">
-                    {/* <h1>
-                        Chart Approval Tool
-                        <Link
-                            className="btn btn-outline-primary"
-                            to="/suggested-chart-revisions"
-                            style={{ marginLeft: "10px" }}
-                        >
-                            View all revisions
-                        </Link>
-                        <Link
-                            className="btn btn-outline-primary"
-                            to="/suggested-chart-revisions/import"
-                            style={{ marginLeft: "10px" }}
-                        >
-                            Upload revisions
-                        </Link>
-                    </h1> */}
-
-                    <div>
-                        <ul className="nav nav-tabs">
-                            {Object.entries(ALL_TABS).map(
-                                ([tab, displayName]) => (
-                                    <li key={tab} className="nav-item">
-                                        <a
-                                            className={
-                                                "nav-link" +
-                                                (tab === activeTab
-                                                    ? " active"
-                                                    : "")
-                                            }
-                                            onClick={action(
-                                                () =>
-                                                    (this.activeTab =
-                                                        tab as keyof typeof ALL_TABS)
-                                            )}
-                                        >
-                                            {displayName}
-                                        </a>
-                                    </li>
-                                )
-                            )}
-                        </ul>
-                    </div>
-                    <div className="sidebar-content">
-                        {match(activeTab)
-                            .with("approval", () => this.renderApprovalTool())
-                            .with("readme", () => this.renderReadme())
-                            .with("settings", () => this.renderSettings())
-                            .otherwise(() => null)}
-                    </div>
-                    {/* <div>
-                        <p>
-                            Use this tool to approve or reject chart revisions
-                            that have been suggested by an automated bulk update
-                            script. The purpose of this tool is to provide a
-                            layer of quality assurance for our charts that are
-                            updated by automated scripts. This tool is a work in
-                            progress. Start a thread in{" "}
-                            <a
-                                href="https://owid.slack.com/messages/tech-issues/"
-                                rel="noreferrer"
-                                target="_blank"
-                            >
-                                #tech-issues
-                            </a>{" "}
-                            if you find a bug, want to request a feature, or
-                            have other feedback.
-                        </p>
-
-                        <p className="text-danger">
-                            WARNING: This tool is new and may contain bugs that
-                            cause unexpected behavior. Use with caution.
-                        </p>
-                    </div> */}
-
-                    {/* <div style={{ paddingBottom: 10 }}>
-                        {this.renderReadme2()}
-                        {this.renderSettings2()}
-                    </div> */}
+                    {/* Render tabs with content */}
+                    {this.renderContent()}
                 </main>
             </AdminLayout>
         )
     }
 
+    renderContent() {
+        // Render all tabs and their content
+        const { ALL_TABS, activeTab } = this
+        return (
+            <div>
+                <div>
+                    <ul className="nav nav-tabs">
+                        {Object.entries(ALL_TABS).map(([tab, displayName]) => (
+                            <li key={tab} className="nav-item">
+                                <a
+                                    className={
+                                        "nav-link" +
+                                        (tab === activeTab ? " active" : "")
+                                    }
+                                    onClick={action(
+                                        () =>
+                                            (this.activeTab =
+                                                tab as keyof typeof ALL_TABS)
+                                    )}
+                                >
+                                    {displayName}
+                                </a>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+                <div className="sidebar-content">
+                    {match(activeTab)
+                        .with("approval", () => this.renderApprovalTool())
+                        .with("readme", () => this.renderReadme())
+                        .with("settings", () => this.renderSettings())
+                        .otherwise(() => null)}
+                </div>
+            </div>
+        )
+    }
+
     renderApprovalTool() {
+        // Render the approval tool
         return this.numTotalRows > 0 || !this.listMode ? (
-            this.renderApprovalToolActually()
+            <React.Fragment>
+                {this.renderGraphers()}
+                {this.renderControls()}
+                {this.renderMeta()}
+            </React.Fragment>
         ) : (
             <div style={{ paddingBottom: 20 }}>
                 0 pending chart revisions found. All suggested chart revisions
@@ -458,19 +421,484 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
         )
     }
 
-    renderApprovalToolActually() {
-        // const status =
-        //     this.suggestedChartRevision && this.suggestedChartRevision.status
+    renderGraphers() {
+        // Render both charts next to each other
         return (
             <React.Fragment>
-                {this.renderGraphers()}
-                {this.renderControls()}
-                {this.renderMeta()}
+                <div className="charts-view">
+                    <div
+                        className="chart-view"
+                        style={{
+                            height: this.grapherBounds.height + 50,
+                            width: this.grapherBounds.width,
+                        }}
+                    >
+                        {this.suggestedChartRevision && (
+                            <React.Fragment>
+                                <div className="header">
+                                    <h2>Original chart</h2>
+                                    <span className="text-muted">
+                                        {`(#${this.suggestedChartRevision.chartId}, V${this.suggestedChartRevision.originalConfig.version})`}
+                                    </span>
+                                    <Link
+                                        className="btn btn-outline-secondary"
+                                        to={`/charts/${this.suggestedChartRevision.chartId}/edit`}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        title="Edit original chart in a new tab"
+                                    >
+                                        Edit{" "}
+                                        <FontAwesomeIcon
+                                            icon={faExternalLinkAlt}
+                                        />
+                                    </Link>
+                                </div>
+                                <p
+                                    className="text-muted"
+                                    style={{ fontWeight: 300 }}
+                                >
+                                    This is what the chart looked like when the
+                                    suggested revision was created.
+                                </p>
+                            </React.Fragment>
+                        )}
+                        {this._isGraphersSet &&
+                            this.suggestedChartRevision &&
+                            this.renderGrapher(
+                                this.suggestedChartRevision.originalConfig
+                            )}
+                    </div>
+                    {this.showExistingChart && (
+                        <div
+                            className="chart-view"
+                            style={{
+                                height: this.grapherBounds.height + 50,
+                                width: this.grapherBounds.width,
+                            }}
+                        >
+                            {this.suggestedChartRevision && (
+                                <React.Fragment>
+                                    <div className="header">
+                                        <h2>Existing chart</h2>
+                                        <span className="text-muted">
+                                            {`(#${this.suggestedChartRevision.chartId}, V${this.suggestedChartRevision.existingConfig.version})`}
+                                        </span>
+                                        <Link
+                                            className="btn btn-outline-secondary"
+                                            to={`/charts/${this.suggestedChartRevision.chartId}/edit`}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            title="Edit existing chart in a new tab"
+                                        >
+                                            Edit{" "}
+                                            <FontAwesomeIcon
+                                                icon={faExternalLinkAlt}
+                                            />
+                                        </Link>
+                                    </div>
+                                    <p
+                                        className="text-muted"
+                                        style={{ fontWeight: 300 }}
+                                    >
+                                        This is what the chart looks like right
+                                        now on the OWID website.
+                                    </p>
+                                </React.Fragment>
+                            )}
+                            {this._isGraphersSet &&
+                                this.suggestedChartRevision &&
+                                this.renderGrapher(
+                                    this.suggestedChartRevision.existingConfig
+                                )}
+                        </div>
+                    )}
+                    <div
+                        className="chart-view"
+                        style={{
+                            height: this.grapherBounds.height + 50,
+                            width: this.grapherBounds.width,
+                        }}
+                    >
+                        {this.suggestedChartRevision && (
+                            <React.Fragment>
+                                <div className="header">
+                                    <h2>Suggested chart</h2>
+                                    <span className="text-muted">
+                                        {`(#${this.suggestedChartRevision.chartId}, V${this.suggestedChartRevision.suggestedConfig.version})`}
+                                    </span>
+                                    <Link
+                                        className="btn btn-outline-secondary"
+                                        to={`/charts/${
+                                            this.suggestedChartRevision.chartId
+                                        }/edit/${Base64.encode(
+                                            JSON.stringify(
+                                                this.suggestedChartRevision
+                                                    .suggestedConfig
+                                            )
+                                        )}`}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        title="Edit chart in a new tab"
+                                    >
+                                        Edit as chart{" "}
+                                        {this.suggestedChartRevision.chartId}{" "}
+                                        <FontAwesomeIcon
+                                            icon={faExternalLinkAlt}
+                                        />
+                                    </Link>
+                                </div>
+                                <p
+                                    className="text-muted"
+                                    style={{ fontWeight: 300 }}
+                                >
+                                    This is what the chart will look like if the
+                                    suggested revision is approved.
+                                </p>
+                            </React.Fragment>
+                        )}
+                        {this._isGraphersSet &&
+                            this.suggestedChartRevision &&
+                            this.renderGrapher(
+                                this.suggestedChartRevision.suggestedConfig
+                            )}
+                    </div>
+                </div>
+            </React.Fragment>
+        )
+    }
+
+    renderGrapher(grapherConfig: any) {
+        return (
+            <div>
+                {this.previewSvgOrJson === "json" ? (
+                    <div
+                        className="json-view"
+                        style={{
+                            height: this.grapherBounds.height * 0.9,
+                            maxWidth: this.grapherBounds.width,
+                        }}
+                    >
+                        <pre>
+                            <code>
+                                {JSON.stringify(grapherConfig, null, 2)}
+                            </code>
+                        </pre>
+                    </div>
+                ) : (
+                    <figure
+                        data-grapher-src
+                        style={{
+                            filter:
+                                this.simulateVisionDeficiency &&
+                                `url(#${this.simulateVisionDeficiency.id})`,
+                        }}
+                    >
+                        <Grapher
+                            {...{
+                                ...grapherConfig,
+                                bounds: this.grapherBounds,
+                                dataApiUrlForAdmin:
+                                    this.context.admin.settings
+                                        .DATA_API_FOR_ADMIN_UI, // passed this way because clientSettings are baked and need a recompile to be updated
+                            }}
+                        />
+                    </figure>
+                )}
+            </div>
+        )
+    }
+
+    renderControls() {
+        // Render controls on how to navigate the approval
+        return (
+            <div className="controls">
+                {this.renderControlsNotes()}
+                {this.renderControlsButtons()}
+                {this.renderControlsNumberOfRevisions()}
+            </div>
+        )
+    }
+
+    renderControlsNotes() {
+        // Render textarea in the controls block
+        return (
+            <TextAreaField
+                label="Notes"
+                placeholder="e.g. why are you rejecting this suggested revision?"
+                value={this.decisionReasonInput}
+                onValue={this.onDecisionReasonInput}
+                disabled={!this._isGraphersSet}
+            />
+        )
+    }
+
+    renderControlsButtons() {
+        // Render buttons in controls section
+        return (
+            <div className="buttons">
+                {this.listMode && (
+                    <React.Fragment>
+                        <button
+                            className="btn btn-outline-dark"
+                            onClick={this.onFirst}
+                            title="Go to first suggestion"
+                            disabled={this.prevBtnIsDisabled}
+                            aria-disabled={this.prevBtnIsDisabled}
+                            style={{
+                                pointerEvents: this.prevBtnIsDisabled
+                                    ? "none"
+                                    : undefined,
+                            }}
+                        >
+                            <FontAwesomeIcon icon={faAngleDoubleLeft} />
+                        </button>
+                        <button
+                            className="btn btn-outline-dark"
+                            onClick={this.onPrev}
+                            title="Go to previous suggestion"
+                            disabled={this.prevBtnIsDisabled}
+                            aria-disabled={this.prevBtnIsDisabled}
+                            style={{
+                                pointerEvents: this.prevBtnIsDisabled
+                                    ? "none"
+                                    : undefined,
+                            }}
+                        >
+                            <FontAwesomeIcon icon={faAngleLeft} />
+                        </button>
+                    </React.Fragment>
+                )}
+                <button
+                    className="btn btn-outline-danger"
+                    onClick={this.onRejectSuggestedChartRevision}
+                    title="Reject the suggestion, keeping the original chart as it is"
+                    disabled={this.rejectButtonIsDisabled}
+                    aria-disabled={this.rejectButtonIsDisabled}
+                    style={{
+                        pointerEvents: this.rejectButtonIsDisabled
+                            ? "none"
+                            : undefined,
+                    }}
+                >
+                    <SuggestedChartRevisionStatusIcon
+                        status={SuggestedChartRevisionStatus.rejected}
+                        setColor={false}
+                    />{" "}
+                    Reject
+                </button>
+                <button
+                    className="btn btn-outline-warning"
+                    onClick={this.onFlagSuggestedChartRevision}
+                    title="Flag the suggestion for further inspection, keeping the original chart as it is"
+                    disabled={this.flagButtonIsDisabled}
+                    aria-disabled={this.flagButtonIsDisabled}
+                    style={{
+                        pointerEvents: this.flagButtonIsDisabled
+                            ? "none"
+                            : undefined,
+                    }}
+                >
+                    <SuggestedChartRevisionStatusIcon
+                        status={SuggestedChartRevisionStatus.flagged}
+                        setColor={false}
+                    />{" "}
+                    Flag
+                </button>
+                <button
+                    className="btn btn-outline-primary"
+                    onClick={this.onApproveSuggestedChartRevision}
+                    title="Approve the suggestion, replacing the original chart with the suggested chart (also republishes the chart)"
+                    disabled={this.approveButtonIsDisabled}
+                    aria-disabled={this.approveButtonIsDisabled}
+                    style={{
+                        pointerEvents: this.approveButtonIsDisabled
+                            ? "none"
+                            : undefined,
+                    }}
+                >
+                    <SuggestedChartRevisionStatusIcon
+                        status={SuggestedChartRevisionStatus.approved}
+                        setColor={false}
+                    />{" "}
+                    Approve
+                </button>
+                {this.listMode && (
+                    <React.Fragment>
+                        <button
+                            className="btn btn-outline-dark"
+                            onClick={this.onNext}
+                            title="Go to next suggestion"
+                            disabled={this.nextBtnIsDisabled}
+                            aria-disabled={this.nextBtnIsDisabled}
+                            style={{
+                                pointerEvents: this.nextBtnIsDisabled
+                                    ? "none"
+                                    : undefined,
+                            }}
+                        >
+                            <FontAwesomeIcon icon={faAngleRight} />
+                        </button>
+                        <button
+                            className="btn btn-outline-dark"
+                            onClick={this.onLast}
+                            title="Go to last suggestion"
+                            disabled={this.nextBtnIsDisabled}
+                            aria-disabled={this.nextBtnIsDisabled}
+                            style={{
+                                pointerEvents: this.nextBtnIsDisabled
+                                    ? "none"
+                                    : undefined,
+                            }}
+                        >
+                            <FontAwesomeIcon icon={faAngleDoubleRight} />
+                        </button>
+                        <button
+                            className="btn btn-outline-dark"
+                            onClick={this.onRandom}
+                            title="Go to random suggestion"
+                            disabled={this.randomBtnIsDisabled}
+                            aria-disabled={this.randomBtnIsDisabled}
+                            style={{
+                                pointerEvents: this.randomBtnIsDisabled
+                                    ? "none"
+                                    : undefined,
+                            }}
+                        >
+                            <FontAwesomeIcon icon={faRandom} />
+                        </button>
+                    </React.Fragment>
+                )}
+            </div>
+        )
+    }
+
+    renderControlsNumberOfRevisions() {
+        // Render number of revisions block
+        return (
+            this.listMode && (
+                <div className="row-input">
+                    <span>Suggested revision</span>
+                    <NumberField
+                        value={this.rowNumValid}
+                        onValue={this.onRowNumInput}
+                    />
+                    <span>
+                        of {this.numTotalRows}
+                        {this.showPendingOnly ? " remaining" : ""} (
+                        <Link to="/suggested-chart-revisions">View all</Link>)
+                    </span>
+                </div>
+            )
+        )
+    }
+
+    renderMeta() {
+        // Renders metadata block
+        return (
+            <React.Fragment>
+                <div>
+                    <h2>Metadata</h2>
+                    <ul className="meta">
+                        <li>
+                            <b>Suggested revision ID:</b>{" "}
+                            {this.suggestedChartRevision
+                                ? this.suggestedChartRevision.id
+                                : ""}
+                        </li>
+                        <li>
+                            <b>Chart ID:</b>{" "}
+                            {this.suggestedChartRevision
+                                ? this.suggestedChartRevision.chartId
+                                : ""}
+                        </li>
+                        <li>
+                            <b>Suggested revision created:</b>{" "}
+                            {this.suggestedChartRevision && (
+                                <Timeago
+                                    time={this.suggestedChartRevision.createdAt}
+                                    by={
+                                        this.suggestedChartRevision
+                                            .createdByFullName
+                                    }
+                                />
+                            )}
+                        </li>
+
+                        <li>
+                            <b>Suggested revision last updated:</b>{" "}
+                            {this.suggestedChartRevision?.updatedAt && (
+                                <Timeago
+                                    time={this.suggestedChartRevision.updatedAt}
+                                    by={
+                                        this.suggestedChartRevision
+                                            .updatedByFullName ??
+                                        this.suggestedChartRevision
+                                            .createdByFullName
+                                    }
+                                />
+                            )}
+                        </li>
+                        <li>
+                            <b>Reason for suggested revision:</b>{" "}
+                            {this.suggestedChartRevision &&
+                            this.suggestedChartRevision.suggestedReason
+                                ? this.suggestedChartRevision.suggestedReason
+                                : "None provided."}
+                        </li>
+                    </ul>
+                </div>
+                <div className="references">
+                    <h2>References to original chart</h2>
+                    {this.renderReferences()}
+                </div>
+                <div className="changes_summary">
+                    <h2>Variable changes</h2>{" "}
+                    {this.suggestedChartRevision &&
+                    this.suggestedChartRevision.changesInDataSummary ? (
+                        <div
+                            dangerouslySetInnerHTML={{
+                                __html: this.suggestedChartRevision
+                                    .changesInDataSummary,
+                            }}
+                        ></div>
+                    ) : (
+                        "No summary provided."
+                    )}
+                </div>
+            </React.Fragment>
+        )
+    }
+
+    renderReferences() {
+        // Render chart references block
+        return (
+            <React.Fragment>
+                {this.chartReferences.length ? (
+                    <React.Fragment>
+                        <p>Public pages that embed or reference this chart:</p>
+                        <ul className="list-group">
+                            {this.chartReferences.map((post: PostReference) => (
+                                <li key={post.id} className="list-group-item">
+                                    <a
+                                        href={post.url}
+                                        target="_blank"
+                                        rel="noopener"
+                                    >
+                                        <strong>{post.title}</strong>
+                                    </a>
+                                </li>
+                            ))}
+                        </ul>
+                    </React.Fragment>
+                ) : (
+                    <p>No public posts reference the original chart.</p>
+                )}
             </React.Fragment>
         )
     }
 
     renderReadme() {
+        // Render the readme (instructions on how to use the approval tool)
         return (
             <div style={{ padding: "1rem" }}>
                 <h4>Terminology</h4>
@@ -728,6 +1156,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
     }
 
     renderSettings() {
+        // Render settings
         return (
             <div style={{ padding: "1rem" }}>
                 {this.listMode && (
@@ -946,475 +1375,6 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                     <VisionDeficiencySvgFilters />
                 </div>
             </div>
-        )
-    }
-
-    renderGraphers() {
-        return (
-            <React.Fragment>
-                <div className="charts-view">
-                    <div
-                        className="chart-view"
-                        style={{
-                            height: this.grapherBounds.height + 50,
-                            width: this.grapherBounds.width,
-                        }}
-                    >
-                        {this.suggestedChartRevision && (
-                            <React.Fragment>
-                                <div className="header">
-                                    <h2>Original chart</h2>
-                                    <span className="text-muted">
-                                        {`(#${this.suggestedChartRevision.chartId}, V${this.suggestedChartRevision.originalConfig.version})`}
-                                    </span>
-                                    <Link
-                                        className="btn btn-outline-secondary"
-                                        to={`/charts/${this.suggestedChartRevision.chartId}/edit`}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        title="Edit original chart in a new tab"
-                                    >
-                                        Edit{" "}
-                                        <FontAwesomeIcon
-                                            icon={faExternalLinkAlt}
-                                        />
-                                    </Link>
-                                </div>
-                                <p
-                                    className="text-muted"
-                                    style={{ fontWeight: 300 }}
-                                >
-                                    This is what the chart looked like when the
-                                    suggested revision was created.
-                                </p>
-                            </React.Fragment>
-                        )}
-                        {this._isGraphersSet &&
-                            this.suggestedChartRevision &&
-                            this.renderGrapher(
-                                this.suggestedChartRevision.originalConfig
-                            )}
-                    </div>
-                    {this.showExistingChart && (
-                        <div
-                            className="chart-view"
-                            style={{
-                                height: this.grapherBounds.height + 50,
-                                width: this.grapherBounds.width,
-                            }}
-                        >
-                            {this.suggestedChartRevision && (
-                                <React.Fragment>
-                                    <div className="header">
-                                        <h2>Existing chart</h2>
-                                        <span className="text-muted">
-                                            {`(#${this.suggestedChartRevision.chartId}, V${this.suggestedChartRevision.existingConfig.version})`}
-                                        </span>
-                                        <Link
-                                            className="btn btn-outline-secondary"
-                                            to={`/charts/${this.suggestedChartRevision.chartId}/edit`}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            title="Edit existing chart in a new tab"
-                                        >
-                                            Edit{" "}
-                                            <FontAwesomeIcon
-                                                icon={faExternalLinkAlt}
-                                            />
-                                        </Link>
-                                    </div>
-                                    <p
-                                        className="text-muted"
-                                        style={{ fontWeight: 300 }}
-                                    >
-                                        This is what the chart looks like right
-                                        now on the OWID website.
-                                    </p>
-                                </React.Fragment>
-                            )}
-                            {this._isGraphersSet &&
-                                this.suggestedChartRevision &&
-                                this.renderGrapher(
-                                    this.suggestedChartRevision.existingConfig
-                                )}
-                        </div>
-                    )}
-                    <div
-                        className="chart-view"
-                        style={{
-                            height: this.grapherBounds.height + 50,
-                            width: this.grapherBounds.width,
-                        }}
-                    >
-                        {this.suggestedChartRevision && (
-                            <React.Fragment>
-                                <div className="header">
-                                    <h2>Suggested chart</h2>
-                                    <span className="text-muted">
-                                        {`(#${this.suggestedChartRevision.chartId}, V${this.suggestedChartRevision.suggestedConfig.version})`}
-                                    </span>
-                                    <Link
-                                        className="btn btn-outline-secondary"
-                                        to={`/charts/${
-                                            this.suggestedChartRevision.chartId
-                                        }/edit/${Base64.encode(
-                                            JSON.stringify(
-                                                this.suggestedChartRevision
-                                                    .suggestedConfig
-                                            )
-                                        )}`}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        title="Edit chart in a new tab"
-                                    >
-                                        Edit as chart{" "}
-                                        {this.suggestedChartRevision.chartId}{" "}
-                                        <FontAwesomeIcon
-                                            icon={faExternalLinkAlt}
-                                        />
-                                    </Link>
-                                </div>
-                                <p
-                                    className="text-muted"
-                                    style={{ fontWeight: 300 }}
-                                >
-                                    This is what the chart will look like if the
-                                    suggested revision is approved.
-                                </p>
-                            </React.Fragment>
-                        )}
-                        {this._isGraphersSet &&
-                            this.suggestedChartRevision &&
-                            this.renderGrapher(
-                                this.suggestedChartRevision.suggestedConfig
-                            )}
-                    </div>
-                </div>
-            </React.Fragment>
-        )
-    }
-
-    renderMeta() {
-        return (
-            <React.Fragment>
-                <div>
-                    <h2>Metadata</h2>
-                    <ul className="meta">
-                        <li>
-                            <b>Suggested revision ID:</b>{" "}
-                            {this.suggestedChartRevision
-                                ? this.suggestedChartRevision.id
-                                : ""}
-                        </li>
-                        <li>
-                            <b>Chart ID:</b>{" "}
-                            {this.suggestedChartRevision
-                                ? this.suggestedChartRevision.chartId
-                                : ""}
-                        </li>
-                        <li>
-                            <b>Suggested revision created:</b>{" "}
-                            {this.suggestedChartRevision && (
-                                <Timeago
-                                    time={this.suggestedChartRevision.createdAt}
-                                    by={
-                                        this.suggestedChartRevision
-                                            .createdByFullName
-                                    }
-                                />
-                            )}
-                        </li>
-
-                        <li>
-                            <b>Suggested revision last updated:</b>{" "}
-                            {this.suggestedChartRevision?.updatedAt && (
-                                <Timeago
-                                    time={this.suggestedChartRevision.updatedAt}
-                                    by={
-                                        this.suggestedChartRevision
-                                            .updatedByFullName ??
-                                        this.suggestedChartRevision
-                                            .createdByFullName
-                                    }
-                                />
-                            )}
-                        </li>
-                        <li>
-                            <b>Reason for suggested revision:</b>{" "}
-                            {this.suggestedChartRevision &&
-                            this.suggestedChartRevision.suggestedReason
-                                ? this.suggestedChartRevision.suggestedReason
-                                : "None provided."}
-                        </li>
-                    </ul>
-                </div>
-                <div className="references">
-                    <h2>References to original chart</h2>
-                    {this.renderReferences()}
-                </div>
-                <div className="changes_summary">
-                    <h2>Variable changes</h2>{" "}
-                    {this.suggestedChartRevision &&
-                    this.suggestedChartRevision.changesInDataSummary ? (
-                        <div
-                            dangerouslySetInnerHTML={{
-                                __html: this.suggestedChartRevision
-                                    .changesInDataSummary,
-                            }}
-                        ></div>
-                    ) : (
-                        "No summary provided."
-                    )}
-                </div>
-            </React.Fragment>
-        )
-    }
-
-    renderGrapher(grapherConfig: any) {
-        return (
-            <div>
-                {this.previewSvgOrJson === "json" ? (
-                    <div
-                        className="json-view"
-                        style={{
-                            height: this.grapherBounds.height * 0.9,
-                            maxWidth: this.grapherBounds.width,
-                        }}
-                    >
-                        <pre>
-                            <code>
-                                {JSON.stringify(grapherConfig, null, 2)}
-                            </code>
-                        </pre>
-                    </div>
-                ) : (
-                    <figure
-                        data-grapher-src
-                        style={{
-                            filter:
-                                this.simulateVisionDeficiency &&
-                                `url(#${this.simulateVisionDeficiency.id})`,
-                        }}
-                    >
-                        <Grapher
-                            {...{
-                                ...grapherConfig,
-                                bounds: this.grapherBounds,
-                                dataApiUrlForAdmin:
-                                    this.context.admin.settings
-                                        .DATA_API_FOR_ADMIN_UI, // passed this way because clientSettings are baked and need a recompile to be updated
-                            }}
-                        />
-                    </figure>
-                )}
-            </div>
-        )
-    }
-
-    renderControlsButtons() {
-        return (
-            <div className="buttons">
-                {this.listMode && (
-                    <React.Fragment>
-                        <button
-                            className="btn btn-outline-dark"
-                            onClick={this.onFirst}
-                            title="Go to first suggestion"
-                            disabled={this.prevBtnIsDisabled}
-                            aria-disabled={this.prevBtnIsDisabled}
-                            style={{
-                                pointerEvents: this.prevBtnIsDisabled
-                                    ? "none"
-                                    : undefined,
-                            }}
-                        >
-                            <FontAwesomeIcon icon={faAngleDoubleLeft} />
-                        </button>
-                        <button
-                            className="btn btn-outline-dark"
-                            onClick={this.onPrev}
-                            title="Go to previous suggestion"
-                            disabled={this.prevBtnIsDisabled}
-                            aria-disabled={this.prevBtnIsDisabled}
-                            style={{
-                                pointerEvents: this.prevBtnIsDisabled
-                                    ? "none"
-                                    : undefined,
-                            }}
-                        >
-                            <FontAwesomeIcon icon={faAngleLeft} />
-                        </button>
-                    </React.Fragment>
-                )}
-                <button
-                    className="btn btn-outline-danger"
-                    onClick={this.onRejectSuggestedChartRevision}
-                    title="Reject the suggestion, keeping the original chart as it is"
-                    disabled={this.rejectButtonIsDisabled}
-                    aria-disabled={this.rejectButtonIsDisabled}
-                    style={{
-                        pointerEvents: this.rejectButtonIsDisabled
-                            ? "none"
-                            : undefined,
-                    }}
-                >
-                    <SuggestedChartRevisionStatusIcon
-                        status={SuggestedChartRevisionStatus.rejected}
-                        setColor={false}
-                    />{" "}
-                    Reject
-                </button>
-                <button
-                    className="btn btn-outline-warning"
-                    onClick={this.onFlagSuggestedChartRevision}
-                    title="Flag the suggestion for further inspection, keeping the original chart as it is"
-                    disabled={this.flagButtonIsDisabled}
-                    aria-disabled={this.flagButtonIsDisabled}
-                    style={{
-                        pointerEvents: this.flagButtonIsDisabled
-                            ? "none"
-                            : undefined,
-                    }}
-                >
-                    <SuggestedChartRevisionStatusIcon
-                        status={SuggestedChartRevisionStatus.flagged}
-                        setColor={false}
-                    />{" "}
-                    Flag
-                </button>
-                <button
-                    className="btn btn-outline-primary"
-                    onClick={this.onApproveSuggestedChartRevision}
-                    title="Approve the suggestion, replacing the original chart with the suggested chart (also republishes the chart)"
-                    disabled={this.approveButtonIsDisabled}
-                    aria-disabled={this.approveButtonIsDisabled}
-                    style={{
-                        pointerEvents: this.approveButtonIsDisabled
-                            ? "none"
-                            : undefined,
-                    }}
-                >
-                    <SuggestedChartRevisionStatusIcon
-                        status={SuggestedChartRevisionStatus.approved}
-                        setColor={false}
-                    />{" "}
-                    Approve
-                </button>
-                {this.listMode && (
-                    <React.Fragment>
-                        <button
-                            className="btn btn-outline-dark"
-                            onClick={this.onNext}
-                            title="Go to next suggestion"
-                            disabled={this.nextBtnIsDisabled}
-                            aria-disabled={this.nextBtnIsDisabled}
-                            style={{
-                                pointerEvents: this.nextBtnIsDisabled
-                                    ? "none"
-                                    : undefined,
-                            }}
-                        >
-                            <FontAwesomeIcon icon={faAngleRight} />
-                        </button>
-                        <button
-                            className="btn btn-outline-dark"
-                            onClick={this.onLast}
-                            title="Go to last suggestion"
-                            disabled={this.nextBtnIsDisabled}
-                            aria-disabled={this.nextBtnIsDisabled}
-                            style={{
-                                pointerEvents: this.nextBtnIsDisabled
-                                    ? "none"
-                                    : undefined,
-                            }}
-                        >
-                            <FontAwesomeIcon icon={faAngleDoubleRight} />
-                        </button>
-                        <button
-                            className="btn btn-outline-dark"
-                            onClick={this.onRandom}
-                            title="Go to random suggestion"
-                            disabled={this.randomBtnIsDisabled}
-                            aria-disabled={this.randomBtnIsDisabled}
-                            style={{
-                                pointerEvents: this.randomBtnIsDisabled
-                                    ? "none"
-                                    : undefined,
-                            }}
-                        >
-                            <FontAwesomeIcon icon={faRandom} />
-                        </button>
-                    </React.Fragment>
-                )}
-            </div>
-        )
-    }
-
-    renderControlsNotes() {
-        return (
-            <TextAreaField
-                label="Notes"
-                placeholder="e.g. why are you rejecting this suggested revision?"
-                value={this.decisionReasonInput}
-                onValue={this.onDecisionReasonInput}
-                disabled={!this._isGraphersSet}
-            />
-        )
-    }
-
-    renderControlsNumberOfRevisions() {
-        return (
-            this.listMode && (
-                <div className="row-input">
-                    <span>Suggested revision</span>
-                    <NumberField
-                        value={this.rowNumValid}
-                        onValue={this.onRowNumInput}
-                    />
-                    <span>
-                        of {this.numTotalRows}
-                        {this.showPendingOnly ? " remaining" : ""} (
-                        <Link to="/suggested-chart-revisions">View all</Link>)
-                    </span>
-                </div>
-            )
-        )
-    }
-
-    renderControls() {
-        return (
-            <div className="controls">
-                {this.renderControlsNotes()}
-                {this.renderControlsButtons()}
-                {this.renderControlsNumberOfRevisions()}
-            </div>
-        )
-    }
-
-    renderReferences() {
-        return (
-            <React.Fragment>
-                {this.chartReferences.length ? (
-                    <React.Fragment>
-                        <p>Public pages that embed or reference this chart:</p>
-                        <ul className="list-group">
-                            {this.chartReferences.map((post: PostReference) => (
-                                <li key={post.id} className="list-group-item">
-                                    <a
-                                        href={post.url}
-                                        target="_blank"
-                                        rel="noopener"
-                                    >
-                                        <strong>{post.title}</strong>
-                                    </a>
-                                </li>
-                            ))}
-                        </ul>
-                    </React.Fragment>
-                ) : (
-                    <p>No public posts reference the original chart.</p>
-                )}
-            </React.Fragment>
         )
     }
 }
