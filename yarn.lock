@@ -1847,6 +1847,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@bugsnag/plugin-express@npm:^7.19.0":
+  version: 7.19.0
+  resolution: "@bugsnag/plugin-express@npm:7.19.0"
+  dependencies:
+    iserror: ^0.0.2
+  peerDependencies:
+    "@bugsnag/core": ^7.0.0
+  checksum: 63d093ee640ab41abef2fe85326947127ae0c88f4fc876dc61dcc5684b960f74713f81a39f1f2e075b6b02acd52ad6b0b872a3e9f469a44daa530f57211acbfc
+  languageName: node
+  linkType: hard
+
 "@bugsnag/plugin-react@npm:^7.19.0":
   version: 7.19.0
   resolution: "@bugsnag/plugin-react@npm:7.19.0"
@@ -13916,6 +13927,7 @@ __metadata:
     "@aws-sdk/client-s3": ^3.245.0
     "@bugsnag/core": ^7.19.0
     "@bugsnag/js": ^7.20.0
+    "@bugsnag/plugin-express": ^7.19.0
     "@bugsnag/plugin-react": ^7.19.0
     "@fortawesome/fontawesome-svg-core": ^6.4.0
     "@fortawesome/free-brands-svg-icons": ^6.4.0
