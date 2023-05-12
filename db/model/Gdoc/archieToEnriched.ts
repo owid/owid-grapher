@@ -181,6 +181,3 @@ export const archieToEnriched = (text: string): OwidGdocContent => {
     parsed.toc = toc
     return parsed
 }
-function lowercaseObjectKeys(parsed_unsanitized: any): any {
-    throw new Error("Function not implemented.")
-}
