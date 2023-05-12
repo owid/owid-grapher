@@ -459,7 +459,7 @@ export class StackedDiscreteBarChart
                 />
             )
 
-        const { bounds, yAxis, innerBounds } = this
+        const { bounds, yAxis, innerBounds, barSpacing } = this
 
         const chartContext: StackedBarChartContext = {
             yAxis,
@@ -513,99 +513,106 @@ export class StackedDiscreteBarChart
                 {this.showLegend && (
                     <HorizontalCategoricalColorLegend manager={this} />
                 )}
-                <NodeGroup
-                    data={this.placedItems}
-                    keyAccessor={(d: PlacedItem): string => d.label}
-                    start={handlePositionUpdate}
-                    update={handlePositionUpdate}
-                >
-                    {(nodes): JSX.Element => (
-                        <g>
-                            {nodes.map(
-                                ({
-                                    data,
-                                    state,
-                                }: {
-                                    data: PlacedItem
-                                    state: { translateY: number }
-                                }) => {
-                                    const { label, bars, totalValue } = data
-                                    const tooltipProps = {
-                                        ...chartContext,
-                                        item: data,
-                                    }
+                <g transform={`translate(0, ${barSpacing / 2})`}>
+                    <NodeGroup
+                        data={this.placedItems}
+                        keyAccessor={(d: PlacedItem): string => d.label}
+                        start={handlePositionUpdate}
+                        update={handlePositionUpdate}
+                    >
+                        {(nodes): JSX.Element => (
+                            <g>
+                                {nodes.map(
+                                    ({
+                                        data,
+                                        state,
+                                    }: {
+                                        data: PlacedItem
+                                        state: { translateY: number }
+                                    }) => {
+                                        const { label, bars, totalValue } = data
+                                        const tooltipProps = {
+                                            ...chartContext,
+                                            item: data,
+                                        }
 
-                                    const totalLabel =
-                                        this.formatValueForLabel(totalValue)
+                                        const totalLabel =
+                                            this.formatValueForLabel(totalValue)
 
-                                    return (
-                                        <g
-                                            key={label}
-                                            className="bar"
-                                            transform={`translate(0, ${state.translateY})`}
-                                        >
-                                            <TippyIfInteractive
-                                                lazy
-                                                isInteractive={
-                                                    !this.manager
-                                                        .isExportingtoSvgOrPng
-                                                }
-                                                hideOnClick={false}
-                                                content={
-                                                    <StackedDiscreteBarChart.Tooltip
-                                                        {...tooltipProps}
-                                                        highlightedSeriesName={
-                                                            undefined
-                                                        }
-                                                    />
-                                                }
+                                        return (
+                                            <g
+                                                key={label}
+                                                className="bar"
+                                                transform={`translate(0, ${state.translateY})`}
                                             >
-                                                <text
-                                                    transform={`translate(${
-                                                        yAxis.place(this.x0) -
-                                                        labelToBarPadding
-                                                    }, 0)`}
-                                                    fill="#555"
-                                                    dominantBaseline="middle"
-                                                    textAnchor="end"
-                                                    {...this.labelStyle}
+                                                <TippyIfInteractive
+                                                    lazy
+                                                    isInteractive={
+                                                        !this.manager
+                                                            .isExportingtoSvgOrPng
+                                                    }
+                                                    hideOnClick={false}
+                                                    content={
+                                                        <StackedDiscreteBarChart.Tooltip
+                                                            {...tooltipProps}
+                                                            highlightedSeriesName={
+                                                                undefined
+                                                            }
+                                                        />
+                                                    }
                                                 >
-                                                    {label}
-                                                </text>
-                                            </TippyIfInteractive>
-                                            {bars.map((bar) => (
-                                                <StackedDiscreteBarChart.Bar
-                                                    key={bar.seriesName}
-                                                    bar={bar}
-                                                    chartContext={chartContext}
-                                                    tooltipProps={{
-                                                        ...tooltipProps,
-                                                        highlightedSeriesName:
-                                                            bar.seriesName,
-                                                    }}
-                                                />
-                                            ))}
-                                            {this.showTotalValueLabel && (
-                                                <text
-                                                    transform={`translate(${
-                                                        yAxis.place(
-                                                            totalValue
-                                                        ) + labelToBarPadding
-                                                    }, 0)`}
-                                                    dominantBaseline="middle"
-                                                    {...this
-                                                        .totalValueLabelStyle}
-                                                >
-                                                    {totalLabel}
-                                                </text>
-                                            )}
-                                        </g>
-                                    )
-                                }
-                            )}
-                        </g>
-                    )}
-                </NodeGroup>
+                                                    <text
+                                                        transform={`translate(${
+                                                            yAxis.place(
+                                                                this.x0
+                                                            ) -
+                                                            labelToBarPadding
+                                                        }, 0)`}
+                                                        fill="#555"
+                                                        dominantBaseline="middle"
+                                                        textAnchor="end"
+                                                        {...this.labelStyle}
+                                                    >
+                                                        {label}
+                                                    </text>
+                                                </TippyIfInteractive>
+                                                {bars.map((bar) => (
+                                                    <StackedDiscreteBarChart.Bar
+                                                        key={bar.seriesName}
+                                                        bar={bar}
+                                                        chartContext={
+                                                            chartContext
+                                                        }
+                                                        tooltipProps={{
+                                                            ...tooltipProps,
+                                                            highlightedSeriesName:
+                                                                bar.seriesName,
+                                                        }}
+                                                    />
+                                                ))}
+                                                {this.showTotalValueLabel && (
+                                                    <text
+                                                        transform={`translate(${
+                                                            yAxis.place(
+                                                                totalValue
+                                                            ) +
+                                                            labelToBarPadding
+                                                        }, 0)`}
+                                                        dominantBaseline="middle"
+                                                        {...this
+                                                            .totalValueLabelStyle}
+                                                    >
+                                                        {totalLabel}
+                                                    </text>
+                                                )}
+                                            </g>
+                                        )
+                                    }
+                                )}
+                            </g>
+                        )}
+                    </NodeGroup>
+                </g>
             </g>
         )
     }
