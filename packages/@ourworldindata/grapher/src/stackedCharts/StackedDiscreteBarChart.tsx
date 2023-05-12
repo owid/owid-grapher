@@ -538,6 +538,8 @@ export class StackedDiscreteBarChart
 
                                         const totalLabel =
                                             this.formatValueForLabel(totalValue)
+                                        const showLabelInsideBar =
+                                            bars.length > 1
 
                                         return (
                                             <g
@@ -588,6 +590,9 @@ export class StackedDiscreteBarChart
                                                             highlightedSeriesName:
                                                                 bar.seriesName,
                                                         }}
+                                                        showLabelInsideBar={
+                                                            showLabelInsideBar
+                                                        }
                                                     />
                                                 ))}
                                                 {this.showTotalValueLabel && (
@@ -621,6 +626,7 @@ export class StackedDiscreteBarChart
         bar: Bar
         chartContext: StackedBarChartContext
         tooltipProps: TooltipProps
+        showLabelInsideBar: boolean
     }): JSX.Element {
         const { bar, chartContext, tooltipProps } = props
         const { yAxis, formatValueForLabel, focusSeriesName, barHeight } =
@@ -639,6 +645,7 @@ export class StackedDiscreteBarChart
         })
         // Check that we have enough space to show the bar label
         const showLabelInsideBar =
+            props.showLabelInsideBar &&
             labelBounds.width < 0.85 * barWidth &&
             labelBounds.height < 0.85 * barHeight
         const labelColor = isDarkColor(bar.color) ? "#fff" : "#000"
