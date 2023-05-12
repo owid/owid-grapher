@@ -54,7 +54,16 @@ export const archieToEnriched = (text: string): OwidGdocContent => {
         "$2$1$3$4"
     )
 
-    const parsed = load(noLeadingWSLinks)
+    // Inside .body all keys will be sanitized to lowercase but
+    // for the frontmatter this doesn't happen - do it now so
+    // that "Title: bla" works as well as "title: bla"
+    const parsed_unsanitized = load(noLeadingWSLinks)
+    const parsed: any = Object.fromEntries(
+        Object.entries(parsed_unsanitized).map(([key, value]) => [
+            key.toLowerCase(),
+            value,
+        ])
+    )
     const toc: TocHeadingWithTitleSupertitle[] = []
     let pointer: Array<string | number> = []
     // archie doesn't have a nested list structure. it treats as a series of text blocks
