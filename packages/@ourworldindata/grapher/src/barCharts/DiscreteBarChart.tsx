@@ -453,7 +453,7 @@ export class DiscreteBarChart
                                 y={0}
                                 transform={`translate(${labelX}, 0)`}
                                 fill="#555"
-                                dominantBaseline="middle"
+                                dominantBaseline="central"
                                 textAnchor="end"
                                 {...this.legendLabelStyle}
                             >

@@ -167,12 +167,22 @@ export class StackedDiscreteBarChart
         return !this.manager.hideLegend
     }
 
+    @computed private get labelFontSize(): number {
+        const innerBounds = this.bounds.padTop(
+            this.showLegend && this.legend.height > 0
+                ? this.legend.height + this.legendPaddingTop
+                : 0
+        )
+        const barHeight = (0.8 * innerBounds.height) / this.items.length
+        return Math.min(0.75 * this.fontSize, 1.1 * barHeight)
+    }
+
     @computed private get labelStyle(): {
         fontSize: number
         fontWeight: number
     } {
         return {
-            fontSize: 0.75 * this.baseFontSize,
+            fontSize: this.labelFontSize,
             fontWeight: 700,
         }
     }
@@ -183,7 +193,7 @@ export class StackedDiscreteBarChart
     } {
         return {
             fill: "#555",
-            fontSize: 0.75 * this.baseFontSize,
+            fontSize: this.labelFontSize,
         }
     }
 
