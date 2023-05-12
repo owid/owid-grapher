@@ -398,13 +398,6 @@ export class DiscreteBarChart
 
         let yOffset = innerBounds.top + barHeight / 2
 
-        // Check that we have enough space to show the bar labels
-        const label = this.formatValue(series[0])
-        const labelBounds = Bounds.forText(label.valueString, {
-            fontSize: this.valueLabelStyle.fontSize,
-        })
-        const showLabels = labelBounds.height <= barHeight
-
         return (
             <g ref={this.base} className="DiscreteBarChart">
                 <rect
@@ -418,7 +411,7 @@ export class DiscreteBarChart
                 {this.hasColorLegend && (
                     <HorizontalNumericColorLegend manager={this} />
                 )}
-                {(!showLabels || this.manager.isRelativeMode) && (
+                {this.manager.isRelativeMode && (
                     <React.Fragment>
                         <HorizontalAxisComponent
                             bounds={boundsWithoutColorLegend}
@@ -442,7 +435,7 @@ export class DiscreteBarChart
                         : yAxis.place(series.value) - barX
                     const barColor = series.color
                     const label = this.formatValue(series)
-                    const labelX = isNegative && showLabels
+                    const labelX = isNegative
                         ? barX - label.width - labelToTextPadding
                         : barX - labelToBarPadding
 
@@ -478,27 +471,23 @@ export class DiscreteBarChart
                                 opacity={0.85}
                                 style={{ transition: "height 200ms ease" }}
                             />
-                            {showLabels && (
-                                <text
-                                    x={0}
-                                    y={0}
-                                    transform={`translate(${
-                                        yAxis.place(series.value) +
-                                        (isNegative
-                                            ? -labelToBarPadding
-                                            : labelToBarPadding)
-                                    }, 0)`}
-                                    fill="#666"
-                                    dominantBaseline="central"
-                                    textAnchor={isNegative ? "end" : "start"}
-                                    {...this.valueLabelStyle}
-                                >
-                                    {label.valueString}
-                                    <tspan fill="#999">
-                                        {label.timeString}
-                                    </tspan>
-                                </text>
-                            )}
+                            <text
+                                x={0}
+                                y={0}
+                                transform={`translate(${
+                                    yAxis.place(series.value) +
+                                    (isNegative
+                                        ? -labelToBarPadding
+                                        : labelToBarPadding)
+                                }, 0)`}
+                                fill="#666"
+                                dominantBaseline="central"
+                                textAnchor={isNegative ? "end" : "start"}
+                                {...this.valueLabelStyle}
+                            >
+                                {label.valueString}
+                                <tspan fill="#999">{label.timeString}</tspan>
+                            </text>
                         </g>
                     )
 
