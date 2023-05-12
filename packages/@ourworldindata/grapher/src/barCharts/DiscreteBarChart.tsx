@@ -285,7 +285,7 @@ export class DiscreteBarChart
     @computed private get innerBounds(): Bounds {
         return this.boundsWithoutColorLegend
             .padLeft(this.seriesLegendWidth + this.leftValueLabelWidth)
-            .padBottom(this.yAxis.height)
+            .padBottom(this.showHorizontalAxis ? this.yAxis.height : 0)
             .padRight(this.rightValueLabelWidth)
     }
 
@@ -323,6 +323,10 @@ export class DiscreteBarChart
 
     @computed private get barWidths(): number[] {
         return this.barPlacements.map((b) => b.width)
+    }
+
+    @computed private get showHorizontalAxis(): boolean | undefined {
+        return this.manager.isRelativeMode
     }
 
     private d3Bars(): Selection<
@@ -411,7 +415,7 @@ export class DiscreteBarChart
                 {this.hasColorLegend && (
                     <HorizontalNumericColorLegend manager={this} />
                 )}
-                {this.manager.isRelativeMode && (
+                {this.showHorizontalAxis && (
                     <React.Fragment>
                         <HorizontalAxisComponent
                             bounds={boundsWithoutColorLegend}

@@ -208,6 +208,10 @@ export class StackedDiscreteBarChart
         return !this.manager.isRelativeMode && !this.manager.hideTotalValueLabel
     }
 
+    @computed get showHorizontalAxis(): boolean {
+        return !this.showTotalValueLabel
+    }
+
     // The amount of space we need to allocate for total value labels on the right
     @computed private get totalValueLabelWidth(): number {
         if (!this.showTotalValueLabel) return 0
@@ -263,7 +267,7 @@ export class StackedDiscreteBarChart
     @computed private get innerBounds(): Bounds {
         return this.bounds
             .padLeft(this.labelWidth)
-            .padBottom(this.yAxis.height)
+            .padBottom(this.showHorizontalAxis ? this.yAxis.height : 0)
             .padTop(
                 this.showLegend && this.legend.height > 0
                     ? this.legend.height + this.legendPaddingTop
@@ -485,7 +489,7 @@ export class StackedDiscreteBarChart
                     opacity={0}
                     fill="rgba(255,255,255,0)"
                 />
-                {this.manager.isRelativeMode && (
+                {this.showHorizontalAxis && (
                     <React.Fragment>
                         <HorizontalAxisComponent
                             bounds={bounds}
