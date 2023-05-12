@@ -398,6 +398,13 @@ export class DiscreteBarChart
 
         let yOffset = innerBounds.top + barHeight / 2
 
+        // Check that we have enough space to show the bar labels
+        const label = this.formatValue(series[0])
+        const labelBounds = Bounds.forText(label.valueString, {
+            fontSize: this.valueLabelStyle.fontSize,
+        })
+        const showLabels = labelBounds.height <= barHeight
+
         return (
             <g ref={this.base} className="DiscreteBarChart">
                 <rect
@@ -411,15 +418,19 @@ export class DiscreteBarChart
                 {this.hasColorLegend && (
                     <HorizontalNumericColorLegend manager={this} />
                 )}
-                <HorizontalAxisComponent
-                    bounds={boundsWithoutColorLegend}
-                    axis={yAxis}
-                    preferredAxisPosition={innerBounds.bottom}
-                />
-                <HorizontalAxisGridLines
-                    horizontalAxis={yAxis}
-                    bounds={innerBounds}
-                />
+                {(!showLabels || this.manager.isRelativeMode) && (
+                    <React.Fragment>
+                        <HorizontalAxisComponent
+                            bounds={boundsWithoutColorLegend}
+                            axis={yAxis}
+                            preferredAxisPosition={innerBounds.bottom}
+                        />
+                        <HorizontalAxisGridLines
+                            horizontalAxis={yAxis}
+                            bounds={innerBounds}
+                        />
+                    </React.Fragment>
+                )}
                 {series.map((series) => {
                     // Todo: add a "placedSeries" getter to get the transformed series, then just loop over the placedSeries and render a bar for each
                     const isNegative = series.value < 0
@@ -467,23 +478,27 @@ export class DiscreteBarChart
                                 opacity={0.85}
                                 style={{ transition: "height 200ms ease" }}
                             />
-                            <text
-                                x={0}
-                                y={0}
-                                transform={`translate(${
-                                    yAxis.place(series.value) +
-                                    (isNegative
-                                        ? -labelToBarPadding
-                                        : labelToBarPadding)
-                                }, 0)`}
-                                fill="#666"
-                                dominantBaseline="middle"
-                                textAnchor={isNegative ? "end" : "start"}
-                                {...this.valueLabelStyle}
-                            >
-                                {label.valueString}
-                                <tspan fill="#999">{label.timeString}</tspan>
-                            </text>
+                            {showLabels && (
+                                <text
+                                    x={0}
+                                    y={0}
+                                    transform={`translate(${
+                                        yAxis.place(series.value) +
+                                        (isNegative
+                                            ? -labelToBarPadding
+                                            : labelToBarPadding)
+                                    }, 0)`}
+                                    fill="#666"
+                                    dominantBaseline="central"
+                                    textAnchor={isNegative ? "end" : "start"}
+                                    {...this.valueLabelStyle}
+                                >
+                                    {label.valueString}
+                                    <tspan fill="#999">
+                                        {label.timeString}
+                                    </tspan>
+                                </text>
+                            )}
                         </g>
                     )
 

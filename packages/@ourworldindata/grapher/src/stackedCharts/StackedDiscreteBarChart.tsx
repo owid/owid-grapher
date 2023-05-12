@@ -475,15 +475,19 @@ export class StackedDiscreteBarChart
                     opacity={0}
                     fill="rgba(255,255,255,0)"
                 />
-                <HorizontalAxisComponent
-                    bounds={bounds}
-                    axis={yAxis}
-                    preferredAxisPosition={innerBounds.bottom}
-                />
-                <HorizontalAxisGridLines
-                    horizontalAxis={yAxis}
-                    bounds={innerBounds}
-                />
+                {this.manager.isRelativeMode && (
+                    <React.Fragment>
+                        <HorizontalAxisComponent
+                            bounds={bounds}
+                            axis={yAxis}
+                            preferredAxisPosition={innerBounds.bottom}
+                        />
+                        <HorizontalAxisGridLines
+                            horizontalAxis={yAxis}
+                            bounds={innerBounds}
+                        />
+                    </React.Fragment>
+                )}
                 {this.showLegend && (
                     <HorizontalCategoricalColorLegend manager={this} />
                 )}
@@ -540,7 +544,7 @@ export class StackedDiscreteBarChart
                                                         labelToBarPadding
                                                     }, 0)`}
                                                     fill="#555"
-                                                    dominantBaseline="middle"
+                                                    dominantBaseline="central"
                                                     textAnchor="end"
                                                     {...this.labelStyle}
                                                 >
@@ -566,7 +570,7 @@ export class StackedDiscreteBarChart
                                                             totalValue
                                                         ) + labelToBarPadding
                                                     }, 0)`}
-                                                    dominantBaseline="middle"
+                                                    dominantBaseline="central"
                                                     {...this
                                                         .totalValueLabelStyle}
                                                 >
@@ -641,7 +645,7 @@ export class StackedDiscreteBarChart
                             opacity={isFaint ? 0 : 1}
                             fontSize={labelFontSize}
                             textAnchor="middle"
-                            dominantBaseline="middle"
+                            dominantBaseline="central"
                         >
                             {barLabel}
                         </text>
