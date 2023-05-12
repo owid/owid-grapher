@@ -22,7 +22,7 @@ import {
     GIT_CMS_PULL_ROUTE,
 } from "./GitCmsConstants.js"
 import { sync } from "glob"
-import { logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
+import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 import _ from "lodash"
 
 // todo: cleanup typings
@@ -203,7 +203,7 @@ export class GitCmsServer {
             return { success: true }
         } catch (error) {
             const err = error as Error
-            logErrorAndMaybeSendToSlack(err)
+            logErrorAndMaybeSendToBugsnag(err)
             return { success: false, error: err.toString() }
         }
     }
@@ -247,7 +247,7 @@ export class GitCmsServer {
             return { success: true }
         } catch (error) {
             const err = error as Error
-            logErrorAndMaybeSendToSlack(err)
+            logErrorAndMaybeSendToBugsnag(err)
             return { success: false, error: err.toString() }
         }
     }

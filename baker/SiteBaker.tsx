@@ -50,7 +50,6 @@ import {
     extractDetailsFromSyntax,
 } from "@ourworldindata/utils"
 import { execWrapper } from "../db/execWrapper.js"
-import { logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
 import { countryProfileSpecs } from "../site/countryProfileProjects.js"
 import { getRedirects, flushCache as redirectsFlushCache } from "./redirects.js"
 import { bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers } from "./GrapherBaker.js"
@@ -66,6 +65,7 @@ import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
 import { Image } from "../db/model/Image.js"
 import sharp from "sharp"
 import { generateEmbedSnippet } from "../site/viteUtils.js"
+import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 
 // These aren't all "wordpress" steps
 // But they're only run when you have the full stack available
@@ -322,7 +322,7 @@ export class SiteBaker {
 
             await publishedGdoc.validate(publishedExplorersBySlug)
             if (publishedGdoc.errors.length) {
-                await logErrorAndMaybeSendToSlack(
+                await logErrorAndMaybeSendToBugsnag(
                     `Error(s) baking "${
                         publishedGdoc.slug
                     }" :\n  ${publishedGdoc.errors
@@ -428,7 +428,7 @@ export class SiteBaker {
             )
             for (const detailId of detailIds) {
                 if (!details[detailId]) {
-                    logErrorAndMaybeSendToSlack(
+                    logErrorAndMaybeSendToBugsnag(
                         `Grapher with slug ${chart.slug} references dod "${detailId}" which does not exist`
                     )
                 }
@@ -449,7 +449,7 @@ export class SiteBaker {
 
         const { details, parseErrors } = await Gdoc.getDetailsOnDemandGdoc()
         if (parseErrors.length) {
-            logErrorAndMaybeSendToSlack(
+            logErrorAndMaybeSendToBugsnag(
                 `Error(s) baking details: ${parseErrors
                     .map((e) => e.message)
                     .join(", ")}`
@@ -709,7 +709,7 @@ export class SiteBaker {
             return await execWrapper(cmd)
         } catch (error) {
             // Log error to Slack, but do not throw error
-            return logErrorAndMaybeSendToSlack(error)
+            return logErrorAndMaybeSendToBugsnag(error)
         }
     }
 

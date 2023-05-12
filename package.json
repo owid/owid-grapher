@@ -201,7 +201,6 @@
         "shelljs": "^0.8.5",
         "simple-git": "^3.16.1",
         "simple-statistics": "^7.3.2",
-        "slack-node": "^0.1.8",
         "smooth-scroll": "^16.1.0",
         "string-pixel-width": "^1.10.0",
         "stripe": "^8.38.0",

@@ -46,8 +46,8 @@ import workerpool from "workerpool"
 import ProgressBar from "progress"
 import { getVariableData } from "../db/model/Variable.js"
 import { getDatapageGdoc, getDatapageJson } from "../datapage/Datapage.js"
-import { logContentErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
+import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 
 /**
  *
@@ -87,7 +87,7 @@ export const renderDataPageOrGrapherPage = async (
             datapageJson === null ||
             datapageJson.status === "published"
         ) {
-            logContentErrorAndMaybeSendToSlack(
+            logErrorAndMaybeSendToBugsnag(
                 new JsonError(
                     `Data page error in ${id}.json: please check ${ADMIN_BASE_URL}/admin/grapher/${grapher.slug}`
                 )
