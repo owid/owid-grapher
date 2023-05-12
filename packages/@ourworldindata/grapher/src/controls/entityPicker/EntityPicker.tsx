@@ -673,10 +673,15 @@ class PickerOption extends React.Component<PickerOptionProps> {
                     </div>
                     <div className="info-container">
                         <div className="labels-container">
-                            <div className="name">{highlight(entityName)}</div>
-                            {optionWithMetricValue.isLocalCountry && (
-                                <FontAwesomeIcon icon={faLocationArrow} />
-                            )}
+                            <div className="name">
+                                {highlight(entityName)}
+                                {optionWithMetricValue.isLocalCountry && (
+                                    <FontAwesomeIcon
+                                        style={{ marginLeft: 5 }}
+                                        icon={faLocationArrow}
+                                    />
+                                )}
+                            </div>
                             {plotValue !== undefined && (
                                 <div className="metric">{metricValue}</div>
                             )}
