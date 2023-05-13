@@ -10,6 +10,7 @@ import {
     isArray,
     get,
     RawBlockList,
+    lowercaseObjectKeys,
 } from "@ourworldindata/utils"
 import { parseRawBlocksToEnrichedBlocks } from "./rawToEnriched.js"
 import urlSlug from "url-slug"
@@ -119,7 +120,7 @@ export const archieToEnriched = (text: string): OwidGdocContent => {
     // track h2s and h3s for the SDG table of contents
     traverseBlocks(parsed.body, (child: OwidRawGdocBlock) => {
         // ensure keys are lowercase
-        child = lowercaseObjectKeys(child)
+        child = lowercaseObjectKeys(child) as OwidRawGdocBlock
 
         // nest list items
         if (child.type === "text" && child.value.startsWith("* ")) {
