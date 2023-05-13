@@ -10,6 +10,7 @@ import {
     SortOrder,
     SuggestedChartRevisionStatus,
     Tippy,
+    uniqBy,
 } from "@ourworldindata/utils"
 import { Grapher } from "@ourworldindata/grapher"
 import {
@@ -45,18 +46,28 @@ import {
 import { SuggestedChartRevisionSerialized } from "./SuggestedChartRevision.js"
 import { match } from "ts-pattern"
 
+interface UserSelectOption {
+    userName: string
+    userId: number | undefined
+}
+
 @observer
 export class SuggestedChartRevisionApproverPage extends React.Component<{
     suggestedChartRevisionId?: number
 }> {
-    @observable.ref suggestedChartRevision?: SuggestedChartRevisionSerialized
+    @observable.ref suggestedChartRevisions?: SuggestedChartRevisionSerialized[]
+    @observable currentlyActiveUserId?: number
     @observable.ref originalGrapherElement?: JSX.Element
     @observable.ref suggestedGrapherElement?: JSX.Element
     @observable.ref existingGrapherElement?: JSX.Element
     @observable.ref chartReferences: PostReference[] = []
 
+    // HACK: In order for the <select> dropdown to not drop any existing users after finishing all
+    // their reviews, we want the list of available users to be append-only, which we achieve by
+    // introducing this extra state and merging them in the `availableUsers` getter.
+    _cacheAvailableUsers: UserSelectOption[] = []
+
     @observable rowNum: number = 1
-    @observable numTotalRows: number = 0
     @observable decisionReasonInput?: string = ""
 
     @observable showReadme: boolean = false
@@ -96,11 +107,14 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
     }
 
     @computed get nextBtnIsDisabled() {
-        return !this._isGraphersSet || this.rowNumValid >= this.numTotalRows
+        return (
+            !this._isGraphersSet ||
+            this.rowNumValid >= this.numAvailableRowsForSelectedUser
+        )
     }
 
     @computed get randomBtnIsDisabled() {
-        return !this._isGraphersSet || this.numTotalRows <= 1
+        return !this._isGraphersSet || this.numAvailableRowsForSelectedUser <= 1
     }
 
     @computed get grapherBounds() {
@@ -120,7 +134,10 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
     }
 
     @computed get rowNumValid() {
-        return Math.max(Math.min(this.rowNum, this.numTotalRows), 1)
+        return Math.max(
+            Math.min(this.rowNum, this.numAvailableRowsForSelectedUser),
+            1
+        )
     }
 
     @computed get updateButtonsIsDisabled() {
@@ -130,24 +147,24 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
     @computed get approveButtonIsDisabled() {
         return (
             this.updateButtonsIsDisabled ||
-            (this.suggestedChartRevision &&
-                !this.suggestedChartRevision.canApprove)
+            (this.currentSuggestedChartRevision &&
+                !this.currentSuggestedChartRevision.canApprove)
         )
     }
 
     @computed get rejectButtonIsDisabled() {
         return (
             this.updateButtonsIsDisabled ||
-            (this.suggestedChartRevision &&
-                !this.suggestedChartRevision.canReject)
+            (this.currentSuggestedChartRevision &&
+                !this.currentSuggestedChartRevision.canReject)
         )
     }
 
     @computed get flagButtonIsDisabled() {
         return (
             this.updateButtonsIsDisabled ||
-            (this.suggestedChartRevision &&
-                !this.suggestedChartRevision.canFlag)
+            (this.currentSuggestedChartRevision &&
+                !this.currentSuggestedChartRevision.canFlag)
         )
     }
 
@@ -157,38 +174,32 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
     }
 
     @action.bound async refresh() {
+        console.log("refresh")
         this.clearDecisionReasonInput()
         await this.fetchGraphers()
         await this.fetchRefs()
     }
 
+    @computed get currentSuggestedChartRevision() {
+        return this.availableRevisionsForCurrentUser?.[this.offset]
+    }
+
     @action.bound async fetchGraphers() {
         const { admin } = this.context
-        const { suggestedChartRevisionId } = this.props
-        if (suggestedChartRevisionId === undefined) {
-            const json = await admin.getJSON("/api/suggested-chart-revisions", {
-                limit: 1,
-                offset: this.offset,
-                status:
-                    this.listMode && this.showPendingOnly
-                        ? SuggestedChartRevisionStatus.pending
-                        : null,
-                sortBy: this.sortBy,
-                sortOrder: this.sortOrder,
-            })
-            runInAction(() => {
-                this.numTotalRows = json.numTotalRows as number
-                this.suggestedChartRevision = json
-                    .suggestedChartRevisions[0] as SuggestedChartRevisionSerialized
-            })
-        } else {
-            const json = await admin.getJSON(
-                `/api/suggested-chart-revisions/${suggestedChartRevisionId}`
-            )
-            this.suggestedChartRevision = json.suggestedChartRevision
-        }
-        this.decisionReasonInput = this.suggestedChartRevision
-            ? this.suggestedChartRevision.decisionReason ?? ""
+        const json = await admin.getJSON("/api/suggested-chart-revisions", {
+            status:
+                this.listMode && this.showPendingOnly
+                    ? SuggestedChartRevisionStatus.pending
+                    : null,
+            sortBy: this.sortBy,
+            sortOrder: this.sortOrder,
+        })
+        runInAction(() => {
+            this.suggestedChartRevisions =
+                json.suggestedChartRevisions as SuggestedChartRevisionSerialized[]
+        })
+        this.decisionReasonInput = this.currentSuggestedChartRevision
+            ? this.currentSuggestedChartRevision.decisionReason ?? ""
             : ""
         this.rerenderGraphers()
     }
@@ -196,14 +207,14 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
     @action.bound async rerenderGraphers() {
         this._isGraphersSet = false
         setTimeout(() => {
-            if (this.suggestedChartRevision) {
+            if (this.currentSuggestedChartRevision) {
                 this._isGraphersSet = true
             }
         }, 0)
     }
 
     @action.bound async fetchRefs() {
-        const chartId = this.suggestedChartRevision?.chartId
+        const chartId = this.currentSuggestedChartRevision?.chartId
         const { admin } = this.context
         const json =
             chartId === undefined
@@ -238,19 +249,19 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
         decisionReason: string | undefined
     ) {
         this._isGraphersSet = false
-        if (!this.suggestedChartRevision) return
+        if (!this.currentSuggestedChartRevision) return
         const { admin } = this.context
         const data = { status, decisionReason }
         await admin.requestJSON(
-            `/api/suggested-chart-revisions/${this.suggestedChartRevision.id}/update`,
+            `/api/suggested-chart-revisions/${this.currentSuggestedChartRevision.id}/update`,
             data,
             "POST"
         )
         // KLUDGE to prevent error that otherwise occurs when this.refresh() is
         // called when the user is viewing the very last suggested revision.
-        if (status !== SuggestedChartRevisionStatus.pending) {
-            this.numTotalRows -= 1
-        }
+        // if (status !== SuggestedChartRevisionStatus.pending) {
+        //     this.numTotalRows -= 1
+        // }
         this.refresh()
     }
 
@@ -277,14 +288,16 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
 
     @action.bound onLast() {
         if (!this.nextBtnIsDisabled) {
-            this.rowNum = this.numTotalRows
+            this.rowNum = this.numAvailableRowsForSelectedUser
             this.refresh()
         }
     }
 
     @action.bound onRandom() {
         if (!this.randomBtnIsDisabled) {
-            this.rowNum = Math.floor(Math.random() * this.numTotalRows + 1)
+            this.rowNum = Math.floor(
+                Math.random() * this.numAvailableRowsForSelectedUser + 1
+            )
             this.refresh()
         }
     }
@@ -402,30 +415,95 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
         )
     }
 
+    @computed get availableUsers(): UserSelectOption[] {
+        const availableUserAccordingToRevisions =
+            this.suggestedChartRevisions?.map((revision) => ({
+                userId: revision.createdById,
+                userName: revision.createdByFullName,
+            })) ?? []
+
+        const merged = uniqBy(
+            [
+                ...this._cacheAvailableUsers,
+                ...availableUserAccordingToRevisions,
+            ],
+            (user) => user.userId
+        )
+        this._cacheAvailableUsers = merged
+        return merged
+    }
+
+    @computed get availableRevisionsForCurrentUser() {
+        console.log(this.currentlyActiveUserId)
+        if (this.currentlyActiveUserId === undefined)
+            return this.suggestedChartRevisions
+        return this.suggestedChartRevisions?.filter(
+            (revision) => revision.createdById === this.currentlyActiveUserId
+        )
+    }
+
+    @computed get numAvailableRowsForSelectedUser() {
+        return this.availableRevisionsForCurrentUser?.length ?? 0
+    }
+
     renderApprovalTool() {
         // Render the approval tool
-        return this.numTotalRows > 0 || !this.listMode ? (
-            <React.Fragment>
-                <div>
-                    <select>
-                        <option value="fruit">Fruit</option>
-                        <option value="vegetable">Vegetable</option>
-                        <option value="meat">Meat</option>
-                    </select>
-                </div>
-                {this.renderGraphers()}
-                {this.renderControls()}
-                {this.renderMeta()}
-            </React.Fragment>
-        ) : (
-            <div style={{ paddingBottom: 20 }}>
-                0 pending chart revisions found. All suggested chart revisions
-                have already been approved, flagged, or rejected. If you wish to
-                see all suggested chart revisions, either uncheck the{" "}
-                <i>Show "pending" revisions only</i> box in the Settings tab or{" "}
-                <Link to="/suggested-chart-revisions">click here</Link> to view
-                a complete list of suggested chart revisions.
+        return (
+            <div>
+                {this.renderUserMenu()}
+                {this.numAvailableRowsForSelectedUser > 0 || !this.listMode ? (
+                    <React.Fragment>
+                        {this.renderGraphers()}
+                        {this.renderControls()}
+                        {this.renderMeta()}
+                    </React.Fragment>
+                ) : (
+                    <div style={{ paddingBottom: 20 }}>
+                        0 pending chart revisions found. All suggested chart
+                        revisions have already been approved, flagged, or
+                        rejected. If you wish to see all suggested chart
+                        revisions, either uncheck the{" "}
+                        <i>Show "pending" revisions only</i> box in the Settings
+                        tab or{" "}
+                        <Link to="/suggested-chart-revisions">click here</Link>{" "}
+                        to view a complete list of suggested chart revisions.
+                    </div>
+                )}
             </div>
+        )
+    }
+
+    @action.bound onCurrentlyActiveUserChange(
+        event: React.ChangeEvent<HTMLSelectElement>
+    ) {
+        runInAction(() => {
+            this.currentlyActiveUserId =
+                event.currentTarget.value === "-1"
+                    ? undefined
+                    : parseInt(event.currentTarget.value)
+
+            this.rowNum = 1
+        })
+
+        this.refresh()
+    }
+
+    renderUserMenu() {
+        const userOptions = [
+            { userName: "All", userId: -1 },
+            ...this.availableUsers,
+        ]
+        return (
+            <select
+                onChange={this.onCurrentlyActiveUserChange}
+                value={this.currentlyActiveUserId ?? -1}
+            >
+                {userOptions.map((user) => (
+                    <option key={user.userId} value={user.userId}>
+                        {user.userName}
+                    </option>
+                ))}
+            </select>
         )
     }
 
@@ -441,7 +519,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                             width: this.grapherBounds.width,
                         }}
                     >
-                        {this.suggestedChartRevision && (
+                        {this.currentSuggestedChartRevision && (
                             <React.Fragment>
                                 <div
                                     className="header"
@@ -459,7 +537,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                                     </span>
                                     <Link
                                         className="btn btn-outline-secondary"
-                                        to={`/charts/${this.suggestedChartRevision.chartId}/edit`}
+                                        to={`/charts/${this.currentSuggestedChartRevision.chartId}/edit`}
                                         target="_blank"
                                         rel="noreferrer"
                                         title="Edit original chart in a new tab"
@@ -480,9 +558,10 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                             </React.Fragment>
                         )}
                         {this._isGraphersSet &&
-                            this.suggestedChartRevision &&
+                            this.currentSuggestedChartRevision &&
                             this.renderGrapher(
-                                this.suggestedChartRevision.originalConfig
+                                this.currentSuggestedChartRevision
+                                    .originalConfig
                             )}
                     </div>
                     {this.showExistingChart && (
@@ -493,7 +572,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                                 width: this.grapherBounds.width,
                             }}
                         >
-                            {this.suggestedChartRevision && (
+                            {this.currentSuggestedChartRevision && (
                                 <React.Fragment>
                                     <div
                                         className="header"
@@ -507,11 +586,11 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                                             </h3>
                                         </Tippy>
                                         <span className="text-muted">
-                                            {`(#${this.suggestedChartRevision.chartId}, V${this.suggestedChartRevision.existingConfig.version})`}
+                                            {`(#${this.currentSuggestedChartRevision.chartId}, V${this.currentSuggestedChartRevision.existingConfig.version})`}
                                         </span>
                                         <Link
                                             className="btn btn-outline-secondary"
-                                            to={`/charts/${this.suggestedChartRevision.chartId}/edit`}
+                                            to={`/charts/${this.currentSuggestedChartRevision.chartId}/edit`}
                                             target="_blank"
                                             rel="noreferrer"
                                             title="Edit existing chart in a new tab"
@@ -531,9 +610,10 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                                 </React.Fragment>
                             )}
                             {this._isGraphersSet &&
-                                this.suggestedChartRevision &&
+                                this.currentSuggestedChartRevision &&
                                 this.renderGrapher(
-                                    this.suggestedChartRevision.existingConfig
+                                    this.currentSuggestedChartRevision
+                                        .existingConfig
                                 )}
                         </div>
                     )}
@@ -544,7 +624,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                             width: this.grapherBounds.width,
                         }}
                     >
-                        {this.suggestedChartRevision && (
+                        {this.currentSuggestedChartRevision && (
                             <React.Fragment>
                                 <div
                                     className="header"
@@ -563,10 +643,12 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                                     <Link
                                         className="btn btn-outline-secondary"
                                         to={`/charts/${
-                                            this.suggestedChartRevision.chartId
+                                            this.currentSuggestedChartRevision
+                                                .chartId
                                         }/edit/${Base64.encode(
                                             JSON.stringify(
-                                                this.suggestedChartRevision
+                                                this
+                                                    .currentSuggestedChartRevision
                                                     .suggestedConfig
                                             )
                                         )}`}
@@ -575,7 +657,10 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                                         title="Edit chart in a new tab"
                                     >
                                         Edit as chart{" "}
-                                        {this.suggestedChartRevision.chartId}{" "}
+                                        {
+                                            this.currentSuggestedChartRevision
+                                                .chartId
+                                        }{" "}
                                         <FontAwesomeIcon
                                             icon={faExternalLinkAlt}
                                         />
@@ -590,9 +675,10 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                             </React.Fragment>
                         )}
                         {this._isGraphersSet &&
-                            this.suggestedChartRevision &&
+                            this.currentSuggestedChartRevision &&
                             this.renderGrapher(
-                                this.suggestedChartRevision.suggestedConfig
+                                this.currentSuggestedChartRevision
+                                    .suggestedConfig
                             )}
                     </div>
                 </div>
@@ -816,7 +902,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                         onValue={this.onRowNumInput}
                     />
                     <span>
-                        of {this.numTotalRows}
+                        of {this.numAvailableRowsForSelectedUser}
                         {this.showPendingOnly ? " remaining" : ""} (
                         <Link to="/suggested-chart-revisions">View all</Link>)
                     </span>
@@ -834,23 +920,26 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                     <ul className="meta">
                         <li>
                             <b>Suggested revision ID:</b>{" "}
-                            {this.suggestedChartRevision
-                                ? this.suggestedChartRevision.id
+                            {this.currentSuggestedChartRevision
+                                ? this.currentSuggestedChartRevision.id
                                 : ""}
                         </li>
                         <li>
                             <b>Chart ID:</b>{" "}
-                            {this.suggestedChartRevision
-                                ? this.suggestedChartRevision.chartId
+                            {this.currentSuggestedChartRevision
+                                ? this.currentSuggestedChartRevision.chartId
                                 : ""}
                         </li>
                         <li>
                             <b>Suggested revision created:</b>{" "}
-                            {this.suggestedChartRevision && (
+                            {this.currentSuggestedChartRevision && (
                                 <Timeago
-                                    time={this.suggestedChartRevision.createdAt}
+                                    time={
+                                        this.currentSuggestedChartRevision
+                                            .createdAt
+                                    }
                                     by={
-                                        this.suggestedChartRevision
+                                        this.currentSuggestedChartRevision
                                             .createdByFullName
                                     }
                                 />
@@ -859,13 +948,16 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
 
                         <li>
                             <b>Suggested revision last updated:</b>{" "}
-                            {this.suggestedChartRevision?.updatedAt && (
+                            {this.currentSuggestedChartRevision?.updatedAt && (
                                 <Timeago
-                                    time={this.suggestedChartRevision.updatedAt}
+                                    time={
+                                        this.currentSuggestedChartRevision
+                                            .updatedAt
+                                    }
                                     by={
-                                        this.suggestedChartRevision
+                                        this.currentSuggestedChartRevision
                                             .updatedByFullName ??
-                                        this.suggestedChartRevision
+                                        this.currentSuggestedChartRevision
                                             .createdByFullName
                                     }
                                 />
@@ -873,9 +965,10 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                         </li>
                         <li>
                             <b>Reason for suggested revision:</b>{" "}
-                            {this.suggestedChartRevision &&
-                            this.suggestedChartRevision.suggestedReason
-                                ? this.suggestedChartRevision.suggestedReason
+                            {this.currentSuggestedChartRevision &&
+                            this.currentSuggestedChartRevision.suggestedReason
+                                ? this.currentSuggestedChartRevision
+                                      .suggestedReason
                                 : "None provided."}
                         </li>
                     </ul>
@@ -886,11 +979,11 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                 </div>
                 <div className="changes_summary">
                     <h2>Variable changes</h2>{" "}
-                    {this.suggestedChartRevision &&
-                    this.suggestedChartRevision.changesInDataSummary ? (
+                    {this.currentSuggestedChartRevision &&
+                    this.currentSuggestedChartRevision.changesInDataSummary ? (
                         <div
                             dangerouslySetInnerHTML={{
-                                __html: this.suggestedChartRevision
+                                __html: this.currentSuggestedChartRevision
                                     .changesInDataSummary,
                             }}
                         ></div>
@@ -1193,7 +1286,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
         // Render settings
         return (
             <div style={{ padding: "1rem" }}>
-                {this.listMode && (
+                {/* {this.listMode && (
                     <div>
                         <Toggle
                             value={this.showPendingOnly}
@@ -1201,7 +1294,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                             label='Show "pending" revisions only'
                         />
                     </div>
-                )}
+                )} */}
                 <div>
                     <Toggle
                         value={this.showExistingChart}
