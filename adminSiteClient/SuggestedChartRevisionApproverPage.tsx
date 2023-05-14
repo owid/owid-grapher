@@ -185,6 +185,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
     }
 
     @action.bound async fetchGraphers() {
+        console.log("fetchGraphers 1")
         const { admin } = this.context
         const json = await admin.getJSON("/api/suggested-chart-revisions", {
             status:
@@ -194,17 +195,21 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
             sortBy: this.sortBy,
             sortOrder: this.sortOrder,
         })
+        console.log("fetchGraphers 2")
         runInAction(() => {
             this.suggestedChartRevisions =
                 json.suggestedChartRevisions as SuggestedChartRevisionSerialized[]
         })
+        console.log("fetchGraphers 3")
         this.decisionReasonInput = this.currentSuggestedChartRevision
             ? this.currentSuggestedChartRevision.decisionReason ?? ""
             : ""
         this.rerenderGraphers()
+        console.log("fetchGraphers 4")
     }
 
     @action.bound async rerenderGraphers() {
+        console.log("rerenderGraphers 1")
         this._isGraphersSet = false
         setTimeout(() => {
             if (this.currentSuggestedChartRevision) {
@@ -214,6 +219,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
     }
 
     @action.bound async fetchRefs() {
+        console.log("fetchRefs 1")
         const chartId = this.currentSuggestedChartRevision?.chartId
         const { admin } = this.context
         const json =
@@ -221,6 +227,8 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                 ? {}
                 : await admin.getJSON(`/api/charts/${chartId}.references.json`)
         this.chartReferences = json.references || []
+        this.chartReferences = []
+        console.log("fetchRefs 2")
     }
 
     @action.bound onApproveSuggestedChartRevision() {
@@ -321,11 +329,13 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
     }
 
     @action.bound onChangeDesktopPreviewSize(value: string) {
+        console.log("onChangeDesktopPreviewSize")
         this.desktopPreviewSize = value
         this.rerenderGraphers()
     }
 
     @action.bound onChangePreviewSvgOrJson(value: string) {
+        console.log("onChangePreviewSvgOrJson")
         this.previewSvgOrJson = value
         this.rerenderGraphers()
     }
@@ -490,28 +500,44 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
 
     renderUserMenu() {
         const userOptions = [
-            { userName: "All", userId: -1 },
+            { userName: "All users", userId: -1 },
             ...this.availableUsers,
         ]
         return (
-            <select
-                onChange={this.onCurrentlyActiveUserChange}
-                value={this.currentlyActiveUserId ?? -1}
-            >
-                {userOptions.map((user) => (
-                    <option key={user.userId} value={user.userId}>
-                        {user.userName}
-                    </option>
-                ))}
-            </select>
+            <React.Fragment>
+                <label htmlFor="size">Show revisions from user:</label>
+                <select
+                    onChange={this.onCurrentlyActiveUserChange}
+                    value={this.currentlyActiveUserId ?? -1}
+                    style={{
+                        // marginTop: "0.5rem",
+                        // marginBottom: "0.5rem",
+                        margin: "1rem 0 0 1rem",
+                        padding: "0.5rem",
+                        border: "1px solid #ccc",
+                        borderRadius: "4px",
+                        fontSize: "1rem",
+                        // backgroundColor: "white",
+                        color: "#555",
+                    }}
+                >
+                    {userOptions.map((user) => (
+                        <option key={user.userId} value={user.userId}>
+                            {user.userName}
+                        </option>
+                    ))}
+                </select>
+            </React.Fragment>
         )
     }
 
     renderGraphers() {
         // Render both charts next to each other
+        console.log("renderGraphers")
         return (
             <React.Fragment>
                 <div className="charts-view">
+                    {/* Original chart */}
                     <div
                         className="chart-view"
                         style={{
@@ -548,13 +574,6 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                                         />
                                     </Link>
                                 </div>
-                                {/* <p
-                                    className="text-muted"
-                                    style={{ fontWeight: 300 }}
-                                >
-                                    This is what the chart looked like when the
-                                    suggested revision was created.
-                                </p> */}
                             </React.Fragment>
                         )}
                         {this._isGraphersSet &&
@@ -617,6 +636,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                                 )}
                         </div>
                     )}
+                    {/* Suggested chart */}
                     <div
                         className="chart-view"
                         style={{
@@ -666,12 +686,6 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                                         />
                                     </Link>
                                 </div>
-                                {/* <p
-                                    className="text-muted"
-                                    style={{ fontWeight: 300 }}
-                                >
-                                    This is what the chart will look like if the suggested revision is approved.
-                                </p> */}
                             </React.Fragment>
                         )}
                         {this._isGraphersSet &&
@@ -687,6 +701,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
     }
 
     renderGrapher(grapherConfig: any) {
+        console.log("renderGrapher")
         return (
             <div>
                 {this.previewSvgOrJson === "json" ? (
@@ -1283,6 +1298,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
     }
 
     renderSettings() {
+        console.log("renderSettings")
         // Render settings
         return (
             <div style={{ padding: "1rem" }}>
