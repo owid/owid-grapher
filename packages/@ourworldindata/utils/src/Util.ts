@@ -1440,3 +1440,10 @@ export function findGreatestCommonDivisorOfArray(arr: number[]): number | null {
     if (arr.includes(1)) return 1
     return uniq(arr).reduce((acc, num) => greatestCommonDivisor(acc, num))
 }
+export function lowercaseObjectKeys(
+    obj: Record<string, unknown>
+): Record<string, unknown> {
+    return Object.fromEntries(
+        Object.entries(obj).map(([key, value]) => [key.toLowerCase(), value])
+    )
+}
