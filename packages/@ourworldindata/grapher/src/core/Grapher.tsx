@@ -27,9 +27,6 @@ import {
     debounce,
     isInIFrame,
     differenceObj,
-    isEmpty,
-    get,
-    set,
     QueryParams,
     MultipleOwidVariableDataDimensionsMap,
     OwidVariableDataMetadataDimensions,
@@ -37,9 +34,7 @@ import {
     OwidVariableWithSourceAndDimension,
     Bounds,
     DEFAULT_BOUNDS,
-    Detail,
     detailOnDemandRegex,
-    globalDetailsOnDemand,
     MarkdownTextWrap,
     minTimeBoundFromJSONOrNegativeInfinity,
     maxTimeBoundFromJSONOrPositiveInfinity,
@@ -66,6 +61,8 @@ import {
     TopicId,
     OwidChartDimensionInterface,
     firstOfNonEmptyArray,
+    spansToUnformattedPlainText,
+    EnrichedDetail,
 } from "@ourworldindata/utils"
 import {
     ChartTypeName,
@@ -365,18 +362,6 @@ export class Grapher
     @observable includedEntities?: number[] = undefined
     @observable comparisonLines: ComparisonLineConfig[] = [] // todo: Persistables?
     @observable relatedQuestions: RelatedQuestionsConfig[] = [] // todo: Persistables?
-    // These are the details from the config for this specific Grapher,
-    // whereas globalDetailsOnDemand can have details
-    // from multiple sources
-    @observable details: Record<string, Record<string, Detail>> = {}
-
-    @action.bound private updateGlobalDetailsOnDemand(): void {
-        this.disposers.push(
-            autorun(() => {
-                globalDetailsOnDemand.addDetails(this.details)
-            })
-        )
-    }
 
     @observable.ref annotation?: Annotation = undefined
 
@@ -458,7 +443,6 @@ export class Grapher
 
         if (this.isEditor) {
             this.ensureValidConfigWhenEditing()
-            this.updateGlobalDetailsOnDemand()
         }
 
         if (getGrapherInstance) getGrapherInstance(this) // todo: possibly replace with more idiomatic ref
@@ -1145,26 +1129,14 @@ export class Grapher
     @observable shouldIncludeDetailsInStaticExport = true
 
     // Used for superscript numbers in static exports
-    @computed get detailsOrderedByReference(): {
-        category: string
-        term: string
-    }[] {
-        if (isEmpty(this.details)) return []
+    @computed get detailsOrderedByReference(): Set<string> {
         const textInOrderOfAppearance = this.subtitle + this.note
-        const allDetails = textInOrderOfAppearance.matchAll(
+        const details = textInOrderOfAppearance.matchAll(
             new RegExp(detailOnDemandRegex, "g")
         )
-        const uniqueDetails: {
-            category: string
-            term: string
-        }[] = []
-        const seen: Record<string, Record<string, boolean>> = {}
-        for (const detail of allDetails) {
-            const [_, category, term] = detail
-            if (!get(seen, [category, term])) {
-                uniqueDetails.push({ category, term })
-                set(seen, [category, term], true)
-            }
+        const uniqueDetails = new Set<string>()
+        for (const [_, detail] of details) {
+            uniqueDetails.add(detail)
         }
         return uniqueDetails
     }
@@ -1172,28 +1144,28 @@ export class Grapher
     // Used for static exports. Defined at this level because they need to
     // be accessed by CaptionedChart and DownloadTab
     @computed get detailRenderers(): MarkdownTextWrap[] {
-        return this.detailsOrderedByReference.map(
-            ({ category, term }: { category: string; term: string }, i) => {
-                let text = `**${i + 1}.** `
-                const detail = this.details[category][term]
-                if (detail) {
-                    text += `**${detail.title}**: ${detail.content.replaceAll(
-                        /\n\n/g,
-                        " "
-                    )}`
-                }
-                return new MarkdownTextWrap({
-                    text,
-                    fontSize: 12,
-                    // 30 is 15 margin on both sides
-                    maxWidth: this.idealBounds.width - 30,
-                    lineHeight: 1.2,
-                    style: {
-                        fill: "#777",
-                    },
-                })
+        return [...this.detailsOrderedByReference].map((term, i) => {
+            let text = `**${i + 1}.** `
+            const detail: EnrichedDetail = window.details?.[term]
+            if (detail) {
+                const plainText = detail.text.map(({ value }) =>
+                    spansToUnformattedPlainText(value)
+                )
+                plainText[0] = `**${plainText[0]}**:`
+
+                text += `${plainText.join(" ")}`
             }
-        )
+            return new MarkdownTextWrap({
+                text,
+                fontSize: 12,
+                // 30 is 15 margin on both sides
+                maxWidth: this.idealBounds.width - 30,
+                lineHeight: 1.2,
+                style: {
+                    fill: "#777",
+                },
+            })
+        })
     }
 
     @computed get availableTabs(): GrapherTabOption[] {
@@ -1222,7 +1194,9 @@ export class Grapher
             this.tab === GrapherTabOption.chart &&
             (seriesStrategy !== SeriesStrategy.entity || this.hideLegend) &&
             selectedEntityNames.length === 1 &&
-            (showEntityAnnotation || this.canChangeEntity)
+            (showEntityAnnotation ||
+                this.canChangeEntity ||
+                this.canSelectMultipleEntities)
         ) {
             const entityStr = selectedEntityNames[0]
             if (entityStr?.length) text = `${text}, ${entityStr}`
@@ -2285,8 +2259,6 @@ export class Grapher
         exposeInstanceOnWindow(this, "grapher")
         if (this.props.bindUrlToWindow) this.bindToWindow()
         if (this.props.enableKeyboardShortcuts) this.bindKeyboardShortcuts()
-        if (this.props.details)
-            globalDetailsOnDemand.addDetails(this.props.details)
     }
 
     private _shortcutsBound = false
@@ -2413,7 +2385,6 @@ export class Grapher
         this.timelineMinTime = grapher.timelineMinTime
         this.timelineMaxTime = grapher.timelineMaxTime
         this.relatedQuestions = grapher.relatedQuestions
-        this.details = grapher.details
         this.sourceDesc = grapher.sourceDesc
     }
 

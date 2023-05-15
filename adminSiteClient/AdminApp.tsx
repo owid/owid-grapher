@@ -40,7 +40,6 @@ import { ExplorersIndexPage } from "../explorerAdminClient/ExplorersListPage.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants.js"
 import { AdminLayout } from "./AdminLayout.js"
 import { BulkGrapherConfigEditorPage } from "./BulkGrapherConfigEditor.js"
-import { DetailsOnDemandPage } from "./DetailsOnDemand.js"
 import { GdocsIndexPage, GdocsMatchProps } from "./GdocsIndexPage.js"
 import { GdocsPreviewPage } from "./GdocsPreviewPage.js"
 import { GdocsStoreProvider } from "./GdocsStore.js"
@@ -234,11 +233,6 @@ export class AdminApp extends React.Component<{
                                         )}
                                     />
                                 )}
-                            />
-                            <Route
-                                exact
-                                path="/details"
-                                component={DetailsOnDemandPage}
                             />
                             <Route
                                 exact

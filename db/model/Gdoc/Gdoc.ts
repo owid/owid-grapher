@@ -29,11 +29,16 @@ import {
     excludeUndefined,
     OwidGdocErrorMessage,
     OwidGdocErrorMessageType,
+    DetailDictionary,
+    excludeNullish,
+    ParseError,
+    OwidGdocType,
 } from "@ourworldindata/utils"
 import {
     BAKED_GRAPHER_URL,
     GDOCS_CLIENT_EMAIL,
     GDOCS_CLIENT_ID,
+    GDOCS_DETAILS_ON_DEMAND_ID,
     GDOCS_PRIVATE_KEY,
 } from "../../../settings/serverSettings.js"
 import { google, Auth, docs_v1 } from "googleapis"
@@ -42,13 +47,14 @@ import { archieToEnriched } from "./archieToEnriched.js"
 import { Link } from "../Link.js"
 import { imageStore } from "../Image.js"
 import { Chart } from "../Chart.js"
-import { excludeNullish } from "@ourworldindata/utils/dist/Util.js"
 import {
+    ADMIN_BASE_URL,
     BAKED_BASE_URL,
     BAKED_GRAPHER_EXPORTS_BASE_URL,
 } from "../../../settings/clientSettings.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../../../explorer/ExplorerConstants.js"
 import { formatUrls } from "../../../site/formatting.js"
+import { parseDetails } from "./rawToEnriched.js"
 
 @Entity("tags")
 export class Tag extends BaseEntity implements OwidGdocTag {
@@ -190,10 +196,26 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
         return [...filenames]
     }
 
+    get details(): string[] {
+        const details: Set<string> = new Set()
+
+        this.content.body?.forEach((node) =>
+            recursivelyMapArticleContent(node, (item) => {
+                if (checkNodeIsSpan(item)) {
+                    if (item.spanType === "span-dod") {
+                        details.add(item.id)
+                    }
+                }
+                return item
+            })
+        )
+        return [...details]
+    }
+
     async loadImageMetadata(): Promise<void> {
         const covers: string[] = Object.values(this.linkedDocuments)
-            .map((gdoc: Gdoc) => gdoc.content.cover)
-            .filter((cover?: string): cover is string => !!cover)
+            .map((gdoc: Gdoc) => gdoc?.content["featured-image"])
+            .filter((filename?: string): filename is string => !!filename)
 
         const filenamesToLoad: string[] = [...this.filenames, ...covers]
 
@@ -387,7 +409,51 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
             []
         )
 
-        this.errors = [...filenameErrors, ...linkErrors]
+        let dodErrors: OwidGdocErrorMessage[] = []
+        // Validating the DoD document is infinitely recursive :)
+        if (this.id !== GDOCS_DETAILS_ON_DEMAND_ID) {
+            const { details } = await Gdoc.getDetailsOnDemandGdoc()
+            dodErrors = this.details.reduce(
+                (
+                    acc: OwidGdocErrorMessage[],
+                    detailId
+                ): OwidGdocErrorMessage[] => {
+                    if (details && !details[detailId]) {
+                        acc.push({
+                            type: OwidGdocErrorMessageType.Error,
+                            message: `Invalid DoD referenced: "${detailId}"`,
+                            property: "content",
+                        })
+                    }
+                    return acc
+                },
+                []
+            )
+        }
+
+        // A one-off custom validation for this particular case
+        // Until we implement a more robust validation abstraction for fragments
+        // This is to validate the details document itself
+        // Whereas dodErrors is to validate *other documents* that are referencing dods
+        const dodDocumentErrors: OwidGdocErrorMessage[] = []
+        if (this.id === GDOCS_DETAILS_ON_DEMAND_ID) {
+            const results = parseDetails(this.content.details)
+            const errors: OwidGdocErrorMessage[] = results.parseErrors.map(
+                (parseError) => ({
+                    ...parseError,
+                    property: "details",
+                    type: OwidGdocErrorMessageType.Error,
+                })
+            )
+            dodDocumentErrors.push(...errors)
+        }
+
+        this.errors = [
+            ...filenameErrors,
+            ...linkErrors,
+            ...dodErrors,
+            ...dodDocumentErrors,
+        ]
     }
 
     static async getGdocFromContentSource(
@@ -417,6 +483,37 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
         return gdoc
     }
 
+    static async getDetailsOnDemandGdoc(): Promise<{
+        details: DetailDictionary
+        parseErrors: ParseError[]
+    }> {
+        if (!GDOCS_DETAILS_ON_DEMAND_ID) {
+            console.error(
+                "GDOCS_DETAILS_ON_DEMAND_ID unset. No details can be loaded"
+            )
+            return { details: {}, parseErrors: [] }
+        }
+        const gdoc = await Gdoc.findOne({
+            where: {
+                id: GDOCS_DETAILS_ON_DEMAND_ID,
+                published: true,
+            },
+        })
+
+        if (!gdoc) {
+            return {
+                details: {},
+                parseErrors: [
+                    {
+                        message: `Details on demand document with id "${GDOCS_DETAILS_ON_DEMAND_ID}" isn't registered and/or published. Please add it via ${ADMIN_BASE_URL}/admin/gdocs`,
+                    },
+                ],
+            }
+        }
+
+        return parseDetails(gdoc.content.details)
+    }
+
     static async getPublishedGdocs(): Promise<Gdoc[]> {
         // #gdocsvalidation this cast means that we trust the admin code and
         // workflow to provide published articles that have all the required content
@@ -430,7 +527,14 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
         // mapGdocsToWordpressPosts(). This would make the Gdoc entity coming from
         // the database dependent on the mapping function, which is more practical
         // but also makes it less of a source of truth when considered in isolation.
-        return Gdoc.find({ where: { published: true }, relations: ["tags"] })
+        return Gdoc.find({
+            where: { published: true },
+            relations: ["tags"],
+        }).then((gdocs) =>
+            gdocs.filter(
+                ({ content: { type } }) => type !== OwidGdocType.Fragment
+            )
+        )
     }
 
     static async getListedGdocs(): Promise<OwidGdocPublished[]> {

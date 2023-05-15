@@ -88,6 +88,7 @@
 @import "./DataPage.scss";
 @import "./DataPageContent.scss";
 @import "./ExpandableAnimatedToggle.scss";
+@import "./detailsOnDemand.scss";
 
 /* HACK (Mispy): Fix search autozooming on iPhone Safari.
    http://stackoverflow.com/questions/2989263/disable-auto-zoom-in-input-text-tag-safari-on-iphone */
@@ -251,6 +252,15 @@ h6:hover .deep-link {
 
 .article-footer a {
     @include owid-link-90;
+}
+
+/* Header
+--------------------------------------------- */
+.site-header {
+    position: relative;
+    // Must be specified for the search overlay to stack above Grapher charts,
+    // but below Tippy tooltips
+    z-index: 2;
 }
 
 /* Homepage

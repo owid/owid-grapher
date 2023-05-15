@@ -4,7 +4,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
     faChartBar,
     faFile,
-    faArrowPointer,
     faUpload,
     faTable,
     faTruckFast,
@@ -69,11 +68,6 @@ export const AdminSidebar = (): JSX.Element => (
                 </Link>
             </li>
             <li>
-                <Link to="/details">
-                    <FontAwesomeIcon icon={faArrowPointer} /> Details
-                </Link>
-            </li>
-            <li>
                 <Link to="/variables">
                     <FontAwesomeIcon icon={faDatabase} /> Variables
                 </Link>
@@ -105,7 +99,7 @@ export const AdminSidebar = (): JSX.Element => (
                 </Link>
             </li>
             <li>
-                <Link to="/suggested-chart-revisions">
+                <Link to="/suggested-chart-revisions/review">
                     <FontAwesomeIcon icon={faCodeBranch} /> Suggested chart
                     revisions
                 </Link>

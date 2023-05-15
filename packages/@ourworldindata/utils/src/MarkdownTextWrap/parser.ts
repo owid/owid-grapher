@@ -1,5 +1,9 @@
 import P from "parsimmon"
-
+// Importing from ../GdocsUtils.js is creating some sort of circular dependency issue with @sinclair/typebox and gdocUrlRegex
+// Which breaks Jest and parser.test.ts
+// import { detailOnDemandRegex } from "../GdocsUtils.js"
+// Duplicating the RegEx instead
+const detailOnDemandRegex = /#dod:([\w\-_]+)/
 // An AST inspired by MDAST
 // Deviates because we want to track individual words, whitespace, and newlines to use with MarkdownTextWrap and our SVG exporter
 
@@ -93,7 +97,6 @@ type DetailsOnDemandContent =
 
 interface DetailOnDemand {
     type: "detailOnDemand"
-    category: string
     term: string
     children: DetailsOnDemandContent[]
 }
@@ -326,7 +329,11 @@ const detailOnDemandContentParser: (
         r.nonBracketWord
     )
 
-export const detailOnDemandRegex = /\(hover::(\w+)::(\w+)\)/
+export function extractDetailsFromSyntax(str: string): string[] {
+    return [...str.matchAll(new RegExp(detailOnDemandRegex, "g"))].map(
+        ([_, term]) => term
+    )
+}
 
 const detailOnDemandParser: (r: MdParser) => P.Parser<DetailOnDemand> = (
     r: MdParser
@@ -338,14 +345,11 @@ const detailOnDemandParser: (r: MdParser) => P.Parser<DetailOnDemand> = (
     }>(
         P.string("["),
         ["children", r.detailOnDemandContent.atLeast(1)],
-        P.string("](hover::"),
-        ["category", r.dodCategory],
-        P.string("::"),
+        P.string("](#dod:"),
         ["term", r.dodTerm],
         P.string(")")
-    ).map(({ children, category, term }) => ({
+    ).map(({ children, term }) => ({
         type: "detailOnDemand",
-        category: category.value,
         term: term.value,
         children,
     }))

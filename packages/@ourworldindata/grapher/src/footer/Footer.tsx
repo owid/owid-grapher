@@ -104,7 +104,7 @@ export class Footer extends React.Component<{
             detailsOrderedByReference: this.manager
                 .shouldIncludeDetailsInStaticExport
                 ? this.manager.detailsOrderedByReference
-                : [],
+                : new Set(),
         })
     }
 

@@ -426,6 +426,12 @@ export type SpanRef = {
     url: string
 }
 
+export type SpanDod = {
+    spanType: "span-dod"
+    children: Span[]
+    id: string
+}
+
 export type SpanNewline = {
     spanType: "span-newline"
 }
@@ -463,6 +469,7 @@ export type UnformattedSpan = SpanSimpleText | SpanNewline
 
 export type Span =
     | SpanSimpleText
+    | SpanDod
     | SpanLink
     | SpanRef
     | SpanNewline
@@ -1029,6 +1036,7 @@ export interface OwidGdocContent {
         | "sdg-color-16"
         | "sdg-color-17"
     "featured-image"?: any
+    details?: DetailDictionary
 }
 
 export interface OwidGdocContentPublished extends OwidGdocContent {
@@ -1053,13 +1061,17 @@ export enum SiteFooterContext {
     default = "default",
 }
 
-export interface Detail {
-    category: string
-    term: string
-    title: string
-    content: string
-    id: number
+export type RawDetail = {
+    id: string
+    text: RawBlockText[]
 }
+
+export type EnrichedDetail = {
+    id: string
+    text: EnrichedBlockText[]
+} & EnrichedBlockWithParseErrors
+
+export type DetailDictionary = Record<string, EnrichedDetail>
 
 /**
  * An unbounded value (±Infinity) or a concrete point in time (year or date).

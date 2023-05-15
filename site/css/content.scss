@@ -18,13 +18,7 @@
  */
 
 .article-content img {
-    display: block;
-    margin: 0 auto 1rem;
-    box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 2px 0px,
-        rgba(0, 0, 0, 0.25) 0px 1px 2px 0px;
-    padding: 10px;
-    background-color: #fff;
-    transition: all 300ms ease;
+    @include image-shadow;
 }
 
 .article-content img.lightbox-enabled:hover {
@@ -33,17 +27,12 @@
 }
 
 .article-content figure {
-    margin: 0 0 1rem;
+    @include figure-margin;
 }
 
 .article-content figure[data-grapher-src],
 .SearchResults figure[data-grapher-src] {
-    margin-left: auto;
-    margin-right: auto;
-    margin-bottom: 1rem;
-    text-align: center;
-    line-height: 0;
-    width: 100%;
+    @include figure-grapher-reset;
 
     > a {
         border-bottom: none !important;

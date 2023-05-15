@@ -1196,46 +1196,6 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
     }
 }
 
-.dod-table {
-    margin: 32px;
-    width: calc(100% - 64px);
-    white-space: pre-line;
-    background-color: #fafafa;
-
-    td span {
-        font-family: monospace;
-    }
-
-    td button {
-        width: 45%;
-    }
-
-    .dod-table-header--id {
-        width: 10%;
-    }
-    .dod-table-header--term {
-        width: 10%;
-    }
-    .dod-table-header--title {
-        width: 20%;
-    }
-    .dod-table-header--content {
-        width: 40%;
-    }
-    .dod-table-header--actions {
-        width: 20%;
-    }
-    .CodeMirror {
-        height: auto;
-    }
-
-    .react-codemirror2.details__codemirror {
-        // counteract the padding of  the codemirror input
-        margin: -4px;
-        outline: 1px solid #cbcbcb;
-    }
-}
-
 .GdocsAddForm {
     ol {
         list-style-position: inside;

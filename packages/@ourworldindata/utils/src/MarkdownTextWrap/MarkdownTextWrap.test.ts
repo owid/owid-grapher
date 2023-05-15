@@ -93,7 +93,7 @@ describe("MarkdownTextWrap", () => {
 
     it("should convert to plaintext", () => {
         const element = new MarkdownTextWrap({
-            text: "I am some _bold_ text with a [really really really long detail on demand](hover::general::test) and because I am so long you would think that I **span multiple lines** but when you transform me into plaintext I actually just stay as one line",
+            text: "I am some _bold_ text with a [really really really long detail on demand](#dod:test) and because I am so long you would think that I **span multiple lines** but when you transform me into plaintext I actually just stay as one line",
             fontSize: 10,
             lineHeight: 1,
         })

@@ -105,6 +105,13 @@ export function renderSpan(
                 {renderSpans(span.children)}
             </a>
         ))
+        .with({ spanType: "span-dod" }, (span) => (
+            <span key={key}>
+                <a data-id={`${span.id}`} className="dod-span">
+                    {renderSpans(span.children)}
+                </a>
+            </span>
+        ))
         .with({ spanType: "span-newline" }, () => <br key={key} />)
         .with({ spanType: "span-italic" }, (span) => (
             <em key={key}>{renderSpans(span.children)}</em>

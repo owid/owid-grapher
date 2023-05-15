@@ -11,6 +11,14 @@ import { Url } from "./urls/Url.js"
 export const gdocUrlRegex =
     /https:\/\/docs\.google\.com\/.+?\/d\/([-\w]+)\/?(edit)?/
 
+// Works for:
+// #dod:text
+// #dod:text-hyphenated
+// #dod:text_underscored
+// #dod:text_underscored-and-hyphenated
+// Duplicated in parser.ts
+export const detailOnDemandRegex = /#dod:([\w\-_]+)/
+
 export function getLinkType(urlString: string): OwidGdocLinkJSON["linkType"] {
     const url = Url.fromURL(urlString)
     if (url.isGoogleDoc) {
