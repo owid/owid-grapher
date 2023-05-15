@@ -99,7 +99,7 @@ export const AdminSidebar = (): JSX.Element => (
                 </Link>
             </li>
             <li>
-                <Link to="/suggested-chart-revisions">
+                <Link to="/suggested-chart-revisions/review">
                     <FontAwesomeIcon icon={faCodeBranch} /> Suggested chart
                     revisions
                 </Link>

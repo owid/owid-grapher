@@ -13,7 +13,6 @@ const mockCreatePost = (slug: string): FullPost => {
         modifiedDate: new Date(0),
         authors: [],
         content: "",
-        glossary: false,
     }
 }
 

@@ -302,7 +302,6 @@ export interface FullPost extends IndexPost {
     imageId?: number
     postId?: number
     relatedCharts?: RelatedChart[]
-    glossary: boolean
 }
 
 export enum WP_ColumnStyle {
