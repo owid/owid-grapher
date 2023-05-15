@@ -1,4 +1,10 @@
-import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons"
+import {
+    faMinus,
+    faPlus,
+    faDice,
+    faCheck,
+    faCross,
+} from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
     getErrorMessageRelatedQuestionUrl,
@@ -8,7 +14,7 @@ import {
     Topic,
 } from "@ourworldindata/grapher"
 import { getIndexableKeys, slugify } from "@ourworldindata/utils"
-import { action, computed, runInAction } from "mobx"
+import { action, computed, observable, runInAction } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"
 import Select from "react-select"
@@ -24,6 +30,108 @@ import {
     TextField,
     Toggle,
 } from "./Forms.js"
+import { match } from "ts-pattern"
+
+type AiTextSuggestionStateNotRequested = {
+    state: "AiTextSuggestionStateNotRequested"
+}
+
+type AiTextSuggestionStatePending = {
+    state: "AiTextSuggestionStatePending"
+}
+
+type AiTextSuggestionStateReceived = {
+    state: "AiTextSuggestionStateReceived"
+    suggestion: string
+}
+
+type AiTextSuggestionState =
+    | AiTextSuggestionStateNotRequested
+    | AiTextSuggestionStatePending
+    | AiTextSuggestionStateReceived
+
+interface AiTextSuggesterProps {
+    title: string
+    subtitle: string
+    onSuggestionAccepted: (suggestion: string) => void
+}
+
+const DEFAULT_SUGGESTION_PROMPT: string = `You are a copy writing assistant for Our World In Data. At OWID we annotate charts with important information. Screen real estate is scarce, so we have to try to be brief while retaining all the important information.
+
+You are presented with the title and subtitle of a chart. Your task is to create a cleaned up subtitle. If possible, make the subtitle a bit shorter, easier to read yet, without redunandant information and informative.
+
+Take into account that the title already conveys what the chart is about and thus the subtitle should not simply restate the title. Return only the subtitle.
+`
+
+@observer
+export class AiSubitleSuggester extends React.Component<AiTextSuggesterProps> {
+    @observable suggestionState: AiTextSuggestionState = {
+        state: "AiTextSuggestionStateNotRequested",
+    }
+
+    @action.bound
+    async requestSuggestion(title: string, subtitle: string): Promise<void> {
+        const messages = [
+            {
+                kind: "systemMessage",
+                message: DEFAULT_SUGGESTION_PROMPT,
+            },
+            {
+                kind: "userMessage",
+                message: `TITLE: ${title}
+
+SUBTITLE:
+${subtitle}`,
+            },
+        ]
+        this.suggestionState = { state: "AiTextSuggestionStatePending" }
+        const response = await fetch("openai", { data: messages })
+        this.suggestionState = {
+            state: "AiTextSuggestionStateReceived",
+            suggestion: response,
+        }
+    }
+
+    render() {
+        const { suggestionState } = this
+        const { title, subtitle, onSuggestionAccepted } = this.props
+        return match(suggestionState)
+            .with({ state: "AiTextSuggestionStateNotRequested" }, () => {
+                return (
+                    <Button
+                        onClick={() => this.requestSuggestion(title, subtitle)}
+                    >
+                        <FontAwesomeIcon icon={faDice} /> Request AI suggestion
+                        question
+                    </Button>
+                )
+            })
+            .with({ state: "AiTextSuggestionStatePending" }, () => {
+                return <div>Loading...</div>
+            })
+            .with({ state: "AiTextSuggestionStateReceived" }, (state) => {
+                return (
+                    <>
+                        <textarea readOnly={true}>{state.suggestion}</textarea>
+                        <Button
+                            onClick={() =>
+                                onSuggestionAccepted(state.suggestion)
+                            }
+                        >
+                            <FontAwesomeIcon icon={faCheck} /> Accept
+                        </Button>
+                        <Button
+                            onClick={() =>
+                                this.requestSuggestion(title, subtitle)
+                            }
+                        >
+                            <FontAwesomeIcon icon={faCross} /> Reject
+                        </Button>
+                    </>
+                )
+            })
+    }
+}
 
 @observer
 export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
@@ -98,6 +206,7 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
 
     render() {
         const { grapher, references } = this.props.editor
+        const { subtitle, title } = grapher
         const { relatedQuestions } = grapher
 
         return (
@@ -150,6 +259,13 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                         textarea
                         softCharacterLimit={280}
                         errorMessage={this.errorMessages.subtitle}
+                    />
+                    <AiSubitleSuggester
+                        title={title ?? ""}
+                        subtitle={subtitle}
+                        onSuggestionAccepted={(text: string) =>
+                            action(() => (grapher.subtitle = text))
+                        }
                     />
                     <RadioGroup
                         label="Logo"
