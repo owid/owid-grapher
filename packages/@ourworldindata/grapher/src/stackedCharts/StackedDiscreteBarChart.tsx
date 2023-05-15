@@ -323,10 +323,13 @@ export class StackedDiscreteBarChart
                 sortByFunc = (item: Item): string => item.label
                 break
             case SortBy.column:
-                const sortColumnSlug = this.sortConfig.sortColumnSlug
-                sortByFunc = (item: Item): number =>
-                    item.bars.find((b) => b.columnSlug === sortColumnSlug)
-                        ?.point.value ?? 0
+                const owidRowsByEntityName =
+                    this.sortColumn?.owidRowsByEntityName
+                sortByFunc = (item: Item): number => {
+                    const rows = owidRowsByEntityName?.get(item.label)
+                    if (rows && rows.length > 0) return rows[0].value
+                    return 0
+                }
                 break
             default:
             case SortBy.total:
@@ -887,6 +890,16 @@ export class StackedDiscreteBarChart
 
     @computed protected get yColumns(): CoreColumn[] {
         return this.transformedTable.getColumns(this.yColumnSlugs)
+    }
+
+    @computed private get sortColumnSlug(): string | undefined {
+        return this.sortConfig.sortColumnSlug
+    }
+
+    @computed private get sortColumn(): CoreColumn | undefined {
+        return this.sortColumnSlug
+            ? this.transformedTable.getColumns([this.sortColumnSlug])[0]
+            : undefined
     }
 
     @computed private get colorScheme(): ColorScheme {
