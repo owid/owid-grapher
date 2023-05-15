@@ -46,7 +46,9 @@ export const KeyInsights = ({
     }
     return (
         <div className={cx(className, KEY_INSIGHTS_CLASS_NAME)}>
-            <h2 className="display-2-semibold">{heading}</h2>
+            <h2 className="display-2-semibold" id={slugify(heading)}>
+                {heading}
+            </h2>
             <div>
                 <KeyInsightsThumbs
                     titles={insights.map(({ title }) => title)}

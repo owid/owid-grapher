@@ -13,6 +13,7 @@ import {
     convertHeadingTextToId,
     EnrichedBlockSimpleText,
     lowercaseObjectKeys,
+    slugify,
 } from "@ourworldindata/utils"
 import { parseRawBlocksToEnrichedBlocks } from "./rawToEnriched.js"
 import urlSlug from "url-slug"
@@ -65,6 +66,12 @@ function generateStickyNav(
                         })
                     }
                 }
+            }
+            if (node.type === "key-insights") {
+                stickyNavItems.push({
+                    text: "Key Insights",
+                    target: `#${slugify(node.heading)}`,
+                })
             }
             return node
         })
