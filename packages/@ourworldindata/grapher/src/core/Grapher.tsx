@@ -1194,7 +1194,9 @@ export class Grapher
             this.tab === GrapherTabOption.chart &&
             (seriesStrategy !== SeriesStrategy.entity || this.hideLegend) &&
             selectedEntityNames.length === 1 &&
-            (showEntityAnnotation || this.canChangeEntity)
+            (showEntityAnnotation ||
+                this.canChangeEntity ||
+                this.canSelectMultipleEntities)
         ) {
             const entityStr = selectedEntityNames[0]
             if (entityStr?.length) text = `${text}, ${entityStr}`
