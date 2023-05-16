@@ -17,6 +17,8 @@ interface ClientSettings {
     ENV: "development" | "production"
     GITHUB_USERNAME: string
     DATA_API_FOR_ADMIN_UI?: string
+    OPENAI_API_KEY?: string
+    OPENAI_ORG_ID?: string
 }
 
 interface ErrorMessage {

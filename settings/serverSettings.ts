@@ -172,3 +172,6 @@ export const IMAGE_HOSTING_SPACE_ACCESS_KEY_ID: string =
     serverSettings.IMAGE_HOSTING_SPACE_ACCESS_KEY_ID || ""
 export const IMAGE_HOSTING_SPACE_SECRET_ACCESS_KEY: string =
     serverSettings.IMAGE_HOSTING_SPACE_SECRET_ACCESS_KEY || ""
+
+export const OPENAI_API_KEY: string = serverSettings.OPENAI_API_KEY || ""
+export const OPENAI_ORG_ID: string = serverSettings.OPENAI_ORG_ID || ""

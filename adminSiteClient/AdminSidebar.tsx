@@ -20,6 +20,7 @@ import {
     faSatelliteDish,
     faCodeBranch,
     faDownload,
+    faRobot,
 } from "@fortawesome/free-solid-svg-icons"
 
 import { FASTTRACK_URL } from "../settings/clientSettings.js"
@@ -133,6 +134,11 @@ export const AdminSidebar = (): JSX.Element => (
             <li>
                 <Link to="/deploys">
                     <FontAwesomeIcon icon={faSatelliteDish} /> Deploy status
+                </Link>
+            </li>
+            <li>
+                <Link to="/ai-suggestion-tool">
+                    <FontAwesomeIcon icon={faRobot} /> AI Suggestion tool
                 </Link>
             </li>
         </ul>

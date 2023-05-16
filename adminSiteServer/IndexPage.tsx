@@ -3,6 +3,8 @@ import {
     ENV,
     GITHUB_USERNAME,
     DATA_API_FOR_ADMIN_UI,
+    OPENAI_API_KEY,
+    OPENAI_ORG_ID,
 } from "../settings/serverSettings.js"
 import { VITE_ASSET_ADMIN_ENTRY, viteAssets } from "../site/viteUtils.js"
 
@@ -17,7 +19,13 @@ export const IndexPage = (props: {
         window.admin = new Admin({ username: "${
             props.username
         }", isSuperuser: ${props.isSuperuser.toString()}, settings: ${JSON.stringify(
-        { ENV, GITHUB_USERNAME, DATA_API_FOR_ADMIN_UI }
+        {
+            ENV,
+            GITHUB_USERNAME,
+            DATA_API_FOR_ADMIN_UI,
+            OPENAI_API_KEY,
+            OPENAI_ORG_ID,
+        }
     )}})
         admin.start(document.querySelector("#app"), '${props.gitCmsBranchName}')
 `
