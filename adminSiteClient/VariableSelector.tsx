@@ -47,6 +47,7 @@ interface Variable {
     id: number
     name: string
     datasetName: string
+    namespaceName: string
     usageCount: number
 }
 
@@ -111,6 +112,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
                     id: variable.id,
                     name: variable.name,
                     datasetName: dataset.name,
+                    namespaceName: dataset.namespace,
                     usageCount: variableUsageCounts.get(variable.id) ?? 0,
                     //name: variable.name.includes(dataset.name) ? variable.name : dataset.name + " - " + variable.name
                 })
@@ -372,9 +374,22 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
                                 </div>
                             </div>
                         </div>
-                        <div className="selectedData">
+                        <div
+                            className="selectedData"
+                            style={{ maxWidth: "33.33%" }}
+                        >
                             <ul>
                                 {chosenVariables.map((d) => {
+                                    const label = (
+                                        <React.Fragment>
+                                            {d.name}{" "}
+                                            <span style={{ color: "#999" }}>
+                                                [{d.namespaceName}:{" "}
+                                                {d.datasetName}]
+                                            </span>
+                                        </React.Fragment>
+                                    )
+
                                     return (
                                         <li key={d.id}>
                                             <Toggle
@@ -382,7 +397,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
                                                 onValue={() =>
                                                     this.unselectVariable(d)
                                                 }
-                                                label={d.name}
+                                                label={label}
                                             />
                                         </li>
                                     )
@@ -479,14 +494,36 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
         this.initChosenVariables()
     }
 
-    @action.bound private initChosenVariables() {
+    @action.bound private async initChosenVariables() {
         const { variableUsageCounts } = this.database
-        this.chosenVariables = this.props.slot.dimensions.map((d) => ({
-            name: d.column.displayName,
-            id: d.variableId,
-            usageCount: variableUsageCounts.get(d.variableId) ?? 0,
-            datasetName: "",
-        }))
+        const { dimensions } = this.props.slot
+
+        // fetch dataset information for all chosen variables
+        const uniqueDatasetIds = [
+            ...new Set(
+                excludeUndefined(dimensions.map((d) => d.column.datasetId))
+            ),
+        ] as number[]
+        const datasets = await this.props.editor.loadDatasets(uniqueDatasetIds)
+        const datasetsById = lodash.keyBy(
+            datasets.map((d) => d.dataset),
+            (dataset) => dataset.id
+        )
+
+        this.chosenVariables = dimensions.map((d) => {
+            const { datasetId, datasetName } = d.column
+
+            return {
+                name: d.column.name,
+                id: d.variableId,
+                usageCount: variableUsageCounts.get(d.variableId) ?? 0,
+                datasetName: datasetName || "",
+                namespaceName:
+                    datasetId != undefined && datasetId in datasetsById
+                        ? datasetsById[datasetId].namespace
+                        : "",
+            }
+        })
     }
 
     componentWillUnmount() {

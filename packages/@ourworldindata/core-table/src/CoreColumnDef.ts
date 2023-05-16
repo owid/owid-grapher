@@ -74,6 +74,10 @@ export interface CoreColumnDef extends ColumnColorScale {
     retrievedDate?: string
     additionalInfo?: string
 
+    // Dataset information
+    datasetId?: number
+    datasetName?: string
+
     // Informational only
     targetTime?: number
 

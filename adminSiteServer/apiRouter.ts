@@ -486,6 +486,25 @@ apiRouter.get(
     }
 )
 
+apiRouter.get("/editorData/dataset/:datasetId.json", async (req: Request) => {
+    const datasetId = expectInt(req.params.datasetId)
+
+    const dataset = await db.mysqlFirst(
+        `
+        SELECT d.id,
+            d.namespace,
+            d.name
+        FROM datasets AS d
+        WHERE d.id = ?
+    `,
+        [datasetId]
+    )
+
+    if (!dataset) throw new JsonError(`No dataset by id '${datasetId}'`, 404)
+
+    return { dataset: dataset }
+})
+
 apiRouter.get(
     "/charts/:chartId.logs.json",
     async (req: Request, res: Response) => ({
