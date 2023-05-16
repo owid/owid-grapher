@@ -168,15 +168,28 @@ export class ChartEditor {
         return new EditorFeatures(this)
     }
 
-    // Load index of datasets and variables for the given namespace
-    async loadNamespace(namespace: string): Promise<void> {
-        const data = await this.manager.admin.getJSON(
-            `/api/editorData/${namespace}.json`
+    async loadNamespaces(namespaces: Namespace[]): Promise<void> {
+        const namespacesToLoad = namespaces.filter(
+            (namespace) => !this.database.dataByNamespace.has(namespace.name)
+        )
+
+        const data = await Promise.all(
+            namespacesToLoad.map((namespace) =>
+                this.manager.admin.getJSON(
+                    `/api/editorData/${namespace.name}.json`
+                )
+            )
         )
         runInAction(() =>
-            this.database.dataByNamespace.set(namespace, data as any)
+            namespacesToLoad.forEach((namespace, index) =>
+                this.database.dataByNamespace.set(
+                    namespace.name,
+                    data[index] as any
+                )
+            )
         )
     }
+
     async loadVariableUsageCounts(): Promise<void> {
         const data = (await this.manager.admin.getJSON(
             `/api/variables.usages.json`

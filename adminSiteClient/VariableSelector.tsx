@@ -4,11 +4,13 @@ import {
     groupBy,
     isString,
     sortBy,
+    flatten,
     buildSearchWordsFromSearchString,
     filterFunctionForSearchWords,
     highlightFunctionForSearchWords,
     SearchWord,
     OwidVariableId,
+    excludeUndefined,
 } from "@ourworldindata/utils"
 import {
     computed,
@@ -19,12 +21,18 @@ import {
     IReactionDisposer,
 } from "mobx"
 import { observer } from "mobx-react"
-import Select from "react-select"
+import Select, { MultiValue } from "react-select"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArchive } from "@fortawesome/free-solid-svg-icons"
 
-import { ChartEditor, Dataset, Namespace } from "./ChartEditor.js"
+import {
+    ChartEditor,
+    Dataset,
+    EditorDatabase,
+    Namespace,
+    NamespaceData,
+} from "./ChartEditor.js"
 import { TextField, Toggle, Modal } from "./Forms.js"
 import { DimensionSlot } from "@ourworldindata/grapher"
 
@@ -44,7 +52,7 @@ interface Variable {
 
 @observer
 export class VariableSelector extends React.Component<VariableSelectorProps> {
-    @observable.ref chosenNamespace: Namespace | undefined
+    @observable.ref chosenNamespaces: Namespace[] = []
     @observable.ref searchInput?: string
     @observable.ref isProjection?: boolean
     @observable.ref tolerance?: number
@@ -56,14 +64,15 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
     @observable numVisibleRows: number = 15
     @observable rowHeight: number = 32
 
-    @computed get database() {
+    @computed get database(): EditorDatabase {
         return this.props.editor.database
     }
 
-    @computed get currentNamespace() {
-        return (
-            this.chosenNamespace ??
-            this.database.namespaces.find((n) => n.name === "owid")!
+    @computed get defaultNamespaces(): Namespace[] {
+        // TODO: setting default namespaces is buggy at the moment
+        const defaultNames: string[] = []
+        return this.database.namespaces.filter((namespace) =>
+            defaultNames.includes(namespace.name)
         )
     }
 
@@ -72,21 +81,17 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
         return buildSearchWordsFromSearchString(searchInput)
     }
 
-    @computed get editorData() {
-        return this.database.dataByNamespace.get(this.currentNamespace.name)
+    @computed get editorData(): NamespaceData[] {
+        return excludeUndefined(
+            this.chosenNamespaces.map((namespace) =>
+                this.database.dataByNamespace.get(namespace.name)
+            )
+        )
     }
 
-    @computed get datasets() {
-        if (!this.editorData) return []
-
-        const datasets = this.editorData.datasets
-
-        if (this.currentNamespace.name !== "owid") {
-            // The default temporal ordering has no real use for bulk imports
-            return sortBy(datasets, (d) => d.name)
-        } else {
-            return datasets
-        }
+    @computed get datasets(): Dataset[] {
+        const datasets = flatten(this.editorData.map((d) => d.datasets))
+        return sortBy(datasets, (d) => d.name)
     }
 
     @computed get datasetsByName(): lodash.Dictionary<Dataset> {
@@ -198,7 +203,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
         const { slot } = this.props
         const { database } = this.props.editor
         const {
-            currentNamespace,
+            defaultNamespaces,
             searchInput,
             chosenVariables,
             datasetsByName,
@@ -231,7 +236,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
                                 autofocus
                             />
                             <div className="form-group">
-                                <label>Namespace</label>
+                                <label>Namespaces</label>
                                 <Select
                                     options={database.namespaces}
                                     formatOptionLabel={
@@ -239,12 +244,24 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
                                     }
                                     getOptionValue={(v) => v.name}
                                     onChange={this.onNamespace}
-                                    value={currentNamespace}
+                                    defaultValue={defaultNamespaces}
                                     filterOption={this.filterNamespace}
                                     components={{
                                         IndicatorSeparator: null,
                                     }}
                                     menuPlacement="bottom"
+                                    isMulti
+                                    styles={{
+                                        multiValue: (baseStyles) => ({
+                                            ...baseStyles,
+                                            maxWidth: "300px",
+                                        }),
+                                        valueContainer: (baseStyles) => ({
+                                            ...baseStyles,
+                                            overflowY: "auto",
+                                            maxHeight: "130px",
+                                        }),
+                                    }}
                                 />
                             </div>
                             <div
@@ -282,6 +299,11 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
                                                             }}
                                                         >
                                                             <h5>
+                                                                [
+                                                                {
+                                                                    dataset.namespace
+                                                                }
+                                                                ]{" "}
                                                                 {highlight(
                                                                     dataset.name
                                                                 )}
@@ -396,8 +418,8 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
         this.rowOffset = rowOffset
     }
 
-    @action.bound onNamespace(selected: Namespace | null) {
-        if (selected) this.chosenNamespace = selected
+    @action.bound onNamespace(selected: MultiValue<Namespace> | null) {
+        if (selected) this.chosenNamespaces = [...selected]
     }
 
     @action.bound onSearchInput(input: string) {
@@ -442,11 +464,16 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
     componentDidMount() {
         this.dispose = autorun(() => {
-            if (!this.editorData)
+            if (!this.editorData) {
                 runInAction(() => {
-                    this.props.editor.loadNamespace(this.currentNamespace.name)
+                    this.props.editor.loadNamespaces(this.defaultNamespaces)
                     this.props.editor.loadVariableUsageCounts()
                 })
+            }
+
+            runInAction(() => {
+                this.props.editor.loadNamespaces(this.chosenNamespaces)
+            })
         })
 
         this.initChosenVariables()
