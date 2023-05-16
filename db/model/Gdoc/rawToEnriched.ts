@@ -1064,8 +1064,8 @@ function parseKeyInsights(raw: RawBlockKeyInsights): EnrichedBlockKeyInsights {
                     "Key insight has both a url and a filename. Only one of these two fields can be specified.",
             })
         }
-        if (rawInsight.url) {
-            const url = Url.fromURL(rawInsight.url)
+        const url = Url.fromURL(extractUrl(rawInsight.url))
+        if (url.fullUrl) {
             if (!url.isExplorer && !url.isGrapher) {
                 parseErrors.push({
                     message:
@@ -1087,7 +1087,7 @@ function parseKeyInsights(raw: RawBlockKeyInsights): EnrichedBlockKeyInsights {
             enrichedInsights.push({
                 type: "key-insight-slide",
                 title: rawInsight.title,
-                url: rawInsight.url,
+                url: url.fullUrl,
                 filename: rawInsight.filename,
                 content: enrichedContent,
             })

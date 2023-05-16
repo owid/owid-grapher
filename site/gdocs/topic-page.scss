@@ -116,7 +116,7 @@
         overflow-y: auto;
         scrollbar-width: thin;
         @include md-up {
-            margin-right: 16px;
+            padding-right: 16px;
         }
         ul {
             margin-bottom: 32px;

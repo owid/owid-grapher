@@ -54,6 +54,7 @@ import {
 import { EXPLORERS_ROUTE_FOLDER } from "../../../explorer/ExplorerConstants.js"
 import { formatUrls } from "../../../site/formatting.js"
 import { parseDetails } from "./rawToEnriched.js"
+import { extractPlaintextUrl } from "./gdocUtils.js"
 
 @Entity("tags")
 export class Tag extends BaseEntity implements OwidGdocTag {

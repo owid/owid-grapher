@@ -74,7 +74,10 @@ export const KeyInsights = ({
                                                 KEY_INSIGHTS_SLIDE_CONTENT_CLASS_NAME
                                             }
                                         >
-                                            <ArticleBlocks blocks={content} />
+                                            <ArticleBlocks
+                                                blocks={content}
+                                                containerType="key-insight"
+                                            />
                                         </div>
                                     </div>
                                     <div className="span-cols-7 span-md-cols-12">
