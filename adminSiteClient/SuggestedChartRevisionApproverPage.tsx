@@ -468,15 +468,32 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                         {this.renderMeta()}
                     </React.Fragment>
                 ) : (
-                    <div style={{ paddingBottom: 20 }}>
-                        0 pending chart revisions found. All suggested chart
-                        revisions have already been approved, flagged, or
-                        rejected. If you wish to see all suggested chart
-                        revisions, either uncheck the{" "}
-                        <i>Show "pending" revisions only</i> box in the Settings
-                        tab or{" "}
-                        <Link to="/suggested-chart-revisions">click here</Link>{" "}
-                        to view a complete list of suggested chart revisions.
+                    <div
+                        style={{
+                            marginTop: "2rem",
+                            padding: "1rem",
+                            width: "50%",
+                            border: "1px solid #ccc",
+                            backgroundColor: "#FFF5D4",
+                            boxShadow: "0 0 1px rgba(0,0,0,0.2)",
+                        }}
+                    >
+                        <p>
+                            ⚠️ <b>0 pending chart revisions found.</b> All
+                            suggested chart revisions have already been
+                            approved, flagged, or rejected.
+                        </p>
+                        <p>
+                            If you wish to see all suggested chart revisions,
+                            either uncheck the{" "}
+                            <i>Show "pending" revisions only</i> box in the
+                            Settings tab or{" "}
+                            <Link to="/suggested-chart-revisions">
+                                click here
+                            </Link>{" "}
+                            to view a complete list of suggested chart
+                            revisions.
+                        </p>
                     </div>
                 )}
             </div>
