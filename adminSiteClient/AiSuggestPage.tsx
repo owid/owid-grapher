@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faDice } from "@fortawesome/free-solid-svg-icons"
 import { AdminLayout } from "./AdminLayout.js"
 import { BindString } from "./Forms.js"
+import ReactDiffViewer, { DiffMethod } from "react-diff-viewer"
 
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { match } from "ts-pattern"
@@ -86,12 +87,15 @@ You are presented with examples of text and are tasked with cleaning up the text
     }
 
     render() {
-        const { inputText, suggestionState } = this
+        const { inputText, outputText, suggestionState } = this
 
         const buttonElement = match(suggestionState)
             .with({ state: "AiTextSuggestionStateNotRequested" }, () => {
                 return (
-                    <button onClick={() => this.requestSuggestion(inputText)}>
+                    <button
+                        disabled={inputText === ""}
+                        onClick={() => this.requestSuggestion(inputText)}
+                    >
                         <FontAwesomeIcon icon={faDice} /> Request AI suggestion
                     </button>
                 )
@@ -107,6 +111,22 @@ You are presented with examples of text and are tasked with cleaning up the text
                 )
             })
             .exhaustive()
+
+        const diffViewer =
+            outputText !== "" ? (
+                <ReactDiffViewer
+                    oldValue={inputText}
+                    newValue={outputText}
+                    compareMethod={DiffMethod.WORDS}
+                    styles={{
+                        contentText: {
+                            wordBreak: "break-word",
+                        },
+                    }}
+                />
+            ) : (
+                <></>
+            )
 
         return (
             <main className="AiSuggestTool">
@@ -131,6 +151,7 @@ You are presented with examples of text and are tasked with cleaning up the text
                                 textarea={true}
                                 store={this}
                             />
+                            {diffViewer}
                             {buttonElement}
                         </section>
                     </div>
