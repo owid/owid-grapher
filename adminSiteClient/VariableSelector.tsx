@@ -11,6 +11,7 @@ import {
     SearchWord,
     OwidVariableId,
     excludeUndefined,
+    uniq,
 } from "@ourworldindata/utils"
 import { computed, action, observable, IReactionDisposer } from "mobx"
 import { observer } from "mobx-react"
@@ -231,6 +232,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
                                 <label>Namespaces</label>
                                 <Select
                                     options={database.namespaces}
+                                    value={this.chosenNamespaces}
                                     formatOptionLabel={
                                         this.formatNamespaceLabel
                                     }
@@ -470,19 +472,17 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
         this.props.editor.loadNamespaces(this.database.namespaces)
         this.props.editor.loadVariableUsageCounts()
 
-        this.initChosenVariables()
+        this.initChosenVariablesAndNamespaces()
     }
 
-    @action.bound private async initChosenVariables() {
+    @action.bound private async initChosenVariablesAndNamespaces() {
         const { variableUsageCounts } = this.database
         const { dimensions } = this.props.slot
 
         // fetch dataset information for all chosen variables
-        const uniqueDatasetIds = [
-            ...new Set(
-                excludeUndefined(dimensions.map((d) => d.column.datasetId))
-            ),
-        ] as number[]
+        const uniqueDatasetIds = uniq(
+            excludeUndefined(dimensions.map((d) => d.column.datasetId))
+        )
         const datasets = await this.props.editor.loadDatasets(uniqueDatasetIds)
         const datasetsById = lodash.keyBy(
             datasets.map((d) => d.dataset),
@@ -503,7 +503,15 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
                         : "",
             }
         })
+
+        const uniqueNamespaces = uniq(
+            this.chosenVariables.map((v) => v.namespaceName)
+        )
+        this.chosenNamespaces = this.database.namespaces.filter((n) => {
+            return uniqueNamespaces.includes(n.name)
+        })
     }
+
     @action.bound onComplete() {
         this.props.onComplete(this.chosenVariables.map((v) => v.id))
     }
