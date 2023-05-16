@@ -190,7 +190,7 @@ level: 2
         expect(article?.body?.[0]).toEqual(expectedEnrichedBlock)
     })
 
-    it.only("surfaces block type restriction in topic-page-intro content", () => {
+    it("surfaces block type restriction in topic-page-intro content", () => {
         const archieMLString = `
         {.topic-page-intro}
             {.download-button}

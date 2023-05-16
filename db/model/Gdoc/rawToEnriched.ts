@@ -1084,13 +1084,18 @@ function parseKeyInsights(raw: RawBlockKeyInsights): EnrichedBlockKeyInsights {
         }
         enrichedInsightParseErrors.push(...parseErrors)
         if (rawInsight.title) {
-            enrichedInsights.push({
+            const enrichedInsight: EnrichedBlockKeyInsightsSlide = {
                 type: "key-insight-slide",
                 title: rawInsight.title,
-                url: url.fullUrl,
-                filename: rawInsight.filename,
                 content: enrichedContent,
-            })
+            }
+            if (url.fullUrl) {
+                enrichedInsight.url = url.fullUrl
+            }
+            if (rawInsight.filename) {
+                enrichedInsight.filename = rawInsight.filename
+            }
+            enrichedInsights.push(enrichedInsight)
         }
     }
 
