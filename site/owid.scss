@@ -256,9 +256,9 @@ h6:hover .deep-link {
 --------------------------------------------- */
 .site-header {
     position: relative;
-    // Must be specified for the search overlay to stack above Grapher charts,
+    // Must be specified for the search overlay to stack above Grapher charts, and the sticky nav
     // but below Tippy tooltips
-    z-index: 2;
+    z-index: 11;
 }
 
 /* Homepage
