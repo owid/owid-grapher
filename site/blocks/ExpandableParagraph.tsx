@@ -1,5 +1,5 @@
 import React, { useState } from "react"
-import classnames from "classnames"
+import cx from "classnames"
 import ReactDOM from "react-dom"
 import ReactDOMServer from "react-dom/server.js"
 
@@ -8,24 +8,27 @@ export const ExpandableParagraph = (
         | {
               children: React.ReactNode
               dangerouslySetInnerHTML?: undefined
+              className?: string
           }
         | {
               children?: undefined
               dangerouslySetInnerHTML: {
                   __html: string
               }
+              className?: string
           }
 ) => {
     const [isExpanded, setIsExpanded] = useState(false)
 
+    const { className, ...propsWithoutClassName } = props
     return (
-        <>
+        <div className={className}>
             <div
-                className={classnames("expandable-paragraph", {
+                className={cx("expandable-paragraph", {
                     "expandable-paragraph--is-expanded": isExpanded,
                 })}
                 // Either pass children or dangerouslySetInnerHTML
-                {...props}
+                {...propsWithoutClassName}
             />
             {!isExpanded && (
                 <button
@@ -35,7 +38,7 @@ export const ExpandableParagraph = (
                     Show more
                 </button>
             )}
-        </>
+        </div>
     )
 }
 

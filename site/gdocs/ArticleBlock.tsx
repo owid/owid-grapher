@@ -26,6 +26,7 @@ import urlSlug from "url-slug"
 import { MissingData } from "./MissingData.js"
 import { AdditionalCharts } from "./AdditionalCharts.js"
 import { ProminentLink } from "./ProminentLink.js"
+import { ExpandableParagraph } from "../blocks/ExpandableParagraph.js"
 
 export type Container =
     | "default"
@@ -481,6 +482,15 @@ export default function ArticleBlock({
                 items={block.items}
                 className={getLayout("additional-charts", containerType)}
             />
+        ))
+        .with({ type: "expandable-paragraph" }, (block) => (
+            <ExpandableParagraph
+                className={getLayout("expandable-paragraph", containerType)}
+            >
+                {block.items.map((item, i) => (
+                    <ArticleBlock key={i} b={item} />
+                ))}
+            </ExpandableParagraph>
         ))
         .exhaustive()
 

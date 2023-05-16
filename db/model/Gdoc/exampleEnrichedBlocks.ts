@@ -222,4 +222,9 @@ export const enrichedBlockExamples: Record<
         value: {},
         parseErrors: [],
     },
+    "expandable-paragraph": {
+        type: "expandable-paragraph",
+        items: [enrichedBlockText],
+        parseErrors: [],
+    },
 }
