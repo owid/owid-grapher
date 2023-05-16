@@ -12,14 +12,7 @@ import {
     OwidVariableId,
     excludeUndefined,
 } from "@ourworldindata/utils"
-import {
-    computed,
-    action,
-    observable,
-    autorun,
-    runInAction,
-    IReactionDisposer,
-} from "mobx"
+import { computed, action, observable, IReactionDisposer } from "mobx"
 import { observer } from "mobx-react"
 import Select, { MultiValue } from "react-select"
 
@@ -69,22 +62,20 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
         return this.props.editor.database
     }
 
-    @computed get defaultNamespaces(): Namespace[] {
-        // TODO: setting default namespaces is buggy at the moment
-        const defaultNames: string[] = []
-        return this.database.namespaces.filter((namespace) =>
-            defaultNames.includes(namespace.name)
-        )
-    }
-
     @computed get searchWords(): SearchWord[] {
         const { searchInput } = this
         return buildSearchWordsFromSearchString(searchInput)
     }
 
     @computed get editorData(): NamespaceData[] {
+        // show all variables when no namespaces are selected
+        const currentNamespaces =
+            this.chosenNamespaces.length > 0
+                ? this.chosenNamespaces
+                : this.database.namespaces
+
         return excludeUndefined(
-            this.chosenNamespaces.map((namespace) =>
+            currentNamespaces.map((namespace) =>
                 this.database.dataByNamespace.get(namespace.name)
             )
         )
@@ -205,7 +196,6 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
         const { slot } = this.props
         const { database } = this.props.editor
         const {
-            defaultNamespaces,
             searchInput,
             chosenVariables,
             datasetsByName,
@@ -246,7 +236,6 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
                                     }
                                     getOptionValue={(v) => v.name}
                                     onChange={this.onNamespace}
-                                    defaultValue={defaultNamespaces}
                                     filterOption={this.filterNamespace}
                                     components={{
                                         IndicatorSeparator: null,
@@ -478,18 +467,8 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
     dispose!: IReactionDisposer
     base: React.RefObject<HTMLDivElement> = React.createRef()
     componentDidMount() {
-        this.dispose = autorun(() => {
-            if (!this.editorData) {
-                runInAction(() => {
-                    this.props.editor.loadNamespaces(this.defaultNamespaces)
-                    this.props.editor.loadVariableUsageCounts()
-                })
-            }
-
-            runInAction(() => {
-                this.props.editor.loadNamespaces(this.chosenNamespaces)
-            })
-        })
+        this.props.editor.loadNamespaces(this.database.namespaces)
+        this.props.editor.loadVariableUsageCounts()
 
         this.initChosenVariables()
     }
@@ -525,11 +504,6 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
             }
         })
     }
-
-    componentWillUnmount() {
-        this.dispose()
-    }
-
     @action.bound onComplete() {
         this.props.onComplete(this.chosenVariables.map((v) => v.id))
     }

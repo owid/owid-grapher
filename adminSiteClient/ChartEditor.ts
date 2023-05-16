@@ -173,20 +173,29 @@ export class ChartEditor {
             (namespace) => !this.database.dataByNamespace.has(namespace.name)
         )
 
-        const data = await Promise.all(
+        const promises = await Promise.allSettled(
             namespacesToLoad.map((namespace) =>
                 this.manager.admin.getJSON(
                     `/api/editorData/${namespace.name}.json`
                 )
             )
         )
+
+        const isPromiseFulfilled = <T>(
+            promise: PromiseSettledResult<T>
+        ): promise is PromiseFulfilledResult<T> =>
+            promise.status === "fulfilled"
+
         runInAction(() =>
-            namespacesToLoad.forEach((namespace, index) =>
-                this.database.dataByNamespace.set(
-                    namespace.name,
-                    data[index] as any
-                )
-            )
+            namespacesToLoad.forEach((namespace, index) => {
+                const promise = promises[index]
+                if (isPromiseFulfilled(promise)) {
+                    this.database.dataByNamespace.set(
+                        namespace.name,
+                        promise.value as any
+                    )
+                }
+            })
         )
     }
 
