@@ -25,7 +25,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArchive } from "@fortawesome/free-solid-svg-icons"
 
 import { ChartEditor, Dataset, Namespace } from "./ChartEditor.js"
-import { TextField, FieldsRow, Toggle, Modal } from "./Forms.js"
+import { TextField, Toggle, Modal } from "./Forms.js"
 import { DimensionSlot } from "@ourworldindata/grapher"
 
 interface VariableSelectorProps {
@@ -222,33 +222,31 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
                 <div className="modal-body">
                     <div>
                         <div className="searchResults">
-                            <FieldsRow>
-                                <div className="form-group">
-                                    <label>Database</label>
-                                    <Select
-                                        options={database.namespaces}
-                                        formatOptionLabel={
-                                            this.formatNamespaceLabel
-                                        }
-                                        getOptionValue={(v) => v.name}
-                                        onChange={this.onNamespace}
-                                        value={currentNamespace}
-                                        filterOption={this.filterNamespace}
-                                        components={{
-                                            IndicatorSeparator: null,
-                                        }}
-                                        menuPlacement="bottom"
-                                    />
-                                </div>
-                                <TextField
-                                    placeholder="Search..."
-                                    value={searchInput}
-                                    onValue={this.onSearchInput}
-                                    onEnter={this.onSearchEnter}
-                                    onEscape={this.onDismiss}
-                                    autofocus
+                            <TextField
+                                placeholder="Search..."
+                                value={searchInput}
+                                onValue={this.onSearchInput}
+                                onEnter={this.onSearchEnter}
+                                onEscape={this.onDismiss}
+                                autofocus
+                            />
+                            <div className="form-group">
+                                <label>Namespace</label>
+                                <Select
+                                    options={database.namespaces}
+                                    formatOptionLabel={
+                                        this.formatNamespaceLabel
+                                    }
+                                    getOptionValue={(v) => v.name}
+                                    onChange={this.onNamespace}
+                                    value={currentNamespace}
+                                    filterOption={this.filterNamespace}
+                                    components={{
+                                        IndicatorSeparator: null,
+                                    }}
+                                    menuPlacement="bottom"
                                 />
-                            </FieldsRow>
+                            </div>
                             <div
                                 style={{
                                     height: numVisibleRows * rowHeight,
