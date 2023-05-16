@@ -9,6 +9,7 @@ import ReactDiffViewer, { DiffMethod } from "react-diff-viewer"
 
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { match } from "ts-pattern"
+import { getWindowUrl } from "@ourworldindata/utils"
 
 type AiTextSuggestionStateNotRequested = {
     state: "AiTextSuggestionStateNotRequested"
@@ -86,10 +87,43 @@ You are presented with examples of text and are tasked with cleaning up the text
         this.outputText = this.suggestionState.suggestion
     }
 
+    async componentDidMount() {
+        const url = getWindowUrl()
+        const prompt = url.queryParams.hasOwnProperty("prompt")
+            ? url.queryParams["prompt"]
+            : undefined
+        const input = url.queryParams.hasOwnProperty("input")
+            ? url.queryParams["input"]
+            : undefined
+        if (prompt) {
+            this.prompt = prompt
+        }
+        if (input) {
+            this.inputText = input
+        }
+    }
+
+    getDiffer(inputText: string, outputText: string) {
+        return outputText !== "" ? (
+            <ReactDiffViewer
+                oldValue={inputText}
+                newValue={outputText}
+                compareMethod={DiffMethod.WORDS}
+                styles={{
+                    contentText: {
+                        wordBreak: "break-word",
+                    },
+                }}
+            />
+        ) : (
+            <></>
+        )
+    }
+
     render() {
         const { inputText, outputText, suggestionState } = this
 
-        const buttonElement = match(suggestionState)
+        const conditionalElements = match(suggestionState)
             .with({ state: "AiTextSuggestionStateNotRequested" }, () => {
                 return (
                     <button
@@ -105,28 +139,24 @@ You are presented with examples of text and are tasked with cleaning up the text
             })
             .with({ state: "AiTextSuggestionStateReceived" }, (_state) => {
                 return (
-                    <button onClick={() => this.requestSuggestion(inputText)}>
-                        <FontAwesomeIcon icon={faDice} /> Request AI suggestion
-                    </button>
+                    <>
+                        <BindString
+                            label="Output text"
+                            field="outputText"
+                            textarea={true}
+                            store={this}
+                        />
+                        {this.getDiffer(inputText, outputText)}
+                        <button
+                            onClick={() => this.requestSuggestion(inputText)}
+                        >
+                            <FontAwesomeIcon icon={faDice} /> Request AI
+                            suggestion
+                        </button>
+                    </>
                 )
             })
             .exhaustive()
-
-        const diffViewer =
-            outputText !== "" ? (
-                <ReactDiffViewer
-                    oldValue={inputText}
-                    newValue={outputText}
-                    compareMethod={DiffMethod.WORDS}
-                    styles={{
-                        contentText: {
-                            wordBreak: "break-word",
-                        },
-                    }}
-                />
-            ) : (
-                <></>
-            )
 
         return (
             <main className="AiSuggestTool">
@@ -145,14 +175,7 @@ You are presented with examples of text and are tasked with cleaning up the text
                                 textarea={true}
                                 store={this}
                             />
-                            <BindString
-                                label="Output text"
-                                field="outputText"
-                                textarea={true}
-                                store={this}
-                            />
-                            {diffViewer}
-                            {buttonElement}
+                            {conditionalElements}
                         </section>
                     </div>
                 </div>
