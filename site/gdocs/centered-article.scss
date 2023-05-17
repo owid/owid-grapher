@@ -18,9 +18,10 @@ $banner-height: 200px;
     z-index: -1;
 }
 
-// Pretty sure we don't want this
+// Until we implement a way to specifiy src-sets in archie, this image will need to have a 1:1 aspect ratio
+// to fit on both mobile and desktop resolutions
 .centered-article-header__cover-image {
-    max-height: 200px;
+    height: 200px;
     overflow: hidden;
     position: absolute;
     width: 100%;
