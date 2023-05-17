@@ -52,6 +52,11 @@ export const GdocsSettingsForm = ({
                 gdoc={gdoc}
                 errors={errors}
             />
+            <GdocsSettingsContentField
+                property="featured-image"
+                gdoc={gdoc}
+                errors={errors}
+            />
             <div className="form-group">
                 <GdocsDateline gdoc={gdoc} setGdoc={setGdoc} errors={errors} />
             </div>
