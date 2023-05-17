@@ -1,6 +1,6 @@
 .gdoc-index-item {
     padding: 16px;
-    margin: 8;
+    margin: 8px;
     position: relative;
     display: flex;
 
@@ -25,9 +25,8 @@
     display: inline;
 }
 
-.gdoc-index-item__edit-link {
+.gdoc-index-item .gdoc-edit-link {
     margin-left: 8px;
-    display: inline;
 }
 
 .gdoc-index-item__publish-status {
@@ -62,7 +61,8 @@
     margin-right: 12px;
     opacity: 0.7;
     cursor: pointer;
-    &.checked {
+
+    &.isChecked {
         opacity: 1;
     }
 

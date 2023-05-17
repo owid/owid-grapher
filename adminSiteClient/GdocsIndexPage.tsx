@@ -22,6 +22,7 @@ import { GdocsStoreContext } from "./GdocsStore.js"
 import { computed, observable } from "mobx"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import fuzzysort from "fuzzysort"
+import { GdocsEditLink } from "./GdocsEditLink.js"
 
 const iconGdocTypeMap = {
     [OwidGdocType.Fragment]: <FontAwesomeIcon icon={faPuzzlePiece} />,
@@ -39,7 +40,7 @@ class GdocsIndexPageSearch extends React.Component<{
     filters: Record<OwidGdocType, boolean>
     search: { value: string }
 }> {
-    handleCheckboxChange = (type: OwidGdocType) => {
+    toggleGdocTypeFilter = (type: OwidGdocType) => {
         this.props.filters[type] = !this.props.filters[type]
     }
 
@@ -49,11 +50,10 @@ class GdocsIndexPageSearch extends React.Component<{
             OwidGdocType.Article,
             OwidGdocType.TopicPage,
         ]
-
         return (
             <div className="d-flex flex-grow-1">
                 <SearchField
-                    placeholder="author, category, title"
+                    placeholder="Search by author, category, or title"
                     className="gdoc-index__search-bar"
                     value={this.props.search.value}
                     onValue={(value: string) =>
@@ -63,20 +63,20 @@ class GdocsIndexPageSearch extends React.Component<{
                 />
                 <div>
                     {owidGdocTypes.map((type) => {
-                        const checked = this.props.filters[type]
+                        const isChecked = this.props.filters[type]
                         return (
                             <label
                                 key={type}
                                 className={cx("gdoc-index-filter-checkbox", {
-                                    checked,
+                                    isChecked,
                                 })}
                             >
                                 <input
                                     type="checkbox"
                                     id={`shouldShow${type}`}
-                                    checked={checked}
+                                    checked={isChecked}
                                     onChange={() =>
-                                        this.handleCheckboxChange(type)
+                                        this.toggleGdocTypeFilter(type)
                                     }
                                 />
                                 {iconGdocTypeMap[type]}
@@ -139,11 +139,10 @@ export class GdocsIndexPage extends React.Component<GdocsMatchProps> {
     get visibleGdocs(): OwidGdocInterface[] {
         const { context, search, searchIndex } = this
         if (!context) return []
-        const filteredByType = context.gdocs.filter((gdoc) => {
-            if (!gdoc.content.type) return true
-            if (this.filters[gdoc.content.type]) return true
-            return false
-        })
+        const filteredByType = context.gdocs.filter(
+            // don't filter docs with no type set
+            (gdoc) => !gdoc.content.type || !!this.filters[gdoc.content.type]
+        )
         if (!search.value) return filteredByType
 
         const fuzzysorted = fuzzysort.go(search.value, searchIndex, {
@@ -153,8 +152,9 @@ export class GdocsIndexPage extends React.Component<GdocsMatchProps> {
 
         const uniqueFiltered = fuzzysorted.reduce(
             (acc: Set<OwidGdocInterface>, { obj: { gdoc } }) => {
-                if (!gdoc.content.type) return acc.add(gdoc)
-                if (this.filters[gdoc.content.type]) return acc.add(gdoc)
+                if (!gdoc.content.type || this.filters[gdoc.content.type]) {
+                    acc.add(gdoc)
+                }
                 return acc
             },
             new Set<OwidGdocInterface>()
@@ -205,12 +205,7 @@ export class GdocsIndexPage extends React.Component<GdocsMatchProps> {
                                         {gdoc.content.title}
                                     </h5>
                                 </Link>
-                                <a
-                                    href={`https://docs.google.com/document/d/${gdoc.id}/edit`}
-                                    className="gdoc-index-item__edit-link"
-                                >
-                                    Edit
-                                </a>
+                                <GdocsEditLink gdocId={gdoc.id} />
                                 <p className="gdoc-index-item__byline">
                                     {gdoc.content.byline}
                                 </p>
