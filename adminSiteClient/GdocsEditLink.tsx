@@ -13,6 +13,7 @@ export const GdocsEditLink = ({
         href={`https://docs.google.com/document/d/${gdocId}/edit`}
         target={gdocId}
         style={style}
+        className="gdoc-edit-link"
         rel="noopener noreferrer"
     >
         Edit

@@ -9,6 +9,7 @@ import * as lodash from "lodash"
 import { bind } from "decko"
 import { observable, action } from "mobx"
 import { observer } from "mobx-react"
+import cx from "classnames"
 
 import { pick, capitalize, dayjs, Tippy } from "@ourworldindata/utils"
 import { Colorpicker } from "./Colorpicker.js"
@@ -87,7 +88,10 @@ export class TextField extends React.Component<TextFieldProps> {
         ])
 
         return (
-            <div className="form-group" ref={this.base}>
+            <div
+                className={cx("form-group", this.props.className)}
+                ref={this.base}
+            >
                 {props.label && <label>{props.label}</label>}
                 <div className="input-group">
                     <input
