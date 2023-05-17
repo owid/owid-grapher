@@ -22,10 +22,10 @@ export const ExpandableParagraph = (
 
     const { className, ...propsWithoutClassName } = props
     return (
-        <div className={className}>
+        <div className={cx("expandable-paragraph", className)}>
             <div
-                className={cx("expandable-paragraph", {
-                    "expandable-paragraph--is-expanded": isExpanded,
+                className={cx("expandable-paragraph__content", {
+                    "expandable-paragraph__content--is-expanded": isExpanded,
                 })}
                 // Either pass children or dangerouslySetInnerHTML
                 {...propsWithoutClassName}
