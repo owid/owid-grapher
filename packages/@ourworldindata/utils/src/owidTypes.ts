@@ -305,6 +305,14 @@ export interface FullPost extends IndexPost {
     glossary: boolean
 }
 
+export interface PromptTemplateRow {
+    id: number
+    name: string
+    prompt: string
+    createdAt: Date
+    updatedAt: Date | null
+}
+
 export enum WP_ColumnStyle {
     StickyRight = "sticky-right",
     StickyLeft = "sticky-left",

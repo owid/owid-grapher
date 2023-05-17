@@ -134,6 +134,7 @@ You are presented with examples of text and are tasked with cleaning up the text
                     </button>
                 )
             })
+
             .with({ state: "AiTextSuggestionStatePending" }, () => {
                 return <div>Loading...</div>
             })

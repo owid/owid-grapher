@@ -178,6 +178,7 @@ export {
     type DataPageJson,
     type DataPageParseError,
     AllowedDataPageGdocFields,
+    type PromptTemplateRow,
 } from "./owidTypes.js"
 
 export {

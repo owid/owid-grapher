@@ -15,6 +15,7 @@ import {
 } from "../settings/serverSettings.js"
 import { expectInt, isValidSlug } from "../serverUtils/serverUtil.js"
 import { OldChart, Chart, getGrapherById } from "../db/model/Chart.js"
+import { PromptTemplate } from "../db/model/PromptTemplate.js"
 import { Request, Response, CurrentUser } from "./authentication.js"
 import { getVariableData } from "../db/model/Variable.js"
 import {
@@ -385,6 +386,42 @@ const saveGrapher = async (
 
     return chartId
 }
+
+apiRouter.get("/promptTemplates/:id", async (req: Request, res: Response) => {
+    const promptTemplate = await PromptTemplate.findOneBy({
+        id: expectInt(req.params.id),
+    })
+    return promptTemplate
+})
+
+apiRouter.get("/promptTemplates", async (req: Request, res: Response) => {
+    const promptTemplates = await PromptTemplate.find()
+    return promptTemplates
+})
+
+apiRouter.post("/promptTemplates", async (req: Request, res: Response) => {
+    let promptTemplate = await PromptTemplate.findOneBy({
+        id: expectInt(req.params.id),
+    })
+    if (!promptTemplate) promptTemplate = new PromptTemplate()
+    const newPromptTemplate = req.body
+
+    promptTemplate.name = newPromptTemplate.name
+    promptTemplate.prompt = newPromptTemplate.prompt
+    promptTemplate.lastEditedByUserId = res.locals.user.id
+    promptTemplate.save()
+
+    return promptTemplate
+})
+
+apiRouter.delete(
+    "/promptTemplates/:id",
+    async (req: Request, res: Response) => {
+        PromptTemplate.delete({
+            id: expectInt(req.params.id),
+        })
+    }
+)
 
 apiRouter.get("/charts.json", async (req: Request, res: Response) => {
     const limit = parseIntOrUndefined(req.query.limit as string) ?? 10000
