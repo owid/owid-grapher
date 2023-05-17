@@ -201,13 +201,16 @@ $cell-border: 1px solid rgba(0, 0, 0, 0.08);
 
     .closest-time-notice-icon {
         opacity: 0.5;
-        padding-right: 8px;
         font-size: 13px;
         cursor: default;
 
         .icon {
             font-size: 0.75rem;
             opacity: 0.6;
+        }
+
+        & + span {
+            margin-left: 8px;
         }
     }
 
