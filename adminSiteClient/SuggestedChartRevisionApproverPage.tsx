@@ -575,8 +575,11 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                                             Original
                                         </h3>
                                     </Tippy>
-                                    <span className="text-muted">
-                                        {/* {`(#${this.suggestedChartRevision.chartId}, V${this.suggestedChartRevision.originalConfig.version})`} */}
+                                    <span
+                                        className="text-muted"
+                                        style={{ padding: "0.25rem" }}
+                                    >
+                                        {`(#${this.currentSuggestedChartRevision.chartId}, v${this.currentSuggestedChartRevision.originalConfig.version})`}
                                     </span>
                                     <Link
                                         className="btn btn-outline-secondary"
@@ -675,7 +678,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                                         </h3>
                                     </Tippy>
                                     <span className="text-muted">
-                                        {/* {`(#${this.suggestedChartRevision.chartId}, V${this.suggestedChartRevision.suggestedConfig.version})`} */}
+                                        {/* {`(#${this.currentSuggestedChartRevision.chartId}, V${this.currentSuggestedChartRevision.suggestedConfig.version})`} */}
                                     </span>
                                     <Link
                                         className="btn btn-outline-secondary"
@@ -790,7 +793,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                 {this.listMode && (
                     <React.Fragment>
                         <button
-                            className="btn btn-outline-dark"
+                            className="btn btn-secondary"
                             onClick={this.onFirst}
                             title="Go to first suggestion"
                             disabled={this.prevBtnIsDisabled}
@@ -804,7 +807,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                             <FontAwesomeIcon icon={faAngleDoubleLeft} />
                         </button>
                         <button
-                            className="btn btn-outline-dark"
+                            className="btn btn-secondary"
                             onClick={this.onPrev}
                             title="Go to previous suggestion"
                             disabled={this.prevBtnIsDisabled}
@@ -820,7 +823,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                     </React.Fragment>
                 )}
                 <button
-                    className="btn btn-outline-danger"
+                    className="btn btn-danger btn-lg"
                     onClick={this.onRejectSuggestedChartRevision}
                     title="Reject the suggestion, keeping the original chart as it is"
                     disabled={this.rejectButtonIsDisabled}
@@ -831,14 +834,14 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                             : undefined,
                     }}
                 >
-                    <SuggestedChartRevisionStatusIcon
+                    {/* <SuggestedChartRevisionStatusIcon
                         status={SuggestedChartRevisionStatus.rejected}
                         setColor={false}
-                    />{" "}
+                    />{" "} */}
                     Reject
                 </button>
                 <button
-                    className="btn btn-outline-warning"
+                    className="btn btn-light btn-lg"
                     onClick={this.onFlagSuggestedChartRevision}
                     title="Flag the suggestion for further inspection, keeping the original chart as it is"
                     disabled={this.flagButtonIsDisabled}
@@ -849,14 +852,14 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                             : undefined,
                     }}
                 >
-                    <SuggestedChartRevisionStatusIcon
+                    {/* <SuggestedChartRevisionStatusIcon
                         status={SuggestedChartRevisionStatus.flagged}
                         setColor={false}
-                    />{" "}
+                    />{" "} */}
                     Flag
                 </button>
                 <button
-                    className="btn btn-outline-primary"
+                    className="btn btn-success btn-lg"
                     onClick={this.onApproveSuggestedChartRevision}
                     title="Approve the suggestion, replacing the original chart with the suggested chart (also republishes the chart)"
                     disabled={this.approveButtonIsDisabled}
@@ -867,16 +870,16 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                             : undefined,
                     }}
                 >
-                    <SuggestedChartRevisionStatusIcon
+                    {/* <SuggestedChartRevisionStatusIcon
                         status={SuggestedChartRevisionStatus.approved}
                         setColor={false}
-                    />{" "}
+                    />{" "} */}
                     Approve
                 </button>
                 {this.listMode && (
                     <React.Fragment>
                         <button
-                            className="btn btn-outline-dark"
+                            className="btn btn-secondary"
                             onClick={this.onNext}
                             title="Go to next suggestion"
                             disabled={this.nextBtnIsDisabled}
@@ -890,7 +893,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                             <FontAwesomeIcon icon={faAngleRight} />
                         </button>
                         <button
-                            className="btn btn-outline-dark"
+                            className="btn btn-secondary"
                             onClick={this.onLast}
                             title="Go to last suggestion"
                             disabled={this.nextBtnIsDisabled}
@@ -904,7 +907,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                             <FontAwesomeIcon icon={faAngleDoubleRight} />
                         </button>
                         <button
-                            className="btn btn-outline-dark"
+                            className="btn btn-secondary"
                             onClick={this.onRandom}
                             title="Go to random suggestion"
                             disabled={this.randomBtnIsDisabled}
