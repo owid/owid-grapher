@@ -1,4 +1,4 @@
-import { dayjs } from "@ourworldindata/utils"
+import { dayjs, slugify } from "@ourworldindata/utils"
 import React, { ReactPortal } from "react"
 import ReactDOM from "react-dom"
 import {
@@ -9,7 +9,6 @@ import {
     Preference,
     PreferenceType,
 } from "../../site/CookiePreferencesManager.js"
-import slugify from "slugify"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faCheck } from "@fortawesome/free-solid-svg-icons"
 import { SiteAnalytics } from "../../site/SiteAnalytics.js"
@@ -39,7 +38,7 @@ const CookiePreference = ({
     toggleConsent?: any
     children: React.ReactNode
 }) => {
-    const id = `cookie-preference-${slugify(name, { lower: true })}`
+    const id = `cookie-preference-${slugify(name)}`
 
     const onChange = () => {
         toggleConsent()

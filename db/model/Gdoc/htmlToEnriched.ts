@@ -1,3 +1,4 @@
+import path from "path"
 import {
     Span,
     EnrichedBlockText,
@@ -10,6 +11,7 @@ import {
     SpanSubscript,
     SpanUnderline,
     SpanRef,
+    SpanDod,
     EnrichedBlockSimpleText,
     SpanSimpleText,
     OwidEnrichedGdocBlock,
@@ -23,6 +25,7 @@ import {
     EnrichedBlockNumberedList,
     EnrichedBlockProminentLink,
     BlockImageSize,
+    detailOnDemandRegex,
 } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
 import { compact, flatten, isPlainObject, partition } from "lodash"
@@ -111,13 +114,17 @@ export function cheerioToSpan(element: CheerioElement): Span | undefined {
         }
     else if (element.type === "tag") {
         return match(element.tagName)
-            .with("a", (): SpanLink | SpanRef => {
-                const url = element.attribs.href
+            .with("a", (): SpanLink | SpanRef | SpanDod => {
+                const url: string | undefined = element.attribs.href
                 const className = element.attribs.class
                 const children =
                     compact(element.children?.map(cheerioToSpan)) ?? []
                 if (className === "ref") {
                     return { spanType: "span-ref", children, url }
+                }
+                const dod = url?.match(detailOnDemandRegex)
+                if (dod) {
+                    return { spanType: "span-dod", children, id: dod[1] }
                 }
                 return { spanType: "span-link", children, url }
             })
@@ -770,7 +777,10 @@ function cheerioToArchieML(
                         content: [
                             {
                                 type: "image",
-                                filename: image?.attribs["src"] ?? "",
+                                // src is the entire path. we only want the filename
+                                filename: path.basename(
+                                    image?.attribs["src"] ?? ""
+                                ),
                                 alt: image?.attribs["alt"] ?? "",
                                 parseErrors: [],
                                 originalWidth: undefined,

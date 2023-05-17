@@ -48,7 +48,7 @@ export const ProminentLink = (props: {
         href = `/${linkedDocument?.slug}`
         title = title ?? linkedDocument?.content.title
         description = description ?? linkedDocument?.content.excerpt
-        thumbnail = thumbnail ?? linkedDocument?.content["cover-image"]
+        thumbnail = thumbnail ?? linkedDocument?.content["featured-image"]
     } else if (linkType === "grapher" || linkType === "explorer") {
         href = `${linkedChart?.path}`
         title = title ?? linkedChart?.title

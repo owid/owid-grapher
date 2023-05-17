@@ -25,7 +25,7 @@ describe("mdast parsers", () => {
     })
     it("mdParser works for funky characters in dod texts", () => {
         expect(
-            mdParser.markdown.parse("[int.$ *?=😛§&/%ü€](hover::test::term)")
+            mdParser.markdown.parse("[int.$ *?=😛§&/%ü€](#dod:term)")
         ).toEqual({
             status: true,
             value: {
@@ -46,7 +46,6 @@ describe("mdast parsers", () => {
                                 value: "*?=😛§&/%ü€",
                             },
                         ],
-                        category: "test",
                         term: "term",
                     },
                 ],
@@ -203,9 +202,7 @@ describe("mdast parsers", () => {
     })
 
     it("mdParser can parse detail on demand syntax", () => {
-        expect(
-            mdParser.markdown.parse("[**dod**](hover::general::thing)")
-        ).toEqual({
+        expect(mdParser.markdown.parse("[**dod**](#dod:thing)")).toEqual({
             status: true,
             value: {
                 type: "MarkdownRoot",
@@ -223,16 +220,13 @@ describe("mdast parsers", () => {
                                 ],
                             },
                         ],
-                        category: "general",
                         term: "thing",
                     },
                 ],
             },
         })
         expect(
-            mdParser.markdown.parse(
-                "[a dod with multiple words](hover::general::thing)"
-            )
+            mdParser.markdown.parse("[a dod with multiple words](#dod:thing)")
         ).toEqual({
             status: true,
             value: {
@@ -266,7 +260,6 @@ describe("mdast parsers", () => {
                                 value: "words",
                             },
                         ],
-                        category: "general",
                         term: "thing",
                     },
                 ],
@@ -486,7 +479,7 @@ how **are** you?`)
     it("mdParser can parse details on demand inside bold", () => {
         expect(
             mdParser.markdown.parse(
-                "**[an _italicized_ detail on demand](hover::fp::monad)**"
+                "**[an _italicized_ detail on demand](#dod:monad)**"
             )
         ).toEqual({
             status: true,
@@ -496,7 +489,6 @@ how **are** you?`)
                     {
                         children: [
                             {
-                                category: "fp",
                                 children: [
                                     {
                                         type: "text",

@@ -27,7 +27,8 @@ export {
     type Deploy,
     type DeployChange,
     DeployStatus,
-    type Detail,
+    type EnrichedDetail,
+    type DetailDictionary,
     DimensionProperty,
     type DocumentNode,
     type EnrichedBlockAdditionalCharts,
@@ -127,6 +128,7 @@ export {
     type RawBlockText,
     type RawBlockUrl,
     type RawChartStoryValue,
+    type RawDetail,
     type RawRecircItem,
     type RawSDGGridItem,
     type RelatedChart,
@@ -138,6 +140,7 @@ export {
     SortOrder,
     type Span,
     type SpanBold,
+    type SpanDod,
     type SpanFallback,
     type SpanItalic,
     type SpanLink,
@@ -170,6 +173,11 @@ export {
     type PostRowWithGdocPublishStatus,
     ToleranceStrategy,
     type RawPageview,
+    type DataPageGdoc,
+    DataPageJsonTypeObject,
+    type DataPageJson,
+    type DataPageParseError,
+    AllowedDataPageGdocFields,
 } from "./owidTypes.js"
 
 export {
@@ -258,7 +266,7 @@ export {
     textAnchorFromAlign,
     dyFromAlign,
     values,
-    stringifyUnkownError,
+    stringifyUnknownError,
     toRectangularMatrix,
     checkIsPlainObjectWithGuard,
     checkIsStringIndexable,
@@ -344,6 +352,7 @@ export {
     upperFirst,
     without,
     zip,
+    lowercaseObjectKeys,
 } from "./Util.js"
 
 export { isPresent } from "./isPresent.js"
@@ -376,11 +385,19 @@ export {
 } from "./TimeBounds.js"
 
 export {
+    RegionType,
+    regions,
+    type Region,
     countries,
     type Country,
-    getCountry,
+    getCountryBySlug,
     getCountryDetectionRedirects,
-} from "./countries.js"
+    continents,
+    type Continent,
+    aggregates,
+    type Aggregate,
+    others,
+} from "./regions.js"
 
 export { getStylesForTargetHeight } from "./react-select.js"
 
@@ -526,15 +543,14 @@ export {
     sumTextWrapHeights,
 } from "./MarkdownTextWrap/MarkdownTextWrap.js"
 
-export { detailOnDemandRegex, mdParser } from "./MarkdownTextWrap/parser.js"
-
 export {
-    DoDWrapper,
-    globalDetailsOnDemand,
-} from "./DetailsOnDemand/detailsOnDemand.js"
+    extractDetailsFromSyntax,
+    mdParser,
+} from "./MarkdownTextWrap/parser.js"
 
 export {
     gdocUrlRegex,
+    detailOnDemandRegex,
     getLinkType,
     getUrlTarget,
     checkIsInternalLink,

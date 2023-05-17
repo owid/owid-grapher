@@ -24,6 +24,9 @@ export const DATA_API_FOR_ADMIN_UI: string | undefined =
     serverSettings.DATA_API_FOR_ADMIN_UI
 export const BAKED_BASE_URL: string = clientSettings.BAKED_BASE_URL
 
+export const VITE_PREVIEW: boolean =
+    serverSettings.VITE_PREVIEW === "true" ?? false
+
 export const ADMIN_BASE_URL: string = clientSettings.ADMIN_BASE_URL
 export const WORDPRESS_URL: string = clientSettings.WORDPRESS_URL
 
@@ -151,6 +154,9 @@ export const GDOCS_HOMEPAGE_CONFIG_DOCUMENT_ID: string =
     "1LpZ5LFDTA6buEb_uL-IOWQC1YLAEbpj7odup-zgg1II"
 
 export const GDOCS_SHARED_DRIVE_ID = serverSettings.GDOCS_SHARED_DRIVE_ID ?? ""
+
+export const GDOCS_DETAILS_ON_DEMAND_ID =
+    serverSettings.GDOCS_DETAILS_ON_DEMAND_ID ?? ""
 
 export const IMAGE_HOSTING_SPACE_URL: string =
     serverSettings.IMAGE_HOSTING_SPACE_URL || ""

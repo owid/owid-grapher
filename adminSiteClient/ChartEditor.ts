@@ -5,8 +5,8 @@
  *
  */
 
-import { Grapher, GrapherInterface, Topic } from "@ourworldindata/grapher"
-import type { RawPageview } from "@ourworldindata/utils"
+import { Grapher, Topic } from "@ourworldindata/grapher"
+import type { DetailDictionary, RawPageview } from "@ourworldindata/utils"
 import { computed, observable, runInAction, when } from "mobx"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
 import { Admin } from "./Admin.js"
@@ -79,8 +79,8 @@ export interface ChartEditorManager {
     redirects: ChartRedirect[]
     pageviews?: RawPageview
     allTopics: Topic[]
-    details: GrapherInterface["details"]
-    invalidDetailReferences: Record<"subtitle" | "note", [string, string][]>
+    details: DetailDictionary
+    invalidDetailReferences: Record<"subtitle" | "note", string[]>
 }
 
 interface VariableIdUsageRecord {

@@ -43,6 +43,7 @@ import { getExplorerRedirectForPath } from "../explorerAdminServer/ExplorerRedir
 import { explorerUrlMigrationsById } from "../explorer/urlMigrations/ExplorerUrlMigrations.js"
 import { generateEmbedSnippet } from "../site/viteUtils.js"
 import { renderDataPageOrGrapherPage } from "../baker/GrapherBaker.js"
+import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
 
 require("express-async-errors")
 
@@ -128,9 +129,19 @@ mockSiteRouter.get("/grapher/:slug", async (req, res) => {
     const entity = await Chart.getBySlug(req.params.slug)
     if (!entity) throw new JsonError("No such chart", 404)
 
+    const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
+    const publishedExplorersBySlug =
+        await explorerAdminServer.getAllPublishedExplorersBySlug()
+
     // XXX add dev-prod parity for this
     res.set("Access-Control-Allow-Origin", "*")
-    res.send(await renderDataPageOrGrapherPage(entity.config))
+    res.send(
+        await renderDataPageOrGrapherPage(
+            entity.config,
+            true,
+            publishedExplorersBySlug
+        )
+    )
 })
 
 mockSiteRouter.get("/", async (req, res) => {
@@ -191,6 +202,8 @@ mockSiteRouter.use(
     express.static(path.join(BAKED_SITE_DIR, "exports"))
 )
 
+mockSiteRouter.use("/assets", express.static("dist/assets"))
+
 mockSiteRouter.use("/grapher/exports/:slug.svg", async (req, res) => {
     const grapher = await OldChart.getBySlug(req.params.slug)
     const vardata = await grapher.getVariableData()
@@ -219,6 +232,19 @@ mockSiteRouter.get("/multiEmbedderTest", async (req, res) =>
         )
     )
 )
+
+mockSiteRouter.get("/dods.json", async (_, res) => {
+    res.set("Access-Control-Allow-Origin", "*")
+    const { details, parseErrors } = await Gdoc.getDetailsOnDemandGdoc()
+    if (parseErrors.length) {
+        console.error(
+            `Error(s) parsing details: ${parseErrors
+                .map((e) => e.message)
+                .join(", ")}`
+        )
+    }
+    res.send(details)
+})
 
 mockSiteRouter.get("/*", async (req, res) => {
     const slug = req.path.replace(/^\//, "").replace("/", "__")

@@ -11,6 +11,7 @@ import {
     OwidVariableMixedData,
     OwidVariableWithSourceAndDimension,
     uniq,
+    JsonError,
 } from "@ourworldindata/utils"
 import {
     getRelatedArticles,
@@ -27,6 +28,7 @@ import {
     BAKED_GRAPHER_URL,
     MAX_NUM_BAKE_PROCESSES,
     DATA_FILES_CHECKSUMS_DIRECTORY,
+    ADMIN_BASE_URL,
 } from "../settings/serverSettings.js"
 import * as db from "../db/db.js"
 import { glob } from "glob"
@@ -43,56 +45,94 @@ import {
 import workerpool from "workerpool"
 import ProgressBar from "progress"
 import { getVariableData } from "../db/model/Variable.js"
-import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
-import { logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
+import { getDatapageGdoc, getDatapageJson } from "../datapage/Datapage.js"
+import { logContentErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
+import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 
 /**
  *
  * Render a datapage if available, otherwise render a grapher page.
  *
+ * Rendering a datapage requires a datapage JSON file to be present in the
+ * owid-content repository, and optionally a companion gdoc to be registered in
+ * the posts_gdocs table
  */
 export const renderDataPageOrGrapherPage = async (
     grapher: GrapherInterface,
-    isPreviewing: boolean = false
+    isPreviewing: boolean,
+    publishedExplorersBySlug?: Record<string, ExplorerProgram>
 ) => {
     const variableIds = uniq(grapher.dimensions!.map((d) => d.variableId))
     // this shows that multi-metric charts are not really supported, and will
     // render a datapage corresponding to the first variable found.
     const id = variableIds[0]
-    const fullPath = `${GIT_CMS_DIR}/datapages/${id}.json`
-    let datapage
-    try {
-        const datapageJson = await fs.readFile(fullPath, "utf8")
-        datapage = JSON.parse(datapageJson)
-        if (
-            // We only want to render datapages on selected charts, even if the
-            // variable found on the chart has a datapage configuration.
-            datapage.showDataPageOnChartIds?.includes(grapher.id) &&
-            isPreviewing
-            // todo: we're not ready to publish datapages yet, so we only want to
-            // render them if we're previewing.
-            // (datapage.status === "published" || isPreviewing)
-        ) {
+
+    // Get the datapage JSON file from the owid-content git repo that has
+    // been updated and pulled separately by an author.
+    const { datapageJson, parseErrors } = await getDatapageJson(id)
+
+    // When previewing a datapage we want to show all discrepancies with the
+    // expected JSON schema in the browser. When baking, a single error by
+    // datapage will be sent to slack while falling back to rendering a regular
+    // grapher page.
+    if (parseErrors.length > 0) {
+        if (isPreviewing) {
             return renderToHtmlPage(
-                <DataPage
-                    grapher={grapher}
-                    datapage={datapage}
-                    baseUrl={BAKED_BASE_URL}
-                    baseGrapherUrl={BAKED_GRAPHER_URL}
-                />
+                <pre>{JSON.stringify(parseErrors, null, 2)}</pre>
             )
-        }
-    } catch (e: any) {
-        // Do not throw an error if the datapage JSON does not exist, but rather
-        // if it does and it fails to parse or render.
-        if (e.code !== "ENOENT") {
-            logErrorAndMaybeSendToSlack(
-                `Failed to render datapage ${fullPath}. Error: ${e}`
+            // We want to log an error for published data pages. This means we
+            // also want to log an error in case we can't parse the JSON and
+            // hence don't know if the data page is published or not.
+        } else if (
+            datapageJson === null ||
+            datapageJson.status === "published"
+        ) {
+            logContentErrorAndMaybeSendToSlack(
+                new JsonError(
+                    `Data page error in ${id}.json: please check ${ADMIN_BASE_URL}/admin/grapher/${grapher.slug}`
+                )
             )
         }
     }
-    // fallback to regular grapher page
-    return renderGrapherPage(grapher)
+
+    // Fallback to rendering a regular grapher page whether the datapage JSON
+    // wasn't found or failed to parse or if the datapage is not fully
+    // configured for publishing yet
+    if (
+        // This could be folded into the showDataPageOnChartIds check below, but
+        // is kept separate to reiterate that that abscence of a datapageJson leads to
+        // rendering a grapher page
+        !datapageJson ||
+        parseErrors.length > 0 ||
+        // We only want to render datapages on selected charts, even if the
+        // variable found on the chart has a datapage configuration.
+        !grapher.id ||
+        !datapageJson.showDataPageOnChartIds.includes(grapher.id) ||
+        // Fall back to rendering a regular grapher page if the datapage is not
+        // published or if we're not previewing
+        !(datapageJson.status === "published" || isPreviewing)
+    )
+        return renderGrapherPage(grapher)
+
+    // Compliment the text-only content from the JSON with rich text from the
+    // companion gdoc
+    const datapageGdoc = await getDatapageGdoc(
+        datapageJson,
+        isPreviewing,
+        publishedExplorersBySlug
+    )
+
+    return renderToHtmlPage(
+        <DataPage
+            grapher={grapher}
+            variableId={id}
+            datapageJson={datapageJson}
+            datapageGdoc={datapageGdoc}
+            baseUrl={BAKED_BASE_URL}
+            baseGrapherUrl={BAKED_GRAPHER_URL}
+            isPreviewing={isPreviewing}
+        />
+    )
 }
 
 const renderGrapherPage = async (grapher: GrapherInterface) => {
@@ -146,24 +186,41 @@ export const bakeVariableData = async (
     return bakeArgs
 }
 
+const chartIsSameVersion = async (
+    htmlPath: string,
+    grapherVersion: number | undefined
+): Promise<boolean> => {
+    if (fs.existsSync(htmlPath)) {
+        // If the chart is the same version, we can potentially skip baking the data and exports (which is by far the slowest part)
+        const html = await fs.readFile(htmlPath, "utf8")
+        const savedVersion = deserializeJSONFromHTML(html)
+        return savedVersion?.version === grapherVersion
+    } else {
+        return false
+    }
+}
+
 const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
     bakedSiteDir: string,
     grapher: GrapherInterface
 ) => {
     const htmlPath = `${bakedSiteDir}/grapher/${grapher.slug}.html`
-    let isSameVersion = false
-    try {
-        // If the chart is the same version, we can potentially skip baking the data and exports (which is by far the slowest part)
-        const html = await fs.readFile(htmlPath, "utf8")
-        const savedVersion = deserializeJSONFromHTML(html)
-        isSameVersion = savedVersion?.version === grapher.version
-    } catch (err) {
-        if ((err as any).code !== "ENOENT") console.error(err)
-    }
+    const isSameVersion = await chartIsSameVersion(htmlPath, grapher.version)
+
+    // Need to set up the connection for using TypeORM in
+    // renderDataPageOrGrapherPage() when baking using multiple worker threads
+    // (MAX_NUM_BAKE_PROCESSES > 1). It could be done in
+    // renderDataPageOrGrapherPage() too, but given that this render function is also used
+    // for rendering a datapage preview in the admin where worker threads are
+    // not used, lifting the connection set up here seems more appropriate.
+    await db.getConnection()
 
     // Always bake the html for every chart; it's cheap to do so
     const outPath = `${bakedSiteDir}/grapher/${grapher.slug}.html`
-    await fs.writeFile(outPath, await renderDataPageOrGrapherPage(grapher))
+    await fs.writeFile(
+        outPath,
+        await renderDataPageOrGrapherPage(grapher, false)
+    )
     console.log(outPath)
 
     const variableIds = lodash.uniq(
@@ -171,58 +228,41 @@ const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
     )
     if (!variableIds.length) return
 
-    try {
-        await fs.mkdirp(`${bakedSiteDir}/grapher/exports/`)
-        const svgPath = `${bakedSiteDir}/grapher/exports/${grapher.slug}.svg`
-        const pngPath = `${bakedSiteDir}/grapher/exports/${grapher.slug}.png`
-        if (
-            !isSameVersion ||
-            !fs.existsSync(svgPath) ||
-            !fs.existsSync(pngPath)
-        ) {
-            const loadDataMetadataPromises: Promise<OwidVariableDataMetadataDimensions>[] =
-                variableIds.map(async (variableId) => {
-                    const metadataPath = `${bakedSiteDir}${getVariableMetadataRoute(
-                        variableId
-                    )}`
-                    const metadataString = await fs.readFile(
-                        metadataPath,
-                        "utf8"
-                    )
-                    const metadataJson = JSON.parse(
-                        metadataString
-                    ) as OwidVariableWithSourceAndDimension
+    await fs.mkdirp(`${bakedSiteDir}/grapher/exports/`)
+    const svgPath = `${bakedSiteDir}/grapher/exports/${grapher.slug}.svg`
+    const pngPath = `${bakedSiteDir}/grapher/exports/${grapher.slug}.png`
+    if (!isSameVersion || !fs.existsSync(svgPath) || !fs.existsSync(pngPath)) {
+        const loadDataMetadataPromises: Promise<OwidVariableDataMetadataDimensions>[] =
+            variableIds.map(async (variableId) => {
+                const metadataPath = `${bakedSiteDir}${getVariableMetadataRoute(
+                    variableId
+                )}`
+                const metadataString = await fs.readFile(metadataPath, "utf8")
+                const metadataJson = JSON.parse(
+                    metadataString
+                ) as OwidVariableWithSourceAndDimension
 
-                    const dataPath = `${bakedSiteDir}${getVariableDataRoute(
-                        variableId
-                    )}`
-                    const dataString = await fs.readFile(dataPath, "utf8")
-                    const dataJson = JSON.parse(
-                        dataString
-                    ) as OwidVariableMixedData
+                const dataPath = `${bakedSiteDir}${getVariableDataRoute(
+                    variableId
+                )}`
+                const dataString = await fs.readFile(dataPath, "utf8")
+                const dataJson = JSON.parse(dataString) as OwidVariableMixedData
 
-                    return {
-                        data: dataJson,
-                        metadata: metadataJson,
-                    }
-                })
-            const variableDataMetadata = await Promise.all(
-                loadDataMetadataPromises
-            )
-            const variableDataMedadataMap = new Map(
-                variableDataMetadata.map((item) => [item.metadata.id, item])
-            )
-            await bakeGraphersToPngs(
-                `${bakedSiteDir}/grapher/exports`,
-                grapher,
-                variableDataMedadataMap,
-                OPTIMIZE_SVG_EXPORTS
-            )
-            console.log(svgPath)
-            console.log(pngPath)
-        }
-    } catch (err) {
-        console.error(err)
+                return {
+                    data: dataJson,
+                    metadata: metadataJson,
+                }
+            })
+        const variableDataMetadata = await Promise.all(loadDataMetadataPromises)
+        const variableDataMedadataMap = new Map(
+            variableDataMetadata.map((item) => [item.metadata.id, item])
+        )
+        await bakeGraphersToPngs(
+            `${bakedSiteDir}/grapher/exports`,
+            grapher,
+            variableDataMedadataMap,
+            OPTIMIZE_SVG_EXPORTS
+        )
     }
 }
 
@@ -319,13 +359,7 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
             json_table(c.config, '$.dimensions[*]' columns (varID integer path '$.variableId') ) as vars
             where JSON_EXTRACT(c.config, '$.isPublished')=true`)
 
-        await bakeAllPublishedChartsVariableDataAndMetadata(
-            bakedSiteDir,
-            variablesToBake.map((v) => v.varId),
-            DATA_FILES_CHECKSUMS_DIRECTORY
-        )
-
-        const rows: { id: number; config: string; slug: string }[] =
+        const chartsToBake: { id: number; config: string; slug: string }[] =
             await db.queryMysql(`
                 SELECT
                     id, config, config->>'$.slug' as slug
@@ -333,20 +367,29 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
                 ORDER BY JSON_EXTRACT(config, "$.slug") ASC
                 `)
 
-        const newSlugs = rows.map((row) => row.slug)
+        // NOTE: this has to be run after `chartsToBake` in case someone edits chart variable that hasn't been baked yet
+        await bakeAllPublishedChartsVariableDataAndMetadata(
+            bakedSiteDir,
+            variablesToBake.map((v) => v.varId),
+            DATA_FILES_CHECKSUMS_DIRECTORY
+        )
+
+        const newSlugs = chartsToBake.map((row) => row.slug)
         await fs.mkdirp(bakedSiteDir + "/grapher")
-        const jobs: BakeSingleGrapherChartArguments[] = rows.map((row) => ({
-            id: row.id,
-            config: row.config,
-            bakedSiteDir: bakedSiteDir,
-            slug: row.slug,
-        }))
+        const jobs: BakeSingleGrapherChartArguments[] = chartsToBake.map(
+            (row) => ({
+                id: row.id,
+                config: row.config,
+                bakedSiteDir: bakedSiteDir,
+                slug: row.slug,
+            })
+        )
 
         const progressBar = new ProgressBar(
             "bake grapher page [:bar] :current/:total :elapseds :rate/s :etas :name\n",
             {
                 width: 20,
-                total: rows.length + 1,
+                total: chartsToBake.length + 1,
             }
         )
 

@@ -4,5 +4,9 @@
         "outDir": "../../itsJustJavascript/devTools/explorerTools",
         "rootDir": "."
     },
-    "references": [{ "path": "../../gitCms" }, { "path": "../../explorer" }]
+    "references": [
+        { "path": "../../gitCms" },
+        { "path": "../../explorer" },
+        { "path": "../../explorerAdminServer" }
+    ]
 }

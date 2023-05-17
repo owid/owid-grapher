@@ -37,10 +37,10 @@ function* owidArticleToArchieMLStringGenerator(
     yield* propertyToArchieMLString("title", article)
     yield* propertyToArchieMLString("subtitle", article)
     yield* propertyToArchieMLString("supertitle", article)
-    yield* propertyToArchieMLString("template", article)
     yield* propertyToArchieMLString("byline", article)
     yield* propertyToArchieMLString("dateline", article)
     yield* propertyToArchieMLString("excerpt", article)
+    yield* propertyToArchieMLString("type", article)
     // TODO: inline refs
     yieldMultiBlockPropertyIfDefined("summary", article, article.summary)
     yieldMultiBlockPropertyIfDefined("citation", article, article.summary)

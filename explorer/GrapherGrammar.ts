@@ -148,6 +148,12 @@ export const GrapherGrammar: Grammar = {
         description: "Whether the chart should be faceted or not",
         terminalOptions: toTerminalOptions(Object.values(FacetStrategy)),
     },
+    entityType: {
+        ...StringCellDef,
+        keyword: "entityType",
+        description:
+            "Default is 'country', but you can specify a different one such as 'state' or 'region'.",
+    },
     baseColorScheme: {
         ...EnumCellDef,
         keyword: "baseColorScheme",

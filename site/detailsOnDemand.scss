@@ -1,0 +1,40 @@
+.dod-container {
+    padding: 16px;
+    max-height: 300px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+
+    > p.article-block__text:first-child {
+        font-weight: bold;
+        font-size: 1rem;
+    }
+
+    > p.article-block__text:not(:first-child) {
+        margin-top: 8px;
+        font-size: 0.875rem;
+    }
+}
+
+.dod-span {
+    color: inherit;
+    border-bottom: 1px dotted #1d3d63;
+
+    span {
+        pointer-events: none;
+    }
+}
+
+// Specificity trump to overwrite the Grapher styles when inside a dod
+.GrapherComponent .dod-container a.span-link {
+    @include owid-link-60;
+}
+
+// Stops text from getting pushed out of the way when a tooltip appears on Chrome
+[data-tippy-root] {
+    display: inline;
+}
+
+// Overwriting styles for dod tippys but not other types
+.tippy-box[data-theme~="dod"] .tippy-content {
+    padding: 0;
+}

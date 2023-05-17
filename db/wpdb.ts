@@ -596,7 +596,6 @@ export const getLatestPostRevision = async (id: number): Promise<FullPost> => {
     //   sidebar - for unpublished posts though. For published posts, the
     //   current published date is displayed, regardless of what is shown
     //   and could have been modified in the sidebar.)
-    // - glossary highlights
     // - authors
     // ...
     return getFullPost({
@@ -690,7 +689,6 @@ export interface PostAPI {
         thumbnail: string
     }
     featured_media: number
-    meta: { owid_glossary_meta_field: boolean }
 }
 
 export const getFullPost = async (
@@ -718,7 +716,6 @@ export const getFullPost = async (
         postApi.type === "page"
             ? await getRelatedCharts(postApi.id)
             : undefined,
-    glossary: postApi.meta.owid_glossary_meta_field,
 })
 
 export const getBlogIndex = memoize(async (): Promise<IndexPost[]> => {

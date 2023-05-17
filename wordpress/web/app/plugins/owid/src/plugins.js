@@ -1,5 +1,4 @@
 import KeyPerformanceIndicators from "./KeyPerformanceIndicators/KeyPerformanceIndicators.js"
-import Glossary from "./Glossary/Glossary.js"
 import PublicationContext from "./PublicationContext/PublicationContext.js"
 const { registerPlugin } = wp.plugins
 const { PluginDocumentSettingPanel } = wp.editPost
@@ -7,7 +6,6 @@ const { select } = wp.data
 import { Notice } from "@wordpress/components"
 
 const OWID_KEY_PERFORMANCE_INDICATORS = "owid-key-performance-indicators"
-const OWID_GLOSSARY = "owid-glossary"
 const OWID_PUBLICATION_CONTEXT = "owid-publication-context"
 
 registerPlugin(OWID_KEY_PERFORMANCE_INDICATORS, {
@@ -21,24 +19,6 @@ registerPlugin(OWID_KEY_PERFORMANCE_INDICATORS, {
                     className={OWID_KEY_PERFORMANCE_INDICATORS}
                 >
                     <KeyPerformanceIndicators />
-                </PluginDocumentSettingPanel>
-            )
-        )
-    },
-    icon: false,
-})
-
-registerPlugin(OWID_GLOSSARY, {
-    render: () => {
-        const postType = select("core/editor").getCurrentPostType()
-        return (
-            (postType === "page" || postType === "post") && (
-                <PluginDocumentSettingPanel
-                    name={OWID_GLOSSARY}
-                    title="Glossary"
-                    className={OWID_GLOSSARY}
-                >
-                    <Glossary />
                 </PluginDocumentSettingPanel>
             )
         )

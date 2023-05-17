@@ -84,9 +84,6 @@ $zindex-Tooltip: 20;
 
     position: relative;
 
-    /* Hidden overflow x so that tooltips don't cause scrollbars */
-    overflow: hidden;
-
     border-radius: 2px;
     box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 2px 0px,
         rgba(0, 0, 0, 0.25) 0px 2px 2px 0px;
@@ -195,38 +192,12 @@ $zindex-Tooltip: 20;
     .markdown-text-wrap__line:last-child {
         margin-bottom: 2px;
     }
-}
 
-.interactive-tippy-wrapper {
-    > div {
-        display: inline-block; // fix https://github.com/owid/owid-grapher/issues/1790
-        height: 50%;
-    }
-}
+    a.dod-span {
+        border-bottom: 1px dotted #666;
 
-span.dod-term {
-    border-bottom: 1px dotted #666;
-    color: #666;
-}
-
-.dod-tippy-container {
-    overflow-y: auto;
-    max-height: 100%;
-}
-
-.dod-tooltip {
-    margin: 16px;
-
-    h3 {
-        margin: 0;
-        margin-bottom: 8px;
-    }
-
-    a {
-        color: $controls-color;
-    }
-
-    p {
-        margin-bottom: 8px;
+        &:hover {
+            text-decoration: none;
+        }
     }
 }

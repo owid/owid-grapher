@@ -22,13 +22,19 @@ export class SaveButtons extends React.Component<{ editor: ChartEditor }> {
     render() {
         const { editor } = this.props
         const { grapher } = editor
+        const hasDetailErrors = Boolean(
+            editor.manager.invalidDetailReferences.subtitle.length ||
+                editor.manager.invalidDetailReferences.note.length
+        )
+
+        const isSavingDisabled = grapher.hasFatalErrors || hasDetailErrors
 
         return (
             <div className="SaveButtons">
                 <button
                     className="btn btn-success"
                     onClick={this.onSaveChart}
-                    disabled={grapher.hasFatalErrors}
+                    disabled={isSavingDisabled}
                 >
                     {grapher.isPublished
                         ? "Update chart"
@@ -39,14 +45,14 @@ export class SaveButtons extends React.Component<{ editor: ChartEditor }> {
                 <button
                     className="btn btn-secondary"
                     onClick={this.onSaveAsNew}
-                    disabled={grapher.hasFatalErrors}
+                    disabled={isSavingDisabled}
                 >
                     Save as new
                 </button>{" "}
                 <button
                     className="btn btn-danger"
                     onClick={this.onPublishToggle}
-                    disabled={grapher.hasFatalErrors}
+                    disabled={isSavingDisabled}
                 >
                     {grapher.isPublished ? "Unpublish" : "Publish"}
                 </button>

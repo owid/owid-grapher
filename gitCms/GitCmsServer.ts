@@ -185,6 +185,7 @@ export class GitCmsServer {
             const pull = await this.autopull()
             if (!pull.success) throw pull.error
 
+            // eslint-disable-next-line no-console
             console.log(`Deleted ${filepath}`)
 
             // do not push in dev

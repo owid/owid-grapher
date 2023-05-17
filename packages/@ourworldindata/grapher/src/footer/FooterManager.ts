@@ -13,6 +13,6 @@ export interface FooterManager {
     tooltips?: TooltipManager["tooltips"]
     tabBounds?: Bounds
     details?: GrapherInterface["details"]
-    detailsOrderedByReference?: { category: string; term: string }[]
+    detailsOrderedByReference?: Set<string>
     shouldIncludeDetailsInStaticExport?: boolean
 }

@@ -10,6 +10,6 @@ export interface HeaderManager {
     logo?: string
     canonicalUrl?: string
     tabBounds?: Bounds
-    detailsOrderedByReference?: { category: string; term: string }[]
+    detailsOrderedByReference?: Set<string>
     shouldIncludeDetailsInStaticExport?: boolean
 }
