@@ -23,10 +23,22 @@
     -webkit-mask-image: unset;
 }
 
-.expandable-paragraph__expand-button {
+.expandable-paragraph__expand-button--slim {
     @include owid-link-90;
     margin: 16px 0;
     background: none;
     border: none;
     cursor: pointer;
+}
+
+.expandable-paragraph__expand-button--full {
+    margin: 16px 0;
+    padding: 8px 24px;
+    background: $blue-10;
+    border: 1px solid $gray-10;
+    cursor: pointer;
+
+    &:hover {
+        background: $blue-20;
+    }
 }

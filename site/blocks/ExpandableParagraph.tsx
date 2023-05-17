@@ -9,6 +9,7 @@ export const ExpandableParagraph = (
               children: React.ReactNode
               dangerouslySetInnerHTML?: undefined
               className?: string
+              buttonVariant?: "slim" | "full"
           }
         | {
               children?: undefined
@@ -16,11 +17,13 @@ export const ExpandableParagraph = (
                   __html: string
               }
               className?: string
+              buttonVariant?: "slim" | "full"
           }
 ) => {
     const [isExpanded, setIsExpanded] = useState(false)
 
-    const { className, ...propsWithoutClassName } = props
+    const { className, buttonVariant = "full", ...propsWithoutStyles } = props
+
     return (
         <div className={cx("expandable-paragraph", className)}>
             <div
@@ -28,11 +31,14 @@ export const ExpandableParagraph = (
                     "expandable-paragraph__content--is-expanded": isExpanded,
                 })}
                 // Either pass children or dangerouslySetInnerHTML
-                {...propsWithoutClassName}
+                {...propsWithoutStyles}
             />
             {!isExpanded && (
                 <button
-                    className="expandable-paragraph__expand-button"
+                    className={cx(
+                        "expandable-paragraph__expand-button",
+                        `expandable-paragraph__expand-button--${buttonVariant}`
+                    )}
                     onClick={() => setIsExpanded(true)}
                 >
                     Show more
@@ -52,6 +58,7 @@ export const hydrateExpandableParagraphs = () => {
         ReactDOM.hydrate(
             <ExpandableParagraph
                 dangerouslySetInnerHTML={{ __html: innerHTML }}
+                buttonVariant="slim"
             />,
             eP.parentElement
         )
@@ -69,6 +76,7 @@ export const renderExpandableParagraphs = ($: CheerioStatic) => {
                         dangerouslySetInnerHTML={{
                             __html: $el.html() || "",
                         }}
+                        buttonVariant="slim"
                     />
                 </div>
             )
