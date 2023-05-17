@@ -13,29 +13,24 @@ $cell-border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .tableTab .data-table {
-    th {
+    thead {
         position: sticky;
-        z-index: 10;
+        z-index: 20;
+        top: 0;
+    }
+
+    th {
         white-space: nowrap;
-
-        &.dimension,
-        &.entity {
-            top: 0;
-        }
-
-        &.entity {
-            z-index: 11;
-        }
-
-        &.subdimension {
-            top: 53px;
-        }
     }
 
     .entity {
         position: sticky;
         left: 0;
         z-index: 10;
+    }
+
+    th.entity {
+        top: 0;
     }
 }
 
@@ -45,7 +40,7 @@ $cell-border: 1px solid rgba(0, 0, 0, 0.08);
     border: none;
     background: white;
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
     border-spacing: 0px;
     box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 2px 0px,
         rgba(0, 0, 0, 0.25) 0px 2px 2px 0px;
