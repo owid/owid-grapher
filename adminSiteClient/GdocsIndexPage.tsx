@@ -51,7 +51,7 @@ class GdocsIndexPageSearch extends React.Component<{
             OwidGdocType.TopicPage,
         ]
         return (
-            <div className="d-flex flex-grow-1">
+            <div className="d-flex flex-grow-1 flex-wrap">
                 <SearchField
                     placeholder="Search by author, category, or title"
                     className="gdoc-index__search-bar"
@@ -61,15 +61,16 @@ class GdocsIndexPageSearch extends React.Component<{
                     }
                     autofocus
                 />
-                <div>
+                <div className="gdoc-index-filters">
+                    <p>
+                        <strong>Filter results by type</strong>
+                    </p>
                     {owidGdocTypes.map((type) => {
                         const isChecked = this.props.filters[type]
                         return (
                             <label
                                 key={type}
-                                className={cx("gdoc-index-filter-checkbox", {
-                                    isChecked,
-                                })}
+                                className="gdoc-index-filter-checkbox"
                             >
                                 <input
                                     type="checkbox"
@@ -79,7 +80,7 @@ class GdocsIndexPageSearch extends React.Component<{
                                         this.toggleGdocTypeFilter(type)
                                     }
                                 />
-                                {iconGdocTypeMap[type]}
+                                {type}
                             </label>
                         )
                     })}
@@ -101,9 +102,9 @@ export class GdocsIndexPage extends React.Component<GdocsMatchProps> {
     context!: React.ContextType<typeof GdocsStoreContext>
 
     @observable filters: Record<OwidGdocType, boolean> = {
-        [OwidGdocType.Fragment]: true,
-        [OwidGdocType.Article]: true,
-        [OwidGdocType.TopicPage]: true,
+        [OwidGdocType.Fragment]: false,
+        [OwidGdocType.Article]: false,
+        [OwidGdocType.TopicPage]: false,
     }
 
     @observable search = { value: "" }
@@ -139,10 +140,18 @@ export class GdocsIndexPage extends React.Component<GdocsMatchProps> {
     get visibleGdocs(): OwidGdocInterface[] {
         const { context, search, searchIndex } = this
         if (!context) return []
-        const filteredByType = context.gdocs.filter(
-            // don't filter docs with no type set
-            (gdoc) => !gdoc.content.type || !!this.filters[gdoc.content.type]
+        // Don't filter unless at least one filter is active
+        const shouldUseFilters = !!Object.values(this.filters).find(
+            (isFilterActive) => isFilterActive
         )
+
+        const filteredByType = shouldUseFilters
+            ? context.gdocs.filter(
+                  (gdoc) =>
+                      // don't filter docs with no type set
+                      !gdoc.content.type || !!this.filters[gdoc.content.type]
+              )
+            : context.gdocs
         if (!search.value) return filteredByType
 
         const fuzzysorted = fuzzysort.go(search.value, searchIndex, {
@@ -152,9 +161,16 @@ export class GdocsIndexPage extends React.Component<GdocsMatchProps> {
 
         const uniqueFiltered = fuzzysorted.reduce(
             (acc: Set<OwidGdocInterface>, { obj: { gdoc } }) => {
-                if (!gdoc.content.type || this.filters[gdoc.content.type]) {
+                const shouldInclude =
+                    // Don't filter unless at least one filter is active
+                    !shouldUseFilters ||
+                    !gdoc.content.type ||
+                    this.filters[gdoc.content.type]
+
+                if (shouldInclude) {
                     acc.add(gdoc)
                 }
+
                 return acc
             },
             new Set<OwidGdocInterface>()
@@ -172,16 +188,19 @@ export class GdocsIndexPage extends React.Component<GdocsMatchProps> {
                             filters={this.filters}
                             search={this.search}
                         />
-                        <button
-                            className="btn btn-primary"
-                            onClick={() =>
-                                this.props.history.push(
-                                    `${this.props.match.path}/add`
-                                )
-                            }
-                        >
-                            <FontAwesomeIcon icon={faCirclePlus} /> Add document
-                        </button>
+                        <div>
+                            <button
+                                className="btn btn-primary"
+                                onClick={() =>
+                                    this.props.history.push(
+                                        `${this.props.match.path}/add`
+                                    )
+                                }
+                            >
+                                <FontAwesomeIcon icon={faCirclePlus} /> Add
+                                document
+                            </button>
+                        </div>
                     </div>
 
                     {this.visibleGdocs.map((gdoc) => (
@@ -194,14 +213,20 @@ export class GdocsIndexPage extends React.Component<GdocsMatchProps> {
                         >
                             <div className="gdoc-index-item__content">
                                 {gdoc.content.type ? (
-                                    <span className="gdoc-index-item__type-icon">
+                                    <span
+                                        className="gdoc-index-item__type-icon"
+                                        title={gdoc.content.type}
+                                    >
                                         {iconGdocTypeMap[gdoc.content.type]}
                                     </span>
                                 ) : null}
                                 <Link
                                     to={`${this.props.match.path}/${gdoc.id}/preview`}
                                 >
-                                    <h5 className="gdoc-index-item__title">
+                                    <h5
+                                        className="gdoc-index-item__title"
+                                        title="Preview article"
+                                    >
                                         {gdoc.content.title}
                                     </h5>
                                 </Link>
