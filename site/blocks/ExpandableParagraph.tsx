@@ -24,6 +24,10 @@ export const ExpandableParagraph = (
 
     const { className, buttonVariant = "full", ...propsWithoutStyles } = props
 
+    const toggleIsExpanded = () => {
+        setIsExpanded(!isExpanded)
+    }
+
     return (
         <div className={cx("expandable-paragraph", className)}>
             <div
@@ -33,17 +37,15 @@ export const ExpandableParagraph = (
                 // Either pass children or dangerouslySetInnerHTML
                 {...propsWithoutStyles}
             />
-            {!isExpanded && (
-                <button
-                    className={cx(
-                        "expandable-paragraph__expand-button",
-                        `expandable-paragraph__expand-button--${buttonVariant}`
-                    )}
-                    onClick={() => setIsExpanded(true)}
-                >
-                    Show more
-                </button>
-            )}
+            <button
+                className={cx(
+                    "expandable-paragraph__expand-button",
+                    `expandable-paragraph__expand-button--${buttonVariant}`
+                )}
+                onClick={() => toggleIsExpanded()}
+            >
+                {isExpanded ? "Show less" : "Show more"}
+            </button>
         </div>
     )
 }
