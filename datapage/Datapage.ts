@@ -71,6 +71,8 @@ export const getDatapageJson = async (
  * When previewing, we want to render the datapage from the live gdoc.
  * Otherwise, we're baking from the gdoc parsed and saved in the database
  * following a visit to /admin/gdocs/[googleDocId]/preview
+ *
+ * see https://github.com/owid/owid-grapher/issues/2121#issue-1676097164
  */
 export const getDatapageGdoc = async (
     datapageJson: DataPageJson,
