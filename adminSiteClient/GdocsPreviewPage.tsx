@@ -3,6 +3,7 @@ import React, {
     useContext,
     useEffect,
     useMemo,
+    useRef,
     useState,
 } from "react"
 import { AdminLayout } from "./AdminLayout.js"
@@ -69,6 +70,8 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
         [admin]
     )
 
+    const iframeRef = useRef<HTMLIFrameElement>(null)
+
     const fetchGdoc = useCallback(
         (contentSource: GdocsContentSource) =>
             admin
@@ -115,6 +118,8 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     useInterval(async () => {
         if (currentGdoc) {
             const latestGdoc = await fetchGdoc(GdocsContentSource.Gdocs)
+            const iframeScrollY = iframeRef.current?.contentWindow?.scrollY
+            const revisionId = currentGdoc.revisionId
             setCurrentGdoc({
                 ...latestGdoc,
                 slug: currentGdoc.slug,
@@ -122,6 +127,14 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                 publishedAt: currentGdoc.publishedAt,
                 publicationContext: currentGdoc.publicationContext,
             })
+            // Should only run this if the iframe has reloaded
+            setTimeout(() => {
+                if (latestGdoc.revisionId != revisionId) {
+                    iframeRef.current?.contentWindow?.scrollTo({
+                        top: iframeScrollY,
+                    })
+                }
+            }, 1000)
         }
     }, 5000)
 
@@ -332,6 +345,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                     resets on every change)
                 */}
                 <iframe
+                    ref={iframeRef}
                     src={`/gdocs/${currentGdoc.id}/preview#owid-document-root`}
                     style={{ width: "100%", border: "none" }}
                     key={currentGdoc.revisionId}
