@@ -70,7 +70,7 @@ function generateStickyNav(
                     }
                 }
             }
-            if (node.type === "key-insights") {
+            if (node.type === "key-insights" && node.heading) {
                 stickyNavItems.push({
                     text: "Key Insights",
                     target: `#${slugify(node.heading)}`,
