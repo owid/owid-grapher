@@ -1065,7 +1065,7 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
     }
 
     .controls {
-        margin: 1em auto 0 auto;
+        margin: 0.1em auto 0 auto;
         display: flex;
         flex-direction: column;
         flex-wrap: wrap;
@@ -1103,9 +1103,11 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
         .form-group {
             padding: 10px;
             align-self: stretch;
+            padding-left: 25%;
+            padding-right: 25%;
 
             textarea {
-                height: 75px;
+                height: 3rem;
             }
         }
     }
@@ -1122,6 +1124,13 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
             margin-top: 0;
             margin-bottom: 0.5em;
         }
+    }
+
+    h3.grapherChart {
+        // border-bottom: 1px darkgray dotted;
+        text-decoration: underline;
+        text-decoration-style: dotted;
+        text-decoration-color: darkgray;
     }
 }
 
