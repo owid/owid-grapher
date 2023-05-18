@@ -2643,7 +2643,9 @@ apiRouter.put("/deploy", async (req: Request, res: Response) => {
     triggerStaticBuild(res.locals.user, "Manually triggered deploy")
 })
 
-apiRouter.get("/gdocs", async () => Gdoc.find({ relations: ["tags"] }))
+apiRouter.get("/gdocs", async () =>
+    Gdoc.find({ relations: ["tags"], order: { updatedAt: "DESC" } })
+)
 
 apiRouter.get("/gdocs/:id", async (req, res) => {
     const id = req.params.id
