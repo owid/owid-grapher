@@ -29,7 +29,7 @@ export const runSiteFooterScripts = (
 
     switch (context) {
         case SiteFooterContext.dataPage:
-            hydrateDataPageContent()
+            hydrateDataPageContent(isPreviewing)
         case SiteFooterContext.grapherPage:
         case SiteFooterContext.explorerPage:
             runSiteNavigation(BAKED_BASE_URL)

@@ -122,12 +122,16 @@ export const renderDataPageOrGrapherPage = async (
         publishedExplorersBySlug
     )
 
+    const datapageGdocContent =
+        parseGdocContentFromAllowedLevelOneHeadings(datapageGdoc)
+
     return renderToHtmlPage(
         <DataPage
             grapher={grapher}
             variableId={id}
             datapageJson={datapageJson}
             datapageGdoc={datapageGdoc}
+            datapageGdocContent={datapageGdocContent}
             baseUrl={BAKED_BASE_URL}
             baseGrapherUrl={BAKED_GRAPHER_URL}
             isPreviewing={isPreviewing}

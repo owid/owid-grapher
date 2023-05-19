@@ -1199,7 +1199,7 @@ export const AllowedDataPageGdocFields = [
     ...[...Array(50)].map((_, idx) => `sourceDescription${idx + 1}`),
 ] as const
 
-export type DataPageGdoc = Record<
+export type DataPageGdocContent = Record<
     (typeof AllowedDataPageGdocFields)[number],
     OwidEnrichedGdocBlock[]
 >

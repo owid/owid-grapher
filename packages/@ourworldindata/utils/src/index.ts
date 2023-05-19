@@ -182,7 +182,7 @@ export {
     type PostRowWithGdocPublishStatus,
     ToleranceStrategy,
     type RawPageview,
-    type DataPageGdoc,
+    type DataPageGdocContent,
     DataPageJsonTypeObject,
     type DataPageJson,
     type DataPageParseError,
