@@ -42,7 +42,7 @@ export class EditorFeatures {
     }
 
     @computed get timeDomain() {
-        return !this.grapher.isDiscreteBar
+        return !this.grapher.onlySingleTimeSelectionPossible
     }
 
     @computed get timelineRange() {

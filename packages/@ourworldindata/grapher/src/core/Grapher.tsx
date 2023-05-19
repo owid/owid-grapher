@@ -924,7 +924,7 @@ export class Grapher
         return findClosestTime(this.times, this.endHandleTimeBound)
     }
 
-    @computed private get onlySingleTimeSelectionPossible(): boolean {
+    @computed get onlySingleTimeSelectionPossible(): boolean {
         return (
             this.isDiscreteBar ||
             this.isStackedDiscreteBar ||
