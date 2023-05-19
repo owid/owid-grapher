@@ -36,6 +36,7 @@ import {
     faSortAlphaDown,
     faSortAlphaUpAlt,
     faRandom,
+    faMagicWandSparkles,
 } from "@fortawesome/free-solid-svg-icons"
 import {
     VisionDeficiency,
@@ -81,6 +82,11 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
     @observable sortOrder: SortOrder = SortOrder.desc
     @observable previewSvgOrJson: string = "svg"
     @observable simulateVisionDeficiency?: VisionDeficiency
+
+    // GPT
+    @observable gptNum: number = 0
+    @observable gptNumDisp: number = 1
+    @observable usingGPT: boolean = false
 
     ALL_TABS = {
         approval: "Chart Approval Tool",
@@ -270,6 +276,36 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
         // if (status !== SuggestedChartRevisionStatus.pending) {
         //     this.numTotalRows -= 1
         // }
+        this.refresh()
+    }
+
+    @action.bound updateChartConfigWithGPT() {
+        if (this.currentSuggestedChartRevision) {
+            // Get suggestions
+            const suggestions =
+                this.currentSuggestedChartRevision?.experimental?.["gpt"]?.[
+                    "suggestions"
+                ]
+            if (suggestions !== undefined) {
+                // Set title
+                const title = suggestions?.[this.gptNum]?.["title"]
+                this.currentSuggestedChartRevision.suggestedConfig.title = title
+                // Set subtitle
+                const subtitle = suggestions?.[this.gptNum]?.["subtitle"]
+                this.currentSuggestedChartRevision.suggestedConfig.subtitle =
+                    subtitle
+                this.gptNumDisp = this.gptNum + 1
+                this.gptNum = this.gptNumDisp % suggestions?.length ?? 1
+                this.usingGPT = true
+            }
+        }
+        this.rerenderGraphers()
+    }
+
+    @action.bound resetChartConfigWithGPT() {
+        this.gptNum = 0
+        this.gptNumDisp = 1
+        this.usingGPT = false
         this.refresh()
     }
 
@@ -568,6 +604,8 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                                     className="header"
                                     style={{
                                         paddingBottom: "1rem",
+                                        display: "flex",
+                                        justifyContent: "flex-start",
                                     }}
                                 >
                                     <Tippy content="This is what the chart looked like when the suggested revision was created.">
@@ -617,6 +655,8 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                                         className="header"
                                         style={{
                                             paddingBottom: "1rem",
+                                            display: "flex",
+                                            justifyContent: "flex-start",
                                         }}
                                     >
                                         <Tippy content="This is what the chart looks like right now on the OWID website.">
@@ -670,41 +710,101 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                                     className="header"
                                     style={{
                                         paddingBottom: "1rem",
+                                        display: "flex",
+                                        justifyContent: "space-between",
                                     }}
                                 >
-                                    <Tippy content="This is what the chart will look like if the suggested revision is approved.">
-                                        <h3 className="grapherChart">
-                                            Suggested
-                                        </h3>
-                                    </Tippy>
-                                    <span className="text-muted">
-                                        {/* {`(#${this.currentSuggestedChartRevision.chartId}, V${this.currentSuggestedChartRevision.suggestedConfig.version})`} */}
-                                    </span>
-                                    <Link
-                                        className="btn btn-outline-secondary"
-                                        to={`/charts/${
-                                            this.currentSuggestedChartRevision
-                                                .chartId
-                                        }/edit/${Base64.encode(
-                                            JSON.stringify(
+                                    {/* Title and link to edit */}
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            justifyContent: "flex-start",
+                                        }}
+                                    >
+                                        <Tippy content="This is what the chart will look like if the suggested revision is approved.">
+                                            <h3 className="grapherChart">
+                                                Suggested
+                                            </h3>
+                                        </Tippy>
+                                        <span className="text-muted">
+                                            {/* {`(#${this.currentSuggestedChartRevision.chartId}, V${this.currentSuggestedChartRevision.suggestedConfig.version})`} */}
+                                        </span>
+                                        <Link
+                                            className="btn btn-outline-secondary"
+                                            to={`/charts/${
                                                 this
                                                     .currentSuggestedChartRevision
-                                                    .suggestedConfig
-                                            )
-                                        )}`}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        title="Edit chart in a new tab"
+                                                    .chartId
+                                            }/edit/${Base64.encode(
+                                                JSON.stringify(
+                                                    this
+                                                        .currentSuggestedChartRevision
+                                                        .suggestedConfig
+                                                )
+                                            )}`}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            title="Edit chart in a new tab"
+                                        >
+                                            Edit as chart{" "}
+                                            {
+                                                this
+                                                    .currentSuggestedChartRevision
+                                                    .chartId
+                                            }{" "}
+                                            <FontAwesomeIcon
+                                                icon={faExternalLinkAlt}
+                                            />
+                                        </Link>
+                                    </div>
+
+                                    {/* GPT section */}
+                                    <div
+                                        style={{
+                                            paddingRight: "1rem",
+                                        }}
                                     >
-                                        Edit as chart{" "}
-                                        {
-                                            this.currentSuggestedChartRevision
-                                                .chartId
-                                        }{" "}
-                                        <FontAwesomeIcon
-                                            icon={faExternalLinkAlt}
-                                        />
-                                    </Link>
+                                        {/* <Tippy content="This is what the chart looked like when the suggested revision was created."> */}
+                                        <button
+                                            className="btn btn-info"
+                                            onClick={
+                                                this.updateChartConfigWithGPT
+                                            }
+                                            title="Sample a chatGPT suggestion"
+                                            // disabled={this.prevBtnIsDisabled}
+                                            // aria-disabled={this.prevBtnIsDisabled}
+                                            // style={{
+                                            //     pointerEvents: this.prevBtnIsDisabled
+                                            //         ? "none"
+                                            //         : undefined,
+                                            // }}
+                                        >
+                                            <FontAwesomeIcon
+                                                icon={faMagicWandSparkles}
+                                            />{" "}
+                                            chartGPT
+                                            {this.usingGPT
+                                                ? ` #${this.gptNumDisp}`
+                                                : ""}
+                                        </button>
+                                        {/* </Tippy> */}
+                                        <button
+                                            className="btn btn-link btn-sm"
+                                            onClick={
+                                                this.resetChartConfigWithGPT
+                                            }
+                                            title="Reset to original suggested configuration"
+                                            // disabled={this.prevBtnIsDisabled}
+                                            // aria-disabled={this.prevBtnIsDisabled}
+                                            // style={{
+                                            //     pointerEvents: this.prevBtnIsDisabled
+                                            //         ? "none"
+                                            //         : undefined,
+                                            // }}
+                                        >
+                                            Reset
+                                        </button>
+                                    </div>
                                 </div>
                             </React.Fragment>
                         )}

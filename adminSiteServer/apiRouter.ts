@@ -802,6 +802,7 @@ apiRouter.get(
             SELECT scr.id, scr.chartId, scr.updatedAt, scr.createdAt,
                 scr.suggestedReason, scr.decisionReason, scr.status,
                 scr.suggestedConfig, scr.originalConfig, scr.changesInDataSummary,
+                scr.experimental,
                 createdByUser.id as createdById,
                 updatedByUser.id as updatedById,
                 createdByUser.fullName as createdByFullName,
@@ -841,6 +842,9 @@ apiRouter.get(
                 )
                 suggestedChartRevision.originalConfig = JSON.parse(
                     suggestedChartRevision.originalConfig
+                )
+                suggestedChartRevision.experimental = JSON.parse(
+                    suggestedChartRevision.experimental
                 )
                 suggestedChartRevision.canApprove =
                     SuggestedChartRevision.checkCanApprove(

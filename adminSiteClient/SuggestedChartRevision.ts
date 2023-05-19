@@ -30,4 +30,14 @@ export interface SuggestedChartRevisionSerialized {
     canReject?: boolean
     canFlag?: boolean
     canPending?: boolean
+
+    experimental?: {
+        gpt?: {
+            model?: string
+            suggestions?: {
+                title?: string
+                subtitle?: string
+            }[]
+        }
+    }
 }
