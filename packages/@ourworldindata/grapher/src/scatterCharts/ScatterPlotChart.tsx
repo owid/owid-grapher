@@ -42,6 +42,7 @@ import {
     defaultIfErrorValue,
     isNotErrorValue,
     CoreColumn,
+    ColumnTypeMap
 } from "@ourworldindata/core-table"
 import {
     ConnectedScatterLegend,
@@ -425,6 +426,8 @@ export class ScatterPlotChart
     @computed private get arrowLegend(): ConnectedScatterLegend | undefined {
         if (
             this.displayStartTime === this.displayEndTime ||
+            this.xColumn instanceof ColumnTypeMap.Time ||
+            this.yColumn instanceof ColumnTypeMap.Time ||
             this.manager.isRelativeMode
         )
             return undefined
