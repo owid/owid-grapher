@@ -248,6 +248,7 @@ export class FacetChart
             startHandleTimeBound,
             startTime,
             endTime,
+            missingDataStrategy,
         } = manager
 
         // Use compact labels, e.g. 50k instead of 50,000.
@@ -300,6 +301,7 @@ export class FacetChart
                 startHandleTimeBound,
                 startTime,
                 endTime,
+                missingDataStrategy,
                 ...series.manager,
                 xAxisConfig: {
                     ...globalXAxisConfig,

@@ -636,6 +636,14 @@ properties:
         description: Plural of the entity type (i.e. when entityType is 'country' this would be 'countries')
         default: countries
         type: string
+    missingDataStrategy:
+        type: string
+        default: auto
+        description: The desired strategy for handling entities with missing data
+        enum:
+            - auto
+            - hide
+            - show
     isExplorable:
         type: boolean
         default: false

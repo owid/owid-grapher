@@ -79,6 +79,7 @@ import {
     SeriesColorMap,
     FacetAxisDomain,
     AnnotationFieldsInTitle,
+    MissingDataStrategy,
     DEFAULT_GRAPHER_WIDTH,
     DEFAULT_GRAPHER_HEIGHT,
     SeriesStrategy,
@@ -336,6 +337,7 @@ export class Grapher
     @observable.ref matchingEntitiesOnly?: boolean = undefined
     /** Hides the total value label that is normally displayed for stacked bar charts */
     @observable.ref hideTotalValueLabel?: boolean = undefined
+    @observable.ref missingDataStrategy?: MissingDataStrategy = undefined
 
     @observable.ref xAxis = new AxisConfig(undefined, this)
     @observable.ref yAxis = new AxisConfig(undefined, this)
@@ -2011,7 +2013,7 @@ export class Grapher
         return sortConfig
     }
 
-    @computed private get hasMultipleYColumns(): boolean {
+    @computed get hasMultipleYColumns(): boolean {
         return this.yColumnSlugs.length > 1
     }
 
