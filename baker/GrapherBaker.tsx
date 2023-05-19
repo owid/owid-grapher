@@ -12,6 +12,7 @@ import {
     OwidVariableWithSourceAndDimension,
     uniq,
     JsonError,
+    keyBy,
 } from "@ourworldindata/utils"
 import {
     getRelatedArticles,
@@ -47,6 +48,8 @@ import ProgressBar from "progress"
 import { getVariableData } from "../db/model/Variable.js"
 import { getDatapageGdoc, getDatapageJson } from "../datapage/Datapage.js"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
+import { Image } from "../db/model/Image.js"
+import { Dictionary } from "lodash"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 
 /**
@@ -60,7 +63,8 @@ import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 export const renderDataPageOrGrapherPage = async (
     grapher: GrapherInterface,
     isPreviewing: boolean,
-    publishedExplorersBySlug?: Record<string, ExplorerProgram>
+    publishedExplorersBySlug?: Record<string, ExplorerProgram>,
+    imageMetadataDictionary?: Dictionary<Image>
 ) => {
     const variableIds = uniq(grapher.dimensions!.map((d) => d.variableId))
     // this shows that multi-metric charts are not really supported, and will
@@ -121,6 +125,13 @@ export const renderDataPageOrGrapherPage = async (
         isPreviewing,
         publishedExplorersBySlug
     )
+
+    // When baking, we get the imageMetadata once for all datapages in the
+    // calling function rather than in each worker process. We then attach it to
+    // the current datapageGdoc.
+    if (!isPreviewing && datapageGdoc) {
+        datapageGdoc.imageMetadata = imageMetadataDictionary
+    }
 
     const datapageGdocContent =
         parseGdocContentFromAllowedLevelOneHeadings(datapageGdoc)
@@ -208,6 +219,7 @@ const chartIsSameVersion = async (
 
 const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
     bakedSiteDir: string,
+    imageMetadataDictionary: Dictionary<Image>,
     grapher: GrapherInterface
 ) => {
     const htmlPath = `${bakedSiteDir}/grapher/${grapher.slug}.html`
@@ -225,7 +237,12 @@ const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
     const outPath = `${bakedSiteDir}/grapher/${grapher.slug}.html`
     await fs.writeFile(
         outPath,
-        await renderDataPageOrGrapherPage(grapher, false)
+        await renderDataPageOrGrapherPage(
+            grapher,
+            false,
+            {},
+            imageMetadataDictionary
+        )
     )
     console.log(outPath)
 
@@ -334,6 +351,7 @@ export interface BakeSingleGrapherChartArguments {
     config: string
     bakedSiteDir: string
     slug: string
+    imageMetadataDictionary: Dictionary<Image>
 }
 
 export const bakeSingleGrapherChart = async (
@@ -351,6 +369,7 @@ export const bakeSingleGrapherChart = async (
 
     await bakeGrapherPageAndVariablesPngAndSVGIfChanged(
         args.bakedSiteDir,
+        args.imageMetadataDictionary,
         grapher
     )
     return args
@@ -382,12 +401,21 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
 
         const newSlugs = chartsToBake.map((row) => row.slug)
         await fs.mkdirp(bakedSiteDir + "/grapher")
+
+        // Prefetch imageMetadata instead of each grapher page fetching
+        // individually. imageMetadata is used by the google docs powering rich
+        // text (including images) in data pages.
+        const imageMetadataDictionary = await Image.find().then((images) =>
+            keyBy(images, "filename")
+        )
+
         const jobs: BakeSingleGrapherChartArguments[] = chartsToBake.map(
             (row) => ({
                 id: row.id,
                 config: row.config,
                 bakedSiteDir: bakedSiteDir,
                 slug: row.slug,
+                imageMetadataDictionary,
             })
         )
 
