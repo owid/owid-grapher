@@ -42,7 +42,7 @@ import {
     defaultIfErrorValue,
     isNotErrorValue,
     CoreColumn,
-    ColumnTypeMap
+    ColumnTypeMap,
 } from "@ourworldindata/core-table"
 import {
     ConnectedScatterLegend,
