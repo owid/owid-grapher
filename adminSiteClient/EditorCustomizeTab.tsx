@@ -300,6 +300,10 @@ class TimelineSection extends React.Component<{ editor: ChartEditor }> {
         return this.grapher.timelineMaxTime
     }
 
+    @computed get isMaxTimeSetToLatest() {
+        return this.grapher.maxTime === TimeBoundValue.positiveInfinity
+    }
+
     @action.bound onMinTime(value: number | undefined) {
         this.grapher.minTime = value ?? TimeBoundValue.negativeInfinity
     }
@@ -349,6 +353,28 @@ class TimelineSection extends React.Component<{ editor: ChartEditor }> {
                         onValue={debounce(this.onMaxTime)}
                         allowNegative
                     />
+                </FieldsRow>
+                <FieldsRow>
+                    <Toggle
+                        label="Always show latest time point"
+                        value={this.isMaxTimeSetToLatest}
+                        onValue={(value) => {
+                            grapher.maxTime = value
+                                ? TimeBoundValue.positiveInfinity
+                                : undefined
+                        }}
+                    />
+                    {this.isMaxTimeSetToLatest && (
+                        <Toggle
+                            label="Collapse start with end time"
+                            value={grapher.maxTime === grapher.minTime}
+                            onValue={(value) => {
+                                grapher.minTime = value
+                                    ? grapher.maxTime
+                                    : undefined
+                            }}
+                        />
+                    )}
                 </FieldsRow>
                 {features.timelineRange && (
                     <FieldsRow>
