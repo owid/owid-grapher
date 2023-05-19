@@ -8,7 +8,7 @@ import {
     getLinkType,
     getUrlTarget,
     GdocsContentSource,
-    DataPageGdoc,
+    DataPageGdocContent,
     DataPageJson,
     DataPageJsonTypeObject,
     DataPageParseError,
@@ -78,7 +78,7 @@ export const getDatapageGdoc = async (
     datapageJson: DataPageJson,
     isPreviewing: boolean,
     publishedExplorersBySlug?: Record<string, ExplorerProgram>
-): Promise<DataPageGdoc | null> => {
+): Promise<OwidGdocInterface | null> => {
     // Get the google doc id from the datapage JSON file and return early if
     // none found
     const googleDocId =
@@ -93,7 +93,7 @@ export const getDatapageGdoc = async (
     // Google Doc API. This won't be the case for external contributors or
     // possibly data engineers focusing on the data pipeline. In those
     // cases, we grab the gdoc found in the database, if any.
-    const rawDatapageGdoc =
+    const datapageGdoc =
         isPreviewing && publishedExplorersBySlug && Gdoc.areGdocAuthKeysSet()
             ? await Gdoc.getGdocFromContentSource(
                   googleDocId,
@@ -102,13 +102,9 @@ export const getDatapageGdoc = async (
               )
             : await Gdoc.findOneBy({ id: googleDocId })
 
-    if (!rawDatapageGdoc) return null
+    if (!datapageGdoc) return null
 
-    // Split the gdoc content into fields using the heading one texts as field
-    // names. Any top level key that is not in AllowedDataPageGdocFields will
-    // be silently filtered out. Beyond that, any allowed field can contain the
-    // whole range of OwidEnrichedGdocBlock types.
-    return parseGdocContentFromAllowedLevelOneHeadings(rawDatapageGdoc)
+    return datapageGdoc
 }
 
 /*
@@ -123,8 +119,10 @@ export const getDatapageGdoc = async (
  * errors.
  *  */
 export const parseGdocContentFromAllowedLevelOneHeadings = (
-    gdoc: OwidGdocInterface
-): DataPageGdoc => {
+    gdoc: OwidGdocInterface | null
+): DataPageGdocContent | null => {
+    if (!gdoc) return null
+
     let currentKey = ""
     const keyedBlocks: Record<string, OwidEnrichedGdocBlock[]> = {}
 
