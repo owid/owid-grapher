@@ -7,8 +7,9 @@ import {
     uniq,
     SiteFooterContext,
     MarkdownTextWrap,
-    DataPageGdoc,
+    DataPageGdocContent,
     DataPageJson,
+    OwidGdocInterface,
 } from "@ourworldindata/utils"
 import React from "react"
 import urljoin from "url-join"
@@ -29,7 +30,8 @@ export const DataPage = (props: {
     grapher: GrapherInterface
     variableId: number
     datapageJson: DataPageJson
-    datapageGdoc: DataPageGdoc | null
+    datapageGdoc: OwidGdocInterface | null
+    datapageGdocContent: DataPageGdocContent | null
     baseUrl: string
     baseGrapherUrl: string
     isPreviewing: boolean
@@ -39,6 +41,7 @@ export const DataPage = (props: {
         variableId,
         datapageJson,
         datapageGdoc,
+        datapageGdocContent,
         baseGrapherUrl,
         baseUrl,
         isPreviewing,
@@ -138,6 +141,7 @@ export const DataPage = (props: {
                                     {
                                         datapageJson,
                                         datapageGdoc,
+                                        datapageGdocContent,
                                         grapherConfig,
                                     }
                                 )}`,
@@ -147,7 +151,9 @@ export const DataPage = (props: {
                             <DataPageContent
                                 datapageJson={datapageJson}
                                 datapageGdoc={datapageGdoc}
+                                datapageGdocContent={datapageGdocContent}
                                 grapherConfig={grapherConfig}
+                                isPreviewing={isPreviewing}
                             />
                         </div>
                     </>
@@ -155,6 +161,7 @@ export const DataPage = (props: {
                 <SiteFooter
                     baseUrl={baseUrl}
                     context={SiteFooterContext.dataPage}
+                    isPreviewing={isPreviewing}
                 />
             </body>
         </html>
