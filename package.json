@@ -161,7 +161,7 @@
         "mobx-utils": "5",
         "mousetrap": "^1.6.5",
         "mysql": "^2.18.1",
-        "netlify-cli": "^15.0.0",
+        "netlify-cli": "^15.1.1",
         "node-fetch": "^2.6.7",
         "nodejs-polars": "^0.7.2",
         "normalize.css": "^8.0.1",
