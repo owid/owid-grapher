@@ -125,6 +125,8 @@ export const renderDataPageOrGrapherPage = async (
     const datapageGdocContent =
         parseGdocContentFromAllowedLevelOneHeadings(datapageGdoc)
 
+    // Passing `datapageGdocContent` as a separate prop rather than weaving it
+    // into datapageGdoc to keep the concept of "Gdoc" clearer
     return renderToHtmlPage(
         <DataPage
             grapher={grapher}
