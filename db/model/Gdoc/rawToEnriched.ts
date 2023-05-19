@@ -921,12 +921,12 @@ function parseCallout(raw: RawBlockCallout): EnrichedBlockCallout {
                 "Text must be provided as an array e.g. inside a [.+text] block",
         })
     }
-    const text = raw.value.text.map((text) => htmlToSpans(text.value))
+    const enrichedTextBlocks = raw.value.text.map(parseText)
 
     return {
         type: "callout",
         parseErrors: [],
-        text,
+        text: enrichedTextBlocks,
         title: raw.value.title,
     }
 }

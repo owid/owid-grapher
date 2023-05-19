@@ -1413,6 +1413,82 @@ export function recursivelyMapArticleContent(
     return callback(node)
 }
 
+export function traverseEnrichedBlocks(
+    node: OwidEnrichedGdocBlock,
+    callback: (x: OwidEnrichedGdocBlock) => void,
+    spanCallback?: (x: Span) => void
+): void {
+    match(node)
+        .with(
+            { type: P.union("sticky-right", "sticky-left", "side-by-side") },
+            ({ left, right }) => {
+                left.forEach((leftNode) =>
+                    traverseEnrichedBlocks(leftNode, callback, spanCallback)
+                )
+                right.forEach((rightNode) =>
+                    traverseEnrichedBlocks(rightNode, callback, spanCallback)
+                )
+            }
+        )
+        .with({ type: "gray-section" }, ({ items }) => {
+            items.forEach((node) =>
+                traverseEnrichedBlocks(node, callback, spanCallback)
+            )
+        })
+        .with({ type: "key-insights" }, ({ insights }) => {
+            insights.forEach((insight) =>
+                insight.content.forEach((node) =>
+                    traverseEnrichedBlocks(node, callback, spanCallback)
+                )
+            )
+        })
+        .with({ type: "callout" }, ({ text }) => {
+            if (spanCallback) {
+                text.forEach((textBlock) =>
+                    traverseEnrichedBlocks(textBlock, callback, spanCallback)
+                )
+            }
+        })
+        .with({ type: "text" }, (textNode) => {
+            textNode.value.forEach((span) => {
+                if (spanCallback) {
+                    spanCallback(span)
+                }
+            })
+        })
+        .with({ type: "simple-text" }, (simpleTextNode) => {
+            if (spanCallback) {
+                spanCallback(simpleTextNode.value)
+            }
+        })
+        .with(
+            {
+                type: P.union(
+                    "additional-charts",
+                    "aside",
+                    "chart-story",
+                    "chart",
+                    "heading",
+                    "horizontal-rule",
+                    "html",
+                    "image",
+                    "list",
+                    "missing-data",
+                    "numbered-list",
+                    "prominent-link",
+                    "pull-quote",
+                    "recirc",
+                    "scroller",
+                    "sdg-grid",
+                    "sdg-toc",
+                    "topic-page-intro"
+                ),
+            },
+            callback
+        )
+        .exhaustive()
+}
+
 export function checkNodeIsSpan(node: NodeWithUrl): node is Span {
     return "spanType" in node
 }

@@ -90,18 +90,26 @@ export const enrichedBlockExamples: Record<
         type: "callout",
         parseErrors: [],
         text: [
-            [
-                {
-                    spanType: "span-simple-text",
-                    text: "I am a callout block. I highlight information.",
-                },
-            ],
-            [
-                {
-                    spanType: "span-simple-text",
-                    text: "I am a second paragraph in the callout block.",
-                },
-            ],
+            {
+                type: "text",
+                value: [
+                    {
+                        spanType: "span-simple-text",
+                        text: "I am a callout block. I highlight information.",
+                    },
+                ],
+                parseErrors: [],
+            },
+            {
+                type: "text",
+                value: [
+                    {
+                        spanType: "span-simple-text",
+                        text: "I am a second paragraph in the callout block.",
+                    },
+                ],
+                parseErrors: [],
+            },
         ],
         title: "Hey, listen!",
     },

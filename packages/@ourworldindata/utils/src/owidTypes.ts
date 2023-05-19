@@ -820,7 +820,7 @@ export type RawBlockCallout = {
 export type EnrichedBlockCallout = {
     type: "callout"
     title?: string
-    text: Span[][]
+    text: EnrichedBlockText[]
 } & EnrichedBlockWithParseErrors
 
 export type RawBlockTopicPageIntro = {

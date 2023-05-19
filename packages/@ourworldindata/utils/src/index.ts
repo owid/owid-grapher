@@ -290,6 +290,7 @@ export {
     isPositiveInfinity,
     imemo,
     recursivelyMapArticleContent,
+    traverseEnrichedBlocks,
     checkNodeIsSpan,
     spansToUnformattedPlainText,
     findDuplicates,

@@ -32,6 +32,7 @@ import {
     DetailDictionary,
     ParseError,
     OwidGdocType,
+    traverseEnrichedBlocks,
 } from "@ourworldindata/utils"
 import {
     BAKED_GRAPHER_URL,
@@ -201,14 +202,15 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
         const details: Set<string> = new Set()
 
         this.content.body?.forEach((node) =>
-            recursivelyMapArticleContent(node, (item) => {
-                if (checkNodeIsSpan(item)) {
-                    if (item.spanType === "span-dod") {
-                        details.add(item.id)
+            traverseEnrichedBlocks(
+                node,
+                (x) => x,
+                (span) => {
+                    if (span.spanType === "span-dod") {
+                        details.add(span.id)
                     }
                 }
-                return item
-            })
+            )
         )
         return [...details]
     }
