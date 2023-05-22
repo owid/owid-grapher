@@ -562,8 +562,9 @@ export class SiteBaker {
                                 `Fetching image failed: ${response.status} ${response.statusText} ${response.url}`
                             )
                         }
-                        return response.buffer()
+                        return response.arrayBuffer()
                     })
+                    .then((arrayBuffer) => Buffer.from(arrayBuffer))
                     .then(async (buffer) => {
                         if (!image.isSvg) {
                             await Promise.all(
