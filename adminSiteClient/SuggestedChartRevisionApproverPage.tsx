@@ -44,10 +44,7 @@ import {
     VisionDeficiencyDropdown,
     VisionDeficiencyEntity,
 } from "./VisionDeficiencies.js"
-import {
-    SuggestedChartRevisionSerialized,
-    SuggestedChartRevisionExperimentalSerialized,
-} from "./SuggestedChartRevision.js"
+import { SuggestedChartRevisionSerialized } from "./SuggestedChartRevision.js"
 import { match } from "ts-pattern"
 
 interface UserSelectOption {

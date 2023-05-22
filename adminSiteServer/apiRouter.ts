@@ -873,9 +873,6 @@ apiRouter.get(
 apiRouter.post(
     "/suggested-chart-revisions",
     async (req: Request, res: Response) => {
-
-        console.log("WE GETTING CLOSER 1")
-
         const messages: any[] = []
         const status = SuggestedChartRevisionStatus.pending
         const suggestedReason = req.body.suggestedReason
@@ -1243,12 +1240,12 @@ apiRouter.get(
 apiRouter.post(
     "/suggested-chart-revisions/:suggestedChartRevisionId/update",
     async (req: Request, res: Response) => {
-        console.log("WE GETTING CLOSER 2")
         const suggestedChartRevisionId = expectInt(
             req.params.suggestedChartRevisionId
         )
+
         const { suggestedConfig, status, decisionReason } = req.body as {
-            suggestedConfig: string
+            suggestedConfig: GrapherInterface
             status: string
             decisionReason: string
         }
@@ -1265,8 +1262,7 @@ apiRouter.post(
                 )
             }
             if (suggestedConfig !== undefined && suggestedConfig !== null) {
-                suggestedChartRevision.suggestedConfig =
-                    JSON.parse(suggestedConfig)
+                suggestedChartRevision.suggestedConfig = suggestedConfig
             } else {
                 suggestedChartRevision.suggestedConfig = JSON.parse(
                     suggestedChartRevision.suggestedConfig
@@ -1308,18 +1304,33 @@ apiRouter.post(
             await t.execute(
                 `
                 UPDATE suggested_chart_revisions
-                SET status=?, suggestedConfig=?, decisionReason=?, updatedAt=?, updatedBy=?
+                SET status=?, decisionReason=?, updatedAt=?, updatedBy=?
                 WHERE id = ?
                 `,
                 [
                     status,
-                    suggestedChartRevision.suggestedConfig,
                     decisionReason,
                     new Date(),
                     res.locals.user.id,
                     suggestedChartRevisionId,
                 ]
             )
+
+            // Update config ONLY when APPROVE button is clicked
+            // Makes sense when the suggested config is a sugegstion by GPT, otherwise is redundant but we are cool with it
+            if (status === SuggestedChartRevisionStatus.approved) {
+                await t.execute(
+                    `
+                    UPDATE suggested_chart_revisions
+                    SET suggestedConfig=?
+                    WHERE id = ?
+                    `,
+                    [
+                        JSON.stringify(suggestedChartRevision.suggestedConfig),
+                        suggestedChartRevisionId,
+                    ]
+                )
+            }
             // note: the calls to saveGrapher() below will never overwrite a config
             // that has been changed since the suggestedConfig was created, because
             // if the config has been changed since the suggestedConfig was created
