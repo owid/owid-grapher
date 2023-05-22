@@ -1,7 +1,6 @@
 import _ from "lodash"
 import { Writable } from "stream"
 import * as db from "../db.js"
-import https from "https"
 import {
     OwidChartDimensionInterface,
     OwidVariableDisplayConfigInterface,
@@ -371,7 +370,7 @@ const _castDataDF = (df: pl.DataFrame): pl.DataFrame => {
 }
 
 export const assertFileExistsInS3 = async (dataPath: string): Promise<void> => {
-    const resp = await fetch(dataPath, { method: "HEAD", agent: httpsAgent })
+    const resp = await fetch(dataPath, { method: "HEAD" })
     if (resp.status !== 200) {
         throw new Error("URL not found on S3: " + dataPath)
     }
@@ -477,14 +476,6 @@ export const getOwidVariableDataAndMetadataPath = async (
     return { dataPath: row.dataPath, metadataPath: row.metadataPath }
 }
 
-// limit number of concurrent requests to 5 when fetching values from S3, otherwise
-// we might get ECONNRESET errors or 429 errors from rate limiting
-// if we keep getting 429 errors from Cloudflare, we could also get them directly from S3
-const httpsAgent = new https.Agent({
-    keepAlive: true,
-    maxSockets: 5,
-})
-
 export const fetchS3Values = async (
     variableId: OwidVariableId
 ): Promise<OwidVariableMixedData> => {
@@ -503,9 +494,7 @@ export const fetchS3Values = async (
 export const fetchS3ValuesByPath = async (
     dataPath: string
 ): Promise<OwidVariableMixedData> => {
-    const resp = await retryPromise(() =>
-        fetch(dataPath, { agent: httpsAgent })
-    )
+    const resp = await retryPromise(() => fetch(dataPath))
     if (!resp.ok) {
         throw new Error(
             `Error fetching data from S3 for ${dataPath}: ${resp.status} ${resp.statusText}`
@@ -517,9 +506,7 @@ export const fetchS3ValuesByPath = async (
 export const fetchS3MetadataByPath = async (
     metadataPath: string
 ): Promise<OwidVariableWithSourceAndDimension> => {
-    const resp = await retryPromise(() =>
-        fetch(metadataPath, { agent: httpsAgent })
-    )
+    const resp = await retryPromise(() => fetch(metadataPath))
     if (!resp.ok) {
         throw new Error(
             `Error fetching data from S3 for ${metadataPath}: ${resp.status} ${resp.statusText}`
