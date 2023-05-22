@@ -281,6 +281,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
         // if (status !== SuggestedChartRevisionStatus.pending) {
         //     this.numTotalRows -= 1
         // }
+        this.disableChatGPT()
         this.refresh()
     }
 
@@ -307,7 +308,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
         this.rerenderGraphers()
     }
 
-    @action.bound suggestionHasChatGPTField(): boolean {
+    @action.bound getGPTModelNameUsed(): string | undefined {
         const experimental = this.currentSuggestedChartRevision?.experimental
         const suggestions = experimental?.gpt?.suggestions
 
@@ -316,24 +317,30 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                 (suggestion) =>
                     suggestion.title !== undefined &&
                     suggestion.subtitle !== undefined
-            )
+            ) &&
+            experimental?.gpt?.model
         ) {
             console.log("GPT suggestions are available!")
-            return true
+            return experimental.gpt.model
         }
         console.log("NO GPT FIELD")
-        return false
+        return undefined
     }
 
     @action.bound resetChartConfigWithGPT() {
+        this.disableChatGPT()
+        this.refresh()
+    }
+
+    @action.bound disableChatGPT() {
         this.gptNum = 0
         this.gptNumDisp = 1
         this.usingGPT = false
-        this.refresh()
     }
 
     @action.bound onFirst() {
         if (!this.prevBtnIsDisabled) {
+            this.disableChatGPT()
             this.rowNum = 1
             this.refresh()
         }
@@ -341,6 +348,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
 
     @action.bound onPrev() {
         if (!this.prevBtnIsDisabled) {
+            this.disableChatGPT()
             this.rowNum = this.rowNumValid - 1
             this.refresh()
         }
@@ -348,6 +356,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
 
     @action.bound onNext() {
         if (!this.nextBtnIsDisabled) {
+            this.disableChatGPT()
             this.rowNum = this.rowNumValid + 1
             this.refresh()
         }
@@ -355,6 +364,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
 
     @action.bound onLast() {
         if (!this.nextBtnIsDisabled) {
+            this.disableChatGPT()
             this.rowNum = this.numAvailableRowsForSelectedUser
             this.refresh()
         }
@@ -362,6 +372,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
 
     @action.bound onRandom() {
         if (!this.randomBtnIsDisabled) {
+            this.disableChatGPT()
             this.rowNum = Math.floor(
                 Math.random() * this.numAvailableRowsForSelectedUser + 1
             )
@@ -610,7 +621,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
     renderGraphers() {
         // Render both charts next to each other
         console.log("renderGraphers")
-        const has_gpt = this.suggestionHasChatGPTField()
+        const gpt_model_name = this.getGPTModelNameUsed()
         return (
             <React.Fragment>
                 <div className="charts-view">
@@ -782,7 +793,6 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                                         </Link>
                                     </div>
                                     {/* GPT section */}
-                                    {this.suggestionHasChatGPTField()}
                                     <div
                                         style={{
                                             paddingRight: "1rem",
@@ -796,13 +806,19 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                                             onClick={
                                                 this.updateChartConfigWithGPT
                                             }
-                                            title="This is an experimental feature! It will replace the title and subtitle of the suggested chart with a new suggestion."
-                                            disabled={!has_gpt}
+                                            title="This is an experimental feature! It will replace the title and subtitle of the suggested chart with a new suggestion. You can go back to the original settings clicking on 'Reset'."
+                                            disabled={
+                                                gpt_model_name === undefined
+                                            }
                                         >
                                             <FontAwesomeIcon
                                                 icon={faMagicWandSparkles}
                                             />{" "}
-                                            chartGPT
+                                            {
+                                                gpt_model_name === undefined
+                                                    ? "chatGPT unavailable"
+                                                    : gpt_model_name //{this.usingGPT? ` #${this.gptNumDisp}` : ""}
+                                            }
                                             {this.usingGPT
                                                 ? ` #${this.gptNumDisp}`
                                                 : ""}
