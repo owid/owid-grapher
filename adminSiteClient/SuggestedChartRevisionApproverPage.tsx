@@ -44,7 +44,10 @@ import {
     VisionDeficiencyDropdown,
     VisionDeficiencyEntity,
 } from "./VisionDeficiencies.js"
-import { SuggestedChartRevisionSerialized } from "./SuggestedChartRevision.js"
+import {
+    SuggestedChartRevisionSerialized,
+    SuggestedChartRevisionExperimentalSerialized,
+} from "./SuggestedChartRevision.js"
 import { match } from "ts-pattern"
 
 interface UserSelectOption {
@@ -238,6 +241,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
     }
 
     @action.bound onApproveSuggestedChartRevision() {
+        console.log("WE GETTING CLOSER 0A")
         this.updateSuggestedChartRevision(
             SuggestedChartRevisionStatus.approved,
             this.decisionReasonInput
@@ -245,6 +249,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
     }
 
     @action.bound onRejectSuggestedChartRevision() {
+        console.log("WE GETTING CLOSER 0R")
         this.updateSuggestedChartRevision(
             SuggestedChartRevisionStatus.rejected,
             this.decisionReasonInput
@@ -252,6 +257,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
     }
 
     @action.bound onFlagSuggestedChartRevision() {
+        console.log("WE GETTING CLOSER 0F")
         this.updateSuggestedChartRevision(
             SuggestedChartRevisionStatus.flagged,
             this.decisionReasonInput
@@ -265,7 +271,9 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
         this._isGraphersSet = false
         if (!this.currentSuggestedChartRevision) return
         const { admin } = this.context
-        const data = { status, decisionReason }
+        const suggestedConfig: object =
+            this.currentSuggestedChartRevision?.suggestedConfig
+        const data = { suggestedConfig, status, decisionReason }
         await admin.requestJSON(
             `/api/suggested-chart-revisions/${this.currentSuggestedChartRevision.id}/update`,
             data,
@@ -300,6 +308,24 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
             }
         }
         this.rerenderGraphers()
+    }
+
+    @action.bound suggestionHasChatGPTField(): boolean {
+        const experimental = this.currentSuggestedChartRevision?.experimental
+        const suggestions = experimental?.gpt?.suggestions
+
+        if (
+            suggestions?.every(
+                (suggestion) =>
+                    suggestion.title !== undefined &&
+                    suggestion.subtitle !== undefined
+            )
+        ) {
+            console.log("GPT suggestions are available!")
+            return true
+        }
+        console.log("NO GPT FIELD")
+        return false
     }
 
     @action.bound resetChartConfigWithGPT() {
@@ -587,6 +613,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
     renderGraphers() {
         // Render both charts next to each other
         console.log("renderGraphers")
+        const has_gpt = this.suggestionHasChatGPTField()
         return (
             <React.Fragment>
                 <div className="charts-view">
@@ -757,11 +784,13 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                                             />
                                         </Link>
                                     </div>
-
                                     {/* GPT section */}
+                                    {this.suggestionHasChatGPTField()}
                                     <div
                                         style={{
                                             paddingRight: "1rem",
+                                            display: "flex",
+                                            justifyContent: "flex-start",
                                         }}
                                     >
                                         {/* <Tippy content="This is what the chart looked like when the suggested revision was created."> */}
@@ -770,14 +799,8 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                                             onClick={
                                                 this.updateChartConfigWithGPT
                                             }
-                                            title="Sample a chatGPT suggestion"
-                                            // disabled={this.prevBtnIsDisabled}
-                                            // aria-disabled={this.prevBtnIsDisabled}
-                                            // style={{
-                                            //     pointerEvents: this.prevBtnIsDisabled
-                                            //         ? "none"
-                                            //         : undefined,
-                                            // }}
+                                            title="This is an experimental feature! It will replace the title and subtitle of the suggested chart with a new suggestion."
+                                            disabled={!has_gpt}
                                         >
                                             <FontAwesomeIcon
                                                 icon={faMagicWandSparkles}
@@ -794,13 +817,6 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                                                 this.resetChartConfigWithGPT
                                             }
                                             title="Reset to original suggested configuration"
-                                            // disabled={this.prevBtnIsDisabled}
-                                            // aria-disabled={this.prevBtnIsDisabled}
-                                            // style={{
-                                            //     pointerEvents: this.prevBtnIsDisabled
-                                            //         ? "none"
-                                            //         : undefined,
-                                            // }}
                                         >
                                             Reset
                                         </button>

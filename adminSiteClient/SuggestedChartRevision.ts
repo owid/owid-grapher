@@ -31,13 +31,18 @@ export interface SuggestedChartRevisionSerialized {
     canFlag?: boolean
     canPending?: boolean
 
-    experimental?: {
-        gpt?: {
-            model?: string
-            suggestions?: {
-                title?: string
-                subtitle?: string
-            }[]
-        }
+    experimental?: SuggestedChartRevisionExperimentalSerialized
+}
+
+export interface SuggestedChartRevisionExperimentalSerialized {
+    gpt?: {
+        model?: string
+        suggestions?: GPTSuggestionsSerialized[]
     }
+    [key: string]: any
+}
+
+export interface GPTSuggestionsSerialized {
+    title?: string
+    subtitle?: string
 }

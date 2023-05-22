@@ -873,6 +873,9 @@ apiRouter.get(
 apiRouter.post(
     "/suggested-chart-revisions",
     async (req: Request, res: Response) => {
+
+        console.log("WE GETTING CLOSER 1")
+
         const messages: any[] = []
         const status = SuggestedChartRevisionStatus.pending
         const suggestedReason = req.body.suggestedReason
@@ -1240,10 +1243,12 @@ apiRouter.get(
 apiRouter.post(
     "/suggested-chart-revisions/:suggestedChartRevisionId/update",
     async (req: Request, res: Response) => {
+        console.log("WE GETTING CLOSER 2")
         const suggestedChartRevisionId = expectInt(
             req.params.suggestedChartRevisionId
         )
-        const { status, decisionReason } = req.body as {
+        const { suggestedConfig, status, decisionReason } = req.body as {
+            suggestedConfig: string
             status: string
             decisionReason: string
         }
@@ -1259,10 +1264,14 @@ apiRouter.post(
                     404
                 )
             }
-
-            suggestedChartRevision.suggestedConfig = JSON.parse(
-                suggestedChartRevision.suggestedConfig
-            )
+            if (suggestedConfig !== undefined && suggestedConfig !== null) {
+                suggestedChartRevision.suggestedConfig =
+                    JSON.parse(suggestedConfig)
+            } else {
+                suggestedChartRevision.suggestedConfig = JSON.parse(
+                    suggestedChartRevision.suggestedConfig
+                )
+            }
             suggestedChartRevision.originalConfig = JSON.parse(
                 suggestedChartRevision.originalConfig
             )
@@ -1299,11 +1308,12 @@ apiRouter.post(
             await t.execute(
                 `
                 UPDATE suggested_chart_revisions
-                SET status=?, decisionReason=?, updatedAt=?, updatedBy=?
+                SET status=?, suggestedConfig=?, decisionReason=?, updatedAt=?, updatedBy=?
                 WHERE id = ?
                 `,
                 [
                     status,
+                    suggestedChartRevision.suggestedConfig,
                     decisionReason,
                     new Date(),
                     res.locals.user.id,
