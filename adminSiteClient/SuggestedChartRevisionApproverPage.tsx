@@ -782,6 +782,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                 value={this.decisionReasonInput}
                 onValue={this.onDecisionReasonInput}
                 disabled={!this._isGraphersSet}
+                rows={1}
             />
         )
     }
