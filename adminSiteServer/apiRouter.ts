@@ -873,7 +873,6 @@ apiRouter.get(
 apiRouter.post(
     "/suggested-chart-revisions",
     async (req: Request, res: Response) => {
-
         console.log("WE GETTING CLOSER 1")
 
         const messages: any[] = []
