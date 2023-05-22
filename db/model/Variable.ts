@@ -370,7 +370,7 @@ const _castDataDF = (df: pl.DataFrame): pl.DataFrame => {
 }
 
 export const assertFileExistsInS3 = async (dataPath: string): Promise<void> => {
-    const resp = await fetch(dataPath, { method: "HEAD" })
+    const resp = await fetch(dataPath, { method: "HEAD", keepalive: true })
     if (resp.status !== 200) {
         throw new Error("URL not found on S3: " + dataPath)
     }
@@ -494,7 +494,7 @@ export const fetchS3Values = async (
 export const fetchS3ValuesByPath = async (
     dataPath: string
 ): Promise<OwidVariableMixedData> => {
-    const resp = await retryPromise(() => fetch(dataPath))
+    const resp = await retryPromise(() => fetch(dataPath, { keepalive: true }))
     if (!resp.ok) {
         throw new Error(
             `Error fetching data from S3 for ${dataPath}: ${resp.status} ${resp.statusText}`
@@ -506,7 +506,9 @@ export const fetchS3ValuesByPath = async (
 export const fetchS3MetadataByPath = async (
     metadataPath: string
 ): Promise<OwidVariableWithSourceAndDimension> => {
-    const resp = await retryPromise(() => fetch(metadataPath))
+    const resp = await retryPromise(() =>
+        fetch(metadataPath, { keepalive: true })
+    )
     if (!resp.ok) {
         throw new Error(
             `Error fetching data from S3 for ${metadataPath}: ${resp.status} ${resp.statusText}`
