@@ -1,6 +1,5 @@
 import { load } from "archieml"
 import {
-    OwidRawGdocBlock,
     OwidGdocContent,
     TocHeadingWithTitleSupertitle,
     compact,
@@ -14,11 +13,12 @@ import {
     EnrichedBlockSimpleText,
     lowercaseObjectKeys,
     slugify,
+    OwidEnrichedGdocBlock,
+    traverseEnrichedBlocks,
 } from "@ourworldindata/utils"
 import { parseRawBlocksToEnrichedBlocks } from "./rawToEnriched.js"
 import urlSlug from "url-slug"
-import { isObject } from "lodash"
-import { getTitleSupertitleFromHeadingText } from "./gdocUtils.js"
+import { spansToSimpleString } from "./gdocUtils.js"
 import {
     htmlToEnrichedTextBlock,
     htmlToSimpleTextBlock,
@@ -95,6 +95,35 @@ function generateStickyNav(
     return stickyNavItems
 }
 
+function generateToc(
+    body: OwidEnrichedGdocBlock[]
+): TocHeadingWithTitleSupertitle[] {
+    const toc: TocHeadingWithTitleSupertitle[] = []
+
+    // track h2s and h3s for the SDG table of contents
+    body.forEach((block) =>
+        traverseEnrichedBlocks(block, (child) => {
+            if (child.type === "heading") {
+                const { level, text, supertitle } = child
+                const titleString = spansToSimpleString(text)
+                const supertitleString =
+                    supertitle && spansToSimpleString(supertitle)
+                if (titleString && (level == 2 || level == 3)) {
+                    toc.push({
+                        title: titleString,
+                        supertitle: supertitleString,
+                        text: titleString,
+                        slug: urlSlug(`${supertitleString} ${titleString}`),
+                        isSubheading: level == 3,
+                    })
+                }
+            }
+        })
+    )
+
+    return toc
+}
+
 function formatCitation(
     rawCitation?: string | string[]
 ): undefined | EnrichedBlockSimpleText[] {
@@ -143,62 +172,10 @@ export const archieToEnriched = (text: string): OwidGdocContent => {
     const parsed_unsanitized = load(noLeadingWSLinks)
     const parsed: any = lowercaseObjectKeys(parsed_unsanitized)
 
-    const toc: TocHeadingWithTitleSupertitle[] = []
-
-    // Traverse the tree, tracking a pointer and nesting when appropriate
-    function traverseBlocks(
-        node: OwidRawGdocBlock | OwidRawGdocBlock[],
-        callback: (node: OwidRawGdocBlock) => void
-    ): void {
-        if (isArray(node)) {
-            node.forEach((value) => traverseBlocks(value, callback))
-        } else if (node.type === "gray-section") {
-            traverseBlocks(node.value, callback)
-        } else if (
-            node.type === "sticky-left" ||
-            node.type === "sticky-right" ||
-            node.type === "side-by-side"
-        ) {
-            traverseBlocks(node.value.left, callback)
-            traverseBlocks(node.value.right, callback)
-        } else if (node.type === "key-insights") {
-            node.value.insights?.forEach((insight) => {
-                if (insight.content) {
-                    traverseBlocks(insight.content, callback)
-                }
-            })
-        } else {
-            callback(node)
-        }
-    }
-
-    // Traverse the tree:
-    // track h2s and h3s for the SDG table of contents
-    traverseBlocks(parsed.body, (child: OwidRawGdocBlock) => {
-        // ensure keys are lowercase
-        child = lowercaseObjectKeys(child) as OwidRawGdocBlock
-
-        // populate toc with h2's and h3's
-        if (child.type === "heading" && isObject(child.value)) {
-            const {
-                value: { level, text = "" },
-            } = child
-            const [title, supertitle] = getTitleSupertitleFromHeadingText(text)
-            if (text && (level == "2" || level == "3")) {
-                const slug = urlSlug(text)
-                toc.push({
-                    title,
-                    supertitle,
-                    text,
-                    slug,
-                    isSubheading: level == "3",
-                })
-            }
-        }
-    })
-
     // Parse elements of the ArchieML into enrichedBlocks
     parsed.body = compact(parsed.body.map(parseRawBlocksToEnrichedBlocks))
+
+    parsed.toc = generateToc(parsed.body)
 
     parsed.refs = refs.map(htmlToEnrichedTextBlock)
 
@@ -207,8 +184,6 @@ export const archieToEnriched = (text: string): OwidGdocContent => {
     )
 
     parsed.citation = formatCitation(parsed.citation)
-
-    parsed.toc = toc
 
     parsed["sticky-nav"] = generateStickyNav(parsed)
 
