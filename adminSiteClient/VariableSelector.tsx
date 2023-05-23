@@ -291,7 +291,12 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
                                                                     "100%",
                                                             }}
                                                         >
-                                                            <h5>
+                                                            <h5
+                                                                style={{
+                                                                    marginTop:
+                                                                        "4px",
+                                                                }}
+                                                            >
                                                                 [
                                                                 {
                                                                     dataset.namespace
@@ -339,7 +344,12 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
                                                                     )
                                                                 }
                                                                 label={
-                                                                    <React.Fragment>
+                                                                    <div
+                                                                        style={{
+                                                                            overflowWrap:
+                                                                                "anywhere",
+                                                                        }}
+                                                                    >
                                                                         {highlight(
                                                                             v.name
                                                                         )}
@@ -354,7 +364,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
                                                                                 ? ` (used ${v.usageCount} times)`
                                                                                 : " (unused)"}
                                                                         </span>
-                                                                    </React.Fragment>
+                                                                    </div>
                                                                 }
                                                             />
                                                         </li>
