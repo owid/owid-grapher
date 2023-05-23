@@ -722,6 +722,7 @@ describe(traverseEnrichedBlocks, () => {
             "span-simple-text",
             "image",
             "heading",
+            "span-simple-text",
             "list",
             "text",
             "span-simple-text",

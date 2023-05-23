@@ -189,10 +189,8 @@ export default function ArticleBlock({
                 {block.title ? (
                     <h4 className="h4-semibold">{block.title}</h4>
                 ) : null}
-                {block.text.map((text, i) => (
-                    <p className="body-3-medium" key={i}>
-                        {renderSpans(text)}
-                    </p>
+                {block.text.map((textBlock, i) => (
+                    <ArticleBlock key={i} b={textBlock} />
                 ))}
             </div>
         ))
