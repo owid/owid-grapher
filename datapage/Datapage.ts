@@ -90,11 +90,13 @@ export const getDatapageGdoc = async (
 
     if (!googleDocId) return null
 
-    // When previewing, we want to render the datapage from the live gdoc,
-    // but only if the user has set up the necessary auth keys to access the
-    // Google Doc API. This won't be the case for external contributors or
-    // possibly data engineers focusing on the data pipeline. In those
-    // cases, we grab the gdoc found in the database, if any.
+    // When previewing, we want to render the datapage from the live gdoc, but
+    // only if the user has set up the necessary auth keys to access the Google
+    // Doc API. This won't be the case for external contributors or possibly
+    // data engineers focusing on the data pipeline. In those cases, we grab the
+    // gdoc found in the database, if any. This use case doesn't currently
+    // support images (imageMetadata won't be set).
+
     const datapageGdoc =
         isPreviewing && publishedExplorersBySlug && Gdoc.areGdocAuthKeysSet()
             ? await Gdoc.getGdocFromContentSource(
