@@ -32,7 +32,6 @@ import {
 import { OwidEnrichedGdocBlock, SortOrder } from "./owidTypes.js"
 import { BlockImageSize } from "./index.js"
 
-/*
 describe(findClosestTime, () => {
     describe("without tolerance", () => {
         describe("array", () => {
@@ -552,8 +551,6 @@ describe(findGreatestCommonDivisorOfArray, () => {
         expect(findGreatestCommonDivisorOfArray([15])).toEqual(15)
     })
 })
-
-*/
 
 describe(traverseEnrichedBlocks, () => {
     const enrichedBlocks: OwidEnrichedGdocBlock[] = [

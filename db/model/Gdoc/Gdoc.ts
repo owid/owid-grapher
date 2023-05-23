@@ -54,7 +54,7 @@ import { EXPLORERS_ROUTE_FOLDER } from "../../../explorer/ExplorerConstants.js"
 import { formatUrls } from "../../../site/formatting.js"
 import { parseDetails } from "./rawToEnriched.js"
 import { match, P } from "ts-pattern"
-import { spanToSimpleString, spansToSimpleString } from "./gdocUtils.js"
+import { spansToSimpleString } from "./gdocUtils.js"
 import { traverseEnrichedSpan } from "@ourworldindata/utils/dist/Util.js"
 
 @Entity("tags")
