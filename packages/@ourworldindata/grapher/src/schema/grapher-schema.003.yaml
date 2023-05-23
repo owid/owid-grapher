@@ -613,6 +613,7 @@ properties:
             - column
             - total
             - entityName
+            - custom
     sortOrder:
         type: string
         description: Sort order (used by stacked bar charts and marimekko)
