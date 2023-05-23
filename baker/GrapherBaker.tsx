@@ -46,7 +46,11 @@ import {
 import workerpool from "workerpool"
 import ProgressBar from "progress"
 import { getVariableData } from "../db/model/Variable.js"
-import { getDatapageGdoc, getDatapageJson } from "../datapage/Datapage.js"
+import {
+    getDatapageGdoc,
+    getDatapageJson,
+    parseGdocContentFromAllowedLevelOneHeadings,
+} from "../datapage/Datapage.js"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { Image } from "../db/model/Image.js"
 import { Dictionary } from "lodash"
@@ -62,7 +66,6 @@ import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
  */
 export const renderDataPageOrGrapherPage = async (
     grapher: GrapherInterface,
-    isPreviewing: boolean,
     publishedExplorersBySlug?: Record<string, ExplorerProgram>,
     imageMetadataDictionary?: Dictionary<Image>
 ) => {
@@ -75,28 +78,13 @@ export const renderDataPageOrGrapherPage = async (
     // been updated and pulled separately by an author.
     const { datapageJson, parseErrors } = await getDatapageJson(id)
 
-    // When previewing a datapage we want to show all discrepancies with the
-    // expected JSON schema in the browser. When baking, a single error by
-    // datapage will be sent to slack while falling back to rendering a regular
-    // grapher page.
+    // When baking, a single error by datapage will be sent to slack
     if (parseErrors.length > 0) {
-        if (isPreviewing) {
-            return renderToHtmlPage(
-                <pre>{JSON.stringify(parseErrors, null, 2)}</pre>
+        logErrorAndMaybeSendToBugsnag(
+            new JsonError(
+                `Data page error in ${id}.json: please check ${ADMIN_BASE_URL}/admin/grapher/${grapher.slug}`
             )
-            // We want to log an error for published data pages. This means we
-            // also want to log an error in case we can't parse the JSON and
-            // hence don't know if the data page is published or not.
-        } else if (
-            datapageJson === null ||
-            datapageJson.status === "published"
-        ) {
-            logErrorAndMaybeSendToBugsnag(
-                new JsonError(
-                    `Data page error in ${id}.json: please check ${ADMIN_BASE_URL}/admin/grapher/${grapher.slug}`
-                )
-            )
-        }
+        )
     }
 
     // Fallback to rendering a regular grapher page whether the datapage JSON
@@ -113,25 +101,60 @@ export const renderDataPageOrGrapherPage = async (
         !grapher.id ||
         !datapageJson.showDataPageOnChartIds.includes(grapher.id) ||
         // Fall back to rendering a regular grapher page if the datapage is not
-        // published or if we're not previewing
-        !(datapageJson.status === "published" || isPreviewing)
+        // published
+        datapageJson.status !== "published"
     )
         return renderGrapherPage(grapher)
 
+    if (!datapageJson.googleDocEditLink)
+        return renderToHtmlPage(
+            <DataPage
+                grapher={grapher}
+                variableId={id}
+                datapageJson={datapageJson}
+                baseUrl={BAKED_BASE_URL}
+                baseGrapherUrl={BAKED_GRAPHER_URL}
+                isPreviewing={false}
+            />
+        )
+
     // Compliment the text-only content from the JSON with rich text from the
-    // companion gdoc
+    // companion gdoc, if any
     const datapageGdoc = await getDatapageGdoc(
         datapageJson,
-        isPreviewing,
+        false,
         publishedExplorersBySlug
     )
 
-    // When baking, we get the imageMetadata once for all datapages in the
-    // calling function rather than in each worker process. We then attach it to
-    // the current datapageGdoc.
-    if (!isPreviewing && datapageGdoc) {
-        datapageGdoc.imageMetadata = imageMetadataDictionary
+    // A datapage gdoc is optional. However, if a gdoc is referenced in the
+    // JSON, we assume the gdoc is expected to be used and we need it to be
+    // published so that images in the gdoc content are baked in
+    // bakeGdriveImages() (see also apiRouter.put("/gdocs/:id")). If a published
+    // datapage JSON references an unpublished datapage gdoc, it is considered a
+    // mistake. We then log an error and fall back to a grapher page.
+    if (!datapageGdoc) {
+        logErrorAndMaybeSendToBugsnag(
+            new JsonError(
+                `The data page for variable ${datapageJson.title}(${id}) has not been published. Please check that the googleDocEditLink ${datapageJson.googleDocEditLink} is correct.`
+            )
+        )
+        return renderGrapherPage(grapher)
     }
+
+    if (!datapageGdoc?.published) {
+        logErrorAndMaybeSendToBugsnag(
+            new JsonError(
+                `The data page for variable ${datapageJson.title}(${id}) has not been published. Please check that ${ADMIN_BASE_URL}/admin/gdocs/${datapageGdoc.id}/edit has been published.`
+            )
+        )
+        return renderGrapherPage(grapher)
+    }
+
+    // When baking, we get the imageMetadata once for all datapages in
+    // bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers()
+    // rather than for each individual data page. We then attach it to the
+    // current datapageGdoc.
+    datapageGdoc.imageMetadata = imageMetadataDictionary
 
     const datapageGdocContent =
         parseGdocContentFromAllowedLevelOneHeadings(datapageGdoc)
@@ -147,7 +170,72 @@ export const renderDataPageOrGrapherPage = async (
             datapageGdocContent={datapageGdocContent}
             baseUrl={BAKED_BASE_URL}
             baseGrapherUrl={BAKED_GRAPHER_URL}
-            isPreviewing={isPreviewing}
+            isPreviewing={false}
+        />
+    )
+}
+
+/**
+ *
+ * Similar to renderDataPageOrGrapherPage(), but for admin previews
+ */
+export const renderPreviewDataPageOrGrapherPage = async (
+    grapher: GrapherInterface,
+    publishedExplorersBySlug?: Record<string, ExplorerProgram>
+) => {
+    const variableIds = uniq(grapher.dimensions!.map((d) => d.variableId))
+    // this shows that multi-metric charts are not really supported, and will
+    // render a datapage corresponding to the first variable found.
+    const id = variableIds[0]
+
+    // Get the datapage JSON file from the owid-content git repo that has
+    // been updated and pulled separately by an author.
+    const { datapageJson, parseErrors } = await getDatapageJson(id)
+
+    // When previewing a datapage we want to show all discrepancies with the
+    // expected JSON schema in the browser.
+    if (parseErrors.length > 0)
+        return renderToHtmlPage(
+            <pre>{JSON.stringify(parseErrors, null, 2)}</pre>
+        )
+
+    // Fallback to rendering a regular grapher page whether the datapage JSON
+    // wasn't found or if it is not set to override the current grapher page
+    if (
+        // This could be folded into the showDataPageOnChartIds check below, but
+        // is kept separate to reiterate that that abscence of a datapageJson leads to
+        // rendering a grapher page
+        !datapageJson ||
+        // We only want to render datapages on selected charts, even if the
+        // variable found on the chart has a datapage configuration.
+        !grapher.id ||
+        !datapageJson.showDataPageOnChartIds.includes(grapher.id)
+    )
+        return renderGrapherPage(grapher)
+
+    // Compliment the text-only content from the JSON with rich text from the
+    // companion gdoc
+    const datapageGdoc = await getDatapageGdoc(
+        datapageJson,
+        true,
+        publishedExplorersBySlug
+    )
+
+    const datapageGdocContent =
+        parseGdocContentFromAllowedLevelOneHeadings(datapageGdoc)
+
+    // Passing `datapageGdocContent` as a separate prop rather than weaving it
+    // into datapageGdoc to keep the concept of "Gdoc" clearer
+    return renderToHtmlPage(
+        <DataPage
+            grapher={grapher}
+            variableId={id}
+            datapageJson={datapageJson}
+            datapageGdoc={datapageGdoc}
+            datapageGdocContent={datapageGdocContent}
+            baseUrl={BAKED_BASE_URL}
+            baseGrapherUrl={BAKED_GRAPHER_URL}
+            isPreviewing={true}
         />
     )
 }
@@ -237,12 +325,7 @@ const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
     const outPath = `${bakedSiteDir}/grapher/${grapher.slug}.html`
     await fs.writeFile(
         outPath,
-        await renderDataPageOrGrapherPage(
-            grapher,
-            false,
-            {},
-            imageMetadataDictionary
-        )
+        await renderDataPageOrGrapherPage(grapher, {}, imageMetadataDictionary)
     )
     console.log(outPath)
 

@@ -1212,7 +1212,7 @@ export const DataPageJsonTypeObject = Type.Object(
         showDataPageOnChartIds: Type.Array(Type.Number()),
         status: Type.Union([Type.Literal("published"), Type.Literal("draft")]),
         title: Type.String(),
-        googleDocEditLink: Type.RegEx(gdocUrlRegex),
+        googleDocEditLink: Type.Optional(Type.RegEx(gdocUrlRegex)),
         topicTagsLinks: Type.Array(
             Type.Object({ title: Type.String(), url: Type.String() })
         ),
