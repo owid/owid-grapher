@@ -685,7 +685,7 @@
             "type": "string",
             "description": "Sort criterium (used by stacked bar charts and marimekko)",
             "default": "total",
-            "enum": ["column", "total", "entityName"]
+            "enum": ["column", "total", "entityName", "custom"]
         },
         "sortOrder": {
             "type": "string",
