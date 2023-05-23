@@ -34,17 +34,25 @@ function buildRegexFromSearchWord(str: string): RegExp {
     }
     return new RegExp(moreTolerantMatch, "iu")
 }
+
 export const buildSearchWordsFromSearchString = (
     searchInput: string | undefined
 ): SearchWord[] => {
     if (!searchInput) return []
-    const wordRegexes = searchInput
-        .split(" ")
-        .filter((item) => item)
-        .map((item) => ({
-            regex: buildRegexFromSearchWord(item),
-            word: item,
-        }))
+
+    // Split search string into words and quoted strings
+    const regex = /"([^"]*)"|(\w+)/g
+    const matches = searchInput.matchAll(regex)
+
+    const wordRegexes = []
+    for (const match of matches) {
+        const word = match[1] || match[2]
+        wordRegexes.push({
+            regex: buildRegexFromSearchWord(word),
+            word,
+        })
+    }
+
     return wordRegexes
 }
 
