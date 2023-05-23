@@ -103,6 +103,7 @@ $defs:
                     - stackedAreaDefault
                     - owid-distinct
                     - default
+                    - OwidDistinctLines
             equalSizeBins:
                 type: boolean
                 default: true
