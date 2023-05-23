@@ -6,7 +6,11 @@
  */
 
 import { Grapher, Topic } from "@ourworldindata/grapher"
-import { type DetailDictionary, type RawPageview, groupBy } from "@ourworldindata/utils"
+import {
+    type DetailDictionary,
+    type RawPageview,
+    groupBy,
+} from "@ourworldindata/utils"
 import { computed, observable, runInAction, when } from "mobx"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
 import { Admin } from "./Admin.js"
@@ -179,9 +183,9 @@ export class ChartEditor {
                 (d) => d.namespace
             )
             for (const namespace in groupedByNamespace) {
-              this.database.dataByNamespace.set(namespace, {
-                  datasets: groupedByNamespace[namespace] as Dataset[],
-              })
+                this.database.dataByNamespace.set(namespace, {
+                    datasets: groupedByNamespace[namespace] as Dataset[],
+                })
             }
         })
     }
