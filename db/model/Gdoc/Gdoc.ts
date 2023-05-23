@@ -16,23 +16,21 @@ import {
     OwidGdocPublicationContext,
     GdocsContentSource,
     JsonError,
-    checkNodeIsSpan,
-    spansToUnformattedPlainText,
     getUrlTarget,
     getLinkType,
     keyBy,
     excludeNull,
-    recursivelyMapArticleContent,
     ImageMetadata,
     excludeUndefined,
     OwidGdocErrorMessage,
     OwidGdocErrorMessageType,
-    NodeWithUrl,
     excludeNullish,
     DetailDictionary,
     ParseError,
     OwidGdocType,
     traverseEnrichedBlocks,
+    OwidEnrichedGdocBlock,
+    Span,
 } from "@ourworldindata/utils"
 import {
     BAKED_GRAPHER_URL,
@@ -55,6 +53,9 @@ import {
 import { EXPLORERS_ROUTE_FOLDER } from "../../../explorer/ExplorerConstants.js"
 import { formatUrls } from "../../../site/formatting.js"
 import { parseDetails } from "./rawToEnriched.js"
+import { match, P } from "ts-pattern"
+import { spanToSimpleString, spansToSimpleString } from "./gdocUtils.js"
+import { traverseEnrichedSpan } from "@ourworldindata/utils/dist/Util.js"
 
 @Entity("tags")
 export class Tag extends BaseEntity implements OwidGdocTag {
@@ -182,7 +183,7 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
         }
 
         this.content.body?.forEach((node) =>
-            recursivelyMapArticleContent(node, (item) => {
+            traverseEnrichedBlocks(node, (item) => {
                 if ("type" in item) {
                     if ("filename" in item && item.filename) {
                         filenames.add(item.filename)
@@ -303,43 +304,224 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
         const links: Link[] = []
         if (this.content.body) {
             this.content.body.map((node) =>
-                recursivelyMapArticleContent(node, (node) => {
-                    const link = this.extractLinkFromNode(node)
-                    if (link) links.push(link)
-                    return node
-                })
+                traverseEnrichedBlocks(
+                    node,
+                    (node) => {
+                        const extractedLinks = this.extractLinksFromNode(node)
+                        if (extractedLinks) links.push(...extractedLinks)
+                    },
+                    (span) => {
+                        const link = this.extractLinkFromSpan(span)
+                        if (link) links.push(link)
+                    }
+                )
             )
         }
         return links
     }
 
-    // Assumes that the property will be named "url"
-    extractLinkFromNode(node: NodeWithUrl): Link | void {
-        function getText(node: NodeWithUrl): string {
-            // Can add component-specific text accessors here
-            if (checkNodeIsSpan(node)) {
-                if (node.spanType === "span-link") {
-                    return spansToUnformattedPlainText(node.children)
-                }
-            } else if (node.type === "prominent-link") return node.title || ""
-            return ""
-        }
-
+    extractLinkFromSpan(span: Span): Link | void {
         // Don't track the ref links e.g. "#note-1"
         function checkIsRefAnchor(link: string): boolean {
             return new RegExp(/^#note-\d+$/).test(link)
         }
-
-        if ("url" in node && node.url && !checkIsRefAnchor(node.url)) {
-            const link: Link = Link.create({
-                linkType: getLinkType(node.url),
-                source: this,
-                target: getUrlTarget(formatUrls(node.url)),
-                componentType: checkNodeIsSpan(node) ? "span-link" : node.type,
-                text: getText(node),
-            })
-            return link
+        if (span.spanType === "span-link") {
+            const url = span.url
+            if (!checkIsRefAnchor(url)) {
+                return Link.create({
+                    linkType: getLinkType(url),
+                    source: this,
+                    target: url,
+                    componentType: getUrlTarget(formatUrls(url)),
+                    text: spansToSimpleString(span.children),
+                })
+            }
         }
+    }
+
+    extractLinksFromNode(node: OwidEnrichedGdocBlock): Link[] | void {
+        const links: Link[] = match(node)
+            .with({ type: "prominent-link" }, (node) => [
+                Link.create({
+                    linkType: getLinkType(node.url),
+                    source: this,
+                    target: getUrlTarget(formatUrls(node.url)),
+                    componentType: node.type,
+                    text: node.title ?? "",
+                }),
+            ])
+            .with({ type: "chart" }, (node) => [
+                Link.create({
+                    linkType: getLinkType(node.url),
+                    source: this,
+                    target: getUrlTarget(formatUrls(node.url)),
+                    componentType: node.type,
+                    text: "",
+                }),
+            ])
+            .with({ type: "recirc" }, (node) => {
+                const links: Link[] = []
+
+                node.links.forEach(({ url }, i) => {
+                    links.push(
+                        Link.create({
+                            linkType: getLinkType(url),
+                            source: this,
+                            target: getUrlTarget(formatUrls(url)),
+                            componentType: node.type,
+                            text: `Recirc link ${i + 1}`,
+                        })
+                    )
+                })
+
+                return links
+            })
+            .with({ type: "scroller" }, (node) => {
+                const links: Link[] = []
+
+                node.blocks.forEach(({ url, text }, i) => {
+                    const chartLink = Link.create({
+                        linkType: getLinkType(url),
+                        source: this,
+                        target: getUrlTarget(formatUrls(url)),
+                        componentType: node.type,
+                        text: `Scroller block ${i + 1}`,
+                    })
+                    links.push(chartLink)
+                    text.value.forEach((span) => {
+                        traverseEnrichedSpan(span, (span) => {
+                            const spanLink = this.extractLinkFromSpan(span)
+                            if (spanLink) links.push(spanLink)
+                        })
+                    })
+                })
+
+                return links
+            })
+            .with({ type: "chart-story" }, (node) => {
+                const links: Link[] = []
+
+                node.items.forEach((storyItem, i) => {
+                    const chartLink = Link.create({
+                        linkType: getLinkType(storyItem.chart.url),
+                        source: this,
+                        target: getUrlTarget(formatUrls(storyItem.chart.url)),
+                        componentType: node.type,
+                        text: `chart-story item ${i + 1}`,
+                    })
+                    links.push(chartLink)
+                    storyItem.narrative.value.forEach((span) =>
+                        traverseEnrichedSpan(span, (span) => {
+                            const spanLink = this.extractLinkFromSpan(span)
+                            if (spanLink) links.push(spanLink)
+                        })
+                    )
+                    storyItem.technical.forEach((textBlock) =>
+                        textBlock.value.forEach((span) =>
+                            traverseEnrichedSpan(span, (span) => {
+                                const spanLink = this.extractLinkFromSpan(span)
+                                if (spanLink) links.push(spanLink)
+                            })
+                        )
+                    )
+                })
+
+                return links
+            })
+            .with({ type: "topic-page-intro" }, (node) => {
+                const links: Link[] = []
+
+                if (node.downloadButton) {
+                    const downloadButtonLink = Link.create({
+                        linkType: getLinkType(node.downloadButton.url),
+                        source: this,
+                        target: getUrlTarget(
+                            formatUrls(node.downloadButton.url)
+                        ),
+                        componentType: node.type,
+                        text: node.downloadButton.text,
+                    })
+                    links.push(downloadButtonLink)
+                }
+                if (node.relatedTopics) {
+                    node.relatedTopics.forEach((relatedTopic) => {
+                        const relatedTopicLink = Link.create({
+                            linkType: getLinkType(relatedTopic.url),
+                            source: this,
+                            target: getUrlTarget(formatUrls(relatedTopic.url)),
+                            componentType: node.type,
+                            text: relatedTopic.text ?? "",
+                        })
+                        links.push(relatedTopicLink)
+                    })
+                }
+
+                node.content.forEach((textBlock) => {
+                    textBlock.value.forEach((span) => {
+                        traverseEnrichedSpan(span, (span) => {
+                            const spanLink = this.extractLinkFromSpan(span)
+                            if (spanLink) links.push(spanLink)
+                        })
+                    })
+                })
+
+                return links
+            })
+            .with({ type: "key-insights" }, (node) => {
+                const links: Link[] = []
+
+                node.insights.forEach((insight) => {
+                    insight.content.forEach((block) => {
+                        const insightContentLinks =
+                            this.extractLinksFromNode(block)
+                        if (insightContentLinks)
+                            links.push(...insightContentLinks)
+                    })
+                    if (insight.url) {
+                        const insightLink = Link.create({
+                            linkType: getLinkType(insight.url),
+                            source: this,
+                            target: getUrlTarget(formatUrls(insight.url)),
+                            componentType: node.type,
+                            text: insight.title ?? "",
+                        })
+                        links.push(insightLink)
+                    }
+                })
+
+                return links
+            })
+            .with(
+                {
+                    // no urls directly on any of these components
+                    // their children may contain urls, but they'll be addressed by traverse
+                    type: P.union(
+                        "aside",
+                        "html",
+                        "heading",
+                        "missing-data",
+                        "pull-quote",
+                        "sdg-toc",
+                        "sdg-grid",
+                        "side-by-side",
+                        "sticky-left",
+                        "sticky-right",
+                        "callout",
+                        "image",
+                        "list",
+                        "numbered-list",
+                        "text",
+                        "gray-section",
+                        "simple-text",
+                        "horizontal-rule",
+                        "additional-charts"
+                    ),
+                },
+                () => []
+            )
+            .exhaustive()
+
+        return links
     }
 
     async validate(

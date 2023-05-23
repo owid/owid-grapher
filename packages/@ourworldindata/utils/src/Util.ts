@@ -342,7 +342,7 @@ export const excludeUndefined = <T>(arr: (T | undefined)[]): T[] =>
 export const excludeNull = <T>(arr: (T | null)[]): T[] =>
     arr.filter((x) => x !== null) as T[]
 
-export const excludeNullish = <T>(arr: (T | null | undefined)[]): T[] =>
+export const excludeNullish = <T>(arr: (T | null | undefined | void)[]): T[] =>
     arr.filter((x) => x !== null && x !== undefined) as T[]
 
 export const firstOfNonEmptyArray = <T>(arr: T[]): T => {
@@ -1413,6 +1413,30 @@ export function recursivelyMapArticleContent(
     return callback(node)
 }
 
+export function traverseEnrichedSpan(
+    span: Span,
+    callback: (x: Span) => void
+): void {
+    match(span)
+        .with({ children: P.any }, (span) => {
+            callback(span)
+            span.children.forEach((child) =>
+                traverseEnrichedSpan(child, callback)
+            )
+        })
+        .with({ spanType: "span-simple-text" }, (simpleSpan) => {
+            callback(simpleSpan)
+        })
+        .with({ spanType: "span-newline" }, (newlineSpan) => {
+            callback(newlineSpan)
+        })
+        .exhaustive()
+}
+
+// If your node is a OwidEnrichedGdocBlock, the callback will apply to it
+// If your node has children that are Spans, the spanCallback will apply to them
+// If your node has children that aren't OwidEnrichedGdocBlocks or Spans, e.g. EnrichedBlockScroller & EnrichedScrollerItem
+// you'll have to handle those children yourself in your callback
 export function traverseEnrichedBlocks(
     node: OwidEnrichedGdocBlock,
     callback: (x: OwidEnrichedGdocBlock) => void,
@@ -1421,60 +1445,102 @@ export function traverseEnrichedBlocks(
     match(node)
         .with(
             { type: P.union("sticky-right", "sticky-left", "side-by-side") },
-            ({ left, right }) => {
-                left.forEach((leftNode) =>
+            (container) => {
+                callback(container)
+                container.left.forEach((leftNode) =>
                     traverseEnrichedBlocks(leftNode, callback, spanCallback)
                 )
-                right.forEach((rightNode) =>
+                container.right.forEach((rightNode) =>
                     traverseEnrichedBlocks(rightNode, callback, spanCallback)
                 )
             }
         )
-        .with({ type: "gray-section" }, ({ items }) => {
-            items.forEach((node) =>
+        .with({ type: "gray-section" }, (graySection) => {
+            callback(graySection)
+            graySection.items.forEach((node) =>
                 traverseEnrichedBlocks(node, callback, spanCallback)
             )
         })
-        .with({ type: "key-insights" }, ({ insights }) => {
-            insights.forEach((insight) =>
+        .with({ type: "key-insights" }, (keyInsights) => {
+            callback(keyInsights)
+            keyInsights.insights.forEach((insight) =>
                 insight.content.forEach((node) =>
                     traverseEnrichedBlocks(node, callback, spanCallback)
                 )
             )
         })
-        .with({ type: "callout" }, ({ text }) => {
+        .with({ type: "callout" }, (callout) => {
+            callback(callout)
             if (spanCallback) {
-                text.forEach((textBlock) =>
+                callout.text.forEach((textBlock) =>
+                    traverseEnrichedBlocks(textBlock, callback, spanCallback)
+                )
+            }
+        })
+        .with({ type: "aside" }, (aside) => {
+            callback(aside)
+            if (spanCallback) {
+                aside.caption.forEach((span) =>
+                    traverseEnrichedSpan(span, spanCallback)
+                )
+            }
+        })
+        .with({ type: "list" }, (list) => {
+            callback(list)
+            if (spanCallback) {
+                list.items.forEach((textBlock) =>
+                    traverseEnrichedBlocks(textBlock, callback, spanCallback)
+                )
+            }
+        })
+        .with({ type: "numbered-list" }, (numberedList) => {
+            callback(numberedList)
+            if (spanCallback) {
+                numberedList.items.forEach((textBlock) =>
                     traverseEnrichedBlocks(textBlock, callback, spanCallback)
                 )
             }
         })
         .with({ type: "text" }, (textNode) => {
-            textNode.value.forEach((span) => {
-                if (spanCallback) {
-                    spanCallback(span)
-                }
-            })
+            callback(textNode)
+            if (spanCallback) {
+                textNode.value.forEach((span) => {
+                    traverseEnrichedSpan(span, spanCallback)
+                })
+            }
         })
         .with({ type: "simple-text" }, (simpleTextNode) => {
             if (spanCallback) {
                 spanCallback(simpleTextNode.value)
             }
         })
+        .with({ type: "additional-charts" }, (additionalCharts) => {
+            callback(additionalCharts)
+            if (spanCallback) {
+                additionalCharts.items.forEach((spans) => {
+                    spans.forEach((span) =>
+                        traverseEnrichedSpan(span, spanCallback)
+                    )
+                })
+            }
+        })
+        .with({ type: "heading" }, (heading) => {
+            callback(heading)
+            if (spanCallback) {
+                heading.text.forEach((span) => {
+                    traverseEnrichedSpan(span, spanCallback)
+                })
+            }
+        })
         .with(
             {
                 type: P.union(
-                    "additional-charts",
-                    "aside",
                     "chart-story",
                     "chart",
-                    "heading",
                     "horizontal-rule",
                     "html",
                     "image",
-                    "list",
                     "missing-data",
-                    "numbered-list",
                     "prominent-link",
                     "pull-quote",
                     "recirc",
