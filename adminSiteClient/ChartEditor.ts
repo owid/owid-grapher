@@ -6,7 +6,7 @@
  */
 
 import { Grapher, Topic } from "@ourworldindata/grapher"
-import type { DetailDictionary, RawPageview } from "@ourworldindata/utils"
+import { type DetailDictionary, type RawPageview, groupBy } from "@ourworldindata/utils"
 import { computed, observable, runInAction, when } from "mobx"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
 import { Admin } from "./Admin.js"
@@ -168,35 +168,22 @@ export class ChartEditor {
         return new EditorFeatures(this)
     }
 
-    async loadNamespaces(namespaces: Namespace[]): Promise<void> {
-        const namespacesToLoad = namespaces.filter(
-            (namespace) => !this.database.dataByNamespace.has(namespace.name)
+    async loadNamespaces(): Promise<void> {
+        const data = await this.manager.admin.getJSON(
+            `/api/editorData/variables.json`
         )
 
-        const promises = await Promise.allSettled(
-            namespacesToLoad.map((namespace) =>
-                this.manager.admin.getJSON(
-                    `/api/editorData/${namespace.name}.json`
-                )
+        runInAction(() => {
+            const groupedByNamespace = groupBy(
+                data.datasets,
+                (d) => d.namespace
             )
-        )
-
-        const isPromiseFulfilled = <T>(
-            promise: PromiseSettledResult<T>
-        ): promise is PromiseFulfilledResult<T> =>
-            promise.status === "fulfilled"
-
-        runInAction(() =>
-            namespacesToLoad.forEach((namespace, index) => {
-                const promise = promises[index]
-                if (isPromiseFulfilled(promise)) {
-                    this.database.dataByNamespace.set(
-                        namespace.name,
-                        promise.value as any
-                    )
-                }
-            })
-        )
+            for (const namespace in groupedByNamespace) {
+              this.database.dataByNamespace.set(namespace, {
+                  datasets: groupedByNamespace[namespace] as Dataset[],
+              })
+            }
+        })
     }
 
     async loadVariableUsageCounts(): Promise<void> {

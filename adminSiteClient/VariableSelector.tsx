@@ -481,7 +481,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
     async componentDidMount() {
         // await this information as it's needed when calling initChosenVariablesAndNamespaces
         await Promise.all([
-            this.props.editor.loadNamespaces(this.database.namespaces),
+            this.props.editor.loadNamespaces(),
             this.props.editor.loadVariableUsageCounts(),
         ])
 
