@@ -2721,6 +2721,11 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
     await GdocXImage.delete({ gdocId: id })
     const filenames = nextGdoc.filenames
 
+    // The concept of a "published gdoc" is looser here than in
+    // Gdoc.gePublishedGdocs(), where published gdoc fragments are filtered out.
+    // Here, published fragments are captured by nextGdoc.published, which
+    // allows images in published fragments (in particular data pages) to be
+    // synced to S3 and ultimately baked in bakeDriveImages().
     if (filenames.length && nextGdoc.published) {
         await imageStore.fetchImageMetadata(filenames)
         const images = await imageStore.syncImagesToS3()

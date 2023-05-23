@@ -13,6 +13,7 @@ import {
     uniq,
     JsonError,
     keyBy,
+    OwidGdocType,
 } from "@ourworldindata/utils"
 import {
     getRelatedArticles,
@@ -127,24 +128,29 @@ export const renderDataPageOrGrapherPage = async (
     )
 
     // A datapage gdoc is optional. However, if a gdoc is referenced in the
-    // JSON, we assume the gdoc is expected to be used and we need it to be
-    // published so that images in the gdoc content are baked in
-    // bakeGdriveImages() (see also apiRouter.put("/gdocs/:id")). If a published
-    // datapage JSON references an unpublished datapage gdoc, it is considered a
-    // mistake. We then log an error and fall back to a grapher page.
+    // JSON, we assume the gdoc is expected to be used. Additionally, we need
+    // the datapage gdoc to be published so that images in the gdoc content are
+    // baked in bakeGdriveImages() (see also apiRouter.put("/gdocs/:id")). We
+    // also check that the datapage gdoc is of type "fragment" so that it
+    // doesn't get a URL when baked. If any of these conditions is not met, we
+    // log an error and fall back to a grapher page.
+    const dataPageNotPublishedError = `The data page for variable ${datapageJson.title} (${id}) has not been published.`
     if (!datapageGdoc) {
         logErrorAndMaybeSendToBugsnag(
             new JsonError(
-                `The data page for variable ${datapageJson.title}(${id}) has not been published. Please check that the googleDocEditLink ${datapageJson.googleDocEditLink} is correct.`
+                `${dataPageNotPublishedError} Please check that the googleDocEditLink ${datapageJson.googleDocEditLink} is correct.`
             )
         )
         return renderGrapherPage(grapher)
     }
 
-    if (!datapageGdoc?.published) {
+    if (
+        !datapageGdoc?.published ||
+        datapageGdoc.content.type !== OwidGdocType.Fragment
+    ) {
         logErrorAndMaybeSendToBugsnag(
             new JsonError(
-                `The data page for variable ${datapageJson.title}(${id}) has not been published. Please check that ${ADMIN_BASE_URL}/admin/gdocs/${datapageGdoc.id}/edit has been published.`
+                `${dataPageNotPublishedError} Please check that ${ADMIN_BASE_URL}/admin/gdocs/${datapageGdoc.id}/edit has been published as a fragment.`
             )
         )
         return renderGrapherPage(grapher)
