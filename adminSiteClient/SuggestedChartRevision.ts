@@ -30,4 +30,19 @@ export interface SuggestedChartRevisionSerialized {
     canReject?: boolean
     canFlag?: boolean
     canPending?: boolean
+
+    experimental?: SuggestedChartRevisionExperimentalSerialized
+}
+
+export interface SuggestedChartRevisionExperimentalSerialized {
+    gpt?: {
+        model?: string
+        suggestions?: GPTSuggestionsSerialized[]
+    }
+    [key: string]: any
+}
+
+export interface GPTSuggestionsSerialized {
+    title?: string
+    subtitle?: string
 }
