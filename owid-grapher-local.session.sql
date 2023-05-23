@@ -1,1 +1,0 @@
-SELECT * FROM datasets LIMIT 10
