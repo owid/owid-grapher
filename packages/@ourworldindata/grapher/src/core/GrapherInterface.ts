@@ -6,6 +6,7 @@ import {
     EntitySelectionMode,
     ChartTypeName,
     FacetStrategy,
+    MissingDataStrategy,
 } from "./GrapherConstants"
 import { AxisConfigInterface } from "../axis/AxisConfigInterface"
 import {
@@ -85,6 +86,7 @@ export interface GrapherInterface extends SortConfig {
     selectedEntityNames?: EntityName[]
     selectedEntityColors?: { [entityName: string]: string | undefined }
     facet?: FacetStrategy
+    missingDataStrategy?: MissingDataStrategy
 
     xAxis?: Partial<AxisConfigInterface>
     yAxis?: Partial<AxisConfigInterface>
@@ -186,4 +188,5 @@ export const grapherKeysToSerialize = [
     "details",
     "adminBaseUrl",
     "bakedGrapherURL",
+    "missingDataStrategy",
 ]

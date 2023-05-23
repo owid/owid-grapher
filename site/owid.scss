@@ -256,9 +256,10 @@ h6:hover .deep-link {
 --------------------------------------------- */
 .site-header {
     position: relative;
-    // Must be specified for the search overlay to stack above Grapher charts, and the sticky nav
-    // but below Tippy tooltips
-    z-index: 11;
+    // Must be specified for the header (and its sub-elements, e.g. topics menu)
+    // to be on top of the sticky nav, charts and global entity selector, while
+    // allowing (DoD) tooltips to be on top of the header
+    z-index: $zindex-site-header;
 }
 
 /* Homepage

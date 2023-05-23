@@ -31,6 +31,8 @@ export class SuggestedChartRevision extends BaseEntity {
     canFlag?: boolean
     canPending?: boolean
 
+    @Column({ type: "json" }) experimental?: any
+
     static isValidStatus(status: SuggestedChartRevisionStatus): boolean {
         return Object.values(SuggestedChartRevisionStatus).includes(status)
     }
