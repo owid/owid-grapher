@@ -206,7 +206,7 @@ export class ChartEditor {
         const finalData = new Map(
             data.map(({ variableId, usageCount }: VariableIdUsageRecord) => [
                 variableId,
-                usageCount,
+                +usageCount,
             ])
         )
         runInAction(() => (this.database.variableUsageCounts = finalData))
