@@ -234,6 +234,14 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         )
     }
 
+    hasAnyColumnNoValidValue(slugs: ColumnSlug[]): boolean {
+        return slugs.some((slug) => this.get(slug).numValues === 0)
+    }
+
+    dropAllRows(): this {
+        return this.rowFilter(() => false, "Drop all rows")
+    }
+
     dropRowsWithErrorValuesForColumn(slug: ColumnSlug): this {
         return this.columnFilter(
             slug,

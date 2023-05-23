@@ -168,7 +168,7 @@ export class TextAreaField extends React.Component<TextFieldProps> {
                     value={props.value}
                     onChange={this.onChange}
                     onBlur={this.onBlur}
-                    rows={1}
+                    rows={5}
                     {...passthroughProps}
                 />
                 {props.helpText && (
