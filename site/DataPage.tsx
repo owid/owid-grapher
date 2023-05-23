@@ -30,8 +30,8 @@ export const DataPage = (props: {
     grapher: GrapherInterface
     variableId: number
     datapageJson: DataPageJson
-    datapageGdoc: OwidGdocInterface | null
-    datapageGdocContent: DataPageGdocContent | null
+    datapageGdoc?: OwidGdocInterface | null
+    datapageGdocContent?: DataPageGdocContent | null
     baseUrl: string
     baseGrapherUrl: string
     isPreviewing: boolean
