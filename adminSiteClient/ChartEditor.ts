@@ -212,24 +212,6 @@ export class ChartEditor {
         runInAction(() => (this.database.variableUsageCounts = finalData))
     }
 
-    async loadDatasets(datasetIds: number[]) {
-        const data = (await Promise.all(
-            datasetIds.map((datasetId) =>
-                this.manager.admin.getJSON(
-                    `/api/editorData/dataset/${datasetId}.json`
-                )
-            )
-        )) as {
-            dataset: {
-                id: number
-                name: string
-                namespace: string
-            }
-        }[]
-
-        return data
-    }
-
     async saveGrapher({
         onError,
     }: { onError?: () => void } = {}): Promise<void> {

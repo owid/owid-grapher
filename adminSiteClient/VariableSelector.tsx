@@ -478,29 +478,23 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
 
     dispose!: IReactionDisposer
     base: React.RefObject<HTMLDivElement> = React.createRef()
-    componentDidMount() {
-        this.props.editor.loadNamespaces(this.database.namespaces)
-        this.props.editor.loadVariableUsageCounts()
+    async componentDidMount() {
+        // await this information as it's needed when calling initChosenVariablesAndNamespaces
+        await Promise.all([
+            this.props.editor.loadNamespaces(this.database.namespaces),
+            this.props.editor.loadVariableUsageCounts(),
+        ])
 
         this.initChosenVariablesAndNamespaces()
     }
 
     @action.bound private async initChosenVariablesAndNamespaces() {
+        const { datasetsByName } = this
         const { variableUsageCounts } = this.database
         const { dimensions } = this.props.slot
 
-        // fetch dataset information for all chosen variables
-        const uniqueDatasetIds = uniq(
-            excludeUndefined(dimensions.map((d) => d.column.datasetId))
-        )
-        const datasets = await this.props.editor.loadDatasets(uniqueDatasetIds)
-        const datasetsById = lodash.keyBy(
-            datasets.map((d) => d.dataset),
-            (dataset) => dataset.id
-        )
-
         this.chosenVariables = dimensions.map((d) => {
-            const { datasetId, datasetName } = d.column
+            const { datasetName } = d.column
 
             return {
                 name: d.column.name,
@@ -508,8 +502,8 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
                 usageCount: variableUsageCounts.get(d.variableId) ?? 0,
                 datasetName: datasetName || "",
                 namespaceName:
-                    datasetId != undefined && datasetId in datasetsById
-                        ? datasetsById[datasetId].namespace
+                    datasetName != undefined && datasetName in datasetsByName
+                        ? datasetsByName[datasetName].namespace
                         : "",
             }
         })
