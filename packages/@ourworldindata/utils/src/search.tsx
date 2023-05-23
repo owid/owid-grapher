@@ -4,6 +4,7 @@ import React from "react"
 export interface SearchWord {
     regex: RegExp
     word: string
+    exclude: boolean
 }
 
 function buildRegexFromSearchWord(str: string): RegExp {
@@ -41,15 +42,25 @@ export const buildSearchWordsFromSearchString = (
     if (!searchInput) return []
 
     // Split search string into words and quoted strings
-    const regex = /"([^"]*)"|(\w+)/g
+    const regex = /(-?"[^"]*")|(-?[\w]+)/g
     const matches = searchInput.matchAll(regex)
 
     const wordRegexes = []
     for (const match of matches) {
-        const word = match[1] || match[2]
+        let segment = match[1] || match[2]
+        const isQuotedString = match[1] !== undefined
+        const shouldBeExcluded = segment.startsWith("-")
+
+        // Remove minus sign that indicates exclusion
+        if (shouldBeExcluded) segment = segment.slice(1)
+
+        // Remove quotes from quoted strings
+        if (isQuotedString) segment = segment.slice(1, -1)
+
         wordRegexes.push({
-            regex: buildRegexFromSearchWord(word),
-            word,
+            regex: buildRegexFromSearchWord(segment),
+            word: segment,
+            exclude: shouldBeExcluded,
         })
     }
 
@@ -72,14 +83,22 @@ export function filterFunctionForSearchWords<TargetObject>(
     searchWords: SearchWord[],
     targetPropertyExtractorFn: (t: TargetObject) => (string | undefined)[]
 ): (target: TargetObject) => boolean {
-    return (target: TargetObject): boolean =>
-        searchWords.every((searchWord) =>
-            targetPropertyExtractorFn(target).some(
-                (searchString) =>
-                    searchString !== undefined &&
-                    searchWord.regex.test(searchString)
-            )
+    return (target: TargetObject): boolean => {
+        const targetProperties = targetPropertyExtractorFn(target)
+        return searchWords.every((searchWord) =>
+            searchWord.exclude
+                ? targetProperties.every(
+                      (searchString) =>
+                          searchString === undefined ||
+                          !searchWord.regex.test(searchString)
+                  )
+                : targetProperties.some(
+                      (searchString) =>
+                          searchString !== undefined &&
+                          searchWord.regex.test(searchString)
+                  )
         )
+    }
 }
 
 export function highlightFunctionForSearchWords(
@@ -89,8 +108,9 @@ export function highlightFunctionForSearchWords(
         text: string | null | undefined
     ): JSX.Element | string {
         if (text === undefined || text === null) return ""
-        if (searchWords.length > 0) {
-            const firstMatches = searchWords
+        const includedSearchWords = searchWords.filter((w) => !w.exclude)
+        if (includedSearchWords.length > 0) {
+            const firstMatches = includedSearchWords
                 .map((regex) => ({
                     matchStart: text.search(regex.regex),
                     matchLength: regex.word.length,
