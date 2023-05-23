@@ -42,7 +42,7 @@ import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants.js"
 import { getExplorerRedirectForPath } from "../explorerAdminServer/ExplorerRedirects.js"
 import { explorerUrlMigrationsById } from "../explorer/urlMigrations/ExplorerUrlMigrations.js"
 import { generateEmbedSnippet } from "../site/viteUtils.js"
-import { renderDataPageOrGrapherPage } from "../baker/GrapherBaker.js"
+import { renderPreviewDataPageOrGrapherPage } from "../baker/GrapherBaker.js"
 import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
 
 require("express-async-errors")
@@ -136,9 +136,8 @@ mockSiteRouter.get("/grapher/:slug", async (req, res) => {
     // XXX add dev-prod parity for this
     res.set("Access-Control-Allow-Origin", "*")
     res.send(
-        await renderDataPageOrGrapherPage(
+        await renderPreviewDataPageOrGrapherPage(
             entity.config,
-            true,
             publishedExplorersBySlug
         )
     )

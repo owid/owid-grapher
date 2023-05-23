@@ -37,7 +37,7 @@ import {
 } from "../explorer/ExplorerProgram.js"
 import fs from "fs-extra"
 import * as Post from "../db/model/Post.js"
-import { renderDataPageOrGrapherPage } from "../baker/GrapherBaker.js"
+import { renderPreviewDataPageOrGrapherPage } from "../baker/GrapherBaker.js"
 import { Chart } from "../db/model/Chart.js"
 
 // Used for rate-limiting important endpoints (login, register) to prevent brute force attacks
@@ -264,9 +264,8 @@ adminRouter.get("/grapher/:slug", async (req, res) => {
         await explorerAdminServer.getAllPublishedExplorersBySlug()
 
     res.send(
-        await renderDataPageOrGrapherPage(
+        await renderPreviewDataPageOrGrapherPage(
             entity.config,
-            true,
             publishedExplorersBySlug
         )
     )

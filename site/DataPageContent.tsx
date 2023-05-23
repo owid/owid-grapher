@@ -33,8 +33,8 @@ export const DataPageContent = ({
     isPreviewing = false,
 }: {
     datapageJson: DataPageJson
-    datapageGdoc: OwidGdocInterface | null
-    datapageGdocContent: DataPageGdocContent | null
+    datapageGdoc?: OwidGdocInterface | null
+    datapageGdocContent?: DataPageGdocContent | null
     grapherConfig: GrapherInterface
     isPreviewing: boolean
 }) => {
