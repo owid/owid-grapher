@@ -93,7 +93,7 @@ describe("when you select a range of years", () => {
 
     it("renders absolute change values", () => {
         const cell = view.find("tbody .dimension-delta").first()
-        expect(cell.text()).toBe("-0.89 pp")
+        expect(cell.text()).toBe("-0.89\u00a0pp") // uses no-break space separator
     })
 
     it("renders relative change values", () => {
