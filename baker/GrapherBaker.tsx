@@ -18,6 +18,7 @@ import {
 import {
     getRelatedArticles,
     getRelatedCharts,
+    getRelatedChartsForVariable,
     isWordpressAPIEnabled,
     isWordpressDBEnabled,
 } from "../db/wpdb.js"
@@ -218,6 +219,14 @@ export const renderPreviewDataPageOrGrapherPage = async (
         !datapageJson.showDataPageOnChartIds.includes(grapher.id)
     )
         return renderGrapherPage(grapher)
+
+    // Enrich the datapage JSON with all the published charts this variable is
+    // being used in (aka "related charts") if none have been defined manually.
+    // We also want to exclude from the list the chart that is displayed at the
+    // top of the page to avoid the unnecessary redundancy.
+    datapageJson.relatedCharts =
+        datapageJson.relatedCharts ??
+        (await getRelatedChartsForVariable(id, [grapher.id]))
 
     if (!datapageJson.googleDocEditLink)
         return renderToHtmlPage(

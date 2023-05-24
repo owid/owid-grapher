@@ -622,6 +622,30 @@ export const getRelatedCharts = async (
         ORDER BY title ASC
     `)
 
+export const getRelatedChartsForVariable = async (
+    variableId: number,
+    chartIdsToExclude: number[] = []
+): Promise<RelatedChart[]> => {
+    const excludeChartIds =
+        chartIdsToExclude.length > 0
+            ? `AND charts.id NOT IN (${chartIdsToExclude.join(", ")})`
+            : ""
+
+    return db.queryMysql(`
+                SELECT DISTINCT
+                    charts.config->>"$.slug" AS slug,
+                    charts.config->>"$.title" AS title,
+                    charts.config->>"$.variantName" AS variantName,
+                    chart_tags.isKeyChart
+                FROM charts
+                INNER JOIN chart_tags ON charts.id=chart_tags.chartId
+                WHERE JSON_CONTAINS(config->'$.dimensions', '{"variableId":${variableId}}')
+                AND charts.config->>"$.isPublished" = "true"
+                ${excludeChartIds}
+                ORDER BY title ASC
+            `)
+}
+
 export const getRelatedArticles = async (
     chartId: number
 ): Promise<PostReference[] | undefined> => {
