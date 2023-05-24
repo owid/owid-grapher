@@ -25,6 +25,7 @@ import {
     BASE_FONT_SIZE,
     SeriesStrategy,
     FacetStrategy,
+    MissingDataStrategy,
 } from "../core/GrapherConstants"
 import {
     HorizontalAxisComponent,
@@ -124,6 +125,15 @@ export class DiscreteBarChart
                 .interpolateColumnWithTolerance(this.colorColumnSlug)
         }
 
+        // drop all data when the author chose to hide entities with missing data and
+        // at least one of the variables has no data for the current entity
+        if (
+            this.missingDataStrategy === MissingDataStrategy.hide &&
+            table.hasAnyColumnNoValidValue(this.yColumnSlugs)
+        ) {
+            table = table.dropAllRows()
+        }
+
         return table
     }
 
@@ -140,6 +150,10 @@ export class DiscreteBarChart
 
     @computed private get manager(): DiscreteBarChartManager {
         return this.props.manager
+    }
+
+    @computed private get missingDataStrategy(): MissingDataStrategy {
+        return this.manager.missingDataStrategy || MissingDataStrategy.auto
     }
 
     @computed private get targetTime(): Time | undefined {

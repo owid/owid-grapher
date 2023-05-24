@@ -186,12 +186,18 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
     }
 
     render(): JSX.Element {
-        const { tooltipTarget, mapTable, datum, lineColorScale } = this
+        const {
+            tooltipTarget,
+            mapTable,
+            datum,
+            lineColorScale,
+            hasTimeSeriesData,
+        } = this
         const { isEntityClickable, targetTime, manager } = this.props
 
         // Only LineChart and ScatterPlot allow `mapIsClickable`
         const clickToSelectMessage =
-            manager.type === ChartTypeName.LineChart
+            manager.type === ChartTypeName.LineChart && hasTimeSeriesData
                 ? "Click for change over time"
                 : "Click to select"
 
