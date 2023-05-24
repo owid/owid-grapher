@@ -10,7 +10,9 @@ interface ListChild {
     child: ReactNode
 }
 
-export const MoreButtonContext = React.createContext({ isWithinMoreMenu: false })
+export const MoreButtonContext = React.createContext({
+    isWithinMoreMenu: false,
+})
 
 /** A UI component inspired by the "Priority+ Navbar" or "Progressively Collapsing Navbar"*/
 @observer
@@ -120,7 +122,9 @@ export class CollapsibleList extends React.Component<{
                                 : "hidden",
                         }}
                     >
-                        <MoreButtonContext.Provider value={{ isWithinMoreMenu: true }}>
+                        <MoreButtonContext.Provider
+                            value={{ isWithinMoreMenu: true }}
+                        >
                             <MoreButton
                                 options={this.dropdownItems.map(
                                     (item): JSX.Element => (
