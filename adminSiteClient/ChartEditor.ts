@@ -172,24 +172,6 @@ export class ChartEditor {
         return new EditorFeatures(this)
     }
 
-    async loadNamespaces(): Promise<void> {
-        const data = await this.manager.admin.getJSON(
-            `/api/editorData/variables.json`
-        )
-
-        runInAction(() => {
-            const groupedByNamespace = groupBy(
-                data.datasets,
-                (d) => d.namespace
-            )
-            for (const namespace in groupedByNamespace) {
-                this.database.dataByNamespace.set(namespace, {
-                    datasets: groupedByNamespace[namespace] as Dataset[],
-                })
-            }
-        })
-    }
-
     async loadVariableUsageCounts(): Promise<void> {
         const data = (await this.manager.admin.getJSON(
             `/api/variables.usages.json`

@@ -479,12 +479,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
     dispose!: IReactionDisposer
     base: React.RefObject<HTMLDivElement> = React.createRef()
     async componentDidMount() {
-        // await this information as it's needed when calling initChosenVariablesAndNamespaces
-        await Promise.all([
-            this.props.editor.loadNamespaces(),
-            this.props.editor.loadVariableUsageCounts(),
-        ])
-
+        this.props.editor.loadVariableUsageCounts()
         this.initChosenVariablesAndNamespaces()
     }
 
