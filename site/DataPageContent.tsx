@@ -292,18 +292,19 @@ export const DataPageContent = ({
                     <div className="DataPageContent__section-border wrapper">
                         <hr />
                     </div>
-                    {datapageJson.relatedCharts.items.length > 0 && (
+                    {datapageJson.relatedCharts &&
+                    datapageJson.relatedCharts.length > 0 ? (
                         <div className="related-charts__wrapper wrapper">
                             <h2 className="related-charts__title">
                                 Explore charts that include this data
                             </h2>
                             <div>
                                 <RelatedCharts
-                                    charts={datapageJson.relatedCharts.items}
+                                    charts={datapageJson.relatedCharts}
                                 />
                             </div>
                         </div>
-                    )}
+                    ) : null}
                     {datapageGdocContent?.faqs && (
                         <>
                             <div className="gray-wrapper">
@@ -383,8 +384,8 @@ export const DataPageContent = ({
                                         )}
                                     </div>
                                     <div>
-                                        {!!datapageJson.datasetFeaturedVariables
-                                            ?.length && (
+                                        {datapageJson.datasetFeaturedVariables
+                                            ?.length ? (
                                             <div
                                                 style={{ marginBottom: "24px" }}
                                             >
@@ -420,7 +421,7 @@ export const DataPageContent = ({
                                                     )}
                                                 </ul>
                                             </div>
-                                        )}
+                                        ) : null}
                                         <div
                                             className="key-info--gridded grid grid-cols-2"
                                             style={{ marginBottom: "24px" }}
