@@ -1245,12 +1245,13 @@ export const DataPageJsonTypeObject = Type.Object(
                 content: Type.Optional(Type.String()),
             })
         ),
-        relatedCharts: Type.Optional(Type.Array(
+        relatedCharts: Type.Optional(
+            Type.Array(
                 Type.Object({
                     title: Type.String(),
                     slug: Type.String(),
                 })
-            ),
+            )
         ),
         datasetName: Type.String(),
         datasetFeaturedVariables: Type.Optional(
