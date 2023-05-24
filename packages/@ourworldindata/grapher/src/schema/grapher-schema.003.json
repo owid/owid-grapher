@@ -119,7 +119,7 @@
                         "stackedAreaDefault",
                         "owid-distinct",
                         "default",
-                        "OwidDistinctLines",
+                        "OwidDistinctLines"
                     ]
                 },
                 "equalSizeBins": {
