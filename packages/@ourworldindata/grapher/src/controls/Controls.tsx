@@ -21,6 +21,7 @@ import { ShareMenu, ShareMenuManager } from "./ShareMenu"
 import { TimelineController } from "../timeline/TimelineController"
 import { AxisConfig } from "../axis/AxisConfig"
 import { Tippy } from "@ourworldindata/utils"
+import { MoreButtonContext } from "./CollapsibleList/CollapsibleList"
 import classnames from "classnames"
 
 export interface NoDataAreaToggleManager {
@@ -171,8 +172,12 @@ export interface FacetStrategyDropdownManager {
 export class FacetStrategyDropdown extends React.Component<{
     manager: FacetStrategyDropdownManager
 }> {
+    static contextType = MoreButtonContext
+
     render(): JSX.Element {
-        return (
+        return this.context.isWithinMoreMenu ? (
+            <div style={{ whiteSpace: "normal" }}>{this.content}</div>
+        ) : (
             <Tippy
                 content={this.content}
                 interactive={true}
