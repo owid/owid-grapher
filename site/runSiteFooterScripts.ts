@@ -42,7 +42,7 @@ export const runSiteFooterScripts = (
         // no break here, we additionally want to run the default scripts
         default:
             runSiteNavigation(BAKED_BASE_URL)
-            runBlocks()
+            runBlocks(context)
             MultiEmbedderSingleton.setUpGlobalEntitySelectorForEmbeds()
             MultiEmbedderSingleton.embedAll()
             runLightbox()

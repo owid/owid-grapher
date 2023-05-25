@@ -798,10 +798,11 @@ apiRouter.get(
         }
 
         const suggestedChartRevisions = await db.queryMysql(
-            `
+            `-- sql
             SELECT scr.id, scr.chartId, scr.updatedAt, scr.createdAt,
                 scr.suggestedReason, scr.decisionReason, scr.status,
                 scr.suggestedConfig, scr.originalConfig, scr.changesInDataSummary,
+                scr.experimental,
                 createdByUser.id as createdById,
                 updatedByUser.id as updatedById,
                 createdByUser.fullName as createdByFullName,
@@ -841,6 +842,9 @@ apiRouter.get(
                 )
                 suggestedChartRevision.originalConfig = JSON.parse(
                     suggestedChartRevision.originalConfig
+                )
+                suggestedChartRevision.experimental = JSON.parse(
+                    suggestedChartRevision.experimental
                 )
                 suggestedChartRevision.canApprove =
                     SuggestedChartRevision.checkCanApprove(
@@ -1182,7 +1186,7 @@ apiRouter.get(
         )
 
         const suggestedChartRevision = await db.mysqlFirst(
-            `
+            `-- sql
             SELECT scr.id, scr.chartId, scr.updatedAt, scr.createdAt,
                 scr.suggestedReason, scr.decisionReason, scr.status,
                 scr.suggestedConfig, scr.changesInDataSummary, scr.originalConfig,
@@ -1239,7 +1243,9 @@ apiRouter.post(
         const suggestedChartRevisionId = expectInt(
             req.params.suggestedChartRevisionId
         )
-        const { status, decisionReason } = req.body as {
+
+        const { suggestedConfig, status, decisionReason } = req.body as {
+            suggestedConfig: GrapherInterface
             status: string
             decisionReason: string
         }
@@ -1255,10 +1261,13 @@ apiRouter.post(
                     404
                 )
             }
-
-            suggestedChartRevision.suggestedConfig = JSON.parse(
-                suggestedChartRevision.suggestedConfig
-            )
+            if (suggestedConfig !== undefined && suggestedConfig !== null) {
+                suggestedChartRevision.suggestedConfig = suggestedConfig
+            } else {
+                suggestedChartRevision.suggestedConfig = JSON.parse(
+                    suggestedChartRevision.suggestedConfig
+                )
+            }
             suggestedChartRevision.originalConfig = JSON.parse(
                 suggestedChartRevision.originalConfig
             )
@@ -1306,6 +1315,22 @@ apiRouter.post(
                     suggestedChartRevisionId,
                 ]
             )
+
+            // Update config ONLY when APPROVE button is clicked
+            // Makes sense when the suggested config is a sugegstion by GPT, otherwise is redundant but we are cool with it
+            if (status === SuggestedChartRevisionStatus.approved) {
+                await t.execute(
+                    `
+                    UPDATE suggested_chart_revisions
+                    SET suggestedConfig=?
+                    WHERE id = ?
+                    `,
+                    [
+                        JSON.stringify(suggestedChartRevision.suggestedConfig),
+                        suggestedChartRevisionId,
+                    ]
+                )
+            }
             // note: the calls to saveGrapher() below will never overwrite a config
             // that has been changed since the suggestedConfig was created, because
             // if the config has been changed since the suggestedConfig was created
@@ -2665,6 +2690,7 @@ apiRouter.get("/gdocs/:id", async (req, res) => {
         res.set("Cache-Control", "no-store")
         res.send(gdoc)
     } catch (error) {
+        console.error("Error fetching gdoc", error)
         res.status(500).json({ error: { message: String(error), status: 500 } })
     }
 })

@@ -100,16 +100,20 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
 
     // initialise
     useEffect(() => {
+        async function fetchGdocs() {
+            try {
+                // Fetching in sequence instead of with Promise.all to prevent race conditions
+                // if images need to be uploaded from the original
+                const original = await fetchGdoc(GdocsContentSource.Internal)
+                const current = await fetchGdoc(GdocsContentSource.Gdocs)
+                admin.loadingIndicatorSetting = "off"
+                setGdoc({ original, current })
+            } catch (error) {
+                handleError(error)
+            }
+        }
         if (!originalGdoc) {
-            Promise.all([
-                fetchGdoc(GdocsContentSource.Internal),
-                fetchGdoc(GdocsContentSource.Gdocs),
-            ])
-                .then(([original, current]) => {
-                    admin.loadingIndicatorSetting = "off"
-                    setGdoc({ original, current })
-                })
-                .catch(handleError)
+            fetchGdocs()
         }
     }, [originalGdoc, fetchGdoc, handleError, admin])
 

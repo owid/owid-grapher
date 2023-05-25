@@ -1,6 +1,30 @@
 import React from "react"
 import { EnrichedBlockRecirc } from "@ourworldindata/utils"
-import { renderSpan } from "./utils.js"
+import { renderSpan, useLinkedDocument } from "./utils.js"
+import { formatAuthors } from "../clientFormatting.js"
+
+function RecircItem({ url }: { url: string }) {
+    const { linkedDocument } = useLinkedDocument(url)
+    if (!linkedDocument) return null
+
+    return (
+        <aside className="recirc-article-container">
+            <h3 className="h3-bold">
+                <a href={`/${linkedDocument.slug}`}>
+                    {linkedDocument.content.title}
+                </a>
+            </h3>
+            {linkedDocument.content.authors ? (
+                <div className="body-3-medium-italic">
+                    {formatAuthors({
+                        authors: linkedDocument.content.authors,
+                    })}
+                </div>
+            ) : null}
+        </aside>
+    )
+}
+
 export default function Recirc({
     d,
     className = "",
@@ -14,17 +38,8 @@ export default function Recirc({
                 <span className="recirc-content__heading overline-black-caps">
                     {renderSpan(d.title)}
                 </span>
-                {d.items.map(({ article, author, url }, j: number) => {
-                    return (
-                        <div key={j} className="recirc-article-container">
-                            <h3 className="h3-bold">
-                                <a href={url}>{renderSpan(article)}</a>
-                            </h3>
-                            <div className="body-3-medium-italic">
-                                {renderSpan(author)}
-                            </div>
-                        </div>
-                    )
+                {d.links.map(({ url }) => {
+                    return <RecircItem url={url} key={url} />
                 })}
             </div>
         </div>

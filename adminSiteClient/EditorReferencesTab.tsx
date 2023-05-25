@@ -51,6 +51,10 @@ export class EditorReferencesTab extends React.Component<{
                             <strong>Last 14 days:</strong>{" "}
                             {this.renderPageview(this.pageviews?.views_14d)}
                         </div>
+                        <div>
+                            <strong>Last 365 days:</strong>{" "}
+                            {this.renderPageview(this.pageviews?.views_365d)}
+                        </div>
                     </div>
                     <small className="form-text text-muted">
                         Pageview numbers are inaccurate when the chart has been

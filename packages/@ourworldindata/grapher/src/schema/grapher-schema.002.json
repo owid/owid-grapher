@@ -601,6 +601,8 @@
             "enum": ["absolute", "relative", "grouped", "stacked", null]
         },
         "minTime": {
+            "description": "Start point of the initially selected time span.",
+            "default": "earliest",
             "oneOf": [
                 {
                     "type": "number"
@@ -609,8 +611,7 @@
                     "type": "string",
                     "enum": ["latest", "earliest"]
                 }
-            ],
-            "description": "Start point of the initially selected time span."
+            ]
         },
         "hideTitleAnnotation": {
             "type": "boolean",

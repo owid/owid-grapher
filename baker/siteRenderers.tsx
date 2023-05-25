@@ -248,7 +248,7 @@ export const renderFrontPage = async () => {
         )
         const frontPageConfig: any = frontPageConfigGdoc.content
         const featuredPosts: { slug: string; position: number }[] =
-            frontPageConfig.featuredPosts
+            frontPageConfig["featured-posts"] ?? []
 
         // Generate the candidate posts to fill in any missing slots
         const slugs = featuredPosts.map((d) => d.slug)

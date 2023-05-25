@@ -78,11 +78,7 @@ export const ProminentLink = (props: {
         >
             {thumbnail ? (
                 <div className="prominent-link__image span-sm-cols-3 span-md-cols-2">
-                    {linkType === "gdoc" ? (
-                        <Image filename={thumbnail} containerType="thumbnail" />
-                    ) : (
-                        <img loading="lazy" src={thumbnail} />
-                    )}
+                    <Image filename={thumbnail} containerType="thumbnail" />
                 </div>
             ) : null}
             <div className={textContainerClassName}>
