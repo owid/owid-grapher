@@ -83,34 +83,31 @@ export class HorizontalAxisGridLines extends React.Component<{
 
         return (
             <g className={classNames("AxisGridLines", "verticalLines")}>
-                {axis
-                    .getTickValues()
-                    .filter((t) => t.value !== 0)
-                    .map((t, i) => {
-                        const color = t.faint
-                            ? FAINT_TICK_COLOR
-                            : t.solid
-                            ? SOLID_TICK_COLOR
-                            : TICK_COLOR
+                {axis.getTickValues().map((t, i) => {
+                    const color = t.faint
+                        ? FAINT_TICK_COLOR
+                        : t.solid
+                        ? SOLID_TICK_COLOR
+                        : TICK_COLOR
 
-                        return (
-                            <line
-                                key={i}
-                                x1={axis.place(t.value)}
-                                y1={bounds.bottom.toFixed(2)}
-                                x2={axis.place(t.value)}
-                                y2={bounds.top.toFixed(2)}
-                                stroke={color}
-                                strokeDasharray={
-                                    t.solid
-                                        ? undefined
-                                        : dasharrayFromFontSize(
-                                              horizontalAxis.tickFontSize
-                                          )
-                                }
-                            />
-                        )
-                    })}
+                    return (
+                        <line
+                            key={i}
+                            x1={axis.place(t.value)}
+                            y1={bounds.bottom.toFixed(2)}
+                            x2={axis.place(t.value)}
+                            y2={bounds.top.toFixed(2)}
+                            stroke={color}
+                            strokeDasharray={
+                                t.solid
+                                    ? undefined
+                                    : dasharrayFromFontSize(
+                                          horizontalAxis.tickFontSize
+                                      )
+                            }
+                        />
+                    )
+                })}
             </g>
         )
     }
