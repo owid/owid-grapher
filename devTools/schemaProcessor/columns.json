@@ -639,7 +639,6 @@
         "enumOptions": [
             "LineChart",
             "ScatterPlot",
-            "TimeScatter",
             "StackedArea",
             "DiscreteBar",
             "StackedDiscreteBar",
