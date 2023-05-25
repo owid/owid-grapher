@@ -335,8 +335,8 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
                 return Link.create({
                     linkType: getLinkType(url),
                     source: this,
-                    target: url,
-                    componentType: getUrlTarget(formatUrls(url)),
+                    target: getUrlTarget(formatUrls(url)),
+                    componentType: span.spanType,
                     text: spansToSimpleString(span.children),
                 })
             }
