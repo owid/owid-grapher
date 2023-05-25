@@ -150,7 +150,7 @@ export const renderDataPageOrGrapherPage = async (
     ) {
         logErrorAndMaybeSendToBugsnag(
             new JsonError(
-                `${dataPageNotPublishedError} Please check that ${ADMIN_BASE_URL}/admin/gdocs/${datapageGdoc.id}/edit has been published as a fragment.`
+                `${dataPageNotPublishedError} Please check that ${ADMIN_BASE_URL}/admin/gdocs/${datapageGdoc.id}/preview has been published as a fragment.`
             )
         )
         return renderGrapherPage(grapher)
