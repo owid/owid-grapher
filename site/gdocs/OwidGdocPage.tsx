@@ -1,14 +1,18 @@
 import React from "react"
-
+import path from "path"
 import { Head } from "../Head.js"
 import { SiteHeader } from "../SiteHeader.js"
 import { SiteFooter } from "../SiteFooter.js"
 import { CitationMeta } from "../CitationMeta.js"
 import { OwidGdoc } from "./OwidGdoc.js"
-import { get } from "lodash"
 
-import { OwidGdocInterface, SiteFooterContext } from "@ourworldindata/utils"
+import {
+    OwidGdocInterface,
+    SiteFooterContext,
+    getFilenameAsPng,
+} from "@ourworldindata/utils"
 import { DebugProvider } from "./DebugContext.js"
+import { IMAGES_DIRECTORY } from "./Image.js"
 
 declare global {
     interface Window {
@@ -29,6 +33,15 @@ export default function OwidGdocPage({
 }) {
     const { content, slug, createdAt, updatedAt } = gdoc
 
+    // Social media platforms don't support SVG's for og:image
+    // So no matter what, we use the png fallback that the baker generates
+    const featuredImageUrl =
+        content["featured-image"] &&
+        path.join(
+            baseUrl,
+            IMAGES_DIRECTORY,
+            getFilenameAsPng(content["featured-image"])
+        )
     const canonicalUrl = `${baseUrl}/${slug}`
 
     return (
@@ -37,11 +50,7 @@ export default function OwidGdocPage({
                 pageTitle={content.title}
                 pageDesc={content.subtitle}
                 canonicalUrl={canonicalUrl}
-                imageUrl={get(
-                    content,
-                    ["featured-image", 0, "value", "src"],
-                    ""
-                )}
+                imageUrl={featuredImageUrl}
                 baseUrl={baseUrl}
             >
                 <CitationMeta

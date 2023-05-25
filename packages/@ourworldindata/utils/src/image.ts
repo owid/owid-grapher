@@ -58,3 +58,7 @@ export function getFilenameWithoutExtension(
 ): string {
     return filename.slice(0, filename.indexOf("."))
 }
+
+export function getFilenameAsPng(filename: ImageMetadata["filename"]): string {
+    return `${getFilenameWithoutExtension(filename)}.png`
+}
