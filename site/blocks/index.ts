@@ -12,10 +12,10 @@ export const runBlocks = (context?: SiteFooterContext) => {
     runSearchCountry()
     hydrateAdditionalInformation()
     if (context !== SiteFooterContext.gdocsDocument) {
-        // The block already gets hydrated by hydrateOwidGdoc, hydrating it twice breaks things
+        // These blocks already get hydrated by hydrateOwidGdoc, hydrating twice breaks things
         hydrateKeyInsights()
+        hydrateExpandableParagraphs()
     }
-    hydrateExpandableParagraphs()
     hydrateStickyNav()
     hydrateCodeSnippets()
 }
