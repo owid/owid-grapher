@@ -1534,11 +1534,9 @@ export function traverseEnrichedBlocks(
         })
         .with({ type: "expandable-paragraph" }, (expandableParagraph) => {
             callback(expandableParagraph)
-            if (spanCallback) {
-                expandableParagraph.items.forEach((textBlock) => {
-                    traverseEnrichedBlocks(textBlock, callback, spanCallback)
-                })
-            }
+            expandableParagraph.items.forEach((textBlock) => {
+                traverseEnrichedBlocks(textBlock, callback, spanCallback)
+            })
         })
         .with(
             {
