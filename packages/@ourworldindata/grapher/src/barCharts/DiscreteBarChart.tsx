@@ -401,7 +401,7 @@ export class DiscreteBarChart
             barSpacing,
         } = this
 
-        let yOffset = innerBounds.top + barHeight / 2
+        let yOffset = innerBounds.top + barHeight / 2 + barSpacing / 2
 
         return (
             <g ref={this.base} className="DiscreteBarChart">
@@ -417,93 +417,87 @@ export class DiscreteBarChart
                     <HorizontalNumericColorLegend manager={this} />
                 )}
                 {this.showHorizontalAxis && (
-                    <React.Fragment>
-                        <HorizontalAxisComponent
-                            bounds={boundsWithoutColorLegend}
-                            axis={yAxis}
-                            preferredAxisPosition={innerBounds.bottom}
-                        />
-                        <HorizontalAxisGridLines
-                            horizontalAxis={yAxis}
-                            bounds={innerBounds}
-                        />
-                    </React.Fragment>
+                    <HorizontalAxisComponent
+                        bounds={boundsWithoutColorLegend}
+                        axis={yAxis}
+                        preferredAxisPosition={innerBounds.bottom}
+                    />
                 )}
-                <g transform={`translate(0, ${barSpacing / 2})`}>
-                    {series.map((series) => {
-                        // Todo: add a "placedSeries" getter to get the transformed series, then just loop over the placedSeries and render a bar for each
-                        const isNegative = series.value < 0
-                        const barX = isNegative
-                            ? yAxis.place(series.value)
-                            : yAxis.place(this.x0)
-                        const barWidth = isNegative
-                            ? yAxis.place(this.x0) - barX
-                            : yAxis.place(series.value) - barX
-                        const barColor = series.color
-                        const label = this.formatValue(series)
-                        const labelX = isNegative
-                            ? barX - label.width - labelToTextPadding
-                            : barX - labelToBarPadding
+                <HorizontalAxisGridLines
+                    horizontalAxis={yAxis}
+                    bounds={innerBounds}
+                />
+                {series.map((series) => {
+                    // Todo: add a "placedSeries" getter to get the transformed series, then just loop over the placedSeries and render a bar for each
+                    const isNegative = series.value < 0
+                    const barX = isNegative
+                        ? yAxis.place(series.value)
+                        : yAxis.place(this.x0)
+                    const barWidth = isNegative
+                        ? yAxis.place(this.x0) - barX
+                        : yAxis.place(series.value) - barX
+                    const barColor = series.color
+                    const label = this.formatValue(series)
+                    const labelX = isNegative
+                        ? barX - label.width - labelToTextPadding
+                        : barX - labelToBarPadding
 
-                        // Using transforms for positioning to enable better (subpixel) transitions
-                        // Width transitions don't work well on iOS Safari – they get interrupted and
-                        // it appears very slow. Also be careful with negative bar charts.
-                        const result = (
-                            <g
-                                key={series.seriesName}
-                                className="bar"
-                                transform={`translate(0, ${yOffset})`}
+                    // Using transforms for positioning to enable better (subpixel) transitions
+                    // Width transitions don't work well on iOS Safari – they get interrupted and
+                    // it appears very slow. Also be careful with negative bar charts.
+                    const result = (
+                        <g
+                            key={series.seriesName}
+                            className="bar"
+                            transform={`translate(0, ${yOffset})`}
+                        >
+                            <text
+                                x={0}
+                                y={0}
+                                transform={`translate(${labelX}, 0)`}
+                                fill="#555"
+                                dominantBaseline="central"
+                                textAnchor="end"
+                                {...this.legendLabelStyle}
                             >
-                                <text
-                                    x={0}
-                                    y={0}
-                                    transform={`translate(${labelX}, 0)`}
-                                    fill="#555"
-                                    dominantBaseline="middle"
-                                    textAnchor="end"
-                                    {...this.legendLabelStyle}
-                                >
-                                    {series.seriesName}
-                                </text>
-                                <rect
-                                    x={0}
-                                    y={0}
-                                    transform={`translate(${barX}, ${
-                                        -barHeight / 2
-                                    })`}
-                                    width={barWidth}
-                                    height={barHeight}
-                                    fill={barColor}
-                                    opacity={0.85}
-                                    style={{ transition: "height 200ms ease" }}
-                                />
-                                <text
-                                    x={0}
-                                    y={0}
-                                    transform={`translate(${
-                                        yAxis.place(series.value) +
-                                        (isNegative
-                                            ? -labelToBarPadding
-                                            : labelToBarPadding)
-                                    }, 0)`}
-                                    fill="#666"
-                                    dominantBaseline="middle"
-                                    textAnchor={isNegative ? "end" : "start"}
-                                    {...this.valueLabelStyle}
-                                >
-                                    {label.valueString}
-                                    <tspan fill="#999">
-                                        {label.timeString}
-                                    </tspan>
-                                </text>
-                            </g>
-                        )
+                                {series.seriesName}
+                            </text>
+                            <rect
+                                x={0}
+                                y={0}
+                                transform={`translate(${barX}, ${
+                                    -barHeight / 2
+                                })`}
+                                width={barWidth}
+                                height={barHeight}
+                                fill={barColor}
+                                opacity={0.85}
+                                style={{ transition: "height 200ms ease" }}
+                            />
+                            <text
+                                x={0}
+                                y={0}
+                                transform={`translate(${
+                                    yAxis.place(series.value) +
+                                    (isNegative
+                                        ? -labelToBarPadding
+                                        : labelToBarPadding)
+                                }, 0)`}
+                                fill="#666"
+                                dominantBaseline="central"
+                                textAnchor={isNegative ? "end" : "start"}
+                                {...this.valueLabelStyle}
+                            >
+                                {label.valueString}
+                                <tspan fill="#999">{label.timeString}</tspan>
+                            </text>
+                        </g>
+                    )
 
-                        yOffset += barHeight + barSpacing
+                    yOffset += barHeight + barSpacing
 
-                        return result
-                    })}
-                </g>
+                    return result
+                })}
                 <HorizontalAxisZeroLine
                     horizontalAxis={yAxis}
                     bounds={innerBounds}

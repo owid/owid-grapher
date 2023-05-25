@@ -119,15 +119,10 @@ export class HorizontalAxisGridLines extends React.Component<{
 @observer
 export class HorizontalAxisZeroLine extends React.Component<{
     horizontalAxis: HorizontalAxis
-    bounds?: Bounds
+    bounds: Bounds
 }> {
-    @computed get bounds(): Bounds {
-        return this.props.bounds ?? DEFAULT_BOUNDS
-    }
-
     render(): JSX.Element {
-        const { horizontalAxis } = this.props
-        const { bounds } = this
+        const { bounds, horizontalAxis } = this.props
         const axis = horizontalAxis.clone()
         axis.range = bounds.xRange()
 
