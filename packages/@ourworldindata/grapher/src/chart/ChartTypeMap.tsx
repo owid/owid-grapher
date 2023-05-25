@@ -1,5 +1,4 @@
 import { ScatterPlotChart } from "../scatterCharts/ScatterPlotChart"
-import { TimeScatterChart } from "../scatterCharts/TimeScatterChart"
 import { SlopeChart } from "../slopeCharts/SlopeChart"
 import { LineChart } from "../lineCharts/LineChart"
 import { StackedAreaChart } from "../stackedCharts/StackedAreaChart"
@@ -36,7 +35,6 @@ export const ChartComponentClassMap = new Map<
     [ChartTypeName.StackedDiscreteBar, StackedDiscreteBarChart],
     [ChartTypeName.ScatterPlot, ScatterPlotChart],
     [ChartTypeName.Marimekko, MarimekkoChart],
-    [ChartTypeName.TimeScatter, TimeScatterChart],
     [ChartTypeName.WorldMap, MapChart],
 ])
 

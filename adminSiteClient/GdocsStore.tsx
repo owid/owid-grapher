@@ -1,5 +1,5 @@
 import React, { useContext, createContext, useState } from "react"
-import { observable } from "mobx"
+import { action, observable } from "mobx"
 import {
     getOwidGdocFromJSON,
     OwidGdocInterface,
@@ -25,21 +25,25 @@ export class GdocsStore {
         this.admin = admin
     }
 
+    @action
     async create(id: string) {
         await this.admin.requestJSON(`/api/gdocs/${id}`, {}, "PUT")
     }
 
+    @action
     async update(gdoc: OwidGdocInterface): Promise<OwidGdocInterface> {
         return this.admin
             .requestJSON<OwidGdocJSON>(`/api/gdocs/${gdoc.id}`, gdoc, "PUT")
             .then(getOwidGdocFromJSON)
     }
 
+    @action
     async publish(gdoc: OwidGdocInterface): Promise<OwidGdocInterface> {
         const publishedGdoc = await this.update({ ...gdoc, published: true })
         return publishedGdoc
     }
 
+    @action
     async unpublish(gdoc: OwidGdocInterface): Promise<OwidGdocInterface> {
         const unpublishedGdoc = await this.update({
             ...gdoc,
@@ -50,12 +54,42 @@ export class GdocsStore {
         return unpublishedGdoc
     }
 
+    @action
     async delete(gdoc: OwidGdocInterface) {
         await this.admin.requestJSON(`/api/gdocs/${gdoc.id}`, {}, "DELETE")
     }
+
+    @action
+    async fetchGdocs() {
+        const gdocs = (await this.admin.getJSON(
+            "/api/gdocs"
+        )) as OwidGdocInterface[]
+        this.gdocs = gdocs
+    }
+
+    @action
+    async fetchTags() {
+        const json = (await this.admin.getJSON("/api/tags.json")) as any
+        this.availableTags = json.tags
+    }
+
+    @action
+    async updateTags(gdoc: OwidGdocInterface, tags: OwidGdocTag[]) {
+        const json = await this.admin.requestJSON(
+            `/api/gdocs/${gdoc.id}/setTags`,
+            { tagIds: tags.map((t) => t.id) },
+            "POST"
+        )
+        if (json.success) {
+            const gdocToUpdate = this.gdocs.find((g) => g.id === gdoc.id)
+            if (gdocToUpdate) gdocToUpdate.tags = tags
+        }
+    }
 }
 
-const GdocsStoreContext = createContext<GdocsStore | undefined>(undefined)
+export const GdocsStoreContext = createContext<GdocsStore | undefined>(
+    undefined
+)
 
 export const GdocsStoreProvider = ({
     children,

@@ -31,6 +31,7 @@ import {
     ColumnSlug,
     TickFormattingOptions,
     Tippy,
+    isCountryName,
 } from "@ourworldindata/utils"
 import { SortIcon } from "../controls/SortIcon"
 import { makeSelectionArray } from "../chart/ChartUtils"
@@ -128,13 +129,17 @@ export class DataTable extends React.Component<{
         return (
             this.props.manager ?? {
                 table: BlankOwidTable(),
-                entityType: "country",
+                entityType: "country or region",
             }
         )
     }
 
     @computed private get entityType(): string {
         return this.manager.entityType
+    }
+
+    @computed private get entitiesAreCountryLike(): boolean {
+        return !!this.manager.entityType.match(/\bcountry\b/i)
     }
 
     @computed private get sortValueMapper(): (
@@ -168,6 +173,13 @@ export class DataTable extends React.Component<{
 
             return value
         }
+    }
+
+    @computed private get sortCountryOrAggregateMapper(): (
+        row: DataTableRow
+    ) => number {
+        return (row: DataTableRow): number =>
+            isCountryName(row.entityName) ? 0 : 1
     }
 
     @computed private get hasSubheaders(): boolean {
@@ -352,7 +364,14 @@ export class DataTable extends React.Component<{
     ): JSX.Element {
         const { sort } = this.tableState
         return (
-            <tr key={row.entityName}>
+            <tr
+                key={row.entityName}
+                className={classnames({
+                    aggregate:
+                        this.entitiesAreCountryLike &&
+                        !isCountryName(row.entityName),
+                })}
+            >
                 <td
                     key="entity"
                     className={classnames({
@@ -504,6 +523,7 @@ export class DataTable extends React.Component<{
             : column.formatValueShort(value, {
                   numberAbbreviation: false,
                   trailingZeroes: true,
+                  useNoBreakSpace: true,
                   ...formattingOverrides,
               })
     }
@@ -711,7 +731,11 @@ export class DataTable extends React.Component<{
 
     @computed private get sortedRows(): DataTableRow[] {
         const { order } = this.tableState.sort
-        return orderBy(this.displayRows, this.sortValueMapper, [order])
+        return orderBy(
+            this.displayRows,
+            [this.sortCountryOrAggregateMapper, this.sortValueMapper],
+            ["asc", order]
+        )
     }
 
     @computed private get displayRows(): DataTableRow[] {

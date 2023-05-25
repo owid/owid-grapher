@@ -203,7 +203,7 @@
     position: sticky;
     top: 0;
     background-color: #ebeef2;
-    z-index: 10;
+    z-index: $zindex-global-entity-select;
     > ul {
         display: flex;
         flex-direction: row;

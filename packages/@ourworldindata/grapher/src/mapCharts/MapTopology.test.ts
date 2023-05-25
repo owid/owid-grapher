@@ -4,7 +4,7 @@ import { MapTopology } from "./MapTopology"
 import { regions, Country } from "@ourworldindata/utils"
 
 it("contains the same list of mappable countries as regions.json", () => {
-    let inTopology = MapTopology.objects.world.geometries.map(
+    const inTopology = MapTopology.objects.world.geometries.map(
             (region: any) => region.id
         ),
         inRegions = regions

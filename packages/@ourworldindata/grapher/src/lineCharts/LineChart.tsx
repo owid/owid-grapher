@@ -43,6 +43,7 @@ import {
     ScaleType,
     SeriesStrategy,
     FacetStrategy,
+    MissingDataStrategy,
 } from "../core/GrapherConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { AxisConfig, FontSizeManager } from "../axis/AxisConfig"
@@ -286,7 +287,20 @@ export class LineChart
                 .interpolateColumnWithTolerance(this.colorColumnSlug)
         }
 
+        // drop all data when the author chose to hide entities with missing data and
+        // at least one of the variables has no data for the current entity
+        if (
+            this.missingDataStrategy === MissingDataStrategy.hide &&
+            table.hasAnyColumnNoValidValue(this.yColumnSlugs)
+        ) {
+            table = table.dropAllRows()
+        }
+
         return table
+    }
+
+    @computed private get missingDataStrategy(): MissingDataStrategy {
+        return this.manager.missingDataStrategy || MissingDataStrategy.auto
     }
 
     @computed get inputTable(): OwidTable {
