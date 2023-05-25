@@ -1089,12 +1089,12 @@ export interface OwidGdocContent {
     authors: string[]
     dateline?: string
     excerpt?: string
-    cover?: string
     refs?: EnrichedBlockText[]
     summary?: EnrichedBlockText[]
     citation?: EnrichedBlockSimpleText[]
     toc?: TocHeadingWithTitleSupertitle[]
-    "cover-image"?: any
+    "cover-image"?: string
+    "featured-image"?: string
     "cover-color"?:
         | "sdg-color-1"
         | "sdg-color-2"
@@ -1113,7 +1113,6 @@ export interface OwidGdocContent {
         | "sdg-color-15"
         | "sdg-color-16"
         | "sdg-color-17"
-    "featured-image"?: any
     "sticky-nav"?: []
     details?: DetailDictionary
 }

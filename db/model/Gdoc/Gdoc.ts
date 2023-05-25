@@ -178,8 +178,11 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
     get filenames(): string[] {
         const filenames: Set<string> = new Set()
 
-        if (this.content.cover) {
-            filenames.add(this.content.cover)
+        if (this.content["cover-image"]) {
+            filenames.add(this.content["cover-image"])
+        }
+        if (this.content["featured-image"]) {
+            filenames.add(this.content["featured-image"])
         }
 
         this.content.body?.forEach((node) =>
@@ -217,11 +220,12 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
     }
 
     async loadImageMetadata(): Promise<void> {
-        const covers: string[] = Object.values(this.linkedDocuments)
-            .map((gdoc: Gdoc) => gdoc?.content["featured-image"])
+        // Used for prominent links
+        const featuredImages = Object.values(this.linkedDocuments)
+            .map((gdoc: Gdoc) => gdoc.content["featured-image"])
             .filter((filename?: string): filename is string => !!filename)
 
-        const filenamesToLoad: string[] = [...this.filenames, ...covers]
+        const filenamesToLoad = [...this.filenames, ...featuredImages]
 
         if (filenamesToLoad.length) {
             await imageStore.fetchImageMetadata(filenamesToLoad)
@@ -331,8 +335,8 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
                 return Link.create({
                     linkType: getLinkType(url),
                     source: this,
-                    target: url,
-                    componentType: getUrlTarget(formatUrls(url)),
+                    target: getUrlTarget(formatUrls(url)),
+                    componentType: span.spanType,
                     text: spansToSimpleString(span.children),
                 })
             }

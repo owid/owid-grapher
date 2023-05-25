@@ -52,7 +52,12 @@ export const GdocsSettingsForm = ({
                 errors={errors}
             />
             <GdocsSettingsContentField
-                property="cover"
+                property="cover-image"
+                gdoc={gdoc}
+                errors={errors}
+            />
+            <GdocsSettingsContentField
+                property="featured-image"
                 gdoc={gdoc}
                 errors={errors}
             />

@@ -542,6 +542,7 @@ export {
     getSizes,
     generateSrcSet,
     getFilenameWithoutExtension,
+    getFilenameAsPng,
     type GDriveImageMetadata,
     type ImageMetadata,
 } from "./image.js"

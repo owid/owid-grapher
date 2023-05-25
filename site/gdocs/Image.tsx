@@ -15,6 +15,8 @@ import { Container } from "./ArticleBlock.js"
 import { useImage } from "./utils.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
 
+export const IMAGES_DIRECTORY = "/images/published/"
+
 // generates rules that tell the browser:
 // below the medium breakpoint, the image will be 95vw wide
 // above that breakpoint, the image will be (at maximum) some fraction of 1280px
@@ -27,7 +29,7 @@ const gridSpan5 = generateResponsiveSizes(5)
 const gridSpan6 = generateResponsiveSizes(6)
 const gridSpan7 = generateResponsiveSizes(7)
 
-type ImageParentContainer = Container | "thumbnail"
+type ImageParentContainer = Container | "thumbnail" | "full-width"
 
 const containerSizes: Record<ImageParentContainer, string> = {
     ["default"]: gridSpan6,
@@ -39,6 +41,7 @@ const containerSizes: Record<ImageParentContainer, string> = {
     ["summary"]: gridSpan6,
     ["thumbnail"]: "350px",
     ["datapage"]: gridSpan6,
+    ["full-width"]: "100vw",
     ["key-insight"]: gridSpan5,
 }
 
@@ -47,8 +50,14 @@ export default function Image(props: {
     alt?: string
     className?: string
     containerType?: ImageParentContainer
+    shouldLightbox?: boolean
 }) {
-    const { filename, className = "", containerType = "default" } = props
+    const {
+        filename,
+        className = "",
+        containerType = "default",
+        shouldLightbox = true,
+    } = props
     const { isPreviewing } = useContext(DocumentContext)
     const image = useImage(filename)
     if (!image) {
@@ -68,7 +77,9 @@ export default function Image(props: {
 
     const alt = props.alt ?? image.defaultAlt
     const maybeLightboxClassName =
-        containerType === "thumbnail" ? "" : LIGHTBOX_IMAGE_CLASS
+        containerType === "thumbnail" || !shouldLightbox
+            ? ""
+            : LIGHTBOX_IMAGE_CLASS
 
     if (isPreviewing) {
         return (
@@ -85,14 +96,14 @@ export default function Image(props: {
         return (
             <div className={className}>
                 <img
-                    src={`/images/published/${filename}`}
+                    src={`${IMAGES_DIRECTORY}${filename}`}
                     alt={alt}
                     className={maybeLightboxClassName}
                 />
                 {containerType !== "thumbnail" ? (
                     <a
                         className="download-png-link"
-                        href={`/images/published/${pngFilename}`}
+                        href={`${IMAGES_DIRECTORY}${pngFilename}`}
                         download
                     >
                         Download image
@@ -113,7 +124,7 @@ export default function Image(props: {
                 sizes={containerSizes[containerType] ?? containerSizes.default}
             />
             <img
-                src={`/images/published/${filename}`}
+                src={`${IMAGES_DIRECTORY}${filename}`}
                 alt={alt}
                 className={maybeLightboxClassName}
                 loading="lazy"
