@@ -170,7 +170,7 @@ $cell-border: 1px solid rgba(0, 0, 0, 0.08);
         font-weight: 700;
     }
 
-    tr:not(.aggregate) + tr.aggregate {
+    tr:not(.aggregate) + tr.aggregate > td {
         border-top: 6px solid #aaa;
     }
 
