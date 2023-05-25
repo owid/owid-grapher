@@ -46,7 +46,7 @@ import {
     OwidGdocPublished,
     ImageMetadata,
     clone,
-    getFilenameWithoutExtension,
+    getFilenameAsPng,
     extractDetailsFromSyntax,
 } from "@ourworldindata/utils"
 import { execWrapper } from "../db/execWrapper.js"
@@ -583,9 +583,7 @@ export class SiteBaker {
                             )
                         } else {
                             // A PNG alternative to the SVG for the "Download image" link
-                            const pngFilename = `${getFilenameWithoutExtension(
-                                image.filename
-                            )}.png`
+                            const pngFilename = getFilenameAsPng(image.filename)
                             await sharp(buffer)
                                 .resize(2000)
                                 .png()

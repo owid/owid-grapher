@@ -9,9 +9,10 @@ import { OwidGdoc } from "./OwidGdoc.js"
 import {
     OwidGdocInterface,
     SiteFooterContext,
-    getFilenameWithoutExtension,
+    getFilenameAsPng,
 } from "@ourworldindata/utils"
 import { DebugProvider } from "./DebugContext.js"
+import { IMAGES_DIRECTORY } from "./Image.js"
 
 declare global {
     interface Window {
@@ -32,13 +33,14 @@ export default function OwidGdocPage({
 }) {
     const { content, slug, createdAt, updatedAt } = gdoc
 
+    // Social media platforms don't support SVG's for og:image
+    // So no matter what, we use the png fallback that the baker generates
     const featuredImageUrl =
         content["featured-image"] &&
         path.join(
             baseUrl,
-            "images",
-            "published",
-            `${getFilenameWithoutExtension(content["featured-image"])}.png`
+            IMAGES_DIRECTORY,
+            getFilenameAsPng(content["featured-image"])
         )
     const canonicalUrl = `${baseUrl}/${slug}`
 

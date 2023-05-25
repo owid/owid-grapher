@@ -15,6 +15,8 @@ import { Container } from "./ArticleBlock.js"
 import { useImage } from "./utils.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
 
+export const IMAGES_DIRECTORY = "/images/published/"
+
 // generates rules that tell the browser:
 // below the medium breakpoint, the image will be 95vw wide
 // above that breakpoint, the image will be (at maximum) some fraction of 1280px
@@ -94,14 +96,14 @@ export default function Image(props: {
         return (
             <div className={className}>
                 <img
-                    src={`/images/published/${filename}`}
+                    src={`${IMAGES_DIRECTORY}${filename}`}
                     alt={alt}
                     className={maybeLightboxClassName}
                 />
                 {containerType !== "thumbnail" ? (
                     <a
                         className="download-png-link"
-                        href={`/images/published/${pngFilename}`}
+                        href={`${IMAGES_DIRECTORY}${pngFilename}`}
                         download
                     >
                         Download image
@@ -122,7 +124,7 @@ export default function Image(props: {
                 sizes={containerSizes[containerType] ?? containerSizes.default}
             />
             <img
-                src={`/images/published/${filename}`}
+                src={`${IMAGES_DIRECTORY}${filename}`}
                 alt={alt}
                 className={maybeLightboxClassName}
                 loading="lazy"

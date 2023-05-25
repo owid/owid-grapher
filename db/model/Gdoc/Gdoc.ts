@@ -220,6 +220,7 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
     }
 
     async loadImageMetadata(): Promise<void> {
+        // Used for prominent links
         const featuredImages = Object.values(this.linkedDocuments)
             .map((gdoc: Gdoc) => gdoc.content["featured-image"])
             .filter((filename?: string): filename is string => !!filename)
