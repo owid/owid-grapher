@@ -120,6 +120,14 @@ export const renderDataPageOrGrapherPage = async (
             />
         )
 
+    // Enrich the datapage JSON with all the published charts this variable is
+    // being used in (aka "related charts") if none have been defined manually.
+    // We also want to exclude from the list the chart that is displayed at the
+    // top of the page to avoid the unnecessary redundancy.
+    datapageJson.relatedCharts =
+        datapageJson.relatedCharts ??
+        (await getRelatedChartsForVariable(id, [grapher.id]))
+
     // Compliment the text-only content from the JSON with rich text from the
     // companion gdoc, if any
     const datapageGdoc = await getDatapageGdoc(
