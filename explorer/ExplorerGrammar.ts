@@ -149,7 +149,7 @@ export const ExplorerGrammar: Grammar = {
         keyword: "entityType",
         valuePlaceholder: "region",
         description:
-            "Default is 'country', but you can specify a different one such as 'state' or 'region'.",
+            "Default is 'country or region', but you can specify a different one such as 'state' or 'region'.",
     },
     pickerColumnSlugs: {
         ...SlugsDeclarationCellDef,

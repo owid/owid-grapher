@@ -17,7 +17,6 @@ $zindex-ControlsFooter: 2;
 
 // the fake dropdown menu
 .FacetStrategyDropdown {
-    width: 160px;
     font-family: "Lato";
     font-size: 12px;
     font-weight: bold;
@@ -31,6 +30,7 @@ $zindex-ControlsFooter: 2;
 // the chevron
 .FacetStrategyDropdown div {
     float: right;
+    margin-left: 8px;
 }
 
 // the pop-up list of options
@@ -44,7 +44,6 @@ $zindex-ControlsFooter: 2;
 
     position: static;
     width: 96px;
-    height: 68px;
     left: 4px;
     top: 4px;
 
@@ -63,9 +62,9 @@ $zindex-ControlsFooter: 2;
     font-style: normal;
     font-weight: bold;
     font-size: 12px;
-    line-height: 20px;
+    line-height: 1.2;
 
-    margin: 2px 0px;
+    margin-top: 4px;
 }
 
 .selected .FacetStrategyLabel {

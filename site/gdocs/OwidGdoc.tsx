@@ -13,6 +13,7 @@ import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
 import { formatAuthors } from "../clientFormatting.js"
 import { DebugProvider } from "./DebugContext.js"
 import { OwidGdocHeader } from "./OwidGdocHeader.js"
+import StickyNav from "../blocks/StickyNav.js"
 
 export const AttachmentsContext = createContext<{
     linkedCharts: Record<string, LinkedChart>
@@ -37,20 +38,15 @@ export function OwidGdoc({
     imageMetadata = {},
     isPreviewing = false,
 }: OwidGdocProps) {
-    // Until authors comes as structured data, we need to parse them from the byline string
-    const authors = content?.byline?.replace(/\s*,\s*/g, ",").split(",") || [
-        "Our World in Data",
-    ]
-
     const citationText = `${formatAuthors({
-        authors,
+        authors: content.authors,
     })} (${publishedAt?.getFullYear()}) - "${
         content.title
     }". Published online at OurWorldInData.org. Retrieved from: '${`${BAKED_BASE_URL}/${slug}`}' [Online Resource]`
 
     const bibtex = `@article{owid${slug.replace(/-/g, "")},
     author = {${formatAuthors({
-        authors,
+        authors: content.authors,
         forBibtex: true,
     })}},
     title = {${content.title}},
@@ -58,6 +54,7 @@ export function OwidGdoc({
     year = {${publishedAt?.getFullYear()}},
     note = {${BAKED_BASE_URL}/${slug}}
 }`
+    const stickyNavLinks = content["sticky-nav"]
 
     return (
         <AttachmentsContext.Provider
@@ -67,9 +64,18 @@ export function OwidGdoc({
                 <article className="centered-article-container grid grid-cols-12-full-width">
                     <OwidGdocHeader
                         content={content}
-                        authors={authors}
+                        authors={content.authors}
                         publishedAt={publishedAt}
                     />
+                    {content.type === "topic-page" && stickyNavLinks ? (
+                        <nav className="sticky-nav span-cols-14 grid grid-cols-12-full-width">
+                            <StickyNav
+                                links={stickyNavLinks}
+                                className="span-cols-12 col-start-2"
+                            />
+                        </nav>
+                    ) : null}
+
                     {content.summary ? (
                         <details
                             className="article-summary col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12"

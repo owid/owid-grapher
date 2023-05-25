@@ -8,12 +8,14 @@ import {
     OwidRawGdocBlock,
     omitUndefinedValues,
     RawBlockText,
+    EnrichedBlockRecirc,
+    EnrichedBlockTopicPageIntro,
 } from "@ourworldindata/utils"
 import { spansToHtmlString } from "./model/Gdoc/gdocUtils.js"
 import { archieToEnriched } from "./model/Gdoc/archieToEnriched.js"
 import { OwidRawGdocBlockToArchieMLString } from "./model/Gdoc/rawToArchie.js"
 import { enrichedBlockExamples } from "./model/Gdoc/exampleEnrichedBlocks.js"
-import { enrichedBlockToRawBlock } from "./model/Gdoc/enrichtedToRaw.js"
+import { enrichedBlockToRawBlock } from "./model/Gdoc/enrichedToRaw.js"
 import { load } from "archieml"
 import {
     parseRawBlocksToEnrichedBlocks,
@@ -148,6 +150,124 @@ level: 2
         expect(serializedRawBlock).toEqual(archieMLString)
     })
 
+    it("surfaces missing support for external urls in recirc block", () => {
+        const archieMLString = `
+            {.recirc}
+                title: More Articles on Mammals
+
+                [.links]
+                    url:https://docs.google.com/document/d/1__qnfvbuEsT5EkU-3-TF65jShUuOefyxvy5CUmZRAvI/edit
+                    url:https://ourworldindata.org/large-mammals-extinction
+                []
+            {}
+        `
+        const doc = getArchieMLDocWithContent(archieMLString)
+        const article = archieToEnriched(doc)
+        const expectedEnrichedBlock: EnrichedBlockRecirc = {
+            type: "recirc",
+            links: [
+                {
+                    url: "https://docs.google.com/document/d/1__qnfvbuEsT5EkU-3-TF65jShUuOefyxvy5CUmZRAvI/edit",
+                    type: "recirc-link",
+                },
+                {
+                    url: "https://ourworldindata.org/large-mammals-extinction",
+                    type: "recirc-link",
+                },
+            ],
+            title: {
+                text: "More Articles on Mammals",
+                spanType: "span-simple-text",
+            },
+            parseErrors: [
+                {
+                    message: "External urls are not supported in recirc blocks",
+                    isWarning: true,
+                },
+            ],
+        }
+
+        expect(article?.body?.[0]).toEqual(expectedEnrichedBlock)
+    })
+
+    it("surfaces block type restriction in topic-page-intro content", () => {
+        const archieMLString = `
+        {.topic-page-intro}
+            {.download-button}
+                text: Download all data on blah
+                url: https://github.com
+            {}
+        
+            [.related-topics]
+                text: Poverty
+                url: https://docs.google.com/d/1234
+        
+                text: GDP Growth
+                url: https://docs.google.com/d/abcd
+            []
+        
+            [+.content]
+                <b>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</b> Suspendisse dictum consectetur turpis sit amet vestibulum.
+                {.prominent-link}
+                    url: https://docs.google.com/d/1234
+                {}
+            []
+        {}
+        `
+        const doc = getArchieMLDocWithContent(archieMLString)
+        const article = archieToEnriched(doc)
+        const expectedEnrichedBlock: EnrichedBlockTopicPageIntro = {
+            type: "topic-page-intro",
+            content: [
+                {
+                    value: [
+                        {
+                            children: [
+                                {
+                                    spanType: "span-simple-text",
+                                    text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+                                },
+                            ],
+                            spanType: "span-bold",
+                        },
+                        {
+                            text: " Suspendisse dictum consectetur turpis sit amet vestibulum.",
+                            spanType: "span-simple-text",
+                        },
+                    ],
+                    parseErrors: [],
+                    type: "text",
+                },
+            ],
+            parseErrors: [
+                {
+                    message:
+                        "Only paragraphs are supported in topic-page-intro blocks.",
+                    isWarning: true,
+                },
+            ],
+            relatedTopics: [
+                {
+                    url: "https://docs.google.com/d/1234",
+                    text: "Poverty",
+                    type: "topic-page-intro-related-topic",
+                },
+                {
+                    url: "https://docs.google.com/d/abcd",
+                    text: "GDP Growth",
+                    type: "topic-page-intro-related-topic",
+                },
+            ],
+            downloadButton: {
+                url: "https://github.com",
+                text: "Download all data on blah",
+                type: "topic-page-intro-download-button",
+            },
+        }
+
+        expect(article?.body?.[0]).toEqual(expectedEnrichedBlock)
+    })
+
     it.each(Object.values(enrichedBlockExamples))(
         "Parse <-> Serialize roundtrip should be equal - example type $type",
         (example) => {
@@ -163,12 +283,13 @@ level: 2
             let deserializedEnrichedBlocks = bodyNodes.map(
                 parseRawBlocksToEnrichedBlocks
             )
-            if (example.type === "simple-text")
+            if (example.type === "simple-text") {
                 // RawBlockText blocks are always parsed to EnrichedBlockText, never automatically
                 // to EnrichedBlockSimpleText. So we need to manually parse them here.
                 deserializedEnrichedBlocks = [
                     parseSimpleText(bodyNodes[0] as RawBlockText),
                 ]
+            }
             expect(deserializedEnrichedBlocks).toHaveLength(1)
             expect(omitUndefinedValues(bodyNodes[0])).toEqual(
                 omitUndefinedValues(rawBlock)

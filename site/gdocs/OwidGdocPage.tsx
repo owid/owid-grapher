@@ -46,13 +46,7 @@ export default function OwidGdocPage({
             >
                 <CitationMeta
                     title={content.title || ""}
-                    authors={
-                        Array.isArray(content.byline)
-                            ? content.byline
-                            : content.byline
-                            ? [content.byline]
-                            : []
-                    }
+                    authors={content.authors}
                     date={updatedAt || createdAt}
                     canonicalUrl={canonicalUrl}
                 />

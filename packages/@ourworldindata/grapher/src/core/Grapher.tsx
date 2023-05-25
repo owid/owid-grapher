@@ -79,6 +79,7 @@ import {
     SeriesColorMap,
     FacetAxisDomain,
     AnnotationFieldsInTitle,
+    MissingDataStrategy,
     DEFAULT_GRAPHER_WIDTH,
     DEFAULT_GRAPHER_HEIGHT,
     SeriesStrategy,
@@ -311,8 +312,8 @@ export class Grapher
     @observable.ref logo?: LogoOption = undefined
     @observable.ref hideLogo?: boolean = undefined
     @observable.ref hideRelativeToggle? = true
-    @observable.ref entityType = "country"
-    @observable.ref entityTypePlural = "countries"
+    @observable.ref entityType = "country or region"
+    @observable.ref entityTypePlural = "countries or regions"
     @observable.ref hideTimeline?: boolean = undefined
     @observable.ref hideScatterLabels?: boolean = undefined
     @observable.ref zoomToSelection?: boolean = undefined
@@ -336,6 +337,7 @@ export class Grapher
     @observable.ref matchingEntitiesOnly?: boolean = undefined
     /** Hides the total value label that is normally displayed for stacked bar charts */
     @observable.ref hideTotalValueLabel?: boolean = undefined
+    @observable.ref missingDataStrategy?: MissingDataStrategy = undefined
 
     @observable.ref xAxis = new AxisConfig(undefined, this)
     @observable.ref yAxis = new AxisConfig(undefined, this)
@@ -1086,7 +1088,6 @@ export class Grapher
         if (this.isLineChart || this.isDiscreteBar) return [yAxis, color]
         else if (this.isScatter) return [yAxis, xAxis, size, color]
         else if (this.isMarimekko) return [yAxis, xAxis, color]
-        else if (this.isTimeScatter) return [yAxis, xAxis]
         else if (this.isSlopeChart) return [yAxis, size, color]
         return [yAxis]
     }
@@ -1194,7 +1195,9 @@ export class Grapher
             this.tab === GrapherTabOption.chart &&
             (seriesStrategy !== SeriesStrategy.entity || this.hideLegend) &&
             selectedEntityNames.length === 1 &&
-            (showEntityAnnotation || this.canChangeEntity)
+            (showEntityAnnotation ||
+                this.canChangeEntity ||
+                this.canSelectMultipleEntities)
         ) {
             const entityStr = selectedEntityNames[0]
             if (entityStr?.length) text = `${text}, ${entityStr}`
@@ -1457,9 +1460,6 @@ export class Grapher
     @computed get isScatter(): boolean {
         return this.type === ChartTypeName.ScatterPlot
     }
-    @computed get isTimeScatter(): boolean {
-        return this.type === ChartTypeName.TimeScatter
-    }
     @computed get isStackedArea(): boolean {
         return this.type === ChartTypeName.StackedArea
     }
@@ -1484,7 +1484,7 @@ export class Grapher
     }
 
     @computed get supportsMultipleYColumns(): boolean {
-        return !(this.isScatter || this.isTimeScatter || this.isSlopeChart)
+        return !(this.isScatter || this.isSlopeChart)
     }
 
     @computed private get xDimension(): ChartDimension | undefined {
@@ -1547,7 +1547,7 @@ export class Grapher
     }
 
     @computed get relativeToggleLabel(): string {
-        if (this.isScatter || this.isTimeScatter) return "Average annual change"
+        if (this.isScatter) return "Average annual change"
         else if (this.isLineChart) return "Relative change"
         return "Relative"
     }
@@ -2009,7 +2009,7 @@ export class Grapher
         return sortConfig
     }
 
-    @computed private get hasMultipleYColumns(): boolean {
+    @computed get hasMultipleYColumns(): boolean {
         return this.yColumnSlugs.length > 1
     }
 

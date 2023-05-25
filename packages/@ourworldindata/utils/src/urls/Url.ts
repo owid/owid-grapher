@@ -1,5 +1,5 @@
 import urlParseLib from "url-parse"
-import { gdocUrlRegex } from "../GdocsUtils.js"
+import { gdocUrlRegex } from "../index.js"
 
 import { excludeUndefined, omitUndefinedValues } from "../Util.js"
 

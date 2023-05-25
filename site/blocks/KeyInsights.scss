@@ -70,6 +70,8 @@ $slide-content-height: $grapher-height;
 
     .thumbs {
         padding-bottom: 24px;
+        // Make sure this stays below the sticky nav
+        z-index: 0;
     }
 
     .thumb {

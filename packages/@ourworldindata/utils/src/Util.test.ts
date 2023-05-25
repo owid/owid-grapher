@@ -27,8 +27,10 @@ import {
     slugifySameCase,
     greatestCommonDivisor,
     findGreatestCommonDivisorOfArray,
+    traverseEnrichedBlocks,
 } from "./Util.js"
-import { SortOrder } from "./owidTypes.js"
+import { OwidEnrichedGdocBlock, SortOrder } from "./owidTypes.js"
+import { BlockImageSize } from "./index.js"
 
 describe(findClosestTime, () => {
     describe("without tolerance", () => {
@@ -547,5 +549,185 @@ describe(findGreatestCommonDivisorOfArray, () => {
         expect(findGreatestCommonDivisorOfArray([6, 8, 12])).toEqual(2)
         expect(findGreatestCommonDivisorOfArray([6, 6, 6])).toEqual(6)
         expect(findGreatestCommonDivisorOfArray([15])).toEqual(15)
+    })
+})
+
+describe(traverseEnrichedBlocks, () => {
+    const enrichedBlocks: OwidEnrichedGdocBlock[] = [
+        {
+            type: "prominent-link",
+            url: "https://ourworldindata.org",
+            parseErrors: [],
+        },
+        {
+            type: "gray-section",
+            parseErrors: [],
+            items: [
+                {
+                    type: "text",
+                    value: [
+                        {
+                            spanType: "span-bold",
+                            children: [
+                                {
+                                    spanType: "span-simple-text",
+                                    text: "Hello",
+                                },
+                            ],
+                        },
+                    ],
+                    parseErrors: [],
+                },
+                {
+                    type: "aside",
+                    caption: [
+                        {
+                            spanType: "span-link",
+                            url: "https://ourworldindata.org",
+                            children: [
+                                {
+                                    spanType: "span-simple-text",
+                                    text: "I am an aside",
+                                },
+                            ],
+                        },
+                    ],
+                    parseErrors: [],
+                },
+            ],
+        },
+        {
+            type: "chart",
+            url: "https://ourworldindata.org/grapher/population",
+            parseErrors: [],
+        },
+        {
+            type: "sticky-left",
+            left: [
+                {
+                    type: "text",
+                    value: [
+                        {
+                            spanType: "span-italic",
+                            children: [
+                                {
+                                    spanType: "span-simple-text",
+                                    text: "I am some italic text",
+                                },
+                            ],
+                        },
+                    ],
+                    parseErrors: [],
+                },
+                {
+                    type: "image",
+                    filename: "logo.png",
+                    size: BlockImageSize.Narrow,
+                    parseErrors: [],
+                },
+            ],
+            right: [
+                {
+                    type: "heading",
+                    level: 1,
+                    text: [
+                        {
+                            spanType: "span-simple-text",
+                            text: "I am a heading",
+                        },
+                    ],
+                    parseErrors: [],
+                },
+                {
+                    type: "list",
+                    items: [
+                        {
+                            type: "text",
+                            value: [
+                                {
+                                    spanType: "span-simple-text",
+                                    text: "I am a list item",
+                                },
+                                {
+                                    spanType: "span-underline",
+                                    children: [
+                                        {
+                                            spanType: "span-simple-text",
+                                            text: "I am some underlined text in a list",
+                                        },
+                                    ],
+                                },
+                            ],
+                            parseErrors: [],
+                        },
+                    ],
+                    parseErrors: [],
+                },
+            ],
+            parseErrors: [],
+        },
+    ]
+
+    it("Traverses enriched blocks and runs a callback on them all", () => {
+        const seen: string[] = []
+
+        enrichedBlocks.forEach((block) => {
+            traverseEnrichedBlocks(block, (block) => {
+                seen.push(block.type)
+            })
+        })
+
+        expect(seen).toEqual([
+            "prominent-link",
+            "gray-section",
+            "text",
+            "aside",
+            "chart",
+            "sticky-left",
+            "text",
+            "image",
+            "heading",
+            "list",
+        ])
+    })
+
+    it("Traverses enriched blocks and spans and runs a callback on them both if a span callback is given", () => {
+        const seen: string[] = []
+
+        enrichedBlocks.forEach((block) => {
+            traverseEnrichedBlocks(
+                block,
+                (block) => {
+                    seen.push(block.type)
+                },
+                (span) => {
+                    seen.push(span.spanType)
+                }
+            )
+        })
+
+        expect(seen).toEqual([
+            "prominent-link",
+            "gray-section",
+            "text",
+            "span-bold",
+            "span-simple-text",
+            "aside",
+            "span-link",
+            "span-simple-text",
+            "chart",
+            "sticky-left",
+            "text",
+            "span-italic",
+            "span-simple-text",
+            "image",
+            "heading",
+            "span-simple-text",
+            "list",
+            "text",
+            "span-simple-text",
+            "span-underline",
+            "span-simple-text",
+        ])
     })
 })

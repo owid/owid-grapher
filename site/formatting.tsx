@@ -19,8 +19,6 @@ import {
 } from "./blocks/KeyInsights.js"
 import { PROMINENT_LINK_CLASSNAME } from "./blocks/ProminentLink.js"
 import { Byline } from "./Byline.js"
-import { formatGlossaryTerms } from "./formatGlossary.js"
-import { getMutableGlossary, glossary } from "./glossary.js"
 import { SectionHeading } from "./SectionHeading.js"
 
 export const GRAPHER_PREVIEW_CLASS = "grapherPreview"
@@ -345,18 +343,6 @@ export const getBodyHtml = (cheerioEl: CheerioStatic): string => {
     return cheerioEl("body").html() || ""
 }
 
-const addGlossaryToSections = (cheerioEl: CheerioStatic) => {
-    // highlight glossary terms once per top-level section (ignore sub-sections
-    // created by KeyInsightsHandler)
-    const $sections = cheerioEl("body > section")
-    $sections.each((i, el) => {
-        const $el = cheerioEl(el)
-        const $contents = $el.contents()
-
-        formatGlossaryTerms(cheerioEl, $contents, getMutableGlossary(glossary))
-    })
-}
-
 const addTocToSections = (
     cheerioEl: CheerioStatic,
     tocHeadings: TocHeading[]
@@ -432,7 +418,6 @@ export const addContentFeatures = ({
     splitContentIntoSectionsAndColumns(cheerioEl)
     bakeGlobalEntitySelector(cheerioEl)
     addTocToSections(cheerioEl, post.tocHeadings)
-    if (post.glossary) addGlossaryToSections(cheerioEl)
 
     return getBodyHtml(cheerioEl)
 }

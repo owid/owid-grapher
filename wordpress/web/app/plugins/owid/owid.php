@@ -35,7 +35,6 @@ include 'src/FrontMatter/front-matter.php';
 include 'src/ResearchAndWriting/research-and-writing.php';
 
 const KEY_PERFORMANCE_INDICATORS_META_FIELD = "owid_key_performance_indicators_meta_field";
-const GLOSSARY_META_FIELD = "owid_glossary_meta_field";
 const PUBLICATION_CONTEXT_META_FIELD = "owid_publication_context_meta_field";
 
 function setup()
@@ -89,18 +88,6 @@ function register()
                 ],
             ],
         ],
-    ]);
-
-    // Add (temporary) support for toggling glossary terms highlighting on the
-    // current post. This is used by the editor (see also the GraphQL
-    // registration of that field below)
-    //
-    // TODO: delete this field's data from the DB when not used anymore
-    // (delete_post_meta_by_key( $post_meta_key )).
-    register_post_meta('', GLOSSARY_META_FIELD, [
-        'single' => true,
-        'type' => 'boolean',
-        'show_in_rest' => true,
     ]);
 
     // Add support for publication context.
@@ -233,22 +220,6 @@ function graphql_register_types()
                 : '';
         },
     ]);
-
-    // If needed, make sure to register on both "Page" and "Post" types (only
-    // set to "Page" below in the first argument of the register_graphql_field
-    // function)
-    // register_graphql_field('Page', 'glossary', [
-    //     'type' => 'Boolean',
-    //     'description' => 'Glossary',
-    //     'resolve' => function ($post) {
-    //         $glossary_post_meta = get_post_meta(
-    //             $post->ID,
-    //             GLOSSARY_META_FIELD,
-    //             true
-    //         );
-    //         return !!$glossary_post_meta;
-    //     },
-    // ]);
 }
 
 // Show reusable blocks in GraphQL

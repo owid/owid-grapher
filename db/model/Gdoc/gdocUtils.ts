@@ -108,6 +108,7 @@ export function extractPlaintextUrl(html: string = ""): string {
 
 // When we want the href, not the plaintext
 export function extractUrl(html: string = ""): string {
+    if (!html) return ""
     if (html.trim().startsWith("http")) return html.trim()
     const $ = cheerio.load(html)
     return $("a").attr("href")

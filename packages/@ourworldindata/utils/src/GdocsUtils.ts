@@ -1,5 +1,7 @@
-import { OwidGdocLinkJSON } from "./owidTypes.js"
+import { spansToUnformattedPlainText } from "./Util.js"
+import { OwidGdocLinkJSON, Span } from "./owidTypes.js"
 import { Url } from "./urls/Url.js"
+import urlSlug from "url-slug"
 
 // Works for:
 // https://docs.google.com/document/d/abcd1234
@@ -9,7 +11,7 @@ import { Url } from "./urls/Url.js"
 // https://docs.google.com/document/u/0/d/abcd-1234/edit
 // https://docs.google.com/document/u/0/d/abcd-1234/edit?usp=sharing
 export const gdocUrlRegex =
-    /https:\/\/docs\.google\.com\/.+?\/d\/([-\w]+)\/?(edit)?/
+    /https:\/\/docs\.google\.com\/.+?\/d\/([-\w]+)\/?(edit)?#?/
 
 // Works for:
 // #dod:text
@@ -50,4 +52,8 @@ export function getUrlTarget(urlString: string): string {
         return url.slug
     }
     return urlString
+}
+
+export function convertHeadingTextToId(headingText: Span[]): string {
+    return urlSlug(spansToUnformattedPlainText(headingText))
 }

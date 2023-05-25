@@ -6,6 +6,7 @@ export interface TickFormattingOptions {
     unit?: string
     trailingZeroes?: boolean
     spaceBeforeUnit?: boolean
+    useNoBreakSpace?: boolean
     showPlus?: boolean
     numberAbbreviation?: "short" | "long" | false
 }
@@ -126,6 +127,7 @@ function postprocessString({
     string,
     numberAbbreviation,
     spaceBeforeUnit,
+    useNoBreakSpace,
     unit,
     value,
     numDecimalPlaces,
@@ -133,6 +135,7 @@ function postprocessString({
     string: string
     numberAbbreviation: "long" | "short" | false
     spaceBeforeUnit: boolean
+    useNoBreakSpace: boolean
     unit: string
     value: number
     numDecimalPlaces: number
@@ -153,7 +156,8 @@ function postprocessString({
     }
 
     if (unit && !checkIsUnitCurrency(unit)) {
-        const appendage = spaceBeforeUnit ? ` ${unit}` : unit
+        const spaceCharacter = useNoBreakSpace ? "\u00a0" : " "
+        const appendage = spaceBeforeUnit ? spaceCharacter + unit : unit
         output += appendage
     }
 
@@ -166,6 +170,7 @@ export function formatValue(
         trailingZeroes = false,
         unit = "",
         spaceBeforeUnit = !checkIsUnitPercent(unit),
+        useNoBreakSpace = false,
         showPlus = false,
         numDecimalPlaces = 2,
         numberAbbreviation = "long",
@@ -195,6 +200,7 @@ export function formatValue(
         string: formattedString,
         numberAbbreviation,
         spaceBeforeUnit,
+        useNoBreakSpace,
         unit,
         value,
         numDecimalPlaces,

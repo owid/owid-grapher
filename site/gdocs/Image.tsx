@@ -39,6 +39,7 @@ const containerSizes: Record<ImageParentContainer, string> = {
     ["summary"]: gridSpan6,
     ["thumbnail"]: "350px",
     ["datapage"]: gridSpan6,
+    ["key-insight"]: gridSpan5,
 }
 
 export default function Image(props: {
