@@ -47,6 +47,15 @@ $banner-height: 200px;
     }
 }
 
+.article-block__sticky-left,
+.article-block__sticky-right {
+    @include md-up {
+        .article-block__image:first-child {
+            margin-top: 0;
+        }
+    }
+}
+
 .article-block__image-caption {
     @include body-3-medium-italic;
     text-align: center;
@@ -282,6 +291,16 @@ h3.article-block__heading.has-supertitle {
     text-align: center;
 }
 
+.article-block__horizontal-rule {
+    border-top: 1px solid $blue-10;
+    padding: 0;
+    margin: 48px 0;
+
+    + .article-block__heading {
+        margin-top: 0;
+    }
+}
+
 .article-block__recirc {
     margin-bottom: 24px;
 
@@ -402,6 +421,10 @@ h3.article-block__heading.has-supertitle {
     margin-bottom: 32px;
     position: relative;
 
+    .scroller__chart {
+        margin: 0;
+    }
+
     @include sm-up {
         .scroller__paragraph {
             height: 50vh;
@@ -514,5 +537,12 @@ h3.article-block__heading.has-supertitle {
     + .article-block__prominent-link {
         padding-top: 24px;
         border-top: 1px solid $blue-10;
+    }
+}
+
+.article-block__key-insights {
+    .slide[data-active="true"] {
+        // Have to override the WP styles, which we can undo once they're removed
+        display: grid !important;
     }
 }

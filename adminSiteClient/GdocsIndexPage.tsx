@@ -126,9 +126,9 @@ export class GdocsIndexPage extends React.Component<GdocsMatchProps> {
             searchIndex.push({
                 gdoc,
                 term: fuzzysort.prepare(
-                    `${gdoc.content.title} ${gdoc.content.byline} ${gdoc.tags
-                        ?.map(({ name }) => name)
-                        .join(" ")}`
+                    `${gdoc.content.title} ${gdoc.content.authors?.join(
+                        " "
+                    )} ${gdoc.tags?.map(({ name }) => name).join(" ")}`
                 ),
             })
         }
@@ -232,7 +232,7 @@ export class GdocsIndexPage extends React.Component<GdocsMatchProps> {
                                 </Link>
                                 <GdocsEditLink gdocId={gdoc.id} />
                                 <p className="gdoc-index-item__byline">
-                                    {gdoc.content.byline}
+                                    {gdoc.content.authors?.join(", ")}
                                 </p>
                                 <span className="gdoc-index-item__tags">
                                     {gdoc.content.type !==

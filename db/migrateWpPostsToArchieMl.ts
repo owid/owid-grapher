@@ -87,9 +87,9 @@ const migrate = async (): Promise<void> => {
                     title: post.title,
                     subtitle: post.excerpt,
                     excerpt: post.excerpt,
-                    byline: sortBy(authors, ["order"])
-                        .map((author) => author.author)
-                        .join(", "),
+                    authors: sortBy(authors, ["order"]).map(
+                        (author) => author.author
+                    ),
                     dateline: dateline,
                     // TODO: this discards block level elements - those might be needed?
                     refs: undefined,
