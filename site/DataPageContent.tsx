@@ -237,6 +237,16 @@ export const DataPageContent = ({
                                     <div className="related-data-item__type">
                                         {datapageJson.relatedData[0].type}
                                     </div>
+                                    {datapageJson.relatedData[0].imageUrl && (
+                                        <img
+                                            src={
+                                                datapageJson.relatedData[0]
+                                                    .imageUrl
+                                            }
+                                            className="related-data-item__image"
+                                            alt=""
+                                        />
+                                    )}
                                     <h3 className="related-data-item__title">
                                         {datapageJson.relatedData[0].title}
                                     </h3>
