@@ -1088,7 +1088,6 @@ export class Grapher
         if (this.isLineChart || this.isDiscreteBar) return [yAxis, color]
         else if (this.isScatter) return [yAxis, xAxis, size, color]
         else if (this.isMarimekko) return [yAxis, xAxis, color]
-        else if (this.isTimeScatter) return [yAxis, xAxis]
         else if (this.isSlopeChart) return [yAxis, size, color]
         return [yAxis]
     }
@@ -1461,9 +1460,6 @@ export class Grapher
     @computed get isScatter(): boolean {
         return this.type === ChartTypeName.ScatterPlot
     }
-    @computed get isTimeScatter(): boolean {
-        return this.type === ChartTypeName.TimeScatter
-    }
     @computed get isStackedArea(): boolean {
         return this.type === ChartTypeName.StackedArea
     }
@@ -1488,7 +1484,7 @@ export class Grapher
     }
 
     @computed get supportsMultipleYColumns(): boolean {
-        return !(this.isScatter || this.isTimeScatter || this.isSlopeChart)
+        return !(this.isScatter || this.isSlopeChart)
     }
 
     @computed private get xDimension(): ChartDimension | undefined {
@@ -1551,7 +1547,7 @@ export class Grapher
     }
 
     @computed get relativeToggleLabel(): string {
-        if (this.isScatter || this.isTimeScatter) return "Average annual change"
+        if (this.isScatter) return "Average annual change"
         else if (this.isLineChart) return "Relative change"
         return "Relative"
     }
