@@ -30,6 +30,7 @@ import {
 import {
     HorizontalAxisComponent,
     HorizontalAxisGridLines,
+    HorizontalAxisZeroLine,
 } from "../axis/AxisViews"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { AxisConfig } from "../axis/AxisConfig"
@@ -181,12 +182,27 @@ export class StackedDiscreteBarChart
         return !this.manager.hideLegend
     }
 
+    @computed private get boundsWithoutLegend(): Bounds {
+        return this.bounds.padTop(
+            this.showLegend && this.legend.height > 0
+                ? this.legend.height + this.legendPaddingTop
+                : 0
+        )
+    }
+
+    @computed private get labelFontSize(): number {
+        // can't use the computed property `barHeight` here as that would create a circular dependency
+        const barHeight =
+            (0.8 * this.boundsWithoutLegend.height) / this.items.length
+        return Math.min(0.75 * this.fontSize, 1.1 * barHeight)
+    }
+
     @computed private get labelStyle(): {
         fontSize: number
         fontWeight: number
     } {
         return {
-            fontSize: 0.75 * this.baseFontSize,
+            fontSize: this.labelFontSize,
             fontWeight: 700,
         }
     }
@@ -197,7 +213,7 @@ export class StackedDiscreteBarChart
     } {
         return {
             fill: "#555",
-            fontSize: 0.75 * this.baseFontSize,
+            fontSize: this.labelFontSize,
         }
     }
 
@@ -210,6 +226,10 @@ export class StackedDiscreteBarChart
 
     @computed get showTotalValueLabel(): boolean {
         return !this.manager.isRelativeMode && !this.manager.hideTotalValueLabel
+    }
+
+    @computed get showHorizontalAxis(): boolean {
+        return !this.showTotalValueLabel
     }
 
     // The amount of space we need to allocate for total value labels on the right
@@ -267,7 +287,7 @@ export class StackedDiscreteBarChart
     @computed private get innerBounds(): Bounds {
         return this.bounds
             .padLeft(this.labelWidth)
-            .padBottom(this.yAxis.height)
+            .padBottom(this.showHorizontalAxis ? this.yAxis.height : 0)
             .padTop(
                 this.showLegend && this.legend.height > 0
                     ? this.legend.height + this.legendPaddingTop
@@ -322,10 +342,12 @@ export class StackedDiscreteBarChart
                 sortByFunc = (item: Item): string => item.label
                 break
             case SortBy.column:
-                const sortColumnSlug = this.sortConfig.sortColumnSlug
-                sortByFunc = (item: Item): number =>
-                    item.bars.find((b) => b.columnSlug === sortColumnSlug)
-                        ?.point.value ?? 0
+                const owidRowsByEntityName =
+                    this.sortColumn?.owidRowsByEntityName
+                sortByFunc = (item: Item): number => {
+                    const rows = owidRowsByEntityName?.get(item.label)
+                    return rows?.[0]?.value ?? 0
+                }
                 break
             default:
             case SortBy.total:
@@ -345,7 +367,7 @@ export class StackedDiscreteBarChart
     @computed private get placedItems(): PlacedItem[] {
         const { innerBounds, barHeight, barSpacing } = this
 
-        const topYOffset = innerBounds.top + barHeight / 2
+        const topYOffset = innerBounds.top + barHeight / 2 + barSpacing / 2
 
         return this.sortedItems.map((d, i) => ({
             yPosition: topYOffset + (barHeight + barSpacing) * i,
@@ -489,11 +511,13 @@ export class StackedDiscreteBarChart
                     opacity={0}
                     fill="rgba(255,255,255,0)"
                 />
-                <HorizontalAxisComponent
-                    bounds={bounds}
-                    axis={yAxis}
-                    preferredAxisPosition={innerBounds.bottom}
-                />
+                {this.showHorizontalAxis && (
+                    <HorizontalAxisComponent
+                        bounds={bounds}
+                        axis={yAxis}
+                        preferredAxisPosition={innerBounds.bottom}
+                    />
+                )}
                 <HorizontalAxisGridLines
                     horizontalAxis={yAxis}
                     bounds={innerBounds}
@@ -525,6 +549,7 @@ export class StackedDiscreteBarChart
 
                                     const totalLabel =
                                         this.formatValueForLabel(totalValue)
+                                    const showLabelInsideBar = bars.length > 1
 
                                     return (
                                         <g
@@ -554,7 +579,7 @@ export class StackedDiscreteBarChart
                                                         labelToBarPadding
                                                     }, 0)`}
                                                     fill="#555"
-                                                    dominantBaseline="middle"
+                                                    dominantBaseline="central"
                                                     textAnchor="end"
                                                     {...this.labelStyle}
                                                 >
@@ -571,6 +596,9 @@ export class StackedDiscreteBarChart
                                                         highlightedSeriesName:
                                                             bar.seriesName,
                                                     }}
+                                                    showLabelInsideBar={
+                                                        showLabelInsideBar
+                                                    }
                                                 />
                                             ))}
                                             {this.showTotalValueLabel && (
@@ -580,7 +608,7 @@ export class StackedDiscreteBarChart
                                                             totalValue
                                                         ) + labelToBarPadding
                                                     }, 0)`}
-                                                    dominantBaseline="middle"
+                                                    dominantBaseline="central"
                                                     {...this
                                                         .totalValueLabelStyle}
                                                 >
@@ -594,6 +622,10 @@ export class StackedDiscreteBarChart
                         </g>
                     )}
                 </NodeGroup>
+                <HorizontalAxisZeroLine
+                    horizontalAxis={yAxis}
+                    bounds={innerBounds}
+                />
             </g>
         )
     }
@@ -602,6 +634,7 @@ export class StackedDiscreteBarChart
         bar: Bar
         chartContext: StackedBarChartContext
         tooltipProps: TooltipProps
+        showLabelInsideBar: boolean
     }): JSX.Element {
         const { bar, chartContext, tooltipProps } = props
         const { yAxis, formatValueForLabel, focusSeriesName, barHeight } =
@@ -620,6 +653,7 @@ export class StackedDiscreteBarChart
         })
         // Check that we have enough space to show the bar label
         const showLabelInsideBar =
+            props.showLabelInsideBar &&
             labelBounds.width < 0.85 * barWidth &&
             labelBounds.height < 0.85 * barHeight
         const labelColor = isDarkColor(bar.color) ? "#fff" : "#000"
@@ -655,7 +689,7 @@ export class StackedDiscreteBarChart
                             opacity={isFaint ? 0 : 1}
                             fontSize={labelFontSize}
                             textAnchor="middle"
-                            dominantBaseline="middle"
+                            dominantBaseline="central"
                         >
                             {barLabel}
                         </text>
@@ -864,6 +898,16 @@ export class StackedDiscreteBarChart
 
     @computed protected get yColumns(): CoreColumn[] {
         return this.transformedTable.getColumns(this.yColumnSlugs)
+    }
+
+    @computed private get sortColumnSlug(): string | undefined {
+        return this.sortConfig.sortColumnSlug
+    }
+
+    @computed private get sortColumn(): CoreColumn | undefined {
+        return this.sortColumnSlug
+            ? this.transformedTable.getColumns([this.sortColumnSlug])[0]
+            : undefined
     }
 
     @computed private get colorScheme(): ColorScheme {

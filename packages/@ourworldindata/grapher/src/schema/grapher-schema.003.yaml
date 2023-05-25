@@ -379,8 +379,8 @@ properties:
             - gv+owid
     entityType:
         type: string
-        default: country
-        description: Display string for naming the primary entities of the data. Default is 'country', but you can specify a different one such as 'state' or 'region'
+        default: country or region
+        description: Display string for naming the primary entities of the data. Default is 'country or region', but you can specify a different one such as 'state' or 'region'
     note:
         type: string
         description: Note displayed in the footer of the chart. To be used for clarifications etc about the data.
@@ -517,7 +517,6 @@ properties:
         enum:
             - LineChart
             - ScatterPlot
-            - TimeScatter
             - StackedArea
             - DiscreteBar
             - StackedDiscreteBar
@@ -541,13 +540,14 @@ properties:
             - stacked
             - null
     minTime:
+        description: Start point of the initially selected time span.
+        default: earliest
         oneOf:
             - type: number
             - type: string
               enum:
                   - latest
                   - earliest
-        description: Start point of the initially selected time span.
     hideAnnotationFieldsInTitle:
         type: object
         description: Whether to hide any automatically added title annotations like the selected year

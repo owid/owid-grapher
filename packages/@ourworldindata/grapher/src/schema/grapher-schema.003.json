@@ -419,8 +419,8 @@
         },
         "entityType": {
             "type": "string",
-            "default": "country",
-            "description": "Display string for naming the primary entities of the data. Default is 'country', but you can specify a different one such as 'state' or 'region'"
+            "default": "country or region",
+            "description": "Display string for naming the primary entities of the data. Default is 'country or region', but you can specify a different one such as 'state' or 'region'"
         },
         "note": {
             "type": "string",
@@ -578,7 +578,6 @@
             "enum": [
                 "LineChart",
                 "ScatterPlot",
-                "TimeScatter",
                 "StackedArea",
                 "DiscreteBar",
                 "StackedDiscreteBar",
@@ -599,6 +598,8 @@
             "enum": ["absolute", "relative", "grouped", "stacked", null]
         },
         "minTime": {
+            "description": "Start point of the initially selected time span.",
+            "default": "earliest",
             "oneOf": [
                 {
                     "type": "number"
@@ -607,8 +608,7 @@
                     "type": "string",
                     "enum": ["latest", "earliest"]
                 }
-            ],
-            "description": "Start point of the initially selected time span."
+            ]
         },
         "hideAnnotationFieldsInTitle": {
             "type": "object",

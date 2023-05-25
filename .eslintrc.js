@@ -38,7 +38,7 @@ module.exports = {
         "@typescript-eslint/no-non-null-assertion": "off", // TODO: enable this rule
         "@typescript-eslint/no-this-alias": "warn",
         "@typescript-eslint/no-unused-vars": [
-            "error",
+            "warn",
             { varsIgnorePattern: "^_", argsIgnorePattern: "^_" },
         ],
         "@typescript-eslint/no-use-before-define": "off", // This was useful in the past with var and variable hoisting changing depending on scope but AFAIK typescript deals with this in a sane way and we can leave this off

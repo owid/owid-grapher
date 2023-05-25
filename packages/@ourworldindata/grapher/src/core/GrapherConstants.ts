@@ -4,7 +4,6 @@ import { Color } from "@ourworldindata/core-table"
 export enum ChartTypeName {
     LineChart = "LineChart",
     ScatterPlot = "ScatterPlot",
-    TimeScatter = "TimeScatter",
     StackedArea = "StackedArea",
     DiscreteBar = "DiscreteBar",
     StackedDiscreteBar = "StackedDiscreteBar",

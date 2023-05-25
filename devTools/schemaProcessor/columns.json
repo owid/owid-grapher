@@ -493,7 +493,7 @@
     {
         "type": "string",
         "pointer": "/entityType",
-        "default": "country",
+        "default": "country or region",
         "editor": "textfield"
     },
     {
@@ -639,7 +639,6 @@
         "enumOptions": [
             "LineChart",
             "ScatterPlot",
-            "TimeScatter",
             "StackedArea",
             "DiscreteBar",
             "StackedDiscreteBar",
@@ -801,7 +800,7 @@
     {
         "type": "string",
         "pointer": "/entityTypePlural",
-        "default": "countries",
+        "default": "countries or regions",
         "editor": "textfield"
     }
 ]

@@ -30,6 +30,7 @@ import {
 import {
     HorizontalAxisComponent,
     HorizontalAxisGridLines,
+    HorizontalAxisZeroLine,
 } from "../axis/AxisViews"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { AxisConfig, FontSizeManager } from "../axis/AxisConfig"
@@ -299,7 +300,7 @@ export class DiscreteBarChart
     @computed private get innerBounds(): Bounds {
         return this.boundsWithoutColorLegend
             .padLeft(this.seriesLegendWidth + this.leftValueLabelWidth)
-            .padBottom(this.yAxis.height)
+            .padBottom(this.showHorizontalAxis ? this.yAxis.height : 0)
             .padRight(this.rightValueLabelWidth)
     }
 
@@ -337,6 +338,10 @@ export class DiscreteBarChart
 
     @computed private get barWidths(): number[] {
         return this.barPlacements.map((b) => b.width)
+    }
+
+    @computed private get showHorizontalAxis(): boolean | undefined {
+        return this.manager.isRelativeMode
     }
 
     private d3Bars(): Selection<
@@ -410,7 +415,7 @@ export class DiscreteBarChart
             barSpacing,
         } = this
 
-        let yOffset = innerBounds.top + barHeight / 2
+        let yOffset = innerBounds.top + barHeight / 2 + barSpacing / 2
 
         return (
             <g ref={this.base} className="DiscreteBarChart">
@@ -425,11 +430,13 @@ export class DiscreteBarChart
                 {this.hasColorLegend && (
                     <HorizontalNumericColorLegend manager={this} />
                 )}
-                <HorizontalAxisComponent
-                    bounds={boundsWithoutColorLegend}
-                    axis={yAxis}
-                    preferredAxisPosition={innerBounds.bottom}
-                />
+                {this.showHorizontalAxis && (
+                    <HorizontalAxisComponent
+                        bounds={boundsWithoutColorLegend}
+                        axis={yAxis}
+                        preferredAxisPosition={innerBounds.bottom}
+                    />
+                )}
                 <HorizontalAxisGridLines
                     horizontalAxis={yAxis}
                     bounds={innerBounds}
@@ -463,7 +470,7 @@ export class DiscreteBarChart
                                 y={0}
                                 transform={`translate(${labelX}, 0)`}
                                 fill="#555"
-                                dominantBaseline="middle"
+                                dominantBaseline="central"
                                 textAnchor="end"
                                 {...this.legendLabelStyle}
                             >
@@ -491,7 +498,7 @@ export class DiscreteBarChart
                                         : labelToBarPadding)
                                 }, 0)`}
                                 fill="#666"
-                                dominantBaseline="middle"
+                                dominantBaseline="central"
                                 textAnchor={isNegative ? "end" : "start"}
                                 {...this.valueLabelStyle}
                             >
@@ -505,6 +512,10 @@ export class DiscreteBarChart
 
                     return result
                 })}
+                <HorizontalAxisZeroLine
+                    horizontalAxis={yAxis}
+                    bounds={innerBounds}
+                />
             </g>
         )
     }

@@ -1173,6 +1173,7 @@ export interface RawPageview {
     url: string
     views_7d: number
     views_14d: number
+    views_365d: number
 }
 
 export const AllowedDataPageGdocFields = [

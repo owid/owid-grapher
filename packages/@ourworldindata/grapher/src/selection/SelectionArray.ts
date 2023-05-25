@@ -12,7 +12,7 @@ export class SelectionArray {
     constructor(
         selectedEntityNames: EntityName[] = [],
         availableEntities: Entity[] = [],
-        entityType = "country"
+        entityType = "country or region"
     ) {
         this.selectedEntityNames = selectedEntityNames.slice()
         this.availableEntities = availableEntities.slice()
