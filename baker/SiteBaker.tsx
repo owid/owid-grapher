@@ -333,7 +333,7 @@ export class SiteBaker {
             try {
                 await this.bakeGDocPost(publishedGdoc as OwidGdocPublished)
             } catch (e) {
-                logErrorAndMaybeSendToSlack(
+                logErrorAndMaybeSendToBugsnag(
                     `Error baking gdoc post with id "${publishedGdoc.id}" and slug "${publishedGdoc.slug}": ${e}`
                 )
             }
