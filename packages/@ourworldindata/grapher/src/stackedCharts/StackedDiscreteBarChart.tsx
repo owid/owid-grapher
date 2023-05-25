@@ -467,7 +467,7 @@ export class StackedDiscreteBarChart
                 />
             )
 
-        const { bounds, yAxis, innerBounds, barSpacing } = this
+        const { bounds, yAxis, innerBounds } = this
 
         const chartContext: StackedBarChartContext = {
             yAxis,
