@@ -353,7 +353,7 @@ export class StackedDiscreteBarChart
     @computed private get placedItems(): PlacedItem[] {
         const { innerBounds, barHeight, barSpacing } = this
 
-        const topYOffset = innerBounds.top + barHeight / 2
+        const topYOffset = innerBounds.top + barHeight / 2 + barSpacing / 2
 
         return this.sortedItems.map((d, i) => ({
             yPosition: topYOffset + (barHeight + barSpacing) * i,
@@ -487,8 +487,6 @@ export class StackedDiscreteBarChart
             timing: { duration: 350, ease: easeQuadOut },
         })
 
-        const yOffset = barSpacing / 2
-
         return (
             <g ref={this.base} className="StackedDiscreteBarChart">
                 <rect
@@ -520,7 +518,7 @@ export class StackedDiscreteBarChart
                     update={handlePositionUpdate}
                 >
                     {(nodes): JSX.Element => (
-                        <g transform={`translate(0, ${yOffset})`}>
+                        <g>
                             {nodes.map(
                                 ({
                                     data,
