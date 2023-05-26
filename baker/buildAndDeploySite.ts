@@ -27,7 +27,6 @@ yargs(hideBin(process.argv))
                 })
         },
         async ({ target, skipChecks, runChecksRemotely, steps }) => {
-            throw new Error("This deploy should fail fast")
             const bakeSteps = steps ? new Set(steps as BakeStep[]) : undefined
             const deployer = new Deployer({
                 target: target as any,
