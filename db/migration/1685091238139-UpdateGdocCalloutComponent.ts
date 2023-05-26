@@ -5,7 +5,7 @@ import { cloneDeep, forEach, forOwn, isArray, isObject } from "lodash"
 export class UpdateGdocCalloutComponent1685091238139
     implements MigrationInterface
 {
-    public async up(queryRunner: QueryRunner): Promise<void> {
+    public async up(_queryRunner: QueryRunner): Promise<void> {
         // sanity check that the migration works
         recursivelyFixCalloutComponents(testItemBefore)
         if (JSON.stringify(testItemBefore) !== JSON.stringify(expectedAfter)) {
@@ -26,7 +26,9 @@ export class UpdateGdocCalloutComponent1685091238139
         }
     }
 
-    public async down(queryRunner: QueryRunner): Promise<void> {}
+    public async down(_queryRunner: QueryRunner): Promise<void> {
+        console.log("This migration is not currently reversible.")
+    }
 }
 function recursivelyFixCalloutComponents(node: any): void {
     // Below is what it used to look like:
