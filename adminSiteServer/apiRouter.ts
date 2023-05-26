@@ -1962,7 +1962,7 @@ apiRouter.put("/datasets/:datasetId", async (req: Request, res: Response) => {
             commitEmail: res.locals.user.email,
         })
     } catch (err) {
-        logErrorAndMaybeSendToBugsnag(err)
+        logErrorAndMaybeSendToBugsnag(err, req)
         // Continue
     }
 
@@ -2050,7 +2050,7 @@ apiRouter.delete(
                 commitEmail: res.locals.user.email,
             })
         } catch (err: any) {
-            logErrorAndMaybeSendToBugsnag(err)
+            logErrorAndMaybeSendToBugsnag(err, req)
             // Continue
         }
 
