@@ -1,8 +1,7 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 import { Gdoc } from "../model/Gdoc/Gdoc.js"
 import { cloneDeep, forEach, forOwn, isArray, isObject } from "lodash"
-
-export class UpdateGdocCalloutComponent1685091238139
+export class FixCalloutComponentMissingErrors1685107184417
     implements MigrationInterface
 {
     public async up(_queryRunner: QueryRunner): Promise<void> {
@@ -43,9 +42,11 @@ function recursivelyFixCalloutComponents(node: any): void {
             "text" in node &&
             isArray(node.text)
         ) {
-            node.text = node.text.map((text: string[]) => {
-                return { type: "text", value: text }
-            })
+            for (const textNode of node.text) {
+                if (!("parseErrors" in textNode)) {
+                    textNode.parseErrors = []
+                }
+            }
         }
         // If the argument is an object, iterate over its keys.
         forOwn(node, (value) => {
@@ -58,18 +59,21 @@ function recursivelyFixCalloutComponents(node: any): void {
 // Here are two example values of before and after
 const testItemBefore = {
     text: [
-        [
-            {
-                children: [
-                    {
-                        text: "This article was restructured and shortened in March 2023.",
-                        spanType: "span-simple-text",
-                    },
-                ],
-                spanType: "span-italic",
-            },
-        ],
-        [],
+        {
+            type: "text",
+            value: [
+                {
+                    children: [
+                        {
+                            text: "This article was restructured and shortened in March 2023.",
+                            spanType: "span-simple-text",
+                        },
+                    ],
+                    spanType: "span-italic",
+                },
+            ],
+        },
+        { type: "text", value: [] },
     ],
     type: "callout",
     parseErrors: [],
@@ -90,8 +94,9 @@ const expectedAfter = {
                     spanType: "span-italic",
                 },
             ],
+            parseErrors: [],
         },
-        { type: "text", value: [] },
+        { type: "text", value: [], parseErrors: [] },
     ],
     type: "callout",
     parseErrors: [],
