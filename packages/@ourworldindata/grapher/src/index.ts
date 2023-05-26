@@ -11,6 +11,7 @@ export { ChartDimension } from "./chart/ChartDimension"
 export {
     ChartTypeName,
     GRAPHER_EMBEDDED_FIGURE_ATTR,
+    GRAPHER_EMBEDDED_FIGURE_CONFIG_ATTR,
     GRAPHER_PAGE_BODY_CLASS,
     GRAPHER_IS_IN_IFRAME_CLASS,
     DEFAULT_GRAPHER_WIDTH,

@@ -1,6 +1,10 @@
 import React, { useRef } from "react"
 import { useEmbedChart } from "../hooks.js"
-import { EnrichedBlockChart, Url } from "@ourworldindata/utils"
+import {
+    omitUndefinedValues,
+    EnrichedBlockChart,
+    Url,
+} from "@ourworldindata/utils"
 import { renderSpans } from "./utils.js"
 import cx from "classnames"
 
@@ -19,6 +23,11 @@ export default function Chart({
     const hasControls = url.queryParams.hideControls !== "true"
     const height = d.height || (isExplorer && hasControls ? 700 : 575)
 
+    const chartConfig = omitUndefinedValues({
+        title: d.title,
+        subtitle: d.subtitle,
+    })
+
     return (
         <div
             className={cx(d.position, className)}
@@ -30,6 +39,9 @@ export default function Chart({
                 key={d.url}
                 data-grapher-src={isExplorer ? undefined : d.url}
                 data-explorer-src={isExplorer ? d.url : undefined}
+                data-grapher-config={
+                    isExplorer ? undefined : JSON.stringify(chartConfig)
+                }
                 style={{
                     width: "100%",
                     border: "0px none",

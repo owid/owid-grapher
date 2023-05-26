@@ -518,6 +518,8 @@ export type RawBlockChartValue = {
     // TODO: position is used as a classname apparently? Should be renamed or split
     position?: string
     caption?: string
+    title?: string
+    subtitle?: string
 }
 export type RawBlockChart = {
     type: "chart"
@@ -532,6 +534,8 @@ export type EnrichedBlockChart = {
     column?: string
     position?: ChartPositionChoice
     caption?: Span[]
+    title?: string
+    subtitle?: string
 } & EnrichedBlockWithParseErrors
 
 export type RawBlockScroller = {

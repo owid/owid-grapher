@@ -240,7 +240,6 @@ const DEFAULT_MS_PER_TICK = 100
 export interface GrapherProgrammaticInterface extends GrapherInterface {
     owidDataset?: MultipleOwidVariableDataDimensionsMap // This is temporarily used for testing. Will be removed
     manuallyProvideData?: boolean // This will be removed.
-    hideEntityControls?: boolean
     queryStr?: string
     isMediaCard?: boolean
     bounds?: Bounds
@@ -249,6 +248,14 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     adminBaseUrl?: string
     env?: string
     dataApiUrlForAdmin?: string
+
+    hideEntityControls?: boolean
+    hideZoomToggle?: boolean
+    hideNoDataAreaToggle?: boolean
+    hideFacetYDomainToggle?: boolean
+    hideXScaleToggle?: boolean
+    hideYScaleToggle?: boolean
+    forceHideAnnotationFieldsInTitle?: AnnotationFieldsInTitle
 
     getGrapherInstance?: (instance: Grapher) => void
 
@@ -1192,6 +1199,7 @@ export class Grapher
             autoDetectSeriesStrategy(this, true)
 
         if (
+            !this.forceHideAnnotationFieldsInTitle?.entity &&
             this.tab === GrapherTabOption.chart &&
             (seriesStrategy !== SeriesStrategy.entity || this.hideLegend) &&
             selectedEntityNames.length === 1 &&
@@ -1203,10 +1211,16 @@ export class Grapher
             if (entityStr?.length) text = `${text}, ${entityStr}`
         }
 
-        if (this.isLineChart && this.isRelativeMode && showChangeInPrefix)
+        if (
+            !this.forceHideAnnotationFieldsInTitle?.changeInPrefix &&
+            this.isLineChart &&
+            this.isRelativeMode &&
+            showChangeInPrefix
+        )
             text = "Change in " + lowerCaseFirstLetterUnlessAbbreviation(text)
 
         if (
+            !this.forceHideAnnotationFieldsInTitle?.time &&
             this.isReady &&
             (showTimeAnnotation ||
                 (this.hasTimeline &&
@@ -1979,6 +1993,7 @@ export class Grapher
     @computed get showFacetYDomainToggle(): boolean {
         // don't offer to make the y range relative if the range is discrete
         return (
+            !this.hideFacetYDomainToggle &&
             this.facetStrategy !== FacetStrategy.none &&
             !this.isStackedDiscreteBar
         )
@@ -2543,18 +2558,24 @@ export class Grapher
     }
 
     @computed get showYScaleToggle(): boolean | undefined {
+        if (this.hideYScaleToggle) return false
         if (this.isRelativeMode) return false
         if (this.isStackedArea || this.isStackedBar) return false // We currently do not have these charts with log scale
         return this.yAxis.canChangeScaleType
     }
 
     @computed get showXScaleToggle(): boolean | undefined {
+        if (this.hideXScaleToggle) return false
         if (this.isRelativeMode) return false
         return this.xAxis.canChangeScaleType
     }
 
     @computed get showZoomToggle(): boolean {
-        return this.isScatter && this.selection.hasSelection
+        return (
+            !this.hideZoomToggle &&
+            this.isScatter &&
+            this.selection.hasSelection
+        )
     }
 
     @computed get showAbsRelToggle(): boolean {
@@ -2572,7 +2593,11 @@ export class Grapher
     }
 
     @computed get showNoDataAreaToggle(): boolean {
-        return this.isMarimekko && this.xColumnSlug !== undefined
+        return (
+            !this.hideNoDataAreaToggle &&
+            this.isMarimekko &&
+            this.xColumnSlug !== undefined
+        )
     }
 
     @computed get showChangeEntityButton(): boolean {
@@ -2639,6 +2664,40 @@ export class Grapher
     // allows you to still use add country "modes" without showing the buttons in order to prioritize
     // another entity selector over the built in ones.
     @observable hideEntityControls = false
+
+    // exposed programmatically for hiding interactive controls when desired
+    // (e.g. used to hide Grapher chrome when a Grapher chart in a Gdoc article is in "read-only" mode)
+    @observable hideZoomToggle = false
+    @observable hideNoDataAreaToggle = false
+    @observable hideFacetYDomainToggle = false
+    @observable hideXScaleToggle = false
+    @observable hideYScaleToggle = false
+    // enforces hiding an annotation, even if that means that a crucial piece of information is missing from the chart title
+    @observable forceHideAnnotationFieldsInTitle: AnnotationFieldsInTitle = {
+        entity: false,
+        time: false,
+        changeInPrefix: false,
+    }
+
+    static updateConfigToHideInteractiveControls(
+        config: GrapherProgrammaticInterface
+    ): GrapherProgrammaticInterface {
+        config.hideRelativeToggle = true
+        config.hideTimeline = true
+        config.hideFacetControl = true
+        config.hideEntityControls = true
+        config.hideZoomToggle = true
+        config.hideNoDataAreaToggle = true
+        config.hideFacetYDomainToggle = true
+        config.hideXScaleToggle = true
+        config.hideYScaleToggle = true
+        config.forceHideAnnotationFieldsInTitle = {
+            entity: true,
+            time: true,
+            changeInPrefix: true,
+        }
+        return config
+    }
 }
 
 const defaultObject = objectWithPersistablesToObject(

@@ -254,6 +254,8 @@ const parseChart = (raw: RawBlockChart): EnrichedBlockChart => {
                 })
             }
         const caption = val.caption ? htmlToSpans(val.caption) : []
+        const title = val.title
+        const subtitle = val.subtitle
 
         return omitUndefinedValues({
             type: "chart",
@@ -263,6 +265,8 @@ const parseChart = (raw: RawBlockChart): EnrichedBlockChart => {
             column,
             position,
             caption: caption.length > 0 ? caption : undefined,
+            title,
+            subtitle,
             parseErrors: [],
         }) as EnrichedBlockChart
     }

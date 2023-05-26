@@ -5,6 +5,7 @@ import {
     Grapher,
     GrapherProgrammaticInterface,
     GRAPHER_EMBEDDED_FIGURE_ATTR,
+    GRAPHER_EMBEDDED_FIGURE_CONFIG_ATTR,
     hydrateGlobalEntitySelectorIfAny,
     migrateSelectedEntityNamesParam,
     SelectionArray,
@@ -175,9 +176,21 @@ class MultiEmbedder {
             ReactDOM.render(<Explorer {...props} />, figure)
         } else {
             figure.classList.remove("grapherPreview")
+
+            let localConfig: GrapherProgrammaticInterface = {}
+            const figureConfigAttr = figure.getAttribute(
+                GRAPHER_EMBEDDED_FIGURE_CONFIG_ATTR
+            )
+            if (figureConfigAttr) {
+                localConfig = JSON.parse(figureConfigAttr)
+                localConfig =
+                    Grapher.updateConfigToHideInteractiveControls(localConfig)
+            }
+
             const config: GrapherProgrammaticInterface = {
                 ...deserializeJSONFromHTML(html),
                 ...common,
+                ...localConfig,
                 manager: {
                     selection: new SelectionArray(
                         this.selection.selectedEntityNames
