@@ -67,7 +67,6 @@ import {
 import {
     ChartTypeName,
     GrapherTabOption,
-    type GrapherInitialTabOption,
     ScaleType,
     StackMode,
     EntitySelectionMode,
@@ -2688,41 +2687,6 @@ export class Grapher
     }
     @observable hiddenTabs: GrapherTabOption[] = []
     @observable hideShareTabButton = false
-
-    static updateConfigToHideInteractiveControls(
-        config: GrapherProgrammaticInterface
-    ): GrapherProgrammaticInterface {
-        config.hideRelativeToggle = true
-        config.hideTimeline = true
-        config.hideFacetControl = true
-        config.hideEntityControls = true
-        config.hideZoomToggle = true
-        config.hideNoDataAreaToggle = true
-        config.hideFacetYDomainToggle = true
-        config.hideXScaleToggle = true
-        config.hideYScaleToggle = true
-        config.forceHideAnnotationFieldsInTitle = {
-            entity: true,
-            time: true,
-            changeInPrefix: true,
-        }
-        return config
-    }
-
-    static updateConfigToHideInactiveTabs(
-        config: GrapherProgrammaticInterface,
-        activeTab: GrapherInitialTabOption
-    ): GrapherProgrammaticInterface {
-        config.hiddenTabs = [
-            activeTab !== GrapherTabOption.chart && GrapherTabOption.chart,
-            activeTab !== GrapherTabOption.map && GrapherTabOption.map,
-            activeTab !== GrapherTabOption.table && GrapherTabOption.table,
-            GrapherTabOption.sources,
-            GrapherTabOption.download,
-        ].filter(identity) as GrapherTabOption[]
-        config.hideShareTabButton = true
-        return config
-    }
 }
 
 const defaultObject = objectWithPersistablesToObject(

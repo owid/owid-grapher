@@ -134,3 +134,28 @@ export interface AnnotationFieldsInTitle {
     time?: boolean
     changeInPrefix?: boolean
 }
+
+export const GRAPHER_INTERFACE_WITH_HIDDEN_CONTROLS = {
+    hideRelativeToggle: true,
+    hideTimeline: true,
+    hideFacetControl: true,
+    hideEntityControls: true,
+    hideZoomToggle: true,
+    hideNoDataAreaToggle: true,
+    hideFacetYDomainToggle: true,
+    hideXScaleToggle: true,
+    hideYScaleToggle: true,
+    forceHideAnnotationFieldsInTitle: {
+        entity: true,
+        time: true,
+        changeInPrefix: true,
+    },
+    map: {
+        hideTimeline: true,
+    },
+} as const
+
+export const GRAPHER_INTERFACE_WITH_HIDDEN_TABS = {
+    hiddenTabs: Object.values(GrapherTabOption),
+    hideShareTabButton: true,
+} as const

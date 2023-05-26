@@ -11,6 +11,8 @@ import {
     SelectionArray,
     GrapherTabOption,
     GrapherInitialTabOption,
+    GRAPHER_INTERFACE_WITH_HIDDEN_CONTROLS,
+    GRAPHER_INTERFACE_WITH_HIDDEN_TABS,
 } from "@ourworldindata/grapher"
 import {
     Annotation,
@@ -21,6 +23,7 @@ import {
     isMobile,
     isPresent,
     Url,
+    merge,
 } from "@ourworldindata/utils"
 import { action } from "mobx"
 import React from "react"
@@ -186,32 +189,36 @@ class MultiEmbedder {
                 GRAPHER_EMBEDDED_FIGURE_CONFIG_ATTR
             )
             if (figureConfigAttr) {
-                localConfig = JSON.parse(figureConfigAttr)
-                localConfig =
-                    Grapher.updateConfigToHideInteractiveControls(localConfig)
+                localConfig = {
+                    ...GRAPHER_INTERFACE_WITH_HIDDEN_CONTROLS,
+                    ...GRAPHER_INTERFACE_WITH_HIDDEN_TABS,
+                    ...JSON.parse(figureConfigAttr),
+                }
 
+                // make sure the currently active tab isn't hidden
                 const activeTab: GrapherInitialTabOption =
                     queryParams.tab ||
                     grapherPageConfig.tab ||
                     GrapherTabOption.chart
-
-                localConfig = Grapher.updateConfigToHideInactiveTabs(
-                    localConfig,
-                    activeTab
-                )
+                localConfig.hiddenTabs =
+                    localConfig.hiddenTabs?.filter(
+                        (tab: GrapherTabOption) => tab !== activeTab
+                    ) || []
             }
 
-            const config: GrapherProgrammaticInterface = {
-                ...grapherPageConfig,
-                ...common,
-                ...localConfig,
-                manager: {
-                    selection: new SelectionArray(
-                        this.selection.selectedEntityNames
-                    ),
-                },
-                annotation,
-            }
+            const config: GrapherProgrammaticInterface = merge(
+                grapherPageConfig,
+                common,
+                localConfig,
+                {
+                    manager: {
+                        selection: new SelectionArray(
+                            this.selection.selectedEntityNames
+                        ),
+                    },
+                    annotation,
+                }
+            )
             if (config.manager?.selection)
                 this.graphersAndExplorersToUpdate.add(config.manager.selection)
 

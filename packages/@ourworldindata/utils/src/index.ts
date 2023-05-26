@@ -333,6 +333,7 @@ export {
     max,
     maxBy,
     memoize,
+    merge,
     min,
     minBy,
     noop,

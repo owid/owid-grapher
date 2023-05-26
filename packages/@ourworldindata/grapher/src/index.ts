@@ -41,6 +41,8 @@ export {
     getVariableDataRoute,
     getVariableMetadataRoute,
     Patterns,
+    GRAPHER_INTERFACE_WITH_HIDDEN_CONTROLS,
+    GRAPHER_INTERFACE_WITH_HIDDEN_TABS,
 } from "./core/GrapherConstants"
 export { ColorScale } from "./color/ColorScale"
 export { ColorScaleConfig } from "./color/ColorScaleConfig"
