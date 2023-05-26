@@ -45,6 +45,8 @@ export const GIT_DEFAULT_EMAIL: string =
 
 export const BUGSNAG_API_KEY: string | undefined =
     serverSettings.BUGSNAG_API_KEY
+export const BUGSNAG_NODE_API_KEY: string | undefined =
+    serverSettings.BUGSNAG_NODE_API_KEY
 
 export const BLOG_POSTS_PER_PAGE: number =
     parseIntOrUndefined(serverSettings.BLOG_POSTS_PER_PAGE) ?? 21

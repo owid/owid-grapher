@@ -58,7 +58,6 @@ import {
 } from "./gitDataExport.js"
 import { ChartRevision } from "../db/model/ChartRevision.js"
 import { SuggestedChartRevision } from "../db/model/SuggestedChartRevision.js"
-import { logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
 import { denormalizeLatestCountryData } from "../baker/countryProfiles.js"
 import { PostReference, ChartRedirect } from "../adminSiteClient/ChartEditor.js"
 import { DeployQueueServer } from "../baker/DeployQueueServer.js"
@@ -82,6 +81,7 @@ import { createGdocAndInsertOwidGdocContent } from "../db/model/Gdoc/archieToGdo
 import { Link } from "../db/model/Link.js"
 import { In } from "typeorm"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
+import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 
 const apiRouter = new FunctionalRouter()
 const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
@@ -1962,7 +1962,7 @@ apiRouter.put("/datasets/:datasetId", async (req: Request, res: Response) => {
             commitEmail: res.locals.user.email,
         })
     } catch (err) {
-        logErrorAndMaybeSendToSlack(err)
+        logErrorAndMaybeSendToBugsnag(err, req)
         // Continue
     }
 
@@ -2049,8 +2049,8 @@ apiRouter.delete(
                 commitName: res.locals.user.fullName,
                 commitEmail: res.locals.user.email,
             })
-        } catch (err) {
-            logErrorAndMaybeSendToSlack(err)
+        } catch (err: any) {
+            logErrorAndMaybeSendToBugsnag(err, req)
             // Continue
         }
 
