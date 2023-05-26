@@ -145,11 +145,6 @@ export const GRAPHER_INTERFACE_WITH_HIDDEN_CONTROLS = {
     hideFacetYDomainToggle: true,
     hideXScaleToggle: true,
     hideYScaleToggle: true,
-    forceHideAnnotationFieldsInTitle: {
-        entity: true,
-        time: true,
-        changeInPrefix: true,
-    },
     map: {
         hideTimeline: true,
     },

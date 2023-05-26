@@ -195,6 +195,15 @@ class MultiEmbedder {
                     ...JSON.parse(figureConfigAttr),
                 }
 
+                // make sure the custom title is presented as is
+                if (localConfig.title) {
+                    localConfig.forceHideAnnotationFieldsInTitle = {
+                        entity: true,
+                        time: true,
+                        changeInPrefix: true,
+                    }
+                }
+
                 // make sure the currently active tab isn't hidden
                 const activeTab: GrapherInitialTabOption =
                     queryParams.tab ||
