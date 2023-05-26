@@ -714,7 +714,7 @@ export class SiteBaker {
         try {
             return await execWrapper(cmd)
         } catch (error) {
-            // Log error to Slack, but do not throw error
+            // Log error to Bugsnag, but do not throw error
             return logErrorAndMaybeSendToBugsnag(error)
         }
     }
