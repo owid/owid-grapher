@@ -15,7 +15,7 @@ export class UpdateGdocRecircComponent1685107433682
 {
     public async up(_queryRunner: QueryRunner): Promise<void> {
         // sanity check that the migration works
-        recursivelyFixCalloutComponents(recircBefore)
+        recursivelyFixRecircComponents(recircBefore)
         if (!isEqual(recircBefore, recircAfter)) {
             throw new Error(
                 "The migration did not work as expected. Please check the code."
@@ -26,7 +26,7 @@ export class UpdateGdocRecircComponent1685107433682
         const allGdocs = await Gdoc.find()
         for (const gdoc of allGdocs) {
             const old = cloneDeep(gdoc.content.body)
-            recursivelyFixCalloutComponents(gdoc.content.body)
+            recursivelyFixRecircComponents(gdoc.content.body)
             if (JSON.stringify(old) !== JSON.stringify(gdoc.content.body)) {
                 console.log(`Updating callout component in gdoc ${gdoc.slug}`)
                 await gdoc.save()
@@ -38,11 +38,11 @@ export class UpdateGdocRecircComponent1685107433682
         console.log("This migration is not currently reversible.")
     }
 }
-function recursivelyFixCalloutComponents(node: any): void {
+function recursivelyFixRecircComponents(node: any): void {
     if (isArray(node)) {
         // If the argument is an array, iterate over its elements.
         forEach(node, (item) => {
-            recursivelyFixCalloutComponents(item)
+            recursivelyFixRecircComponents(item)
         })
     } else if (isObject(node)) {
         if (
@@ -62,7 +62,7 @@ function recursivelyFixCalloutComponents(node: any): void {
         // If the argument is an object, iterate over its keys.
         forOwn(node, (value) => {
             // Recurse on the key's value.
-            recursivelyFixCalloutComponents(value)
+            recursivelyFixRecircComponents(value)
         })
     }
 }
