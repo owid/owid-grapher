@@ -429,11 +429,11 @@ function* rawKeyInsightsToArchieMLString(
                 for (const content of insight.content) {
                     yield* OwidRawGdocBlockToArchieMLStringGenerator(content)
                 }
+                yield "[]"
             }
-            yield "[]"
         }
+        yield "[]"
     }
-    yield "[]"
     yield "{}"
 }
 
