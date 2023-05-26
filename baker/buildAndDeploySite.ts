@@ -8,6 +8,8 @@ import path from "path"
 import { BakeStep, bakeSteps } from "./SiteBaker.js"
 import { DeployTarget } from "./DeployTarget.js"
 
+throw new Error("This deploy should fail fast")
+
 yargs(hideBin(process.argv))
     .command<{
         target: DeployTarget
