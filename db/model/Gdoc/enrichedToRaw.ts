@@ -26,7 +26,10 @@ import {
     RawBlockCallout,
     RawBlockExpandableParagraph,
     RawBlockKeyInsights,
+    RawBlockResearchAndWriting,
     RawBlockTopicPageIntro,
+    EnrichedBlockResearchAndWritingLink,
+    RawBlockResearchAndWritingLink,
 } from "@ourworldindata/utils"
 import { spanToHtmlString } from "./gdocUtils.js"
 import { match, P } from "ts-pattern"
@@ -317,6 +320,23 @@ export function enrichedBlockToRawBlock(
                     })),
                 },
             })
+        )
+        .with(
+            { type: "research-and-writing" },
+            (b): RawBlockResearchAndWriting => {
+                return {
+                    type: b.type,
+                    value: {
+                        primary: b.primary.value,
+                        secondary: b.secondary.value,
+                        more: b.more.map((enriched) => enriched.value),
+                        rows: b.rows.map(({ heading, articles }) => ({
+                            heading: heading,
+                            articles: articles.map(({ value }) => value),
+                        })),
+                    },
+                }
+            }
         )
         .exhaustive()
 }

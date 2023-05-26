@@ -24,6 +24,8 @@ import {
     RawBlockAdditionalCharts,
     RawBlockCallout,
     RawBlockKeyInsights,
+    RawBlockResearchAndWriting,
+    RawBlockResearchAndWritingLink,
     RawBlockTopicPageIntro,
     RawBlockExpandableParagraph,
 } from "@ourworldindata/utils"
@@ -437,6 +439,55 @@ function* rawKeyInsightsToArchieMLString(
     yield "{}"
 }
 
+function* rawResearchAndWritingToArchieMLString(
+    block: RawBlockResearchAndWriting
+): Generator<string, void, undefined> {
+    const { primary, secondary, more, rows } = block.value
+    function* rawLinkToArchie(
+        link: RawBlockResearchAndWritingLink,
+        propertyName?: string
+    ): Generator<string, void, undefined> {
+        if (typeof link === "string") {
+            yield `${propertyName ?? "url"}: ${escapeRawText(link)}`
+        } else {
+            if (propertyName) yield `{.${propertyName}}`
+            yield* propertyToArchieMLString("url", link)
+            yield* propertyToArchieMLString("authors", link)
+            yield* propertyToArchieMLString("title", link)
+            yield* propertyToArchieMLString("subtitle", link)
+            yield* propertyToArchieMLString("filename", link)
+            if (propertyName) yield `{}`
+        }
+    }
+    yield "{.research-and-writing}"
+    if (primary) {
+        yield* rawLinkToArchie(primary, "primary")
+    }
+    if (secondary) {
+        yield* rawLinkToArchie(secondary, "secondary")
+    }
+    if (more) {
+        yield "[.more]"
+        for (const link of more) {
+            yield* rawLinkToArchie(link)
+        }
+        yield "[]"
+    }
+    if (rows) {
+        for (const row of rows) {
+            yield* propertyToArchieMLString("heading", row)
+            if (row.articles) {
+                yield "[.articles]"
+                for (const link of row.articles) {
+                    yield* rawLinkToArchie(link)
+                }
+                yield "[]"
+            }
+        }
+    }
+    yield "{}"
+}
+
 export function* OwidRawGdocBlockToArchieMLStringGenerator(
     block: OwidRawGdocBlock
 ): Generator<string, void, undefined> {
@@ -490,6 +541,10 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
             rawBlockTopicPageIntroToArchieMLString
         )
         .with({ type: "key-insights" }, rawKeyInsightsToArchieMLString)
+        .with(
+            { type: "research-and-writing" },
+            rawResearchAndWritingToArchieMLString
+        )
         .exhaustive()
     yield* content
 }

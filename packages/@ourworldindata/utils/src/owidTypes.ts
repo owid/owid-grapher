@@ -920,16 +920,13 @@ export type EnrichedBlockKeyInsights = {
     insights: EnrichedBlockKeyInsightsSlide[]
 } & EnrichedBlockWithParseErrors
 
-export type RawBlockResearchAndWritingLink =
-    | {
-          url?: string
-          authors?: string[]
-          title?: string
-          subtitle?: string
-          filename?: string
-      }
-    | string
-    | undefined
+export type RawBlockResearchAndWritingLink = {
+    url?: string
+    authors?: string[]
+    title?: string
+    subtitle?: string
+    filename?: string
+}
 
 export type RawBlockResearchAndWritingRow = {
     heading?: string
@@ -939,22 +936,22 @@ export type RawBlockResearchAndWritingRow = {
 export type RawBlockResearchAndWriting = {
     type: "research-and-writing"
     value: {
-        primary?: EnrichedBlockResearchAndWritingLink
-        secondary?: EnrichedBlockResearchAndWritingLink
-        more?: EnrichedBlockResearchAndWritingLink[]
-        rows?: EnrichedBlockResearchAndWritingRow
+        primary?: RawBlockResearchAndWritingLink
+        secondary?: RawBlockResearchAndWritingLink
+        more?: RawBlockResearchAndWritingLink[]
+        rows?: RawBlockResearchAndWritingRow[]
     }
 }
 
-export type EnrichedBlockResearchAndWritingLink =
-    | {
-          url: string
-          authors: string[]
-          title: string
-          subtitle?: string
-          filename?: string
-      }
-    | string
+export type EnrichedBlockResearchAndWritingLink = {
+    value: {
+        url: string
+        authors?: string[]
+        title?: string
+        subtitle?: string
+        filename?: string
+    }
+} & EnrichedBlockWithParseErrors
 
 export type EnrichedBlockResearchAndWritingRow = {
     heading: string
@@ -966,7 +963,7 @@ export type EnrichedBlockResearchAndWriting = {
     primary: EnrichedBlockResearchAndWritingLink
     secondary: EnrichedBlockResearchAndWritingLink
     more: EnrichedBlockResearchAndWritingLink[]
-    rows: EnrichedBlockResearchAndWritingRow
+    rows: EnrichedBlockResearchAndWritingRow[]
 } & EnrichedBlockWithParseErrors
 
 export type RawBlockSDGToc = {
@@ -1019,6 +1016,7 @@ export type OwidRawGdocBlock =
     | RawBlockList
     | RawBlockPullQuote
     | RawBlockRecirc
+    | RawBlockResearchAndWriting
     | RawBlockText
     | RawBlockUrl
     | RawBlockPosition
@@ -1050,6 +1048,7 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockList
     | EnrichedBlockPullQuote
     | EnrichedBlockRecirc
+    | EnrichedBlockResearchAndWriting
     | EnrichedBlockHeading
     | EnrichedBlockHtml
     | EnrichedBlockHorizontalRule

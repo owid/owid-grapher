@@ -76,6 +76,13 @@ import {
     keyBy,
     filterValidStringValues,
     uniq,
+    RawBlockResearchAndWriting,
+    RawBlockResearchAndWritingLink,
+    EnrichedBlockResearchAndWriting,
+    EnrichedBlockResearchAndWritingLink,
+    EnrichedBlockResearchAndWritingRow,
+    EnrichedBlockExpandableParagraph,
+    RawBlockExpandableParagraph,
 } from "@ourworldindata/utils"
 import { extractUrl, getTitleSupertitleFromHeadingText } from "./gdocUtils.js"
 import {
@@ -84,12 +91,8 @@ import {
     htmlToSpans,
 } from "./htmlToEnriched.js"
 import { match } from "ts-pattern"
-import { parseInt } from "lodash"
+import { isObject, parseInt } from "lodash"
 import { GDOCS_DETAILS_ON_DEMAND_ID } from "../../../settings/serverSettings.js"
-import {
-    EnrichedBlockExpandableParagraph,
-    RawBlockExpandableParagraph,
-} from "@ourworldindata/utils/dist/owidTypes.js"
 
 export function parseRawBlocksToEnrichedBlocks(
     block: OwidRawGdocBlock
@@ -134,6 +137,7 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "prominent-link" }, parseProminentLink)
         .with({ type: "topic-page-intro" }, parseTopicPageIntro)
         .with({ type: "key-insights" }, parseKeyInsights)
+        .with({ type: "research-and-writing" }, parseResearchAndWritingBlock)
         .with(
             { type: "sdg-toc" },
             (b): EnrichedBlockSDGToc => ({
@@ -1233,6 +1237,89 @@ function parseExpandableParagraph(
     return {
         type: "expandable-paragraph",
         items: compact(raw.value.map(parseRawBlocksToEnrichedBlocks)),
+        parseErrors: [],
+    }
+}
+
+function parseResearchAndWritingBlock(
+    raw: RawBlockResearchAndWriting
+): EnrichedBlockResearchAndWriting {
+    const createError = (
+        error: ParseError,
+        primary: EnrichedBlockResearchAndWritingLink = {
+            value: { url: "" },
+            parseErrors: [],
+        },
+        secondary: EnrichedBlockResearchAndWritingLink = {
+            value: { url: "" },
+            parseErrors: [],
+        },
+        more: EnrichedBlockResearchAndWritingLink[] = [],
+        rows: EnrichedBlockResearchAndWritingRow[] = []
+    ): EnrichedBlockResearchAndWriting => ({
+        type: "research-and-writing",
+        primary,
+        secondary,
+        more,
+        rows,
+        parseErrors: [error],
+    })
+
+    function enrichLink(
+        rawLink?: RawBlockResearchAndWritingLink
+    ): EnrichedBlockResearchAndWritingLink {
+        function createLinkError(
+            message: string
+        ): EnrichedBlockResearchAndWritingLink {
+            return {
+                value: {
+                    url: "",
+                },
+                parseErrors: [{ message }],
+            }
+        }
+
+        if (checkIsPlainObjectWithGuard(rawLink)) {
+            if (!rawLink.url) return createLinkError("Link missing url")
+            const { isGoogleDoc } = Url.fromURL(rawLink.url)
+            if (!isGoogleDoc && !rawLink.authors)
+                return createLinkError("Link missing authors")
+            if (!isGoogleDoc && !rawLink.title)
+                return createLinkError("Link missing title")
+            return {
+                value: {
+                    url: rawLink.url,
+                    authors: rawLink.authors,
+                    title: rawLink.title,
+                    filename: rawLink.filename,
+                    subtitle: rawLink.subtitle,
+                },
+                parseErrors: [],
+            }
+        } else return createLinkError(`Malformed link data: ${typeof rawLink}`)
+    }
+
+    const primary = enrichLink(raw.value.primary)
+    const secondary = enrichLink(raw.value.secondary)
+    if (!raw.value.more) {
+        return createError(
+            { message: "No 'more' values passed" },
+            primary,
+            secondary
+        )
+    }
+    const more = raw.value.more.map(enrichLink)
+    const rows = raw.value.rows?.map((row) => ({
+        heading: row.heading || "",
+        articles: row.articles?.map(enrichLink) || [],
+    }))
+
+    return {
+        type: "research-and-writing",
+        primary,
+        secondary,
+        more: more,
+        rows: rows || [],
         parseErrors: [],
     }
 }

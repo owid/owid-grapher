@@ -30,6 +30,7 @@ import { ProminentLink } from "./ProminentLink.js"
 import { ExpandableParagraph } from "../blocks/ExpandableParagraph.js"
 import { TopicPageIntro } from "./TopicPageIntro.js"
 import { KeyInsights } from "./KeyInsights.js"
+import { ResearchAndWriting } from "../blocks/ResearchAndWriting.js"
 
 export type Container =
     | "default"
@@ -69,6 +70,7 @@ const layouts: { [key in Container]: Layouts} = {
         ["prominent-link"]: "grid grid-cols-6 span-cols-6 col-start-5 span-md-cols-10 col-md-start-3 grid-md-cols-10 span-sm-cols-12 col-sm-start-2 grid-sm-cols-12",
         ["pull-quote"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["recirc"]: "col-start-11 span-cols-3 span-rows-3 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
+        ["research-and-writing"]: "col-start-2 span-cols-12",
         ["scroller"]: "grid span-cols-12 col-start-2",
         ["sdg-grid"]: "grid col-start-2 span-cols-12 col-lg-start-3 span-lg-cols-10 span-sm-cols-12 col-sm-start-2",
         ["sdg-toc"]: "grid grid-cols-8 col-start-4 span-cols-8 grid-md-cols-10 col-md-start-3 span-md-cols-10 grid-sm-cols-12 span-sm-cols-12 col-sm-start-2",
@@ -512,6 +514,12 @@ export default function ArticleBlock({
             <KeyInsights
                 {...block}
                 className={getLayout("key-insights", containerType)}
+            />
+        ))
+        .with({ type: "research-and-writing" }, (block) => (
+            <ResearchAndWriting
+                {...block}
+                className={getLayout("research-and-writing", containerType)}
             />
         ))
         .exhaustive()

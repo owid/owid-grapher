@@ -1,6 +1,11 @@
-import { Span } from "@ourworldindata/utils"
+import {
+    EnrichedBlockResearchAndWriting,
+    Span,
+    excludeNullish,
+} from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
 import cheerio from "cheerio"
+import { EnrichedBlockResearchAndWritingLink } from "@ourworldindata/utils/dist/owidTypes.js"
 
 export function spanToSimpleString(s: Span): string {
     return match(s)
@@ -125,4 +130,18 @@ export const getTitleSupertitleFromHeadingText = (
         afterSeparator || beforeSeparator,
         afterSeparator ? beforeSeparator : undefined,
     ]
+}
+
+export const getAllLinksFromResearchAndWritingBlock = (
+    block: EnrichedBlockResearchAndWriting
+): EnrichedBlockResearchAndWritingLink[] => {
+    const { primary, secondary, more, rows } = block
+    const rowArticles = rows.flatMap((row) => row.articles)
+    const allLinks = excludeNullish([
+        primary,
+        secondary,
+        ...more,
+        ...rowArticles,
+    ])
+    return allLinks
 }

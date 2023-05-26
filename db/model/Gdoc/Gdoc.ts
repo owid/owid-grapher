@@ -54,8 +54,12 @@ import { EXPLORERS_ROUTE_FOLDER } from "../../../explorer/ExplorerConstants.js"
 import { formatUrls } from "../../../site/formatting.js"
 import { parseDetails } from "./rawToEnriched.js"
 import { match, P } from "ts-pattern"
-import { spansToSimpleString } from "./gdocUtils.js"
+import {
+    getAllLinksFromResearchAndWritingBlock,
+    spansToSimpleString,
+} from "./gdocUtils.js"
 import { traverseEnrichedSpan } from "@ourworldindata/utils/dist/Util.js"
+import { EnrichedBlockResearchAndWritingLink } from "@ourworldindata/utils/dist/owidTypes.js"
 
 @Entity("tags")
 export class Tag extends BaseEntity implements OwidGdocTag {
@@ -193,6 +197,20 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
                     }
                     if (item.type === "prominent-link" && item.thumbnail) {
                         filenames.add(item.thumbnail)
+                    }
+                    if (item.type === "research-and-writing") {
+                        const allLinks =
+                            getAllLinksFromResearchAndWritingBlock(item)
+                        allLinks.forEach(
+                            (link: EnrichedBlockResearchAndWritingLink) => {
+                                if (
+                                    typeof link.value !== "string" &&
+                                    link.value.filename
+                                ) {
+                                    filenames.add(link.value.filename)
+                                }
+                            }
+                        )
                     }
                 }
                 return item
@@ -495,6 +513,41 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
 
                 return links
             })
+            .with(
+                {
+                    type: "research-and-writing",
+                },
+                (researchAndWriting) => {
+                    const links: Link[] = []
+                    // small function to handle the two possible formats
+                    const createLink = (
+                        link: EnrichedBlockResearchAndWritingLink
+                    ): Link => {
+                        const url =
+                            typeof link.value === "string"
+                                ? link.value
+                                : link.value.url
+                        const text =
+                            typeof link.value === "string"
+                                ? ""
+                                : link.value.title
+                        return Link.create({
+                            linkType: getLinkType(url),
+                            source: this,
+                            target: getUrlTarget(formatUrls(url)),
+                            componentType: researchAndWriting.type,
+                            text: text,
+                        })
+                    }
+                    const allLinks =
+                        getAllLinksFromResearchAndWritingBlock(
+                            researchAndWriting
+                        )
+                    allLinks.forEach((link) => links.push(createLink(link)))
+
+                    return links
+                }
+            )
             .with(
                 {
                     // no urls directly on any of these components
