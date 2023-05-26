@@ -44,6 +44,7 @@ it("parsed a datapage gdoc into allowed keyed sections", () => {
         publicationContext: OwidGdocPublicationContext.listed,
         revisionId: "revisionId",
         content: {
+            authors: ["Our World In Data"],
             body: [
                 getHeadingBlock("title"),
                 getTextBlock("Gini coefficient"),

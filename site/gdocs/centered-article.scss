@@ -9,13 +9,28 @@
 }
 
 $banner-height: 200px;
-.article-banner {
+.centered-article-header__banner {
     position: absolute;
     left: 0;
     right: 0;
     height: $banner-height;
     background: #f7c020;
     z-index: -1;
+}
+
+// Until we implement a way to specifiy src-sets in archie, this image will need to have a 1:1 aspect ratio
+// to fit on both mobile and desktop resolutions
+.centered-article-header__cover-image {
+    height: 200px;
+    overflow: hidden;
+    position: absolute;
+    width: 100%;
+    z-index: -1;
+    img {
+        width: 100%;
+        object-fit: cover;
+        height: 100%;
+    }
 }
 
 .article-summary {
@@ -44,6 +59,15 @@ $banner-height: 200px;
     .download-png-link {
         @include owid-link-60;
         font-size: 14px;
+    }
+}
+
+.article-block__sticky-left,
+.article-block__sticky-right {
+    @include md-up {
+        .article-block__image:first-child {
+            margin-top: 0;
+        }
     }
 }
 
@@ -282,6 +306,16 @@ h3.article-block__heading.has-supertitle {
     text-align: center;
 }
 
+.article-block__horizontal-rule {
+    border-top: 1px solid $blue-10;
+    padding: 0;
+    margin: 48px 0;
+
+    + .article-block__heading {
+        margin-top: 0;
+    }
+}
+
 .article-block__recirc {
     margin-bottom: 24px;
 
@@ -402,6 +436,10 @@ h3.article-block__heading.has-supertitle {
     margin-bottom: 32px;
     position: relative;
 
+    .scroller__chart {
+        margin: 0;
+    }
+
     @include sm-up {
         .scroller__paragraph {
             height: 50vh;
@@ -514,5 +552,12 @@ h3.article-block__heading.has-supertitle {
     + .article-block__prominent-link {
         padding-top: 24px;
         border-top: 1px solid $blue-10;
+    }
+}
+
+.article-block__key-insights {
+    .slide[data-active="true"] {
+        // Have to override the WP styles, which we can undo once they're removed
+        display: grid !important;
     }
 }

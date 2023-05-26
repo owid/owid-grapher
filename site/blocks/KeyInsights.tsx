@@ -61,11 +61,10 @@ export const KeyInsightsThumbs = ({ titles }: { titles: string[] }) => {
         if (node !== null) {
             const keyInsightsNode = node.parentElement?.parentElement
 
-            setSlides(
-                keyInsightsNode?.querySelector(
-                    `.${KEY_INSIGHTS_SLIDES_CLASS_NAME}`
-                )
+            const tempSlides = keyInsightsNode?.querySelector(
+                `.${KEY_INSIGHTS_SLIDES_CLASS_NAME}`
             )
+            setSlides(tempSlides)
             // get slug from previous <h3>
             setSlug(keyInsightsNode?.previousElementSibling?.getAttribute("id"))
         }
@@ -279,7 +278,6 @@ export const hydrateKeyInsights = () => {
             const titles = Array.from(
                 block.querySelectorAll(`.${KEY_INSIGHTS_THUMB_CLASS_NAME}`)
             ).map((thumb) => thumb.textContent || "")
-
             if (!titles.length) return
 
             const blockWrapper = block.parentElement

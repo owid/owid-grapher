@@ -116,10 +116,12 @@ class Areas extends React.Component<AreasProps> {
 
     @computed get placedSeriesArr(): StackedPlacedSeries<number>[] {
         const { seriesArr } = this.props
-        return seriesArr.map((series) => ({
-            ...series,
-            placedPoints: this.placeSeries(series),
-        }))
+        return seriesArr
+            .filter((series) => !series.isAllZeros)
+            .map((series) => ({
+                ...series,
+                placedPoints: this.placeSeries(series),
+            }))
     }
 
     @computed private get areas(): JSX.Element[] {
@@ -239,7 +241,9 @@ export class StackedAreaChart
                 seriesName: series.seriesName,
                 label: series.seriesName,
                 yValue: midpoints[index],
+                isAllZeros: series.isAllZeros,
             }))
+            .filter((series) => !series.isAllZeros)
             .reverse()
     }
 
@@ -346,7 +350,9 @@ export class StackedAreaChart
             <g className="hoverIndicator">
                 {series.map((series) => {
                     const point = series.points[hoveredPointIndex]
-                    return this.seriesIsBlur(series) || point.fake ? null : (
+                    return this.seriesIsBlur(series) ||
+                        point.fake ||
+                        point.value === 0 ? null : (
                         <circle
                             key={series.seriesName}
                             cx={horizontalAxis.place(point.position)}
@@ -542,10 +548,6 @@ export class StackedAreaChart
                 {this.tooltip}
             </g>
         )
-    }
-    /** Whether we want to display series with only zeroes (inherited). False for this class, true for others */
-    get showAllZeroSeries(): boolean {
-        return false
     }
 
     @computed get lineLegendX(): number {

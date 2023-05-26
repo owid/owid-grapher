@@ -41,7 +41,7 @@ export const GdocsSettingsContentField = ({
                 <GdocsEditLink gdocId={gdoc.id} />
                 {render({
                     name: property,
-                    value: gdoc.content[property],
+                    value: gdoc.content[property] as string,
                     errorType: error?.type,
                 })}
             </div>

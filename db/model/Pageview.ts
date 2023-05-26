@@ -16,6 +16,8 @@ export class Pageview extends BaseEntity implements RawPageview {
     @Column() views_7d!: number
     /** Sum of pageviews over the last 14 days. */
     @Column() views_14d!: number
+    /** Sum of pageviews over the last 365 days. */
+    @Column() views_365d!: number
 
     static async getViewsByUrlObj(): Promise<{ [url: string]: RawPageview }> {
         const pageviews = await Pageview.find()
