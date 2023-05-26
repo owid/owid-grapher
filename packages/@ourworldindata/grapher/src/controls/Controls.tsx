@@ -276,6 +276,8 @@ export interface FooterControlsManager extends ShareMenuManager {
     relatedQuestions: RelatedQuestionsConfig[]
     footerControlsHeight?: number
     timelineController?: TimelineController
+    hideDownloadTab?: boolean
+    hideShareTabButton?: boolean
 }
 
 @observer
@@ -321,35 +323,41 @@ export class FooterControls extends React.Component<{
                             </li>
                         ) : null
                     })}
-                    <li
-                        className={
-                            "tab clickable icon download-tab-button" +
-                            (manager.currentTab === GrapherTabOption.download
-                                ? " active"
-                                : "")
-                        }
-                        title="Download as .png or .svg"
-                    >
-                        <a
-                            data-track-note="chart-click-download"
-                            onClick={(): GrapherTabOption =>
-                                (manager.currentTab = GrapherTabOption.download)
+                    {!manager.hideDownloadTab && (
+                        <li
+                            className={
+                                "tab clickable icon download-tab-button" +
+                                (manager.currentTab ===
+                                GrapherTabOption.download
+                                    ? " active"
+                                    : "")
                             }
+                            title="Download as .png or .svg"
                         >
-                            <FontAwesomeIcon icon={faDownload} /> Download
-                        </a>
-                    </li>
-                    <li className="clickable icon">
-                        <a
-                            title="Share"
-                            onClick={this.onShareMenu}
-                            data-track-note="chart-click-share"
-                        >
-                            <FontAwesomeIcon icon={faShareAlt} />
-                        </a>
-                    </li>
+                            <a
+                                data-track-note="chart-click-download"
+                                onClick={(): GrapherTabOption =>
+                                    (manager.currentTab =
+                                        GrapherTabOption.download)
+                                }
+                            >
+                                <FontAwesomeIcon icon={faDownload} /> Download
+                            </a>
+                        </li>
+                    )}
+                    {!manager.hideShareTabButton && (
+                        <li className="clickable icon share-tab-button">
+                            <a
+                                title="Share"
+                                onClick={this.onShareMenu}
+                                data-track-note="chart-click-share"
+                            >
+                                <FontAwesomeIcon icon={faShareAlt} />
+                            </a>
+                        </li>
+                    )}
                     {manager.isInIFrame && (
-                        <li className="clickable icon">
+                        <li className="clickable icon open-in-another-tab-button">
                             <a
                                 title="Open chart in new tab"
                                 href={manager.canonicalUrl}

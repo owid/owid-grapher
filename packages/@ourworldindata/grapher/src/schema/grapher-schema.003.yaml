@@ -272,8 +272,6 @@ properties:
         enum:
             - chart
             - map
-            - sources
-            - download
             - table
     matchingEntitiesOnly:
         type: boolean

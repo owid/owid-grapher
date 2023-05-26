@@ -67,6 +67,7 @@ import {
 import {
     ChartTypeName,
     GrapherTabOption,
+    type GrapherInitialTabOption,
     ScaleType,
     StackMode,
     EntitySelectionMode,
@@ -256,6 +257,8 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     hideXScaleToggle?: boolean
     hideYScaleToggle?: boolean
     forceHideAnnotationFieldsInTitle?: AnnotationFieldsInTitle
+    hiddenTabs?: GrapherTabOption[]
+    hideShareTabButton?: boolean
 
     getGrapherInstance?: (instance: Grapher) => void
 
@@ -1177,13 +1180,14 @@ export class Grapher
     }
 
     @computed get availableTabs(): GrapherTabOption[] {
-        return [
+        const tabs = [
             this.hasChartTab && GrapherTabOption.chart,
             this.hasMapTab && GrapherTabOption.map,
             GrapherTabOption.table,
             GrapherTabOption.sources,
             GrapherTabOption.download,
         ].filter(identity) as GrapherTabOption[]
+        return tabs.filter((tab) => !this.hiddenTabs.includes(tab))
     }
 
     @computed get currentTitle(): string {
@@ -2660,12 +2664,16 @@ export class Grapher
         return this.showAddEntityButton
     }
 
+    @computed get hideDownloadTab(): boolean {
+        return this.hiddenTabs.includes(GrapherTabOption.download)
+    }
+
     // For now I am only exposing this programmatically for the dashboard builder. Setting this to true
     // allows you to still use add country "modes" without showing the buttons in order to prioritize
     // another entity selector over the built in ones.
     @observable hideEntityControls = false
 
-    // exposed programmatically for hiding interactive controls when desired
+    // exposed programmatically for hiding interactive controls or tabs when desired
     // (e.g. used to hide Grapher chrome when a Grapher chart in a Gdoc article is in "read-only" mode)
     @observable hideZoomToggle = false
     @observable hideNoDataAreaToggle = false
@@ -2678,6 +2686,8 @@ export class Grapher
         time: false,
         changeInPrefix: false,
     }
+    @observable hiddenTabs: GrapherTabOption[] = []
+    @observable hideShareTabButton = false
 
     static updateConfigToHideInteractiveControls(
         config: GrapherProgrammaticInterface
@@ -2696,6 +2706,21 @@ export class Grapher
             time: true,
             changeInPrefix: true,
         }
+        return config
+    }
+
+    static updateConfigToHideInactiveTabs(
+        config: GrapherProgrammaticInterface,
+        activeTab: GrapherInitialTabOption
+    ): GrapherProgrammaticInterface {
+        config.hiddenTabs = [
+            activeTab !== GrapherTabOption.chart && GrapherTabOption.chart,
+            activeTab !== GrapherTabOption.map && GrapherTabOption.map,
+            activeTab !== GrapherTabOption.table && GrapherTabOption.table,
+            GrapherTabOption.sources,
+            GrapherTabOption.download,
+        ].filter(identity) as GrapherTabOption[]
+        config.hideShareTabButton = true
         return config
     }
 }

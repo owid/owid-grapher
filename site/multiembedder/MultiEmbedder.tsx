@@ -9,6 +9,8 @@ import {
     hydrateGlobalEntitySelectorIfAny,
     migrateSelectedEntityNamesParam,
     SelectionArray,
+    GrapherTabOption,
+    GrapherInitialTabOption,
 } from "@ourworldindata/grapher"
 import {
     Annotation,
@@ -139,7 +141,7 @@ class MultiEmbedder {
         // when going from portrait to landscape mode (without page reload).
         this.figuresObserver?.unobserve(figure)
 
-        const { fullUrl, queryStr } = Url.fromURL(dataSrc)
+        const { fullUrl, queryStr, queryParams } = Url.fromURL(dataSrc)
 
         const common: GrapherProgrammaticInterface = {
             isEmbeddedInAnOwidPage: true,
@@ -177,6 +179,8 @@ class MultiEmbedder {
         } else {
             figure.classList.remove("grapherPreview")
 
+            const grapherPageConfig = deserializeJSONFromHTML(html)
+
             let localConfig: GrapherProgrammaticInterface = {}
             const figureConfigAttr = figure.getAttribute(
                 GRAPHER_EMBEDDED_FIGURE_CONFIG_ATTR
@@ -185,10 +189,20 @@ class MultiEmbedder {
                 localConfig = JSON.parse(figureConfigAttr)
                 localConfig =
                     Grapher.updateConfigToHideInteractiveControls(localConfig)
+
+                const activeTab: GrapherInitialTabOption =
+                    queryParams.tab ||
+                    grapherPageConfig.tab ||
+                    GrapherTabOption.chart
+
+                localConfig = Grapher.updateConfigToHideInactiveTabs(
+                    localConfig,
+                    activeTab
+                )
             }
 
             const config: GrapherProgrammaticInterface = {
-                ...deserializeJSONFromHTML(html),
+                ...grapherPageConfig,
                 ...common,
                 ...localConfig,
                 manager: {

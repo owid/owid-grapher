@@ -81,6 +81,11 @@ export enum GrapherTabOption {
     table = "table",
 }
 
+export type GrapherInitialTabOption =
+    | GrapherTabOption.chart
+    | GrapherTabOption.map
+    | GrapherTabOption.table
+
 export enum ScaleType {
     linear = "linear",
     log = "log",
