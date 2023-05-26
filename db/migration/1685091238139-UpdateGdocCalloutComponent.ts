@@ -31,10 +31,6 @@ export class UpdateGdocCalloutComponent1685091238139
     }
 }
 function recursivelyFixCalloutComponents(node: any): void {
-    // Below is what it used to look like:
-
-    // This is what we want:
-
     if (isArray(node)) {
         // If the argument is an array, iterate over its elements.
         forEach(node, (item) => {
