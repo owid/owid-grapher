@@ -8,8 +8,6 @@ import path from "path"
 import { BakeStep, bakeSteps } from "./SiteBaker.js"
 import { DeployTarget } from "./DeployTarget.js"
 
-throw new Error("This deploy should fail fast")
-
 yargs(hideBin(process.argv))
     .command<{
         target: DeployTarget
@@ -29,6 +27,7 @@ yargs(hideBin(process.argv))
                 })
         },
         async ({ target, skipChecks, runChecksRemotely, steps }) => {
+            throw new Error("This deploy should fail fast")
             const bakeSteps = steps ? new Set(steps as BakeStep[]) : undefined
             const deployer = new Deployer({
                 target: target as any,
