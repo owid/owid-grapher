@@ -1180,6 +1180,20 @@ export function parseDetails(details: unknown): {
 function parseExpandableParagraph(
     raw: RawBlockExpandableParagraph
 ): EnrichedBlockExpandableParagraph {
+    const createError = (
+        error: ParseError
+    ): EnrichedBlockExpandableParagraph => ({
+        type: "expandable-paragraph",
+        items: [],
+        parseErrors: [error],
+    })
+
+    if (!Array.isArray(raw.value) || !raw.value.length) {
+        return createError({
+            message:
+                "The block should be defined as an array, and have some content in it",
+        })
+    }
     return {
         type: "expandable-paragraph",
         items: compact(raw.value.map(parseRawBlocksToEnrichedBlocks)),
