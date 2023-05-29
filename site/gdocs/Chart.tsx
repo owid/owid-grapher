@@ -1,14 +1,16 @@
 import React, { useRef } from "react"
 import { useEmbedChart } from "../hooks.js"
 import {
-    GRAPHER_INTERFACE_WITH_HIDDEN_CONTROLS,
-    GRAPHER_INTERFACE_WITH_HIDDEN_TABS,
+    grapherInterfaceWithHiddenControlsOnly,
+    grapherInterfaceWithHiddenTabsOnly,
     GrapherProgrammaticInterface,
 } from "@ourworldindata/grapher"
 import {
-    omitUndefinedValues,
+    ChartShowKeyword,
     EnrichedBlockChart,
+    identity,
     Url,
+    merge,
 } from "@ourworldindata/utils"
 import { renderSpans } from "./utils.js"
 import cx from "classnames"
@@ -31,16 +33,22 @@ export default function Chart({
     let config: GrapherProgrammaticInterface = {}
     const isCustomized = d.title || d.subtitle
     if (isCustomized) {
-        const custom = omitUndefinedValues({
-            title: d.title,
-            subtitle: d.subtitle,
-        })
+        const show: ChartShowKeyword[] = d.show || []
+        const showAllControls = show.includes("all controls")
+        const showAllTabs = show.includes("all tabs")
+        const listOfGrapherConfigs = show
+            .map((s) => mapKeywordToGrapherConfig(s))
+            .filter(identity) as GrapherProgrammaticInterface[]
 
-        config = {
-            ...GRAPHER_INTERFACE_WITH_HIDDEN_CONTROLS,
-            ...GRAPHER_INTERFACE_WITH_HIDDEN_TABS,
-            ...custom,
-        }
+        config = merge(
+            !showAllControls ? grapherInterfaceWithHiddenControlsOnly : {},
+            !showAllTabs ? grapherInterfaceWithHiddenTabsOnly : {},
+            ...listOfGrapherConfigs,
+            {
+                title: d.title,
+                subtitle: d.subtitle,
+            }
+        )
 
         // make sure the custom title is presented as is
         if (config.title) {
@@ -79,4 +87,62 @@ export default function Chart({
             ) : null}
         </div>
     )
+}
+
+const mapKeywordToGrapherConfig = (
+    keyword: ChartShowKeyword
+): GrapherProgrammaticInterface | null => {
+    switch (keyword) {
+        case "relative toggle":
+            return { hideRelativeToggle: false }
+
+        case "timeline":
+            return { hideTimeline: false, map: { hideTimeline: false } }
+
+        case "facet control":
+            return { hideFacetControl: false }
+
+        case "entity selector":
+        case "country selector":
+            return { hideEntityControls: false }
+
+        case "zoom toggle":
+            return { hideZoomToggle: false }
+
+        case "no data area toggle":
+        case "data area toggle":
+        case "area toggle":
+            return { hideNoDataAreaToggle: false }
+
+        case "align axis scales toggle":
+        case "align axis toggle":
+            return { hideFacetYDomainToggle: false }
+
+        case "x log/linear selector":
+        case "x log selector":
+            return { hideXScaleToggle: false }
+
+        case "y log/linear selector":
+        case "y log selector":
+            return { hideYScaleToggle: false }
+
+        case "chart tab":
+            return { hasChartTab: true }
+
+        case "map tab":
+            return { hasMapTab: true }
+
+        case "table tab":
+            return { hasTableTab: true }
+
+        case "sources tab":
+        case "source tab":
+            return { hasSourcesTab: true }
+
+        case "download tab":
+            return { hasDownloadTab: true }
+
+        default:
+            return null
+    }
 }

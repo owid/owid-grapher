@@ -9,6 +9,7 @@ import {
     hydrateGlobalEntitySelectorIfAny,
     migrateSelectedEntityNamesParam,
     SelectionArray,
+    safeMergeGrapherConfigs,
 } from "@ourworldindata/grapher"
 import {
     Annotation,
@@ -19,7 +20,6 @@ import {
     isMobile,
     isPresent,
     Url,
-    merge,
 } from "@ourworldindata/utils"
 import { action } from "mobx"
 import React from "react"
@@ -185,7 +185,7 @@ class MultiEmbedder {
                 ? JSON.parse(figureConfigAttr)
                 : {}
 
-            const config: GrapherProgrammaticInterface = merge(
+            const config = safeMergeGrapherConfigs(
                 deserializeJSONFromHTML(html),
                 common,
                 localConfig,

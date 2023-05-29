@@ -63,10 +63,12 @@ import {
     firstOfNonEmptyArray,
     spansToUnformattedPlainText,
     EnrichedDetail,
+    merge,
 } from "@ourworldindata/utils"
 import {
     ChartTypeName,
     GrapherTabOption,
+    GrapherInitialTabOption,
     ScaleType,
     StackMode,
     EntitySelectionMode,
@@ -248,6 +250,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     adminBaseUrl?: string
     env?: string
     dataApiUrlForAdmin?: string
+    annotation?: Annotation
 
     hideEntityControls?: boolean
     hideZoomToggle?: boolean
@@ -256,9 +259,10 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     hideXScaleToggle?: boolean
     hideYScaleToggle?: boolean
     forceHideAnnotationFieldsInTitle?: AnnotationFieldsInTitle
-    hiddenTabs?: GrapherTabOption[]
+    hasTableTab?: boolean
+    hasSourcesTab?: boolean
+    hasDownloadTab?: boolean
     hideShareTabButton?: boolean
-    hideOpenInAnotherTabButton?: boolean
 
     getGrapherInstance?: (instance: Grapher) => void
 
@@ -1180,14 +1184,13 @@ export class Grapher
     }
 
     @computed get availableTabs(): GrapherTabOption[] {
-        const tabs = [
+        return [
             this.hasChartTab && GrapherTabOption.chart,
             this.hasMapTab && GrapherTabOption.map,
-            GrapherTabOption.table,
-            GrapherTabOption.sources,
-            GrapherTabOption.download,
+            this.hasTableTab && GrapherTabOption.table,
+            this.hasSourcesTab && GrapherTabOption.sources,
+            this.hasDownloadTab && GrapherTabOption.download,
         ].filter(identity) as GrapherTabOption[]
-        return tabs.filter((tab) => !this.hiddenTabs.includes(tab))
     }
 
     @computed get currentTitle(): string {
@@ -2204,11 +2207,15 @@ export class Grapher
         )
     }
 
+    @computed private get showFooterControls(): boolean {
+        return this.hasChartTab || this.hasMapTab || this.hasTableTab
+    }
+
     private renderReady(): JSX.Element {
         return (
             <>
                 {this.hasBeenVisible && this.renderPrimaryTab()}
-                <FooterControls manager={this} />
+                {this.showFooterControls && <FooterControls manager={this} />}
                 {this.renderOverlayTab()}
                 {this.popups}
                 <TooltipContainer
@@ -2664,10 +2671,6 @@ export class Grapher
         return this.showAddEntityButton
     }
 
-    @computed get hideDownloadTab(): boolean {
-        return this.hiddenTabs.includes(GrapherTabOption.download)
-    }
-
     // For now I am only exposing this programmatically for the dashboard builder. Setting this to true
     // allows you to still use add country "modes" without showing the buttons in order to prioritize
     // another entity selector over the built in ones.
@@ -2686,9 +2689,10 @@ export class Grapher
         time: false,
         changeInPrefix: false,
     }
-    @observable hiddenTabs: GrapherTabOption[] = []
+    @observable hasTableTab = true
+    @observable hasSourcesTab = true
+    @observable hasDownloadTab = true
     @observable hideShareTabButton = false
-    @observable hideOpenInAnotherTabButton = false
 }
 
 const defaultObject = objectWithPersistablesToObject(
@@ -2705,4 +2709,28 @@ export const getErrorMessageRelatedQuestionUrl = (
                   "URL should start with http(s)://") ||
               undefined
         : undefined
+}
+
+export function safeMergeGrapherConfigs(
+    ...configs: GrapherProgrammaticInterface[]
+): GrapherProgrammaticInterface {
+    const c = merge({}, ...configs)
+
+    // ensure that the initially selected tab is available
+    const isAnyTabVisible =
+        c.hasChartTab ||
+        c.hasMapTab ||
+        c.hasTableTab ||
+        c.hasSourcesTab ||
+        c.hasDownloadTab
+    if (isAnyTabVisible) {
+        const tab: GrapherInitialTabOption = c.tab || GrapherTabOption.chart
+        if (tab === GrapherTabOption.chart && !c.hasChartTab)
+            c.hasChartTab = true
+        if (tab === GrapherTabOption.map && !c.hasMapTab) c.hasMapTab = true
+        if (tab === GrapherTabOption.table && !c.hasTableTab)
+            c.hasTableTab = true
+    }
+
+    return c
 }

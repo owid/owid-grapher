@@ -1,6 +1,8 @@
 import {
     BlockPositionChoice,
     ChartPositionChoice,
+    ChartShowKeyword,
+    chartShowKeywords,
     compact,
     EnrichedBlockAside,
     EnrichedBlockCallout,
@@ -257,6 +259,22 @@ const parseChart = (raw: RawBlockChart): EnrichedBlockChart => {
         const title = val.title
         const subtitle = val.subtitle
 
+        const show: ChartShowKeyword[] = []
+        if (val.show?.length) {
+            val.show.forEach((keyword: string) => {
+                keyword = keyword.trim().toLowerCase()
+                if (chartShowKeywords.includes(keyword)) {
+                    show.push(keyword)
+                } else {
+                    warnings.push({
+                        message:
+                            "Keyword in `show` must be one of: " +
+                            chartShowKeywords.join(", "),
+                    })
+                }
+            })
+        }
+
         return omitUndefinedValues({
             type: "chart",
             url,
@@ -267,6 +285,7 @@ const parseChart = (raw: RawBlockChart): EnrichedBlockChart => {
             caption: caption.length > 0 ? caption : undefined,
             title,
             subtitle,
+            show: show.length > 0 ? show : undefined,
             parseErrors: [],
         }) as EnrichedBlockChart
     }

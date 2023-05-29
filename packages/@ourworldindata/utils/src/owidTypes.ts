@@ -510,6 +510,34 @@ export type EnrichedBlockAside = {
     caption: Span[]
 } & EnrichedBlockWithParseErrors
 
+export const chartShowKeywords = [
+    "all tabs",
+    "all controls",
+    "relative toggle",
+    "timeline",
+    "facet control",
+    "entity selector",
+    "country selector",
+    "zoom toggle",
+    "no data area toggle",
+    "data area toggle",
+    "area toggle",
+    "align axis scales toggle",
+    "align axis toggle",
+    "x log/linear selector",
+    "x log selector",
+    "y log/linear selector",
+    "y log selector",
+    "chart tab",
+    "map tab",
+    "table tab",
+    "sources tab",
+    "source tab",
+    "download tab",
+]
+
+export type ChartShowKeyword = (typeof chartShowKeywords)[number]
+
 export type RawBlockChartValue = {
     url?: string
     height?: string
@@ -520,7 +548,9 @@ export type RawBlockChartValue = {
     caption?: string
     title?: string
     subtitle?: string
+    show?: string[]
 }
+
 export type RawBlockChart = {
     type: "chart"
     value: RawBlockChartValue | string
@@ -536,6 +566,7 @@ export type EnrichedBlockChart = {
     caption?: Span[]
     title?: string
     subtitle?: string
+    show?: ChartShowKeyword[]
 } & EnrichedBlockWithParseErrors
 
 export type RawBlockScroller = {

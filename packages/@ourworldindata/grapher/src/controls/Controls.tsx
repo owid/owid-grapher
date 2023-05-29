@@ -276,9 +276,8 @@ export interface FooterControlsManager extends ShareMenuManager {
     relatedQuestions: RelatedQuestionsConfig[]
     footerControlsHeight?: number
     timelineController?: TimelineController
-    hideDownloadTab?: boolean
+    hasDownloadTab?: boolean
     hideShareTabButton?: boolean
-    hideOpenInAnotherTabButton?: boolean
 }
 
 @observer
@@ -324,7 +323,7 @@ export class FooterControls extends React.Component<{
                             </li>
                         ) : null
                     })}
-                    {!manager.hideDownloadTab && (
+                    {manager.hasDownloadTab && (
                         <li
                             className={
                                 "tab clickable icon download-tab-button" +
@@ -357,20 +356,19 @@ export class FooterControls extends React.Component<{
                             </a>
                         </li>
                     )}
-                    {manager.isInIFrame &&
-                        !manager.hideOpenInAnotherTabButton && (
-                            <li className="clickable icon">
-                                <a
-                                    title="Open chart in new tab"
-                                    href={manager.canonicalUrl}
-                                    data-track-note="chart-click-newtab"
-                                    target="_blank"
-                                    rel="noopener"
-                                >
-                                    <FontAwesomeIcon icon={faExpand} />
-                                </a>
-                            </li>
-                        )}
+                    {manager.isInIFrame && (
+                        <li className="clickable icon">
+                            <a
+                                title="Open chart in new tab"
+                                href={manager.canonicalUrl}
+                                data-track-note="chart-click-newtab"
+                                target="_blank"
+                                rel="noopener"
+                            >
+                                <FontAwesomeIcon icon={faExpand} />
+                            </a>
+                        </li>
+                    )}
                 </ul>
             </nav>
         )

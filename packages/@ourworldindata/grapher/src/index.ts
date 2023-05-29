@@ -41,8 +41,8 @@ export {
     getVariableDataRoute,
     getVariableMetadataRoute,
     Patterns,
-    GRAPHER_INTERFACE_WITH_HIDDEN_CONTROLS,
-    GRAPHER_INTERFACE_WITH_HIDDEN_TABS,
+    grapherInterfaceWithHiddenControlsOnly,
+    grapherInterfaceWithHiddenTabsOnly,
 } from "./core/GrapherConstants"
 export { ColorScale } from "./color/ColorScale"
 export { ColorScaleConfig } from "./color/ColorScaleConfig"
@@ -69,6 +69,7 @@ export {
     type GrapherProgrammaticInterface,
     type GrapherManager,
     getErrorMessageRelatedQuestionUrl,
+    safeMergeGrapherConfigs,
 } from "./core/Grapher"
 export { GrapherAnalytics } from "./core/GrapherAnalytics"
 export {
