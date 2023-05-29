@@ -1,6 +1,11 @@
 import React, { useRef } from "react"
 import { useEmbedChart } from "../hooks.js"
 import {
+    GRAPHER_INTERFACE_WITH_HIDDEN_CONTROLS,
+    GRAPHER_INTERFACE_WITH_HIDDEN_TABS,
+    GrapherProgrammaticInterface,
+} from "@ourworldindata/grapher"
+import {
     omitUndefinedValues,
     EnrichedBlockChart,
     Url,
@@ -23,10 +28,29 @@ export default function Chart({
     const hasControls = url.queryParams.hideControls !== "true"
     const height = d.height || (isExplorer && hasControls ? 700 : 575)
 
-    const chartConfig = omitUndefinedValues({
-        title: d.title,
-        subtitle: d.subtitle,
-    })
+    let config: GrapherProgrammaticInterface = {}
+    const isCustomized = d.title || d.subtitle
+    if (isCustomized) {
+        const custom = omitUndefinedValues({
+            title: d.title,
+            subtitle: d.subtitle,
+        })
+
+        config = {
+            ...GRAPHER_INTERFACE_WITH_HIDDEN_CONTROLS,
+            ...GRAPHER_INTERFACE_WITH_HIDDEN_TABS,
+            ...custom,
+        }
+
+        // make sure the custom title is presented as is
+        if (config.title) {
+            config.forceHideAnnotationFieldsInTitle = {
+                entity: true,
+                time: true,
+                changeInPrefix: true,
+            }
+        }
+    }
 
     return (
         <div
@@ -40,7 +64,9 @@ export default function Chart({
                 data-grapher-src={isExplorer ? undefined : d.url}
                 data-explorer-src={isExplorer ? d.url : undefined}
                 data-grapher-config={
-                    isExplorer ? undefined : JSON.stringify(chartConfig)
+                    isCustomized && !isExplorer
+                        ? JSON.stringify(config)
+                        : undefined
                 }
                 style={{
                     width: "100%",

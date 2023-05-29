@@ -278,6 +278,7 @@ export interface FooterControlsManager extends ShareMenuManager {
     timelineController?: TimelineController
     hideDownloadTab?: boolean
     hideShareTabButton?: boolean
+    hideOpenInAnotherTabButton?: boolean
 }
 
 @observer
@@ -346,7 +347,7 @@ export class FooterControls extends React.Component<{
                         </li>
                     )}
                     {!manager.hideShareTabButton && (
-                        <li className="clickable icon share-tab-button">
+                        <li className="clickable icon">
                             <a
                                 title="Share"
                                 onClick={this.onShareMenu}
@@ -356,19 +357,20 @@ export class FooterControls extends React.Component<{
                             </a>
                         </li>
                     )}
-                    {manager.isInIFrame && (
-                        <li className="clickable icon open-in-another-tab-button">
-                            <a
-                                title="Open chart in new tab"
-                                href={manager.canonicalUrl}
-                                data-track-note="chart-click-newtab"
-                                target="_blank"
-                                rel="noopener"
-                            >
-                                <FontAwesomeIcon icon={faExpand} />
-                            </a>
-                        </li>
-                    )}
+                    {manager.isInIFrame &&
+                        !manager.hideOpenInAnotherTabButton && (
+                            <li className="clickable icon">
+                                <a
+                                    title="Open chart in new tab"
+                                    href={manager.canonicalUrl}
+                                    data-track-note="chart-click-newtab"
+                                    target="_blank"
+                                    rel="noopener"
+                                >
+                                    <FontAwesomeIcon icon={faExpand} />
+                                </a>
+                            </li>
+                        )}
                 </ul>
             </nav>
         )

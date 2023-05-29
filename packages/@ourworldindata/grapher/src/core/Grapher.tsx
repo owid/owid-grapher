@@ -258,6 +258,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     forceHideAnnotationFieldsInTitle?: AnnotationFieldsInTitle
     hiddenTabs?: GrapherTabOption[]
     hideShareTabButton?: boolean
+    hideOpenInAnotherTabButton?: boolean
 
     getGrapherInstance?: (instance: Grapher) => void
 
@@ -2687,6 +2688,7 @@ export class Grapher
     }
     @observable hiddenTabs: GrapherTabOption[] = []
     @observable hideShareTabButton = false
+    @observable hideOpenInAnotherTabButton = false
 }
 
 const defaultObject = objectWithPersistablesToObject(

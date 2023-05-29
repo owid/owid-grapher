@@ -153,4 +153,5 @@ export const GRAPHER_INTERFACE_WITH_HIDDEN_CONTROLS = {
 export const GRAPHER_INTERFACE_WITH_HIDDEN_TABS = {
     hiddenTabs: Object.values(GrapherTabOption),
     hideShareTabButton: true,
+    hideOpenInAnotherTabButton: true,
 } as const

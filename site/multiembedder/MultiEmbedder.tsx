@@ -9,10 +9,6 @@ import {
     hydrateGlobalEntitySelectorIfAny,
     migrateSelectedEntityNamesParam,
     SelectionArray,
-    GrapherTabOption,
-    GrapherInitialTabOption,
-    GRAPHER_INTERFACE_WITH_HIDDEN_CONTROLS,
-    GRAPHER_INTERFACE_WITH_HIDDEN_TABS,
 } from "@ourworldindata/grapher"
 import {
     Annotation,
@@ -144,7 +140,7 @@ class MultiEmbedder {
         // when going from portrait to landscape mode (without page reload).
         this.figuresObserver?.unobserve(figure)
 
-        const { fullUrl, queryStr, queryParams } = Url.fromURL(dataSrc)
+        const { fullUrl, queryStr } = Url.fromURL(dataSrc)
 
         const common: GrapherProgrammaticInterface = {
             isEmbeddedInAnOwidPage: true,
@@ -182,41 +178,15 @@ class MultiEmbedder {
         } else {
             figure.classList.remove("grapherPreview")
 
-            const grapherPageConfig = deserializeJSONFromHTML(html)
-
-            let localConfig: GrapherProgrammaticInterface = {}
             const figureConfigAttr = figure.getAttribute(
                 GRAPHER_EMBEDDED_FIGURE_CONFIG_ATTR
             )
-            if (figureConfigAttr) {
-                localConfig = {
-                    ...GRAPHER_INTERFACE_WITH_HIDDEN_CONTROLS,
-                    ...GRAPHER_INTERFACE_WITH_HIDDEN_TABS,
-                    ...JSON.parse(figureConfigAttr),
-                }
-
-                // make sure the custom title is presented as is
-                if (localConfig.title) {
-                    localConfig.forceHideAnnotationFieldsInTitle = {
-                        entity: true,
-                        time: true,
-                        changeInPrefix: true,
-                    }
-                }
-
-                // make sure the currently active tab isn't hidden
-                const activeTab: GrapherInitialTabOption =
-                    queryParams.tab ||
-                    grapherPageConfig.tab ||
-                    GrapherTabOption.chart
-                localConfig.hiddenTabs =
-                    localConfig.hiddenTabs?.filter(
-                        (tab: GrapherTabOption) => tab !== activeTab
-                    ) || []
-            }
+            const localConfig = figureConfigAttr
+                ? JSON.parse(figureConfigAttr)
+                : {}
 
             const config: GrapherProgrammaticInterface = merge(
-                grapherPageConfig,
+                deserializeJSONFromHTML(html),
                 common,
                 localConfig,
                 {
