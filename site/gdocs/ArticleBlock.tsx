@@ -90,7 +90,7 @@ const layouts: { [key in Container]: Layouts} = {
         ["chart"]: "span-cols-5 col-start-1 span-md-cols-10 col-md-start-2 span-sm-cols-12 col-sm-start-1",
         ["explorer"]: "span-cols-5 col-start-1 span-md-cols-10 col-md-start-2 span-sm-cols-12 col-sm-start-1",
         ["default"]: "span-cols-5 col-start-1 span-md-cols-12",
-        ["prominent-link"]: "grid grid-cols-6 span-cols-6 span-md-cols-10 grid-md-cols-10 span-sm-cols-12 grid-sm-cols-12",
+        ["prominent-link"]: "grid grid-cols-5 span-cols-5 span-md-cols-10 grid-md-cols-10 span-sm-cols-12 grid-sm-cols-12",
     },
     ["sticky-right-right-column"]: {
         ["chart"]: "span-cols-7 col-start-1 span-md-cols-10 col-md-start-2 span-sm-cols-12 col-sm-start-1",
@@ -108,7 +108,7 @@ const layouts: { [key in Container]: Layouts} = {
         ["chart"]: "span-cols-5 col-start-1 span-md-cols-10 col-md-start-2 span-sm-cols-12 col-sm-start-1",
         ["explorer"]: "span-cols-5 col-start-1 span-md-cols-10 col-md-start-2 span-sm-cols-12 col-sm-start-1",
         ["default"]: "span-cols-5 span-md-cols-12",
-        ["prominent-link"]: "grid grid-cols-6 span-cols-6 span-md-cols-10 grid-md-cols-10 span-sm-cols-12 grid-sm-cols-12",
+        ["prominent-link"]: "grid grid-cols-5 span-cols-5 span-md-cols-10 grid-md-cols-10 span-sm-cols-12 grid-sm-cols-12",
     },
     ["side-by-side"]: {
         ["default"]: "span-cols-6 span-sm-cols-12",
