@@ -41,7 +41,7 @@ yargs(hideBin(process.argv))
                 })
         },
         async ({ baseUrl, dir, steps }) => {
-            throw new Error("This deploy should fail fast")
+            throw new Error("This deploy should fail fast... and even faster!")
             const bakeSteps = steps ? new Set(steps as BakeStep[]) : undefined
             await bakeDomainToFolder(baseUrl, dir, bakeSteps)
             process.exit(0)
