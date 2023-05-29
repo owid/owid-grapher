@@ -2207,10 +2207,6 @@ export class Grapher
         )
     }
 
-    @computed private get showFooterControls(): boolean {
-        return this.hasChartTab || this.hasMapTab || this.hasTableTab
-    }
-
     private renderReady(): JSX.Element {
         return (
             <>
@@ -2347,11 +2343,16 @@ export class Grapher
         )
     }
 
+    @computed private get showFooterControls(): boolean {
+        return this.hasChartTab || this.hasMapTab || this.hasTableTab
+    }
+
     @computed private get footerControlsLines(): number {
         return this.hasTimeline ? 2 : 1
     }
 
     @computed get footerControlsHeight(): number {
+        if (!this.showFooterControls) return 0
         const footerRowHeight = 32 // todo: cleanup. needs to keep in sync with grapher.scss' $footerRowHeight
         return (
             this.footerControlsLines * footerRowHeight +
