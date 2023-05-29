@@ -2569,6 +2569,10 @@ export class Grapher
             : timeColumn.formatValue(value)
     }
 
+    @computed get showExploreDataLink(): boolean {
+        return this.isInIFrame && !this.showFooterControls
+    }
+
     @computed get showYScaleToggle(): boolean | undefined {
         if (this.hideYScaleToggle) return false
         if (this.isRelativeMode) return false

@@ -26,7 +26,11 @@ import { MapChartManager } from "../mapCharts/MapChartConstants"
 import { ChartManager } from "../chart/ChartManager"
 import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
 import { FacetChart } from "../facetChart/FacetChart"
-import { faRightLeft, faPencilAlt } from "@fortawesome/free-solid-svg-icons"
+import {
+    faExternalLink,
+    faRightLeft,
+    faPencilAlt,
+} from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { CollapsibleList } from "../controls/CollapsibleList/CollapsibleList"
 import {
@@ -76,6 +80,7 @@ export interface CaptionedChartManager
     showChangeEntityButton?: boolean
     showAddEntityButton?: boolean
     showSelectEntitiesButton?: boolean
+    showExploreDataLink?: boolean
     shouldIncludeDetailsInStaticExport?: boolean
     detailRenderers: MarkdownTextWrap[]
 }
@@ -217,96 +222,118 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
 
     @computed get controls(): JSX.Element[] {
         const manager = this.manager
-        // Todo: we don't yet show any controls on Maps, but seems like we would want to.
-        if (!manager.isReady || this.isMapTab) return []
+        if (!manager.isReady) return []
 
         const { showYScaleToggle, showXScaleToggle } = manager
 
         const controls: JSX.Element[] = []
 
-        if (showYScaleToggle)
-            controls.push(
-                <ScaleSelector
-                    key="scaleSelector"
-                    manager={manager.yAxis!}
-                    prefix={showXScaleToggle ? "Y: " : ""}
-                />
-            )
+        if (!this.isMapTab) {
+            if (showYScaleToggle)
+                controls.push(
+                    <ScaleSelector
+                        key="scaleSelector"
+                        manager={manager.yAxis!}
+                        prefix={showXScaleToggle ? "Y: " : ""}
+                    />
+                )
 
-        if (showXScaleToggle)
-            controls.push(
-                <ScaleSelector
-                    key="scaleSelector"
-                    manager={manager.xAxis!}
-                    prefix={"X: "}
-                />
-            )
+            if (showXScaleToggle)
+                controls.push(
+                    <ScaleSelector
+                        key="scaleSelector"
+                        manager={manager.xAxis!}
+                        prefix={"X: "}
+                    />
+                )
 
-        if (manager.showSelectEntitiesButton)
-            controls.push(
-                <button
-                    type="button"
-                    key="grapher-select-entities"
-                    data-track-note="grapher-select-entities"
-                    style={controls.length === 0 ? { padding: 0 } : {}} // If there are no controls to the left then set padding to 0 for better alignment
-                    onClick={this.startSelecting}
-                >
-                    <span className="SelectEntitiesButton">
-                        <FontAwesomeIcon icon={faPencilAlt} />
-                        {`Select ${manager.entityTypePlural}`}
-                    </span>
-                </button>
-            )
+            if (manager.showSelectEntitiesButton)
+                controls.push(
+                    <button
+                        type="button"
+                        key="grapher-select-entities"
+                        data-track-note="grapher-select-entities"
+                        style={controls.length === 0 ? { padding: 0 } : {}} // If there are no controls to the left then set padding to 0 for better alignment
+                        onClick={this.startSelecting}
+                    >
+                        <span className="SelectEntitiesButton">
+                            <FontAwesomeIcon icon={faPencilAlt} />
+                            {`Select ${manager.entityTypePlural}`}
+                        </span>
+                    </button>
+                )
 
-        if (manager.showChangeEntityButton)
-            controls.push(
-                <button
-                    type="button"
-                    key="grapher-change-entities"
-                    data-track-note="grapher-change-entity"
-                    className="ChangeEntityButton"
-                    onClick={this.startSelecting}
-                >
-                    <FontAwesomeIcon icon={faRightLeft} /> Change{" "}
-                    {manager.entityType}
-                </button>
-            )
+            if (manager.showChangeEntityButton)
+                controls.push(
+                    <button
+                        type="button"
+                        key="grapher-change-entities"
+                        data-track-note="grapher-change-entity"
+                        className="ChangeEntityButton"
+                        onClick={this.startSelecting}
+                    >
+                        <FontAwesomeIcon icon={faRightLeft} /> Change{" "}
+                        {manager.entityType}
+                    </button>
+                )
 
-        if (manager.showAddEntityButton)
-            controls.push(
-                <AddEntityButton key="AddEntityButton" manager={manager} />
-            )
+            if (manager.showAddEntityButton)
+                controls.push(
+                    <AddEntityButton key="AddEntityButton" manager={manager} />
+                )
 
-        if (manager.showZoomToggle)
-            controls.push(<ZoomToggle key="ZoomToggle" manager={manager} />)
+            if (manager.showZoomToggle)
+                controls.push(<ZoomToggle key="ZoomToggle" manager={manager} />)
 
-        if (
-            manager.showFacetControl &&
-            manager.availableFacetStrategies.length > 1
-        ) {
-            controls.push(
-                <FacetStrategyDropdown
-                    key="FacetStrategyDropdown"
-                    manager={manager}
-                />
-            )
+            if (
+                manager.showFacetControl &&
+                manager.availableFacetStrategies.length > 1
+            ) {
+                controls.push(
+                    <FacetStrategyDropdown
+                        key="FacetStrategyDropdown"
+                        manager={manager}
+                    />
+                )
+            }
+
+            if (manager.showAbsRelToggle)
+                controls.push(
+                    <AbsRelToggle key="AbsRelToggle" manager={manager} />
+                )
+
+            if (manager.showNoDataAreaToggle)
+                controls.push(
+                    <NoDataAreaToggle
+                        key="NoDataAreaToggle"
+                        manager={manager}
+                    />
+                )
+
+            if (manager.showFacetYDomainToggle)
+                controls.push(
+                    <FacetYDomainToggle
+                        key="FacetYDomainToggle"
+                        manager={manager}
+                    />
+                )
         }
 
-        if (manager.showAbsRelToggle)
-            controls.push(<AbsRelToggle key="AbsRelToggle" manager={manager} />)
-
-        if (manager.showNoDataAreaToggle)
+        if (manager.showExploreDataLink) {
             controls.push(
-                <NoDataAreaToggle key="NoDataAreaToggle" manager={manager} />
+                <a
+                    className="explore"
+                    title="Open chart in new tab"
+                    href={manager.canonicalUrl}
+                    data-track-note="chart-click-newtab"
+                    target="_blank"
+                    rel="noopener"
+                >
+                    Explore data
+                    <FontAwesomeIcon icon={faExternalLink} />
+                </a>
             )
-
-        if (manager.showFacetYDomainToggle)
-            controls.push(
-                <FacetYDomainToggle
-                    key="FacetYDomainToggle"
-                    manager={manager}
-                />
-            )
+        }
 
         return controls
     }
