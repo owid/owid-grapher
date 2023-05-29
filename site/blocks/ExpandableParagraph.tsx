@@ -2,6 +2,7 @@ import React, { useState } from "react"
 import cx from "classnames"
 import ReactDOM from "react-dom"
 import ReactDOMServer from "react-dom/server.js"
+import AnimateHeight from "react-animate-height"
 
 export const ExpandableParagraph = (
     props:
@@ -20,31 +21,34 @@ export const ExpandableParagraph = (
               buttonVariant?: "slim" | "full"
           }
 ) => {
-    const [isExpanded, setIsExpanded] = useState(false)
-
+    const CLOSED_HEIGHT = 100
+    const [height, setHeight] = useState<"auto" | number>(CLOSED_HEIGHT)
+    const isClosed = height === CLOSED_HEIGHT
     const { className, buttonVariant = "full", ...propsWithoutStyles } = props
 
-    const toggleIsExpanded = () => {
-        setIsExpanded(!isExpanded)
+    const toggleExpanded = () => {
+        setHeight(height === CLOSED_HEIGHT ? "auto" : CLOSED_HEIGHT)
     }
 
     return (
         <div className={cx("expandable-paragraph", className)}>
-            <div
-                className={cx("expandable-paragraph__content", {
-                    "expandable-paragraph__content--is-expanded": isExpanded,
-                })}
-                // Either pass children or dangerouslySetInnerHTML
-                {...propsWithoutStyles}
-            />
+            <AnimateHeight height={height}>
+                <div
+                    className={cx("expandable-paragraph__content", {
+                        "expandable-paragraph__content--is-closed": isClosed,
+                    })}
+                    // Either pass children or dangerouslySetInnerHTML
+                    {...propsWithoutStyles}
+                />
+            </AnimateHeight>
             <button
                 className={cx(
                     "expandable-paragraph__expand-button",
                     `expandable-paragraph__expand-button--${buttonVariant}`
                 )}
-                onClick={() => toggleIsExpanded()}
+                onClick={toggleExpanded}
             >
-                {isExpanded ? "Show less" : "Show more"}
+                {isClosed ? "Show more" : "Show less"}
             </button>
         </div>
     )
