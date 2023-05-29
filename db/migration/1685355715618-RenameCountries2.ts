@@ -4,15 +4,16 @@ const renameMap = {
     Timor: "East Timor",
     "Saint Barthélemy": "Saint Barthelemy",
     "Åland Islands": "Aland Islands",
+    "Faeroe Islands": "Faroe Islands",
+    "Eritrea and Ethiopia": "Ethiopia (former)",
+    "United Korea": "Korea (former)",
 }
 
 // code adapted from 1607505305417-RenameCountries.ts
-export class RenameCountries21683196062637 implements MigrationInterface {
+export class RenameCountries21685355715618 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         for (const [oldName, newName] of Object.entries(renameMap)) {
-            console.log(
-                `Renaming ${oldName} to ${newName} and deleting ${oldName} from entities table`
-            )
+            console.log(`Renaming ${oldName} to ${newName}`)
 
             const duplicateEntity = await queryRunner.query(
                 `
@@ -56,14 +57,6 @@ export class RenameCountries21683196062637 implements MigrationInterface {
                     [existingEntityId, duplicateEntityId]
                 )
 
-                await queryRunner.query(
-                    `
-                    DELETE FROM entities
-                    WHERE id = ?
-                `,
-                    [duplicateEntityId]
-                )
-
                 // refresh updatedAt timestamp of affected variables
                 // to trigger datasync that will refresh their JSON files on S3
                 if (affectedVariablesIds.length > 0) {
@@ -76,16 +69,45 @@ export class RenameCountries21683196062637 implements MigrationInterface {
                         [affectedVariablesIds]
                     )
                 }
+
+                // swap names, we can't just delete them because there might be old entity ids
+                // still on S3. We'll delete the old names in a later migration.
+                await queryRunner.query(
+                    `
+                    UPDATE entities
+                    SET name = ?
+                    WHERE id = ?
+                `,
+                    [`${oldName}-temp`, existingEntityId]
+                )
+                await queryRunner.query(
+                    `
+                    UPDATE entities
+                    SET name = ?
+                    WHERE id = ?
+                `,
+                    [oldName, duplicateEntityId]
+                )
+                await queryRunner.query(
+                    `
+                    UPDATE entities
+                    SET name = ?
+                    WHERE id = ?
+                `,
+                    [newName, existingEntityId]
+                )
+            } else {
+                // just rename entity if there's no duplicate
+                await queryRunner.query(
+                    `
+                    UPDATE entities
+                    SET name = ?
+                    WHERE name = ?
+                `,
+                    [newName, oldName]
+                )
             }
 
-            await queryRunner.query(
-                `
-                UPDATE entities
-                SET name = ?
-                WHERE name = ?
-            `,
-                [newName, oldName]
-            )
             await queryRunner.query(
                 `
                 UPDATE country_name_tool_countrydata
