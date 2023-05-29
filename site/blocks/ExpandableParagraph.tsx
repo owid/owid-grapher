@@ -27,7 +27,7 @@ export const ExpandableParagraph = (
     const { className, buttonVariant = "full", ...propsWithoutStyles } = props
 
     const toggleExpanded = () => {
-        setHeight(height === CLOSED_HEIGHT ? "auto" : CLOSED_HEIGHT)
+        setHeight(isClosed ? "auto" : CLOSED_HEIGHT)
     }
 
     return (
