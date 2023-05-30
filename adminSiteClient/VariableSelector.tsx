@@ -4,7 +4,6 @@ import {
     groupBy,
     isString,
     sortBy,
-    flatten,
     buildSearchWordsFromSearchString,
     filterFunctionForSearchWords,
     highlightFunctionForSearchWords,
@@ -83,7 +82,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
     }
 
     @computed get datasets(): Dataset[] {
-        const datasets = flatten(this.editorData.map((d) => d.datasets))
+        const datasets = this.editorData.flatMap((d) => d.datasets)
         return sortBy(datasets, (d) => d.name)
     }
 
@@ -478,12 +477,12 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
 
     dispose!: IReactionDisposer
     base: React.RefObject<HTMLDivElement> = React.createRef()
-    async componentDidMount() {
+    componentDidMount() {
         this.props.editor.loadVariableUsageCounts()
         this.initChosenVariablesAndNamespaces()
     }
 
-    @action.bound private async initChosenVariablesAndNamespaces() {
+    @action.bound private initChosenVariablesAndNamespaces() {
         const { datasetsByName } = this
         const { variableUsageCounts } = this.database
         const { dimensions } = this.props.slot

@@ -42,10 +42,10 @@ export const buildSearchWordsFromSearchString = (
     if (!searchInput) return []
 
     // Split search string into words and quoted strings
-    const regex = /(-?"[^"]*")|(-?[\w]+)/g
+    const regex = /(-?"[^"]*")|(-?[^\s]+)/g
     const matches = searchInput.matchAll(regex)
 
-    const wordRegexes = []
+    const wordRegexes: SearchWord[] = []
     for (const match of matches) {
         let segment = match[1] || match[2]
         const isQuotedString = match[1] !== undefined
