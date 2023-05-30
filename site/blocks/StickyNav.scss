@@ -44,7 +44,7 @@
 }
 
 .sticky-nav--dark {
-    background-color: #ebeef2;
+    background-color: $blue-10;
     a {
         color: $blue-40;
 
@@ -56,6 +56,24 @@
         &.active,
         &:hover {
             color: $blue-90;
+        }
+    }
+}
+
+.sticky-nav--light {
+    border-bottom: 1px solid $blue-10;
+    background-color: $white;
+    a {
+        color: $blue-90;
+
+        &:visited {
+            color: $blue-90;
+        }
+
+        &:active,
+        &.active,
+        &:hover {
+            color: $blue-50;
         }
     }
 }
