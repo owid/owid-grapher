@@ -346,7 +346,7 @@ export class FooterControls extends React.Component<{
                         </li>
                     )}
                     {!manager.hideShareTabButton && (
-                        <li className="clickable icon">
+                        <li className="clickable icon icon-only">
                             <a
                                 title="Share"
                                 onClick={this.onShareMenu}
@@ -358,7 +358,7 @@ export class FooterControls extends React.Component<{
                     )}
                     {manager.isInIFrame &&
                         (this.availableTabs.length > 0 ? (
-                            <li className="clickable icon">
+                            <li className="clickable icon icon-only">
                                 <a
                                     title="Open chart in new tab"
                                     href={manager.canonicalUrl}
