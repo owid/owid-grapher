@@ -68,7 +68,7 @@ export function OwidGdoc({
                         publishedAt={publishedAt}
                     />
                     {content.type === "topic-page" && stickyNavLinks ? (
-                        <nav className="sticky-nav span-cols-14 grid grid-cols-12-full-width">
+                        <nav className="sticky-nav sticky-nav--dark span-cols-14 grid grid-cols-12-full-width">
                             <StickyNav
                                 links={stickyNavLinks}
                                 className="span-cols-12 col-start-2"
