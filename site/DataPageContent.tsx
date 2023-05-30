@@ -320,7 +320,7 @@ export const DataPageContent = ({
                             <div className="gray-wrapper">
                                 <div className="faqs__wrapper grid wrapper">
                                     <h2 className="faqs__title span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                                        What you should know about this data
+                                        Frequently Asked Questions
                                     </h2>
                                     <div className="faqs__items grid grid-cols-10 grid-lg-cols-9 grid-md-cols-12 span-cols-10 span-lg-cols-9 span-md-cols-12 span-sm-cols-12">
                                         <ArticleBlocks
