@@ -444,6 +444,9 @@ export class EntityPicker extends React.Component<{
                     styles={getStylesForTargetHeight(26)}
                     isSearchable={false}
                     isLoading={this.manager.entityPickerTableIsLoading}
+                    onKeyDown={(event) => {
+                        event.stopPropagation()
+                    }}
                 />
                 <span
                     className="sort"
@@ -600,7 +603,6 @@ interface PickerOptionProps {
 class PickerOption extends React.Component<PickerOptionProps> {
     @bind onClick(event: React.MouseEvent<HTMLLabelElement, MouseEvent>): void {
         event.stopPropagation()
-        event.preventDefault()
         this.props.onChange(
             this.props.optionWithMetricValue.entityName,
             !this.props.isSelected
