@@ -2,7 +2,7 @@ import {
     BlockPositionChoice,
     ChartPositionChoice,
     ChartShowKeyword,
-    chartShowKeywords,
+    validChartShowKeywords,
     compact,
     EnrichedBlockAside,
     EnrichedBlockCallout,
@@ -263,13 +263,13 @@ const parseChart = (raw: RawBlockChart): EnrichedBlockChart => {
         if (val.show?.length) {
             val.show.forEach((keyword: string) => {
                 keyword = keyword.trim().toLowerCase()
-                if (chartShowKeywords.includes(keyword)) {
+                if (validChartShowKeywords.includes(keyword)) {
                     show.push(keyword)
                 } else {
                     warnings.push({
                         message:
                             "Keyword in `show` must be one of: " +
-                            chartShowKeywords.join(", "),
+                            validChartShowKeywords.join(", "),
                     })
                 }
             })

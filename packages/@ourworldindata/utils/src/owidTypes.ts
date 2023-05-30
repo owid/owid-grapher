@@ -510,7 +510,7 @@ export type EnrichedBlockAside = {
     caption: Span[]
 } & EnrichedBlockWithParseErrors
 
-export const chartShowKeywords = [
+export const validChartShowKeywords = [
     "all tabs",
     "all controls",
     "relative toggle",
@@ -536,7 +536,7 @@ export const chartShowKeywords = [
     "download tab",
 ]
 
-export type ChartShowKeyword = (typeof chartShowKeywords)[number]
+export type ChartShowKeyword = (typeof validChartShowKeywords)[number]
 
 export type RawBlockChartValue = {
     url?: string

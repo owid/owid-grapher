@@ -18,7 +18,7 @@ export {
     type CategoryWithEntries,
     type ChartPositionChoice,
     type ChartRecord,
-    chartShowKeywords,
+    validChartShowKeywords,
     type ChartShowKeyword,
     type Color,
     type ColumnSlug,

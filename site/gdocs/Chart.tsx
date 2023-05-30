@@ -36,14 +36,14 @@ export default function Chart({
         const show: ChartShowKeyword[] = d.show || []
         const showAllControls = show.includes("all controls")
         const showAllTabs = show.includes("all tabs")
-        const listOfGrapherConfigs = show
+        const listOfPartialGrapherConfigs = show
             .map((s) => mapKeywordToGrapherConfig(s))
             .filter(identity) as GrapherProgrammaticInterface[]
 
         config = merge(
             !showAllControls ? grapherInterfaceWithHiddenControlsOnly : {},
             !showAllTabs ? grapherInterfaceWithHiddenTabsOnly : {},
-            ...listOfGrapherConfigs,
+            ...listOfPartialGrapherConfigs,
             {
                 title: d.title,
                 subtitle: d.subtitle,
