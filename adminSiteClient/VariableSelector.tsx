@@ -213,7 +213,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
             <Modal onClose={this.onDismiss} className="VariableSelector">
                 <div className="modal-header">
                     <h5 className="modal-title">
-                        Set variable{slot.allowMultiple && "s"} for {slot.name}
+                        Set indicator{slot.allowMultiple && "s"} for {slot.name}
                     </h5>
                 </div>
                 <div className="modal-body">

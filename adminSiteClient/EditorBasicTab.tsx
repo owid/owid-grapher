@@ -237,7 +237,7 @@ class DimensionSlotView extends React.Component<{
                             () => (this.isSelectingVariables = true)
                         )}
                     >
-                        Add variable{slot.allowMultiple && "s"}
+                        Add indicator{slot.allowMultiple && "s"}
                     </div>
                 )}
                 {isSelectingVariables && (
@@ -265,7 +265,7 @@ class VariablesSection extends React.Component<{ editor: ChartEditor }> {
         const { dimensionSlots } = props.editor.grapher
 
         return (
-            <Section name="Add variables">
+            <Section name="Add indicators">
                 <div className="VariableSlots">
                     {dimensionSlots.map((slot) => (
                         <DimensionSlotView
