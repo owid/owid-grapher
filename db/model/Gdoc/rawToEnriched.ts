@@ -1277,7 +1277,7 @@ function parseResearchAndWritingBlock(
         function createLinkError(
             message: string
         ): EnrichedBlockResearchAndWritingLink {
-            parseErrors.push({ message, isWarning: true })
+            parseErrors.push({ message })
             return {
                 value: {
                     url: "",
