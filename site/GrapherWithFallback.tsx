@@ -12,13 +12,15 @@ export const GrapherWithFallback = ({
     grapher,
     slug,
     className,
+    id,
 }: {
     grapher?: Grapher | undefined
     slug?: string
     className?: string
+    id?: string
 }) => {
     return slug ? (
-        <div className={cx("GrapherWithFallback", className)}>
+        <div className={cx("GrapherWithFallback", className)} id={id}>
             <>
                 {grapher ? (
                     <GrapherFigureView grapher={grapher} />
