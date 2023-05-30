@@ -16,6 +16,7 @@ import {
     OwidGdocInterface,
 } from "@ourworldindata/utils"
 import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
+import StickyNav from "./blocks/StickyNav.js"
 
 declare global {
     interface Window {
@@ -57,6 +58,21 @@ export const DataPageContent = ({
         linkedCharts = {},
     } = datapageGdoc || {}
 
+    const stickyNavLinks = [
+        {
+            text: "Explore the data",
+            target: "#explore-the-data",
+        },
+        {
+            text: "Research & Writing",
+            target: "#research-and-writing",
+        },
+        { text: "Related Data", target: "#related-data" },
+        { text: "All Charts", target: "#all-charts" },
+        { text: "FAQs", target: "#faqs" },
+        { text: "Sources & Processing", target: "#sources-and-processing" },
+    ]
+
     return (
         <AttachmentsContext.Provider
             value={{ linkedDocuments, imageMetadata, linkedCharts }}
@@ -94,7 +110,12 @@ export const DataPageContent = ({
                             </div>
                         </div>
                     </div>
-
+                    <nav className="sticky-nav span-cols-14 grid grid-cols-12-full-width">
+                        <StickyNav
+                            links={stickyNavLinks}
+                            className="span-cols-12 col-start-2"
+                        />
+                    </nav>
                     <div
                         style={{
                             backgroundColor: "#f7f7f7",
@@ -106,6 +127,7 @@ export const DataPageContent = ({
                             grapher={grapher}
                             slug={grapherConfig.slug}
                             className="wrapper"
+                            id="explore-the-data"
                         />
                         <div className="key-info__wrapper wrapper grid grid-cols-12">
                             <div className="key-info__left col-start-2 span-cols-7 span-lg-cols-8 span-sm-cols-12">
@@ -189,7 +211,10 @@ export const DataPageContent = ({
                         </div>
                     </div>
                     <div className="related-research__wrapper grid wrapper">
-                        <h2 className="related-research__title span-cols-3 span-lg-cols-12">
+                        <h2
+                            className="related-research__title span-cols-3 span-lg-cols-12"
+                            id="research-and-writing"
+                        >
                             Related research and writing
                         </h2>
                         <div className="related-research__items grid grid-cols-9 grid-lg-cols-12 span-cols-9 span-lg-cols-12">
@@ -224,7 +249,10 @@ export const DataPageContent = ({
                         <hr />
                     </div>
                     <div className="related-data__wrapper wrapper grid">
-                        <h2 className="related-data__title span-cols-3 span-lg-cols-12">
+                        <h2
+                            className="related-data__title span-cols-3 span-lg-cols-12"
+                            id="related-data"
+                        >
                             Related data
                         </h2>
                         <div className="related-data__items span-cols-9 span-lg-cols-12">
@@ -305,7 +333,10 @@ export const DataPageContent = ({
                     {datapageJson.relatedCharts &&
                     datapageJson.relatedCharts.length > 0 ? (
                         <div className="related-charts__wrapper wrapper">
-                            <h2 className="related-charts__title">
+                            <h2
+                                className="related-charts__title"
+                                id="all-charts"
+                            >
                                 Explore charts that include this data
                             </h2>
                             <div>
@@ -319,7 +350,10 @@ export const DataPageContent = ({
                         <>
                             <div className="gray-wrapper">
                                 <div className="faqs__wrapper grid wrapper">
-                                    <h2 className="faqs__title span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+                                    <h2
+                                        className="faqs__title span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
+                                        id="faqs"
+                                    >
                                         Frequently Asked Questions
                                     </h2>
                                     <div className="faqs__items grid grid-cols-10 grid-lg-cols-9 grid-md-cols-12 span-cols-10 span-lg-cols-9 span-md-cols-12 span-sm-cols-12">
@@ -342,7 +376,10 @@ export const DataPageContent = ({
                     )}
                     <div className="gray-wrapper">
                         <div className="dataset__wrapper grid wrapper">
-                            <h2 className="dataset__title span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+                            <h2
+                                className="dataset__title span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
+                                id="sources-and-processing"
+                            >
                                 Sources and Processing
                             </h2>
                             <div className="dataset__content col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
