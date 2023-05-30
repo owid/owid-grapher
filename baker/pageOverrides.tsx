@@ -8,14 +8,14 @@ import {
 } from "@ourworldindata/utils"
 import { getPostBySlug, isPostCitable } from "../db/wpdb.js"
 import { getTopSubnavigationParentItem } from "../site/SiteSubnavigation.js"
-import { logContentErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
+import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 
 export const getPostBySlugLogToSlackNoThrow = async (slug: string) => {
     let post
     try {
         post = await getPostBySlug(slug)
     } catch (err) {
-        logContentErrorAndMaybeSendToSlack(err)
+        logErrorAndMaybeSendToBugsnag(err)
     } finally {
         return post
     }
@@ -43,7 +43,7 @@ export const getLandingOnlyIfParent = async (
         // todo: the concept of "citation overrides" does not belong to that
         // generic function. Logging this message should be the responsibility
         // of the caller function.
-        logContentErrorAndMaybeSendToSlack(
+        logErrorAndMaybeSendToBugsnag(
             new JsonError(
                 // This error often shows up intermittently as a false-positive (DB unavailable when calling getPostBySlug()?)
                 // If it happens systematically, please check

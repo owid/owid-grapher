@@ -9,7 +9,7 @@ import {
 
 import * as db from "../db/db.js"
 import { bakeGraphersToSvgs } from "../baker/GrapherImageBaker.js"
-import { warn } from "../serverUtils/slackLog.js"
+import { warn } from "../serverUtils/errorLog.js"
 import { Chart } from "../db/model/Chart.js"
 import md5 from "md5"
 import { Url } from "@ourworldindata/utils"
