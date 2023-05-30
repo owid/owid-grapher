@@ -84,7 +84,11 @@ import {
     EnrichedBlockExpandableParagraph,
     RawBlockExpandableParagraph,
 } from "@ourworldindata/utils"
-import { extractUrl, getTitleSupertitleFromHeadingText } from "./gdocUtils.js"
+import {
+    extractUrl,
+    getTitleSupertitleFromHeadingText,
+    parseAuthors,
+} from "./gdocUtils.js"
 import {
     htmlToEnrichedTextBlock,
     htmlToSimpleTextBlock,
@@ -1264,6 +1268,7 @@ function parseResearchAndWritingBlock(
         rows,
         parseErrors: [error],
     })
+    const parseErrors: ParseError[] = []
 
     function enrichLink(
         rawLink?: RawBlockResearchAndWritingLink
@@ -1282,14 +1287,18 @@ function parseResearchAndWritingBlock(
         if (checkIsPlainObjectWithGuard(rawLink)) {
             if (!rawLink.url) return createLinkError("Link missing url")
             const { isGoogleDoc } = Url.fromURL(rawLink.url)
-            if (!isGoogleDoc && !rawLink.authors)
-                return createLinkError("Link missing authors")
-            if (!isGoogleDoc && !rawLink.title)
-                return createLinkError("Link missing title")
+            if (!isGoogleDoc) {
+                if (!rawLink.authors) {
+                    return createLinkError("Link missing authors")
+                }
+                if (!rawLink.title) {
+                    return createLinkError("Link missing title")
+                }
+            }
             return {
                 value: {
                     url: rawLink.url,
-                    authors: rawLink.authors,
+                    authors: parseAuthors(rawLink.authors),
                     title: rawLink.title,
                     filename: rawLink.filename,
                     subtitle: rawLink.subtitle,
@@ -1309,17 +1318,22 @@ function parseResearchAndWritingBlock(
         )
     }
     const more = raw.value.more.map(enrichLink)
-    const rows = raw.value.rows?.map((row) => ({
-        heading: row.heading || "",
-        articles: row.articles?.map(enrichLink) || [],
-    }))
+    const rows = raw.value.rows?.map((row) => {
+        if (!row.heading) {
+            parseErrors.push({ message: `Row missing "heading" value` })
+        }
+        return {
+            heading: row.heading || "",
+            articles: row.articles?.map(enrichLink) || [],
+        }
+    })
 
     return {
         type: "research-and-writing",
         primary,
         secondary,
         more: more,
-        rows: rows || [],
-        parseErrors: [],
+        rows: rows ?? [],
+        parseErrors,
     }
 }

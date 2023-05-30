@@ -30,7 +30,7 @@ import { ProminentLink } from "./ProminentLink.js"
 import { ExpandableParagraph } from "../blocks/ExpandableParagraph.js"
 import { TopicPageIntro } from "./TopicPageIntro.js"
 import { KeyInsights } from "./KeyInsights.js"
-import { ResearchAndWriting } from "../blocks/ResearchAndWriting.js"
+import { ResearchAndWriting } from "./ResearchAndWriting.js"
 
 export type Container =
     | "default"

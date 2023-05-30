@@ -922,7 +922,7 @@ export type EnrichedBlockKeyInsights = {
 
 export type RawBlockResearchAndWritingLink = {
     url?: string
-    authors?: string[]
+    authors?: string
     title?: string
     subtitle?: string
     filename?: string

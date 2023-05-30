@@ -324,15 +324,23 @@ export function enrichedBlockToRawBlock(
         .with(
             { type: "research-and-writing" },
             (b): RawBlockResearchAndWriting => {
+                function enrichedLinkToRawLink(
+                    enriched: EnrichedBlockResearchAndWritingLink
+                ): RawBlockResearchAndWritingLink {
+                    return {
+                        ...enriched.value,
+                        authors: enriched.value.authors?.join(", "),
+                    }
+                }
                 return {
                     type: b.type,
                     value: {
-                        primary: b.primary.value,
-                        secondary: b.secondary.value,
-                        more: b.more.map((enriched) => enriched.value),
+                        primary: enrichedLinkToRawLink(b.primary),
+                        secondary: enrichedLinkToRawLink(b.secondary),
+                        more: b.more.map(enrichedLinkToRawLink),
                         rows: b.rows.map(({ heading, articles }) => ({
                             heading: heading,
-                            articles: articles.map(({ value }) => value),
+                            articles: articles.map(enrichedLinkToRawLink),
                         })),
                     },
                 }

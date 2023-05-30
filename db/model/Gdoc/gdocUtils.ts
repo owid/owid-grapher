@@ -145,3 +145,9 @@ export const getAllLinksFromResearchAndWritingBlock = (
     ])
     return allLinks
 }
+
+export function parseAuthors(authors?: string): string[] {
+    return (authors || "Our World In Data")
+        .split(",")
+        .map((author: string) => author.trim())
+}

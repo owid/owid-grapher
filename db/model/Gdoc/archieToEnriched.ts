@@ -18,7 +18,7 @@ import {
 } from "@ourworldindata/utils"
 import { parseRawBlocksToEnrichedBlocks } from "./rawToEnriched.js"
 import urlSlug from "url-slug"
-import { spansToSimpleString } from "./gdocUtils.js"
+import { parseAuthors, spansToSimpleString } from "./gdocUtils.js"
 import {
     htmlToEnrichedTextBlock,
     htmlToSimpleTextBlock,
@@ -190,9 +190,7 @@ export const archieToEnriched = (text: string): OwidGdocContent => {
     // this property was originally named byline even though it was a comma-separated list of authors
     // once this has been deployed for a while and we've migrated the property name in all gdocs,
     // we can remove this parsed.byline vestige
-    parsed.authors = (parsed.byline || parsed.authors || "Our World In Data")
-        .split(",")
-        .map((author: string) => author.trim())
+    parsed.authors = parseAuthors(parsed.byline || parsed.authors)
 
     return parsed
 }
