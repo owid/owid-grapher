@@ -63,20 +63,3 @@
 .SourcesFooterHTML.compact .license {
     float: right;
 }
-
-a.explore {
-    display: flex;
-    align-items: center;
-    color: currentColor;
-
-    &:hover {
-        text-decoration: underline;
-        text-decoration-color: currentColor;
-    }
-
-    svg {
-        margin-left: 4px;
-        height: 0.8em;
-        width: 0.8em;
-    }
-}

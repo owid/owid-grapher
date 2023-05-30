@@ -68,7 +68,6 @@ import {
 import {
     ChartTypeName,
     GrapherTabOption,
-    GrapherInitialTabOption,
     ScaleType,
     StackMode,
     EntitySelectionMode,
@@ -2211,7 +2210,7 @@ export class Grapher
         return (
             <>
                 {this.hasBeenVisible && this.renderPrimaryTab()}
-                {this.showFooterControls && <FooterControls manager={this} />}
+                <FooterControls manager={this} />
                 {this.renderOverlayTab()}
                 {this.popups}
                 <TooltipContainer
@@ -2343,16 +2342,11 @@ export class Grapher
         )
     }
 
-    @computed private get showFooterControls(): boolean {
-        return this.hasChartTab || this.hasMapTab || this.hasTableTab
-    }
-
     @computed private get footerControlsLines(): number {
         return this.hasTimeline ? 2 : 1
     }
 
     @computed get footerControlsHeight(): number {
-        if (!this.showFooterControls) return 0
         const footerRowHeight = 32 // todo: cleanup. needs to keep in sync with grapher.scss' $footerRowHeight
         return (
             this.footerControlsLines * footerRowHeight +
@@ -2569,10 +2563,6 @@ export class Grapher
             : timeColumn.formatValue(value)
     }
 
-    @computed get showExploreDataLink(): boolean {
-        return this.isInIFrame && !this.showFooterControls
-    }
-
     @computed get showYScaleToggle(): boolean | undefined {
         if (this.hideYScaleToggle) return false
         if (this.isRelativeMode) return false
@@ -2729,12 +2719,10 @@ export function safeMergeGrapherConfigs(
         c.hasSourcesTab ||
         c.hasDownloadTab
     if (isAnyTabVisible) {
-        const tab: GrapherInitialTabOption = c.tab || GrapherTabOption.chart
-        if (tab === GrapherTabOption.chart && !c.hasChartTab)
-            c.hasChartTab = true
-        if (tab === GrapherTabOption.map && !c.hasMapTab) c.hasMapTab = true
-        if (tab === GrapherTabOption.table && !c.hasTableTab)
-            c.hasTableTab = true
+        const tab: GrapherTabOption = c.tab || GrapherTabOption.chart
+        if (tab === GrapherTabOption.chart) c.hasChartTab = true
+        if (tab === GrapherTabOption.map) c.hasMapTab = true
+        if (tab === GrapherTabOption.table) c.hasTableTab = true
     }
 
     return c

@@ -281,6 +281,12 @@ $footerRowHeight: 32px; // keep in sync with Controls.tsx's footerRowHeight
                 margin-right: 0.15em;
             }
         }
+
+        &.open-in-another-tab-button {
+            svg {
+                margin-left: 0.3em;
+            }
+        }
     }
 
     .footerRowSingle nav.tabs li:first-child {

@@ -28,7 +28,6 @@ export {
     ThereWasAProblemLoadingThisChart,
     type SeriesColorMap,
     GrapherTabOption,
-    type GrapherInitialTabOption,
     ScaleType,
     type RelatedQuestionsConfig,
     type Topic,

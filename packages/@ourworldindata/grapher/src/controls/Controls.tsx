@@ -356,19 +356,33 @@ export class FooterControls extends React.Component<{
                             </a>
                         </li>
                     )}
-                    {manager.isInIFrame && (
-                        <li className="clickable icon">
-                            <a
-                                title="Open chart in new tab"
-                                href={manager.canonicalUrl}
-                                data-track-note="chart-click-newtab"
-                                target="_blank"
-                                rel="noopener"
-                            >
-                                <FontAwesomeIcon icon={faExpand} />
-                            </a>
-                        </li>
-                    )}
+                    {manager.isInIFrame &&
+                        (this.availableTabs.length > 0 ? (
+                            <li className="clickable icon">
+                                <a
+                                    title="Open chart in new tab"
+                                    href={manager.canonicalUrl}
+                                    data-track-note="chart-click-newtab"
+                                    target="_blank"
+                                    rel="noopener"
+                                >
+                                    <FontAwesomeIcon icon={faExpand} />
+                                </a>
+                            </li>
+                        ) : (
+                            <li className="clickable icon open-in-another-tab-button">
+                                <a
+                                    title="Open chart in new tab"
+                                    href={manager.canonicalUrl}
+                                    data-track-note="chart-click-newtab"
+                                    target="_blank"
+                                    rel="noopener"
+                                >
+                                    Explore data
+                                    <FontAwesomeIcon icon={faExternalLinkAlt} />
+                                </a>
+                            </li>
+                        ))}
                 </ul>
             </nav>
         )
