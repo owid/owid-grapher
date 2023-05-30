@@ -1271,11 +1271,13 @@ function parseResearchAndWritingBlock(
     const parseErrors: ParseError[] = []
 
     function enrichLink(
-        rawLink?: RawBlockResearchAndWritingLink
+        rawLink?: RawBlockResearchAndWritingLink,
+        skipFilenameValidation: boolean = false
     ): EnrichedBlockResearchAndWritingLink {
         function createLinkError(
             message: string
         ): EnrichedBlockResearchAndWritingLink {
+            parseErrors.push({ message, isWarning: true })
             return {
                 value: {
                     url: "",
@@ -1286,18 +1288,28 @@ function parseResearchAndWritingBlock(
 
         if (checkIsPlainObjectWithGuard(rawLink)) {
             if (!rawLink.url) return createLinkError("Link missing url")
-            const { isGoogleDoc } = Url.fromURL(rawLink.url)
+            const url = extractUrl(rawLink.url)
+            const { isGoogleDoc } = Url.fromURL(url)
             if (!isGoogleDoc) {
                 if (!rawLink.authors) {
-                    return createLinkError("Link missing authors")
+                    return createLinkError(
+                        `Research and writing link with URL "${url}" missing authors`
+                    )
                 }
                 if (!rawLink.title) {
-                    return createLinkError("Link missing title")
+                    return createLinkError(
+                        `Research and writing link with URL "${url}" missing title`
+                    )
+                }
+                if (!skipFilenameValidation && !rawLink.filename) {
+                    return createLinkError(
+                        `Research and writing link with URL "${url}" missing filename`
+                    )
                 }
             }
             return {
                 value: {
-                    url: rawLink.url,
+                    url: url,
                     authors: parseAuthors(rawLink.authors),
                     title: rawLink.title,
                     filename: rawLink.filename,
@@ -1317,14 +1329,14 @@ function parseResearchAndWritingBlock(
             secondary
         )
     }
-    const more = raw.value.more.map(enrichLink)
+    const more = raw.value.more.map((rawLink) => enrichLink(rawLink, true))
     const rows = raw.value.rows?.map((row) => {
         if (!row.heading) {
             parseErrors.push({ message: `Row missing "heading" value` })
         }
         return {
             heading: row.heading || "",
-            articles: row.articles?.map(enrichLink) || [],
+            articles: row.articles?.map((rawLink) => enrichLink(rawLink)) || [],
         }
     })
 

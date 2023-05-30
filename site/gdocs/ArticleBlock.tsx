@@ -147,7 +147,7 @@ export default function ArticleBlock({
     toc?: TocHeadingWithTitleSupertitle[]
 }) {
     block.type = block.type.toLowerCase() as any // this comes from the user and may not be all lowercase, enforce it here
-    if (block.parseErrors.length > 0) {
+    if (block.parseErrors.filter(({ isWarning }) => !isWarning).length > 0) {
         return (
             <BlockErrorFallback
                 className={getLayout("default", containerType)}

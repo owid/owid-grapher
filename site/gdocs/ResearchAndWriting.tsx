@@ -31,17 +31,21 @@ function ResearchAndWritingLinkContainer(
     const { isPreviewing } = useContext(DocumentContext)
 
     if (isPreviewing) {
-        if (parseErrors.length) {
+        if (parseErrors.length || errorMessage) {
             return (
-                <div>
+                <div
+                    className={cx(
+                        className,
+                        "research-and-writing-link--error"
+                    )}
+                >
                     {parseErrors.map((parseError, i) => (
                         <p key={i}>{parseError.message}</p>
                     ))}
+                    <p>{errorMessage}</p>
+                    <p>This block won't render during baking</p>
                 </div>
             )
-        }
-        if (errorMessage) {
-            return <div>{errorMessage}</div>
         }
     }
 
