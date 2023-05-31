@@ -203,10 +203,7 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
                             getAllLinksFromResearchAndWritingBlock(item)
                         allLinks.forEach(
                             (link: EnrichedBlockResearchAndWritingLink) => {
-                                if (
-                                    typeof link.value !== "string" &&
-                                    link.value.filename
-                                ) {
+                                if (link.value.filename) {
                                     filenames.add(link.value.filename)
                                 }
                             }
@@ -518,28 +515,26 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
                     type: "research-and-writing",
                 },
                 (researchAndWriting) => {
-                    const links: Link[] = []
-                    // small function to handle the two possible formats
-                    const createLink = (
-                        link: EnrichedBlockResearchAndWritingLink
-                    ): Link => {
-                        const url = link.value.url
-                        const text = link.value.title || ""
-                        return Link.create({
-                            linkType: getLinkType(url),
-                            source: this,
-                            target: getUrlTarget(formatUrls(url)),
-                            componentType: researchAndWriting.type,
-                            text: text,
-                        })
-                    }
                     const allLinks =
                         getAllLinksFromResearchAndWritingBlock(
                             researchAndWriting
                         )
-                    allLinks.forEach((link) => links.push(createLink(link)))
 
-                    return links
+                    return allLinks.reduce(
+                        (links, link) => [
+                            ...links,
+                            Link.create({
+                                linkType: getLinkType(link.value.url),
+                                source: this,
+                                target: getUrlTarget(
+                                    formatUrls(link.value.url)
+                                ),
+                                componentType: researchAndWriting.type,
+                                text: link.value.title || "",
+                            }),
+                        ],
+                        [] as Link[]
+                    )
                 }
             )
             .with(
