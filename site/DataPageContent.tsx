@@ -403,16 +403,6 @@ export const DataPageContent = ({
                                                 }}
                                             />
                                         </div>
-                                        {datapageGdocContent?.datasetDescription && (
-                                            <div className="data-collection__description">
-                                                <ArticleBlocks
-                                                    blocks={
-                                                        datapageGdocContent.datasetDescription
-                                                    }
-                                                    containerType="datapage"
-                                                />
-                                            </div>
-                                        )}
                                         {datapageGdocContent?.datasetVariableProcessingInfo && (
                                             <div>
                                                 <div className="variable-processing-info__header">
