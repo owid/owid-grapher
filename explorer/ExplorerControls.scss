@@ -5,22 +5,21 @@ $chart-border-radius: 2px;
     $selected-option-color: #243d60;
 
     display: flex;
-    justify-content: space-between;
     background: white;
     border-radius: $chart-border-radius;
     box-shadow: $light-shadow;
     padding: 0 14px;
 
     .ExplorerControl {
+        flex: 1;
         display: flex;
         flex-direction: column;
         font-size: 13px;
         color: $option-color;
-        max-width: 22%;
         margin-right: 10px;
 
-        padding-top: 11px;
-        padding-bottom: 4px;
+        padding-top: 8px;
+        padding-bottom: 8px;
 
         &:last-child {
             margin-right: 0;
@@ -132,8 +131,8 @@ $chart-border-radius: 2px;
 .ExplorerDropdown {
     font-size: 13px;
     font-weight: 400;
-    width: 200px;
-    max-width: 100%;
+    min-width: 120px;
+    max-width: min(200px, 100%);
 }
 
 @keyframes slideUp {
