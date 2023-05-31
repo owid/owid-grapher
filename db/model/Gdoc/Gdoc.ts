@@ -33,6 +33,7 @@ import {
     Span,
     EnrichedBlockResearchAndWritingLink,
     traverseEnrichedSpan,
+    RelatedChart,
 } from "@ourworldindata/utils"
 import {
     BAKED_GRAPHER_URL,
@@ -60,6 +61,7 @@ import {
     getAllLinksFromResearchAndWritingBlock,
     spansToSimpleString,
 } from "./gdocUtils.js"
+import { getConnection } from "../../db.js"
 
 @Entity("tags")
 export class Tag extends BaseEntity implements OwidGdocTag {
@@ -97,6 +99,7 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
     tags!: Tag[]
 
     linkedCharts: Record<string, LinkedChart> = {}
+    relatedCharts: RelatedChart[] = []
     linkedDocuments: Record<string, Gdoc> = {}
     imageMetadata: Record<string, ImageMetadata> = {}
     errors: OwidGdocErrorMessage[] = []
@@ -719,6 +722,7 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
         await gdoc.loadLinkedDocuments()
         await gdoc.loadImageMetadata()
         await gdoc.loadLinkedCharts(publishedExplorersBySlug)
+        await gdoc.loadRelatedCharts()
 
         await gdoc.validate(publishedExplorersBySlug)
 
@@ -784,5 +788,40 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
             published: true,
             publicationContext: OwidGdocPublicationContext.listed,
         }) as Promise<(Gdoc & OwidGdocPublished)[]>
+    }
+
+    async loadRelatedCharts(): Promise<void> {
+        if (!this.tags.length) return
+        let hasAllChartsBlock = false
+        this.content.body?.forEach(
+            (node) =>
+                // can't break a forEach, but if we've already found one then don't call traverse any more
+                !hasAllChartsBlock &&
+                traverseEnrichedBlocks(node, (node) => {
+                    if (node.type === "all-charts") {
+                        hasAllChartsBlock = true
+                    }
+                })
+        )
+        if (!hasAllChartsBlock) return
+
+        const connection = await getConnection()
+        const relatedCharts = await connection.query(
+            `
+        SELECT DISTINCT
+        charts.config->>"$.slug" AS slug,
+        charts.config->>"$.title" AS title,
+        charts.config->>"$.variantName" AS variantName,
+        chart_tags.isKeyChart
+        FROM charts
+        INNER JOIN chart_tags ON charts.id=chart_tags.chartId
+        WHERE chart_tags.tagId IN (?)
+        AND charts.config->>"$.isPublished" = "true"
+        ORDER BY title ASC
+        `,
+            [this.tags.map((tag) => tag.id)]
+        )
+
+        this.relatedCharts = relatedCharts
     }
 }

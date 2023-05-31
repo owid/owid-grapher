@@ -61,7 +61,7 @@ export const enrichedBlockExamples: Record<
     },
     "all-charts": {
         type: "all-charts",
-        category: "poverty",
+        heading: "All our charts on Poverty",
         top: [{ url: "https://ourworldindata.org/grapher/poverty-over-time" }],
         parseErrors: [],
     },

@@ -392,7 +392,7 @@ function* rawBlockAllChartsToArchieMLString(
     block: RawBlockAllCharts
 ): Generator<string, void, undefined> {
     yield "{.all-charts}"
-    yield* propertyToArchieMLString("category", block.value)
+    yield* propertyToArchieMLString("heading", block.value)
     if (block.value.top) {
         yield "[.top]"
         for (const item of block.value.top) {

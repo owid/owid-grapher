@@ -1,20 +1,56 @@
-import React from "react"
+import React, { useContext } from "react"
 import cx from "classnames"
-import { EnrichedBlockAllCharts } from "@ourworldindata/utils"
+import {
+    EnrichedBlockAllCharts,
+    RelatedChart,
+    Url,
+} from "@ourworldindata/utils"
+import { AttachmentsContext } from "./OwidGdoc.js"
+import { RelatedCharts } from "../blocks/RelatedCharts.js"
 
 type AllChartsProps = EnrichedBlockAllCharts & {
     className?: string
 }
 
-export function AllCharts(props: AllChartsProps) {
-    const { category, top, className } = props
+function sortRelatedCharts(
+    relatedCharts: RelatedChart[],
+    sortedSlugs: string[]
+): RelatedChart[] {
+    const sortedRelatedCharts: RelatedChart[] = []
 
+    // (We don't know if these slugs actually exist in relatedCharts)
+    // Try to find them in order and put them at the front of the list
+    sortedSlugs.forEach((slug) => {
+        const index = relatedCharts.findIndex((chart) => chart.slug === slug)
+        if (index !== -1) {
+            const relatedChart = relatedCharts.splice(index, 1)[0]
+            if (relatedChart) {
+                // a teeny hack to stop the RelatedCharts component from
+                // sorting these charts below the other key charts
+                relatedChart.isKeyChart = true
+                sortedRelatedCharts.push(relatedChart)
+            }
+        }
+    })
+
+    sortedRelatedCharts.push(...relatedCharts)
+
+    return sortedRelatedCharts
+}
+
+export function AllCharts(props: AllChartsProps) {
+    const { heading, top, className } = props
+    const { relatedCharts } = useContext(AttachmentsContext)
+    const topSlugs = top.map((item) => Url.fromURL(item.url).slug as string)
+
+    const sortedRelatedCharts = sortRelatedCharts(relatedCharts, topSlugs)
+    console.log("sortedRelatedCharts[0]", sortedRelatedCharts[0])
     return (
         <div className={cx(className)}>
-            <p>{category}</p>
-            {top.map((item) => (
-                <p key={item.url}>{item.url}</p>
-            ))}
+            <h2 className="display-2-semibold" id="charts">
+                {heading}
+            </h2>
+            <RelatedCharts charts={sortedRelatedCharts} />
         </div>
     )
 }

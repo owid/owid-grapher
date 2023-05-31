@@ -61,7 +61,7 @@ export function enrichedBlockToRawBlock(
             (b): RawBlockAllCharts => ({
                 type: b.type,
                 value: {
-                    category: b.category,
+                    heading: b.heading,
                     top: b.top,
                 },
             })

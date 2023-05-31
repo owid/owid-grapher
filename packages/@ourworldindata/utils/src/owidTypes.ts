@@ -812,14 +812,14 @@ export type EnrichedBlockSideBySideContainer = {
 export type RawBlockAllCharts = {
     type: "all-charts"
     value: {
-        category?: string
+        heading?: string
         top?: { url: string }[]
     }
 }
 
 export type EnrichedBlockAllCharts = {
     type: "all-charts"
-    category: string
+    heading: string
     top: { url: string }[]
 } & EnrichedBlockWithParseErrors
 
@@ -1125,6 +1125,7 @@ export interface OwidGdocInterface {
     revisionId: string | null
     linkedCharts?: Record<string, LinkedChart>
     linkedDocuments?: Record<string, OwidGdocInterface>
+    relatedCharts?: RelatedChart[]
     imageMetadata?: Record<string, ImageMetadata>
     errors?: OwidGdocErrorMessage[]
     tags?: OwidGdocTag[]

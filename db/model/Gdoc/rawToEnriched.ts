@@ -168,13 +168,13 @@ export function parseRawBlocksToEnrichedBlocks(
 function parseAllCharts(raw: RawBlockAllCharts): EnrichedBlockAllCharts {
     const createError = (error: ParseError): EnrichedBlockAllCharts => ({
         type: "all-charts",
-        category: "",
+        heading: "",
         top: [],
         parseErrors: [error],
     })
 
-    if (!raw.value.category)
-        return createError({ message: "all-charts block missing category" })
+    if (!raw.value.heading)
+        return createError({ message: "all-charts block missing heading" })
 
     const top = raw.value.top
     if (top && !isArray(top)) {
@@ -200,7 +200,7 @@ function parseAllCharts(raw: RawBlockAllCharts): EnrichedBlockAllCharts {
 
     return {
         type: "all-charts",
-        category: raw.value.category,
+        heading: raw.value.heading,
         top: top?.map((item) => ({ url: extractUrl(item.url) })) || [],
         parseErrors: [],
     }

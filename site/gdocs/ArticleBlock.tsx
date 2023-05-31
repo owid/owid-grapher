@@ -51,6 +51,7 @@ type Layouts = { default: string; [key: string]: string }
 // prettier-ignore
 const layouts: { [key in Container]: Layouts} = {
     ["default"]: {
+        ["all-charts"]: "col-start-2 span-cols-12",
         ["aside-left"]: "col-start-2 span-cols-3 span-md-cols-10 col-md-start-3",
         ["aside-right"]: "col-start-11 span-cols-3 span-md-cols-10 col-md-start-3",
         ["chart-story"]: "col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",

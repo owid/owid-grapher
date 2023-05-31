@@ -7,6 +7,7 @@ import {
     OwidGdocInterface,
     getOwidGdocFromJSON,
     ImageMetadata,
+    RelatedChart,
 } from "@ourworldindata/utils"
 import { CodeSnippet } from "../blocks/CodeSnippet.js"
 import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
@@ -19,7 +20,13 @@ export const AttachmentsContext = createContext<{
     linkedCharts: Record<string, LinkedChart>
     linkedDocuments: Record<string, OwidGdocInterface>
     imageMetadata: Record<string, ImageMetadata>
-}>({ linkedDocuments: {}, imageMetadata: {}, linkedCharts: {} })
+    relatedCharts: RelatedChart[]
+}>({
+    linkedDocuments: {},
+    imageMetadata: {},
+    linkedCharts: {},
+    relatedCharts: [],
+})
 
 export const DocumentContext = createContext<{ isPreviewing: boolean }>({
     isPreviewing: false,
@@ -36,6 +43,7 @@ export function OwidGdoc({
     linkedCharts = {},
     linkedDocuments = {},
     imageMetadata = {},
+    relatedCharts = [],
     isPreviewing = false,
 }: OwidGdocProps) {
     const citationText = `${formatAuthors({
@@ -58,7 +66,12 @@ export function OwidGdoc({
 
     return (
         <AttachmentsContext.Provider
-            value={{ linkedDocuments, imageMetadata, linkedCharts }}
+            value={{
+                linkedDocuments,
+                imageMetadata,
+                linkedCharts,
+                relatedCharts,
+            }}
         >
             <DocumentContext.Provider value={{ isPreviewing }}>
                 <article className="centered-article-container grid grid-cols-12-full-width">
