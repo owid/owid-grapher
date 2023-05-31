@@ -490,7 +490,6 @@ export class Explorer
     }
 
     onChangeChoice = (choiceTitle: string) => (value: string) => {
-        console.log({ choiceTitle, value })
         const { currentlySelectedGrapherRow } = this.explorerProgram
         this.explorerProgram.decisionMatrix.setValueCommand(choiceTitle, value)
         if (currentlySelectedGrapherRow)
