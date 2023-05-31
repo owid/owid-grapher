@@ -43,7 +43,7 @@ class VariableSection extends React.Component<{
         if (isEmpty(filledDimensions))
             return (
                 <section>
-                    <h2>Add some variables on data tab first</h2>
+                    <h2>Add some indicators on data tab first</h2>
                 </section>
             )
 
@@ -53,7 +53,7 @@ class VariableSection extends React.Component<{
         return (
             <Section name="Map">
                 <NumericSelectField
-                    label="Variable"
+                    label="Indicator"
                     value={
                         mapConfig.columnSlug
                             ? parseInt(mapConfig.columnSlug)

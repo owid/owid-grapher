@@ -908,7 +908,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                                         },
                                         {
                                             value: "variableId",
-                                            label: "Variable ID",
+                                            label: "Indicator ID",
                                         },
                                     ]}
                                     onChange={this.onSortByChange}
@@ -1215,7 +1215,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                     {this.renderReferences()}
                 </div>
                 <div className="changes_summary">
-                    <h2>Variable changes</h2>{" "}
+                    <h2>Indicator changes</h2>{" "}
                     {this.suggestedChartRevision &&
                     this.suggestedChartRevision.changesInDataSummary ? (
                         <div

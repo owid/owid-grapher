@@ -419,7 +419,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                     </form>
                 </section>
                 <section>
-                    <h3>Variables</h3>
+                    <h3>Indicators</h3>
                     <VariableList variables={dataset.variables} />
                 </section>
                 <section>
@@ -436,7 +436,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                     <section>
                         <h3>Danger zone</h3>
                         <p>
-                            Delete this dataset and all variables it contains.
+                            Delete this dataset and all indicators it contains.
                             If there are any charts using this data, you must
                             delete them individually first.
                         </p>

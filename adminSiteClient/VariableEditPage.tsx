@@ -88,7 +88,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
         const { variable } = this.props
         if (
             !window.confirm(
-                `Really delete the variable ${variable.name}? This action cannot be undone!`
+                `Really delete the indicator ${variable.name}? This action cannot be undone!`
             )
         )
             return
@@ -138,23 +138,23 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                             }}
                         >
                             <section>
-                                <h3>Variable metadata</h3>
+                                <h3>Indicator metadata</h3>
                                 {isBulkImport ? (
                                     <p>
-                                        This variable came from an automated
+                                        This indicator came from an automated
                                         import, so we can't change the original
                                         metadata manually.
                                     </p>
                                 ) : (
                                     <p>
-                                        The core metadata for the variable. It's
-                                        important to keep this consistent.
+                                        The core metadata for the indicator.
+                                        It's important to keep this consistent.
                                     </p>
                                 )}
                                 <BindString
                                     field="name"
                                     store={newVariable}
-                                    label="Variable Name"
+                                    label="Indicator Name"
                                     disabled={isBulkImport}
                                 />
                                 <BindString

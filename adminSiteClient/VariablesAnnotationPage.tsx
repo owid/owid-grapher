@@ -25,7 +25,7 @@ const readOnlyVariableAnnotationColumnNamesFields: Map<string, ReadOnlyColumn> =
             },
             {
                 key: "name",
-                label: "Variable name",
+                label: "Indicator name",
                 type: "string" as const,
                 sExpressionColumnTarget:
                     WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_VARIABLE_NAME,
@@ -155,7 +155,7 @@ const config: GrapherConfigGridEditorConfig = {
 export class VariablesAnnotationPage extends React.Component {
     render() {
         return (
-            <AdminLayout title="Variables">
+            <AdminLayout title="Indicators">
                 <main className="VariablesAnnotationPage">
                     <GrapherConfigGridEditor config={config} />
                 </main>
