@@ -301,6 +301,7 @@ export class Explorer
             ...this.persistedGrapherQueryParamsBySelectedRow.get(
                 this.explorerProgram.currentlySelectedGrapherRow
             ),
+            country: oldGrapherParams.country,
             region: oldGrapherParams.region,
             time: this.grapher.timeParam,
         }
@@ -489,6 +490,7 @@ export class Explorer
     }
 
     onChangeChoice = (choiceTitle: string) => (value: string) => {
+        console.log({ choiceTitle, value })
         const { currentlySelectedGrapherRow } = this.explorerProgram
         this.explorerProgram.decisionMatrix.setValueCommand(choiceTitle, value)
         if (currentlySelectedGrapherRow)
