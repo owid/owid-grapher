@@ -1,5 +1,6 @@
-import React, { useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import cx from "classnames"
+import { get } from "@ourworldindata/utils"
 import ReactDOM from "react-dom"
 import ReactDOMServer from "react-dom/server.js"
 import AnimateHeight from "react-animate-height"
@@ -23,6 +24,26 @@ export const ExpandableParagraph = (
 ) => {
     const CLOSED_HEIGHT = 100
     const [height, setHeight] = useState<"auto" | number>(CLOSED_HEIGHT)
+    const containerRef = useRef<HTMLDivElement>(null)
+    const [inheritedBgColor, setInheritedBgColor] = useState<
+        string | undefined
+    >(undefined)
+    useEffect(() => {
+        if (inheritedBgColor) return
+        let node: HTMLElement | null = containerRef.current
+        let parentBgColor: string | undefined = undefined
+        while (node?.parentElement && !parentBgColor) {
+            const parentStyles = window.getComputedStyle(node)
+            const defaultBgColor = "rgba(0, 0, 0, 0)"
+            const possiblyDefaultBgColor = get(parentStyles, "background-color")
+            if (possiblyDefaultBgColor !== defaultBgColor) {
+                parentBgColor = possiblyDefaultBgColor
+            }
+            node = node.parentElement
+        }
+        setInheritedBgColor(parentBgColor || "#fff")
+    }, [containerRef, inheritedBgColor, setInheritedBgColor])
+
     const isClosed = height === CLOSED_HEIGHT
     const { className, buttonVariant = "full", ...propsWithoutStyles } = props
 
@@ -31,8 +52,11 @@ export const ExpandableParagraph = (
     }
 
     return (
-        <div className={cx("expandable-paragraph", className)}>
-            <AnimateHeight height={height}>
+        <div
+            className={cx("expandable-paragraph", className)}
+            ref={containerRef}
+        >
+            <AnimateHeight duration={250} easing="ease-in-out" height={height}>
                 <div
                     className="expandable-paragraph__content"
                     // Either pass children or dangerouslySetInnerHTML
@@ -49,7 +73,10 @@ export const ExpandableParagraph = (
                     // When the block is opening, we're sliding the gradient
                     // down and out of the gradient-wrapper frame, which has an
                     // overflow:hidden.
-                    style={{ marginTop: isClosed ? 0 : CLOSED_HEIGHT }}
+                    style={{
+                        marginTop: isClosed ? 0 : CLOSED_HEIGHT,
+                        background: `linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, ${inheritedBgColor} 100%)`,
+                    }}
                 />
             </div>
             <button
