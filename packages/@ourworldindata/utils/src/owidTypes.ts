@@ -1194,9 +1194,13 @@ export const AllowedDataPageGdocFields = [
     "datasetDescription",
     "datasetVariableProcessingInfo",
     // This is a hacky way of handling sourceDescription fields, entered in the
-    // gdoc as sourceDescription1, sourceDescription2, etc... The 50 limit is
+    // gdoc as sourceDescription1, sourceDescription2, etc... The 10 limit is
     // arbitrary and should be plenty, but could be increased if needed.
-    ...[...Array(50)].map((_, idx) => `sourceDescription${idx + 1}`),
+
+    // EDIT: this actually whitelists all strings in typechecking, making it
+    // irrelevant. As it is, this only serves as documentation but not as
+    // typechecking.
+    ...[...Array(10)].map((_, idx) => `sourceDescription${idx + 1}`),
 ] as const
 
 export type DataPageGdocContent = Record<
