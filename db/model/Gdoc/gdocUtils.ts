@@ -2,10 +2,10 @@ import {
     EnrichedBlockResearchAndWriting,
     Span,
     excludeNullish,
+    EnrichedBlockResearchAndWritingLink,
 } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
 import cheerio from "cheerio"
-import { EnrichedBlockResearchAndWritingLink } from "@ourworldindata/utils/dist/owidTypes.js"
 
 export function spanToSimpleString(s: Span): string {
     return match(s)

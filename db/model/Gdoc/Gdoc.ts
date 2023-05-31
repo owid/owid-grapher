@@ -31,6 +31,8 @@ import {
     traverseEnrichedBlocks,
     OwidEnrichedGdocBlock,
     Span,
+    EnrichedBlockResearchAndWritingLink,
+    traverseEnrichedSpan,
 } from "@ourworldindata/utils"
 import {
     BAKED_GRAPHER_URL,
@@ -58,8 +60,6 @@ import {
     getAllLinksFromResearchAndWritingBlock,
     spansToSimpleString,
 } from "./gdocUtils.js"
-import { traverseEnrichedSpan } from "@ourworldindata/utils/dist/Util.js"
-import { EnrichedBlockResearchAndWritingLink } from "@ourworldindata/utils/dist/owidTypes.js"
 
 @Entity("tags")
 export class Tag extends BaseEntity implements OwidGdocTag {

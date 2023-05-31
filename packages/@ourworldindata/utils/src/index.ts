@@ -309,6 +309,7 @@ export {
     findGreatestCommonDivisorOfArray,
     type NodeWithUrl,
     filterValidStringValues,
+    traverseEnrichedSpan,
 } from "./Util.js"
 
 export {
