@@ -17,7 +17,7 @@ export default function Chart({
     const url = Url.fromURL(d.url)
     const isExplorer = url.isExplorer
     const hasControls = url.queryParams.hideControls !== "true"
-    const height = d.height || (isExplorer && hasControls) ? 700 : 575
+    const height = d.height || (isExplorer && hasControls ? 700 : 575)
 
     return (
         <div
