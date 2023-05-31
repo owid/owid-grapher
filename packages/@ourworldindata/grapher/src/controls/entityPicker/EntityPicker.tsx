@@ -603,6 +603,7 @@ interface PickerOptionProps {
 class PickerOption extends React.Component<PickerOptionProps> {
     @bind onClick(event: React.MouseEvent<HTMLLabelElement, MouseEvent>): void {
         event.stopPropagation()
+        event.preventDefault()
         this.props.onChange(
             this.props.optionWithMetricValue.entityName,
             !this.props.isSelected
