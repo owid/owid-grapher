@@ -34,13 +34,24 @@ export const ExpandableParagraph = (
         <div className={cx("expandable-paragraph", className)}>
             <AnimateHeight height={height}>
                 <div
-                    className={cx("expandable-paragraph__content", {
-                        "expandable-paragraph__content--is-closed": isClosed,
-                    })}
+                    className="expandable-paragraph__content"
                     // Either pass children or dangerouslySetInnerHTML
                     {...propsWithoutStyles}
                 />
             </AnimateHeight>
+
+            <div
+                className="expandable-paragraph__gradient-wrapper"
+                style={{ marginTop: -CLOSED_HEIGHT, height: CLOSED_HEIGHT }}
+            >
+                <div
+                    className="expandable-paragraph__gradient"
+                    // When the block is opening, we're sliding the gradient
+                    // down and out of the gradient-wrapper frame, which has an
+                    // overflow:hidden.
+                    style={{ marginTop: isClosed ? 0 : CLOSED_HEIGHT }}
+                />
+            </div>
             <button
                 className={cx(
                     "expandable-paragraph__expand-button",
