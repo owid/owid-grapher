@@ -809,6 +809,20 @@ export type EnrichedBlockSideBySideContainer = {
     right: OwidEnrichedGdocBlock[]
 } & EnrichedBlockWithParseErrors
 
+export type RawBlockAllCharts = {
+    type: "all-charts"
+    value: {
+        category?: string
+        top?: { url: string }[]
+    }
+}
+
+export type EnrichedBlockAllCharts = {
+    type: "all-charts"
+    category: string
+    top: { url: string }[]
+} & EnrichedBlockWithParseErrors
+
 export type RawBlockGraySection = {
     type: "gray-section"
     value: OwidRawGdocBlock[]
@@ -1007,6 +1021,7 @@ export type EnrichedBlockExpandableParagraph = {
 } & EnrichedBlockWithParseErrors
 
 export type OwidRawGdocBlock =
+    | RawBlockAllCharts
     | RawBlockAside
     | RawBlockCallout
     | RawBlockChart
@@ -1038,6 +1053,7 @@ export type OwidRawGdocBlock =
     | RawBlockKeyInsights
 
 export type OwidEnrichedGdocBlock =
+    | EnrichedBlockAllCharts
     | EnrichedBlockText
     | EnrichedBlockAside
     | EnrichedBlockCallout

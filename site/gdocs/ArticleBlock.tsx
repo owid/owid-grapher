@@ -31,6 +31,7 @@ import { ExpandableParagraph } from "../blocks/ExpandableParagraph.js"
 import { TopicPageIntro } from "./TopicPageIntro.js"
 import { KeyInsights } from "./KeyInsights.js"
 import { ResearchAndWriting } from "./ResearchAndWriting.js"
+import { AllCharts } from "./AllCharts.js"
 
 export type Container =
     | "default"
@@ -170,6 +171,12 @@ export default function ArticleBlock({
                     <figcaption>{renderSpans(caption)}</figcaption>
                 ) : null}
             </figure>
+        ))
+        .with({ type: "all-charts" }, (block) => (
+            <AllCharts
+                {...block}
+                className={getLayout("all-charts", containerType)}
+            />
         ))
         .with({ type: "chart" }, (block) => {
             const { isExplorer } = Url.fromURL(block.url)

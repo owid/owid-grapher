@@ -378,6 +378,17 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
                     text: "",
                 }),
             ])
+            .with({ type: "all-charts" }, (node) =>
+                node.top.map((item) =>
+                    Link.create({
+                        linkType: getLinkType(item.url),
+                        source: this,
+                        target: getUrlTarget(formatUrls(item.url)),
+                        componentType: node.type,
+                        text: "",
+                    })
+                )
+            )
             .with({ type: "recirc" }, (node) => {
                 const links: Link[] = []
 
