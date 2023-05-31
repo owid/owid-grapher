@@ -261,15 +261,19 @@ const parseChart = (raw: RawBlockChart): EnrichedBlockChart => {
 
         const show: ChartShowKeyword[] = []
         if (val.show?.length) {
+            // type guard
+            const isValidChartShowKeyword = (
+                value: any
+            ): value is ChartShowKeyword =>
+                validChartShowKeywords.includes(value)
+
             val.show.forEach((keyword: string) => {
                 keyword = keyword.trim().toLowerCase()
-                if (validChartShowKeywords.includes(keyword)) {
+                if (isValidChartShowKeyword(keyword)) {
                     show.push(keyword)
                 } else {
                     warnings.push({
-                        message:
-                            "Keyword in `show` must be one of: " +
-                            validChartShowKeywords.join(", "),
+                        message: `Keyword in 'show' must be one of: ${validChartShowKeywords}`,
                     })
                 }
             })
