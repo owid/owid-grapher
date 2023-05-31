@@ -1287,36 +1287,36 @@ function parseResearchAndWritingBlock(
         }
 
         if (checkIsPlainObjectWithGuard(rawLink)) {
-            if (!rawLink.url) return createLinkError("Link missing url")
-            const url = extractUrl(rawLink.url)
-            const { isGoogleDoc } = Url.fromURL(url)
+            const { url, authors, filename, title, subtitle } = rawLink
+            if (!url) return createLinkError("Link missing url")
+            const enrichedUrl = extractUrl(url)
+            const { isGoogleDoc } = Url.fromURL(enrichedUrl)
             if (!isGoogleDoc) {
-                if (!rawLink.authors) {
+                if (!authors) {
                     return createLinkError(
-                        `Research and writing link with URL "${url}" missing authors`
+                        `Research and writing link with URL "${enrichedUrl}" missing authors`
                     )
                 }
-                if (!rawLink.title) {
+                if (!title) {
                     return createLinkError(
-                        `Research and writing link with URL "${url}" missing title`
+                        `Research and writing link with URL "${enrichedUrl}" missing title`
                     )
                 }
-                if (!skipFilenameValidation && !rawLink.filename) {
+                if (!skipFilenameValidation && !filename) {
                     return createLinkError(
-                        `Research and writing link with URL "${url}" missing filename`
+                        `Research and writing link with URL "${enrichedUrl}" missing filename`
                     )
                 }
             }
-            return {
-                value: {
-                    url: url,
-                    authors: parseAuthors(rawLink.authors),
-                    title: rawLink.title,
-                    filename: rawLink.filename,
-                    subtitle: rawLink.subtitle,
-                },
+            const enriched: EnrichedBlockResearchAndWritingLink = {
+                value: { url: enrichedUrl },
                 parseErrors: [],
             }
+            if (authors) enriched.value.authors = parseAuthors(authors)
+            if (title) enriched.value.title = title
+            if (filename) enriched.value.filename = filename
+            if (subtitle) enriched.value.subtitle = subtitle
+            return enriched
         } else return createLinkError(`Malformed link data: ${typeof rawLink}`)
     }
 

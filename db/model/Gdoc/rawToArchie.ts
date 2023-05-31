@@ -444,27 +444,24 @@ function* rawResearchAndWritingToArchieMLString(
 ): Generator<string, void, undefined> {
     const { primary, secondary, more, rows } = block.value
     function* rawLinkToArchie(
-        link: RawBlockResearchAndWritingLink,
-        propertyName?: string
+        link: RawBlockResearchAndWritingLink
     ): Generator<string, void, undefined> {
-        if (typeof link === "string") {
-            yield `${propertyName ?? "url"}: ${escapeRawText(link)}`
-        } else {
-            if (propertyName) yield `{.${propertyName}}`
-            yield* propertyToArchieMLString("url", link)
-            yield* propertyToArchieMLString("authors", link)
-            yield* propertyToArchieMLString("title", link)
-            yield* propertyToArchieMLString("subtitle", link)
-            yield* propertyToArchieMLString("filename", link)
-            if (propertyName) yield `{}`
-        }
+        yield* propertyToArchieMLString("url", link)
+        yield* propertyToArchieMLString("authors", link)
+        yield* propertyToArchieMLString("title", link)
+        yield* propertyToArchieMLString("subtitle", link)
+        yield* propertyToArchieMLString("filename", link)
     }
     yield "{.research-and-writing}"
     if (primary) {
-        yield* rawLinkToArchie(primary, "primary")
+        yield "{.primary}"
+        yield* rawLinkToArchie(primary)
+        yield "{}"
     }
     if (secondary) {
-        yield* rawLinkToArchie(secondary, "secondary")
+        yield "{.secondary}"
+        yield* rawLinkToArchie(secondary)
+        yield "{}"
     }
     if (more) {
         yield "[.more]"
@@ -474,6 +471,7 @@ function* rawResearchAndWritingToArchieMLString(
         yield "[]"
     }
     if (rows) {
+        yield "[.rows]"
         for (const row of rows) {
             yield* propertyToArchieMLString("heading", row)
             if (row.articles) {
@@ -484,6 +482,7 @@ function* rawResearchAndWritingToArchieMLString(
                 yield "[]"
             }
         }
+        yield "[]"
     }
     yield "{}"
 }
