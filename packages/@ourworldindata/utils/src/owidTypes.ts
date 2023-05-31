@@ -534,7 +534,7 @@ export const validChartShowKeywords = [
     "sources tab",
     "source tab",
     "download tab",
-]
+] as const
 
 export type ChartShowKeyword = (typeof validChartShowKeywords)[number]
 
