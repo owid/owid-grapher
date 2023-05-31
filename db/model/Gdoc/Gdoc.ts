@@ -523,14 +523,8 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
                     const createLink = (
                         link: EnrichedBlockResearchAndWritingLink
                     ): Link => {
-                        const url =
-                            typeof link.value === "string"
-                                ? link.value
-                                : link.value.url
-                        const text =
-                            typeof link.value === "string"
-                                ? ""
-                                : link.value.title
+                        const url = link.value.url
+                        const text = link.value.title || ""
                         return Link.create({
                             linkType: getLinkType(url),
                             source: this,
