@@ -497,7 +497,7 @@ export default function ArticleBlock({
             <MissingData className={getLayout("missing-data", containerType)} />
         ))
         .with({ type: "additional-charts" }, (block) => (
-            <AdditionalCharts // bla
+            <AdditionalCharts
                 items={block.items}
                 className={getLayout("additional-charts", containerType)}
             />
@@ -530,33 +530,6 @@ export default function ArticleBlock({
             />
         ))
         .exhaustive()
-
-    // if (_type === "chart-grid") {
-    //     let columns = 1
-    //     try {
-    //         columns =
-    //             +b.value.find(
-    //                 (_d: OwidRawGdocBlock) => _d.type === "columns"
-    //             ).value || 1
-    //     } catch (e) {}
-
-    //     return (
-    //         <div
-    //             key={key}
-    //             className={"chartGrid"}
-    //             style={{
-    //                 display: "grid",
-    //                 gridTemplateRows: "auto",
-    //                 gridTemplateColumns: `repeat(${columns}, 1fr)`,
-    //             }}
-    //         >
-    //             {d.value
-    //                 .filter((_d: OwidRawGdocBlock) => _d.type === "chart")
-    //                 .map((_d: OwidRawGdocBlock, i: number) => {
-    //                     return <Chart d={_d} key={i} />
-    //                 })}
-    //         </div>
-    //     )
 
     return (
         <BlockErrorBoundary className={getLayout("default", containerType)}>
