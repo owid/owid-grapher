@@ -44,7 +44,6 @@ export function AllCharts(props: AllChartsProps) {
     const topSlugs = top.map((item) => Url.fromURL(item.url).slug as string)
 
     const sortedRelatedCharts = sortRelatedCharts(relatedCharts, topSlugs)
-    console.log("sortedRelatedCharts[0]", sortedRelatedCharts[0])
     return (
         <div className={cx(className)}>
             <h2 className="display-2-semibold" id="charts">
