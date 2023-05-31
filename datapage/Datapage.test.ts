@@ -48,8 +48,8 @@ it("parsed a datapage gdoc into allowed keyed sections", () => {
             body: [
                 getHeadingBlock("title"),
                 getTextBlock("Gini coefficient"),
-                getHeadingBlock("datasetDescription"),
-                getTextBlock("The dataset description"),
+                getHeadingBlock("faqs"),
+                getTextBlock("Some FAQ content"),
                 getHeadingBlock("keyInfoText"),
                 getTextBlock(
                     "The Gini coefficient is a measure of inequality that ranges between 0 and 1, where higher values indicate higher inequality."
@@ -68,7 +68,7 @@ it("parsed a datapage gdoc into allowed keyed sections", () => {
     const keyedContentBlocks = parseGdocContentFromAllowedLevelOneHeadings(gdoc)
     expect(keyedContentBlocks).toEqual({
         // title is ignored because it's not in AllowedDataPageGdocFields
-        datasetDescription: gdoc.content.body!.slice(3, 4),
+        faqs: gdoc.content.body!.slice(3, 4),
         keyInfoText: gdoc.content.body!.slice(5, 7),
         descriptionFromSource: gdoc.content.body!.slice(8, 9),
         sourceDescription1: gdoc.content.body!.slice(10, 12),
