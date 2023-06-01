@@ -1219,8 +1219,8 @@ export const DataPageJsonTypeObject = Type.Object(
         topicTagsLinks: Type.Array(
             Type.Object({ title: Type.String(), url: Type.String() })
         ),
-        variantSource: Type.String(),
-        variantMethods: Type.String(),
+        variantSource: Type.Optional(Type.String()),
+        variantMethods: Type.Optional(Type.String()),
         nameOfSource: Type.String(),
         owidProcessingLevel: Type.String(),
         dateRange: Type.String(),
