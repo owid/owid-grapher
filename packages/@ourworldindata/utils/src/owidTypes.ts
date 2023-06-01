@@ -181,6 +181,7 @@ export interface PostRow {
     authors: string
     excerpt: string
     created_at_in_wordpress: Date | null
+    featured_image: string
 }
 
 export interface PostRowWithGdocPublishStatus extends PostRow {

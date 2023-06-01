@@ -53,18 +53,36 @@ const syncPostToGrapher = async (
             left join wp_term_taxonomy t on t.term_taxonomy_id = r.term_taxonomy_id
             WHERE t.taxonomy = 'author' and p.ID = ?
             group by p.ID
-        )
+        ),
+        post_featured_image AS (
+        SELECT
+            p.ID,
+            (
+            SELECT
+                meta_value
+            FROM
+                wp_postmeta
+            WHERE
+                post_id = p.ID
+                AND meta_key = '_thumbnail_id') AS featured_image_id
+        FROM
+            wp_posts p
+        WHERE
+            p.ID = ?
+            )
         -- finally here we select all the fields from posts_with_authors and
         -- then we join in the first_revision to get the created_at field
         select
             p.*,
             pwa.authors,
-            fr.created_at as created_at
+            fr.created_at as created_at,
+            (SELECT guid FROM wp_posts WHERE ID = fi.featured_image_id) AS featured_image
         from wp_posts p
         left join post_ids_with_authors pwa on pwa.id = p.id
-        left join first_revision fr on fr.post_id = pwa.id
+        left join first_revision fr on fr.post_id = p.id
+        left join post_featured_image fi on fi.ID = p.id
         where p.id = ?`,
-        [postId, postId, postId]
+        [postId, postId, postId, postId]
     )
     const dereferenceReusableBlocksFn = await buildReusableBlocksResolver()
 
@@ -80,6 +98,7 @@ const syncPostToGrapher = async (
               type: wpPost.post_type,
               status: wpPost.post_status,
               content: wpPost.post_content,
+              featured_image: wpPost.featured_image || "",
               published_at:
                   wpPost.post_date_gmt === zeroDateString
                       ? null
