@@ -1248,7 +1248,7 @@ export const DataPageJsonTypeObject = Type.Object(
                 content: Type.Optional(Type.String()),
             })
         ),
-        relatedCharts: Type.Optional(
+        allCharts: Type.Optional(
             Type.Array(
                 Type.Object({
                     title: Type.String(),
