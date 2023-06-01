@@ -90,7 +90,8 @@ const migrate = async (): Promise<void> => {
         "authors",
         "excerpt",
         "created_at_in_wordpress",
-        "updated_at"
+        "updated_at",
+        "featured_image"
     ).from(db.knexTable(Post.postsTable)) //.where("id", "=", "29766"))
 
     for (const post of posts) {
@@ -159,6 +160,7 @@ const migrate = async (): Promise<void> => {
                     subtitle: post.excerpt,
                     excerpt: post.excerpt,
                     authors: parsePostAuthors(post.authors),
+                    "featured-image": post.featured_image,
                     dateline: dateline,
                     // TODO: this discards block level elements - those might be needed?
                     refs: undefined,
