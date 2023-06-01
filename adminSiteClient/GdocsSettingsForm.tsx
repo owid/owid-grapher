@@ -15,11 +15,11 @@ import { GdocsPublicationContext } from "./GdocsPublicationContext.js"
 
 export const GdocsSettingsForm = ({
     gdoc,
-    setGdoc,
+    setCurrentGdoc,
     errors,
 }: {
     gdoc: OwidGdocInterface
-    setGdoc: (gdoc: OwidGdocInterface) => void
+    setCurrentGdoc: (gdoc: OwidGdocInterface) => void
     errors?: OwidGdocErrorMessage[]
 }) => {
     // These errors don't have a specific form field to render them in. We just show them at the bottom of the drawer
@@ -44,7 +44,11 @@ export const GdocsSettingsForm = ({
                 errors={errors}
             />
             <div className="form-group">
-                <GdocsSlug gdoc={gdoc} setGdoc={setGdoc} errors={errors} />
+                <GdocsSlug
+                    gdoc={gdoc}
+                    setCurrentGdoc={setCurrentGdoc}
+                    errors={errors}
+                />
             </div>
             <GdocsSettingsContentField
                 property="authors"
@@ -62,10 +66,17 @@ export const GdocsSettingsForm = ({
                 errors={errors}
             />
             <div className="form-group">
-                <GdocsDateline gdoc={gdoc} setGdoc={setGdoc} errors={errors} />
+                <GdocsDateline
+                    gdoc={gdoc}
+                    setCurrentGdoc={setCurrentGdoc}
+                    errors={errors}
+                />
             </div>
             <div className="form-group">
-                <GdocsPublicationContext gdoc={gdoc} setGdoc={setGdoc} />
+                <GdocsPublicationContext
+                    gdoc={gdoc}
+                    setCurrentGdoc={setCurrentGdoc}
+                />
             </div>
             <GdocsSettingsContentField
                 property="excerpt"

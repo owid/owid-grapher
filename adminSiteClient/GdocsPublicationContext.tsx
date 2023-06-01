@@ -8,15 +8,15 @@ import { GdocsErrorHelp } from "./GdocsErrorHelp.js"
 
 export const GdocsPublicationContext = ({
     gdoc,
-    setGdoc,
+    setCurrentGdoc,
 }: {
     gdoc: OwidGdocInterface
-    setGdoc: (gdoc: OwidGdocInterface) => void
+    setCurrentGdoc: (gdoc: OwidGdocInterface) => void
 }) => {
     const { publicationContext } = gdoc
 
     const onChange = (e: RadioChangeEvent) => {
-        setGdoc({
+        setCurrentGdoc({
             ...gdoc,
             publicationContext: e.target.value,
         })

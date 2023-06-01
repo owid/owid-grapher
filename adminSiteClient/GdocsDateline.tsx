@@ -13,17 +13,17 @@ import { GdocsErrorHelp } from "./GdocsErrorHelp.js"
 
 export const GdocsDateline = ({
     gdoc,
-    setGdoc,
+    setCurrentGdoc,
     errors,
 }: {
     gdoc: OwidGdocInterface
-    setGdoc: (gdoc: OwidGdocInterface) => void
+    setCurrentGdoc: (gdoc: OwidGdocInterface) => void
     errors?: OwidGdocErrorMessage[]
 }) => {
     const { publishedAt } = gdoc
 
     const onChangePublishedAt = (publishedAt: Dayjs | null) => {
-        setGdoc({
+        setCurrentGdoc({
             ...gdoc,
             publishedAt: publishedAt?.utc(true).toDate() || null,
         })

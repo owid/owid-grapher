@@ -10,11 +10,11 @@ import { getPropertyMostCriticalError } from "./gdocsValidation.js"
 
 export const GdocsSlug = ({
     gdoc,
-    setGdoc,
+    setCurrentGdoc,
     errors,
 }: {
     gdoc: OwidGdocInterface
-    setGdoc: (gdoc: OwidGdocInterface) => void
+    setCurrentGdoc: (gdoc: OwidGdocInterface) => void
     errors?: OwidGdocErrorMessage[]
 }) => {
     const [isSlugSyncing, setSlugSyncing] = useState(false)
@@ -37,7 +37,7 @@ export const GdocsSlug = ({
     }, [slug])
 
     const setSlug = (slug: string) => {
-        setGdoc({ ...gdoc, slug })
+        setCurrentGdoc({ ...gdoc, slug })
     }
 
     useEffect(() => {
