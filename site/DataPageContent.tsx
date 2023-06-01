@@ -403,7 +403,7 @@ export const DataPageContent = ({
                                                 }}
                                             />
                                         </div>
-                                        {datapageGdocContent?.datasetVariableProcessingInfo && (
+                                        {datapageGdocContent?.variableProcessingInfo && (
                                             <div>
                                                 <div className="variable-processing-info__header">
                                                     Particular steps taken to
@@ -412,7 +412,7 @@ export const DataPageContent = ({
                                                 <div className="variable-processing-info__description">
                                                     <ArticleBlocks
                                                         blocks={
-                                                            datapageGdocContent.datasetVariableProcessingInfo
+                                                            datapageGdocContent.variableProcessingInfo
                                                         }
                                                         containerType="datapage"
                                                     />

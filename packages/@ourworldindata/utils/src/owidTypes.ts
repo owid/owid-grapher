@@ -1191,7 +1191,7 @@ export const AllowedDataPageGdocFields = [
     "keyInfoText",
     "faqs",
     "descriptionFromSource",
-    "datasetVariableProcessingInfo",
+    "variableProcessingInfo",
     // This is a hacky way of handling sourceDescription fields, entered in the
     // gdoc as sourceDescription1, sourceDescription2, etc... The 10 limit is
     // arbitrary and should be plenty, but could be increased if needed.
