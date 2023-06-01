@@ -2,4 +2,8 @@
     h2 {
         text-align: center;
     }
+
+    figure[data-grapher-src] {
+        height: $grapher-height;
+    }
 }
