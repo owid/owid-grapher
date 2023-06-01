@@ -531,8 +531,6 @@ export const validChartShowKeywords = [
     "chart tab",
     "map tab",
     "table tab",
-    "sources tab",
-    "source tab",
     "download tab",
 ] as const
 

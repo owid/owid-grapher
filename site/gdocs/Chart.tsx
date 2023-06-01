@@ -37,7 +37,7 @@ export default function Chart({
         const showAllControls = show.includes("all controls")
         const showAllTabs = show.includes("all tabs")
         const listOfPartialGrapherConfigs = show
-            .map((s) => mapKeywordToGrapherConfig(s))
+            .map(mapKeywordToGrapherConfig)
             .filter(identity) as GrapherProgrammaticInterface[]
 
         config = merge(
@@ -134,10 +134,6 @@ const mapKeywordToGrapherConfig = (
 
         case "table tab":
             return { hasTableTab: true }
-
-        case "sources tab":
-        case "source tab":
-            return { hasSourcesTab: true }
 
         case "download tab":
             return { hasDownloadTab: true }
