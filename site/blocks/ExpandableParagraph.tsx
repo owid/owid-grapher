@@ -1,5 +1,5 @@
 import React, { useState } from "react"
-import classnames from "classnames"
+import cx from "classnames"
 import ReactDOM from "react-dom"
 import ReactDOMServer from "react-dom/server.js"
 
@@ -8,34 +8,53 @@ export const ExpandableParagraph = (
         | {
               children: React.ReactNode
               dangerouslySetInnerHTML?: undefined
+              className?: string
+              buttonVariant?: "slim" | "full"
           }
         | {
               children?: undefined
               dangerouslySetInnerHTML: {
                   __html: string
               }
+              className?: string
+              buttonVariant?: "slim" | "full"
           }
 ) => {
-    const [isExpanded, setIsExpanded] = useState(false)
+    const CLOSED_HEIGHT = 100
+    const [height, setHeight] = useState<"auto" | number>(CLOSED_HEIGHT)
+
+    const isClosed = height === CLOSED_HEIGHT
+    const { className, buttonVariant = "full", ...propsWithoutStyles } = props
+
+    const toggleExpanded = () => {
+        setHeight(isClosed ? "auto" : CLOSED_HEIGHT)
+    }
+
+    const maskColor = isClosed ? "transparent" : "#000"
+    const contentStyles: any = {
+        "-webkit-mask-image": `linear-gradient(180deg, #000 0%, ${maskColor})`,
+        height,
+    }
 
     return (
-        <>
+        <div className={cx("expandable-paragraph", className)}>
             <div
-                className={classnames("expandable-paragraph", {
-                    "expandable-paragraph--is-expanded": isExpanded,
-                })}
+                className="expandable-paragraph__content"
+                style={contentStyles}
                 // Either pass children or dangerouslySetInnerHTML
-                {...props}
+                {...propsWithoutStyles}
             />
-            {!isExpanded && (
-                <button
-                    className="expandable-paragraph__expand-button"
-                    onClick={() => setIsExpanded(true)}
-                >
-                    Show more
-                </button>
-            )}
-        </>
+
+            <button
+                className={cx(
+                    "expandable-paragraph__expand-button",
+                    `expandable-paragraph__expand-button--${buttonVariant}`
+                )}
+                onClick={toggleExpanded}
+            >
+                {isClosed ? "Show more" : "Show less"}
+            </button>
+        </div>
     )
 }
 
@@ -49,6 +68,7 @@ export const hydrateExpandableParagraphs = () => {
         ReactDOM.hydrate(
             <ExpandableParagraph
                 dangerouslySetInnerHTML={{ __html: innerHTML }}
+                buttonVariant="slim"
             />,
             eP.parentElement
         )
@@ -66,6 +86,7 @@ export const renderExpandableParagraphs = ($: CheerioStatic) => {
                         dangerouslySetInnerHTML={{
                             __html: $el.html() || "",
                         }}
+                        buttonVariant="slim"
                     />
                 </div>
             )

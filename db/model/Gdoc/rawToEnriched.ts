@@ -82,6 +82,10 @@ import {
 import { match } from "ts-pattern"
 import { parseInt } from "lodash"
 import { GDOCS_DETAILS_ON_DEMAND_ID } from "../../../settings/serverSettings.js"
+import {
+    EnrichedBlockExpandableParagraph,
+    RawBlockExpandableParagraph,
+} from "@ourworldindata/utils/dist/owidTypes.js"
 
 export function parseRawBlocksToEnrichedBlocks(
     block: OwidRawGdocBlock
@@ -142,6 +146,7 @@ export function parseRawBlocksToEnrichedBlocks(
                 parseErrors: [],
             })
         )
+        .with({ type: "expandable-paragraph" }, parseExpandableParagraph)
         .exhaustive()
 }
 
@@ -1169,5 +1174,29 @@ export function parseDetails(details: unknown): {
     return {
         details: keyBy(enrichedDetails, "id"),
         parseErrors: detailsWithErrors.flatMap((detail) => detail.parseErrors),
+    }
+}
+
+function parseExpandableParagraph(
+    raw: RawBlockExpandableParagraph
+): EnrichedBlockExpandableParagraph {
+    const createError = (
+        error: ParseError
+    ): EnrichedBlockExpandableParagraph => ({
+        type: "expandable-paragraph",
+        items: [],
+        parseErrors: [error],
+    })
+
+    if (!Array.isArray(raw.value) || !raw.value.length) {
+        return createError({
+            message:
+                "The block should be defined as an array, and have some content in it",
+        })
+    }
+    return {
+        type: "expandable-paragraph",
+        items: compact(raw.value.map(parseRawBlocksToEnrichedBlocks)),
+        parseErrors: [],
     }
 }

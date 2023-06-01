@@ -24,13 +24,12 @@ import {
     RawBlockSDGToc,
     RawBlockMissingData,
     RawBlockCallout,
+    RawBlockExpandableParagraph,
+    RawBlockKeyInsights,
+    RawBlockTopicPageIntro,
 } from "@ourworldindata/utils"
 import { spanToHtmlString } from "./gdocUtils.js"
 import { match, P } from "ts-pattern"
-import {
-    RawBlockKeyInsights,
-    RawBlockTopicPageIntro,
-} from "@ourworldindata/utils/dist/owidTypes.js"
 
 function spansToHtmlText(spans: Span[]): string {
     return spans.map(spanToHtmlString).join("")
@@ -269,6 +268,13 @@ export function enrichedBlockToRawBlock(
                     position: b.position,
                     caption: spansToHtmlText(b.caption),
                 },
+            })
+        )
+        .with(
+            { type: "expandable-paragraph" },
+            (b): RawBlockExpandableParagraph => ({
+                type: b.type,
+                value: b.items.map(enrichedBlockToRawBlock),
             })
         )
         .with(

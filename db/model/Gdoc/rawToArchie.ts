@@ -23,11 +23,10 @@ import {
     RawBlockUrl,
     RawBlockAdditionalCharts,
     RawBlockCallout,
-} from "@ourworldindata/utils"
-import {
     RawBlockKeyInsights,
     RawBlockTopicPageIntro,
-} from "@ourworldindata/utils/dist/owidTypes.js"
+    RawBlockExpandableParagraph,
+} from "@ourworldindata/utils"
 import { match } from "ts-pattern"
 
 export function appendDotEndIfMultiline(
@@ -375,6 +374,17 @@ function* rawBlockAdditionalChartsToArchieMLString(
     yield "[]"
 }
 
+function* RawBlockExpandableParagraphToArchieMLString(
+    block: RawBlockExpandableParagraph
+): Generator<string, void, undefined> {
+    yield "[.+expandable-paragraph]"
+    if (typeof block.value !== "string") {
+        for (const b of block.value)
+            yield* OwidRawGdocBlockToArchieMLStringGenerator(b)
+    }
+    yield "[]"
+}
+
 function* rawBlockTopicPageIntroToArchieMLString(
     block: RawBlockTopicPageIntro
 ): Generator<string, void, undefined> {
@@ -471,6 +481,10 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
         .with({ type: "prominent-link" }, RawBlockProminentLinkToArchieMLString)
         .with({ type: "sdg-toc" }, rawBlockSDGTocToArchieMLString)
         .with({ type: "missing-data" }, rawBlockMissingDataToArchieMLString)
+        .with(
+            { type: "expandable-paragraph" },
+            RawBlockExpandableParagraphToArchieMLString
+        )
         .with(
             { type: "topic-page-intro" },
             rawBlockTopicPageIntroToArchieMLString

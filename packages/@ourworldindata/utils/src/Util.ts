@@ -1532,6 +1532,12 @@ export function traverseEnrichedBlocks(
                 })
             }
         })
+        .with({ type: "expandable-paragraph" }, (expandableParagraph) => {
+            callback(expandableParagraph)
+            expandableParagraph.items.forEach((textBlock) => {
+                traverseEnrichedBlocks(textBlock, callback, spanCallback)
+            })
+        })
         .with(
             {
                 type: P.union(

@@ -920,6 +920,16 @@ export type EnrichedBlockAdditionalCharts = {
     items: Span[][]
 } & EnrichedBlockWithParseErrors
 
+export type RawBlockExpandableParagraph = {
+    type: "expandable-paragraph"
+    value: OwidRawGdocBlock[]
+}
+
+export type EnrichedBlockExpandableParagraph = {
+    type: "expandable-paragraph"
+    items: OwidEnrichedGdocBlock[]
+} & EnrichedBlockWithParseErrors
+
 export type OwidRawGdocBlock =
     | RawBlockAside
     | RawBlockCallout
@@ -946,6 +956,7 @@ export type OwidRawGdocBlock =
     | RawBlockMissingData
     | RawBlockAdditionalCharts
     | RawBlockNumberedList
+    | RawBlockExpandableParagraph
     | RawBlockTopicPageIntro
     | RawBlockKeyInsights
 
@@ -974,6 +985,7 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockAdditionalCharts
     | EnrichedBlockNumberedList
     | EnrichedBlockSimpleText
+    | EnrichedBlockExpandableParagraph
     | EnrichedBlockTopicPageIntro
     | EnrichedBlockKeyInsights
 
