@@ -262,6 +262,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     hasSourcesTab?: boolean
     hasDownloadTab?: boolean
     hideShareTabButton?: boolean
+    hideRelatedQuestion?: boolean
 
     getGrapherInstance?: (instance: Grapher) => void
 
@@ -2321,7 +2322,8 @@ export class Grapher
     @observable isShareMenuActive = false
 
     @computed get hasRelatedQuestion(): boolean {
-        if (!this.relatedQuestions.length) return false
+        if (this.hideRelatedQuestion || !this.relatedQuestions.length)
+            return false
         const question = this.relatedQuestions[0]
         return !!question && !!question.text && !!question.url
     }
@@ -2688,6 +2690,7 @@ export class Grapher
     @observable hasSourcesTab = true
     @observable hasDownloadTab = true
     @observable hideShareTabButton = false
+    @observable hideRelatedQuestion = false
 }
 
 const defaultObject = objectWithPersistablesToObject(
