@@ -12,9 +12,13 @@ import {
     convertHeadingTextToId,
     EnrichedBlockSimpleText,
     lowercaseObjectKeys,
-    slugify,
     OwidEnrichedGdocBlock,
     traverseEnrichedBlocks,
+    ALL_CHARTS_ID,
+    KEY_INSIGHTS_ID,
+    ENDNOTES_ID,
+    CITATION_ID,
+    LICENSE_ID,
 } from "@ourworldindata/utils"
 import { parseRawBlocksToEnrichedBlocks } from "./rawToEnriched.js"
 import urlSlug from "url-slug"
@@ -36,15 +40,15 @@ function generateStickyNav(
     // These are the default headings that we'll try to find and create sticky nav headings for
     // Even if the id for the heading is "key-insights-on-poverty", we can just do substring matches
     const headingToIdMap = {
-        ["key-insights"]: "Key Insights",
+        ["acknowledgements"]: "Acknowledgements",
+        ["country-profiles"]: "Country Profiles",
         ["explore"]: "Data Explorer",
         ["research-writing"]: "Research & Writing",
-        ["charts"]: "Charts",
-        ["country-profiles"]: "Country Profiles",
-        ["acknowledgements"]: "Acknowledgements",
-        ["endnotes"]: "Endnotes",
-        ["citation"]: "Cite This Work",
-        ["license"]: "Reuse This Work",
+        [ALL_CHARTS_ID]: "Charts",
+        [CITATION_ID]: "Cite This Work",
+        [ENDNOTES_ID]: "Endnotes",
+        [KEY_INSIGHTS_ID]: "Key Insights",
+        [LICENSE_ID]: "Reuse This Work",
     }
     const stickyNavItems: OwidGdocStickyNavItem[] = [
         {
@@ -70,10 +74,16 @@ function generateStickyNav(
                     }
                 }
             }
-            if (node.type === "key-insights" && node.heading) {
+            if (node.type === "key-insights") {
                 stickyNavItems.push({
-                    text: "Key Insights",
-                    target: `#${slugify(node.heading)}`,
+                    text: headingToIdMap[KEY_INSIGHTS_ID],
+                    target: `#${headingToIdMap}`,
+                })
+            }
+            if (node.type === "all-charts") {
+                stickyNavItems.push({
+                    text: headingToIdMap[ALL_CHARTS_ID],
+                    target: `#${ALL_CHARTS_ID}`,
                 })
             }
             return node

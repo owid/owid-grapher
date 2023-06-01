@@ -574,6 +574,11 @@ export {
 } from "./MarkdownTextWrap/parser.js"
 
 export {
+    ALL_CHARTS_ID,
+    LICENSE_ID,
+    CITATION_ID,
+    ENDNOTES_ID,
+    KEY_INSIGHTS_ID,
     gdocUrlRegex,
     detailOnDemandRegex,
     getLinkType,

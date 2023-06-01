@@ -3,6 +3,13 @@ import { OwidGdocLinkJSON, Span } from "./owidTypes.js"
 import { Url } from "./urls/Url.js"
 import urlSlug from "url-slug"
 
+// For use in the sticky nav and the component implementation
+export const ALL_CHARTS_ID = "all-charts"
+export const KEY_INSIGHTS_ID = "key-insights"
+export const LICENSE_ID = "article-licence"
+export const CITATION_ID = "article-citation"
+export const ENDNOTES_ID = "article-endnotes"
+
 // Works for:
 // https://docs.google.com/document/d/abcd1234
 // https://docs.google.com/document/d/abcd1234/

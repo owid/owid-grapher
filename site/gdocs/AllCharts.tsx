@@ -4,6 +4,7 @@ import {
     EnrichedBlockAllCharts,
     RelatedChart,
     Url,
+    ALL_CHARTS_ID,
 } from "@ourworldindata/utils"
 import { AttachmentsContext } from "./OwidGdoc.js"
 import { RelatedCharts } from "../blocks/RelatedCharts.js"
@@ -46,7 +47,7 @@ export function AllCharts(props: AllChartsProps) {
     const sortedRelatedCharts = sortRelatedCharts(relatedCharts, topSlugs)
     return (
         <div className={cx(className)}>
-            <h2 className="display-2-semibold" id="charts">
+            <h2 className="display-2-semibold" id={ALL_CHARTS_ID}>
                 {heading}
             </h2>
             <RelatedCharts charts={sortedRelatedCharts} />

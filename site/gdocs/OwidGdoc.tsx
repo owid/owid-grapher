@@ -8,6 +8,8 @@ import {
     getOwidGdocFromJSON,
     ImageMetadata,
     RelatedChart,
+    CITATION_ID,
+    LICENSE_ID,
 } from "@ourworldindata/utils"
 import { CodeSnippet } from "../blocks/CodeSnippet.js"
 import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
@@ -112,7 +114,7 @@ export function OwidGdoc({
                     {content.refs ? <Footnotes d={content.refs} /> : null}
 
                     <section
-                        id="article-citation"
+                        id={CITATION_ID}
                         className="grid grid-cols-12-full-width col-start-1 col-end-limit"
                     >
                         <div className="col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
@@ -136,7 +138,7 @@ export function OwidGdoc({
                     </section>
 
                     <section
-                        id="article-licence"
+                        id={LICENSE_ID}
                         className="grid grid-cols-12-full-width col-start-1 col-end-limit"
                     >
                         <div className="col-start-6 span-cols-4 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
