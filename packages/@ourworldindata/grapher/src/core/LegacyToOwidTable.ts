@@ -125,9 +125,14 @@ export const legacyToOwidTableAndDimensions = (
         )
         const entityIds = variable.data.entities ?? []
         const entityNames = entityIds.map(
-            (id) => entityMetaById[id].name ?? id.toString()
+            // if entityMetaById[id] does not exist, then we don't have entity
+            // from variable metadata in MySQL. This can happen because we take
+            // data from S3 and metadata from MySQL. After we unify it, it should
+            // no longer be a problem
+            (id) => entityMetaById[id]?.name ?? id.toString()
         )
-        const entityCodes = entityIds.map((id) => entityMetaById[id].code)
+        // see comment above about entityMetaById[id]
+        const entityCodes = entityIds.map((id) => entityMetaById[id]?.code)
 
         // If there is a conversionFactor, apply it.
         let values = variable.data.values || []
@@ -155,7 +160,8 @@ export const legacyToOwidTableAndDimensions = (
 
         if (entityColorColumnSlug) {
             columnStore[entityColorColumnSlug] = entityIds.map((entityId) => {
-                const entityName = entityMetaById[entityId].name
+                // see comment above about entityMetaById[id]
+                const entityName = entityMetaById[entityId]?.name
                 const selectedEntityColors = grapherConfig.selectedEntityColors
                 return entityName && selectedEntityColors
                     ? selectedEntityColors[entityName]
