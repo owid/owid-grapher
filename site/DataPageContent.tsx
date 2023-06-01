@@ -43,7 +43,7 @@ export const DataPageContent = ({
 
     const sourceShortName =
         datapageJson.variantSource && datapageJson.variantMethods
-            ? `${datapageJson.variantSource} - ${datapageJson.variantMethods}`
+            ? `${datapageJson.variantMethods} - ${datapageJson.variantSource}`
             : datapageJson.variantSource || datapageJson.variantMethods
 
     // Initialize the grapher for client-side rendering
