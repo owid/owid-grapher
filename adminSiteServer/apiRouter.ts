@@ -601,7 +601,7 @@ apiRouter.post("/countries", async (req: Request, res: Response) => {
 })
 
 apiRouter.get(
-    "/editorData/:namespace.json",
+    "/editorData/variables.json",
     async (req: Request, res: Response) => {
         const datasets = []
         const rows = await db.queryMysql(
@@ -613,10 +613,8 @@ apiRouter.get(
                 d.isPrivate,
                 d.nonRedistributable
             FROM variables as v JOIN active_datasets as d ON v.datasetId = d.id
-            WHERE namespace=?
             ORDER BY d.updatedAt DESC
-            `,
-            [req.params.namespace]
+            `
         )
 
         let dataset:

@@ -267,7 +267,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                     // catch errors and report them the way the admin UI expects it
                     catchError((err: any /*, caught: Observable<any> */) => {
                         this.context.admin.setErrorMessage({
-                            title: `Failed to fetch variable annotations`,
+                            title: `Failed to fetch indicator annotations`,
                             content:
                                 stringifyUnknownError(err) ??
                                 "unexpected error value in setErrorMessage",
@@ -1353,7 +1353,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         )
 
         return (
-            <nav aria-label="Variable annotation pagination controls">
+            <nav aria-label="Indicator annotation pagination controls">
                 <ul className="pagination">
                     <li className="page-item">
                         <a

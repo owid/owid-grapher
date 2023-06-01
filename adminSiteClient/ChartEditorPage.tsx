@@ -18,6 +18,7 @@ import {
     extractDetailsFromSyntax,
     get,
     set,
+    groupBy,
 } from "@ourworldindata/utils"
 import { Grapher, Topic, GrapherInterface } from "@ourworldindata/grapher"
 import { Admin } from "./Admin.js"
@@ -28,6 +29,7 @@ import {
     PostReference,
     ChartRedirect,
     ChartEditorManager,
+    Dataset,
 } from "./ChartEditor.js"
 import { EditorBasicTab } from "./EditorBasicTab.js"
 import { EditorDataTab } from "./EditorDataTab.js"
@@ -154,8 +156,23 @@ export class ChartEditorPage
 
     async fetchData(): Promise<void> {
         const { admin } = this.context
-        const json = await admin.getJSON(`/api/editorData/namespaces.json`)
-        this.setDb(json)
+
+        const [namespaces, variables] = await Promise.all([
+            admin.getJSON(`/api/editorData/namespaces.json`),
+            admin.getJSON(`/api/editorData/variables.json`),
+        ])
+
+        this.setDb(namespaces)
+
+        const groupedByNamespace = groupBy(
+            variables.datasets,
+            (d) => d.namespace
+        )
+        for (const namespace in groupedByNamespace) {
+            this.database.dataByNamespace.set(namespace, {
+                datasets: groupedByNamespace[namespace] as Dataset[],
+            })
+        }
     }
 
     async fetchLogs(): Promise<void> {

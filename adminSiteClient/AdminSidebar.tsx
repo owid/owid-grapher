@@ -69,7 +69,7 @@ export const AdminSidebar = (): JSX.Element => (
             </li>
             <li>
                 <Link to="/variables">
-                    <FontAwesomeIcon icon={faDatabase} /> Variables
+                    <FontAwesomeIcon icon={faDatabase} /> Indicators
                 </Link>
             </li>
             <li>

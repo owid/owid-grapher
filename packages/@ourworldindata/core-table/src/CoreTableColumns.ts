@@ -265,6 +265,14 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return this.display?.name ?? this.name ?? ""
     }
 
+    @imemo get datasetId(): number | undefined {
+        return this.def.datasetId
+    }
+
+    @imemo get datasetName(): string | undefined {
+        return this.def.datasetName
+    }
+
     // todo: is the isString necessary?
     @imemo get sortedUniqNonEmptyStringVals(): JS_TYPE[] {
         return Array.from(

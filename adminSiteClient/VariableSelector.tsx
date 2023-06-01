@@ -9,23 +9,24 @@ import {
     highlightFunctionForSearchWords,
     SearchWord,
     OwidVariableId,
+    excludeUndefined,
+    uniq,
 } from "@ourworldindata/utils"
-import {
-    computed,
-    action,
-    observable,
-    autorun,
-    runInAction,
-    IReactionDisposer,
-} from "mobx"
+import { computed, action, observable, IReactionDisposer } from "mobx"
 import { observer } from "mobx-react"
-import Select from "react-select"
+import Select, { MultiValue } from "react-select"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArchive } from "@fortawesome/free-solid-svg-icons"
 
-import { ChartEditor, Dataset, Namespace } from "./ChartEditor.js"
-import { TextField, FieldsRow, Toggle, Modal } from "./Forms.js"
+import {
+    ChartEditor,
+    Dataset,
+    EditorDatabase,
+    Namespace,
+    NamespaceData,
+} from "./ChartEditor.js"
+import { TextField, Toggle, Modal } from "./Forms.js"
 import { DimensionSlot } from "@ourworldindata/grapher"
 
 interface VariableSelectorProps {
@@ -39,12 +40,13 @@ interface Variable {
     id: number
     name: string
     datasetName: string
+    namespaceName: string
     usageCount: number
 }
 
 @observer
 export class VariableSelector extends React.Component<VariableSelectorProps> {
-    @observable.ref chosenNamespace: Namespace | undefined
+    @observable.ref chosenNamespaces: Namespace[] = []
     @observable.ref searchInput?: string
     @observable.ref isProjection?: boolean
     @observable.ref tolerance?: number
@@ -56,15 +58,8 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
     @observable numVisibleRows: number = 15
     @observable rowHeight: number = 32
 
-    @computed get database() {
+    @computed get database(): EditorDatabase {
         return this.props.editor.database
-    }
-
-    @computed get currentNamespace() {
-        return (
-            this.chosenNamespace ??
-            this.database.namespaces.find((n) => n.name === "owid")!
-        )
     }
 
     @computed get searchWords(): SearchWord[] {
@@ -72,21 +67,23 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
         return buildSearchWordsFromSearchString(searchInput)
     }
 
-    @computed get editorData() {
-        return this.database.dataByNamespace.get(this.currentNamespace.name)
+    @computed get editorData(): NamespaceData[] {
+        // show all variables when no namespaces are selected
+        const currentNamespaces =
+            this.chosenNamespaces.length > 0
+                ? this.chosenNamespaces
+                : this.database.namespaces
+
+        return excludeUndefined(
+            currentNamespaces.map((namespace) =>
+                this.database.dataByNamespace.get(namespace.name)
+            )
+        )
     }
 
-    @computed get datasets() {
-        if (!this.editorData) return []
-
-        const datasets = this.editorData.datasets
-
-        if (this.currentNamespace.name !== "owid") {
-            // The default temporal ordering has no real use for bulk imports
-            return sortBy(datasets, (d) => d.name)
-        } else {
-            return datasets
-        }
+    @computed get datasets(): Dataset[] {
+        const datasets = this.editorData.flatMap((d) => d.datasets)
+        return sortBy(datasets, (d) => d.name)
     }
 
     @computed get datasetsByName(): lodash.Dictionary<Dataset> {
@@ -106,6 +103,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
                     id: variable.id,
                     name: variable.name,
                     datasetName: dataset.name,
+                    namespaceName: dataset.namespace,
                     usageCount: variableUsageCounts.get(variable.id) ?? 0,
                     //name: variable.name.includes(dataset.name) ? variable.name : dataset.name + " - " + variable.name
                 })
@@ -198,7 +196,6 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
         const { slot } = this.props
         const { database } = this.props.editor
         const {
-            currentNamespace,
             searchInput,
             chosenVariables,
             datasetsByName,
@@ -216,39 +213,49 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
             <Modal onClose={this.onDismiss} className="VariableSelector">
                 <div className="modal-header">
                     <h5 className="modal-title">
-                        Set variable{slot.allowMultiple && "s"} for {slot.name}
+                        Set indicator{slot.allowMultiple && "s"} for {slot.name}
                     </h5>
                 </div>
                 <div className="modal-body">
                     <div>
                         <div className="searchResults">
-                            <FieldsRow>
-                                <div className="form-group">
-                                    <label>Database</label>
-                                    <Select
-                                        options={database.namespaces}
-                                        formatOptionLabel={
-                                            this.formatNamespaceLabel
-                                        }
-                                        getOptionValue={(v) => v.name}
-                                        onChange={this.onNamespace}
-                                        value={currentNamespace}
-                                        filterOption={this.filterNamespace}
-                                        components={{
-                                            IndicatorSeparator: null,
-                                        }}
-                                        menuPlacement="bottom"
-                                    />
-                                </div>
-                                <TextField
-                                    placeholder="Search..."
-                                    value={searchInput}
-                                    onValue={this.onSearchInput}
-                                    onEnter={this.onSearchEnter}
-                                    onEscape={this.onDismiss}
-                                    autofocus
+                            <TextField
+                                placeholder="Search..."
+                                value={searchInput}
+                                onValue={this.onSearchInput}
+                                onEnter={this.onSearchEnter}
+                                onEscape={this.onDismiss}
+                                autofocus
+                            />
+                            <div className="form-group">
+                                <label>Namespaces</label>
+                                <Select
+                                    options={database.namespaces}
+                                    value={this.chosenNamespaces}
+                                    formatOptionLabel={
+                                        this.formatNamespaceLabel
+                                    }
+                                    getOptionValue={(v) => v.name}
+                                    onChange={this.onNamespace}
+                                    filterOption={this.filterNamespace}
+                                    components={{
+                                        IndicatorSeparator: null,
+                                    }}
+                                    menuPlacement="bottom"
+                                    isMulti
+                                    styles={{
+                                        multiValue: (baseStyles) => ({
+                                            ...baseStyles,
+                                            maxWidth: "300px",
+                                        }),
+                                        valueContainer: (baseStyles) => ({
+                                            ...baseStyles,
+                                            overflowY: "auto",
+                                            maxHeight: "130px",
+                                        }),
+                                    }}
                                 />
-                            </FieldsRow>
+                            </div>
                             <div
                                 style={{
                                     height: numVisibleRows * rowHeight,
@@ -283,7 +290,17 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
                                                                     "100%",
                                                             }}
                                                         >
-                                                            <h5>
+                                                            <h5
+                                                                style={{
+                                                                    marginTop:
+                                                                        "4px",
+                                                                }}
+                                                            >
+                                                                [
+                                                                {
+                                                                    dataset.namespace
+                                                                }
+                                                                ]{" "}
                                                                 {highlight(
                                                                     dataset.name
                                                                 )}
@@ -326,7 +343,12 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
                                                                     )
                                                                 }
                                                                 label={
-                                                                    <React.Fragment>
+                                                                    <div
+                                                                        style={{
+                                                                            overflowWrap:
+                                                                                "anywhere",
+                                                                        }}
+                                                                    >
                                                                         {highlight(
                                                                             v.name
                                                                         )}
@@ -341,7 +363,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
                                                                                 ? ` (used ${v.usageCount} times)`
                                                                                 : " (unused)"}
                                                                         </span>
-                                                                    </React.Fragment>
+                                                                    </div>
                                                                 }
                                                             />
                                                         </li>
@@ -352,9 +374,22 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
                                 </div>
                             </div>
                         </div>
-                        <div className="selectedData">
+                        <div
+                            className="selectedData"
+                            style={{ maxWidth: "33.33%" }}
+                        >
                             <ul>
                                 {chosenVariables.map((d) => {
+                                    const label = (
+                                        <React.Fragment>
+                                            {d.name}{" "}
+                                            <span style={{ color: "#999" }}>
+                                                [{d.namespaceName}:{" "}
+                                                {d.datasetName}]
+                                            </span>
+                                        </React.Fragment>
+                                    )
+
                                     return (
                                         <li key={d.id}>
                                             <Toggle
@@ -362,7 +397,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
                                                 onValue={() =>
                                                     this.unselectVariable(d)
                                                 }
-                                                label={d.name}
+                                                label={label}
                                             />
                                         </li>
                                     )
@@ -398,8 +433,8 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
         this.rowOffset = rowOffset
     }
 
-    @action.bound onNamespace(selected: Namespace | null) {
-        if (selected) this.chosenNamespace = selected
+    @action.bound onNamespace(selected: MultiValue<Namespace> | null) {
+        if (selected) this.chosenNamespaces = [...selected]
     }
 
     @action.bound onSearchInput(input: string) {
@@ -443,29 +478,36 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
     dispose!: IReactionDisposer
     base: React.RefObject<HTMLDivElement> = React.createRef()
     componentDidMount() {
-        this.dispose = autorun(() => {
-            if (!this.editorData)
-                runInAction(() => {
-                    this.props.editor.loadNamespace(this.currentNamespace.name)
-                    this.props.editor.loadVariableUsageCounts()
-                })
+        this.props.editor.loadVariableUsageCounts()
+        this.initChosenVariablesAndNamespaces()
+    }
+
+    @action.bound private initChosenVariablesAndNamespaces() {
+        const { datasetsByName } = this
+        const { variableUsageCounts } = this.database
+        const { dimensions } = this.props.slot
+
+        this.chosenVariables = dimensions.map((d) => {
+            const { datasetName } = d.column
+
+            return {
+                name: d.column.name,
+                id: d.variableId,
+                usageCount: variableUsageCounts.get(d.variableId) ?? 0,
+                datasetName: datasetName || "",
+                namespaceName:
+                    datasetName != undefined && datasetName in datasetsByName
+                        ? datasetsByName[datasetName].namespace
+                        : "",
+            }
         })
 
-        this.initChosenVariables()
-    }
-
-    @action.bound private initChosenVariables() {
-        const { variableUsageCounts } = this.database
-        this.chosenVariables = this.props.slot.dimensions.map((d) => ({
-            name: d.column.displayName,
-            id: d.variableId,
-            usageCount: variableUsageCounts.get(d.variableId) ?? 0,
-            datasetName: "",
-        }))
-    }
-
-    componentWillUnmount() {
-        this.dispose()
+        const uniqueNamespaces = uniq(
+            this.chosenVariables.map((v) => v.namespaceName)
+        )
+        this.chosenNamespaces = this.database.namespaces.filter((n) => {
+            return uniqueNamespaces.includes(n.name)
+        })
     }
 
     @action.bound onComplete() {

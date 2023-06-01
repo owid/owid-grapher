@@ -23,7 +23,7 @@ export class EditorFAQ extends React.Component<{ onClose: () => void }> {
                         </a>{" "}
                         for the full process.
                     </p>
-                    <h6>What are "variables" and "entities"?</h6>
+                    <h6>What are "indicators" and "entities"?</h6>
                     <p>
                         They roughly correspond to columns and rows in a CSV
                         file. For OWID, entities are usually but not always
@@ -62,10 +62,10 @@ export class EditorFAQ extends React.Component<{ onClose: () => void }> {
                     </p>
                     <h6>How much data can I put in one chart?</h6>
                     <p>
-                        The fewer variables the better. To allow for fast
+                        The fewer indicators the better. To allow for fast
                         interactivity, the grapher preloads <strong>all</strong>{" "}
-                        the data for each variable added to a chart, including
-                        every year and entity. If you have 10+ big variables on
+                        the data for each indicator added to a chart, including
+                        every year and entity. If you have 10+ big indicators on
                         one chart it may be a little slow to load.
                     </p>
                     <p>
@@ -80,7 +80,7 @@ export class EditorFAQ extends React.Component<{ onClose: () => void }> {
                         Check the data selection on the "Data" tab and the
                         specified year range on the "Customize" tab.
                         Alternatively, you might be trying to show a categorical
-                        variable on a numeric chart type or vice versa, which
+                        indicator on a numeric chart type or vice versa, which
                         won't work.
                     </p>
                     <h6>Other questions or bug reports</h6>

@@ -191,7 +191,7 @@ export class SuggestedChartRevisionListPage extends React.Component {
                                     },
                                     {
                                         value: "variableId",
-                                        label: "Variable ID",
+                                        label: "Indicator ID",
                                     },
                                 ]}
                                 onChange={this.onSortByChange}

@@ -167,7 +167,7 @@ class EditVariable extends React.Component<{
                         }}
                         value={variable.overwriteId || ""}
                     >
-                        <option value="">Create new variable</option>
+                        <option value="">Create new indicator</option>
                         {dataset.existingVariables.map((v) => (
                             <option key={v.id} value={v.id}>
                                 Overwrite {v.name}
@@ -200,9 +200,9 @@ class EditVariables extends React.Component<{ dataset: EditableDataset }> {
 
         return (
             <section className="form-section variables-section">
-                <h3>Variables</h3>
+                <h3>Indicators</h3>
                 <p className="form-section-desc">
-                    These are the variables that will be stored for your
+                    These are the indicators that will be stored for your
                     dataset.
                 </p>
                 <ol>
@@ -216,7 +216,7 @@ class EditVariables extends React.Component<{ dataset: EditableDataset }> {
                 </ol>
                 {this.deletingVariables.length > 0 && (
                     <div className="alert alert-danger">
-                        Some existing variables are not selected to overwrite
+                        Some existing indicators are not selected to overwrite
                         and will be deleted:{" "}
                         {this.deletingVariables.map((v) => v.name).join(",")}
                     </div>
@@ -298,7 +298,7 @@ class CSV {
         if (rows[0].length < 3) {
             validation.results.push({
                 class: "danger",
-                message: `No variables detected. CSV should have at least 3 columns.`,
+                message: `No indicators detected. CSV should have at least 3 columns.`,
             })
         }
 
@@ -600,11 +600,11 @@ class Importer extends React.Component<ImportPageData> {
                 <p>
                     Examples of valid layouts:{" "}
                     <a href="http://ourworldindata.org/uploads/2016/02/ourworldindata_single-var.png">
-                        single variable
+                        single indicator
                     </a>
                     ,{" "}
                     <a href="http://ourworldindata.org/uploads/2016/02/ourworldindata_multi-var.png">
-                        multiple variables
+                        multiple indicators
                     </a>
                     .{" "}
                     <span className="form-section-desc">
@@ -661,7 +661,7 @@ class Importer extends React.Component<ImportPageData> {
                         <BindString
                             field="name"
                             store={dataset}
-                            helpText={`Dataset name should include a basic description of the variables, followed by the source and year. For example: "Government Revenue Data – ICTD (2016)"`}
+                            helpText={`Dataset name should include a basic description of the indicators, followed by the source and year. For example: "Government Revenue Data – ICTD (2016)"`}
                         />
 
                         {dataset.isLoading && (

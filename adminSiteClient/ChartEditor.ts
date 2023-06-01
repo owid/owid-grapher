@@ -6,7 +6,7 @@
  */
 
 import { Grapher, Topic } from "@ourworldindata/grapher"
-import type { DetailDictionary, RawPageview } from "@ourworldindata/utils"
+import { type DetailDictionary, type RawPageview } from "@ourworldindata/utils"
 import { computed, observable, runInAction, when } from "mobx"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
 import { Admin } from "./Admin.js"
@@ -167,15 +167,6 @@ export class ChartEditor {
         return new EditorFeatures(this)
     }
 
-    // Load index of datasets and variables for the given namespace
-    async loadNamespace(namespace: string): Promise<void> {
-        const data = await this.manager.admin.getJSON(
-            `/api/editorData/${namespace}.json`
-        )
-        runInAction(() =>
-            this.database.dataByNamespace.set(namespace, data as any)
-        )
-    }
     async loadVariableUsageCounts(): Promise<void> {
         const data = (await this.manager.admin.getJSON(
             `/api/variables.usages.json`
@@ -183,7 +174,7 @@ export class ChartEditor {
         const finalData = new Map(
             data.map(({ variableId, usageCount }: VariableIdUsageRecord) => [
                 variableId,
-                usageCount,
+                +usageCount,
             ])
         )
         runInAction(() => (this.database.variableUsageCounts = finalData))

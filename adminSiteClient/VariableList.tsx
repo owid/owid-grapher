@@ -70,7 +70,7 @@ export class VariableList extends React.Component<{
             <table className="table table-bordered">
                 <thead>
                     <tr>
-                        <th>Variable</th>
+                        <th>Indicator</th>
                         {props.variables.some(
                             (v) => v.uploadedAt !== undefined
                         ) && <th>Uploaded</th>}

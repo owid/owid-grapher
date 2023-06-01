@@ -54,15 +54,15 @@ export class VariablesIndexPage extends React.Component {
         }
 
         return (
-            <AdminLayout title="Variables">
+            <AdminLayout title="Indicators">
                 <main className="DatasetsIndexPage">
                     <FieldsRow>
                         <span>
                             Showing {variablesToShow.length} of {numTotalRows}{" "}
-                            variables
+                            indicators
                         </span>
                         <SearchField
-                            placeholder="Search all variables..."
+                            placeholder="Search all indicators..."
                             value={searchInput}
                             onValue={action(
                                 (v: string) => (this.searchInput = v)
@@ -79,7 +79,7 @@ export class VariablesIndexPage extends React.Component {
                             className="btn btn-secondary"
                             onClick={this.onShowMore}
                         >
-                            Show more variables...
+                            Show more indicators...
                         </button>
                     )}
                 </main>
