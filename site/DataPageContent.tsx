@@ -329,8 +329,8 @@ export const DataPageContent = ({
                     <div className="DataPageContent__section-border wrapper">
                         <hr />
                     </div>
-                    {datapageJson.relatedCharts &&
-                    datapageJson.relatedCharts.length > 0 ? (
+                    {datapageJson.allCharts &&
+                    datapageJson.allCharts.length > 0 ? (
                         <div className="related-charts__wrapper wrapper">
                             <h2
                                 className="related-charts__title"
@@ -340,7 +340,7 @@ export const DataPageContent = ({
                             </h2>
                             <div>
                                 <RelatedCharts
-                                    charts={datapageJson.relatedCharts}
+                                    charts={datapageJson.allCharts}
                                 />
                             </div>
                         </div>

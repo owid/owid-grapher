@@ -124,8 +124,8 @@ export const renderDataPageOrGrapherPage = async (
     // being used in (aka "related charts") if none have been defined manually.
     // We also want to exclude from the list the chart that is displayed at the
     // top of the page to avoid the unnecessary redundancy.
-    datapageJson.relatedCharts =
-        datapageJson.relatedCharts ??
+    datapageJson.allCharts =
+        datapageJson.allCharts ??
         (await getRelatedChartsForVariable(id, [grapher.id]))
 
     // Compliment the text-only content from the JSON with rich text from the
@@ -232,8 +232,8 @@ export const renderPreviewDataPageOrGrapherPage = async (
     // being used in (aka "related charts") if none have been defined manually.
     // We also want to exclude from the list the chart that is displayed at the
     // top of the page to avoid the unnecessary redundancy.
-    datapageJson.relatedCharts =
-        datapageJson.relatedCharts ??
+    datapageJson.allCharts =
+        datapageJson.allCharts ??
         (await getRelatedChartsForVariable(id, [grapher.id]))
 
     if (!datapageJson.googleDocEditLink)
