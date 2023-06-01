@@ -68,7 +68,6 @@ export {
     type GrapherProgrammaticInterface,
     type GrapherManager,
     getErrorMessageRelatedQuestionUrl,
-    safeMergeGrapherConfigs,
 } from "./core/Grapher"
 export { GrapherAnalytics } from "./core/GrapherAnalytics"
 export {

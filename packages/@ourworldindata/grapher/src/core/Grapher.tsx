@@ -63,7 +63,6 @@ import {
     firstOfNonEmptyArray,
     spansToUnformattedPlainText,
     EnrichedDetail,
-    merge,
 } from "@ourworldindata/utils"
 import {
     ChartTypeName,
@@ -2707,26 +2706,4 @@ export const getErrorMessageRelatedQuestionUrl = (
                   "URL should start with http(s)://") ||
               undefined
         : undefined
-}
-
-export function safeMergeGrapherConfigs(
-    ...configs: GrapherProgrammaticInterface[]
-): GrapherProgrammaticInterface {
-    const c = merge({}, ...configs)
-
-    // ensure that the initially selected tab is available
-    const isAnyTabVisible =
-        c.hasChartTab ||
-        c.hasMapTab ||
-        c.hasTableTab ||
-        c.hasSourcesTab ||
-        c.hasDownloadTab
-    if (isAnyTabVisible) {
-        const tab: GrapherTabOption = c.tab || GrapherTabOption.chart
-        if (tab === GrapherTabOption.chart) c.hasChartTab = true
-        if (tab === GrapherTabOption.map) c.hasMapTab = true
-        if (tab === GrapherTabOption.table) c.hasTableTab = true
-    }
-
-    return c
 }

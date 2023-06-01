@@ -9,7 +9,7 @@ import {
     hydrateGlobalEntitySelectorIfAny,
     migrateSelectedEntityNamesParam,
     SelectionArray,
-    safeMergeGrapherConfigs,
+    GrapherTabOption,
 } from "@ourworldindata/grapher"
 import {
     Annotation,
@@ -20,6 +20,7 @@ import {
     isMobile,
     isPresent,
     Url,
+    merge,
 } from "@ourworldindata/utils"
 import { action } from "mobx"
 import React from "react"
@@ -140,7 +141,7 @@ class MultiEmbedder {
         // when going from portrait to landscape mode (without page reload).
         this.figuresObserver?.unobserve(figure)
 
-        const { fullUrl, queryStr } = Url.fromURL(dataSrc)
+        const { fullUrl, queryStr, queryParams } = Url.fromURL(dataSrc)
 
         const common: GrapherProgrammaticInterface = {
             isEmbeddedInAnOwidPage: true,
@@ -178,6 +179,8 @@ class MultiEmbedder {
         } else {
             figure.classList.remove("grapherPreview")
 
+            const grapherPageConfig = deserializeJSONFromHTML(html)
+
             const figureConfigAttr = figure.getAttribute(
                 GRAPHER_EMBEDDED_FIGURE_CONFIG_ATTR
             )
@@ -185,19 +188,28 @@ class MultiEmbedder {
                 ? JSON.parse(figureConfigAttr)
                 : {}
 
-            const config = safeMergeGrapherConfigs(
-                deserializeJSONFromHTML(html),
-                common,
-                localConfig,
-                {
-                    manager: {
-                        selection: new SelectionArray(
-                            this.selection.selectedEntityNames
-                        ),
-                    },
-                    annotation,
-                }
-            )
+            // make sure the tab of the active pane is visible
+            if (figureConfigAttr) {
+                const activeTab =
+                    queryParams.tab ||
+                    grapherPageConfig.tab ||
+                    GrapherTabOption.chart
+                if (activeTab === GrapherTabOption.chart)
+                    localConfig.hasChartTab = true
+                if (activeTab === GrapherTabOption.map)
+                    localConfig.hasMapTab = true
+                if (activeTab === GrapherTabOption.table)
+                    localConfig.hasTableTab = true
+            }
+
+            const config = merge(grapherPageConfig, common, localConfig, {
+                manager: {
+                    selection: new SelectionArray(
+                        this.selection.selectedEntityNames
+                    ),
+                },
+                annotation,
+            })
             if (config.manager?.selection)
                 this.graphersAndExplorersToUpdate.add(config.manager.selection)
 
