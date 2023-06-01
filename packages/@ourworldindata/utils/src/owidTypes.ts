@@ -1277,7 +1277,6 @@ export const DataPageJsonTypeObject = Type.Object(
                 sourceName: Type.String(),
                 sourceRetrievedOn: Type.Optional(Type.String()),
                 sourceRetrievedFromUrl: Type.Optional(Type.String()),
-                sourceCodeUrl: Type.Optional(Type.String()),
             })
         ),
     },
