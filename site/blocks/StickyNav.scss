@@ -64,16 +64,16 @@
     border-bottom: 1px solid $blue-10;
     background-color: $white;
     a {
-        color: $blue-90;
+        color: $blue-50;
 
         &:visited {
-            color: $blue-90;
+            color: $blue-50;
         }
 
         &:active,
         &.active,
         &:hover {
-            color: $blue-50;
+            color: $blue-90;
         }
     }
 }
