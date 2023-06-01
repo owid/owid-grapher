@@ -58,9 +58,9 @@ import {
     SUMMARY_CLASSNAME,
 } from "../site/formatting.js"
 import { renderKeyInsights, renderProminentLinks } from "./siteRenderers.js"
-import { logContentErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
 import { KEY_INSIGHTS_CLASS_NAME } from "../site/blocks/KeyInsights.js"
 import { RELATED_CHARTS_CLASS_NAME } from "../site/blocks/RelatedCharts.js"
+import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 
 const initMathJax = () => {
     const adaptor = liteAdaptor()
@@ -220,7 +220,7 @@ export const formatWordpressPost = async (
             dataValueConfigurationString
         )
         if (!dataValueProps) {
-            logContentErrorAndMaybeSendToSlack(
+            logErrorAndMaybeSendToBugsnag(
                 new JsonError(
                     `Missing data value for {{DataValue ${dataValueConfigurationString}}}" in ${BAKED_BASE_URL}/${post.slug}`
                 )

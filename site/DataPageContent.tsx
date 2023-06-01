@@ -85,7 +85,9 @@ export const DataPageContent = ({
                     />
                     <div className="key-info__wrapper wrapper grid grid-cols-12">
                         <div className="key-info__left col-start-2 span-cols-7 span-lg-cols-8 span-sm-cols-12">
-                            <h2 className="key-info__title">Key information</h2>
+                            <h2 className="key-info__title">
+                                What you should know about this indicator
+                            </h2>
                             {datapageGdoc?.keyInfoText ? (
                                 <ArticleBlocks
                                     blocks={datapageGdoc.keyInfoText}

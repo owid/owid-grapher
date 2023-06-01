@@ -13,23 +13,14 @@ $cell-border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .tableTab .data-table {
-    th {
+    thead {
         position: sticky;
-        z-index: 10;
+        z-index: 20;
+        top: 0;
+    }
+
+    th {
         white-space: nowrap;
-
-        &.dimension,
-        &.entity {
-            top: 0;
-        }
-
-        &.entity {
-            z-index: 11;
-        }
-
-        &.subdimension {
-            top: 53px;
-        }
     }
 
     .entity {
@@ -37,14 +28,19 @@ $cell-border: 1px solid rgba(0, 0, 0, 0.08);
         left: 0;
         z-index: 10;
     }
+
+    th.entity {
+        top: 0;
+    }
 }
 
 .data-table {
     font-size: 0.9375rem;
-    line-height: 16px;
+    line-height: 1.333em;
     border: none;
     background: white;
     width: 100%;
+    border-collapse: separate;
     border-spacing: 0px;
     box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 2px 0px,
         rgba(0, 0, 0, 0.25) 0px 2px 2px 0px;
@@ -100,6 +96,10 @@ $cell-border: 1px solid rgba(0, 0, 0, 0.08);
     td {
         padding-left: 15px;
         padding-right: 15px;
+
+        &:not(.entity) {
+            vertical-align: bottom;
+        }
     }
 
     th.dimension {
@@ -170,6 +170,15 @@ $cell-border: 1px solid rgba(0, 0, 0, 0.08);
         font-weight: 700;
     }
 
+    tr:not(.aggregate) + tr.aggregate > td {
+        border-top: 6px solid #aaa;
+    }
+
+    .aggregate .entity {
+        font-style: italic;
+        font-weight: 400;
+    }
+
     .dimension {
         text-align: right;
 
@@ -187,13 +196,16 @@ $cell-border: 1px solid rgba(0, 0, 0, 0.08);
 
     .closest-time-notice-icon {
         opacity: 0.5;
-        padding-right: 8px;
         font-size: 13px;
         cursor: default;
 
         .icon {
             font-size: 0.75rem;
             opacity: 0.6;
+        }
+
+        & + span {
+            margin-left: 8px;
         }
     }
 

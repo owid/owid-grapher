@@ -192,7 +192,10 @@ export const FrontPage = (props: {
                                     <ul>
                                         {featuredWork.map((post) => (
                                             <li key={post.slug}>
-                                                <PostCard post={post} />
+                                                <PostCard
+                                                    post={post}
+                                                    hideDate={true}
+                                                />
                                             </li>
                                         ))}
                                     </ul>
@@ -202,7 +205,7 @@ export const FrontPage = (props: {
                                             data-track-note="homepage-see-all-explainers"
                                         >
                                             <div className="label">
-                                                See all of our latest work
+                                                See all of our work
                                             </div>
                                             <div className="icon">
                                                 <FontAwesomeIcon

@@ -1,6 +1,6 @@
 import fs from "fs-extra"
 import { BakeStepConfig, SiteBaker } from "../baker/SiteBaker.js"
-import { warn, logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
+import { logErrorAndMaybeSendToBugsnag, warn } from "../serverUtils/errorLog.js"
 import { DeployQueueServer } from "./DeployQueueServer.js"
 import { BAKED_SITE_DIR, BAKED_BASE_URL } from "../settings/serverSettings.js"
 import { DeployChange, OwidGdocPublished } from "@ourworldindata/utils"
@@ -48,7 +48,7 @@ const bakeAndDeploy = async (
         }
         await baker.deployToNetlifyAndPushToGitPush(message)
     } catch (err) {
-        logErrorAndMaybeSendToSlack(err)
+        logErrorAndMaybeSendToBugsnag(err)
         throw err
     }
 }
@@ -59,7 +59,7 @@ export const bake = async (bakeSteps?: BakeStepConfig) => {
         await baker.bakeAll()
     } catch (err) {
         baker.endDbConnections()
-        logErrorAndMaybeSendToSlack(err)
+        logErrorAndMaybeSendToBugsnag(err)
         throw err
     } finally {
         baker.endDbConnections()
@@ -81,7 +81,7 @@ export const tryDeploy = async (
     try {
         await baker.deployToNetlifyAndPushToGitPush(message, email, name)
     } catch (err) {
-        logErrorAndMaybeSendToSlack(err)
+        logErrorAndMaybeSendToBugsnag(err)
     } finally {
         baker.endDbConnections()
     }

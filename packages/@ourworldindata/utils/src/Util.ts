@@ -153,6 +153,11 @@ import {
     OwidEnrichedGdocBlock,
     Span,
     OwidGdocType,
+    EnrichedRecircLink,
+    EnrichedTopicPageIntroRelatedTopic,
+    EnrichedTopicPageIntroDownloadButton,
+    EnrichedScrollerItem,
+    EnrichedBlockKeyInsightsSlide,
 } from "./owidTypes.js"
 import { PointVector } from "./PointVector.js"
 import React from "react"
@@ -337,7 +342,7 @@ export const excludeUndefined = <T>(arr: (T | undefined)[]): T[] =>
 export const excludeNull = <T>(arr: (T | null)[]): T[] =>
     arr.filter((x) => x !== null) as T[]
 
-export const excludeNullish = <T>(arr: (T | null | undefined)[]): T[] =>
+export const excludeNullish = <T>(arr: (T | null | undefined | void)[]): T[] =>
     arr.filter((x) => x !== null && x !== undefined) as T[]
 
 export const firstOfNonEmptyArray = <T>(arr: T[]): T => {
@@ -1348,12 +1353,22 @@ export const imemo = <Type>(
     }
 }
 
-export function recursivelyMapArticleContent<
-    Node extends OwidEnrichedGdocBlock | Span
->(
-    node: Node,
-    callback: <Child extends OwidEnrichedGdocBlock | Span>(node: Child) => Child
-): Node {
+// These are all the types that we need to be able to iterate through to extract their URLs/filenames.
+// It's more than just the EnrichedBlocks and Spans, because some EnrichedBlocks have nested children
+// that contain URLs/filenames
+export type NodeWithUrl =
+    | OwidEnrichedGdocBlock
+    | Span
+    | EnrichedRecircLink
+    | EnrichedTopicPageIntroRelatedTopic
+    | EnrichedTopicPageIntroDownloadButton
+    | EnrichedScrollerItem
+    | EnrichedBlockKeyInsightsSlide
+
+export function recursivelyMapArticleContent(
+    node: NodeWithUrl,
+    callback: (node: NodeWithUrl) => NodeWithUrl
+): NodeWithUrl {
     if (checkNodeIsSpan(node)) {
         if ("children" in node) {
             node.children.map((node) =>
@@ -1370,9 +1385,7 @@ export function recursivelyMapArticleContent<
         node.left.map((node) => recursivelyMapArticleContent(node, callback))
         node.right.map((node) => recursivelyMapArticleContent(node, callback))
     } else if (node.type === "text") {
-        node.value.map((node) =>
-            recursivelyMapArticleContent(node as any, callback)
-        )
+        node.value.map((node) => recursivelyMapArticleContent(node, callback))
     } else if (node.type === "additional-charts") {
         node.items.map((spans) =>
             spans.map((span) => recursivelyMapArticleContent(span, callback))
@@ -1381,14 +1394,174 @@ export function recursivelyMapArticleContent<
         node.items.map((item) =>
             recursivelyMapArticleContent(item.chart, callback)
         )
+    } else if (node.type === "recirc") {
+        node.links.map((link) => callback(link))
+    } else if (node.type === "topic-page-intro") {
+        const { downloadButton, relatedTopics, content } = node
+        if (downloadButton) callback(downloadButton)
+        if (relatedTopics) relatedTopics.forEach(callback)
+        content.forEach(callback)
+    } else if (node.type === "scroller") {
+        node.blocks.forEach(callback)
+    } else if (node.type === "key-insights") {
+        node.insights.forEach((insight) => {
+            callback(insight)
+            insight.content.forEach(callback)
+        })
     }
 
     return callback(node)
 }
 
-export function checkNodeIsSpan(
-    node: OwidEnrichedGdocBlock | Span
-): node is Span {
+export function traverseEnrichedSpan(
+    span: Span,
+    callback: (x: Span) => void
+): void {
+    match(span)
+        .with({ children: P.any }, (span) => {
+            callback(span)
+            span.children.forEach((child) =>
+                traverseEnrichedSpan(child, callback)
+            )
+        })
+        .with({ spanType: "span-simple-text" }, (simpleSpan) => {
+            callback(simpleSpan)
+        })
+        .with({ spanType: "span-newline" }, (newlineSpan) => {
+            callback(newlineSpan)
+        })
+        .exhaustive()
+}
+
+// If your node is a OwidEnrichedGdocBlock, the callback will apply to it
+// If your node has children that are Spans, the spanCallback will apply to them
+// If your node has children that aren't OwidEnrichedGdocBlocks or Spans, e.g. EnrichedBlockScroller & EnrichedScrollerItem
+// you'll have to handle those children yourself in your callback
+export function traverseEnrichedBlocks(
+    node: OwidEnrichedGdocBlock,
+    callback: (x: OwidEnrichedGdocBlock) => void,
+    spanCallback?: (x: Span) => void
+): void {
+    match(node)
+        .with(
+            { type: P.union("sticky-right", "sticky-left", "side-by-side") },
+            (container) => {
+                callback(container)
+                container.left.forEach((leftNode) =>
+                    traverseEnrichedBlocks(leftNode, callback, spanCallback)
+                )
+                container.right.forEach((rightNode) =>
+                    traverseEnrichedBlocks(rightNode, callback, spanCallback)
+                )
+            }
+        )
+        .with({ type: "gray-section" }, (graySection) => {
+            callback(graySection)
+            graySection.items.forEach((node) =>
+                traverseEnrichedBlocks(node, callback, spanCallback)
+            )
+        })
+        .with({ type: "key-insights" }, (keyInsights) => {
+            callback(keyInsights)
+            keyInsights.insights.forEach((insight) =>
+                insight.content.forEach((node) =>
+                    traverseEnrichedBlocks(node, callback, spanCallback)
+                )
+            )
+        })
+        .with({ type: "callout" }, (callout) => {
+            callback(callout)
+            if (spanCallback) {
+                callout.text.forEach((textBlock) =>
+                    traverseEnrichedBlocks(textBlock, callback, spanCallback)
+                )
+            }
+        })
+        .with({ type: "aside" }, (aside) => {
+            callback(aside)
+            if (spanCallback) {
+                aside.caption.forEach((span) =>
+                    traverseEnrichedSpan(span, spanCallback)
+                )
+            }
+        })
+        .with({ type: "list" }, (list) => {
+            callback(list)
+            if (spanCallback) {
+                list.items.forEach((textBlock) =>
+                    traverseEnrichedBlocks(textBlock, callback, spanCallback)
+                )
+            }
+        })
+        .with({ type: "numbered-list" }, (numberedList) => {
+            callback(numberedList)
+            if (spanCallback) {
+                numberedList.items.forEach((textBlock) =>
+                    traverseEnrichedBlocks(textBlock, callback, spanCallback)
+                )
+            }
+        })
+        .with({ type: "text" }, (textNode) => {
+            callback(textNode)
+            if (spanCallback) {
+                textNode.value.forEach((span) => {
+                    traverseEnrichedSpan(span, spanCallback)
+                })
+            }
+        })
+        .with({ type: "simple-text" }, (simpleTextNode) => {
+            if (spanCallback) {
+                spanCallback(simpleTextNode.value)
+            }
+        })
+        .with({ type: "additional-charts" }, (additionalCharts) => {
+            callback(additionalCharts)
+            if (spanCallback) {
+                additionalCharts.items.forEach((spans) => {
+                    spans.forEach((span) =>
+                        traverseEnrichedSpan(span, spanCallback)
+                    )
+                })
+            }
+        })
+        .with({ type: "heading" }, (heading) => {
+            callback(heading)
+            if (spanCallback) {
+                heading.text.forEach((span) => {
+                    traverseEnrichedSpan(span, spanCallback)
+                })
+            }
+        })
+        .with({ type: "expandable-paragraph" }, (expandableParagraph) => {
+            callback(expandableParagraph)
+            expandableParagraph.items.forEach((textBlock) => {
+                traverseEnrichedBlocks(textBlock, callback, spanCallback)
+            })
+        })
+        .with(
+            {
+                type: P.union(
+                    "chart-story",
+                    "chart",
+                    "horizontal-rule",
+                    "html",
+                    "image",
+                    "missing-data",
+                    "prominent-link",
+                    "pull-quote",
+                    "recirc",
+                    "scroller",
+                    "sdg-grid",
+                    "sdg-toc",
+                    "topic-page-intro"
+                ),
+            },
+            callback
+        )
+        .exhaustive()
+}
+
+export function checkNodeIsSpan(node: NodeWithUrl): node is Span {
     return "spanType" in node
 }
 

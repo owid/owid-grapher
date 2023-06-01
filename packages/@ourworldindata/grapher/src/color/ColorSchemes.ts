@@ -81,10 +81,6 @@ function getPreferredSchemesByType(type: ChartTypeName): ColorSchemeName[] {
             ColorSchemeName.SingleColorGradientDustyCoral,
             ColorSchemeName.SingleColorGradientDarkCopper,
         ])
-        .with(ChartTypeName.TimeScatter, () => [
-            ColorSchemeName.continents,
-            ColorSchemeName.OwidDistinctLines,
-        ])
         .with(ChartTypeName.WorldMap, () => [
             ColorSchemeName.BinaryMapPaletteA,
             ColorSchemeName.BinaryMapPaletteB,

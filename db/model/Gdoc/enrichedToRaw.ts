@@ -18,12 +18,15 @@ import {
     RawBlockSDGGrid,
     RawBlockText,
     Span,
-    RawRecircItem,
+    RawRecircLink,
     RawBlockHorizontalRule,
     RawSDGGridItem,
     RawBlockSDGToc,
     RawBlockMissingData,
     RawBlockCallout,
+    RawBlockExpandableParagraph,
+    RawBlockKeyInsights,
+    RawBlockTopicPageIntro,
 } from "@ourworldindata/utils"
 import { spanToHtmlString } from "./gdocUtils.js"
 import { match, P } from "ts-pattern"
@@ -62,9 +65,9 @@ export function enrichedBlockToRawBlock(
                 type: b.type,
                 value: {
                     title: b.title,
-                    text: b.text.map((spans) => ({
+                    text: b.text.map((enrichedTextBlock) => ({
                         type: "text",
-                        value: spansToHtmlText(spans),
+                        value: spansToHtmlText(enrichedTextBlock.value),
                     })),
                 },
             })
@@ -143,18 +146,14 @@ export function enrichedBlockToRawBlock(
             { type: "recirc" },
             (b): RawBlockRecirc => ({
                 type: b.type,
-                value: [
-                    {
-                        title: spansToHtmlText([b.title]),
-                        list: b.items.map(
-                            (listItem): RawRecircItem => ({
-                                article: listItem.article.text,
-                                author: listItem.author.text,
-                                url: listItem.url,
-                            })
-                        ),
-                    },
-                ],
+                value: {
+                    title: spansToHtmlText([b.title]),
+                    links: b.links.map(
+                        (link): RawRecircLink => ({
+                            url: link.url!,
+                        })
+                    ),
+                },
             })
         )
         .with(
@@ -268,6 +267,54 @@ export function enrichedBlockToRawBlock(
                 value: {
                     position: b.position,
                     caption: spansToHtmlText(b.caption),
+                },
+            })
+        )
+        .with(
+            { type: "expandable-paragraph" },
+            (b): RawBlockExpandableParagraph => ({
+                type: b.type,
+                value: b.items.map(enrichedBlockToRawBlock),
+            })
+        )
+        .with(
+            { type: "topic-page-intro" },
+            (b): RawBlockTopicPageIntro => ({
+                type: b.type,
+                value: {
+                    "download-button": b.downloadButton
+                        ? {
+                              url: b.downloadButton.url,
+                              text: b.downloadButton.text,
+                          }
+                        : undefined,
+                    "related-topics": b.relatedTopics
+                        ? b.relatedTopics.map((relatedTopic) => ({
+                              text: relatedTopic.text,
+                              url: relatedTopic.url,
+                          }))
+                        : undefined,
+                    content: b.content.map((textBlock) => ({
+                        type: "text",
+                        value: spansToHtmlText(textBlock.value),
+                    })),
+                },
+            })
+        )
+        .with(
+            { type: "key-insights" },
+            (b): RawBlockKeyInsights => ({
+                type: b.type,
+                value: {
+                    heading: b.heading,
+                    insights: b.insights.map((insight) => ({
+                        title: insight.title,
+                        filename: insight.filename,
+                        url: insight.url,
+                        content: insight.content?.map((content) =>
+                            enrichedBlockToRawBlock(content)
+                        ),
+                    })),
                 },
             })
         )

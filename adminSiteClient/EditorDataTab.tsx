@@ -2,7 +2,11 @@ import React from "react"
 import { moveArrayItemToIndex, omit } from "@ourworldindata/utils"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
-import { Grapher, EntitySelectionMode } from "@ourworldindata/grapher"
+import {
+    Grapher,
+    EntitySelectionMode,
+    MissingDataStrategy,
+} from "@ourworldindata/grapher"
 import { ColorBox, SelectField, Section } from "./Forms.js"
 import { ChartEditor } from "./ChartEditor.js"
 import { faArrowsAltV, faTimes } from "@fortawesome/free-solid-svg-icons"
@@ -160,10 +164,54 @@ export class KeysSection extends React.Component<{ grapher: Grapher }> {
 }
 
 @observer
+class MissingDataSection extends React.Component<{ editor: ChartEditor }> {
+    @computed get grapher() {
+        return this.props.editor.grapher
+    }
+
+    get missingDataStrategyOptions(): {
+        value: MissingDataStrategy
+        label: string
+    }[] {
+        const missingDataStrategyLabels = {
+            [MissingDataStrategy.auto]: "Automatic",
+            [MissingDataStrategy.hide]: "Hide entities with missing data",
+            [MissingDataStrategy.show]: "Show entities with missing data",
+        }
+
+        return Object.values(MissingDataStrategy).map((strategy) => {
+            return {
+                value: strategy,
+                label: missingDataStrategyLabels[strategy],
+            }
+        })
+    }
+
+    @action.bound onSelectMissingDataStrategy(value: string | undefined) {
+        this.grapher.missingDataStrategy = value as MissingDataStrategy
+    }
+
+    render() {
+        const { grapher } = this
+
+        return (
+            <Section name="Missing data">
+                <SelectField
+                    label="Missing data strategy (for when one or more variables are missing for an entity)"
+                    value={grapher.missingDataStrategy}
+                    options={this.missingDataStrategyOptions}
+                    onValue={this.onSelectMissingDataStrategy}
+                />
+            </Section>
+        )
+    }
+}
+
+@observer
 export class EditorDataTab extends React.Component<{ editor: ChartEditor }> {
     render() {
         const { editor } = this.props
-        const { grapher } = editor
+        const { grapher, features } = editor
 
         return (
             <div className="EditorDataTab">
@@ -227,6 +275,9 @@ export class EditorDataTab extends React.Component<{ editor: ChartEditor }> {
                     </div>
                 </Section>
                 <KeysSection grapher={editor.grapher} />
+                {features.canSpecifyMissingDataStrategy && (
+                    <MissingDataSection editor={this.props.editor} />
+                )}
             </div>
         )
     }

@@ -302,7 +302,6 @@ export interface FullPost extends IndexPost {
     imageId?: number
     postId?: number
     relatedCharts?: RelatedChart[]
-    glossary: boolean
 }
 
 export enum WP_ColumnStyle {
@@ -541,7 +540,8 @@ export type RawBlockScroller = {
 }
 
 export type EnrichedScrollerItem = {
-    url: string // TODO: should this be transformed into an EnrichedBlockChart?
+    type: "enriched-scroller-item"
+    url: string
     text: EnrichedBlockText
 }
 
@@ -601,7 +601,7 @@ export type EnrichedBlockImage = {
     size: BlockImageSize
 } & EnrichedBlockWithParseErrors
 
-// TODO: This is what lists staring with * are converted to in gdocToArhcieml
+// TODO: This is what lists staring with * are converted to in archieToEnriched
 // It might also be what is used inside recirc elements but there it's not a simple
 // string IIRC - check this
 export type RawBlockList = {
@@ -644,31 +644,27 @@ export type EnrichedBlockHorizontalRule = {
     value?: Record<string, never> // dummy value to unify block shapes
 } & EnrichedBlockWithParseErrors
 
-export type RawRecircItem = {
-    article?: string
-    author?: string
+export type RawRecircLink = {
     url?: string
 }
 
-export type RawBlockRecircValue = {
-    title?: string
-    list?: RawRecircItem[]
-}
 export type RawBlockRecirc = {
     type: "recirc"
-    value: RawBlockRecircValue[] | ArchieMLUnexpectedNonObjectValue
+    value?: {
+        title?: string
+        links?: RawRecircLink[]
+    }
 }
 
-export type EnrichedRecircItem = {
-    article: SpanSimpleText
-    author: SpanSimpleText
+export type EnrichedRecircLink = {
     url: string
+    type: "recirc-link"
 }
 
 export type EnrichedBlockRecirc = {
     type: "recirc"
     title: SpanSimpleText
-    items: EnrichedRecircItem[]
+    links: EnrichedRecircLink[]
 } & EnrichedBlockWithParseErrors
 
 export type RawBlockText = {
@@ -824,7 +820,74 @@ export type RawBlockCallout = {
 export type EnrichedBlockCallout = {
     type: "callout"
     title?: string
-    text: Span[][]
+    text: EnrichedBlockText[]
+} & EnrichedBlockWithParseErrors
+
+export type RawBlockTopicPageIntro = {
+    type: "topic-page-intro"
+    value: {
+        "download-button":
+            | {
+                  text: string
+                  url: string
+              }
+            | undefined
+        "related-topics":
+            | {
+                  text?: string
+                  url: string
+              }[]
+            | undefined
+        content: RawBlockText[]
+    }
+}
+
+export type EnrichedTopicPageIntroRelatedTopic = {
+    text?: string
+    url: string
+    type: "topic-page-intro-related-topic"
+}
+
+export type EnrichedTopicPageIntroDownloadButton = {
+    text: string
+    url: string
+    type: "topic-page-intro-download-button"
+}
+
+export type EnrichedBlockTopicPageIntro = {
+    type: "topic-page-intro"
+    downloadButton?: EnrichedTopicPageIntroDownloadButton
+    relatedTopics?: EnrichedTopicPageIntroRelatedTopic[]
+    content: EnrichedBlockText[]
+} & EnrichedBlockWithParseErrors
+
+export type RawBlockKeyInsightsSlide = {
+    title?: string
+    filename?: string
+    url?: string
+    content?: OwidRawGdocBlock[]
+}
+
+export type RawBlockKeyInsights = {
+    type: "key-insights"
+    value: {
+        heading?: string
+        insights?: RawBlockKeyInsightsSlide[]
+    }
+}
+
+export type EnrichedBlockKeyInsightsSlide = {
+    type: "key-insight-slide"
+    title: string
+    filename?: string
+    url?: string
+    content: OwidEnrichedGdocBlock[]
+}
+
+export type EnrichedBlockKeyInsights = {
+    type: "key-insights"
+    heading: string
+    insights: EnrichedBlockKeyInsightsSlide[]
 } & EnrichedBlockWithParseErrors
 
 export type RawBlockSDGToc = {
@@ -857,6 +920,16 @@ export type EnrichedBlockAdditionalCharts = {
     items: Span[][]
 } & EnrichedBlockWithParseErrors
 
+export type RawBlockExpandableParagraph = {
+    type: "expandable-paragraph"
+    value: OwidRawGdocBlock[]
+}
+
+export type EnrichedBlockExpandableParagraph = {
+    type: "expandable-paragraph"
+    items: OwidEnrichedGdocBlock[]
+} & EnrichedBlockWithParseErrors
+
 export type OwidRawGdocBlock =
     | RawBlockAside
     | RawBlockCallout
@@ -883,6 +956,9 @@ export type OwidRawGdocBlock =
     | RawBlockMissingData
     | RawBlockAdditionalCharts
     | RawBlockNumberedList
+    | RawBlockExpandableParagraph
+    | RawBlockTopicPageIntro
+    | RawBlockKeyInsights
 
 export type OwidEnrichedGdocBlock =
     | EnrichedBlockText
@@ -909,6 +985,9 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockAdditionalCharts
     | EnrichedBlockNumberedList
     | EnrichedBlockSimpleText
+    | EnrichedBlockExpandableParagraph
+    | EnrichedBlockTopicPageIntro
+    | EnrichedBlockKeyInsights
 
 export enum OwidGdocPublicationContext {
     unlisted = "unlisted",
@@ -1007,16 +1086,15 @@ export interface OwidGdocContent {
     title?: string
     supertitle?: string
     subtitle?: string
-    template?: string
-    byline?: string
+    authors: string[]
     dateline?: string
     excerpt?: string
-    cover?: string
     refs?: EnrichedBlockText[]
     summary?: EnrichedBlockText[]
     citation?: EnrichedBlockSimpleText[]
     toc?: TocHeadingWithTitleSupertitle[]
-    "cover-image"?: any
+    "cover-image"?: string
+    "featured-image"?: string
     "cover-color"?:
         | "sdg-color-1"
         | "sdg-color-2"
@@ -1035,14 +1113,15 @@ export interface OwidGdocContent {
         | "sdg-color-15"
         | "sdg-color-16"
         | "sdg-color-17"
-    "featured-image"?: any
+    "sticky-nav"?: []
     details?: DetailDictionary
 }
+
+export type OwidGdocStickyNavItem = { target: string; text: string }
 
 export interface OwidGdocContentPublished extends OwidGdocContent {
     body: OwidEnrichedGdocBlock[]
     title: string
-    byline: string
     excerpt: string
 }
 
@@ -1105,6 +1184,7 @@ export interface RawPageview {
     url: string
     views_7d: number
     views_14d: number
+    views_365d: number
 }
 
 export const AllowedDataPageGdocFields = [

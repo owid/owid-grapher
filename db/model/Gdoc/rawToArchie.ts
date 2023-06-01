@@ -23,6 +23,9 @@ import {
     RawBlockUrl,
     RawBlockAdditionalCharts,
     RawBlockCallout,
+    RawBlockKeyInsights,
+    RawBlockTopicPageIntro,
+    RawBlockExpandableParagraph,
 } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
 
@@ -195,22 +198,19 @@ function* rawBlockHorizontalRuleToArchieMLString(
 function* rawBlockRecircToArchieMLString(
     block: RawBlockRecirc
 ): Generator<string, void, undefined> {
-    yield "[.recirc]"
-    if (typeof block.value !== "string") {
-        for (const item of block.value) {
-            yield* propertyToArchieMLString("title", item)
-            if (item.list) {
-                yield "[.list]"
-                for (const subItem of item.list) {
-                    yield* propertyToArchieMLString("author", subItem)
-                    yield* propertyToArchieMLString("article", subItem)
-                    yield* propertyToArchieMLString("url", subItem)
-                }
-                yield "[]"
+    yield "{.recirc}"
+    if (block.value) {
+        yield* propertyToArchieMLString("title", block.value)
+        const links = block.value.links
+        if (links) {
+            yield "[.links]"
+            for (const link of links) {
+                yield* propertyToArchieMLString("url", link)
             }
+            yield "[]"
         }
     }
-    yield "[]"
+    yield "{}"
 }
 
 function escapeRawText(text: string): string {
@@ -374,6 +374,69 @@ function* rawBlockAdditionalChartsToArchieMLString(
     yield "[]"
 }
 
+function* RawBlockExpandableParagraphToArchieMLString(
+    block: RawBlockExpandableParagraph
+): Generator<string, void, undefined> {
+    yield "[.+expandable-paragraph]"
+    if (typeof block.value !== "string") {
+        for (const b of block.value)
+            yield* OwidRawGdocBlockToArchieMLStringGenerator(b)
+    }
+    yield "[]"
+}
+
+function* rawBlockTopicPageIntroToArchieMLString(
+    block: RawBlockTopicPageIntro
+): Generator<string, void, undefined> {
+    yield "{.topic-page-intro}"
+    yield "[.+content]"
+    for (const content of block.value.content) {
+        yield* OwidRawGdocBlockToArchieMLStringGenerator(content)
+    }
+    yield "[]"
+    const downloadButton = block.value["download-button"]
+    if (downloadButton) {
+        yield "{.download-button}"
+        yield* propertyToArchieMLString("text", downloadButton)
+        yield* propertyToArchieMLString("url", downloadButton)
+        yield "{}"
+    }
+    const relatedTopics = block.value["related-topics"]
+    if (relatedTopics && relatedTopics.length) {
+        yield "[.related-topics]"
+        for (const relatedTopic of relatedTopics) {
+            yield* propertyToArchieMLString("text", relatedTopic)
+            yield* propertyToArchieMLString("url", relatedTopic)
+        }
+        yield "[]"
+    }
+    yield "{}"
+}
+
+function* rawKeyInsightsToArchieMLString(
+    block: RawBlockKeyInsights
+): Generator<string, void, undefined> {
+    yield "{.key-insights}"
+    yield* propertyToArchieMLString("heading", block.value)
+    if (block.value.insights) {
+        yield "[.insights]"
+        for (const insight of block.value.insights) {
+            yield* propertyToArchieMLString("title", insight)
+            yield* propertyToArchieMLString("filename", insight)
+            yield* propertyToArchieMLString("url", insight)
+            if (insight.content) {
+                yield "[.+content]"
+                for (const content of insight.content) {
+                    yield* OwidRawGdocBlockToArchieMLStringGenerator(content)
+                }
+            }
+            yield "[]"
+        }
+    }
+    yield "[]"
+    yield "{}"
+}
+
 export function* OwidRawGdocBlockToArchieMLStringGenerator(
     block: OwidRawGdocBlock
 ): Generator<string, void, undefined> {
@@ -418,6 +481,15 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
         .with({ type: "prominent-link" }, RawBlockProminentLinkToArchieMLString)
         .with({ type: "sdg-toc" }, rawBlockSDGTocToArchieMLString)
         .with({ type: "missing-data" }, rawBlockMissingDataToArchieMLString)
+        .with(
+            { type: "expandable-paragraph" },
+            RawBlockExpandableParagraphToArchieMLString
+        )
+        .with(
+            { type: "topic-page-intro" },
+            rawBlockTopicPageIntroToArchieMLString
+        )
+        .with({ type: "key-insights" }, rawKeyInsightsToArchieMLString)
         .exhaustive()
     yield* content
 }

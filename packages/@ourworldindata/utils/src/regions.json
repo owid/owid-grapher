@@ -615,8 +615,8 @@
     {
         "code": "FRO",
         "shortCode": "FO",
-        "name": "Faeroe Islands",
-        "slug": "faeroe-islands",
+        "name": "Faroe Islands",
+        "slug": "faroe-islands",
         "regionType": "country"
     },
     {
@@ -1270,6 +1270,7 @@
     },
     {
         "code": "NAM",
+        "shortCode": "NA",
         "name": "Namibia",
         "slug": "namibia",
         "regionType": "country",
@@ -1513,6 +1514,7 @@
             "UZB",
             "VNM",
             "YEM",
+            "OWID_CYN",
             "OWID_ABK",
             "OWID_AKD",
             "OWID_NAG",
@@ -1549,8 +1551,8 @@
     },
     {
         "code": "OWID_ERE",
-        "name": "Eritrea and Ethiopia",
-        "slug": "eritrea-and-ethiopia",
+        "name": "Ethiopia (former)",
+        "slug": "ethiopia-former",
         "regionType": "country",
         "isHistorical": true
     },
@@ -1683,8 +1685,8 @@
     },
     {
         "code": "OWID_KRU",
-        "name": "United Korea",
-        "slug": "united-korea",
+        "name": "Korea (former)",
+        "slug": "korea-former",
         "regionType": "country",
         "isHistorical": true
     },
@@ -2327,8 +2329,8 @@
     {
         "code": "TLS",
         "shortCode": "TL",
-        "name": "Timor",
-        "slug": "timor",
+        "name": "East Timor",
+        "slug": "east-timor",
         "regionType": "country",
         "isMappable": true
     },

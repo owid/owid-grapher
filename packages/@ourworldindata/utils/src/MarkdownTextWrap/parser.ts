@@ -1,9 +1,6 @@
 import P from "parsimmon"
-// Importing from ../GdocsUtils.js is creating some sort of circular dependency issue with @sinclair/typebox and gdocUrlRegex
-// Which breaks Jest and parser.test.ts
-// import { detailOnDemandRegex } from "../GdocsUtils.js"
-// Duplicating the RegEx instead
-const detailOnDemandRegex = /#dod:([\w\-_]+)/
+// Have to import from index.js instead of GdocsUtils.js because of a circular dependency issue with typebox that breaks jest tests
+import { detailOnDemandRegex } from "../index.js"
 // An AST inspired by MDAST
 // Deviates because we want to track individual words, whitespace, and newlines to use with MarkdownTextWrap and our SVG exporter
 

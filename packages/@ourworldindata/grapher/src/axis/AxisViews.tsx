@@ -113,6 +113,36 @@ export class HorizontalAxisGridLines extends React.Component<{
     }
 }
 
+@observer
+export class HorizontalAxisZeroLine extends React.Component<{
+    horizontalAxis: HorizontalAxis
+    bounds: Bounds
+}> {
+    render(): JSX.Element {
+        const { bounds, horizontalAxis } = this.props
+        const axis = horizontalAxis.clone()
+        axis.range = bounds.xRange()
+
+        return (
+            <g
+                className={classNames(
+                    "AxisGridLines",
+                    "verticalLines",
+                    "zeroLine"
+                )}
+            >
+                <line
+                    x1={axis.place(0)}
+                    y1={bounds.bottom.toFixed(2)}
+                    x2={axis.place(0)}
+                    y2={bounds.top.toFixed(2)}
+                    stroke={SOLID_TICK_COLOR}
+                />
+            </g>
+        )
+    }
+}
+
 interface DualAxisViewProps {
     dualAxis: DualAxis
     highlightValue?: { x: number; y: number }

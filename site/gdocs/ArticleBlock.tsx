@@ -15,6 +15,7 @@ import {
     spansToUnformattedPlainText,
     TocHeadingWithTitleSupertitle,
     Url,
+    convertHeadingTextToId,
 } from "@ourworldindata/utils"
 import SDGGrid from "./SDGGrid.js"
 import { BlockErrorBoundary, BlockErrorFallback } from "./BlockErrorBoundary.js"
@@ -26,6 +27,9 @@ import urlSlug from "url-slug"
 import { MissingData } from "./MissingData.js"
 import { AdditionalCharts } from "./AdditionalCharts.js"
 import { ProminentLink } from "./ProminentLink.js"
+import { ExpandableParagraph } from "../blocks/ExpandableParagraph.js"
+import { TopicPageIntro } from "./TopicPageIntro.js"
+import { KeyInsights } from "./KeyInsights.js"
 
 export type Container =
     | "default"
@@ -36,6 +40,7 @@ export type Container =
     | "side-by-side"
     | "summary"
     | "datapage"
+    | "key-insight"
 
 // Each container must have a default layout, usually just full-width
 type Layouts = { default: string; [key: string]: string }
@@ -58,6 +63,7 @@ const layouts: { [key in Container]: Layouts} = {
         ["image--narrow"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12 ",
         ["image--wide"]: "col-start-4 span-cols-8 col-md-start-2 span-md-cols-12 col-sm-start-2 span-sm-cols-12 ",
         ["image-caption"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
+        ["key-insights"]: "col-start-2 span-cols-12",
         ["list"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["numbered-list"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["prominent-link"]: "grid grid-cols-6 span-cols-6 col-start-5 span-md-cols-10 col-md-start-3 grid-md-cols-10 span-sm-cols-12 col-sm-start-2 grid-sm-cols-12",
@@ -74,6 +80,7 @@ const layouts: { [key in Container]: Layouts} = {
         ["sticky-right-right-column"]: "span-cols-7 span-md-cols-12",
         ["sticky-right"]: "grid span-cols-12 col-start-2",
         ["text"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
+        ["topic-page-intro"]: "grid col-start-2 span-cols-12",
     },
     ["datapage"]: {
         ["default"]: "col-start-2 span-cols-6 col-lg-start-2 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12",
@@ -83,31 +90,35 @@ const layouts: { [key in Container]: Layouts} = {
         ["chart"]: "span-cols-5 col-start-1 span-md-cols-10 col-md-start-2 span-sm-cols-12 col-sm-start-1",
         ["explorer"]: "span-cols-5 col-start-1 span-md-cols-10 col-md-start-2 span-sm-cols-12 col-sm-start-1",
         ["default"]: "span-cols-5 col-start-1 span-md-cols-12",
-        ["prominent-link"]: "grid grid-cols-6 span-cols-6 col-start-5 span-md-cols-10 col-md-start-3 grid-md-cols-10 span-sm-cols-12 col-sm-start-2 grid-sm-cols-12",
+        ["prominent-link"]: "grid grid-cols-5 span-cols-5 span-md-cols-10 grid-md-cols-10 span-sm-cols-12 grid-sm-cols-12",
     },
     ["sticky-right-right-column"]: {
         ["chart"]: "span-cols-7 col-start-1 span-md-cols-10 col-md-start-2 span-sm-cols-12 col-sm-start-1",
         ["explorer"]: "span-cols-7 col-start-1 span-md-cols-10 col-md-start-2 span-sm-cols-12 col-sm-start-1",
         ["default"]: "span-cols-7 span-md-cols-10 span-md-cols-12",
-        ["prominent-link"]: "grid grid-cols-6 span-cols-6 span-sm-cols-12 col-sm-start-2 grid-sm-cols-12",
+        ["prominent-link"]: "grid grid-cols-6 span-cols-6 span-md-cols-12 grid-md-cols-12",
     },
     ["sticky-left-left-column"]: {
         ["chart"]: "span-cols-7 col-start-1 span-md-cols-10 col-md-start-2 span-sm-cols-12 col-sm-start-1",
         ["explorer"]: "span-cols-7 col-start-1 span-md-cols-10 col-md-start-2 span-sm-cols-12 col-sm-start-1",
         ["default"]: "span-cols-7 span-md-cols-12",
-        ["prominent-link"]: "grid grid-cols-6 span-cols-6 span-sm-cols-12 col-sm-start-1 grid-sm-cols-12",
+        ["prominent-link"]: "grid grid-cols-6 span-cols-6 span-md-cols-12 grid-md-cols-12",
     },
     ["sticky-left-right-column"]: {
         ["chart"]: "span-cols-5 col-start-1 span-md-cols-10 col-md-start-2 span-sm-cols-12 col-sm-start-1",
         ["explorer"]: "span-cols-5 col-start-1 span-md-cols-10 col-md-start-2 span-sm-cols-12 col-sm-start-1",
         ["default"]: "span-cols-5 span-md-cols-12",
-        ["prominent-link"]: "grid grid-cols-6 span-cols-6 col-start-5 span-md-cols-10 col-md-start-3 grid-md-cols-10 span-sm-cols-12 col-sm-start-2 grid-sm-cols-12",
+        ["prominent-link"]: "grid grid-cols-5 span-cols-5 span-md-cols-10 grid-md-cols-10 span-sm-cols-12 grid-sm-cols-12",
     },
     ["side-by-side"]: {
         ["default"]: "span-cols-6 span-sm-cols-12",
     },
     ["summary"]: {
         ["default"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
+    },
+    ["key-insight"]: {
+        ["default"]: "col-start-1 span-cols-5 col-md-start-1 span-md-cols-12",
+        ["prominent-link"]: "grid grid-cols-6 span-cols-6 span-md-cols-12 grid-md-cols-12",
     },
 }
 
@@ -179,10 +190,8 @@ export default function ArticleBlock({
                 {block.title ? (
                     <h4 className="h4-semibold">{block.title}</h4>
                 ) : null}
-                {block.text.map((text, i) => (
-                    <p className="body-3-medium" key={i}>
-                        {renderSpans(text)}
-                    </p>
+                {block.text.map((textBlock, i) => (
+                    <ArticleBlock key={i} b={textBlock} />
                 ))}
             </div>
         ))
@@ -248,7 +257,7 @@ export default function ArticleBlock({
                     "h1-semibold",
                     getLayout("heading", containerType)
                 )}
-                id={urlSlug(spansToUnformattedPlainText(block.text))}
+                id={convertHeadingTextToId(block.text)}
             >
                 {renderSpans(block.text)}
             </h1>
@@ -262,7 +271,7 @@ export default function ArticleBlock({
                           supertitle
                       )}-${spansToUnformattedPlainText(text)}`
                   )
-                : urlSlug(spansToUnformattedPlainText(block.text))
+                : convertHeadingTextToId(block.text)
 
             return (
                 <>
@@ -299,7 +308,7 @@ export default function ArticleBlock({
                           supertitle
                       )}-${spansToUnformattedPlainText(text)}`
                   )
-                : urlSlug(spansToUnformattedPlainText(block.text))
+                : convertHeadingTextToId(block.text)
             return (
                 <h3
                     className={cx(
@@ -328,7 +337,7 @@ export default function ArticleBlock({
                     "h4-semibold",
                     getLayout("heading", containerType)
                 )}
-                id={urlSlug(spansToUnformattedPlainText(block.text))}
+                id={convertHeadingTextToId(block.text)}
             >
                 {renderSpans(block.text)}
             </h4>
@@ -339,7 +348,7 @@ export default function ArticleBlock({
                     "overline-black-caps",
                     getLayout("heading", containerType)
                 )}
-                id={urlSlug(spansToUnformattedPlainText(block.text))}
+                id={convertHeadingTextToId(block.text)}
             >
                 {renderSpans(block.text)}
             </h5>
@@ -355,7 +364,9 @@ export default function ArticleBlock({
                 dangerouslySetInnerHTML={{ __html: block.value }}
             />
         ))
-        .with({ type: "horizontal-rule" }, () => <hr></hr>)
+        .with({ type: "horizontal-rule" }, () => (
+            <hr className={getLayout("horizontal-rule", containerType)} />
+        ))
         .with({ type: "sdg-grid" }, (block) => (
             <SDGGrid
                 className={getLayout("sdg-grid", containerType)}
@@ -480,6 +491,27 @@ export default function ArticleBlock({
             <AdditionalCharts // bla
                 items={block.items}
                 className={getLayout("additional-charts", containerType)}
+            />
+        ))
+        .with({ type: "expandable-paragraph" }, (block) => (
+            <ExpandableParagraph
+                className={getLayout("expandable-paragraph", containerType)}
+            >
+                {block.items.map((item, i) => (
+                    <ArticleBlock key={i} b={item} />
+                ))}
+            </ExpandableParagraph>
+        ))
+        .with({ type: "topic-page-intro" }, (block) => (
+            <TopicPageIntro
+                {...block}
+                className={getLayout("topic-page-intro", containerType)}
+            />
+        ))
+        .with({ type: "key-insights" }, (block) => (
+            <KeyInsights
+                {...block}
+                className={getLayout("key-insights", containerType)}
             />
         ))
         .exhaustive()

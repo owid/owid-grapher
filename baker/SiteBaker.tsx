@@ -46,11 +46,10 @@ import {
     OwidGdocPublished,
     ImageMetadata,
     clone,
-    getFilenameWithoutExtension,
+    getFilenameAsPng,
     extractDetailsFromSyntax,
 } from "@ourworldindata/utils"
 import { execWrapper } from "../db/execWrapper.js"
-import { logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
 import { countryProfileSpecs } from "../site/countryProfileProjects.js"
 import { getRedirects, flushCache as redirectsFlushCache } from "./redirects.js"
 import { bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers } from "./GrapherBaker.js"
@@ -66,6 +65,7 @@ import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
 import { Image } from "../db/model/Image.js"
 import sharp from "sharp"
 import { generateEmbedSnippet } from "../site/viteUtils.js"
+import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 
 // These aren't all "wordpress" steps
 // But they're only run when you have the full stack available
@@ -322,7 +322,7 @@ export class SiteBaker {
 
             await publishedGdoc.validate(publishedExplorersBySlug)
             if (publishedGdoc.errors.length) {
-                await logErrorAndMaybeSendToSlack(
+                await logErrorAndMaybeSendToBugsnag(
                     `Error(s) baking "${
                         publishedGdoc.slug
                     }" :\n  ${publishedGdoc.errors
@@ -330,7 +330,13 @@ export class SiteBaker {
                         .join("\n  ")}`
                 )
             }
-            await this.bakeGDocPost(publishedGdoc as OwidGdocPublished)
+            try {
+                await this.bakeGDocPost(publishedGdoc as OwidGdocPublished)
+            } catch (e) {
+                logErrorAndMaybeSendToBugsnag(
+                    `Error baking gdoc post with id "${publishedGdoc.id}" and slug "${publishedGdoc.slug}": ${e}`
+                )
+            }
         }
 
         this.progressBar.tick({ name: "✅ baked google doc posts" })
@@ -428,7 +434,7 @@ export class SiteBaker {
             )
             for (const detailId of detailIds) {
                 if (!details[detailId]) {
-                    logErrorAndMaybeSendToSlack(
+                    logErrorAndMaybeSendToBugsnag(
                         `Grapher with slug ${chart.slug} references dod "${detailId}" which does not exist`
                     )
                 }
@@ -449,7 +455,7 @@ export class SiteBaker {
 
         const { details, parseErrors } = await Gdoc.getDetailsOnDemandGdoc()
         if (parseErrors.length) {
-            logErrorAndMaybeSendToSlack(
+            logErrorAndMaybeSendToBugsnag(
                 `Error(s) baking details: ${parseErrors
                     .map((e) => e.message)
                     .join(", ")}`
@@ -577,9 +583,7 @@ export class SiteBaker {
                             )
                         } else {
                             // A PNG alternative to the SVG for the "Download image" link
-                            const pngFilename = `${getFilenameWithoutExtension(
-                                image.filename
-                            )}.png`
+                            const pngFilename = getFilenameAsPng(image.filename)
                             await sharp(buffer)
                                 .resize(2000)
                                 .png()
@@ -708,8 +712,8 @@ export class SiteBaker {
         try {
             return await execWrapper(cmd)
         } catch (error) {
-            // Log error to Slack, but do not throw error
-            return logErrorAndMaybeSendToSlack(error)
+            // Log error to Bugsnag, but do not throw error
+            return logErrorAndMaybeSendToBugsnag(error)
         }
     }
 

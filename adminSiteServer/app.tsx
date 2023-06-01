@@ -6,14 +6,13 @@ import cookieParser from "cookie-parser"
 import "reflect-metadata"
 import http from "http"
 import Bugsnag from "@bugsnag/js"
-
+import BugsnagPluginExpress from "@bugsnag/plugin-express"
 import {
     ADMIN_SERVER_HOST,
     ADMIN_SERVER_PORT,
     BAKED_BASE_URL,
-    BUGSNAG_API_KEY,
+    BUGSNAG_NODE_API_KEY,
     ENV,
-    SLACK_ERRORS_WEBHOOK_URL,
 } from "../settings/serverSettings.js"
 import * as db from "../db/db.js"
 import * as wpdb from "../db/wpdb.js"
@@ -35,12 +34,7 @@ import OwidGdocPage from "../site/gdocs/OwidGdocPage.js"
 import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 
-// library does not provide type definitions
-// eslint-disable-next-line
-const expressErrorSlack = require("express-error-slack")
-
 interface OwidAdminAppOptions {
-    slackErrorsWebHookUrl?: string
     gitCmsDir: string
     isDev: boolean
     quiet?: boolean
@@ -76,13 +70,21 @@ export class OwidAdminApp {
 
     async startListening(adminServerPort: number, adminServerHost: string) {
         this.gitCmsBranchName = await this.getGitCmsBranchName()
-        if (BUGSNAG_API_KEY && ENV === "production") {
-            Bugsnag.start({
-                apiKey: BUGSNAG_API_KEY,
-                context: "admin-server",
-            })
-        }
+        let bugsnagMiddleware
+
         const { app } = this
+
+        if (BUGSNAG_NODE_API_KEY) {
+            Bugsnag.start({
+                apiKey: BUGSNAG_NODE_API_KEY,
+                context: "admin-server",
+                plugins: [BugsnagPluginExpress],
+            })
+            bugsnagMiddleware = Bugsnag.getPlugin("express")
+            // From the docs: "this must be the first piece of middleware in the
+            // stack. It can only capture errors in downstream middleware"
+            if (bugsnagMiddleware) app.use(bugsnagMiddleware.requestHandler)
+        }
 
         // since the server is running behind a reverse proxy (nginx), we need to "trust"
         // the X-Forwarded-For header in order to get the real request IP
@@ -142,20 +144,17 @@ export class OwidAdminApp {
                     )
                 )
             } catch (error) {
+                console.error("Error fetching gdoc preview", error)
                 res.status(500).json({
                     error: { message: String(error), status: 500 },
                 })
             }
         })
 
-        // Send errors to Slack
-        // The middleware passes all errors onto the next error-handling middleware
-        if (this.options.slackErrorsWebHookUrl)
-            app.use(
-                expressErrorSlack({
-                    webhookUri: this.options.slackErrorsWebHookUrl,
-                })
-            )
+        // From the docs: "this handles any errors that Express catches. This
+        // needs to go before other error handlers. BugSnag will call the `next`
+        // error handler if it exists.
+        if (bugsnagMiddleware) app.use(bugsnagMiddleware.errorHandler)
 
         // todo: we probably always want to have this, and can remove the isDev
         if (this.options.isDev) app.use("/", mockSiteRouter)
@@ -263,7 +262,6 @@ export class OwidAdminApp {
 
 if (!module.parent)
     new OwidAdminApp({
-        slackErrorsWebHookUrl: SLACK_ERRORS_WEBHOOK_URL,
         gitCmsDir: GIT_CMS_DIR,
         isDev: ENV === "development",
     }).startListening(ADMIN_SERVER_PORT, ADMIN_SERVER_HOST)

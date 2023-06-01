@@ -19,7 +19,7 @@ import { Pageview } from "../../db/model/Pageview.js"
 import { Gdoc } from "../../db/model/Gdoc/Gdoc.js"
 import { ArticleBlocks } from "../../site/gdocs/ArticleBlocks.js"
 import React from "react"
-import { logErrorAndMaybeSendToSlack } from "../../serverUtils/slackLog.js"
+import { logErrorAndMaybeSendToBugsnag } from "../../serverUtils/errorLog.js"
 
 interface Tag {
     id: number
@@ -191,21 +191,21 @@ const getPagesRecords = async () => {
     try {
         countryRecords = generateCountryRecords(countries, pageviews)
     } catch (e) {
-        logErrorAndMaybeSendToSlack(
+        logErrorAndMaybeSendToBugsnag(
             `Error generating country records for Algolia sync: ${e}`
         )
     }
     try {
         wordpressRecords = await generateWordpressRecords(postsApi, pageviews)
     } catch (e) {
-        logErrorAndMaybeSendToSlack(
+        logErrorAndMaybeSendToBugsnag(
             `Error generating wordpress records for Algolia sync: ${e}`
         )
     }
     try {
         gdocsRecords = generateGdocRecords(gdocs, pageviews)
     } catch (e) {
-        logErrorAndMaybeSendToSlack(
+        logErrorAndMaybeSendToBugsnag(
             `Error generating gdocs records for Algolia sync: ${e}`
         )
     }

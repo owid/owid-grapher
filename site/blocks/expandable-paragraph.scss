@@ -1,45 +1,32 @@
-.expandable-paragraph {
-    overflow-y: hidden;
+.expandable-paragraph__gradient-wrapper {
     position: relative;
-
-    & > *:nth-child(2) {
-        max-height: 32px;
-    }
-
-    & > *:nth-child(n + 3) {
-        display: none;
-    }
-
-    &::after {
-        content: "";
-        pointer-events: none;
-        width: 100%;
-        height: 120px;
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        background: linear-gradient(#fff0, $white);
-    }
+    width: 100%;
+    overflow: hidden;
 }
 
-.expandable-paragraph--is-expanded {
-    & > *:nth-child(2) {
-        max-height: unset;
-    }
-
-    & > *:nth-child(n + 3) {
-        display: block;
-    }
-
-    &::after {
-        content: none;
-    }
+.expandable-paragraph__gradient {
+    height: inherit; // defined in JS for the wrapper
+    // The timing of this transition should be identical to the one in the JS
+    transition: all 0.25s ease-in-out;
 }
 
-.expandable-paragraph__expand-button {
+.expandable-paragraph__expand-button--slim {
     @include owid-link-90;
     margin: 16px 0;
     background: none;
     border: none;
     cursor: pointer;
+}
+
+.expandable-paragraph__expand-button--full {
+    margin: 16px 0;
+    padding: 8px 24px;
+    background-color: $blue-20;
+    cursor: pointer;
+    border: none;
+    transition: background-color 0.1s ease-in-out;
+
+    &:hover {
+        background-color: $blue-10;
+    }
 }

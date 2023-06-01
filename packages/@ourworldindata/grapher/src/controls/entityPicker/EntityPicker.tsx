@@ -444,6 +444,9 @@ export class EntityPicker extends React.Component<{
                     styles={getStylesForTargetHeight(26)}
                     isSearchable={false}
                     isLoading={this.manager.entityPickerTableIsLoading}
+                    onKeyDown={(event): void => {
+                        event.stopPropagation()
+                    }}
                 />
                 <span
                     className="sort"

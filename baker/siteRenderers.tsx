@@ -66,10 +66,6 @@ import {
 } from "../db/wpdb.js"
 import { queryMysql, knexTable } from "../db/db.js"
 import { getPageOverrides, isPageOverridesCitable } from "./pageOverrides.js"
-import {
-    logContentErrorAndMaybeSendToSlack,
-    logErrorAndMaybeSendToSlack,
-} from "../serverUtils/slackLog.js"
 import { ProminentLink } from "../site/blocks/ProminentLink.js"
 import {
     KeyInsightsThumbs,
@@ -93,6 +89,7 @@ import { ExplorerFullQueryParams } from "../explorer/ExplorerConstants.js"
 import { resolveInternalRedirect } from "./redirects.js"
 import { postsTable } from "../db/model/Post.js"
 import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
+import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
 
@@ -248,7 +245,7 @@ export const renderFrontPage = async () => {
         )
         const frontPageConfig: any = frontPageConfigGdoc.content
         const featuredPosts: { slug: string; position: number }[] =
-            frontPageConfig.featuredPosts
+            frontPageConfig["featured-posts"] ?? []
 
         // Generate the candidate posts to fill in any missing slots
         const slugs = featuredPosts.map((d) => d.slug)
@@ -280,7 +277,7 @@ export const renderFrontPage = async () => {
                 return filteredPosts[missingPosts++]
             })
     } catch (e) {
-        logErrorAndMaybeSendToSlack(e)
+        logErrorAndMaybeSendToBugsnag(e)
         featuredWork = posts.slice(0, 6)
     }
 
@@ -534,7 +531,7 @@ export const renderProminentLinks = async (
                           (await getPostBySlug(resolvedUrl.slug)).title)
             } finally {
                 if (!title) {
-                    logContentErrorAndMaybeSendToSlack(
+                    logErrorAndMaybeSendToBugsnag(
                         new JsonError(
                             `No fallback title found for prominent link ${resolvedUrlString} in ${formatWordpressEditLink(
                                 containerPostId
@@ -679,7 +676,7 @@ export const renderKeyInsights = async (
         const title = $block.find("> title").text()
         const slug = $block.find("> slug").text()
         if (!title || !slug) {
-            logContentErrorAndMaybeSendToSlack(
+            logErrorAndMaybeSendToBugsnag(
                 new JsonError(
                     `Title or anchor missing for key insights block, content removed in ${formatWordpressEditLink(
                         containerPostId
@@ -692,7 +689,7 @@ export const renderKeyInsights = async (
 
         const keyInsights = extractKeyInsights($, $block, containerPostId)
         if (!keyInsights.length) {
-            logContentErrorAndMaybeSendToSlack(
+            logErrorAndMaybeSendToBugsnag(
                 new JsonError(
                     `No valid key insights found within block, content removed in ${formatWordpressEditLink(
                         containerPostId
@@ -748,7 +745,7 @@ export const extractKeyInsights = (
         // both as an unexpected behaviour or a feature, depending on the stage
         // of work (published or WIP).
         if (!title || !slug || !content) {
-            logContentErrorAndMaybeSendToSlack(
+            logErrorAndMaybeSendToBugsnag(
                 new JsonError(
                     `Missing title, slug or content for key insight ${
                         title || slug

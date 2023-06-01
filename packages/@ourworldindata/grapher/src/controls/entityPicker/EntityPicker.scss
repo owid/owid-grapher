@@ -101,6 +101,10 @@ $zindex-dropdown: 100;
         flex: 0;
         margin-right: 6px;
         align-items: center;
+
+        input {
+            pointer-events: none;
+        }
     }
 
     .info-container {

@@ -4,7 +4,6 @@ import { Color } from "@ourworldindata/core-table"
 export enum ChartTypeName {
     LineChart = "LineChart",
     ScatterPlot = "ScatterPlot",
-    TimeScatter = "TimeScatter",
     StackedArea = "StackedArea",
     DiscreteBar = "DiscreteBar",
     StackedDiscreteBar = "StackedDiscreteBar",
@@ -61,6 +60,12 @@ export enum FacetAxisDomain {
 export enum SeriesStrategy {
     column = "column", // One line per column
     entity = "entity", // One line per entity
+}
+
+export enum MissingDataStrategy {
+    auto = "auto", // pick default strategy based on chart type
+    hide = "hide", // hide entities with missing data
+    show = "show", // show entities with missing data
 }
 
 export const ThereWasAProblemLoadingThisChart = `There was a problem loading this chart`

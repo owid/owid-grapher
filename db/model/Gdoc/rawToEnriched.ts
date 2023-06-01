@@ -11,6 +11,7 @@ import {
     EnrichedBlockHorizontalRule,
     EnrichedBlockHtml,
     EnrichedBlockImage,
+    EnrichedBlockKeyInsights,
     EnrichedBlockList,
     EnrichedBlockNumberedList,
     EnrichedBlockMissingData,
@@ -26,7 +27,7 @@ import {
     EnrichedBlockStickyRightContainer,
     EnrichedBlockText,
     EnrichedChartStoryItem,
-    EnrichedRecircItem,
+    EnrichedRecircLink,
     EnrichedScrollerItem,
     EnrichedSDGGridItem,
     isArray,
@@ -43,6 +44,7 @@ import {
     RawBlockHeading,
     RawBlockHtml,
     RawBlockImage,
+    RawBlockKeyInsights,
     RawBlockList,
     RawBlockNumberedList,
     RawBlockProminentLink,
@@ -61,9 +63,15 @@ import {
     checkIsInternalLink,
     BlockImageSize,
     checkIsBlockImageSize,
+    RawBlockTopicPageIntro,
+    EnrichedBlockTopicPageIntro,
+    Url,
+    EnrichedTopicPageIntroRelatedTopic,
     DetailDictionary,
     EnrichedDetail,
     checkIsPlainObjectWithGuard,
+    EnrichedBlockKeyInsightsSlide,
+    keyBy,
 } from "@ourworldindata/utils"
 import { extractUrl, getTitleSupertitleFromHeadingText } from "./gdocUtils.js"
 import {
@@ -72,8 +80,12 @@ import {
     htmlToSpans,
 } from "./htmlToEnriched.js"
 import { match } from "ts-pattern"
-import { keyBy, parseInt } from "lodash"
+import { parseInt } from "lodash"
 import { GDOCS_DETAILS_ON_DEMAND_ID } from "../../../settings/serverSettings.js"
+import {
+    EnrichedBlockExpandableParagraph,
+    RawBlockExpandableParagraph,
+} from "@ourworldindata/utils/dist/owidTypes.js"
 
 export function parseRawBlocksToEnrichedBlocks(
     block: OwidRawGdocBlock
@@ -116,6 +128,8 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "side-by-side" }, parseSideBySide)
         .with({ type: "gray-section" }, parseGraySection)
         .with({ type: "prominent-link" }, parseProminentLink)
+        .with({ type: "topic-page-intro" }, parseTopicPageIntro)
+        .with({ type: "key-insights" }, parseKeyInsights)
         .with(
             { type: "sdg-toc" },
             (b): EnrichedBlockSDGToc => ({
@@ -132,6 +146,7 @@ export function parseRawBlocksToEnrichedBlocks(
                 parseErrors: [],
             })
         )
+        .with({ type: "expandable-paragraph" }, parseExpandableParagraph)
         .exhaustive()
 }
 
@@ -271,6 +286,7 @@ const parseScroller = (raw: RawBlockScroller): EnrichedBlockScroller => {
     const blocks: EnrichedScrollerItem[] = []
     let currentBlock: EnrichedScrollerItem = {
         url: "",
+        type: "enriched-scroller-item",
         text: { type: "text", value: [], parseErrors: [] },
     }
     const warnings: ParseError[] = []
@@ -280,6 +296,7 @@ const parseScroller = (raw: RawBlockScroller): EnrichedBlockScroller => {
                 if (currentBlock.url !== "") {
                     blocks.push(currentBlock)
                     currentBlock = {
+                        type: "enriched-scroller-item",
                         url: "",
                         text: {
                             type: "text",
@@ -528,88 +545,50 @@ const parseRecirc = (raw: RawBlockRecirc): EnrichedBlockRecirc => {
     const createError = (
         error: ParseError,
         title: SpanSimpleText = { spanType: "span-simple-text", text: "" },
-        items: EnrichedRecircItem[] = []
+        links: EnrichedRecircLink[] = []
     ): EnrichedBlockRecirc => ({
         type: "recirc",
         title,
-        items,
+        links,
         parseErrors: [error],
     })
 
-    if (typeof raw.value === "string")
+    if (!raw.value?.title) {
         return createError({
-            message: "Value is a string, not an object with properties",
+            message: "Recirc must have a title",
         })
+    }
 
-    if (raw.value.length === 0)
+    if (!raw.value?.links || !raw.value?.links.length) {
         return createError({
-            message: "Recirc must have at least one item",
+            message: "Recirc must have at least one link",
         })
+    }
 
-    const title = raw.value[0].title
-    if (!title)
-        return createError({
-            message: "Title property is missing or empty",
-        })
-
-    if (!raw.value[0].list)
-        return createError({
-            message: "Recirc must have at least one entry",
-        })
-
-    const items: (EnrichedRecircItem | ParseError[])[] = raw.value[0].list.map(
-        (item): EnrichedRecircItem | ParseError[] => {
-            if (typeof item?.article !== "string")
-                return [
-                    {
-                        message:
-                            "Item is missing article property or it is not a string value",
-                    },
-                ]
-            if (typeof item?.author !== "string")
-                return [
-                    {
-                        message:
-                            "Item is missing author property or it is not a string value",
-                    },
-                ]
-            if (typeof item?.url !== "string")
-                return [
-                    {
-                        message:
-                            "Item is missing url property or it is not a string value",
-                    },
-                ]
-
-            const article = htmlToSimpleTextBlock(item.article)
-            const author = htmlToSimpleTextBlock(item.author)
-
-            const errors = article.parseErrors.concat(author.parseErrors)
-
-            if (errors.length > 0) return errors
-
-            return {
-                url: item.url,
-                article: article.value,
-                author: author.value,
-            }
+    const linkErrors: ParseError[] = []
+    for (const link of raw.value.links) {
+        if (!link.url) {
+            linkErrors.push({
+                message: "Recirc link missing url property",
+            })
+        } else if (!Url.fromURL(link.url).isGoogleDoc) {
+            linkErrors.push({
+                message: "External urls are not supported in recirc blocks",
+                isWarning: true,
+            })
         }
-    )
+    }
 
-    const [errors, enrichedItems] = partition(
-        items,
-        (item: EnrichedRecircItem | ParseError[]): item is ParseError[] =>
-            isArray(item)
-    )
-
-    const flattenedErrors = errors.flat()
-    const parsedTitle = htmlToSimpleTextBlock(title)
+    const parsedTitle = htmlToSimpleTextBlock(raw.value.title)
 
     return {
         type: "recirc",
         title: parsedTitle.value,
-        items: enrichedItems,
-        parseErrors: [...flattenedErrors, ...parsedTitle.parseErrors],
+        links: raw.value.links.map((link) => ({
+            type: "recirc-link",
+            url: link.url!,
+        })),
+        parseErrors: [...linkErrors],
     }
 }
 
@@ -947,13 +926,189 @@ function parseCallout(raw: RawBlockCallout): EnrichedBlockCallout {
                 "Text must be provided as an array e.g. inside a [.+text] block",
         })
     }
-    const text = raw.value.text.map((text) => htmlToSpans(text.value))
+    const enrichedTextBlocks = raw.value.text.map(parseText)
 
     return {
         type: "callout",
         parseErrors: [],
-        text,
+        text: enrichedTextBlocks,
         title: raw.value.title,
+    }
+}
+
+function parseTopicPageIntro(
+    raw: RawBlockTopicPageIntro
+): EnrichedBlockTopicPageIntro {
+    const createError = (error: ParseError): EnrichedBlockTopicPageIntro => ({
+        type: "topic-page-intro",
+        parseErrors: [error],
+        content: [],
+    })
+
+    if (!raw.value.content) {
+        return createError({
+            message: "Missing content",
+        })
+    }
+
+    const contentErrors: ParseError[] = []
+    const textOnlyContent = raw.value.content.filter(
+        (element) => element.type === "text"
+    )
+    if (raw.value.content.length !== textOnlyContent.length) {
+        contentErrors.push({
+            message:
+                "Only paragraphs are supported in topic-page-intro blocks.",
+            isWarning: true,
+        })
+    }
+
+    const downloadButton = raw.value["download-button"]
+    if (downloadButton) {
+        if (!downloadButton.text) {
+            return createError({
+                message: "Download button specified but missing text value",
+            })
+        }
+
+        if (!downloadButton.url) {
+            return createError({
+                message: "Download button specified but missing url value",
+            })
+        }
+    }
+
+    const enrichedDownloadButton: EnrichedBlockTopicPageIntro["downloadButton"] =
+        downloadButton
+            ? {
+                  ...downloadButton,
+                  type: "topic-page-intro-download-button",
+              }
+            : undefined
+
+    const relatedTopics = raw.value["related-topics"]
+    const enrichedRelatedTopics: EnrichedTopicPageIntroRelatedTopic[] = []
+    if (relatedTopics) {
+        for (const relatedTopic of relatedTopics) {
+            if (!relatedTopic.url) {
+                return createError({
+                    message: "A related topic is missing a url",
+                })
+            }
+
+            const url = extractUrl(relatedTopic.url)
+            const { isGoogleDoc } = Url.fromURL(relatedTopic.url)
+            if (!isGoogleDoc && !relatedTopic.text) {
+                return createError({
+                    message:
+                        "A title must be provided for related topics that aren't linked via Gdocs",
+                })
+            }
+
+            // If we've validated that it's a Gdoc link without a title,
+            // or a regular link *with* a title, then we're good to go
+            const enrichedRelatedTopic: EnrichedTopicPageIntroRelatedTopic = {
+                type: "topic-page-intro-related-topic",
+                url,
+                text: relatedTopic.text,
+            }
+
+            enrichedRelatedTopics.push(enrichedRelatedTopic)
+        }
+    }
+
+    return {
+        type: "topic-page-intro",
+        downloadButton: enrichedDownloadButton,
+        relatedTopics: enrichedRelatedTopics,
+        content: textOnlyContent.map((rawText) =>
+            htmlToEnrichedTextBlock(rawText.value)
+        ),
+        parseErrors: [...contentErrors],
+    }
+}
+
+function parseKeyInsights(raw: RawBlockKeyInsights): EnrichedBlockKeyInsights {
+    const createError = (error: ParseError): EnrichedBlockKeyInsights => ({
+        type: "key-insights",
+        parseErrors: [error],
+        heading: "",
+        insights: [],
+    })
+
+    if (!raw.value.insights?.length) {
+        return createError({ message: "No insights included" })
+    }
+
+    if (!raw.value.heading) {
+        return createError({ message: "No heading for key insights block" })
+    }
+
+    if (typeof raw.value.heading !== "string") {
+        return createError({
+            message: "Heading for key insights block must be a string",
+        })
+    }
+
+    const enrichedInsights: EnrichedBlockKeyInsightsSlide[] = []
+    const enrichedInsightParseErrors: ParseError[] = []
+    for (const rawInsight of raw.value.insights) {
+        const parseErrors: ParseError[] = []
+        if (!rawInsight.title) {
+            parseErrors.push({ message: "Key insight is missing a title" })
+        }
+        if (!rawInsight.url && !rawInsight.filename) {
+            parseErrors.push({
+                message:
+                    "Key insight is missing a url or filename. One of these two fields must be specified.",
+            })
+        }
+        if (rawInsight.url && rawInsight.filename) {
+            parseErrors.push({
+                message:
+                    "Key insight has both a url and a filename. Only one of these two fields can be specified.",
+            })
+        }
+        const url = Url.fromURL(extractUrl(rawInsight.url))
+        if (url.fullUrl) {
+            if (!url.isExplorer && !url.isGrapher) {
+                parseErrors.push({
+                    message:
+                        "Key insight has url that isn't an explorer or grapher",
+                })
+            }
+        }
+        const enrichedContent: OwidEnrichedGdocBlock[] = []
+        if (!rawInsight.content) {
+            parseErrors.push({ message: "Key insight is missing content" })
+        } else {
+            for (const rawContent of compact(rawInsight.content)) {
+                const enrichedBlock = parseRawBlocksToEnrichedBlocks(rawContent)
+                if (enrichedBlock) enrichedContent.push(enrichedBlock)
+            }
+        }
+        enrichedInsightParseErrors.push(...parseErrors)
+        if (rawInsight.title) {
+            const enrichedInsight: EnrichedBlockKeyInsightsSlide = {
+                type: "key-insight-slide",
+                title: rawInsight.title,
+                content: enrichedContent,
+            }
+            if (url.fullUrl) {
+                enrichedInsight.url = url.fullUrl
+            }
+            if (rawInsight.filename) {
+                enrichedInsight.filename = rawInsight.filename
+            }
+            enrichedInsights.push(enrichedInsight)
+        }
+    }
+
+    return {
+        type: "key-insights",
+        heading: raw.value.heading,
+        insights: enrichedInsights,
+        parseErrors: [...enrichedInsightParseErrors],
     }
 }
 
@@ -1019,5 +1174,29 @@ export function parseDetails(details: unknown): {
     return {
         details: keyBy(enrichedDetails, "id"),
         parseErrors: detailsWithErrors.flatMap((detail) => detail.parseErrors),
+    }
+}
+
+function parseExpandableParagraph(
+    raw: RawBlockExpandableParagraph
+): EnrichedBlockExpandableParagraph {
+    const createError = (
+        error: ParseError
+    ): EnrichedBlockExpandableParagraph => ({
+        type: "expandable-paragraph",
+        items: [],
+        parseErrors: [error],
+    })
+
+    if (!Array.isArray(raw.value) || !raw.value.length) {
+        return createError({
+            message:
+                "The block should be defined as an array, and have some content in it",
+        })
+    }
+    return {
+        type: "expandable-paragraph",
+        items: compact(raw.value.map(parseRawBlocksToEnrichedBlocks)),
+        parseErrors: [],
     }
 }
