@@ -1219,7 +1219,7 @@ export const DataPageJsonTypeObject = Type.Object(
         topicTagsLinks: Type.Array(
             Type.Object({ title: Type.String(), url: Type.String() })
         ),
-        variantDescription1: Type.String(),
+        variantSource: Type.String(),
         variantDescription2: Type.String(),
         nameOfSource: Type.String(),
         owidProcessingLevel: Type.String(),
