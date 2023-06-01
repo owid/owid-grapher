@@ -1220,7 +1220,7 @@ export const DataPageJsonTypeObject = Type.Object(
             Type.Object({ title: Type.String(), url: Type.String() })
         ),
         variantSource: Type.String(),
-        variantDescription2: Type.String(),
+        variantMethods: Type.String(),
         nameOfSource: Type.String(),
         owidProcessingLevel: Type.String(),
         dateRange: Type.String(),
