@@ -42,9 +42,9 @@ export const DataPageContent = ({
     const [grapher, setGrapher] = React.useState<Grapher | undefined>(undefined)
 
     const sourceShortName =
-        datapageJson.variantSource && datapageJson.variantDescription2
-            ? `${datapageJson.variantSource} - ${datapageJson.variantDescription2}`
-            : datapageJson.variantSource || datapageJson.variantDescription2
+        datapageJson.variantSource && datapageJson.variantMethods
+            ? `${datapageJson.variantSource} - ${datapageJson.variantMethods}`
+            : datapageJson.variantSource || datapageJson.variantMethods
 
     // Initialize the grapher for client-side rendering
     useEffect(() => {
