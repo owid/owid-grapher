@@ -31,15 +31,14 @@ export const ExpandableParagraph = (
     }
 
     const maskColor = isClosed ? "transparent" : "#000"
-    const contentStyles: any = {
-        "-webkit-mask-image": `linear-gradient(180deg, #000 0%, ${maskColor})`,
+    const contentStyles = {
+        WebkitMaskImage: `linear-gradient(180deg, #000 0%, ${maskColor})`,
         height,
     }
 
     return (
         <div className={cx("expandable-paragraph", className)}>
             <div
-                className="expandable-paragraph__content"
                 style={contentStyles}
                 // Either pass children or dangerouslySetInnerHTML
                 {...propsWithoutStyles}
