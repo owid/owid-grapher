@@ -512,15 +512,15 @@ export type EnrichedBlockAside = {
 
 export enum ChartControlKeyword {
     all = "all",
-    relativeToggle = "relative toggle",
+    relativeToggle = "relativeToggle",
     timeline = "timeline",
-    facetControl = "facet control",
-    entitySelector = "entity selector",
-    zoomToggle = "zoom toggle",
-    noDataAreaToggle = "no data area toggle",
-    alignAxisScalesToggle = "align axis scales toggle",
-    xLogLinearSelector = "x log/linear selector",
-    yLogLinearSelector = "y log/linear selector",
+    facetControl = "facetControl",
+    entitySelector = "entitySelector",
+    zoomToggle = "zoomToggle",
+    noDataAreaToggle = "noDataAreaToggle",
+    alignAxisScalesToggle = "alignAxisScalesToggle",
+    xLogLinearSelector = "xLogLinearSelector",
+    yLogLinearSelector = "yLogLinearSelector",
 }
 
 export enum ChartTabKeyword {

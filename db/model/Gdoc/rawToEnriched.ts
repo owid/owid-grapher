@@ -264,9 +264,9 @@ const parseChart = (raw: RawBlockChart): EnrichedBlockChart => {
         const validControlKeywords = Object.values(ChartControlKeyword)
         const controls = uniq(
             filterValidStringValues(
-                val.controls?.map((s) => s.trim().toLowerCase()) || [],
+                val.controls || [],
                 validControlKeywords,
-                (invalidKeyword) => {
+                (invalidKeyword: string) => {
                     warnings.push({
                         message: `Keyword '${invalidKeyword}' in 'controls' is not valid. Must be one of: ${validControlKeywords}`,
                     })
@@ -277,9 +277,9 @@ const parseChart = (raw: RawBlockChart): EnrichedBlockChart => {
         const validTabKeywords = Object.values(ChartTabKeyword)
         const tabs = uniq(
             filterValidStringValues(
-                val.tabs?.map((s) => s.trim().toLowerCase()) || [],
+                val.tabs || [],
                 validTabKeywords,
-                (invalidKeyword) => {
+                (invalidKeyword: string) => {
                     warnings.push({
                         message: `Keyword '${invalidKeyword}' in 'tabs' is not valid. Must be one of: ${validTabKeywords}.`,
                     })
