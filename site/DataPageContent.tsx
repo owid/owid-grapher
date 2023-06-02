@@ -477,27 +477,32 @@ export const DataPageContent = ({
                                     <em>Our World in Data</em>
                                 </h3>
                                 <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                                    <p className="datacollection-processing__paragraph">
-                                        All data and visualizations on Our World
-                                        in Data rely on data sourced from one or
-                                        several original data providers.
-                                        Preparing this original data involves
-                                        several processing steps. Depending on
-                                        the data, this can include standardizing
-                                        country names and world region
-                                        definitions, converting units,
-                                        calculating derived indicators such as
-                                        per capita measures, as well as adding
-                                        or adapting metadata such as the name or
-                                        the description given to an indicator.
-                                    </p>
-                                    <p className="datacollection-processing__paragraph">
-                                        At the link below you can find a
-                                        detailed description of the structure of
-                                        our data pipeline, including links to
-                                        all the code used to prepare data across
-                                        Our World in Data.
-                                    </p>
+                                    <div className="datacollection-processing__content">
+                                        <p className="datacollection-processing__paragraph">
+                                            All data and visualizations on Our
+                                            World in Data rely on data sourced
+                                            from one or several original data
+                                            providers. Preparing this original
+                                            data involves several processing
+                                            steps. Depending on the data, this
+                                            can include standardizing country
+                                            names and world region definitions,
+                                            converting units, calculating
+                                            derived indicators such as per
+                                            capita measures, as well as adding
+                                            or adapting metadata such as the
+                                            name or the description given to an
+                                            indicator.
+                                        </p>
+                                        <p className="datacollection-processing__paragraph">
+                                            At the link below you can find a
+                                            detailed description of the
+                                            structure of our data pipeline,
+                                            including links to all the code used
+                                            to prepare data across Our World in
+                                            Data.
+                                        </p>
+                                    </div>
                                     <a
                                         href="https://docs.owid.io/projects/etl/en/latest/"
                                         target="_blank"

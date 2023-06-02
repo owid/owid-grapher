@@ -109,10 +109,7 @@
 
     .key-info__left {
         ul {
-            margin-bottom: 16px;
-            @include sm-up {
-                margin-bottom: 24px;
-            }
+            margin-bottom: 24px;
             @include row-gap(16px);
             li {
                 @include body-2-regular;
@@ -130,15 +127,7 @@
     }
 
     .key-info__learn-more {
-        display: block;
-        @include sm-up {
-            display: inline-block;
-        }
-        text-align: center;
-        padding: 8px 24px;
-        color: $blue-90;
-        background-color: $blue-10;
-        @include body-3-medium;
+        @include expandable-paragraph__expand-button--full;
         svg {
             font-size: 0.75em;
             margin-left: 12px;
@@ -446,9 +435,13 @@
         margin: 0 0 24px;
     }
 
+    .datacollection-processing__content {
+        margin-bottom: 24px;
+    }
+
     .datacollection-processing__paragraph {
         @include body-3-medium;
-        margin-top: 0;
+        margin: 0 0 16px;
     }
 
     .datacollection-source-item + .datacollection-source-item {
@@ -459,7 +452,5 @@
 
     .datacollection-processing__link {
         @include expandable-paragraph__expand-button--full;
-        display: inline-block;
-        margin-top: 10px;
     }
 }

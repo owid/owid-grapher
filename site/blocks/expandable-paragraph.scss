@@ -10,9 +10,12 @@
     transition: all 0.25s ease-in-out;
 }
 
+.expandable-paragraph__content {
+    margin-bottom: 24px;
+}
+
 .expandable-paragraph__expand-button--slim {
     @include owid-link-90;
-    margin: 16px 0;
     background: none;
     border: none;
     cursor: pointer;
@@ -20,5 +23,4 @@
 
 .expandable-paragraph__expand-button--full {
     @include expandable-paragraph__expand-button--full;
-    margin: 16px 0;
 }
