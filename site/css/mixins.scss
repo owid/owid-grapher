@@ -365,3 +365,17 @@
         margin: 0 0 32px;
     }
 }
+
+@mixin expandable-paragraph__expand-button--full {
+    padding: 8px 24px;
+    @include body-3-medium;
+    color: $blue-90;
+    background-color: $blue-20;
+    cursor: pointer;
+    border: none;
+    transition: background-color 0.1s ease-in-out;
+
+    &:hover {
+        background-color: $blue-10;
+    }
+}

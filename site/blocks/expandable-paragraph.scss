@@ -19,14 +19,6 @@
 }
 
 .expandable-paragraph__expand-button--full {
+    @include expandable-paragraph__expand-button--full;
     margin: 16px 0;
-    padding: 8px 24px;
-    background-color: $blue-20;
-    cursor: pointer;
-    border: none;
-    transition: background-color 0.1s ease-in-out;
-
-    &:hover {
-        background-color: $blue-10;
-    }
 }

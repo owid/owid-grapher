@@ -436,14 +436,30 @@
         }
     }
 
-    .datacollection-sources__heading {
+    .datacollection-processing {
+        margin-top: 32px;
+    }
+
+    .datacollection-sources__heading,
+    .datacollection-processing__heading {
         @include h3-bold;
         margin: 0 0 24px;
+    }
+
+    .datacollection-processing__paragraph {
+        @include body-3-medium;
+        margin-top: 0;
     }
 
     .datacollection-source-item + .datacollection-source-item {
         .ExpandableAnimatedToggle {
             border-top: 0;
         }
+    }
+
+    .datacollection-processing__link {
+        @include expandable-paragraph__expand-button--full;
+        display: inline-block;
+        margin-top: 10px;
     }
 }
