@@ -370,21 +370,6 @@
         }
     }
 
-    .featured-variables__header {
-        @include h4-semibold;
-        margin: 0;
-        color: $blue-50;
-    }
-
-    .featured-variables__list {
-        list-style-type: none;
-        @include body-3-medium;
-    }
-
-    .featured-variables__item {
-        margin-top: 8px;
-    }
-
     .key-info--gridded {
         gap: 24px;
         row-gap: 16px;

@@ -546,44 +546,6 @@ export const DataPageContent = ({
                                         )}
                                     </div>
                                     <div>
-                                        {datapageJson.datasetFeaturedVariables
-                                            ?.length ? (
-                                            <div
-                                                style={{ marginBottom: "24px" }}
-                                            >
-                                                <h4 className="featured-variables__header">
-                                                    Metrics included in this
-                                                    data collection:
-                                                </h4>
-                                                <ul className="featured-variables__list">
-                                                    {datapageJson.datasetFeaturedVariables.map(
-                                                        (
-                                                            variable: any,
-                                                            idx: number
-                                                        ) => (
-                                                            <li
-                                                                className="featured-variables__item"
-                                                                key={
-                                                                    variable.variableName
-                                                                }
-                                                            >
-                                                                {idx !== 0 ? (
-                                                                    variable.variableName
-                                                                ) : (
-                                                                    <strong>
-                                                                        {`${variable.variableName} `}
-                                                                        <em>
-                                                                            (currently
-                                                                            viewing)
-                                                                        </em>
-                                                                    </strong>
-                                                                )}
-                                                            </li>
-                                                        )
-                                                    )}
-                                                </ul>
-                                            </div>
-                                        ) : null}
                                         <div
                                             className="key-info--gridded grid grid-cols-2"
                                             style={{ marginBottom: "24px" }}
