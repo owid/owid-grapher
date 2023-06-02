@@ -1,3 +1,4 @@
+import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import React, { useState } from "react"
@@ -26,7 +27,7 @@ export const ExpandableAnimatedToggle = ({
                 <h4>{label}</h4>
                 <FontAwesomeIcon
                     className="ExpandableAnimatedToggle__icon"
-                    icon={faPlus}
+                    icon={height === 0 ? faPlus : faMinus}
                 />
             </button>
             <AnimateHeight height={height} animateOpacity>
