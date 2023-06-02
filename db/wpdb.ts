@@ -739,7 +739,9 @@ export const getBlogIndex = memoize(async (): Promise<IndexPost[]> => {
     )
 })
 
-const mapGdocsToWordpressPosts = (gdocs: OwidGdocPublished[]): IndexPost[] => {
+export const mapGdocsToWordpressPosts = (
+    gdocs: OwidGdocPublished[]
+): IndexPost[] => {
     return gdocs.map((gdoc) => ({
         title: gdoc.content.title,
         slug: gdoc.slug,
