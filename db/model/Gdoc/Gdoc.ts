@@ -703,7 +703,7 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
         return parseDetails(gdoc.content.details)
     }
 
-    static async getPublishedGdocs(): Promise<Gdoc[]> {
+    static async getPublishedGdocs(): Promise<(Gdoc & OwidGdocPublished)[]> {
         // #gdocsvalidation this cast means that we trust the admin code and
         // workflow to provide published articles that have all the required content
         // fields (see #gdocsvalidationclient and pending #gdocsvalidationserver).
@@ -723,13 +723,13 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
             gdocs.filter(
                 ({ content: { type } }) => type !== OwidGdocType.Fragment
             )
-        )
+        ) as Promise<(OwidGdocPublished & Gdoc)[]>
     }
 
-    static async getListedGdocs(): Promise<OwidGdocPublished[]> {
+    static async getListedGdocs(): Promise<(Gdoc & OwidGdocPublished)[]> {
         return Gdoc.findBy({
             published: true,
             publicationContext: OwidGdocPublicationContext.listed,
-        }) as Promise<OwidGdocPublished[]>
+        }) as Promise<(Gdoc & OwidGdocPublished)[]>
     }
 }

@@ -63,6 +63,9 @@ import {
     getPostBySlug,
     isPostCitable,
     getBlockContent,
+    getPosts,
+    mapGdocsToWordpressPosts,
+    getFullPost,
 } from "../db/wpdb.js"
 import { queryMysql, knexTable } from "../db/db.js"
 import { getPageOverrides, isPageOverridesCitable } from "./pageOverrides.js"
@@ -223,7 +226,11 @@ export const renderPost = async (
 
 export const renderFrontPage = async () => {
     const entries = await getEntriesByCategory()
-    const posts = await getBlogIndex()
+    const wpPosts = await Promise.all(
+        (await getPosts()).map((post) => getFullPost(post, true))
+    )
+    const gdocPosts = await Gdoc.getPublishedGdocs()
+    const posts = [...wpPosts, ...mapGdocsToWordpressPosts(gdocPosts)]
 
     const NUM_FEATURED_POSTS = 6
 
