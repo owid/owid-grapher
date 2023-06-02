@@ -188,8 +188,7 @@
     }
 
     .related-research__title {
-        @include h2-bold;
-        margin: 0 0 24px;
+        @include datapages-section-title;
     }
 
     .related-research__items {
@@ -229,8 +228,7 @@
     }
 
     .related-data__title {
-        @include h2-bold;
-        margin: 0 0 24px;
+        @include datapages-section-title;
     }
 
     .related-data__items {
@@ -323,11 +321,7 @@
     }
 
     .related-charts__title {
-        @include h2-bold;
-        margin: 0 0 24px;
-        @include sm-up {
-            margin: 0 0 32px;
-        }
+        @include datapages-section-title;
     }
 
     .gray-wrapper {
@@ -349,8 +343,7 @@
     }
 
     .faqs__title {
-        @include h2-bold;
-        margin: 0 0 24px;
+        @include datapages-section-title;
     }
 
     .faqs__items > *:first-child {
@@ -358,8 +351,7 @@
     }
 
     .dataset__title {
-        @include h2-bold;
-        margin: 0 0 16px;
+        @include datapages-section-title;
     }
 
     .data-collection {
@@ -436,11 +428,6 @@
     }
 
     .datacollection-sources {
-        margin-top: 32px;
-        @include md-up {
-            margin-top: 48px;
-        }
-
         .article-block__text,
         .article-block__list,
         .article-block__html,
