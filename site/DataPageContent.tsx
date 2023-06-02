@@ -513,26 +513,22 @@ export const DataPageContent = ({
                                     </a>
                                 </div>
                             </div>
-                            <div className="dataset__content col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                                <div className="data-collection">
-                                    {datapageGdocContent?.variableProcessingInfo && (
-                                        <div>
-                                            <div className="variable-processing-info__header">
-                                                Notes on our processing step for
-                                                this indicator
-                                            </div>
-                                            <div className="variable-processing-info__description">
-                                                <ArticleBlocks
-                                                    blocks={
-                                                        datapageGdocContent.variableProcessingInfo
-                                                    }
-                                                    containerType="datapage"
-                                                />
-                                            </div>
-                                        </div>
-                                    )}
+                            {datapageGdocContent?.variableProcessingInfo && (
+                                <div className="variable-processing-info col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+                                    <h5 className="variable-processing-info__header">
+                                        Notes on our processing step for this
+                                        indicator
+                                    </h5>
+                                    <div className="variable-processing-info__description">
+                                        <ArticleBlocks
+                                            blocks={
+                                                datapageGdocContent.variableProcessingInfo
+                                            }
+                                            containerType="datapage"
+                                        />
+                                    </div>
                                 </div>
-                            </div>
+                            )}
                         </div>
                     </div>
                 </div>

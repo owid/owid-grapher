@@ -329,20 +329,18 @@
         @include datapages-section-title;
     }
 
-    .data-collection {
+    .variable-processing-info {
         display: flex;
         flex-direction: column;
-        @include row-gap(32px);
         background-color: $white;
-        margin: 24px -24px 0;
+        margin: 32px -24px 0;
         padding: 24px;
     }
 
     .variable-processing-info__header {
         @include overline-black-caps;
-        color: $blue-50;
         text-transform: uppercase;
-        margin: 16px 0 8px;
+        margin: 0 0 8px;
     }
 
     .variable-processing-info__description {
@@ -351,6 +349,10 @@
         .article-block__html,
         .article-block__numbered-list {
             @include body-3-medium;
+        }
+
+        > *:last-child {
+            margin-bottom: 0;
         }
     }
 
