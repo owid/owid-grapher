@@ -515,36 +515,22 @@ export const DataPageContent = ({
                             </div>
                             <div className="dataset__content col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
                                 <div className="data-collection">
-                                    <div>
-                                        <div className="data-collection__header">
-                                            This metric was prepared as part of
-                                            the following dataset:
-                                        </div>
-                                        <div className="data-collection__name">
-                                            <FontAwesomeIcon icon={faTable} />
-                                            <span
-                                                dangerouslySetInnerHTML={{
-                                                    __html: datapageJson.datasetName,
-                                                }}
-                                            />
-                                        </div>
-                                        {datapageGdocContent?.variableProcessingInfo && (
-                                            <div>
-                                                <div className="variable-processing-info__header">
-                                                    Particular steps taken to
-                                                    prepare this metric:
-                                                </div>
-                                                <div className="variable-processing-info__description">
-                                                    <ArticleBlocks
-                                                        blocks={
-                                                            datapageGdocContent.variableProcessingInfo
-                                                        }
-                                                        containerType="datapage"
-                                                    />
-                                                </div>
+                                    {datapageGdocContent?.variableProcessingInfo && (
+                                        <div>
+                                            <div className="variable-processing-info__header">
+                                                Notes on our processing step for
+                                                this indicator
                                             </div>
-                                        )}
-                                    </div>
+                                            <div className="variable-processing-info__description">
+                                                <ArticleBlocks
+                                                    blocks={
+                                                        datapageGdocContent.variableProcessingInfo
+                                                    }
+                                                    containerType="datapage"
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
                                     <div>
                                         <div
                                             className="key-info--gridded grid grid-cols-2"
