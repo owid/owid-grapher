@@ -532,51 +532,6 @@ export const DataPageContent = ({
                                         </div>
                                     )}
                                     <div>
-                                        <div
-                                            className="key-info--gridded grid grid-cols-2"
-                                            style={{ marginBottom: "24px" }}
-                                        >
-                                            <div className="key-data">
-                                                <div className="key-data__title">
-                                                    Last updated
-                                                </div>
-                                                <div>
-                                                    {datapageJson.lastUpdated}
-                                                </div>
-                                            </div>
-                                            <div className="key-data">
-                                                <div className="key-data__title">
-                                                    Next expected update
-                                                </div>
-                                                <div>
-                                                    {datapageJson.nextUpdate}
-                                                </div>
-                                            </div>
-                                            {datapageJson.datasetLicenseLink && (
-                                                <div className="key-data">
-                                                    <div className="key-data__title">
-                                                        Licence
-                                                    </div>
-                                                    <div>
-                                                        <a
-                                                            href={
-                                                                datapageJson
-                                                                    .datasetLicenseLink
-                                                                    .url
-                                                            }
-                                                            target="_blank"
-                                                            rel="noreferrer"
-                                                        >
-                                                            {
-                                                                datapageJson
-                                                                    .datasetLicenseLink
-                                                                    .title
-                                                            }
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
                                         {datapageJson.datasetCodeUrl && (
                                             <a
                                                 href={
