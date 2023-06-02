@@ -3,20 +3,6 @@
 }
 
 .DataPageContent {
-    .ExpandableAnimatedToggle {
-        > button {
-            padding-top: 16px;
-            padding-bottom: 16px;
-        }
-        .content-wrapper {
-            padding-bottom: 16px;
-
-            > *:last-child {
-                margin-bottom: 0;
-            }
-        }
-    }
-
     .header__wrapper {
         padding-top: 24px;
         padding-bottom: 24px;
@@ -421,7 +407,7 @@
         .article-block__list,
         .article-block__html,
         .article-block__numbered-list {
-            @include body-2-regular;
+            @include body-3-medium;
         }
     }
 
