@@ -380,16 +380,16 @@ export const DataPageContent = ({
                         </>
                     )}
                     <div className="gray-wrapper">
-                        <div className="dataset__wrapper grid wrapper">
+                        <div className="grid wrapper">
                             <h2
-                                className="dataset__title span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
+                                className="data-sources-processing__title span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
                                 id="sources-and-processing"
                             >
                                 Sources and Processing
                             </h2>
                             {datapageJson.sources.length > 0 && (
-                                <div className="datacollection-sources grid span-cols-12">
-                                    <h3 className="datacollection-sources__heading span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+                                <div className="data-sources grid span-cols-12">
+                                    <h3 className="data-sources__heading span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
                                         This data is based on the following
                                         sources
                                     </h3>
@@ -404,7 +404,7 @@ export const DataPageContent = ({
                                                     ]
                                                 return (
                                                     <div
-                                                        className="datacollection-source-item"
+                                                        className="data-sources__source-item"
                                                         key={source.sourceName}
                                                     >
                                                         <ExpandableAnimatedToggle
@@ -471,14 +471,14 @@ export const DataPageContent = ({
                                     </div>
                                 </div>
                             )}
-                            <div className="datacollection-processing grid span-cols-12">
-                                <h3 className="datacollection-processing__heading span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+                            <div className="data-processing grid span-cols-12">
+                                <h3 className="data-processing__heading span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
                                     How we process data at{" "}
                                     <em>Our World in Data</em>
                                 </h3>
                                 <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                                    <div className="datacollection-processing__content">
-                                        <p className="datacollection-processing__paragraph">
+                                    <div className="data-processing__content">
+                                        <p className="data-processing__paragraph">
                                             All data and visualizations on Our
                                             World in Data rely on data sourced
                                             from one or several original data
@@ -494,7 +494,7 @@ export const DataPageContent = ({
                                             name or the description given to an
                                             indicator.
                                         </p>
-                                        <p className="datacollection-processing__paragraph">
+                                        <p className="data-processing__paragraph">
                                             At the link below you can find a
                                             detailed description of the
                                             structure of our data pipeline,
@@ -507,7 +507,7 @@ export const DataPageContent = ({
                                         href="https://docs.owid.io/projects/etl/en/latest/"
                                         target="_blank"
                                         rel="nopener noreferrer"
-                                        className="datacollection-processing__link"
+                                        className="data-processing__link"
                                     >
                                         Read about our data pipeline
                                     </a>
