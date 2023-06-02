@@ -104,27 +104,21 @@ const mapKeywordToGrapherConfig = (
             return { hideFacetControl: false }
 
         case "entity selector":
-        case "country selector":
             return { hideEntityControls: false }
 
         case "zoom toggle":
             return { hideZoomToggle: false }
 
         case "no data area toggle":
-        case "data area toggle":
-        case "area toggle":
             return { hideNoDataAreaToggle: false }
 
         case "align axis scales toggle":
-        case "align axis toggle":
             return { hideFacetYDomainToggle: false }
 
         case "x log/linear selector":
-        case "x log selector":
             return { hideXScaleToggle: false }
 
         case "y log/linear selector":
-        case "y log selector":
             return { hideYScaleToggle: false }
 
         case "chart tab":
