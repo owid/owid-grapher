@@ -6,7 +6,8 @@ import {
     GrapherProgrammaticInterface,
 } from "@ourworldindata/grapher"
 import {
-    ChartShowKeyword,
+    ChartControlKeyword,
+    ChartTabKeyword,
     EnrichedBlockChart,
     identity,
     Url,
@@ -33,10 +34,11 @@ export default function Chart({
     let config: GrapherProgrammaticInterface = {}
     const isCustomized = d.title || d.subtitle
     if (isCustomized) {
-        const show: ChartShowKeyword[] = d.show || []
-        const showAllControls = show.includes("all controls")
-        const showAllTabs = show.includes("all tabs")
-        const listOfPartialGrapherConfigs = show
+        const controls: ChartControlKeyword[] = d.controls || []
+        const tabs: ChartTabKeyword[] = d.tabs || []
+        const showAllControls = controls.includes(ChartControlKeyword.all)
+        const showAllTabs = tabs.includes(ChartTabKeyword.all)
+        const listOfPartialGrapherConfigs = [...controls, ...tabs]
             .map(mapKeywordToGrapherConfig)
             .filter(identity) as GrapherProgrammaticInterface[]
 
@@ -91,46 +93,50 @@ export default function Chart({
 }
 
 const mapKeywordToGrapherConfig = (
-    keyword: ChartShowKeyword
+    keyword: ChartControlKeyword | ChartTabKeyword
 ): GrapherProgrammaticInterface | null => {
     switch (keyword) {
-        case "relative toggle":
+        // controls
+
+        case ChartControlKeyword.relativeToggle:
             return { hideRelativeToggle: false }
 
-        case "timeline":
+        case ChartControlKeyword.timeline:
             return { hideTimeline: false, map: { hideTimeline: false } }
 
-        case "facet control":
+        case ChartControlKeyword.facetControl:
             return { hideFacetControl: false }
 
-        case "entity selector":
+        case ChartControlKeyword.entitySelector:
             return { hideEntityControls: false }
 
-        case "zoom toggle":
+        case ChartControlKeyword.zoomToggle:
             return { hideZoomToggle: false }
 
-        case "no data area toggle":
+        case ChartControlKeyword.noDataAreaToggle:
             return { hideNoDataAreaToggle: false }
 
-        case "align axis scales toggle":
+        case ChartControlKeyword.alignAxisScalesToggle:
             return { hideFacetYDomainToggle: false }
 
-        case "x log/linear selector":
+        case ChartControlKeyword.xLogLinearSelector:
             return { hideXScaleToggle: false }
 
-        case "y log/linear selector":
+        case ChartControlKeyword.yLogLinearSelector:
             return { hideYScaleToggle: false }
 
-        case "chart tab":
+        // tabs
+
+        case ChartTabKeyword.chart:
             return { hasChartTab: true }
 
-        case "map tab":
+        case ChartTabKeyword.map:
             return { hasMapTab: true }
 
-        case "table tab":
+        case ChartTabKeyword.table:
             return { hasTableTab: true }
 
-        case "download tab":
+        case ChartTabKeyword.download:
             return { hasDownloadTab: true }
 
         default:

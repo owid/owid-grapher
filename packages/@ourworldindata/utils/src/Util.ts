@@ -1622,3 +1622,24 @@ export function lowercaseObjectKeys(
         Object.entries(obj).map(([key, value]) => [key.toLowerCase(), value])
     )
 }
+
+export function filterValidStringValues<ValidValue extends string>(
+    values: string[],
+    validValues: ValidValue[],
+    onValueInvalid?: (invalidValue: string) => void
+): ValidValue[] {
+    // type guard
+    const isValid = (value: any): value is ValidValue =>
+        validValues.includes(value)
+
+    const filteredValues: ValidValue[] = []
+    values.forEach((value: string) => {
+        if (isValid(value)) {
+            filteredValues.push(value)
+        } else if (onValueInvalid) {
+            onValueInvalid(value)
+        }
+    })
+
+    return filteredValues
+}

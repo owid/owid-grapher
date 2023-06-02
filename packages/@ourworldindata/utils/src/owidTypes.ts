@@ -510,25 +510,26 @@ export type EnrichedBlockAside = {
     caption: Span[]
 } & EnrichedBlockWithParseErrors
 
-export const validChartShowKeywords = [
-    "all tabs",
-    "all controls",
-    "relative toggle",
-    "timeline",
-    "facet control",
-    "entity selector",
-    "zoom toggle",
-    "no data area toggle",
-    "align axis scales toggle",
-    "x log/linear selector",
-    "y log/linear selector",
-    "chart tab",
-    "map tab",
-    "table tab",
-    "download tab",
-] as const
+export enum ChartControlKeyword {
+    all = "all",
+    relativeToggle = "relative toggle",
+    timeline = "timeline",
+    facetControl = "facet control",
+    entitySelector = "entity selector",
+    zoomToggle = "zoom toggle",
+    noDataAreaToggle = "no data area toggle",
+    alignAxisScalesToggle = "align axis scales toggle",
+    xLogLinearSelector = "x log/linear selector",
+    yLogLinearSelector = "y log/linear selector",
+}
 
-export type ChartShowKeyword = (typeof validChartShowKeywords)[number]
+export enum ChartTabKeyword {
+    all = "all",
+    chart = "chart",
+    map = "map",
+    table = "table",
+    download = "download",
+}
 
 export type RawBlockChartValue = {
     url?: string
@@ -540,7 +541,8 @@ export type RawBlockChartValue = {
     caption?: string
     title?: string
     subtitle?: string
-    show?: string[]
+    controls?: string[]
+    tabs?: string[]
 }
 
 export type RawBlockChart = {
@@ -558,7 +560,8 @@ export type EnrichedBlockChart = {
     caption?: Span[]
     title?: string
     subtitle?: string
-    show?: ChartShowKeyword[]
+    controls?: ChartControlKeyword[]
+    tabs?: ChartTabKeyword[]
 } & EnrichedBlockWithParseErrors
 
 export type RawBlockScroller = {
