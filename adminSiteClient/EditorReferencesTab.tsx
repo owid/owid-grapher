@@ -1,12 +1,138 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { ChartEditor, ChartRedirect } from "./ChartEditor.js"
+import {
+    ChartEditor,
+    ChartRedirect,
+    References,
+    getFullReferencesCount,
+} from "./ChartEditor.js"
 import { computed, action, observable, runInAction } from "mobx"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { stringifyUnknownError, formatValue } from "@ourworldindata/utils"
 
 const BASE_URL = BAKED_GRAPHER_URL.replace(/^https?:\/\//, "")
+
+export const ReferencesSection = (props: {
+    references: References | undefined
+}) => {
+    const wpPosts = props.references?.postsWordpress?.length ? (
+        <>
+            {" "}
+            <p>Public wordpress pages that embed or reference this chart:</p>
+            <ul className="list-group">
+                {props.references.postsWordpress.map((post) => (
+                    <li key={post.id} className="list-group-item">
+                        <a href={post.url} target="_blank" rel="noopener">
+                            <strong>{post.title}</strong>
+                        </a>{" "}
+                        (
+                        <a
+                            href={`https://owid.cloud/wp/wp-admin/post.php?post=${post.id}&action=edit`}
+                            target="_blank"
+                            rel="noopener"
+                        >
+                            Edit
+                        </a>
+                        )
+                    </li>
+                ))}
+            </ul>
+        </>
+    ) : (
+        <></>
+    )
+    const gdocsPosts = props.references?.postsGdocs?.length ? (
+        <>
+            <p>Public gdocs pages that embed or reference this chart:</p>
+            <ul className="list-group">
+                {props.references.postsGdocs.map((post) => (
+                    <li key={post.id} className="list-group-item">
+                        <a href={post.url} target="_blank" rel="noopener">
+                            <strong>{post.title}</strong>
+                        </a>{" "}
+                        (
+                        <a
+                            href={`/admin/gdocs/${post.id}`}
+                            target="_blank"
+                            rel="noopener"
+                        >
+                            Edit
+                        </a>
+                        )
+                    </li>
+                ))}
+            </ul>
+        </>
+    ) : (
+        <></>
+    )
+    const explorers = props.references?.explorers?.length ? (
+        <>
+            <p>Explorers that reference this chart:</p>
+            <ul className="list-group">
+                {props.references.explorers.map((explorer) => (
+                    <li key={explorer} className="list-group-item">
+                        <a
+                            href={`https://ourworldindata.org/explorers/${explorer}`}
+                            target="_blank"
+                            rel="noopener"
+                        >
+                            <strong>{explorer}</strong>
+                        </a>{" "}
+                        (
+                        <a
+                            href={`/admin/explorers/${explorer}`}
+                            target="_blank"
+                            rel="noopener"
+                        >
+                            Edit
+                        </a>
+                        )
+                    </li>
+                ))}
+            </ul>
+        </>
+    ) : (
+        <></>
+    )
+    const legacySdgCharts = props.references?.legacySdgCharts?.length ? (
+        <>
+            <React.Fragment>
+                <p>
+                    Legacy SDG referenced charts (slugs of charts only, links to
+                    precise SDG page are not available):
+                </p>
+                <ul className="list-group">
+                    {props.references.legacySdgCharts.map((sdgSlug) => (
+                        <li key={sdgSlug} className="list-group-item">
+                            sdgSlug
+                        </li>
+                    ))}
+                </ul>
+            </React.Fragment>
+        </>
+    ) : (
+        <></>
+    )
+
+    return (
+        <>
+            <h5>References</h5>
+            {props.references &&
+            getFullReferencesCount(props.references) > 0 ? (
+                <>
+                    {wpPosts}
+                    {gdocsPosts}
+                    {explorers}
+                    {legacySdgCharts}
+                </>
+            ) : (
+                <p>No references found</p>
+            )}
+        </>
+    )
+}
 
 @observer
 export class EditorReferencesTab extends React.Component<{
@@ -17,7 +143,7 @@ export class EditorReferencesTab extends React.Component<{
     }
 
     @computed get references() {
-        return this.props.editor.references || []
+        return this.props.editor.references
     }
     @computed get redirects() {
         return this.props.editor.redirects || []
@@ -63,41 +189,7 @@ export class EditorReferencesTab extends React.Component<{
                     </small>
                 </section>
                 <section>
-                    <h5>References</h5>
-                    {this.references.length ? (
-                        <React.Fragment>
-                            <p>
-                                Public pages that embed or reference this chart:
-                            </p>
-                            <ul className="list-group">
-                                {this.references.map((post) => (
-                                    <li
-                                        key={post.id}
-                                        className="list-group-item"
-                                    >
-                                        <a
-                                            href={post.url}
-                                            target="_blank"
-                                            rel="noopener"
-                                        >
-                                            <strong>{post.title}</strong>
-                                        </a>{" "}
-                                        (
-                                        <a
-                                            href={`https://owid.cloud/wp/wp-admin/post.php?post=${post.id}&action=edit`}
-                                            target="_blank"
-                                            rel="noopener"
-                                        >
-                                            Edit
-                                        </a>
-                                        )
-                                    </li>
-                                ))}
-                            </ul>
-                        </React.Fragment>
-                    ) : (
-                        <p>No public posts reference this chart</p>
-                    )}
+                    <ReferencesSection references={this.references} />
                 </section>
                 <section>
                     <h5>Alternative URLs for this chart</h5>

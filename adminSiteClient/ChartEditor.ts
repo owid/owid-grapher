@@ -34,8 +34,24 @@ export interface Log {
     createdAt: string
 }
 
+export interface References {
+    postsWordpress: PostReference[]
+    postsGdocs: PostReference[]
+    explorers: string[]
+    legacySdgCharts: string[]
+}
+
+export const getFullReferencesCount = (references: References): number => {
+    return (
+        references.postsWordpress.length +
+        references.postsGdocs.length +
+        references.explorers.length +
+        references.legacySdgCharts.length
+    )
+}
+
 export interface PostReference {
-    id: number
+    id: string
     title: string
     slug: string
     url: string
@@ -75,7 +91,7 @@ export interface ChartEditorManager {
     grapher: Grapher
     database: EditorDatabase
     logs: Log[]
-    references: PostReference[]
+    references: References | undefined
     redirects: ChartRedirect[]
     pageviews?: RawPageview
     allTopics: Topic[]
@@ -258,8 +274,8 @@ export class ChartEditor {
 
     unpublishGrapher(): void {
         const message =
-            this.references && this.references.length > 0
-                ? "WARNING: This chart might be referenced from public posts, please double check before unpublishing. Remove chart anyway?"
+            this.references && getFullReferencesCount(this.references) > 0
+                ? "WARNING: This chart might be referenced from public posts, please double check before unpublishing. Try to remove the chart anyway?"
                 : "Are you sure you want to unpublish this chart?"
         if (window.confirm(message)) {
             this.grapher.isPublished = undefined
