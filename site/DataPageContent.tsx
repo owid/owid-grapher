@@ -411,6 +411,9 @@ export const DataPageContent = ({
                                                             label={
                                                                 source.sourceName
                                                             }
+                                                            isExpandedDefault={
+                                                                idx === 0
+                                                            }
                                                             content={
                                                                 <>
                                                                     {sourceDescriptionGdocContent && (
