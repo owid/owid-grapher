@@ -354,18 +354,6 @@
         }
     }
 
-    .data-collection__code-link {
-        display: inline-block;
-        padding: 8px;
-        background-color: $blue-10;
-        @include body-3-medium;
-        color: $blue-90;
-
-        svg {
-            margin-right: 8px;
-        }
-    }
-
     .datacollection-sources {
         .article-block__text,
         .article-block__list,

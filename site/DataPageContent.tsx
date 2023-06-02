@@ -531,26 +531,6 @@ export const DataPageContent = ({
                                             </div>
                                         </div>
                                     )}
-                                    <div>
-                                        {datapageJson.datasetCodeUrl && (
-                                            <a
-                                                href={
-                                                    datapageJson.datasetCodeUrl
-                                                }
-                                                className="data-collection__code-link"
-                                            >
-                                                <FontAwesomeIcon
-                                                    icon={faGithub}
-                                                />
-                                                See the code used to prepare
-                                                this dataset
-                                            </a>
-                                        )}
-                                    </div>
-                                    {/* <ExpandableAnimatedToggle
-                                    label="Download all metrics"
-                                    content="TBD"
-                                /> */}
                                 </div>
                             </div>
                         </div>
