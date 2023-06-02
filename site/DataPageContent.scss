@@ -338,22 +338,6 @@
         padding: 24px;
     }
 
-    .data-collection__header {
-        @include overline-black-caps;
-        color: $blue-50;
-        text-transform: uppercase;
-        margin-bottom: 16px;
-    }
-
-    .data-collection__name {
-        @include h3-bold;
-        margin: 0;
-
-        svg {
-            margin-right: 8px;
-        }
-    }
-
     .variable-processing-info__header {
         @include overline-black-caps;
         color: $blue-50;
