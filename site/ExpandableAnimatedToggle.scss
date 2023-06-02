@@ -7,12 +7,13 @@
         justify-content: space-between;
         align-items: center;
         width: 100%;
-        padding: 12px 0;
+        padding: 16px 0;
         color: $blue-90;
         background-color: transparent;
         border: none;
         cursor: pointer;
     }
+
     h4 {
         @include h4-semibold;
         margin: 0;
@@ -21,14 +22,10 @@
         font-size: 0.75em;
         margin: 0 12px;
     }
-    .content-wrapper {
-        padding-bottom: 12px;
-    }
 
-    .content__html {
-        > *:first-child {
-            margin-top: 0;
-        }
+    .content-wrapper {
+        padding-bottom: 16px;
+
         > *:last-child {
             margin-bottom: 0;
         }
