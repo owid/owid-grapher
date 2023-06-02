@@ -1358,14 +1358,6 @@ export const DataPageJsonTypeObject = Type.Object(
             )
         ),
         datasetName: Type.String(),
-        datasetFeaturedVariables: Type.Optional(
-            Type.Array(
-                Type.Object({
-                    variableName: Type.String(),
-                    variableSubtitle: Type.Optional(Type.String()),
-                })
-            )
-        ),
         datasetCodeUrl: Type.Optional(Type.String()),
         datasetLicenseLink: Type.Optional(
             Type.Object({
