@@ -367,8 +367,13 @@
 }
 
 @mixin expandable-paragraph__expand-button--full {
+    display: block;
+    @include sm-up {
+        display: inline-block;
+    }
     padding: 8px 24px;
     @include body-3-medium;
+    text-align: center;
     color: $blue-90;
     background-color: $blue-20;
     cursor: pointer;
