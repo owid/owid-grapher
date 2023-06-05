@@ -1331,13 +1331,15 @@ export const DataPageJsonTypeObject = Type.Object(
         descriptionFromSource: Type.Object({
             title: Type.String(),
         }),
-        relatedResearch: Type.Array(
-            Type.Object({
-                title: Type.String(),
-                url: Type.String(),
-                authors: Type.Array(Type.String()),
-                imageUrl: Type.String(),
-            })
+        relatedResearch: Type.Optional(
+            Type.Array(
+                Type.Object({
+                    title: Type.String(),
+                    url: Type.String(),
+                    authors: Type.Array(Type.String()),
+                    imageUrl: Type.String(),
+                })
+            )
         ),
         relatedData: Type.Array(
             Type.Object({
