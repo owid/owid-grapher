@@ -104,8 +104,6 @@ export const getDatapageGdoc = async (
               )
             : await Gdoc.findOneBy({ id: googleDocId })
 
-    if (!datapageGdoc) return null
-
     return datapageGdoc
 }
 
