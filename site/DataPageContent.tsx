@@ -313,13 +313,16 @@ export const DataPageContent = ({
                                                             .title
                                                     }
                                                 </h3>
-                                                <div className="related-data-item__source">
-                                                    {
-                                                        datapageJson
-                                                            .relatedData[0]
-                                                            .source
-                                                    }
-                                                </div>
+                                                {datapageJson.relatedData[0]
+                                                    .source && (
+                                                    <div className="related-data-item__source">
+                                                        {
+                                                            datapageJson
+                                                                .relatedData[0]
+                                                                .source
+                                                        }
+                                                    </div>
+                                                )}
                                                 <div className="related-data-item__content">
                                                     {
                                                         datapageJson
@@ -341,9 +344,11 @@ export const DataPageContent = ({
                                                         <h3 className="related-data-item__title">
                                                             {data.title}
                                                         </h3>
-                                                        <div className="related-data-item__source">
-                                                            {data.source}
-                                                        </div>
+                                                        {data.source && (
+                                                            <div className="related-data-item__source">
+                                                                {data.source}
+                                                            </div>
+                                                        )}
                                                         <div className="related-data-item__content">
                                                             {data.content}
                                                         </div>
@@ -362,9 +367,11 @@ export const DataPageContent = ({
                                                         <h4 className="related-data-item__title">
                                                             {data.title}
                                                         </h4>
-                                                        <div className="related-data-item__source">
-                                                            {data.source}
-                                                        </div>
+                                                        {data.source && (
+                                                            <div className="related-data-item__source">
+                                                                {data.source}
+                                                            </div>
+                                                        )}
                                                     </a>
                                                 ))}
                                         </div>

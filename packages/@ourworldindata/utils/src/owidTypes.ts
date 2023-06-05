@@ -1347,7 +1347,7 @@ export const DataPageJsonTypeObject = Type.Object(
                     type: Type.Optional(Type.String()),
                     imageUrl: Type.Optional(Type.String()),
                     title: Type.String(),
-                    source: Type.String(),
+                    source: Type.Optional(Type.String()),
                     url: Type.String(),
                     content: Type.Optional(Type.String()),
                 })
