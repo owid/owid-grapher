@@ -177,24 +177,26 @@ function parseAllCharts(raw: RawBlockAllCharts): EnrichedBlockAllCharts {
         return createError({ message: "all-charts block missing heading" })
 
     const top = raw.value.top
-    if (top && !isArray(top)) {
-        return createError({
-            message: `all-charts malformed "top" property: ${typeof raw.value
-                .top}`,
-        })
-    }
-
-    for (const item of top!) {
-        if (!isObject(item)) {
+    if (top) {
+        if (!isArray(top)) {
             return createError({
-                message: `all-charts invalid top item: ${item}`,
+                message: `all-charts malformed "top" property: ${typeof raw
+                    .value.top}`,
             })
         }
 
-        if (!("url" in item)) {
-            return createError({
-                message: `all-charts top item missing "url" property: ${item}`,
-            })
+        for (const item of top) {
+            if (!isObject(item)) {
+                return createError({
+                    message: `all-charts invalid top item: ${item}`,
+                })
+            }
+
+            if (!("url" in item)) {
+                return createError({
+                    message: `all-charts top item missing "url" property: ${item}`,
+                })
+            }
         }
     }
 
