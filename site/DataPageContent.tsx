@@ -265,6 +265,116 @@ export const DataPageContent = ({
                                 </div>
                             </>
                         )}
+                    {datapageJson.relatedData &&
+                        datapageJson.relatedData.length > 0 && (
+                            <>
+                                <div className="related-data__wrapper wrapper grid">
+                                    <h2
+                                        className="related-data__title span-cols-3 span-lg-cols-12"
+                                        id="related-data"
+                                    >
+                                        Related data
+                                    </h2>
+                                    <div className="related-data__items span-cols-9 span-lg-cols-12">
+                                        <div className="span-cols-3">
+                                            <a
+                                                href={
+                                                    datapageJson.relatedData[0]
+                                                        .url
+                                                }
+                                                key={
+                                                    datapageJson.relatedData[0]
+                                                        .url
+                                                }
+                                                className="related-data-item related-data-item--medium"
+                                            >
+                                                <div className="related-data-item__type">
+                                                    {
+                                                        datapageJson
+                                                            .relatedData[0].type
+                                                    }
+                                                </div>
+                                                {datapageJson.relatedData[0]
+                                                    .imageUrl && (
+                                                    <img
+                                                        src={
+                                                            datapageJson
+                                                                .relatedData[0]
+                                                                .imageUrl
+                                                        }
+                                                        className="related-data-item__image"
+                                                        alt=""
+                                                    />
+                                                )}
+                                                <h3 className="related-data-item__title">
+                                                    {
+                                                        datapageJson
+                                                            .relatedData[0]
+                                                            .title
+                                                    }
+                                                </h3>
+                                                <div className="related-data-item__source">
+                                                    {
+                                                        datapageJson
+                                                            .relatedData[0]
+                                                            .source
+                                                    }
+                                                </div>
+                                                <div className="related-data-item__content">
+                                                    {
+                                                        datapageJson
+                                                            .relatedData[0]
+                                                            .content
+                                                    }
+                                                </div>
+                                            </a>
+                                        </div>
+                                        <div className="span-cols-3">
+                                            {datapageJson.relatedData
+                                                .slice(1, 3)
+                                                .map((data: any) => (
+                                                    <a
+                                                        href={data.url}
+                                                        key={data.url}
+                                                        className="related-data-item related-data-item--medium"
+                                                    >
+                                                        <h3 className="related-data-item__title">
+                                                            {data.title}
+                                                        </h3>
+                                                        <div className="related-data-item__source">
+                                                            {data.source}
+                                                        </div>
+                                                        <div className="related-data-item__content">
+                                                            {data.content}
+                                                        </div>
+                                                    </a>
+                                                ))}
+                                        </div>
+                                        <div className="span-cols-3">
+                                            {datapageJson.relatedData
+                                                .slice(3)
+                                                .map((data: any) => (
+                                                    <a
+                                                        href={data.url}
+                                                        key={data.url}
+                                                        className="related-data-item--small"
+                                                    >
+                                                        <h4 className="related-data-item__title">
+                                                            {data.title}
+                                                        </h4>
+                                                        <div className="related-data-item__source">
+                                                            {data.source}
+                                                        </div>
+                                                    </a>
+                                                ))}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="DataPageContent__section-border wrapper">
+                                    <hr />
+                                </div>
+                            </>
+                        )}
                     {datapageJson.allCharts &&
                     datapageJson.allCharts.length > 0 ? (
                         <div className="related-charts__wrapper wrapper">
