@@ -75,17 +75,15 @@ export const getDatapageJson = async (
  * see https://github.com/owid/owid-grapher/issues/2121#issue-1676097164
  */
 export const getDatapageGdoc = async (
-    datapageJson: DataPageJson,
+    googleDocEditLink: string,
     isPreviewing: boolean,
     publishedExplorersBySlug?: Record<string, ExplorerProgram>
 ): Promise<OwidGdocInterface | null> => {
-    if (!datapageJson.googleDocEditLink) return null
-
     // Get the google doc id from the datapage JSON file and return early if
     // none found
     const googleDocId =
-        getLinkType(datapageJson.googleDocEditLink) === "gdoc"
-            ? getUrlTarget(datapageJson.googleDocEditLink)
+        getLinkType(googleDocEditLink) === "gdoc"
+            ? getUrlTarget(googleDocEditLink)
             : null
 
     if (!googleDocId) return null

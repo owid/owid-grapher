@@ -122,7 +122,7 @@ export const renderDataPageOrGrapherPage = async (
     // Compliment the text-only content from the JSON with rich text from the
     // companion gdoc, if any
     const datapageGdoc = await getDatapageGdoc(
-        datapageJson,
+        datapageJson.googleDocEditLink,
         false,
         publishedExplorersBySlug
     )
@@ -219,10 +219,22 @@ export const renderPreviewDataPageOrGrapherPage = async (
     )
         return renderGrapherPage(grapher)
 
+    if (!datapageJson.googleDocEditLink)
+        return renderToHtmlPage(
+            <DataPage
+                grapher={grapher}
+                variableId={id}
+                datapageJson={datapageJson}
+                baseUrl={BAKED_BASE_URL}
+                baseGrapherUrl={BAKED_GRAPHER_URL}
+                isPreviewing={false}
+            />
+        )
+
     // Compliment the text-only content from the JSON with rich text from the
     // companion gdoc
     const datapageGdoc = await getDatapageGdoc(
-        datapageJson,
+        datapageJson.googleDocEditLink,
         true,
         publishedExplorersBySlug
     )
