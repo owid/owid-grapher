@@ -1328,9 +1328,11 @@ export const DataPageJsonTypeObject = Type.Object(
         lastUpdated: Type.String(),
         nextUpdate: Type.String(),
         subtitle: Type.Optional(Type.String()),
-        descriptionFromSource: Type.Object({
-            title: Type.String(),
-        }),
+        descriptionFromSource: Type.Optional(
+            Type.Object({
+                title: Type.String(),
+            })
+        ),
         relatedResearch: Type.Optional(
             Type.Array(
                 Type.Object({
