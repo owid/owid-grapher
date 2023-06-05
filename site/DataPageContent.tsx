@@ -7,8 +7,6 @@ import ReactDOM from "react-dom"
 import { GrapherWithFallback } from "./GrapherWithFallback.js"
 import { formatAuthors } from "./clientFormatting.js"
 import { ArticleBlocks } from "./gdocs/ArticleBlocks.js"
-import { faTable } from "@fortawesome/free-solid-svg-icons/faTable"
-import { faGithub } from "@fortawesome/free-brands-svg-icons/faGithub"
 import { RelatedCharts } from "./blocks/RelatedCharts.js"
 import {
     DataPageGdocContent,
