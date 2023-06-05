@@ -320,6 +320,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                                     field="name"
                                     store={newDataset}
                                     label="Name"
+                                    secondaryLabel="DB field: datasets.name"
                                     disabled={isBulkImport}
                                     helpText="Short name for this dataset, followed by the source and year. Example: Government Revenue Data – ICTD (2016)"
                                 />
@@ -327,6 +328,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                                     field="additionalInfo"
                                     store={newDataset.source}
                                     label="Description"
+                                    secondaryLabel="DB field: sources.description ->> '$.additionalInfo' - only the lowest id source is shown!"
                                     textarea
                                     disabled={isBulkImport}
                                     helpText="Describe the dataset and the methodology used in its construction. This can be as long and detailed as you like."
@@ -336,6 +338,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                                     field="link"
                                     store={newDataset.source}
                                     label="Link"
+                                    secondaryLabel="DB field: sources.description ->> '$.link' - only the lowest id source is shown!"
                                     disabled={isBulkImport}
                                     helpText="Link to the publication from which we retrieved this data"
                                 />
@@ -343,6 +346,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                                     field="retrievedDate"
                                     store={newDataset.source}
                                     label="Retrieved"
+                                    secondaryLabel="DB field: sources.description ->> '$.retrievedDate' - only the lowest id source is shown!"
                                     disabled={isBulkImport}
                                     helpText="Date when this data was obtained by us. Date format should always be YYYY-MM-DD."
                                 />
@@ -382,6 +386,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                                     field="name"
                                     store={newDataset.source}
                                     label="Source name"
+                                    secondaryLabel="DB field: sources.description ->> '$.name' - only the lowest id source is shown!"
                                     disabled={isBulkImport}
                                     helpText={`Short citation of the main sources, to be displayed on the charts. Additional sources (e.g. population denominator) should not be included. Use semi-colons to separate multiple sources e.g. "UN (2022); World Bank (2022)". For institutional datasets or reports, use "Institution, Project (year or vintage)" e.g. "IHME, Global Burden of Disease (2019)". For data we have modified extensively, use "Our World in Data based on X (year)" e.g. "Our World in Data based on Pew Research Center (2022)". For academic papers, use "Authors (year)" e.g. "Arroyo-Abad and Lindert (2016)".`}
                                 />
@@ -390,6 +395,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                                     field="dataPublishedBy"
                                     store={newDataset.source}
                                     label="Data published by"
+                                    secondaryLabel="DB field: sources.description ->> '$.dataPublishedBy' - only the lowest id source is shown!"
                                     disabled={isBulkImport}
                                     helpText={`Full citation of main and additional sources. For academic papers, institutional datasets, and reports, use the complete citation recommended by the publisher. For data we have modified extensively, use "Our World in Data based on X (year) and Y (year)" e.g. "Our World in Data based on Pew Research Center (2022) and UN (2022)".`}
                                 />
@@ -397,6 +403,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                                     field="dataPublisherSource"
                                     store={newDataset.source}
                                     label="Data publisher's source"
+                                    secondaryLabel="DB field: sources.description ->> '$.dataPublisherSource' - only the lowest id source is shown!"
                                     disabled={isBulkImport}
                                     helpText={`Optional field. Basic indication of how the publisher collected this data e.g. "Survey data". Anything longer than a line should go in the dataset description.`}
                                 />
@@ -404,6 +411,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                                     field="description"
                                     store={newDataset}
                                     label="Internal notes"
+                                    secondaryLabel="DB field: datasets.description"
                                     textarea
                                     disabled={isBulkImport}
                                 />

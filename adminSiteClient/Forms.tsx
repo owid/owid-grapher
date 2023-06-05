@@ -19,6 +19,7 @@ import {
     faPaintbrush,
     faUnlink,
     faExclamationTriangle,
+    faCircleInfo,
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
@@ -30,6 +31,7 @@ export class FieldsRow extends React.Component<{ children: React.ReactNode }> {
 
 interface TextFieldProps extends React.HTMLAttributes<HTMLInputElement> {
     label?: string
+    secondaryLabel?: string
     value: string | undefined
     onValue: (value: string) => void
     onEnter?: () => void
@@ -92,7 +94,21 @@ export class TextField extends React.Component<TextFieldProps> {
                 className={cx("form-group", this.props.className)}
                 ref={this.base}
             >
-                {props.label && <label>{props.label}</label>}
+                {props.label && (
+                    <label>
+                        {props.label}
+                        {props.secondaryLabel && (
+                            <>
+                                <span> </span>
+                                <FontAwesomeIcon
+                                    icon={faCircleInfo}
+                                    className="text-muted"
+                                    title={props.secondaryLabel}
+                                />
+                            </>
+                        )}
+                    </label>
+                )}
                 <div className="input-group">
                     <input
                         className="form-control"
@@ -162,7 +178,21 @@ export class TextAreaField extends React.Component<TextFieldProps> {
 
         return (
             <div className="form-group">
-                {props.label && <label>{props.label}</label>}
+                {props.label && (
+                    <label>
+                        {props.label}
+                        {props.secondaryLabel && (
+                            <>
+                                <span> </span>
+                                <FontAwesomeIcon
+                                    icon={faCircleInfo}
+                                    className="text-muted"
+                                    title={props.secondaryLabel}
+                                />
+                            </>
+                        )}
+                    </label>
+                )}
                 <textarea
                     className="form-control"
                     value={props.value}
@@ -649,6 +679,7 @@ export class BindString extends React.Component<{
     field: string
     store: Record<string, any>
     label?: string
+    secondaryLabel?: string
     placeholder?: string
     helpText?: string
     textarea?: boolean
@@ -675,6 +706,7 @@ export class BindString extends React.Component<{
             return (
                 <TextAreaField
                     label={label === undefined ? capitalize(field) : label}
+                    secondaryLabel={this.props.secondaryLabel}
                     value={value || ""}
                     onValue={this.onValue}
                     onBlur={this.onBlur}
@@ -685,6 +717,7 @@ export class BindString extends React.Component<{
             return (
                 <TextField
                     label={label === undefined ? capitalize(field) : label}
+                    secondaryLabel={this.props.secondaryLabel}
                     value={value || ""}
                     onValue={this.onValue}
                     onBlur={this.onBlur}
