@@ -162,28 +162,30 @@ export const DataPageContent = ({
                                             />
                                         </a>
                                     )}
-                                {datapageGdocContent?.descriptionFromSource && (
-                                    <div className="key-info__description-source">
-                                        <ExpandableAnimatedToggle
-                                            label={
-                                                datapageJson
-                                                    .descriptionFromSource.title
-                                            }
-                                            content={
-                                                <ArticleBlocks
-                                                    blocks={
-                                                        datapageGdocContent.descriptionFromSource
-                                                    }
-                                                    containerType="datapage"
-                                                />
-                                            }
-                                            isExpandedDefault={
-                                                !datapageJson.subtitle &&
-                                                !datapageGdocContent.keyInfoText
-                                            }
-                                        />
-                                    </div>
-                                )}
+                                {datapageJson.descriptionFromSource?.title &&
+                                    datapageGdocContent?.descriptionFromSource && (
+                                        <div className="key-info__description-source">
+                                            <ExpandableAnimatedToggle
+                                                label={
+                                                    datapageJson
+                                                        .descriptionFromSource
+                                                        .title
+                                                }
+                                                content={
+                                                    <ArticleBlocks
+                                                        blocks={
+                                                            datapageGdocContent.descriptionFromSource
+                                                        }
+                                                        containerType="datapage"
+                                                    />
+                                                }
+                                                isExpandedDefault={
+                                                    !datapageJson.subtitle &&
+                                                    !datapageGdocContent.keyInfoText
+                                                }
+                                            />
+                                        </div>
+                                    )}
                             </div>
                             <div className="key-info__right grid grid-cols-3 grid-lg-cols-4 grid-sm-cols-12 span-cols-3 span-lg-cols-4 span-sm-cols-12">
                                 <div className="key-data span-cols-3 span-lg-cols-4 span-sm-cols-12">
