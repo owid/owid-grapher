@@ -137,15 +137,18 @@ export const DataPageContent = ({
                                 <h2 className="key-info__title">
                                     What you should know about this indicator
                                 </h2>
-                                {datapageGdocContent?.keyInfoText ? (
-                                    <ArticleBlocks
-                                        blocks={datapageGdocContent.keyInfoText}
-                                        containerType="datapage"
-                                    />
-                                ) : datapageJson.subtitle ? (
-                                    <div>{datapageJson.subtitle}</div>
-                                ) : null}
-
+                                <div className="key-info__content">
+                                    {datapageGdocContent?.keyInfoText ? (
+                                        <ArticleBlocks
+                                            blocks={
+                                                datapageGdocContent.keyInfoText
+                                            }
+                                            containerType="datapage"
+                                        />
+                                    ) : datapageJson.subtitle ? (
+                                        <div>{datapageJson.subtitle}</div>
+                                    ) : null}
+                                </div>
                                 {datapageGdocContent?.faqs && (
                                     <a
                                         className="key-info__learn-more"
