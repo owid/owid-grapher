@@ -381,7 +381,7 @@ properties:
         type: string
         default: country or region
         description: Display string for naming the primary entities of the data. Default is 'country or region', but you can specify a different one such as 'state' or 'region'
-    yVariableType:
+    facettingLabelByYVariables:
         type: string
         default: metric
         description: Display string for the type of y-variables when multiple are in use (e.g. for variables 'Eggs', 'Fish' and 'Chicken', this would be 'product')

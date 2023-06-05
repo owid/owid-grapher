@@ -634,7 +634,7 @@ export class EditorCustomizeTab extends React.Component<{
                                         Split by <s>metric</s>
                                     </>
                                 }
-                                field="yVariableType"
+                                field="facettingLabelByYVariables"
                                 store={grapher}
                                 helpText={
                                     "When facetting is active, one option is to split " +

@@ -164,7 +164,7 @@ export interface FacetStrategyDropdownManager {
     facetStrategy?: FacetStrategy
     showFacetControl?: boolean
     entityType?: string
-    yVariableType?: string
+    facettingLabelByYVariables?: string
 }
 
 // A drop-down button that, when clicked, shows a hovering visual display
@@ -199,12 +199,13 @@ export class FacetStrategyDropdown extends React.Component<{
     @computed get facetStrategyLabels(): { [key in FacetStrategy]: string } {
         const entityType = this.props.manager.entityType ?? "country or region"
 
-        const yVariableType = this.props.manager.yVariableType ?? "metric"
+        const facettingLabelByYVariables =
+            this.props.manager.facettingLabelByYVariables ?? "metric"
 
         return {
             [FacetStrategy.none]: "All together",
             [FacetStrategy.entity]: `Split by ${entityType}`,
-            [FacetStrategy.metric]: `Split by ${yVariableType}`,
+            [FacetStrategy.metric]: `Split by ${facettingLabelByYVariables}`,
         }
     }
 
