@@ -1341,15 +1341,17 @@ export const DataPageJsonTypeObject = Type.Object(
                 })
             )
         ),
-        relatedData: Type.Array(
-            Type.Object({
-                type: Type.Optional(Type.String()),
-                imageUrl: Type.Optional(Type.String()),
-                title: Type.String(),
-                source: Type.String(),
-                url: Type.String(),
-                content: Type.Optional(Type.String()),
-            })
+        relatedData: Type.Optional(
+            Type.Array(
+                Type.Object({
+                    type: Type.Optional(Type.String()),
+                    imageUrl: Type.Optional(Type.String()),
+                    title: Type.String(),
+                    source: Type.String(),
+                    url: Type.String(),
+                    content: Type.Optional(Type.String()),
+                })
+            )
         ),
         allCharts: Type.Optional(
             Type.Array(
