@@ -149,15 +149,19 @@ export const DataPageContent = ({
                                         <div>{datapageJson.subtitle}</div>
                                     ) : null}
                                 </div>
-                                {datapageGdocContent?.faqs && (
-                                    <a
-                                        className="key-info__learn-more"
-                                        href="#faqs"
-                                    >
-                                        Learn more in the FAQs
-                                        <FontAwesomeIcon icon={faArrowDown} />
-                                    </a>
-                                )}
+                                {datapageGdocContent?.faqs &&
+                                    (datapageGdocContent?.keyInfoText ||
+                                        datapageJson.subtitle) && (
+                                        <a
+                                            className="key-info__learn-more"
+                                            href="#faqs"
+                                        >
+                                            Learn more in the FAQs
+                                            <FontAwesomeIcon
+                                                icon={faArrowDown}
+                                            />
+                                        </a>
+                                    )}
                                 {datapageGdocContent?.descriptionFromSource && (
                                     <div className="key-info__description-source">
                                         <ExpandableAnimatedToggle
