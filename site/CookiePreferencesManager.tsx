@@ -75,7 +75,7 @@ export const CookiePreferencesManager = ({
             />
             <CookiePreferences
                 preferences={state.preferences}
-                date={`${state.date}`}
+                date={state.date?.toString()}
                 dispatch={dispatch}
             />
         </div>
