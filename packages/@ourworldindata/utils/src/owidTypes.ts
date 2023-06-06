@@ -541,8 +541,8 @@ export type RawBlockChartValue = {
     caption?: string
     title?: string
     subtitle?: string
-    controls?: string[]
-    tabs?: string[]
+    controls?: { list: string[] }[]
+    tabs?: { list: string[] }[]
 }
 
 export type RawBlockChart = {

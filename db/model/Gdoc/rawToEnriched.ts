@@ -264,7 +264,7 @@ const parseChart = (raw: RawBlockChart): EnrichedBlockChart => {
         const validControlKeywords = Object.values(ChartControlKeyword)
         const controls = uniq(
             filterValidStringValues(
-                val.controls || [],
+                val.controls?.flatMap((d: { list: string[] }) => d.list) || [],
                 validControlKeywords,
                 (invalidKeyword: string) => {
                     warnings.push({
@@ -277,7 +277,7 @@ const parseChart = (raw: RawBlockChart): EnrichedBlockChart => {
         const validTabKeywords = Object.values(ChartTabKeyword)
         const tabs = uniq(
             filterValidStringValues(
-                val.tabs || [],
+                val.tabs?.flatMap((d: { list: string[] }) => d.list) || [],
                 validTabKeywords,
                 (invalidKeyword: string) => {
                     warnings.push({
