@@ -31,14 +31,13 @@ import { getErrors } from "./gdocsValidation.js"
 import { GdocsSaveButtons } from "./GdocsSaveButtons.js"
 import { IconBadge } from "./IconBadge.js"
 import { useGdocsStore } from "./GdocsStore.js"
-import { GdocsSaveStatus } from "./GdocsSaveStatus.js"
 import { useGdocsChanged, useLightningUpdate } from "./gdocsHooks.js"
 import { GdocsMoreMenu } from "./GdocsMoreMenu.js"
 import { GdocsEditLink } from "./GdocsEditLink.js"
 import { openSuccessNotification } from "./gdocsNotifications.js"
 import { GdocsDiffButton } from "./GdocsDiffButton.js"
 import { GdocsDiff } from "./GdocsDiff.js"
-import { useInterval, useDebounceCallback } from "../site/hooks.js"
+import { useInterval } from "../site/hooks.js"
 
 export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     const { id } = match.params
@@ -48,19 +47,8 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     }>({ original: undefined, current: undefined })
     const originalGdoc = gdoc.original
     const currentGdoc = gdoc.current
-    const putCurrentGdoc = useDebounceCallback((current: OwidGdocInterface) => {
-        cancelAllRequests()
-        store.update(current)
-    }, 2000)
-    const setCurrentGdoc = (
-        current: OwidGdocInterface | undefined,
-        skipUpdatingDb = false
-    ) => {
+    const setCurrentGdoc = (current: OwidGdocInterface | undefined) => {
         setGdoc({ original: originalGdoc, current })
-
-        if (!skipUpdatingDb) {
-            putCurrentGdoc(current)
-        }
     }
     const hasChanges = useGdocsChanged(originalGdoc, currentGdoc)
     const [isSettingsOpen, setSettingsOpen] = useState(false)
@@ -127,16 +115,13 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     useInterval(async () => {
         if (currentGdoc) {
             const latestGdoc = await fetchGdoc(GdocsContentSource.Gdocs)
-            setCurrentGdoc(
-                {
-                    ...latestGdoc,
-                    slug: currentGdoc.slug,
-                    published: currentGdoc.published,
-                    publishedAt: currentGdoc.publishedAt,
-                    publicationContext: currentGdoc.publicationContext,
-                },
-                true
-            )
+            setCurrentGdoc({
+                ...latestGdoc,
+                slug: currentGdoc.slug,
+                published: currentGdoc.published,
+                publishedAt: currentGdoc.publishedAt,
+                publicationContext: currentGdoc.publicationContext,
+            })
         }
     }, 5000)
 
@@ -271,11 +256,6 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                     </Col>
                     <Col>
                         <Space>
-                            {!currentGdoc?.published && (
-                                <span className="mr-2">
-                                    <GdocsSaveStatus hasChanges={hasChanges} />
-                                </span>
-                            )}
                             <GdocsSaveButtons
                                 published={currentGdoc.published}
                                 originalGdoc={originalGdoc}
