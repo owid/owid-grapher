@@ -3,10 +3,6 @@
 }
 
 .DataPageContent {
-    .article-block__list {
-        @include HACK-fix-bullets-outside;
-    }
-
     .ExpandableAnimatedToggle {
         > button {
             padding-top: 16px;

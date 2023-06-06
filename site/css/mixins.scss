@@ -344,10 +344,6 @@
     }
 }
 
-// should be removed when fixed in centered-article
-@mixin HACK-fix-bullets-outside {
-    margin-left: 16px;
-}
 @mixin figure-margin {
     margin: 0 0 1rem;
 }
