@@ -2030,7 +2030,10 @@ export class Grapher
         } = this
 
         if (isStackedDiscreteBar) {
-            return selectedFacetStrategy !== FacetStrategy.none
+            return (
+                selectedFacetStrategy === FacetStrategy.entity ||
+                selectedFacetStrategy === FacetStrategy.metric
+            )
         }
 
         if (isStackedArea || isStackedBar) {
