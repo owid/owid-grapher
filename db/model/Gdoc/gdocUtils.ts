@@ -116,7 +116,9 @@ export function extractUrl(html: string = ""): string {
     if (!html) return ""
     if (html.trim().startsWith("http")) return html.trim()
     const $ = cheerio.load(html)
-    return $("a").attr("href")
+    const target = $("a").attr("href")
+    // "google.com" (without http://) won't get extracted here, so fallback to the html
+    return target || html
 }
 
 export const getTitleSupertitleFromHeadingText = (
