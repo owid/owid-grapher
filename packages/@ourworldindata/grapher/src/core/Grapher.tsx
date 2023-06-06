@@ -1555,6 +1555,13 @@ export class Grapher
     // NB: The timeline scatterplot in relative mode calculates changes relative
     // to the lower bound year rather than creating an arrow chart
     @computed get isRelativeMode(): boolean {
+        // don't allow relative mode in some cases
+        if (
+            this.hasSingleMetricInFacets ||
+            this.hasSingleEntityInFacets ||
+            this.isStackedChartSplitByMetric
+        )
+            return false
         return this.stackMode === StackMode.relative
     }
 
@@ -2018,17 +2025,18 @@ export class Grapher
             isStackedDiscreteBar,
             isStackedArea,
             isStackedBar,
-            facetStrategy,
+            selectedFacetStrategy,
             hasMultipleYColumns,
         } = this
 
         if (isStackedDiscreteBar) {
-            return facetStrategy !== FacetStrategy.none
+            return selectedFacetStrategy !== FacetStrategy.none
         }
 
         if (isStackedArea || isStackedBar) {
             return (
-                facetStrategy === FacetStrategy.entity && !hasMultipleYColumns
+                selectedFacetStrategy === FacetStrategy.entity &&
+                !hasMultipleYColumns
             )
         }
 
@@ -2036,11 +2044,16 @@ export class Grapher
     }
 
     @computed private get hasSingleEntityInFacets(): boolean {
-        const { isStackedArea, isStackedBar, facetStrategy, selection } = this
+        const {
+            isStackedArea,
+            isStackedBar,
+            selectedFacetStrategy,
+            selection,
+        } = this
 
         if (isStackedArea || isStackedBar) {
             return (
-                facetStrategy === FacetStrategy.metric &&
+                selectedFacetStrategy === FacetStrategy.metric &&
                 selection.numSelectedEntities === 1
             )
         }
@@ -2057,7 +2070,7 @@ export class Grapher
     private get isStackedChartSplitByMetric(): boolean {
         return (
             (this.isStackedArea || this.isStackedBar) &&
-            this.facetStrategy === FacetStrategy.metric
+            this.selectedFacetStrategy === FacetStrategy.metric
         )
     }
 
@@ -2080,15 +2093,6 @@ export class Grapher
 
     set facetStrategy(facet: FacetStrategy) {
         this.selectedFacetStrategy = facet
-
-        if (
-            this.hasSingleMetricInFacets ||
-            this.hasSingleEntityInFacets ||
-            this.isStackedChartSplitByMetric
-        ) {
-            // actually trying to exclude relative mode with just one metric or entity
-            this.stackMode = StackMode.absolute
-        }
     }
 
     @action.bound randomSelection(num: number): void {
