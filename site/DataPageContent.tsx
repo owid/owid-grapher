@@ -138,7 +138,9 @@ export const DataPageContent = ({
                                     datapageJson.subtitle) && (
                                     <div className="key-info__curated">
                                         <h2 className="key-info__title">
-                                            About this data
+                                            {datapageGdocContent?.keyInfoText
+                                                ? "What you should know about this indicator"
+                                                : "About this data"}
                                         </h2>
                                         <div className="key-info__content">
                                             {datapageGdocContent?.keyInfoText ? (
