@@ -263,6 +263,7 @@ h3.article-block__heading.has-supertitle {
 .article-block__html,
 .article-block__numbered-list {
     @include body-1-regular;
+    margin-bottom: 16px;
 
     .span-link {
         @include owid-link-60;
@@ -270,7 +271,8 @@ h3.article-block__heading.has-supertitle {
     }
 }
 
-.article-block__numbered-list {
+.article-block__numbered-list,
+.article-block__list {
     margin-left: 16px;
 }
 
