@@ -103,6 +103,10 @@
         }
     }
 
+    .key-info__curated {
+        margin-bottom: 32px;
+    }
+
     .key-info__content {
         margin-bottom: 24px;
     }
@@ -123,7 +127,6 @@
     }
 
     .key-info__description-source {
-        margin-top: 32px;
         .article-block__text,
         .article-block__list,
         .article-block__html,

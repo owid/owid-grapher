@@ -134,34 +134,39 @@ export const DataPageContent = ({
                         />
                         <div className="key-info__wrapper wrapper grid grid-cols-12">
                             <div className="key-info__left col-start-2 span-cols-7 span-lg-cols-8 span-sm-cols-12">
-                                <h2 className="key-info__title">
-                                    What you should know about this indicator
-                                </h2>
-                                <div className="key-info__content">
-                                    {datapageGdocContent?.keyInfoText ? (
-                                        <ArticleBlocks
-                                            blocks={
-                                                datapageGdocContent.keyInfoText
-                                            }
-                                            containerType="datapage"
-                                        />
-                                    ) : datapageJson.subtitle ? (
-                                        <div>{datapageJson.subtitle}</div>
-                                    ) : null}
-                                </div>
-                                {datapageGdocContent?.faqs &&
-                                    (datapageGdocContent?.keyInfoText ||
-                                        datapageJson.subtitle) && (
-                                        <a
-                                            className="key-info__learn-more"
-                                            href="#faqs"
-                                        >
-                                            Learn more in the FAQs
-                                            <FontAwesomeIcon
-                                                icon={faArrowDown}
-                                            />
-                                        </a>
-                                    )}
+                                {(datapageGdocContent?.keyInfoText ||
+                                    datapageJson.subtitle) && (
+                                    <div className="key-info__curated">
+                                        <h2 className="key-info__title">
+                                            About this data
+                                        </h2>
+                                        <div className="key-info__content">
+                                            {datapageGdocContent?.keyInfoText ? (
+                                                <ArticleBlocks
+                                                    blocks={
+                                                        datapageGdocContent.keyInfoText
+                                                    }
+                                                    containerType="datapage"
+                                                />
+                                            ) : datapageJson.subtitle ? (
+                                                <div>
+                                                    {datapageJson.subtitle}
+                                                </div>
+                                            ) : null}
+                                        </div>
+                                        {datapageGdocContent?.faqs && (
+                                            <a
+                                                className="key-info__learn-more"
+                                                href="#faqs"
+                                            >
+                                                Learn more in the FAQs
+                                                <FontAwesomeIcon
+                                                    icon={faArrowDown}
+                                                />
+                                            </a>
+                                        )}
+                                    </div>
+                                )}
                                 {datapageJson.descriptionFromSource?.title &&
                                     datapageGdocContent?.descriptionFromSource && (
                                         <div className="key-info__description-source">
@@ -180,8 +185,10 @@ export const DataPageContent = ({
                                                     />
                                                 }
                                                 isExpandedDefault={
-                                                    !datapageJson.subtitle &&
-                                                    !datapageGdocContent.keyInfoText
+                                                    !(
+                                                        datapageJson.subtitle ||
+                                                        datapageGdocContent.keyInfoText
+                                                    )
                                                 }
                                             />
                                         </div>
