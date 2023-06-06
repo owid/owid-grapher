@@ -95,7 +95,7 @@ import {
     htmlToSpans,
 } from "./htmlToEnriched.js"
 import { match } from "ts-pattern"
-import { isObject, parseInt } from "lodash"
+import { parseInt } from "lodash"
 import { GDOCS_DETAILS_ON_DEMAND_ID } from "../../../settings/serverSettings.js"
 
 export function parseRawBlocksToEnrichedBlocks(
@@ -1250,13 +1250,11 @@ function parseResearchAndWritingBlock(
 ): EnrichedBlockResearchAndWriting {
     const createError = (
         error: ParseError,
-        primary: EnrichedBlockResearchAndWritingLink = {
+        primary = {
             value: { url: "" },
-            parseErrors: [],
         },
-        secondary: EnrichedBlockResearchAndWritingLink = {
+        secondary = {
             value: { url: "" },
-            parseErrors: [],
         },
         more: EnrichedBlockResearchAndWritingLink[] = [],
         rows: EnrichedBlockResearchAndWritingRow[] = []
@@ -1282,7 +1280,6 @@ function parseResearchAndWritingBlock(
                 value: {
                     url: "",
                 },
-                parseErrors: [{ message }],
             }
         }
 
@@ -1310,7 +1307,6 @@ function parseResearchAndWritingBlock(
             }
             const enriched: EnrichedBlockResearchAndWritingLink = {
                 value: { url: enrichedUrl },
-                parseErrors: [],
             }
             if (authors) enriched.value.authors = parseAuthors(authors)
             if (title) enriched.value.title = title

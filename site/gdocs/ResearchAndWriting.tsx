@@ -22,7 +22,6 @@ function ResearchAndWritingLinkContainer(
 ) {
     let {
         value: { url, title, subtitle, authors, filename },
-        parseErrors,
         shouldHideThumbnail = false,
         shouldHideSubtitle = false,
         className,
@@ -30,23 +29,13 @@ function ResearchAndWritingLinkContainer(
     const { linkedDocument, errorMessage } = useLinkedDocument(url)
     const { isPreviewing } = useContext(DocumentContext)
 
-    if (isPreviewing) {
-        if (parseErrors.length || errorMessage) {
-            return (
-                <div
-                    className={cx(
-                        className,
-                        "research-and-writing-link--error"
-                    )}
-                >
-                    {parseErrors.map((parseError, i) => (
-                        <p key={i}>{parseError.message}</p>
-                    ))}
-                    <p>{errorMessage}</p>
-                    <p>This block won't render during baking</p>
-                </div>
-            )
-        }
+    if (isPreviewing && errorMessage) {
+        return (
+            <div className={cx(className, "research-and-writing-link--error")}>
+                <p>{errorMessage}</p>
+                <p>This block won't render during baking</p>
+            </div>
+        )
     }
 
     if (linkedDocument) {

@@ -951,7 +951,7 @@ export type EnrichedBlockResearchAndWritingLink = {
         subtitle?: string
         filename?: string
     }
-} & EnrichedBlockWithParseErrors
+}
 
 export type EnrichedBlockResearchAndWritingRow = {
     heading: string
