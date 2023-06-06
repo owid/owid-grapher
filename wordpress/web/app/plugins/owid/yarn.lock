@@ -2138,14 +2138,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/estree@npm:*":
-  version: 0.0.50
-  resolution: "@types/estree@npm:0.0.50"
-  checksum: 9a2b6a4a8c117f34d08fbda5e8f69b1dfb109f7d149b60b00fd7a9fb6ac545c078bc590aa4ec2f0a256d680cf72c88b3b28b60c326ee38a7bc8ee1ee95624922
-  languageName: node
-  linkType: hard
-
-"@types/estree@npm:^0.0.51":
+"@types/estree@npm:*, @types/estree@npm:^0.0.51":
   version: 0.0.51
   resolution: "@types/estree@npm:0.0.51"
   checksum: e56a3bcf759fd9185e992e7fdb3c6a5f81e8ff120e871641607581fb3728d16c811702a7d40fa5f869b7f7b4437ab6a87eb8d98ffafeee51e85bbe955932a189
@@ -2749,14 +2742,14 @@ __metadata:
   linkType: hard
 
 "@wordpress/dependency-extraction-webpack-plugin@npm:^3.2.1":
-  version: 3.3.0
-  resolution: "@wordpress/dependency-extraction-webpack-plugin@npm:3.3.0"
+  version: 3.7.0
+  resolution: "@wordpress/dependency-extraction-webpack-plugin@npm:3.7.0"
   dependencies:
     json2php: ^0.0.4
     webpack-sources: ^3.2.2
   peerDependencies:
     webpack: ^4.8.3 || ^5.0.0
-  checksum: 5a745fba99d1e2e49a6890b598da4f4d365495f661ef20cd0ca162a174f62ea3fbb63499de6e2c4331da84c744b4cea58626680aef72896a6f14f7271f15503e
+  checksum: 8d3edb5c4c6dd8f75d8e82ff81a651daf2818b96ffa117ec5ca096e3650bc1effa77008721575399bc6181556bbf27e166343c7a6dec6807c2224f9f36bcb558
   languageName: node
   linkType: hard
 
@@ -3028,16 +3021,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"acorn@npm:^8.0.4, acorn@npm:^8.2.4, acorn@npm:^8.5.0":
-  version: 8.8.0
-  resolution: "acorn@npm:8.8.0"
-  bin:
-    acorn: bin/acorn
-  checksum: 7270ca82b242eafe5687a11fea6e088c960af712683756abf0791b68855ea9cace3057bd5e998ffcef50c944810c1e0ca1da526d02b32110e13c722aa959afdc
-  languageName: node
-  linkType: hard
-
-"acorn@npm:^8.7.1":
+"acorn@npm:^8.0.4, acorn@npm:^8.2.4, acorn@npm:^8.5.0, acorn@npm:^8.7.1":
   version: 8.8.2
   resolution: "acorn@npm:8.8.2"
   bin:
