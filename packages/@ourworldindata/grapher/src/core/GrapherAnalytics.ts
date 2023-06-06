@@ -5,15 +5,6 @@ const DEBUG = false
 // TypeScript implicitly imports @types/amplitude-js and @types/google.analytics
 // so we have proper types for window.amplitude and window.ga
 
-// Docs on GA's event interface: https://developers.google.com/analytics/devguides/collection/analyticsjs/events
-interface GAEvent {
-    hitType: string
-    eventCategory: string
-    eventAction: string
-    eventLabel?: string
-    eventValue?: number
-}
-
 enum Categories {
     GrapherError = "GrapherErrors",
     GrapherUsage = "GrapherUsage",
@@ -139,8 +130,7 @@ export class GrapherAnalytics {
         eventValue?: number
     ): void {
         // Todo: send the Grapher (or site) version to Git
-        const event: GAEvent = {
-            hitType: "event",
+        const event = {
             eventCategory,
             eventAction,
             eventLabel,
@@ -152,17 +142,12 @@ export class GrapherAnalytics {
             return
         }
 
-        if (!window.ga) return
+        if (!window.gtag) return
 
-        // https://developers.google.com/analytics/devguides/collection/analyticsjs/ga-object-methods-reference
-        window.ga(function () {
-            const tracker = window.ga.getAll()[0]
-            // @types/google.analytics seems to suggest this usage is invalid but we know Google
-            // Analytics logs these events correctly.
-            // I have avoided changing the implementation for now, but we should look into this as
-            // we use Google Analytics more.
-            // -@danielgavrilov 2020-04-23
-            if (tracker) tracker.send(event as any)
+        window.gtag("event", event.eventAction, {
+            event_category: event.eventCategory,
+            event_label: event.eventLabel,
+            value: event.eventValue,
         })
     }
 }

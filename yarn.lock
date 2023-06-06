@@ -4814,7 +4814,7 @@ __metadata:
     "@types/d3-format": ^2
     "@types/enzyme": ^3.10.12
     "@types/enzyme-adapter-react-16": ^1.0.6
-    "@types/google.analytics": ^0.0.40
+    "@types/gtag.js": ^0.0.12
     "@types/jest": ^29.0.3
     "@types/js-cookie": ^3.0.2
     "@types/mousetrap": ^1.6.9
@@ -5766,19 +5766,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/google.analytics@npm:^0.0.40":
-  version: 0.0.40
-  resolution: "@types/google.analytics@npm:0.0.40"
-  checksum: 7c9b1c63b049f1018a30ed4ff193fbe76d3eee6d98c268346da82095709f1822e50e7130373187219dee765a5d10ed32d58962ff21801b39b219d1932f62ccdc
-  languageName: node
-  linkType: hard
-
 "@types/graceful-fs@npm:^4.1.3":
   version: 4.1.5
   resolution: "@types/graceful-fs@npm:4.1.5"
   dependencies:
     "@types/node": "*"
   checksum: d076bb61f45d0fc42dee496ef8b1c2f8742e15d5e47e90e20d0243386e426c04d4efd408a48875ab432f7960b4ce3414db20ed0fbbfc7bcc89d84e574f6e045a
+  languageName: node
+  linkType: hard
+
+"@types/gtag.js@npm:^0.0.12":
+  version: 0.0.12
+  resolution: "@types/gtag.js@npm:0.0.12"
+  checksum: 34efc27fbfd0013255b8bfd4af38ded9d5a6ba761130c76f17fd3a9585d83acc88d8005aab667cfec4bdec0e7c7217f689739799a8f61aed0edb929be58b162e
   languageName: node
   linkType: hard
 
@@ -13745,7 +13745,6 @@ __metadata:
     "@types/fuzzyset": ^1.0.2
     "@types/geojson": ^7946.0.10
     "@types/glob": ^8.0.0
-    "@types/google.analytics": ^0.0.40
     "@types/html-to-text": ^8.1.1
     "@types/jest": ^29.0.3
     "@types/js-cookie": ^3.0.2
