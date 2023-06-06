@@ -1316,8 +1316,14 @@ function parseResearchAndWritingBlock(
         } else return createLinkError(`Malformed link data: ${typeof rawLink}`)
     }
 
+    if (!raw.value.primary)
+        return createError({ message: "Missing primary link" })
     const primary = enrichLink(raw.value.primary)
+
+    if (!raw.value.secondary)
+        return createError({ message: "Missing secondary link" })
     const secondary = enrichLink(raw.value.secondary)
+
     if (!raw.value.more) {
         return createError(
             { message: "No 'more' values passed" },
@@ -1326,9 +1332,11 @@ function parseResearchAndWritingBlock(
         )
     }
     const more = raw.value.more.map((rawLink) => enrichLink(rawLink, true))
-    const rows = raw.value.rows?.map((row) => {
+    const rows = raw.value.rows?.map((row, i) => {
         if (!row.heading) {
-            parseErrors.push({ message: `Row missing "heading" value` })
+            parseErrors.push({
+                message: `Row ${Number(i) + 1} missing "heading" value`,
+            })
         }
         return {
             heading: row.heading || "",
