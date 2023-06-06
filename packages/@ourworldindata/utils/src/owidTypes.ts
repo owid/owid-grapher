@@ -1185,7 +1185,7 @@ export interface OwidGdocContent {
     authors: string[]
     dateline?: string
     excerpt?: string
-    refs?: EnrichedBlockText[]
+    refs?: OwidEnrichedGdocBlock[][]
     summary?: EnrichedBlockText[]
     citation?: EnrichedBlockSimpleText[]
     toc?: TocHeadingWithTitleSupertitle[]

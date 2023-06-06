@@ -19,6 +19,7 @@ import {
     ENDNOTES_ID,
     CITATION_ID,
     LICENSE_ID,
+    OwidRawGdocBlock,
 } from "@ourworldindata/utils"
 import { parseRawBlocksToEnrichedBlocks } from "./rawToEnriched.js"
 import urlSlug from "url-slug"
@@ -146,14 +147,14 @@ export const archieToEnriched = (text: string): OwidGdocContent => {
     const refs = (text.match(/{ref}(.*?){\/ref}/gims) || []).map(function (
         val: string,
         i: number
-    ) {
+    ): { blocks: OwidRawGdocBlock[] } {
         // mutate original text
         text = text.replace(
             val,
             `<a class="ref" href="#note-${i + 1}"><sup>${i + 1}</sup></a>`
         )
-        // return inner text
-        return val.replace(/\{\/?ref\}/g, "")
+        // wrap inner text in a freeform array and parse it
+        return load(`[+blocks]\n${val.replace(/\{\/?ref\}/g, "")}\n[]`)
     })
 
     // A note on the use of Regexps here: doing this is in theory a bit crude
@@ -187,7 +188,14 @@ export const archieToEnriched = (text: string): OwidGdocContent => {
 
     parsed.toc = generateToc(parsed.body)
 
-    parsed.refs = refs.map(htmlToEnrichedTextBlock)
+    parsed.refs = refs.map(({ blocks }) =>
+        blocks.map(parseRawBlocksToEnrichedBlocks)
+    )
+
+    console.log(
+        "JSON.stringify(parsed.refs, null, 2)",
+        JSON.stringify(parsed.refs, null, 2)
+    )
 
     parsed.summary = parsed.summary?.map((html: RawBlockText) =>
         htmlToEnrichedTextBlock(html.value)
