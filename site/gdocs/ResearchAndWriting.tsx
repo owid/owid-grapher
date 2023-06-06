@@ -47,11 +47,16 @@ function ResearchAndWritingLinkContainer(
     }
 
     return (
-        <a href={url} className={cx("research-and-writing-link", className)}>
+        <a
+            href={url}
+            className={cx("research-and-writing-link", className)}
+            target="_blank"
+            rel="noopener noreferrer"
+        >
             <div>
                 {filename && !shouldHideThumbnail ? (
                     <figure>
-                        <Image filename={filename} />
+                        <Image filename={filename} containerType="thumbnail" />
                     </figure>
                 ) : null}
                 <h3>{title}</h3>
