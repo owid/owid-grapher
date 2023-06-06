@@ -341,20 +341,17 @@ export const enrichedBlockExamples: Record<
             value: {
                 url: "https://docs.google.com/document/d/abcd",
             },
-            parseErrors: [],
         },
         secondary: {
             value: {
                 url: "https://docs.google.com/document/d/abcd",
             },
-            parseErrors: [],
         },
         more: [
             {
                 value: {
                     url: "https://docs.google.com/document/d/abcd",
                 },
-                parseErrors: [],
             },
             {
                 value: {
@@ -363,7 +360,6 @@ export const enrichedBlockExamples: Record<
                     authors: ["Max Roser"],
                     filename: "some_image.png",
                 },
-                parseErrors: [],
             },
             {
                 value: {
@@ -372,7 +368,6 @@ export const enrichedBlockExamples: Record<
                     authors: ["Max Roser"],
                     filename: "another_image.png",
                 },
-                parseErrors: [],
             },
         ],
         rows: [
@@ -383,7 +378,6 @@ export const enrichedBlockExamples: Record<
                         value: {
                             url: "https://docs.google.com/document/d/abcd",
                         },
-                        parseErrors: [],
                     },
                     {
                         value: {
@@ -392,7 +386,6 @@ export const enrichedBlockExamples: Record<
                             authors: ["Hannah Ritchie"],
                             filename: "yet_another_image.png",
                         },
-                        parseErrors: [],
                     },
                 ],
             },
