@@ -1332,10 +1332,10 @@ function parseResearchAndWritingBlock(
         )
     }
     const more = raw.value.more.map((rawLink) => enrichLink(rawLink, true))
-    const rows = raw.value.rows?.map((row, i) => {
+    const rows = raw.value.rows?.map((row) => {
         if (!row.heading) {
             parseErrors.push({
-                message: `Row ${Number(i) + 1} missing "heading" value`,
+                message: `Row missing "heading" value`,
             })
         }
         return {
