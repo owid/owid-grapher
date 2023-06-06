@@ -74,7 +74,10 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
     const { primary, secondary, more, rows, className } = props
     return (
         <div className={cx(className, "grid")}>
-            <h2 className="span-cols-12 display-1-semibold">
+            <h2
+                className="span-cols-12 display-1-semibold"
+                id="research-writing"
+            >
                 Research & writing
             </h2>
             <ResearchAndWritingLinkContainer
