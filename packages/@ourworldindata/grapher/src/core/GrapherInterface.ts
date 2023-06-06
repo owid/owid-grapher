@@ -7,6 +7,7 @@ import {
     ChartTypeName,
     FacetStrategy,
     MissingDataStrategy,
+    AnnotationFieldsInTitle,
 } from "./GrapherConstants"
 import { AxisConfigInterface } from "../axis/AxisConfigInterface"
 import {
@@ -37,11 +38,7 @@ export interface GrapherInterface extends SortConfig {
     subtitle?: string
     sourceDesc?: string
     note?: string
-    hideTitleAnnotation?: {
-        entity?: boolean
-        time?: boolean
-        change?: boolean
-    }
+    hideAnnotationFieldsInTitle?: AnnotationFieldsInTitle
     minTime?: TimeBound
     maxTime?: TimeBound
     timelineMinTime?: Time
@@ -87,6 +84,7 @@ export interface GrapherInterface extends SortConfig {
     selectedEntityColors?: { [entityName: string]: string | undefined }
     facet?: FacetStrategy
     missingDataStrategy?: MissingDataStrategy
+    hideFacetControl?: boolean
 
     xAxis?: Partial<AxisConfigInterface>
     yAxis?: Partial<AxisConfigInterface>

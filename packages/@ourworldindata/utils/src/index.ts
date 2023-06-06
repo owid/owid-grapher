@@ -18,6 +18,8 @@ export {
     type CategoryWithEntries,
     type ChartPositionChoice,
     type ChartRecord,
+    ChartControlKeyword,
+    ChartTabKeyword,
     type Color,
     type ColumnSlug,
     type DataValueConfiguration,
@@ -301,6 +303,7 @@ export {
     greatestCommonDivisor,
     findGreatestCommonDivisorOfArray,
     type NodeWithUrl,
+    filterValidStringValues,
 } from "./Util.js"
 
 export {
@@ -333,6 +336,7 @@ export {
     max,
     maxBy,
     memoize,
+    merge,
     min,
     minBy,
     noop,

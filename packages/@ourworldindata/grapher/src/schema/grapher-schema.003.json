@@ -299,7 +299,7 @@
             "type": "string",
             "description": "The tab that is shown initially",
             "default": "chart",
-            "enum": ["chart", "map", "sources", "download", "table"]
+            "enum": ["chart", "map", "table"]
         },
         "matchingEntitiesOnly": {
             "type": "boolean",

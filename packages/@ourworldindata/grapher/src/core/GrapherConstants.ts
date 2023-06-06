@@ -1,5 +1,6 @@
 import { TopicId } from "@ourworldindata/utils"
 import { Color } from "@ourworldindata/core-table"
+import type { GrapherProgrammaticInterface } from "./Grapher"
 
 export enum ChartTypeName {
     LineChart = "LineChart",
@@ -14,6 +15,7 @@ export enum ChartTypeName {
 }
 
 export const GRAPHER_EMBEDDED_FIGURE_ATTR = "data-grapher-src"
+export const GRAPHER_EMBEDDED_FIGURE_CONFIG_ATTR = "data-grapher-config"
 
 export const GRAPHER_PAGE_BODY_CLASS = "StandaloneGrapherOrExplorerPage"
 
@@ -128,3 +130,28 @@ export interface AnnotationFieldsInTitle {
     time?: boolean
     changeInPrefix?: boolean
 }
+
+export const grapherInterfaceWithHiddenControlsOnly: GrapherProgrammaticInterface =
+    {
+        hideRelativeToggle: true,
+        hideTimeline: true,
+        hideFacetControl: true,
+        hideEntityControls: true,
+        hideZoomToggle: true,
+        hideNoDataAreaToggle: true,
+        hideFacetYDomainToggle: true,
+        hideXScaleToggle: true,
+        hideYScaleToggle: true,
+        map: {
+            hideTimeline: true,
+        },
+    }
+
+export const grapherInterfaceWithHiddenTabsOnly: GrapherProgrammaticInterface =
+    {
+        hasChartTab: false,
+        hasMapTab: false,
+        hasTableTab: false,
+        hasDownloadTab: false,
+        hideShareTabButton: true,
+    }
