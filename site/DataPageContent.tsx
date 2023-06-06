@@ -532,76 +532,75 @@ export const DataPageContent = ({
                                     </h3>
                                     <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
                                         {datapageJson.sources.map(
-                                            (source, idx: number) => (
-                                                <div
-                                                    className="datacollection-source-item"
-                                                    key={source.sourceName}
-                                                >
-                                                    <ExpandableAnimatedToggle
-                                                        label={
-                                                            source.sourceName
-                                                        }
-                                                        content={
-                                                            <>
-                                                                {datapageGdocContent?.[
-                                                                    `sourceDescription${
-                                                                        idx + 1
-                                                                    }`
-                                                                ] && (
-                                                                    <ArticleBlocks
-                                                                        blocks={
-                                                                            datapageGdocContent[
-                                                                                `sourceDescription${
-                                                                                    idx +
-                                                                                    1
-                                                                                }`
-                                                                            ]
-                                                                        }
-                                                                        containerType="datapage"
-                                                                    />
-                                                                )}
+                                            (source, idx: number) => {
+                                                const sourceDescriptionGdocContent =
+                                                    datapageGdocContent?.[
+                                                        `sourceDescription${
+                                                            idx + 1
+                                                        }` as keyof typeof datapageGdocContent
+                                                    ]
+                                                return (
+                                                    <div
+                                                        className="datacollection-source-item"
+                                                        key={source.sourceName}
+                                                    >
+                                                        <ExpandableAnimatedToggle
+                                                            label={
+                                                                source.sourceName
+                                                            }
+                                                            content={
                                                                 <>
-                                                                    {source.sourceRetrievedOn &&
-                                                                        source.sourceRetrievedFromUrl && (
-                                                                            <div className="key-info--gridded grid grid-cols-2">
-                                                                                <div className="key-data">
-                                                                                    <div className="key-data__title">
-                                                                                        Retrieved
-                                                                                        on
-                                                                                    </div>
-                                                                                    <div>
-                                                                                        {
-                                                                                            source.sourceRetrievedOn
-                                                                                        }
-                                                                                    </div>
-                                                                                </div>
-                                                                                <div className="key-data">
-                                                                                    <div className="key-data__title">
-                                                                                        Retrieved
-                                                                                        from
-                                                                                    </div>
-                                                                                    <div>
-                                                                                        <a
-                                                                                            href={
-                                                                                                source.sourceRetrievedFromUrl
-                                                                                            }
-                                                                                            target="_blank"
-                                                                                            rel="noreferrer"
-                                                                                        >
+                                                                    {sourceDescriptionGdocContent && (
+                                                                        <ArticleBlocks
+                                                                            blocks={
+                                                                                sourceDescriptionGdocContent
+                                                                            }
+                                                                            containerType="datapage"
+                                                                        />
+                                                                    )}
+                                                                    <>
+                                                                        {source.sourceRetrievedOn &&
+                                                                            source.sourceRetrievedFromUrl && (
+                                                                                <div className="key-info--gridded grid grid-cols-2">
+                                                                                    <div className="key-data">
+                                                                                        <div className="key-data__title">
+                                                                                            Retrieved
+                                                                                            on
+                                                                                        </div>
+                                                                                        <div>
                                                                                             {
-                                                                                                source.sourceRetrievedFromUrl
+                                                                                                source.sourceRetrievedOn
                                                                                             }
-                                                                                        </a>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                    <div className="key-data">
+                                                                                        <div className="key-data__title">
+                                                                                            Retrieved
+                                                                                            from
+                                                                                        </div>
+                                                                                        <div>
+                                                                                            <a
+                                                                                                href={
+                                                                                                    source.sourceRetrievedFromUrl
+                                                                                                }
+                                                                                                target="_blank"
+                                                                                                rel="noreferrer"
+                                                                                            >
+                                                                                                {
+                                                                                                    source.sourceRetrievedFromUrl
+                                                                                                }
+                                                                                            </a>
+                                                                                        </div>
                                                                                     </div>
                                                                                 </div>
-                                                                            </div>
-                                                                        )}
+                                                                            )}
+                                                                    </>
                                                                 </>
-                                                            </>
-                                                        }
-                                                    />
-                                                </div>
-                                            )
+                                                            }
+                                                        />
+                                                    </div>
+                                                )
+                                            }
                                         )}
                                     </div>
                                 </div>

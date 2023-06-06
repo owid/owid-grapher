@@ -1195,11 +1195,16 @@ export const AllowedDataPageGdocFields = [
     // This is a hacky way of handling sourceDescription fields, entered in the
     // gdoc as sourceDescription1, sourceDescription2, etc... The 10 limit is
     // arbitrary and should be plenty, but could be increased if needed.
-
-    // EDIT: this actually whitelists all strings in typechecking, making it
-    // irrelevant. As it is, this only serves as documentation but not as
-    // typechecking.
-    ...[...Array(10)].map((_, idx) => `sourceDescription${idx + 1}`),
+    "sourceDescription1",
+    "sourceDescription2",
+    "sourceDescription3",
+    "sourceDescription4",
+    "sourceDescription5",
+    "sourceDescription6",
+    "sourceDescription7",
+    "sourceDescription8",
+    "sourceDescription9",
+    "sourceDescription10",
 ] as const
 
 export type DataPageGdocContent = Record<
