@@ -212,6 +212,13 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
                             }
                         )
                     }
+                    if (item.type === "key-insights") {
+                        item.insights.forEach((insight) => {
+                            if (insight.filename) {
+                                filenames.add(insight.filename)
+                            }
+                        })
+                    }
                 }
                 return item
             })
