@@ -483,9 +483,10 @@ export const DataPageContent = ({
                                                                         />
                                                                     )}
                                                                     <>
-                                                                        {source.sourceRetrievedOn &&
-                                                                            source.sourceRetrievedFromUrl && (
-                                                                                <div className="grid grid-cols-2">
+                                                                        {(source.sourceRetrievedOn ||
+                                                                            source.sourceRetrievedFromUrl) && (
+                                                                            <div className="grid grid-cols-2">
+                                                                                {source.sourceRetrievedOn && (
                                                                                     <div className="key-data">
                                                                                         <div className="key-data__title">
                                                                                             Retrieved
@@ -497,6 +498,8 @@ export const DataPageContent = ({
                                                                                             }
                                                                                         </div>
                                                                                     </div>
+                                                                                )}
+                                                                                {source.sourceRetrievedFromUrl && (
                                                                                     <div className="key-data">
                                                                                         <div className="key-data__title">
                                                                                             Retrieved
@@ -516,8 +519,9 @@ export const DataPageContent = ({
                                                                                             </a>
                                                                                         </div>
                                                                                     </div>
-                                                                                </div>
-                                                                            )}
+                                                                                )}
+                                                                            </div>
+                                                                        )}
                                                                     </>
                                                                 </>
                                                             }
