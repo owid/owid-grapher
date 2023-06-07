@@ -1764,21 +1764,34 @@ apiRouter.delete("/variables/:variableId", async (req: Request) => {
 
 apiRouter.get("/datasets.json", async (req) => {
     const datasets = await db.queryMysql(`
+        WITH variable_counts AS (
+            SELECT
+                v.datasetId,
+                COUNT(DISTINCT cd.chartId) as numCharts
+            FROM chart_dimensions cd
+            JOIN variables v ON cd.variableId = v.id
+            GROUP BY v.datasetId
+        )
         SELECT
-            d.id,
-            d.namespace,
-            d.name,
-            d.description,
-            d.dataEditedAt,
+            ad.id,
+            ad.namespace,
+            ad.name,
+            d.shortName,
+            ad.description,
+            ad.dataEditedAt,
             du.fullName AS dataEditedByUserName,
-            d.metadataEditedAt,
+            ad.metadataEditedAt,
             mu.fullName AS metadataEditedByUserName,
-            d.isPrivate,
-            d.nonRedistributable
-        FROM active_datasets d
-        JOIN users du ON du.id=d.dataEditedByUserId
-        JOIN users mu ON mu.id=d.metadataEditedByUserId
-        ORDER BY d.dataEditedAt DESC
+            ad.isPrivate,
+            ad.nonRedistributable,
+            d.version,
+            vc.numCharts
+        FROM active_datasets ad
+        JOIN variable_counts vc ON ad.id = vc.datasetId
+        JOIN users du ON du.id=ad.dataEditedByUserId
+        JOIN users mu ON mu.id=ad.metadataEditedByUserId
+        JOIN datasets d ON d.id=ad.id
+        ORDER BY ad.dataEditedAt DESC
     `)
 
     const tags = await db.queryMysql(`

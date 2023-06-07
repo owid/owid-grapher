@@ -35,6 +35,7 @@ export class DatasetsIndexPage extends React.Component {
                 searchWords,
                 (dataset: DatasetListItem) => [
                     dataset.name,
+                    dataset.shortName,
                     ...dataset.tags.map((t) => t.name),
                     dataset.namespace,
                     dataset.dataEditedByUserName,
