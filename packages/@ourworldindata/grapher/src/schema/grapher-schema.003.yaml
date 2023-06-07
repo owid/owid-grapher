@@ -384,7 +384,7 @@ properties:
     facettingLabelByYVariables:
         type: string
         default: metric
-        description: Display string for the type of y-variables when multiple are in use (e.g. for variables 'Eggs', 'Fish' and 'Chicken', this would be 'product')
+        description: Display string that replaces 'metric' in the 'Split by metric' label in facet controls (e.g. 'product' displays 'Split by product')
     note:
         type: string
         description: Note displayed in the footer of the chart. To be used for clarifications etc about the data.
