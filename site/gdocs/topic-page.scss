@@ -134,3 +134,14 @@
         text-align: center;
     }
 }
+
+// Collapse margins for "More about this data" heading below the explorer
+.centered-article-container--topic-page
+    .article-block__explorer
+    + .article-block__sticky-right {
+    margin-top: 0;
+
+    .article-block__sticky-right-left-column h2:first-child {
+        margin-top: 0;
+    }
+}

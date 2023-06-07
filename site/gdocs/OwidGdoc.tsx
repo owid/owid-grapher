@@ -1,5 +1,6 @@
 import React, { createContext } from "react"
 import ReactDOM from "react-dom"
+import cx from "classnames"
 import { ArticleBlocks } from "./ArticleBlocks.js"
 import Footnotes from "./Footnotes.js"
 import {
@@ -76,7 +77,16 @@ export function OwidGdoc({
             }}
         >
             <DocumentContext.Provider value={{ isPreviewing }}>
-                <article className="centered-article-container grid grid-cols-12-full-width">
+                <article
+                    className={cx(
+                        "centered-article-container grid grid-cols-12-full-width",
+                        // Only add this modifier class when content.type is defined
+                        {
+                            [`centered-article-container--${content.type}`]:
+                                content.type,
+                        }
+                    )}
+                >
                     <OwidGdocHeader
                         content={content}
                         authors={content.authors}
