@@ -258,11 +258,6 @@
         flex: 1;
     }
 
-    .related-data-item__image {
-        align-self: flex-start;
-        margin-bottom: 16px;
-    }
-
     .related-data-item--small {
         .related-data-item__title {
             @include h4-semibold;
