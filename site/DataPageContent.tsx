@@ -15,6 +15,7 @@ import {
 } from "@ourworldindata/utils"
 import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
 import StickyNav from "./blocks/StickyNav.js"
+import cx from "classnames"
 
 declare global {
     interface Window {
@@ -70,6 +71,13 @@ export const DataPageContent = ({
         { text: "FAQs", target: "#faqs" },
         { text: "Sources & Processing", target: "#sources-and-processing" },
     ]
+
+    const hasRelatedDataFeatured = !!datapageJson.relatedData?.filter(
+        (data) => data.featured
+    ).length
+    const hasRelatedDataNonFeatured = !!datapageJson.relatedData?.filter(
+        (data) => !data.featured
+    ).length
 
     return (
         <AttachmentsContext.Provider
@@ -276,70 +284,55 @@ export const DataPageContent = ({
                                 </div>
                             </>
                         )}
-                    {datapageJson.relatedData &&
-                        datapageJson.relatedData.length > 0 && (
-                            <>
-                                <div className="related-data__wrapper wrapper grid">
-                                    <h2
-                                        className="related-data__title span-cols-3 span-lg-cols-12"
-                                        id="related-data"
-                                    >
-                                        Related data
-                                    </h2>
-                                    <div className="related-data__items span-cols-9 span-lg-cols-12">
-                                        <div className="span-cols-3">
-                                            <a
-                                                href={
-                                                    datapageJson.relatedData[0]
-                                                        .url
-                                                }
-                                                key={
-                                                    datapageJson.relatedData[0]
-                                                        .url
-                                                }
-                                                className="related-data-item related-data-item--medium"
-                                            >
-                                                <div className="related-data-item__type">
-                                                    {
-                                                        datapageJson
-                                                            .relatedData[0].type
-                                                    }
-                                                </div>
-                                                <h3 className="related-data-item__title">
-                                                    {
-                                                        datapageJson
-                                                            .relatedData[0]
-                                                            .title
-                                                    }
-                                                </h3>
-                                                {datapageJson.relatedData[0]
-                                                    .source && (
-                                                    <div className="related-data-item__source">
-                                                        {
-                                                            datapageJson
-                                                                .relatedData[0]
-                                                                .source
-                                                        }
-                                                    </div>
-                                                )}
-                                                <div className="related-data-item__content">
-                                                    {
-                                                        datapageJson
-                                                            .relatedData[0]
-                                                            .content
-                                                    }
-                                                </div>
-                                            </a>
-                                        </div>
-                                        <div className="span-cols-3">
+                    {!!datapageJson.relatedData?.length && (
+                        <>
+                            <div className="related-data__wrapper wrapper grid">
+                                <h2
+                                    className="related-data__title span-cols-3 span-lg-cols-12"
+                                    id="related-data"
+                                >
+                                    Related data
+                                </h2>
+                                <div
+                                    className={cx(
+                                        "related-data__items",
+                                        {
+                                            "related-data__items--two-cols":
+                                                hasRelatedDataFeatured &&
+                                                hasRelatedDataNonFeatured,
+                                        },
+                                        "grid grid-cols-9",
+                                        "grid-lg-cols-12",
+                                        "span-cols-9",
+                                        "span-lg-cols-12"
+                                    )}
+                                >
+                                    {hasRelatedDataFeatured && (
+                                        <div
+                                            className={cx(
+                                                "related-data__column",
+                                                "span-cols-4",
+                                                "span-lg-cols-6",
+                                                `${
+                                                    hasRelatedDataNonFeatured
+                                                        ? "span-sm-cols-3"
+                                                        : "span-sm-cols-12"
+                                                }`
+                                            )}
+                                        >
                                             {datapageJson.relatedData
-                                                .slice(1, 3)
-                                                .map((data: any) => (
+                                                .filter((data) => data.featured)
+                                                .map((data) => (
                                                     <a
                                                         href={data.url}
                                                         key={data.url}
-                                                        className="related-data-item related-data-item--medium"
+                                                        className="related-data-item related-data-item--medium col-start-1 col-end-limit"
                                                     >
+                                                        {data.type && (
+                                                            <div className="related-data-item__type">
+                                                                {data.type}
+                                                            </div>
+                                                        )}
                                                         <h3 className="related-data-item__title">
                                                             {data.title}
                                                         </h3>
@@ -354,14 +347,29 @@ export const DataPageContent = ({
                                                     </a>
                                                 ))}
                                         </div>
-                                        <div className="span-cols-3">
+                                    )}
+                                    {hasRelatedDataNonFeatured && (
+                                        <div
+                                            className={cx(
+                                                "related-data__column",
+                                                "span-cols-4",
+                                                "span-lg-cols-6",
+                                                `${
+                                                    hasRelatedDataFeatured
+                                                        ? "span-sm-cols-3"
+                                                        : "span-sm-cols-12"
+                                                }`
+                                            )}
+                                        >
                                             {datapageJson.relatedData
-                                                .slice(3)
-                                                .map((data: any) => (
+                                                .filter(
+                                                    (data) => !data.featured
+                                                )
+                                                .map((data) => (
                                                     <a
                                                         href={data.url}
                                                         key={data.url}
-                                                        className="related-data-item--small"
+                                                        className="related-data-item related-data-item--small col-start-1 col-end-limit"
                                                     >
                                                         <h4 className="related-data-item__title">
                                                             {data.title}
@@ -374,13 +382,14 @@ export const DataPageContent = ({
                                                     </a>
                                                 ))}
                                         </div>
-                                    </div>
+                                    )}
                                 </div>
-                                <div className="DataPageContent__section-border wrapper">
-                                    <hr />
-                                </div>
-                            </>
-                        )}
+                            </div>
+                            <div className="DataPageContent__section-border wrapper">
+                                <hr />
+                            </div>
+                        </>
+                    )}
                     {datapageJson.allCharts &&
                     datapageJson.allCharts.length > 0 ? (
                         <div className="related-charts__wrapper wrapper">
