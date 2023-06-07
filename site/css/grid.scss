@@ -62,7 +62,7 @@ $grid-responsive: (lg, md, sm);
 // 1 (auto) | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 (auto)
 .grid-cols-12-full-width {
     // Weird magic numbers to ensure the central columns 2-14 are 1280px wide in total
-    grid-template-columns: calc(50vw - 671px) repeat(12, 1fr) calc(50vw - 672px);
+    grid-template-columns: calc(50vw - 664px) repeat(12, 1fr) calc(50vw - 664px);
 }
 
 // Use this on an item you want to span till the end of whichever container it's in
