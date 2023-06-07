@@ -14,6 +14,7 @@ export enum EventCategory {
     CountryProfileSearch = "owid.country_profile_search",
     Filter = "owid.filter",
     GlobalEntitySelectorUsage = "owid.global_entity_selector_usage",
+    GrapherClick = "owid.grapher_click",
     GrapherError = "owid.grapher_error",
     GrapherUsage = "owid.grapher_usage",
     ExplorerCountrySelector = "owid.explorer_country_selector",
@@ -42,7 +43,7 @@ interface GAEvent {
     eventAction?: string
     eventContext?: string
     eventTarget?: string
-    grapherSlug?: string
+    grapherUrl?: string
 }
 
 // Note: consent-based blocking dealt with at the Google Tag Manager level.
@@ -89,16 +90,24 @@ export class GrapherAnalytics {
         })
     }
 
-    logSiteClick(
+    logGrapherClick(
         action: string = "unknown-action",
         label?: string,
-        grapherSlug?: string
+        grapherUrl?: string
     ): void {
+        this.logToGA({
+            event: EventCategory.GrapherClick,
+            eventAction: action,
+            eventTarget: label,
+            grapherUrl,
+        })
+    }
+
+    logSiteClick(action: string = "unknown-action", label?: string): void {
         this.logToGA({
             event: EventCategory.SiteClick,
             eventAction: action,
             eventTarget: label,
-            grapherSlug,
         })
     }
 
@@ -114,6 +123,7 @@ export class GrapherAnalytics {
         // Todo: add a Story and tests for this OR even better remove and use Google Tag Manager or similar fully SAAS tracking.
         // Todo: have different Attributes for Grapher charts vs Site.
         const dataTrackAttr = "data-track-note"
+        const dataGrapherUrlAttr = "data-grapher-url"
         document.addEventListener("click", async (ev) => {
             const targetElement = ev.target as HTMLElement
             const trackedElement = findDOMParent(
@@ -122,14 +132,21 @@ export class GrapherAnalytics {
             )
             if (!trackedElement) return
 
-            // Note that browsers will cancel all pending requests once a user
-            // navigates away from a page. An earlier implementation had a
-            // timeout to send the event before navigating, but it broke
-            // CMD+CLICK for opening a new tab.
-            this.logSiteClick(
-                trackedElement.getAttribute(dataTrackAttr) || undefined,
-                trackedElement.innerText
-            )
+            const grapherUrl = trackedElement
+                .closest(`[${dataGrapherUrlAttr}]`)
+                ?.getAttribute(dataGrapherUrlAttr)
+
+            if (grapherUrl)
+                this.logGrapherClick(
+                    trackedElement.getAttribute(dataTrackAttr) || undefined,
+                    trackedElement.innerText,
+                    grapherUrl
+                )
+            else
+                this.logSiteClick(
+                    trackedElement.getAttribute(dataTrackAttr) || undefined,
+                    trackedElement.innerText
+                )
         })
     }
 

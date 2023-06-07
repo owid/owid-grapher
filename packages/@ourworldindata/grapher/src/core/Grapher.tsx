@@ -2200,7 +2200,12 @@ export class Grapher
         )
 
         return (
-            <div ref={this.base} className={classes} style={style}>
+            <div
+                ref={this.base}
+                className={classes}
+                style={style}
+                data-grapher-url={this.canonicalUrl} // fully qualified grapher URL, used for analytics context
+            >
                 {this.commandPalette}
                 {this.uncaughtError ? this.renderError() : this.renderReady()}
             </div>
@@ -2542,7 +2547,11 @@ export class Grapher
     timelineController = new TimelineController(this)
 
     onPlay(): void {
-        this.analytics.logSiteClick("timeline-play", undefined, this.slug)
+        this.analytics.logGrapherClick(
+            "timeline-play",
+            undefined,
+            this.canonicalUrl
+        )
     }
 
     // todo: restore this behavior??
