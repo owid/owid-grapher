@@ -76,8 +76,19 @@ import {
     keyBy,
     filterValidStringValues,
     uniq,
+    RawBlockResearchAndWriting,
+    RawBlockResearchAndWritingLink,
+    EnrichedBlockResearchAndWriting,
+    EnrichedBlockResearchAndWritingLink,
+    EnrichedBlockResearchAndWritingRow,
+    EnrichedBlockExpandableParagraph,
+    RawBlockExpandableParagraph,
 } from "@ourworldindata/utils"
-import { extractUrl, getTitleSupertitleFromHeadingText } from "./gdocUtils.js"
+import {
+    extractUrl,
+    getTitleSupertitleFromHeadingText,
+    parseAuthors,
+} from "./gdocUtils.js"
 import {
     htmlToEnrichedTextBlock,
     htmlToSimpleTextBlock,
@@ -86,10 +97,6 @@ import {
 import { match } from "ts-pattern"
 import { parseInt } from "lodash"
 import { GDOCS_DETAILS_ON_DEMAND_ID } from "../../../settings/serverSettings.js"
-import {
-    EnrichedBlockExpandableParagraph,
-    RawBlockExpandableParagraph,
-} from "@ourworldindata/utils/dist/owidTypes.js"
 
 export function parseRawBlocksToEnrichedBlocks(
     block: OwidRawGdocBlock
@@ -134,6 +141,7 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "prominent-link" }, parseProminentLink)
         .with({ type: "topic-page-intro" }, parseTopicPageIntro)
         .with({ type: "key-insights" }, parseKeyInsights)
+        .with({ type: "research-and-writing" }, parseResearchAndWritingBlock)
         .with(
             { type: "sdg-toc" },
             (b): EnrichedBlockSDGToc => ({
@@ -1234,5 +1242,114 @@ function parseExpandableParagraph(
         type: "expandable-paragraph",
         items: compact(raw.value.map(parseRawBlocksToEnrichedBlocks)),
         parseErrors: [],
+    }
+}
+
+function parseResearchAndWritingBlock(
+    raw: RawBlockResearchAndWriting
+): EnrichedBlockResearchAndWriting {
+    const createError = (
+        error: ParseError,
+        primary = {
+            value: { url: "" },
+        },
+        secondary = {
+            value: { url: "" },
+        },
+        more: EnrichedBlockResearchAndWritingLink[] = [],
+        rows: EnrichedBlockResearchAndWritingRow[] = []
+    ): EnrichedBlockResearchAndWriting => ({
+        type: "research-and-writing",
+        primary,
+        secondary,
+        more,
+        rows,
+        parseErrors: [error],
+    })
+    const parseErrors: ParseError[] = []
+
+    function enrichLink(
+        rawLink?: RawBlockResearchAndWritingLink,
+        skipFilenameValidation: boolean = false
+    ): EnrichedBlockResearchAndWritingLink {
+        function createLinkError(
+            message: string
+        ): EnrichedBlockResearchAndWritingLink {
+            parseErrors.push({ message })
+            return {
+                value: {
+                    url: "",
+                },
+            }
+        }
+
+        if (checkIsPlainObjectWithGuard(rawLink)) {
+            const { url, authors, filename, title, subtitle } = rawLink
+            if (!url) return createLinkError("Link missing url")
+            const enrichedUrl = extractUrl(url)
+            const { isGoogleDoc } = Url.fromURL(enrichedUrl)
+            if (!isGoogleDoc) {
+                if (!authors) {
+                    return createLinkError(
+                        `Research and writing link with URL "${enrichedUrl}" missing authors`
+                    )
+                }
+                if (!title) {
+                    return createLinkError(
+                        `Research and writing link with URL "${enrichedUrl}" missing title`
+                    )
+                }
+                if (!skipFilenameValidation && !filename) {
+                    return createLinkError(
+                        `Research and writing link with URL "${enrichedUrl}" missing filename`
+                    )
+                }
+            }
+            const enriched: EnrichedBlockResearchAndWritingLink = {
+                value: { url: enrichedUrl },
+            }
+            if (authors) enriched.value.authors = parseAuthors(authors)
+            if (title) enriched.value.title = title
+            if (filename) enriched.value.filename = filename
+            if (subtitle) enriched.value.subtitle = subtitle
+            return enriched
+        } else return createLinkError(`Malformed link data: ${typeof rawLink}`)
+    }
+
+    if (!raw.value.primary)
+        return createError({ message: "Missing primary link" })
+    const primary = enrichLink(raw.value.primary)
+
+    if (!raw.value.secondary)
+        return createError({ message: "Missing secondary link" })
+    const secondary = enrichLink(raw.value.secondary)
+
+    if (!raw.value.more) {
+        return createError(
+            { message: "No 'more' values passed" },
+            primary,
+            secondary
+        )
+    }
+    const more = raw.value.more.map((rawLink) => enrichLink(rawLink, true))
+    const rows = raw.value.rows?.map((row) => {
+        if (!row.heading) {
+            parseErrors.push({
+                message: `Row missing "heading" value`,
+            })
+        }
+        return {
+            heading: row.heading || "",
+            articles: row.articles?.map((rawLink) => enrichLink(rawLink)) || [],
+        }
+    })
+
+    return {
+        type: "research-and-writing",
+        primary,
+        secondary,
+        more: more,
+        rows: rows ?? [],
+        parseErrors,
     }
 }

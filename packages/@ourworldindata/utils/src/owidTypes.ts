@@ -920,6 +920,52 @@ export type EnrichedBlockKeyInsights = {
     insights: EnrichedBlockKeyInsightsSlide[]
 } & EnrichedBlockWithParseErrors
 
+export type RawBlockResearchAndWritingLink = {
+    url?: string
+    authors?: string
+    title?: string
+    subtitle?: string
+    filename?: string
+}
+
+export type RawBlockResearchAndWritingRow = {
+    heading?: string
+    articles?: RawBlockResearchAndWritingLink[]
+}
+
+export type RawBlockResearchAndWriting = {
+    type: "research-and-writing"
+    value: {
+        primary?: RawBlockResearchAndWritingLink
+        secondary?: RawBlockResearchAndWritingLink
+        more?: RawBlockResearchAndWritingLink[]
+        rows?: RawBlockResearchAndWritingRow[]
+    }
+}
+
+export type EnrichedBlockResearchAndWritingLink = {
+    value: {
+        url: string
+        authors?: string[]
+        title?: string
+        subtitle?: string
+        filename?: string
+    }
+}
+
+export type EnrichedBlockResearchAndWritingRow = {
+    heading: string
+    articles: EnrichedBlockResearchAndWritingLink[]
+}
+
+export type EnrichedBlockResearchAndWriting = {
+    type: "research-and-writing"
+    primary: EnrichedBlockResearchAndWritingLink
+    secondary: EnrichedBlockResearchAndWritingLink
+    more: EnrichedBlockResearchAndWritingLink[]
+    rows: EnrichedBlockResearchAndWritingRow[]
+} & EnrichedBlockWithParseErrors
+
 export type RawBlockSDGToc = {
     type: "sdg-toc"
     value?: Record<string, never>
@@ -970,6 +1016,7 @@ export type OwidRawGdocBlock =
     | RawBlockList
     | RawBlockPullQuote
     | RawBlockRecirc
+    | RawBlockResearchAndWriting
     | RawBlockText
     | RawBlockUrl
     | RawBlockPosition
@@ -1001,6 +1048,7 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockList
     | EnrichedBlockPullQuote
     | EnrichedBlockRecirc
+    | EnrichedBlockResearchAndWriting
     | EnrichedBlockHeading
     | EnrichedBlockHtml
     | EnrichedBlockHorizontalRule
@@ -1018,6 +1066,7 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockExpandableParagraph
     | EnrichedBlockTopicPageIntro
     | EnrichedBlockKeyInsights
+    | EnrichedBlockResearchAndWriting
 
 export enum OwidGdocPublicationContext {
     unlisted = "unlisted",

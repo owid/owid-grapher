@@ -52,6 +52,9 @@ export {
     type EnrichedBlockProminentLink,
     type EnrichedBlockPullQuote,
     type EnrichedBlockRecirc,
+    type EnrichedBlockResearchAndWriting,
+    type EnrichedBlockResearchAndWritingLink,
+    type EnrichedBlockResearchAndWritingRow,
     type EnrichedBlockScroller,
     type EnrichedBlockSDGGrid,
     type EnrichedBlockSDGToc,
@@ -129,6 +132,8 @@ export {
     type RawBlockProminentLink,
     type RawBlockPullQuote,
     type RawBlockRecirc,
+    type RawBlockResearchAndWriting,
+    type RawBlockResearchAndWritingLink,
     type RawBlockScroller,
     type RawBlockSDGGrid,
     type RawBlockSDGToc,
@@ -304,6 +309,7 @@ export {
     findGreatestCommonDivisorOfArray,
     type NodeWithUrl,
     filterValidStringValues,
+    traverseEnrichedSpan,
 } from "./Util.js"
 
 export {

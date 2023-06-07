@@ -24,6 +24,8 @@ import {
     RawBlockAdditionalCharts,
     RawBlockCallout,
     RawBlockKeyInsights,
+    RawBlockResearchAndWriting,
+    RawBlockResearchAndWritingLink,
     RawBlockTopicPageIntro,
     RawBlockExpandableParagraph,
 } from "@ourworldindata/utils"
@@ -429,11 +431,59 @@ function* rawKeyInsightsToArchieMLString(
                 for (const content of insight.content) {
                     yield* OwidRawGdocBlockToArchieMLStringGenerator(content)
                 }
+                yield "[]"
             }
-            yield "[]"
         }
+        yield "[]"
     }
-    yield "[]"
+    yield "{}"
+}
+
+function* rawResearchAndWritingToArchieMLString(
+    block: RawBlockResearchAndWriting
+): Generator<string, void, undefined> {
+    const { primary, secondary, more, rows } = block.value
+    function* rawLinkToArchie(
+        link: RawBlockResearchAndWritingLink
+    ): Generator<string, void, undefined> {
+        yield* propertyToArchieMLString("url", link)
+        yield* propertyToArchieMLString("authors", link)
+        yield* propertyToArchieMLString("title", link)
+        yield* propertyToArchieMLString("subtitle", link)
+        yield* propertyToArchieMLString("filename", link)
+    }
+    yield "{.research-and-writing}"
+    if (primary) {
+        yield "{.primary}"
+        yield* rawLinkToArchie(primary)
+        yield "{}"
+    }
+    if (secondary) {
+        yield "{.secondary}"
+        yield* rawLinkToArchie(secondary)
+        yield "{}"
+    }
+    if (more) {
+        yield "[.more]"
+        for (const link of more) {
+            yield* rawLinkToArchie(link)
+        }
+        yield "[]"
+    }
+    if (rows) {
+        yield "[.rows]"
+        for (const row of rows) {
+            yield* propertyToArchieMLString("heading", row)
+            if (row.articles) {
+                yield "[.articles]"
+                for (const link of row.articles) {
+                    yield* rawLinkToArchie(link)
+                }
+                yield "[]"
+            }
+        }
+        yield "[]"
+    }
     yield "{}"
 }
 
@@ -490,6 +540,10 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
             rawBlockTopicPageIntroToArchieMLString
         )
         .with({ type: "key-insights" }, rawKeyInsightsToArchieMLString)
+        .with(
+            { type: "research-and-writing" },
+            rawResearchAndWritingToArchieMLString
+        )
         .exhaustive()
     yield* content
 }

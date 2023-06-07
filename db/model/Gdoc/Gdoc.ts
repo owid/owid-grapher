@@ -31,6 +31,8 @@ import {
     traverseEnrichedBlocks,
     OwidEnrichedGdocBlock,
     Span,
+    EnrichedBlockResearchAndWritingLink,
+    traverseEnrichedSpan,
 } from "@ourworldindata/utils"
 import {
     BAKED_GRAPHER_URL,
@@ -54,8 +56,10 @@ import { EXPLORERS_ROUTE_FOLDER } from "../../../explorer/ExplorerConstants.js"
 import { formatUrls } from "../../../site/formatting.js"
 import { parseDetails } from "./rawToEnriched.js"
 import { match, P } from "ts-pattern"
-import { spansToSimpleString } from "./gdocUtils.js"
-import { traverseEnrichedSpan } from "@ourworldindata/utils/dist/Util.js"
+import {
+    getAllLinksFromResearchAndWritingBlock,
+    spansToSimpleString,
+} from "./gdocUtils.js"
 
 @Entity("tags")
 export class Tag extends BaseEntity implements OwidGdocTag {
@@ -193,6 +197,17 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
                     }
                     if (item.type === "prominent-link" && item.thumbnail) {
                         filenames.add(item.thumbnail)
+                    }
+                    if (item.type === "research-and-writing") {
+                        const allLinks =
+                            getAllLinksFromResearchAndWritingBlock(item)
+                        allLinks.forEach(
+                            (link: EnrichedBlockResearchAndWritingLink) => {
+                                if (link.value.filename) {
+                                    filenames.add(link.value.filename)
+                                }
+                            }
+                        )
                     }
                 }
                 return item
@@ -495,6 +510,33 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
 
                 return links
             })
+            .with(
+                {
+                    type: "research-and-writing",
+                },
+                (researchAndWriting) => {
+                    const allLinks =
+                        getAllLinksFromResearchAndWritingBlock(
+                            researchAndWriting
+                        )
+
+                    return allLinks.reduce(
+                        (links, link) => [
+                            ...links,
+                            Link.create({
+                                linkType: getLinkType(link.value.url),
+                                source: this,
+                                target: getUrlTarget(
+                                    formatUrls(link.value.url)
+                                ),
+                                componentType: researchAndWriting.type,
+                                text: link.value.title || "",
+                            }),
+                        ],
+                        [] as Link[]
+                    )
+                }
+            )
             .with(
                 {
                     // no urls directly on any of these components

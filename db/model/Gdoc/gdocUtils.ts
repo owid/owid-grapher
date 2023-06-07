@@ -1,4 +1,9 @@
-import { Span } from "@ourworldindata/utils"
+import {
+    EnrichedBlockResearchAndWriting,
+    Span,
+    excludeNullish,
+    EnrichedBlockResearchAndWritingLink,
+} from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
 import cheerio from "cheerio"
 
@@ -111,7 +116,9 @@ export function extractUrl(html: string = ""): string {
     if (!html) return ""
     if (html.trim().startsWith("http")) return html.trim()
     const $ = cheerio.load(html)
-    return $("a").attr("href")
+    const target = $("a").attr("href")
+    // "google.com" (without http://) won't get extracted here, so fallback to the html
+    return target || html
 }
 
 export const getTitleSupertitleFromHeadingText = (
@@ -125,4 +132,24 @@ export const getTitleSupertitleFromHeadingText = (
         afterSeparator || beforeSeparator,
         afterSeparator ? beforeSeparator : undefined,
     ]
+}
+
+export const getAllLinksFromResearchAndWritingBlock = (
+    block: EnrichedBlockResearchAndWriting
+): EnrichedBlockResearchAndWritingLink[] => {
+    const { primary, secondary, more, rows } = block
+    const rowArticles = rows.flatMap((row) => row.articles)
+    const allLinks = excludeNullish([
+        primary,
+        secondary,
+        ...more,
+        ...rowArticles,
+    ])
+    return allLinks
+}
+
+export function parseAuthors(authors?: string): string[] {
+    return (authors || "Our World In Data")
+        .split(",")
+        .map((author: string) => author.trim())
 }

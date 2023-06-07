@@ -1,0 +1,111 @@
+.article-block__research-and-writing {
+    margin-bottom: 40px;
+
+    > h2 {
+        text-align: center;
+        font-size: 32px;
+        margin-bottom: 40px;
+    }
+}
+
+.research-and-writing-more {
+    padding: 24px;
+    background: $gray-10;
+    h5 {
+        margin: 0;
+    }
+
+    @include md-down {
+        margin-top: 24px;
+    }
+
+    .research-and-writing-link {
+        display: block;
+        h3 {
+            @include h3-bold;
+            margin-top: 16px;
+            margin-bottom: 8px;
+        }
+
+        p {
+            margin-bottom: 8px;
+        }
+
+        &:not(:last-child) {
+            border-bottom: 1px solid $blue-10;
+        }
+
+        &:last-child p {
+            margin-bottom: 0;
+        }
+    }
+}
+
+.research-and-writing-row {
+    h5 {
+        text-align: center;
+        margin-top: 40px;
+        margin-bottom: 24px;
+    }
+    .research-and-writing-row__link-container {
+        overflow-x: auto;
+        scrollbar-width: thin;
+        .research-and-writing-link {
+            // distributes 1280px between 4 tiles + 3 column gaps
+            min-width: calc((1280px - calc(3 * var(--grid-gap))) / 4);
+        }
+    }
+}
+
+.research-and-writing-link {
+    h3 {
+        @include owid-link-90;
+        @include h2-bold;
+        margin-top: 16px;
+        margin-bottom: 8px;
+        text-decoration: none;
+    }
+
+    &:hover {
+        h3 {
+            text-decoration: underline;
+        }
+    }
+
+    .research-and-writing-link__description {
+        color: $blue-90;
+        margin-bottom: 8px;
+        margin-top: 0;
+    }
+
+    .research-and-writing-link__authors {
+        color: $blue-60;
+        margin-bottom: 8px;
+        margin-top: 0;
+    }
+
+    figure {
+        padding-bottom: 57%;
+        width: 100%;
+        max-height: 57%;
+        display: block;
+        box-sizing: border-box;
+        position: relative;
+        overflow: hidden;
+        margin: 0;
+    }
+
+    img {
+        object-fit: cover;
+        height: 100%;
+        width: 100%;
+        position: absolute;
+        left: 0;
+        top: 0;
+    }
+}
+
+.research-and-writing-link--error {
+    background-color: rgba(255, 0, 0, 0.1);
+    padding: 24px;
+}

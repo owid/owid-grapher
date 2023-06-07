@@ -1552,6 +1552,7 @@ export function traverseEnrichedBlocks(
                     "prominent-link",
                     "pull-quote",
                     "recirc",
+                    "research-and-writing",
                     "scroller",
                     "sdg-grid",
                     "sdg-toc",
