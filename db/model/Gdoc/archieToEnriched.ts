@@ -77,7 +77,7 @@ function generateStickyNav(
             if (node.type === "key-insights") {
                 stickyNavItems.push({
                     text: headingToIdMap[KEY_INSIGHTS_ID],
-                    target: `#${headingToIdMap}`,
+                    target: `#${KEY_INSIGHTS_ID}`,
                 })
             }
             if (node.type === "all-charts") {
