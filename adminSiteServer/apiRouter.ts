@@ -1765,34 +1765,60 @@ apiRouter.delete("/variables/:variableId", async (req: Request) => {
 apiRouter.get("/datasets.json", async (req) => {
     const datasets = await db.queryMysql(`
         SELECT
-            d.id,
-            d.namespace,
-            d.name,
-            d.description,
-            d.dataEditedAt,
+            ad.id,
+            ad.namespace,
+            ad.name,
+            d.shortName,
+            ad.description,
+            ad.dataEditedAt,
             du.fullName AS dataEditedByUserName,
-            d.metadataEditedAt,
+            ad.metadataEditedAt,
             mu.fullName AS metadataEditedByUserName,
-            d.isPrivate,
-            d.nonRedistributable
-        FROM active_datasets d
-        JOIN users du ON du.id=d.dataEditedByUserId
-        JOIN users mu ON mu.id=d.metadataEditedByUserId
-        ORDER BY d.dataEditedAt DESC
+            ad.isPrivate,
+            ad.nonRedistributable,
+            d.version
+        FROM active_datasets ad
+        JOIN users du ON du.id=ad.dataEditedByUserId
+        JOIN users mu ON mu.id=ad.metadataEditedByUserId
+        JOIN datasets d ON d.id=ad.id
+        ORDER BY ad.dataEditedAt DESC
     `)
 
     const tags = await db.queryMysql(`
         SELECT dt.datasetId, t.id, t.name FROM dataset_tags dt
         JOIN tags t ON dt.tagId = t.id
     `)
+    /*LEFT JOIN variables AS v ON v.datasetId=d.id
+    GROUP BY d.id*/
+
+    const numCharts = (await db.queryMysql(`
+        SELECT
+          v.datasetId,
+          COUNT(DISTINCT c.id) as numCharts
+        FROM
+          charts c,
+          JSON_TABLE(
+            c.config,
+            '$.dimensions[*]'
+            COLUMNS(
+              variableId INT PATH '$.variableId'
+            )
+          ) AS d
+        JOIN variables v ON d.variableId = v.id
+        GROUP BY v.datasetId
+    `)) as { datasetId: number; numCharts: string }[]
+
     const tagsByDatasetId = lodash.groupBy(tags, (t) => t.datasetId)
+    const numChartsByDatasetId = lodash.groupBy(numCharts, (d) => d.datasetId)
     for (const dataset of datasets) {
         dataset.tags = (tagsByDatasetId[dataset.id] || []).map((t) =>
             lodash.omit(t, "datasetId")
         )
+        dataset.numCharts = (numChartsByDatasetId[dataset.id] || []).reduce(
+            (acc, curr) => +curr.numCharts + acc,
+            0
+        )
     }
-    /*LEFT JOIN variables AS v ON v.datasetId=d.id
-    GROUP BY d.id*/
 
     return { datasets: datasets }
 })

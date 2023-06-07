@@ -12,6 +12,7 @@ import { EditableTags, Timeago } from "./Forms.js"
 export interface DatasetListItem {
     id: number
     name: string
+    shortName: string
     namespace: string
     description: string
     dataEditedAt: Date
@@ -21,6 +22,8 @@ export interface DatasetListItem {
     tags: Tag[]
     isPrivate: boolean
     nonRedistributable: boolean
+    version: string
+    numCharts: number
 }
 
 @observer
@@ -70,6 +73,7 @@ class DatasetRow extends React.Component<{
                         {highlight(dataset.name)}
                     </Link>
                 </td>
+                <td>{highlight(dataset.shortName)}</td>
                 <td>{highlight(dataset.description)}</td>
                 <td>
                     <EditableTags
@@ -85,6 +89,8 @@ class DatasetRow extends React.Component<{
                         by={highlight(dataset.dataEditedByUserName)}
                     />
                 </td>
+                <td>{dataset.version}</td>
+                <td>{dataset.numCharts}</td>
             </tr>
         )
     }
@@ -115,11 +121,14 @@ export class DatasetList extends React.Component<{
             <table className="table table-bordered">
                 <thead>
                     <tr>
-                        <th>Dataspace</th>
+                        <th>Namespace</th>
                         <th>Dataset</th>
+                        <th>Short name</th>
                         <th>Notes</th>
                         <th>Tags</th>
                         <th>Uploaded</th>
+                        <th>Version</th>
+                        <th>Number of charts</th>
                     </tr>
                 </thead>
                 <tbody>
