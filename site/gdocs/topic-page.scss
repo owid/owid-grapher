@@ -35,6 +35,9 @@
         p:first-child {
             margin-top: 0;
         }
+        a {
+            @include owid-link-90;
+        }
     }
 
     .topic-page-intro__download-button {
