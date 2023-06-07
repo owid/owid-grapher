@@ -58,7 +58,6 @@ class DatasetRow extends React.Component<{
 
         return (
             <tr>
-                <td>{dataset.namespace}</td>
                 <td>
                     {dataset.nonRedistributable ? (
                         <span className="text-secondary">
@@ -73,7 +72,16 @@ class DatasetRow extends React.Component<{
                         {highlight(dataset.name)}
                     </Link>
                 </td>
+                <td>{dataset.namespace}</td>
+                <td>{dataset.version}</td>
                 <td>{highlight(dataset.shortName)}</td>
+                <td>{dataset.numCharts}</td>
+                <td>
+                    <Timeago
+                        time={dataset.dataEditedAt}
+                        by={highlight(dataset.dataEditedByUserName)}
+                    />
+                </td>
                 <td>{highlight(dataset.description)}</td>
                 <td>
                     <EditableTags
@@ -83,14 +91,6 @@ class DatasetRow extends React.Component<{
                         disabled={dataset.namespace !== "owid"}
                     />
                 </td>
-                <td>
-                    <Timeago
-                        time={dataset.dataEditedAt}
-                        by={highlight(dataset.dataEditedByUserName)}
-                    />
-                </td>
-                <td>{dataset.version}</td>
-                <td>{dataset.numCharts}</td>
             </tr>
         )
     }
@@ -121,14 +121,14 @@ export class DatasetList extends React.Component<{
             <table className="table table-bordered">
                 <thead>
                     <tr>
-                        <th>Namespace</th>
                         <th>Dataset</th>
+                        <th>Namespace</th>
+                        <th>Version</th>
                         <th>Short name</th>
+                        <th>Number of charts</th>
+                        <th>Uploaded</th>
                         <th>Notes</th>
                         <th>Tags</th>
-                        <th>Uploaded</th>
-                        <th>Version</th>
-                        <th>Number of charts</th>
                     </tr>
                 </thead>
                 <tbody>
