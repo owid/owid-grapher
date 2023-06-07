@@ -69,7 +69,7 @@ export {
     type GrapherManager,
     getErrorMessageRelatedQuestionUrl,
 } from "./core/Grapher"
-export { GrapherAnalytics } from "./core/GrapherAnalytics"
+export { GrapherAnalytics, EventCategory } from "./core/GrapherAnalytics"
 export {
     type GrapherInterface,
     type GrapherQueryParams,

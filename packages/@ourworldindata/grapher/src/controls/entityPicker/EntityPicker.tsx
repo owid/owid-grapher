@@ -57,10 +57,6 @@ export class EntityPicker extends React.Component<{
     manager: EntityPickerManager
     isDropdownMenu?: boolean
 }> {
-    @computed private get analyticsNamespace(): string {
-        return this.manager.analyticsNamespace ?? ""
-    }
-
     @observable private searchInput?: string
     @observable
     private searchInputRef: React.RefObject<HTMLInputElement> =
@@ -91,7 +87,6 @@ export class EntityPicker extends React.Component<{
         // Clear search input
         this.searchInput = ""
         this.manager.analytics?.logEntityPickerEvent(
-            this.analyticsNamespace,
             checked ? "select" : "deselect",
             name
         )
@@ -267,11 +262,7 @@ export class EntityPicker extends React.Component<{
                 const name = this.focusedOption
                 this.selectEntity(name)
                 this.clearSearchInput()
-                this.manager.analytics?.logEntityPickerEvent(
-                    this.analyticsNamespace,
-                    "enter",
-                    name
-                )
+                this.manager.analytics?.logEntityPickerEvent("enter", name)
                 break
             case "ArrowUp":
                 this.focusOptionDirection(FocusDirection.up)
@@ -402,11 +393,7 @@ export class EntityPicker extends React.Component<{
                 ? SortOrder.desc
                 : SortOrder.asc,
         })
-        this.manager.analytics?.logEntityPickerEvent(
-            this.analyticsNamespace,
-            "sortBy",
-            columnSlug
-        )
+        this.manager.analytics?.logEntityPickerEvent("sortBy", columnSlug)
     }
 
     private isColumnTypeNumeric(col: CoreColumn | undefined): boolean {
@@ -454,7 +441,6 @@ export class EntityPicker extends React.Component<{
                         const sortOrder = toggleSort(this.sortOrder)
                         this.manager.setEntityPicker?.({ sort: sortOrder })
                         this.manager.analytics?.logEntityPickerEvent(
-                            this.analyticsNamespace,
                             "sortOrder",
                             sortOrder
                         )
@@ -500,7 +486,7 @@ export class EntityPicker extends React.Component<{
                         onFocus={this.onSearchFocus}
                         onBlur={this.onSearchBlur}
                         ref={this.searchInputRef}
-                        data-track-note={`${this.analyticsNamespace}-picker-search-input`}
+                        data-track-note={`picker-search-input`}
                     />
                     <div className="search-icon">
                         <FontAwesomeIcon icon={faSearch} />
@@ -571,7 +557,7 @@ export class EntityPicker extends React.Component<{
                                 <div
                                     title={selectedDebugMessage}
                                     className="ClearSelectionButton"
-                                    data-track-note={`${this.analyticsNamespace}-clear-selection`}
+                                    data-track-note={`entity-picker-clear-selection`}
                                     onClick={(): void =>
                                         selection.clearSelection()
                                     }

@@ -12,18 +12,23 @@ declare global {
 // TypeScript implicitly imports @types/amplitude-js
 // so we have proper types for window.amplitude and window.ga
 
-enum Categories {
-    GrapherError = "GrapherErrors",
-    GrapherUsage = "GrapherUsage",
-    GlobalEntitySelectorUsage = "GlobalEntitySelector",
-    SiteClick = "SiteClick",
-    KeyboardShortcut = "KeyboardShortcut",
+export enum EventCategory {
+    CountryProfileSearch = "owid.country_profile_search",
+    Filter = "owid.filter",
+    GlobalEntitySelectorUsage = "owid.global_entity_selector_usage",
+    GrapherError = "owid.grapher_error",
+    GrapherUsage = "owid.grapher_usage",
+    ExplorerCountrySelector = "owid.explorer_country_selector",
+    Hover = "owid.hover",
+    KeyboardShortcut = "owid.keyboard_shortcut",
+    SiteClick = "owid.site_click",
+    SiteError = "owid.site_error",
 }
 
-enum EventNames {
-    grapherViewError = "GRAPHER_VIEW_ERROR",
-    entitiesNotFound = "ENTITIES_NOT_FOUND",
-    timelinePlay = "TimelinePlay",
+enum EventAction {
+    grapherViewError = "grapher_view_error",
+    entitiesNotFound = "entities_not_found",
+    timelinePlay = "timeline_play",
 }
 
 type entityControlEvent = "open" | "change" | "close"
@@ -35,9 +40,11 @@ type countrySelectorEvent =
     | "sortOrder"
 
 interface GAEvent {
-    event: string
+    event: EventCategory
     eventAction?: string
+    eventContext?: string
     eventTarget?: string
+    grapherSlug?: string
 }
 
 // Note: consent-based blocking dealt with at the Google Tag Manager level.
@@ -52,41 +59,57 @@ export class GrapherAnalytics {
     private isDev: boolean
 
     logGrapherViewError(error: Error, info: unknown): void {
-        this.logToAmplitude(EventNames.grapherViewError, { error, info })
-        this.logToGA(Categories.GrapherError, EventNames.grapherViewError)
+        this.logToAmplitude(EventAction.grapherViewError, { error, info })
+        this.logToGA({
+            event: EventCategory.GrapherError,
+            eventAction: EventAction.grapherViewError,
+        })
     }
 
     logEntitiesNotFoundError(entities: string[]): void {
-        this.logToAmplitude(EventNames.entitiesNotFound, { entities })
-        this.logToGA(
-            Categories.GrapherError,
-            EventNames.entitiesNotFound,
-            JSON.stringify(entities)
-        )
-    }
-
-    logGrapherTimelinePlay(slug?: string): void {
-        this.logToGA(Categories.GrapherUsage, EventNames.timelinePlay, slug)
+        this.logToAmplitude(EventAction.entitiesNotFound, { entities })
+        this.logToGA({
+            event: EventCategory.GrapherError,
+            eventAction: EventAction.entitiesNotFound,
+            eventContext: JSON.stringify(entities),
+        })
     }
 
     logGlobalEntitySelector(action: entityControlEvent, note?: string): void {
-        this.logToGA(Categories.GlobalEntitySelectorUsage, action, note)
+        this.logToGA({
+            event: EventCategory.GlobalEntitySelectorUsage,
+            eventAction: action,
+            eventContext: note,
+        })
     }
 
-    logEntityPickerEvent(
-        pickerSlug: string,
-        action: countrySelectorEvent,
-        note?: string
+    logEntityPickerEvent(action: countrySelectorEvent, note?: string): void {
+        this.logToGA({
+            event: EventCategory.ExplorerCountrySelector,
+            eventAction: action,
+            eventContext: note,
+        })
+    }
+
+    logSiteClick(
+        action: string = "unknown-action",
+        label?: string,
+        grapherSlug?: string
     ): void {
-        this.logToGA(`${pickerSlug}ExplorerCountrySelectorUsage`, action, note)
-    }
-
-    logSiteClick(action: string = "unknown-action", label: string): void {
-        this.logToGA(Categories.SiteClick, action, label)
+        this.logToGA({
+            event: EventCategory.SiteClick,
+            eventAction: action,
+            eventTarget: label,
+            grapherSlug,
+        })
     }
 
     logKeyboardShortcut(shortcut: string, combo: string): void {
-        this.logToGA(Categories.KeyboardShortcut, shortcut, combo)
+        this.logToGA({
+            event: EventCategory.KeyboardShortcut,
+            eventAction: shortcut,
+            eventContext: combo,
+        })
     }
 
     startClickTracking(): void {
@@ -136,25 +159,13 @@ export class GrapherAnalytics {
         window.amplitude.getInstance().logEvent(name, allProps)
     }
 
-    protected logToGA(
-        eventCategory: string,
-        eventAction: string,
-        eventLabel?: string,
-        eventValue?: number
-    ): void {
-        // Todo: send the Grapher (or site) version to Git
-        const event = {
-            eventCategory,
-            eventAction,
-            eventLabel,
-            eventValue,
-        }
+    protected logToGA(event: GAEvent): void {
         if (DEBUG && this.isDev) {
             // eslint-disable-next-line no-console
             console.log("Analytics.logToGA", event)
             return
         }
 
-        window.dataLayer?.push({ event: event.eventCategory, ...event })
+        window.dataLayer?.push(event)
     }
 }

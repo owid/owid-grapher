@@ -2542,7 +2542,7 @@ export class Grapher
     timelineController = new TimelineController(this)
 
     onPlay(): void {
-        this.analytics.logGrapherTimelinePlay(this.slug)
+        this.analytics.logSiteClick("timeline-play", undefined, this.slug)
     }
 
     // todo: restore this behavior??
