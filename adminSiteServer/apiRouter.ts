@@ -1787,7 +1787,7 @@ apiRouter.get("/datasets.json", async (req) => {
             d.version,
             vc.numCharts
         FROM active_datasets ad
-        JOIN variable_counts vc ON ad.id = vc.datasetId
+        LEFT JOIN variable_counts vc ON ad.id = vc.datasetId
         JOIN users du ON du.id=ad.dataEditedByUserId
         JOIN users mu ON mu.id=ad.metadataEditedByUserId
         JOIN datasets d ON d.id=ad.id
