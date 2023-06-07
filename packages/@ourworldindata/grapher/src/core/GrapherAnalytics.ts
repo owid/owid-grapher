@@ -3,10 +3,8 @@ import { findDOMParent } from "@ourworldindata/utils"
 const DEBUG = false
 
 // Add type information for dataLayer global provided by Google Tag Manager
-declare global {
-    interface Window {
-        dataLayer?: GAEvent[]
-    }
+type WindowWithDataLayer = Window & {
+    dataLayer?: GAEvent[]
 }
 
 // TypeScript implicitly imports @types/amplitude-js
@@ -166,6 +164,6 @@ export class GrapherAnalytics {
             return
         }
 
-        window.dataLayer?.push(event)
+        ;(window as WindowWithDataLayer).dataLayer?.push(event)
     }
 }
