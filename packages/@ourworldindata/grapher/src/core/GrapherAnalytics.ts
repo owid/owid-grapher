@@ -2,7 +2,14 @@ import { findDOMParent } from "@ourworldindata/utils"
 
 const DEBUG = false
 
-// TypeScript implicitly imports @types/amplitude-js and @types/google.analytics
+// Add type information for dataLayer global provided by Google Tag Manager
+declare global {
+    interface Window {
+        dataLayer?: GAEvent[]
+    }
+}
+
+// TypeScript implicitly imports @types/amplitude-js
 // so we have proper types for window.amplitude and window.ga
 
 enum Categories {
@@ -26,6 +33,12 @@ type countrySelectorEvent =
     | "deselect"
     | "sortBy"
     | "sortOrder"
+
+interface GAEvent {
+    event: string
+    eventAction?: string
+    eventTarget?: string
+}
 
 // Note: consent-based blocking dealt with at the Google Tag Manager level.
 // Events are discarded if consent not given.
@@ -142,12 +155,6 @@ export class GrapherAnalytics {
             return
         }
 
-        if (!window.gtag) return
-
-        window.gtag("event", event.eventAction, {
-            event_category: event.eventCategory,
-            event_label: event.eventLabel,
-            value: event.eventValue,
-        })
+        window.dataLayer?.push({ event: event.eventCategory, ...event })
     }
 }
