@@ -422,6 +422,11 @@
             "default": "country or region",
             "description": "Display string for naming the primary entities of the data. Default is 'country or region', but you can specify a different one such as 'state' or 'region'"
         },
+        "facettingLabelByYVariables": {
+            "type": "string",
+            "default": "metric",
+            "description": "Display string that replaces 'metric' in the 'Split by metric' label in facet controls (e.g. 'product' displays 'Split by product')"
+        },
         "note": {
             "type": "string",
             "description": "Note displayed in the footer of the chart. To be used for clarifications etc about the data."

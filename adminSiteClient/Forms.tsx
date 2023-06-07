@@ -30,7 +30,7 @@ export class FieldsRow extends React.Component<{ children: React.ReactNode }> {
 }
 
 interface TextFieldProps extends React.HTMLAttributes<HTMLInputElement> {
-    label?: string
+    label?: React.ReactNode
     secondaryLabel?: string
     value: string | undefined
     onValue: (value: string) => void
@@ -678,7 +678,7 @@ export class AutoTextField extends React.Component<AutoTextFieldProps> {
 export class BindString extends React.Component<{
     field: string
     store: Record<string, any>
-    label?: string
+    label?: React.ReactNode
     secondaryLabel?: string
     placeholder?: string
     helpText?: string

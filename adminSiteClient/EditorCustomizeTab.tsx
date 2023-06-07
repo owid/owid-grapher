@@ -626,6 +626,25 @@ export class EditorCustomizeTab extends React.Component<{
                             store={grapher}
                         />
                     </FieldsRow>
+                    {features.canCustomizeVariableType && (
+                        <FieldsRow>
+                            <BindString
+                                label={
+                                    <>
+                                        Split by <s>metric</s>
+                                    </>
+                                }
+                                field="facettingLabelByYVariables"
+                                store={grapher}
+                                helpText={
+                                    "When facetting is active, one option is to split " +
+                                    "by entity/country, the other is by metric. This option  " +
+                                    'lets you override "metric" with a custom word like ' +
+                                    '"products" or "species".'
+                                }
+                            />
+                        </FieldsRow>
+                    )}
                 </Section>
                 {features.relativeModeToggle && (
                     <Section name="Controls">
