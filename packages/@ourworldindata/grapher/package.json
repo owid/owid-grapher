@@ -57,7 +57,6 @@
     "@types/d3-format": "^2",
     "@types/enzyme": "^3.10.12",
     "@types/enzyme-adapter-react-16": "^1.0.6",
-    "@types/gtag.js": "^0.0.12",
     "@types/jest": "^29.0.3",
     "@types/js-cookie": "^3.0.2",
     "@types/mousetrap": "^1.6.9",
