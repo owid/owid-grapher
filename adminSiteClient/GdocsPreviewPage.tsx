@@ -31,12 +31,7 @@ import { getErrors } from "./gdocsValidation.js"
 import { GdocsSaveButtons } from "./GdocsSaveButtons.js"
 import { IconBadge } from "./IconBadge.js"
 import { useGdocsStore } from "./GdocsStore.js"
-import { GdocsSaveStatus } from "./GdocsSaveStatus.js"
-import {
-    useGdocsChanged,
-    useAutoSaveDraft,
-    useLightningUpdate,
-} from "./gdocsHooks.js"
+import { useGdocsChanged, useLightningUpdate } from "./gdocsHooks.js"
 import { GdocsMoreMenu } from "./GdocsMoreMenu.js"
 import { GdocsEditLink } from "./GdocsEditLink.js"
 import { openSuccessNotification } from "./gdocsNotifications.js"
@@ -53,8 +48,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     const originalGdoc = gdoc.original
     const currentGdoc = gdoc.current
     const setCurrentGdoc = (current: OwidGdocInterface | undefined) => {
-        cancelAllRequests()
-        setGdoc({ original: gdoc.original, current })
+        setGdoc({ original: originalGdoc, current })
     }
     const hasChanges = useGdocsChanged(originalGdoc, currentGdoc)
     const [isSettingsOpen, setSettingsOpen] = useState(false)
@@ -130,9 +124,6 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
             })
         }
     }, 5000)
-
-    // autosave
-    useAutoSaveDraft(currentGdoc, hasChanges)
 
     const isLightningUpdate = useLightningUpdate(
         originalGdoc,
@@ -265,11 +256,6 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                     </Col>
                     <Col>
                         <Space>
-                            {!currentGdoc?.published && (
-                                <span className="mr-2">
-                                    <GdocsSaveStatus hasChanges={hasChanges} />
-                                </span>
-                            )}
                             <GdocsSaveButtons
                                 published={currentGdoc.published}
                                 originalGdoc={originalGdoc}
@@ -318,7 +304,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                 >
                     <GdocsSettingsForm
                         gdoc={currentGdoc}
-                        setGdoc={setCurrentGdoc}
+                        setCurrentGdoc={setCurrentGdoc}
                         errors={errors}
                     />
                 </Drawer>
