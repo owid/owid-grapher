@@ -1764,6 +1764,14 @@ apiRouter.delete("/variables/:variableId", async (req: Request) => {
 
 apiRouter.get("/datasets.json", async (req) => {
     const datasets = await db.queryMysql(`
+        WITH variable_counts AS (
+            SELECT
+                v.datasetId,
+                COUNT(DISTINCT cd.chartId) as numCharts
+            FROM chart_dimensions cd
+            JOIN variables v ON cd.variableId = v.id
+            GROUP BY v.datasetId
+        )
         SELECT
             ad.id,
             ad.namespace,
@@ -1776,8 +1784,10 @@ apiRouter.get("/datasets.json", async (req) => {
             mu.fullName AS metadataEditedByUserName,
             ad.isPrivate,
             ad.nonRedistributable,
-            d.version
+            d.version,
+            vc.numCharts
         FROM active_datasets ad
+        JOIN variable_counts vc ON ad.id = vc.datasetId
         JOIN users du ON du.id=ad.dataEditedByUserId
         JOIN users mu ON mu.id=ad.metadataEditedByUserId
         JOIN datasets d ON d.id=ad.id
@@ -1788,37 +1798,14 @@ apiRouter.get("/datasets.json", async (req) => {
         SELECT dt.datasetId, t.id, t.name FROM dataset_tags dt
         JOIN tags t ON dt.tagId = t.id
     `)
-    /*LEFT JOIN variables AS v ON v.datasetId=d.id
-    GROUP BY d.id*/
-
-    const numCharts = (await db.queryMysql(`
-        SELECT
-          v.datasetId,
-          COUNT(DISTINCT c.id) as numCharts
-        FROM
-          charts c,
-          JSON_TABLE(
-            c.config,
-            '$.dimensions[*]'
-            COLUMNS(
-              variableId INT PATH '$.variableId'
-            )
-          ) AS d
-        JOIN variables v ON d.variableId = v.id
-        GROUP BY v.datasetId
-    `)) as { datasetId: number; numCharts: string }[]
-
     const tagsByDatasetId = lodash.groupBy(tags, (t) => t.datasetId)
-    const numChartsByDatasetId = lodash.groupBy(numCharts, (d) => d.datasetId)
     for (const dataset of datasets) {
         dataset.tags = (tagsByDatasetId[dataset.id] || []).map((t) =>
             lodash.omit(t, "datasetId")
         )
-        dataset.numCharts = (numChartsByDatasetId[dataset.id] || []).reduce(
-            (acc, curr) => +curr.numCharts + acc,
-            0
-        )
     }
+    /*LEFT JOIN variables AS v ON v.datasetId=d.id
+    GROUP BY d.id*/
 
     return { datasets: datasets }
 })
