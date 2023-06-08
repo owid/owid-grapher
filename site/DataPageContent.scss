@@ -226,14 +226,6 @@
         row-gap: 24px;
     }
 
-    .related-data__column:nth-child(2) {
-        .related-data-item__source {
-            @include body-3-medium;
-            color: $blue-60;
-            margin-top: 4px;
-        }
-    }
-
     .related-data-item--medium {
         padding: 24px;
         background-color: $blue-10;
@@ -249,6 +241,11 @@
             @include h4-semibold;
             margin: 0;
             color: $blue-90;
+        }
+        .related-data-item__source {
+            @include body-3-medium;
+            color: $blue-60;
+            margin-top: 4px;
         }
     }
 
