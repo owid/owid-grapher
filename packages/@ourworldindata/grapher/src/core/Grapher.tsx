@@ -2546,14 +2546,6 @@ export class Grapher
 
     timelineController = new TimelineController(this)
 
-    onPlay(): void {
-        this.analytics.logGrapherClick(
-            "timeline-play",
-            undefined,
-            this.canonicalUrl
-        )
-    }
-
     // todo: restore this behavior??
     onStartPlayOrDrag(): void {
         this.debounceMode = true
