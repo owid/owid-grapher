@@ -54,6 +54,7 @@ up: require create-if-missing.env tmp-downloads/owid_chartdata.sql.gz
 	tmux new-session -s grapher \
 		-n docker 'docker-compose -f docker-compose.grapher.yml up' \; \
 			set remain-on-exit on \; \
+		set-option -g default-shell $(LOGIN_SHELL) \; \
 		new-window -n admin \
 			'devTools/docker/wait-for-mysql.sh && yarn run tsc-watch -b --onSuccess "yarn startAdminServer"' \; \
 			set remain-on-exit on \; \
@@ -106,6 +107,7 @@ up.full: require create-if-missing.env.full wordpress/.env tmp-downloads/owid_ch
 	tmux new-session -s grapher \
 		-n docker 'docker-compose -f docker-compose.full.yml up' \; \
 			set remain-on-exit on \; \
+		set-option -g default-shell $(LOGIN_SHELL) \; \
 		new-window -n admin \
 			'devTools/docker/wait-for-mysql.sh && yarn run tsc-watch -b --onSuccess "yarn startAdminServer"' \; \
 			set remain-on-exit on \; \
