@@ -2,6 +2,7 @@
     border-top: 1px solid #d0dae3;
     border-bottom: 1px solid #d0dae3;
     padding: 0 8px;
+
     > button {
         display: flex;
         justify-content: space-between;
@@ -25,9 +26,17 @@
 
     .content-wrapper {
         padding-bottom: 16px;
+        color: $blue-60;
 
         > *:last-child {
             margin-bottom: 0;
         }
+    }
+
+    .article-block__text,
+    .article-block__list,
+    .article-block__html,
+    .article-block__numbered-list {
+        @include body-3-medium;
     }
 }
