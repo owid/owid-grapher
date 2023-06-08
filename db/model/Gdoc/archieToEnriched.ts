@@ -192,11 +192,6 @@ export const archieToEnriched = (text: string): OwidGdocContent => {
         blocks.map(parseRawBlocksToEnrichedBlocks)
     )
 
-    console.log(
-        "JSON.stringify(parsed.refs, null, 2)",
-        JSON.stringify(parsed.refs, null, 2)
-    )
-
     parsed.summary = parsed.summary?.map((html: RawBlockText) =>
         htmlToEnrichedTextBlock(html.value)
     )
