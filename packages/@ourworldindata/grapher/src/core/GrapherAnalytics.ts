@@ -92,11 +92,15 @@ export class GrapherAnalytics {
         label?: string,
         grapherUrl?: string
     ): void {
+        // GA4 trims metadata fields down to 100 characters, so we want to be concise
+        const grapherUrlObj =
+            grapherUrl !== undefined ? new URL(grapherUrl) : undefined
+
         this.logToGA({
             event: EventCategory.GrapherClick,
             eventAction: action,
             eventTarget: label,
-            grapherUrl,
+            grapherUrl: grapherUrlObj?.pathname,
         })
     }
 
