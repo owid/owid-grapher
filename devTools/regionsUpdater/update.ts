@@ -9,7 +9,6 @@ import {
     type MultiPolygon,
 } from "geojson"
 import prettier from "prettier"
-import fetch from "node-fetch"
 import _ from "lodash"
 
 const ETL_REGIONS_URL =

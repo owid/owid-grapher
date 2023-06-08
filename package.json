@@ -2,7 +2,7 @@
     "private": true,
     "version": "3.0.0",
     "engines": {
-        "node": ">=16.13"
+        "node": ">=18.16"
     },
     "packageManager": "yarn@3.3.0",
     "scripts": {
@@ -162,7 +162,6 @@
         "mousetrap": "^1.6.5",
         "mysql": "^2.18.1",
         "netlify-cli": "^15.4.0",
-        "node-fetch": "^2.6.7",
         "nodejs-polars": "^0.7.2",
         "normalize.css": "^8.0.1",
         "nx": "15.3.0",
@@ -223,7 +222,6 @@
         "@testing-library/react": "^12",
         "@types/geojson": "^7946.0.10",
         "@types/jest": "^29.0.3",
-        "@types/node-fetch": "^2.6.4",
         "@types/opener": "^1.4.0",
         "@types/topojson-server": "^3.0.1",
         "@typescript-eslint/eslint-plugin": "^5.59.2",

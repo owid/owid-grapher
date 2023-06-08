@@ -1,6 +1,5 @@
 import { keyBy, mapValues, sortBy, memoize } from "lodash"
 import parseArgs from "minimist"
-import fetch from "node-fetch"
 import opener from "opener"
 import { execWrapper } from "../db/execWrapper.js"
 import { DeployTarget, ProdTarget } from "./DeployTarget.js"

@@ -4,7 +4,6 @@ import path from "path"
 import { glob } from "glob"
 import { keyBy, without, uniq } from "lodash"
 import cheerio from "cheerio"
-import fetch from "node-fetch"
 import ProgressBar from "progress"
 import * as wpdb from "../db/wpdb.js"
 import * as db from "../db/db.js"
@@ -563,8 +562,9 @@ export class SiteBaker {
                                 `Fetching image failed: ${response.status} ${response.statusText} ${response.url}`
                             )
                         }
-                        return response.buffer()
+                        return response.arrayBuffer()
                     })
+                    .then((arrayBuffer) => Buffer.from(arrayBuffer))
                     .then(async (buffer) => {
                         if (!image.isSvg) {
                             await Promise.all(
