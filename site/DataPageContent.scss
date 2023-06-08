@@ -93,7 +93,7 @@
         }
     }
 
-    .key-info__left {
+    .key-info__content {
         ul {
             @include row-gap(16px);
             li {
@@ -126,15 +126,6 @@
         }
     }
 
-    .key-info__description-source {
-        .article-block__text,
-        .article-block__list,
-        .article-block__html,
-        .article-block__numbered-list {
-            @include body-2-regular;
-        }
-    }
-
     .key-info__right {
         @include sm-only {
             margin-top: 32px;
@@ -153,8 +144,16 @@
         }
     }
 
+    a.key-data__link--light {
+        @include owid-link-60;
+    }
+
     .key-data__title {
         color: $blue-50;
+    }
+
+    .key-data__title--dark {
+        color: $blue-90;
     }
 
     .related-research__wrapper {

@@ -179,29 +179,26 @@ export const DataPageContent = ({
                                 )}
                                 {datapageJson.descriptionFromSource?.title &&
                                     datapageGdocContent?.descriptionFromSource && (
-                                        <div className="key-info__description-source">
-                                            <ExpandableAnimatedToggle
-                                                label={
-                                                    datapageJson
-                                                        .descriptionFromSource
-                                                        .title
-                                                }
-                                                content={
-                                                    <ArticleBlocks
-                                                        blocks={
-                                                            datapageGdocContent.descriptionFromSource
-                                                        }
-                                                        containerType="datapage"
-                                                    />
-                                                }
-                                                isExpandedDefault={
-                                                    !(
-                                                        datapageJson.subtitle ||
-                                                        datapageGdocContent.keyInfoText
-                                                    )
-                                                }
-                                            />
-                                        </div>
+                                        <ExpandableAnimatedToggle
+                                            label={
+                                                datapageJson
+                                                    .descriptionFromSource.title
+                                            }
+                                            content={
+                                                <ArticleBlocks
+                                                    blocks={
+                                                        datapageGdocContent.descriptionFromSource
+                                                    }
+                                                    containerType="datapage"
+                                                />
+                                            }
+                                            isExpandedDefault={
+                                                !(
+                                                    datapageJson.subtitle ||
+                                                    datapageGdocContent.keyInfoText
+                                                )
+                                            }
+                                        />
                                     )}
                             </div>
                             <div className="key-info__right grid grid-cols-3 grid-lg-cols-4 grid-sm-cols-12 span-cols-3 span-lg-cols-4 span-sm-cols-12">
@@ -485,7 +482,7 @@ export const DataPageContent = ({
                                                                             <div className="grid grid-cols-2">
                                                                                 {source.sourceRetrievedOn && (
                                                                                     <div className="key-data">
-                                                                                        <div className="key-data__title">
+                                                                                        <div className="key-data__title--dark">
                                                                                             Retrieved
                                                                                             on
                                                                                         </div>
@@ -498,7 +495,7 @@ export const DataPageContent = ({
                                                                                 )}
                                                                                 {source.sourceRetrievedFromUrl && (
                                                                                     <div className="key-data">
-                                                                                        <div className="key-data__title">
+                                                                                        <div className="key-data__title--dark">
                                                                                             Retrieved
                                                                                             from
                                                                                         </div>
@@ -509,6 +506,7 @@ export const DataPageContent = ({
                                                                                                 }
                                                                                                 target="_blank"
                                                                                                 rel="noreferrer"
+                                                                                                className="key-data__link--light"
                                                                                             >
                                                                                                 {
                                                                                                     source.sourceRetrievedFromUrl
