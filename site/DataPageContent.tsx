@@ -121,11 +121,8 @@ export const DataPageContent = ({
                             </div>
                         </div>
                     </div>
-                    <nav className="sticky-nav sticky-nav--light span-cols-14 grid grid-cols-12-full-width">
-                        <StickyNav
-                            links={stickyNavLinks}
-                            className="span-cols-12 col-start-2"
-                        />
+                    <nav className="sticky-nav sticky-nav--light">
+                        <StickyNav links={stickyNavLinks} className="wrapper" />
                     </nav>
                     <div
                         style={{

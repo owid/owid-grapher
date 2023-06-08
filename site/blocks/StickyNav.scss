@@ -36,10 +36,7 @@
 
     li:first-child {
         margin-left: 0;
-        @media (max-width: 768px) {
-            // completely flush with text for mobile
-            padding-left: 0;
-        }
+        padding-left: 0;
     }
 }
 
