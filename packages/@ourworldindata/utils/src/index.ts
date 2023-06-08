@@ -150,6 +150,8 @@ export {
     type RawDetail,
     type RawSDGGridItem,
     type RelatedChart,
+    type Ref,
+    type RefDictionary,
     ScaleType,
     type SerializedGridProgram,
     SiteFooterContext,

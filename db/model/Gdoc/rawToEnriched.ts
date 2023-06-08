@@ -85,6 +85,7 @@ import {
     RawBlockExpandableParagraph,
     RawBlockAllCharts,
     EnrichedBlockAllCharts,
+    RefDictionary,
 } from "@ourworldindata/utils"
 import {
     extractUrl,
@@ -1338,4 +1339,44 @@ function parseResearchAndWritingBlock(
         rows: rows ?? [],
         parseErrors,
     }
+}
+
+export function parseRefs(
+    refs: unknown,
+    refsByFirstAppearance: Set<string>
+): RefDictionary {
+    const parsedRefs: RefDictionary = {}
+    if (isArray(refs)) {
+        for (const ref of refs) {
+            if (typeof ref.id === "string") {
+                const enrichedBlocks: OwidEnrichedGdocBlock[] = []
+                const parseErrors: ParseError[] = []
+                if (!refsByFirstAppearance.has(ref.id)) {
+                    parseErrors.push({
+                        // index will be -1 in this case
+                        message: `Ref with id "${ref.id}" is not referenced in this document. Do you have a typo?`,
+                    })
+                }
+                if (!isArray(ref.content)) {
+                    parseErrors.push({
+                        message: `Ref with id ${ref.id} has no content`,
+                    })
+                } else {
+                    enrichedBlocks.push(
+                        ...ref.content.map(parseRawBlocksToEnrichedBlocks)
+                    )
+                }
+
+                const index = [...refsByFirstAppearance].indexOf(ref.id)
+
+                parsedRefs[ref.id] = {
+                    id: ref.id,
+                    index,
+                    content: enrichedBlocks,
+                    parseErrors,
+                }
+            }
+        }
+    }
+    return parsedRefs
 }

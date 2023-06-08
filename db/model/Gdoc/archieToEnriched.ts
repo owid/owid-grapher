@@ -19,9 +19,8 @@ import {
     ENDNOTES_ID,
     CITATION_ID,
     LICENSE_ID,
-    OwidRawGdocBlock,
 } from "@ourworldindata/utils"
-import { parseRawBlocksToEnrichedBlocks } from "./rawToEnriched.js"
+import { parseRawBlocksToEnrichedBlocks, parseRefs } from "./rawToEnriched.js"
 import urlSlug from "url-slug"
 import { parseAuthors, spansToSimpleString } from "./gdocUtils.js"
 import {
@@ -143,29 +142,48 @@ function formatCitation(
     return citationArray.map(htmlToSimpleTextBlock)
 }
 
-export const archieToEnriched = (text: string): OwidGdocContent => {
-    const refs = (text.match(/{ref}(.*?){\/ref}/gims) || []).map(function (
-        val: string,
-        i: number
-    ): { blocks: OwidRawGdocBlock[] } {
-        // mutate original text
-        text = text.replace(
-            val,
-            `<a class="ref" href="#note-${i + 1}"><sup>${i + 1}</sup></a>`
-        )
-        // wrap inner text in a freeform array and parse it
-        return load(`[+blocks]\n${val.replace(/\{\/?ref\}/g, "")}\n[]`)
-    })
+// Match all curly bracket {ref}some_id{/ref} syntax in the text
+// Record the index of the FIRST reference to each ID
+// so that IDs can be referenced multiple times but will all use the same footnote number
+// Replace the curly bracket syntax with <a> tags which htmlToSpans will convert later
+export function extractRefs(text: string): {
+    extractedText: string
+    refsByFirstAppearance: Set<string>
+} {
+    let extractedText = text
+    const RefRegExp = "{ref}(.*?){/ref}"
+    const refsByFirstAppearance = new Set<string>()
+    const rawRefStrings: string[] =
+        text.match(new RegExp(RefRegExp, "gims")) ?? []
+    for (const rawRef of rawRefStrings) {
+        // This will always exist as it's the same as the RegExp from above
+        const match = rawRef.match(new RegExp(RefRegExp)) as RegExpMatchArray
+        const id = match[1]
+        refsByFirstAppearance.add(id)
+        const index = [...refsByFirstAppearance].indexOf(id)
+        const footnoteNumber = index + 1
 
-    // A note on the use of Regexps here: doing this is in theory a bit crude
-    // as we are hacking at the plain text representation where we will have a
-    // much richer tree data structure a bit further down. However, manipulating
-    // the tree data structure to correctly collect whitespace and deal with
-    // arbitrary numbers of opening/closing spans correctly adds significant complexity.
-    // Since here we expect to have created the a tag ourselves and always as the
-    // deepest level of nesting (see the readElements function) we can be confident
-    // that this will work as expected in this case and is much simpler than handling
-    // this later.
+        // A note on the use of Regexps here: doing this is in theory a bit crude
+        // as we are hacking at the plain text representation where we will have a
+        // much richer tree data structure a bit further down. However, manipulating
+        // the tree data structure to correctly collect whitespace and deal with
+        // arbitrary numbers of opening/closing spans correctly adds significant complexity.
+        // Since here we expect to have created the a tag ourselves and always as the
+        // deepest level of nesting (see the readElements function) we can be confident
+        // that this will work as expected in this case and is much simpler than handling
+        // this later.
+        extractedText = extractedText.replace(
+            rawRef,
+            `<a class="ref" href="#note-${footnoteNumber}"><sup>${footnoteNumber}</sup></a>`
+        )
+    }
+
+    return { extractedText, refsByFirstAppearance }
+}
+
+export const archieToEnriched = (text: string): OwidGdocContent => {
+    const { extractedText, refsByFirstAppearance } = extractRefs(text)
+    text = extractedText
 
     // Replace whitespace-only inside links. We need to keep the WS around, they
     // just should not be displayed as links
@@ -188,9 +206,7 @@ export const archieToEnriched = (text: string): OwidGdocContent => {
 
     parsed.toc = generateToc(parsed.body)
 
-    parsed.refs = refs.map(({ blocks }) =>
-        blocks.map(parseRawBlocksToEnrichedBlocks)
-    )
+    parsed.refs = parseRefs(parsed.refs, refsByFirstAppearance)
 
     parsed.summary = parsed.summary?.map((html: RawBlockText) =>
         htmlToEnrichedTextBlock(html.value)

@@ -1020,6 +1020,16 @@ export type EnrichedBlockExpandableParagraph = {
     items: OwidEnrichedGdocBlock[]
 } & EnrichedBlockWithParseErrors
 
+export type Ref = {
+    id: string
+    // Can be -1
+    index: number
+    content: OwidEnrichedGdocBlock[]
+    parseErrors: ParseError[]
+}
+
+export type RefDictionary = Record<string, Ref>
+
 export type OwidRawGdocBlock =
     | RawBlockAllCharts
     | RawBlockAside
