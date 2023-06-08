@@ -2319,9 +2319,9 @@ export class Grapher
         this.setBaseFontSize()
     }
 
-    componentDidCatch(error: Error, info: unknown): void {
+    componentDidCatch(error: Error): void {
         this.setError(error)
-        this.analytics.logGrapherViewError(error, info)
+        this.analytics.logGrapherViewError(error)
     }
 
     @observable isShareMenuActive = false

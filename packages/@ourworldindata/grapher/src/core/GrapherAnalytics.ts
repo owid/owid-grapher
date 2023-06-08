@@ -6,9 +6,7 @@ const DEBUG = false
 type WindowWithDataLayer = Window & {
     dataLayer?: GAEvent[]
 }
-
-// TypeScript implicitly imports @types/amplitude-js
-// so we have proper types for window.amplitude and window.ga
+declare const window: WindowWithDataLayer
 
 export enum EventCategory {
     CountryProfileSearch = "owid.country_profile_search",
@@ -57,16 +55,15 @@ export class GrapherAnalytics {
     private version: string // Ideally the Git hash commit
     private isDev: boolean
 
-    logGrapherViewError(error: Error, info: unknown): void {
-        this.logToAmplitude(EventAction.grapherViewError, { error, info })
+    logGrapherViewError(error: Error): void {
         this.logToGA({
             event: EventCategory.GrapherError,
             eventAction: EventAction.grapherViewError,
+            eventContext: error.message,
         })
     }
 
     logEntitiesNotFoundError(entities: string[]): void {
-        this.logToAmplitude(EventAction.entitiesNotFound, { entities })
         this.logToGA({
             event: EventCategory.GrapherError,
             eventAction: EventAction.entitiesNotFound,
@@ -150,30 +147,6 @@ export class GrapherAnalytics {
         })
     }
 
-    protected logToAmplitude(
-        name: string,
-        props?: Record<string, unknown>
-    ): void {
-        const allProps = {
-            context: {
-                siteVersion: this.version,
-                pageHref: window.location.href,
-                pagePath: window.location.pathname,
-                pageTitle: document.title.replace(/ - [^-]+/, ""),
-            },
-            ...props,
-        }
-
-        if (DEBUG && this.isDev) {
-            // eslint-disable-next-line no-console
-            console.log("Analytics.logToAmplitude", name, allProps)
-            return
-        }
-
-        if (!window.amplitude) return
-        window.amplitude.getInstance().logEvent(name, allProps)
-    }
-
     protected logToGA(event: GAEvent): void {
         if (DEBUG && this.isDev) {
             // eslint-disable-next-line no-console
@@ -181,6 +154,6 @@ export class GrapherAnalytics {
             return
         }
 
-        ;(window as WindowWithDataLayer).dataLayer?.push(event)
+        window.dataLayer?.push(event)
     }
 }

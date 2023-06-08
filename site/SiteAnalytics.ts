@@ -9,7 +9,6 @@ export class SiteAnalytics extends GrapherAnalytics {
     }
 
     logPageNotFoundError(url: string) {
-        this.logToAmplitude("NOT_FOUND", { href: url })
         this.logToGA({
             event: EventCategory.SiteError,
             eventAction: "not_found",
@@ -23,9 +22,5 @@ export class SiteAnalytics extends GrapherAnalytics {
             eventAction: "charts-page",
             eventContext: query,
         })
-    }
-
-    logPageLoad() {
-        this.logToAmplitude("OWID_PAGE_LOAD")
     }
 }
