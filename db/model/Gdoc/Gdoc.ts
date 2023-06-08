@@ -33,6 +33,7 @@ import {
     Span,
     EnrichedBlockResearchAndWritingLink,
     traverseEnrichedSpan,
+    RelatedChart,
 } from "@ourworldindata/utils"
 import {
     BAKED_GRAPHER_URL,
@@ -60,6 +61,7 @@ import {
     getAllLinksFromResearchAndWritingBlock,
     spansToSimpleString,
 } from "./gdocUtils.js"
+import { getConnection } from "../../db.js"
 
 @Entity("tags")
 export class Tag extends BaseEntity implements OwidGdocTag {
@@ -97,6 +99,7 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
     tags!: Tag[]
 
     linkedCharts: Record<string, LinkedChart> = {}
+    relatedCharts: RelatedChart[] = []
     linkedDocuments: Record<string, Gdoc> = {}
     imageMetadata: Record<string, ImageMetadata> = {}
     errors: OwidGdocErrorMessage[] = []
@@ -378,6 +381,17 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
                     text: "",
                 }),
             ])
+            .with({ type: "all-charts" }, (node) =>
+                node.top.map((item) =>
+                    Link.create({
+                        linkType: getLinkType(item.url),
+                        source: this,
+                        target: getUrlTarget(formatUrls(item.url)),
+                        componentType: node.type,
+                        text: "",
+                    })
+                )
+            )
             .with({ type: "recirc" }, (node) => {
                 const links: Link[] = []
 
@@ -679,11 +693,21 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
             dodDocumentErrors.push(...errors)
         }
 
+        const allChartsErrors: OwidGdocErrorMessage[] = []
+        if (this.hasAllChartsBlock && !this.tags.length) {
+            allChartsErrors.push({
+                property: "content",
+                message: "No tags set on document for all-charts block to use",
+                type: OwidGdocErrorMessageType.Error,
+            })
+        }
+
         this.errors = [
             ...filenameErrors,
             ...linkErrors,
             ...dodErrors,
             ...dodDocumentErrors,
+            ...allChartsErrors,
         ]
     }
 
@@ -708,6 +732,7 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
         await gdoc.loadLinkedDocuments()
         await gdoc.loadImageMetadata()
         await gdoc.loadLinkedCharts(publishedExplorersBySlug)
+        await gdoc.loadRelatedCharts()
 
         await gdoc.validate(publishedExplorersBySlug)
 
@@ -773,5 +798,44 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
             published: true,
             publicationContext: OwidGdocPublicationContext.listed,
         }) as Promise<(Gdoc & OwidGdocPublished)[]>
+    }
+
+    get hasAllChartsBlock(): boolean {
+        let hasAllChartsBlock = false
+        if (this.content.body) {
+            for (const node of this.content.body) {
+                if (hasAllChartsBlock) break
+                traverseEnrichedBlocks(node, (node) => {
+                    if (node.type === "all-charts") {
+                        hasAllChartsBlock = true
+                    }
+                })
+            }
+        }
+
+        return hasAllChartsBlock
+    }
+
+    async loadRelatedCharts(): Promise<void> {
+        if (!this.tags.length || !this.hasAllChartsBlock) return
+
+        const connection = await getConnection()
+        const relatedCharts = await connection.query(
+            `
+        SELECT DISTINCT
+        charts.config->>"$.slug" AS slug,
+        charts.config->>"$.title" AS title,
+        charts.config->>"$.variantName" AS variantName,
+        chart_tags.isKeyChart
+        FROM charts
+        INNER JOIN chart_tags ON charts.id=chart_tags.chartId
+        WHERE chart_tags.tagId IN (?)
+        AND charts.config->>"$.isPublished" = "true"
+        ORDER BY title ASC
+        `,
+            [this.tags.map((tag) => tag.id)]
+        )
+
+        this.relatedCharts = relatedCharts
     }
 }

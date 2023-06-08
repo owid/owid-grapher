@@ -7,6 +7,9 @@ import {
     OwidGdocInterface,
     getOwidGdocFromJSON,
     ImageMetadata,
+    RelatedChart,
+    CITATION_ID,
+    LICENSE_ID,
 } from "@ourworldindata/utils"
 import { CodeSnippet } from "../blocks/CodeSnippet.js"
 import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
@@ -19,7 +22,13 @@ export const AttachmentsContext = createContext<{
     linkedCharts: Record<string, LinkedChart>
     linkedDocuments: Record<string, OwidGdocInterface>
     imageMetadata: Record<string, ImageMetadata>
-}>({ linkedDocuments: {}, imageMetadata: {}, linkedCharts: {} })
+    relatedCharts: RelatedChart[]
+}>({
+    linkedDocuments: {},
+    imageMetadata: {},
+    linkedCharts: {},
+    relatedCharts: [],
+})
 
 export const DocumentContext = createContext<{ isPreviewing: boolean }>({
     isPreviewing: false,
@@ -36,6 +45,7 @@ export function OwidGdoc({
     linkedCharts = {},
     linkedDocuments = {},
     imageMetadata = {},
+    relatedCharts = [],
     isPreviewing = false,
 }: OwidGdocProps) {
     const citationText = `${formatAuthors({
@@ -58,7 +68,12 @@ export function OwidGdoc({
 
     return (
         <AttachmentsContext.Provider
-            value={{ linkedDocuments, imageMetadata, linkedCharts }}
+            value={{
+                linkedDocuments,
+                imageMetadata,
+                linkedCharts,
+                relatedCharts,
+            }}
         >
             <DocumentContext.Provider value={{ isPreviewing }}>
                 <article className="centered-article-container grid grid-cols-12-full-width">
@@ -99,7 +114,7 @@ export function OwidGdoc({
                     {content.refs ? <Footnotes d={content.refs} /> : null}
 
                     <section
-                        id="article-citation"
+                        id={CITATION_ID}
                         className="grid grid-cols-12-full-width col-start-1 col-end-limit"
                     >
                         <div className="col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
@@ -123,7 +138,7 @@ export function OwidGdoc({
                     </section>
 
                     <section
-                        id="article-licence"
+                        id={LICENSE_ID}
                         className="grid grid-cols-12-full-width col-start-1 col-end-limit"
                     >
                         <div className="col-start-6 span-cols-4 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12">

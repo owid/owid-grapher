@@ -33,6 +33,7 @@ export {
     type DetailDictionary,
     DimensionProperty,
     type DocumentNode,
+    type EnrichedBlockAllCharts,
     type EnrichedBlockAdditionalCharts,
     type EnrichedBlockAside,
     type EnrichedBlockCallout,
@@ -112,6 +113,7 @@ export {
     type PostRestApi,
     type PostRow,
     type PrimitiveType,
+    type RawBlockAllCharts,
     type RawBlockAdditionalCharts,
     type RawBlockAside,
     type RawBlockCallout,
@@ -572,6 +574,11 @@ export {
 } from "./MarkdownTextWrap/parser.js"
 
 export {
+    ALL_CHARTS_ID,
+    LICENSE_ID,
+    CITATION_ID,
+    ENDNOTES_ID,
+    KEY_INSIGHTS_ID,
     gdocUrlRegex,
     detailOnDemandRegex,
     getLinkType,

@@ -59,6 +59,12 @@ export const enrichedBlockExamples: Record<
         },
         parseErrors: [],
     },
+    "all-charts": {
+        type: "all-charts",
+        heading: "All our charts on Poverty",
+        top: [{ url: "https://ourworldindata.org/grapher/poverty-over-time" }],
+        parseErrors: [],
+    },
     aside: {
         type: "aside",
         position: "right",

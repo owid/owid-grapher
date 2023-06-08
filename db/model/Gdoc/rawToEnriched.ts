@@ -83,6 +83,8 @@ import {
     EnrichedBlockResearchAndWritingRow,
     EnrichedBlockExpandableParagraph,
     RawBlockExpandableParagraph,
+    RawBlockAllCharts,
+    EnrichedBlockAllCharts,
 } from "@ourworldindata/utils"
 import {
     extractUrl,
@@ -95,13 +97,14 @@ import {
     htmlToSpans,
 } from "./htmlToEnriched.js"
 import { match } from "ts-pattern"
-import { parseInt } from "lodash"
+import { isObject, parseInt } from "lodash"
 import { GDOCS_DETAILS_ON_DEMAND_ID } from "../../../settings/serverSettings.js"
 
 export function parseRawBlocksToEnrichedBlocks(
     block: OwidRawGdocBlock
 ): OwidEnrichedGdocBlock | null {
     return match(block)
+        .with({ type: "all-charts" }, parseAllCharts)
         .with({ type: "additional-charts" }, parseAdditionalCharts)
         .with({ type: "aside" }, parseAside)
         .with({ type: "callout" }, parseCallout)
@@ -160,6 +163,49 @@ export function parseRawBlocksToEnrichedBlocks(
         )
         .with({ type: "expandable-paragraph" }, parseExpandableParagraph)
         .exhaustive()
+}
+
+function parseAllCharts(raw: RawBlockAllCharts): EnrichedBlockAllCharts {
+    const createError = (error: ParseError): EnrichedBlockAllCharts => ({
+        type: "all-charts",
+        heading: "",
+        top: [],
+        parseErrors: [error],
+    })
+
+    if (!raw.value.heading)
+        return createError({ message: "all-charts block missing heading" })
+
+    const top = raw.value.top
+    if (top) {
+        if (!isArray(top)) {
+            return createError({
+                message: `all-charts malformed "top" property: ${typeof raw
+                    .value.top}`,
+            })
+        }
+
+        for (const item of top) {
+            if (!isObject(item)) {
+                return createError({
+                    message: `all-charts invalid top item: ${item}`,
+                })
+            }
+
+            if (!("url" in item)) {
+                return createError({
+                    message: `all-charts top item missing "url" property: ${item}`,
+                })
+            }
+        }
+    }
+
+    return {
+        type: "all-charts",
+        heading: raw.value.heading,
+        top: top?.map((item) => ({ url: extractUrl(item.url) })) || [],
+        parseErrors: [],
+    }
 }
 
 function parseAdditionalCharts(

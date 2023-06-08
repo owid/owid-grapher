@@ -1,6 +1,7 @@
 import {
     OwidEnrichedGdocBlock,
     OwidRawGdocBlock,
+    RawBlockAllCharts,
     RawBlockAdditionalCharts,
     RawBlockAside,
     RawBlockChart,
@@ -53,6 +54,16 @@ export function enrichedBlockToRawBlock(
             (b): RawBlockText => ({
                 type: "text",
                 value: b.value.text,
+            })
+        )
+        .with(
+            { type: "all-charts" },
+            (b): RawBlockAllCharts => ({
+                type: b.type,
+                value: {
+                    heading: b.heading,
+                    top: b.top,
+                },
             })
         )
         .with(

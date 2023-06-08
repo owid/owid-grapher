@@ -31,6 +31,7 @@ import { ExpandableParagraph } from "../blocks/ExpandableParagraph.js"
 import { TopicPageIntro } from "./TopicPageIntro.js"
 import { KeyInsights } from "./KeyInsights.js"
 import { ResearchAndWriting } from "./ResearchAndWriting.js"
+import { AllCharts } from "./AllCharts.js"
 
 export type Container =
     | "default"
@@ -50,6 +51,7 @@ type Layouts = { default: string; [key: string]: string }
 // prettier-ignore
 const layouts: { [key in Container]: Layouts} = {
     ["default"]: {
+        ["all-charts"]: "col-start-2 span-cols-12",
         ["aside-left"]: "col-start-2 span-cols-3 span-md-cols-10 col-md-start-3",
         ["aside-right"]: "col-start-11 span-cols-3 span-md-cols-10 col-md-start-3",
         ["chart-story"]: "col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
@@ -170,6 +172,12 @@ export default function ArticleBlock({
                     <figcaption>{renderSpans(caption)}</figcaption>
                 ) : null}
             </figure>
+        ))
+        .with({ type: "all-charts" }, (block) => (
+            <AllCharts
+                {...block}
+                className={getLayout("all-charts", containerType)}
+            />
         ))
         .with({ type: "chart" }, (block) => {
             const { isExplorer } = Url.fromURL(block.url)
@@ -490,7 +498,7 @@ export default function ArticleBlock({
             <MissingData className={getLayout("missing-data", containerType)} />
         ))
         .with({ type: "additional-charts" }, (block) => (
-            <AdditionalCharts // bla
+            <AdditionalCharts
                 items={block.items}
                 className={getLayout("additional-charts", containerType)}
             />
@@ -523,33 +531,6 @@ export default function ArticleBlock({
             />
         ))
         .exhaustive()
-
-    // if (_type === "chart-grid") {
-    //     let columns = 1
-    //     try {
-    //         columns =
-    //             +b.value.find(
-    //                 (_d: OwidRawGdocBlock) => _d.type === "columns"
-    //             ).value || 1
-    //     } catch (e) {}
-
-    //     return (
-    //         <div
-    //             key={key}
-    //             className={"chartGrid"}
-    //             style={{
-    //                 display: "grid",
-    //                 gridTemplateRows: "auto",
-    //                 gridTemplateColumns: `repeat(${columns}, 1fr)`,
-    //             }}
-    //         >
-    //             {d.value
-    //                 .filter((_d: OwidRawGdocBlock) => _d.type === "chart")
-    //                 .map((_d: OwidRawGdocBlock, i: number) => {
-    //                     return <Chart d={_d} key={i} />
-    //                 })}
-    //         </div>
-    //     )
 
     return (
         <BlockErrorBoundary className={getLayout("default", containerType)}>

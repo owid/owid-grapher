@@ -22,6 +22,7 @@ import {
     RawBlockText,
     RawBlockUrl,
     RawBlockAdditionalCharts,
+    RawBlockAllCharts,
     RawBlockCallout,
     RawBlockKeyInsights,
     RawBlockResearchAndWriting,
@@ -387,6 +388,21 @@ function* RawBlockExpandableParagraphToArchieMLString(
     yield "[]"
 }
 
+function* rawBlockAllChartsToArchieMLString(
+    block: RawBlockAllCharts
+): Generator<string, void, undefined> {
+    yield "{.all-charts}"
+    yield* propertyToArchieMLString("heading", block.value)
+    if (block.value.top) {
+        yield "[.top]"
+        for (const item of block.value.top) {
+            yield* propertyToArchieMLString("url", item)
+        }
+        yield "[]"
+    }
+    yield "{}"
+}
+
 function* rawBlockTopicPageIntroToArchieMLString(
     block: RawBlockTopicPageIntro
 ): Generator<string, void, undefined> {
@@ -495,6 +511,7 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
             { type: "additional-charts" },
             rawBlockAdditionalChartsToArchieMLString
         )
+        .with({ type: "all-charts" }, rawBlockAllChartsToArchieMLString)
         .with({ type: "aside" }, rawBlockAsideToArchieMLString)
         .with({ type: "chart" }, rawBlockChartToArchieMLString)
         .with({ type: "scroller" }, rawBlockScrollerToArchieMLString)

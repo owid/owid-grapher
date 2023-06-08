@@ -55,6 +55,7 @@ export const DataPageContent = ({
         linkedDocuments = {},
         imageMetadata = {},
         linkedCharts = {},
+        relatedCharts = [],
     } = datapageGdoc || {}
 
     const stickyNavLinks = [
@@ -74,7 +75,12 @@ export const DataPageContent = ({
 
     return (
         <AttachmentsContext.Provider
-            value={{ linkedDocuments, imageMetadata, linkedCharts }}
+            value={{
+                linkedDocuments,
+                imageMetadata,
+                linkedCharts,
+                relatedCharts,
+            }}
         >
             <DocumentContext.Provider value={{ isPreviewing }}>
                 <div className="DataPageContent__grapher-for-embed">

@@ -1,6 +1,10 @@
 import React from "react"
 import cx from "classnames"
-import { EnrichedBlockKeyInsightsSlide, slugify } from "@ourworldindata/utils"
+import {
+    EnrichedBlockKeyInsightsSlide,
+    slugify,
+    KEY_INSIGHTS_ID,
+} from "@ourworldindata/utils"
 import {
     KEY_INSIGHTS_CLASS_NAME,
     KEY_INSIGHTS_SLIDES_CLASS_NAME,
@@ -46,7 +50,7 @@ export const KeyInsights = ({
     }
     return (
         <div className={cx(className, KEY_INSIGHTS_CLASS_NAME)}>
-            <h2 className="display-2-semibold" id={slugify(heading)}>
+            <h2 className="display-2-semibold" id={KEY_INSIGHTS_ID}>
                 {heading}
             </h2>
             <div>
