@@ -1,9 +1,9 @@
-import { OwidEnrichedGdocBlock, ENDNOTES_ID } from "@ourworldindata/utils"
+import { ENDNOTES_ID, RefDictionary } from "@ourworldindata/utils"
 import React from "react"
 import ArticleBlock from "./ArticleBlock.js"
 
-export default function Footnotes({ d }: { d: OwidEnrichedGdocBlock[][] }) {
-    if (!d || !d.length) {
+export default function Footnotes({ d }: { d: RefDictionary }) {
+    if (!d) {
         return null
     }
     return (
@@ -11,14 +11,14 @@ export default function Footnotes({ d }: { d: OwidEnrichedGdocBlock[][] }) {
             <div className="col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
                 <h3 id={ENDNOTES_ID}>Endnotes</h3>
                 <ol className="footnote-list">
-                    {d.map((blocks: OwidEnrichedGdocBlock[], i: number) => {
+                    {Object.values(d).map((ref) => {
                         return (
                             <li
-                                id={`note-${i + 1}`}
-                                key={i}
+                                id={`note-${ref.index + 1}`}
+                                key={ref.index}
                                 className="footnote-list__footnote"
                             >
-                                {blocks.map((block, i) => (
+                                {ref.content.map((block, i) => (
                                     <ArticleBlock key={i} b={block} />
                                 ))}
                             </li>
