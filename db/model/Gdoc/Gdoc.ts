@@ -693,11 +693,21 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
             dodDocumentErrors.push(...errors)
         }
 
+        const allChartsErrors: OwidGdocErrorMessage[] = []
+        if (this.hasAllChartsBlock && !this.tags.length) {
+            allChartsErrors.push({
+                property: "content",
+                message: "No tags set on document for all-charts block to use",
+                type: OwidGdocErrorMessageType.Error,
+            })
+        }
+
         this.errors = [
             ...filenameErrors,
             ...linkErrors,
             ...dodErrors,
             ...dodDocumentErrors,
+            ...allChartsErrors,
         ]
     }
 
@@ -790,20 +800,24 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
         }) as Promise<(Gdoc & OwidGdocPublished)[]>
     }
 
-    async loadRelatedCharts(): Promise<void> {
-        if (!this.tags.length) return
+    get hasAllChartsBlock(): boolean {
         let hasAllChartsBlock = false
-        this.content.body?.forEach(
-            (node) =>
-                // can't break a forEach, but if we've already found one then don't call traverse any more
-                !hasAllChartsBlock &&
+        if (this.content.body) {
+            for (const node of this.content.body) {
+                if (hasAllChartsBlock) break
                 traverseEnrichedBlocks(node, (node) => {
                     if (node.type === "all-charts") {
                         hasAllChartsBlock = true
                     }
                 })
-        )
-        if (!hasAllChartsBlock) return
+            }
+        }
+
+        return hasAllChartsBlock
+    }
+
+    async loadRelatedCharts(): Promise<void> {
+        if (!this.tags.length || !this.hasAllChartsBlock) return
 
         const connection = await getConnection()
         const relatedCharts = await connection.query(

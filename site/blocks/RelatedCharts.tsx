@@ -16,7 +16,7 @@ export const RelatedCharts = ({ charts }: { charts: RelatedChart[] }) => {
     const isLastSlideActive = activeChartIdx === charts.length - 1
 
     const sortedCharts = orderBy(charts, (chart) => chart.isKeyChart, "desc")
-    const activeChartSlug = sortedCharts[activeChartIdx].slug
+    const activeChartSlug = sortedCharts[activeChartIdx]?.slug
 
     const onClickItem = (event: React.MouseEvent, idx: number) => {
         // Allow opening charts in new tab/window with ⌘+CLICK
