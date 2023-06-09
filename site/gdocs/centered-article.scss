@@ -277,6 +277,10 @@ h3.article-block__heading.has-supertitle {
 
     li {
         margin-bottom: 1em;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
     }
 }
 
