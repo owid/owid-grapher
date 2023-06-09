@@ -162,7 +162,10 @@
     }
 
     .related-research__title {
-        @include datapages-section-title;
+        @include datapage-section-title;
+        @include lg-up {
+            margin-bottom: 0px;
+        }
     }
 
     .related-research__items {
@@ -203,7 +206,10 @@
     }
 
     .related-data__title {
-        @include datapages-section-title;
+        @include datapage-section-title;
+        @include lg-up {
+            margin-bottom: 0px;
+        }
     }
 
     .related-data__items--two-cols {
@@ -279,7 +285,7 @@
     }
 
     .related-charts__title {
-        @include datapages-section-title;
+        @include datapage-section-title;
     }
 
     .gray-wrapper {
@@ -301,7 +307,10 @@
     }
 
     .faqs__title {
-        @include datapages-section-title;
+        @include datapage-section-title;
+        @include md-up {
+            margin-bottom: 0px;
+        }
     }
 
     .faqs__items {
@@ -314,7 +323,7 @@
     }
 
     .data-sources-processing__title {
-        @include datapages-section-title;
+        @include datapage-section-title;
     }
 
     .data-sources {
