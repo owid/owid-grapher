@@ -139,11 +139,8 @@
         @include body-3-medium;
         a {
             @include owid-link-90;
+            color: inherit;
         }
-    }
-
-    a.key-data__link--light {
-        @include owid-link-60;
     }
 
     .key-data__title {
