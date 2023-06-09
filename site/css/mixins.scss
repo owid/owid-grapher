@@ -358,7 +358,7 @@
     width: 100%;
 }
 
-@mixin datapages-section-title {
+@mixin datapage-section-title {
     @include h2-bold;
     margin: 0 0 24px;
     @include sm-up {
