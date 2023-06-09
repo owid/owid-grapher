@@ -151,14 +151,21 @@
         color: $blue-90;
     }
 
-    .related-research__wrapper {
+    .bg-gray-10 {
+        background-color: $gray-10;
+    }
+
+    .section-wrapper {
         padding-top: 32px;
         padding-bottom: 32px;
         @include sm-up {
             padding-top: 48px;
             padding-bottom: 48px;
         }
-        background-color: $white;
+
+        &:not(:last-child) {
+            border-bottom: 1px solid $blue-20;
+        }
     }
 
     .related-research__title {
@@ -186,23 +193,6 @@
 
     .related-article__authors {
         color: $blue-50;
-    }
-
-    .DataPageContent__section-border {
-        hr {
-            border-top: 1px solid $blue-20;
-            padding: 0;
-            margin: 0;
-        }
-    }
-
-    .related-data__wrapper {
-        padding-top: 32px;
-        padding-bottom: 32px;
-        @include sm-up {
-            padding-top: 48px;
-            padding-bottom: 48px;
-        }
     }
 
     .related-data__title {
@@ -267,14 +257,7 @@
         margin-top: 8px;
     }
 
-    .related-charts__wrapper {
-        padding-top: 32px;
-        padding-bottom: 32px;
-        @include sm-up {
-            padding-top: 48px;
-            padding-bottom: 48px;
-        }
-
+    .section-wrapper__related-charts {
         .related-charts {
             margin-bottom: 0;
         }
@@ -288,15 +271,7 @@
         @include datapage-section-title;
     }
 
-    .gray-wrapper {
-        background-color: #f7f7f7;
-        padding: 32px 0;
-        @include sm-up {
-            padding: 48px 0;
-        }
-    }
-
-    .faqs__wrapper {
+    .section-wrapper__faqs {
         .article-block__text,
         .article-block__list,
         .article-block__html,
