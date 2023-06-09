@@ -16,6 +16,7 @@ import {
 import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
 import StickyNav from "./blocks/StickyNav.js"
 import cx from "classnames"
+import { DebugProvider } from "./gdocs/DebugContext.js"
 
 declare global {
     interface Window {
@@ -595,7 +596,9 @@ export const hydrateDataPageContent = (isPreviewing?: boolean) => {
     const wrapper = document.querySelector(`#${OWID_DATAPAGE_CONTENT_ROOT_ID}`)
     const props = window._OWID_DATAPAGE_PROPS
     ReactDOM.hydrate(
-        <DataPageContent {...props} isPreviewing={isPreviewing} />,
+        <DebugProvider debug={isPreviewing}>
+            <DataPageContent {...props} isPreviewing={isPreviewing} />
+        </DebugProvider>,
         wrapper
     )
 }
