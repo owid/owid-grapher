@@ -301,6 +301,7 @@ export class Explorer
             ...this.persistedGrapherQueryParamsBySelectedRow.get(
                 this.explorerProgram.currentlySelectedGrapherRow
             ),
+            country: oldGrapherParams.country,
             region: oldGrapherParams.region,
             time: this.grapher.timeParam,
         }
