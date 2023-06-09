@@ -121,7 +121,9 @@ export function OwidGdoc({
                         />
                     ) : null}
 
-                    {content.refs ? <Footnotes d={content.refs} /> : null}
+                    {content.refs?.definitions ? (
+                        <Footnotes definitions={content.refs.definitions} />
+                    ) : null}
 
                     <section
                         id={CITATION_ID}

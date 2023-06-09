@@ -5,6 +5,7 @@ import {
     OwidGdocErrorMessageType,
     OwidGdocType,
     checkIsOwidGdocType,
+    traverseEnrichedBlocks,
 } from "@ourworldindata/utils"
 
 interface Handler {
@@ -133,6 +134,41 @@ export class DocumentTypeHandler extends AbstractHandler {
     }
 }
 
+export class RefsHandler extends AbstractHandler {
+    handle(gdoc: OwidGdocInterface, messages: OwidGdocErrorMessage[]) {
+        if (gdoc.content.refs) {
+            // Errors due to refs being unused / undefined / malformed
+            if (gdoc.content.refs.errors.length) {
+                messages.push(...gdoc.content.refs.errors)
+            }
+            // Errors due to the content of the refs having parse errors
+            if (gdoc.content.refs.definitions) {
+                Object.values(gdoc.content.refs.definitions).map(
+                    (definition) => {
+                        definition.content.map((block) => {
+                            traverseEnrichedBlocks(block, (node) => {
+                                if (node.parseErrors.length) {
+                                    for (const parseError of node.parseErrors) {
+                                        messages.push({
+                                            message: `Parse error in "${definition.id}" ref content: ${parseError.message}`,
+                                            property: "refs",
+                                            type: parseError.isWarning
+                                                ? OwidGdocErrorMessageType.Warning
+                                                : OwidGdocErrorMessageType.Error,
+                                        })
+                                    }
+                                }
+                            })
+                        })
+                    }
+                )
+            }
+        }
+
+        return super.handle(gdoc, messages)
+    }
+}
+
 // #gdocsvalidation Errors prevent saving published articles. Errors are only
 // raised in front-end admin code at the moment (search for
 // #gdocsvalidationclient in codebase), but should ultimately be performed in
@@ -152,6 +188,7 @@ export const getErrors = (gdoc: OwidGdocInterface): OwidGdocErrorMessage[] => {
         .setNext(new ExcerptHandler())
         .setNext(new AttachmentsHandler())
         .setNext(new DocumentTypeHandler())
+        .setNext(new RefsHandler())
 
     bodyHandler.handle(gdoc, errors)
 

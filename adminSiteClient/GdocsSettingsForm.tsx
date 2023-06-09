@@ -31,6 +31,7 @@ export const GdocsSettingsForm = ({
                 "linkedCharts",
                 "details",
                 "body",
+                "refs",
             ].includes(property)
         ),
         "type"

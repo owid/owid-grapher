@@ -2,8 +2,12 @@ import { ENDNOTES_ID, RefDictionary } from "@ourworldindata/utils"
 import React from "react"
 import ArticleBlock from "./ArticleBlock.js"
 
-export default function Footnotes({ d }: { d: RefDictionary }) {
-    if (!d) {
+export default function Footnotes({
+    definitions,
+}: {
+    definitions: RefDictionary
+}) {
+    if (!definitions) {
         return null
     }
     return (
@@ -11,7 +15,7 @@ export default function Footnotes({ d }: { d: RefDictionary }) {
             <div className="col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
                 <h3 id={ENDNOTES_ID}>Endnotes</h3>
                 <ol className="footnote-list">
-                    {Object.values(d).map((ref) => {
+                    {Object.values(definitions).map((ref) => {
                         return (
                             <li
                                 id={`note-${ref.index + 1}`}

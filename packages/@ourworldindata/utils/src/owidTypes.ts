@@ -1028,7 +1028,9 @@ export type Ref = {
     parseErrors: ParseError[]
 }
 
-export type RefDictionary = Record<string, Ref>
+export type RefDictionary = {
+    [refId: string]: Ref
+}
 
 export type OwidRawGdocBlock =
     | RawBlockAllCharts
@@ -1195,7 +1197,7 @@ export interface OwidGdocContent {
     authors: string[]
     dateline?: string
     excerpt?: string
-    refs?: RefDictionary
+    refs?: { definitions: RefDictionary; errors: OwidGdocErrorMessage[] }
     summary?: EnrichedBlockText[]
     citation?: EnrichedBlockSimpleText[]
     toc?: TocHeadingWithTitleSupertitle[]

@@ -35,6 +35,7 @@ import {
     isArray,
     OwidEnrichedGdocBlock,
     OwidRawGdocBlock,
+    OwidGdocErrorMessage,
     ParseError,
     partition,
     RawBlockAdditionalCharts,
@@ -86,6 +87,7 @@ import {
     RawBlockAllCharts,
     EnrichedBlockAllCharts,
     RefDictionary,
+    OwidGdocErrorMessageType,
 } from "@ourworldindata/utils"
 import {
     extractUrl,
@@ -1344,23 +1346,30 @@ function parseResearchAndWritingBlock(
 export function parseRefs(
     refs: unknown,
     refsByFirstAppearance: Set<string>
-): RefDictionary {
+): { definitions: RefDictionary; errors: OwidGdocErrorMessage[] } {
     const parsedRefs: RefDictionary = {}
+    const refErrors: OwidGdocErrorMessage[] = []
+
+    const pushRefError = (message: string): void => {
+        refErrors.push({
+            message,
+            property: "refs",
+            type: OwidGdocErrorMessageType.Error,
+        })
+    }
     if (isArray(refs)) {
         for (const ref of refs) {
             if (typeof ref.id === "string") {
                 const enrichedBlocks: OwidEnrichedGdocBlock[] = []
                 const parseErrors: ParseError[] = []
                 if (!refsByFirstAppearance.has(ref.id)) {
-                    parseErrors.push({
-                        // index will be -1 in this case
-                        message: `Ref with id "${ref.id}" is not referenced in this document. Do you have a typo?`,
-                    })
+                    // index will be -1 in this case
+                    pushRefError(
+                        `A ref with ID "${ref.id}" has been defined but isn't used in this document`
+                    )
                 }
                 if (!isArray(ref.content)) {
-                    parseErrors.push({
-                        message: `Ref with id ${ref.id} has no content`,
-                    })
+                    pushRefError(`Ref with ID ${ref.id} has no content`)
                 } else {
                     enrichedBlocks.push(
                         ...ref.content.map(parseRawBlocksToEnrichedBlocks)
@@ -1378,5 +1387,18 @@ export function parseRefs(
             }
         }
     }
-    return parsedRefs
+
+    refErrors.push(
+        ...[...refsByFirstAppearance]
+            .filter((ref) => !parsedRefs[ref])
+            .map(
+                (undefinedRef): OwidGdocErrorMessage => ({
+                    message: `"${undefinedRef}" is used as a ref ID but no definition for this ref has been written.`,
+                    property: "refs",
+                    type: OwidGdocErrorMessageType.Error,
+                })
+            )
+    )
+
+    return { definitions: parsedRefs, errors: refErrors }
 }
