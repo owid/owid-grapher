@@ -127,10 +127,10 @@ export const DataPageContent = ({
                     </nav>
                     <div
                         style={{
-                            backgroundColor: "#f7f7f7",
                             display: "flex",
                             flexDirection: "column",
                         }}
+                        className="bg-gray-10"
                     >
                         <GrapherWithFallback
                             grapher={grapher}
@@ -234,11 +234,10 @@ export const DataPageContent = ({
                             </div>
                         </div>
                     </div>
-
-                    {datapageJson.relatedResearch &&
-                        datapageJson.relatedResearch.length > 0 && (
-                            <>
-                                <div className="related-research__wrapper grid wrapper">
+                    <div className="wrapper">
+                        {datapageJson.relatedResearch &&
+                            datapageJson.relatedResearch.length > 0 && (
+                                <div className="section-wrapper grid">
                                     <h2
                                         className="related-research__title span-cols-3 span-lg-cols-12"
                                         id="research-and-writing"
@@ -274,14 +273,9 @@ export const DataPageContent = ({
                                         )}
                                     </div>
                                 </div>
-                                <div className="DataPageContent__section-border wrapper">
-                                    <hr />
-                                </div>
-                            </>
-                        )}
-                    {!!datapageJson.relatedData?.length && (
-                        <>
-                            <div className="related-data__wrapper wrapper grid">
+                            )}
+                        {!!datapageJson.relatedData?.length && (
+                            <div className="section-wrapper grid">
                                 <h2
                                     className="related-data__title span-cols-3 span-lg-cols-12"
                                     id="related-data"
@@ -380,57 +374,42 @@ export const DataPageContent = ({
                                     )}
                                 </div>
                             </div>
-                            <div className="DataPageContent__section-border wrapper">
-                                <hr />
-                            </div>
-                        </>
-                    )}
-                    {datapageJson.allCharts &&
-                    datapageJson.allCharts.length > 0 ? (
-                        <div className="related-charts__wrapper wrapper">
-                            <h2
-                                className="related-charts__title"
-                                id="all-charts"
-                            >
-                                Explore charts that include this data
-                            </h2>
-                            <div>
-                                <RelatedCharts
-                                    charts={datapageJson.allCharts}
-                                />
-                            </div>
-                        </div>
-                    ) : null}
-                    {datapageGdocContent?.faqs && (
-                        <>
-                            <div className="gray-wrapper">
-                                <div className="faqs__wrapper grid wrapper">
-                                    <h2
-                                        className="faqs__title span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
-                                        id="faqs"
-                                    >
-                                        Frequently Asked Questions
-                                    </h2>
-                                    <div className="faqs__items grid grid-cols-10 grid-lg-cols-9 grid-md-cols-12 span-cols-10 span-lg-cols-9 span-md-cols-12 span-sm-cols-12">
-                                        <ArticleBlocks
-                                            blocks={datapageGdocContent.faqs}
-                                            containerType="datapage"
-                                        />
-                                    </div>
+                        )}
+                        {datapageJson.allCharts &&
+                        datapageJson.allCharts.length > 0 ? (
+                            <div className="section-wrapper section-wrapper__related-charts">
+                                <h2
+                                    className="related-charts__title"
+                                    id="all-charts"
+                                >
+                                    Explore charts that include this data
+                                </h2>
+                                <div>
+                                    <RelatedCharts
+                                        charts={datapageJson.allCharts}
+                                    />
                                 </div>
                             </div>
-                            <div
-                                className="DataPageContent__section-border wrapper"
-                                style={{
-                                    backgroundColor: "#f7f7f7",
-                                }}
-                            >
-                                <hr />
+                        ) : null}
+                    </div>
+                    <div className="wrapper bg-gray-10">
+                        {datapageGdocContent?.faqs && (
+                            <div className="section-wrapper section-wrapper__faqs grid">
+                                <h2
+                                    className="faqs__title span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
+                                    id="faqs"
+                                >
+                                    Frequently Asked Questions
+                                </h2>
+                                <div className="faqs__items grid grid-cols-10 grid-lg-cols-9 grid-md-cols-12 span-cols-10 span-lg-cols-9 span-md-cols-12 span-sm-cols-12">
+                                    <ArticleBlocks
+                                        blocks={datapageGdocContent.faqs}
+                                        containerType="datapage"
+                                    />
+                                </div>
                             </div>
-                        </>
-                    )}
-                    <div className="gray-wrapper">
-                        <div className="grid wrapper">
+                        )}
+                        <div className="section-wrapper grid">
                             <h2
                                 className="data-sources-processing__title span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
                                 id="sources-and-processing"
