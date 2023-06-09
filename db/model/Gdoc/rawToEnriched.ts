@@ -99,7 +99,7 @@ import {
     htmlToSimpleTextBlock,
     htmlToSpans,
 } from "./htmlToEnriched.js"
-import { match } from "ts-pattern"
+import { P, match } from "ts-pattern"
 import { isObject, parseInt } from "lodash"
 import { GDOCS_DETAILS_ON_DEMAND_ID } from "../../../settings/serverSettings.js"
 
@@ -1371,9 +1371,29 @@ export function parseRefs(
                 if (!isArray(ref.content)) {
                     pushRefError(`Ref with ID ${ref.id} has no content`)
                 } else {
-                    enrichedBlocks.push(
-                        ...ref.content.map(parseRawBlocksToEnrichedBlocks)
-                    )
+                    ref.content.forEach((block: OwidRawGdocBlock) => {
+                        match(block)
+                            .with(
+                                {
+                                    type: P.union(
+                                        "text",
+                                        "numbered-list",
+                                        "list"
+                                    ),
+                                },
+                                (block) => {
+                                    const enrichedBlock =
+                                        parseRawBlocksToEnrichedBlocks(block)
+                                    if (enrichedBlock)
+                                        enrichedBlocks.push(enrichedBlock)
+                                }
+                            )
+                            .otherwise((block) => {
+                                pushRefError(
+                                    `Unsupported block type "${block.type}" in ref with ID "${ref.id}"`
+                                )
+                            })
+                    })
                 }
 
                 const index = [...refsByFirstAppearance].indexOf(ref.id)
