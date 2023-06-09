@@ -25,6 +25,7 @@ import { Head } from "./Head.js"
 import { SiteFooter } from "./SiteFooter.js"
 import { SiteHeader } from "./SiteHeader.js"
 import { IFrameDetector } from "./IframeDetector.js"
+import { DebugProvider } from "./gdocs/DebugContext.js"
 
 export const DataPage = (props: {
     grapher: GrapherInterface
@@ -148,13 +149,15 @@ export const DataPage = (props: {
                             }}
                         />
                         <div id={OWID_DATAPAGE_CONTENT_ROOT_ID}>
-                            <DataPageContent
-                                datapageJson={datapageJson}
-                                datapageGdoc={datapageGdoc}
-                                datapageGdocContent={datapageGdocContent}
-                                grapherConfig={grapherConfig}
-                                isPreviewing={isPreviewing}
-                            />
+                            <DebugProvider debug={isPreviewing}>
+                                <DataPageContent
+                                    datapageJson={datapageJson}
+                                    datapageGdoc={datapageGdoc}
+                                    datapageGdocContent={datapageGdocContent}
+                                    grapherConfig={grapherConfig}
+                                    isPreviewing={isPreviewing}
+                                />
+                            </DebugProvider>
                         </div>
                     </>
                 </main>
