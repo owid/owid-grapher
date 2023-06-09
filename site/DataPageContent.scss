@@ -304,8 +304,13 @@
         @include datapages-section-title;
     }
 
-    .faqs__items > *:first-child {
-        margin-top: 0;
+    .faqs__items {
+        > *:first-child {
+            margin-top: 0;
+        }
+        h3 {
+            margin: 24px 0 16px;
+        }
     }
 
     .data-sources-processing__title {
