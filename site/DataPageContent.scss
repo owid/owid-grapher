@@ -96,12 +96,8 @@
     }
 
     .key-info__content {
-        ul {
-            @include row-gap(16px);
-            li {
-                @include body-2-regular;
-                display: list-item;
-            }
+        li {
+            @include body-2-regular;
         }
     }
 

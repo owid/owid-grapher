@@ -274,6 +274,10 @@ h3.article-block__heading.has-supertitle {
 .article-block__numbered-list,
 .article-block__list {
     margin-left: 16px;
+
+    li {
+        margin-bottom: 1em;
+    }
 }
 
 .article-block__aside-right figcaption {
