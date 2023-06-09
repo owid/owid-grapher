@@ -156,6 +156,13 @@ export function extractRefs(text: string): {
     const rawRefStrings: string[] =
         text.match(new RegExp(RefRegExp, "gims")) ?? []
     for (const rawRef of rawRefStrings) {
+        // Transitional code for published articles with old-style refs
+        // Strip them out of the text till we can republish the article with the new style
+        // Remove this block once the transition is done
+        if (rawRef.includes(" ")) {
+            extractedText = extractedText.replace(rawRef, ``)
+            continue
+        }
         // This will always exist as it's the same as the RegExp from above
         const match = rawRef.match(new RegExp(RefRegExp)) as RegExpMatchArray
         const id = match[1]
