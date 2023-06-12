@@ -201,7 +201,6 @@
         "simple-statistics": "^7.3.2",
         "smooth-scroll": "^16.1.0",
         "string-pixel-width": "^1.10.0",
-        "stripe": "^8.38.0",
         "striptags": "^3.2.0",
         "svgo": "^2.8.0",
         "timezone-mock": "^1.0.18",
@@ -217,6 +216,7 @@
         "workerpool": "^6.2.0"
     },
     "devDependencies": {
+        "@stripe/stripe-js": "^1.54.0",
         "@testing-library/jest-dom": "^5.16.5",
         "@testing-library/react": "^12",
         "@types/geojson": "^7946.0.10",
