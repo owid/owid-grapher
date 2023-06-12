@@ -96,7 +96,6 @@
         "@types/react-tag-autocomplete": "^6.1.1",
         "@types/shell-quote": "^1.7.1",
         "@types/shelljs": "^0.8.11",
-        "@types/slack-node": "^0.1.4",
         "@types/smooth-scroll": "^16.1.1",
         "@types/string-pixel-width": "^1.7.2",
         "@types/svgo": "^2.6.4",

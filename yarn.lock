@@ -5336,13 +5336,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/caseless@npm:*":
-  version: 0.12.2
-  resolution: "@types/caseless@npm:0.12.2"
-  checksum: 430d15911184ad11e0a8aa21d1ec15fcc93b90b63570c37bf16ebd34457482bfc8de3f5eb6771e0ef986ce183270d4297823b0f492c346255967e78f7292388b
-  languageName: node
-  linkType: hard
-
 "@types/cheerio@npm:*":
   version: 0.22.14
   resolution: "@types/cheerio@npm:0.22.14"
@@ -5720,15 +5713,6 @@ __metadata:
     "@types/qs": "*"
     "@types/serve-static": "*"
   checksum: 15c1af46d02de834e4a225eccaa9d85c0370fdbb3ed4e1bc2d323d24872309961542b993ae236335aeb3e278630224a6ea002078d39e651d78a3b0356b1eaa79
-  languageName: node
-  linkType: hard
-
-"@types/form-data@npm:*":
-  version: 2.2.1
-  resolution: "@types/form-data@npm:2.2.1"
-  dependencies:
-    "@types/node": "*"
-  checksum: 2a86073fda631bb75f92c1196a604736baa85381ee87f40d54ccc197608237bbe339c42aba91e94d65b2930d697f7660d26cd6f0af6c3350addd791658103592
   languageName: node
   linkType: hard
 
@@ -6210,18 +6194,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/request@npm:*":
-  version: 2.48.1
-  resolution: "@types/request@npm:2.48.1"
-  dependencies:
-    "@types/caseless": "*"
-    "@types/form-data": "*"
-    "@types/node": "*"
-    "@types/tough-cookie": "*"
-  checksum: 48f7e71e8e327e63077501cf664ccd7b65111ba0a8408750417df7c11cf24373b4161a3c3a1faba63450354eec91b228c08955edeec67aab92584a7c7055616d
-  languageName: node
-  linkType: hard
-
 "@types/responselike@npm:^1.0.0":
   version: 1.0.0
   resolution: "@types/responselike@npm:1.0.0"
@@ -6290,15 +6262,6 @@ __metadata:
   version: 2.3.2
   resolution: "@types/sizzle@npm:2.3.2"
   checksum: 783b6382934d8f12f2e21220a01c4557150f07abd18336f392664fb74ceaa9a9d59b7c859c0b82fd3f15b6484774cd0d493261fe64c78ee399bf198a8fe8d89d
-  languageName: node
-  linkType: hard
-
-"@types/slack-node@npm:^0.1.4":
-  version: 0.1.4
-  resolution: "@types/slack-node@npm:0.1.4"
-  dependencies:
-    "@types/request": "*"
-  checksum: c10e8776370c8d17e0788952e1055416c7346a11e85b8d19a7b49a6c85c4fea8afdcf71e4bf61e5807eee4abe99e04f08827c824ac9fc6acde5d65b5b5d4d1e3
   languageName: node
   linkType: hard
 
@@ -13753,7 +13716,6 @@ __metadata:
     "@types/react-tag-autocomplete": ^6.1.1
     "@types/shell-quote": ^1.7.1
     "@types/shelljs": ^0.8.11
-    "@types/slack-node": ^0.1.4
     "@types/smooth-scroll": ^16.1.1
     "@types/string-pixel-width": ^1.7.2
     "@types/svgo": ^2.6.4
