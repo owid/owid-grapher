@@ -241,7 +241,6 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     owidDataset?: MultipleOwidVariableDataDimensionsMap // This is temporarily used for testing. Will be removed
     manuallyProvideData?: boolean // This will be removed.
     queryStr?: string
-    isMediaCard?: boolean
     bounds?: Bounds
     table?: OwidTable
     bakedGrapherURL?: string
@@ -705,7 +704,6 @@ export class Grapher
         return this.tableAfterAllTransformsAndFilters
     }
 
-    @observable.ref isMediaCard = false
     @observable.ref isExportingtoSvgOrPng = false
     tooltips?: TooltipManager["tooltips"] = observable.map({}, { deep: false })
     @observable isPlaying = false
@@ -838,8 +836,7 @@ export class Grapher
     @observable private _baseFontSize = BASE_FONT_SIZE
 
     @computed get baseFontSize(): number {
-        if (this.isMediaCard) return 24
-        else if (this.isExportingtoSvgOrPng) return 18
+        if (this.isExportingtoSvgOrPng) return 18
         return this._baseFontSize
     }
 
@@ -1528,9 +1525,7 @@ export class Grapher
     }
 
     @computed get idealBounds(): Bounds {
-        return this.isMediaCard
-            ? new Bounds(0, 0, 1200, 630)
-            : new Bounds(0, 0, DEFAULT_GRAPHER_WIDTH, DEFAULT_GRAPHER_HEIGHT)
+        return new Bounds(0, 0, DEFAULT_GRAPHER_WIDTH, DEFAULT_GRAPHER_HEIGHT)
     }
 
     @computed get hasYDimension(): boolean {

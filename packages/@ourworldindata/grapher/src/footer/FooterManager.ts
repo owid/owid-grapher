@@ -8,7 +8,6 @@ export interface FooterManager {
     note?: string
     hasOWIDLogo?: boolean
     originUrlWithProtocol?: string
-    isMediaCard?: boolean
     currentTab?: string
     tooltips?: TooltipManager["tooltips"]
     tabBounds?: Bounds
