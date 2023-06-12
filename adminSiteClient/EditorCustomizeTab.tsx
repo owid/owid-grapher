@@ -599,6 +599,7 @@ export class EditorCustomizeTab extends React.Component<{
                         features={{
                             visualScaling: true,
                             legendDescription: true,
+                            centerValue: false,
                         }}
                     />
                 )}

@@ -1,6 +1,8 @@
 import {
+    BinningStrategy,
     ChartDimension,
     ChartTypeName,
+    ColorSchemes,
     MapChart,
     MapConfig,
     MapProjectionLabels,
@@ -186,9 +188,16 @@ export class EditorMapTab extends React.Component<{ editor: ChartEditor }> {
         const mapConfig = grapher.map
         const { mapColumnSlug } = grapher
         const mapChart = new MapChart({ manager: this.grapher })
-        const colorScale = mapChart.colorScale
+        const { colorScale, colorScaleConfig } = mapChart
+        const { baseColorScheme, binningStrategy } = colorScaleConfig
 
         const isReady = !!mapColumnSlug && grapher.table.has(mapColumnSlug)
+
+        const isDiverging = !!(
+            baseColorScheme && ColorSchemes[baseColorScheme].isDiverging
+        )
+        const centerValue =
+            isDiverging && binningStrategy === BinningStrategy.equalInterval
 
         return (
             <div className="EditorMapTab tab-pane">
@@ -206,6 +215,7 @@ export class EditorMapTab extends React.Component<{ editor: ChartEditor }> {
                             features={{
                                 visualScaling: true,
                                 legendDescription: false,
+                                centerValue,
                             }}
                         />
                         <TooltipSection mapConfig={mapConfig} />

@@ -487,6 +487,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                             features={{
                                 visualScaling: true,
                                 legendDescription: false,
+                                centerValue: false,
                             }}
                             showLineChartColors={false}
                             onChange={this.onGenericRichEditorChange}
@@ -511,6 +512,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                                 features={{
                                     visualScaling: true,
                                     legendDescription: false,
+                                    centerValue: false,
                                 }}
                                 showLineChartColors={grapher.isLineChart}
                                 onChange={this.onGenericRichEditorChange}

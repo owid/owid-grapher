@@ -5,6 +5,7 @@ export interface ColorSchemeInterface {
     colorSets: Color[][] // Different color sets depending on how many distinct colors you want
     singleColorScale?: boolean
     isDistinct?: boolean
+    isDiverging?: boolean
     displayName?: string
 }
 

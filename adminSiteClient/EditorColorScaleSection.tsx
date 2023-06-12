@@ -26,6 +26,7 @@ import {
     TextField,
     ColorBox,
     BindAutoFloat,
+    BindFloat,
     BindString,
 } from "./Forms.js"
 import {
@@ -36,6 +37,7 @@ import {
 interface EditorColorScaleSectionFeatures {
     visualScaling: boolean
     legendDescription: boolean
+    centerValue: boolean
 }
 
 @observer
@@ -51,6 +53,7 @@ export class EditorColorScaleSection extends React.Component<{
             <React.Fragment>
                 <ColorsSection
                     scale={this.props.scale}
+                    features={this.props.features}
                     onChange={this.props.onChange}
                     chartType={this.props.chartType}
                     showLineChartColors={this.props.showLineChartColors}
@@ -130,6 +133,7 @@ class ColorLegendSection extends React.Component<{
 @observer
 class ColorsSection extends React.Component<{
     scale: ColorScale
+    features: EditorColorScaleSectionFeatures
     chartType: ChartTypeName
     showLineChartColors: boolean
     onChange?: () => void
@@ -201,7 +205,7 @@ class ColorsSection extends React.Component<{
     }
 
     render() {
-        const { scale, config } = this
+        const { scale, config, props } = this
 
         return (
             <Section name="Color scale">
@@ -253,6 +257,13 @@ class ColorsSection extends React.Component<{
                         label="Minimum value"
                         auto={scale.autoMinBinValue}
                     />
+                    {props.features.centerValue && (
+                        <BindFloat
+                            field="customNumericCenterValue"
+                            store={config}
+                            label="Center value"
+                        />
+                    )}
                     {!scale.isManualBuckets && (
                         <BindAutoFloat
                             field="binningStrategyBinCount"

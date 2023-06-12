@@ -77,3 +77,10 @@ export function darkenColorForText(colorHex: Color): Color {
 export function darkenColorForHighContrastText(colorHex: Color): Color {
     return darkenColorToTargetYiq(colorHex, 105)
 }
+
+export function insertInterpolatedColor(colors: Color[], index: number): void {
+    const startColor = rgb(colors[index - 1])
+    const endColor = rgb(colors[index])
+    const newColor = interpolate(startColor, endColor)(0.5)
+    colors.splice(index, 0, newColor)
+}

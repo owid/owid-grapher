@@ -102,7 +102,8 @@ const initAllSchemes = (): { [key in ColorSchemeName]: ColorScheme } => {
             scheme.displayName ?? scheme.name,
             scheme.colorSets,
             scheme.singleColorScale,
-            scheme.isDistinct
+            scheme.isDistinct,
+            scheme.isDiverging
         )
     })
     return colorSchemes as { [key in ColorSchemeName]: ColorScheme }

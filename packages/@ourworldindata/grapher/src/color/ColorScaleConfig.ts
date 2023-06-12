@@ -43,6 +43,8 @@ export class ColorScaleConfigDefaults {
      */
     @observable customNumericLabels: (string | undefined | null)[] = []
 
+    @observable customNumericCenterValue?: number
+
     /** Whether `customNumericColors` are used to override the color scheme. */
     @observable customNumericColorsActive?: boolean = undefined
     /**

@@ -83,6 +83,10 @@ export class ColorScale {
         return this.config.customCategoryLabels ?? {}
     }
 
+    @computed private get centerBinValue(): number | undefined {
+        return this.config.customNumericCenterValue
+    }
+
     @computed get baseColorScheme(): ColorSchemeName {
         return (
             this.config.baseColorScheme ??
@@ -169,6 +173,7 @@ export class ColorScale {
             sortedValues: this.sortedNumericBinningValues,
             binCount: this.numAutoBins,
             minBinValue: this.minBinValue,
+            centerBinValue: this.centerBinValue,
         })
     }
 
@@ -196,13 +201,55 @@ export class ColorScale {
             colorScheme,
             bucketMaximums,
             isColorSchemeInverted,
+            centerBinIndex,
+            autoCenterBinIndex,
         } = this
+
         const numColors = bucketMaximums.length + categoricalValues.length
-        const colors = colorScheme.getColors(numColors)
+        const centerOffset =
+            centerBinIndex != undefined
+                ? centerBinIndex - autoCenterBinIndex
+                : 0
 
-        if (isColorSchemeInverted) reverse(colors)
+        if (centerOffset === 0) {
+            const colors = colorScheme.getColors(numColors)
+            if (isColorSchemeInverted) reverse(colors)
+            return colors
+        } else {
+            // if a custom center value is given, we want to make sure that all bins
+            // to the left of the center bin have one hue, and all bins to the right
+            // of the center bin have another hue (only makes sense for diverging schemes).
+            // to so do, we request more colors than we need, and then shift colors to
+            // the left or to the right, thereby dropping colors at the start or at the end
 
-        return colors
+            const absCenterOffset = Math.abs(centerOffset)
+            const colors = colorScheme.getColors(
+                numColors + absCenterOffset * 2,
+                { excludeMiddleColorForDivergingSchemes: true }
+            )
+            if (isColorSchemeInverted) reverse(colors)
+            return centerOffset < 0
+                ? colors.slice(absCenterOffset * 2) // drop colors at the start
+                : colors.slice(0, colors.length - absCenterOffset * 2) // drop colors at the end
+        }
+    }
+
+    @computed get autoCenterBinValue(): number {
+        const { bucketMaximums } = this
+        const centerBinIndex = Math.floor(bucketMaximums.length / 2 - 1)
+        return bucketMaximums[centerBinIndex]
+    }
+
+    @computed private get autoCenterBinIndex(): number {
+        return this.bucketMaximums.findIndex(
+            (x) => this.autoCenterBinValue <= x
+        )
+    }
+
+    @computed private get centerBinIndex(): number | undefined {
+        const { centerBinValue } = this
+        if (centerBinValue == undefined) return
+        return this.bucketMaximums.findIndex((x) => centerBinValue <= x)
     }
 
     @computed get numAutoBins(): number {
