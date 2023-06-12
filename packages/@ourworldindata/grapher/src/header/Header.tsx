@@ -102,18 +102,14 @@ export class Header extends React.Component<{
     }
 
     @computed get height(): number {
-        if (this.manager.isMediaCard) return 0
-
         return Math.max(
             this.title.height + this.subtitle.height + this.titleMarginBottom,
             this.logoHeight
         )
     }
 
-    renderStatic(x: number, y: number): JSX.Element | null {
+    renderStatic(x: number, y: number): JSX.Element {
         const { title, logo, subtitle, manager, maxWidth } = this
-
-        if (manager.isMediaCard) return null
 
         return (
             <g className="HeaderView">

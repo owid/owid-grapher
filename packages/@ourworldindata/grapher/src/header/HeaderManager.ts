@@ -6,7 +6,6 @@ export interface HeaderManager {
     subtitle?: string
     hideLogo?: boolean
     shouldLinkToOwid?: boolean
-    isMediaCard?: boolean
     logo?: string
     canonicalUrl?: string
     tabBounds?: Bounds

@@ -131,8 +131,6 @@ export class Footer extends React.Component<{
     }
 
     @computed get height(): number {
-        if (this.manager.isMediaCard) return 0
-
         const { sources, note, licenseAndOriginUrl, isCompact, paraMargin } =
             this
         return (
@@ -142,9 +140,7 @@ export class Footer extends React.Component<{
         )
     }
 
-    renderStatic(targetX: number, targetY: number): JSX.Element | null {
-        if (this.manager.isMediaCard) return null
-
+    renderStatic(targetX: number, targetY: number): JSX.Element {
         const {
             sources,
             note,
