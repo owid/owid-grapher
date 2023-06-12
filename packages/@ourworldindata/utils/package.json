@@ -24,7 +24,7 @@
     "mobx-react": "5",
     "parsimmon": "^1.18.1",
     "react": "^16.14.0",
-    "react-select": "^5.4.0",
+    "react-select": "^5.7.3",
     "react-tag-autocomplete": "^6.3.0",
     "s-expression": "^3.1.1",
     "string-pixel-width": "^1.10.0",
