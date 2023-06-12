@@ -187,10 +187,12 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                             <div className="originSuggestions">
                                 <p>Origin url suggestions</p>
                                 <ul>
-                                    {[...references.postsWordpress, ...references.postsGdocs]
-                                        .map((post) => (
-                                            <li key={post.id}>{post.url}</li>
-                                        ))}
+                                    {[
+                                        ...references.postsWordpress,
+                                        ...references.postsGdocs,
+                                    ].map((post) => (
+                                        <li key={post.id}>{post.url}</li>
+                                    ))}
                                 </ul>
                             </div>
                         )}

@@ -3,15 +3,18 @@ import { MigrationInterface, QueryRunner } from "typeorm"
 export class AddLegacySdgChartReferences1685706058408
     implements MigrationInterface
 {
-    private async insertSlug(queryRunner: QueryRunner, slug: string): Promise<void> {
+    private async insertSlug(
+        queryRunner: QueryRunner,
+        slug: string
+    ): Promise<void> {
         const rows = await queryRunner.query(
-                `-- sql
+            `-- sql
                 select id from charts where slug = ? and publishedAt is not null
                 union
                 select chart_id as id from chart_slug_redirects where slug = ?
             `,
-                [slug, slug]
-            )
+            [slug, slug]
+        )
         if (rows.length === 0) {
             console.error(`No chart found for ${slug}`)
             return
