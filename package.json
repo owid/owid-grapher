@@ -109,7 +109,7 @@
         "algoliasearch": "^4.17.0",
         "antd": "^4.23.1",
         "archieml": "^0.5.0",
-        "bcrypt": "^5.0.1",
+        "bcrypt": "^5.1.0",
         "bootstrap": "^4.6.1",
         "bundlewatch": "^0.3.3",
         "cheerio": "^1.0.0-rc.10",
