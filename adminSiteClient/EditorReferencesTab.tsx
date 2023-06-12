@@ -106,7 +106,7 @@ export const ReferencesSection = (props: {
                 <ul className="list-group">
                     {props.references.legacySdgCharts.map((sdgSlug) => (
                         <li key={sdgSlug} className="list-group-item">
-                            sdgSlug
+                            {sdgSlug}
                         </li>
                     ))}
                 </ul>
