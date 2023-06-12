@@ -40,7 +40,7 @@ interface GAEvent {
     eventAction?: string
     eventContext?: string
     eventTarget?: string
-    grapherUrl?: string
+    grapherPath?: string
 }
 
 // Note: consent-based blocking dealt with at the Google Tag Manager level.
@@ -91,7 +91,8 @@ export class GrapherAnalytics {
         label?: string,
         grapherUrl?: string
     ): void {
-        // GA4 trims metadata fields down to 100 characters, so we want to be concise
+        // GA4 trims metadata fields down to 100 characters, so we want to be concise and only send
+        // the pathname, e.g. `/grapher/life-expectancy` or `/explorers/migration`
         const grapherUrlObj =
             grapherUrl !== undefined ? new URL(grapherUrl) : undefined
 
@@ -99,7 +100,7 @@ export class GrapherAnalytics {
             event: EventCategory.GrapherClick,
             eventAction: action,
             eventTarget: label,
-            grapherUrl: grapherUrlObj?.pathname,
+            grapherPath: grapherUrlObj?.pathname,
         })
     }
 
@@ -120,9 +121,12 @@ export class GrapherAnalytics {
     }
 
     startClickTracking(): void {
-        // Todo: add a Story and tests for this OR even better remove and use Google Tag Manager or similar fully SAAS tracking.
-        // Todo: have different Attributes for Grapher charts vs Site.
+        // we use a data-track-note attr on elements to indicate that clicks on them should be tracked, and what to send
         const dataTrackAttr = "data-track-note"
+
+        // we set a data-grapher-url attr on grapher charts to indicate the URL of the chart.
+        // this is helpful for tracking clicks on charts that are embedded in articles, where we would like to know
+        // which chart the user is interacting with
         const dataGrapherUrlAttr = "data-grapher-url"
         document.addEventListener("click", async (ev) => {
             const targetElement = ev.target as HTMLElement
