@@ -8609,12 +8609,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chunk-text@npm:^1.0.5":
-  version: 1.0.5
-  resolution: "chunk-text@npm:1.0.5"
+"chunk-text@npm:^2.0.1":
+  version: 2.0.1
+  resolution: "chunk-text@npm:2.0.1"
   dependencies:
-    runes: ^0.4.1
-  checksum: 751c999097f9b9d0fe3dd15aa60455b58cdf8eabf539ab46df974810d5efdcf8a74b6c69980e6449bdbd9d04504fdc4450ce3823bcfc83910de635f2c23bdea8
+    runes: ^0.4.3
+  bin:
+    chunk: bin/server.js
+    chunk-text: bin/server.js
+  checksum: f0a0d75d837210e0730782a78a3904cb046f4988e0693f06b71900f3c0055f08bf8f9e239c011b7c60d7111df5b35bf526ff28ba7349f0030443c8179e8a835b
   languageName: node
   linkType: hard
 
@@ -13772,7 +13775,7 @@ __metadata:
     bundlewatch: ^0.3.3
     cheerio: ^1.0.0-rc.10
     chokidar: ^3.5.3
-    chunk-text: ^1.0.5
+    chunk-text: ^2.0.1
     classnames: ^2.3.1
     codemirror: 5
     colorbrewer: ^1.3.0
@@ -21914,7 +21917,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"runes@npm:^0.4.1":
+"runes@npm:^0.4.3":
   version: 0.4.3
   resolution: "runes@npm:0.4.3"
   checksum: 8bb7a16eb75799fe8a3a9cb06fa622f3ee3e3d1116897ac48e8238fc40aeba74d77232d6a7b1afedc9fa96fd6075b4dbbed6c85d4e66df9b727c5056225fc177
