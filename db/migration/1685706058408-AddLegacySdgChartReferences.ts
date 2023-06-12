@@ -10,8 +10,11 @@ export class AddLegacySdgChartReferences1685706058408
         const rows = await queryRunner.query(
             `-- sql
                 select id from charts where slug = ? and publishedAt is not null
-                union
-                select chart_id as id from chart_slug_redirects where slug = ?
+                union all
+                select chart_id as id
+                from chart_slug_redirects
+                join charts on charts.id = chart_slug_redirects.chart_id
+                where chart_slug_redirects.slug = ? and publishedAt is not null
             `,
             [slug, slug]
         )
@@ -20,7 +23,12 @@ export class AddLegacySdgChartReferences1685706058408
             return
         }
         if (rows.length > 1)
-            throw new Error("Multiple charts found for ${slug}") // this should never happen
+        {
+            // This can happen if a chart exists with a given url and there is a chart redirect of this url to another chart. In
+            // these cases the chart with the slug wins, not the redirect.
+            console.error(`Multiple charts found for ${slug} - ${rows.map((r : any) => r.id).join(", ")}} - using the first image`)
+
+        }
         const chartId = rows[0].id
         await queryRunner.query(
             `-- sql
