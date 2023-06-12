@@ -181,16 +181,21 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                         placeholder={grapher.originUrlWithProtocol}
                         helpText="The page containing this chart where more context can be found"
                     />
-                    {references && references.length > 0 && (
-                        <div className="originSuggestions">
-                            <p>Origin url suggestions</p>
-                            <ul>
-                                {references.map((post) => (
-                                    <li key={post.id}>{post.url}</li>
-                                ))}
-                            </ul>
-                        </div>
-                    )}
+                    {references &&
+                        (references.postsWordpress.length > 0 ||
+                            references.postsGdocs.length > 0) && (
+                            <div className="originSuggestions">
+                                <p>Origin url suggestions</p>
+                                <ul>
+                                    {[
+                                        ...references.postsWordpress,
+                                        ...references.postsGdocs,
+                                    ].map((post) => (
+                                        <li key={post.id}>{post.url}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
 
                     <BindString
                         label="Footer note"

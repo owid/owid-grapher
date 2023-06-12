@@ -20,7 +20,7 @@ import {
     Toggle,
     Timeago,
 } from "./Forms.js"
-import { PostReference } from "./ChartEditor.js"
+import { References } from "./ChartEditor.js"
 import { AdminLayout } from "./AdminLayout.js"
 import { SuggestedChartRevisionStatusIcon } from "./SuggestedChartRevisionList.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
@@ -46,6 +46,7 @@ import {
 } from "./VisionDeficiencies.js"
 import { SuggestedChartRevisionSerialized } from "./SuggestedChartRevision.js"
 import { match } from "ts-pattern"
+import { ReferencesSection } from "./EditorReferencesTab.js"
 
 interface UserSelectOption {
     userName: string
@@ -61,7 +62,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
     @observable.ref originalGrapherElement?: JSX.Element
     @observable.ref suggestedGrapherElement?: JSX.Element
     @observable.ref existingGrapherElement?: JSX.Element
-    @observable.ref chartReferences: PostReference[] = []
+    @observable.ref chartReferences: References | undefined = undefined
 
     // HACK: In order for the <select> dropdown to not drop any existing users after finishing all
     // their reviews, we want the list of available users to be append-only, which we achieve by
@@ -232,8 +233,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
             chartId === undefined
                 ? {}
                 : await admin.getJSON(`/api/charts/${chartId}.references.json`)
-        this.chartReferences = json.references || []
-        this.chartReferences = []
+        this.chartReferences = json.references
         console.log("fetchRefs 2")
     }
 
@@ -1140,7 +1140,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                 </div>
                 <div className="references">
                     <h2>References to original chart</h2>
-                    {this.renderReferences()}
+                    <ReferencesSection references={this.chartReferences} />
                 </div>
                 <div className="changes_summary">
                     <h2>Indicator changes</h2>{" "}
@@ -1156,34 +1156,6 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                         "No summary provided."
                     )}
                 </div>
-            </React.Fragment>
-        )
-    }
-
-    renderReferences() {
-        // Render chart references block
-        return (
-            <React.Fragment>
-                {this.chartReferences.length ? (
-                    <React.Fragment>
-                        <p>Public pages that embed or reference this chart:</p>
-                        <ul className="list-group">
-                            {this.chartReferences.map((post: PostReference) => (
-                                <li key={post.id} className="list-group-item">
-                                    <a
-                                        href={post.url}
-                                        target="_blank"
-                                        rel="noopener"
-                                    >
-                                        <strong>{post.title}</strong>
-                                    </a>
-                                </li>
-                            ))}
-                        </ul>
-                    </React.Fragment>
-                ) : (
-                    <p>No public posts reference the original chart.</p>
-                )}
             </React.Fragment>
         )
     }
