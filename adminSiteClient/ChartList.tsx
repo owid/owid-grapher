@@ -170,7 +170,6 @@ export class ChartList extends React.Component<{
 
     @observable availableTags: Tag[] = []
 
-
     async fetchRefs(grapherId: number | undefined): Promise<References> {
         const { admin } = this.context
         const json =
@@ -186,7 +185,9 @@ export class ChartList extends React.Component<{
         const refs = await this.fetchRefs(chart.id)
         if (getFullReferencesCount(refs) > 0) {
             window.alert(
-                `Cannot delete chart ${chart.slug} because it is used in ${getFullReferencesCount(
+                `Cannot delete chart ${
+                    chart.slug
+                } because it is used in ${getFullReferencesCount(
                     refs
                 )} places. See the references tab in the chart editor for details.`
             )
