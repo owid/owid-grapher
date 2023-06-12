@@ -11,6 +11,7 @@ import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
 import { ChartTypeName, GrapherInterface } from "@ourworldindata/grapher"
 import { startCase } from "@ourworldindata/utils"
+import { References, getFullReferencesCount } from "./ChartEditor.js"
 
 // These properties are coming from OldChart.ts
 export interface ChartListItem {
@@ -169,7 +170,28 @@ export class ChartList extends React.Component<{
 
     @observable availableTags: Tag[] = []
 
+
+    async fetchRefs(grapherId: number | undefined): Promise<References> {
+        const { admin } = this.context
+        const json =
+            grapherId === undefined
+                ? {}
+                : await admin.getJSON(
+                      `/api/charts/${grapherId}.references.json`
+                  )
+        return json.references
+    }
+
     @bind async onDeleteChart(chart: ChartListItem) {
+        const refs = await this.fetchRefs(chart.id)
+        if (getFullReferencesCount(refs) > 0) {
+            window.alert(
+                `Cannot delete chart ${chart.slug} because it is used in ${getFullReferencesCount(
+                    refs
+                )} places. See the references tab in the chart editor for details.`
+            )
+            return
+        }
         if (
             !window.confirm(
                 `Delete the chart ${chart.slug}? This action cannot be undone!`
