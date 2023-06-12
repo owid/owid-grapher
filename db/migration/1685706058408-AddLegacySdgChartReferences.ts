@@ -22,12 +22,14 @@ export class AddLegacySdgChartReferences1685706058408
             console.error(`No chart found for ${slug}`)
             return
         }
-        if (rows.length > 1)
-        {
+        if (rows.length > 1) {
             // This can happen if a chart exists with a given url and there is a chart redirect of this url to another chart. In
             // these cases the chart with the slug wins, not the redirect.
-            console.error(`Multiple charts found for ${slug} - ${rows.map((r : any) => r.id).join(", ")}} - using the first image`)
-
+            console.error(
+                `Multiple charts found for ${slug} - ${rows
+                    .map((r: any) => r.id)
+                    .join(", ")}} - using the first image`
+            )
         }
         const chartId = rows[0].id
         await queryRunner.query(
