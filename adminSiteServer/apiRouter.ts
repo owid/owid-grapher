@@ -266,7 +266,9 @@ const getReferencesByChartId = async (chartId: number): Promise<References> => {
         explorers: explorerSlugs.map(
             (row: { explorerSlug: string }) => row.explorerSlug
         ),
-        legacySdgCharts: legacySdgChartReferences,
+        legacySdgCharts: legacySdgChartReferences.map(
+            (row: { slug: string }) => row.slug
+        ),
     }
 }
 
