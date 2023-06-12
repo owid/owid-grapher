@@ -141,6 +141,14 @@ const getPostsForSlugs = async (
     slugs: string[]
 ): Promise<{ ID: number; post_title: string; post_name: string }[]> => {
     if (!wpdb.singleton) return []
+    // Hacky approach to find all the references to a chart by searching for
+    // the chart URL through the Wordpress database.
+    // The Grapher should work without the Wordpress database, so we need to
+    // handle failures gracefully.
+    // NOTE: Sometimes slugs can be substrings of other slugs, e.g.
+    // `grapher/gdp` is a substring of `grapher/gdp-maddison`. We need to be
+    // careful not to erroneously match those, which is why we switched to a
+    // REGEXP.
     try {
         const posts = await wpdb.singleton.query(
             `
@@ -199,15 +207,6 @@ const getReferencesByChartId = async (chartId: number): Promise<References> => {
         }
 
     const postsPromise = getPostsForSlugs(slugs)
-    // Hacky approach to find all the references to a chart by searching for
-    // the chart URL through the Wordpress database.
-    // The Grapher should work without the Wordpress database, so we need to
-    // handle failures gracefully.
-    // NOTE: Sometimes slugs can be substrings of other slugs, e.g.
-    // `grapher/gdp` is a substring of `grapher/gdp-maddison`. We need to be
-    // careful not to erroneously match those, which is why we switched to a
-    // REGEXP.
-
     const permalinksPromise = wpdb.getPermalinks()
     const publishedLinksToChartPromise = Link.getPublishedLinksTo(
         slugs,

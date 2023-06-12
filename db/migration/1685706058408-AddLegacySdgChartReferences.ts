@@ -3,6 +3,30 @@ import { MigrationInterface, QueryRunner } from "typeorm"
 export class AddLegacySdgChartReferences1685706058408
     implements MigrationInterface
 {
+    private async insertSlug(queryRunner: QueryRunner, slug: string): Promise<void> {
+        const rows = await queryRunner.query(
+                `-- sql
+                select id from charts where slug = ? and publishedAt is not null
+                union
+                select chart_id as id from chart_slug_redirects where slug = ?
+            `,
+                [slug, slug]
+            )
+        if (rows.length === 0) {
+            console.error(`No chart found for ${slug}`)
+            return
+        }
+        if (rows.length > 1)
+            throw new Error("Multiple charts found for ${slug}") // this should never happen
+        const chartId = rows[0].id
+        await queryRunner.query(
+            `-- sql
+            INSERT INTO legacy_sdg_chart_references (slug, chartId) VALUES (?, ?)
+        `,
+            [slug, chartId]
+        )
+    }
+
     public async up(queryRunner: QueryRunner): Promise<void> {
         queryRunner.query(`-- sql
         CREATE TABLE IF NOT EXISTS legacy_sdg_chart_references (
@@ -16,56 +40,10 @@ export class AddLegacySdgChartReferences1685706058408
 
         // this is inefficient but it's a one-time migration so it's fine
         for (const slug of linkedSdgChartsAsOf2023_04_10) {
-            const rows = await queryRunner.query(
-                `-- sql
-                select id from charts where slug = ?
-                union
-                select chart_id as id from chart_slug_redirects where slug = ?
-            `,
-                [slug, slug]
-            )
-            if (rows.length === 0) {
-                console.error(`No chart found for ${slug}`)
-                continue
-            }
-            if (rows.length > 1)
-                console.error(
-                    `Multiple charts found for ${slug} - selecting the first one`
-                )
-            const chartId = rows[0].id
-            await queryRunner.query(
-                `-- sql
-                INSERT INTO legacy_sdg_chart_references (slug, chartId) VALUES (?, ?)
-            `,
-                [slug, chartId]
-            )
+            await this.insertSlug(queryRunner, slug)
         }
-
-        // this is inefficient but it's a one-time migration so it's fine
         for (const slug of embeddedSdgChartsAsOf2023_04_10) {
-            const rows = await queryRunner.query(
-                `-- sql
-                select id from charts where slug = ?
-                union
-                select chart_id as id from chart_slug_redirects where slug = ?
-            `,
-                [slug, slug]
-            )
-            if (rows.length === 0) {
-                console.error(`No chart found for ${slug}`)
-                continue
-            }
-            if (rows.length > 1)
-                console.error(
-                    `Multiple charts found for ${slug} - selecting the first one`
-                )
-            const chartId = rows[0].id
-            await queryRunner.query(
-                `-- sql
-                INSERT INTO legacy_sdg_chart_references (slug, chartId) VALUES (?, ?)
-            `,
-                [slug, chartId]
-            )
+            await this.insertSlug(queryRunner, slug)
         }
     }
 
