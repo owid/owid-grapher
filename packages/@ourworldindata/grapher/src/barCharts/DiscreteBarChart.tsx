@@ -470,7 +470,7 @@ export class DiscreteBarChart
                                 y={0}
                                 transform={`translate(${labelX}, 0)`}
                                 fill="#555"
-                                dominantBaseline="central"
+                                dominantBaseline="middle"
                                 textAnchor="end"
                                 {...this.legendLabelStyle}
                             >
@@ -498,7 +498,7 @@ export class DiscreteBarChart
                                         : labelToBarPadding)
                                 }, 0)`}
                                 fill="#666"
-                                dominantBaseline="central"
+                                dominantBaseline="middle"
                                 textAnchor={isNegative ? "end" : "start"}
                                 {...this.valueLabelStyle}
                             >
