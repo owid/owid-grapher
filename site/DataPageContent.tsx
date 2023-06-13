@@ -107,7 +107,7 @@ export const DataPageContent = ({
                                 {sourceShortName}
                             </div>
                         </div>
-                        <div className="header__right col-start-10 span-cols-3 col-md-start-9 span-md-cols-4 span-sm-cols-12">
+                        <div className="header__right col-start-9 span-cols-4 span-sm-cols-12">
                             <div className="topic-tags__label">
                                 See all data and research on:
                             </div>
