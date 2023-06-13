@@ -392,187 +392,197 @@ export const DataPageContent = ({
                             </div>
                         ) : null}
                     </div>
-                    <div className="wrapper bg-gray-10">
-                        {datapageGdocContent?.faqs && (
-                            <div className="section-wrapper section-wrapper__faqs grid">
-                                <h2
-                                    className="faqs__title span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
-                                    id="faqs"
-                                >
-                                    Frequently Asked Questions
-                                </h2>
-                                <div className="faqs__items grid grid-cols-10 grid-lg-cols-9 grid-md-cols-12 span-cols-10 span-lg-cols-9 span-md-cols-12 span-sm-cols-12">
-                                    <ArticleBlocks
-                                        blocks={datapageGdocContent.faqs}
-                                        containerType="datapage"
-                                    />
-                                </div>
-                            </div>
-                        )}
-                        <div className="section-wrapper grid">
-                            <h2
-                                className="data-sources-processing__title span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
-                                id="sources-and-processing"
-                            >
-                                Sources and Processing
-                            </h2>
-                            {datapageJson.sources.length > 0 && (
-                                <div className="data-sources grid span-cols-12">
-                                    <h3 className="data-sources__heading span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                                        This data is based on the following
-                                        sources
-                                    </h3>
-                                    <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                                        {datapageJson.sources.map(
-                                            (source, idx: number, sources) => {
-                                                const sourceDescriptionGdocContent =
-                                                    datapageGdocContent?.[
-                                                        `sourceDescription${
-                                                            idx + 1
-                                                        }` as keyof typeof datapageGdocContent
-                                                    ]
-                                                return (
-                                                    <div
-                                                        className="data-sources__source-item"
-                                                        key={source.sourceName}
-                                                    >
-                                                        <ExpandableToggle
-                                                            label={
-                                                                source.sourceName
-                                                            }
-                                                            isExpandedDefault={
-                                                                idx === 0
-                                                            }
-                                                            isStacked={
-                                                                idx !==
-                                                                sources.length -
-                                                                    1
-                                                            }
-                                                            content={
-                                                                <>
-                                                                    {sourceDescriptionGdocContent && (
-                                                                        <ArticleBlocks
-                                                                            blocks={
-                                                                                sourceDescriptionGdocContent
-                                                                            }
-                                                                            containerType="datapage"
-                                                                        />
-                                                                    )}
-                                                                    <>
-                                                                        {(source.sourceRetrievedOn ||
-                                                                            source.sourceRetrievedFromUrl) && (
-                                                                            <div
-                                                                                className="grid"
-                                                                                style={{
-                                                                                    gridTemplateColumns:
-                                                                                        "minmax(0,1fr) minmax(0,2fr)",
-                                                                                }}
-                                                                            >
-                                                                                {source.sourceRetrievedOn && (
-                                                                                    <div className="key-data">
-                                                                                        <div className="key-data__title--dark">
-                                                                                            Retrieved
-                                                                                            on
-                                                                                        </div>
-                                                                                        <div>
-                                                                                            {
-                                                                                                source.sourceRetrievedOn
-                                                                                            }
-                                                                                        </div>
-                                                                                    </div>
-                                                                                )}
-                                                                                {source.sourceRetrievedFromUrl && (
-                                                                                    <div className="key-data">
-                                                                                        <div className="key-data__title--dark">
-                                                                                            Retrieved
-                                                                                            from
-                                                                                        </div>
-                                                                                        <div>
-                                                                                            <a
-                                                                                                href={
-                                                                                                    source.sourceRetrievedFromUrl
-                                                                                                }
-                                                                                                target="_blank"
-                                                                                                rel="noreferrer"
-                                                                                            >
-                                                                                                {
-                                                                                                    source.sourceRetrievedFromUrl
-                                                                                                }
-                                                                                            </a>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                )}
-                                                                            </div>
-                                                                        )}
-                                                                    </>
-                                                                </>
-                                                            }
-                                                        />
-                                                    </div>
-                                                )
-                                            }
-                                        )}
-                                    </div>
-                                </div>
-                            )}
-                            <div className="data-processing grid span-cols-12">
-                                <h3 className="data-processing__heading span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                                    How we process data at{" "}
-                                    <em>Our World in Data</em>
-                                </h3>
-                                <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                                    <div className="data-processing__content">
-                                        <p className="data-processing__paragraph">
-                                            All data and visualizations on Our
-                                            World in Data rely on data sourced
-                                            from one or several original data
-                                            providers. Preparing this original
-                                            data involves several processing
-                                            steps. Depending on the data, this
-                                            can include standardizing country
-                                            names and world region definitions,
-                                            converting units, calculating
-                                            derived indicators such as per
-                                            capita measures, as well as adding
-                                            or adapting metadata such as the
-                                            name or the description given to an
-                                            indicator.
-                                        </p>
-                                        <p className="data-processing__paragraph">
-                                            At the link below you can find a
-                                            detailed description of the
-                                            structure of our data pipeline,
-                                            including links to all the code used
-                                            to prepare data across Our World in
-                                            Data.
-                                        </p>
-                                    </div>
-                                    <a
-                                        href="https://docs.owid.io/projects/etl/en/latest/"
-                                        target="_blank"
-                                        rel="nopener noreferrer"
-                                        className="data-processing__link"
+                    <div className="bg-gray-10">
+                        <div className="wrapper">
+                            {datapageGdocContent?.faqs && (
+                                <div className="section-wrapper section-wrapper__faqs grid">
+                                    <h2
+                                        className="faqs__title span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
+                                        id="faqs"
                                     >
-                                        Read about our data pipeline
-                                    </a>
-                                </div>
-                            </div>
-                            {datapageGdocContent?.variableProcessingInfo && (
-                                <div className="variable-processing-info col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                                    <h5 className="variable-processing-info__header">
-                                        Notes on our processing step for this
-                                        indicator
-                                    </h5>
-                                    <div className="variable-processing-info__description">
+                                        Frequently Asked Questions
+                                    </h2>
+                                    <div className="faqs__items grid grid-cols-10 grid-lg-cols-9 grid-md-cols-12 span-cols-10 span-lg-cols-9 span-md-cols-12 span-sm-cols-12">
                                         <ArticleBlocks
-                                            blocks={
-                                                datapageGdocContent.variableProcessingInfo
-                                            }
+                                            blocks={datapageGdocContent.faqs}
                                             containerType="datapage"
                                         />
                                     </div>
                                 </div>
                             )}
+                            <div className="section-wrapper grid">
+                                <h2
+                                    className="data-sources-processing__title span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
+                                    id="sources-and-processing"
+                                >
+                                    Sources and Processing
+                                </h2>
+                                {datapageJson.sources.length > 0 && (
+                                    <div className="data-sources grid span-cols-12">
+                                        <h3 className="data-sources__heading span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+                                            This data is based on the following
+                                            sources
+                                        </h3>
+                                        <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+                                            {datapageJson.sources.map(
+                                                (
+                                                    source,
+                                                    idx: number,
+                                                    sources
+                                                ) => {
+                                                    const sourceDescriptionGdocContent =
+                                                        datapageGdocContent?.[
+                                                            `sourceDescription${
+                                                                idx + 1
+                                                            }` as keyof typeof datapageGdocContent
+                                                        ]
+                                                    return (
+                                                        <div
+                                                            className="data-sources__source-item"
+                                                            key={
+                                                                source.sourceName
+                                                            }
+                                                        >
+                                                            <ExpandableToggle
+                                                                label={
+                                                                    source.sourceName
+                                                                }
+                                                                isExpandedDefault={
+                                                                    idx === 0
+                                                                }
+                                                                isStacked={
+                                                                    idx !==
+                                                                    sources.length -
+                                                                        1
+                                                                }
+                                                                content={
+                                                                    <>
+                                                                        {sourceDescriptionGdocContent && (
+                                                                            <ArticleBlocks
+                                                                                blocks={
+                                                                                    sourceDescriptionGdocContent
+                                                                                }
+                                                                                containerType="datapage"
+                                                                            />
+                                                                        )}
+                                                                        <>
+                                                                            {(source.sourceRetrievedOn ||
+                                                                                source.sourceRetrievedFromUrl) && (
+                                                                                <div
+                                                                                    className="grid"
+                                                                                    style={{
+                                                                                        gridTemplateColumns:
+                                                                                            "minmax(0,1fr) minmax(0,2fr)",
+                                                                                    }}
+                                                                                >
+                                                                                    {source.sourceRetrievedOn && (
+                                                                                        <div className="key-data">
+                                                                                            <div className="key-data__title--dark">
+                                                                                                Retrieved
+                                                                                                on
+                                                                                            </div>
+                                                                                            <div>
+                                                                                                {
+                                                                                                    source.sourceRetrievedOn
+                                                                                                }
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    )}
+                                                                                    {source.sourceRetrievedFromUrl && (
+                                                                                        <div className="key-data">
+                                                                                            <div className="key-data__title--dark">
+                                                                                                Retrieved
+                                                                                                from
+                                                                                            </div>
+                                                                                            <div>
+                                                                                                <a
+                                                                                                    href={
+                                                                                                        source.sourceRetrievedFromUrl
+                                                                                                    }
+                                                                                                    target="_blank"
+                                                                                                    rel="noreferrer"
+                                                                                                >
+                                                                                                    {
+                                                                                                        source.sourceRetrievedFromUrl
+                                                                                                    }
+                                                                                                </a>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    )}
+                                                                                </div>
+                                                                            )}
+                                                                        </>
+                                                                    </>
+                                                                }
+                                                            />
+                                                        </div>
+                                                    )
+                                                }
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                                <div className="data-processing grid span-cols-12">
+                                    <h3 className="data-processing__heading span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+                                        How we process data at{" "}
+                                        <em>Our World in Data</em>
+                                    </h3>
+                                    <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+                                        <div className="data-processing__content">
+                                            <p className="data-processing__paragraph">
+                                                All data and visualizations on
+                                                Our World in Data rely on data
+                                                sourced from one or several
+                                                original data providers.
+                                                Preparing this original data
+                                                involves several processing
+                                                steps. Depending on the data,
+                                                this can include standardizing
+                                                country names and world region
+                                                definitions, converting units,
+                                                calculating derived indicators
+                                                such as per capita measures, as
+                                                well as adding or adapting
+                                                metadata such as the name or the
+                                                description given to an
+                                                indicator.
+                                            </p>
+                                            <p className="data-processing__paragraph">
+                                                At the link below you can find a
+                                                detailed description of the
+                                                structure of our data pipeline,
+                                                including links to all the code
+                                                used to prepare data across Our
+                                                World in Data.
+                                            </p>
+                                        </div>
+                                        <a
+                                            href="https://docs.owid.io/projects/etl/en/latest/"
+                                            target="_blank"
+                                            rel="nopener noreferrer"
+                                            className="data-processing__link"
+                                        >
+                                            Read about our data pipeline
+                                        </a>
+                                    </div>
+                                </div>
+                                {datapageGdocContent?.variableProcessingInfo && (
+                                    <div className="variable-processing-info col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+                                        <h5 className="variable-processing-info__header">
+                                            Notes on our processing step for
+                                            this indicator
+                                        </h5>
+                                        <div className="variable-processing-info__description">
+                                            <ArticleBlocks
+                                                blocks={
+                                                    datapageGdocContent.variableProcessingInfo
+                                                }
+                                                containerType="datapage"
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
