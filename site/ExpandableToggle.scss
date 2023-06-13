@@ -1,4 +1,4 @@
-.ExpandableAnimatedToggle {
+.ExpandableToggle {
     border-top: 1px solid #d0dae3;
     border-bottom: 1px solid #d0dae3;
     padding: 0 8px;
@@ -20,12 +20,12 @@
         @include h4-semibold;
         margin: 0;
     }
-    .ExpandableAnimatedToggle__icon {
+    .ExpandableToggle__icon {
         font-size: 0.75em;
         margin: 0 12px;
     }
 
-    .ExpandableAnimatedToggle__content {
+    .ExpandableToggle__content {
         height: 0;
         overflow: hidden;
         color: $blue-60;
@@ -35,7 +35,7 @@
         }
     }
 
-    .ExpandableAnimatedToggle__content--open {
+    .ExpandableToggle__content--open {
         padding-bottom: 16px;
         height: auto;
     }
@@ -48,6 +48,6 @@
     }
 }
 
-.ExpandableAnimatedToggle--stacked {
+.ExpandableToggle--stacked {
     border-bottom: none;
 }
