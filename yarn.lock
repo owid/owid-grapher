@@ -5131,6 +5131,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@stripe/stripe-js@npm:^1.54.0":
+  version: 1.54.0
+  resolution: "@stripe/stripe-js@npm:1.54.0"
+  checksum: b5108ac03e367212d584fe5fde2fe56909c968eb04f616fcfd983378bcd0903209e40fd37866cbea1337d231ac9291419d600b5146334c6bd49d3b6bb71a84f2
+  languageName: node
+  linkType: hard
+
 "@szmarczak/http-timer@npm:^4.0.5":
   version: 4.0.6
   resolution: "@szmarczak/http-timer@npm:4.0.6"
@@ -5960,7 +5967,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:>=8.1.0":
+"@types/node@npm:*":
   version: 16.11.39
   resolution: "@types/node@npm:16.11.39"
   checksum: bc97b9773ac6b3194800f990b349fad7f66c6126dacef59291b10a2c8b6813d6f67f947b7e12a6c9952790f7065d576fe38355b8fe034a6af60f317cfc570f69
@@ -13706,6 +13713,7 @@ __metadata:
     "@prettier/plugin-php": ^0.14.3
     "@react-awesome-query-builder/antd": ^6.1.1
     "@sinclair/typebox": ^0.28.5
+    "@stripe/stripe-js": ^1.54.0
     "@testing-library/jest-dom": ^5.16.5
     "@testing-library/react": ^12
     "@tippyjs/react": ^4.2.6
@@ -13870,7 +13878,6 @@ __metadata:
     smooth-scroll: ^16.1.0
     sql-fixtures: ^1.0.4
     string-pixel-width: ^1.10.0
-    stripe: ^8.38.0
     striptags: ^3.2.0
     svgo: ^3.0.2
     timezone-mock: ^1.0.18
@@ -20203,7 +20210,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"qs@npm:6.11.0, qs@npm:^6.4.0, qs@npm:^6.6.0, qs@npm:^6.7.0, qs@npm:^6.9.6":
+"qs@npm:6.11.0, qs@npm:^6.4.0, qs@npm:^6.7.0, qs@npm:^6.9.6":
   version: 6.11.0
   resolution: "qs@npm:6.11.0"
   dependencies:
@@ -23140,16 +23147,6 @@ __metadata:
   version: 2.0.0
   resolution: "strip-outer@npm:2.0.0"
   checksum: 14ef9fe861e59a5f1555f1860982ae4edce2edb4ed34ab1b37cb62a8ba2f7c3540cbca6c884eabe4006e6cd729ab5d708a631169dd5b66fda570836e7e3b6589
-  languageName: node
-  linkType: hard
-
-"stripe@npm:^8.38.0":
-  version: 8.43.0
-  resolution: "stripe@npm:8.43.0"
-  dependencies:
-    "@types/node": ">=8.1.0"
-    qs: ^6.6.0
-  checksum: 7dea3847978b53f84b1b55b505adad8387b69d5d198bbb73b379e5e5b8779a565399d8de772d6647b75045e4dc6b8d94cde5c775a60d58768b9a71f5884f4dae
   languageName: node
   linkType: hard
 

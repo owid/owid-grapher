@@ -150,7 +150,13 @@ export class DonateForm extends React.Component {
         })
         const session = await response.json()
         if (!response.ok) throw session
-        const result: { error: any } = await stripe.redirectToCheckout({
+
+        if (!stripe)
+            throw new Error(
+                "Could not connect to Stripe, our payment provider."
+            )
+
+        const result = await stripe?.redirectToCheckout({
             sessionId: session.id,
         })
         if (result.error) {
