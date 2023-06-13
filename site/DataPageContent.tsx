@@ -461,7 +461,13 @@ export const DataPageContent = ({
                                                                     <>
                                                                         {(source.sourceRetrievedOn ||
                                                                             source.sourceRetrievedFromUrl) && (
-                                                                            <div className="grid grid-cols-2">
+                                                                            <div
+                                                                                className="grid"
+                                                                                style={{
+                                                                                    gridTemplateColumns:
+                                                                                        "minmax(0,1fr) minmax(0,2fr)",
+                                                                                }}
+                                                                            >
                                                                                 {source.sourceRetrievedOn && (
                                                                                     <div className="key-data">
                                                                                         <div className="key-data__title--dark">
@@ -488,7 +494,6 @@ export const DataPageContent = ({
                                                                                                 }
                                                                                                 target="_blank"
                                                                                                 rel="noreferrer"
-                                                                                                className="key-data__link--light"
                                                                                             >
                                                                                                 {
                                                                                                     source.sourceRetrievedFromUrl
