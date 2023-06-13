@@ -170,11 +170,11 @@ export function extractRefs(text: string): {
         const match = rawRef.match(
             new RegExp(RefRegExp, "ims")
         ) as RegExpMatchArray
-        const contents = match[1]
+        const contentOrId = match[1]
 
         const id = isInlineRef
-            ? createHash("sha1").update(contents).digest("hex")
-            : contents
+            ? createHash("sha1").update(contentOrId).digest("hex")
+            : contentOrId
 
         refsByFirstAppearance.add(id)
         const index = [...refsByFirstAppearance].indexOf(id)
@@ -199,7 +199,7 @@ export function extractRefs(text: string): {
                 [.refs]
                 id: ${id}
                 [.+content]
-                ${contents}
+                ${contentOrId}
                 []
                 []
             `)
