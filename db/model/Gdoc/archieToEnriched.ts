@@ -1,4 +1,5 @@
 import { load } from "archieml"
+import { createHash } from "crypto"
 import {
     OwidGdocContent,
     TocHeadingWithTitleSupertitle,
@@ -19,6 +20,8 @@ import {
     ENDNOTES_ID,
     CITATION_ID,
     LICENSE_ID,
+    RefDictionary,
+    merge,
 } from "@ourworldindata/utils"
 import { parseRawBlocksToEnrichedBlocks, parseRefs } from "./rawToEnriched.js"
 import urlSlug from "url-slug"
@@ -142,30 +145,37 @@ function formatCitation(
     return citationArray.map(htmlToSimpleTextBlock)
 }
 
-// Match all curly bracket {ref}some_id{/ref} syntax in the text
-// Record the index of the FIRST reference to each ID
-// so that IDs can be referenced multiple times but will all use the same footnote number
+// Match all curly bracket {ref}some_id{/ref} and {ref}I am an inline ref{/ref} syntax in the text
+// Iterate through them
+// If it's an inline ref, hash its contents to use as an ID and parse it
+// Record the index of the FIRST reference to each ID so that IDs can be referenced multiple times but use the same footnote number
 // Replace the curly bracket syntax with <a> tags which htmlToSpans will convert later
 export function extractRefs(text: string): {
     extractedText: string
     refsByFirstAppearance: Set<string>
+    parsedInlineRefs: RefDictionary
 } {
     let extractedText = text
     const RefRegExp = "{ref}(.*?){/ref}"
+
     const refsByFirstAppearance = new Set<string>()
-    const rawRefStrings: string[] =
-        text.match(new RegExp(RefRegExp, "gims")) ?? []
+    let parsedInlineRefs: RefDictionary = {}
+    const rawRefStrings = text.match(new RegExp(RefRegExp, "gims")) || []
+
     for (const rawRef of rawRefStrings) {
-        // Transitional code for published articles with old-style refs
-        // Strip them out of the text till we can republish the article with the new style
-        // Remove this block once the transition is done
-        if (rawRef.includes(" ")) {
-            extractedText = extractedText.replace(rawRef, ``)
-            continue
-        }
+        const isInlineRef = rawRef.includes(" ")
+
         // This will always exist as it's the same as the RegExp from above
-        const match = rawRef.match(new RegExp(RefRegExp)) as RegExpMatchArray
-        const id = match[1]
+        // minus the g flag (so that we can extract groups)
+        const match = rawRef.match(
+            new RegExp(RefRegExp, "ims")
+        ) as RegExpMatchArray
+        const contents = match[1]
+
+        const id = isInlineRef
+            ? createHash("sha1").update(contents).digest("hex")
+            : contents
+
         refsByFirstAppearance.add(id)
         const index = [...refsByFirstAppearance].indexOf(id)
         const footnoteNumber = index + 1
@@ -183,13 +193,31 @@ export function extractRefs(text: string): {
             rawRef,
             `<a class="ref" href="#note-${footnoteNumber}"><sup>${footnoteNumber}</sup></a>`
         )
+
+        if (isInlineRef) {
+            const { refs } = load(`
+                [.refs]
+                id: ${id}
+                [.+content]
+                ${contents}
+                []
+                []
+            `)
+            const parsedInlineRef = parseRefs({
+                refs,
+                refsByFirstAppearance,
+                isInline: true,
+            })
+            parsedInlineRefs = merge(parsedInlineRefs, parsedInlineRef)
+        }
     }
 
-    return { extractedText, refsByFirstAppearance }
+    return { extractedText, refsByFirstAppearance, parsedInlineRefs }
 }
 
 export const archieToEnriched = (text: string): OwidGdocContent => {
-    const { extractedText, refsByFirstAppearance } = extractRefs(text)
+    const { extractedText, refsByFirstAppearance, parsedInlineRefs } =
+        extractRefs(text)
     text = extractedText
 
     // Replace whitespace-only inside links. We need to keep the WS around, they
@@ -213,7 +241,8 @@ export const archieToEnriched = (text: string): OwidGdocContent => {
 
     parsed.toc = generateToc(parsed.body)
 
-    parsed.refs = parseRefs(parsed.refs, refsByFirstAppearance)
+    const parsedRefs = parseRefs({ refs: parsed.refs, refsByFirstAppearance })
+    parsed.refs = merge(parsedRefs, parsedInlineRefs)
 
     parsed.summary = parsed.summary?.map((html: RawBlockText) =>
         htmlToEnrichedTextBlock(html.value)

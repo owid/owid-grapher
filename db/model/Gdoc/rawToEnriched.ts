@@ -1343,10 +1343,15 @@ function parseResearchAndWritingBlock(
     }
 }
 
-export function parseRefs(
-    refs: unknown,
+export function parseRefs({
+    refs,
+    refsByFirstAppearance,
+    isInline = false,
+}: {
+    refs: unknown
     refsByFirstAppearance: Set<string>
-): { definitions: RefDictionary; errors: OwidGdocErrorMessage[] } {
+    isInline?: boolean
+}): { definitions: RefDictionary; errors: OwidGdocErrorMessage[] } {
     const parsedRefs: RefDictionary = {}
     const refErrors: OwidGdocErrorMessage[] = []
 
@@ -1408,17 +1413,19 @@ export function parseRefs(
         }
     }
 
-    refErrors.push(
-        ...[...refsByFirstAppearance]
-            .filter((ref) => !parsedRefs[ref])
-            .map(
-                (undefinedRef): OwidGdocErrorMessage => ({
-                    message: `"${undefinedRef}" is used as a ref ID but no definition for this ref has been written.`,
-                    property: "refs",
-                    type: OwidGdocErrorMessageType.Error,
-                })
-            )
-    )
+    if (!isInline) {
+        refErrors.push(
+            ...[...refsByFirstAppearance]
+                .filter((ref) => !parsedRefs[ref])
+                .map(
+                    (undefinedRef): OwidGdocErrorMessage => ({
+                        message: `"${undefinedRef}" is used as a ref ID but no definition for this ref has been written.`,
+                        property: "refs",
+                        type: OwidGdocErrorMessageType.Error,
+                    })
+                )
+        )
+    }
 
     return { definitions: parsedRefs, errors: refErrors }
 }
