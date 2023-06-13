@@ -338,12 +338,6 @@
         margin: 0 0 16px;
     }
 
-    .data-source-item + .data-source-item {
-        .ExpandableAnimatedToggle {
-            border-top: 0;
-        }
-    }
-
     .data-processing__link {
         @include expandable-paragraph__expand-button--full;
     }

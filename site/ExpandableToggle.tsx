@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import React, { useState } from "react"
 import cx from "classnames"
 
-export const ExpandableAnimatedToggle = ({
+export const ExpandableToggle = ({
     label,
     content,
     isExpandedDefault = false,
@@ -23,20 +23,20 @@ export const ExpandableAnimatedToggle = ({
 
     return (
         <div
-            className={cx("ExpandableAnimatedToggle", {
-                "ExpandableAnimatedToggle--stacked": isStacked,
+            className={cx("ExpandableToggle", {
+                "ExpandableToggle--stacked": isStacked,
             })}
         >
             <button onClick={toggle}>
                 <h4>{label}</h4>
                 <FontAwesomeIcon
-                    className="ExpandableAnimatedToggle__icon"
+                    className="ExpandableToggle__icon"
                     icon={!isOpen ? faPlus : faMinus}
                 />
             </button>
             <div
-                className={cx("ExpandableAnimatedToggle__content", {
-                    "ExpandableAnimatedToggle__content--open": isOpen,
+                className={cx("ExpandableToggle__content", {
+                    "ExpandableToggle__content--open": isOpen,
                 })}
             >
                 {content}
