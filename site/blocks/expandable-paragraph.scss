@@ -1,15 +1,3 @@
-.expandable-paragraph__gradient-wrapper {
-    position: relative;
-    width: 100%;
-    overflow: hidden;
-}
-
-.expandable-paragraph__gradient {
-    height: inherit; // defined in JS for the wrapper
-    // The timing of this transition should be identical to the one in the JS
-    transition: all 0.25s ease-in-out;
-}
-
 .expandable-paragraph__content {
     margin-bottom: 24px;
 }
