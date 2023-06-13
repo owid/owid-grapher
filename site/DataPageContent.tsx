@@ -424,7 +424,7 @@ export const DataPageContent = ({
                                     </h3>
                                     <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
                                         {datapageJson.sources.map(
-                                            (source, idx: number) => {
+                                            (source, idx: number, sources) => {
                                                 const sourceDescriptionGdocContent =
                                                     datapageGdocContent?.[
                                                         `sourceDescription${
@@ -442,6 +442,11 @@ export const DataPageContent = ({
                                                             }
                                                             isExpandedDefault={
                                                                 idx === 0
+                                                            }
+                                                            isStacked={
+                                                                idx !==
+                                                                sources.length -
+                                                                    1
                                                             }
                                                             content={
                                                                 <>
