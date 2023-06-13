@@ -219,6 +219,10 @@
     .related-data-item--medium {
         padding: 24px;
         background-color: $blue-10;
+        transition: background-color 0.1s;
+        &:hover {
+            background-color: $blue-20;
+        }
         .related-data-item__title {
             @include h3-bold;
             margin: 0;
@@ -232,6 +236,11 @@
             margin: 0;
             color: $blue-90;
         }
+
+        &:hover .related-data-item__title {
+            text-decoration: underline;
+        }
+
         .related-data-item__source {
             @include body-3-medium;
             color: $blue-60;
