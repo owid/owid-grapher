@@ -205,33 +205,33 @@ export class ColorScale {
             autoCenterBinIndex,
         } = this
 
-        const numColors = bucketMaximums.length + categoricalValues.length
-        const centerOffset =
-            centerBinIndex != undefined
-                ? centerBinIndex - autoCenterBinIndex
-                : 0
-
-        if (centerOffset === 0) {
-            const colors = colorScheme.getColors(numColors)
-            if (isColorSchemeInverted) reverse(colors)
-            return colors
-        } else {
-            // if a custom center value is given, we want to make sure that all bins
-            // to the left of the center bin have one hue, and all bins to the right
-            // of the center bin have another hue (only makes sense for diverging schemes).
-            // to so do, we request more colors than we need, and then shift colors to
-            // the left or to the right, thereby dropping colors at the start or at the end
-
+        // if a custom center value is given, we want to make sure that all bins
+        // to the left of the center bin have one hue, and all bins to the right
+        // of the center bin have another hue (only makes sense for diverging schemes).
+        // to so do, we request more colors than we need, and then shift colors to
+        // the left or to the right
+        if (colorScheme.isDiverging && centerBinIndex !== undefined) {
+            const centerOffset = centerBinIndex - autoCenterBinIndex
             const absCenterOffset = Math.abs(centerOffset)
-            const colors = colorScheme.getColors(
-                numColors + absCenterOffset * 2,
+            let colors = colorScheme.getGradientColors(
+                bucketMaximums.length + absCenterOffset * 2,
                 { excludeMiddleColorForDivergingSchemes: true }
             )
             if (isColorSchemeInverted) reverse(colors)
-            return centerOffset < 0
-                ? colors.slice(absCenterOffset * 2) // drop colors at the start
-                : colors.slice(0, colors.length - absCenterOffset * 2) // drop colors at the end
+            colors =
+                centerOffset < 0
+                    ? colors.slice(absCenterOffset * 2) // drop colors at the start
+                    : colors.slice(0, colors.length - absCenterOffset * 2) // drop colors at the end
+            if (categoricalValues.length) {
+                colors.push(...colorScheme.getColors(categoricalValues.length))
+            }
+            return colors
         }
+
+        const numColors = bucketMaximums.length + categoricalValues.length
+        const colors = colorScheme.getColors(numColors)
+        if (isColorSchemeInverted) reverse(colors)
+        return colors
     }
 
     @computed get autoCenterBinValue(): number {

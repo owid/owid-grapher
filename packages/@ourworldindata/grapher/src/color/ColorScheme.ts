@@ -27,35 +27,24 @@ export class ColorScheme implements ColorSchemeInterface {
 
     improviseGradientFromShorter(
         shortColors: Color[],
-        numColors: number
+        numColors: number,
+        insertionMode: "end" | "alternate" = "end"
     ): Color[] {
         const newColors = clone(shortColors)
 
         while (newColors.length < numColors) {
-            for (let index = newColors.length - 1; index > 0; index -= 1) {
-                insertInterpolatedColor(newColors, index)
-                if (newColors.length >= numColors) break
-            }
-        }
-
-        return newColors
-    }
-
-    improviseSymmetricalGradientFromShorter(
-        shortColors: Color[],
-        numColors: number
-    ): Color[] {
-        const newColors = clone(shortColors)
-
-        while (newColors.length < numColors) {
-            for (let index = 0; index < newColors.length; index += 2) {
-                // insert new color at the end
-                insertInterpolatedColor(newColors, newColors.length - 1 - index)
-                if (newColors.length >= numColors) break
-
-                // insert new color at the start
-                insertInterpolatedColor(newColors, index + 1)
-                if (newColors.length >= numColors) break
+            for (let index = 0; index < newColors.length - 1; index += 2) {
+                if (insertionMode === "end" || insertionMode === "alternate") {
+                    insertInterpolatedColor(
+                        newColors,
+                        newColors.length - 1 - index
+                    )
+                    if (newColors.length >= numColors) break
+                }
+                if (insertionMode === "alternate") {
+                    insertInterpolatedColor(newColors, index + 1)
+                    if (newColors.length >= numColors) break
+                }
             }
         }
 
@@ -66,8 +55,10 @@ export class ColorScheme implements ColorSchemeInterface {
         knownColors: Color[],
         numColors: number
     ): Color[] {
-        // for the special case that exactly two colors are requested, we simply return the first and the last
-        if (numColors === 2) return [first(knownColors)!, last(knownColors)!]
+        // for the special case that exactly two colors of a diverging scheme are requested,
+        // we return the two most extreme colors (the first and the last)
+        if (this.isDiverging && numColors === 2)
+            return [first(knownColors)!, last(knownColors)!]
 
         const newColors = []
         const scale = interpolateArray(knownColors)
@@ -100,11 +91,15 @@ export class ColorScheme implements ColorSchemeInterface {
             .reverse()
             .find((set) => set && set.length < numColors)
         if (prevColors) {
-            const improviseGradientFromShorter =
+            const insertionMode =
                 isDiverging && excludeMiddleColorForDivergingSchemes
-                    ? this.improviseSymmetricalGradientFromShorter
-                    : this.improviseGradientFromShorter
-            return improviseGradientFromShorter(prevColors, numColors)
+                    ? "alternate"
+                    : "end"
+            return this.improviseGradientFromShorter(
+                prevColors,
+                numColors,
+                insertionMode
+            )
         } else
             return this.improviseGradientFromLonger(
                 colorSets.find((set) => !!set) as Color[],
@@ -135,15 +130,10 @@ export class ColorScheme implements ColorSchemeInterface {
         return []
     }
 
-    getColors(
-        numColors: number,
-        options: { excludeMiddleColorForDivergingSchemes?: boolean } = {
-            excludeMiddleColorForDivergingSchemes: false,
-        }
-    ): Color[] {
+    getColors(numColors: number): Color[] {
         return this.isDistinct
             ? this.getDistinctColors(numColors)
-            : this.getGradientColors(numColors, options)
+            : this.getGradientColors(numColors)
     }
 
     getUniqValueColorMap(
