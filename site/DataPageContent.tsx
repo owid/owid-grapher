@@ -2,7 +2,7 @@ import React, { useEffect } from "react"
 import { faArrowDown } from "@fortawesome/free-solid-svg-icons/faArrowDown"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { Grapher, GrapherInterface } from "@ourworldindata/grapher"
-import { ExpandableAnimatedToggle } from "./ExpandableAnimatedToggle.js"
+import { ExpandableToggle } from "./ExpandableToggle.js"
 import ReactDOM from "react-dom"
 import { GrapherWithFallback } from "./GrapherWithFallback.js"
 import { formatAuthors } from "./clientFormatting.js"
@@ -177,7 +177,7 @@ export const DataPageContent = ({
                                 )}
                                 {datapageJson.descriptionFromSource?.title &&
                                     datapageGdocContent?.descriptionFromSource && (
-                                        <ExpandableAnimatedToggle
+                                        <ExpandableToggle
                                             label={
                                                 datapageJson
                                                     .descriptionFromSource.title
@@ -436,7 +436,7 @@ export const DataPageContent = ({
                                                         className="data-sources__source-item"
                                                         key={source.sourceName}
                                                     >
-                                                        <ExpandableAnimatedToggle
+                                                        <ExpandableToggle
                                                             label={
                                                                 source.sourceName
                                                             }
