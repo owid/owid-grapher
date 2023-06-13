@@ -25,13 +25,19 @@
         margin: 0 12px;
     }
 
-    .content-wrapper {
-        padding-bottom: 16px;
+    .ExpandableAnimatedToggle__content {
+        height: 0;
+        overflow: hidden;
         color: $blue-60;
 
         > *:last-child {
             margin-bottom: 0;
         }
+    }
+
+    .ExpandableAnimatedToggle__content--open {
+        padding-bottom: 16px;
+        height: auto;
     }
 
     .article-block__text,
