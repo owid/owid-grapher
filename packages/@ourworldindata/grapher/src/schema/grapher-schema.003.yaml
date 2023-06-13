@@ -103,6 +103,30 @@ $defs:
                     - stackedAreaDefault
                     - owid-distinct
                     - default
+                    - ContinentsLines
+                    - SingleColorDenim
+                    - SingleColorTeal
+                    - SingleColorPurple
+                    - SingleColorDustyCoral
+                    - SingleColorDarkCopper
+                    - OwidCategoricalA
+                    - OwidCategoricalB
+                    - OwidCategoricalC
+                    - OwidCategoricalD
+                    - OwidCategoricalE
+                    - OwidEnergy
+                    - OwidEnergyLines
+                    - OwidDistinctLines
+                    - BinaryMapPaletteA
+                    - BinaryMapPaletteB
+                    - BinaryMapPaletteC
+                    - BinaryMapPaletteD
+                    - BinaryMapPaletteE
+                    - SingleColorGradientDenim
+                    - SingleColorGradientTeal
+                    - SingleColorGradientPurple
+                    - SingleColorGradientDustyCoral
+                    - SingleColorGradientDarkCopper
             equalSizeBins:
                 type: boolean
                 default: true
