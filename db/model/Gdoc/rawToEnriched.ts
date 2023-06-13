@@ -857,27 +857,7 @@ const parseSdgGrid = (raw: RawBlockSDGGrid): EnrichedBlockSDGGrid => {
 function parseStickyRight(
     raw: RawBlockStickyRightContainer
 ): EnrichedBlockStickyRightContainer {
-    const createError = (
-        error: ParseError,
-        left: OwidEnrichedGdocBlock[] = [],
-        right: OwidEnrichedGdocBlock[] = []
-    ): EnrichedBlockStickyRightContainer => ({
-        type: "sticky-right",
-        left,
-        right,
-        parseErrors: [error],
-    })
-    const { left, right } = raw.value
-    if (
-        left === undefined ||
-        right === undefined ||
-        !left.length ||
-        !right.length
-    ) {
-        return createError({
-            message: "Empty column in the sticky right container",
-        })
-    }
+    const { left = [], right = [] } = raw.value
     const enrichedLeft = compact(left.map(parseRawBlocksToEnrichedBlocks))
     const enrichedRight = compact(right.map(parseRawBlocksToEnrichedBlocks))
     return {
@@ -891,27 +871,7 @@ function parseStickyRight(
 function parseStickyLeft(
     raw: RawBlockStickyLeftContainer
 ): EnrichedBlockStickyLeftContainer {
-    const createError = (
-        error: ParseError,
-        left: OwidEnrichedGdocBlock[] = [],
-        right: OwidEnrichedGdocBlock[] = []
-    ): EnrichedBlockStickyLeftContainer => ({
-        type: "sticky-left",
-        left,
-        right,
-        parseErrors: [error],
-    })
-    const { left, right } = raw.value
-    if (
-        left === undefined ||
-        right === undefined ||
-        !left.length ||
-        !right.length
-    ) {
-        return createError({
-            message: "Empty column in the sticky left container",
-        })
-    }
+    const { left = [], right = [] } = raw.value
     const enrichedLeft = compact(left.map(parseRawBlocksToEnrichedBlocks))
     const enrichedRight = compact(right.map(parseRawBlocksToEnrichedBlocks))
     return {
@@ -925,27 +885,7 @@ function parseStickyLeft(
 function parseSideBySide(
     raw: RawBlockSideBySideContainer
 ): EnrichedBlockSideBySideContainer {
-    const createError = (
-        error: ParseError,
-        left: OwidEnrichedGdocBlock[] = [],
-        right: OwidEnrichedGdocBlock[] = []
-    ): EnrichedBlockSideBySideContainer => ({
-        type: "side-by-side",
-        left,
-        right,
-        parseErrors: [error],
-    })
-    const { left, right } = raw.value
-    if (
-        left === undefined ||
-        right === undefined ||
-        !left.length ||
-        !right.length
-    ) {
-        return createError({
-            message: "Empty column in the side-by-side container",
-        })
-    }
+    const { left = [], right = [] } = raw.value
     const enrichedLeft = compact(left.map(parseRawBlocksToEnrichedBlocks))
     const enrichedRight = compact(right.map(parseRawBlocksToEnrichedBlocks))
     return {

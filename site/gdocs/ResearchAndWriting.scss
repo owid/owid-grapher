@@ -53,6 +53,9 @@
         .research-and-writing-link {
             // distributes 1280px between 4 tiles + 3 column gaps
             min-width: calc((1280px - calc(3 * var(--grid-gap))) / 4);
+            h3 {
+                font-size: 1.125rem;
+            }
         }
     }
 }
