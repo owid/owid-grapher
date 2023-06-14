@@ -1,6 +1,7 @@
 .wp-code-snippet {
     position: relative;
     margin-bottom: 32px;
+    font-size: 12px;
 
     pre {
         background-color: $gray-10;
@@ -50,5 +51,11 @@
             opacity: 1;
             transition: none;
         }
+    }
+}
+
+.wp-code-snippet--light {
+    pre {
+        background-color: $white;
     }
 }
