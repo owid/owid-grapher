@@ -88,16 +88,8 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
         return errorMessages
     }
 
-    @computed get showChangeInPrefixToggle() {
-        const { grapher } = this.props.editor
-        return (
-            grapher.isLineChart &&
-            (grapher.isRelativeMode || grapher.canToggleRelativeMode)
-        )
-    }
-
     render() {
-        const { grapher, references } = this.props.editor
+        const { grapher, references, features } = this.props.editor
         const { relatedQuestions } = grapher
 
         return (
@@ -109,17 +101,32 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                         auto={grapher.displayTitle}
                         softCharacterLimit={100}
                     />
-                    <Toggle
-                        label="Hide automatic entity (where possible)"
-                        value={!!grapher.hideAnnotationFieldsInTitle?.entity}
-                        onValue={this.onToggleTitleAnnotationEntity}
-                    />
-                    <Toggle
-                        label="Hide automatic time (where possible)"
-                        value={!!grapher.hideAnnotationFieldsInTitle?.time}
-                        onValue={this.onToggleTitleAnnotationTime}
-                    />
-                    {this.showChangeInPrefixToggle && (
+                    {features.showEntityAnnotationInTitleToggle && (
+                        <Toggle
+                            label="Hide automatic entity"
+                            secondaryLabel={
+                                "Toggling to hide the entity only has an effect if there is an entity to be hidden."
+                            }
+                            value={
+                                !!grapher.hideAnnotationFieldsInTitle?.entity
+                            }
+                            onValue={this.onToggleTitleAnnotationEntity}
+                        />
+                    )}
+                    {features.showTimeAnnotationInTitleToggle && (
+                        <Toggle
+                            label="Hide automatic time"
+                            secondaryLabel={
+                                "Grapher ignores this toggle if hiding the time would cause " +
+                                "crucial information to be missing from the chart title. " +
+                                "This is the case for multi-year maps, discrete bar charts, and " +
+                                "Marimekko charts."
+                            }
+                            value={!!grapher.hideAnnotationFieldsInTitle?.time}
+                            onValue={this.onToggleTitleAnnotationTime}
+                        />
+                    )}
+                    {features.showChangeInPrefixToggle && (
                         <Toggle
                             label="Don't prepend 'Change in' in relative line charts"
                             value={
@@ -129,7 +136,9 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                             onValue={this.onToggleTitleAnnotationChangeInPrefix}
                         />
                     )}
-                    <hr />
+                    {(features.showEntityAnnotationInTitleToggle ||
+                        features.showTimeAnnotationInTitleToggle ||
+                        features.showChangeInPrefixToggle) && <hr />}
                     <AutoTextField
                         label="/grapher"
                         value={grapher.displaySlug}
