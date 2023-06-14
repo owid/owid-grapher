@@ -70,18 +70,17 @@ export class ColorScheme implements ColorSchemeInterface {
 
     getGradientColors(
         numColors: number,
-        { excludeMiddleColorForDivergingSchemes = false } = {}
+        { balanced = false } = {}
     ): Color[] {
-        const { colorSets, isDiverging } = this
-
+        const { colorSets } = this
         if (colorSets[numColors]) return clone(colorSets[numColors])
-
         let colorSetsCopy = clone(colorSets)
-        // for diverging color schemes, the color sets with an odd number of colors
+
+        // for diverging color schemes, color sets with an odd number of colors
         // include a middle color (e.g. white in the case of the Red-Blue scheme) while
-        // the color sets with an even number of colors do not. to ensure that the middle
-        // color is not included, we improvise from a set with an even number of colors
-        if (isDiverging && excludeMiddleColorForDivergingSchemes) {
+        // color sets with an even number of colors do not. improvising from a set with
+        // an even number of colors ensures that the middle color is not included
+        if (balanced) {
             colorSetsCopy = colorSetsCopy.filter(
                 (set) => set && set.length % 2 === 0
             )
@@ -90,17 +89,13 @@ export class ColorScheme implements ColorSchemeInterface {
         const prevColors = colorSetsCopy
             .reverse()
             .find((set) => set && set.length < numColors)
-        if (prevColors) {
-            const insertionMode =
-                isDiverging && excludeMiddleColorForDivergingSchemes
-                    ? "alternate"
-                    : "end"
+        if (prevColors)
             return this.improviseGradientFromShorter(
                 prevColors,
                 numColors,
-                insertionMode
+                balanced ? "alternate" : "end"
             )
-        } else
+        else
             return this.improviseGradientFromLonger(
                 colorSets.find((set) => !!set) as Color[],
                 numColors

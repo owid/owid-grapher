@@ -4,6 +4,8 @@ import { CoreTable, ErrorValueTypes } from "@ourworldindata/core-table"
 import { BinningStrategy } from "./BinningStrategy"
 import { ColorScale } from "./ColorScale"
 import { ColorScaleConfigInterface } from "./ColorScaleConfig"
+import { ColorSchemeName } from "./ColorConstants"
+import { NumericBin } from "./ColorScaleBin"
 
 const createColorScaleFromTable = (
     colorValuePairs: { value: number; color?: string }[],
@@ -125,6 +127,53 @@ describe(ColorScale, () => {
 
                 expect(scale.sortedNumericValuesWithoutOutliers).toEqual([1])
             })
+        })
+    })
+
+    describe("divergent color scale with custom center value", () => {
+        const colorScaleConfig: ColorScaleConfigInterface = {
+            binningStrategy: BinningStrategy.equalInterval,
+            baseColorScheme: ColorSchemeName.RdBu,
+            binningStrategyBinCount: 5,
+            customNumericCenterValue: 1,
+            customNumericValues: [],
+            customNumericLabels: [],
+            customNumericColorsActive: false,
+            customNumericColors: [],
+            customCategoryColors: {},
+            customCategoryLabels: {},
+            customHiddenCategories: {},
+            equalSizeBins: true,
+        }
+        const colorValuePairs = [
+            { value: -10 },
+            { value: 1.1 },
+            { value: 2.1 },
+            { value: 15 },
+        ]
+        const scale = createColorScaleFromTable(
+            colorValuePairs,
+            colorScaleConfig
+        )
+
+        it("returns an even number of bins", () => {
+            expect(scale.legendBins.length).toEqual(6) // the suggested bin count is 5
+        })
+        it("renders the custom center value as label", () => {
+            const centerBin = scale.legendBins[2] as NumericBin
+            expect(centerBin.max).toEqual(1)
+        })
+        it("returns correct bin indices", () => {
+            const bins = scale.legendBins
+            expect(scale.getBinForValue(-100)).toBeUndefined() // doesn't belong in any bin
+            expect(scale.getBinForValue(-10)).toEqual(bins[0])
+            expect(scale.getBinForValue(0)).toEqual(bins[2])
+            expect(scale.getBinForValue(0.9)).toEqual(bins[2])
+            expect(scale.getBinForValue(1)).toEqual(bins[2])
+            expect(scale.getBinForValue(1.1)).toEqual(bins[3])
+            expect(scale.getBinForValue(2)).toEqual(bins[3])
+            expect(scale.getBinForValue(3)).toEqual(bins[3])
+            expect(scale.getBinForValue(15)).toEqual(bins[5])
         })
     })
 

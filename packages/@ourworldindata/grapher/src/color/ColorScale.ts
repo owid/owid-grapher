@@ -215,7 +215,7 @@ export class ColorScale {
             const absCenterOffset = Math.abs(centerOffset)
             let colors = colorScheme.getGradientColors(
                 bucketMaximums.length + absCenterOffset * 2,
-                { excludeMiddleColorForDivergingSchemes: true }
+                { balanced: true }
             )
             if (isColorSchemeInverted) reverse(colors)
             colors =

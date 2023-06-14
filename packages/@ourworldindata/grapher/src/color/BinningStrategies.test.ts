@@ -123,6 +123,36 @@ describe("equalInterval strategy", () => {
         ).toEqual([200, 300])
     })
 
+    it("returns an even number of bins if centerBinValue is specified", () => {
+        expect(
+            getBinMaximums({
+                binningStrategy: BinningStrategy.equalInterval,
+                sortedValues: [48, 48.5, 50.1, 50.2, 51.9, 53],
+                binCount: 3,
+                centerBinValue: 50,
+            }).length
+        ).toEqual(4)
+    })
+
+    it("includes centerBinValue if specified", () => {
+        const sortedValues = [42, 48.5, 50.1, 50.2, 51.9, 52]
+        expect(
+            getBinMaximums({
+                binningStrategy: BinningStrategy.equalInterval,
+                sortedValues,
+                binCount: 4,
+            })
+        ).toEqual([45, 48, 51, 54])
+        expect(
+            getBinMaximums({
+                binningStrategy: BinningStrategy.equalInterval,
+                sortedValues,
+                binCount: 4,
+                centerBinValue: 50,
+            })
+        ).toEqual([44, 47, 50, 53])
+    })
+
     it("handles example", () => {
         expect(
             getBinMaximums({
