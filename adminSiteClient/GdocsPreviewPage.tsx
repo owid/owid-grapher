@@ -18,6 +18,7 @@ import {
     OwidGdocJSON,
     OwidGdocErrorMessage,
     OwidGdocErrorMessageType,
+    slugify,
 } from "@ourworldindata/utils"
 import { Button, Col, Drawer, Row, Space, Tag, Typography } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -167,9 +168,11 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
         cancelAllRequests()
         // set to today if not specified
         const publishedAt = currentGdoc.publishedAt ?? new Date()
+        const slug = currentGdoc.slug ?? slugify(`${currentGdoc.content.title}`)
         const publishedGdoc = await store.publish({
             ...currentGdoc,
             publishedAt,
+            slug,
         })
         setGdoc({ original: publishedGdoc, current: publishedGdoc })
         openSuccessNotification()
