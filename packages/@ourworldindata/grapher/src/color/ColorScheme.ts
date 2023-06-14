@@ -68,10 +68,7 @@ export class ColorScheme implements ColorSchemeInterface {
         return newColors
     }
 
-    getGradientColors(
-        numColors: number,
-        { balanced = false } = {}
-    ): Color[] {
+    getGradientColors(numColors: number, { balanced = false } = {}): Color[] {
         const { colorSets } = this
         if (colorSets[numColors]) return clone(colorSets[numColors])
         let colorSetsCopy = clone(colorSets)

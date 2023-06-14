@@ -58,17 +58,15 @@ describe("diverging color scheme", () => {
     )
 
     it("can generate more colors while maintaining a balance between the two colors of diverging schemes", () => {
-        expect(colorScheme.getGradientColors(8, { balanced: true })).toEqual(
-            [
-                colorSet6[0],
-                "rgb(209, 81, 71)",
-                colorSet6[1],
-                colorSet6[2],
-                colorSet6[3],
-                colorSet6[4],
-                "rgb(68, 136, 190)",
-                colorSet6[5],
-            ]
-        )
+        expect(colorScheme.getGradientColors(8, { balanced: true })).toEqual([
+            colorSet6[0],
+            "rgb(209, 81, 71)",
+            colorSet6[1],
+            colorSet6[2],
+            colorSet6[3],
+            colorSet6[4],
+            "rgb(68, 136, 190)",
+            colorSet6[5],
+        ])
     })
 })
