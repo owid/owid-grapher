@@ -146,7 +146,7 @@ export class ExplorerControlPanel extends React.Component<{
                         value={currentValue}
                         data-track-note={`${
                             explorerSlug ?? "explorer"
-                        }-click-${title.toLowerCase()}`}
+                        }_click_${title.toLowerCase()}`}
                     />{" "}
                     {label}
                 </label>

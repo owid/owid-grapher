@@ -290,8 +290,8 @@ export class TimelineComponent extends React.Component<{
                         className="play"
                         data-track-note={
                             manager.isPlaying
-                                ? "timeline-pause"
-                                : "timeline-play"
+                                ? "timeline_pause"
+                                : "timeline_play"
                         }
                     >
                         {manager.isPlaying ? (

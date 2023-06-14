@@ -34,7 +34,7 @@ export const NewsletterSubscription = ({
                         <button
                             aria-label={closeText}
                             className="close"
-                            data-track-note="dialog-close-newsletter"
+                            data-track-note="dialog_close_newsletter"
                             onClick={() => {
                                 setIsOpen(false)
                             }}
@@ -49,7 +49,7 @@ export const NewsletterSubscription = ({
             <button
                 aria-label={subscribeText}
                 className="prompt"
-                data-track-note="dialog-open-newsletter"
+                data-track-note="dialog_open_newsletter"
                 onClick={() => {
                     setIsOpen(!isOpen)
                 }}

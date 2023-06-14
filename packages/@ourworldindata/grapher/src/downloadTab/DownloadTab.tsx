@@ -258,7 +258,7 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
                         <button
                             className="grouped-menu-item"
                             onClick={this.onPngDownload}
-                            data-track-note="chart-download-png"
+                            data-track-note="chart_download_png"
                         >
                             <div className="grouped-menu-icon">
                                 <img src={pngPreviewUrl} style={imgStyle} />
@@ -280,7 +280,7 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
                         <button
                             className="grouped-menu-item"
                             onClick={this.onSvgDownload}
-                            data-track-note="chart-download-svg"
+                            data-track-note="chart_download_svg"
                         >
                             <div className="grouped-menu-icon">
                                 <img src={svgPreviewUrl} style={imgStyle} />
@@ -367,7 +367,7 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
                             <button
                                 className="grouped-menu-item"
                                 onClick={this.onCsvDownload}
-                                data-track-note="chart-download-csv"
+                                data-track-note="chart_download_csv"
                             >
                                 <div className="grouped-menu-content">
                                     <h3 className="title">

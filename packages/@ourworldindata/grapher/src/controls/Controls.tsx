@@ -48,7 +48,7 @@ export class NoDataAreaToggle extends React.Component<{
                     type="checkbox"
                     checked={this.manager.showNoDataArea}
                     onChange={this.onToggle}
-                    data-track-note="chart-no-data-area-toggle"
+                    data-track-note="chart_no_data_area_toggle"
                 />{" "}
                 &nbsp;{label}
             </label>
@@ -86,7 +86,7 @@ export class AbsRelToggle extends React.Component<{
                     type="checkbox"
                     checked={this.isRelativeMode}
                     onChange={this.onToggle}
-                    data-track-note="chart-abs-rel-toggle"
+                    data-track-note="chart_abs_rel_toggle"
                 />{" "}
                 &nbsp;{label}
             </label>
@@ -121,7 +121,7 @@ export class FacetYDomainToggle extends React.Component<{
                     type="checkbox"
                     checked={this.isYDomainShared}
                     onChange={this.onToggle}
-                    data-track-note="chart-facet-ydomain-toggle"
+                    data-track-note="chart_facet_ydomain_toggle"
                 />{" "}
                 &nbsp;Align axis scales
             </label>
@@ -151,7 +151,7 @@ export class ZoomToggle extends React.Component<{
                     type="checkbox"
                     checked={this.props.manager.zoomToSelection}
                     onChange={this.onToggle}
-                    data-track-note="chart-zoom-to-selection"
+                    data-track-note="chart_zoom_to_selection"
                 />{" "}
                 {label}
             </label>
@@ -320,7 +320,7 @@ export class FooterControls extends React.Component<{
                                     onClick={(): void => {
                                         manager.currentTab = tabName
                                     }}
-                                    data-track-note={"chart-click-" + tabName}
+                                    data-track-note={"chart_click_" + tabName}
                                 >
                                     {tabName}
                                 </a>
@@ -339,7 +339,7 @@ export class FooterControls extends React.Component<{
                             title="Download as .png or .svg"
                         >
                             <a
-                                data-track-note="chart-click-download"
+                                data-track-note="chart_click_download"
                                 onClick={(): GrapherTabOption =>
                                     (manager.currentTab =
                                         GrapherTabOption.download)
@@ -354,7 +354,7 @@ export class FooterControls extends React.Component<{
                             <a
                                 title="Share"
                                 onClick={this.onShareMenu}
-                                data-track-note="chart-click-share"
+                                data-track-note="chart_click_share"
                             >
                                 <FontAwesomeIcon icon={faShareAlt} />
                             </a>
@@ -366,7 +366,7 @@ export class FooterControls extends React.Component<{
                                 <a
                                     title="Open chart in new tab"
                                     href={manager.canonicalUrl}
-                                    data-track-note="chart-click-newtab"
+                                    data-track-note="chart_click_newtab"
                                     target="_blank"
                                     rel="noopener"
                                 >
@@ -378,7 +378,7 @@ export class FooterControls extends React.Component<{
                                 <a
                                     title="Open chart in new tab"
                                     href={manager.canonicalUrl}
-                                    data-track-note="chart-click-newtab"
+                                    data-track-note="chart_click_newtab"
                                     target="_blank"
                                     rel="noopener"
                                 >
@@ -417,7 +417,7 @@ export class FooterControls extends React.Component<{
                         href={relatedQuestions[0].url}
                         target="_blank"
                         rel="noopener"
-                        data-track-note="chart-click-related"
+                        data-track-note="chart_click_related"
                     >
                         {relatedQuestions[0].text}
                         <FontAwesomeIcon icon={faExternalLinkAlt} />

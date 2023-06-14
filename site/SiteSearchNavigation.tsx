@@ -75,7 +75,7 @@ export const SiteSearchNavigation = ({
             {!isActive && (
                 <button
                     onClick={onActivate}
-                    data-track-note="mobile-search-button"
+                    data-track-note="mobile_search_button"
                     className="SiteSearchNavigation__mobile-toggle hide-lg-up"
                 >
                     <FontAwesomeIcon icon={faSearch} />

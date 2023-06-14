@@ -486,7 +486,7 @@ export class EntityPicker extends React.Component<{
                         onFocus={this.onSearchFocus}
                         onBlur={this.onSearchBlur}
                         ref={this.searchInputRef}
-                        data-track-note={`picker-search-input`}
+                        data-track-note="entity_picker_search_input"
                     />
                     <div className="search-icon">
                         <FontAwesomeIcon icon={faSearch} />
@@ -557,7 +557,7 @@ export class EntityPicker extends React.Component<{
                                 <div
                                     title={selectedDebugMessage}
                                     className="ClearSelectionButton"
-                                    data-track-note={`entity-picker-clear-selection`}
+                                    data-track-note="entity_picker_clear_selection"
                                     onClick={(): void =>
                                         selection.clearSelection()
                                     }
