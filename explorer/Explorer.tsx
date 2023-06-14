@@ -597,7 +597,7 @@ export class Explorer
             <a
                 className="btn btn-primary mobile-button"
                 onClick={this.toggleMobileControls}
-                data-track-note="explorer_customize-chart_mobile"
+                data-track-note="explorer_customize_chart_mobile"
             >
                 <FontAwesomeIcon icon={faChartLine} /> Customize chart
             </a>
