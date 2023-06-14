@@ -71,6 +71,7 @@ export const DataPageContent = ({
         { text: "All Charts", target: "#all-charts" },
         { text: "FAQs", target: "#faqs" },
         { text: "Sources & Processing", target: "#sources-and-processing" },
+        { text: "Reuse This Work", target: "#reuse-this-work" },
     ]
 
     const hasRelatedDataFeatured = datapageJson.relatedData?.some(
@@ -574,6 +575,80 @@ export const DataPageContent = ({
                                         </div>
                                     </div>
                                 )}
+                            </div>
+                            <div className="section-wrapper grid">
+                                <h2
+                                    className="reuse__title span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
+                                    id="reuse-this-work"
+                                >
+                                    Reuse this work freely
+                                </h2>
+                                <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+                                    <div className="reuse__content">
+                                        <p className="reuse__paragraph">
+                                            All visualizations, data, and code
+                                            produced by Our World in Data are
+                                            completely open access under the{" "}
+                                            <a
+                                                href="https://creativecommons.org/licenses/by/4.0/"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="reuse__link"
+                                            >
+                                                Creative Commons BY license
+                                            </a>
+                                            . You have the permission to use,
+                                            distribute, and reproduce these in
+                                            any medium, provided the source and
+                                            authors are credited.
+                                        </p>
+                                        <p className="reuse__paragraph">
+                                            Our work would not be possible
+                                            without the original data providers
+                                            we rely on, so we ask you to always
+                                            cite them appropriately and to
+                                            respect their license terms. This is
+                                            crucial to allow data providers to
+                                            continue doing their work,
+                                            enhancing, maintaining and updating
+                                            valuable data.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="citations grid span-cols-12">
+                                    <h3 className="citations__heading span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+                                        Citations
+                                    </h3>
+                                    <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+                                        <div className="citations-section">
+                                            <h5 className="citation__how-to-header">
+                                                How to cite this data
+                                            </h5>
+                                            <p className="citation__paragraph">
+                                                If you are using the data
+                                                indicator for analysis or for
+                                                your own visualizations, please
+                                                cite both the underlying data
+                                                source(s) and{" "}
+                                                <em>Our World in Data</em> using
+                                                the following citation:
+                                            </p>
+                                        </div>
+                                        <div className="citations-section">
+                                            <h5 className="citation__how-to-header">
+                                                How to cite this page
+                                            </h5>
+                                            <p className="citation__paragraph">
+                                                To cite this page overall,
+                                                including any descriptions of
+                                                the data authored by{" "}
+                                                <em>Our World in Data</em>,
+                                                please use the following
+                                                citation:
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
