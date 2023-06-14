@@ -6,6 +6,7 @@ export const MissingData = ({ className }: { className?: string }) => (
     <div className={className}>
         <h4>
             <FontAwesomeIcon icon={faCircleInfo} />
+            No data for this indicator
         </h4>
         <p>
             We are currently not aware of data for this indicator. You can
