@@ -282,7 +282,6 @@ properties:
         items:
             type:
                 - string
-                - "null"
     baseColorScheme:
         type: string
         default: default

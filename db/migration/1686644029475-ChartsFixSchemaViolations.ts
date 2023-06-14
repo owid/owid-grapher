@@ -54,6 +54,15 @@ export class ChartsFixSchemaViolations1686644029475
             delete chart.config.bakedGrapherURL
             delete chart.config.adminBaseUrl
 
+            // drop null values in selectedEntityNames array
+            if (chart.config.selectedEntityNames) {
+                chart.config.selectedEntityNames =
+                    chart.config.selectedEntityNames.filter(
+                        (name: string) => name !== null
+                    )
+            }
+
+
             // If the chart has changed then add it to the list of charts to return
             const serializedChart = {
                 id: chart.id,
@@ -101,5 +110,7 @@ export class ChartsFixSchemaViolations1686644029475
         }
     }
 
-    public async down(queryRunner: QueryRunner): Promise<void> {}
+    public async down(_queryRunner: QueryRunner): Promise<void> {
+        return // es-lint complains on empty async functions
+    }
 }
