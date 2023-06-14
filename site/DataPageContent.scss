@@ -340,7 +340,8 @@
     }
 
     .data-sources__heading,
-    .data-processing__heading {
+    .data-processing__heading,
+    .citations__heading {
         @include h3-bold;
         margin: 0 0 24px;
     }
@@ -349,11 +350,14 @@
         margin-top: 32px;
     }
 
-    .data-processing__content {
+    .data-processing__content,
+    .reuse__content {
         margin-bottom: 24px;
     }
 
-    .data-processing__paragraph {
+    .data-processing__paragraph,
+    .reuse__paragraph,
+    .citation__paragraph {
         @include body-3-medium;
         margin: 0 0 16px;
     }
@@ -370,7 +374,8 @@
         padding: 24px;
     }
 
-    .variable-processing-info__header {
+    .variable-processing-info__header,
+    .citation__how-to-header {
         @include overline-black-caps;
         text-transform: uppercase;
         margin: 0 0 8px;
@@ -388,6 +393,33 @@
 
         > *:last-child {
             margin-bottom: 0;
+        }
+    }
+
+    .reuse__title {
+        @include datapage-section-title;
+    }
+
+    .reuse__content,
+    .citation__paragraph {
+        color: $blue-60;
+    }
+
+    .reuse__link {
+        @include owid-link-60;
+    }
+
+    .citations {
+        margin-top: 16px;
+    }
+
+    .citations-section {
+        &:first-child {
+            margin-bottom: 32px;
+        }
+        &:not(:first-child) {
+            padding-top: 32px;
+            border-top: 1px solid $blue-20;
         }
     }
 }
