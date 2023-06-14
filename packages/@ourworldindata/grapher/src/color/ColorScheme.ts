@@ -32,17 +32,23 @@ export class ColorScheme implements ColorSchemeInterface {
     ): Color[] {
         const newColors = clone(shortColors)
 
-        while (newColors.length < numColors) {
-            for (let index = 0; index < newColors.length - 1; index += 2) {
-                if (insertionMode === "end" || insertionMode === "alternate") {
-                    insertInterpolatedColor(
-                        newColors,
-                        newColors.length - 1 - index
-                    )
+        if (insertionMode === "end") {
+            while (newColors.length < numColors) {
+                for (let index = newColors.length - 1; index > 0; index -= 1) {
+                    insertInterpolatedColor(newColors, index)
                     if (newColors.length >= numColors) break
                 }
-                if (insertionMode === "alternate") {
-                    insertInterpolatedColor(newColors, index + 1)
+            }
+        } else if (insertionMode === "alternate") {
+            while (newColors.length < numColors) {
+                const originalLength = newColors.length
+                for (let index = 1; index < originalLength; index += 2) {
+                    // insert at the end
+                    insertInterpolatedColor(newColors, newColors.length - index)
+                    if (newColors.length >= numColors) break
+
+                    // insert at the beginning
+                    insertInterpolatedColor(newColors, index)
                     if (newColors.length >= numColors) break
                 }
             }
