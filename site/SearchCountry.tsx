@@ -22,7 +22,7 @@ const SearchCountry = (props: { countryProfileRootPath: string }) => {
             })}
             onChange={(selected: CountrySelectOption | null) => {
                 if (selected) {
-                    analytics.logCovidCountryProfileSearch(selected.value)
+                    analytics.logCountryProfileSearch(selected.value)
                     setIsLoading(true)
                     window.location.href = `${props.countryProfileRootPath}/${selected.value}`
                 }

@@ -1,7 +1,7 @@
 import { GrapherAnalytics, EventCategory } from "@ourworldindata/grapher"
 
 export class SiteAnalytics extends GrapherAnalytics {
-    logCovidCountryProfileSearch(country: string) {
+    logCountryProfileSearch(country: string) {
         this.logToGA({
             event: EventCategory.CountryProfileSearch,
             eventContext: country,
