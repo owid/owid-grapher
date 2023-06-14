@@ -73,12 +73,17 @@ export const DataPageContent = ({
         { text: "Sources & Processing", target: "#sources-and-processing" },
     ]
 
-    const hasRelatedDataFeatured = !!datapageJson.relatedData?.filter(
+    const hasRelatedDataFeatured = datapageJson.relatedData?.some(
         (data) => data.featured
-    ).length
-    const hasRelatedDataNonFeatured = !!datapageJson.relatedData?.filter(
+    )
+    const hasRelatedDataNonFeatured = datapageJson.relatedData?.some(
         (data) => !data.featured
-    ).length
+    )
+    const relatedDataCategoryClasses = `related-data__category ${
+        hasRelatedDataFeatured && hasRelatedDataNonFeatured
+            ? "related-data__category--grid span-cols-4 span-lg-cols-6 span-sm-cols-3"
+            : "related-data__category--columns span-cols-8 span-lg-cols-12"
+    } `
 
     return (
         <AttachmentsContext.Provider
@@ -290,7 +295,8 @@ export const DataPageContent = ({
                                                 hasRelatedDataFeatured &&
                                                 hasRelatedDataNonFeatured,
                                         },
-                                        "grid grid-cols-9",
+                                        "grid",
+                                        "grid-cols-9",
                                         "grid-lg-cols-12",
                                         "span-cols-9",
                                         "span-lg-cols-12"
@@ -298,16 +304,9 @@ export const DataPageContent = ({
                                 >
                                     {hasRelatedDataFeatured && (
                                         <div
-                                            className={cx(
-                                                "related-data__column",
-                                                "span-cols-4",
-                                                "span-lg-cols-6",
-                                                `${
-                                                    hasRelatedDataNonFeatured
-                                                        ? "span-sm-cols-3"
-                                                        : "span-sm-cols-12"
-                                                }`
-                                            )}
+                                            className={
+                                                relatedDataCategoryClasses
+                                            }
                                         >
                                             {datapageJson.relatedData
                                                 .filter((data) => data.featured)
@@ -339,16 +338,9 @@ export const DataPageContent = ({
                                     )}
                                     {hasRelatedDataNonFeatured && (
                                         <div
-                                            className={cx(
-                                                "related-data__column",
-                                                "span-cols-4",
-                                                "span-lg-cols-6",
-                                                `${
-                                                    hasRelatedDataFeatured
-                                                        ? "span-sm-cols-3"
-                                                        : "span-sm-cols-12"
-                                                }`
-                                            )}
+                                            className={
+                                                relatedDataCategoryClasses
+                                            }
                                         >
                                             {datapageJson.relatedData
                                                 .filter(
