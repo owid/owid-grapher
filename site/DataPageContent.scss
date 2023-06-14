@@ -215,10 +215,25 @@
         }
     }
 
-    .related-data__column {
+    .related-data__category--grid {
         display: grid;
         height: fit-content;
         row-gap: 24px;
+    }
+
+    .related-data__category--columns {
+        @include sm-up {
+            columns: 2;
+            column-gap: var(--grid-gap);
+        }
+        .related-data-item {
+            margin-bottom: 24px;
+            display: block;
+            break-inside: avoid;
+            &:last-child {
+                margin-bottom: 0;
+            }
+        }
     }
 
     .related-data-item--medium {
