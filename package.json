@@ -157,7 +157,7 @@
         "mobx-utils": "5",
         "mousetrap": "^1.6.5",
         "mysql": "^2.18.1",
-        "netlify-cli": "^15.4.0",
+        "netlify-cli": "^15.5.1",
         "nodejs-polars": "^0.7.2",
         "normalize.css": "^8.0.1",
         "nx": "15.3.0",
