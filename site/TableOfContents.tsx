@@ -135,7 +135,7 @@ export const TableOfContents = ({
                                     setActiveHeading("")
                                 }}
                                 href="#"
-                                data-track-note="toc-header"
+                                data-track-note="toc_header"
                             >
                                 {pageTitle}
                             </a>
@@ -161,7 +161,7 @@ export const TableOfContents = ({
                                     <a
                                         onClick={toggleIsOpen}
                                         href={`#${heading.slug}`}
-                                        data-track-note="toc-link"
+                                        data-track-note="toc_link"
                                     >
                                         {heading.text}
                                     </a>
@@ -171,7 +171,7 @@ export const TableOfContents = ({
                 </nav>
                 <div className="toggle-toc">
                     <button
-                        data-track-note="page-toggle-toc"
+                        data-track-note="page_toggle_toc"
                         aria-label={`${
                             isOpen ? "Close" : "Open"
                         } table of contents`}

@@ -63,7 +63,7 @@ export const FrontPage = (props: {
                 key={entry.slug}
                 href={`/${entry.slug}`}
                 className={`entry-item-container ${categorySlug}-color`}
-                data-track-note="homepage-entries"
+                data-track-note="homepage_entries"
             >
                 <div className="entry-item">
                     <div className="top">
@@ -114,7 +114,7 @@ export const FrontPage = (props: {
                             href="#entries"
                             className="see-all"
                             data-smooth-scroll
-                            data-track-note="homepage-scroll"
+                            data-track-note="homepage_scroll"
                         >
                             Scroll to all of our topics
                             <span className="icon">
@@ -139,7 +139,7 @@ export const FrontPage = (props: {
                                         <a
                                             href="/about/coverage#coverage"
                                             className="coverage-link"
-                                            data-track-note="homepage-trust"
+                                            data-track-note="homepage_trust"
                                         >
                                             <img
                                                 src={`${baseUrl}/media-logos-wide.png`}
@@ -161,7 +161,7 @@ export const FrontPage = (props: {
                                         <a
                                             href="/about/coverage#teaching"
                                             className="coverage-link"
-                                            data-track-note="homepage-trust"
+                                            data-track-note="homepage_trust"
                                         >
                                             <img
                                                 src={`${baseUrl}/university-logos-wide.png`}
@@ -202,7 +202,7 @@ export const FrontPage = (props: {
                                     <div className="see-all">
                                         <a
                                             href="/blog"
-                                            data-track-note="homepage-see-all-explainers"
+                                            data-track-note="homepage_see_all_explainers"
                                         >
                                             <div className="label">
                                                 See all of our work
@@ -249,7 +249,7 @@ export const FrontPage = (props: {
                                                 title="Twitter"
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                data-track-note="homepage-follow-us"
+                                                data-track-note="homepage_follow_us"
                                             >
                                                 <div className="icon">
                                                     <FontAwesomeIcon
@@ -266,7 +266,7 @@ export const FrontPage = (props: {
                                                 title="Facebook"
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                data-track-note="homepage-follow-us"
+                                                data-track-note="homepage_follow_us"
                                             >
                                                 <div className="icon">
                                                     <FontAwesomeIcon
@@ -283,7 +283,7 @@ export const FrontPage = (props: {
                                                 title="Instagram"
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                data-track-note="homepage-follow-us"
+                                                data-track-note="homepage_follow_us"
                                             >
                                                 <div className="icon">
                                                     <FontAwesomeIcon
@@ -299,7 +299,7 @@ export const FrontPage = (props: {
                                                 className="list-item"
                                                 title="RSS"
                                                 target="_blank"
-                                                data-track-note="homepage-follow-us"
+                                                data-track-note="homepage_follow_us"
                                             >
                                                 <div className="icon">
                                                     <FontAwesomeIcon
@@ -324,7 +324,7 @@ export const FrontPage = (props: {
                             <a
                                 href="https://sdg-tracker.org"
                                 className="list-item"
-                                data-track-note="homepage-projects"
+                                data-track-note="homepage_projects"
                             >
                                 <div className="icon-left">
                                     <img
@@ -349,7 +349,7 @@ export const FrontPage = (props: {
                             <a
                                 href="/teaching"
                                 className="list-item"
-                                data-track-note="homepage-projects"
+                                data-track-note="homepage_projects"
                             >
                                 <div className="icon-left">
                                     <img

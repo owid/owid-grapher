@@ -365,7 +365,7 @@ export const SiteSubnavigation = ({
                                     subnavId,
                                     "subnav",
                                     id,
-                                ].join("-")
+                                ].join("_")
                                 if (id === subnavCurrentId)
                                     classes.push("current")
                                 if (highlight) classes.push("highlight")

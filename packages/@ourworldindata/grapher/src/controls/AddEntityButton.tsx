@@ -20,7 +20,7 @@ export class AddEntityButton extends React.Component<{
                         () => (this.props.manager.isSelectingData = true)
                     )
                 }
-                data-track-note="chart-add-entity"
+                data-track-note="chart_add_entity"
             >
                 <span className="icon">
                     <svg width={16} height={16}>

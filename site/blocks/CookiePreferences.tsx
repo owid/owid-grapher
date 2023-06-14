@@ -13,7 +13,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faCheck } from "@fortawesome/free-solid-svg-icons"
 import { SiteAnalytics } from "../../site/SiteAnalytics.js"
 
-const ANALYTICS_ACTION = "cookie-preferences"
+const ANALYTICS_ACTION = "cookie_preferences"
 const analytics = new SiteAnalytics()
 
 // Note: CookiePreferences has been designed to be rendered through a portal

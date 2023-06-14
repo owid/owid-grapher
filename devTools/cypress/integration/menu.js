@@ -5,7 +5,7 @@ describe("Navigation", function () {
 
     it("Tests mobile navigation", function () {
         cy.viewport("iphone-6")
-        cy.get('[data-track-note="mobile-hamburger-button"]').click()
+        cy.get('[data-track-note="mobile_hamburger_button"]').click()
         cy.get(".mobile-topics-dropdown")
             .as("topicsDropdown")
             .contains("Health")

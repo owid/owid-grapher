@@ -181,7 +181,7 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                             <a
                                 href="/donate"
                                 className="donate"
-                                data-track-note="header-navigation"
+                                data-track-note="header_navigation"
                             >
                                 Donate
                             </a>

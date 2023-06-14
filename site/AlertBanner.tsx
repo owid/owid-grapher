@@ -15,7 +15,7 @@ export const AlertBanner = () => {
                 </div>
                 <a
                     href="/coronavirus#explore-the-global-situation"
-                    data-track-note="covid-banner-click"
+                    data-track-note="covid_banner_click"
                 >
                     Explore our COVID-19 data
                 </a>

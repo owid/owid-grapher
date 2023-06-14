@@ -21,7 +21,7 @@ const SiteTools = () => {
             }`}
         >
             <FeedbackPrompt />
-            <a className="prompt" data-track-note="page-open-jobs" href="/jobs">
+            <a className="prompt" data-track-note="page_open_jobs" href="/jobs">
                 <FontAwesomeIcon icon={faHandshake} /> Jobs
             </a>
         </div>

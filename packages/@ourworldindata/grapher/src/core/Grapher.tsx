@@ -2202,7 +2202,12 @@ export class Grapher
         )
 
         return (
-            <div ref={this.base} className={classes} style={style}>
+            <div
+                ref={this.base}
+                className={classes}
+                style={style}
+                data-grapher-url={this.canonicalUrl} // fully qualified grapher URL, used for analytics context
+            >
                 {this.commandPalette}
                 {this.uncaughtError ? this.renderError() : this.renderReady()}
             </div>
@@ -2316,9 +2321,9 @@ export class Grapher
         this.setBaseFontSize()
     }
 
-    componentDidCatch(error: Error, info: unknown): void {
+    componentDidCatch(error: Error): void {
         this.setError(error)
-        this.analytics.logGrapherViewError(error, info)
+        this.analytics.logGrapherViewError(error)
     }
 
     @observable isShareMenuActive = false
@@ -2542,10 +2547,6 @@ export class Grapher
     msPerTick = DEFAULT_MS_PER_TICK
 
     timelineController = new TimelineController(this)
-
-    onPlay(): void {
-        this.analytics.logGrapherTimelinePlay(this.slug)
-    }
 
     // todo: restore this behavior??
     onStartPlayOrDrag(): void {

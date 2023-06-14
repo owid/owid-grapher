@@ -4808,13 +4808,11 @@ __metadata:
     "@ourworldindata/core-table": "workspace:^"
     "@ourworldindata/utils": "workspace:^"
     "@tippyjs/react": ^4.2.6
-    "@types/amplitude-js": ^7.0.1
     "@types/colorbrewer": ^1.0.29
     "@types/d3": ^6
     "@types/d3-format": ^2
     "@types/enzyme": ^3.10.12
     "@types/enzyme-adapter-react-16": ^1.0.6
-    "@types/google.analytics": ^0.0.40
     "@types/jest": ^29.0.3
     "@types/js-cookie": ^3.0.2
     "@types/mousetrap": ^1.6.9
@@ -5254,13 +5252,6 @@ __metadata:
   version: 1.0.2
   resolution: "@tsconfig/node16@npm:1.0.2"
   checksum: ca94d3639714672bbfd55f03521d3f56bb6a25479bd425da81faf21f13e1e9d15f40f97377dedbbf477a5841c5b0c8f4cd1b391f33553d750b9202c54c2c07aa
-  languageName: node
-  linkType: hard
-
-"@types/amplitude-js@npm:^7.0.1":
-  version: 7.0.1
-  resolution: "@types/amplitude-js@npm:7.0.1"
-  checksum: 3295944e6d3e4088b1f53e4d4d25be2fc36bbd32afdb77d65219b8a61a62335c6430fa875256cd9b7a7aa819ab200d1e8c52b637f77c8f36703aaeb542ace11c
   languageName: node
   linkType: hard
 
@@ -5754,13 +5745,6 @@ __metadata:
     "@types/minimatch": "*"
     "@types/node": "*"
   checksum: 1817b05f5a8aed851d102a65b5e926d5c777bef927ea62b36d635860eef5364f2046bb5a692d135b6f2b28f34e4a9d44ade9396122c0845bcc7636d35f624747
-  languageName: node
-  linkType: hard
-
-"@types/google.analytics@npm:^0.0.40":
-  version: 0.0.40
-  resolution: "@types/google.analytics@npm:0.0.40"
-  checksum: 7c9b1c63b049f1018a30ed4ff193fbe76d3eee6d98c268346da82095709f1822e50e7130373187219dee765a5d10ed32d58962ff21801b39b219d1932f62ccdc
   languageName: node
   linkType: hard
 
@@ -13717,7 +13701,6 @@ __metadata:
     "@testing-library/jest-dom": ^5.16.5
     "@testing-library/react": ^12
     "@tippyjs/react": ^4.2.6
-    "@types/amplitude-js": ^7.0.1
     "@types/bcrypt": ^5.0.0
     "@types/chunk-text": ^1.0.0
     "@types/codemirror": ^5.60.5
@@ -13733,7 +13716,6 @@ __metadata:
     "@types/fuzzyset": ^1.0.2
     "@types/geojson": ^7946.0.10
     "@types/glob": ^8.0.0
-    "@types/google.analytics": ^0.0.40
     "@types/html-to-text": ^8.1.1
     "@types/jest": ^29.0.3
     "@types/js-cookie": ^3.0.2
