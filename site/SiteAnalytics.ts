@@ -19,7 +19,7 @@ export class SiteAnalytics extends GrapherAnalytics {
     logChartsPageSearchQuery(query: string) {
         this.logToGA({
             event: EventCategory.Filter,
-            eventAction: "charts-page",
+            eventAction: "charts_page",
             eventContext: query,
         })
     }
