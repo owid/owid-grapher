@@ -153,13 +153,13 @@ function formatCitation(
 export function extractRefs(text: string): {
     extractedText: string
     refsByFirstAppearance: Set<string>
-    parsedInlineRefs: RefDictionary
+    rawInlineRefs: unknown[]
 } {
     let extractedText = text
     const RefRegExp = "{ref}(.*?){/ref}"
 
     const refsByFirstAppearance = new Set<string>()
-    let parsedInlineRefs: RefDictionary = {}
+    const rawInlineRefs: unknown[] = []
     const rawRefStrings = text.match(new RegExp(RefRegExp, "gims")) || []
 
     for (const rawRef of rawRefStrings) {
@@ -195,28 +195,21 @@ export function extractRefs(text: string): {
         )
 
         if (isInlineRef) {
-            const { refs } = load(`
-                [.refs]
+            const rawInlineRef = load(`
                 id: ${id}
                 [.+content]
                 ${contentOrId}
                 []
-                []
             `)
-            const parsedInlineRef = parseRefs({
-                refs,
-                refsByFirstAppearance,
-                isInline: true,
-            })
-            parsedInlineRefs = merge(parsedInlineRefs, parsedInlineRef)
+            rawInlineRefs.push(rawInlineRef)
         }
     }
 
-    return { extractedText, refsByFirstAppearance, parsedInlineRefs }
+    return { extractedText, refsByFirstAppearance, rawInlineRefs }
 }
 
 export const archieToEnriched = (text: string): OwidGdocContent => {
-    const { extractedText, refsByFirstAppearance, parsedInlineRefs } =
+    const { extractedText, refsByFirstAppearance, rawInlineRefs } =
         extractRefs(text)
     text = extractedText
 
@@ -241,8 +234,11 @@ export const archieToEnriched = (text: string): OwidGdocContent => {
 
     parsed.toc = generateToc(parsed.body)
 
-    const parsedRefs = parseRefs({ refs: parsed.refs, refsByFirstAppearance })
-    parsed.refs = merge(parsedRefs, parsedInlineRefs)
+    const parsedRefs = parseRefs({
+        refs: [...Array.from(parsed.refs), ...rawInlineRefs],
+        refsByFirstAppearance,
+    })
+    parsed.refs = parsedRefs
 
     parsed.summary = parsed.summary?.map((html: RawBlockText) =>
         htmlToEnrichedTextBlock(html.value)
