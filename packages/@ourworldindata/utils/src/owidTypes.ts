@@ -1203,6 +1203,8 @@ export interface OwidGdocContent {
     toc?: TocHeadingWithTitleSupertitle[]
     "cover-image"?: string
     "featured-image"?: string
+    "atom-title"?: string
+    "atom-excerpt"?: string
     "cover-color"?:
         | "sdg-color-1"
         | "sdg-color-2"

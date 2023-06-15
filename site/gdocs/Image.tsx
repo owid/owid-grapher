@@ -3,6 +3,7 @@ import {
     getSizes,
     generateSrcSet,
     getFilenameWithoutExtension,
+    IMAGES_DIRECTORY,
 } from "@ourworldindata/utils"
 import { LIGHTBOX_IMAGE_CLASS } from "../Lightbox.js"
 import cx from "classnames"
@@ -14,8 +15,6 @@ import { DocumentContext } from "./OwidGdoc.js"
 import { Container } from "./ArticleBlock.js"
 import { useImage } from "./utils.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
-
-export const IMAGES_DIRECTORY = "/images/published/"
 
 // generates rules that tell the browser:
 // below the medium breakpoint, the image will be 95vw wide

@@ -582,6 +582,7 @@ export {
     CITATION_ID,
     ENDNOTES_ID,
     KEY_INSIGHTS_ID,
+    IMAGES_DIRECTORY,
     gdocUrlRegex,
     detailOnDemandRegex,
     getLinkType,
