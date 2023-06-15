@@ -1370,6 +1370,8 @@ export const DataPageJsonTypeObject = Type.Object(
                 sourceRetrievedFromUrl: Type.Optional(Type.String()),
             })
         ),
+        citationData: Type.Optional(Type.String()),
+        citationDatapage: Type.Optional(Type.String()),
     },
     // We are not allowing to have any additional properties in the JSON file,
     // in part because the JSON is added as-is to the page source for hydration,
