@@ -1,32 +1,34 @@
-.map-value-with-sparkline {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-
-    .sparkline {
-        flex: 0;
+.sparkline {
+    .Lines polyline {
+        stroke: #787878 !important;
     }
 
-    .value-wrapper {
-        flex: 1;
-        text-align: left;
-        line-height: 1.3;
-        white-space: nowrap;
-        padding: 0 0 0 0.75em;
+    .HorizontalAxis text {
+        fill: #787878;
+        font-weight: 700;
+        font-size: 10px;
+        transform: translate(1px, 2px);
 
-        .value {
-            font-size: 1.125em;
-            font-weight: 700;
-        }
-
-        .time {
-            font-size: 0.8125em;
-            font-weight: 400;
+        &:last-child {
+            transform: translate(-1px, 2px);
         }
     }
 
-    .value-wrapper.no-plot {
-        text-align: center;
-        padding: 0;
+    .AxisGridLines.horizontalLines {
+        line:nth-child(1) {
+            stroke: #787878;
+            stroke-dasharray: 2;
+        }
+
+        line:nth-child(2) {
+            stroke: #dadada;
+            stroke-dasharray: 0;
+        }
+    }
+
+    .min-max-labels text {
+        font: 700 10px Lato;
+        text-anchor: end;
+        fill: #787878;
     }
 }
