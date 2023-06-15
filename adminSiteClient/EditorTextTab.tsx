@@ -88,6 +88,15 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
         return errorMessages
     }
 
+    @computed get showAnyAnnotationFieldInTitleToggle() {
+        const { features } = this.props.editor
+        return (
+            features.showEntityAnnotationInTitleToggle ||
+            features.showTimeAnnotationInTitleToggle ||
+            features.showChangeInPrefixToggle
+        )
+    }
+
     render() {
         const { grapher, references, features } = this.props.editor
         const { relatedQuestions } = grapher
@@ -104,9 +113,6 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                     {features.showEntityAnnotationInTitleToggle && (
                         <Toggle
                             label="Hide automatic entity"
-                            secondaryLabel={
-                                "Toggling to hide the entity only has an effect if there is an entity to be hidden."
-                            }
                             value={
                                 !!grapher.hideAnnotationFieldsInTitle?.entity
                             }
@@ -119,7 +125,7 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                             secondaryLabel={
                                 "Grapher ignores this toggle if hiding the time would cause " +
                                 "crucial information to be missing from the chart title. " +
-                                "This is the case for multi-year maps, discrete bar charts, and " +
+                                "This is the case for maps, discrete bar charts, and " +
                                 "Marimekko charts."
                             }
                             value={!!grapher.hideAnnotationFieldsInTitle?.time}
@@ -136,9 +142,7 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                             onValue={this.onToggleTitleAnnotationChangeInPrefix}
                         />
                     )}
-                    {(features.showEntityAnnotationInTitleToggle ||
-                        features.showTimeAnnotationInTitleToggle ||
-                        features.showChangeInPrefixToggle) && <hr />}
+                    {this.showAnyAnnotationFieldInTitleToggle && <hr />}
                     <AutoTextField
                         label="/grapher"
                         value={grapher.displaySlug}
