@@ -1,6 +1,5 @@
 import { ScaleLinear } from "d3-scale"
 import {
-    CoreColumn,
     Color,
     Time,
     EntityId,
@@ -34,16 +33,6 @@ export interface ScatterPlotManager extends ChartManager {
     endTime?: Time
     hasTimeline?: boolean
     hideScatterLabels?: boolean
-}
-
-export interface ScatterTooltipProps {
-    yColumn: CoreColumn
-    xColumn: CoreColumn
-    series: ScatterSeries
-    maxWidth: number
-    fontSize: number
-    x: number
-    y: number
 }
 
 export interface ScatterSeries extends ChartSeries {

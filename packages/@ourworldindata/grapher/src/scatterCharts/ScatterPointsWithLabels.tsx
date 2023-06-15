@@ -349,6 +349,8 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                             series.seriesName === closestSeries.seriesName
                     )
                     if (series) this.props.onMouseOver(series)
+                } else if (!closestSeries && this.props.onMouseLeave) {
+                    this.props.onMouseLeave()
                 }
             }
         })
