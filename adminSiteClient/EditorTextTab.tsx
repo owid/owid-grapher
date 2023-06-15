@@ -123,10 +123,9 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                         <Toggle
                             label="Hide automatic time"
                             secondaryLabel={
-                                "Grapher ignores this toggle if hiding the time would cause " +
-                                "crucial information to be missing from the chart title. " +
-                                "This is the case for maps, discrete bar charts, and " +
-                                "Marimekko charts."
+                                "Grapher makes sure to include the current time in the title if " +
+                                "omitting it would lead to SVG exports with no reference " +
+                                "to the time. In such cases, your preference is ignored."
                             }
                             value={!!grapher.hideAnnotationFieldsInTitle?.time}
                             onValue={this.onToggleTitleAnnotationTime}
