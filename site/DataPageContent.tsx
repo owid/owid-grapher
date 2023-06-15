@@ -17,6 +17,7 @@ import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
 import StickyNav from "./blocks/StickyNav.js"
 import cx from "classnames"
 import { DebugProvider } from "./gdocs/DebugContext.js"
+import { CodeSnippet } from "./blocks/CodeSnippet.js"
 
 declare global {
     interface Window {
@@ -620,33 +621,51 @@ export const DataPageContent = ({
                                         Citations
                                     </h3>
                                     <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                                        <div className="citations-section">
-                                            <h5 className="citation__how-to-header">
-                                                How to cite this data
-                                            </h5>
-                                            <p className="citation__paragraph">
-                                                If you are using the data
-                                                indicator for analysis or for
-                                                your own visualizations, please
-                                                cite both the underlying data
-                                                source(s) and{" "}
-                                                <em>Our World in Data</em> using
-                                                the following citation:
-                                            </p>
-                                        </div>
-                                        <div className="citations-section">
-                                            <h5 className="citation__how-to-header">
-                                                How to cite this page
-                                            </h5>
-                                            <p className="citation__paragraph">
-                                                To cite this page overall,
-                                                including any descriptions of
-                                                the data authored by{" "}
-                                                <em>Our World in Data</em>,
-                                                please use the following
-                                                citation:
-                                            </p>
-                                        </div>
+                                        {datapageJson.citationData && (
+                                            <div className="citations-section">
+                                                <h5 className="citation__how-to-header">
+                                                    How to cite this data
+                                                </h5>
+                                                <p className="citation__paragraph">
+                                                    If you are using the data
+                                                    indicator for analysis or
+                                                    for your own visualizations,
+                                                    please cite both the
+                                                    underlying data source(s)
+                                                    and{" "}
+                                                    <em>Our World in Data</em>{" "}
+                                                    using the following
+                                                    citation:
+                                                </p>
+                                                <CodeSnippet
+                                                    code={
+                                                        datapageJson.citationData
+                                                    }
+                                                    theme="light"
+                                                />
+                                            </div>
+                                        )}
+                                        {datapageJson.citationDatapage && (
+                                            <div className="citations-section">
+                                                <h5 className="citation__how-to-header">
+                                                    How to cite this page
+                                                </h5>
+                                                <p className="citation__paragraph">
+                                                    To cite this page overall,
+                                                    including any descriptions
+                                                    of the data authored by{" "}
+                                                    <em>Our World in Data</em>,
+                                                    please use the following
+                                                    citation:
+                                                </p>
+                                                <CodeSnippet
+                                                    code={
+                                                        datapageJson.citationDatapage
+                                                    }
+                                                    theme="light"
+                                                />
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
