@@ -14,7 +14,7 @@ import {
     VerticalColorLegendManager,
     LegendItem,
 } from "../verticalColorLegend/VerticalColorLegend"
-import { Tooltip } from "../tooltip/Tooltip"
+import { Tooltip, TooltipTable } from "../tooltip/Tooltip"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants"
 import { ColorScaleManager } from "../color/ColorScale"
 import {
@@ -255,96 +255,52 @@ export class StackedBarChart
         const xPos = mapXValueToOffset.get(hoverTime)
         if (xPos === undefined) return
 
-        const yColumn = yColumns[0] // we can just use the first column for formatting, b/c we assume all columns have same type
-        const seriesRows = [...series].reverse().map((series) => ({
-            seriesName: series.seriesName,
-            color: series.color,
-            isHovered: hoverSeries?.seriesName === series.seriesName,
-            point: series.points.find((bar) => bar.position === hoverTime),
-        }))
-        const totalValue = sum(seriesRows.map((bar) => bar.point?.value ?? 0))
-        const allFake = seriesRows.every((bar) => bar.point?.fake)
-        const showTotalValue = seriesRows.length > 1 && !allFake
+        const yColumn = yColumns[0], // we can just use the first column for formatting, b/c we assume all columns have same type
+            { unit, shortUnit } = yColumn
+
+        const totalValue = sum(
+            series.map(
+                ({ points }) =>
+                    points.find((bar) => bar.position === hoverTime)?.value ?? 0
+            )
+        )
+
         return (
             <Tooltip
                 id={this.renderUid}
                 tooltipManager={this.props.manager}
                 x={xPos + barWidth}
                 y={yPos}
-                style={{ padding: "0.3em" }}
-                offsetX={4}
+                style={{ maxWidth: "500px" }}
+                offsetX={20}
+                title={yColumn.formatTime(hoverTime)}
+                subtitle={unit != shortUnit ? unit : undefined}
+                subtitleIsUnit={true}
             >
-                <table style={{ fontSize: "0.9em", lineHeight: "1.4em" }}>
-                    <tbody>
-                        <tr>
-                            <td colSpan={3}>
-                                <strong>{yColumn.formatTime(hoverTime)}</strong>
-                            </td>
-                        </tr>
-                        {seriesRows.map(
-                            ({ seriesName, color, isHovered, point }) => (
-                                <tr
-                                    key={seriesName}
-                                    style={{
-                                        color: point?.fake
-                                            ? "#888"
-                                            : isHovered
-                                            ? "#000"
-                                            : "#333",
-                                        fontWeight: isHovered
-                                            ? "bold"
-                                            : undefined,
-                                    }}
-                                >
-                                    <td>
-                                        <div
-                                            style={{
-                                                width: "10px",
-                                                height: "10px",
-                                                display: "inline-block",
-                                                marginRight: "2px",
-                                                backgroundColor: color,
-                                            }}
-                                        />
-                                    </td>
-                                    <td>{seriesName}</td>
-                                    <td
-                                        style={{
-                                            textAlign: "right",
-                                            whiteSpace: "nowrap",
-                                            paddingLeft: "0.8em",
-                                        }}
-                                    >
-                                        {point?.fake
-                                            ? "No data"
-                                            : yColumn.formatValueLong(
-                                                  point?.value,
-                                                  {
-                                                      trailingZeroes: true,
-                                                  }
-                                              )}
-                                    </td>
-                                </tr>
+                <TooltipTable
+                    columns={[yColumn]}
+                    totals={[totalValue]}
+                    rows={series
+                        .slice()
+                        .reverse()
+                        .map((series) => {
+                            const {
+                                seriesName: name,
+                                color: swatch,
+                                points,
+                            } = series
+                            const point = points.find(
+                                (bar) => bar.position === hoverTime
                             )
-                        )}
-                        {showTotalValue && (
-                            <tr>
-                                <td></td>
-                                <td>Total</td>
-                                <td
-                                    style={{
-                                        textAlign: "right",
-                                        whiteSpace: "nowrap",
-                                    }}
-                                >
-                                    {yColumn.formatValueLong(totalValue, {
-                                        trailingZeroes: true,
-                                    })}
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
+                            const focused = hoverSeries?.seriesName === name
+                            const blurred = point?.fake ?? true
+                            const values = [
+                                point?.fake ? undefined : point?.value,
+                            ]
+
+                            return { name, swatch, blurred, focused, values }
+                        })}
+                />
             </Tooltip>
         )
     }

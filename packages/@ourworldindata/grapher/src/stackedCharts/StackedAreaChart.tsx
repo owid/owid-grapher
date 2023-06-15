@@ -23,7 +23,7 @@ import {
     LineLegendManager,
 } from "../lineLegend/LineLegend"
 import { NoDataModal } from "../noDataModal/NoDataModal"
-import { Tooltip } from "../tooltip/Tooltip"
+import { Tooltip, TooltipTable } from "../tooltip/Tooltip"
 import { rgb } from "d3-color"
 import {
     AbstractStackedChart,
@@ -387,22 +387,17 @@ export class StackedAreaChart
         // Grab the first value to get the year from
         const bottomSeriesPoint = series[0].points[hoveredPointIndex]
 
-        // If some data is missing, don't calculate a total
-        const somePointsMissingForHoveredTime = series.some(
+        // If any data is missing, don't display a total
+        const showTotalValue = !series.some(
             (series) => series.points[hoveredPointIndex].fake
         )
 
-        const legendBlockStyle = {
-            width: "10px",
-            height: "10px",
-            display: "inline-block",
-            marginRight: "2px",
-        }
+        const yColumn = this.yColumns[0], // Assumes same type for all columns.
+            formattedTime = yColumn.formatTime(bottomSeriesPoint.position),
+            { unit, shortUnit } = yColumn
 
         const lastStackedPoint = last(series)!.points[hoveredPointIndex]
         const totalValue = lastStackedPoint.value + lastStackedPoint.valueOffset
-
-        const yColumn = this.yColumns[0] // Assumes same type for all columns.
 
         return (
             <Tooltip
@@ -413,87 +408,32 @@ export class StackedAreaChart
                     dualAxis.verticalAxis.rangeMin +
                     dualAxis.verticalAxis.rangeSize / 2
                 }
-                style={{ padding: "0.3em" }}
-                offsetX={5}
+                offsetX={20}
+                title={formattedTime}
+                subtitle={unit != shortUnit ? unit : undefined}
+                subtitleIsUnit={true}
             >
-                <table style={{ fontSize: "0.9em", lineHeight: "1.4em" }}>
-                    <tbody>
-                        <tr>
-                            <td>
-                                <strong>
-                                    {yColumn.formatTime(
-                                        bottomSeriesPoint.position
-                                    )}
-                                </strong>
-                            </td>
-                            <td></td>
-                        </tr>
-                        {series
-                            .slice()
-                            .reverse()
-                            .map((series) => {
-                                const point = series.points[hoveredPointIndex]
-                                const isBlur = this.seriesIsBlur(series)
-                                const textColor = isBlur ? "#ddd" : "#333"
-                                const blockColor = isBlur
-                                    ? BLUR_COLOR
-                                    : series.color
-                                return (
-                                    <tr
-                                        key={series.seriesName}
-                                        style={{ color: textColor }}
-                                    >
-                                        <td
-                                            style={{
-                                                paddingRight: "0.8em",
-                                                fontSize: "0.9em",
-                                            }}
-                                        >
-                                            <div
-                                                style={{
-                                                    ...legendBlockStyle,
-                                                    backgroundColor: blockColor,
-                                                }}
-                                            />{" "}
-                                            {series.seriesName}
-                                        </td>
-                                        <td style={{ textAlign: "right" }}>
-                                            {point.fake
-                                                ? "No data"
-                                                : yColumn.formatValueLong(
-                                                      point.value,
-                                                      { trailingZeroes: true }
-                                                  )}
-                                        </td>
-                                    </tr>
-                                )
-                            })}
-                        {/* Total */}
-                        {!somePointsMissingForHoveredTime && (
-                            <tr>
-                                <td style={{ fontSize: "0.9em" }}>
-                                    <div
-                                        style={{
-                                            ...legendBlockStyle,
-                                            backgroundColor: "transparent",
-                                        }}
-                                    />{" "}
-                                    <strong>Total</strong>
-                                </td>
-                                <td style={{ textAlign: "right" }}>
-                                    <span>
-                                        <strong>
-                                            {yColumn.formatValueLong(
-                                                totalValue,
-                                                { trailingZeroes: true }
-                                            )}
-                                        </strong>
-                                    </span>
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
+                <TooltipTable
+                    columns={[yColumn]}
+                    totals={showTotalValue ? [totalValue] : undefined}
+                    rows={series
+                        .slice()
+                        .reverse()
+                        .map((series) => {
+                            const {
+                                seriesName: name,
+                                color: swatch,
+                                points,
+                            } = series
+                            const point = points[hoveredPointIndex]
+                            const blurred = this.seriesIsBlur(series)
+                            const values = [
+                                point?.fake ? undefined : point?.value,
+                            ]
+
+                            return { name, swatch, blurred, values }
+                        })}
+                />
             </Tooltip>
         )
     }
