@@ -20,8 +20,6 @@ import {
     ENDNOTES_ID,
     CITATION_ID,
     LICENSE_ID,
-    RefDictionary,
-    merge,
 } from "@ourworldindata/utils"
 import { parseRawBlocksToEnrichedBlocks, parseRefs } from "./rawToEnriched.js"
 import urlSlug from "url-slug"
