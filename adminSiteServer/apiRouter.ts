@@ -2765,10 +2765,24 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
 
     if (isEmpty(nextGdocJSON)) {
         const newGdoc = new Gdoc(id)
-        // this will fail if the gdoc already exists, as opposed to a call to
-        // newGdoc.save().
+        // this will fail if the gdoc already exists, as opposed to a call to newGdoc.save()
         await dataSource.getRepository(Gdoc).insert(newGdoc)
-        return newGdoc
+
+        const publishedExplorersBySlug =
+            await explorerAdminServer.getAllPublishedExplorersBySlugCached()
+
+        const initData = await Gdoc.getGdocFromContentSource(
+            id,
+            publishedExplorersBySlug,
+            GdocsContentSource.Gdocs
+        )
+
+        const updated = await dataSource
+            .getRepository(Gdoc)
+            .create(initData)
+            .save()
+
+        return updated
     }
 
     const prevGdoc = await Gdoc.findOneBy({ id })
