@@ -1,8 +1,226 @@
 import React from "react"
+import classnames from "classnames"
+import { CoreColumn } from "@ourworldindata/core-table"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { Bounds } from "@ourworldindata/utils"
-import { TooltipProps, TooltipManager } from "./TooltipProps"
+import { NO_DATA_LABEL } from "../color/ColorScale.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { Bounds, zip, TickFormattingOptions } from "@ourworldindata/utils"
+import { TooltipProps, TooltipManager, TooltipTableRow } from "./TooltipProps"
+
+export class TooltipValue extends React.Component<{
+    column: CoreColumn
+    value?: number | string
+    color?: string
+}> {
+    render(): JSX.Element | null {
+        const { column, value, color } = this.props,
+            displayValue =
+                (value !== undefined && column.formatValueShort(value)) ||
+                NO_DATA_LABEL
+        return (
+            <Variable column={column} color={color}>
+                {displayValue}
+            </Variable>
+        )
+    }
+}
+
+export class TooltipValueRange extends React.Component<{
+    column: CoreColumn
+    values: number[]
+    color?: string
+}> {
+    ARROW_PATHS = {
+        up: "m14,0H5c-.552,0-1,.448-1,1s.448,1,1,1h6.586L.29303,13.29297l1.41394,1.414L13,3.41394v6.58606c0,.552.448,1,1,1s1-.448,1-1V1c0-.552-.448-1-1-1Z",
+        down: "m14,4c-.552,0-1,.448-1,1v6.586L1.56049.14648.14655,1.56042l11.43958,11.43958h-6.58612c-.552,0-1,.448-1,1s.448,1,1,1h9c.552,0,1-.448,1-1V5c0-.552-.448-1-1-1Z",
+        right: "m19.59198,6.82422L13.22803.46021c-.39105-.39099-1.02405-.39099-1.414,0-.39105.39001-.39105,1.02405,0,1.414l4.65698,4.65704H.5v2h15.97101l-4.65698,4.65698c-.39105.39001-.39105,1.02399,0,1.414.38995.39099,1.02295.39099,1.414,0l6.36395-6.36401c.39001-.39001.39001-1.02399,0-1.414Z",
+    }
+
+    arrowIcon(direction: "up" | "right" | "down"): JSX.Element {
+        return (
+            <svg
+                className={classnames("arrow", direction)}
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox={`0 0 ${direction == "right" ? 20 : 15} 15`}
+            >
+                <path d={this.ARROW_PATHS[direction]} />
+            </svg>
+        )
+    }
+
+    render(): JSX.Element | null {
+        const { column, values, color } = this.props,
+            [firstTerm, lastTerm] = values.map((v) =>
+                column.formatValueShort(v)
+            ),
+            trend =
+                values.length < 2
+                    ? null
+                    : values[0] < values[1]
+                    ? this.arrowIcon("up")
+                    : values[0] > values[1]
+                    ? this.arrowIcon("down")
+                    : this.arrowIcon("right")
+
+        return (
+            <Variable column={column} color={color}>
+                {firstTerm} {trend} {lastTerm}
+            </Variable>
+        )
+    }
+}
+
+class Variable extends React.Component<{
+    column: CoreColumn
+    color?: string
+    children?: React.ReactNode
+}> {
+    render(): JSX.Element | null {
+        const { column, children, color } = this.props
+        if (column.isMissing || column.name == "time") return null
+
+        const { displayName, unit, shortUnit } = column,
+            displayUnit =
+                unit && displayName != unit && unit != shortUnit
+                    ? unit.replace(/(^\(|\)$)/g, "")
+                    : null
+
+        return (
+            <div className="variable">
+                <div className="definition">
+                    <b>{displayName}</b>
+                    {displayUnit && <em> ({displayUnit})</em>}
+                </div>
+                <div className="values" style={{ color }}>
+                    {children}
+                </div>
+            </div>
+        )
+    }
+}
+
+export class TooltipTable extends React.Component<{
+    columns: CoreColumn[]
+    rows: TooltipTableRow[]
+    totals?: number[]
+    format?: TickFormattingOptions
+}> {
+    render(): JSX.Element | null {
+        const { columns, totals, rows } = this.props,
+            focal = rows.some((row) => row.focused),
+            swatched = rows.some((row) => row.swatch),
+            format = { trailingZeroes: true, ...this.props.format },
+            allEmpty =
+                rows.length == 0 ||
+                rows.every(({ values }) =>
+                    values.every((value) => value === undefined)
+                ),
+            allTrivial = zip(columns, totals ?? []).every(
+                ([column, total]) =>
+                    !!column?.formatValueShort(total).match(/^100(\.0+)?%/)
+            )
+
+        return (
+            <table className={classnames({ focal, swatched })}>
+                {columns.length > 1 && (
+                    <thead>
+                        <tr>
+                            <td className="series-color"></td>
+                            <td className="series-name"></td>
+                            {columns.map((column) => (
+                                <td className="series-value" key={column.slug}>
+                                    {column.displayName}
+                                </td>
+                            ))}
+                        </tr>
+                    </thead>
+                )}
+                <tbody>
+                    {rows.map((row) => {
+                        const {
+                            name,
+                            focused,
+                            blurred,
+                            annotation,
+                            values,
+                            swatch = "transparent",
+                        } = row
+                        const [_m, seriesName, seriesParenthetical] =
+                            name.match(/^(.*?)(\(.*)?$/) ?? []
+
+                        return (
+                            <tr
+                                key={name}
+                                className={classnames({ focused, blurred })}
+                            >
+                                <td className="series-color">
+                                    <div
+                                        className="swatch"
+                                        style={{ backgroundColor: swatch }}
+                                    />
+                                </td>
+                                <td className="series-name">
+                                    {seriesName}
+                                    {seriesParenthetical && (
+                                        <span className="parenthetical">
+                                            {seriesParenthetical}
+                                        </span>
+                                    )}
+                                    {annotation && (
+                                        <span className="annotation">
+                                            {annotation}
+                                        </span>
+                                    )}
+                                </td>
+                                {zip(columns, values).map(([column, value]) => {
+                                    const missing = value === undefined
+                                    return column ? (
+                                        <td
+                                            key={column.slug}
+                                            className={classnames(
+                                                "series-value",
+                                                { missing }
+                                            )}
+                                        >
+                                            {!missing &&
+                                                column.formatValueShort(
+                                                    value,
+                                                    format
+                                                )}
+                                        </td>
+                                    ) : null
+                                })}
+                            </tr>
+                        )
+                    })}
+                    {totals && !(allEmpty || allTrivial) && (
+                        <>
+                            <tr className="spacer"></tr>
+                            <tr className="total">
+                                <td className="series-color"></td>
+                                <td className="series-name">Total</td>
+                                {zip(columns, totals).map(([column, total]) => (
+                                    <td
+                                        key={column?.slug}
+                                        className="series-value"
+                                    >
+                                        {column
+                                            ? column.formatValueShort(
+                                                  total,
+                                                  format
+                                              )
+                                            : null}
+                                    </td>
+                                ))}
+                            </tr>
+                        </>
+                    )}
+                </tbody>
+            </table>
+        )
+    }
+}
 
 @observer
 class TooltipCard extends React.Component<
@@ -29,16 +247,24 @@ class TooltipCard extends React.Component<
     }
 
     render(): JSX.Element {
-        const offsetX = this.props.offsetX ?? 0
-        let offsetY = this.props.offsetY ?? 0
+        let {
+            title,
+            subtitle,
+            subtitleIsUnit,
+            footer,
+            footerIcon,
+            children,
+            offsetX = 0,
+            offsetY = 0,
+        } = this.props
+
         if (this.props.offsetYDirection === "upward") {
             offsetY = -offsetY - (this.bounds?.height ?? 0)
         }
 
+        // Ensure tooltip remains inside chart
         let x = this.props.x + offsetX
         let y = this.props.y + offsetY
-
-        // Ensure tooltip remains inside chart
         if (this.bounds) {
             if (x + this.bounds.width > this.props.containerWidth)
                 x -= this.bounds.width + 2 * offsetX
@@ -48,22 +274,40 @@ class TooltipCard extends React.Component<
             if (y < 0) y = 0
         }
 
-        const style: React.CSSProperties = {
-            position: "absolute",
-            pointerEvents: "none",
-            left: `${x}px`,
-            top: `${y}px`,
-            whiteSpace: "nowrap",
-            backgroundColor: "rgba(255,255,255,0.95)",
-            boxShadow: "0 2px 2px rgba(0,0,0,.12), 0 0 1px rgba(0,0,0,.35)",
-            borderRadius: "2px",
-            textAlign: "left",
-            fontSize: "0.9em",
-            ...this.props.style,
+        // add a preposition to unit-based subtitles
+        const hasHeader = title !== undefined || subtitle !== undefined
+        if (!!subtitle && subtitleIsUnit) {
+            const unit = subtitle.toString()
+            const preposition = !unit.match(/^(per|in|\() /i) ? "in " : ""
+            subtitle = preposition + unit.replace(/(^\(|\)$)/g, "")
         }
+
+        // style the box differently if just displaying title/subtitle
+        const plain = hasHeader && !children
+
         return (
-            <div ref={this.base} className="Tooltip" style={style}>
-                {this.props.children}
+            <div
+                ref={this.base}
+                className={classnames("Tooltip", { plain })}
+                style={{
+                    left: `${x}px`,
+                    top: `${y}px`,
+                    ...this.props.style,
+                }}
+            >
+                {hasHeader && (
+                    <header>
+                        {title && <h1>{title}</h1>}
+                        {subtitle && <h2>{subtitle}</h2>}
+                    </header>
+                )}
+                {children && <section>{children}</section>}
+                {footer && (
+                    <footer>
+                        {footerIcon && <FontAwesomeIcon icon={footerIcon} />}
+                        <p>{footer}</p>
+                    </footer>
+                )}
             </div>
         )
     }

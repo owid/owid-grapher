@@ -1,0 +1,256 @@
+.Tooltip {
+    $background-fill: #f0f0f0;
+    $background-stroke: #e7e7e7;
+    $dark-grey: #2d2d2d;
+    $light-grey: #dadada;
+    $grey: #787878;
+    $red: #cc3b55;
+    $green: #2c8465;
+
+    border-radius: 4px;
+    border: 1px solid $background-stroke;
+    box-shadow: 0px 4px 40px rgba(0, 0, 0, 0.2);
+    background: white;
+    text-align: left;
+    position: absolute;
+    pointer-events: none;
+    font-size: 16px;
+
+    &,
+    & * {
+        box-sizing: border-box;
+    }
+
+    header {
+        background: $background-fill;
+        color: black;
+        padding: 8px 12px;
+        border-radius: 3px 3px 0 0;
+
+        h1,
+        h2 {
+            margin: 0;
+            padding: 0;
+            line-height: 1.125em;
+        }
+
+        h1 {
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0;
+        }
+        h2 {
+            margin: 4px 0 2px 0;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.01em;
+        }
+    }
+
+    &.plain header {
+        border-radius: 3px;
+        background:white;
+    }
+
+    section {
+        padding: 8px 12px;
+
+        > p {
+            margin: 0;
+            padding: 0;
+        }
+
+        .variable {
+            .definition {
+                color: #858585;
+                font-size: 12px;
+                line-height: 16px;
+                letter-spacing: 0.01em;
+                em {
+                    font-weight: 500;
+                    font-style: normal;
+                }
+            }
+
+            .values {
+                color: $dark-grey;
+                padding: 0.25em 0;
+                line-height: 20px;
+                font-size: 20px;
+                font-weight: 700;
+
+                svg.arrow {
+                    height: 15px;
+                    margin-right: 2px;
+                    &.up path {
+                        fill: $green;
+                    }
+                    &.down path {
+                        fill: $red;
+                    }
+                    &.right path {
+                        fill: $grey;
+                    }
+                }
+            }
+        }
+
+        .variable + .variable {
+            margin-top: 4px;
+            padding-top: 8px;
+            border-top: 1px solid $background-stroke;
+        }
+
+        table {
+            color: $dark-grey;
+            font-size: 14px;
+            line-height: 22px;
+            font-weight: 500;
+            white-space: normal;
+            border-collapse: collapse;
+
+            // only used if rows have ≥2 values
+            thead {
+                font-size: 12px;
+                letter-spacing: 0.01em;
+
+                tr td.series-value {
+                    font-weight: 500;
+                }
+            }
+
+            // -- standard columns --
+
+            td.series-color {
+                padding-left: 0;
+                vertical-align: baseline;
+                .swatch {
+                    width: 12px;
+                    height: 12px;
+                    display: inline-block;
+                    margin-right: 0.3em;
+                    text-align: left;
+                }
+            }
+
+            td.series-name {
+                padding-right: 0.9em;
+                .parenthetical {
+                    color: $grey;
+                }
+
+                .annotation {
+                    display: block;
+                    color: $grey;
+                    line-height: 1.2em;
+                    font-size: 12px;
+                    letter-spacing: 0.01em;
+                    &::before {
+                        content: " ";
+                    }
+                }
+            }
+
+            td.series-value {
+                font-weight: 700;
+                text-align: right;
+                white-space: nowrap;
+
+                &.missing::before {
+                    content: "No data";
+                    color: $light-grey;
+                }
+
+                & + .series-value {
+                    padding-left: 0.5em;
+                }
+            }
+
+            // -- special row types --
+
+            tr.blurred {
+                color: $light-grey;
+                .series-color .swatch {
+                    opacity: 0.25;
+                }
+                .series-name span {
+                    color: inherit;
+                }
+            }
+
+            tr.spacer {
+                line-height: 2px;
+                font-size: 2px;
+                &::before {
+                    content: "\00a0";
+                }
+            }
+
+            tr.total {
+                td {
+                    line-height: 14px;
+                }
+                td:nth-child(2),
+                td:nth-child(3) {
+                    border-top: 1px solid $background-stroke;
+                    vertical-align: bottom;
+                }
+                td:last-child::before {
+                    content: "\200a";
+                    height: 5px;
+                    display: block;
+                }
+            }
+
+            // highlight hovered row
+            &.focal {
+                td.series-value {
+                    font-weight: 500;
+                }
+
+                tr.focused td {
+                    font-weight: 700;
+                }
+            }
+
+            // hide unused color swatch column
+            &:not(.swatched){
+                td.series-color{
+                    display:none;
+                }
+            }
+        }
+
+        .callout {
+            margin: 0.28em;
+            text-align: center;
+            font-weight: 600;
+            font-size: 12px;
+            font-style: italic;
+            letter-spacing: 0.01em;
+            color: $grey;
+        }
+    }
+
+    footer {
+        background: $background-fill;
+        color: $grey;
+        padding: 12px;
+        border-radius: 0 0 3px 3px;
+        padding-left: 12px;
+
+        svg {
+            position: absolute;
+            width: 12px;
+        }
+
+        p {
+            font-size: 12px;
+            letter-spacing: 0.01em;
+            line-height: 16px;
+            margin: 0;
+            padding-left: 19px;
+            max-width: 280px;
+        }
+    }
+}
