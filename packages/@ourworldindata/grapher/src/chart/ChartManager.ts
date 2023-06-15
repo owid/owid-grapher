@@ -1,3 +1,4 @@
+import React from "react"
 import { ColorScaleConfigInterface } from "../color/ColorScaleConfig"
 import {
     EntitySelectionMode,
@@ -24,6 +25,7 @@ import { ColorScale } from "../color/ColorScale"
 // The possible options common across our chart types. Not all of these apply to every chart type, so there is room to create a better type hierarchy.
 
 export interface ChartManager {
+    base?: React.RefObject<SVGGElement | HTMLDivElement>
     baseFontSize?: number
 
     table: OwidTable
