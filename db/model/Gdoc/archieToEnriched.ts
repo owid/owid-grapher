@@ -233,7 +233,7 @@ export const archieToEnriched = (text: string): OwidGdocContent => {
     parsed.toc = generateToc(parsed.body)
 
     const parsedRefs = parseRefs({
-        refs: [...Array.from(parsed.refs), ...rawInlineRefs],
+        refs: [...(parsed.refs ?? []), ...rawInlineRefs],
         refsByFirstAppearance,
     })
     parsed.refs = parsedRefs
