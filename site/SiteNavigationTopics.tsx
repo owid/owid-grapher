@@ -78,7 +78,7 @@ export const SiteNavigationTopics = ({
                 <ul
                     className={classnames("topics", {
                         "columns-medium": numTopicColumns === 2,
-                        "columns-large": numTopicColumns === 3,
+                        "columns-large": numTopicColumns > 2,
                     })}
                     onClick={stopPropagation}
                 >
