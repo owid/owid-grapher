@@ -528,6 +528,7 @@ h3.article-block__heading.has-supertitle {
     h4 {
         color: $blue-90;
         margin-bottom: 8px;
+        margin-top: 8px;
     }
     a {
         @include owid-link-90;
@@ -537,6 +538,13 @@ h3.article-block__heading.has-supertitle {
     padding: 16px 24px;
     border-radius: 8px;
     margin: 32px 0;
+    p:last-child {
+        margin-bottom: 8px;
+    }
+
+    + .article-block__horizontal-rule {
+        margin-top: 24px;
+    }
 }
 
 .article-block__sticky-right,
