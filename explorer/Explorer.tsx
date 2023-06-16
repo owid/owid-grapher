@@ -27,6 +27,7 @@ import {
     ColumnSlug,
     debounce,
     DEFAULT_BOUNDS,
+    DimensionProperty,
     excludeUndefined,
     exposeInstanceOnWindow,
     flatten,
@@ -54,6 +55,7 @@ import {
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { ADMIN_BASE_URL, BAKED_BASE_URL } from "../settings/clientSettings.js"
 import {
+    ChartCreationMode,
     ExplorerChoiceParams,
     ExplorerContainerId,
     ExplorerFullQueryParams,
@@ -340,6 +342,10 @@ export class Explorer
         const {
             grapherId,
             tableSlug,
+            yIndicatorIds,
+            xIndicatorId,
+            colorIndicatorId,
+            sizeIndicatorId,
             yScaleToggle,
             yAxisMin,
             facetYDomain,
@@ -349,20 +355,73 @@ export class Explorer
         } = grapherConfigFromExplorer
         const grapherConfigFromExplorerOnlyGrapherProps = omit(
             grapherConfigFromExplorer,
-            ["mapTargetTime"]
+            [
+                "yIndicatorIds",
+                "xIndicatorId",
+                "colorIndicatorId",
+                "sizeIndicatorId",
+                "mapTargetTime",
+            ]
         )
 
-        const hasGrapherId = grapherId && isNotErrorValue(grapherId)
+        // chart creation preference: with grapher id -> with indicator ids -> with manually provided data
+        let creationMode = ChartCreationMode.Unknown
+        if (grapherId && isNotErrorValue(grapherId))
+            creationMode = ChartCreationMode.WithGrapherId
+        else if (
+            yIndicatorIds?.length ||
+            xIndicatorId ||
+            colorIndicatorId ||
+            sizeIndicatorId
+        )
+            creationMode = ChartCreationMode.WithIndicatorIds
+        else if (tableSlug)
+            creationMode = ChartCreationMode.WithManuallyProvidedData
 
-        const grapherConfig = hasGrapherId
-            ? this.grapherConfigs.get(grapherId!) ?? {}
-            : {}
+        const grapherConfig =
+            creationMode === ChartCreationMode.WithGrapherId
+                ? this.grapherConfigs.get(grapherId!) ?? {}
+                : {}
 
         const config: GrapherProgrammaticInterface = {
             ...grapherConfig,
             ...grapherConfigFromExplorerOnlyGrapherProps,
             hideEntityControls: this.showExplorerControls,
-            manuallyProvideData: tableSlug ? true : false,
+            manuallyProvideData:
+                creationMode === ChartCreationMode.WithManuallyProvidedData,
+        }
+
+        // set given indicators as dimensions
+        if (creationMode === ChartCreationMode.WithIndicatorIds) {
+            const dimensions = config.dimensions ?? []
+            if (yIndicatorIds) {
+                yIndicatorIds.forEach((yIndicatorId) => {
+                    dimensions.push({
+                        variableId: yIndicatorId,
+                        property: DimensionProperty.y,
+                    })
+                })
+            }
+            if (xIndicatorId) {
+                dimensions.push({
+                    variableId: xIndicatorId,
+                    property: DimensionProperty.x,
+                })
+            }
+            if (colorIndicatorId) {
+                dimensions.push({
+                    variableId: colorIndicatorId,
+                    property: DimensionProperty.color,
+                })
+            }
+            if (sizeIndicatorId) {
+                dimensions.push({
+                    variableId: sizeIndicatorId,
+                    property: DimensionProperty.size,
+                })
+            }
+            config.dimensions = dimensions
+            config.bakedGrapherURL = "/grapher"
         }
 
         grapher.setAuthoredVersion(config)
@@ -382,7 +441,7 @@ export class Explorer
         }
         grapher.updateFromObject(config)
 
-        if (!hasGrapherId) {
+        if (creationMode === ChartCreationMode.WithManuallyProvidedData) {
             // Clear any error messages, they are likely to be related to dataset loading.
             this.grapher?.clearErrors()
             // Set a table immediately. A BlankTable shows a loading animation.

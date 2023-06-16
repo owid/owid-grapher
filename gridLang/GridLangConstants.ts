@@ -106,6 +106,23 @@ export const IntegerCellDef: CellDef = {
     parse: (value: any) => parseInt(value),
 }
 
+export const IntegersCellDef: CellDef = {
+    keyword: "",
+    cssClass: "IntegerCellDef",
+    description: "",
+    regex: /^-?[0-9 ]+$/,
+    requirementsDescription: `Must be an integer or a list of integers`,
+    valuePlaceholder: "12345 23456",
+    parse: (value: any) => {
+        if (typeof value === "number") return [value]
+        else
+            return value
+                .split(" ")
+                .map((item: string) => parseInt(item.trim()))
+                .filter((item: number) => !isNaN(item))
+    },
+}
+
 export const SubTableHeaderCellDef: CellDef = {
     keyword: "",
     cssClass: "SubTableHeaderCellDef",

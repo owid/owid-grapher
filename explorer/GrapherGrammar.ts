@@ -14,6 +14,7 @@ import {
     EnumCellDef,
     Grammar,
     IntegerCellDef,
+    IntegersCellDef,
     NumericCellDef,
     SlugDeclarationCellDef,
     SlugsDeclarationCellDef,
@@ -46,6 +47,11 @@ export const GrapherGrammar: Grammar = {
         ...SlugsDeclarationCellDef,
         description: "ColumnSlug(s) for the yAxis",
         keyword: "ySlugs",
+    },
+    yIndicatorIds: {
+        ...IntegersCellDef,
+        keyword: "yIndicatorIds",
+        description: "Indicator ID(s) for the yAxis",
     },
     type: {
         ...StringCellDef,
@@ -85,15 +91,30 @@ export const GrapherGrammar: Grammar = {
         description: "ColumnSlug for the xAxis",
         keyword: "xSlug",
     },
+    xIndicatorId: {
+        ...IntegerCellDef,
+        keyword: "xIndicatorId",
+        description: "Indicator ID for the xAxis",
+    },
     colorSlug: {
         ...SlugDeclarationCellDef,
         description: "ColumnSlug for the color",
         keyword: "colorSlug",
     },
+    colorIndicatorId: {
+        ...IntegerCellDef,
+        keyword: "colorIndicatorId",
+        description: "Indicator ID for the color",
+    },
     sizeSlug: {
         ...SlugDeclarationCellDef,
         description: "ColumnSlug for the size of points on scatters",
         keyword: "sizeSlug",
+    },
+    sizeIndicatorId: {
+        ...IntegerCellDef,
+        keyword: "sizeIndicatorId",
+        description: "Indicator ID for the size of points on scatters",
     },
     tableSlugs: {
         ...SlugsDeclarationCellDef,
