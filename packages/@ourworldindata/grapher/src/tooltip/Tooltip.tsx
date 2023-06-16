@@ -104,7 +104,7 @@ class Variable extends React.Component<{
 export class TooltipTable extends React.Component<{
     columns: CoreColumn[]
     rows: TooltipTableRow[]
-    totals?: number[]
+    totals?: (number | undefined)[]
     format?: TickFormattingOptions
 }> {
     render(): JSX.Element | null {
@@ -114,6 +114,7 @@ export class TooltipTable extends React.Component<{
             format = { trailingZeroes: true, ...this.props.format },
             allEmpty =
                 rows.length == 0 ||
+                totals?.every((value) => value === undefined) ||
                 rows.every(({ values }) =>
                     values.every((value) => value === undefined)
                 ),
@@ -206,7 +207,7 @@ export class TooltipTable extends React.Component<{
                                         key={column?.slug}
                                         className="series-value"
                                     >
-                                        {column
+                                        {column && total !== undefined
                                             ? column.formatValueShort(
                                                   total,
                                                   format
