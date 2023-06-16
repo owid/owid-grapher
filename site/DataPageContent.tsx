@@ -61,7 +61,7 @@ export const DataPageContent = ({
 
     const stickyNavLinks = [
         {
-            text: "Explore the data",
+            text: "Explore the Data",
             target: "#explore-the-data",
         },
         {
@@ -629,12 +629,12 @@ export const DataPageContent = ({
                                                         How to cite this data
                                                     </h5>
                                                     <p className="citation__paragraph">
-                                                        If you are using the
-                                                        data indicator for
-                                                        analysis or for your own
-                                                        visualizations, please
-                                                        cite both the underlying
-                                                        data source(s) and{" "}
+                                                        If you are using this
+                                                        data for analysis or for
+                                                        your own visualizations,
+                                                        please cite both the
+                                                        underlying data
+                                                        source(s) and{" "}
                                                         <em>
                                                             Our World in Data
                                                         </em>{" "}
