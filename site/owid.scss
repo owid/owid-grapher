@@ -895,6 +895,13 @@ article.page .authors-byline .citation-note:hover {
                 margin-top: 1em;
             }
         }
+
+        .article-block__text,
+        .article-block__list,
+        .article-block__html,
+        .article-block__numbered-list {
+            @include body-3-medium;
+        }
     }
 }
 

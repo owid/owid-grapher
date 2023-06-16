@@ -331,21 +331,29 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
 
     get links(): Link[] {
         const links: Link[] = []
+        const blocksToTraverse: OwidEnrichedGdocBlock[] = []
         if (this.content.body) {
-            this.content.body.map((node) =>
-                traverseEnrichedBlocks(
-                    node,
-                    (node) => {
-                        const extractedLinks = this.extractLinksFromNode(node)
-                        if (extractedLinks) links.push(...extractedLinks)
-                    },
-                    (span) => {
-                        const link = this.extractLinkFromSpan(span)
-                        if (link) links.push(link)
-                    }
-                )
-            )
+            blocksToTraverse.push(...this.content.body)
         }
+        if (this.content.refs?.definitions) {
+            const refBlocks = Object.values(
+                this.content.refs.definitions
+            ).flatMap((definition) => definition.content)
+            blocksToTraverse.push(...refBlocks)
+        }
+        blocksToTraverse.map((node) =>
+            traverseEnrichedBlocks(
+                node,
+                (node) => {
+                    const extractedLinks = this.extractLinksFromNode(node)
+                    if (extractedLinks) links.push(...extractedLinks)
+                },
+                (span) => {
+                    const link = this.extractLinkFromSpan(span)
+                    if (link) links.push(link)
+                }
+            )
+        )
         return links
     }
 

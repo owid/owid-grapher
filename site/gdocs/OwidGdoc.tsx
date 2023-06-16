@@ -11,6 +11,7 @@ import {
     RelatedChart,
     CITATION_ID,
     LICENSE_ID,
+    isEmpty,
 } from "@ourworldindata/utils"
 import { CodeSnippet } from "../blocks/CodeSnippet.js"
 import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
@@ -121,7 +122,9 @@ export function OwidGdoc({
                         />
                     ) : null}
 
-                    {content.refs ? <Footnotes d={content.refs} /> : null}
+                    {content.refs && !isEmpty(content.refs.definitions) ? (
+                        <Footnotes definitions={content.refs.definitions} />
+                    ) : null}
 
                     <section
                         id={CITATION_ID}

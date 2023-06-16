@@ -231,6 +231,13 @@ h3.article-block__heading.has-supertitle {
                 margin-left: 0;
             }
         }
+
+        .article-block__text,
+        .article-block__list,
+        .article-block__html,
+        .article-block__numbered-list {
+            @include body-3-medium;
+        }
     }
 }
 

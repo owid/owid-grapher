@@ -1020,6 +1020,18 @@ export type EnrichedBlockExpandableParagraph = {
     items: OwidEnrichedGdocBlock[]
 } & EnrichedBlockWithParseErrors
 
+export type Ref = {
+    id: string
+    // Can be -1
+    index: number
+    content: OwidEnrichedGdocBlock[]
+    parseErrors: ParseError[]
+}
+
+export type RefDictionary = {
+    [refId: string]: Ref
+}
+
 export type OwidRawGdocBlock =
     | RawBlockAllCharts
     | RawBlockAside
@@ -1185,7 +1197,7 @@ export interface OwidGdocContent {
     authors: string[]
     dateline?: string
     excerpt?: string
-    refs?: EnrichedBlockText[]
+    refs?: { definitions: RefDictionary; errors: OwidGdocErrorMessage[] }
     summary?: EnrichedBlockText[]
     citation?: EnrichedBlockSimpleText[]
     toc?: TocHeadingWithTitleSupertitle[]

@@ -1,4 +1,5 @@
 import { load } from "archieml"
+import { createHash } from "crypto"
 import {
     OwidGdocContent,
     TocHeadingWithTitleSupertitle,
@@ -20,7 +21,7 @@ import {
     CITATION_ID,
     LICENSE_ID,
 } from "@ourworldindata/utils"
-import { parseRawBlocksToEnrichedBlocks } from "./rawToEnriched.js"
+import { parseRawBlocksToEnrichedBlocks, parseRefs } from "./rawToEnriched.js"
 import urlSlug from "url-slug"
 import { parseAuthors, spansToSimpleString } from "./gdocUtils.js"
 import {
@@ -142,29 +143,73 @@ function formatCitation(
     return citationArray.map(htmlToSimpleTextBlock)
 }
 
-export const archieToEnriched = (text: string): OwidGdocContent => {
-    const refs = (text.match(/{ref}(.*?){\/ref}/gims) || []).map(function (
-        val: string,
-        i: number
-    ) {
-        // mutate original text
-        text = text.replace(
-            val,
-            `<a class="ref" href="#note-${i + 1}"><sup>${i + 1}</sup></a>`
-        )
-        // return inner text
-        return val.replace(/\{\/?ref\}/g, "")
-    })
+// Match all curly bracket {ref}some_id{/ref} and {ref}I am an inline ref{/ref} syntax in the text
+// Iterate through them
+// If it's an inline ref, hash its contents to use as an ID and parse it
+// Record the index of the FIRST reference to each ID so that IDs can be referenced multiple times but use the same footnote number
+// Replace the curly bracket syntax with <a> tags which htmlToSpans will convert later
+export function extractRefs(text: string): {
+    extractedText: string
+    refsByFirstAppearance: Set<string>
+    rawInlineRefs: unknown[]
+} {
+    let extractedText = text
+    const RefRegExp = "{ref}(.*?){/ref}"
 
-    // A note on the use of Regexps here: doing this is in theory a bit crude
-    // as we are hacking at the plain text representation where we will have a
-    // much richer tree data structure a bit further down. However, manipulating
-    // the tree data structure to correctly collect whitespace and deal with
-    // arbitrary numbers of opening/closing spans correctly adds significant complexity.
-    // Since here we expect to have created the a tag ourselves and always as the
-    // deepest level of nesting (see the readElements function) we can be confident
-    // that this will work as expected in this case and is much simpler than handling
-    // this later.
+    const refsByFirstAppearance = new Set<string>()
+    const rawInlineRefs: unknown[] = []
+    const rawRefStrings = text.match(new RegExp(RefRegExp, "gims")) || []
+
+    for (const rawRef of rawRefStrings) {
+        const isInlineRef = rawRef.includes(" ")
+
+        // This will always exist as it's the same as the RegExp from above
+        // minus the g flag (so that we can extract groups)
+        const match = rawRef.match(
+            new RegExp(RefRegExp, "ims")
+        ) as RegExpMatchArray
+        const contentOrId = match[1]
+
+        const id = isInlineRef
+            ? createHash("sha1").update(contentOrId).digest("hex")
+            : contentOrId
+
+        refsByFirstAppearance.add(id)
+        const index = [...refsByFirstAppearance].indexOf(id)
+        const footnoteNumber = index + 1
+
+        // A note on the use of Regexps here: doing this is in theory a bit crude
+        // as we are hacking at the plain text representation where we will have a
+        // much richer tree data structure a bit further down. However, manipulating
+        // the tree data structure to correctly collect whitespace and deal with
+        // arbitrary numbers of opening/closing spans correctly adds significant complexity.
+        // Since here we expect to have created the a tag ourselves and always as the
+        // deepest level of nesting (see the readElements function) we can be confident
+        // that this will work as expected in this case and is much simpler than handling
+        // this later.
+        extractedText = extractedText.replace(
+            rawRef,
+            `<a class="ref" href="#note-${footnoteNumber}"><sup>${footnoteNumber}</sup></a>`
+        )
+
+        if (isInlineRef) {
+            const rawInlineRef = load(`
+                id: ${id}
+                [.+content]
+                ${contentOrId}
+                []
+            `)
+            rawInlineRefs.push(rawInlineRef)
+        }
+    }
+
+    return { extractedText, refsByFirstAppearance, rawInlineRefs }
+}
+
+export const archieToEnriched = (text: string): OwidGdocContent => {
+    const { extractedText, refsByFirstAppearance, rawInlineRefs } =
+        extractRefs(text)
+    text = extractedText
 
     // Replace whitespace-only inside links. We need to keep the WS around, they
     // just should not be displayed as links
@@ -187,7 +232,11 @@ export const archieToEnriched = (text: string): OwidGdocContent => {
 
     parsed.toc = generateToc(parsed.body)
 
-    parsed.refs = refs.map(htmlToEnrichedTextBlock)
+    const parsedRefs = parseRefs({
+        refs: [...(parsed.refs ?? []), ...rawInlineRefs],
+        refsByFirstAppearance,
+    })
+    parsed.refs = parsedRefs
 
     parsed.summary = parsed.summary?.map((html: RawBlockText) =>
         htmlToEnrichedTextBlock(html.value)
