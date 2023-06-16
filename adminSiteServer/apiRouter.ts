@@ -2746,6 +2746,9 @@ apiRouter.get("/gdocs/:id", async (req, res) => {
             publishedExplorersBySlug,
             contentSource
         )
+        if (!gdoc.published) {
+            await dataSource.getRepository(Gdoc).create(gdoc).save()
+        }
         res.set("Cache-Control", "no-store")
         res.send(gdoc)
     } catch (error) {
