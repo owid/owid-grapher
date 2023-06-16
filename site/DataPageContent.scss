@@ -141,11 +141,12 @@
             @include owid-link-90;
             color: inherit;
         }
-        > div:last-child {
-            white-space: nowrap;
-            text-overflow: ellipsis;
-            overflow: hidden;
-        }
+    }
+
+    .key-data--hide-overflow div:last-child {
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
     }
 
     .key-data__title {
