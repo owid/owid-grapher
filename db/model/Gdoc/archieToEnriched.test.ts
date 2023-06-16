@@ -6,7 +6,7 @@ it("Can extract a ref from some text", () => {
     ).toEqual({
         extractedText: `I am a thing<a class="ref" href="#note-1"><sup>1</sup></a> and some follow up`,
         refsByFirstAppearance: new Set(["some_id"]),
-        parsedInlineRefs: {},
+        rawInlineRefs: [],
     })
 })
 
@@ -18,7 +18,7 @@ it("Can extract multiple refs from some text", () => {
     ).toEqual({
         extractedText: `I am a thing<a class="ref" href="#note-1"><sup>1</sup></a> and some follow up<a class="ref" href="#note-2"><sup>2</sup></a>`,
         refsByFirstAppearance: new Set(["some_id", "another_id"]),
-        parsedInlineRefs: {},
+        rawInlineRefs: [],
     })
 })
 
@@ -30,7 +30,7 @@ it("Can extract multiple refs from some text and refer to an earlier footnote wh
     ).toEqual({
         extractedText: `I am a thing<a class="ref" href="#note-1"><sup>1</sup></a> and some follow up<a class="ref" href="#note-2"><sup>2</sup></a>. I refer to a ref that has already been referenced once<a class="ref" href="#note-1"><sup>1</sup></a>`,
         refsByFirstAppearance: new Set(["some_id", "another_id"]),
-        parsedInlineRefs: {},
+        rawInlineRefs: [],
     })
 })
 
@@ -40,28 +40,17 @@ it("Can extract an inline ref", () => {
         refsByFirstAppearance: new Set([
             "796885412908186a5e57f2e753ab697b85666afe",
         ]),
-        parsedInlineRefs: {
-            definitions: {
-                "796885412908186a5e57f2e753ab697b85666afe": {
-                    content: [
-                        {
-                            parseErrors: [],
-                            type: "text",
-                            value: [
-                                {
-                                    spanType: "span-simple-text",
-                                    text: "I am an inline ref",
-                                },
-                            ],
-                        },
-                    ],
-                    id: "796885412908186a5e57f2e753ab697b85666afe",
-                    index: 0,
-                    parseErrors: [],
-                },
+        rawInlineRefs: [
+            {
+                content: [
+                    {
+                        type: "text",
+                        value: "I am an inline ref",
+                    },
+                ],
+                id: "796885412908186a5e57f2e753ab697b85666afe",
             },
-            errors: [],
-        },
+        ],
     })
 })
 
@@ -76,28 +65,17 @@ it("Can extract an inline ref and an ID ref", () => {
             "796885412908186a5e57f2e753ab697b85666afe",
             "some_id",
         ]),
-        parsedInlineRefs: {
-            definitions: {
-                "796885412908186a5e57f2e753ab697b85666afe": {
-                    content: [
-                        {
-                            parseErrors: [],
-                            type: "text",
-                            value: [
-                                {
-                                    spanType: "span-simple-text",
-                                    text: "I am an inline ref",
-                                },
-                            ],
-                        },
-                    ],
-                    id: "796885412908186a5e57f2e753ab697b85666afe",
-                    index: 0,
-                    parseErrors: [],
-                },
+        rawInlineRefs: [
+            {
+                content: [
+                    {
+                        type: "text",
+                        value: "I am an inline ref",
+                    },
+                ],
+                id: "796885412908186a5e57f2e753ab697b85666afe",
             },
-            errors: [],
-        },
+        ],
     })
 })
 
@@ -112,28 +90,17 @@ it("Can extract an inline ref and an ID ref and then refer back to a previous in
             "796885412908186a5e57f2e753ab697b85666afe",
             "some_id",
         ]),
-        parsedInlineRefs: {
-            definitions: {
-                "796885412908186a5e57f2e753ab697b85666afe": {
-                    content: [
-                        {
-                            parseErrors: [],
-                            type: "text",
-                            value: [
-                                {
-                                    spanType: "span-simple-text",
-                                    text: "I am an inline ref",
-                                },
-                            ],
-                        },
-                    ],
-                    id: "796885412908186a5e57f2e753ab697b85666afe",
-                    index: 0,
-                    parseErrors: [],
-                },
+        rawInlineRefs: [
+            {
+                content: [
+                    {
+                        type: "text",
+                        value: "I am an inline ref",
+                    },
+                ],
+                id: "796885412908186a5e57f2e753ab697b85666afe",
             },
-            errors: [],
-        },
+        ],
     })
 })
 
@@ -150,44 +117,25 @@ it("Can index intermingled inline and ID refs correctly", () => {
             "another_id",
             "f5c4fee26da4a46180cef44bc019ec072ec66f3f",
         ]),
-        parsedInlineRefs: {
-            definitions: {
-                "3d708842b0da8d18eabe4d2212ba27646ed20f49": {
-                    content: [
-                        {
-                            parseErrors: [],
-                            type: "text",
-                            value: [
-                                {
-                                    spanType: "span-simple-text",
-                                    text: "An inline ref",
-                                },
-                            ],
-                        },
-                    ],
-                    id: "3d708842b0da8d18eabe4d2212ba27646ed20f49",
-                    index: 1,
-                    parseErrors: [],
-                },
-                f5c4fee26da4a46180cef44bc019ec072ec66f3f: {
-                    content: [
-                        {
-                            parseErrors: [],
-                            type: "text",
-                            value: [
-                                {
-                                    spanType: "span-simple-text",
-                                    text: "Another inline ref",
-                                },
-                            ],
-                        },
-                    ],
-                    id: "f5c4fee26da4a46180cef44bc019ec072ec66f3f",
-                    index: 3,
-                    parseErrors: [],
-                },
+        rawInlineRefs: [
+            {
+                content: [
+                    {
+                        type: "text",
+                        value: "An inline ref",
+                    },
+                ],
+                id: "3d708842b0da8d18eabe4d2212ba27646ed20f49",
             },
-            errors: [],
-        },
+            {
+                content: [
+                    {
+                        type: "text",
+                        value: "Another inline ref",
+                    },
+                ],
+                id: "f5c4fee26da4a46180cef44bc019ec072ec66f3f",
+            },
+        ],
     })
 })

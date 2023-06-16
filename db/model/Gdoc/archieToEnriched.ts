@@ -20,6 +20,7 @@ import {
     ENDNOTES_ID,
     CITATION_ID,
     LICENSE_ID,
+    checkIsPlainObjectWithGuard,
 } from "@ourworldindata/utils"
 import { parseRawBlocksToEnrichedBlocks, parseRefs } from "./rawToEnriched.js"
 import urlSlug from "url-slug"
@@ -193,13 +194,24 @@ export function extractRefs(text: string): {
         )
 
         if (isInlineRef) {
-            const rawInlineRef = load(`
+            const isAlreadySeen = Boolean(
+                rawInlineRefs.find(
+                    (rawInlineRef) =>
+                        checkIsPlainObjectWithGuard(rawInlineRef) &&
+                        "id" in rawInlineRef &&
+                        typeof rawInlineRef.id === "string" &&
+                        rawInlineRef.id === id
+                )
+            )
+            if (!isAlreadySeen) {
+                const rawInlineRef = load(`
                 id: ${id}
                 [.+content]
                 ${contentOrId}
                 []
             `)
-            rawInlineRefs.push(rawInlineRef)
+                rawInlineRefs.push(rawInlineRef)
+            }
         }
     }
 
