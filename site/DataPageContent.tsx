@@ -518,8 +518,7 @@ export const DataPageContent = ({
                                 )}
                                 <div className="data-processing grid span-cols-12">
                                     <h3 className="data-processing__heading span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                                        How we process data at{" "}
-                                        <em>Our World in Data</em>
+                                        How we process data at Our World in Data
                                     </h3>
                                     <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
                                         <div className="data-processing__content">
@@ -634,12 +633,9 @@ export const DataPageContent = ({
                                                         your own visualizations,
                                                         please cite both the
                                                         underlying data
-                                                        source(s) and{" "}
-                                                        <em>
-                                                            Our World in Data
-                                                        </em>{" "}
-                                                        using the following
-                                                        citation:
+                                                        source(s) and Our World
+                                                        in Data using the
+                                                        following citation:
                                                     </p>
                                                     <CodeSnippet
                                                         code={
@@ -658,11 +654,8 @@ export const DataPageContent = ({
                                                         To cite this page
                                                         overall, including any
                                                         descriptions of the data
-                                                        authored by{" "}
-                                                        <em>
-                                                            Our World in Data
-                                                        </em>
-                                                        , please use the
+                                                        authored by Our World in
+                                                        Data, please use the
                                                         following citation:
                                                     </p>
                                                     <CodeSnippet
