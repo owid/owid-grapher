@@ -483,7 +483,7 @@ export const DataPageContent = ({
                                                                                         </div>
                                                                                     )}
                                                                                     {source.sourceRetrievedFromUrl && (
-                                                                                        <div className="key-data">
+                                                                                        <div className="key-data key-data--hide-overflow">
                                                                                             <div className="key-data__title--dark">
                                                                                                 Retrieved
                                                                                                 from
