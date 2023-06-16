@@ -49,7 +49,7 @@
 
     &.plain header {
         border-radius: 3px;
-        background:white;
+        background: white;
     }
 
     section {
@@ -214,9 +214,9 @@
             }
 
             // hide unused color swatch column
-            &:not(.swatched){
-                td.series-color{
-                    display:none;
+            &:not(.swatched) {
+                td.series-color {
+                    display: none;
                 }
             }
         }

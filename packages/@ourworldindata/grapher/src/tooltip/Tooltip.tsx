@@ -17,9 +17,10 @@ export class TooltipValue extends React.Component<{
         const { column, value, color } = this.props,
             displayValue =
                 (value !== undefined && column.formatValueShort(value)) ||
-                NO_DATA_LABEL
+                NO_DATA_LABEL,
+            displayColor = displayValue === NO_DATA_LABEL ? "#999" : color
         return (
-            <Variable column={column} color={color}>
+            <Variable column={column} color={displayColor}>
                 {displayValue}
             </Variable>
         )
