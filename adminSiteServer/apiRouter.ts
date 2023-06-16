@@ -295,7 +295,9 @@ const saveGrapher = async (
     transactionContext: db.TransactionContext,
     user: CurrentUser,
     newConfig: GrapherInterface,
-    existingConfig?: GrapherInterface
+    existingConfig?: GrapherInterface,
+    referencedVariablesMightChange: boolean = true // if the variables a chart uses can change then we need
+    // to update the latest country data which takes quite a long time (hundreds of ms)
 ) => {
     // Slugs need some special logic to ensure public urls remain consistent whenever possible
     async function isSlugUsedInRedirect() {
@@ -399,7 +401,7 @@ const saveGrapher = async (
     }
 
     // So we can generate country profiles including this chart data
-    if (newConfig.isPublished)
+    if (newConfig.isPublished && referencedVariablesMightChange)
         await denormalizeLatestCountryData(
             newConfig.dimensions!.map((d) => d.variableId)
         )
@@ -1597,7 +1599,8 @@ apiRouter.patch("/chart-bulk-update", async (req, res) => {
                 manager,
                 res.locals.user,
                 newConfig,
-                oldValuesConfigMap.get(id)
+                oldValuesConfigMap.get(id),
+                false
             )
         }
     })
