@@ -220,6 +220,11 @@ function parseAdditionalCharts(
         parseErrors: [error],
     })
 
+    if (isArray(raw.value))
+        return createError({
+            message: `additional-charts block is using an array tag (e.g. [.additional-charts]). Please update it to use curly braces (e.g. {.additional-charts})`,
+        })
+
     if (!isArray(raw.value.list))
         return createError({ message: "Block does not contain a list" })
 
@@ -457,6 +462,10 @@ const parseChartStory = (raw: RawBlockChartStory): EnrichedBlockChartStory => {
                 return {
                     message:
                         "Item is missing chart property or it is not a string value",
+                }
+            if (isArray(item?.technical))
+                return {
+                    message: `Item's technical tag is an array (e.g. "[.technical]"). Please update this tag to use curly braces (e.g. {.technical})`,
                 }
             return {
                 narrative: htmlToEnrichedTextBlock(item.narrative),
