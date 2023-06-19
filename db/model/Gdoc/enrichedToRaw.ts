@@ -70,7 +70,9 @@ export function enrichedBlockToRawBlock(
             { type: "additional-charts" },
             (b): RawBlockAdditionalCharts => ({
                 type: b.type,
-                value: b.items.map(spansToHtmlText),
+                value: {
+                    list: b.items.map(spansToHtmlText),
+                },
             })
         )
         .with(
@@ -253,13 +255,6 @@ export function enrichedBlockToRawBlock(
             (b): RawBlockMissingData => ({
                 type: b.type,
                 value: b.value,
-            })
-        )
-        .with(
-            { type: "additional-charts" },
-            (b): RawBlockAdditionalCharts => ({
-                type: b.type,
-                value: b.items.map(spansToHtmlText),
             })
         )
         .with(

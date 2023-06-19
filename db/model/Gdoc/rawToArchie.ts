@@ -369,8 +369,8 @@ function* rawBlockAdditionalChartsToArchieMLString(
     block: RawBlockAdditionalCharts
 ): Generator<string, void, undefined> {
     yield "[.additional-charts]"
-    if (typeof block.value !== "string") {
-        for (const listItem of block.value) {
+    if (block.value.list) {
+        for (const listItem of block.value.list) {
             yield `* ${listItem}`
         }
     }

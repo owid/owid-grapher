@@ -1002,7 +1002,9 @@ export type EnrichedBlockMissingData = {
 
 export type RawBlockAdditionalCharts = {
     type: "additional-charts"
-    value: string[]
+    value: {
+        list?: string[]
+    }
 }
 
 export type EnrichedBlockAdditionalCharts = {

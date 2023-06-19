@@ -220,10 +220,19 @@ function parseAdditionalCharts(
         parseErrors: [error],
     })
 
-    if (!isArray(raw.value))
-        return createError({ message: "Value is not a list" })
+    if (!isArray(raw.value.list))
+        return createError({ message: "Block does not contain a list" })
 
-    const items = raw.value.map(htmlToSpans)
+    for (const item of raw.value.list) {
+        if (typeof item !== "string")
+            return createError({
+                message: `Item in list with value "${JSON.stringify(
+                    item
+                )}" isn't a plain string.`,
+            })
+    }
+
+    const items = raw.value.list.map(htmlToSpans)
 
     return {
         type: "additional-charts",
