@@ -449,8 +449,10 @@ export class Explorer
                 BlankOwidTable(tableSlug, `Loading table '${tableSlug}'`)
             )
             this.futureGrapherTable.set(this.tableLoader.get(tableSlug))
-            grapher.id = 0
         }
+
+        // Make sure grapher has an id
+        if (!grapher.id) grapher.id = 0
 
         // Download data if this is a Grapher ID inside the Explorer specification
         grapher.downloadData()
