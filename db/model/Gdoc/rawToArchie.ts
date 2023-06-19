@@ -125,10 +125,11 @@ function* rawBlockChartStoryToArchieMLString(
         for (const item of block.value) {
             yield* propertyToArchieMLString("narrative", item)
             yield* propertyToArchieMLString("chart", item)
-            // TODO: we might need to reverse some regex sanitization here (e.g. colons?)
+            yield "{.technical}"
             if (item.technical?.list) {
                 yield* listToArchieMLString(item.technical.list, "list")
             }
+            yield "{}"
         }
     }
     yield "[]"
@@ -370,7 +371,7 @@ function* rawBlockAdditionalChartsToArchieMLString(
 ): Generator<string, void, undefined> {
     yield "{.additional-charts}"
     if (block.value.list) {
-        listToArchieMLString(block.value.list, "list")
+        yield* listToArchieMLString(block.value.list, "list")
     }
     yield "{}"
 }
