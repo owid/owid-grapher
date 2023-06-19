@@ -60,6 +60,7 @@ export enum TransformType {
     UpdateColumnDefsAndApply = "UpdateColumnDefsAndApply", // use this for updates that add a column transform fn.
     RenameColumns = "RenameColumns",
     InverseFilterColumns = "InverseFilterColumns",
+    CombineColumns = "CombineColumns",
 }
 
 export enum JsTypes {

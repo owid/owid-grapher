@@ -1115,6 +1115,28 @@ export class CoreTable<
         )
     }
 
+    combineColumns(
+        columnSlugs: ColumnSlug[],
+        def: COL_DEF_TYPE,
+        combineFn: (values: Record<ColumnSlug, CoreValueType>) => CoreValueType
+    ): this {
+        if (columnSlugs.length === 0) return this
+        const newStore: CoreColumnStore = { ...this.columnStore }
+        newStore[def.slug] = this.indices.map((index) => {
+            const values: Record<ColumnSlug, CoreValueType> = {}
+            columnSlugs.forEach((slug) => {
+                values[slug] = this.get(slug).valuesIncludingErrorValues[index]
+            })
+            return combineFn(values)
+        })
+        return this.transform(
+            newStore,
+            [...this.defs, def],
+            `Combined columns '${columnSlugs.join(", ")}' into '${def.slug}'`,
+            TransformType.CombineColumns
+        )
+    }
+
     replaceNonPositiveCellsForLogScale(columnSlugs: ColumnSlug[] = []): this {
         return this.replaceCells(columnSlugs, (val) =>
             typeof val !== "number" || val <= 0

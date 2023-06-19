@@ -1,9 +1,10 @@
 import {
-    columnDefinitionsFromInput,
     CoreColumnDef,
     CoreMatrix,
+    ColumnTypeNames,
     CoreTable,
     CoreTableInputOption,
+    CoreValueType,
     OwidTable,
     TableSlug,
 } from "@ourworldindata/core-table"
@@ -240,10 +241,7 @@ export class ExplorerProgram extends GridProgram {
         const matrix = this.lines
         for (const row of colDefsRows) {
             const tableSlugs = matrix[row].slice(1)
-            const columnDefinitions: CoreColumnDef[] =
-                columnDefinitionsFromInput(this.getBlock(row) ?? "").map(
-                    (row) => trimAndParseObject(row, ColumnGrammar)
-                )
+            const columnDefinitions = parseColumnDefs(this.getBlock(row) ?? [])
             if (tableSlugs.length === 0)
                 columnDefs.set(undefined, columnDefinitions)
             else
@@ -252,6 +250,10 @@ export class ExplorerProgram extends GridProgram {
                 })
         }
         return columnDefs
+    }
+
+    get columnDefsNotLinkedToTable(): CoreColumnDef[] {
+        return this.columnDefsByTableSlug.get(undefined) ?? []
     }
 
     async autofillMissingColumnDefinitionsForTableCommand(tableSlug?: string) {
@@ -408,4 +410,35 @@ export const trimAndParseObject = (config: any, grammar: Grammar) => {
         }
     })
     return trimmedRow
+}
+
+const parseColumnDefs = (block: string[][]): CoreColumnDef[] => {
+    const columnsTable = new CoreTable(block)
+        .appendColumnsIfNew([
+            { slug: "slug", type: ColumnTypeNames.String, name: "slug" },
+            {
+                slug: "indicatorId",
+                type: ColumnTypeNames.Numeric,
+                name: "indicatorId",
+            },
+        ])
+        .combineColumns(
+            ["slug", "indicatorId"],
+            {
+                slug: "inferredSlug",
+                type: ColumnTypeNames.String,
+                name: "inferredSlug",
+            },
+            (values) => values.slug ?? values.indicatorId.toString()
+        )
+        .dropColumns(["slug", "indicatorId"])
+        .renameColumn("inferredSlug", "slug")
+        .columnFilter(
+            "slug",
+            (value: CoreValueType) => !!value,
+            "Keep only column defs with a slug"
+        )
+    return columnsTable.rows.map((row) =>
+        trimAndParseObject(row, ColumnGrammar)
+    )
 }

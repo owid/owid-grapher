@@ -5,6 +5,7 @@ import {
     ColumnTypeNames,
     CoreColumnDef,
     isNotErrorValue,
+    OwidColumnDef,
     OwidTable,
     SortOrder,
     TableSlug,
@@ -32,6 +33,7 @@ import {
     exposeInstanceOnWindow,
     flatten,
     isInIFrame,
+    keyBy,
     keyMap,
     omit,
     omitUndefinedValues,
@@ -44,7 +46,7 @@ import {
     Url,
 } from "@ourworldindata/utils"
 import classNames from "classnames"
-import { action, computed, observable, reaction } from "mobx"
+import { action, computed, observable, reaction, runInAction } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"
 import ReactDOM from "react-dom"
@@ -466,6 +468,40 @@ export class Explorer
 
         if (this.downloadDataLink)
             grapher.externalCsvLink = this.downloadDataLink
+
+        if (creationMode === ChartCreationMode.WithIndicatorIds) {
+            const columnDefBySlug = keyBy(
+                this.explorerProgram.columnDefsNotLinkedToTable,
+                (d: OwidColumnDef) => d.slug
+            )
+            // update column definitions with manually provided properties once the data is loaded
+            grapher.fireWhenReady(() => {
+                runInAction(() => {
+                    this.setGrapherTable(
+                        grapher.inputTable.updateDefs((def: OwidColumnDef) => {
+                            const manuallyProvidedDef = (columnDefBySlug[
+                                def.slug
+                            ] ?? {}) as OwidColumnDef
+                            const mergedDef = { ...def, ...manuallyProvidedDef }
+
+                            // update display properties
+                            mergedDef.display = mergedDef.display ?? {}
+                            if (manuallyProvidedDef.name)
+                                mergedDef.display.name =
+                                    manuallyProvidedDef.name
+                            if (manuallyProvidedDef.unit)
+                                mergedDef.display.unit =
+                                    manuallyProvidedDef.unit
+                            if (manuallyProvidedDef.shortUnit)
+                                mergedDef.display.shortUnit =
+                                    manuallyProvidedDef.shortUnit
+
+                            return mergedDef
+                        })
+                    )
+                })
+            })
+        }
     }
 
     @action.bound setSlide(choiceParams: ExplorerFullQueryParams) {
