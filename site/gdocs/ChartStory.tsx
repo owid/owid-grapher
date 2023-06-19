@@ -48,10 +48,7 @@ export default function ChartStory({
                     setCurrentIndex(Math.max(0, currentIndex - 1))
                 }}
             >
-                <FontAwesomeIcon
-                    icon={faCircleArrowLeft}
-                    style={{ fontSize: 18 }}
-                />
+                <FontAwesomeIcon icon={faCircleArrowLeft} />
             </button>
             <div
                 className={
@@ -70,10 +67,7 @@ export default function ChartStory({
                     setCurrentIndex(Math.min(maxSlide, currentIndex + 1))
                 }}
             >
-                <FontAwesomeIcon
-                    icon={faCircleArrowRight}
-                    style={{ fontSize: 18 }}
-                />
+                <FontAwesomeIcon icon={faCircleArrowRight} />
             </button>
 
             <div

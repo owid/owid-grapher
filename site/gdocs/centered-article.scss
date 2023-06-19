@@ -391,10 +391,12 @@ h3.article-block__heading.has-supertitle {
 
 .article-block__chart-story {
     .chart-story__nav-arrow {
+        cursor: pointer;
         display: flex;
         align-items: center;
         background: none;
         border: none;
+        font-size: 28px;
 
         &:disabled {
             cursor: default;
@@ -418,8 +420,12 @@ h3.article-block__heading.has-supertitle {
         }
     }
 
+    .chart-story__narrative-text {
+        margin-top: 12px;
+        margin-bottom: 12px;
+    }
+
     .chart-story__chart {
-        margin-top: 32px;
         margin-bottom: 48px;
         // width is necessary for containerNode.getBoundingClientRect() in Grapher.renderGrapherIntoContainer
         width: 100%;
