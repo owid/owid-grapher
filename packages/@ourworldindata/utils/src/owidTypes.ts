@@ -583,7 +583,7 @@ export type EnrichedBlockScroller = {
 export type RawChartStoryValue = {
     narrative?: string
     chart?: string
-    technical?: string[]
+    technical?: { list?: string[] }
 }
 
 export type RawBlockChartStory = {

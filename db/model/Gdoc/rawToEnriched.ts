@@ -461,8 +461,8 @@ const parseChartStory = (raw: RawBlockChartStory): EnrichedBlockChartStory => {
             return {
                 narrative: htmlToEnrichedTextBlock(item.narrative),
                 chart: { type: "chart", url: chart, parseErrors: [] },
-                technical: item.technical
-                    ? item.technical.map(htmlToEnrichedTextBlock)
+                technical: item.technical?.list
+                    ? item.technical.list.map(htmlToEnrichedTextBlock)
                     : [],
             }
         }

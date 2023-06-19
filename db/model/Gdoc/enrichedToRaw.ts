@@ -125,9 +125,11 @@ export function enrichedBlockToRawBlock(
                 value: b.items.map((item) => ({
                     narrative: spansToHtmlText(item.narrative.value),
                     chart: item.chart.url,
-                    technical: item.technical.map((t) =>
-                        spansToHtmlText(t.value)
-                    ),
+                    technical: {
+                        list: item.technical.map((t) =>
+                            spansToHtmlText(t.value)
+                        ),
+                    },
                 })),
             })
         )
