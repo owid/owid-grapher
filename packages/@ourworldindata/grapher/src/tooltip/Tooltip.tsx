@@ -5,6 +5,7 @@ import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { NO_DATA_LABEL } from "../color/ColorScale.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 import { Bounds, zip, TickFormattingOptions } from "@ourworldindata/utils"
 import { TooltipProps, TooltipManager, TooltipTableRow } from "./TooltipProps"
 
@@ -12,16 +13,23 @@ export class TooltipValue extends React.Component<{
     column: CoreColumn
     value?: number | string
     color?: string
+    notice?: number | string
 }> {
     render(): JSX.Element | null {
-        const { column, value, color } = this.props,
+        const { column, value, color, notice } = this.props,
             displayValue =
                 (value !== undefined && column.formatValueShort(value)) ||
                 NO_DATA_LABEL,
-            displayColor = displayValue === NO_DATA_LABEL ? "#999" : color
+            displayColor = displayValue === NO_DATA_LABEL ? "#999" : color,
+            noticeSpan = notice && (
+                <span className="notice">
+                    <FontAwesomeIcon icon={faInfoCircle} />
+                    {notice}
+                </span>
+            )
         return (
             <Variable column={column} color={displayColor}>
-                {displayValue}
+                {displayValue} {noticeSpan}
             </Variable>
         )
     }
@@ -254,7 +262,6 @@ class TooltipCard extends React.Component<
             subtitle,
             subtitleIsUnit,
             footer,
-            footerIcon,
             children,
             offsetX = 0,
             offsetY = 0,
@@ -306,7 +313,7 @@ class TooltipCard extends React.Component<
                 {children && <section>{children}</section>}
                 {footer && (
                     <footer>
-                        {footerIcon && <FontAwesomeIcon icon={footerIcon} />}
+                        <FontAwesomeIcon icon={faInfoCircle} />
                         <p>{footer}</p>
                     </footer>
                 )}

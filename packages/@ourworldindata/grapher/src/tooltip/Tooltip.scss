@@ -73,12 +73,14 @@
             }
 
             .values {
+                display: flex;
+                align-items: baseline;
+                justify-content: space-between;
                 color: $dark-grey;
                 padding: 4px 0;
                 line-height: 23px;
                 font-size: 20px;
                 font-weight: 700;
-
                 svg.arrow {
                     height: 15px;
                     margin-right: 2px;
@@ -91,6 +93,19 @@
                     &.right path {
                         fill: $grey;
                     }
+                }
+
+                .notice {
+                    position: relative;
+                    font-weight: 500;
+                    font-size: 14px;
+                    line-height: 14px;
+                    text-indent: 20px;
+                    svg.fa-circle-info {
+                        position: absolute;
+                        left: 0;
+                    }
+                    color: $grey;
                 }
             }
         }
@@ -235,8 +250,9 @@
     footer {
         background: $background-fill;
         color: $grey;
-        padding: 12px;
+        padding: 8px 12px;
         border-radius: 0 0 3px 3px;
+        border-top: 1px solid $background-stroke;
         padding-left: 12px;
 
         svg {
@@ -247,7 +263,7 @@
         p {
             font-size: 12px;
             letter-spacing: 0.01em;
-            line-height: 16px;
+            line-height: 15px;
             margin: 0;
             padding-left: 19px;
             max-width: 280px;
