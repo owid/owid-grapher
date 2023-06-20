@@ -210,7 +210,7 @@ export class DataTable extends React.Component<{
         return (
             <ColumnHeader
                 key="entity"
-                sortable={true}
+                sortable={this.entityCount > 1}
                 sortedCol={sort.dimIndex === ENTITY_DIM_INDEX}
                 sortOrder={sort.order}
                 onClick={(): void => this.updateSort(ENTITY_DIM_INDEX)}
@@ -509,6 +509,10 @@ export class DataTable extends React.Component<{
         )
     }
 
+    @computed private get entityCount(): number {
+        return this.entityNames.length
+    }
+
     componentDidMount(): void {
         exposeInstanceOnWindow(this, "dataTable")
     }
@@ -714,6 +718,7 @@ export class DataTable extends React.Component<{
     }
 
     @computed get displayDimensions(): DataTableDimension[] {
+        const { entityCount } = this
         // Todo: for sorting etc, use CoreTable?
         return this.columnsWithValues.map((d) => ({
             // A top-level header is only sortable if it has a single nested column, because
@@ -721,9 +726,9 @@ export class DataTable extends React.Component<{
             sortable: d.columns.length === 1,
             columns: d.columns.map((column) => ({
                 ...column,
-                // All columns are sortable for now, but in the future we will have a sparkline that
-                // is not sortable.
-                sortable: true,
+                // All columns with more than one value are sortable for now, but in the future
+                // we will have a sparkline that is not sortable.
+                sortable: entityCount > 1,
             })),
             coreTableColumn: d.sourceColumn,
         }))
