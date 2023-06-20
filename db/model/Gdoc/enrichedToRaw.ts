@@ -81,10 +81,13 @@ export function enrichedBlockToRawBlock(
                 type: b.type,
                 value: {
                     title: b.title,
-                    text: b.text.map((enrichedTextBlock) => ({
-                        type: "text",
-                        value: spansToHtmlText(enrichedTextBlock.value),
-                    })),
+                    text: b.text.map(
+                        (enriched) =>
+                            enrichedBlockToRawBlock(enriched) as
+                                | RawBlockText
+                                | RawBlockList
+                                | RawBlockHeading
+                    ),
                 },
             })
         )

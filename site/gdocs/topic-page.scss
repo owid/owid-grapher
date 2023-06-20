@@ -127,11 +127,20 @@
         }
         ul {
             margin-bottom: 32px;
-            padding-left: 40px;
             li {
                 @include body-2-regular;
                 margin-bottom: 8px;
             }
+        }
+    }
+
+    .article-block__callout {
+        h5 {
+            text-align: center;
+            letter-spacing: 10%;
+            margin-bottom: 24px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid $blue-20;
         }
     }
 }

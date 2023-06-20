@@ -116,6 +116,17 @@ export const enrichedBlockExamples: Record<
                 ],
                 parseErrors: [],
             },
+            {
+                type: "list",
+                items: [enrichedBlockText],
+                parseErrors: [],
+            },
+            {
+                type: "heading",
+                level: 1,
+                text: [spanSimpleText],
+                parseErrors: [],
+            },
         ],
         title: "Hey, listen!",
     },

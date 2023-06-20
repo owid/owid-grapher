@@ -88,6 +88,7 @@ import {
     EnrichedBlockAllCharts,
     RefDictionary,
     OwidGdocErrorMessageType,
+    excludeNullish,
 } from "@ourworldindata/utils"
 import {
     extractUrl,
@@ -977,12 +978,23 @@ function parseCallout(raw: RawBlockCallout): EnrichedBlockCallout {
                 "Text must be provided as an array e.g. inside a [.+text] block",
         })
     }
-    const enrichedTextBlocks = raw.value.text.map(parseText)
+    for (const block of raw.value.text) {
+        if (!["text", "list", "heading"].includes(block.type)) {
+            return createError({
+                message:
+                    "Callout blocks can only contain text, lists, and headings",
+            })
+        }
+    }
+
+    const enrichedTextBlocks = raw.value.text.map(
+        parseRawBlocksToEnrichedBlocks
+    ) as (EnrichedBlockText | EnrichedBlockList | EnrichedBlockHeading | null)[]
 
     return {
         type: "callout",
         parseErrors: [],
-        text: enrichedTextBlocks,
+        text: excludeNullish(enrichedTextBlocks),
         title: raw.value.title,
     }
 }

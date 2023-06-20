@@ -142,8 +142,8 @@ function* rawBlockCalloutToArchieMLString(
     if (typeof block.value !== "string") {
         yield* propertyToArchieMLString("title", block.value)
         yield "[.+text]"
-        for (const rawBlockText of block.value.text) {
-            yield rawBlockText.value
+        for (const rawBlock of block.value.text) {
+            yield* OwidRawGdocBlockToArchieMLStringGenerator(rawBlock)
         }
         yield "[]"
     }

@@ -857,14 +857,14 @@ export type RawBlockCallout = {
     type: "callout"
     value: {
         title?: string
-        text: RawBlockText[]
+        text: (RawBlockText | RawBlockHeading | RawBlockList)[]
     }
 }
 
 export type EnrichedBlockCallout = {
     type: "callout"
     title?: string
-    text: EnrichedBlockText[]
+    text: (EnrichedBlockText | EnrichedBlockHeading | EnrichedBlockList)[]
 } & EnrichedBlockWithParseErrors
 
 export type RawBlockTopicPageIntro = {
