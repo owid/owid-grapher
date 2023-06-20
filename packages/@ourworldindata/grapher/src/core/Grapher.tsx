@@ -926,6 +926,11 @@ export class Grapher
         return this.timelineHandleTimeBounds[1]
     }
 
+    @action.bound resetHandleTimeBounds(): void {
+        this.startHandleTimeBound = this.timelineMinTime ?? -Infinity
+        this.endHandleTimeBound = this.timelineMaxTime ?? Infinity
+    }
+
     // Keeps a running cache of series colors at the Grapher level.
     seriesColorMap: SeriesColorMap = new Map()
 
