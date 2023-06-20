@@ -88,16 +88,17 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
         return errorMessages
     }
 
-    @computed get showChangeInPrefixToggle() {
-        const { grapher } = this.props.editor
+    @computed get showAnyAnnotationFieldInTitleToggle() {
+        const { features } = this.props.editor
         return (
-            grapher.isLineChart &&
-            (grapher.isRelativeMode || grapher.canToggleRelativeMode)
+            features.showEntityAnnotationInTitleToggle ||
+            features.showTimeAnnotationInTitleToggle ||
+            features.showChangeInPrefixToggle
         )
     }
 
     render() {
-        const { grapher, references } = this.props.editor
+        const { grapher, references, features } = this.props.editor
         const { relatedQuestions } = grapher
 
         return (
@@ -109,17 +110,28 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                         auto={grapher.displayTitle}
                         softCharacterLimit={100}
                     />
-                    <Toggle
-                        label="Hide automatic entity (where possible)"
-                        value={!!grapher.hideAnnotationFieldsInTitle?.entity}
-                        onValue={this.onToggleTitleAnnotationEntity}
-                    />
-                    <Toggle
-                        label="Hide automatic time (where possible)"
-                        value={!!grapher.hideAnnotationFieldsInTitle?.time}
-                        onValue={this.onToggleTitleAnnotationTime}
-                    />
-                    {this.showChangeInPrefixToggle && (
+                    {features.showEntityAnnotationInTitleToggle && (
+                        <Toggle
+                            label="Hide automatic entity"
+                            value={
+                                !!grapher.hideAnnotationFieldsInTitle?.entity
+                            }
+                            onValue={this.onToggleTitleAnnotationEntity}
+                        />
+                    )}
+                    {features.showTimeAnnotationInTitleToggle && (
+                        <Toggle
+                            label="Hide automatic time"
+                            secondaryLabel={
+                                "Grapher makes sure to include the current time in the title if " +
+                                "omitting it would lead to SVG exports with no reference " +
+                                "to the time. In such cases, your preference is ignored."
+                            }
+                            value={!!grapher.hideAnnotationFieldsInTitle?.time}
+                            onValue={this.onToggleTitleAnnotationTime}
+                        />
+                    )}
+                    {features.showChangeInPrefixToggle && (
                         <Toggle
                             label="Don't prepend 'Change in' in relative line charts"
                             value={
@@ -129,7 +141,7 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                             onValue={this.onToggleTitleAnnotationChangeInPrefix}
                         />
                     )}
-                    <hr />
+                    {this.showAnyAnnotationFieldInTitleToggle && <hr />}
                     <AutoTextField
                         label="/grapher"
                         value={grapher.displaySlug}

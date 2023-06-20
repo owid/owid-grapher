@@ -1228,7 +1228,11 @@ export class Grapher
             this.isReady &&
             (showTimeAnnotation ||
                 (this.hasTimeline &&
+                    // chart types that refer to the current time only in the timeline
                     (this.isLineChartThatTurnedIntoDiscreteBar ||
+                        this.isDiscreteBar ||
+                        this.isStackedDiscreteBar ||
+                        this.isMarimekko ||
                         this.isOnMapTab)))
         )
             text += this.timeTitleSuffix

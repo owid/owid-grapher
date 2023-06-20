@@ -113,4 +113,29 @@ export class EditorFeatures {
                 this.grapher.isLineChart)
         )
     }
+
+    @computed get showChangeInPrefixToggle() {
+        return (
+            this.grapher.isLineChart &&
+            (this.grapher.isRelativeMode || this.grapher.canToggleRelativeMode)
+        )
+    }
+
+    @computed get showEntityAnnotationInTitleToggle() {
+        return (
+            !this.grapher.canChangeEntity &&
+            !this.grapher.canSelectMultipleEntities
+        )
+    }
+
+    @computed get showTimeAnnotationInTitleToggle() {
+        return (
+            !this.grapher.hasTimeline ||
+            !(
+                this.grapher.isDiscreteBar ||
+                this.grapher.isStackedDiscreteBar ||
+                this.grapher.isMarimekko
+            )
+        )
+    }
 }
