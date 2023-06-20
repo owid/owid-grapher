@@ -260,6 +260,15 @@ export class MapChart
             }
     }
 
+    @action.bound onMapMouseMove(ev: React.MouseEvent): void {
+        const { containerElement } = this.props
+        if (!containerElement || !this.tooltipTarget) return
+
+        const mouse = getRelativeMouse(containerElement, ev)
+        this.tooltipTarget.x = mouse.x
+        this.tooltipTarget.y = mouse.y
+    }
+
     @action.bound onMapMouseLeave(): void {
         this.focusEntity = undefined
         this.tooltipTarget = undefined
@@ -620,7 +629,11 @@ export class MapChart
         } = this
 
         return (
-            <g ref={this.base} className="mapTab">
+            <g
+                ref={this.base}
+                className="mapTab"
+                onMouseMove={this.onMapMouseMove}
+            >
                 <ChoroplethMap manager={this} />
                 {this.renderMapLegend()}
                 {this.manager.isExportingtoSvgOrPng ? null : ( // only use projection chooser if we are not exporting
