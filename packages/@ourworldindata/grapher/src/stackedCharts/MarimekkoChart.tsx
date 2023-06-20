@@ -19,7 +19,7 @@ import {
     SortBy,
     SortConfig,
     SortOrder,
-    TippyIfInteractive,
+    getRelativeMouse,
 } from "@ourworldindata/utils"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -42,13 +42,12 @@ import {
 import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
 import { StackedPoint, StackedSeries } from "./StackedConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
+import { Tooltip, TooltipValue } from "../tooltip/Tooltip"
 import {
     HorizontalCategoricalColorLegend,
     HorizontalColorLegendManager,
 } from "../horizontalColorLegend/HorizontalColorLegends"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale"
 import {
@@ -68,7 +67,6 @@ import {
     Bar,
     Item,
     PlacedItem,
-    TooltipProps,
     EntityWithSize,
     LabelCandidate,
     LabelWithPlacement,
@@ -81,14 +79,12 @@ const MARKER_AREA_HEIGHT: number = 25
 
 function MarimekkoBar({
     bar,
-    tooltipProps,
     barWidth,
     isHovered,
     isSelected,
     isFaint,
     entityColor,
     y0,
-    isInteractive,
     dualAxis,
 }: MarimekkoBarProps): JSX.Element {
     const { seriesName } = bar
@@ -131,7 +127,7 @@ function MarimekkoBar({
     }
     const barX = 0
 
-    const renderedBar = (
+    return (
         <g key={seriesName}>
             <rect
                 x={0}
@@ -151,20 +147,6 @@ function MarimekkoBar({
             />
         </g>
     )
-    if (tooltipProps) {
-        return (
-            <TippyIfInteractive
-                lazy
-                isInteractive={isInteractive}
-                key={seriesName}
-                animation={false}
-                visible={isHovered}
-                content={<MarimekkoChart.Tooltip {...tooltipProps} />}
-            >
-                {renderedBar}
-            </TippyIfInteractive>
-        )
-    } else return renderedBar
 }
 
 interface MarimekkoBarsProps {
@@ -175,16 +157,14 @@ interface MarimekkoBarsProps {
     isHovered: boolean
     isSelected: boolean
     barWidth: number
-    tooltipProps: TooltipProps
     currentX: number
-    onEntityMouseOver: (entityName: string) => void
+    onEntityMouseOver: (entityName: string, ev: React.MouseEvent) => void
     onEntityMouseLeave: () => void
     onEntityClick: (entityName: string) => void
     labelYOffset: number
     y0: number
     noDataHeight: number
     dualAxis: DualAxis
-    isExportingToSvgOrPng: boolean | undefined
 }
 
 function MarimekkoBarsForOneEntity(props: MarimekkoBarsProps): JSX.Element {
@@ -197,7 +177,6 @@ function MarimekkoBarsForOneEntity(props: MarimekkoBarsProps): JSX.Element {
         isHovered,
         isSelected,
         barWidth,
-        tooltipProps,
         currentX,
         onEntityClick,
         onEntityMouseLeave,
@@ -206,7 +185,6 @@ function MarimekkoBarsForOneEntity(props: MarimekkoBarsProps): JSX.Element {
         y0,
         noDataHeight,
         dualAxis,
-        isExportingToSvgOrPng,
     } = props
 
     let content = undefined
@@ -228,14 +206,12 @@ function MarimekkoBarsForOneEntity(props: MarimekkoBarsProps): JSX.Element {
             <MarimekkoBar
                 key={`${entityName}-${bar.seriesName}`}
                 bar={bar}
-                tooltipProps={undefined}
                 barWidth={barWidth}
                 isHovered={isHovered}
                 isSelected={isSelected}
                 isFaint={isFaint}
                 entityColor={entityColor?.color}
                 y0={y0}
-                isInteractive={!isExportingToSvgOrPng}
                 dualAxis={dualAxis}
             />
         ))
@@ -243,17 +219,12 @@ function MarimekkoBarsForOneEntity(props: MarimekkoBarsProps): JSX.Element {
             <MarimekkoBar
                 key={`${entityName}-${lastNonZero.seriesName}`}
                 bar={lastNonZero}
-                tooltipProps={{
-                    ...tooltipProps,
-                    highlightedSeriesName: lastNonZero.seriesName,
-                }}
                 barWidth={barWidth}
                 isHovered={isHovered}
                 isSelected={isSelected}
                 isFaint={isFaint}
                 entityColor={entityColor?.color}
                 y0={y0}
-                isInteractive={!isExportingToSvgOrPng}
                 dualAxis={dualAxis}
             />
         )
@@ -261,14 +232,12 @@ function MarimekkoBarsForOneEntity(props: MarimekkoBarsProps): JSX.Element {
             <MarimekkoBar
                 key={`${entityName}-${bar.seriesName}`}
                 bar={bar}
-                tooltipProps={undefined}
                 barWidth={barWidth}
                 isHovered={isHovered}
                 isSelected={isSelected}
                 isFaint={isFaint}
                 entityColor={entityColor?.color}
                 y0={y0}
-                isInteractive={!isExportingToSvgOrPng}
                 dualAxis={dualAxis}
             />
         ))
@@ -278,7 +247,6 @@ function MarimekkoBarsForOneEntity(props: MarimekkoBarsProps): JSX.Element {
         content = (
             <MarimekkoBar
                 key={`${entityName}-placeholder`}
-                tooltipProps={tooltipProps}
                 bar={{
                     kind: BarShape.BarPlaceholder,
                     seriesName: entityName,
@@ -290,7 +258,6 @@ function MarimekkoBarsForOneEntity(props: MarimekkoBarsProps): JSX.Element {
                 isFaint={isFaint}
                 entityColor={entityColor?.color}
                 y0={y0}
-                isInteractive={!isExportingToSvgOrPng}
                 dualAxis={dualAxis}
             />
         )
@@ -301,7 +268,7 @@ function MarimekkoBarsForOneEntity(props: MarimekkoBarsProps): JSX.Element {
             key={entityName}
             className="bar"
             transform={`translate(${currentX}, ${labelYOffset})`}
-            onMouseOver={(): void => onEntityMouseOver(entityName)}
+            onMouseOver={(ev): void => onEntityMouseOver(entityName, ev)}
             onMouseLeave={(): void => onEntityMouseLeave()}
             onClick={(): void => onEntityClick(entityName)}
         >
@@ -315,6 +282,7 @@ export class MarimekkoChart
     extends React.Component<{
         bounds?: Bounds
         manager: MarimekkoChartManager
+        containerElement?: HTMLDivElement
     }>
     implements ChartInterface, HorizontalColorLegendManager, ColorScaleManager
 {
@@ -392,7 +360,7 @@ export class MarimekkoChart
         return table
     }
 
-    @observable private hoveredEntityName?: string
+    @observable tooltipTarget?: { x: number; y: number; entityName: string }
 
     @observable focusColorBin?: ColorScaleBin
 
@@ -913,12 +881,28 @@ export class MarimekkoChart
         return this.yColumns[0]
     }
 
-    @action.bound private onEntityMouseOver(entityName: string): void {
-        this.hoveredEntityName = entityName
+    @action.bound private onEntityMouseOver(
+        entityName: string,
+        ev: React.MouseEvent
+    ): void {
+        const { containerElement } = this.props
+        if (!containerElement) return
+
+        const { x, y } = getRelativeMouse(containerElement, ev)
+        this.tooltipTarget = { x, y, entityName }
+    }
+
+    @action.bound private onEntityMouseMove(ev: React.MouseEvent): void {
+        const { containerElement } = this.props
+        if (this.tooltipTarget && containerElement) {
+            const { x, y } = getRelativeMouse(containerElement, ev)
+            this.tooltipTarget.x = x
+            this.tooltipTarget.y = y
+        }
     }
 
     @action.bound private onEntityMouseLeave(): void {
-        this.hoveredEntityName = undefined
+        this.tooltipTarget = undefined
     }
 
     @action.bound private onEntityClick(entityName: string): void {
@@ -934,6 +918,17 @@ export class MarimekkoChart
             addCountryMode !== EntitySelectionMode.Disabled) as boolean
     }
 
+    @computed private get tooltipItem(): Item | undefined {
+        const { tooltipTarget, items } = this
+        if (!tooltipTarget) return undefined
+
+        const item = items.find(
+            ({ entityName }) => entityName === tooltipTarget?.entityName
+        )
+
+        return item
+    }
+
     render(): JSX.Element {
         if (this.failMessage)
             return (
@@ -944,10 +939,52 @@ export class MarimekkoChart
                 />
             )
 
-        const { bounds, dualAxis } = this
+        const {
+            bounds,
+            dualAxis,
+            tooltipTarget,
+            tooltipItem,
+            xColumn,
+            formatColumn: yColumn,
+            manager: { endTime, xOverrideTime },
+            inputTable: { timeColumn },
+        } = this
+
+        const { entityName, entityColor, xPoint, bars } = tooltipItem ?? {}
+
+        const yValues =
+            bars?.map((bar: any) => {
+                const shouldShowYTimeNotice =
+                    bar.yPoint.value !== undefined &&
+                    bar.yPoint.time !== endTime
+
+                return {
+                    name: bar.seriesName,
+                    value: bar.yPoint.value,
+                    notice: shouldShowYTimeNotice ? bar.yPoint.time : undefined,
+                }
+            }) ?? []
+
+        // TODO: when we have proper time support to work across date/year variables then
+        // this should be set properly and the x axis time be passed in on it's own.
+        // For now we disable x axis notices when the xOverrideTime is set which is
+        // usually the case when matching day and year variables
+        const shouldShowXTimeNotice =
+            xPoint && xPoint.time !== endTime && xOverrideTime === undefined
+        const xNotice = shouldShowXTimeNotice ? xPoint?.time : undefined
+        const footer =
+            xNotice || yValues.some(({ notice }) => !!notice)
+                ? `No data available for ${timeColumn.formatValue(
+                      endTime
+                  )}. Showing closest available data point instead.`
+                : undefined
 
         return (
-            <g ref={this.base} className="MarimekkoChart">
+            <g
+                ref={this.base}
+                className="MarimekkoChart"
+                onMouseMove={(ev): void => this.onEntityMouseMove(ev)}
+            >
                 <rect
                     x={bounds.left}
                     y={bounds.top}
@@ -959,6 +996,36 @@ export class MarimekkoChart
                 <DualAxisComponent dualAxis={dualAxis} showTickMarks={true} />
                 <HorizontalCategoricalColorLegend manager={this} />
                 {this.renderBars()}
+                {tooltipTarget && (
+                    <Tooltip
+                        id="marimekkoTooltip"
+                        tooltipManager={this.manager}
+                        x={tooltipTarget.x}
+                        y={tooltipTarget.y}
+                        style={{ maxWidth: "250px" }}
+                        offsetX={20}
+                        offsetY={-16}
+                        title={entityName}
+                        subtitle={entityColor?.colorDomainValue}
+                        footer={footer}
+                    >
+                        {yValues.map(({ name, value, notice }) => (
+                            <TooltipValue
+                                key={name}
+                                column={yColumn}
+                                value={value}
+                                notice={notice}
+                            />
+                        ))}
+                        {xColumn && (
+                            <TooltipValue
+                                column={xColumn}
+                                value={xPoint?.value}
+                                notice={xNotice}
+                            />
+                        )}
+                    </Tooltip>
+                )}
             </g>
         )
     }
@@ -974,14 +1041,9 @@ export class MarimekkoChart
             placedLabels,
             labelLines,
             placedItems,
-            hoveredEntityName,
+            tooltipTarget,
         } = this
         const selectionSet = this.selectionArray.selectedSet
-        const targetTime = this.manager.endTime
-        const timeColumn = this.inputTable.timeColumn
-        const xOverrideTime = this.manager.xOverrideTime
-        const yAxisColumn = this.formatColumn
-        const xAxisColumn = this.xColumn
         const labelYOffset = 0
         const hasSelection = selectionSet.size > 0
         let noDataAreaElement = undefined
@@ -1053,14 +1115,6 @@ export class MarimekkoChart
         for (const item of placedItems) {
             const { entityName, bars, xPoint, entityColor } = item
             const currentX = dualAxis.horizontalAxis.place(x0) + item.xPosition
-            const tooltipProps = {
-                item,
-                targetTime,
-                timeColumn,
-                yAxisColumn,
-                xAxisColumn,
-                xOverrideTime,
-            }
 
             const xValue = xPoint?.value ?? 1
             const barWidth =
@@ -1068,7 +1122,7 @@ export class MarimekkoChart
                 dualAxis.horizontalAxis.place(x0)
 
             const isSelected = selectionSet.has(entityName)
-            const isHovered = entityName === hoveredEntityName
+            const isHovered = entityName === tooltipTarget?.entityName
             const isFaint =
                 (focusColorBin !== undefined &&
                     !focusColorBin.contains(entityColor?.colorDomainValue)) ||
@@ -1107,7 +1161,6 @@ export class MarimekkoChart
                 isHovered,
                 isSelected,
                 barWidth,
-                tooltipProps,
                 currentX,
                 onEntityClick: this.onEntityClick,
                 onEntityMouseLeave: this.onEntityMouseLeave,
@@ -1116,7 +1169,6 @@ export class MarimekkoChart
                 y0,
                 noDataHeight,
                 dualAxis,
-                isExportingToSvgOrPng: this.manager.isExportingtoSvgOrPng,
             }
             const result = (
                 <MarimekkoBarsForOneEntity key={entityName} {...barsProps} />
@@ -1582,8 +1634,11 @@ export class MarimekkoChart
                         fontSize="0.7em"
                         textAnchor="right"
                         dominantBaseline="middle"
-                        onMouseOver={(): void =>
-                            this.onEntityMouseOver(candidate.item.entityName)
+                        onMouseOver={(ev): void =>
+                            this.onEntityMouseOver(
+                                candidate.item.entityName,
+                                ev
+                            )
                         }
                         onMouseLeave={(): void => this.onEntityMouseLeave()}
                         onClick={(): void =>
@@ -1595,210 +1650,6 @@ export class MarimekkoChart
                 ),
             }
         })
-    }
-
-    static Tooltip(props: TooltipProps): JSX.Element {
-        const isSingleVariable = props.item.bars.length === 1
-        // TODO: when we have proper time support to work across date/year variables then
-        // this should be set properly and the x axis time be passed in on it's own.
-        // For now we disable x axis notices when the xOverrideTime is set which is
-        // usually the case when matching day and year variables
-        const shouldShowXTimeNotice =
-            props.item.xPoint &&
-            props.item.xPoint.time !== props.targetTime &&
-            props.xOverrideTime === undefined
-        let hasTimeNotice = shouldShowXTimeNotice
-        const header = isSingleVariable ? (
-            <tr>
-                <td>
-                    <div
-                        style={{
-                            width: "10px",
-                            height: "10px",
-                            backgroundColor: props.item.entityColor?.color,
-                            display: "inline-block",
-                        }}
-                    />
-                </td>
-                <td colSpan={3} style={{ color: "#111" }}>
-                    <strong>{props.item.entityName}</strong>
-                </td>
-            </tr>
-        ) : (
-            <tr>
-                <td colSpan={4} style={{ color: "#111" }}>
-                    <strong>{props.item.entityName}</strong>
-                </td>
-            </tr>
-        )
-
-        return (
-            <table
-                style={{
-                    lineHeight: "1em",
-                    whiteSpace: "normal",
-                    borderSpacing: "0.5em",
-                }}
-            >
-                <tbody>
-                    {header}
-                    {props.item.bars.map((bar) => {
-                        const { highlightedSeriesName } = props
-                        const squareColor = bar.color
-                        const isHighlighted =
-                            bar.seriesName === highlightedSeriesName
-                        const isFaint =
-                            highlightedSeriesName !== undefined &&
-                            !isHighlighted
-                        const shouldShowYTimeNotice =
-                            bar.yPoint.value !== undefined &&
-                            bar.yPoint.time !== props.targetTime
-
-                        hasTimeNotice ||= shouldShowYTimeNotice
-                        const colorSquare = isSingleVariable ? null : (
-                            <div
-                                style={{
-                                    width: "10px",
-                                    height: "10px",
-                                    backgroundColor: squareColor,
-                                    display: "inline-block",
-                                }}
-                            />
-                        )
-
-                        return (
-                            <tr
-                                key={`${bar.seriesName}`}
-                                style={{
-                                    color: isHighlighted
-                                        ? "#000"
-                                        : isFaint
-                                        ? "#707070"
-                                        : "#444",
-                                }}
-                            >
-                                <td>{colorSquare}</td>
-                                <td
-                                    style={{
-                                        paddingRight: "0.8em",
-                                        fontSize: "0.9em",
-                                    }}
-                                >
-                                    {bar.seriesName}
-                                </td>
-                                <td
-                                    style={{
-                                        textAlign: "right",
-                                        whiteSpace: "nowrap",
-                                    }}
-                                >
-                                    {bar.yPoint.value === undefined
-                                        ? "No data"
-                                        : props.yAxisColumn.formatValueShort(
-                                              bar.yPoint.value,
-                                              {
-                                                  trailingZeroes: true,
-                                              }
-                                          )}
-                                </td>
-                                {shouldShowYTimeNotice && (
-                                    <td
-                                        style={{
-                                            fontWeight: "normal",
-                                            color: "#707070",
-                                            fontSize: "0.8em",
-                                            whiteSpace: "nowrap",
-                                            paddingLeft: "8px",
-                                        }}
-                                    >
-                                        <span className="icon">
-                                            <FontAwesomeIcon
-                                                icon={faInfoCircle}
-                                                style={{
-                                                    marginRight: "0.25em",
-                                                }}
-                                            />{" "}
-                                        </span>
-                                        {props.timeColumn.formatValue(
-                                            bar.yPoint.time
-                                        )}
-                                    </td>
-                                )}
-                            </tr>
-                        )
-                    })}
-                    {props.item.xPoint && props.xAxisColumn && (
-                        <tr>
-                            <td></td>
-                            <td>{props.xAxisColumn.displayName}</td>
-                            <td
-                                style={{
-                                    textAlign: "right",
-                                    whiteSpace: "nowrap",
-                                }}
-                            >
-                                {props.xAxisColumn.formatValueShort(
-                                    props.item.xPoint.value
-                                )}
-                                {shouldShowXTimeNotice && (
-                                    <td
-                                        style={{
-                                            fontWeight: "normal",
-                                            color: "#707070",
-                                            fontSize: "0.8em",
-                                            whiteSpace: "nowrap",
-                                            paddingLeft: "8px",
-                                        }}
-                                    >
-                                        <span className="icon">
-                                            <FontAwesomeIcon
-                                                icon={faInfoCircle}
-                                                style={{
-                                                    marginRight: "0.25em",
-                                                }}
-                                            />{" "}
-                                        </span>
-                                        {props.timeColumn.formatValue(
-                                            props.item.xPoint.time
-                                        )}
-                                    </td>
-                                )}
-                            </td>
-                            <td></td>
-                        </tr>
-                    )}
-                    {hasTimeNotice && (
-                        <tr>
-                            <td
-                                colSpan={4}
-                                style={{
-                                    color: "#707070",
-                                    fontSize: "0.8em",
-                                    paddingTop: "10px",
-                                }}
-                            >
-                                <div style={{ display: "flex" }}>
-                                    <span
-                                        className="icon"
-                                        style={{ marginRight: "0.5em" }}
-                                    >
-                                        <FontAwesomeIcon icon={faInfoCircle} />{" "}
-                                    </span>
-                                    <span>
-                                        No data available for{" "}
-                                        {props.timeColumn.formatValue(
-                                            props.targetTime
-                                        )}
-                                        . Showing closest available data point
-                                        instead.
-                                    </span>
-                                </div>
-                            </td>
-                        </tr>
-                    )}
-                </tbody>
-            </table>
-        )
     }
 
     @computed get failMessage(): string {
