@@ -297,10 +297,9 @@ export class MapChart
             this.manager.currentTab = GrapherTabOption.chart
             if (
                 this.manager.isLineChartThatTurnedIntoDiscreteBar &&
-                this.manager.hasTimeline &&
-                this.manager.resetHandleTimeBounds
+                this.manager.hasTimeline
             ) {
-                this.manager.resetHandleTimeBounds()
+                this.manager.resetHandleTimeBounds?.()
             }
         } else this.selectionArray.toggleSelection(entityName)
     }
