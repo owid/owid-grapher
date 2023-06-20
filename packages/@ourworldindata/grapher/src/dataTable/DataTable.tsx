@@ -726,8 +726,6 @@ export class DataTable extends React.Component<{
             sortable: d.columns.length === 1,
             columns: d.columns.map((column) => ({
                 ...column,
-                // All columns with more than one value are sortable for now, but in the future
-                // we will have a sparkline that is not sortable.
                 sortable: entityCount > 1,
             })),
             coreTableColumn: d.sourceColumn,
