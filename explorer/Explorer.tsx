@@ -368,12 +368,7 @@ export class Explorer
         let creationMode = ChartCreationMode.Unknown
         if (grapherId && isNotErrorValue(grapherId))
             creationMode = ChartCreationMode.WithGrapherId
-        else if (
-            yIndicatorIds?.length ||
-            xIndicatorId ||
-            colorIndicatorId ||
-            sizeIndicatorId
-        )
+        else if (yIndicatorIds?.length)
             creationMode = ChartCreationMode.WithIndicatorIds
         else if (tableSlug)
             creationMode = ChartCreationMode.WithManuallyProvidedData
