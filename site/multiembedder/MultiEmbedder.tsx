@@ -164,17 +164,17 @@ class MultiEmbedder {
                     bakedGrapherURL: BAKED_GRAPHER_URL,
                 }))
             }
+            const selection = new SelectionArray(
+                this.selection.selectedEntityNames
+            )
             const props: ExplorerProps = {
                 ...common,
                 ...deserializeJSONFromHTML(html, EMBEDDED_EXPLORER_DELIMITER),
                 grapherConfigs,
                 queryStr,
-                selection: new SelectionArray(
-                    this.selection.selectedEntityNames
-                ),
+                selectedEntityNames: selection.selectedEntityNames,
             }
-            if (props.selection)
-                this.graphersAndExplorersToUpdate.add(props.selection)
+            if (selection) this.graphersAndExplorersToUpdate.add(selection)
             ReactDOM.render(<Explorer {...props} />, figure)
         } else {
             figure.classList.remove("grapherPreview")

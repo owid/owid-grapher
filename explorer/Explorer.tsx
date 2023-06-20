@@ -75,7 +75,7 @@ export interface ExplorerProps extends SerializedGridProgram {
     isInStandalonePage?: boolean
     isPreview?: boolean
     canonicalUrl?: string
-    selection?: SelectionArray
+    selectedEntityNames?: string[]
 }
 
 const renderLivePreviewVersion = (props: ExplorerProps) => {
@@ -170,13 +170,11 @@ export class Explorer
     // only used for the checkbox at the bottom of the embed dialog
     @observable embedDialogHideControls = true
 
-    selection =
-        this.props.selection ??
-        new SelectionArray(
-            this.explorerProgram.selection,
-            undefined,
-            this.explorerProgram.entityType
-        )
+    selection = new SelectionArray(
+        this.props.selectedEntityNames ?? this.explorerProgram.selection,
+        undefined,
+        this.explorerProgram.entityType
+    )
 
     @observable.ref grapher?: Grapher
 
@@ -198,10 +196,10 @@ export class Explorer
 
         let url = Url.fromQueryParams(this.initialQueryParams)
 
-        if (this.props.selection?.hasSelection) {
+        if (this.props.selectedEntityNames?.length) {
             url = setSelectedEntityNamesParam(
                 url,
-                this.props.selection.selectedEntityNames
+                this.props.selectedEntityNames
             )
         }
 
