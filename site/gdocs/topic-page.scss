@@ -86,6 +86,10 @@
                     color: $blue-90;
                     position: relative;
 
+                    &:hover {
+                        text-decoration: underline;
+                    }
+
                     &:after {
                         content: "";
                         background-color: $blue-90;
