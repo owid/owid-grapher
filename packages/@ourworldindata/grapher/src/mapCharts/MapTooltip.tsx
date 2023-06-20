@@ -17,6 +17,8 @@ import {
     isNumber,
     AllKeysRequired,
     checkIsVeryShortUnit,
+    PrimitiveType,
+    last,
 } from "@ourworldindata/utils"
 import { LineChartManager } from "../lineCharts/LineChartConstants"
 import { darkenColorForHighContrastText } from "../color/ColorUtils"
@@ -24,8 +26,9 @@ import { darkenColorForHighContrastText } from "../color/ColorUtils"
 interface MapTooltipProps {
     entityName: EntityName
     manager: MapChartManager
+    customValueLabels: (string | undefined)[]
     colorScaleManager: ColorScaleManager
-    formatValue: (d: number | string) => string
+    formatValue: (d: PrimitiveType) => string
     timeSeriesTable: OwidTable
     tooltipTarget: { x: number; y: number; featureId: string }
     targetTime?: Time
@@ -191,7 +194,13 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
             lineColorScale,
             hasTimeSeriesData,
         } = this
-        const { isEntityClickable, targetTime, manager } = this.props
+        const {
+            isEntityClickable,
+            targetTime,
+            manager,
+            formatValue,
+            customValueLabels,
+        } = this.props
 
         // Only LineChart and ScatterPlot allow `mapIsClickable`
         const clickToSelectMessage =
@@ -211,10 +220,13 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
             lineColorScale?.getColor(datum?.value) ?? "#333"
         )
 
-        const column = this.sparklineTable.get(this.mapColumnSlug),
+        const yColumn = this.sparklineTable.get(this.mapColumnSlug),
             { min, max } = this.sparklineManager?.yAxisConfig ?? {},
-            displayMin = column.formatValueShort(min || 0),
-            displayMax = column.formatValueShort(max || column.max)
+            valueLabel = datum ? formatValue(datum.value) : undefined,
+            minLabel = formatValue(min || 0),
+            maxLabel = formatValue(
+                (last(customValueLabels) || max || yColumn.max) ?? 0
+            )
 
         return (
             <Tooltip
@@ -231,8 +243,8 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                 subtitle={datum ? displayDatumTime : displayTime}
             >
                 <TooltipValue
-                    column={column}
-                    value={datum?.value}
+                    column={yColumn}
+                    value={valueLabel}
                     color={valueColor}
                 />
                 {this.showSparkline && (
@@ -264,20 +276,20 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                             />
                             <g className="min-max-labels">
                                 <text
-                                    x={SPARKLINE_WIDTH - SPARKLINE_PADDING - 1}
+                                    x={SPARKLINE_WIDTH - SPARKLINE_PADDING - 3}
                                     y={0.5 * SPARKLINE_PADDING}
                                 >
-                                    {displayMax}
+                                    {maxLabel}
                                 </text>
                                 <text
-                                    x={SPARKLINE_WIDTH - SPARKLINE_PADDING - 1}
+                                    x={SPARKLINE_WIDTH - SPARKLINE_PADDING - 3}
                                     y={
                                         SPARKLINE_HEIGHT -
                                         2 * SPARKLINE_PADDING +
                                         5
                                     }
                                 >
-                                    {displayMin}
+                                    {minLabel}
                                 </text>
                             </g>
                         </svg>

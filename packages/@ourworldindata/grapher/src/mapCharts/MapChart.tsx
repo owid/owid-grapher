@@ -325,7 +325,7 @@ export class MapChart
         this.mapConfig.projection = value
     }
 
-    @computed private get formatTooltipValue(): (d: number | string) => string {
+    @computed private get formatTooltipValue(): (d: PrimitiveType) => string {
         const { mapConfig, mapColumn, colorScale } = this
 
         return (d: PrimitiveType): string => {
@@ -612,7 +612,12 @@ export class MapChart
                 />
             )
 
-        const { tooltipTarget, projectionChooserBounds, projection } = this
+        const {
+            tooltipTarget,
+            projectionChooserBounds,
+            projection,
+            colorScale: { customNumericLabels },
+        } = this
 
         return (
             <g ref={this.base} className="mapTab">
@@ -647,6 +652,7 @@ export class MapChart
                         )}
                         tooltipTarget={tooltipTarget}
                         manager={this.manager}
+                        customValueLabels={customNumericLabels}
                         colorScaleManager={this}
                         targetTime={this.targetTime}
                     />
