@@ -51,6 +51,9 @@ export interface MapChartManager extends ChartManager {
     mapIsClickable?: boolean
     currentTab?: string // Used to switch to chart tab on map click
     type?: ChartTypeName // Used to determine the "Click to select" text in MapTooltip
+    isLineChartThatTurnedIntoDiscreteBar?: boolean // Used to determine whether to reset the timeline on map click
+    hasTimeline?: boolean // Used to determine whether to reset the timeline on map click
+    resetHandleTimeBounds?: () => void // Used to reset the timeline on map click
     mapConfig?: MapConfig
     endTime?: Time
 }
