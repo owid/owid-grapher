@@ -317,7 +317,7 @@ export class SiteBaker {
             publishedGdoc.imageMetadata = imageMetadataDictionary
             publishedGdoc.linkedDocuments = publishedGdocsDictionary
             const publishedExplorersBySlug =
-                await this.explorerAdminServer.getAllPublishedExplorersBySlug()
+                await this.explorerAdminServer.getAllPublishedExplorersBySlugCached()
 
             await publishedGdoc.validate(publishedExplorersBySlug)
             if (publishedGdoc.errors.length) {
