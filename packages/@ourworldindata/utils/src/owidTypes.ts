@@ -1020,6 +1020,20 @@ export type EnrichedBlockExpandableParagraph = {
     items: OwidEnrichedGdocBlock[]
 } & EnrichedBlockWithParseErrors
 
+export type RawBlockAlign = {
+    type: "align"
+    value: {
+        alignment: HorizontalAlign
+        content: OwidRawGdocBlock[]
+    }
+}
+
+export type EnrichedBlockAlign = {
+    type: "align"
+    alignment: HorizontalAlign
+    content: OwidEnrichedGdocBlock[]
+} & EnrichedBlockWithParseErrors
+
 export type Ref = {
     id: string
     // Can be -1

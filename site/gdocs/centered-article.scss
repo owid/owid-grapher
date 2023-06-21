@@ -87,17 +87,6 @@ h2.article-block__heading.has-supertitle {
         color: $blue-50;
         margin-bottom: 8px;
     }
-
-    // Center the next three subsequent paragraphs 🥴
-    + .article-block__text {
-        text-align: center;
-        + .article-block__text {
-            text-align: center;
-            + .article-block__text {
-                text-align: center;
-            }
-        }
-    }
 }
 
 .centered-article-container > .article-block__divider {

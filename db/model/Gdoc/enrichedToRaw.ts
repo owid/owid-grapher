@@ -357,5 +357,11 @@ export function enrichedBlockToRawBlock(
                 }
             }
         )
+        .with({ type: "align" }, (b): RawBlockAlign => {
+            return {
+                type: b.type,
+                value: b.value,
+            }
+        })
         .exhaustive()
 }

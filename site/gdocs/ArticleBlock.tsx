@@ -530,6 +530,7 @@ export default function ArticleBlock({
                 className={getLayout("research-and-writing", containerType)}
             />
         ))
+        .with({ type: "align" }, (block) => (block) => <div></div>)
         .exhaustive()
 
     return (
