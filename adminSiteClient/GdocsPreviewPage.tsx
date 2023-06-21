@@ -3,6 +3,7 @@ import React, {
     useContext,
     useEffect,
     useMemo,
+    useRef,
     useState,
 } from "react"
 import { AdminLayout } from "./AdminLayout.js"
@@ -60,6 +61,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     const [errors, setErrors] = React.useState<OwidGdocErrorMessage[]>()
     const { admin } = useContext(AdminAppContext)
     const store = useGdocsStore()
+    const [iframeScrollY, setIframeScrollY] = useState<number | undefined>()
     // Cancel all other requests in progress (most likely just the automatic fetch)
     const cancelAllRequests = useMemo(
         () => () =>
@@ -68,6 +70,8 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
             }),
         [admin]
     )
+
+    const iframeRef = useRef<HTMLIFrameElement>(null)
 
     const fetchGdoc = useCallback(
         (contentSource: GdocsContentSource) =>
@@ -115,6 +119,15 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     useInterval(async () => {
         if (currentGdoc) {
             const latestGdoc = await fetchGdoc(GdocsContentSource.Gdocs)
+
+            // Save the scroll position of the iframe to restore it after the
+            // refresh. The condition is here to prevent firefox from
+            // calculating the scroll position on page load, which somehow results in a
+            // wrong value (likely at the bottom).
+            if (latestGdoc.revisionId !== currentGdoc.revisionId) {
+                setIframeScrollY(iframeRef.current?.contentWindow?.scrollY)
+            }
+
             setCurrentGdoc({
                 ...latestGdoc,
                 slug: currentGdoc.slug,
@@ -124,6 +137,14 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
             })
         }
     }, 5000)
+
+    const onIframeLoad = () => {
+        if (!iframeScrollY) return
+        // scroll the iframe to the position it was at before the refresh
+        iframeRef.current?.contentWindow?.scrollTo({
+            top: iframeScrollY,
+        })
+    }
 
     const isLightningUpdate = useLightningUpdate(
         originalGdoc,
@@ -332,6 +353,8 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                     resets on every change)
                 */}
                 <iframe
+                    ref={iframeRef}
+                    onLoad={onIframeLoad}
                     src={`/gdocs/${currentGdoc.id}/preview#owid-document-root`}
                     style={{ width: "100%", border: "none" }}
                     key={currentGdoc.revisionId}
