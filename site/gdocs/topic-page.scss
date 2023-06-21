@@ -9,6 +9,10 @@
 
     h1 {
         margin-bottom: 0;
+        @include sm-only {
+            font-size: 2rem;
+            margin-top: 24px;
+        }
     }
 
     .topic-page-header__subtitle {
@@ -30,6 +34,10 @@
 
 .article-block__topic-page-intro {
     margin-top: 48px;
+
+    @include sm-only {
+        margin-top: 24px;
+    }
 
     .topic-page-intro__content {
         p:first-child {
@@ -110,6 +118,12 @@
 }
 
 .article-block__key-insights {
+    @include sm-only {
+        h2 {
+            font-size: 1.625rem;
+        }
+    }
+
     figure {
         margin: 0;
     }
@@ -148,6 +162,16 @@
 .article-block__gray-section {
     h1 {
         text-align: center;
+        // Countering the gray-section padding to make this have 32px 16px
+        margin-top: -16px;
+        margin-bottom: 16px;
+    }
+
+    .article-block__text,
+    .article-block__list,
+    .article-block__html,
+    .article-block__numbered-list {
+        @include body-3-medium;
     }
 }
 

@@ -368,6 +368,7 @@
 
 @mixin expandable-paragraph__expand-button--full {
     display: block;
+    height: 40px;
     @include sm-up {
         display: inline-block;
     }

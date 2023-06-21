@@ -3,6 +3,7 @@ import cx from "classnames"
 import {
     EnrichedBlockResearchAndWriting,
     EnrichedBlockResearchAndWritingLink,
+    RESEARCH_AND_WRITING_ID,
 } from "@ourworldindata/utils"
 import { useLinkedDocument } from "./utils.js"
 import { formatAuthors } from "../clientFormatting.js"
@@ -81,7 +82,7 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
         <div className={cx(className, "grid")}>
             <h2
                 className="span-cols-12 display-1-semibold"
-                id="research-writing"
+                id={RESEARCH_AND_WRITING_ID}
             >
                 Research & writing
             </h2>

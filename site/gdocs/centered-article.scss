@@ -245,13 +245,14 @@ h3.article-block__heading.has-supertitle {
     padding-top: 48px;
     h3 {
         margin-top: 0;
-        text-align: center;
     }
     p {
         margin-bottom: 16px;
+        color: $blue-90;
     }
     div:last-of-type .wp-code-snippet {
         margin-bottom: 0;
+        font-size: 0.875rem;
     }
     > div:last-child {
         padding-bottom: 48px;
@@ -506,7 +507,7 @@ h3.article-block__heading.has-supertitle {
 .article-block__gray-section {
     background-color: $gray-10;
     padding: 48px 0;
-    margin: 32px 0;
+    margin: 24px 0;
 
     > *:first-child {
         margin-top: 0;

@@ -5,6 +5,13 @@
         text-align: center;
         font-size: 32px;
         margin-bottom: 40px;
+        // Only the first large thumbnail, the "shorts" section has a margin
+        // so the second thumbnail doesn't need any
+        + .research-and-writing-link {
+            @include md-down {
+                margin-bottom: 16px;
+            }
+        }
     }
 }
 
@@ -13,6 +20,7 @@
     background: $gray-10;
     h5 {
         margin: 0;
+        color: $blue-50;
     }
 
     @include md-down {
@@ -111,4 +119,9 @@
 .research-and-writing-link--error {
     background-color: rgba(255, 0, 0, 0.1);
     padding: 24px;
+}
+
+.article-block__gray-section + .article-block__research-and-writing {
+    // Compensating for non-collapsing margins
+    margin-top: -32px;
 }
