@@ -18,6 +18,7 @@ import {
     GrapherManager,
     GrapherProgrammaticInterface,
     GrapherQueryParams,
+    GrapherTabOption,
     SelectionArray,
     setSelectedEntityNamesParam,
     SlideShowController,
@@ -339,6 +340,18 @@ export class Explorer
         newGrapherParams.tab = this.grapher.availableTabs.includes(previousTab)
             ? previousTab
             : this.grapher.availableTabs[0]
+
+        // reset the time for charts where a single-year view is not meaningful
+        if (
+            previousTab === GrapherTabOption.map &&
+            newGrapherParams.tab === GrapherTabOption.chart &&
+            (this.grapher.isLineChart ||
+                this.grapher.isStackedArea ||
+                this.grapher.isStackedBar ||
+                this.grapher.isSlopeChart)
+        ) {
+            newGrapherParams.time = undefined
+        }
 
         this.grapher.populateFromQueryParams(newGrapherParams)
     }
