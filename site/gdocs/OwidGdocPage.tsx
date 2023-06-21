@@ -37,11 +37,13 @@ export default function OwidGdocPage({
     // So no matter what, we use the png fallback that the baker generates
     const featuredImageUrl =
         content["featured-image"] &&
-        path.join(
-            baseUrl,
-            IMAGES_DIRECTORY,
-            getFilenameAsPng(content["featured-image"])
-        )
+        new URL(
+            path.join(
+                IMAGES_DIRECTORY,
+                getFilenameAsPng(content["featured-image"])
+            ),
+            baseUrl
+        ).href
     const canonicalUrl = `${baseUrl}/${slug}`
 
     return (
