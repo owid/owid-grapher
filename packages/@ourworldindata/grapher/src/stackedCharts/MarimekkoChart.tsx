@@ -2,7 +2,6 @@ import React from "react"
 import {
     Bounds,
     DEFAULT_BOUNDS,
-    findLastIndex,
     min,
     max,
     maxBy,
@@ -187,22 +186,8 @@ function MarimekkoBarsForOneEntity(props: MarimekkoBarsProps): JSX.Element {
         dualAxis,
     } = props
 
-    let content = undefined
-    if (bars.length) {
-        let lastNonZeroBarIndex = findLastIndex(
-            bars,
-            (bar) => bar.yPoint.value > 0
-        )
-        lastNonZeroBarIndex = lastNonZeroBarIndex >= 0 ? lastNonZeroBarIndex : 0 // if we don't find an item with a nonzero value it doesn't really matter which one we pick
-        const predecessors = bars.slice(0, lastNonZeroBarIndex)
-        const lastNonZero = bars[lastNonZeroBarIndex]
-        const successors = bars.slice(lastNonZeroBarIndex + 1, bars.length)
-
-        // This is annoying - I tried to use the tippy element around all bars instead of inside
-        // one single bar but then it renders at the document origin instead of at the right attach point
-        // since we will switch to another tooltip solution anyhow I would leave it at this for now -
-        // later on this splitting into allbutlast and last can be removed and tooltips just done elsewhere
-        const predecessorBars = predecessors.map((bar) => (
+    const content = bars.length ? (
+        bars.map((bar) => (
             <MarimekkoBar
                 key={`${entityName}-${bar.seriesName}`}
                 bar={bar}
@@ -215,53 +200,23 @@ function MarimekkoBarsForOneEntity(props: MarimekkoBarsProps): JSX.Element {
                 dualAxis={dualAxis}
             />
         ))
-        const lastNonZeroBar = (
-            <MarimekkoBar
-                key={`${entityName}-${lastNonZero.seriesName}`}
-                bar={lastNonZero}
-                barWidth={barWidth}
-                isHovered={isHovered}
-                isSelected={isSelected}
-                isFaint={isFaint}
-                entityColor={entityColor?.color}
-                y0={y0}
-                dualAxis={dualAxis}
-            />
-        )
-        const successorBars = successors.map((bar) => (
-            <MarimekkoBar
-                key={`${entityName}-${bar.seriesName}`}
-                bar={bar}
-                barWidth={barWidth}
-                isHovered={isHovered}
-                isSelected={isSelected}
-                isFaint={isFaint}
-                entityColor={entityColor?.color}
-                y0={y0}
-                dualAxis={dualAxis}
-            />
-        ))
-
-        content = [...predecessorBars, lastNonZeroBar, ...successorBars]
-    } else {
-        content = (
-            <MarimekkoBar
-                key={`${entityName}-placeholder`}
-                bar={{
-                    kind: BarShape.BarPlaceholder,
-                    seriesName: entityName,
-                    height: noDataHeight,
-                }}
-                barWidth={barWidth}
-                isHovered={isHovered}
-                isSelected={isSelected}
-                isFaint={isFaint}
-                entityColor={entityColor?.color}
-                y0={y0}
-                dualAxis={dualAxis}
-            />
-        )
-    }
+    ) : (
+        <MarimekkoBar
+            key={`${entityName}-placeholder`}
+            bar={{
+                kind: BarShape.BarPlaceholder,
+                seriesName: entityName,
+                height: noDataHeight,
+            }}
+            barWidth={barWidth}
+            isHovered={isHovered}
+            isSelected={isSelected}
+            isFaint={isFaint}
+            entityColor={entityColor?.color}
+            y0={y0}
+            dualAxis={dualAxis}
+        />
+    )
 
     return (
         <g
