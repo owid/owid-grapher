@@ -10,6 +10,7 @@ import {
     DataPageGdocContent,
     DataPageJson,
     OwidGdocInterface,
+    serializeJSONForHTML,
 } from "@ourworldindata/utils"
 import React from "react"
 import urljoin from "url-join"
@@ -79,6 +80,8 @@ export const DataPage = (props: {
         bakedGrapherURL: BAKED_GRAPHER_URL,
         adminBaseUrl: ADMIN_BASE_URL,
     }
+
+    const script = `const jsonConfig = ${serializeJSONForHTML(grapherConfig)};`
 
     return (
         <html>
@@ -165,6 +168,10 @@ export const DataPage = (props: {
                     baseUrl={baseUrl}
                     context={SiteFooterContext.dataPage}
                     isPreviewing={isPreviewing}
+                />
+                <script
+                    type="module"
+                    dangerouslySetInnerHTML={{ __html: script }}
                 />
             </body>
         </html>
