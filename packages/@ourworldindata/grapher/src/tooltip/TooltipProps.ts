@@ -1,5 +1,6 @@
-import { IconDefinition } from "@fortawesome/fontawesome-common-types/index.js"
 import { ObservableMap } from "mobx"
+import { CoreColumn } from "@ourworldindata/core-table"
+import { TickFormattingOptions } from "@ourworldindata/utils"
 
 // We can't pass the property directly because we need it to be observable.
 export interface TooltipManager {
@@ -16,11 +17,31 @@ export interface TooltipProps {
     title?: string | number
     subtitle?: string | number
     subtitleIsUnit?: boolean
-    footerIcon?: IconDefinition
     footer?: string
     style?: React.CSSProperties
     children?: React.ReactNode
     tooltipManager: TooltipManager
+}
+
+export interface TooltipValueProps {
+    column: CoreColumn
+    value?: number | string
+    color?: string
+    notice?: number | string
+}
+
+export interface TooltipValueRangeProps {
+    column: CoreColumn
+    values: number[]
+    color?: string
+}
+
+export interface TooltipTableProps {
+    columns: CoreColumn[]
+    rows: TooltipTableRow[]
+    totals?: (number | undefined)[]
+    notices?: (number | string | undefined)[]
+    format?: TickFormattingOptions
 }
 
 export interface TooltipTableRow {
