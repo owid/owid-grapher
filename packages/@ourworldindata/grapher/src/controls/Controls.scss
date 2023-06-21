@@ -49,6 +49,10 @@ $zindex-ControlsFooter: 2;
 
     background: #ffffff;
     margin: 0px 0px;
+
+    > a {
+        text-decoration: none;
+    }
 }
 
 .FacetStrategyLabel {

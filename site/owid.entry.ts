@@ -56,7 +56,6 @@ if (BUGSNAG_API_KEY) {
 }
 
 const analytics = new SiteAnalytics(ENV)
-analytics.logPageLoad()
 
 document.querySelector("html")?.classList.add("js")
 

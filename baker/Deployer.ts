@@ -190,8 +190,7 @@ yarn testPrettierAll`
         await this.writeHeadDotText()
         await this.ensureTmpDirExistsOnServer()
 
-        const exitCode = await this.generateShellScriptsAndRunThemOnServer()
-        if (exitCode !== 0) return
+        await this.generateShellScriptsAndRunThemOnServer()
 
         this.progressBar.tick({
             name: `✅ 📡 finished everything`,
@@ -200,7 +199,7 @@ yarn testPrettierAll`
     }
 
     // todo: the old deploy script would generete BASH on the fly and run it on the server. we should clean that up and remove these shell scripts.
-    private async generateShellScriptsAndRunThemOnServer(): Promise<number> {
+    private async generateShellScriptsAndRunThemOnServer(): Promise<void> {
         const { simpleGit } = this
         const { target, owidGrapherRootDir } = this.options
 
@@ -253,17 +252,13 @@ yarn testPrettierAll`
 
         await this.copyLocalRepoToServerTmpDirectory()
 
-        let exitCode: number = 0
         for await (const name of Object.keys(scripts)) {
-            exitCode = await this.runAndStreamScriptOnRemoteServerViaSSH(
+            await this.runAndStreamScriptOnRemoteServerViaSSH(
                 `${rsyncTargetDir}/${TEMP_DEPLOY_SCRIPT_PREFIX}${name}.sh`
             )
             const localPath = `${owidGrapherRootDir}/${TEMP_DEPLOY_SCRIPT_PREFIX}${name}.sh`
             fs.removeSync(localPath)
-            if (exitCode !== 0) break // halt the deploy sequence
         }
-
-        return exitCode
     }
 
     printAndExit(message: string) {
@@ -295,7 +290,7 @@ yarn testPrettierAll`
 
     private async runAndStreamScriptOnRemoteServerViaSSH(
         path: string
-    ): Promise<number> {
+    ): Promise<void> {
         // eslint-disable-next-line no-console
         console.log(`📡 Running ${path} on ${this.sshHost}`)
         const bashTerminateIfAnyNonZero = "bash -e" // https://stackoverflow.com/questions/9952177/whats-the-meaning-of-the-parameter-e-for-bash-shell-command-line/9952249
@@ -326,12 +321,14 @@ yarn testPrettierAll`
             child.on("close", resolve)
         })
 
-        this.progressBar.tick({
-            name: `📡${
-                exitCode ? "⛔️ failed" : "✅ finished"
-            } running ${path}${exitCode ? ` [exit code: ${exitCode}]` : ``}`,
-        })
+        if (exitCode !== 0) {
+            throw new Error(
+                `📡⛔️ failed running ${path} [exit code ${exitCode}]`
+            )
+        }
 
-        return exitCode
+        this.progressBar.tick({
+            name: `📡✅ finished running ${path}`,
+        })
     }
 }

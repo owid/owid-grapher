@@ -247,7 +247,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                 <button
                     type="button"
                     key="grapher-select-entities"
-                    data-track-note="grapher-select-entities"
+                    data-track-note="grapher_select_entities"
                     style={controls.length === 0 ? { padding: 0 } : {}} // If there are no controls to the left then set padding to 0 for better alignment
                     onClick={this.startSelecting}
                 >
@@ -263,7 +263,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                 <button
                     type="button"
                     key="grapher-change-entities"
-                    data-track-note="grapher-change-entity"
+                    data-track-note="grapher_change_entity"
                     className="ChangeEntityButton"
                     onClick={this.startSelecting}
                 >

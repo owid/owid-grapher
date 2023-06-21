@@ -1,5 +1,6 @@
 import React, { createContext } from "react"
 import ReactDOM from "react-dom"
+import cx from "classnames"
 import { ArticleBlocks } from "./ArticleBlocks.js"
 import Footnotes from "./Footnotes.js"
 import {
@@ -10,6 +11,7 @@ import {
     RelatedChart,
     CITATION_ID,
     LICENSE_ID,
+    isEmpty,
 } from "@ourworldindata/utils"
 import { CodeSnippet } from "../blocks/CodeSnippet.js"
 import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
@@ -76,7 +78,16 @@ export function OwidGdoc({
             }}
         >
             <DocumentContext.Provider value={{ isPreviewing }}>
-                <article className="centered-article-container grid grid-cols-12-full-width">
+                <article
+                    className={cx(
+                        "centered-article-container grid grid-cols-12-full-width",
+                        // Only add this modifier class when content.type is defined
+                        {
+                            [`centered-article-container--${content.type}`]:
+                                content.type,
+                        }
+                    )}
+                >
                     <OwidGdocHeader
                         content={content}
                         authors={content.authors}
@@ -111,7 +122,9 @@ export function OwidGdoc({
                         />
                     ) : null}
 
-                    {content.refs ? <Footnotes d={content.refs} /> : null}
+                    {content.refs && !isEmpty(content.refs.definitions) ? (
+                        <Footnotes definitions={content.refs.definitions} />
+                    ) : null}
 
                     <section
                         id={CITATION_ID}

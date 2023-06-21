@@ -75,12 +75,14 @@ export const checkHasChanges = (
             "linkedDocuments",
             "imageMetadata",
             "linkedCharts",
+            "relatedCharts",
             "errors",
         ]),
         omit(nextGdoc, [
             "linkedDocuments",
             "imageMetadata",
             "linkedCharts",
+            "relatedCharts",
             "errors",
         ])
     )

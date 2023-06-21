@@ -88,7 +88,7 @@
 @import "./gdocs/ResearchAndWriting.scss";
 @import "./DataPage.scss";
 @import "./DataPageContent.scss";
-@import "./ExpandableAnimatedToggle.scss";
+@import "./ExpandableToggle.scss";
 @import "./detailsOnDemand.scss";
 
 /* HACK (Mispy): Fix search autozooming on iPhone Safari.
@@ -894,6 +894,13 @@ article.page .authors-byline .citation-note:hover {
             & + p {
                 margin-top: 1em;
             }
+        }
+
+        .article-block__text,
+        .article-block__list,
+        .article-block__html,
+        .article-block__numbered-list {
+            @include body-3-medium;
         }
     }
 }

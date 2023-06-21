@@ -26,10 +26,11 @@ import {
     ChartEditor,
     EditorDatabase,
     Log,
-    PostReference,
+    References,
     ChartRedirect,
     ChartEditorManager,
     Dataset,
+    getFullReferencesCount,
 } from "./ChartEditor.js"
 import { EditorBasicTab } from "./EditorBasicTab.js"
 import { EditorDataTab } from "./EditorDataTab.js"
@@ -100,7 +101,7 @@ export class ChartEditorPage
     @observable.ref grapher = new Grapher()
     @observable.ref database = new EditorDatabase({})
     @observable logs: Log[] = []
-    @observable references: PostReference[] = []
+    @observable references: References | undefined = undefined
     @observable redirects: ChartRedirect[] = []
     @observable pageviews?: RawPageview = undefined
     @observable allTopics: Topic[] = []
@@ -194,7 +195,7 @@ export class ChartEditorPage
                 : await admin.getJSON(
                       `/api/charts/${grapherId}.references.json`
                   )
-        runInAction(() => (this.references = json.references || []))
+        runInAction(() => (this.references = json.references))
     }
 
     async fetchRedirects(): Promise<void> {
@@ -358,9 +359,10 @@ export class ChartEditorPage
                                         onClick={() => (editor.tab = tab)}
                                     >
                                         {capitalize(tab)}
-                                        {tab === "refs" &&
-                                        this.references.length
-                                            ? ` (${this.references.length})`
+                                        {tab === "refs" && this.references
+                                            ? ` (${getFullReferencesCount(
+                                                  this.references
+                                              )})`
                                             : ""}
                                     </a>
                                 </li>

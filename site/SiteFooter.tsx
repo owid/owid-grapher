@@ -29,7 +29,7 @@ export const SiteFooter = (props: SiteFooterProps) => (
                             <a
                                 href="/donate"
                                 className="owid-button donate-button"
-                                data-track-note="donate-footer"
+                                data-track-note="donate_footer"
                             >
                                 <span className="label">Donate now</span>
                                 <span className="icon">
@@ -49,7 +49,7 @@ export const SiteFooter = (props: SiteFooterProps) => (
                             <li>
                                 <a
                                     href="/about"
-                                    data-track-note="footer-navigation"
+                                    data-track-note="footer_navigation"
                                 >
                                     About
                                 </a>
@@ -57,7 +57,7 @@ export const SiteFooter = (props: SiteFooterProps) => (
                             <li>
                                 <a
                                     href="/about#contact"
-                                    data-track-note="footer-navigation"
+                                    data-track-note="footer_navigation"
                                 >
                                     Contact
                                 </a>
@@ -65,7 +65,7 @@ export const SiteFooter = (props: SiteFooterProps) => (
                             <li>
                                 <a
                                     href="/feedback"
-                                    data-track-note="footer-navigation"
+                                    data-track-note="footer_navigation"
                                 >
                                     Feedback
                                 </a>
@@ -73,7 +73,7 @@ export const SiteFooter = (props: SiteFooterProps) => (
                             <li>
                                 <a
                                     href="/jobs"
-                                    data-track-note="footer-navigation"
+                                    data-track-note="footer_navigation"
                                 >
                                     Jobs
                                 </a>
@@ -81,7 +81,7 @@ export const SiteFooter = (props: SiteFooterProps) => (
                             <li>
                                 <a
                                     href="/funding"
-                                    data-track-note="footer-navigation"
+                                    data-track-note="footer_navigation"
                                 >
                                     Funding
                                 </a>
@@ -89,7 +89,7 @@ export const SiteFooter = (props: SiteFooterProps) => (
                             <li>
                                 <a
                                     href="/about/how-to-use-our-world-in-data"
-                                    data-track-note="footer-navigation"
+                                    data-track-note="footer_navigation"
                                 >
                                     How to use
                                 </a>
@@ -97,7 +97,7 @@ export const SiteFooter = (props: SiteFooterProps) => (
                             <li>
                                 <a
                                     href="/donate"
-                                    data-track-note="footer-navigation"
+                                    data-track-note="footer_navigation"
                                 >
                                     Donate
                                 </a>
@@ -105,7 +105,7 @@ export const SiteFooter = (props: SiteFooterProps) => (
                             <li>
                                 <a
                                     href="/privacy-policy"
-                                    data-track-note="footer-navigation"
+                                    data-track-note="footer_navigation"
                                 >
                                     Privacy policy
                                 </a>
@@ -117,7 +117,7 @@ export const SiteFooter = (props: SiteFooterProps) => (
                             <li>
                                 <a
                                     href="/blog"
-                                    data-track-note="footer-navigation"
+                                    data-track-note="footer_navigation"
                                 >
                                     Latest work
                                 </a>
@@ -125,7 +125,7 @@ export const SiteFooter = (props: SiteFooterProps) => (
                             <li>
                                 <a
                                     href="/charts"
-                                    data-track-note="footer-navigation"
+                                    data-track-note="footer_navigation"
                                 >
                                     All charts
                                 </a>
@@ -135,7 +135,7 @@ export const SiteFooter = (props: SiteFooterProps) => (
                             <li>
                                 <a
                                     href="https://twitter.com/OurWorldInData"
-                                    data-track-note="footer-navigation"
+                                    data-track-note="footer_navigation"
                                 >
                                     Twitter
                                 </a>
@@ -143,7 +143,7 @@ export const SiteFooter = (props: SiteFooterProps) => (
                             <li>
                                 <a
                                     href="https://www.facebook.com/OurWorldinData"
-                                    data-track-note="footer-navigation"
+                                    data-track-note="footer_navigation"
                                 >
                                     Facebook
                                 </a>
@@ -151,7 +151,7 @@ export const SiteFooter = (props: SiteFooterProps) => (
                             <li>
                                 <a
                                     href="https://www.instagram.com/ourworldindata/"
-                                    data-track-note="footer-navigation"
+                                    data-track-note="footer_navigation"
                                 >
                                     Instagram
                                 </a>
@@ -159,7 +159,7 @@ export const SiteFooter = (props: SiteFooterProps) => (
                             <li>
                                 <a
                                     href="https://github.com/owid"
-                                    data-track-note="footer-navigation"
+                                    data-track-note="footer_navigation"
                                 >
                                     GitHub
                                 </a>
@@ -167,7 +167,7 @@ export const SiteFooter = (props: SiteFooterProps) => (
                             <li>
                                 <a
                                     href="/feed"
-                                    data-track-note="footer-navigation"
+                                    data-track-note="footer_navigation"
                                 >
                                     RSS Feed
                                 </a>
@@ -179,7 +179,7 @@ export const SiteFooter = (props: SiteFooterProps) => (
                             <a
                                 href="https://www.oxfordmartin.ox.ac.uk/global-development"
                                 className="partner-logo"
-                                data-track-note="footer-navigation"
+                                data-track-note="footer_navigation"
                             >
                                 <img
                                     src={`${props.baseUrl}/oms-logo.png`}
@@ -190,7 +190,7 @@ export const SiteFooter = (props: SiteFooterProps) => (
                             <a
                                 href="/owid-at-ycombinator"
                                 className="partner-logo"
-                                data-track-note="footer-navigation"
+                                data-track-note="footer_navigation"
                             >
                                 <img
                                     src={`${props.baseUrl}/yc-logo.png`}
@@ -239,7 +239,7 @@ export const SiteFooter = (props: SiteFooterProps) => (
                                 <a
                                     href="https://global-change-data-lab.org/"
                                     className="partner-logo gcdl-logo"
-                                    data-track-note="footer-navigation"
+                                    data-track-note="footer_navigation"
                                 >
                                     <img
                                         src={`${props.baseUrl}/gcdl-logo.png`}

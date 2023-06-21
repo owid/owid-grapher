@@ -477,6 +477,7 @@ interface ToggleProps {
     onValue: (value: boolean) => void
     disabled?: boolean
     title?: string
+    secondaryLabel?: string
 }
 
 export class Toggle extends React.Component<ToggleProps> {
@@ -499,6 +500,16 @@ export class Toggle extends React.Component<ToggleProps> {
                         {...passthroughProps}
                     />
                     {props.label}
+                    {props.secondaryLabel && (
+                        <>
+                            {" "}
+                            <FontAwesomeIcon
+                                icon={faCircleInfo}
+                                className="text-muted"
+                                title={props.secondaryLabel}
+                            />
+                        </>
+                    )}
                 </label>
             </div>
         )

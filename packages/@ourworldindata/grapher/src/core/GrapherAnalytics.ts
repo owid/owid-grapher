@@ -2,30 +2,29 @@ import { findDOMParent } from "@ourworldindata/utils"
 
 const DEBUG = false
 
-// TypeScript implicitly imports @types/amplitude-js and @types/google.analytics
-// so we have proper types for window.amplitude and window.ga
+// Add type information for dataLayer global provided by Google Tag Manager
+type WindowWithDataLayer = Window & {
+    dataLayer?: GAEvent[]
+}
+declare const window: WindowWithDataLayer
 
-// Docs on GA's event interface: https://developers.google.com/analytics/devguides/collection/analyticsjs/events
-interface GAEvent {
-    hitType: string
-    eventCategory: string
-    eventAction: string
-    eventLabel?: string
-    eventValue?: number
+export enum EventCategory {
+    CountryProfileSearch = "owid.country_profile_search",
+    Filter = "owid.filter",
+    GlobalEntitySelectorUsage = "owid.global_entity_selector_usage",
+    GrapherClick = "owid.grapher_click",
+    GrapherError = "owid.grapher_error",
+    ExplorerCountrySelector = "owid.explorer_country_selector",
+    Hover = "owid.hover",
+    KeyboardShortcut = "owid.keyboard_shortcut",
+    SiteClick = "owid.site_click",
+    SiteError = "owid.site_error",
 }
 
-enum Categories {
-    GrapherError = "GrapherErrors",
-    GrapherUsage = "GrapherUsage",
-    GlobalEntitySelectorUsage = "GlobalEntitySelector",
-    SiteClick = "SiteClick",
-    KeyboardShortcut = "KeyboardShortcut",
-}
-
-enum EventNames {
-    grapherViewError = "GRAPHER_VIEW_ERROR",
-    entitiesNotFound = "ENTITIES_NOT_FOUND",
-    timelinePlay = "TimelinePlay",
+enum EventAction {
+    grapherViewError = "grapher_view_error",
+    entitiesNotFound = "entities_not_found",
+    timelinePlay = "timeline_play",
 }
 
 type entityControlEvent = "open" | "change" | "close"
@@ -35,6 +34,14 @@ type countrySelectorEvent =
     | "deselect"
     | "sortBy"
     | "sortOrder"
+
+interface GAEvent {
+    event: EventCategory
+    eventAction?: string
+    eventContext?: string
+    eventTarget?: string
+    grapherPath?: string
+}
 
 // Note: consent-based blocking dealt with at the Google Tag Manager level.
 // Events are discarded if consent not given.
@@ -47,48 +54,80 @@ export class GrapherAnalytics {
     private version: string // Ideally the Git hash commit
     private isDev: boolean
 
-    logGrapherViewError(error: Error, info: unknown): void {
-        this.logToAmplitude(EventNames.grapherViewError, { error, info })
-        this.logToGA(Categories.GrapherError, EventNames.grapherViewError)
+    logGrapherViewError(error: Error): void {
+        this.logToGA({
+            event: EventCategory.GrapherError,
+            eventAction: EventAction.grapherViewError,
+            eventContext: error.message,
+        })
     }
 
     logEntitiesNotFoundError(entities: string[]): void {
-        this.logToAmplitude(EventNames.entitiesNotFound, { entities })
-        this.logToGA(
-            Categories.GrapherError,
-            EventNames.entitiesNotFound,
-            JSON.stringify(entities)
-        )
-    }
-
-    logGrapherTimelinePlay(slug?: string): void {
-        this.logToGA(Categories.GrapherUsage, EventNames.timelinePlay, slug)
+        this.logToGA({
+            event: EventCategory.GrapherError,
+            eventAction: EventAction.entitiesNotFound,
+            eventContext: JSON.stringify(entities),
+        })
     }
 
     logGlobalEntitySelector(action: entityControlEvent, note?: string): void {
-        this.logToGA(Categories.GlobalEntitySelectorUsage, action, note)
+        this.logToGA({
+            event: EventCategory.GlobalEntitySelectorUsage,
+            eventAction: action,
+            eventContext: note,
+        })
     }
 
-    logEntityPickerEvent(
-        pickerSlug: string,
-        action: countrySelectorEvent,
-        note?: string
+    logEntityPickerEvent(action: countrySelectorEvent, note?: string): void {
+        this.logToGA({
+            event: EventCategory.ExplorerCountrySelector,
+            eventAction: action,
+            eventContext: note,
+        })
+    }
+
+    logGrapherClick(
+        action: string = "unknown-action",
+        label?: string,
+        grapherUrl?: string
     ): void {
-        this.logToGA(`${pickerSlug}ExplorerCountrySelectorUsage`, action, note)
+        // GA4 trims metadata fields down to 100 characters, so we want to be concise and only send
+        // the pathname, e.g. `/grapher/life-expectancy` or `/explorers/migration`
+        const grapherUrlObj =
+            grapherUrl !== undefined ? new URL(grapherUrl) : undefined
+
+        this.logToGA({
+            event: EventCategory.GrapherClick,
+            eventAction: action,
+            eventTarget: label,
+            grapherPath: grapherUrlObj?.pathname,
+        })
     }
 
-    logSiteClick(action: string = "unknown-action", label: string): void {
-        this.logToGA(Categories.SiteClick, action, label)
+    logSiteClick(action: string = "unknown-action", label?: string): void {
+        this.logToGA({
+            event: EventCategory.SiteClick,
+            eventAction: action,
+            eventTarget: label,
+        })
     }
 
     logKeyboardShortcut(shortcut: string, combo: string): void {
-        this.logToGA(Categories.KeyboardShortcut, shortcut, combo)
+        this.logToGA({
+            event: EventCategory.KeyboardShortcut,
+            eventAction: shortcut,
+            eventContext: combo,
+        })
     }
 
     startClickTracking(): void {
-        // Todo: add a Story and tests for this OR even better remove and use Google Tag Manager or similar fully SAAS tracking.
-        // Todo: have different Attributes for Grapher charts vs Site.
+        // we use a data-track-note attr on elements to indicate that clicks on them should be tracked, and what to send
         const dataTrackAttr = "data-track-note"
+
+        // we set a data-grapher-url attr on grapher charts to indicate the URL of the chart.
+        // this is helpful for tracking clicks on charts that are embedded in articles, where we would like to know
+        // which chart the user is interacting with
+        const dataGrapherUrlAttr = "data-grapher-url"
         document.addEventListener("click", async (ev) => {
             const targetElement = ev.target as HTMLElement
             const trackedElement = findDOMParent(
@@ -97,72 +136,31 @@ export class GrapherAnalytics {
             )
             if (!trackedElement) return
 
-            // Note that browsers will cancel all pending requests once a user
-            // navigates away from a page. An earlier implementation had a
-            // timeout to send the event before navigating, but it broke
-            // CMD+CLICK for opening a new tab.
-            this.logSiteClick(
-                trackedElement.getAttribute(dataTrackAttr) || undefined,
-                trackedElement.innerText
-            )
+            const grapherUrl = trackedElement
+                .closest(`[${dataGrapherUrlAttr}]`)
+                ?.getAttribute(dataGrapherUrlAttr)
+
+            if (grapherUrl)
+                this.logGrapherClick(
+                    trackedElement.getAttribute(dataTrackAttr) || undefined,
+                    trackedElement.innerText,
+                    grapherUrl
+                )
+            else
+                this.logSiteClick(
+                    trackedElement.getAttribute(dataTrackAttr) || undefined,
+                    trackedElement.innerText
+                )
         })
     }
 
-    protected logToAmplitude(
-        name: string,
-        props?: Record<string, unknown>
-    ): void {
-        const allProps = {
-            context: {
-                siteVersion: this.version,
-                pageHref: window.location.href,
-                pagePath: window.location.pathname,
-                pageTitle: document.title.replace(/ - [^-]+/, ""),
-            },
-            ...props,
-        }
-
-        if (DEBUG && this.isDev) {
-            // eslint-disable-next-line no-console
-            console.log("Analytics.logToAmplitude", name, allProps)
-            return
-        }
-
-        if (!window.amplitude) return
-        window.amplitude.getInstance().logEvent(name, allProps)
-    }
-
-    protected logToGA(
-        eventCategory: string,
-        eventAction: string,
-        eventLabel?: string,
-        eventValue?: number
-    ): void {
-        // Todo: send the Grapher (or site) version to Git
-        const event: GAEvent = {
-            hitType: "event",
-            eventCategory,
-            eventAction,
-            eventLabel,
-            eventValue,
-        }
+    protected logToGA(event: GAEvent): void {
         if (DEBUG && this.isDev) {
             // eslint-disable-next-line no-console
             console.log("Analytics.logToGA", event)
             return
         }
 
-        if (!window.ga) return
-
-        // https://developers.google.com/analytics/devguides/collection/analyticsjs/ga-object-methods-reference
-        window.ga(function () {
-            const tracker = window.ga.getAll()[0]
-            // @types/google.analytics seems to suggest this usage is invalid but we know Google
-            // Analytics logs these events correctly.
-            // I have avoided changing the implementation for now, but we should look into this as
-            // we use Google Analytics more.
-            // -@danielgavrilov 2020-04-23
-            if (tracker) tracker.send(event as any)
-        })
+        window.dataLayer?.push(event)
     }
 }

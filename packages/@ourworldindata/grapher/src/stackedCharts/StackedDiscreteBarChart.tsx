@@ -579,7 +579,7 @@ export class StackedDiscreteBarChart
                                                         labelToBarPadding
                                                     }, 0)`}
                                                     fill="#555"
-                                                    dominantBaseline="central"
+                                                    dominantBaseline="middle"
                                                     textAnchor="end"
                                                     {...this.labelStyle}
                                                 >
@@ -608,7 +608,7 @@ export class StackedDiscreteBarChart
                                                             totalValue
                                                         ) + labelToBarPadding
                                                     }, 0)`}
-                                                    dominantBaseline="central"
+                                                    dominantBaseline="middle"
                                                     {...this
                                                         .totalValueLabelStyle}
                                                 >
@@ -689,7 +689,7 @@ export class StackedDiscreteBarChart
                             opacity={isFaint ? 0 : 1}
                             fontSize={labelFontSize}
                             textAnchor="middle"
-                            dominantBaseline="central"
+                            dominantBaseline="middle"
                         >
                             {barLabel}
                         </text>

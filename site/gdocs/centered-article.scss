@@ -231,6 +231,13 @@ h3.article-block__heading.has-supertitle {
                 margin-left: 0;
             }
         }
+
+        .article-block__text,
+        .article-block__list,
+        .article-block__html,
+        .article-block__numbered-list {
+            @include body-3-medium;
+        }
     }
 }
 
@@ -274,6 +281,14 @@ h3.article-block__heading.has-supertitle {
 .article-block__numbered-list,
 .article-block__list {
     margin-left: 16px;
+
+    li {
+        margin-bottom: 1em;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+    }
 }
 
 .article-block__aside-right figcaption {
@@ -561,5 +576,32 @@ h3.article-block__heading.has-supertitle {
     .slide[data-active="true"] {
         // Have to override the WP styles, which we can undo once they're removed
         display: grid !important;
+    }
+}
+
+.html-table {
+    @include body-3-medium;
+    border-collapse: collapse;
+    margin-bottom: 25px;
+    td:first-child {
+        background-color: $blue-10;
+        vertical-align: top;
+        font-weight: bold;
+    }
+    td {
+        border: 1px solid $blue-20;
+        padding: 16px;
+
+        ul {
+            margin-left: 16px;
+            li {
+                margin-bottom: 8px;
+            }
+        }
+    }
+    th {
+        border: 1px solid;
+        text-align: left;
+        padding: 6px;
     }
 }

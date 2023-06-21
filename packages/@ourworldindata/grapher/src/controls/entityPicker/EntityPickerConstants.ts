@@ -14,5 +14,4 @@ export interface EntityPickerManager {
     grapherTable?: OwidTable
     selection: SelectionArray
     analytics?: GrapherAnalytics
-    analyticsNamespace?: string
 }

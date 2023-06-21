@@ -183,7 +183,7 @@ export async function bakeGraphersToSvgs(
     )
 }
 
-const svgoConfig: svgo.OptimizeOptions = {
+const svgoConfig: svgo.Config = {
     floatPrecision: 2,
     plugins: [
         {
@@ -202,9 +202,7 @@ const svgoConfig: svgo.OptimizeOptions = {
 
 async function optimizeSvg(svgString: string): Promise<string> {
     const optimizedSvg = await svgo.optimize(svgString, svgoConfig)
-    if (optimizedSvg.error)
-        throw new Error(`Error optimizing SVG: ${optimizedSvg.error}`)
-    return (optimizedSvg as svgo.OptimizedSvg).data
+    return optimizedSvg.data
 }
 
 export async function grapherToSVG(

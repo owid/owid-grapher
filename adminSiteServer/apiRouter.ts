@@ -59,7 +59,7 @@ import {
 import { ChartRevision } from "../db/model/ChartRevision.js"
 import { SuggestedChartRevision } from "../db/model/SuggestedChartRevision.js"
 import { denormalizeLatestCountryData } from "../baker/countryProfiles.js"
-import { PostReference, ChartRedirect } from "../adminSiteClient/ChartEditor.js"
+import { ChartRedirect, References } from "../adminSiteClient/ChartEditor.js"
 import { DeployQueueServer } from "../baker/DeployQueueServer.js"
 import { FunctionalRouter } from "./FunctionalRouter.js"
 import { escape } from "mysql"
@@ -137,11 +137,47 @@ async function getLogsByChartId(chartId: number): Promise<ChartRevision[]> {
     return logs
 }
 
-const getReferencesByChartId = async (
-    chartId: number
-): Promise<PostReference[]> => {
-    if (!wpdb.isWordpressDBEnabled) return []
+const getPostsForSlugs = async (
+    slugs: string[]
+): Promise<{ ID: number; post_title: string; post_name: string }[]> => {
+    if (!wpdb.singleton) return []
+    // Hacky approach to find all the references to a chart by searching for
+    // the chart URL through the Wordpress database.
+    // The Grapher should work without the Wordpress database, so we need to
+    // handle failures gracefully.
+    // NOTE: Sometimes slugs can be substrings of other slugs, e.g.
+    // `grapher/gdp` is a substring of `grapher/gdp-maddison`. We need to be
+    // careful not to erroneously match those, which is why we switched to a
+    // REGEXP.
+    try {
+        const posts = await wpdb.singleton.query(
+            `
+                SELECT ID, post_title, post_name
+                FROM wp_posts
+                WHERE
+                    (post_type='page' OR post_type='post' OR post_type='wp_block')
+                    AND post_status='publish'
+                    AND (
+                        ${slugs
+                            .map(
+                                () =>
+                                    `post_content REGEXP CONCAT('grapher/', ?, '[^a-zA-Z_\-]')`
+                            )
+                            .join(" OR ")}
+                    )
+            `,
+            slugs.map(lodash.escapeRegExp)
+        )
+        return posts
+    } catch (error) {
+        console.warn(`Error in getReferencesByChartId`)
+        console.error(error)
+        // We can ignore errors due to not being able to connect.
+        return []
+    }
+}
 
+const getReferencesByChartId = async (chartId: number): Promise<References> => {
     const rows = await db.queryMysql(
         `
         SELECT config->"$.slug" AS slug
@@ -162,50 +198,53 @@ const getReferencesByChartId = async (
         )
         .filter((slug: string | undefined) => !isUndefined(slug))
 
-    if (!slugs || slugs.length === 0) return []
+    if (!slugs || slugs.length === 0)
+        return {
+            postsGdocs: [],
+            postsWordpress: [],
+            explorers: [],
+            legacySdgCharts: [],
+        }
 
-    let posts = []
-    // Hacky approach to find all the references to a chart by searching for
-    // the chart URL through the Wordpress database.
-    // The Grapher should work without the Wordpress database, so we need to
-    // handle failures gracefully.
-    // NOTE: Sometimes slugs can be substrings of other slugs, e.g.
-    // `grapher/gdp` is a substring of `grapher/gdp-maddison`. We need to be
-    // careful not to erroneously match those, which is why we switched to a
-    // REGEXP.
-    try {
-        posts = await wpdb.singleton.query(
-            `
-                SELECT ID, post_title, post_name
-                FROM wp_posts
-                WHERE
-                    (post_type='page' OR post_type='post' OR post_type='wp_block')
-                    AND post_status='publish'
-                    AND (
-                        ${slugs
-                            .map(
-                                () =>
-                                    `post_content REGEXP CONCAT('grapher/', ?, '[^a-zA-Z_\-]')`
-                            )
-                            .join(" OR ")}
-                    )
-            `,
-            slugs.map(lodash.escapeRegExp)
-        )
-    } catch (error) {
-        console.warn(`Error in getReferencesByChartId`)
-        console.error(error)
-        // We can ignore errors due to not being able to connect.
-    }
-    const permalinks = await wpdb.getPermalinks()
-    const publishedLinksToChart = await Link.getPublishedLinksTo(
+    const postsPromise = getPostsForSlugs(slugs)
+    const permalinksPromise = wpdb.getPermalinks()
+    const publishedLinksToChartPromise = Link.getPublishedLinksTo(
         slugs,
         "grapher"
     )
+    const explorerSlugsPromise = db.queryMysql(
+        `select distinct explorerSlug from explorer_charts where chartId = ?`,
+        [chartId]
+    )
+    const legacySdgChartReferencesPromise = db.queryMysql(
+        `-- sql
+        select
+            slug
+        from
+            legacy_sdg_chart_references
+        where
+            slug in (?)
+        `,
+        [slugs]
+    )
+    const [
+        posts,
+        permalinks,
+        publishedLinksToChart,
+        explorerSlugs,
+        legacySdgChartReferences,
+    ] = await Promise.all([
+        postsPromise,
+        permalinksPromise,
+        publishedLinksToChartPromise,
+        explorerSlugsPromise,
+        legacySdgChartReferencesPromise,
+    ])
+
     const publishedGdocPostsThatReferenceChart = publishedLinksToChart.map(
         (link) => ({
             id: link.source.id,
-            title: link.source.content.title,
+            title: link.source.content.title ?? "",
             slug: link.source.slug,
             url: `${BAKED_BASE_URL}/${link.source.slug}`,
         })
@@ -214,17 +253,23 @@ const getReferencesByChartId = async (
     const publishedWPPostsThatReferenceChart = posts.map((post) => {
         const slug = permalinks.get(post.ID, post.post_name)
         return {
-            id: post.ID,
+            id: post.ID.toString(),
             title: post.post_title,
             slug: slug,
             url: `${BAKED_BASE_URL}/${slug}`,
         }
     })
 
-    return [
-        ...publishedGdocPostsThatReferenceChart,
-        ...publishedWPPostsThatReferenceChart,
-    ]
+    return {
+        postsGdocs: publishedGdocPostsThatReferenceChart,
+        postsWordpress: publishedWPPostsThatReferenceChart,
+        explorers: explorerSlugs.map(
+            (row: { explorerSlug: string }) => row.explorerSlug
+        ),
+        legacySdgCharts: legacySdgChartReferences.map(
+            (row: { slug: string }) => row.slug
+        ),
+    }
 }
 
 const getRedirectsByChartId = async (
@@ -250,7 +295,9 @@ const saveGrapher = async (
     transactionContext: db.TransactionContext,
     user: CurrentUser,
     newConfig: GrapherInterface,
-    existingConfig?: GrapherInterface
+    existingConfig?: GrapherInterface,
+    referencedVariablesMightChange: boolean = true // if the variables a chart uses can change then we need
+    // to update the latest country data which takes quite a long time (hundreds of ms)
 ) => {
     // Slugs need some special logic to ensure public urls remain consistent whenever possible
     async function isSlugUsedInRedirect() {
@@ -354,7 +401,7 @@ const saveGrapher = async (
     }
 
     // So we can generate country profiles including this chart data
-    if (newConfig.isPublished)
+    if (newConfig.isPublished && referencedVariablesMightChange)
         await denormalizeLatestCountryData(
             newConfig.dimensions!.map((d) => d.variableId)
         )
@@ -1552,7 +1599,8 @@ apiRouter.patch("/chart-bulk-update", async (req, res) => {
                 manager,
                 res.locals.user,
                 newConfig,
-                oldValuesConfigMap.get(id)
+                oldValuesConfigMap.get(id),
+                false
             )
         }
     })

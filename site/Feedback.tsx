@@ -334,7 +334,7 @@ export class FeedbackPrompt extends React.Component {
                 ) : (
                     <button
                         className="prompt"
-                        data-track-note="page-open-feedback"
+                        data-track-note="page_open_feedback"
                         onClick={this.toggleOpen}
                     >
                         <FontAwesomeIcon icon={faCommentAlt} /> Feedback

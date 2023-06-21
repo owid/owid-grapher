@@ -1020,6 +1020,18 @@ export type EnrichedBlockExpandableParagraph = {
     items: OwidEnrichedGdocBlock[]
 } & EnrichedBlockWithParseErrors
 
+export type Ref = {
+    id: string
+    // Can be -1
+    index: number
+    content: OwidEnrichedGdocBlock[]
+    parseErrors: ParseError[]
+}
+
+export type RefDictionary = {
+    [refId: string]: Ref
+}
+
 export type OwidRawGdocBlock =
     | RawBlockAllCharts
     | RawBlockAside
@@ -1185,7 +1197,7 @@ export interface OwidGdocContent {
     authors: string[]
     dateline?: string
     excerpt?: string
-    refs?: EnrichedBlockText[]
+    refs?: { definitions: RefDictionary; errors: OwidGdocErrorMessage[] }
     summary?: EnrichedBlockText[]
     citation?: EnrichedBlockSimpleText[]
     toc?: TocHeadingWithTitleSupertitle[]
@@ -1328,26 +1340,32 @@ export const DataPageJsonTypeObject = Type.Object(
         lastUpdated: Type.String(),
         nextUpdate: Type.String(),
         subtitle: Type.Optional(Type.String()),
-        descriptionFromSource: Type.Object({
-            title: Type.String(),
-        }),
-        relatedResearch: Type.Array(
+        descriptionFromSource: Type.Optional(
             Type.Object({
                 title: Type.String(),
-                url: Type.String(),
-                authors: Type.Array(Type.String()),
-                imageUrl: Type.String(),
             })
         ),
-        relatedData: Type.Array(
-            Type.Object({
-                type: Type.Optional(Type.String()),
-                imageUrl: Type.Optional(Type.String()),
-                title: Type.String(),
-                source: Type.String(),
-                url: Type.String(),
-                content: Type.Optional(Type.String()),
-            })
+        relatedResearch: Type.Optional(
+            Type.Array(
+                Type.Object({
+                    title: Type.String(),
+                    url: Type.String(),
+                    authors: Type.Array(Type.String()),
+                    imageUrl: Type.String(),
+                })
+            )
+        ),
+        relatedData: Type.Optional(
+            Type.Array(
+                Type.Object({
+                    type: Type.Optional(Type.String()),
+                    title: Type.String(),
+                    source: Type.Optional(Type.String()),
+                    url: Type.String(),
+                    content: Type.Optional(Type.String()),
+                    featured: Type.Optional(Type.Boolean()),
+                })
+            )
         ),
         allCharts: Type.Optional(
             Type.Array(
@@ -1357,22 +1375,6 @@ export const DataPageJsonTypeObject = Type.Object(
                 })
             )
         ),
-        datasetName: Type.String(),
-        datasetFeaturedVariables: Type.Optional(
-            Type.Array(
-                Type.Object({
-                    variableName: Type.String(),
-                    variableSubtitle: Type.Optional(Type.String()),
-                })
-            )
-        ),
-        datasetCodeUrl: Type.Optional(Type.String()),
-        datasetLicenseLink: Type.Optional(
-            Type.Object({
-                title: Type.String(),
-                url: Type.String(),
-            })
-        ),
         sources: Type.Array(
             Type.Object({
                 sourceName: Type.String(),
@@ -1380,6 +1382,8 @@ export const DataPageJsonTypeObject = Type.Object(
                 sourceRetrievedFromUrl: Type.Optional(Type.String()),
             })
         ),
+        citationData: Type.Optional(Type.String()),
+        citationDatapage: Type.Optional(Type.String()),
     },
     // We are not allowing to have any additional properties in the JSON file,
     // in part because the JSON is added as-is to the page source for hydration,

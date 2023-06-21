@@ -107,7 +107,7 @@ const AdditionalInformation = ({
             <h3
                 className="additional-information__heading"
                 onClick={onClickHandler}
-                data-track-note="additional-information-toggle"
+                data-track-note="additional_information_toggle"
             >
                 <FontAwesomeIcon icon={faAngleRight} />
                 {title}

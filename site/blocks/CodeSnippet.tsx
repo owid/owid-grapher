@@ -6,7 +6,13 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faCopy } from "@fortawesome/free-solid-svg-icons"
 import { canWriteToClipboard } from "@ourworldindata/utils"
 
-export const CodeSnippet = (props: { code: string }) => {
+export const CodeSnippet = ({
+    code,
+    theme = "dark",
+}: {
+    code: string
+    theme?: "dark" | "light"
+}) => {
     const [canCopy, setCanCopy] = useState(false)
     const [hasCopied, setHasCopied] = useState(false)
 
@@ -16,7 +22,7 @@ export const CodeSnippet = (props: { code: string }) => {
 
     const copy = async () => {
         try {
-            await navigator.clipboard.writeText(props.code)
+            await navigator.clipboard.writeText(code)
             setHasCopied(true)
             // reset CSS animation
             setTimeout(() => setHasCopied(false), 10)
@@ -29,9 +35,9 @@ export const CodeSnippet = (props: { code: string }) => {
     }
 
     return (
-        <div className="wp-code-snippet">
+        <div className={`wp-code-snippet wp-code-snippet--${theme}`}>
             <pre className="wp-block-code">
-                <code>{props.code}</code>
+                <code>{code}</code>
             </pre>
             {canCopy && (
                 <button

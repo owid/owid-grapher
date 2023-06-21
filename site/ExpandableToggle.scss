@@ -1,36 +1,53 @@
-.ExpandableAnimatedToggle {
+.ExpandableToggle {
     border-top: 1px solid #d0dae3;
     border-bottom: 1px solid #d0dae3;
     padding: 0 8px;
+
     > button {
         display: flex;
         justify-content: space-between;
         align-items: center;
         width: 100%;
-        padding: 12px 0;
+        padding: 16px 0;
         color: $blue-90;
         background-color: transparent;
         border: none;
         cursor: pointer;
+        text-align: left;
     }
+
     h4 {
         @include h4-semibold;
         margin: 0;
     }
-    .ExpandableAnimatedToggle__icon {
+    .ExpandableToggle__icon {
         font-size: 0.75em;
         margin: 0 12px;
     }
-    .content-wrapper {
-        padding-bottom: 12px;
-    }
 
-    .content__html {
-        > *:first-child {
-            margin-top: 0;
-        }
+    .ExpandableToggle__content {
+        height: 0;
+        overflow: hidden;
+        color: $blue-60;
+
         > *:last-child {
             margin-bottom: 0;
         }
     }
+
+    .ExpandableToggle__content--open {
+        padding-bottom: 16px;
+        height: auto;
+    }
+
+    .article-block__text,
+    .article-block__list,
+    .article-block__html,
+    .article-block__numbered-list {
+        @include body-3-medium;
+    }
+}
+
+.ExpandableToggle--stacked {
+    border-bottom: none;
 }

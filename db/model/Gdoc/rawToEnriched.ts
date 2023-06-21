@@ -35,6 +35,7 @@ import {
     isArray,
     OwidEnrichedGdocBlock,
     OwidRawGdocBlock,
+    OwidGdocErrorMessage,
     ParseError,
     partition,
     RawBlockAdditionalCharts,
@@ -85,6 +86,8 @@ import {
     RawBlockExpandableParagraph,
     RawBlockAllCharts,
     EnrichedBlockAllCharts,
+    RefDictionary,
+    OwidGdocErrorMessageType,
 } from "@ourworldindata/utils"
 import {
     extractUrl,
@@ -96,7 +99,7 @@ import {
     htmlToSimpleTextBlock,
     htmlToSpans,
 } from "./htmlToEnriched.js"
-import { match } from "ts-pattern"
+import { P, match } from "ts-pattern"
 import { isObject, parseInt } from "lodash"
 import { GDOCS_DETAILS_ON_DEMAND_ID } from "../../../settings/serverSettings.js"
 
@@ -857,27 +860,7 @@ const parseSdgGrid = (raw: RawBlockSDGGrid): EnrichedBlockSDGGrid => {
 function parseStickyRight(
     raw: RawBlockStickyRightContainer
 ): EnrichedBlockStickyRightContainer {
-    const createError = (
-        error: ParseError,
-        left: OwidEnrichedGdocBlock[] = [],
-        right: OwidEnrichedGdocBlock[] = []
-    ): EnrichedBlockStickyRightContainer => ({
-        type: "sticky-right",
-        left,
-        right,
-        parseErrors: [error],
-    })
-    const { left, right } = raw.value
-    if (
-        left === undefined ||
-        right === undefined ||
-        !left.length ||
-        !right.length
-    ) {
-        return createError({
-            message: "Empty column in the sticky right container",
-        })
-    }
+    const { left = [], right = [] } = raw.value
     const enrichedLeft = compact(left.map(parseRawBlocksToEnrichedBlocks))
     const enrichedRight = compact(right.map(parseRawBlocksToEnrichedBlocks))
     return {
@@ -891,27 +874,7 @@ function parseStickyRight(
 function parseStickyLeft(
     raw: RawBlockStickyLeftContainer
 ): EnrichedBlockStickyLeftContainer {
-    const createError = (
-        error: ParseError,
-        left: OwidEnrichedGdocBlock[] = [],
-        right: OwidEnrichedGdocBlock[] = []
-    ): EnrichedBlockStickyLeftContainer => ({
-        type: "sticky-left",
-        left,
-        right,
-        parseErrors: [error],
-    })
-    const { left, right } = raw.value
-    if (
-        left === undefined ||
-        right === undefined ||
-        !left.length ||
-        !right.length
-    ) {
-        return createError({
-            message: "Empty column in the sticky left container",
-        })
-    }
+    const { left = [], right = [] } = raw.value
     const enrichedLeft = compact(left.map(parseRawBlocksToEnrichedBlocks))
     const enrichedRight = compact(right.map(parseRawBlocksToEnrichedBlocks))
     return {
@@ -925,27 +888,7 @@ function parseStickyLeft(
 function parseSideBySide(
     raw: RawBlockSideBySideContainer
 ): EnrichedBlockSideBySideContainer {
-    const createError = (
-        error: ParseError,
-        left: OwidEnrichedGdocBlock[] = [],
-        right: OwidEnrichedGdocBlock[] = []
-    ): EnrichedBlockSideBySideContainer => ({
-        type: "side-by-side",
-        left,
-        right,
-        parseErrors: [error],
-    })
-    const { left, right } = raw.value
-    if (
-        left === undefined ||
-        right === undefined ||
-        !left.length ||
-        !right.length
-    ) {
-        return createError({
-            message: "Empty column in the side-by-side container",
-        })
-    }
+    const { left = [], right = [] } = raw.value
     const enrichedLeft = compact(left.map(parseRawBlocksToEnrichedBlocks))
     const enrichedRight = compact(right.map(parseRawBlocksToEnrichedBlocks))
     return {
@@ -1398,4 +1341,87 @@ function parseResearchAndWritingBlock(
         rows: rows ?? [],
         parseErrors,
     }
+}
+
+export function parseRefs({
+    refs,
+    refsByFirstAppearance,
+}: {
+    refs: unknown
+    refsByFirstAppearance: Set<string>
+}): { definitions: RefDictionary; errors: OwidGdocErrorMessage[] } {
+    const parsedRefs: RefDictionary = {}
+    const refErrors: OwidGdocErrorMessage[] = []
+
+    const pushRefError = (message: string): void => {
+        refErrors.push({
+            message,
+            property: "refs",
+            type: OwidGdocErrorMessageType.Error,
+        })
+    }
+    if (isArray(refs)) {
+        for (const ref of refs) {
+            if (typeof ref.id === "string") {
+                const enrichedBlocks: OwidEnrichedGdocBlock[] = []
+                const parseErrors: ParseError[] = []
+                if (!refsByFirstAppearance.has(ref.id)) {
+                    // index will be -1 in this case
+                    pushRefError(
+                        `A ref with ID "${ref.id}" has been defined but isn't used in this document`
+                    )
+                }
+                if (!isArray(ref.content)) {
+                    pushRefError(`Ref with ID ${ref.id} has no content`)
+                } else {
+                    ref.content.forEach((block: OwidRawGdocBlock) => {
+                        match(block)
+                            .with(
+                                {
+                                    type: P.union(
+                                        "text",
+                                        "numbered-list",
+                                        "list"
+                                    ),
+                                },
+                                (block) => {
+                                    const enrichedBlock =
+                                        parseRawBlocksToEnrichedBlocks(block)
+                                    if (enrichedBlock)
+                                        enrichedBlocks.push(enrichedBlock)
+                                }
+                            )
+                            .otherwise((block) => {
+                                pushRefError(
+                                    `Unsupported block type "${block.type}" in ref with ID "${ref.id}"`
+                                )
+                            })
+                    })
+                }
+
+                const index = [...refsByFirstAppearance].indexOf(ref.id)
+
+                parsedRefs[ref.id] = {
+                    id: ref.id,
+                    index,
+                    content: enrichedBlocks,
+                    parseErrors,
+                }
+            }
+        }
+    }
+
+    refErrors.push(
+        ...[...refsByFirstAppearance]
+            .filter((ref) => !parsedRefs[ref])
+            .map(
+                (undefinedRef): OwidGdocErrorMessage => ({
+                    message: `"${undefinedRef}" is used as a ref ID but no definition for this ref has been written.`,
+                    property: "refs",
+                    type: OwidGdocErrorMessageType.Error,
+                })
+            )
+    )
+
+    return { definitions: parsedRefs, errors: refErrors }
 }

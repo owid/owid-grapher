@@ -1,32 +1,15 @@
-.expandable-paragraph__gradient-wrapper {
-    position: relative;
-    width: 100%;
+.expandable-paragraph__content {
+    margin-bottom: 24px;
     overflow: hidden;
-}
-
-.expandable-paragraph__gradient {
-    height: inherit; // defined in JS for the wrapper
-    // The timing of this transition should be identical to the one in the JS
-    transition: all 0.25s ease-in-out;
 }
 
 .expandable-paragraph__expand-button--slim {
     @include owid-link-90;
-    margin: 16px 0;
     background: none;
     border: none;
     cursor: pointer;
 }
 
 .expandable-paragraph__expand-button--full {
-    margin: 16px 0;
-    padding: 8px 24px;
-    background-color: $blue-20;
-    cursor: pointer;
-    border: none;
-    transition: background-color 0.1s ease-in-out;
-
-    &:hover {
-        background-color: $blue-10;
-    }
+    @include expandable-paragraph__expand-button--full;
 }

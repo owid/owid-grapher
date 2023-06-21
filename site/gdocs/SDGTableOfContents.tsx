@@ -28,7 +28,7 @@ export default function SDGTableOfContents({
             onClick={toggleIsOpen}
             aria-haspopup="true"
             aria-controls="sdg-toc-menu"
-            data-track-note="sdg-toc-toggle"
+            data-track-note="sdg_toc_toggle"
         >
             <button
                 id="sdg-toc-menu-button"
@@ -36,7 +36,7 @@ export default function SDGTableOfContents({
                 onClick={toggleIsOpen}
                 aria-haspopup="true"
                 aria-controls="sdg-toc-menu"
-                data-track-note="sdg-toc-toggle"
+                data-track-note="sdg_toc_toggle"
             >
                 <span>List of targets and indicators</span>
                 <span>
@@ -73,7 +73,7 @@ export default function SDGTableOfContents({
                             >
                                 <a
                                     href={`#${slug}`}
-                                    data-track-note="sdg-toc-link"
+                                    data-track-note="sdg_toc_link"
                                     role="menuitem"
                                     onClick={(e) => e.stopPropagation()}
                                 >

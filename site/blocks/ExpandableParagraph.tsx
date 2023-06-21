@@ -42,6 +42,7 @@ export const ExpandableParagraph = (
                 style={contentStyles}
                 // Either pass children or dangerouslySetInnerHTML
                 {...propsWithoutStyles}
+                className="expandable-paragraph__content"
             />
 
             <button
