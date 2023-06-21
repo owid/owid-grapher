@@ -595,12 +595,42 @@ export const renderExplorerPage = async (
     program: ExplorerProgram,
     urlMigrationSpec?: ExplorerPageUrlMigrationSpec
 ) => {
-    const { requiredGrapherIds } = program.decisionMatrix
-    let grapherConfigRows: any[] = []
+    const { requiredGrapherIds, requiredIndicatorIds } = program.decisionMatrix
+
+    type ChartRow = { id: number; config: string }
+    let grapherConfigRows: ChartRow[] = []
     if (requiredGrapherIds.length)
         grapherConfigRows = await queryMysql(
             `SELECT id, config FROM charts WHERE id IN (?)`,
             [requiredGrapherIds]
+        )
+
+    let partialGrapherConfigRows: {
+        id: number
+        grapherConfig: string | null
+    }[] = []
+    if (requiredIndicatorIds.length) {
+        partialGrapherConfigRows = await queryMysql(
+            `SELECT id, grapherConfig FROM variables WHERE id IN (?)`,
+            [requiredIndicatorIds]
+        )
+    }
+
+    const parseGrapherConfigFromRow = (row: ChartRow): GrapherInterface => {
+        const config: GrapherProgrammaticInterface = JSON.parse(row.config)
+        config.id = row.id // Ensure each grapher has an id
+        config.adminBaseUrl = ADMIN_BASE_URL
+        config.bakedGrapherURL = BAKED_GRAPHER_URL
+        return new Grapher(config).toObject()
+    }
+    const grapherConfigs = grapherConfigRows.map(parseGrapherConfigFromRow)
+    const partialGrapherConfigs = partialGrapherConfigRows
+        .filter((row) => row.grapherConfig)
+        .map((row) =>
+            parseGrapherConfigFromRow({
+                id: row.id,
+                config: row.grapherConfig as string,
+            })
         )
 
     const wpContent = program.wpBlockId
@@ -610,20 +640,12 @@ export const renderExplorerPage = async (
           )
         : undefined
 
-    const grapherConfigs: GrapherInterface[] = grapherConfigRows.map((row) => {
-        const config: GrapherProgrammaticInterface = JSON.parse(row.config)
-        config.id = row.id // Ensure each grapher has an id
-        config.manuallyProvideData = true
-        config.adminBaseUrl = ADMIN_BASE_URL
-        config.bakedGrapherURL = BAKED_GRAPHER_URL
-        return new Grapher(config).toObject()
-    })
-
     return (
         `<!doctype html>` +
         ReactDOMServer.renderToStaticMarkup(
             <ExplorerPage
                 grapherConfigs={grapherConfigs}
+                partialGrapherConfigs={partialGrapherConfigs}
                 program={program}
                 wpContent={wpContent}
                 baseUrl={BAKED_BASE_URL}

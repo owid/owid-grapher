@@ -2,7 +2,9 @@ import { observable, computed, action } from "mobx"
 import {
     queryParamsToStr,
     differenceObj,
+    identity,
     trimObject,
+    uniq,
 } from "@ourworldindata/utils"
 import {
     ColumnTypeNames,
@@ -121,6 +123,22 @@ export class DecisionMatrix {
 
     get requiredGrapherIds() {
         return this.table.get(GrapherGrammar.grapherId.keyword).uniqValues
+    }
+
+    get requiredIndicatorIds() {
+        // only the first partial Grapher config of the y-dimension is taken into account
+        return uniq(
+            this.table
+                .get(GrapherGrammar.yIndicatorIds.keyword)
+                .values.map((value: string) =>
+                    value
+                        .split(" ")
+                        .map((id) => parseInt(id.trim()))
+                        .filter((id) => !isNaN(id))
+                )
+                .map((ids: number[]) => ids[0])
+                .filter(identity)
+        )
     }
 
     private choices: Map<ChoiceName, ExplorerControlType>

@@ -76,6 +76,7 @@ import {
 
 export interface ExplorerProps extends SerializedGridProgram {
     grapherConfigs?: GrapherInterface[]
+    partialGrapherConfigs?: GrapherInterface[]
     queryStr?: string
     isEmbeddedInAnOwidPage?: boolean
     isInStandalonePage?: boolean
@@ -121,11 +122,13 @@ export class Explorer
     static renderSingleExplorerOnExplorerPage(
         program: ExplorerProps,
         grapherConfigs: GrapherInterface[],
+        partialGrapherConfigs: GrapherInterface[],
         urlMigrationSpec?: ExplorerPageUrlMigrationSpec
     ) {
         const props: ExplorerProps = {
             ...program,
             grapherConfigs,
+            partialGrapherConfigs,
             isEmbeddedInAnOwidPage: false,
             isInStandalonePage: true,
         }
@@ -190,6 +193,13 @@ export class Explorer
 
     @computed get grapherConfigs() {
         const arr = this.props.grapherConfigs || []
+        const grapherConfigsMap: Map<number, GrapherInterface> = new Map()
+        arr.forEach((config) => grapherConfigsMap.set(config.id!, config))
+        return grapherConfigsMap
+    }
+
+    @computed get partialGrapherConfigsByIndicatorId() {
+        const arr = this.props.partialGrapherConfigs || []
         const grapherConfigsMap: Map<number, GrapherInterface> = new Map()
         arr.forEach((config) => grapherConfigsMap.set(config.id!, config))
         return grapherConfigsMap
@@ -463,7 +473,11 @@ export class Explorer
             sizeSlug,
         } = this.explorerProgram.grapherConfig
 
+        const partialGrapherConfig =
+            this.partialGrapherConfigsByIndicatorId.get(yIndicatorIds[0]) ?? {}
+
         const config: GrapherProgrammaticInterface = {
+            ...partialGrapherConfig,
             ...this.explorerProgram.grapherConfigOnlyGrapherProps,
             bakedGrapherURL: BAKED_GRAPHER_URL,
             hideEntityControls: this.showExplorerControls,

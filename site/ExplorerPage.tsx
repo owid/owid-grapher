@@ -8,6 +8,7 @@ import React from "react"
 import {
     EMBEDDED_EXPLORER_DELIMITER,
     EMBEDDED_EXPLORER_GRAPHER_CONFIGS,
+    EMBEDDED_EXPLORER_PARTIAL_GRAPHER_CONFIGS,
     ExplorerContainerId,
     EXPLORERS_ROUTE_FOLDER,
 } from "../explorer/ExplorerConstants.js"
@@ -23,6 +24,7 @@ interface ExplorerPageSettings {
     program: ExplorerProgram
     wpContent?: string
     grapherConfigs: GrapherInterface[]
+    partialGrapherConfigs: GrapherInterface[]
     baseUrl: string
     urlMigrationSpec?: ExplorerPageUrlMigrationSpec
 }
@@ -49,8 +51,14 @@ const ExplorerContent = ({ content }: { content: string }) => {
 }
 
 export const ExplorerPage = (props: ExplorerPageSettings) => {
-    const { wpContent, program, grapherConfigs, baseUrl, urlMigrationSpec } =
-        props
+    const {
+        wpContent,
+        program,
+        grapherConfigs,
+        partialGrapherConfigs,
+        baseUrl,
+        urlMigrationSpec,
+    } = props
     const {
         subNavId,
         subNavCurrentId,
@@ -74,10 +82,14 @@ const grapherConfigs = ${serializeJSONForHTML(
         grapherConfigs,
         EMBEDDED_EXPLORER_GRAPHER_CONFIGS
     )};
+const partialGrapherConfigs = ${serializeJSONForHTML(
+        partialGrapherConfigs,
+        EMBEDDED_EXPLORER_PARTIAL_GRAPHER_CONFIGS
+    )};
 const urlMigrationSpec = ${
         urlMigrationSpec ? JSON.stringify(urlMigrationSpec) : "undefined"
     };
-window.Explorer.renderSingleExplorerOnExplorerPage(explorerProgram, grapherConfigs, urlMigrationSpec);`
+window.Explorer.renderSingleExplorerOnExplorerPage(explorerProgram, grapherConfigs, partialGrapherConfigs, urlMigrationSpec);`
 
     return (
         <html>
