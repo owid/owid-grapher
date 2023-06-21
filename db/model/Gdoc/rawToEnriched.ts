@@ -1401,8 +1401,10 @@ export function parseRefs({
                         `A ref with ID "${ref.id}" has been defined but isn't used in this document`
                     )
                 }
-                if (!isArray(ref.content)) {
-                    pushRefError(`Ref with ID ${ref.id} has no content`)
+                if (!isArray(ref.content) || !ref.content.length) {
+                    pushRefError(
+                        `Ref with ID ${ref.id} has no content. Make sure the ID is defined and it has a [.+content] block`
+                    )
                 } else {
                     ref.content.forEach((block: OwidRawGdocBlock) => {
                         match(block)
