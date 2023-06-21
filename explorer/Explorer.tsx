@@ -53,7 +53,11 @@ import {
     ExplorerControlPanel,
 } from "../explorer/ExplorerControls.js"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
-import { ADMIN_BASE_URL, BAKED_BASE_URL } from "../settings/clientSettings.js"
+import {
+    ADMIN_BASE_URL,
+    BAKED_BASE_URL,
+    BAKED_GRAPHER_URL,
+} from "../settings/clientSettings.js"
 import {
     ChartCreationMode,
     ExplorerChoiceParams,
@@ -381,6 +385,7 @@ export class Explorer
         const config: GrapherProgrammaticInterface = {
             ...grapherConfig,
             ...grapherConfigFromExplorerOnlyGrapherProps,
+            bakedGrapherURL: BAKED_GRAPHER_URL,
             hideEntityControls: this.showExplorerControls,
             manuallyProvideData:
                 creationMode === ChartCreationMode.WithManuallyProvidedData,
@@ -416,7 +421,6 @@ export class Explorer
                 })
             }
             config.dimensions = dimensions
-            config.bakedGrapherURL = "/grapher"
         }
 
         grapher.setAuthoredVersion(config)
