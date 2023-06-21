@@ -40,7 +40,6 @@ export interface TooltipTableProps {
     columns: CoreColumn[]
     rows: TooltipTableRow[]
     totals?: (number | undefined)[]
-    notices?: (number | string | undefined)[]
     format?: TickFormattingOptions
 }
 
@@ -50,6 +49,7 @@ export interface TooltipTableRow {
     swatch?: string
     focused?: boolean
     blurred?: boolean
+    notice?: string | number
     values: (string | number | undefined)[]
 }
 

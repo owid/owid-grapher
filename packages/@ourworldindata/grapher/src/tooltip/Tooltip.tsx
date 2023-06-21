@@ -149,6 +149,7 @@ export class TooltipTable extends React.Component<TooltipTableProps> {
                             blurred,
                             annotation,
                             values,
+                            notice,
                             swatch = "transparent",
                         } = row
                         const [_m, seriesName, seriesParenthetical] =
@@ -196,6 +197,12 @@ export class TooltipTable extends React.Component<TooltipTableProps> {
                                         </td>
                                     ) : null
                                 })}
+                                {notice && (
+                                    <td className="notice">
+                                        <FontAwesomeIcon icon={faInfoCircle} />{" "}
+                                        {notice}
+                                    </td>
+                                )}
                             </tr>
                         )
                     })}
