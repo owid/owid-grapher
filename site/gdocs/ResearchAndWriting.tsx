@@ -84,7 +84,7 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
                 className="span-cols-12 display-1-semibold"
                 id={RESEARCH_AND_WRITING_ID}
             >
-                Research & writing
+                Research & Writing
             </h2>
             <ResearchAndWritingLinkContainer
                 className="span-cols-6 span-md-cols-6 span-sm-cols-12"
