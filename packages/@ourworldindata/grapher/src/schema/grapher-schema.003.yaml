@@ -282,7 +282,6 @@ properties:
         items:
             type:
                 - string
-                - "null"
     baseColorScheme:
         type: string
         default: default
@@ -676,35 +675,4 @@ properties:
         default: false
         description: Legacy flag, should be removed
         $comment: Remove this flag once the codepaths that use it are deleted
-    details:
-        type: object
-        description: |
-            A list of definitions for the details on demand feature that shows on-hover explanations for terms used
-            in subtitles and footnotes. Entries here have a hierarchy of category > term > detail information.
-            The syntax to use details on demand is similar to markdown links as follows:
-            [visible text](hover::category::subcategory)
-        patternProperties:
-            "^\\w+$":
-                type: object
-                description: Detail on Demand category
-                patternProperties:
-                    "^\\w+$":
-                        type: object
-                        description: Detail on Demand data
-                        properties:
-                            id:
-                                type: number
-                                description: The id of the Detail on Demand in our database
-                            category:
-                                type: string
-                                description: The category of the Detail on Demand (same as the object key 2 levels higher up)
-                            term:
-                                type: string
-                                description: The term identifier of the Detail on Demand (same as the object key 1 level higher up)
-                            title:
-                                type: string
-                                description: Human readable title for the Detail on Demand term
-                            content:
-                                type: string
-                                description: Content to be shown in the on-hover box. This can use a limited subset of markdown including bold, italic and links
 additionalProperties: false
