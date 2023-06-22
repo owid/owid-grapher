@@ -328,6 +328,7 @@ class TooltipCard extends React.Component<
             const preposition = !unit.match(/^(per|in|\() /i) ? "in " : ""
             subtitle = preposition + unit.replace(/(^\(|\)$)/g, "")
         }
+        const notice = !!subtitle && subtitleFormat == "notice"
 
         // style the box differently if just displaying title/subtitle
         const plain = hasHeader && !children
@@ -345,7 +346,14 @@ class TooltipCard extends React.Component<
                 {hasHeader && (
                     <header>
                         {title && <h1>{title}</h1>}
-                        {subtitle && <h2>{subtitle}</h2>}
+                        {subtitle && (
+                            <h2>
+                                {notice && (
+                                    <FontAwesomeIcon icon={faInfoCircle} />
+                                )}
+                                {subtitle}
+                            </h2>
+                        )}
                     </header>
                 )}
                 {children && <section>{children}</section>}

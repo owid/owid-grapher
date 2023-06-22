@@ -51,6 +51,11 @@
             font-size: 12px;
             font-weight: 500;
             letter-spacing: 0.01em;
+
+            svg.fa-circle-info {
+                color: $grey;
+                margin-right: 0.5em;
+            }
         }
     }
 

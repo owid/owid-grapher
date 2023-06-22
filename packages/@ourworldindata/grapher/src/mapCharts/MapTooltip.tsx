@@ -206,6 +206,11 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                 (last(customValueLabels) || max || yColumn.max) ?? 0
             )
 
+        const notice = datum && datum.time !== targetTime
+        const footer = notice
+            ? `No data available for ${displayTime}. Showing closest available data point instead.`
+            : undefined
+
         return (
             <Tooltip
                 id="mapTooltip"
@@ -219,7 +224,9 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                 offsetYDirection={"downward"}
                 title={target?.featureId}
                 subtitle={datum ? displayDatumTime : displayTime}
+                subtitleFormat={notice ? "notice" : undefined}
                 dissolve={fading}
+                footer={footer}
             >
                 <TooltipValue
                     column={yColumn}
