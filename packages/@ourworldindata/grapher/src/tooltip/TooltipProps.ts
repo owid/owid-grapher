@@ -16,7 +16,7 @@ export interface TooltipProps {
     offsetYDirection?: "upward" | "downward"
     title?: string | number
     subtitle?: string | number
-    subtitleIsUnit?: boolean
+    subtitleFormat?: "unit" | "notice"
     footer?: string
     style?: React.CSSProperties
     dissolve?: boolean

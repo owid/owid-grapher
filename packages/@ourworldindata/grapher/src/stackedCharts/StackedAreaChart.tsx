@@ -411,7 +411,7 @@ export class StackedAreaChart
                 offsetX={20}
                 title={formattedTime}
                 subtitle={unit != shortUnit ? unit : undefined}
-                subtitleIsUnit={true}
+                subtitleFormat="unit"
             >
                 <TooltipTable
                     columns={[yColumn]}

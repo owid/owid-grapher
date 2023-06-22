@@ -497,7 +497,7 @@ export class LineChart
                 offsetX={20}
                 title={formattedTime}
                 subtitle={unit != shortUnit ? unit : undefined}
-                subtitleIsUnit={true}
+                subtitleFormat="unit"
             >
                 <TooltipTable
                     columns={columns}

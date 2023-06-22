@@ -725,7 +725,7 @@ export class StackedDiscreteBarChart
                     offsetY={-16}
                     title={target.entityName}
                     subtitle={unit != shortUnit ? unit : undefined}
-                    subtitleIsUnit={true}
+                    subtitleFormat="unit"
                     footer={footer}
                     dissolve={fading}
                 >

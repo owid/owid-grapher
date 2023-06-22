@@ -297,7 +297,7 @@ class TooltipCard extends React.Component<
         let {
             title,
             subtitle,
-            subtitleIsUnit,
+            subtitleFormat,
             footer,
             dissolve,
             children,
@@ -323,7 +323,7 @@ class TooltipCard extends React.Component<
 
         // add a preposition to unit-based subtitles
         const hasHeader = title !== undefined || subtitle !== undefined
-        if (!!subtitle && subtitleIsUnit) {
+        if (!!subtitle && subtitleFormat == "unit") {
             const unit = subtitle.toString()
             const preposition = !unit.match(/^(per|in|\() /i) ? "in " : ""
             subtitle = preposition + unit.replace(/(^\(|\)$)/g, "")
