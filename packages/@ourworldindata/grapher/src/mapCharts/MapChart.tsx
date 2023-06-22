@@ -345,7 +345,7 @@ export class MapChart
                 if (label !== undefined && label !== "") return label
             }
             return isNumber(d)
-                ? mapColumn?.formatValueLong(d) ?? ""
+                ? mapColumn?.formatValueShort(d) ?? ""
                 : anyToString(d)
         }
     }

@@ -33,7 +33,8 @@ export class TooltipValue extends React.Component<TooltipValueProps> {
             )
         return (
             <Variable column={column} color={displayColor}>
-                {displayValue} {noticeSpan}
+                {displayValue}
+                {noticeSpan}
             </Variable>
         )
     }
