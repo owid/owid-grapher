@@ -16,7 +16,7 @@ import {
     MultipleOwidVariableDataDimensionsMap,
     Tag,
 } from "@ourworldindata/utils"
-import { Grapher, GrapherInterface } from "@ourworldindata/grapher"
+import { GrapherInterface } from "@ourworldindata/grapher"
 
 // XXX hardcoded filtering to public parent tags
 const PUBLIC_TAG_PARENT_IDS = [

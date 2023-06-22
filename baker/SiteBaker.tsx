@@ -68,7 +68,6 @@ import sharp from "sharp"
 import { generateEmbedSnippet } from "../site/viteUtils.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 import { Chart } from "../db/model/Chart.js"
-import { GrapherInterface } from "@ourworldindata/grapher"
 import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_EXPORTS_BASE_URL,
