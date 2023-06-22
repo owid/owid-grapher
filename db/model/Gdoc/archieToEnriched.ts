@@ -106,11 +106,11 @@ function generateStickyNav(
                 target: `#${ENDNOTES_ID}`,
             },
             {
-                text: "Cite this work",
+                text: "Cite This Work",
                 target: `#${CITATION_ID}`,
             },
             {
-                text: "Reuse this work",
+                text: "Reuse This Work",
                 target: `#${LICENSE_ID}`,
             },
         ]

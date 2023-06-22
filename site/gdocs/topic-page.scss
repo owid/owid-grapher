@@ -19,12 +19,14 @@
         margin: 0;
     }
 
-    .topic-page-header__byline {
+    p.topic-page-header__byline,
+    .topic-page-header__byline a {
         color: $blue-60;
         margin-bottom: 34px;
-        a {
-            @include owid-link-60;
-        }
+    }
+
+    .topic-page-header__byline a:hover {
+        color: $vermillion;
     }
 
     + .sticky-nav {
