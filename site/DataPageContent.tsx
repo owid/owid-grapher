@@ -434,9 +434,6 @@ export const DataPageContent = ({
                                                                 label={
                                                                     source.sourceName
                                                                 }
-                                                                isExpandedDefault={
-                                                                    idx === 0
-                                                                }
                                                                 isStacked={
                                                                     idx !==
                                                                     sources.length -
