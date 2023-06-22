@@ -1396,3 +1396,10 @@ export const DataPageJsonTypeObject = Type.Object(
 export type DataPageJson = Static<typeof DataPageJsonTypeObject>
 
 export type DataPageParseError = { message: string; path?: string }
+
+export interface DataPageContentFields {
+    datapageJson: DataPageJson
+    datapageGdoc?: OwidGdocInterface | null
+    datapageGdocContent?: DataPageGdocContent | null
+    isPreviewing?: boolean
+}

@@ -198,6 +198,7 @@ export {
     type DataPageJson,
     type DataPageParseError,
     AllowedDataPageGdocFields,
+    type DataPageContentFields,
 } from "./owidTypes.js"
 
 export {

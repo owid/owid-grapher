@@ -8,11 +8,7 @@ import { GrapherWithFallback } from "./GrapherWithFallback.js"
 import { formatAuthors } from "./clientFormatting.js"
 import { ArticleBlocks } from "./gdocs/ArticleBlocks.js"
 import { RelatedCharts } from "./blocks/RelatedCharts.js"
-import {
-    DataPageGdocContent,
-    DataPageJson,
-    OwidGdocInterface,
-} from "@ourworldindata/utils"
+import { DataPageContentFields } from "@ourworldindata/utils"
 import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
 import StickyNav from "./blocks/StickyNav.js"
 import cx from "classnames"
@@ -21,7 +17,7 @@ import { CodeSnippet } from "./blocks/CodeSnippet.js"
 
 declare global {
     interface Window {
-        _OWID_DATAPAGE_PROPS: any
+        _OWID_DATAPAGE_PROPS: DataPageContentFields
         _OWID_GRAPHER_CONFIG: GrapherInterface
     }
 }
@@ -34,12 +30,8 @@ export const DataPageContent = ({
     datapageGdocContent,
     grapherConfig,
     isPreviewing = false,
-}: {
-    datapageJson: DataPageJson
-    datapageGdoc?: OwidGdocInterface | null
-    datapageGdocContent?: DataPageGdocContent | null
+}: DataPageContentFields & {
     grapherConfig: GrapherInterface
-    isPreviewing: boolean
 }) => {
     const [grapher, setGrapher] = React.useState<Grapher | undefined>(undefined)
 
