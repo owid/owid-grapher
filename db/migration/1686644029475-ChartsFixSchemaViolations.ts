@@ -62,6 +62,9 @@ export class ChartsFixSchemaViolations1686644029475
                     )
             }
 
+            // at the top level, drop details if it exists (legacy Details on Demand before we had global ones)
+            delete chart.config.details
+
 
             // If the chart has changed then add it to the list of charts to return
             const serializedChart = {
