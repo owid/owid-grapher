@@ -22,6 +22,7 @@ import { CodeSnippet } from "./blocks/CodeSnippet.js"
 declare global {
     interface Window {
         _OWID_DATAPAGE_PROPS: any
+        _OWID_GRAPHER_CONFIG: GrapherInterface
     }
 }
 
@@ -681,9 +682,15 @@ export const DataPageContent = ({
 export const hydrateDataPageContent = (isPreviewing?: boolean) => {
     const wrapper = document.querySelector(`#${OWID_DATAPAGE_CONTENT_ROOT_ID}`)
     const props = window._OWID_DATAPAGE_PROPS
+    const grapherConfig = window._OWID_GRAPHER_CONFIG
+
     ReactDOM.hydrate(
         <DebugProvider debug={isPreviewing}>
-            <DataPageContent {...props} isPreviewing={isPreviewing} />
+            <DataPageContent
+                {...props}
+                grapherConfig={grapherConfig}
+                isPreviewing={isPreviewing}
+            />
         </DebugProvider>,
         wrapper
     )

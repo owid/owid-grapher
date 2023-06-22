@@ -81,8 +81,6 @@ export const DataPage = (props: {
         adminBaseUrl: ADMIN_BASE_URL,
     }
 
-    const script = `const jsonConfig = ${serializeJSONForHTML(grapherConfig)};`
-
     return (
         <html>
             <Head
@@ -146,7 +144,6 @@ export const DataPage = (props: {
                                         datapageJson,
                                         datapageGdoc,
                                         datapageGdocContent,
-                                        grapherConfig,
                                     }
                                 )}`,
                             }}
@@ -170,8 +167,11 @@ export const DataPage = (props: {
                     isPreviewing={isPreviewing}
                 />
                 <script
-                    type="module"
-                    dangerouslySetInnerHTML={{ __html: script }}
+                    dangerouslySetInnerHTML={{
+                        __html: `window._OWID_GRAPHER_CONFIG = ${serializeJSONForHTML(
+                            grapherConfig
+                        )}`,
+                    }}
                 />
             </body>
         </html>
