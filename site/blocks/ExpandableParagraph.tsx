@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useRef, useState } from "react"
+import React, { CSSProperties, useRef, useState } from "react"
 import cx from "classnames"
 import ReactDOM from "react-dom"
 import ReactDOMServer from "react-dom/server.js"
@@ -21,40 +21,44 @@ export const ExpandableParagraph = (
           }
 ) => {
     const CLOSED_HEIGHT = 100
-    const [height, setHeight] = useState<"auto" | number>(CLOSED_HEIGHT)
+    const BUTTON_HEIGHT = 40
+    const EXPANDED_HEIGHT = `calc(100% - ${BUTTON_HEIGHT}px)`
+    const [height, setHeight] = useState<typeof EXPANDED_HEIGHT | number>(
+        CLOSED_HEIGHT
+    )
+    const containerRef = useRef<HTMLDivElement>(null)
     const buttonRef = useRef<HTMLButtonElement>(null)
-    const prevTopRef = useRef<number>(0)
 
     const isClosed = height === CLOSED_HEIGHT
     const { className, buttonVariant = "full", ...propsWithoutStyles } = props
 
     const toggleExpanded = () => {
-        if (!isClosed && buttonRef.current) {
-            // Store where in the screen the button was before closing
-            prevTopRef.current = buttonRef.current.getBoundingClientRect().top
+        const currentContainer = containerRef.current
+        const currentButton = buttonRef.current
+        if (currentContainer && currentButton && !isClosed) {
+            const containerTop = currentContainer.getBoundingClientRect().top
+            const buttonTop = currentButton.getBoundingClientRect().top
+            window.scrollTo({
+                top:
+                    window.scrollY +
+                    containerTop -
+                    buttonTop +
+                    CLOSED_HEIGHT +
+                    BUTTON_HEIGHT / 2,
+                behavior: "smooth",
+            })
+            setTimeout(() => {
+                setHeight(isClosed ? EXPANDED_HEIGHT : CLOSED_HEIGHT)
+            }, 1000)
+        } else {
+            setHeight(isClosed ? EXPANDED_HEIGHT : CLOSED_HEIGHT)
         }
-        setHeight(isClosed ? "auto" : CLOSED_HEIGHT)
     }
 
-    useLayoutEffect(() => {
-        const currentButton = buttonRef.current
-        const prevTop = prevTopRef.current
-
-        // prevTop === 0 is the intial render, where we don't want to do anything
-        if (prevTop && currentButton && isClosed) {
-            // Store where in the screen the button is now (likely a negative number i.e. off-screen, above)
-            const currentTop = currentButton.getBoundingClientRect().top
-            window.scrollTo({
-                // Scroll up by the difference between where the button used to be and where it is now
-                // e.g. prevTop = 1000, currentTop = -500, scroll up by 1500 pixels so that currentTop will equal 1000 again
-                top: window.scrollY - (prevTop - currentTop),
-            })
-        }
-    }, [buttonRef, height, prevTopRef, isClosed])
-
     const maskColor = isClosed ? "transparent" : "#000"
-    const contentStyles = {
+    const contentStyles: CSSProperties = {
         WebkitMaskImage: `linear-gradient(180deg, #000 0%, ${maskColor})`,
+        transition: "height 200ms",
         height,
     }
 
@@ -62,18 +66,24 @@ export const ExpandableParagraph = (
         <div className={cx("expandable-paragraph", className)}>
             <div
                 style={contentStyles}
+                ref={containerRef}
                 // Either pass children or dangerouslySetInnerHTML
                 {...propsWithoutStyles}
                 className="expandable-paragraph__content"
             />
 
             <button
-                ref={buttonRef}
                 className={cx(
                     "expandable-paragraph__expand-button",
                     `expandable-paragraph__expand-button--${buttonVariant}`
                 )}
+                style={{
+                    height: BUTTON_HEIGHT,
+                    position: "relative",
+                    top: isClosed ? undefined : -40,
+                }}
                 onClick={toggleExpanded}
+                ref={buttonRef}
             >
                 {isClosed ? "Show more" : "Show less"}
             </button>
