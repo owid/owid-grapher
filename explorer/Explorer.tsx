@@ -341,96 +341,53 @@ export class Explorer
         this.explorerProgram.constructTable(slug)
     )
 
-    @action.bound updateGrapherFromExplorer() {
+    @computed private get chartCreationMode(): ExplorerChartCreationMode {
+        const { decisionMatrix } = this.explorerProgram
+        const { grapherId, yIndicatorIds } = decisionMatrix.table.firstRow
+
+        if (grapherId && isNotErrorValue(grapherId))
+            return ExplorerChartCreationMode.FromGrapherId
+        if (yIndicatorIds?.length)
+            return ExplorerChartCreationMode.FromIndicatorIds
+        return ExplorerChartCreationMode.FromExplorerTableColumnSlugs
+    }
+
+    @action.bound private updateGrapherFromExplorer() {
+        switch (this.chartCreationMode) {
+            case ExplorerChartCreationMode.FromGrapherId:
+                this.updateGrapherFromExplorerUsingGrapherId()
+                break
+            case ExplorerChartCreationMode.FromIndicatorIds:
+                this.updateGrapherFromExplorerUsingIndicatorIds()
+                break
+            case ExplorerChartCreationMode.FromExplorerTableColumnSlugs:
+                this.updateGrapherFromExplorerUsingManuallyProvidedData()
+                break
+        }
+    }
+
+    @computed private get grapherConfigFromExplorerOnlyGrapherProps() {
+        return omit(this.explorerProgram.grapherConfig, [
+            "yIndicatorIds",
+            "xIndicatorId",
+            "colorIndicatorId",
+            "sizeIndicatorId",
+            "mapTargetTime",
+        ])
+    }
+
+    @action.bound private updateGrapherFromExplorerCommon() {
         const grapher = this.grapher
         if (!grapher) return
-        const grapherConfigFromExplorer = this.explorerProgram.grapherConfig
         const {
-            grapherId,
-            tableSlug,
-            yVariableIds = "",
-            xVariableId,
-            colorVariableId,
-            sizeVariableId,
             yScaleToggle,
             yAxisMin,
             facetYDomain,
             relatedQuestionText,
             relatedQuestionUrl,
             mapTargetTime,
-        } = grapherConfigFromExplorer
-        const grapherConfigFromExplorerOnlyGrapherProps = omit(
-            grapherConfigFromExplorer,
-            [
-                "yVariableIds",
-                "xVariableId",
-                "colorVariableId",
-                "sizeVariableId",
-                "mapTargetTime",
-            ]
-        )
+        } = this.explorerProgram.grapherConfig
 
-        let creationMode: ExplorerChartCreationMode
-        if (grapherId && isNotErrorValue(grapherId))
-            creationMode = ExplorerChartCreationMode.FromGrapherId
-        else if (yVariableIds)
-            creationMode = ExplorerChartCreationMode.FromVariableIds
-        else
-            creationMode =
-                ExplorerChartCreationMode.FromExplorerTableColumnSlugs
-
-        const grapherConfig =
-            creationMode === ExplorerChartCreationMode.FromGrapherId
-                ? this.grapherConfigs.get(grapherId!) ?? {}
-                : {}
-
-        const config: GrapherProgrammaticInterface = {
-            ...grapherConfig,
-            ...grapherConfigFromExplorerOnlyGrapherProps,
-            bakedGrapherURL: BAKED_GRAPHER_URL,
-            hideEntityControls: this.showExplorerControls,
-            manuallyProvideData:
-                creationMode ===
-                ExplorerChartCreationMode.FromExplorerTableColumnSlugs,
-        }
-
-        if (creationMode === ExplorerChartCreationMode.FromVariableIds) {
-            const dimensions = config.dimensions ?? []
-            if (yVariableIds) {
-                const yVariableIdsList = yVariableIds
-                    .split(" ")
-                    .map((item) => parseInt(item, 10))
-                    .filter((item) => !isNaN(item))
-                yVariableIdsList.forEach((yVariableId) => {
-                    dimensions.push({
-                        variableId: yVariableId,
-                        property: DimensionProperty.y,
-                    })
-                })
-            }
-            if (xVariableId) {
-                dimensions.push({
-                    variableId: xVariableId,
-                    property: DimensionProperty.x,
-                })
-            }
-            if (colorVariableId) {
-                dimensions.push({
-                    variableId: colorVariableId,
-                    property: DimensionProperty.color,
-                })
-            }
-            if (sizeVariableId) {
-                dimensions.push({
-                    variableId: sizeVariableId,
-                    property: DimensionProperty.size,
-                })
-            }
-            config.dimensions = dimensions
-        }
-
-        grapher.setAuthoredVersion(config)
-        grapher.reset()
         grapher.yAxis.canChangeScaleType = yScaleToggle
         grapher.yAxis.min = yAxisMin
         if (facetYDomain) {
@@ -444,64 +401,145 @@ export class Explorer
         if (mapTargetTime) {
             grapher.map.time = mapTargetTime
         }
-        grapher.updateFromObject(config)
+        grapher.slug = this.explorerProgram.slug
+        if (!grapher.id) grapher.id = 0
+    }
 
-        if (
-            creationMode ===
-            ExplorerChartCreationMode.FromExplorerTableColumnSlugs
-        ) {
-            // Clear any error messages, they are likely to be related to dataset loading.
-            this.grapher?.clearErrors()
-            // Set a table immediately. A BlankTable shows a loading animation.
-            this.setGrapherTable(
-                BlankOwidTable(tableSlug, `Loading table '${tableSlug}'`)
-            )
-            this.futureGrapherTable.set(this.tableLoader.get(tableSlug))
+    @action.bound private updateGrapherFromExplorerUsingGrapherId() {
+        const grapher = this.grapher
+        if (!grapher) return
+
+        const { grapherId } = this.explorerProgram.grapherConfig
+        const grapherConfig = this.grapherConfigs.get(grapherId!) ?? {}
+
+        const config: GrapherProgrammaticInterface = {
+            ...grapherConfig,
+            ...this.grapherConfigFromExplorerOnlyGrapherProps,
+            bakedGrapherURL: BAKED_GRAPHER_URL,
+            hideEntityControls: this.showExplorerControls,
         }
 
-        // Make sure grapher has an id
-        if (!grapher.id) grapher.id = 0
-
-        // Download data if this is a Grapher ID inside the Explorer specification
+        grapher.setAuthoredVersion(config)
+        grapher.reset()
+        this.updateGrapherFromExplorerCommon()
+        grapher.updateFromObject(config)
         grapher.downloadData()
-        grapher.slug = this.explorerProgram.slug
+    }
 
-        if (this.downloadDataLink)
-            grapher.externalCsvLink = this.downloadDataLink
+    @action.bound private updateGrapherFromExplorerUsingIndicatorIds() {
+        const grapher = this.grapher
+        if (!grapher) return
+        const {
+            yIndicatorIds = "",
+            xIndicatorId,
+            colorIndicatorId,
+            sizeIndicatorId,
+        } = this.explorerProgram.grapherConfig
 
-        if (creationMode === ChartCreationMode.WithIndicatorIds) {
-            const columnDefBySlug = keyBy(
-                this.explorerProgram.columnDefsNotLinkedToTable,
-                (d: OwidColumnDef) => d.slug
-            )
-            // update column definitions with manually provided properties once the data is loaded
-            grapher.fireWhenReady(() => {
-                runInAction(() => {
-                    this.setGrapherTable(
-                        grapher.inputTable.updateDefs((def: OwidColumnDef) => {
-                            const manuallyProvidedDef = (columnDefBySlug[
-                                def.slug
-                            ] ?? {}) as OwidColumnDef
-                            const mergedDef = { ...def, ...manuallyProvidedDef }
+        const config: GrapherProgrammaticInterface = {
+            ...this.grapherConfigFromExplorerOnlyGrapherProps,
+            bakedGrapherURL: BAKED_GRAPHER_URL,
+            hideEntityControls: this.showExplorerControls,
+        }
 
-                            // update display properties
-                            mergedDef.display = mergedDef.display ?? {}
-                            if (manuallyProvidedDef.name)
-                                mergedDef.display.name =
-                                    manuallyProvidedDef.name
-                            if (manuallyProvidedDef.unit)
-                                mergedDef.display.unit =
-                                    manuallyProvidedDef.unit
-                            if (manuallyProvidedDef.shortUnit)
-                                mergedDef.display.shortUnit =
-                                    manuallyProvidedDef.shortUnit
-
-                            return mergedDef
-                        })
-                    )
+        const dimensions = config.dimensions ?? []
+        if (yIndicatorIds) {
+            const yIndicatorIdsList = yIndicatorIds
+                .split(" ")
+                .map((item) => parseInt(item, 10))
+                .filter((item) => !isNaN(item))
+            yIndicatorIdsList.forEach((yIndicatorId) => {
+                dimensions.push({
+                    variableId: yIndicatorId,
+                    property: DimensionProperty.y,
                 })
             })
         }
+        if (xIndicatorId) {
+            dimensions.push({
+                variableId: xIndicatorId,
+                property: DimensionProperty.x,
+            })
+        }
+        if (colorIndicatorId) {
+            dimensions.push({
+                variableId: colorIndicatorId,
+                property: DimensionProperty.color,
+            })
+        }
+        if (sizeIndicatorId) {
+            dimensions.push({
+                variableId: sizeIndicatorId,
+                property: DimensionProperty.size,
+            })
+        }
+        config.dimensions = dimensions
+
+        grapher.setAuthoredVersion(config)
+        grapher.reset()
+        this.updateGrapherFromExplorerCommon()
+        grapher.updateFromObject(config)
+        grapher.downloadData()
+
+        const columnDefBySlug = keyBy(
+            this.explorerProgram.columnDefsNotLinkedToTable,
+            (d: OwidColumnDef) => d.slug
+        )
+
+        grapher.fireWhenReady(() => {
+            runInAction(() => {
+                this.setGrapherTable(
+                    // update column definitions with manually provided properties
+                    grapher.inputTable.updateDefs((def: OwidColumnDef) => {
+                        const manuallyProvidedDef = (columnDefBySlug[
+                            def.slug
+                        ] ?? {}) as OwidColumnDef
+                        const mergedDef = { ...def, ...manuallyProvidedDef }
+
+                        // update display properties
+                        mergedDef.display = mergedDef.display ?? {}
+                        if (manuallyProvidedDef.name)
+                            mergedDef.display.name = manuallyProvidedDef.name
+                        if (manuallyProvidedDef.unit)
+                            mergedDef.display.unit = manuallyProvidedDef.unit
+                        if (manuallyProvidedDef.shortUnit)
+                            mergedDef.display.shortUnit =
+                                manuallyProvidedDef.shortUnit
+
+                        return mergedDef
+                    })
+                )
+            })
+        })
+    }
+
+    @action.bound private updateGrapherFromExplorerUsingManuallyProvidedData() {
+        const grapher = this.grapher
+        if (!grapher) return
+        const { tableSlug } = this.explorerProgram.grapherConfig
+
+        const config: GrapherProgrammaticInterface = {
+            ...this.grapherConfigFromExplorerOnlyGrapherProps,
+            bakedGrapherURL: BAKED_GRAPHER_URL,
+            hideEntityControls: this.showExplorerControls,
+            manuallyProvideData: true,
+        }
+
+        grapher.setAuthoredVersion(config)
+        grapher.reset()
+        this.updateGrapherFromExplorerCommon()
+        grapher.updateFromObject(config)
+
+        // Clear any error messages, they are likely to be related to dataset loading.
+        this.grapher?.clearErrors()
+        // Set a table immediately. A BlankTable shows a loading animation.
+        this.setGrapherTable(
+            BlankOwidTable(tableSlug, `Loading table '${tableSlug}'`)
+        )
+        this.futureGrapherTable.set(this.tableLoader.get(tableSlug))
+
+        if (this.downloadDataLink)
+            grapher.externalCsvLink = this.downloadDataLink
     }
 
     @action.bound setSlide(choiceParams: ExplorerFullQueryParams) {
