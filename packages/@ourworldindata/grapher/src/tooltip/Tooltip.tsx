@@ -6,7 +6,7 @@ import { observer } from "mobx-react"
 import { NO_DATA_LABEL } from "../color/ColorScale.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons"
-import { Bounds, PointVector, zip } from "@ourworldindata/utils"
+import { Bounds, PointVector, sum, zip } from "@ourworldindata/utils"
 import {
     TooltipProps,
     TooltipManager,
@@ -58,17 +58,11 @@ export class TooltipValue extends React.Component<TooltipValueProps> {
                 (value !== undefined && column.formatValueShort(value)) ||
                 NO_DATA_LABEL,
             displayColor =
-                displayValue === NO_DATA_LABEL ? NO_DATA_COLOR : color,
-            noticeSpan = notice && (
-                <span className="notice">
-                    <FontAwesomeIcon icon={faInfoCircle} />
-                    {notice}
-                </span>
-            )
+                displayValue === NO_DATA_LABEL ? NO_DATA_COLOR : color
+
         return (
-            <Variable column={column} color={displayColor}>
+            <Variable column={column} color={displayColor} notice={notice}>
                 {displayValue}
-                {noticeSpan}
             </Variable>
         )
     }
@@ -94,10 +88,17 @@ export class TooltipValueRange extends React.Component<TooltipValueRangeProps> {
     }
 
     render(): JSX.Element | null {
-        const { column, values, color } = this.props,
-            [firstTerm, lastTerm] = values.map((v) =>
+        const { column, values, color, notice } = this.props,
+            [firstValue, lastValue] = values.map((v) =>
                 column.formatValueShort(v)
             ),
+            [firstTerm, lastTerm] =
+                // TODO: would be nicer to actually measure the typeset text
+                sum([firstValue?.length, lastValue?.length]) > 20
+                    ? values.map((v) =>
+                          column.formatValueShortWithAbbreviations(v)
+                      )
+                    : [firstValue, lastValue],
             trend =
                 values.length < 2
                     ? null
@@ -108,8 +109,10 @@ export class TooltipValueRange extends React.Component<TooltipValueRangeProps> {
                     : this.arrowIcon("right")
 
         return (
-            <Variable column={column} color={color}>
-                {firstTerm} {trend} {lastTerm}
+            <Variable column={column} color={color} notice={notice}>
+                <span className="range">
+                    {firstTerm} {trend} {lastTerm}
+                </span>
             </Variable>
         )
     }
@@ -118,18 +121,24 @@ export class TooltipValueRange extends React.Component<TooltipValueRangeProps> {
 class Variable extends React.Component<{
     column: CoreColumn
     color?: string
+    notice?: number | string
     children?: React.ReactNode
 }> {
     render(): JSX.Element | null {
-        const { column, children, color } = this.props
+        const { column, children, color, notice } = this.props
         if (column.isMissing || column.name == "time") return null
 
         const { displayName, unit, shortUnit } = column,
             displayUnit =
                 unit && displayName != unit && unit != shortUnit
                     ? unit.replace(/(^\(|\)$)/g, "")
-                    : null
-
+                    : null,
+            noticeSpan = notice && (
+                <span className="notice">
+                    <FontAwesomeIcon icon={faInfoCircle} />
+                    {notice}
+                </span>
+            )
         return (
             <div className="variable">
                 <div className="definition">
@@ -138,6 +147,7 @@ class Variable extends React.Component<{
                 </div>
                 <div className="values" style={{ color }}>
                     {children}
+                    {noticeSpan}
                 </div>
             </div>
         )

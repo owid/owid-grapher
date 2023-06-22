@@ -35,6 +35,7 @@ export interface TooltipValueRangeProps {
     column: CoreColumn
     values: number[]
     color?: string
+    notice?: number | string
 }
 
 export interface TooltipTableProps {

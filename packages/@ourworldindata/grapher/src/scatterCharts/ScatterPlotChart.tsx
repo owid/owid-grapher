@@ -679,6 +679,16 @@ export class ScatterPlotChart
             values.map((v) => this.yColumn.formatTime(v.time.y))
         ).join(" to ")
 
+        const { startTime, endTime } = this.manager
+        const datumTime = first(values)?.time.y
+        const notice = startTime == endTime && datumTime != endTime
+        const footer =
+            notice && endTime !== undefined
+                ? `No data available for ${this.yColumn.formatTime(
+                      endTime
+                  )}. Showing closest available data point instead.`
+                : undefined
+
         return (
             <g className="ScatterPlot" onMouseMove={this.onScatterMouseMove}>
                 <DualAxisComponent dualAxis={dualAxis} showTickMarks={false} />
@@ -735,7 +745,9 @@ export class ScatterPlotChart
                         style={{ maxWidth: "250px" }}
                         title={target.series.label}
                         subtitle={timeLabel}
+                        subtitleFormat={notice ? "notice" : undefined}
                         dissolve={fading}
+                        footer={footer}
                     >
                         <TooltipValueRange
                             column={this.xColumn}
