@@ -41,7 +41,7 @@ import {
 import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
 import { StackedPoint, StackedSeries } from "./StackedConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
-import { Tooltip, TooltipValue } from "../tooltip/Tooltip"
+import { Tooltip, TooltipValue, TooltipState } from "../tooltip/Tooltip"
 import {
     HorizontalCategoricalColorLegend,
     HorizontalColorLegendManager,
@@ -247,6 +247,14 @@ export class MarimekkoChart
     defaultNoDataColor = OwidNoDataGray
     labelAngleInDegrees = -45 // 0 is horizontal, -90 is vertical from bottom to top, ...
 
+    // currently hovered legend color
+    @observable focusColorBin?: ColorScaleBin
+
+    // currrent tooltip target & position
+    @observable tooltipState = new TooltipState<{
+        entityName: string
+    }>()
+
     transformTable(table: OwidTable): OwidTable {
         const { excludedEntities, includedEntities } = this.manager
         const { yColumnSlugs, manager, colorColumnSlug, xColumnSlug } = this
@@ -314,10 +322,6 @@ export class MarimekkoChart
 
         return table
     }
-
-    @observable tooltipTarget?: { x: number; y: number; entityName: string }
-
-    @observable focusColorBin?: ColorScaleBin
 
     @computed get inputTable(): OwidTable {
         return this.manager.table
@@ -836,28 +840,19 @@ export class MarimekkoChart
         return this.yColumns[0]
     }
 
-    @action.bound private onEntityMouseOver(
-        entityName: string,
-        ev: React.MouseEvent
-    ): void {
-        const { containerElement } = this.props
-        if (!containerElement) return
-
-        const { x, y } = getRelativeMouse(containerElement, ev)
-        this.tooltipTarget = { x, y, entityName }
+    @action.bound private onEntityMouseOver(entityName: string): void {
+        this.tooltipState.target = { entityName }
     }
 
-    @action.bound private onEntityMouseMove(ev: React.MouseEvent): void {
-        const { containerElement } = this.props
-        if (this.tooltipTarget && containerElement) {
-            const { x, y } = getRelativeMouse(containerElement, ev)
-            this.tooltipTarget.x = x
-            this.tooltipTarget.y = y
+    @action.bound private onMouseMove(ev: React.MouseEvent): void {
+        const ref = this.manager.base?.current
+        if (ref) {
+            this.tooltipState.position = getRelativeMouse(ref, ev)
         }
     }
 
     @action.bound private onEntityMouseLeave(): void {
-        this.tooltipTarget = undefined
+        this.tooltipState.target = null
     }
 
     @action.bound private onEntityClick(entityName: string): void {
@@ -874,14 +869,13 @@ export class MarimekkoChart
     }
 
     @computed private get tooltipItem(): Item | undefined {
-        const { tooltipTarget, items } = this
-        if (!tooltipTarget) return undefined
-
-        const item = items.find(
-            ({ entityName }) => entityName === tooltipTarget?.entityName
+        const { target } = this.tooltipState
+        return (
+            target &&
+            this.items.find(
+                ({ entityName }) => entityName === target.entityName
+            )
         )
-
-        return item
     }
 
     render(): JSX.Element {
@@ -897,12 +891,12 @@ export class MarimekkoChart
         const {
             bounds,
             dualAxis,
-            tooltipTarget,
             tooltipItem,
             xColumn,
             formatColumn: yColumn,
             manager: { endTime, xOverrideTime },
             inputTable: { timeColumn },
+            tooltipState: { target, position, fading },
         } = this
 
         const { entityName, entityColor, xPoint, bars } = tooltipItem ?? {}
@@ -938,7 +932,7 @@ export class MarimekkoChart
             <g
                 ref={this.base}
                 className="MarimekkoChart"
-                onMouseMove={(ev): void => this.onEntityMouseMove(ev)}
+                onMouseMove={(ev): void => this.onMouseMove(ev)}
             >
                 <rect
                     x={bounds.left}
@@ -951,18 +945,19 @@ export class MarimekkoChart
                 <DualAxisComponent dualAxis={dualAxis} showTickMarks={true} />
                 <HorizontalCategoricalColorLegend manager={this} />
                 {this.renderBars()}
-                {tooltipTarget && (
+                {target && (
                     <Tooltip
                         id="marimekkoTooltip"
                         tooltipManager={this.manager}
-                        x={tooltipTarget.x}
-                        y={tooltipTarget.y}
+                        x={position.x}
+                        y={position.y}
                         style={{ maxWidth: "250px" }}
                         offsetX={20}
                         offsetY={-16}
                         title={entityName}
                         subtitle={entityColor?.colorDomainValue}
                         footer={footer}
+                        dissolve={fading}
                     >
                         {yValues.map(({ name, value, notice }) => (
                             <TooltipValue
@@ -996,7 +991,7 @@ export class MarimekkoChart
             placedLabels,
             labelLines,
             placedItems,
-            tooltipTarget,
+            tooltipState,
         } = this
         const selectionSet = this.selectionArray.selectedSet
         const labelYOffset = 0
@@ -1077,7 +1072,9 @@ export class MarimekkoChart
                 dualAxis.horizontalAxis.place(x0)
 
             const isSelected = selectionSet.has(entityName)
-            const isHovered = entityName === tooltipTarget?.entityName
+            const isHovered =
+                entityName === tooltipState.target?.entityName &&
+                !tooltipState.fading
             const isFaint =
                 (focusColorBin !== undefined &&
                     !focusColorBin.contains(entityColor?.colorDomainValue)) ||
@@ -1589,11 +1586,8 @@ export class MarimekkoChart
                         fontSize="0.7em"
                         textAnchor="right"
                         dominantBaseline="middle"
-                        onMouseOver={(ev): void =>
-                            this.onEntityMouseOver(
-                                candidate.item.entityName,
-                                ev
-                            )
+                        onMouseOver={(): void =>
+                            this.onEntityMouseOver(candidate.item.entityName)
                         }
                         onMouseLeave={(): void => this.onEntityMouseLeave()}
                         onClick={(): void =>

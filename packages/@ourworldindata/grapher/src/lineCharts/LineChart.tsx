@@ -494,7 +494,7 @@ export class LineChart
                     dualAxis.verticalAxis.rangeSize / 2
                 }
                 style={{ maxWidth: "400px" }}
-                offsetX={12}
+                offsetX={20}
                 title={formattedTime}
                 subtitle={unit != shortUnit ? unit : undefined}
                 subtitleIsUnit={true}

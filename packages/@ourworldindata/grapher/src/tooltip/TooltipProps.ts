@@ -19,8 +19,9 @@ export interface TooltipProps {
     subtitleIsUnit?: boolean
     footer?: string
     style?: React.CSSProperties
-    children?: React.ReactNode
+    dissolve?: boolean
     tooltipManager: TooltipManager
+    children?: React.ReactNode
 }
 
 export interface TooltipValueProps {

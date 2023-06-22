@@ -1,7 +1,14 @@
 import React from "react"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
-import { Bounds, Time, uniq, makeSafeForCSS, sum } from "@ourworldindata/utils"
+import {
+    Bounds,
+    Time,
+    uniq,
+    makeSafeForCSS,
+    sum,
+    getRelativeMouse,
+} from "@ourworldindata/utils"
 import {
     VerticalAxisComponent,
     AxisTickMarks,
@@ -14,7 +21,7 @@ import {
     VerticalColorLegendManager,
     LegendItem,
 } from "../verticalColorLegend/VerticalColorLegend"
-import { Tooltip, TooltipTable } from "../tooltip/Tooltip"
+import { Tooltip, TooltipState, TooltipTable } from "../tooltip/Tooltip"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants"
 import { ColorScaleManager } from "../color/ColorScale"
 import {
@@ -117,8 +124,10 @@ export class StackedBarChart
     // currently hovered axis label
     @observable hoveredTick?: TickmarkPlacement
     // current hovered individual bar
-    @observable hoverBar?: StackedPoint<Time>
-    @observable hoverSeries?: StackedSeries<Time>
+    @observable tooltipState = new TooltipState<{
+        bar: StackedPoint<number>
+        series: StackedSeries<number>
+    }>()
 
     @computed private get baseFontSize(): number {
         return this.manager.baseFontSize ?? BASE_FONT_SIZE
@@ -229,31 +238,19 @@ export class StackedBarChart
 
     @computed get tooltip(): JSX.Element | undefined {
         const {
-            hoverBar,
-            mapXValueToOffset,
-            barWidth,
-            dualAxis,
+            tooltipState: { target, position, fading },
             yColumns,
-            hoverSeries,
             series,
             hoveredTick,
         } = this
 
+        const { bar: hoverBar, series: hoverSeries } = target ?? {}
         let hoverTime: number
-        let yPos: number
-
         if (hoverBar !== undefined) {
             hoverTime = hoverBar.position
-            yPos = dualAxis.verticalAxis.place(
-                hoverBar.valueOffset + hoverBar.value
-            )
         } else if (hoveredTick !== undefined) {
             hoverTime = hoveredTick.time
-            yPos = dualAxis.verticalAxis.rangeMax
         } else return
-
-        const xPos = mapXValueToOffset.get(hoverTime)
-        if (xPos === undefined) return
 
         const yColumn = yColumns[0], // we can just use the first column for formatting, b/c we assume all columns have same type
             { unit, shortUnit } = yColumn
@@ -269,13 +266,15 @@ export class StackedBarChart
             <Tooltip
                 id={this.renderUid}
                 tooltipManager={this.props.manager}
-                x={xPos + barWidth}
-                y={yPos}
+                x={position.x}
+                y={position.y}
                 style={{ maxWidth: "500px" }}
                 offsetX={20}
+                offsetY={-16}
                 title={yColumn.formatTime(hoverTime)}
                 subtitle={unit != shortUnit ? unit : undefined}
                 subtitleIsUnit={true}
+                dissolve={fading}
             >
                 <TooltipTable
                     columns={[yColumn]}
@@ -382,13 +381,18 @@ export class StackedBarChart
         bar: StackedPoint<Time>,
         series: StackedSeries<Time>
     ): void {
-        this.hoverBar = bar
-        this.hoverSeries = series
+        this.tooltipState.target = { bar, series }
+    }
+
+    @action.bound private onMouseMove(ev: React.MouseEvent): void {
+        const ref = this.manager.base?.current
+        if (ref) {
+            this.tooltipState.position = getRelativeMouse(ref, ev)
+        }
     }
 
     @action.bound onBarMouseLeave(): void {
-        this.hoverBar = undefined
-        this.hoverSeries = undefined
+        this.tooltipState.target = null
     }
 
     render(): JSX.Element {
@@ -409,6 +413,7 @@ export class StackedBarChart
             barWidth,
             mapXValueToOffset,
             ticks,
+            tooltipState: { target },
         } = this
         const { series } = this
         const { innerBounds, verticalAxis } = dualAxis
@@ -422,6 +427,7 @@ export class StackedBarChart
                 className="StackedBarChart"
                 width={bounds.width}
                 height={bounds.height}
+                onMouseMove={this.onMouseMove}
             >
                 {clipPath.element}
 
@@ -493,7 +499,7 @@ export class StackedBarChart
                                         bar.position
                                     ) as number
                                     const barOpacity =
-                                        bar === this.hoverBar ? 1 : opacity
+                                        bar === target?.bar ? 1 : opacity
 
                                     return (
                                         <StackedBarSegment

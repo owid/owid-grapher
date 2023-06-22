@@ -42,7 +42,7 @@ import {
     withMissingValuesAsZeroes,
 } from "../stackedCharts/StackedUtils"
 import { ChartManager } from "../chart/ChartManager"
-import { Tooltip, TooltipTable } from "../tooltip/Tooltip"
+import { Tooltip, TooltipState, TooltipTable } from "../tooltip/Tooltip"
 import { StackedPoint, StackedSeries } from "./StackedConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
 import {
@@ -466,43 +466,27 @@ export class StackedDiscreteBarChart
         })
     }
 
-    @observable tooltipTarget?: {
-        x: number
-        y: number
+    @observable tooltipState = new TooltipState<{
         entityName: string
         seriesName?: string
-    }
-
-    tooltipTimeout?: NodeJS.Timeout
+    }>()
 
     @action.bound private onEntityMouseEnter(
-        ev: React.MouseEvent,
         entityName: string,
         seriesName?: string
     ): void {
-        if (this.tooltipTimeout !== undefined) clearTimeout(this.tooltipTimeout)
-
-        const { containerElement } = this.props
-        if (!containerElement) return
-
-        const { x, y } = getRelativeMouse(containerElement, ev)
-        this.tooltipTarget = { x, y, entityName, seriesName }
+        this.tooltipState.target = { entityName, seriesName }
     }
 
-    @action.bound private onEntityMouseMove(ev: React.MouseEvent): void {
-        const { containerElement } = this.props
-        if (this.tooltipTarget && containerElement) {
-            const { x, y } = getRelativeMouse(containerElement, ev)
-            this.tooltipTarget.x = x
-            this.tooltipTarget.y = y
+    @action.bound private onMouseMove(ev: React.MouseEvent): void {
+        const ref = this.manager.base?.current
+        if (ref) {
+            this.tooltipState.position = getRelativeMouse(ref, ev)
         }
     }
 
     @action.bound private onEntityMouseLeave(): void {
-        // delay hiding the tooltip for a bit to prevent flicker when frobbing between rows
-        this.tooltipTimeout = setTimeout(() => {
-            this.tooltipTarget = undefined
-        }, 250)
+        this.tooltipState.target = null
     }
 
     render(): JSX.Element {
@@ -560,8 +544,8 @@ export class StackedDiscreteBarChart
                         fill="#555"
                         dominantBaseline="middle"
                         textAnchor="end"
-                        onMouseEnter={(ev): void =>
-                            this.onEntityMouseEnter(ev, label)
+                        onMouseEnter={(): void =>
+                            this.onEntityMouseEnter(label)
                         }
                         onMouseLeave={this.onEntityMouseLeave}
                         {...this.labelStyle}
@@ -598,7 +582,7 @@ export class StackedDiscreteBarChart
             <g
                 ref={this.base}
                 className="StackedDiscreteBarChart"
-                onMouseMove={this.onEntityMouseMove}
+                onMouseMove={this.onMouseMove}
             >
                 <rect
                     x={bounds.left}
@@ -646,11 +630,7 @@ export class StackedDiscreteBarChart
         entity: string
         chartContext: StackedBarChartContext
         showLabelInsideBar: boolean
-        onMouseEnter: (
-            ev: React.MouseEvent,
-            entityName: string,
-            seriesName?: string
-        ) => void
+        onMouseEnter: (entityName: string, seriesName?: string) => void
         onMouseLeave: () => void
     }): JSX.Element {
         const { entity, bar, chartContext } = props
@@ -677,8 +657,8 @@ export class StackedDiscreteBarChart
 
         return (
             <g
-                onMouseEnter={(ev): void =>
-                    props?.onMouseEnter(ev, entity, bar.seriesName)
+                onMouseEnter={(): void =>
+                    props?.onMouseEnter(entity, bar.seriesName)
                 }
                 onMouseLeave={props?.onMouseLeave}
             >
@@ -715,18 +695,17 @@ export class StackedDiscreteBarChart
 
     @computed private get Tooltip(): JSX.Element | undefined {
         const {
-                tooltipTarget,
+                tooltipState: { target, position, fading },
                 formatColumn: { unit, shortUnit },
                 manager: { endTime: targetTime },
                 inputTable: { timeColumn },
             } = this,
             item = this.placedItems.find(
-                ({ label }) => label == tooltipTarget?.entityName
+                ({ label }) => label == this.tooltipState.target?.entityName
             ),
             hasNotice = item?.bars.some(
                 ({ point }) => !point.fake && point.time != targetTime
             ),
-            hasTotal = item?.bars.every(({ point }) => !point.fake),
             footer = hasNotice
                 ? `No data available for ${timeColumn.formatValue(
                       targetTime
@@ -734,24 +713,25 @@ export class StackedDiscreteBarChart
                 : undefined
 
         return (
-            tooltipTarget &&
+            target &&
             item && (
                 <Tooltip
                     id="stackedDiscreteBarTooltip"
                     tooltipManager={this.manager}
-                    x={tooltipTarget.x}
-                    y={tooltipTarget.y}
-                    style={{ maxWidth: "450px" }}
+                    x={position.x}
+                    y={position.y}
+                    style={{ maxWidth: "400px" }}
                     offsetX={20}
                     offsetY={-16}
-                    title={tooltipTarget.entityName}
+                    title={target.entityName}
                     subtitle={unit != shortUnit ? unit : undefined}
                     subtitleIsUnit={true}
                     footer={footer}
+                    dissolve={fading}
                 >
                     <TooltipTable
                         columns={[this.formatColumn]}
-                        totals={hasTotal ? [item.totalValue] : undefined}
+                        totals={[item.totalValue]}
                         rows={item.bars.map((bar) => {
                             const {
                                 seriesName: name,
@@ -763,7 +743,7 @@ export class StackedDiscreteBarChart
                                 name,
                                 swatch,
                                 blurred,
-                                focused: name == tooltipTarget.seriesName,
+                                focused: name == target.seriesName,
                                 values: [!blurred ? value : undefined],
                                 notice:
                                     !blurred && time != targetTime

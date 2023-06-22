@@ -6,7 +6,7 @@ import { observer } from "mobx-react"
 import { NO_DATA_LABEL } from "../color/ColorScale.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons"
-import { Bounds, zip } from "@ourworldindata/utils"
+import { Bounds, PointVector, zip } from "@ourworldindata/utils"
 import {
     TooltipProps,
     TooltipManager,
@@ -15,7 +15,41 @@ import {
     TooltipValueRangeProps,
 } from "./TooltipProps"
 
-const NO_DATA_COLOR = "#999"
+export const NO_DATA_COLOR = "#999"
+export const TOOLTIP_FADE_DURATION = 400 // $fade-time + $fade-delay in scss
+
+export class TooltipState<T> {
+    @observable position = new PointVector(0, 0)
+    @observable _target?: T
+    @observable _timer?: NodeJS.Timeout
+
+    @computed
+    get target(): T | undefined {
+        return this._target
+    }
+
+    set target(newTarget: T | null) {
+        // delay clearing the target (and hiding the tooltip) for a bit to prevent
+        // flicker when frobbing between neighboring elements and allow an opacity
+        // transition to smoothly fade the tooltip out
+        clearTimeout(this._timer)
+        if (newTarget === null) {
+            this._timer = setTimeout(() => {
+                this._target = undefined
+                this._timer = undefined
+            }, TOOLTIP_FADE_DURATION)
+        } else {
+            this._target = newTarget
+            this._timer = undefined
+        }
+    }
+
+    @computed
+    get fading(): boolean {
+        // returns true during the timeout after clearing the target
+        return !!this._timer && !!this._target
+    }
+}
 
 export class TooltipValue extends React.Component<TooltipValueProps> {
     render(): JSX.Element | null {
@@ -116,13 +150,13 @@ export class TooltipTable extends React.Component<TooltipTableProps> {
             focal = rows.some((row) => row.focused),
             swatched = rows.some((row) => row.swatch),
             format = { trailingZeroes: true, ...this.props.format },
-            allEmpty =
-                rows.length == 0 ||
+            tooEmpty =
+                rows.length < 2 ||
                 totals?.every((value) => value === undefined) ||
-                rows.every(({ values }) =>
+                rows.some(({ values }) =>
                     values.every((value) => value === undefined)
                 ),
-            allTrivial = zip(columns, totals ?? []).every(
+            tooTrivial = zip(columns, totals ?? []).every(
                 ([column, total]) =>
                     !!column?.formatValueShort(total).match(/^100(\.0+)?%/)
             )
@@ -207,7 +241,7 @@ export class TooltipTable extends React.Component<TooltipTableProps> {
                             </tr>
                         )
                     })}
-                    {totals && !(allEmpty || allTrivial) && (
+                    {totals && !(tooEmpty || tooTrivial) && (
                         <>
                             <tr className="spacer"></tr>
                             <tr className="total">
@@ -265,6 +299,7 @@ class TooltipCard extends React.Component<
             subtitle,
             subtitleIsUnit,
             footer,
+            dissolve,
             children,
             offsetX = 0,
             offsetY = 0,
@@ -300,7 +335,7 @@ class TooltipCard extends React.Component<
         return (
             <div
                 ref={this.base}
-                className={classnames("Tooltip", { plain })}
+                className={classnames("Tooltip", { plain, dissolve })}
                 style={{
                     left: `${x}px`,
                     top: `${y}px`,

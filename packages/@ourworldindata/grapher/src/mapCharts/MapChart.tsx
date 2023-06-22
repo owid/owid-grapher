@@ -29,6 +29,7 @@ import { GeoPathRoundingContext } from "./GeoPathRoundingContext"
 import { select } from "d3-selection"
 import { easeCubic } from "d3-ease"
 import { MapTooltip } from "./MapTooltip"
+import { TooltipState } from "../tooltip/Tooltip.js"
 import { ProjectionChooser } from "./ProjectionChooser"
 import { isOnTheMap } from "./EntitiesOnTheMap"
 import { EntityName, OwidTable, CoreColumn } from "@ourworldindata/core-table"
@@ -167,11 +168,12 @@ export class MapChart
     extends React.Component<MapChartProps>
     implements ChartInterface, HorizontalColorLegendManager, ColorScaleManager
 {
-    @observable.ref tooltip: React.ReactNode | null = null
-    @observable tooltipTarget?: { x: number; y: number; featureId: string }
-
     @observable focusEntity?: MapEntity
     @observable focusBracket?: MapBracket
+    @observable tooltipState = new TooltipState<{
+        featureId: string
+        clickable: boolean
+    }>()
 
     transformTable(table: OwidTable): OwidTable {
         if (!table.has(this.mapColumnSlug)) return table
@@ -235,10 +237,7 @@ export class MapChart
     }
 
     base: React.RefObject<SVGGElement> = React.createRef()
-    @action.bound onMapMouseOver(
-        feature: GeoFeature,
-        ev: React.MouseEvent
-    ): void {
+    @action.bound onMapMouseOver(feature: GeoFeature): void {
         const series =
             feature.id === undefined
                 ? undefined
@@ -248,30 +247,23 @@ export class MapChart
             series: series || { value: "No data" },
         }
 
-        const { containerElement } = this.props
-        if (!containerElement) return
-
-        const mouse = getRelativeMouse(containerElement, ev)
-        if (feature.id !== undefined)
-            this.tooltipTarget = {
-                x: mouse.x,
-                y: mouse.y,
-                featureId: feature.id as string,
-            }
+        if (feature.id !== undefined) {
+            const featureId = feature.id as string,
+                clickable = this.isEntityClickable(featureId)
+            this.tooltipState.target = { featureId, clickable }
+        }
     }
 
     @action.bound onMapMouseMove(ev: React.MouseEvent): void {
-        const { containerElement } = this.props
-        if (!containerElement || !this.tooltipTarget) return
-
-        const mouse = getRelativeMouse(containerElement, ev)
-        this.tooltipTarget.x = mouse.x
-        this.tooltipTarget.y = mouse.y
+        const ref = this.manager?.base?.current
+        if (ref) {
+            this.tooltipState.position = getRelativeMouse(ref, ev)
+        }
     }
 
     @action.bound onMapMouseLeave(): void {
         this.focusEntity = undefined
-        this.tooltipTarget = undefined
+        this.tooltipState.target = null
     }
 
     @computed get manager(): MapChartManager {
@@ -622,10 +614,10 @@ export class MapChart
             )
 
         const {
-            tooltipTarget,
             projectionChooserBounds,
             projection,
             colorScale: { customNumericLabels },
+            tooltipState,
         } = this
 
         return (
@@ -655,15 +647,11 @@ export class MapChart
                         />
                     </foreignObject>
                 )}
-                {tooltipTarget && (
+                {tooltipState.target && (
                     <MapTooltip
-                        entityName={tooltipTarget?.featureId}
+                        tooltipState={tooltipState}
                         timeSeriesTable={this.inputTable}
                         formatValue={this.formatTooltipValue}
-                        isEntityClickable={this.isEntityClickable(
-                            tooltipTarget?.featureId
-                        )}
-                        tooltipTarget={tooltipTarget}
                         manager={this.manager}
                         customValueLabels={customNumericLabels}
                         colorScaleManager={this}
@@ -845,23 +833,20 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
             const feature = minBy(featuresWithDistance, (d) => d.distance)
 
             if (feature && feature.distance < 20) {
-                if (feature.feature !== this.hoverNearbyFeature) {
+                if (feature.feature.id !== this.hoverNearbyFeature?.id) {
                     this.hoverNearbyFeature = feature.feature
-                    this.manager.onMapMouseOver(feature.feature.geo, ev)
+                    this.manager.onMapMouseOver(feature.feature.geo)
                 }
-            } else {
+            } else if (this.hoverNearbyFeature) {
                 this.hoverNearbyFeature = undefined
                 this.manager.onMapMouseLeave()
             }
         } else console.error("subunits was falsy")
     }
 
-    @action.bound private onMouseEnter(
-        feature: RenderFeature,
-        ev: SVGMouseEvent
-    ): void {
+    @action.bound private onMouseEnter(feature: RenderFeature): void {
         this.hoverEnterFeature = feature
-        this.manager.onMapMouseOver(feature.geo, ev)
+        this.manager.onMapMouseOver(feature.geo)
     }
 
     @action.bound private onMouseLeave(): void {
@@ -999,8 +984,8 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
                                                 ev
                                             )
                                         }
-                                        onMouseEnter={(ev): void =>
-                                            this.onMouseEnter(feature, ev)
+                                        onMouseEnter={(): void =>
+                                            this.onMouseEnter(feature)
                                         }
                                         onMouseLeave={this.onMouseLeave}
                                     />
@@ -1051,8 +1036,8 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
                                     onClick={(ev: SVGMouseEvent): void =>
                                         this.manager.onClick(feature.geo, ev)
                                     }
-                                    onMouseEnter={(ev): void =>
-                                        this.onMouseEnter(feature, ev)
+                                    onMouseEnter={(): void =>
+                                        this.onMouseEnter(feature)
                                     }
                                     onMouseLeave={this.onMouseLeave}
                                 />

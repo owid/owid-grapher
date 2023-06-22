@@ -23,7 +23,6 @@ import {
     groupBy,
     sampleFrom,
     intersectionOfSets,
-    PointVector,
     max,
     Bounds,
     DEFAULT_BOUNDS,
@@ -91,7 +90,7 @@ import {
     ScatterSizeLegend,
     ScatterSizeLegendManager,
 } from "./ScatterSizeLegend"
-import { Tooltip, TooltipValueRange } from "../tooltip/Tooltip"
+import { Tooltip, TooltipState, TooltipValueRange } from "../tooltip/Tooltip"
 
 @observer
 export class ScatterPlotChart
@@ -110,8 +109,10 @@ export class ScatterPlotChart
     @observable private hoveredSeries?: SeriesName
     // currently hovered legend color
     @observable private hoverColor?: Color
-    // last mouse position
-    @observable private hoverMouse?: PointVector
+    // currrent tooltip target & position
+    @observable tooltipState = new TooltipState<{
+        series: ScatterSeries
+    }>()
 
     transformTable(table: OwidTable): OwidTable {
         const {
@@ -443,10 +444,12 @@ export class ScatterPlotChart
 
     @action.bound private onScatterMouseOver(series: ScatterSeries): void {
         this.hoveredSeries = series.seriesName
+        this.tooltipState.target = { series }
     }
 
     @action.bound private onScatterMouseLeave(): void {
         this.hoveredSeries = undefined
+        this.tooltipState.target = null
     }
 
     @action.bound private onScatterMouseMove(
@@ -454,8 +457,7 @@ export class ScatterPlotChart
     ): void {
         const ref = this.manager?.base?.current
         if (ref) {
-            const mouse = getRelativeMouse(ref, ev)
-            this.hoverMouse = mouse
+            this.tooltipState.position = getRelativeMouse(ref, ev)
         }
     }
 
@@ -661,7 +663,7 @@ export class ScatterPlotChart
             arrowLegend,
             sizeLegend,
             sidebarWidth,
-            tooltipSeries,
+            tooltipState: { target, position, fading },
             comparisonLines,
             legendDimensions,
         } = this
@@ -671,7 +673,7 @@ export class ScatterPlotChart
             ? sizeLegendY + sizeLegend.height + 15
             : sizeLegendY
 
-        const points = tooltipSeries?.points ?? []
+        const points = target?.series.points ?? []
         const values = compact(uniq([first(points), last(points)]))
         const timeLabel = uniq(
             values.map((v) => this.yColumn.formatTime(v.time.y))
@@ -722,17 +724,18 @@ export class ScatterPlotChart
                         </g>
                     </>
                 )}
-                {tooltipSeries && (
+                {target && (
                     <Tooltip
                         id="scatterTooltip"
                         tooltipManager={this.manager}
-                        x={this.hoverMouse?.x ?? 0}
-                        y={this.hoverMouse?.y ?? 0}
+                        x={position.x}
+                        y={position.y}
                         offsetX={20}
                         offsetY={-20}
                         style={{ maxWidth: "250px" }}
-                        title={tooltipSeries.label}
+                        title={target.series.label}
                         subtitle={timeLabel}
+                        dissolve={fading}
                     >
                         <TooltipValueRange
                             column={this.xColumn}

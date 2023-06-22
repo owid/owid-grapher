@@ -6,6 +6,8 @@
     $grey: #787878;
     $red: #cc3b55;
     $green: #2c8465;
+    $fade-time: 200ms;
+    $fade-delay: 200ms;
 
     border-radius: 4px;
     border: 1px solid $background-stroke;
@@ -19,6 +21,11 @@
     &,
     & * {
         box-sizing: border-box;
+    }
+
+    &.dissolve {
+        opacity: 0;
+        transition: opacity $fade-time $fade-delay;
     }
 
     header {

@@ -1,7 +1,7 @@
 import React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { Tooltip, TooltipValue } from "../tooltip/Tooltip"
+import { Tooltip, TooltipValue, TooltipState } from "../tooltip/Tooltip"
 import { MapChartManager } from "./MapChartConstants"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale"
 import {
@@ -24,15 +24,13 @@ import { LineChartManager } from "../lineCharts/LineChartConstants"
 import { darkenColorForHighContrastText } from "../color/ColorUtils"
 
 interface MapTooltipProps {
-    entityName: EntityName
+    tooltipState: TooltipState<{ featureId: string; clickable: boolean }>
     manager: MapChartManager
     customValueLabels: (string | undefined)[]
     colorScaleManager: ColorScaleManager
     formatValue: (d: PrimitiveType) => string
     timeSeriesTable: OwidTable
-    tooltipTarget: { x: number; y: number; featureId: string }
     targetTime?: Time
-    isEntityClickable?: boolean
 }
 
 const SPARKLINE_WIDTH = 250
@@ -53,7 +51,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
     }
 
     @computed private get entityName(): EntityName {
-        return this.props.entityName
+        return this.props.tooltipState.target?.featureId ?? ""
     }
 
     // Table pre-filtered by targetTime, exlcudes time series
@@ -103,20 +101,6 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
 
     @computed private get showSparkline(): boolean {
         return this.hasTimeSeriesData
-    }
-
-    @computed private get tooltipTarget(): {
-        x: number
-        y: number
-        featureId: string
-    } {
-        return (
-            this.props.tooltipTarget ?? {
-                x: 0,
-                y: 0,
-                featureId: "Default Tooltip",
-            }
-        )
     }
 
     // Line chart fields
@@ -187,19 +171,13 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
     }
 
     render(): JSX.Element {
+        const { mapTable, datum, lineColorScale, hasTimeSeriesData } = this
         const {
-            tooltipTarget,
-            mapTable,
-            datum,
-            lineColorScale,
-            hasTimeSeriesData,
-        } = this
-        const {
-            isEntityClickable,
             targetTime,
             manager,
             formatValue,
             customValueLabels,
+            tooltipState: { target, position, fading },
         } = this.props
 
         // Only LineChart and ScatterPlot allow `mapIsClickable`
@@ -233,14 +211,15 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                 id="mapTooltip"
                 tooltipManager={this.props.manager}
                 key="mapTooltip"
-                x={tooltipTarget.x}
-                y={tooltipTarget.y}
+                x={position.x}
+                y={position.y}
                 style={{ width: "250px" }}
                 offsetX={20}
                 offsetY={-20}
                 offsetYDirection={"downward"}
-                title={tooltipTarget.featureId}
+                title={target?.featureId}
                 subtitle={datum ? displayDatumTime : displayTime}
+                dissolve={fading}
             >
                 <TooltipValue
                     column={yColumn}
@@ -296,7 +275,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                     </div>
                 )}
 
-                {isEntityClickable && (
+                {target?.clickable && (
                     <div className="callout">{clickToSelectMessage}</div>
                 )}
             </Tooltip>
