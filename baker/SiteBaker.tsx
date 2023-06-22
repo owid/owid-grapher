@@ -14,6 +14,7 @@ import {
     IMAGE_HOSTING_CDN_URL,
     IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH,
     GDOCS_DETAILS_ON_DEMAND_ID,
+    BAKED_GRAPHER_URL,
 } from "../settings/serverSettings.js"
 
 import {
@@ -47,6 +48,7 @@ import {
     clone,
     getFilenameAsPng,
     extractDetailsFromSyntax,
+    LinkedChart,
 } from "@ourworldindata/utils"
 import { execWrapper } from "../db/execWrapper.js"
 import { countryProfileSpecs } from "../site/countryProfileProjects.js"
@@ -65,6 +67,12 @@ import { Image } from "../db/model/Image.js"
 import sharp from "sharp"
 import { generateEmbedSnippet } from "../site/viteUtils.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
+import { Chart } from "../db/model/Chart.js"
+import { GrapherInterface } from "@ourworldindata/grapher"
+import {
+    BAKED_BASE_URL,
+    BAKED_GRAPHER_EXPORTS_BASE_URL,
+} from "../settings/clientSettings.js"
 
 // These aren't all "wordpress" steps
 // But they're only run when you have the full stack available
@@ -307,17 +315,55 @@ export class SiteBaker {
         if (!this.bakeSteps.has("gdocPosts")) return
         const publishedGdocs = await Gdoc.getPublishedGdocs()
 
-        // Prefetch publishedGdocs and imageMetadata instead of each instance fetching
+        // Prefetch publishedGdocs, imageMetadata, and linkedCharts instead of each instance fetching
         const publishedGdocsDictionary = keyBy(publishedGdocs.map(clone), "id")
         const imageMetadataDictionary = await Image.find().then((images) =>
             keyBy(images, "filename")
+        )
+        const publishedExplorersBySlug = await this.explorerAdminServer
+            .getAllPublishedExplorersBySlugCached()
+            .then((results) =>
+                Object.values(results).reduce(
+                    (acc, cur) => ({
+                        ...acc,
+                        [cur.slug]: {
+                            originalSlug: cur.slug,
+                            resolvedUrl: `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${cur.slug}`,
+                            title: cur.title || "",
+                            thumbnail:
+                                cur.thumbnail ||
+                                `${BAKED_BASE_URL}/default-thumbnail.jpg`,
+                        },
+                    }),
+                    {} as Record<string, LinkedChart>
+                )
+            )
+        // Includes redirects
+        const publishedChartsBySlug = await Chart.mapSlugsToConfigs().then(
+            (results) =>
+                results.reduce(
+                    (acc, cur) => ({
+                        ...acc,
+                        [cur.slug]: {
+                            originalSlug: cur.slug,
+                            resolvedUrl: `${BAKED_GRAPHER_URL}/${cur.config.slug}`,
+                            title: cur.config.title || "",
+                            thumbnail: `${BAKED_GRAPHER_EXPORTS_BASE_URL}/${cur.slug}.svg`,
+                        },
+                    }),
+                    {} as Record<string, LinkedChart>
+                )
         )
 
         for (const publishedGdoc of publishedGdocs) {
             publishedGdoc.imageMetadata = imageMetadataDictionary
             publishedGdoc.linkedDocuments = publishedGdocsDictionary
-            const publishedExplorersBySlug =
-                await this.explorerAdminServer.getAllPublishedExplorersBySlugCached()
+            publishedGdoc.linkedCharts = {
+                ...publishedChartsBySlug,
+                ...publishedExplorersBySlug,
+            }
+            // this is a no-op if the gdoc doesn't have an all-chart block
+            await publishedGdoc.loadRelatedCharts()
 
             await publishedGdoc.validate(publishedExplorersBySlug)
             if (publishedGdoc.errors.length) {
