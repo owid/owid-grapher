@@ -357,7 +357,7 @@
     }
 
     .data-processing__paragraph,
-    .reuse__paragraph,
+    .reuse__list-item,
     .citation__paragraph {
         @include body-3-medium;
         margin: 0 0 16px;
@@ -422,5 +422,17 @@
             padding-top: 32px;
             border-top: 1px solid $blue-20;
         }
+    }
+
+    .citation__how-to-header--data {
+        margin-bottom: 16px;
+    }
+
+    .citation__type {
+        color: $blue-90;
+    }
+
+    .wp-code-snippet {
+        margin-bottom: 16px;
     }
 }

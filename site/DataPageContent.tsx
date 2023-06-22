@@ -574,12 +574,30 @@ export const DataPageContent = ({
                                     className="reuse__title span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
                                     id="reuse-this-work"
                                 >
-                                    Reuse this work freely
+                                    Reuse this work
                                 </h2>
                                 <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                                    <div className="reuse__content">
-                                        <p className="reuse__paragraph">
-                                            All visualizations, data, and code
+                                    <ul className="reuse__content">
+                                        <li className="reuse__list-item">
+                                            All data produced by third-party
+                                            providers and made available by Our
+                                            World in Data are subject to the
+                                            license terms from the original
+                                            providers.
+                                        </li>
+                                        <li className="reuse__list-item">
+                                            Our work would not be possible
+                                            without the data providers we rely
+                                            on, so we ask you to always cite
+                                            them appropriately (see below) and
+                                            to respect their license terms. This
+                                            is crucial to allow data providers
+                                            to continue doing their work,
+                                            enhancing, maintaining and updating
+                                            valuable data.
+                                        </li>
+                                        <li className="reuse__list-item">
+                                            All data, visualizations, and code
                                             produced by Our World in Data are
                                             completely open access under the{" "}
                                             <a
@@ -594,48 +612,65 @@ export const DataPageContent = ({
                                             distribute, and reproduce these in
                                             any medium, provided the source and
                                             authors are credited.
-                                        </p>
-                                        <p className="reuse__paragraph">
-                                            Our work would not be possible
-                                            without the original data providers
-                                            we rely on, so we ask you to always
-                                            cite them appropriately and to
-                                            respect their license terms. This is
-                                            crucial to allow data providers to
-                                            continue doing their work,
-                                            enhancing, maintaining and updating
-                                            valuable data.
-                                        </p>
-                                    </div>
+                                        </li>
+                                    </ul>
                                 </div>
-                                {(datapageJson.citationData ||
+                                {(datapageJson.citationDataInline ||
+                                    datapageJson.citationDataFull ||
                                     datapageJson.citationDatapage) && (
                                     <div className="citations grid span-cols-12">
                                         <h3 className="citations__heading span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
                                             Citations
                                         </h3>
                                         <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                                            {datapageJson.citationData && (
+                                            {(datapageJson.citationDataInline ||
+                                                datapageJson.citationDataFull) && (
                                                 <div className="citations-section">
-                                                    <h5 className="citation__how-to-header">
+                                                    <h5 className="citation__how-to-header citation__how-to-header--data">
                                                         How to cite this data
                                                     </h5>
-                                                    <p className="citation__paragraph">
-                                                        If you are using this
-                                                        data for analysis or for
-                                                        your own visualizations,
-                                                        please cite both the
-                                                        underlying data
-                                                        source(s) and Our World
-                                                        in Data using the
-                                                        following citation:
-                                                    </p>
-                                                    <CodeSnippet
-                                                        code={
-                                                            datapageJson.citationData
-                                                        }
-                                                        theme="light"
-                                                    />
+                                                    {datapageJson.citationDataInline && (
+                                                        <>
+                                                            <p className="citation__paragraph">
+                                                                <span className="citation__type">
+                                                                    In-line
+                                                                    citation
+                                                                </span>
+                                                                <br />
+                                                                If you have
+                                                                limited space
+                                                                (e.g. in data
+                                                                visualizations,
+                                                                on Twitter), you
+                                                                can use this
+                                                                abbreviated
+                                                                in-line
+                                                                citation:
+                                                            </p>
+                                                            <CodeSnippet
+                                                                code={
+                                                                    datapageJson.citationDataInline
+                                                                }
+                                                                theme="light"
+                                                            />
+                                                        </>
+                                                    )}
+                                                    {datapageJson.citationDataFull && (
+                                                        <>
+                                                            <p className="citation__paragraph">
+                                                                <span className="citation__type">
+                                                                    Full
+                                                                    citation
+                                                                </span>
+                                                            </p>
+                                                            <CodeSnippet
+                                                                code={
+                                                                    datapageJson.citationDataFull
+                                                                }
+                                                                theme="light"
+                                                            />
+                                                        </>
+                                                    )}
                                                 </div>
                                             )}
                                             {datapageJson.citationDatapage && (

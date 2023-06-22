@@ -1386,7 +1386,8 @@ export const DataPageJsonTypeObject = Type.Object(
                 sourceRetrievedFromUrl: Type.Optional(Type.String()),
             })
         ),
-        citationData: Type.Optional(Type.String()),
+        citationDataInline: Type.Optional(Type.String()),
+        citationDataFull: Type.Optional(Type.String()),
         citationDatapage: Type.Optional(Type.String()),
     },
     // We are not allowing to have any additional properties in the JSON file,
