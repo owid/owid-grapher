@@ -7,5 +7,5 @@ edit the yaml file as is. A github action will then generate a .latest.yaml and 
 and upload them to S3 so they can be accessed publicly.
 
 Breaking changes should be done by renaming the schema file to an increased version number. Make sure to also rename the authorative url
-iside the schema file (the "$id" field at the top level) to point to the new version number json. Then write the migrations from the last to
+inside the schema file (the "$id" field at the top level) to point to the new version number json. Then write the migrations from the last to
 the current version of the schema, including the migration of pointing to the URL of the new schema version.
