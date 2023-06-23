@@ -24,6 +24,10 @@
     border: none;
     cursor: pointer;
     text-align: left;
+
+    &:hover {
+        color: $blue-60;
+    }
 }
 
 .ExpandableToggle__button--teaser {
