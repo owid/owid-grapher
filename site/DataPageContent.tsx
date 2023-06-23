@@ -580,18 +580,14 @@ export const DataPageContent = ({
                                             providers and made available by Our
                                             World in Data are subject to the
                                             license terms from the original
-                                            providers.
-                                        </li>
-                                        <li className="reuse__list-item">
-                                            Our work would not be possible
-                                            without the data providers we rely
-                                            on, so we ask you to always cite
-                                            them appropriately (see below) and
-                                            to respect their license terms. This
-                                            is crucial to allow data providers
-                                            to continue doing their work,
-                                            enhancing, maintaining and updating
-                                            valuable data.
+                                            providers. Our work would not be
+                                            possible without the data providers
+                                            we rely on, so we ask you to always
+                                            cite them appropriately (see below).
+                                            This is crucial to allow data
+                                            providers to continue doing their
+                                            work, enhancing, maintaining and
+                                            updating valuable data.
                                         </li>
                                         <li className="reuse__list-item">
                                             All data, visualizations, and code
