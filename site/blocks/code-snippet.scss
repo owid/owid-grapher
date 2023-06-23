@@ -2,6 +2,7 @@
     position: relative;
     margin-bottom: 32px;
     font-size: 12px;
+    line-height: calc(16 / 12);
 
     pre {
         background-color: $gray-10;
@@ -12,8 +13,10 @@
         color: $blue-60;
     }
 
-    code {
-        margin-right: 85px;
+    .wp-code-snippet__code--is-truncated {
+        display: block;
+        -webkit-mask-image: linear-gradient(180deg, #000 0%, transparent);
+        height: 48px;
     }
 
     button.code-copy-button {

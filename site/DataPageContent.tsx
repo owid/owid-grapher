@@ -557,6 +557,7 @@ export const DataPageContent = ({
                                                                                                 source.sourceCitation
                                                                                             }
                                                                                             theme="light"
+                                                                                            isTruncated
                                                                                         />
                                                                                     </div>
                                                                                 )}
