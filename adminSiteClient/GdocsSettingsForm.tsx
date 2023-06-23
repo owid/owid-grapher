@@ -32,6 +32,7 @@ export const GdocsSettingsForm = ({
                 "details",
                 "body",
                 "refs",
+                "imageMetadata",
             ].includes(property)
         ),
         "type"
