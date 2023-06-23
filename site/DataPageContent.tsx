@@ -441,6 +441,7 @@ export const DataPageContent = ({
                                                                     sources.length -
                                                                         1
                                                                 }
+                                                                hasTeaser
                                                                 content={
                                                                     <>
                                                                         {sourceDescriptionGdocContent && (

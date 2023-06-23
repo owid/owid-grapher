@@ -9,11 +9,13 @@ export const ExpandableToggle = ({
     content,
     isExpandedDefault = false,
     isStacked = false,
+    hasTeaser = false,
 }: {
     label: string
     content?: React.ReactNode
     isExpandedDefault?: boolean
     isStacked?: boolean
+    hasTeaser?: boolean
 }) => {
     const [isOpen, setOpen] = useState(isExpandedDefault)
 
@@ -25,10 +27,16 @@ export const ExpandableToggle = ({
         <div
             className={cx("ExpandableToggle", {
                 "ExpandableToggle--stacked": isStacked,
+                "ExpandableToggle--teaser": hasTeaser,
             })}
         >
-            <button onClick={toggle}>
-                <h4>{label}</h4>
+            <button
+                className={cx("ExpandableToggle__button", {
+                    "ExpandableToggle__button--teaser": hasTeaser,
+                })}
+                onClick={toggle}
+            >
+                <h4 className="ExpandableToggle__title">{label}</h4>
                 <FontAwesomeIcon
                     className="ExpandableToggle__icon"
                     icon={!isOpen ? faPlus : faMinus}
@@ -37,6 +45,7 @@ export const ExpandableToggle = ({
             <div
                 className={cx("ExpandableToggle__content", {
                     "ExpandableToggle__content--open": isOpen,
+                    "ExpandableToggle__content--teaser": hasTeaser,
                 })}
             >
                 {content}
