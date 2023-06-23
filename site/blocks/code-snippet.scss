@@ -22,6 +22,7 @@
     }
 
     button.code-copy-button {
+        position: relative;
         background: none;
         border: none;
         flex: 0 0 112px;
@@ -29,6 +30,15 @@
         text-align: right;
         color: $blue-60;
         cursor: pointer;
+
+        &::before {
+            content: "";
+            position: absolute;
+            top: -16px;
+            left: 0;
+            width: calc(100% + 24px);
+            height: calc(100% + 32px);
+        }
 
         &:hover {
             color: $blue-90;
