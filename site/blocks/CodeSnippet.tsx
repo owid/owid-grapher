@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react"
-import classnames from "classnames"
 import ReactDOM from "react-dom"
 import ReactDOMServer from "react-dom/server.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -50,7 +49,7 @@ export const CodeSnippet = ({
             </pre>
             {canCopy && (
                 <button
-                    className={classnames("code-copy-button", {
+                    className={cx("code-copy-button", {
                         "code-copy-button--has-copied": hasCopied,
                     })}
                     onClick={copy}
