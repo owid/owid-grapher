@@ -8,7 +8,6 @@ import {
     getRelativeMouse,
     sortBy,
     guid,
-    minBy,
     difference,
     exposeInstanceOnWindow,
     isPresent,
@@ -28,6 +27,7 @@ import { MapProjectionName, MapProjectionGeos } from "./MapProjections"
 import { GeoPathRoundingContext } from "./GeoPathRoundingContext"
 import { select } from "d3-selection"
 import { easeCubic } from "d3-ease"
+import { Quadtree, quadtree } from "d3-quadtree"
 import { MapTooltip } from "./MapTooltip"
 import { TooltipState } from "../tooltip/Tooltip.js"
 import { ProjectionChooser } from "./ProjectionChooser"
@@ -41,6 +41,7 @@ import {
     ChoroplethMapManager,
     RenderFeature,
     ChoroplethSeries,
+    MAP_HOVER_TARGET_RANGE,
 } from "./MapChartConstants"
 import { MapConfig } from "./MapConfig"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale"
@@ -809,8 +810,15 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
 
     // Map uses a hybrid approach to mouseover
     // If mouse is inside an element, that is prioritized
-    // Otherwise we look for the closest center point of a feature bounds, so that we can hover
-    // very small countries without trouble
+    // Otherwise we do a quadtree search for the closest center point of a feature bounds,
+    // so that we can hover very small countries without trouble
+
+    @computed private get quadtree(): Quadtree<RenderFeature> {
+        return quadtree<RenderFeature>()
+            .x(({ center }) => center.x)
+            .y(({ center }) => center.y)
+            .addAll(this.featuresInProjection)
+    }
 
     @observable private hoverEnterFeature?: RenderFeature
     @observable private hoverNearbyFeature?: RenderFeature
@@ -818,24 +826,16 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
         if (ev.shiftKey) this.showSelectedStyle = true // Turn on highlight selection. To turn off, user can switch tabs.
         if (this.hoverEnterFeature) return
 
-        const { featuresInProjection } = this
         const subunits = this.base.current?.querySelector(".subunits")
         if (subunits) {
-            const mouse = getRelativeMouse(subunits, ev)
+            const { x, y } = getRelativeMouse(subunits, ev)
+            const distance = MAP_HOVER_TARGET_RANGE
+            const feature = this.quadtree.find(x, y, distance)
 
-            const featuresWithDistance = featuresInProjection.map((feature) => {
-                return {
-                    feature,
-                    distance: PointVector.distance(feature.center, mouse),
-                }
-            })
-
-            const feature = minBy(featuresWithDistance, (d) => d.distance)
-
-            if (feature && feature.distance < 20) {
-                if (feature.feature.id !== this.hoverNearbyFeature?.id) {
-                    this.hoverNearbyFeature = feature.feature
-                    this.manager.onMapMouseOver(feature.feature.geo)
+            if (feature) {
+                if (feature.id !== this.hoverNearbyFeature?.id) {
+                    this.hoverNearbyFeature = feature
+                    this.manager.onMapMouseOver(feature.geo)
                 }
             } else if (this.hoverNearbyFeature) {
                 this.hoverNearbyFeature = undefined
@@ -887,6 +887,9 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
         const blurStrokeOpacity = 0.5
 
         const clipPath = makeClipPath(uid, bounds)
+
+        // this needs to be referenced here or it will be recomputed on every mousemove
+        const _cachedCentroids = this.quadtree
 
         return (
             <g

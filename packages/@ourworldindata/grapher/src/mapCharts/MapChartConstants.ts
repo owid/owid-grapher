@@ -9,6 +9,7 @@ import { ChartSeries } from "../chart/ChartInterface"
 
 export type GeoFeature = GeoJSON.Feature<GeoJSON.GeometryObject>
 export type MapBracket = ColorScaleBin
+export const MAP_HOVER_TARGET_RANGE = 20
 
 export interface MapEntity {
     id: string | number | undefined
