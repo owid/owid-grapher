@@ -15,7 +15,7 @@ export const runBlocks = (context?: SiteFooterContext) => {
         // These blocks already get hydrated by hydrateOwidGdoc, hydrating twice breaks things
         hydrateKeyInsights()
         hydrateExpandableParagraphs()
+        hydrateCodeSnippets()
     }
     hydrateStickyNav()
-    hydrateCodeSnippets()
 }
