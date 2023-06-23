@@ -472,8 +472,10 @@ export class Explorer
         // set given variable IDs as dimensions to make Grapher
         // download the data and metadata for these variables
         const dimensions = config.dimensions ?? []
-        if (yVariableIds) {
-            const yVariableIdsList = yVariableIds
+
+        // set given indicators as dimensions
+        if (yIndicatorIds) {
+            const yIndicatorIdsList = yIndicatorIds
                 .split(" ")
                 .map((item) => parseInt(item, 10))
                 .filter((item) => !isNaN(item))
