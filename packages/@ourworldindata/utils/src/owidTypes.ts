@@ -952,7 +952,7 @@ export type RawBlockResearchAndWriting = {
     value: {
         primary?: RawBlockResearchAndWritingLink
         secondary?: RawBlockResearchAndWritingLink
-        more?: RawBlockResearchAndWritingLink[]
+        more?: RawBlockResearchAndWritingRow
         rows?: RawBlockResearchAndWritingRow[]
     }
 }
@@ -976,7 +976,7 @@ export type EnrichedBlockResearchAndWriting = {
     type: "research-and-writing"
     primary: EnrichedBlockResearchAndWritingLink
     secondary: EnrichedBlockResearchAndWritingLink
-    more: EnrichedBlockResearchAndWritingLink[]
+    more: EnrichedBlockResearchAndWritingRow
     rows: EnrichedBlockResearchAndWritingRow[]
 } & EnrichedBlockWithParseErrors
 

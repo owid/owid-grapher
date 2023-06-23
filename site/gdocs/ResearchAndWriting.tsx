@@ -96,8 +96,8 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
             />
             <div className="span-cols-3 span-md-cols-12">
                 <div className="research-and-writing-more">
-                    <h5 className="overline-black-caps">Shorts</h5>
-                    {more.map((link, i) => (
+                    <h5 className="overline-black-caps">{more.heading}</h5>
+                    {more.articles.map((link, i) => (
                         <ResearchAndWritingLinkContainer
                             shouldHideThumbnail
                             shouldHideSubtitle

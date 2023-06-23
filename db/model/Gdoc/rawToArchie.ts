@@ -479,11 +479,16 @@ function* rawResearchAndWritingToArchieMLString(
         yield "{}"
     }
     if (more) {
-        yield "[.more]"
-        for (const link of more) {
-            yield* rawLinkToArchie(link)
+        yield "{.more}"
+        yield* propertyToArchieMLString("heading", more)
+        if (more.articles) {
+            yield "[.articles]"
+            for (const link of more.articles) {
+                yield* rawLinkToArchie(link)
+            }
+            yield "[]"
         }
-        yield "[]"
+        yield "{}"
     }
     if (rows) {
         yield "[.rows]"

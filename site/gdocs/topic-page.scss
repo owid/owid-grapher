@@ -170,7 +170,7 @@
 }
 
 .article-block__gray-section {
-    h1 {
+    > h1 {
         text-align: center;
         // Countering the gray-section padding to make this have 32px 16px
         margin-top: -16px;

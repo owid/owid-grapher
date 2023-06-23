@@ -103,6 +103,7 @@ import {
 import { P, match } from "ts-pattern"
 import { isObject, parseInt } from "lodash"
 import { GDOCS_DETAILS_ON_DEMAND_ID } from "../../../settings/serverSettings.js"
+import { RawBlockResearchAndWritingRow } from "@ourworldindata/utils/dist/owidTypes.js"
 
 export function parseRawBlocksToEnrichedBlocks(
     block: OwidRawGdocBlock
@@ -1275,7 +1276,10 @@ function parseResearchAndWritingBlock(
         secondary = {
             value: { url: "" },
         },
-        more: EnrichedBlockResearchAndWritingLink[] = [],
+        more: EnrichedBlockResearchAndWritingRow = {
+            heading: "",
+            articles: [],
+        },
         rows: EnrichedBlockResearchAndWritingRow[] = []
     ): EnrichedBlockResearchAndWriting => ({
         type: "research-and-writing",
@@ -1343,32 +1347,42 @@ function parseResearchAndWritingBlock(
         return createError({ message: "Missing secondary link" })
     const secondary = enrichLink(raw.value.secondary)
 
-    if (!raw.value.more) {
-        return createError(
-            { message: "No 'more' values passed" },
-            primary,
-            secondary
-        )
-    }
-    const more = raw.value.more.map((rawLink) => enrichLink(rawLink, true))
-    const rows = raw.value.rows?.map((row) => {
-        if (!row.heading) {
+    if (!raw.value.more)
+        return createError({ message: "No 'more' section defined" })
+
+    function parseRow(
+        rawRow: RawBlockResearchAndWritingRow,
+        skipFilenameValidation: boolean = false
+    ): EnrichedBlockResearchAndWritingRow {
+        if (!rawRow.heading) {
+            parseErrors.push({ message: `Row missing "heading" value` })
+        } else if (typeof rawRow.heading !== "string") {
+            parseErrors.push({ message: `Row "heading" must be a string` })
+        } else if (!rawRow.articles) {
             parseErrors.push({
-                message: `Row missing "heading" value`,
+                message: `Row with heading ${rawRow.heading} no articles defined. Be sure to use a "[.articles]" tag`,
             })
+        } else {
+            return {
+                heading: rawRow.heading,
+                articles: rawRow.articles.map((rawLink) =>
+                    enrichLink(rawLink, skipFilenameValidation)
+                ),
+            }
         }
-        return {
-            heading: row.heading || "",
-            articles: row.articles?.map((rawLink) => enrichLink(rawLink)) || [],
-        }
-    })
+
+        return { heading: "", articles: [] }
+    }
+
+    const more = parseRow(raw.value.more, true)
+    const rows = raw.value.rows?.map((row) => parseRow(row)) || []
 
     return {
         type: "research-and-writing",
         primary,
         secondary,
-        more: more,
-        rows: rows ?? [],
+        more,
+        rows,
         parseErrors,
     }
 }
