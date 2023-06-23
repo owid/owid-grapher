@@ -1024,9 +1024,10 @@ describe("correct bubble sizes", () => {
             fontScale: chart["fontScale"],
             focusedSeriesNames: chart["focusedEntityNames"],
             hoveredSeriesNames: chart["hoveredSeriesNames"],
-            onMouseOver: chart["onScatterMouseOver"],
+            onMouseEnter: chart["onScatterMouseEnter"],
             onMouseLeave: chart["onScatterMouseLeave"],
             onClick: chart["onScatterClick"],
+            quadtree: chart["quadtree"],
         })
 
         const sortedRenderSeries = sortBy(
@@ -1096,9 +1097,10 @@ describe("correct bubble sizes", () => {
             fontScale: chart["fontScale"],
             focusedSeriesNames: chart["focusedEntityNames"],
             hoveredSeriesNames: chart["hoveredSeriesNames"],
-            onMouseOver: chart["onScatterMouseOver"],
+            onMouseEnter: chart["onScatterMouseEnter"],
             onMouseLeave: chart["onScatterMouseLeave"],
             onClick: chart["onScatterClick"],
+            quadtree: chart["quadtree"],
         })
 
         const sortedRenderSeries = sortBy(

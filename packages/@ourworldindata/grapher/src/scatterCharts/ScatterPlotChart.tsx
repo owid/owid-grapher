@@ -5,6 +5,8 @@ import {
 } from "../scatterCharts/ComparisonLine"
 import { observable, computed, action } from "mobx"
 import { ScaleLinear, scaleSqrt } from "d3-scale"
+import { Quadtree, quadtree } from "d3-quadtree"
+import { quantize, interpolate } from "d3-interpolate"
 import {
     intersection,
     without,
@@ -12,6 +14,8 @@ import {
     uniq,
     first,
     last,
+    pairs,
+    clone,
     excludeUndefined,
     flatten,
     isEmpty,
@@ -24,6 +28,7 @@ import {
     sampleFrom,
     intersectionOfSets,
     max,
+    PointVector,
     Bounds,
     DEFAULT_BOUNDS,
 } from "@ourworldindata/utils"
@@ -76,6 +81,8 @@ import {
     SCATTER_POINT_DEFAULT_RADIUS,
     SCATTER_POINT_MAX_RADIUS,
     SeriesPoint,
+    ScatterPointQuadtreeNode,
+    SCATTER_QUADTREE_SAMPLING_DISTANCE,
 } from "./ScatterPlotChartConstants"
 import { ScatterPointsWithLabels } from "./ScatterPointsWithLabels"
 import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
@@ -442,7 +449,7 @@ export class ScatterPlotChart
         return new ConnectedScatterLegend(this)
     }
 
-    @action.bound private onScatterMouseOver(series: ScatterSeries): void {
+    @action.bound private onScatterMouseEnter(series: ScatterSeries): void {
         this.hoveredSeries = series.seriesName
         this.tooltipState.target = { series }
     }
@@ -551,6 +558,66 @@ export class ScatterPlotChart
         return !!this.manager.hideScatterLabels
     }
 
+    @computed private get quadtree(): Quadtree<ScatterPointQuadtreeNode> {
+        const {
+            series: seriesArray,
+            dualAxis: { horizontalAxis, verticalAxis, innerBounds },
+        } = this
+
+        const xAxis = horizontalAxis.clone()
+        xAxis.range = innerBounds.xRange()
+        const yAxis = verticalAxis.clone()
+        yAxis.range = innerBounds.yRange()
+
+        const nodes: ScatterPointQuadtreeNode[] = seriesArray.flatMap(
+            (series) => {
+                const points = series.points.map((point) => {
+                    return new PointVector(
+                        xAxis.place(point.x),
+                        yAxis.place(point.y)
+                    )
+                })
+
+                // add single points as is
+                if (points.length < 2)
+                    return points.map((point) => ({
+                        series,
+                        x: point.x,
+                        y: point.y,
+                    }))
+
+                // sample points from line segments with a fixed step size
+                return pairs(points, (a, b) => {
+                    const numPoints =
+                            2 + // always include endpoints
+                            Math.floor(
+                                PointVector.distance(a, b) /
+                                    SCATTER_QUADTREE_SAMPLING_DISTANCE
+                            ),
+                        lineRange = interpolate(
+                            { x: a.x, y: a.y },
+                            { x: b.x, y: b.y }
+                        ),
+                        coords = quantize(
+                            (pct: number) => clone(lineRange(pct)),
+                            numPoints
+                        )
+
+                    return coords.map((point) => ({
+                        series,
+                        x: point.x,
+                        y: point.y,
+                    }))
+                }).flat()
+            }
+        )
+
+        return quadtree<ScatterPointQuadtreeNode>()
+            .x(({ x }) => x)
+            .y(({ y }) => y)
+            .addAll(nodes)
+    }
+
     @computed private get points(): JSX.Element {
         return (
             <ScatterPointsWithLabels
@@ -568,9 +635,10 @@ export class ScatterPlotChart
                 hoveredSeriesNames={this.hoveredSeriesNames}
                 disableIntroAnimation={this.manager.disableIntroAnimation}
                 hideScatterLabels={this.hideScatterLabels}
-                onMouseOver={this.onScatterMouseOver}
+                onMouseEnter={this.onScatterMouseEnter}
                 onMouseLeave={this.onScatterMouseLeave}
                 onClick={this.onScatterClick}
+                quadtree={this.quadtree}
             />
         )
     }

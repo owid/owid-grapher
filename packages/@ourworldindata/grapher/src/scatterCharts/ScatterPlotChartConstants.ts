@@ -1,4 +1,5 @@
 import { ScaleLinear } from "d3-scale"
+import { Quadtree } from "d3-quadtree"
 import {
     Color,
     Time,
@@ -117,7 +118,7 @@ export interface ScatterPointsWithLabelsProps {
     colorScale?: ColorScale
     sizeScale: ScaleLinear<number, number>
     fontScale: ScaleLinear<number, number>
-    onMouseOver: (series: ScatterSeries) => void
+    onMouseEnter: (series: ScatterSeries) => void
     onMouseLeave: () => void
     onClick: () => void
     isConnected: boolean
@@ -125,4 +126,14 @@ export interface ScatterPointsWithLabelsProps {
     noDataModalManager: NoDataModalManager
     disableIntroAnimation?: boolean
     hideScatterLabels?: boolean
+    quadtree: Quadtree<ScatterPointQuadtreeNode>
+}
+
+export const SCATTER_QUADTREE_SAMPLING_DISTANCE = 10
+export const SCATTER_POINT_HOVER_TARGET_RANGE = 20
+
+export interface ScatterPointQuadtreeNode {
+    series: ScatterSeries
+    x: number
+    y: number
 }

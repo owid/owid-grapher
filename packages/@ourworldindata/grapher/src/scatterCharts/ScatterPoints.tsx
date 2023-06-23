@@ -14,9 +14,11 @@ import { Triangle } from "./Triangle"
 export class ScatterPoint extends React.Component<{
     series: ScatterRenderSeries
     isLayerMode?: boolean
+    onMouseEnter?: (seriesName: string) => void
+    onMouseLeave?: () => void
 }> {
     render(): JSX.Element | null {
-        const { series, isLayerMode } = this.props
+        const { series, isLayerMode, onMouseEnter, onMouseLeave } = this.props
         const value = first(series.points)
         if (value === undefined) return null
 
@@ -29,7 +31,16 @@ export class ScatterPoint extends React.Component<{
         const stroke = isLayerMode ? "#bbb" : isLabelled ? "#333" : "#666"
 
         return (
-            <g key={series.displayKey} className={series.displayKey}>
+            <g
+                key={series.displayKey}
+                className={series.displayKey}
+                onMouseEnter={(): void => {
+                    onMouseEnter && onMouseEnter(series.seriesName)
+                }}
+                onMouseLeave={(): void => {
+                    onMouseLeave && onMouseLeave()
+                }}
+            >
                 {series.isFocus && (
                     <circle
                         cx={cx}
@@ -57,12 +68,21 @@ export class ScatterPoint extends React.Component<{
 export class ScatterLine extends React.Component<{
     series: ScatterRenderSeries
     isLayerMode: boolean
+    onMouseEnter?: (seriesName: string) => void
+    onMouseLeave?: () => void
 }> {
     render(): JSX.Element | null {
-        const { series, isLayerMode } = this.props
+        const { series, isLayerMode, onMouseEnter, onMouseLeave } = this.props
 
         if (series.points.length === 1)
-            return <ScatterPoint series={series} isLayerMode={isLayerMode} />
+            return (
+                <ScatterPoint
+                    series={series}
+                    isLayerMode={isLayerMode}
+                    onMouseEnter={onMouseEnter}
+                    onMouseLeave={onMouseLeave}
+                />
+            )
 
         const firstValue = first(series.points)
         const lastValue = last(series.points)
