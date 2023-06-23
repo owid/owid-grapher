@@ -28,7 +28,7 @@ export const CodeSnippet = ({
             await navigator.clipboard.writeText(code)
             setHasCopied(true)
             // reset CSS animation
-            setTimeout(() => setHasCopied(false), 10)
+            setTimeout(() => setHasCopied(false), 2000)
         } catch (err) {
             console.error(
                 "Couldn't copy to clipboard using navigator.clipboard",
@@ -56,7 +56,7 @@ export const CodeSnippet = ({
                     onClick={copy}
                     aria-label="Copy to clipboard"
                 >
-                    <FontAwesomeIcon icon={faCopy} />
+                    {hasCopied ? "Copied!" : <FontAwesomeIcon icon={faCopy} />}
                 </button>
             )}
         </div>
