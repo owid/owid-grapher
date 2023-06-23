@@ -287,6 +287,11 @@ check-formatting:
 	yarn
 	yarn testPrettierChanged
 
+format:
+	@echo '==> Fixing formatting'
+	yarn
+	yarn fixPrettierAll
+
 unittest:
 	@echo '==> Running tests'
 	yarn
