@@ -10,6 +10,25 @@ import {
     DivideByZeroError,
 } from "./ErrorValues.js"
 
+enum TransformParamType {
+    TimeSlug = "TimeSlug", // column with time
+    EntitySlug = "EntitySlug", // column with entity
+    DataSlug = "DataSlug", // column with data
+    ColumnSlug = "ColumnSlug", // any column
+    Number = "Number",
+    String = "String",
+}
+
+interface TransformParam {
+    type: TransformParamType
+    spread?: boolean
+}
+
+interface Transform {
+    params: TransformParam[]
+    fn: any
+}
+
 // In Grapher we return just the years for which we have values for. This puts MissingValuePlaceholder
 // in the spots where we are missing values (added to make computing rolling windows easier).
 // Takes an array of value/year pairs and expands it so that there is an undefined
@@ -98,113 +117,148 @@ export function computeRollingAverage(
 
 // Assumptions: data is sorted by entity, then time
 // todo: move tests over from CE
-const timeSinceEntityExceededThreshold = (
-    columnStore: CoreColumnStore,
-    timeSlug: ColumnSlug,
-    entitySlug: ColumnSlug,
-    columnSlug: ColumnSlug,
-    thresholdAsString: string
-): (number | ValueTooLow)[] => {
-    const threshold = parseFloat(thresholdAsString)
-    const groupValues = columnStore[entitySlug] as string[]
-    const columnValues = columnStore[columnSlug] as number[]
-    const timeValues = columnStore[timeSlug] as number[]
-    let currentGroup: string
-    let groupExceededThresholdAtTime: number
-    return columnValues.map((value, index) => {
-        const group = groupValues[index]
-        const currentTime = timeValues[index]
-        if (group !== currentGroup) {
-            if (!isNotErrorValue(value)) return value
-            if (value < threshold) return ErrorValueTypes.ValueTooLow
+const timeSinceEntityExceededThreshold: Transform = {
+    params: [
+        { type: TransformParamType.TimeSlug },
+        { type: TransformParamType.EntitySlug },
+        { type: TransformParamType.DataSlug },
+        { type: TransformParamType.String },
+    ],
+    fn: (
+        columnStore: CoreColumnStore,
+        timeSlug: ColumnSlug,
+        entitySlug: ColumnSlug,
+        columnSlug: ColumnSlug,
+        thresholdAsString: string
+    ): (number | ValueTooLow)[] => {
+        const threshold = parseFloat(thresholdAsString)
+        const groupValues = columnStore[entitySlug] as string[]
+        const columnValues = columnStore[columnSlug] as number[]
+        const timeValues = columnStore[timeSlug] as number[]
+        let currentGroup: string
+        let groupExceededThresholdAtTime: number
+        return columnValues.map((value, index) => {
+            const group = groupValues[index]
+            const currentTime = timeValues[index]
+            if (group !== currentGroup) {
+                if (!isNotErrorValue(value)) return value
+                if (value < threshold) return ErrorValueTypes.ValueTooLow
 
-            currentGroup = group
-            groupExceededThresholdAtTime = currentTime
-        }
-        return currentTime - groupExceededThresholdAtTime
-    })
+                currentGroup = group
+                groupExceededThresholdAtTime = currentTime
+            }
+            return currentTime - groupExceededThresholdAtTime
+        })
+    },
 }
 
 // Assumptions: data is sorted by entity, then time
 // todo: move tests over from CE
-const rollingAverage = (
-    columnStore: CoreColumnStore,
-    timeSlug: ColumnSlug,
-    entitySlug: ColumnSlug,
-    columnSlug: ColumnSlug,
-    windowSize: number
-): (number | ErrorValue)[] => {
-    const entityNames = columnStore[entitySlug] as string[]
-    const columnValues = columnStore[columnSlug] as number[]
-    const timeValues = columnStore[timeSlug] as number[]
-    const len = entityNames.length
-    if (!len) return []
-    let currentEntity = entityNames[0]
-    let currentValues: number[] = []
-    let currentTimes: Time[] = []
+const rollingAverage: Transform = {
+    params: [
+        { type: TransformParamType.TimeSlug },
+        { type: TransformParamType.EntitySlug },
+        { type: TransformParamType.DataSlug },
+        { type: TransformParamType.Number },
+    ],
+    fn: (
+        columnStore: CoreColumnStore,
+        timeSlug: ColumnSlug,
+        entitySlug: ColumnSlug,
+        columnSlug: ColumnSlug,
+        windowSize: number
+    ): (number | ErrorValue)[] => {
+        const entityNames = columnStore[entitySlug] as string[]
+        const columnValues = columnStore[columnSlug] as number[]
+        const timeValues = columnStore[timeSlug] as number[]
+        const len = entityNames.length
+        if (!len) return []
+        let currentEntity = entityNames[0]
+        let currentValues: number[] = []
+        let currentTimes: Time[] = []
 
-    const groups: (number | ErrorValue)[][] = []
-    for (let rowIndex = 0; rowIndex <= len; rowIndex++) {
-        const entityName = entityNames[rowIndex]
-        const value = columnValues[rowIndex]
-        const time = timeValues[rowIndex]
-        if (currentEntity !== entityName) {
-            const averages = computeRollingAverage(
-                insertMissingValuePlaceholders(currentValues, currentTimes),
-                windowSize
-            ).filter(
-                (value) => !(value === ErrorValueTypes.MissingValuePlaceholder)
-            ) // filter the placeholders back out
-            groups.push(averages)
-            if (value === undefined) break // We iterate to <= so that we push the last row
-            currentValues = []
-            currentTimes = []
-            currentEntity = entityName
+        const groups: (number | ErrorValue)[][] = []
+        for (let rowIndex = 0; rowIndex <= len; rowIndex++) {
+            const entityName = entityNames[rowIndex]
+            const value = columnValues[rowIndex]
+            const time = timeValues[rowIndex]
+            if (currentEntity !== entityName) {
+                const averages = computeRollingAverage(
+                    insertMissingValuePlaceholders(currentValues, currentTimes),
+                    windowSize
+                ).filter(
+                    (value) =>
+                        !(value === ErrorValueTypes.MissingValuePlaceholder)
+                ) // filter the placeholders back out
+                groups.push(averages)
+                if (value === undefined) break // We iterate to <= so that we push the last row
+                currentValues = []
+                currentTimes = []
+                currentEntity = entityName
+            }
+            currentValues.push(value)
+            currentTimes.push(time)
         }
-        currentValues.push(value)
-        currentTimes.push(time)
-    }
-    return flatten(groups)
+        return flatten(groups)
+    },
 }
 
-const divideBy = (
-    columnStore: CoreColumnStore,
-    numeratorSlug: ColumnSlug,
-    denominatorSlug: ColumnSlug
-): (number | DivideByZeroError)[] => {
-    const numeratorValues = columnStore[numeratorSlug] as number[]
-    const denominatorValues = columnStore[denominatorSlug] as number[]
-    return denominatorValues.map((denominator, index) => {
-        if (denominator === 0) return ErrorValueTypes.DivideByZeroError
-        const numerator = numeratorValues[index]
-        if (!isNotErrorValue(numerator)) return numerator
-        if (!isNotErrorValue(denominator)) return denominator
-        return numerator / denominator
-    })
+const divideBy: Transform = {
+    params: [
+        { type: TransformParamType.DataSlug },
+        { type: TransformParamType.DataSlug },
+    ],
+    fn: (
+        columnStore: CoreColumnStore,
+        numeratorSlug: ColumnSlug,
+        denominatorSlug: ColumnSlug
+    ): (number | DivideByZeroError)[] => {
+        const numeratorValues = columnStore[numeratorSlug] as number[]
+        const denominatorValues = columnStore[denominatorSlug] as number[]
+        return denominatorValues.map((denominator, index) => {
+            if (denominator === 0) return ErrorValueTypes.DivideByZeroError
+            const numerator = numeratorValues[index]
+            if (!isNotErrorValue(numerator)) return numerator
+            if (!isNotErrorValue(denominator)) return denominator
+            return numerator / denominator
+        })
+    },
 }
 
-const multiplyBy = (
-    columnStore: CoreColumnStore,
-    columnSlug: ColumnSlug,
-    factor: number
-): (number | ErrorValue)[] =>
-    columnStore[columnSlug].map((value) =>
-        isNotErrorValue(value) ? (value as number) * factor : value
-    )
+const multiplyBy: Transform = {
+    params: [
+        { type: TransformParamType.DataSlug },
+        { type: TransformParamType.Number },
+    ],
+    fn: (
+        columnStore: CoreColumnStore,
+        columnSlug: ColumnSlug,
+        factor: number
+    ): (number | ErrorValue)[] =>
+        columnStore[columnSlug].map((value) =>
+            isNotErrorValue(value) ? (value as number) * factor : value
+        ),
+}
 
-const subtract = (
-    columnStore: CoreColumnStore,
-    columnSlugA: ColumnSlug,
-    columnSlugB: ColumnSlug
-): number[] => {
-    const values = columnStore[columnSlugA] as number[]
-    const subValues = columnStore[columnSlugB] as number[]
-    return subValues.map((subValue, index) => {
-        const value = values[index]
-        if (!isNotErrorValue(value)) return value
-        if (!isNotErrorValue(subValue)) return subValue
-        return value - subValue
-    })
+const subtract: Transform = {
+    params: [
+        { type: TransformParamType.DataSlug },
+        { type: TransformParamType.DataSlug },
+    ],
+    fn: (
+        columnStore: CoreColumnStore,
+        columnSlugA: ColumnSlug,
+        columnSlugB: ColumnSlug
+    ): number[] => {
+        const values = columnStore[columnSlugA] as number[]
+        const subValues = columnStore[columnSlugB] as number[]
+        return subValues.map((subValue, index) => {
+            const value = values[index]
+            if (!isNotErrorValue(value)) return value
+            if (!isNotErrorValue(subValue)) return subValue
+            return value - subValue
+        })
+    },
 }
 
 enum WhereOperators {
@@ -217,88 +271,122 @@ enum WhereOperators {
 }
 // Todo: add tests/expand capabilities/remove?
 // Currently this just supports `columnSlug where someColumnSlug (isNot|is) this or that or this`
-const where = (
-    columnStore: CoreColumnStore,
-    columnSlug: ColumnSlug,
-    conditionSlug: ColumnSlug,
-    ...condition: string[]
-): CoreValueType[] => {
-    const values = columnStore[columnSlug]
-    const conditionValues = columnStore[conditionSlug]
-    const operator = condition.shift()
-    let passes: (value: any) => boolean = () => true
-    if (operator === WhereOperators.isNot || operator === WhereOperators.is) {
-        const result = operator === "isNot" ? false : true
-        const list = condition.join(" ").split(" or ")
-        const set = new Set(list)
-        passes = (value: any): boolean => (set.has(value) ? result : !result)
-    } else if (operator === WhereOperators.isGreaterThan)
-        passes = (value: any): boolean => value > parseFloat(condition.join(""))
-    else if (operator === WhereOperators.isGreaterThanOrEqual)
-        passes = (value: any): boolean =>
-            value >= parseFloat(condition.join(""))
-    else if (operator === WhereOperators.isLessThan)
-        passes = (value: any): boolean => value < parseFloat(condition.join(""))
-    else if (operator === WhereOperators.isLessThanOrEqual)
-        passes = (value: any): boolean =>
-            value <= parseFloat(condition.join(""))
+const where: Transform = {
+    params: [
+        { type: TransformParamType.DataSlug },
+        {
+            type: TransformParamType.ColumnSlug,
+        },
+        {
+            type: TransformParamType.String,
+            spread: true,
+        },
+    ],
+    fn: (
+        columnStore: CoreColumnStore,
+        columnSlug: ColumnSlug,
+        conditionSlug: ColumnSlug,
+        ...condition: string[]
+    ): CoreValueType[] => {
+        const values = columnStore[columnSlug]
+        const conditionValues = columnStore[conditionSlug]
+        const operator = condition.shift()
+        let passes: (value: any) => boolean = () => true
+        if (
+            operator === WhereOperators.isNot ||
+            operator === WhereOperators.is
+        ) {
+            const result = operator === "isNot" ? false : true
+            const list = condition.join(" ").split(" or ")
+            const set = new Set(list)
+            passes = (value: any): boolean =>
+                set.has(value) ? result : !result
+        } else if (operator === WhereOperators.isGreaterThan)
+            passes = (value: any): boolean =>
+                value > parseFloat(condition.join(""))
+        else if (operator === WhereOperators.isGreaterThanOrEqual)
+            passes = (value: any): boolean =>
+                value >= parseFloat(condition.join(""))
+        else if (operator === WhereOperators.isLessThan)
+            passes = (value: any): boolean =>
+                value < parseFloat(condition.join(""))
+        else if (operator === WhereOperators.isLessThanOrEqual)
+            passes = (value: any): boolean =>
+                value <= parseFloat(condition.join(""))
 
-    return values.map((value, index) =>
-        passes(conditionValues[index]) ? value : ErrorValueTypes.FilteredValue
-    )
+        return values.map((value, index) =>
+            passes(conditionValues[index])
+                ? value
+                : ErrorValueTypes.FilteredValue
+        )
+    },
 }
 
 // Assumptions: data is sorted by entity, then time, and time is a continous integer with a row for each time step.
 // todo: move tests over from CE
-const percentChange = (
-    columnStore: CoreColumnStore,
-    timeSlug: ColumnSlug,
-    entitySlug: ColumnSlug,
-    columnSlug: ColumnSlug,
-    windowSize: number
-): (number | ErrorValue)[] => {
-    const entityNames = columnStore[entitySlug] as string[]
-    const columnValues = columnStore[columnSlug] as number[]
+const percentChange: Transform = {
+    params: [
+        { type: TransformParamType.TimeSlug },
+        { type: TransformParamType.EntitySlug },
+        { type: TransformParamType.DataSlug },
+        { type: TransformParamType.Number },
+    ],
+    fn: (
+        columnStore: CoreColumnStore,
+        timeSlug: ColumnSlug,
+        entitySlug: ColumnSlug,
+        columnSlug: ColumnSlug,
+        windowSize: number
+    ): (number | ErrorValue)[] => {
+        const entityNames = columnStore[entitySlug] as string[]
+        const columnValues = columnStore[columnSlug] as number[]
 
-    // If windowSize is 0 then there is zero change for every valid value
-    if (!windowSize)
-        return columnValues.map((val) => (isNotErrorValue(val) ? 0 : val))
+        // If windowSize is 0 then there is zero change for every valid value
+        if (!windowSize)
+            return columnValues.map((val) => (isNotErrorValue(val) ? 0 : val))
 
-    let currentEntity: string
-    return columnValues.map((value: any, index) => {
-        const entity = entityNames[index]
-        const previousEntity = entityNames[index - windowSize] as any
-        const previousValue = columnValues[index - windowSize] as any
-        if (
-            !currentEntity ||
-            currentEntity !== entity ||
-            previousEntity !== entity
-        ) {
-            currentEntity = entity
-            return ErrorValueTypes.NoValueToCompareAgainst
-        }
-        if (previousValue instanceof ErrorValue) return previousValue
-        if (value instanceof ErrorValue) return value
+        let currentEntity: string
+        return columnValues.map((value: any, index) => {
+            const entity = entityNames[index]
+            const previousEntity = entityNames[index - windowSize] as any
+            const previousValue = columnValues[index - windowSize] as any
+            if (
+                !currentEntity ||
+                currentEntity !== entity ||
+                previousEntity !== entity
+            ) {
+                currentEntity = entity
+                return ErrorValueTypes.NoValueToCompareAgainst
+            }
+            if (previousValue instanceof ErrorValue) return previousValue
+            if (value instanceof ErrorValue) return value
 
-        if (previousValue === 0) return ErrorValueTypes.DivideByZeroError
-        if (previousValue === undefined)
-            return ErrorValueTypes.NoValueToCompareAgainst
+            if (previousValue === 0) return ErrorValueTypes.DivideByZeroError
+            if (previousValue === undefined)
+                return ErrorValueTypes.NoValueToCompareAgainst
 
-        return (100 * (value - previousValue)) / previousValue
-    })
+            return (100 * (value - previousValue)) / previousValue
+        })
+    },
 }
 
 // Todo: remove?
-const asPercentageOf = (
-    columnStore: CoreColumnStore,
-    numeratorSlug: ColumnSlug,
-    denominatorSlug: ColumnSlug
-): (number | DivideByZeroError)[] =>
-    divideBy(columnStore, numeratorSlug, denominatorSlug).map((num) =>
-        typeof num === "number" ? 100 * num : num
-    )
+const asPercentageOf: Transform = {
+    params: [
+        { type: TransformParamType.DataSlug },
+        { type: TransformParamType.DataSlug },
+    ],
+    fn: (
+        columnStore: CoreColumnStore,
+        numeratorSlug: ColumnSlug,
+        denominatorSlug: ColumnSlug
+    ): (number | DivideByZeroError)[] =>
+        divideBy
+            .fn(columnStore, numeratorSlug, denominatorSlug)
+            .map((num: any) => (typeof num === "number" ? 100 * num : num)),
+}
 
-const availableTransforms: any = {
+const availableTransforms: Record<string, Transform> = {
     asPercentageOf: asPercentageOf,
     timeSinceEntityExceededThreshold: timeSinceEntityExceededThreshold,
     divideBy: divideBy,
@@ -311,23 +399,35 @@ const availableTransforms: any = {
 
 export const AvailableTransforms = Object.keys(availableTransforms)
 
+const extractTransformNameAndParams = (
+    transform: string
+): { transformName: string; params: string[] } | undefined => {
+    const words = transform.split(" ")
+    const transformName = words.find(
+        (word) => availableTransforms[word] !== undefined
+    )
+    if (!transformName) {
+        console.warn(`Warning: transform '${transformName}' not found`)
+        return
+    }
+    const params = words.filter((word) => word !== transformName)
+    return { transformName, params }
+}
+
 export const applyTransforms = (
     columnStore: CoreColumnStore,
     defs: CoreColumnDef[]
 ): CoreColumnStore => {
-    defs.forEach((def) => {
-        const words = def.transform!.split(" ")
-        const transformName = words.find(
-            (word) => availableTransforms[word] !== undefined
-        )
-        if (!transformName) {
-            console.warn(`Warning: transform '${transformName}' not found`)
-            return
-        }
-        const params = words.filter((word) => word !== transformName)
-        const fn = availableTransforms[transformName]
+    for (let i = 0; i < defs.length; i++) {
+        const def = defs[i]
+        if (!def.transform || def.transformHasRun) continue
+        const { transformName, params = [] } =
+            extractTransformNameAndParams(def.transform!) ?? {}
+        if (!transformName) continue
+        const { fn } = availableTransforms[transformName]
         try {
             columnStore[def.slug] = fn(columnStore, ...params)
+            def.transformHasRun = true
         } catch (err) {
             console.error(
                 `Error performing transform '${def.transform}' for column '${
@@ -340,6 +440,29 @@ export const applyTransforms = (
             )
             console.error(err)
         }
-    })
+    }
     return columnStore
+}
+
+export const extractDataSlugsFromTransform = (
+    transform: string
+): ColumnSlug[] => {
+    const { transformName, params = [] } =
+        extractTransformNameAndParams(transform) ?? {}
+    if (!transformName) return []
+    const dataParams = availableTransforms[transformName].params
+        .map((param, index) => ({ ...param, index }))
+        .filter(
+            (param) =>
+                param.type === TransformParamType.DataSlug ||
+                param.type === TransformParamType.ColumnSlug // might be a data slug
+        )
+    if (dataParams.length === 0) return []
+    const dataParamInds = dataParams.map((param) => param.index)
+    const dataSlugs = params.filter((_, index) => dataParamInds.includes(index))
+    const lastDataParam = dataParams[dataParams.length - 1]
+    if (lastDataParam.spread) {
+        dataSlugs.push(...params.slice(lastDataParam.index + 1))
+    }
+    return dataSlugs
 }

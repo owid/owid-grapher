@@ -1,10 +1,10 @@
 import {
-    CoreColumnDef,
     CoreMatrix,
     ColumnTypeNames,
     CoreTable,
     CoreTableInputOption,
     CoreValueType,
+    OwidColumnDef,
     OwidTable,
     TableSlug,
 } from "@ourworldindata/core-table"
@@ -39,7 +39,7 @@ export const EXPLORER_FILE_SUFFIX = ".explorer.tsv"
 
 export interface TableDef {
     url?: string
-    columnDefinitions?: CoreColumnDef[]
+    columnDefinitions?: OwidColumnDef[]
     inlineData?: string[][]
 }
 
@@ -232,8 +232,8 @@ export class ExplorerProgram extends GridProgram {
             .map((line) => line[2])
     }
 
-    get columnDefsByTableSlug(): Map<TableSlug | undefined, CoreColumnDef[]> {
-        const columnDefs = new Map<TableSlug | undefined, CoreColumnDef[]>()
+    get columnDefsByTableSlug(): Map<TableSlug | undefined, OwidColumnDef[]> {
+        const columnDefs = new Map<TableSlug | undefined, OwidColumnDef[]>()
         const colDefsRows = this.getAllRowsMatchingWords(
             ExplorerGrammar.columns.keyword
         )
@@ -252,7 +252,7 @@ export class ExplorerProgram extends GridProgram {
         return columnDefs
     }
 
-    get columnDefsNotLinkedToTable(): CoreColumnDef[] {
+    get columnDefsNotLinkedToTable(): OwidColumnDef[] {
         return this.columnDefsByTableSlug.get(undefined) ?? []
     }
 
@@ -380,7 +380,7 @@ export class ExplorerProgram extends GridProgram {
             url = `https://raw.githubusercontent.com/owid/owid-datasets/master/datasets/${owidDatasetSlug}/${owidDatasetSlug}.csv`
         }
 
-        const columnDefinitions: CoreColumnDef[] | undefined =
+        const columnDefinitions: OwidColumnDef[] | undefined =
             this.columnDefsByTableSlug.get(tableSlug)
 
         return {
@@ -412,7 +412,7 @@ export const trimAndParseObject = (config: any, grammar: Grammar) => {
     return trimmedRow
 }
 
-const parseColumnDefs = (block: string[][]): CoreColumnDef[] => {
+const parseColumnDefs = (block: string[][]): OwidColumnDef[] => {
     const columnsTable = new CoreTable(block)
         .appendColumnsIfNew([
             { slug: "slug", type: ColumnTypeNames.String, name: "slug" },
@@ -422,23 +422,25 @@ const parseColumnDefs = (block: string[][]): CoreColumnDef[] => {
                 name: "indicatorId",
             },
         ])
+        .renameColumn("indicatorId", "owidVariableId")
         .combineColumns(
-            ["slug", "indicatorId"],
+            ["slug", "owidVariableId"],
             {
-                slug: "inferredSlug",
+                slug: "slugOrIndicatorId",
                 type: ColumnTypeNames.String,
-                name: "inferredSlug",
+                name: "slugOrIndicatorId",
             },
-            (values) => values.slug ?? values.indicatorId.toString()
+            (values) => values.slug ?? values.owidVariableId.toString()
         )
-        .dropColumns(["slug", "indicatorId"])
-        .renameColumn("inferredSlug", "slug")
         .columnFilter(
-            "slug",
+            "slugOrIndicatorId",
             (value: CoreValueType) => !!value,
-            "Keep only column defs with a slug"
+            "Keep only column defs with a slug or indicator id"
         )
-    return columnsTable.rows.map((row) =>
-        trimAndParseObject(row, ColumnGrammar)
-    )
+        .dropColumns(["slugOrIndicatorId"])
+    return columnsTable.rows.map((row) => {
+        // ignore slug if a variable id is given
+        if (row.owidVariableId && row.slug) delete row.slug
+        return trimAndParseObject(row, ColumnGrammar)
+    })
 }

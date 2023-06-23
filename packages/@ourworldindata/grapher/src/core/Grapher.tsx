@@ -581,19 +581,6 @@ export class Grapher
         }
     }
 
-    @action.bound fireWhenReady(fn: (grapher: Grapher) => void): void {
-        if (this.isReady) fn(this)
-        else {
-            this.disposers.push(
-                autorun(() => {
-                    if (this.isReady) {
-                        fn(this)
-                    }
-                })
-            )
-        }
-    }
-
     @action.bound private setTimeFromTimeQueryParam(time: string): void {
         this.timelineHandleTimeBounds = getTimeDomainFromQueryString(time).map(
             (time) => findClosestTime(this.times, time) ?? time
@@ -754,7 +741,7 @@ export class Grapher
     }
 
     @action.bound
-    private async downloadLegacyDataFromOwidVariableIds(): Promise<void> {
+    async downloadLegacyDataFromOwidVariableIds(): Promise<void> {
         if (this.variableIds.length === 0)
             // No data to download
             return

@@ -184,7 +184,6 @@ export class CoreTable<
             valuesFromColumnDefs,
             inputColumnsToParsedColumnStore,
             inputColumnDefs,
-            isRoot,
             advancedOptions,
         } = this
 
@@ -203,11 +202,10 @@ export class CoreTable<
                 inputColumnsToParsedColumnStore
             )
 
-        // NB: transforms are *only* run on the root table for now. They will not be rerun later on (after adding or filtering rows, for example)
         const columnsFromTransforms = inputColumnDefs.filter(
-            (def) => def.transform
+            (def) => def.transform && !def.transformHasRun
         ) // todo: sort by graph dependency order
-        if (isRoot && columnsFromTransforms.length)
+        if (columnsFromTransforms.length)
             columnStore = applyTransforms(columnStore, columnsFromTransforms)
 
         return advancedOptions.filterMask

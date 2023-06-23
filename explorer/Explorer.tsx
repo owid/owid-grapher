@@ -4,6 +4,7 @@ import {
     BlankOwidTable,
     ColumnTypeNames,
     CoreColumnDef,
+    extractDataSlugsFromTransform,
     isNotErrorValue,
     OwidColumnDef,
     OwidTable,
@@ -32,6 +33,7 @@ import {
     excludeUndefined,
     exposeInstanceOnWindow,
     flatten,
+    identity,
     isInIFrame,
     keyBy,
     keyMap,
@@ -42,11 +44,12 @@ import {
     SerializedGridProgram,
     setWindowUrl,
     throttle,
+    uniq,
     uniqBy,
     Url,
 } from "@ourworldindata/utils"
 import classNames from "classnames"
-import { action, computed, observable, reaction, runInAction } from "mobx"
+import { action, computed, observable, reaction } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"
 import ReactDOM from "react-dom"
@@ -405,6 +408,46 @@ export class Explorer
         if (!grapher.id) grapher.id = 0
     }
 
+    @computed private get columnDefsNotLinkedToTableByIdOrSlug(): Record<
+        number | string,
+        OwidColumnDef
+    > {
+        const { columnDefsNotLinkedToTable } = this.explorerProgram
+        return keyBy(
+            columnDefsNotLinkedToTable as OwidColumnDef[],
+            (def: OwidColumnDef) => def.owidVariableId ?? def.slug
+        )
+    }
+
+    @action.bound private getBaseColumnsForColumnWithTransform(
+        slug: string,
+        baseColumns: string[] = []
+    ): string[] {
+        const def = this.columnDefsNotLinkedToTableByIdOrSlug[slug] ?? {}
+        if (!def.transform) return baseColumns
+        const dataSlugs = extractDataSlugsFromTransform(def.transform)
+        for (let i = 0; i < dataSlugs.length; i++) {
+            this.getBaseColumnsForColumnWithTransform(dataSlugs[i], baseColumns)
+            baseColumns.push(dataSlugs[i]) // deepest dependency at the start of the array
+        }
+        return baseColumns
+    }
+
+    @action.bound private getBaseIndicatorIdsForColumnWithTransform(
+        slug: string
+    ): string[] {
+        const { columnDefsNotLinkedToTable } = this.explorerProgram
+        const baseIndicatorIdsAndColumnSlugs =
+            this.getBaseColumnsForColumnWithTransform(slug)
+        const slugsInColumnBlock: string[] = columnDefsNotLinkedToTable
+            .filter((def) => !def.owidVariableId)
+            .map((def) => def.slug)
+        return baseIndicatorIdsAndColumnSlugs.filter(
+            (indicatorIdOrColumnSlug) =>
+                !slugsInColumnBlock.includes(indicatorIdOrColumnSlug)
+        )
+    }
+
     @action.bound private updateGrapherFromExplorerUsingGrapherId() {
         const grapher = this.grapher
         if (!grapher) return
@@ -426,7 +469,7 @@ export class Explorer
         grapher.downloadData()
     }
 
-    @action.bound private updateGrapherFromExplorerUsingIndicatorIds() {
+    @action.bound private async updateGrapherFromExplorerUsingIndicatorIds() {
         const grapher = this.grapher
         if (!grapher) return
         const {
@@ -434,6 +477,10 @@ export class Explorer
             xIndicatorId,
             colorIndicatorId,
             sizeIndicatorId,
+            ySlugs = "",
+            xSlug,
+            colorSlug,
+            sizeSlug,
         } = this.explorerProgram.grapherConfig
 
         const config: GrapherProgrammaticInterface = {
@@ -473,44 +520,76 @@ export class Explorer
                 property: DimensionProperty.size,
             })
         }
+
+        // slugs refer to columns that are derived from indicators by specifying a transform
+        const uniqueSlugsInGrapherRow = uniq(
+            [...ySlugs.split(" "), xSlug, colorSlug, sizeSlug].filter(identity)
+        ) as string[]
+
+        if (uniqueSlugsInGrapherRow.length) {
+            const baseIndicatorIds = uniq(
+                uniqueSlugsInGrapherRow.flatMap(
+                    this.getBaseIndicatorIdsForColumnWithTransform
+                )
+            )
+                .map(parseInt)
+                .filter((id) => !isNaN(id))
+            // add all indicator ids that the given slugs depend on to the config
+            baseIndicatorIds.forEach((indicatorId) => {
+                dimensions.push({
+                    variableId: indicatorId,
+                    property: DimensionProperty.table, // no specific dimension
+                })
+            })
+        }
+
         config.dimensions = dimensions
 
         grapher.setAuthoredVersion(config)
         grapher.reset()
         this.updateGrapherFromExplorerCommon()
         grapher.updateFromObject(config)
-        grapher.downloadData()
+        await grapher.downloadLegacyDataFromOwidVariableIds()
 
-        const columnDefBySlug = keyBy(
-            this.explorerProgram.columnDefsNotLinkedToTable,
-            (d: OwidColumnDef) => d.slug
-        )
+        let grapherTable = grapher.inputTable
 
-        grapher.fireWhenReady(() => {
-            runInAction(() => {
-                this.setGrapherTable(
-                    // update column definitions with manually provided properties
-                    grapher.inputTable.updateDefs((def: OwidColumnDef) => {
-                        const manuallyProvidedDef = (columnDefBySlug[
-                            def.slug
-                        ] ?? {}) as OwidColumnDef
-                        const mergedDef = { ...def, ...manuallyProvidedDef }
+        // update column definitions with manually provided properties
+        grapherTable = grapherTable.updateDefs((def: OwidColumnDef) => {
+            const manuallyProvidedDef =
+                this.columnDefsNotLinkedToTableByIdOrSlug[def.slug] ?? {}
+            const mergedDef = { ...def, ...manuallyProvidedDef }
 
-                        // update display properties
-                        mergedDef.display = mergedDef.display ?? {}
-                        if (manuallyProvidedDef.name)
-                            mergedDef.display.name = manuallyProvidedDef.name
-                        if (manuallyProvidedDef.unit)
-                            mergedDef.display.unit = manuallyProvidedDef.unit
-                        if (manuallyProvidedDef.shortUnit)
-                            mergedDef.display.shortUnit =
-                                manuallyProvidedDef.shortUnit
+            // update display properties
+            mergedDef.display = mergedDef.display ?? {}
+            if (manuallyProvidedDef.name)
+                mergedDef.display.name = manuallyProvidedDef.name
+            if (manuallyProvidedDef.unit)
+                mergedDef.display.unit = manuallyProvidedDef.unit
+            if (manuallyProvidedDef.shortUnit)
+                mergedDef.display.shortUnit = manuallyProvidedDef.shortUnit
 
-                        return mergedDef
-                    })
-                )
-            })
+            return mergedDef
         })
+
+        // add derived columns to grapher table
+        if (uniqueSlugsInGrapherRow.length) {
+            const allColumnSlugs = uniq(
+                uniqueSlugsInGrapherRow.flatMap((slug) => [
+                    ...this.getBaseColumnsForColumnWithTransform(slug),
+                    slug,
+                ])
+            )
+            const existentColumnSlugs = grapherTable.columnSlugs
+            const requiredColumnSlugs = allColumnSlugs.filter(
+                (slug) => !existentColumnSlugs.includes(slug)
+            )
+            const requiredColumnDefs = requiredColumnSlugs
+                .map((slug) => this.columnDefsNotLinkedToTableByIdOrSlug[slug])
+                .filter(identity)
+            grapherTable = grapherTable.appendColumns(requiredColumnDefs)
+        }
+
+        this.setGrapherTable(grapherTable)
     }
 
     @action.bound private updateGrapherFromExplorerUsingManuallyProvidedData() {
