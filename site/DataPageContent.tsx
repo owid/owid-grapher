@@ -52,6 +52,8 @@ export const DataPageContent = ({
         relatedCharts = [],
     } = datapageGdoc || {}
 
+    const REUSE_THIS_WORK_ANCHOR = "#reuse-this-work"
+
     const stickyNavLinks = [
         {
             text: "Explore the Data",
@@ -65,7 +67,7 @@ export const DataPageContent = ({
         { text: "All Charts", target: "#all-charts" },
         { text: "FAQs", target: "#faqs" },
         { text: "Sources & Processing", target: "#sources-and-processing" },
-        { text: "Reuse This Work", target: "#reuse-this-work" },
+        { text: "Reuse This Work", target: REUSE_THIS_WORK_ANCHOR },
     ]
 
     const hasRelatedDataFeatured = datapageJson.relatedData?.some(
@@ -449,53 +451,117 @@ export const DataPageContent = ({
                                                                                 containerType="datapage"
                                                                             />
                                                                         )}
-                                                                        <>
-                                                                            {(source.sourceRetrievedOn ||
-                                                                                source.sourceRetrievedFromUrl) && (
-                                                                                <div
-                                                                                    className="grid"
-                                                                                    style={{
-                                                                                        gridTemplateColumns:
-                                                                                            "minmax(0,1fr) minmax(0,2fr)",
-                                                                                    }}
-                                                                                >
-                                                                                    {source.sourceRetrievedOn && (
-                                                                                        <div className="key-data">
-                                                                                            <div className="key-data__title--dark">
-                                                                                                Retrieved
-                                                                                                on
-                                                                                            </div>
-                                                                                            <div>
-                                                                                                {
-                                                                                                    source.sourceRetrievedOn
+                                                                        {(source.sourceRetrievedOn ||
+                                                                            source.sourceRetrievedFromUrl) && (
+                                                                            <div
+                                                                                className="grid source__key-data"
+                                                                                style={{
+                                                                                    gridTemplateColumns:
+                                                                                        "minmax(0,1fr) minmax(0,2fr)",
+                                                                                }}
+                                                                            >
+                                                                                {source.sourceRetrievedOn && (
+                                                                                    <div className="key-data">
+                                                                                        <div className="key-data__title--dark">
+                                                                                            Retrieved
+                                                                                            on
+                                                                                        </div>
+                                                                                        <div>
+                                                                                            {
+                                                                                                source.sourceRetrievedOn
+                                                                                            }
+                                                                                        </div>
+                                                                                    </div>
+                                                                                )}
+                                                                                {source.sourceRetrievedFromUrl && (
+                                                                                    <div className="key-data key-data--hide-overflow">
+                                                                                        <div className="key-data__title--dark">
+                                                                                            Retrieved
+                                                                                            from
+                                                                                        </div>
+                                                                                        <div>
+                                                                                            <a
+                                                                                                href={
+                                                                                                    source.sourceRetrievedFromUrl
                                                                                                 }
-                                                                                            </div>
+                                                                                                target="_blank"
+                                                                                                rel="noreferrer"
+                                                                                            >
+                                                                                                {
+                                                                                                    source.sourceRetrievedFromUrl
+                                                                                                }
+                                                                                            </a>
                                                                                         </div>
-                                                                                    )}
-                                                                                    {source.sourceRetrievedFromUrl && (
-                                                                                        <div className="key-data key-data--hide-overflow">
-                                                                                            <div className="key-data__title--dark">
-                                                                                                Retrieved
-                                                                                                from
-                                                                                            </div>
-                                                                                            <div>
-                                                                                                <a
-                                                                                                    href={
-                                                                                                        source.sourceRetrievedFromUrl
-                                                                                                    }
-                                                                                                    target="_blank"
-                                                                                                    rel="noreferrer"
-                                                                                                >
-                                                                                                    {
-                                                                                                        source.sourceRetrievedFromUrl
-                                                                                                    }
-                                                                                                </a>
-                                                                                            </div>
+                                                                                    </div>
+                                                                                )}
+                                                                                {source.sourceCitation && (
+                                                                                    <div
+                                                                                        className="key-data"
+                                                                                        style={{
+                                                                                            gridColumn:
+                                                                                                "span 2",
+                                                                                        }}
+                                                                                    >
+                                                                                        <div className="key-data__title--dark">
+                                                                                            Citation
                                                                                         </div>
-                                                                                    )}
-                                                                                </div>
-                                                                            )}
-                                                                        </>
+                                                                                        This
+                                                                                        is
+                                                                                        the
+                                                                                        citation
+                                                                                        of
+                                                                                        the
+                                                                                        original
+                                                                                        data
+                                                                                        obtained
+                                                                                        from
+                                                                                        the
+                                                                                        source,
+                                                                                        prior
+                                                                                        to
+                                                                                        any
+                                                                                        processing
+                                                                                        or
+                                                                                        adaptation
+                                                                                        by
+                                                                                        Our
+                                                                                        World
+                                                                                        in
+                                                                                        Data.
+                                                                                        To
+                                                                                        cite
+                                                                                        data
+                                                                                        downloaded
+                                                                                        from
+                                                                                        this
+                                                                                        page,
+                                                                                        please
+                                                                                        use
+                                                                                        the
+                                                                                        suggested
+                                                                                        citation
+                                                                                        given
+                                                                                        in{" "}
+                                                                                        <a
+                                                                                            href={
+                                                                                                REUSE_THIS_WORK_ANCHOR
+                                                                                            }
+                                                                                        >
+                                                                                            Reuse
+                                                                                            This
+                                                                                            Work
+                                                                                        </a>{" "}
+                                                                                        below.
+                                                                                        <CodeSnippet
+                                                                                            code={
+                                                                                                source.sourceCitation
+                                                                                            }
+                                                                                            theme="light"
+                                                                                        />
+                                                                                    </div>
+                                                                                )}
+                                                                            </div>
+                                                                        )}
                                                                     </>
                                                                 }
                                                             />
