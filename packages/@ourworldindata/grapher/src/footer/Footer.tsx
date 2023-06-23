@@ -207,7 +207,12 @@ export class Footer extends React.Component<{
                 }}
             >
                 {this.finalUrlText && (
-                    <a href={this.finalUrl} target="_blank" rel="noopener">
+                    <a
+                        href={this.finalUrl}
+                        target="_blank"
+                        rel="noopener"
+                        style={{ textDecoration: "none" }}
+                    >
                         {this.finalUrlText} •{" "}
                     </a>
                 )}
@@ -217,6 +222,7 @@ export class Footer extends React.Component<{
                         href="http://creativecommons.org/licenses/by/4.0/deed.en_US"
                         target="_blank"
                         rel="noopener"
+                        style={{ textDecoration: "none" }}
                     >
                         CC BY
                     </a>
@@ -225,6 +231,7 @@ export class Footer extends React.Component<{
                         href="https://ourworldindata.org"
                         target="_blank"
                         rel="noopener"
+                        style={{ textDecoration: "none" }}
                     >
                         Powered by ourworldindata.org
                     </a>
