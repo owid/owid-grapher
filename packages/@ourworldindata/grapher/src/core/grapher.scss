@@ -84,6 +84,8 @@ $zindex-Tooltip: 20;
     color: #333;
 
     position: relative;
+    container-type: size;
+    container-name: grapher;
 
     border-radius: 2px;
     box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 2px 0px,

@@ -301,3 +301,32 @@
         }
     }
 }
+
+// adapt to smaller display areas
+@container grapher (max-width:900px) {
+    .Tooltip {
+        section {
+            padding: 4px 12px;
+            .variable .values {
+                font-size: 16px;
+                line-height: 18px;
+            }
+
+            .variable + .variable {
+                margin-top: 0px;
+                padding-top: 4px;
+            }
+
+            table {
+                font-size: 12px;
+                line-height: 18px;
+                letter-spacing: 0.01em;
+                tr.total {
+                    td:last-child::before {
+                        height: 4px;
+                    }
+                }
+            }
+        }
+    }
+}
