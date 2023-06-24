@@ -10,6 +10,7 @@ import {
     excludeUndefined,
     isMobile,
     Time,
+    PointVector,
     lastOfNonEmptyArray,
 } from "@ourworldindata/utils"
 import { computed, action, observable } from "mobx"
@@ -43,6 +44,9 @@ interface AreasProps extends React.SVGAttributes<SVGGElement> {
     dualAxis: DualAxis
     seriesArr: readonly StackedSeries<Time>[]
     focusedSeriesNames: SeriesName[]
+    hoveredAreaName?: SeriesName
+    onAreaMouseEnter: (seriesName: SeriesName) => void
+    onAreaMouseLeave: () => void
 }
 
 const BLUR_COLOR = "#ddd"
@@ -126,7 +130,7 @@ class Areas extends React.Component<AreasProps> {
 
     @computed private get areas(): JSX.Element[] {
         const { placedSeriesArr } = this
-        const { dualAxis } = this.props
+        const { dualAxis, hoveredAreaName } = this.props
         const { verticalAxis } = dualAxis
 
         return placedSeriesArr.map((series, index) => {
@@ -147,6 +151,11 @@ class Areas extends React.Component<AreasProps> {
                 ]
             }
             const points = [...placedPoints, ...reverse(clone(prevPoints))]
+            const opacity = !hoveredAreaName
+                ? 0.7 // normal opacity
+                : hoveredAreaName == series.seriesName
+                ? 0.7 // hovered
+                : 0.2 // non-hovered
 
             return (
                 <path
@@ -155,8 +164,14 @@ class Areas extends React.Component<AreasProps> {
                     strokeLinecap="round"
                     d={pointsToPath(points)}
                     fill={this.seriesIsBlur(series) ? BLUR_COLOR : series.color}
-                    fillOpacity={0.7}
+                    fillOpacity={opacity}
                     clipPath={this.props.clipPath}
+                    onMouseEnter={(): void => {
+                        this.props.onAreaMouseEnter(series.seriesName)
+                    }}
+                    onMouseLeave={(): void => {
+                        this.props.onAreaMouseLeave()
+                    }}
                 />
             )
         })
@@ -164,8 +179,16 @@ class Areas extends React.Component<AreasProps> {
 
     @computed private get borders(): JSX.Element[] {
         const { placedSeriesArr } = this
+        const { hoveredAreaName } = this.props
 
         return placedSeriesArr.map((placedSeries) => {
+            const opacity =
+                hoveredAreaName == placedSeries.seriesName
+                    ? 1 // hovered
+                    : 0.7 // non-hovered
+            const weight =
+                hoveredAreaName == placedSeries.seriesName ? 1.5 : 0.5
+
             return (
                 <path
                     className={
@@ -181,10 +204,16 @@ class Areas extends React.Component<AreasProps> {
                     )
                         .darker(0.5)
                         .toString()}
-                    strokeOpacity={0.7}
-                    strokeWidth={0.5}
+                    strokeOpacity={opacity}
+                    strokeWidth={weight}
                     fill="none"
                     clipPath={this.props.clipPath}
+                    onMouseEnter={(): void => {
+                        this.props.onAreaMouseEnter(placedSeries.seriesName)
+                    }}
+                    onMouseLeave={(): void => {
+                        this.props.onAreaMouseLeave()
+                    }}
                 />
             )
         })
@@ -257,6 +286,16 @@ export class StackedAreaChart
     }
 
     @observable hoveredPointIndex?: number
+    @observable hoveredLocation = new PointVector(0, 0)
+    @observable hoveredArea?: SeriesName
+
+    @action.bound private onAreaMouseEnter(seriesName: SeriesName): void {
+        this.hoveredArea = seriesName
+    }
+
+    @action.bound private onAreaMouseLeave(): void {
+        this.hoveredArea = undefined
+    }
 
     @observable hoverSeriesName?: SeriesName
     @action.bound onLineLegendClick(): void {
@@ -334,6 +373,12 @@ export class StackedAreaChart
         } else {
             this.hoveredPointIndex = undefined
         }
+
+        // the tooltip's origin needs to be in the parent's coordinates
+        const ref = this.manager?.base?.current
+        if (ref) {
+            this.hoveredLocation = getRelativeMouse(ref, ev)
+        }
     }
 
     @action.bound private onCursorLeave(): void {
@@ -347,7 +392,8 @@ export class StackedAreaChart
         if (hoveredPointIndex === undefined) return undefined
 
         return (
-            <g className="hoverIndicator">
+            // disable pointer events to avoid interfering with enter/leave tracking of areas
+            <g className="hoverIndicator" style={{ pointerEvents: "none" }}>
                 {series.map((series) => {
                     const point = series.points[hoveredPointIndex]
                     return this.seriesIsBlur(series) ||
@@ -382,7 +428,7 @@ export class StackedAreaChart
     @computed private get tooltip(): JSX.Element | undefined {
         if (this.hoveredPointIndex === undefined) return undefined
 
-        const { hoveredPointIndex, dualAxis, series } = this
+        const { hoveredPointIndex, series } = this
 
         // Grab the first value to get the year from
         const bottomSeriesPoint = series[0].points[hoveredPointIndex]
@@ -403,12 +449,11 @@ export class StackedAreaChart
             <Tooltip
                 id={this.renderUid}
                 tooltipManager={this.props.manager}
-                x={dualAxis.horizontalAxis.place(bottomSeriesPoint.position)}
-                y={
-                    dualAxis.verticalAxis.rangeMin +
-                    dualAxis.verticalAxis.rangeSize / 2
-                }
+                x={this.hoveredLocation.x}
+                y={this.hoveredLocation.y}
+                offsetY={-12}
                 offsetX={20}
+                offsetXDirection="left"
                 title={formattedTime}
                 subtitle={unit != shortUnit ? unit : undefined}
                 subtitleFormat="unit"
@@ -427,11 +472,12 @@ export class StackedAreaChart
                             } = series
                             const point = points[hoveredPointIndex]
                             const blurred = this.seriesIsBlur(series)
+                            const focused = name == this.hoveredArea
                             const values = [
                                 point?.fake ? undefined : point?.value,
                             ]
 
-                            return { name, swatch, blurred, values }
+                            return { name, swatch, focused, blurred, values }
                         })}
                 />
             </Tooltip>
@@ -482,6 +528,9 @@ export class StackedAreaChart
                         dualAxis={dualAxis}
                         seriesArr={series}
                         focusedSeriesNames={this.focusedSeriesNames}
+                        hoveredAreaName={this.hoveredArea}
+                        onAreaMouseEnter={this.onAreaMouseEnter}
+                        onAreaMouseLeave={this.onAreaMouseLeave}
                     />
                 </g>
                 {this.activeXVerticalLine}
