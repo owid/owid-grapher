@@ -13,6 +13,7 @@ export interface TooltipProps {
     y: number
     offsetX?: number
     offsetY?: number
+    offsetXDirection?: "left" | "right"
     offsetYDirection?: "upward" | "downward"
     title?: string | number
     subtitle?: string | number

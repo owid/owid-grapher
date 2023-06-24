@@ -319,6 +319,13 @@ class TooltipCard extends React.Component<
             offsetY = -offsetY - (this.bounds?.height ?? 0)
         }
 
+        if (
+            this.props.offsetXDirection === "left" &&
+            this.props.x > (this.bounds?.width ?? 0)
+        ) {
+            offsetX = -offsetX - (this.bounds?.width ?? 0)
+        }
+
         // Ensure tooltip remains inside chart
         let x = this.props.x + offsetX
         let y = this.props.y + offsetY
