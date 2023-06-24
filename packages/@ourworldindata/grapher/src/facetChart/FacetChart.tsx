@@ -449,6 +449,7 @@ export class FacetChart
                     ...axes.y.config,
                 },
                 tooltips: this.manager.tooltips,
+                base: this.manager.base,
             }
             const contentBounds = getContentBounds(
                 bounds,
