@@ -455,7 +455,7 @@ export class StackedAreaChart
                 tooltipManager={this.props.manager}
                 x={position.x}
                 y={position.y}
-                offsetY={-12}
+                offsetY={-16}
                 offsetX={20}
                 offsetXDirection="left"
                 title={formattedTime}

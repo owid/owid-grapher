@@ -496,6 +496,7 @@ export class LineChart
                 style={{ maxWidth: "400px" }}
                 offsetXDirection="left"
                 offsetX={20}
+                offsetY={-16}
                 title={formattedTime}
                 subtitle={unit != shortUnit ? unit : undefined}
                 subtitleFormat="unit"

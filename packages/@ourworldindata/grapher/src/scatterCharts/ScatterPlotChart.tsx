@@ -809,7 +809,7 @@ export class ScatterPlotChart
                         x={position.x}
                         y={position.y}
                         offsetX={20}
-                        offsetY={-20}
+                        offsetY={-16}
                         style={{ maxWidth: "250px" }}
                         title={target.series.label}
                         subtitle={timeLabel}

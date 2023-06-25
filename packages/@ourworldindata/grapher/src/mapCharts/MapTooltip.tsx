@@ -220,7 +220,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                 y={position.y}
                 style={{ width: "250px" }}
                 offsetX={20}
-                offsetY={-20}
+                offsetY={-16}
                 offsetYDirection={"downward"}
                 title={target?.featureId}
                 subtitle={datum ? displayDatumTime : displayTime}
