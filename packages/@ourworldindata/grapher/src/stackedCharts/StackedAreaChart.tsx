@@ -288,7 +288,7 @@ export class StackedAreaChart
     @observable tooltipState = new TooltipState<{
         index: number // time-index into points array
         series?: SeriesName
-    }>()
+    }>({ fade: "immediate" })
 
     @action.bound private onAreaMouseEnter(seriesName: SeriesName): void {
         extend(this.tooltipState.target, { series: seriesName })

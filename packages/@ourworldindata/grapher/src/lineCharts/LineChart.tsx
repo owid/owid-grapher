@@ -336,7 +336,7 @@ export class LineChart
 
     @observable tooltipState = new TooltipState<{
         x: number
-    }>()
+    }>({ fade: "immediate" })
 
     @action.bound private onCursorMove(
         ev: React.MouseEvent | React.TouchEvent
