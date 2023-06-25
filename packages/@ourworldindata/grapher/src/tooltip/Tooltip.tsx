@@ -69,9 +69,9 @@ export class TooltipValue extends React.Component<TooltipValueProps> {
                 displayValue === NO_DATA_LABEL ? NO_DATA_COLOR : color
 
         return (
-            <Variable column={column} color={displayColor} notice={notice}>
+            <Indicator column={column} color={displayColor} notice={notice}>
                 {displayValue}
-            </Variable>
+            </Indicator>
         )
     }
 }
@@ -117,16 +117,16 @@ export class TooltipValueRange extends React.Component<TooltipValueRangeProps> {
                     : this.arrowIcon("right")
 
         return (
-            <Variable column={column} color={color} notice={notice}>
+            <Indicator column={column} color={color} notice={notice}>
                 <span className="range">
                     {firstTerm} {trend} {lastTerm}
                 </span>
-            </Variable>
+            </Indicator>
         )
     }
 }
 
-class Variable extends React.Component<{
+class Indicator extends React.Component<{
     column: CoreColumn
     color?: string
     notice?: number | string
@@ -339,11 +339,14 @@ class TooltipCard extends React.Component<
         let y = this.props.y + offsetY
         if (this.bounds) {
             if (x + this.bounds.width > this.props.containerWidth)
-                x -= this.bounds.width + 2 * offsetX
+                x -= this.bounds.width + 2 * offsetX // flip left
+            if (y + this.bounds.height * 0.75 > this.props.containerHeight)
+                y -= this.bounds.height + 2 * offsetY // flip upwards eventually...
             if (y + this.bounds.height > this.props.containerHeight)
-                y -= this.bounds.height + 2 * offsetY
-            if (x < 0) x = 0
-            if (y < 0) y = 0
+                y = this.props.containerHeight - this.bounds.height // ...but first pin at bottom
+
+            if (x < 0) x = 0 // pin on left
+            if (y < 0) y = 0 // pin at top
         }
 
         // add a preposition to unit-based subtitles
