@@ -1,5 +1,6 @@
 import React from "react"
 import {
+    extend,
     reverse,
     clone,
     last,
@@ -10,7 +11,6 @@ import {
     excludeUndefined,
     isMobile,
     Time,
-    PointVector,
     lastOfNonEmptyArray,
 } from "@ourworldindata/utils"
 import { computed, action, observable } from "mobx"
@@ -24,7 +24,7 @@ import {
     LineLegendManager,
 } from "../lineLegend/LineLegend"
 import { NoDataModal } from "../noDataModal/NoDataModal"
-import { Tooltip, TooltipTable } from "../tooltip/Tooltip"
+import { Tooltip, TooltipState, TooltipTable } from "../tooltip/Tooltip"
 import { rgb } from "d3-color"
 import {
     AbstractStackedChart,
@@ -285,16 +285,17 @@ export class StackedAreaChart
         return new LineLegend({ manager: this })
     }
 
-    @observable hoveredPointIndex?: number
-    @observable hoveredLocation = new PointVector(0, 0)
-    @observable hoveredArea?: SeriesName
+    @observable tooltipState = new TooltipState<{
+        index: number // time-index into points array
+        series?: SeriesName
+    }>()
 
     @action.bound private onAreaMouseEnter(seriesName: SeriesName): void {
-        this.hoveredArea = seriesName
+        extend(this.tooltipState.target, { series: seriesName })
     }
 
     @action.bound private onAreaMouseLeave(): void {
-        this.hoveredArea = undefined
+        extend(this.tooltipState.target, { series: undefined })
     }
 
     @observable hoverSeriesName?: SeriesName
@@ -346,11 +347,18 @@ export class StackedAreaChart
     @action.bound private onCursorMove(
         ev: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGElement>
     ): void {
-        if (!this.base.current) return
+        const ref = this.base.current,
+            parentRef = this.manager.base?.current
+
+        // the tooltip's origin needs to be in the parent's coordinates
+        if (parentRef) {
+            this.tooltipState.position = getRelativeMouse(parentRef, ev)
+        }
+
+        if (!ref) return undefined
+
         const { series } = this
-
-        const mouse = getRelativeMouse(this.base.current, ev.nativeEvent)
-
+        const mouse = getRelativeMouse(ref, ev.nativeEvent)
         const boxPadding = isMobile() ? 44 : 25
 
         // expand the box width, so it's easier to see the tooltip for the first & last timepoints
@@ -359,6 +367,7 @@ export class StackedAreaChart
             right: boxPadding,
         })
 
+        let hoveredIndex
         if (boundedBox.contains(mouse)) {
             const invertedX = this.dualAxis.horizontalAxis.invert(mouse.x)
             const closestPoint = minBy(series[0].points, (d) =>
@@ -366,28 +375,27 @@ export class StackedAreaChart
             )
             if (closestPoint) {
                 const index = series[0].points.indexOf(closestPoint)
-                this.hoveredPointIndex = index
-            } else {
-                this.hoveredPointIndex = undefined
+                hoveredIndex = index
             }
-        } else {
-            this.hoveredPointIndex = undefined
         }
-
-        // the tooltip's origin needs to be in the parent's coordinates
-        const ref = this.manager?.base?.current
-        if (ref) {
-            this.hoveredLocation = getRelativeMouse(ref, ev)
-        }
+        this.tooltipState.target =
+            hoveredIndex === undefined
+                ? null
+                : {
+                      index: hoveredIndex,
+                      series: this.tooltipState.target?.series,
+                  }
     }
 
     @action.bound private onCursorLeave(): void {
-        this.hoveredPointIndex = undefined
+        this.hoverSeriesName = undefined
+        this.tooltipState.target = null
     }
 
     @computed private get activeXVerticalLine(): JSX.Element | undefined {
-        const { dualAxis, series, hoveredPointIndex } = this
+        const { dualAxis, series } = this
         const { horizontalAxis, verticalAxis } = dualAxis
+        const hoveredPointIndex = this.tooltipState.target?.index
 
         if (hoveredPointIndex === undefined) return undefined
 
@@ -426,17 +434,13 @@ export class StackedAreaChart
     }
 
     @computed private get tooltip(): JSX.Element | undefined {
-        if (this.hoveredPointIndex === undefined) return undefined
-
-        const { hoveredPointIndex, series } = this
+        const { target, position, fading } = this.tooltipState
+        if (!target) return undefined
 
         // Grab the first value to get the year from
+        const { series } = this
+        const hoveredPointIndex = target.index
         const bottomSeriesPoint = series[0].points[hoveredPointIndex]
-
-        // If any data is missing, don't display a total
-        const showTotalValue = !series.some(
-            (series) => series.points[hoveredPointIndex].fake
-        )
 
         const yColumn = this.yColumns[0], // Assumes same type for all columns.
             formattedTime = yColumn.formatTime(bottomSeriesPoint.position),
@@ -449,18 +453,19 @@ export class StackedAreaChart
             <Tooltip
                 id={this.renderUid}
                 tooltipManager={this.props.manager}
-                x={this.hoveredLocation.x}
-                y={this.hoveredLocation.y}
+                x={position.x}
+                y={position.y}
                 offsetY={-12}
                 offsetX={20}
                 offsetXDirection="left"
                 title={formattedTime}
                 subtitle={unit != shortUnit ? unit : undefined}
                 subtitleFormat="unit"
+                dissolve={fading}
             >
                 <TooltipTable
                     columns={[yColumn]}
-                    totals={showTotalValue ? [totalValue] : undefined}
+                    totals={[totalValue]}
                     rows={series
                         .slice()
                         .reverse()
@@ -472,7 +477,7 @@ export class StackedAreaChart
                             } = series
                             const point = points[hoveredPointIndex]
                             const blurred = this.seriesIsBlur(series)
-                            const focused = name == this.hoveredArea
+                            const focused = name == target.series
                             const values = [
                                 point?.fake ? undefined : point?.value,
                             ]
@@ -495,6 +500,7 @@ export class StackedAreaChart
             )
 
         const { bounds, dualAxis, renderUid, series } = this
+        const { target } = this.tooltipState
 
         const showLegend = !this.manager.hideLegend
 
@@ -528,7 +534,7 @@ export class StackedAreaChart
                         dualAxis={dualAxis}
                         seriesArr={series}
                         focusedSeriesNames={this.focusedSeriesNames}
-                        hoveredAreaName={this.hoveredArea}
+                        hoveredAreaName={target?.series}
                         onAreaMouseEnter={this.onAreaMouseEnter}
                         onAreaMouseLeave={this.onAreaMouseLeave}
                     />
