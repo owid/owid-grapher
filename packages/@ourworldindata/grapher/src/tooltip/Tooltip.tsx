@@ -13,6 +13,7 @@ import {
     TooltipTableProps,
     TooltipValueProps,
     TooltipValueRangeProps,
+    TooltipFadeMode,
 } from "./TooltipProps"
 
 export const NO_DATA_COLOR = "#999"
@@ -22,6 +23,11 @@ export class TooltipState<T> {
     @observable position = new PointVector(0, 0)
     @observable _target?: T
     @observable _timer?: NodeJS.Timeout
+    _fade: TooltipFadeMode
+
+    constructor({ fade }: { fade?: TooltipFadeMode } = {}) {
+        this._fade = fade ?? "delayed"
+    }
 
     @computed
     get target(): T | undefined {
@@ -45,9 +51,9 @@ export class TooltipState<T> {
     }
 
     @computed
-    get fading(): boolean {
-        // returns true during the timeout after clearing the target
-        return !!this._timer && !!this._target
+    get fading(): TooltipFadeMode | undefined {
+        // returns "delayed"|"immediate" during the timeout after clearing the target
+        return !!this._timer && !!this._target ? this._fade : undefined
     }
 }
 
@@ -350,10 +356,16 @@ class TooltipCard extends React.Component<
         // style the box differently if just displaying title/subtitle
         const plain = hasHeader && !children
 
+        const immediate = dissolve == "immediate"
+
         return (
             <div
                 ref={this.base}
-                className={classnames("Tooltip", { plain, dissolve })}
+                className={classnames("Tooltip", {
+                    plain,
+                    dissolve,
+                    immediate,
+                })}
                 style={{
                     left: `${x}px`,
                     top: `${y}px`,

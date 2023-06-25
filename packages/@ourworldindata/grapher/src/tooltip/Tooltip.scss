@@ -26,6 +26,9 @@
     &.dissolve {
         opacity: 0;
         transition: opacity $fade-time $fade-delay;
+        &.immediate {
+            transition: opacity $fade-time;
+        }
     }
 
     header {

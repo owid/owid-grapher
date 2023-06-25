@@ -7,6 +7,8 @@ export interface TooltipManager {
     tooltips?: ObservableMap<TooltipProps["id"], TooltipProps>
 }
 
+export type TooltipFadeMode = "delayed" | "immediate"
+
 export interface TooltipProps {
     id: number | string
     x: number
@@ -20,7 +22,7 @@ export interface TooltipProps {
     subtitleFormat?: "unit" | "notice"
     footer?: string
     style?: React.CSSProperties
-    dissolve?: boolean
+    dissolve?: TooltipFadeMode
     tooltipManager: TooltipManager
     children?: React.ReactNode
 }
