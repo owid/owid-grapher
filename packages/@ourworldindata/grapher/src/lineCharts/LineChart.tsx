@@ -35,7 +35,7 @@ import {
     LineLegendManager,
 } from "../lineLegend/LineLegend"
 import { ComparisonLine } from "../scatterCharts/ComparisonLine"
-import { Tooltip, TooltipTable } from "../tooltip/Tooltip"
+import { Tooltip, TooltipState, TooltipTable } from "../tooltip/Tooltip"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { extent } from "d3-array"
 import {
@@ -327,19 +327,31 @@ export class LineChart
     }
 
     @action.bound private onCursorLeave(): void {
-        this.onHover(undefined)
+        this.tooltipState.target = null
     }
 
     @computed private get allValues(): LinePoint[] {
         return flatten(this.placedSeries.map((series) => series.points))
     }
 
+    @observable tooltipState = new TooltipState<{
+        x: number
+    }>()
+
     @action.bound private onCursorMove(
         ev: React.MouseEvent | React.TouchEvent
     ): void {
-        if (!this.base.current) return
+        const ref = this.base.current,
+            parentRef = this.manager.base?.current
 
-        const mouse = getRelativeMouse(this.base.current, ev)
+        // the tooltip's origin needs to be in the parent's coordinates
+        if (parentRef) {
+            this.tooltipState.position = getRelativeMouse(parentRef, ev)
+        }
+
+        if (!ref) return
+
+        const mouse = getRelativeMouse(ref, ev)
 
         const boxPadding = isMobile() ? 44 : 25
 
@@ -359,17 +371,7 @@ export class LineChart
             hoverX = closestValue?.x
         }
 
-        this.onHover(hoverX)
-    }
-
-    @observable hoverX?: number = undefined
-
-    @action.bound onHover(hoverX: number | undefined): void {
-        this.hoverX = hoverX
-    }
-
-    @computed get activeX(): number | undefined {
-        return this.hoverX ?? this.props.manager.annotation?.year
+        this.tooltipState.target = hoverX === undefined ? null : { x: hoverX }
     }
 
     @computed private get manager(): LineChartManager {
@@ -423,23 +425,24 @@ export class LineChart
     }
 
     @computed get activeXVerticalLine(): JSX.Element | undefined {
-        const { activeX, dualAxis } = this
+        const { dualAxis } = this
+        const { target } = this.tooltipState
         const { horizontalAxis, verticalAxis } = dualAxis
 
-        if (activeX === undefined) return undefined
+        if (!target) return undefined
 
         return (
             <g className="hoverIndicator">
                 <line
-                    x1={horizontalAxis.place(activeX)}
+                    x1={horizontalAxis.place(target.x)}
                     y1={verticalAxis.range[0]}
-                    x2={horizontalAxis.place(activeX)}
+                    x2={horizontalAxis.place(target.x)}
                     y2={verticalAxis.range[1]}
                     stroke="rgba(180,180,180,.4)"
                 />
                 {this.series.map((series) => {
                     const value = series.points.find(
-                        (point) => point.x === activeX
+                        (point) => point.x === target.x
                     )
                     if (!value || this.seriesIsBlurred(series)) return null
 
@@ -468,17 +471,17 @@ export class LineChart
     }
 
     @computed private get tooltip(): JSX.Element | undefined {
-        const { activeX, dualAxis, formatColumn, colorColumn, hasColorScale } =
-            this
+        const { formatColumn, colorColumn, hasColorScale } = this
+        const { target, position, fading } = this.tooltipState
 
-        if (activeX === undefined) return undefined
+        if (!target) return undefined
 
         const sortedData = sortBy(this.series, (series) => {
-            const value = series.points.find((point) => point.x === activeX)
+            const value = series.points.find((point) => point.x === target.x)
             return value !== undefined ? -value.y : Infinity
         })
 
-        const formattedTime = formatColumn.formatTime(activeX),
+        const formattedTime = formatColumn.formatTime(target.x),
             { unit, shortUnit } = formatColumn
 
         const columns = [formatColumn]
@@ -488,16 +491,15 @@ export class LineChart
             <Tooltip
                 id={this.renderUid}
                 tooltipManager={this.manager}
-                x={dualAxis.horizontalAxis.place(activeX)}
-                y={
-                    dualAxis.verticalAxis.rangeMin +
-                    dualAxis.verticalAxis.rangeSize / 2
-                }
+                x={position.x}
+                y={position.y}
                 style={{ maxWidth: "400px" }}
+                offsetXDirection="left"
                 offsetX={20}
                 title={formattedTime}
                 subtitle={unit != shortUnit ? unit : undefined}
                 subtitleFormat="unit"
+                dissolve={fading}
             >
                 <TooltipTable
                     columns={columns}
@@ -507,7 +509,7 @@ export class LineChart
                             const annotation =
                                 this.getAnnotationsForSeries(name)
                             const point = series.points.find(
-                                (point) => point.x === activeX
+                                (point) => point.x === target.x
                             )
 
                             // It sometimes happens that data is missing for some years for a particular
@@ -523,8 +525,8 @@ export class LineChart
                                 if (
                                     startX === undefined ||
                                     endX === undefined ||
-                                    startX > activeX ||
-                                    endX < activeX
+                                    startX > target.x ||
+                                    endX < target.x
                                 )
                                     return undefined
                             }
