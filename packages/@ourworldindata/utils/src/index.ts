@@ -199,6 +199,9 @@ export {
     type DataPageParseError,
     AllowedDataPageGdocFields,
     type DataPageContentFields,
+    type RawBlockResearchAndWritingRow,
+    type EnrichedBlockAlign,
+    type RawBlockAlign,
 } from "./owidTypes.js"
 
 export {

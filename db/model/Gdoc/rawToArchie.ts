@@ -30,6 +30,7 @@ import {
     RawBlockTopicPageIntro,
     RawBlockExpandableParagraph,
 } from "@ourworldindata/utils"
+import { RawBlockAlign } from "@ourworldindata/utils/dist/owidTypes.js"
 import { match } from "ts-pattern"
 
 export function appendDotEndIfMultiline(
@@ -507,6 +508,20 @@ function* rawResearchAndWritingToArchieMLString(
     yield "{}"
 }
 
+function* rawBlockAlignToArchieMLString(
+    block: RawBlockAlign
+): Generator<string, void, undefined> {
+    yield "{.align}"
+    yield* propertyToArchieMLString("alignment", block.value)
+
+    yield "[.+content]"
+    for (const content of block.value.content) {
+        yield* OwidRawGdocBlockToArchieMLStringGenerator(content)
+    }
+    yield "[]"
+    yield "{}"
+}
+
 export function* OwidRawGdocBlockToArchieMLStringGenerator(
     block: OwidRawGdocBlock
 ): Generator<string, void, undefined> {
@@ -565,6 +580,7 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
             { type: "research-and-writing" },
             rawResearchAndWritingToArchieMLString
         )
+        .with({ type: "align" }, rawBlockAlignToArchieMLString)
         .exhaustive()
     yield* content
 }

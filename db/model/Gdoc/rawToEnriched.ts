@@ -89,6 +89,10 @@ import {
     RefDictionary,
     OwidGdocErrorMessageType,
     excludeNullish,
+    RawBlockResearchAndWritingRow,
+    EnrichedBlockAlign,
+    HorizontalAlign,
+    RawBlockAlign,
 } from "@ourworldindata/utils"
 import {
     extractUrl,
@@ -103,7 +107,6 @@ import {
 import { P, match } from "ts-pattern"
 import { isObject, parseInt } from "lodash"
 import { GDOCS_DETAILS_ON_DEMAND_ID } from "../../../settings/serverSettings.js"
-import { RawBlockResearchAndWritingRow } from "@ourworldindata/utils/dist/owidTypes.js"
 
 export function parseRawBlocksToEnrichedBlocks(
     block: OwidRawGdocBlock
@@ -167,6 +170,7 @@ export function parseRawBlocksToEnrichedBlocks(
             })
         )
         .with({ type: "expandable-paragraph" }, parseExpandableParagraph)
+        .with({ type: "align" }, parseAlign)
         .exhaustive()
 }
 
@@ -1384,6 +1388,39 @@ function parseResearchAndWritingBlock(
         more,
         rows,
         parseErrors,
+    }
+}
+
+function parseAlign(b: RawBlockAlign): EnrichedBlockAlign {
+    const createError = (error: ParseError): EnrichedBlockAlign => ({
+        type: "align",
+        alignment: HorizontalAlign.left,
+        content: [],
+        parseErrors: [error],
+    })
+
+    const possibleAlignValues = Object.values(HorizontalAlign) as string[]
+    const possibleAlignValuesString = possibleAlignValues
+        .map((v) => `"${v}"`)
+        .join(", ")
+
+    if (!b.value.alignment)
+        return createError({
+            message: `Missing alignment property (allowed: one of ${possibleAlignValuesString})`,
+        })
+
+    if (!possibleAlignValues.includes(b.value.alignment))
+        return createError({
+            message: `Invalid alignment property (allowed: one of ${possibleAlignValuesString})`,
+        })
+
+    if (!b.value.content) return createError({ message: "Missing content" })
+
+    return {
+        type: "align",
+        alignment: b.value.alignment as HorizontalAlign,
+        content: compact(b.value.content.map(parseRawBlocksToEnrichedBlocks)),
+        parseErrors: [],
     }
 }
 

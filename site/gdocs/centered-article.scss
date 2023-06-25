@@ -578,6 +578,20 @@ h3.article-block__heading.has-supertitle {
     }
 }
 
+.article-block__align {
+    &.align-left {
+        text-align: left;
+    }
+
+    &.align-center {
+        text-align: center;
+    }
+
+    &.align-right {
+        text-align: right;
+    }
+}
+
 .html-table {
     @include body-3-medium;
     border-collapse: collapse;

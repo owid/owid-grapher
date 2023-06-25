@@ -572,6 +572,7 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
                     // their children may contain urls, but they'll be addressed by traverseEnrichedBlocks
                     type: P.union(
                         "additional-charts",
+                        "align",
                         "aside",
                         "callout",
                         "expandable-paragraph",

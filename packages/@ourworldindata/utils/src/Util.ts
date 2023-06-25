@@ -1557,7 +1557,8 @@ export function traverseEnrichedBlocks(
                     "sdg-grid",
                     "sdg-toc",
                     "topic-page-intro",
-                    "all-charts"
+                    "all-charts",
+                    "align"
                 ),
             },
             callback

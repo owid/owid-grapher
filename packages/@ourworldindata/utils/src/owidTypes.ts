@@ -1022,6 +1022,20 @@ export type EnrichedBlockExpandableParagraph = {
     items: OwidEnrichedGdocBlock[]
 } & EnrichedBlockWithParseErrors
 
+export type RawBlockAlign = {
+    type: "align"
+    value: {
+        alignment: string
+        content: OwidRawGdocBlock[]
+    }
+}
+
+export type EnrichedBlockAlign = {
+    type: "align"
+    alignment: HorizontalAlign
+    content: OwidEnrichedGdocBlock[]
+} & EnrichedBlockWithParseErrors
+
 export type Ref = {
     id: string
     // Can be -1
@@ -1065,6 +1079,7 @@ export type OwidRawGdocBlock =
     | RawBlockExpandableParagraph
     | RawBlockTopicPageIntro
     | RawBlockKeyInsights
+    | RawBlockAlign
 
 export type OwidEnrichedGdocBlock =
     | EnrichedBlockAllCharts
@@ -1097,6 +1112,7 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockTopicPageIntro
     | EnrichedBlockKeyInsights
     | EnrichedBlockResearchAndWriting
+    | EnrichedBlockAlign
 
 export enum OwidGdocPublicationContext {
     unlisted = "unlisted",

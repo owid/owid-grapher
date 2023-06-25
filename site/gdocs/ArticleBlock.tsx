@@ -51,6 +51,7 @@ type Layouts = { default: string; [key: string]: string }
 // prettier-ignore
 const layouts: { [key in Container]: Layouts} = {
     ["default"]: {
+        ["align"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["all-charts"]: "col-start-2 span-cols-12",
         ["aside-left"]: "col-start-2 span-cols-3 span-md-cols-10 col-md-start-3",
         ["aside-right"]: "col-start-11 span-cols-3 span-md-cols-10 col-md-start-3",
@@ -529,6 +530,18 @@ export default function ArticleBlock({
                 {...block}
                 className={getLayout("research-and-writing", containerType)}
             />
+        ))
+        .with({ type: "align" }, (block) => (
+            <div
+                className={cx(
+                    `align-${block.alignment}`,
+                    getLayout("align", containerType)
+                )}
+            >
+                {block.content.map((b, i) => (
+                    <ArticleBlock key={i} b={b} />
+                ))}
+            </div>
         ))
         .exhaustive()
 
