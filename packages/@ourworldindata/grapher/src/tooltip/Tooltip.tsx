@@ -26,6 +26,8 @@ export class TooltipState<T> {
     _fade: TooltipFadeMode
 
     constructor({ fade }: { fade?: TooltipFadeMode } = {}) {
+        // "delayed" mode is good for charts with gaps between targetable areas
+        // "immediate" is better if the tooltip is displayed for all points in the chart's bounds
         this._fade = fade ?? "delayed"
     }
 
