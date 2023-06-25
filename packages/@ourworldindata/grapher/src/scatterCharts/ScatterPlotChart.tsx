@@ -112,11 +112,9 @@ export class ScatterPlotChart
         VerticalColorLegendManager,
         ColorScaleManager
 {
-    // currently hovered individual series key
-    @observable private hoveredSeries?: SeriesName
     // currently hovered legend color
     @observable private hoverColor?: Color
-    // currrent tooltip target & position
+    // currrent hovered individual series + tooltip position
     @observable tooltipState = new TooltipState<{
         series: ScatterSeries
     }>()
@@ -401,7 +399,7 @@ export class ScatterPlotChart
 
     // All currently hovered series keys, combining the legend and the main UI
     @computed private get hoveredSeriesNames(): string[] {
-        const { hoverColor, hoveredSeries } = this
+        const { hoverColor, tooltipState } = this
 
         const hoveredSeriesNames =
             hoverColor === undefined
@@ -412,7 +410,9 @@ export class ScatterPlotChart
                           .map((g) => g.seriesName)
                   )
 
-        if (hoveredSeries !== undefined) hoveredSeriesNames.push(hoveredSeries)
+        if (tooltipState.target) {
+            hoveredSeriesNames.push(tooltipState.target.series.seriesName)
+        }
 
         return hoveredSeriesNames
     }
@@ -450,12 +450,10 @@ export class ScatterPlotChart
     }
 
     @action.bound private onScatterMouseEnter(series: ScatterSeries): void {
-        this.hoveredSeries = series.seriesName
         this.tooltipState.target = { series }
     }
 
     @action.bound private onScatterMouseLeave(): void {
-        this.hoveredSeries = undefined
         this.tooltipState.target = null
     }
 
@@ -469,13 +467,12 @@ export class ScatterPlotChart
     }
 
     @action.bound private onScatterClick(): void {
-        if (this.hoveredSeries) this.onSelectEntity(this.hoveredSeries)
+        const { target } = this.tooltipState
+        if (target) this.onSelectEntity(target.series.seriesName)
     }
 
     @computed get tooltipSeries(): ScatterSeries | undefined {
-        if (this.hoveredSeries !== undefined)
-            return this.series.find((g) => g.seriesName === this.hoveredSeries)
-        return undefined
+        return this.tooltipState.target?.series
     }
 
     @computed private get legendDimensions(): VerticalColorLegend {

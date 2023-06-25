@@ -58,6 +58,7 @@ export class ScatterPoint extends React.Component<{
                     opacity={SCATTER_POINT_OPACITY}
                     stroke={stroke}
                     strokeWidth={SCATTER_POINT_STROKE_WIDTH}
+                    style={{ transition: "fill 250ms" }}
                 />
             </g>
         )
@@ -111,6 +112,7 @@ export class ScatterLine extends React.Component<{
                     }))}
                     strokeWidth={series.size.toFixed(2)}
                     opacity={opacity}
+                    style={{ transition: "stroke 250ms" }}
                 />
                 <Triangle
                     transform={`rotate(${rotation}, ${lastValue.position.x.toFixed(
