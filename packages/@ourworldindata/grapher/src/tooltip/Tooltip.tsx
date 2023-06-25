@@ -28,6 +28,7 @@ export class TooltipState<T> {
     constructor({ fade }: { fade?: TooltipFadeMode } = {}) {
         // "delayed" mode is good for charts with gaps between targetable areas
         // "immediate" is better if the tooltip is displayed for all points in the chart's bounds
+        // "none" disables the fade transition altogether
         this._fade = fade ?? "delayed"
     }
 
@@ -42,10 +43,11 @@ export class TooltipState<T> {
         // transition to smoothly fade the tooltip out
         clearTimeout(this._timer)
         if (newTarget === null) {
+            const speed = { delayed: 1, immediate: 0.5, none: 0 }[this._fade]
             this._timer = setTimeout(() => {
                 this._target = undefined
                 this._timer = undefined
-            }, TOOLTIP_FADE_DURATION)
+            }, speed * TOOLTIP_FADE_DURATION)
         } else {
             this._target = newTarget
             this._timer = undefined

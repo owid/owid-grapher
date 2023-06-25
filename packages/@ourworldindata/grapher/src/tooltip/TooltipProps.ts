@@ -7,7 +7,7 @@ export interface TooltipManager {
     tooltips?: ObservableMap<TooltipProps["id"], TooltipProps>
 }
 
-export type TooltipFadeMode = "delayed" | "immediate"
+export type TooltipFadeMode = "delayed" | "immediate" | "none"
 
 export interface TooltipProps {
     id: number | string
