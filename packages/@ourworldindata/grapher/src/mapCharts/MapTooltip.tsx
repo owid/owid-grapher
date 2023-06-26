@@ -108,6 +108,9 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
         return this.timeSeriesTable ?? new OwidTable()
     }
     @computed private get sparklineManager(): LineChartManager {
+        // use the whole time range for the sparkline, not just the region with data
+        const { minTime, maxTime } = this.props.timeSeriesTable ?? {}
+
         // Pass down short units, while omitting long or undefined ones.
         const unit = this.sparklineTable.get(this.mapColumnSlug).shortUnit
         const yAxisUnit =
@@ -157,10 +160,8 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                 hideAxis: false,
                 hideGridlines: true,
                 tickFormattingOptions: {},
-                // Always show up to the target time on the X axis,
-                // even if there is no data for it.
-                min: this.props.targetTime,
-                max: this.props.targetTime,
+                min: minTime ?? this.props.targetTime,
+                max: maxTime ?? this.props.targetTime,
                 ticks: [
                     // Show minimum and maximum
                     { value: -Infinity, priority: 1 },
