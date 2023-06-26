@@ -346,7 +346,7 @@ export class Explorer
         const {
             grapherId,
             tableSlug,
-            yIndicatorIds,
+            yIndicatorIds = "",
             xIndicatorId,
             colorIndicatorId,
             sizeIndicatorId,
@@ -372,7 +372,7 @@ export class Explorer
         let creationMode = ChartCreationMode.Unknown
         if (grapherId && isNotErrorValue(grapherId))
             creationMode = ChartCreationMode.WithGrapherId
-        else if (yIndicatorIds?.length)
+        else if (yIndicatorIds)
             creationMode = ChartCreationMode.WithIndicatorIds
         else if (tableSlug)
             creationMode = ChartCreationMode.WithManuallyProvidedData
@@ -395,7 +395,11 @@ export class Explorer
         if (creationMode === ChartCreationMode.WithIndicatorIds) {
             const dimensions = config.dimensions ?? []
             if (yIndicatorIds) {
-                yIndicatorIds.forEach((yIndicatorId) => {
+                const yIndicatorIdsList = yIndicatorIds
+                    .split(" ")
+                    .map((item) => parseInt(item))
+                    .filter((item) => !isNaN(item))
+                yIndicatorIdsList.forEach((yIndicatorId) => {
                     dimensions.push({
                         variableId: yIndicatorId,
                         property: DimensionProperty.y,

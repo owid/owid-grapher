@@ -45,7 +45,7 @@ export interface TableDef {
 interface ExplorerGrapherInterface extends GrapherInterface {
     grapherId?: number
     tableSlug?: string
-    yIndicatorIds?: number[]
+    yIndicatorIds?: string
     xIndicatorId?: number
     colorIndicatorId?: number
     sizeIndicatorId?: number
