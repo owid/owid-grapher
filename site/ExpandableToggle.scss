@@ -8,11 +8,6 @@
     border-bottom: none;
 }
 
-.ExpandableToggle--teaser {
-    border: none;
-    margin-bottom: 16px;
-}
-
 .ExpandableToggle__button {
     display: flex;
     justify-content: space-between;
@@ -28,10 +23,6 @@
     &:hover {
         color: $blue-60;
     }
-}
-
-.ExpandableToggle__button--teaser {
-    padding-top: 0;
 }
 
 .ExpandableToggle__title {

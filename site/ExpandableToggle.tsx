@@ -27,15 +27,9 @@ export const ExpandableToggle = ({
         <div
             className={cx("ExpandableToggle", {
                 "ExpandableToggle--stacked": isStacked,
-                "ExpandableToggle--teaser": hasTeaser,
             })}
         >
-            <button
-                className={cx("ExpandableToggle__button", {
-                    "ExpandableToggle__button--teaser": hasTeaser,
-                })}
-                onClick={toggle}
-            >
+            <button className="ExpandableToggle__button" onClick={toggle}>
                 <h4 className="ExpandableToggle__title">{label}</h4>
                 <FontAwesomeIcon
                     className="ExpandableToggle__icon"
