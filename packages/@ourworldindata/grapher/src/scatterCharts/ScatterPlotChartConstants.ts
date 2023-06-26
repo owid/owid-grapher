@@ -88,6 +88,7 @@ export interface ScatterRenderSeries extends ChartSeries {
     points: ScatterRenderPoint[]
     text: string
     isHover?: boolean
+    isTooltip?: boolean
     isFocus?: boolean
     isForeground?: boolean
     offsetVector: PointVector
@@ -114,6 +115,7 @@ export interface ScatterPointsWithLabelsProps {
     seriesArray: ScatterSeries[]
     hoveredSeriesNames: SeriesName[]
     focusedSeriesNames: SeriesName[]
+    tooltipSeriesName?: SeriesName
     dualAxis: DualAxis
     colorScale?: ColorScale
     sizeScale: ScaleLinear<number, number>

@@ -66,6 +66,10 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
         return this.props.hoveredSeriesNames
     }
 
+    @computed private get tooltipSeriesName(): string | undefined {
+        return this.props.tooltipSeriesName
+    }
+
     // Layered mode occurs when any entity on the chart is hovered or focused
     // Then, a special "foreground" set of entities is rendered over the background
     @computed private get isLayerMode(): boolean {
@@ -184,6 +188,7 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
         for (const series of renderData) {
             series.isHover = this.hoveredSeriesNames.includes(series.seriesName)
             series.isFocus = this.focusedSeriesNames.includes(series.seriesName)
+            series.isTooltip = this.tooltipSeriesName === series.seriesName
             series.isForeground = series.isHover || series.isFocus
             if (series.isHover) series.size += 1
         }
