@@ -632,7 +632,7 @@ export const getRelatedChartsForVariable = async (
             : ""
 
     return db.queryMysql(`
-                SELECT DISTINCT
+                SELECT
                     charts.config->>"$.slug" AS slug,
                     charts.config->>"$.title" AS title,
                     charts.config->>"$.variantName" AS variantName,
