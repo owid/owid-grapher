@@ -126,7 +126,7 @@ export const DataPageContent = ({
                             </div>
                         </div>
                     </div>
-                    <nav className="sticky-nav sticky-nav--light">
+                    <nav className="sticky-nav sticky-nav--dark">
                         <StickyNav links={stickyNavLinks} className="wrapper" />
                     </nav>
                     <div
