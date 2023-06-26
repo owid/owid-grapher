@@ -80,8 +80,8 @@ export class Chart extends BaseEntity {
             .queryMysql(
                 `
 SELECT csr.slug AS slug, c.config AS config, c.id AS id
-FROM chart_slug_redirects AS csr
-JOIN charts AS c
+FROM chart_slug_redirects csr
+JOIN charts c
 ON csr.chart_id = c.id
 WHERE c.config -> "$.isPublished" = true
 UNION

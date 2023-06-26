@@ -297,6 +297,7 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
             [...uniqueSlugsByLinkType.grapher.values()].map(
                 async (originalSlug) => {
                     const chartId = slugToIdMap[originalSlug]
+                    if (!chartId) return
                     const chart = await Chart.findOneBy({ id: chartId })
                     if (!chart) return
                     const resolvedSlug = chart.config.slug ?? ""

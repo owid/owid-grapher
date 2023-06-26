@@ -2,7 +2,7 @@ import fs from "fs-extra"
 import { writeFile } from "node:fs/promises"
 import path from "path"
 import { glob } from "glob"
-import { keyBy, without, uniq } from "lodash"
+import { keyBy, without, uniq, mapValues } from "lodash"
 import cheerio from "cheerio"
 import ProgressBar from "progress"
 import * as wpdb from "../db/wpdb.js"
@@ -322,20 +322,14 @@ export class SiteBaker {
         const publishedExplorersBySlug = await this.explorerAdminServer
             .getAllPublishedExplorersBySlugCached()
             .then((results) =>
-                Object.values(results).reduce(
-                    (acc, cur) => ({
-                        ...acc,
-                        [cur.slug]: {
-                            originalSlug: cur.slug,
-                            resolvedUrl: `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${cur.slug}`,
-                            title: cur.title || "",
-                            thumbnail:
-                                cur.thumbnail ||
-                                `${BAKED_BASE_URL}/default-thumbnail.jpg`,
-                        },
-                    }),
-                    {} as Record<string, LinkedChart>
-                )
+                mapValues(results, (cur) => ({
+                    originalSlug: cur.slug,
+                    resolvedUrl: `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${cur.slug}`,
+                    title: cur.title || "",
+                    thumbnail:
+                        cur.thumbnail ||
+                        `${BAKED_BASE_URL}/default-thumbnail.jpg`,
+                }))
             )
         // Includes redirects
         const publishedChartsBySlug = await Chart.mapSlugsToConfigs().then(
@@ -347,7 +341,7 @@ export class SiteBaker {
                             originalSlug: cur.slug,
                             resolvedUrl: `${BAKED_GRAPHER_URL}/${cur.config.slug}`,
                             title: cur.config.title || "",
-                            thumbnail: `${BAKED_GRAPHER_EXPORTS_BASE_URL}/${cur.slug}.svg`,
+                            thumbnail: `${BAKED_GRAPHER_EXPORTS_BASE_URL}/${cur.config.slug}.svg`,
                         },
                     }),
                     {} as Record<string, LinkedChart>
