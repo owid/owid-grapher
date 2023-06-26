@@ -6,10 +6,15 @@
     .header__wrapper {
         padding-top: 24px;
         padding-bottom: 24px;
+
         @include sm-up {
             padding-top: 48px;
             padding-bottom: 40px;
         }
+    }
+
+    .bg-blue-10 {
+        background-color: $blue-10;
     }
 
     .header__supertitle {
@@ -32,12 +37,12 @@
             padding-top: 24px;
             padding-bottom: 24px;
             margin-top: 24px;
-            border-top: 1px solid $blue-10;
-            border-bottom: 1px solid $blue-10;
+            border-top: 1px solid $blue-20;
+            border-bottom: 1px solid $blue-20;
         }
         @include sm-up {
             padding-left: 24px;
-            border-left: 1px solid $blue-10;
+            border-left: 1px solid $blue-20;
             align-self: start;
         }
     }
@@ -52,11 +57,15 @@
         @include gap-wrap(12px, 16px);
 
         a {
-            background-color: $blue-10;
+            background-color: $white;
             border-radius: 24px;
             padding: 6px 16px;
             @include body-3-medium;
             color: $blue-90;
+
+            &:hover {
+                color: $blue-60;
+            }
         }
     }
 
