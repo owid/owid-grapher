@@ -369,13 +369,12 @@ export class Explorer
         )
 
         // chart creation preference: with grapher id -> with indicator ids -> with manually provided data
-        let creationMode = ChartCreationMode.Unknown
+        let creationMode: ChartCreationMode
         if (grapherId && isNotErrorValue(grapherId))
             creationMode = ChartCreationMode.WithGrapherId
         else if (yIndicatorIds)
             creationMode = ChartCreationMode.WithIndicatorIds
-        else if (tableSlug)
-            creationMode = ChartCreationMode.WithManuallyProvidedData
+        else creationMode = ChartCreationMode.WithManuallyProvidedData
 
         const grapherConfig =
             creationMode === ChartCreationMode.WithGrapherId

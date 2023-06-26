@@ -12,7 +12,6 @@ export enum ChartCreationMode {
     WithGrapherId = "WithGrapherId",
     WithIndicatorIds = "WithIndicatorIds",
     WithManuallyProvidedData = "WithManuallyProvidedData",
-    Unknown = "Unknown",
 }
 
 export const DefaultNewExplorerSlug = "new"
