@@ -37,7 +37,6 @@ import {
     isInIFrame,
     keyBy,
     keyMap,
-    omit,
     omitUndefinedValues,
     PromiseCache,
     PromiseSwitcher,
@@ -364,19 +363,9 @@ export class Explorer
                 this.updateGrapherFromExplorerUsingIndicatorIds()
                 break
             case ExplorerChartCreationMode.FromExplorerTableColumnSlugs:
-                this.updateGrapherFromExplorerUsingManuallyProvidedData()
+                this.updateGrapherFromExplorerUsingColumnSlugs()
                 break
         }
-    }
-
-    @computed private get grapherConfigFromExplorerOnlyGrapherProps() {
-        return omit(this.explorerProgram.grapherConfig, [
-            "yIndicatorIds",
-            "xIndicatorId",
-            "colorIndicatorId",
-            "sizeIndicatorId",
-            "mapTargetTime",
-        ])
     }
 
     @action.bound private updateGrapherFromExplorerCommon() {
@@ -457,7 +446,7 @@ export class Explorer
 
         const config: GrapherProgrammaticInterface = {
             ...grapherConfig,
-            ...this.grapherConfigFromExplorerOnlyGrapherProps,
+            ...this.explorerProgram.grapherConfigOnlyGrapherProps,
             bakedGrapherURL: BAKED_GRAPHER_URL,
             hideEntityControls: this.showExplorerControls,
         }
@@ -484,7 +473,7 @@ export class Explorer
         } = this.explorerProgram.grapherConfig
 
         const config: GrapherProgrammaticInterface = {
-            ...this.grapherConfigFromExplorerOnlyGrapherProps,
+            ...this.explorerProgram.grapherConfigOnlyGrapherProps,
             bakedGrapherURL: BAKED_GRAPHER_URL,
             hideEntityControls: this.showExplorerControls,
         }
@@ -532,7 +521,7 @@ export class Explorer
                     this.getBaseIndicatorIdsForColumnWithTransform
                 )
             )
-                .map(parseInt)
+                .map((id) => parseInt(id, 10))
                 .filter((id) => !isNaN(id))
             // add all indicator ids that the given slugs depend on to the config
             baseIndicatorIds.forEach((indicatorId) => {
@@ -592,13 +581,13 @@ export class Explorer
         this.setGrapherTable(grapherTable)
     }
 
-    @action.bound private updateGrapherFromExplorerUsingManuallyProvidedData() {
+    @action.bound private updateGrapherFromExplorerUsingColumnSlugs() {
         const grapher = this.grapher
         if (!grapher) return
         const { tableSlug } = this.explorerProgram.grapherConfig
 
         const config: GrapherProgrammaticInterface = {
-            ...this.grapherConfigFromExplorerOnlyGrapherProps,
+            ...this.explorerProgram.grapherConfigOnlyGrapherProps,
             bakedGrapherURL: BAKED_GRAPHER_URL,
             hideEntityControls: this.showExplorerControls,
             manuallyProvideData: true,

@@ -16,6 +16,7 @@ import {
     SerializedGridProgram,
     SubNavId,
     trimObject,
+    omit,
 } from "@ourworldindata/utils"
 import {
     CellDef,
@@ -321,6 +322,16 @@ export class ExplorerProgram extends GridProgram {
         }
 
         return rootObject
+    }
+
+    get grapherConfigOnlyGrapherProps() {
+        return omit(this.grapherConfig, [
+            GrapherGrammar.yIndicatorIds.keyword,
+            GrapherGrammar.xIndicatorId.keyword,
+            GrapherGrammar.colorIndicatorId.keyword,
+            GrapherGrammar.sizeIndicatorId.keyword,
+            GrapherGrammar.mapTargetTime.keyword,
+        ])
     }
 
     /**
