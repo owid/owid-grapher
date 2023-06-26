@@ -397,7 +397,7 @@ export class Explorer
             if (yIndicatorIds) {
                 const yIndicatorIdsList = yIndicatorIds
                     .split(" ")
-                    .map((item) => parseInt(item))
+                    .map((item) => parseInt(item, 10))
                     .filter((item) => !isNaN(item))
                 yIndicatorIdsList.forEach((yIndicatorId) => {
                     dimensions.push({
