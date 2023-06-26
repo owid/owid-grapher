@@ -53,11 +53,9 @@ import { action, computed, observable, reaction } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"
 import ReactDOM from "react-dom"
-import {
-    ExplorerControlBar,
-    ExplorerControlPanel,
-} from "../explorer/ExplorerControls.js"
-import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
+import { ExplorerControlBar, ExplorerControlPanel } from "./ExplorerControls.js"
+import { ExplorerProgram } from "./ExplorerProgram.js"
+import { GrapherGrammar } from "./GrapherGrammar.js"
 import {
     ADMIN_BASE_URL,
     BAKED_BASE_URL,
@@ -345,12 +343,14 @@ export class Explorer
     )
 
     @computed private get chartCreationMode(): ExplorerChartCreationMode {
-        const { decisionMatrix } = this.explorerProgram
-        const { grapherId, yIndicatorIds } = decisionMatrix.table.firstRow
-
+        const { decisionMatrix, grapherConfig } = this.explorerProgram
+        const { grapherId } = grapherConfig
+        const yIndicatorIdsColumn = decisionMatrix.table.get(
+            GrapherGrammar.yIndicatorIds.keyword
+        )
         if (grapherId && isNotErrorValue(grapherId))
             return ExplorerChartCreationMode.FromGrapherId
-        if (yIndicatorIds?.length)
+        if (yIndicatorIdsColumn.numValues)
             return ExplorerChartCreationMode.FromIndicatorIds
         return ExplorerChartCreationMode.FromExplorerTableColumnSlugs
     }
