@@ -424,25 +424,30 @@ export class LineChart
         )
     }
 
+    @computed get activeX(): number | undefined {
+        return (
+            this.tooltipState.target?.x ?? this.props.manager.annotation?.year
+        )
+    }
+
     @computed get activeXVerticalLine(): JSX.Element | undefined {
-        const { dualAxis } = this
-        const { target } = this.tooltipState
+        const { activeX, dualAxis } = this
         const { horizontalAxis, verticalAxis } = dualAxis
 
-        if (!target) return undefined
+        if (activeX === undefined) return undefined
 
         return (
             <g className="hoverIndicator">
                 <line
-                    x1={horizontalAxis.place(target.x)}
+                    x1={horizontalAxis.place(activeX)}
                     y1={verticalAxis.range[0]}
-                    x2={horizontalAxis.place(target.x)}
+                    x2={horizontalAxis.place(activeX)}
                     y2={verticalAxis.range[1]}
                     stroke="rgba(180,180,180,.4)"
                 />
                 {this.series.map((series) => {
                     const value = series.points.find(
-                        (point) => point.x === target.x
+                        (point) => point.x === activeX
                     )
                     if (!value || this.seriesIsBlurred(series)) return null
 

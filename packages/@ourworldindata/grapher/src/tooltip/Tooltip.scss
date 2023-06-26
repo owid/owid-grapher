@@ -279,6 +279,11 @@
             letter-spacing: 0.01em;
             color: $grey;
         }
+
+        .hoverIndicator circle {
+            stroke-width: 1;
+            r: 5px;
+        }
     }
 
     // tolerance captions w/ circle-i icon
