@@ -21,7 +21,7 @@ function TopicPageRelatedTopic({
         return <li>{errorMessage}</li>
     }
     const topicText = linkedDocument?.content.title || text
-    const topicUrl = `/${linkedDocument?.slug}` || url
+    const topicUrl = linkedDocument?.slug ? `/${linkedDocument?.slug}` : url
     return (
         <li>
             <a href={topicUrl}>{topicText}</a>
@@ -40,7 +40,13 @@ export function TopicPageIntro(props: TopicPageIntroProps) {
             <div className="topic-page-intro__links col-start-9 span-cols-4 col-md-start-1 span-md-cols-12">
                 {props.downloadButton ? (
                     <div className="topic-page-intro__download-button">
-                        <a>{props.downloadButton.text}</a>
+                        <a
+                            href={props.downloadButton.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            {props.downloadButton.text}
+                        </a>
                     </div>
                 ) : null}
                 {props.relatedTopics?.length ? (

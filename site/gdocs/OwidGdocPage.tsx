@@ -10,9 +10,9 @@ import {
     OwidGdocInterface,
     SiteFooterContext,
     getFilenameAsPng,
+    IMAGES_DIRECTORY,
 } from "@ourworldindata/utils"
 import { DebugProvider } from "./DebugContext.js"
-import { IMAGES_DIRECTORY } from "./Image.js"
 
 declare global {
     interface Window {

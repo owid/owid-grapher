@@ -32,6 +32,7 @@ export const GdocsSettingsForm = ({
                 "details",
                 "body",
                 "refs",
+                "imageMetadata",
             ].includes(property)
         ),
         "type"
@@ -43,6 +44,20 @@ export const GdocsSettingsForm = ({
                 property="title"
                 gdoc={gdoc}
                 errors={errors}
+            />
+            <GdocsSettingsContentField
+                property="excerpt"
+                gdoc={gdoc}
+                errors={errors}
+                render={(props) => (
+                    <GdocsSettingsTextArea
+                        {...props}
+                        inputProps={{
+                            showCount: true,
+                            maxLength: ExcerptHandler.maxLength,
+                        }}
+                    />
+                )}
             />
             <div className="form-group">
                 <GdocsSlug
@@ -78,21 +93,19 @@ export const GdocsSettingsForm = ({
                     gdoc={gdoc}
                     setCurrentGdoc={setCurrentGdoc}
                 />
+                <GdocsSettingsContentField
+                    property="atom-title"
+                    gdoc={gdoc}
+                    errors={errors}
+                    description="An optional property to override the title of this post in our atom feed, which is used for the newsletter"
+                />
+                <GdocsSettingsContentField
+                    property="atom-excerpt"
+                    gdoc={gdoc}
+                    errors={errors}
+                    description="An optional property to override the excerpt of this post in our atom feed, which is used for the newsletter"
+                />
             </div>
-            <GdocsSettingsContentField
-                property="excerpt"
-                gdoc={gdoc}
-                errors={errors}
-                render={(props) => (
-                    <GdocsSettingsTextArea
-                        {...props}
-                        inputProps={{
-                            showCount: true,
-                            maxLength: ExcerptHandler.maxLength,
-                        }}
-                    />
-                )}
-            />
             <div className="form-group">
                 {errorsToShowInDrawer.error?.length ? (
                     <>

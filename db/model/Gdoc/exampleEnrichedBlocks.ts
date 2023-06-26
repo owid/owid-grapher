@@ -116,6 +116,17 @@ export const enrichedBlockExamples: Record<
                 ],
                 parseErrors: [],
             },
+            {
+                type: "list",
+                items: [enrichedBlockText],
+                parseErrors: [],
+            },
+            {
+                type: "heading",
+                level: 1,
+                text: [spanSimpleText],
+                parseErrors: [],
+            },
         ],
         title: "Hey, listen!",
     },
@@ -353,29 +364,32 @@ export const enrichedBlockExamples: Record<
                 url: "https://docs.google.com/document/d/abcd",
             },
         },
-        more: [
-            {
-                value: {
-                    url: "https://docs.google.com/document/d/abcd",
+        more: {
+            heading: "More Key Articles on Poverty",
+            articles: [
+                {
+                    value: {
+                        url: "https://docs.google.com/document/d/abcd",
+                    },
                 },
-            },
-            {
-                value: {
-                    url: "https://ourworldindata.org/a-wordpress-article",
-                    title: "A wordpress article",
-                    authors: ["Max Roser"],
-                    filename: "some_image.png",
+                {
+                    value: {
+                        url: "https://ourworldindata.org/a-wordpress-article",
+                        title: "A wordpress article",
+                        authors: ["Max Roser"],
+                        filename: "some_image.png",
+                    },
                 },
-            },
-            {
-                value: {
-                    url: "https://ourworldindata.org/another-wordpress-article",
-                    title: "Another wordpress article",
-                    authors: ["Max Roser"],
-                    filename: "another_image.png",
+                {
+                    value: {
+                        url: "https://ourworldindata.org/another-wordpress-article",
+                        title: "Another wordpress article",
+                        authors: ["Max Roser"],
+                        filename: "another_image.png",
+                    },
                 },
-            },
-        ],
+            ],
+        },
         rows: [
             {
                 heading: "More articles on this topic",

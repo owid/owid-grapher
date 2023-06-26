@@ -3,6 +3,8 @@
 
     ul {
         list-style: none;
+        display: flex;
+        flex-wrap: wrap;
         > .list-item {
             display: inline-block;
 

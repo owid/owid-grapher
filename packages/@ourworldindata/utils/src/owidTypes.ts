@@ -583,7 +583,7 @@ export type EnrichedBlockScroller = {
 export type RawChartStoryValue = {
     narrative?: string
     chart?: string
-    technical?: string[]
+    technical?: { list?: string[] }
 }
 
 export type RawBlockChartStory = {
@@ -857,14 +857,14 @@ export type RawBlockCallout = {
     type: "callout"
     value: {
         title?: string
-        text: RawBlockText[]
+        text: (RawBlockText | RawBlockHeading | RawBlockList)[]
     }
 }
 
 export type EnrichedBlockCallout = {
     type: "callout"
     title?: string
-    text: EnrichedBlockText[]
+    text: (EnrichedBlockText | EnrichedBlockHeading | EnrichedBlockList)[]
 } & EnrichedBlockWithParseErrors
 
 export type RawBlockTopicPageIntro = {
@@ -952,7 +952,7 @@ export type RawBlockResearchAndWriting = {
     value: {
         primary?: RawBlockResearchAndWritingLink
         secondary?: RawBlockResearchAndWritingLink
-        more?: RawBlockResearchAndWritingLink[]
+        more?: RawBlockResearchAndWritingRow
         rows?: RawBlockResearchAndWritingRow[]
     }
 }
@@ -976,7 +976,7 @@ export type EnrichedBlockResearchAndWriting = {
     type: "research-and-writing"
     primary: EnrichedBlockResearchAndWritingLink
     secondary: EnrichedBlockResearchAndWritingLink
-    more: EnrichedBlockResearchAndWritingLink[]
+    more: EnrichedBlockResearchAndWritingRow
     rows: EnrichedBlockResearchAndWritingRow[]
 } & EnrichedBlockWithParseErrors
 
@@ -1002,7 +1002,9 @@ export type EnrichedBlockMissingData = {
 
 export type RawBlockAdditionalCharts = {
     type: "additional-charts"
-    value: string[]
+    value: {
+        list?: string[]
+    }
 }
 
 export type EnrichedBlockAdditionalCharts = {
@@ -1203,6 +1205,8 @@ export interface OwidGdocContent {
     toc?: TocHeadingWithTitleSupertitle[]
     "cover-image"?: string
     "featured-image"?: string
+    "atom-title"?: string
+    "atom-excerpt"?: string
     "cover-color"?:
         | "sdg-color-1"
         | "sdg-color-2"

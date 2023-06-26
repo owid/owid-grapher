@@ -10,12 +10,14 @@ import { GdocsEditLink } from "./GdocsEditLink.js"
 import { GdocsErrorHelp } from "./GdocsErrorHelp.js"
 import { getPropertyMostCriticalError } from "./gdocsValidation.js"
 import { TextAreaProps } from "antd/lib/input/TextArea.js"
+import { Help } from "./Forms.js"
 
 export const GdocsSettingsContentField = ({
     gdoc,
     property,
     render = (props) => <GdocsSettingsTextField {...props} />,
     errors,
+    description,
 }: {
     gdoc: OwidGdocInterface
     property: keyof OwidGdocContent
@@ -29,6 +31,7 @@ export const GdocsSettingsContentField = ({
         errorType?: OwidGdocErrorMessageType
     }) => JSX.Element
     errors?: OwidGdocErrorMessage[]
+    description?: string
 }) => {
     const error = getPropertyMostCriticalError(property, errors)
 
@@ -45,8 +48,8 @@ export const GdocsSettingsContentField = ({
                     errorType: error?.type,
                 })}
             </div>
-
             <GdocsErrorHelp error={error} />
+            {description ? <Help>{description}</Help> : null}
         </div>
     )
 }

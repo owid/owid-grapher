@@ -61,6 +61,31 @@ class TitleHandler extends AbstractHandler {
     }
 }
 
+class RSSFieldsHandler extends AbstractHandler {
+    handle(gdoc: OwidGdocInterface, messages: OwidGdocErrorMessage[]) {
+        const rssTitle = gdoc.content["atom-title"]
+        const rssExcerpt = gdoc.content["atom-excerpt"]
+
+        if (rssTitle && typeof rssTitle !== "string") {
+            messages.push({
+                property: "atom-title",
+                message: "atom-title must be a string",
+                type: OwidGdocErrorMessageType.Error,
+            })
+        }
+
+        if (rssExcerpt && typeof rssExcerpt !== "string") {
+            messages.push({
+                property: "atom-excerpt",
+                message: "atom-excerpt must be a string",
+                type: OwidGdocErrorMessageType.Error,
+            })
+        }
+
+        return super.handle(gdoc, messages)
+    }
+}
+
 class SlugHandler extends AbstractHandler {
     handle(gdoc: OwidGdocInterface, messages: OwidGdocErrorMessage[]) {
         const { slug } = gdoc
@@ -183,6 +208,7 @@ export const getErrors = (gdoc: OwidGdocInterface): OwidGdocErrorMessage[] => {
 
     bodyHandler
         .setNext(new TitleHandler())
+        .setNext(new RSSFieldsHandler())
         .setNext(new SlugHandler())
         .setNext(new PublishedAtHandler())
         .setNext(new ExcerptHandler())

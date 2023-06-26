@@ -107,7 +107,7 @@ function OwidTopicPageHeader({
             <p className="topic-page-header__subtitle body-1-regular col-start-2 span-cols-8">
                 {content.subtitle}
             </p>
-            <p className="topic-page-header__byline col-start-2 span-cols-8">
+            <p className="topic-page-header__byline col-start-2 span-cols-8 col-sm-start-2 span-sm-cols-12">
                 {"By "}
                 <a href="/team">
                     {formatAuthors({

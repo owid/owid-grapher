@@ -50,7 +50,7 @@ export const KeyInsights = ({
     }
     return (
         <div className={cx(className, KEY_INSIGHTS_CLASS_NAME)}>
-            <h2 className="display-2-semibold" id={KEY_INSIGHTS_ID}>
+            <h2 className="h1-semibold" id={KEY_INSIGHTS_ID}>
                 {heading}
             </h2>
             <div>

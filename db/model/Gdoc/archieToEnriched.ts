@@ -20,6 +20,7 @@ import {
     ENDNOTES_ID,
     CITATION_ID,
     LICENSE_ID,
+    RESEARCH_AND_WRITING_ID,
     checkIsPlainObjectWithGuard,
 } from "@ourworldindata/utils"
 import { parseRawBlocksToEnrichedBlocks, parseRefs } from "./rawToEnriched.js"
@@ -45,7 +46,7 @@ function generateStickyNav(
         ["acknowledgements"]: "Acknowledgements",
         ["country-profiles"]: "Country Profiles",
         ["explore"]: "Data Explorer",
-        ["research-writing"]: "Research & Writing",
+        [RESEARCH_AND_WRITING_ID]: "Research & Writing",
         [ALL_CHARTS_ID]: "Charts",
         [CITATION_ID]: "Cite This Work",
         [ENDNOTES_ID]: "Endnotes",
@@ -88,6 +89,12 @@ function generateStickyNav(
                     target: `#${ALL_CHARTS_ID}`,
                 })
             }
+            if (node.type === "research-and-writing") {
+                stickyNavItems.push({
+                    text: headingToIdMap[RESEARCH_AND_WRITING_ID],
+                    target: `#${RESEARCH_AND_WRITING_ID}`,
+                })
+            }
             return node
         })
     )
@@ -95,12 +102,16 @@ function generateStickyNav(
     stickyNavItems.push(
         ...[
             {
-                text: "Cite this work",
-                target: "#article-citation",
+                text: "Endnotes",
+                target: `#${ENDNOTES_ID}`,
             },
             {
-                text: "Reuse this work",
-                target: "#article-licence",
+                text: "Cite This Work",
+                target: `#${CITATION_ID}`,
+            },
+            {
+                text: "Reuse This Work",
+                target: `#${LICENSE_ID}`,
             },
         ]
     )

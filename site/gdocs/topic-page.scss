@@ -9,18 +9,24 @@
 
     h1 {
         margin-bottom: 0;
+        @include sm-only {
+            font-size: 2rem;
+            margin-top: 24px;
+        }
     }
 
     .topic-page-header__subtitle {
         margin: 0;
     }
 
-    .topic-page-header__byline {
+    p.topic-page-header__byline,
+    .topic-page-header__byline a {
         color: $blue-60;
         margin-bottom: 34px;
-        a {
-            @include owid-link-60;
-        }
+    }
+
+    .topic-page-header__byline a:hover {
+        color: $vermillion;
     }
 
     + .sticky-nav {
@@ -30,6 +36,10 @@
 
 .article-block__topic-page-intro {
     margin-top: 48px;
+
+    @include sm-only {
+        margin-top: 24px;
+    }
 
     .topic-page-intro__content {
         p:first-child {
@@ -86,6 +96,10 @@
                     color: $blue-90;
                     position: relative;
 
+                    &:hover {
+                        text-decoration: underline;
+                    }
+
                     &:after {
                         content: "";
                         background-color: $blue-90;
@@ -106,6 +120,12 @@
 }
 
 .article-block__key-insights {
+    @include sm-only {
+        h2 {
+            font-size: 1.625rem;
+        }
+    }
+
     figure {
         margin: 0;
     }
@@ -121,20 +141,47 @@
         @include md-up {
             padding-right: 16px;
         }
+
+        @include sm-only {
+            margin-bottom: 24px;
+            .content > *:last-child {
+                margin-bottom: 0;
+            }
+        }
+
         ul {
             margin-bottom: 32px;
-            padding-left: 40px;
             li {
                 @include body-2-regular;
                 margin-bottom: 8px;
             }
         }
     }
+
+    .article-block__callout {
+        h5 {
+            text-align: center;
+            letter-spacing: 10%;
+            margin-bottom: 24px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid $blue-20;
+        }
+    }
 }
 
 .article-block__gray-section {
-    h1 {
+    > h1 {
         text-align: center;
+        // Countering the gray-section padding to make this have 32px 16px
+        margin-top: -16px;
+        margin-bottom: 16px;
+    }
+
+    .article-block__text,
+    .article-block__list,
+    .article-block__html,
+    .article-block__numbered-list {
+        @include body-3-medium;
     }
 }
 
@@ -147,4 +194,8 @@
     .article-block__sticky-right-left-column h2:first-child {
         margin-top: 0;
     }
+}
+
+.centered-article-container--topic-page #article-citation h3 {
+    text-align: left;
 }

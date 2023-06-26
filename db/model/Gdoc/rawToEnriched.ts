@@ -88,6 +88,7 @@ import {
     EnrichedBlockAllCharts,
     RefDictionary,
     OwidGdocErrorMessageType,
+    excludeNullish,
 } from "@ourworldindata/utils"
 import {
     extractUrl,
@@ -102,6 +103,7 @@ import {
 import { P, match } from "ts-pattern"
 import { isObject, parseInt } from "lodash"
 import { GDOCS_DETAILS_ON_DEMAND_ID } from "../../../settings/serverSettings.js"
+import { RawBlockResearchAndWritingRow } from "@ourworldindata/utils/dist/owidTypes.js"
 
 export function parseRawBlocksToEnrichedBlocks(
     block: OwidRawGdocBlock
@@ -220,10 +222,24 @@ function parseAdditionalCharts(
         parseErrors: [error],
     })
 
-    if (!isArray(raw.value))
-        return createError({ message: "Value is not a list" })
+    if (isArray(raw.value))
+        return createError({
+            message: `additional-charts block is using an array tag (e.g. [.additional-charts]). Please update it to use curly braces (e.g. {.additional-charts})`,
+        })
 
-    const items = raw.value.map(htmlToSpans)
+    if (!isArray(raw.value.list))
+        return createError({ message: "Block does not contain a list" })
+
+    for (const item of raw.value.list) {
+        if (typeof item !== "string")
+            return createError({
+                message: `Item in list with value "${JSON.stringify(
+                    item
+                )}" isn't a plain string.`,
+            })
+    }
+
+    const items = raw.value.list.map(htmlToSpans)
 
     return {
         type: "additional-charts",
@@ -449,11 +465,15 @@ const parseChartStory = (raw: RawBlockChartStory): EnrichedBlockChartStory => {
                     message:
                         "Item is missing chart property or it is not a string value",
                 }
+            if (isArray(item?.technical))
+                return {
+                    message: `Item's technical tag is an array (e.g. "[.technical]"). Please update this tag to use curly braces (e.g. {.technical})`,
+                }
             return {
                 narrative: htmlToEnrichedTextBlock(item.narrative),
                 chart: { type: "chart", url: chart, parseErrors: [] },
-                technical: item.technical
-                    ? item.technical.map(htmlToEnrichedTextBlock)
+                technical: item.technical?.list
+                    ? item.technical.list.map(htmlToEnrichedTextBlock)
                     : [],
             }
         }
@@ -959,12 +979,23 @@ function parseCallout(raw: RawBlockCallout): EnrichedBlockCallout {
                 "Text must be provided as an array e.g. inside a [.+text] block",
         })
     }
-    const enrichedTextBlocks = raw.value.text.map(parseText)
+    for (const block of raw.value.text) {
+        if (!["text", "list", "heading"].includes(block.type)) {
+            return createError({
+                message:
+                    "Callout blocks can only contain text, lists, and headings",
+            })
+        }
+    }
+
+    const enrichedTextBlocks = raw.value.text.map(
+        parseRawBlocksToEnrichedBlocks
+    ) as (EnrichedBlockText | EnrichedBlockList | EnrichedBlockHeading | null)[]
 
     return {
         type: "callout",
         parseErrors: [],
-        text: enrichedTextBlocks,
+        text: excludeNullish(enrichedTextBlocks),
         title: raw.value.title,
     }
 }
@@ -1245,7 +1276,10 @@ function parseResearchAndWritingBlock(
         secondary = {
             value: { url: "" },
         },
-        more: EnrichedBlockResearchAndWritingLink[] = [],
+        more: EnrichedBlockResearchAndWritingRow = {
+            heading: "",
+            articles: [],
+        },
         rows: EnrichedBlockResearchAndWritingRow[] = []
     ): EnrichedBlockResearchAndWriting => ({
         type: "research-and-writing",
@@ -1313,32 +1347,42 @@ function parseResearchAndWritingBlock(
         return createError({ message: "Missing secondary link" })
     const secondary = enrichLink(raw.value.secondary)
 
-    if (!raw.value.more) {
-        return createError(
-            { message: "No 'more' values passed" },
-            primary,
-            secondary
-        )
-    }
-    const more = raw.value.more.map((rawLink) => enrichLink(rawLink, true))
-    const rows = raw.value.rows?.map((row) => {
-        if (!row.heading) {
+    if (!raw.value.more)
+        return createError({ message: "No 'more' section defined" })
+
+    function parseRow(
+        rawRow: RawBlockResearchAndWritingRow,
+        skipFilenameValidation: boolean = false
+    ): EnrichedBlockResearchAndWritingRow {
+        if (!rawRow.heading) {
+            parseErrors.push({ message: `Row missing "heading" value` })
+        } else if (typeof rawRow.heading !== "string") {
+            parseErrors.push({ message: `Row "heading" must be a string` })
+        } else if (!rawRow.articles) {
             parseErrors.push({
-                message: `Row missing "heading" value`,
+                message: `Row with heading ${rawRow.heading} no articles defined. Be sure to use a "[.articles]" tag`,
             })
+        } else {
+            return {
+                heading: rawRow.heading,
+                articles: rawRow.articles.map((rawLink) =>
+                    enrichLink(rawLink, skipFilenameValidation)
+                ),
+            }
         }
-        return {
-            heading: row.heading || "",
-            articles: row.articles?.map((rawLink) => enrichLink(rawLink)) || [],
-        }
-    })
+
+        return { heading: "", articles: [] }
+    }
+
+    const more = parseRow(raw.value.more, true)
+    const rows = raw.value.rows?.map((row) => parseRow(row)) || []
 
     return {
         type: "research-and-writing",
         primary,
         secondary,
-        more: more,
-        rows: rows ?? [],
+        more,
+        rows,
         parseErrors,
     }
 }
@@ -1371,8 +1415,10 @@ export function parseRefs({
                         `A ref with ID "${ref.id}" has been defined but isn't used in this document`
                     )
                 }
-                if (!isArray(ref.content)) {
-                    pushRefError(`Ref with ID ${ref.id} has no content`)
+                if (!isArray(ref.content) || !ref.content.length) {
+                    pushRefError(
+                        `Ref with ID ${ref.id} has no content. Make sure the ID is defined and it has a [.+content] block`
+                    )
                 } else {
                     ref.content.forEach((block: OwidRawGdocBlock) => {
                         match(block)

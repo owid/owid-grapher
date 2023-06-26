@@ -227,7 +227,7 @@ export class GdocsIndexPage extends React.Component<GdocsMatchProps> {
                                         className="gdoc-index-item__title"
                                         title="Preview article"
                                     >
-                                        {gdoc.content.title}
+                                        {gdoc.content.title || "Untitled"}
                                     </h5>
                                 </Link>
                                 <GdocsEditLink gdocId={gdoc.id} />

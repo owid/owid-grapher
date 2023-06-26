@@ -70,7 +70,9 @@ export function enrichedBlockToRawBlock(
             { type: "additional-charts" },
             (b): RawBlockAdditionalCharts => ({
                 type: b.type,
-                value: b.items.map(spansToHtmlText),
+                value: {
+                    list: b.items.map(spansToHtmlText),
+                },
             })
         )
         .with(
@@ -79,10 +81,13 @@ export function enrichedBlockToRawBlock(
                 type: b.type,
                 value: {
                     title: b.title,
-                    text: b.text.map((enrichedTextBlock) => ({
-                        type: "text",
-                        value: spansToHtmlText(enrichedTextBlock.value),
-                    })),
+                    text: b.text.map(
+                        (enriched) =>
+                            enrichedBlockToRawBlock(enriched) as
+                                | RawBlockText
+                                | RawBlockList
+                                | RawBlockHeading
+                    ),
                 },
             })
         )
@@ -123,9 +128,11 @@ export function enrichedBlockToRawBlock(
                 value: b.items.map((item) => ({
                     narrative: spansToHtmlText(item.narrative.value),
                     chart: item.chart.url,
-                    technical: item.technical.map((t) =>
-                        spansToHtmlText(t.value)
-                    ),
+                    technical: {
+                        list: item.technical.map((t) =>
+                            spansToHtmlText(t.value)
+                        ),
+                    },
                 })),
             })
         )
@@ -256,13 +263,6 @@ export function enrichedBlockToRawBlock(
             })
         )
         .with(
-            { type: "additional-charts" },
-            (b): RawBlockAdditionalCharts => ({
-                type: b.type,
-                value: b.items.map(spansToHtmlText),
-            })
-        )
-        .with(
             { type: "numbered-list" },
             (b): RawBlockNumberedList => ({
                 type: b.type,
@@ -348,7 +348,12 @@ export function enrichedBlockToRawBlock(
                     value: {
                         primary: enrichedLinkToRawLink(b.primary),
                         secondary: enrichedLinkToRawLink(b.secondary),
-                        more: b.more.map(enrichedLinkToRawLink),
+                        more: {
+                            heading: b.more.heading,
+                            articles: b.more.articles.map(
+                                enrichedLinkToRawLink
+                            ),
+                        },
                         rows: b.rows.map(({ heading, articles }) => ({
                             heading: heading,
                             articles: articles.map(enrichedLinkToRawLink),

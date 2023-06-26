@@ -9,6 +9,9 @@ export const KEY_INSIGHTS_ID = "key-insights"
 export const LICENSE_ID = "article-licence"
 export const CITATION_ID = "article-citation"
 export const ENDNOTES_ID = "article-endnotes"
+export const RESEARCH_AND_WRITING_ID = "research-writing"
+
+export const IMAGES_DIRECTORY = "/images/published/"
 
 // Works for:
 // https://docs.google.com/document/d/abcd1234

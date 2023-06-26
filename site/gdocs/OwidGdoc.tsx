@@ -154,7 +154,7 @@ export function OwidGdoc({
                         id={LICENSE_ID}
                         className="grid grid-cols-12-full-width col-start-1 col-end-limit"
                     >
-                        <div className="col-start-6 span-cols-4 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
+                        <div className="col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
                             <img
                                 src={`${BAKED_BASE_URL}/owid-logo.svg`}
                                 className="img-raw"

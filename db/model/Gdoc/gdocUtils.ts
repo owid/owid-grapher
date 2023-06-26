@@ -142,7 +142,7 @@ export const getAllLinksFromResearchAndWritingBlock = (
     const allLinks = excludeNullish([
         primary,
         secondary,
-        ...more,
+        ...more.articles,
         ...rowArticles,
     ])
     return allLinks

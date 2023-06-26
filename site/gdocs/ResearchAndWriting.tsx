@@ -3,6 +3,7 @@ import cx from "classnames"
 import {
     EnrichedBlockResearchAndWriting,
     EnrichedBlockResearchAndWritingLink,
+    RESEARCH_AND_WRITING_ID,
 } from "@ourworldindata/utils"
 import { useLinkedDocument } from "./utils.js"
 import { formatAuthors } from "../clientFormatting.js"
@@ -81,9 +82,9 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
         <div className={cx(className, "grid")}>
             <h2
                 className="span-cols-12 display-1-semibold"
-                id="research-writing"
+                id={RESEARCH_AND_WRITING_ID}
             >
-                Research & writing
+                Research & Writing
             </h2>
             <ResearchAndWritingLinkContainer
                 className="span-cols-6 span-md-cols-6 span-sm-cols-12"
@@ -95,8 +96,8 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
             />
             <div className="span-cols-3 span-md-cols-12">
                 <div className="research-and-writing-more">
-                    <h5 className="overline-black-caps">Shorts</h5>
-                    {more.map((link, i) => (
+                    <h5 className="overline-black-caps">{more.heading}</h5>
+                    {more.articles.map((link, i) => (
                         <ResearchAndWritingLinkContainer
                             shouldHideThumbnail
                             shouldHideSubtitle

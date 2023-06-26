@@ -125,10 +125,11 @@ function* rawBlockChartStoryToArchieMLString(
         for (const item of block.value) {
             yield* propertyToArchieMLString("narrative", item)
             yield* propertyToArchieMLString("chart", item)
-            // TODO: we might need to reverse some regex sanitization here (e.g. colons?)
-            if (item.technical) {
-                yield* listToArchieMLString(item.technical, "technical")
+            yield "{.technical}"
+            if (item.technical?.list) {
+                yield* listToArchieMLString(item.technical.list, "list")
             }
+            yield "{}"
         }
     }
     yield "[]"
@@ -141,8 +142,8 @@ function* rawBlockCalloutToArchieMLString(
     if (typeof block.value !== "string") {
         yield* propertyToArchieMLString("title", block.value)
         yield "[.+text]"
-        for (const rawBlockText of block.value.text) {
-            yield rawBlockText.value
+        for (const rawBlock of block.value.text) {
+            yield* OwidRawGdocBlockToArchieMLStringGenerator(rawBlock)
         }
         yield "[]"
     }
@@ -368,13 +369,11 @@ function* rawBlockMissingDataToArchieMLString(): Generator<
 function* rawBlockAdditionalChartsToArchieMLString(
     block: RawBlockAdditionalCharts
 ): Generator<string, void, undefined> {
-    yield "[.additional-charts]"
-    if (typeof block.value !== "string") {
-        for (const listItem of block.value) {
-            yield `* ${listItem}`
-        }
+    yield "{.additional-charts}"
+    if (block.value.list) {
+        yield* listToArchieMLString(block.value.list, "list")
     }
-    yield "[]"
+    yield "{}"
 }
 
 function* RawBlockExpandableParagraphToArchieMLString(
@@ -480,11 +479,16 @@ function* rawResearchAndWritingToArchieMLString(
         yield "{}"
     }
     if (more) {
-        yield "[.more]"
-        for (const link of more) {
-            yield* rawLinkToArchie(link)
+        yield "{.more}"
+        yield* propertyToArchieMLString("heading", more)
+        if (more.articles) {
+            yield "[.articles]"
+            for (const link of more.articles) {
+                yield* rawLinkToArchie(link)
+            }
+            yield "[]"
         }
-        yield "[]"
+        yield "{}"
     }
     if (rows) {
         yield "[.rows]"

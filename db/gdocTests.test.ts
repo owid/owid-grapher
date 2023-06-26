@@ -99,10 +99,15 @@ level: 2
             '<a href="https://ourworldindata.org/grapher/annual-number-of-births-by-world-region">Annual number of births</a>',
             '<a href="https://ourworldindata.org/grapher/fish-catch-gear-type?stackMode=relative&country=~OWID_WRL">Fish catch by gear type</a>',
         ]
-        const archieMLString = `[.additional-charts]
+        // gdocToArchie wraps Google Docs lists with the [.list] tag,
+        // so there, it doesn't need to be explicitly set in the gdoc
+        // But when we're writing this archie for tests, we *do* need to explicitly write the tag
+        const archieMLString = `{.additional-charts}
+[.list]
 * ${links[0]}
 * ${links[1]}
 []
+{}
 `
         const doc = getArchieMLDocWithContent(archieMLString)
         const article = archieToEnriched(doc)
@@ -142,7 +147,9 @@ level: 2
 
         const expectedRawBlock: RawBlockAdditionalCharts = {
             type: "additional-charts",
-            value: links,
+            value: {
+                list: links,
+            },
         }
 
         const serializedRawBlock =
