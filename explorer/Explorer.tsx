@@ -368,7 +368,6 @@ export class Explorer
             ]
         )
 
-        // chart creation preference: with grapher id -> with indicator ids -> with manually provided data
         let creationMode: ExplorerChartCreationMode
         if (grapherId && isNotErrorValue(grapherId))
             creationMode = ExplorerChartCreationMode.FromGrapherId
@@ -393,7 +392,6 @@ export class Explorer
                 ExplorerChartCreationMode.FromExplorerTableColumnSlugs,
         }
 
-        // set given indicators as dimensions
         if (creationMode === ExplorerChartCreationMode.FromIndicatorIds) {
             const dimensions = config.dimensions ?? []
             if (yIndicatorIds) {
