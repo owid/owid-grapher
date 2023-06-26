@@ -1656,10 +1656,18 @@ export class Grapher
                 React.Fragment
         }
 
-        const setBoundsFromContainerAndRender = (): void => {
+        const setBoundsFromContainerAndRender = (
+            entries: ResizeObserverEntry[]
+        ): void => {
+            const entry = entries[0] // We always observe exactly one element
+
+            // Don't bother rendering if the container is hidden
+            // see https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/offsetParent
+            if ((entry.target as HTMLElement).offsetParent === null) return
+
             const props: GrapherProgrammaticInterface = {
                 ...config,
-                bounds: Bounds.fromRect(containerNode.getBoundingClientRect()),
+                bounds: Bounds.fromRect(entry.contentRect),
             }
             ReactDOM.render(
                 <ErrorBoundary>
@@ -1669,11 +1677,10 @@ export class Grapher
             )
         }
 
-        setBoundsFromContainerAndRender()
-        window.addEventListener(
-            "resize",
-            debounce(setBoundsFromContainerAndRender, 400)
+        const resizeObserver = new ResizeObserver(
+            debounce(setBoundsFromContainerAndRender, 400, { leading: true })
         )
+        resizeObserver.observe(containerNode)
 
         return grapherInstanceRef.current
     }
