@@ -1,5 +1,4 @@
 import { decodeHTML } from "entities"
-import path from "path"
 import { DatabaseConnection } from "./DatabaseConnection.js"
 import {
     WORDPRESS_DB_NAME,
@@ -775,12 +774,8 @@ export const mapGdocsToWordpressPosts = (
         authors: gdoc.content.authors,
         excerpt: gdoc.content["atom-excerpt"] || gdoc.content.excerpt,
         imageUrl: gdoc.content["featured-image"]
-            ? path.join(
-                  BAKED_BASE_URL,
-                  IMAGES_DIRECTORY,
-                  gdoc.content["featured-image"]
-              )
-            : path.join(BAKED_BASE_URL, `default-thumbnail.jpg`),
+            ? `${BAKED_BASE_URL}${IMAGES_DIRECTORY}${gdoc.content["featured-image"]}`
+            : `${BAKED_BASE_URL}/default-thumbnail.jpg`,
     }))
 }
 
