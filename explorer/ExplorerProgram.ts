@@ -7,7 +7,7 @@ import {
     OwidColumnDef,
     OwidTable,
     TableSlug,
-    isNotErrorValueOrEmptyCell,
+    isNotErrorValue,
 } from "@ourworldindata/core-table"
 import { FacetAxisDomain, GrapherInterface } from "@ourworldindata/grapher"
 import {
@@ -442,8 +442,9 @@ const parseColumnDefs = (block: string[][]): OwidColumnDef[] => {
     return columnsTable.rows.map((row) => {
         // ignore slug if a variable id is given
         if (
-            isNotErrorValueOrEmptyCell(row.owidVariableId) &&
-            isNotErrorValueOrEmptyCell(row.slug)
+            row.owidVariableId &&
+            isNotErrorValue(row.owidVariableId) &&
+            row.slug
         )
             delete row.slug
         return trimAndParseObject(row, ColumnGrammar)
