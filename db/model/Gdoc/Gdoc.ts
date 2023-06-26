@@ -523,13 +523,8 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
             .with({ type: "key-insights" }, (node) => {
                 const links: Link[] = []
 
+                // insights content is traversed by traverseEnrichedBlocks
                 node.insights.forEach((insight) => {
-                    insight.content.forEach((block) => {
-                        const insightContentLinks =
-                            this.extractLinksFromNode(block)
-                        if (insightContentLinks)
-                            links.push(...insightContentLinks)
-                    })
                     if (insight.url) {
                         const insightLink = Link.create({
                             linkType: getLinkType(insight.url),
@@ -574,7 +569,7 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
             .with(
                 {
                     // no urls directly on any of these components
-                    // their children may contain urls, but they'll be addressed by traverse
+                    // their children may contain urls, but they'll be addressed by traverseEnrichedBlocks
                     type: P.union(
                         "additional-charts",
                         "aside",
