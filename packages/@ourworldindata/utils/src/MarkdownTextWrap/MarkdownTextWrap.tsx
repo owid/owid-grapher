@@ -1,7 +1,7 @@
 import React, { CSSProperties } from "react"
 import { computed } from "mobx"
 import { EveryMarkdownNode, MarkdownRoot, mdParser } from "./parser"
-import { excludeUndefined, last, sum, imemo, max } from "../Util.js"
+import { excludeUndefined, last, sum, sumBy, imemo, max } from "../Util.js"
 import { Bounds, FontFamily } from "../Bounds.js"
 import { TextWrap } from "../TextWrap/TextWrap.js"
 
