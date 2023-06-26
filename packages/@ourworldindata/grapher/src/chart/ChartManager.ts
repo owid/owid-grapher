@@ -60,6 +60,7 @@ export interface ChartManager {
     colorColumnSlug?: ColumnSlug
 
     selection?: SelectionArray | EntityName[]
+    entityType?: string
 
     // If you want to use auto-assigned colors, but then have them preserved across selection and chart changes
     seriesColorMap?: SeriesColorMap

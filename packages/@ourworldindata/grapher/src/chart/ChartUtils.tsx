@@ -21,7 +21,7 @@ export const getDefaultFailMessage = (manager: ChartManager): string => {
     const yColumnSlugs = autoDetectYColumnSlugs(manager)
     if (!yColumnSlugs.length) return "Missing Y axis column"
     const selection = makeSelectionArray(manager)
-    if (!selection.hasSelection) return `No ${selection.entityType} selected`
+    if (!selection.hasSelection) return `No ${manager.entityType} selected`
     return ""
 }
 

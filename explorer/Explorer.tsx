@@ -170,19 +170,11 @@ export class Explorer
     // only used for the checkbox at the bottom of the embed dialog
     @observable embedDialogHideControls = true
 
-    initialSelection =
+    selection =
         this.props.selection ??
-        new SelectionArray(
-            this.explorerProgram.selection,
-            undefined,
-            this.explorerProgram.entityType
-        )
+        new SelectionArray(this.explorerProgram.selection)
 
-    @computed get selection() {
-        if (this.explorerProgram.entityType)
-            this.initialSelection.entityType = this.explorerProgram.entityType
-        return this.initialSelection
-    }
+    entityType = this.explorerProgram.entityType ?? "country or region"
 
     @observable.ref grapher?: Grapher
 

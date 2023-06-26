@@ -11,15 +11,12 @@ export interface Entity {
 export class SelectionArray {
     constructor(
         selectedEntityNames: EntityName[] = [],
-        availableEntities: Entity[] = [],
-        entityType = "country or region"
+        availableEntities: Entity[] = []
     ) {
         this.selectedEntityNames = selectedEntityNames.slice()
         this.availableEntities = availableEntities.slice()
-        this.entityType = entityType
     }
 
-    @observable entityType: string
     @observable selectedEntityNames: EntityName[]
     @observable private availableEntities: Entity[]
 
