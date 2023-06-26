@@ -473,8 +473,14 @@ export class Explorer
             sizeSlug,
         } = this.explorerProgram.grapherConfig
 
+        const yIndicatorIdsList = yIndicatorIds
+            .split(" ")
+            .map((item) => parseInt(item, 10))
+            .filter((item) => !isNaN(item))
+
         const partialGrapherConfig =
-            this.partialGrapherConfigsByIndicatorId.get(yIndicatorIds[0]) ?? {}
+            this.partialGrapherConfigsByIndicatorId.get(yIndicatorIdsList[0]) ??
+            {}
 
         const config: GrapherProgrammaticInterface = {
             ...partialGrapherConfig,
@@ -487,20 +493,13 @@ export class Explorer
         // download the data and metadata for these variables
         const dimensions = config.dimensions ?? []
 
-        // set given indicators as dimensions
-        if (yIndicatorIds) {
-            const yIndicatorIdsList = yIndicatorIds
-                .split(" ")
-                .map((item) => parseInt(item, 10))
-                .filter((item) => !isNaN(item))
-            yVariableIdsList.forEach((yVariableId) => {
-                dimensions.push({
-                    variableId: yVariableId,
-                    property: DimensionProperty.y,
-                })
+        yIndicatorIdsList.forEach((yIndicatorId) => {
+            dimensions.push({
+                variableId: yIndicatorId,
+                property: DimensionProperty.y,
             })
-        }
-        if (xVariableId) {
+        })
+        if (xIndicatorId) {
             dimensions.push({
                 variableId: xVariableId,
                 property: DimensionProperty.x,

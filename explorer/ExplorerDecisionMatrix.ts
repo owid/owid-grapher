@@ -133,7 +133,7 @@ export class DecisionMatrix {
                 .values.map((value: string) =>
                     value
                         .split(" ")
-                        .map((id) => parseInt(id.trim()))
+                        .map((id) => parseInt(id, 10))
                         .filter((id) => !isNaN(id))
                 )
                 .map((ids: number[]) => ids[0])
