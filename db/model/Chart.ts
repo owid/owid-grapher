@@ -68,6 +68,38 @@ export class Chart extends BaseEntity {
         return slugToId
     }
 
+    // Same as mapSlugsToIds but gets the configs also
+    // e.g. [
+    //  { slug: 'old-slug', id: 101, config: { isPublished: true, ...} },
+    //  { slug: 'new-slug', id: 101, config: { isPublished: true, ...} },
+    // ]
+    static async mapSlugsToConfigs(): Promise<
+        { slug: string; id: number; config: GrapherInterface }[]
+    > {
+        return db
+            .queryMysql(
+                `
+SELECT csr.slug AS slug, c.config AS config, c.id AS id
+FROM chart_slug_redirects csr
+JOIN charts c
+ON csr.chart_id = c.id
+WHERE c.config -> "$.isPublished" = true
+UNION
+SELECT c.slug AS slug, c.config AS config, c.id AS id
+FROM charts c
+WHERE c.config -> "$.isPublished" = true
+`
+            )
+            .then((results) =>
+                results.map(
+                    (result: { slug: string; id: number; config: string }) => ({
+                        ...result,
+                        config: JSON.parse(result.config),
+                    })
+                )
+            )
+    }
+
     static async getBySlug(slug: string): Promise<Chart | null> {
         const slugToIdMap = await this.mapSlugsToIds()
         const chartId = slugToIdMap[slug]

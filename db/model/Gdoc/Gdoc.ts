@@ -294,19 +294,23 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
         )
 
         const linkedGrapherCharts = await Promise.all(
-            [...uniqueSlugsByLinkType.grapher.values()].map(async (slug) => {
-                const chartId = slugToIdMap[slug]
-                const chart = await Chart.findOneBy({ id: chartId })
-                if (!chart) return
-                const resolvedSlug = chart.config.slug ?? ""
-                const linkedChart: LinkedChart = {
-                    slug: resolvedSlug,
-                    title: chart?.config.title ?? "",
-                    path: `${BAKED_GRAPHER_URL}/${slug}`,
-                    thumbnail: `${BAKED_GRAPHER_EXPORTS_BASE_URL}/${chart?.config.slug}.svg`,
+            [...uniqueSlugsByLinkType.grapher.values()].map(
+                async (originalSlug) => {
+                    const chartId = slugToIdMap[originalSlug]
+                    if (!chartId) return
+                    const chart = await Chart.findOneBy({ id: chartId })
+                    if (!chart) return
+                    const resolvedSlug = chart.config.slug ?? ""
+                    const resolvedTitle = chart.config.title ?? ""
+                    const linkedChart: LinkedChart = {
+                        originalSlug,
+                        title: resolvedTitle,
+                        resolvedUrl: `${BAKED_GRAPHER_URL}/${resolvedSlug}`,
+                        thumbnail: `${BAKED_GRAPHER_EXPORTS_BASE_URL}/${resolvedSlug}.svg`,
+                    }
+                    return linkedChart
                 }
-                return linkedChart
-            })
+            )
         ).then(excludeNullish)
 
         const linkedExplorerCharts = await Promise.all(
@@ -314,9 +318,10 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
                 const explorer = publishedExplorersBySlug[slug]
                 if (!explorer) return
                 const linkedChart: LinkedChart = {
-                    slug,
+                    // we are assuming explorer slugs won't change
+                    originalSlug: slug,
                     title: explorer?.explorerTitle ?? "",
-                    path: `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${slug}`,
+                    resolvedUrl: `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${slug}`,
                     thumbnail: `${BAKED_BASE_URL}/default-thumbnail.jpg`,
                 }
                 return linkedChart
@@ -325,7 +330,7 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
 
         this.linkedCharts = keyBy(
             [...linkedGrapherCharts, ...linkedExplorerCharts],
-            "slug"
+            "originalSlug"
         )
     }
 
