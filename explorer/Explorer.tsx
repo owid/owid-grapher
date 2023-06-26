@@ -59,7 +59,7 @@ import {
     BAKED_GRAPHER_URL,
 } from "../settings/clientSettings.js"
 import {
-    ChartCreationMode,
+    ExplorerChartCreationMode,
     ExplorerChoiceParams,
     ExplorerContainerId,
     ExplorerFullQueryParams,
@@ -369,15 +369,17 @@ export class Explorer
         )
 
         // chart creation preference: with grapher id -> with indicator ids -> with manually provided data
-        let creationMode: ChartCreationMode
+        let creationMode: ExplorerChartCreationMode
         if (grapherId && isNotErrorValue(grapherId))
-            creationMode = ChartCreationMode.WithGrapherId
+            creationMode = ExplorerChartCreationMode.FromGrapherId
         else if (yIndicatorIds)
-            creationMode = ChartCreationMode.WithIndicatorIds
-        else creationMode = ChartCreationMode.WithManuallyProvidedData
+            creationMode = ExplorerChartCreationMode.FromIndicatorIds
+        else
+            creationMode =
+                ExplorerChartCreationMode.FromExplorerTableColumnSlugs
 
         const grapherConfig =
-            creationMode === ChartCreationMode.WithGrapherId
+            creationMode === ExplorerChartCreationMode.FromGrapherId
                 ? this.grapherConfigs.get(grapherId!) ?? {}
                 : {}
 
@@ -387,11 +389,12 @@ export class Explorer
             bakedGrapherURL: BAKED_GRAPHER_URL,
             hideEntityControls: this.showExplorerControls,
             manuallyProvideData:
-                creationMode === ChartCreationMode.WithManuallyProvidedData,
+                creationMode ===
+                ExplorerChartCreationMode.FromExplorerTableColumnSlugs,
         }
 
         // set given indicators as dimensions
-        if (creationMode === ChartCreationMode.WithIndicatorIds) {
+        if (creationMode === ExplorerChartCreationMode.FromIndicatorIds) {
             const dimensions = config.dimensions ?? []
             if (yIndicatorIds) {
                 const yIndicatorIdsList = yIndicatorIds
@@ -443,7 +446,10 @@ export class Explorer
         }
         grapher.updateFromObject(config)
 
-        if (creationMode === ChartCreationMode.WithManuallyProvidedData) {
+        if (
+            creationMode ===
+            ExplorerChartCreationMode.FromExplorerTableColumnSlugs
+        ) {
             // Clear any error messages, they are likely to be related to dataset loading.
             this.grapher?.clearErrors()
             // Set a table immediately. A BlankTable shows a loading animation.

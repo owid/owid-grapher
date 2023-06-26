@@ -8,10 +8,10 @@ export enum ExplorerControlType {
     Dropdown = "Dropdown",
 }
 
-export enum ChartCreationMode {
-    WithGrapherId = "WithGrapherId",
-    WithIndicatorIds = "WithIndicatorIds",
-    WithManuallyProvidedData = "WithManuallyProvidedData",
+export enum ExplorerChartCreationMode {
+    FromGrapherId = "FromGrapherId",
+    FromIndicatorIds = "FromIndicatorIds",
+    FromExplorerTableColumnSlugs = "FromExplorerTableColumnSlugs",
 }
 
 export const DefaultNewExplorerSlug = "new"
