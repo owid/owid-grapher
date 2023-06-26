@@ -624,7 +624,7 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
     @computed get width(): number {
         const { htmlLines } = this
         const lineLengths = htmlLines.map((tokens) =>
-            tokens.reduce((acc, token) => acc + token.width, 0)
+            sumBy(tokens, (token) => token.width)
         )
         return max(lineLengths) ?? 0
     }
