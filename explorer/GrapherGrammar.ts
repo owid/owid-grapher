@@ -14,8 +14,8 @@ import {
     EnumCellDef,
     Grammar,
     IntegerCellDef,
-    IntegersCellDef,
     NumericCellDef,
+    PositiveIntegersCellDef,
     SlugDeclarationCellDef,
     SlugsDeclarationCellDef,
     StringCellDef,
@@ -49,7 +49,7 @@ export const GrapherGrammar: Grammar = {
         keyword: "ySlugs",
     },
     yIndicatorIds: {
-        ...IntegersCellDef,
+        ...PositiveIntegersCellDef,
         keyword: "yIndicatorIds",
         description: "Indicator ID(s) for the yAxis",
     },
