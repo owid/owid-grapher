@@ -463,13 +463,13 @@ export class EntityPicker extends React.Component<{
 
     render(): JSX.Element {
         const { selection } = this
+        const { entityType } = this.manager
         const entities = this.searchResults
         const selectedEntityNames = selection.selectedEntityNames
         const availableEntities = this.availableEntitiesForCurrentView
 
         const selectedDebugMessage = `${selectedEntityNames.length} selected. ${availableEntities.size} available. ${this.entitiesWithMetricValue.length} options total.`
 
-        const entityType = selection.entityType
         return (
             <div className="EntityPicker" onKeyDown={this.onKeyDown}>
                 <div className="EntityPickerSearchInput">

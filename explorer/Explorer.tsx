@@ -172,11 +172,9 @@ export class Explorer
 
     selection =
         this.props.selection ??
-        new SelectionArray(
-            this.explorerProgram.selection,
-            undefined,
-            this.explorerProgram.entityType
-        )
+        new SelectionArray(this.explorerProgram.selection)
+
+    entityType = this.explorerProgram.entityType ?? "country or region"
 
     @observable.ref grapher?: Grapher
 

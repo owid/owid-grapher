@@ -13,5 +13,6 @@ export interface EntityPickerManager {
     entityPickerTableIsLoading?: boolean
     grapherTable?: OwidTable
     selection: SelectionArray
+    entityType?: string
     analytics?: GrapherAnalytics
 }
