@@ -1,7 +1,7 @@
 import React, { CSSProperties } from "react"
 import { computed } from "mobx"
 import { EveryMarkdownNode, MarkdownRoot, mdParser } from "./parser"
-import { excludeUndefined, last, sum, imemo } from "../Util.js"
+import { excludeUndefined, last, sum, sumBy, imemo, max } from "../Util.js"
 import { Bounds, FontFamily } from "../Bounds.js"
 import { TextWrap } from "../TextWrap/TextWrap.js"
 
@@ -619,6 +619,14 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
         const tokens = parsimmonToTextTokens(this.ast, this.fontParams)
         const tokensWithReferenceNumbers = appendReferenceNumbers(tokens)
         return splitIntoLines(tokensWithReferenceNumbers, this.maxWidth)
+    }
+
+    @computed get width(): number {
+        const { htmlLines } = this
+        const lineLengths = htmlLines.map((tokens) =>
+            sumBy(tokens, (token) => token.width)
+        )
+        return max(lineLengths) ?? 0
     }
 
     @computed get height(): number {

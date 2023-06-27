@@ -85,13 +85,12 @@ export class Footer extends React.Component<{
         return 0.7 * (this.manager.fontSize ?? BASE_FONT_SIZE)
     }
 
-    @computed private get sources(): TextWrap {
+    @computed private get sources(): MarkdownTextWrap {
         const { maxWidth, fontSize, sourcesText } = this
-        return new TextWrap({
+        return new MarkdownTextWrap({
             maxWidth,
             fontSize,
             text: sourcesText,
-            linkifyText: true,
         })
     }
 
@@ -153,7 +152,7 @@ export class Footer extends React.Component<{
         return (
             <g className="SourcesFooter" style={{ fill: "#777" }}>
                 <g style={{ fill: "#777" }}>
-                    {sources.render(targetX, targetY)}
+                    {sources.renderSVG(targetX, targetY)}
                 </g>
                 {note.renderSVG(targetX, targetY + sources.height + paraMargin)}
                 {isCompact
@@ -248,9 +247,7 @@ export class Footer extends React.Component<{
                 style={{ color: "#777" }}
             >
                 {this.isCompact && license}
-                <p style={this.sources.htmlStyle}>
-                    {this.sources.renderHTML()}
-                </p>
+                <p style={this.sources.style}>{this.sources.renderHTML()}</p>
                 {this.note && (
                     <p style={this.note.style}>{this.note.renderHTML()}</p>
                 )}
