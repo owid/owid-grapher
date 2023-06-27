@@ -341,16 +341,21 @@ export class Explorer
         this.explorerProgram.constructTable(slug)
     )
 
+    // for backward compatibility, we currently support explorers
+    // that use Grapher IDs as well as CSV data files to create charts,
+    // but we plan to drop support for mixed-content explorers in the future
     @computed private get chartCreationMode(): ExplorerChartCreationMode {
         const { decisionMatrix, grapherConfig } = this.explorerProgram
         const { grapherId } = grapherConfig
         const yIndicatorIdsColumn = decisionMatrix.table.get(
             GrapherGrammar.yIndicatorIds.keyword
         )
-        if (grapherId && isNotErrorValue(grapherId))
-            return ExplorerChartCreationMode.FromGrapherId
+        // referring to an indicator in a single row triggers
+        // ExplorerChartCreationMode.FromIndicatorIds for all rows
         if (yIndicatorIdsColumn.numValues)
             return ExplorerChartCreationMode.FromIndicatorIds
+        if (grapherId && isNotErrorValue(grapherId))
+            return ExplorerChartCreationMode.FromGrapherId
         return ExplorerChartCreationMode.FromExplorerTableColumnSlugs
     }
 
