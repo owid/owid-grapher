@@ -129,13 +129,7 @@ export const DataPageContent = ({
                     <nav className="sticky-nav sticky-nav--dark">
                         <StickyNav links={stickyNavLinks} className="wrapper" />
                     </nav>
-                    <div
-                        style={{
-                            display: "flex",
-                            flexDirection: "column",
-                        }}
-                        className="bg-gray-10"
-                    >
+                    <div className="chart-key-info">
                         <GrapherWithFallback
                             grapher={grapher}
                             slug={grapherConfig.slug}

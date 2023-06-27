@@ -69,11 +69,21 @@
         }
     }
 
+    .chart-key-info {
+        display: flex;
+        flex-direction: column;
+        border-bottom: 1px solid $blue-20;
+        padding-top: 16px;
+        padding-bottom: 48px;
+        @include sm-up {
+            padding-top: 24px;
+            padding-bottom: 80px;
+        }
+    }
+
     .GrapherWithFallback {
-        margin-top: 16px;
         margin-bottom: 24px;
         @include sm-up {
-            margin-top: 32px;
             margin-bottom: 40px;
         }
         width: 100%;
@@ -94,13 +104,6 @@
             img {
                 margin: auto;
             }
-        }
-    }
-
-    .key-info__wrapper {
-        margin-bottom: 24px;
-        @include sm-up {
-            margin-bottom: 48px;
         }
     }
 
