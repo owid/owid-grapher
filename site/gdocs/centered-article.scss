@@ -154,6 +154,36 @@ h3.article-block__heading.has-supertitle {
     }
 }
 
+.centered-article-header__breadcrumbs-container {
+    .centered-article-header__breadcrumbs {
+        &.breadcrumbs-white {
+            color: $white;
+        }
+        &.breadcrumbs-blue {
+            color: $blue-100;
+        }
+
+        position: absolute;
+        margin-top: 40px;
+        font-size: 1rem;
+        a {
+            @include owid-link-90;
+            color: inherit;
+
+            &:visited,
+            &:hover {
+                color: inherit;
+            }
+        }
+
+        .separator {
+            margin: 0 0.5rem;
+            vertical-align: -0.0625em;
+            opacity: 0.7;
+        }
+    }
+}
+
 .centered-article-header__title-container {
     .centered-article-header__supertitle {
         @include overline-black-caps;
