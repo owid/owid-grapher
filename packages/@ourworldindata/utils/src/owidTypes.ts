@@ -103,6 +103,11 @@ export interface FormattingOptions {
     footnotes?: boolean
 }
 
+export interface BreadcrumbItem {
+    label: string
+    href: string
+}
+
 export interface KeyValueProps {
     [key: string]: string | boolean | undefined
 }
@@ -1153,6 +1158,7 @@ export interface OwidGdocInterface {
     updatedAt: Date | null
     publicationContext: OwidGdocPublicationContext
     revisionId: string | null
+    breadcrumbs?: BreadcrumbItem[] | null
     linkedCharts?: Record<string, LinkedChart>
     linkedDocuments?: Record<string, OwidGdocInterface>
     relatedCharts?: RelatedChart[]

@@ -202,6 +202,7 @@ export {
     type RawBlockResearchAndWritingRow,
     type EnrichedBlockAlign,
     type RawBlockAlign,
+    type BreadcrumbItem,
 } from "./owidTypes.js"
 
 export {

@@ -1,5 +1,5 @@
 import React from "react"
-import { SubNavId } from "@ourworldindata/utils"
+import { SubNavId, BreadcrumbItem } from "@ourworldindata/utils"
 import { getSubnavItem, SubnavItem, subnavs } from "../SiteSubnavigation.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faAngleRight } from "@fortawesome/free-solid-svg-icons"
@@ -20,7 +20,7 @@ export const getSubnavParent = (
 export const getBreadcrumbItems = (
     subnavCurrentId: string | undefined,
     subnavItems: SubnavItem[]
-): SubnavItem[] | undefined => {
+): BreadcrumbItem[] | undefined => {
     const breadcrumb = []
     let currentItem = getSubnavItem(subnavCurrentId, subnavItems)
     if (!currentItem) return
