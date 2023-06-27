@@ -15,6 +15,10 @@
         flex: 1;
     }
 
+    .wp-code-snippet__code {
+        word-break: break-word;
+    }
+
     .wp-code-snippet__code--is-truncated {
         display: block;
         -webkit-mask-image: linear-gradient(180deg, #000 0%, transparent);
@@ -25,7 +29,7 @@
         position: relative;
         background: none;
         border: none;
-        flex: 0 0 112px;
+        flex: 0 0 64px;
         max-height: 32px;
         text-align: right;
         color: $blue-60;
