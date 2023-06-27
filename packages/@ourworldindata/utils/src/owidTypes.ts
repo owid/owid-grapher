@@ -105,7 +105,7 @@ export interface FormattingOptions {
 
 export interface BreadcrumbItem {
     label: string
-    href: string
+    href?: string
 }
 
 export interface KeyValueProps {

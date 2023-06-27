@@ -16,7 +16,7 @@ import {
     TocHeading,
     omit,
 } from "@ourworldindata/utils"
-import { Breadcrumb } from "./Breadcrumb/Breadcrumb.js"
+import { BreadcrumbsFromSubnav } from "./Breadcrumb/Breadcrumb.js"
 import { Byline } from "./Byline.js"
 import { PageInfo } from "./PageInfo.js"
 import { BackToTopic } from "./BackToTopic.js"
@@ -155,7 +155,7 @@ export const LongFormPage = (props: {
                                     )}
                                     <h1 className="entry-title">{pageTitle}</h1>
                                     {!isPost && formattingOptions.subnavId && (
-                                        <Breadcrumb
+                                        <BreadcrumbsFromSubnav
                                             subnavId={
                                                 formattingOptions.subnavId
                                             }
