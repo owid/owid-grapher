@@ -1234,6 +1234,10 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
     }
 }
 
+.GdocsSettingsForm__alert {
+    margin-bottom: 8px;
+}
+
 .GdocsEditPage {
     .anticon svg {
         vertical-align: unset; // undo reboot.css

@@ -1,9 +1,5 @@
 import React from "react"
-import {
-    OwidGdocInterface,
-    OwidGdocErrorMessage,
-    groupBy,
-} from "@ourworldindata/utils"
+import { OwidGdocInterface, OwidGdocErrorMessage } from "@ourworldindata/utils"
 import { ExcerptHandler } from "./gdocsValidation.js"
 import { GdocsSlug } from "./GdocsSlug.js"
 import {
@@ -12,6 +8,7 @@ import {
 } from "./GdocsSettingsContentField.js"
 import { GdocsDateline } from "./GdocsDateline.js"
 import { GdocsPublicationContext } from "./GdocsPublicationContext.js"
+import { Alert } from "antd"
 
 export const GdocsSettingsForm = ({
     gdoc,
@@ -22,46 +19,34 @@ export const GdocsSettingsForm = ({
     setCurrentGdoc: (gdoc: OwidGdocInterface) => void
     errors?: OwidGdocErrorMessage[]
 }) => {
-    // These errors don't have a specific form field to render them in. We just show them at the bottom of the drawer
-    const errorsToShowInDrawer = groupBy(
-        (errors || []).filter(({ property }) =>
-            [
-                "content",
-                "linkedDocuments",
-                "linkedCharts",
-                "details",
-                "body",
-                "refs",
-                "imageMetadata",
-            ].includes(property)
-        ),
-        "type"
+    // These errors don't have a specific form field to render them in. We just show them at the top of the drawer
+    const errorsToShowInDrawer = (errors || []).filter(({ property }) =>
+        [
+            "content",
+            "linkedDocuments",
+            "linkedCharts",
+            "details",
+            "body",
+            "refs",
+            "imageMetadata",
+        ].includes(property)
     )
 
     return gdoc ? (
         <form className="GdocsSettingsForm">
-            <div className="form-group">
-                {errorsToShowInDrawer.error?.length ? (
-                    <>
-                        <p>Document errors</p>
-                        <ul>
-                            {errorsToShowInDrawer.error.map((error) => (
-                                <li key={error.message}>{error.message}</li>
-                            ))}
-                        </ul>
-                    </>
-                ) : null}
-                {errorsToShowInDrawer.warning?.length ? (
-                    <>
-                        <p>Document warnings</p>
-                        <ul>
-                            {errorsToShowInDrawer.warning.map((error) => (
-                                <li key={error.message}>{error.message}</li>
-                            ))}
-                        </ul>
-                    </>
-                ) : null}
-            </div>
+            {errorsToShowInDrawer.length ? (
+                <div className="form-group">
+                    {errorsToShowInDrawer.map((error) => (
+                        <Alert
+                            message={error.message}
+                            type={error.type}
+                            key={error.message}
+                            className="GdocsSettingsForm__alert"
+                            showIcon
+                        />
+                    ))}
+                </div>
+            ) : null}
             <GdocsSettingsContentField
                 property="title"
                 gdoc={gdoc}
