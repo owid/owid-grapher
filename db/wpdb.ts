@@ -632,16 +632,17 @@ export const getRelatedChartsForVariable = async (
             : ""
 
     return db.queryMysql(`
-                SELECT DISTINCT
+                SELECT
                     charts.config->>"$.slug" AS slug,
                     charts.config->>"$.title" AS title,
                     charts.config->>"$.variantName" AS variantName,
-                    chart_tags.isKeyChart
+                    MAX(chart_tags.isKeyChart) as isKeyChart
                 FROM charts
                 INNER JOIN chart_tags ON charts.id=chart_tags.chartId
                 WHERE JSON_CONTAINS(config->'$.dimensions', '{"variableId":${variableId}}')
                 AND charts.config->>"$.isPublished" = "true"
                 ${excludeChartIds}
+                GROUP BY charts.id
                 ORDER BY title ASC
             `)
 }
