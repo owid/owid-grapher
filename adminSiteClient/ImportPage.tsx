@@ -597,6 +597,16 @@ class Importer extends React.Component<ImportPageData> {
         return (
             <form className="Importer" onSubmit={this.onSubmit}>
                 <h2>Import CSV file</h2>
+                <p
+                    style={{
+                        backgroundColor: "yellow",
+                        border: "1px solid black",
+                        padding: "10px",
+                    }}
+                >
+                    WARNING: This method of importing data is deprecated and
+                    will shortly be removed. Please use the fast track instead.
+                </p>
                 <p>
                     Examples of valid layouts:{" "}
                     <a href="http://ourworldindata.org/uploads/2016/02/ourworldindata_single-var.png">
