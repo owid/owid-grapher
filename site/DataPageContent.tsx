@@ -99,41 +99,37 @@ export const DataPageContent = ({
                     />
                 </div>
                 <div className="DataPageContent">
-                    <div className="header__wrapper wrapper grid grid-cols-12 ">
-                        <div className="header__left span-cols-8 span-sm-cols-12">
-                            <div className="header__supertitle">Data</div>
-                            <h1 className="header__title">
-                                {datapageJson.title}
-                            </h1>
-                            <div className="header__source">
-                                {sourceShortName}
+                    <div className="bg-blue-10">
+                        <div className="header__wrapper wrapper grid grid-cols-12 ">
+                            <div className="header__left span-cols-8 span-sm-cols-12">
+                                <div className="header__supertitle">Data</div>
+                                <h1 className="header__title">
+                                    {datapageJson.title}
+                                </h1>
+                                <div className="header__source">
+                                    {sourceShortName}
+                                </div>
                             </div>
-                        </div>
-                        <div className="header__right col-start-9 span-cols-4 span-sm-cols-12">
-                            <div className="topic-tags__label">
-                                See all data and research on:
-                            </div>
-                            <div className="topic-tags">
-                                {datapageJson.topicTagsLinks.map(
-                                    (topic: any) => (
-                                        <a href={topic.url} key={topic.url}>
-                                            {topic.title}
-                                        </a>
-                                    )
-                                )}
+                            <div className="header__right col-start-9 span-cols-4 span-sm-cols-12">
+                                <div className="topic-tags__label">
+                                    See all data and research on:
+                                </div>
+                                <div className="topic-tags">
+                                    {datapageJson.topicTagsLinks.map(
+                                        (topic: any) => (
+                                            <a href={topic.url} key={topic.url}>
+                                                {topic.title}
+                                            </a>
+                                        )
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <nav className="sticky-nav sticky-nav--light">
+                    <nav className="sticky-nav sticky-nav--dark">
                         <StickyNav links={stickyNavLinks} className="wrapper" />
                     </nav>
-                    <div
-                        style={{
-                            display: "flex",
-                            flexDirection: "column",
-                        }}
-                        className="bg-gray-10"
-                    >
+                    <div className="chart-key-info">
                         <GrapherWithFallback
                             grapher={grapher}
                             slug={grapherConfig.slug}
