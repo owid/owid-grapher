@@ -40,6 +40,28 @@ export const GdocsSettingsForm = ({
 
     return gdoc ? (
         <form className="GdocsSettingsForm">
+            <div className="form-group">
+                {errorsToShowInDrawer.error?.length ? (
+                    <>
+                        <p>Document errors</p>
+                        <ul>
+                            {errorsToShowInDrawer.error.map((error) => (
+                                <li key={error.message}>{error.message}</li>
+                            ))}
+                        </ul>
+                    </>
+                ) : null}
+                {errorsToShowInDrawer.warning?.length ? (
+                    <>
+                        <p>Document warnings</p>
+                        <ul>
+                            {errorsToShowInDrawer.warning.map((error) => (
+                                <li key={error.message}>{error.message}</li>
+                            ))}
+                        </ul>
+                    </>
+                ) : null}
+            </div>
             <GdocsSettingsContentField
                 property="title"
                 gdoc={gdoc}
@@ -105,28 +127,6 @@ export const GdocsSettingsForm = ({
                     errors={errors}
                     description="An optional property to override the excerpt of this post in our atom feed, which is used for the newsletter"
                 />
-            </div>
-            <div className="form-group">
-                {errorsToShowInDrawer.error?.length ? (
-                    <>
-                        <p>Document errors</p>
-                        <ul>
-                            {errorsToShowInDrawer.error.map((error) => (
-                                <li key={error.message}>{error.message}</li>
-                            ))}
-                        </ul>
-                    </>
-                ) : null}
-                {errorsToShowInDrawer.warning?.length ? (
-                    <>
-                        <p>Document warnings</p>
-                        <ul>
-                            {errorsToShowInDrawer.warning.map((error) => (
-                                <li key={error.message}>{error.message}</li>
-                            ))}
-                        </ul>
-                    </>
-                ) : null}
             </div>
         </form>
     ) : null
