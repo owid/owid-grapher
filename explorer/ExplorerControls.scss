@@ -12,6 +12,7 @@ $chart-border-radius: 2px;
 
     .ExplorerControl {
         flex: 1;
+        flex-basis: min-content; // only available in modern browsers
         display: flex;
         flex-direction: column;
         font-size: 13px;
