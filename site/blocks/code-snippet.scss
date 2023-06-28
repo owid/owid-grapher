@@ -1,31 +1,48 @@
 .wp-code-snippet {
-    position: relative;
     margin-bottom: 32px;
     font-size: 12px;
+    line-height: calc(16 / 12);
+    display: flex;
+    align-items: stretch;
+
+    background-color: $gray-10;
+    padding: 16px 24px;
+    border: 1px solid $blue-20;
+    color: $blue-60;
 
     pre {
-        background-color: $gray-10;
-        padding: 16px 24px;
-        padding-right: calc(24px + 85px);
         margin: 0;
-        border: 1px solid $blue-20;
-        color: $blue-60;
+        flex: 1;
     }
 
-    code {
-        margin-right: 85px;
+    .wp-code-snippet__code {
+        word-break: break-word;
+    }
+
+    .wp-code-snippet__code--is-truncated {
+        display: block;
+        -webkit-mask-image: linear-gradient(180deg, #000 0%, transparent);
+        height: 48px;
     }
 
     button.code-copy-button {
+        position: relative;
         background: none;
         border: none;
-        position: absolute;
-        right: 32px;
-        top: 24px;
-        // center the button when there is only a single line of text
-        top: min(24px, calc(50% - 12px));
+        flex: 0 0 64px;
+        max-height: 32px;
+        text-align: right;
         color: $blue-60;
         cursor: pointer;
+
+        &::before {
+            content: "";
+            position: absolute;
+            top: -16px;
+            left: 0;
+            width: calc(100% + 24px);
+            height: calc(100% + 32px);
+        }
 
         &:hover {
             color: $blue-90;
@@ -35,27 +52,12 @@
             color: $blue-100;
         }
 
-        &::after {
-            content: "Copied!";
-            position: absolute;
-            left: 24px;
-            top: -8px;
-            font-size: 12px;
-            color: $blue-100;
-            transition: opacity 350ms;
-            transition-delay: 750ms;
-            opacity: 0;
-        }
-
-        &.code-copy-button--has-copied::after {
-            opacity: 1;
-            transition: none;
+        &.code-copy-button--has-copied {
+            pointer-events: none;
         }
     }
 }
 
 .wp-code-snippet--light {
-    pre {
-        background-color: $white;
-    }
+    background-color: $white;
 }

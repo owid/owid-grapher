@@ -1,17 +1,19 @@
 import React, { useEffect, useState } from "react"
-import classnames from "classnames"
 import ReactDOM from "react-dom"
 import ReactDOMServer from "react-dom/server.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faCopy } from "@fortawesome/free-solid-svg-icons"
 import { canWriteToClipboard } from "@ourworldindata/utils"
+import cx from "classnames"
 
 export const CodeSnippet = ({
     code,
     theme = "dark",
+    isTruncated = false,
 }: {
     code: string
     theme?: "dark" | "light"
+    isTruncated?: boolean
 }) => {
     const [canCopy, setCanCopy] = useState(false)
     const [hasCopied, setHasCopied] = useState(false)
@@ -25,7 +27,7 @@ export const CodeSnippet = ({
             await navigator.clipboard.writeText(code)
             setHasCopied(true)
             // reset CSS animation
-            setTimeout(() => setHasCopied(false), 10)
+            setTimeout(() => setHasCopied(false), 2000)
         } catch (err) {
             console.error(
                 "Couldn't copy to clipboard using navigator.clipboard",
@@ -37,17 +39,23 @@ export const CodeSnippet = ({
     return (
         <div className={`wp-code-snippet wp-code-snippet--${theme}`}>
             <pre className="wp-block-code">
-                <code>{code}</code>
+                <code
+                    className={cx("wp-code-snippet__code", {
+                        "wp-code-snippet__code--is-truncated": isTruncated,
+                    })}
+                >
+                    {code}
+                </code>
             </pre>
             {canCopy && (
                 <button
-                    className={classnames("code-copy-button", {
+                    className={cx("code-copy-button", {
                         "code-copy-button--has-copied": hasCopied,
                     })}
                     onClick={copy}
                     aria-label="Copy to clipboard"
                 >
-                    <FontAwesomeIcon icon={faCopy} />
+                    {hasCopied ? "Copied!" : <FontAwesomeIcon icon={faCopy} />}
                 </button>
             )}
         </div>

@@ -347,6 +347,15 @@
         margin: 0 0 24px;
     }
 
+    .source__key-data {
+        row-gap: 32px;
+
+        .wp-code-snippet {
+            margin-top: 8px;
+            margin-bottom: 0;
+        }
+    }
+
     .data-processing {
         margin-top: 32px;
     }
@@ -356,8 +365,12 @@
         margin-bottom: 24px;
     }
 
+    .reuse__content {
+        margin-left: 16px;
+    }
+
     .data-processing__paragraph,
-    .reuse__paragraph,
+    .reuse__list-item,
     .citation__paragraph {
         @include body-3-medium;
         margin: 0 0 16px;
@@ -422,5 +435,17 @@
             padding-top: 32px;
             border-top: 1px solid $blue-20;
         }
+    }
+
+    .citation__how-to-header--data {
+        margin-bottom: 16px;
+    }
+
+    .citation__type {
+        color: $blue-90;
+    }
+
+    .wp-code-snippet {
+        margin-bottom: 16px;
     }
 }

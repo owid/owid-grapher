@@ -52,6 +52,8 @@ export const DataPageContent = ({
         relatedCharts = [],
     } = datapageGdoc || {}
 
+    const REUSE_THIS_WORK_ANCHOR = "#reuse-this-work"
+
     const stickyNavLinks = [
         {
             text: "Explore the Data",
@@ -65,7 +67,7 @@ export const DataPageContent = ({
         { text: "All Charts", target: "#all-charts" },
         { text: "FAQs", target: "#faqs" },
         { text: "Sources & Processing", target: "#sources-and-processing" },
-        { text: "Reuse This Work", target: "#reuse-this-work" },
+        { text: "Reuse This Work", target: REUSE_THIS_WORK_ANCHOR },
     ]
 
     const hasRelatedDataFeatured = datapageJson.relatedData?.some(
@@ -434,9 +436,6 @@ export const DataPageContent = ({
                                                                 label={
                                                                     source.sourceName
                                                                 }
-                                                                isExpandedDefault={
-                                                                    idx === 0
-                                                                }
                                                                 isStacked={
                                                                     idx !==
                                                                     sources.length -
@@ -452,53 +451,118 @@ export const DataPageContent = ({
                                                                                 containerType="datapage"
                                                                             />
                                                                         )}
-                                                                        <>
-                                                                            {(source.sourceRetrievedOn ||
-                                                                                source.sourceRetrievedFromUrl) && (
-                                                                                <div
-                                                                                    className="grid"
-                                                                                    style={{
-                                                                                        gridTemplateColumns:
-                                                                                            "minmax(0,1fr) minmax(0,2fr)",
-                                                                                    }}
-                                                                                >
-                                                                                    {source.sourceRetrievedOn && (
-                                                                                        <div className="key-data">
-                                                                                            <div className="key-data__title--dark">
-                                                                                                Retrieved
-                                                                                                on
-                                                                                            </div>
-                                                                                            <div>
-                                                                                                {
-                                                                                                    source.sourceRetrievedOn
+                                                                        {(source.sourceRetrievedOn ||
+                                                                            source.sourceRetrievedFromUrl) && (
+                                                                            <div
+                                                                                className="grid source__key-data"
+                                                                                style={{
+                                                                                    gridTemplateColumns:
+                                                                                        "minmax(0,1fr) minmax(0,2fr)",
+                                                                                }}
+                                                                            >
+                                                                                {source.sourceRetrievedOn && (
+                                                                                    <div className="key-data">
+                                                                                        <div className="key-data__title--dark">
+                                                                                            Retrieved
+                                                                                            on
+                                                                                        </div>
+                                                                                        <div>
+                                                                                            {
+                                                                                                source.sourceRetrievedOn
+                                                                                            }
+                                                                                        </div>
+                                                                                    </div>
+                                                                                )}
+                                                                                {source.sourceRetrievedFromUrl && (
+                                                                                    <div className="key-data key-data--hide-overflow">
+                                                                                        <div className="key-data__title--dark">
+                                                                                            Retrieved
+                                                                                            from
+                                                                                        </div>
+                                                                                        <div>
+                                                                                            <a
+                                                                                                href={
+                                                                                                    source.sourceRetrievedFromUrl
                                                                                                 }
-                                                                                            </div>
+                                                                                                target="_blank"
+                                                                                                rel="noreferrer"
+                                                                                            >
+                                                                                                {
+                                                                                                    source.sourceRetrievedFromUrl
+                                                                                                }
+                                                                                            </a>
                                                                                         </div>
-                                                                                    )}
-                                                                                    {source.sourceRetrievedFromUrl && (
-                                                                                        <div className="key-data key-data--hide-overflow">
-                                                                                            <div className="key-data__title--dark">
-                                                                                                Retrieved
-                                                                                                from
-                                                                                            </div>
-                                                                                            <div>
-                                                                                                <a
-                                                                                                    href={
-                                                                                                        source.sourceRetrievedFromUrl
-                                                                                                    }
-                                                                                                    target="_blank"
-                                                                                                    rel="noreferrer"
-                                                                                                >
-                                                                                                    {
-                                                                                                        source.sourceRetrievedFromUrl
-                                                                                                    }
-                                                                                                </a>
-                                                                                            </div>
+                                                                                    </div>
+                                                                                )}
+                                                                                {source.sourceCitation && (
+                                                                                    <div
+                                                                                        className="key-data"
+                                                                                        style={{
+                                                                                            gridColumn:
+                                                                                                "span 2",
+                                                                                        }}
+                                                                                    >
+                                                                                        <div className="key-data__title--dark">
+                                                                                            Citation
                                                                                         </div>
-                                                                                    )}
-                                                                                </div>
-                                                                            )}
-                                                                        </>
+                                                                                        This
+                                                                                        is
+                                                                                        the
+                                                                                        citation
+                                                                                        of
+                                                                                        the
+                                                                                        original
+                                                                                        data
+                                                                                        obtained
+                                                                                        from
+                                                                                        the
+                                                                                        source,
+                                                                                        prior
+                                                                                        to
+                                                                                        any
+                                                                                        processing
+                                                                                        or
+                                                                                        adaptation
+                                                                                        by
+                                                                                        Our
+                                                                                        World
+                                                                                        in
+                                                                                        Data.
+                                                                                        To
+                                                                                        cite
+                                                                                        data
+                                                                                        downloaded
+                                                                                        from
+                                                                                        this
+                                                                                        page,
+                                                                                        please
+                                                                                        use
+                                                                                        the
+                                                                                        suggested
+                                                                                        citation
+                                                                                        given
+                                                                                        in{" "}
+                                                                                        <a
+                                                                                            href={
+                                                                                                REUSE_THIS_WORK_ANCHOR
+                                                                                            }
+                                                                                        >
+                                                                                            Reuse
+                                                                                            This
+                                                                                            Work
+                                                                                        </a>{" "}
+                                                                                        below.
+                                                                                        <CodeSnippet
+                                                                                            code={
+                                                                                                source.sourceCitation
+                                                                                            }
+                                                                                            theme="light"
+                                                                                            isTruncated
+                                                                                        />
+                                                                                    </div>
+                                                                                )}
+                                                                            </div>
+                                                                        )}
                                                                     </>
                                                                 }
                                                             />
@@ -574,12 +638,26 @@ export const DataPageContent = ({
                                     className="reuse__title span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
                                     id="reuse-this-work"
                                 >
-                                    Reuse this work freely
+                                    Reuse this work
                                 </h2>
                                 <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                                    <div className="reuse__content">
-                                        <p className="reuse__paragraph">
-                                            All visualizations, data, and code
+                                    <ul className="reuse__content">
+                                        <li className="reuse__list-item">
+                                            All data produced by third-party
+                                            providers and made available by Our
+                                            World in Data are subject to the
+                                            license terms from the original
+                                            providers. Our work would not be
+                                            possible without the data providers
+                                            we rely on, so we ask you to always
+                                            cite them appropriately (see below).
+                                            This is crucial to allow data
+                                            providers to continue doing their
+                                            work, enhancing, maintaining and
+                                            updating valuable data.
+                                        </li>
+                                        <li className="reuse__list-item">
+                                            All data, visualizations, and code
                                             produced by Our World in Data are
                                             completely open access under the{" "}
                                             <a
@@ -594,48 +672,65 @@ export const DataPageContent = ({
                                             distribute, and reproduce these in
                                             any medium, provided the source and
                                             authors are credited.
-                                        </p>
-                                        <p className="reuse__paragraph">
-                                            Our work would not be possible
-                                            without the original data providers
-                                            we rely on, so we ask you to always
-                                            cite them appropriately and to
-                                            respect their license terms. This is
-                                            crucial to allow data providers to
-                                            continue doing their work,
-                                            enhancing, maintaining and updating
-                                            valuable data.
-                                        </p>
-                                    </div>
+                                        </li>
+                                    </ul>
                                 </div>
-                                {(datapageJson.citationData ||
+                                {(datapageJson.citationDataInline ||
+                                    datapageJson.citationDataFull ||
                                     datapageJson.citationDatapage) && (
                                     <div className="citations grid span-cols-12">
                                         <h3 className="citations__heading span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
                                             Citations
                                         </h3>
                                         <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                                            {datapageJson.citationData && (
+                                            {(datapageJson.citationDataInline ||
+                                                datapageJson.citationDataFull) && (
                                                 <div className="citations-section">
-                                                    <h5 className="citation__how-to-header">
+                                                    <h5 className="citation__how-to-header citation__how-to-header--data">
                                                         How to cite this data
                                                     </h5>
-                                                    <p className="citation__paragraph">
-                                                        If you are using this
-                                                        data for analysis or for
-                                                        your own visualizations,
-                                                        please cite both the
-                                                        underlying data
-                                                        source(s) and Our World
-                                                        in Data using the
-                                                        following citation:
-                                                    </p>
-                                                    <CodeSnippet
-                                                        code={
-                                                            datapageJson.citationData
-                                                        }
-                                                        theme="light"
-                                                    />
+                                                    {datapageJson.citationDataInline && (
+                                                        <>
+                                                            <p className="citation__paragraph">
+                                                                <span className="citation__type">
+                                                                    In-line
+                                                                    citation
+                                                                </span>
+                                                                <br />
+                                                                If you have
+                                                                limited space
+                                                                (e.g. in data
+                                                                visualizations,
+                                                                on Twitter), you
+                                                                can use this
+                                                                abbreviated
+                                                                in-line
+                                                                citation:
+                                                            </p>
+                                                            <CodeSnippet
+                                                                code={
+                                                                    datapageJson.citationDataInline
+                                                                }
+                                                                theme="light"
+                                                            />
+                                                        </>
+                                                    )}
+                                                    {datapageJson.citationDataFull && (
+                                                        <>
+                                                            <p className="citation__paragraph">
+                                                                <span className="citation__type">
+                                                                    Full
+                                                                    citation
+                                                                </span>
+                                                            </p>
+                                                            <CodeSnippet
+                                                                code={
+                                                                    datapageJson.citationDataFull
+                                                                }
+                                                                theme="light"
+                                                            />
+                                                        </>
+                                                    )}
                                                 </div>
                                             )}
                                             {datapageJson.citationDatapage && (
