@@ -4,7 +4,7 @@ import {
     BlankOwidTable,
     ColumnTypeNames,
     CoreColumnDef,
-    extractDataSlugsFromTransform,
+    extractPotentialDataSlugsFromTransform,
     isNotErrorValue,
     OwidColumnDef,
     OwidTable,
@@ -419,7 +419,8 @@ export class Explorer
     ): string[] {
         const def = this.columnDefsNotLinkedToTableByIdOrSlug[slug] ?? {}
         if (!def.transform) return baseColumns
-        const dataSlugs = extractDataSlugsFromTransform(def.transform)
+        const dataSlugs =
+            extractPotentialDataSlugsFromTransform(def.transform) ?? []
         for (let i = 0; i < dataSlugs.length; i++) {
             this.getBaseColumnsForColumnWithTransform(dataSlugs[i], baseColumns)
             baseColumns.push(dataSlugs[i]) // deepest dependency at the start of the array

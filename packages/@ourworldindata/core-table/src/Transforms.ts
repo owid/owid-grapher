@@ -1,4 +1,4 @@
-import { flatten, ColumnSlug } from "@ourworldindata/utils"
+import { flatten, ColumnSlug, zip, uniq } from "@ourworldindata/utils"
 import { CoreColumnStore, Time, CoreValueType } from "./CoreTableConstants.js"
 import { CoreColumnDef } from "./CoreColumnDef.js"
 import {
@@ -26,7 +26,7 @@ interface TransformParam {
 
 interface Transform {
     params: TransformParam[]
-    fn: any
+    fn: (...args: any[]) => CoreValueType[]
 }
 
 // In Grapher we return just the years for which we have values for. This puts MissingValuePlaceholder
@@ -418,8 +418,7 @@ export const applyTransforms = (
     columnStore: CoreColumnStore,
     defs: CoreColumnDef[]
 ): CoreColumnStore => {
-    for (let i = 0; i < defs.length; i++) {
-        const def = defs[i]
+    for (const def of defs) {
         if (!def.transform) continue
         const { transformName, params = [] } =
             extractTransformNameAndParams(def.transform!) ?? {}
@@ -443,25 +442,26 @@ export const applyTransforms = (
     return columnStore
 }
 
-export const extractDataSlugsFromTransform = (
+const isMaybeDataSlugParam = (paramDef: TransformParam): boolean =>
+    paramDef.type === TransformParamType.DataSlug ||
+    paramDef.type === TransformParamType.ColumnSlug // might be a data slug
+
+export const extractPotentialDataSlugsFromTransform = (
     transform: string
-): ColumnSlug[] => {
+): ColumnSlug[] | undefined => {
     const { transformName, params = [] } =
         extractTransformNameAndParams(transform) ?? {}
-    if (!transformName) return []
-    const dataParams = availableTransforms[transformName].params
-        .map((param, index) => ({ ...param, index }))
+    if (!transformName) return
+    const paramDefs = availableTransforms[transformName].params
+    const dataSlugs = zip(paramDefs, params)
         .filter(
-            (param) =>
-                param.type === TransformParamType.DataSlug ||
-                param.type === TransformParamType.ColumnSlug // might be a data slug
+            ([paramDef, param]) =>
+                param && paramDef && isMaybeDataSlugParam(paramDef)
         )
-    if (dataParams.length === 0) return []
-    const dataParamInds = dataParams.map((param) => param.index)
-    const dataSlugs = params.filter((_, index) => dataParamInds.includes(index))
-    const lastDataParam = dataParams[dataParams.length - 1]
-    if (lastDataParam.spread) {
-        dataSlugs.push(...params.slice(lastDataParam.index + 1))
+        .map(([_, param]) => param as string)
+    const lastParam = paramDefs[paramDefs.length - 1]
+    if (lastParam && isMaybeDataSlugParam(lastParam) && lastParam.spread) {
+        dataSlugs.push(...params.slice(paramDefs.length))
     }
-    return dataSlugs
+    return uniq(dataSlugs)
 }

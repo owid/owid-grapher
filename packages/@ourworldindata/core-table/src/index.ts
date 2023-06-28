@@ -124,5 +124,5 @@ export {
     computeRollingAverage,
     AvailableTransforms,
     applyTransforms,
-    extractDataSlugsFromTransform,
+    extractPotentialDataSlugsFromTransform,
 } from "./Transforms.js"
