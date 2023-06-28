@@ -85,6 +85,17 @@ export const siteSearch = async (query: string): Promise<SiteSearchResults> => {
                 clickAnalytics: true,
             },
         },
+        {
+            indexName: "explorers-test",
+            query: chartQuery,
+            params: {
+                attributesToRetrieve: ["objectID", "slug", "title", "subtitle"],
+                hitsPerPage: 3,
+                removeStopWords: true,
+                replaceSynonymsInHighlight: false,
+                clickAnalytics: true,
+            },
+        },
     ])
 
     return {
