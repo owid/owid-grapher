@@ -3,6 +3,7 @@
 import {
     insertMissingValuePlaceholders,
     computeRollingAverage,
+    extractPotentialDataSlugsFromTransform,
 } from "./Transforms.js"
 import { ErrorValue, ErrorValueTypes } from "./ErrorValues.js"
 
@@ -100,5 +101,72 @@ describe(computeRollingAverage, () => {
                 )
             ).toEqual(testCase.result)
         })
+    })
+})
+
+describe(extractPotentialDataSlugsFromTransform, () => {
+    it("extracts data slugs from transforms", () => {
+        expect(
+            extractPotentialDataSlugsFromTransform("asPercentageOf slug 256972")
+        ).toStrictEqual(["slug", "256972"])
+        expect(
+            extractPotentialDataSlugsFromTransform(
+                "timeSinceEntityExceededThreshold time entity slug 50"
+            )
+        ).toStrictEqual(["slug"])
+        expect(
+            extractPotentialDataSlugsFromTransform("divideBy 256972 slug")
+        ).toStrictEqual(["256972", "slug"])
+        expect(
+            extractPotentialDataSlugsFromTransform(
+                "rollingAverage time entity slug 7"
+            )
+        ).toStrictEqual(["slug"])
+        expect(
+            extractPotentialDataSlugsFromTransform(
+                "percentChange my-time my-entity 256972 2"
+            )
+        ).toStrictEqual(["256972"])
+        expect(
+            extractPotentialDataSlugsFromTransform("multiplyBy slug 2")
+        ).toStrictEqual(["slug"])
+        expect(
+            extractPotentialDataSlugsFromTransform("subtract 256972 slug")
+        ).toStrictEqual(["256972", "slug"])
+        expect(
+            extractPotentialDataSlugsFromTransform(
+                "slug where 256972 isGreaterThanOrEqual 0"
+            )
+        ).toStrictEqual(["slug", "256972"])
+        expect(
+            extractPotentialDataSlugsFromTransform(
+                "slug where entity isNot France"
+            )
+        ).toStrictEqual(["slug", "entity"]) // entity is expected to be returned as this _might_ be a data slug
+    })
+    it("extracts a unique list of data slugs", () => {
+        expect(
+            extractPotentialDataSlugsFromTransform("256972 subtract 256972")
+        ).toStrictEqual(["256972"])
+        expect(
+            extractPotentialDataSlugsFromTransform(
+                "slug where slug isGreaterThanOrEqual 0"
+            )
+        ).toStrictEqual(["slug"])
+    })
+    it("allows the transform name to be in different positions", () => {
+        expect(
+            extractPotentialDataSlugsFromTransform("multiplyBy my-slug 2")
+        ).toStrictEqual(["my-slug"])
+        expect(
+            extractPotentialDataSlugsFromTransform("256972 multiplyBy 2")
+        ).toStrictEqual(["256972"])
+    })
+    it("returns undefined for inputs that are not transforms", () => {
+        expect(
+            extractPotentialDataSlugsFromTransform(
+                "some-string pretending-to-be a transform"
+            )
+        ).toBeUndefined()
     })
 })
