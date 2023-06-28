@@ -57,4 +57,5 @@ export interface MapChartManager extends ChartManager {
     resetHandleTimeBounds?: () => void // Used to reset the timeline on map click
     mapConfig?: MapConfig
     endTime?: Time
+    title?: string
 }
