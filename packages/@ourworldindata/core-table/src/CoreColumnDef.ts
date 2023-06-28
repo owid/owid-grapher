@@ -54,7 +54,6 @@ export interface CoreColumnDef extends ColumnColorScale {
 
     // Computational
     transform?: string // Code that maps to a CoreTable transform
-    transformHasRun?: boolean // If true, the transform has been applied
     tolerance?: number // If set, some charts can use this for an interpolation strategy.
     toleranceStrategy?: ToleranceStrategy // Tolerance strategy to use for interpolation
     skipParsing?: boolean // If set, the values will never run through the type parser
