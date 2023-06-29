@@ -50,8 +50,6 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     def: CoreColumnDef
     table: CoreTable
 
-    transformHasRun = false // true if the transform has been applied
-
     constructor(table: CoreTable, def: CoreColumnDef) {
         this.table = table
         this.def = def

@@ -419,13 +419,14 @@ export const applyTransforms = (
     defs: CoreColumnDef[]
 ): CoreColumnStore => {
     for (const def of defs) {
-        if (!def.transform) continue
+        if (!def.transform || def.transformHasRun) continue
         const { transformName, params = [] } =
             extractTransformNameAndParams(def.transform!) ?? {}
         if (!transformName) continue
         const { fn } = availableTransforms[transformName]
         try {
             columnStore[def.slug] = fn(columnStore, ...params)
+            def.transformHasRun = true
         } catch (err) {
             console.error(
                 `Error performing transform '${def.transform}' for column '${

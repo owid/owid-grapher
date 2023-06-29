@@ -203,13 +203,10 @@ export class CoreTable<
             )
 
         const columnsFromTransforms = inputColumnDefs.filter(
-            (def) => def.transform && !this.get(def.slug).transformHasRun
+            (def) => def.transform && !def.transformHasRun
         ) // todo: sort by graph dependency order
         if (columnsFromTransforms.length) {
             columnStore = applyTransforms(columnStore, columnsFromTransforms)
-            columnsFromTransforms.map((def) => {
-                this.get(def.slug).transformHasRun = true
-            })
         }
 
         return advancedOptions.filterMask
