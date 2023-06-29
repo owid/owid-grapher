@@ -49,51 +49,57 @@ export const KeyInsights = ({
         return null
     }
     return (
-        <div className={cx(className, KEY_INSIGHTS_CLASS_NAME)}>
+        <div className={className}>
             <h2 className="h1-semibold" id={KEY_INSIGHTS_ID}>
                 {heading}
             </h2>
-            <div>
-                <KeyInsightsThumbs
-                    titles={insights.map(({ title }) => title)}
-                />
-                <div className={KEY_INSIGHTS_SLIDES_CLASS_NAME}>
-                    {insights.map(({ title, content, filename, url }, idx) => {
-                        return (
-                            <div
-                                key={idx}
-                                className={cx(
-                                    KEY_INSIGHTS_SLIDE_CLASS_NAME,
-                                    "grid grid-cols-12 span-cols-12"
-                                )}
-                                data-active={idx === 0}
-                                role="tabpanel"
-                                tabIndex={0}
-                            >
-                                <div className="grid span-cols-12">
-                                    <div className="article-block__key-insights-content-column span-cols-5 span-md-cols-12">
-                                        <h4 id={slugify(title)}>{title}</h4>
-                                        <div
-                                            className={
-                                                KEY_INSIGHTS_SLIDE_CONTENT_CLASS_NAME
-                                            }
-                                        >
-                                            <ArticleBlocks
-                                                blocks={content}
-                                                containerType="key-insight"
-                                            />
+            <div className={KEY_INSIGHTS_CLASS_NAME}>
+                <div>
+                    <KeyInsightsThumbs
+                        titles={insights.map(({ title }) => title)}
+                    />
+                    <div className={KEY_INSIGHTS_SLIDES_CLASS_NAME}>
+                        {insights.map(
+                            ({ title, content, filename, url }, idx) => {
+                                return (
+                                    <div
+                                        key={idx}
+                                        className={cx(
+                                            KEY_INSIGHTS_SLIDE_CLASS_NAME,
+                                            "grid grid-cols-12 span-cols-12"
+                                        )}
+                                        data-active={idx === 0}
+                                        role="tabpanel"
+                                        tabIndex={0}
+                                    >
+                                        <div className="grid span-cols-12">
+                                            <div className="article-block__key-insights-content-column span-cols-5 span-md-cols-12">
+                                                <h4 id={slugify(title)}>
+                                                    {title}
+                                                </h4>
+                                                <div
+                                                    className={
+                                                        KEY_INSIGHTS_SLIDE_CONTENT_CLASS_NAME
+                                                    }
+                                                >
+                                                    <ArticleBlocks
+                                                        blocks={content}
+                                                        containerType="key-insight"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="span-cols-7 span-md-cols-12">
+                                                {renderAssetForInsight({
+                                                    filename,
+                                                    url,
+                                                })}
+                                            </div>
                                         </div>
                                     </div>
-                                    <div className="span-cols-7 span-md-cols-12">
-                                        {renderAssetForInsight({
-                                            filename,
-                                            url,
-                                        })}
-                                    </div>
-                                </div>
-                            </div>
-                        )
-                    })}
+                                )
+                            }
+                        )}
+                    </div>
                 </div>
             </div>
         </div>
