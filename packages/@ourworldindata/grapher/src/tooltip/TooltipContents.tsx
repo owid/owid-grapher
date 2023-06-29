@@ -92,7 +92,7 @@ class Indicator extends React.Component<{
 
         const { displayName, unit, shortUnit } = column,
             displayUnit =
-                unit && displayName != unit && unit != shortUnit
+                unit && unit != shortUnit && !displayName.match(unit)
                     ? unit.replace(/(^\(|\)$)/g, "")
                     : null,
             noticeSpan = notice && (
