@@ -23,6 +23,10 @@
     .topic-page-header__byline a {
         color: $blue-60;
         margin-bottom: 34px;
+        @include sm-only {
+            margin-bottom: 16px;
+            font-size: 0.875rem;
+        }
     }
 
     .topic-page-header__byline a:hover {
