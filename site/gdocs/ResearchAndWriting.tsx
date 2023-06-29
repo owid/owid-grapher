@@ -85,6 +85,7 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
                 id={RESEARCH_AND_WRITING_ID}
             >
                 Research & Writing
+                <a className="deep-link" href={`#${RESEARCH_AND_WRITING_ID}`} />
             </h2>
             <ResearchAndWritingLinkContainer
                 className="span-cols-6 span-md-cols-6 span-sm-cols-12"

@@ -50,8 +50,12 @@ export const KeyInsights = ({
     }
     return (
         <div className={className}>
-            <h2 className="h1-semibold" id={KEY_INSIGHTS_ID}>
+            <h2
+                className="article-block__heading h1-semibold"
+                id={KEY_INSIGHTS_ID}
+            >
                 {heading}
+                <a className="deep-link" href={`#${KEY_INSIGHTS_ID}`} />
             </h2>
             <div className={KEY_INSIGHTS_CLASS_NAME}>
                 <div>

@@ -179,6 +179,11 @@
         // Countering the gray-section padding to make this have 32px 16px
         margin-top: -16px;
         margin-bottom: 16px;
+
+        .deep-link {
+            position: absolute;
+            margin-top: 0.75em;
+        }
     }
 
     .article-block__text,

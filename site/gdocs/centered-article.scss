@@ -48,6 +48,28 @@ $banner-height: 200px;
     margin-top: 0;
 }
 
+.article-block__heading:hover {
+    a.deep-link {
+        opacity: 1;
+    }
+}
+
+h1.article-block__heading {
+    a.deep-link {
+        height: 20px;
+    }
+}
+h2.article-block__heading {
+    a.deep-link {
+        height: 18px;
+    }
+}
+h3.article-block__heading {
+    a.deep-link {
+        height: 16px;
+    }
+}
+
 .article-block__image {
     width: 100%;
     margin: 32px 0;
