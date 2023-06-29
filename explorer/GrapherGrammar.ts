@@ -197,6 +197,12 @@ export const GrapherGrammar: Grammar = {
         description:
             "Hide the total value that is normally displayed to the right of the bars in a stacked bar chart.",
     },
+    hideRelativeToggle: {
+        ...BooleanCellDef,
+        keyword: "hideRelativeToggle",
+        description:
+            "Whether to hide the relative mode UI toggle. Default depends on the chart type.",
+    },
     timelineMinTime: {
         ...IntegerCellDef,
         keyword: "timelineMinTime",
