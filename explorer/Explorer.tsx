@@ -435,9 +435,7 @@ export class Explorer
     // respectively, then getBaseIndicatorIdsForColumnWithTransform('slug')
     // returns ['539022', '170775'] as these are the IDs of the two indicators
     // that the 'slug' column depends on
-    @action.bound private getBaseIndicatorIdsForColumnWithTransform(
-        slug: string
-    ): string[] {
+    private getBaseIndicatorIdsForColumnWithTransform(slug: string): string[] {
         const { columnDefsWithoutTableSlug } = this.explorerProgram
         const baseIndicatorIdsAndColumnSlugs =
             this.getBaseColumnsForColumnWithTransform(slug)
@@ -544,8 +542,8 @@ export class Explorer
         // find all indicators the the transformed columns depend on and add them to the dimensions array
         if (uniqueSlugsInGrapherRow.length) {
             const baseIndicatorIds = uniq(
-                uniqueSlugsInGrapherRow.flatMap(
-                    this.getBaseIndicatorIdsForColumnWithTransform
+                uniqueSlugsInGrapherRow.flatMap((slug) =>
+                    this.getBaseIndicatorIdsForColumnWithTransform(slug)
                 )
             )
                 .map((id) => parseInt(id, 10))
