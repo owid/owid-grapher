@@ -142,7 +142,7 @@ describe(extractPotentialDataSlugsFromTransform, () => {
             extractPotentialDataSlugsFromTransform(
                 "slug where entity isNot France"
             )
-        ).toStrictEqual(["slug", "entity"]) // entity is expected to be returned as this _might_ be a data slug
+        ).toStrictEqual(["slug", "entity"])
     })
     it("extracts a unique list of data slugs", () => {
         expect(

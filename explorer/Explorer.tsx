@@ -413,6 +413,11 @@ export class Explorer
         )
     }
 
+    // gets the slugs of all base and intermediate columns that a
+    // transformed column depends on; for example, if a column's transform
+    // is 'divideBy 170775 other_slug' and 'other_slug' is also a transformed
+    // column defined by 'multiplyBy 539022 2', then this function
+    // returns ['539022', '170775', 'other_slug']
     private getBaseColumnsForColumnWithTransform(slug: string): string[] {
         const def = this.columnDefsWithoutTableSlugByIdOrSlug[slug]
         if (!def?.transform) return []
@@ -424,6 +429,12 @@ export class Explorer
         ])
     }
 
+    // gets the IDs of all indicators that a transformed column depends on;
+    // for example, if a there are two columns, 'slug' and 'other_slug', that
+    // are defined by the transforms 'divideBy 170775 other_slug' and 'multiplyBy 539022 2',
+    // respectively, then getBaseIndicatorIdsForColumnWithTransform('slug')
+    // returns ['539022', '170775'] as these are the IDs of the two indicators
+    // that the 'slug' column depends on
     @action.bound private getBaseIndicatorIdsForColumnWithTransform(
         slug: string
     ): string[] {
@@ -480,6 +491,8 @@ export class Explorer
             hideEntityControls: this.showExplorerControls,
         }
 
+        // set given indicator IDs as dimensions to make Grapher
+        // download the data and metadata for these indicators
         const dimensions = config.dimensions ?? []
         if (yIndicatorIds) {
             const yIndicatorIdsList = yIndicatorIds
@@ -512,11 +525,23 @@ export class Explorer
             })
         }
 
-        // slugs refer to columns that are derived from indicators by specifying a transform
+        // Slugs that are used to create a chart refer to columns derived from indicators
+        // by a transform string (e.g. 'multiplyBy 539022 2'). To render such a chart, we
+        // need to download the data for all indicators the transformed columns depend on
+        // and construct an appropriate Grapher table. This is done in three steps:
+        //   1. find all indicators that the transformed columns depend on and add them to
+        //      the config's dimensions array
+        //   2. download data and metadata of the indicators
+        //   3. append the transformed columns to the Grapher table (note that this includes
+        //      intermediate columns that are defined for multi-step transforms but are not
+        //      referred to in any Grapher row)
+
+        // all slugs specified by the author in the explorer config
         const uniqueSlugsInGrapherRow = uniq(
             [...ySlugs.split(" "), xSlug, colorSlug, sizeSlug].filter(identity)
         ) as string[]
 
+        // find all indicators the the transformed columns depend on and add them to the dimensions array
         if (uniqueSlugsInGrapherRow.length) {
             const baseIndicatorIds = uniq(
                 uniqueSlugsInGrapherRow.flatMap(
@@ -525,7 +550,6 @@ export class Explorer
             )
                 .map((id) => parseInt(id, 10))
                 .filter((id) => !isNaN(id))
-            // add all indicator ids that the given slugs depend on to the config
             baseIndicatorIds.forEach((indicatorId) => {
                 dimensions.push({
                     variableId: indicatorId,
@@ -562,7 +586,7 @@ export class Explorer
             return mergedDef
         })
 
-        // add derived columns to grapher table
+        // add transformed (and intermediate) columns to the grapher table
         if (uniqueSlugsInGrapherRow.length) {
             const allColumnSlugs = uniq(
                 uniqueSlugsInGrapherRow.flatMap((slug) => [

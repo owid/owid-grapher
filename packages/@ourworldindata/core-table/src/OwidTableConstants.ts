@@ -24,7 +24,7 @@ export type EntityId = number
 
 // Todo: coverage, datasetId, and datasetName can just be on source, right? or should we flatten source onto this?
 export interface OwidColumnDef extends CoreColumnDef {
-    owidVariableId?: number // todo: remove after data 2.0
+    owidVariableId?: number
     coverage?: string
     datasetId?: number
     datasetName?: string
