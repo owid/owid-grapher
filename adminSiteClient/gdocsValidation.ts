@@ -34,15 +34,17 @@ class BodyHandler extends AbstractHandler {
             messages.push(getMissingContentPropertyError("body"))
         } else {
             for (const block of body) {
-                messages.push(
-                    ...block.parseErrors.map((parseError) => ({
-                        message: parseError.message,
-                        type: parseError.isWarning
-                            ? OwidGdocErrorMessageType.Warning
-                            : OwidGdocErrorMessageType.Error,
-                        property: "body" as const,
-                    }))
-                )
+                traverseEnrichedBlocks(block, (block) => {
+                    messages.push(
+                        ...block.parseErrors.map((parseError) => ({
+                            message: parseError.message,
+                            type: parseError.isWarning
+                                ? OwidGdocErrorMessageType.Warning
+                                : OwidGdocErrorMessageType.Error,
+                            property: "body" as const,
+                        }))
+                    )
+                })
             }
         }
 
