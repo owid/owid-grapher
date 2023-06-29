@@ -212,7 +212,11 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
             <AdminLayout title="Preview error" noSidebar fixedNav={false}>
                 <main className="GdocsEditPage">
                     <div className="GdocsEditPage__error-container">
-                        <p>Something went wrong preparing the article.</p>
+                        <p>
+                            Something went wrong preparing the article{" "}
+                            <GdocsEditLink gdocId={id} />
+                        </p>
+
                         <pre>{criticalErrorMessage}</pre>
                         <p>
                             Ask a dev for help if necessary, and reload this
