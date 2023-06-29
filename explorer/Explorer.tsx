@@ -402,39 +402,38 @@ export class Explorer
         if (!grapher.id) grapher.id = 0
     }
 
-    @computed private get columnDefsNotLinkedToTableByIdOrSlug(): Record<
+    @computed private get columnDefsWithoutTableSlugByIdOrSlug(): Record<
         number | string,
         OwidColumnDef
     > {
-        const { columnDefsNotLinkedToTable } = this.explorerProgram
+        const { columnDefsWithoutTableSlug } = this.explorerProgram
         return keyBy(
-            columnDefsNotLinkedToTable as OwidColumnDef[],
+            columnDefsWithoutTableSlug,
             (def: OwidColumnDef) => def.owidVariableId ?? def.slug
         )
     }
 
-    @action.bound private getBaseColumnsForColumnWithTransform(
-        slug: string,
-        baseColumns: string[] = []
-    ): string[] {
-        const def = this.columnDefsNotLinkedToTableByIdOrSlug[slug] ?? {}
-        if (!def.transform) return baseColumns
+    private getBaseColumnsForColumnWithTransform(slug: string): string[] {
+        const def = this.columnDefsWithoutTableSlugByIdOrSlug[slug]
+        if (!def?.transform) return []
         const dataSlugs =
             extractPotentialDataSlugsFromTransform(def.transform) ?? []
-        for (let i = 0; i < dataSlugs.length; i++) {
-            this.getBaseColumnsForColumnWithTransform(dataSlugs[i], baseColumns)
-            baseColumns.push(dataSlugs[i]) // deepest dependency at the start of the array
+        for (const dataSlug of dataSlugs) {
+            return [
+                ...this.getBaseColumnsForColumnWithTransform(dataSlug),
+                dataSlug,
+            ]
         }
-        return baseColumns
+        return []
     }
 
     @action.bound private getBaseIndicatorIdsForColumnWithTransform(
         slug: string
     ): string[] {
-        const { columnDefsNotLinkedToTable } = this.explorerProgram
+        const { columnDefsWithoutTableSlug } = this.explorerProgram
         const baseIndicatorIdsAndColumnSlugs =
             this.getBaseColumnsForColumnWithTransform(slug)
-        const slugsInColumnBlock: string[] = columnDefsNotLinkedToTable
+        const slugsInColumnBlock: string[] = columnDefsWithoutTableSlug
             .filter((def) => !def.owidVariableId)
             .map((def) => def.slug)
         return baseIndicatorIdsAndColumnSlugs.filter(
@@ -551,7 +550,7 @@ export class Explorer
         // update column definitions with manually provided properties
         grapherTable = grapherTable.updateDefs((def: OwidColumnDef) => {
             const manuallyProvidedDef =
-                this.columnDefsNotLinkedToTableByIdOrSlug[def.slug] ?? {}
+                this.columnDefsWithoutTableSlugByIdOrSlug[def.slug] ?? {}
             const mergedDef = { ...def, ...manuallyProvidedDef }
 
             // update display properties
@@ -574,12 +573,12 @@ export class Explorer
                     slug,
                 ])
             )
-            const existentColumnSlugs = grapherTable.columnSlugs
-            const requiredColumnSlugs = allColumnSlugs.filter(
-                (slug) => !existentColumnSlugs.includes(slug)
+            const existingColumnSlugs = grapherTable.columnSlugs
+            const outstandingColumnSlugs = allColumnSlugs.filter(
+                (slug) => !existingColumnSlugs.includes(slug)
             )
-            const requiredColumnDefs = requiredColumnSlugs
-                .map((slug) => this.columnDefsNotLinkedToTableByIdOrSlug[slug])
+            const requiredColumnDefs = outstandingColumnSlugs
+                .map((slug) => this.columnDefsWithoutTableSlugByIdOrSlug[slug])
                 .filter(identity)
             grapherTable = grapherTable.appendColumns(requiredColumnDefs)
         }

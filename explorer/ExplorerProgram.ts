@@ -254,7 +254,7 @@ export class ExplorerProgram extends GridProgram {
         return columnDefs
     }
 
-    get columnDefsNotLinkedToTable(): OwidColumnDef[] {
+    get columnDefsWithoutTableSlug(): OwidColumnDef[] {
         return this.columnDefsByTableSlug.get(undefined) ?? []
     }
 
@@ -442,7 +442,7 @@ const parseColumnDefs = (block: string[][]): OwidColumnDef[] => {
                 type: ColumnTypeNames.String,
                 name: "slugOrIndicatorId",
             },
-            (values) => values.slug ?? values.owidVariableId.toString()
+            (values) => values.slug ?? values.owidVariableId?.toString()
         )
         .columnFilter(
             "slugOrIndicatorId",
