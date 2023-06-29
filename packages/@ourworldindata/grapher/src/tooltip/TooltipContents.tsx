@@ -23,9 +23,9 @@ export class TooltipValue extends React.Component<TooltipValueProps> {
                 displayValue === NO_DATA_LABEL ? NO_DATA_COLOR : color
 
         return (
-            <Indicator column={column} color={displayColor} notice={notice}>
+            <Variable column={column} color={displayColor} notice={notice}>
                 {displayValue}
-            </Indicator>
+            </Variable>
         )
     }
 }
@@ -71,16 +71,16 @@ export class TooltipValueRange extends React.Component<TooltipValueRangeProps> {
                     : this.arrowIcon("right")
 
         return (
-            <Indicator column={column} color={color} notice={notice}>
+            <Variable column={column} color={color} notice={notice}>
                 <span className="range">
                     {firstTerm} {trend} {lastTerm}
                 </span>
-            </Indicator>
+            </Variable>
         )
     }
 }
 
-class Indicator extends React.Component<{
+class Variable extends React.Component<{
     column: CoreColumn
     color?: string
     notice?: number | string
@@ -90,17 +90,20 @@ class Indicator extends React.Component<{
         const { column, children, color, notice } = this.props
         if (column.isMissing || column.name == "time") return null
 
-        const { displayName, unit, shortUnit } = column,
+        const { unit, shortUnit } = column,
+            [_m, displayName, parentheticalUnit] =
+                column.displayName.match(/^(.*?)(?:\s*\((.*?)\))?$/) ?? [],
             displayUnit =
                 unit && unit != shortUnit && !displayName.match(unit)
                     ? unit.replace(/(^\(|\)$)/g, "")
-                    : null,
+                    : parentheticalUnit || null,
             noticeSpan = notice && (
                 <span className="notice">
                     <FontAwesomeIcon icon={faInfoCircle} />
                     {notice}
                 </span>
             )
+
         return (
             <div className="variable">
                 <div className="definition">
