@@ -418,13 +418,10 @@ export class Explorer
         if (!def?.transform) return []
         const dataSlugs =
             extractPotentialDataSlugsFromTransform(def.transform) ?? []
-        for (const dataSlug of dataSlugs) {
-            return [
-                ...this.getBaseColumnsForColumnWithTransform(dataSlug),
-                dataSlug,
-            ]
-        }
-        return []
+        return dataSlugs.flatMap((dataSlug) => [
+            ...this.getBaseColumnsForColumnWithTransform(dataSlug),
+            dataSlug,
+        ])
     }
 
     @action.bound private getBaseIndicatorIdsForColumnWithTransform(
