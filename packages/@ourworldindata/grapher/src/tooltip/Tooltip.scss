@@ -32,26 +32,26 @@
         }
     }
 
-    header {
+    header.headline {
         background: $background-fill;
         color: black;
         padding: 8px 12px;
         border-radius: 3px 3px 0 0;
 
-        h1,
-        h2 {
+        .title,
+        .subtitle {
             margin: 0;
             padding: 0;
             line-height: 1.125em;
             font-family: inherit;
         }
 
-        h1 {
+        .title {
             font-size: 14px;
             font-weight: 700;
             letter-spacing: 0;
         }
-        h2 {
+        .subtitle {
             margin: 4px 0 2px 0;
             font-size: 12px;
             font-weight: 500;
@@ -69,7 +69,8 @@
         background: white;
     }
 
-    section {
+    .content {
+        margin: 0;
         padding: 8px 12px;
 
         > p {
@@ -133,7 +134,7 @@
             border-top: 1px solid $background-stroke;
         }
 
-        table {
+        table.series-list {
             color: $dark-grey;
             font-size: 14px;
             line-height: 22px;
@@ -289,7 +290,7 @@
     }
 
     // tolerance captions w/ circle-i icon
-    footer {
+    footer.time-notice-detail {
         position: relative;
         background: $background-fill;
         color: $grey;
@@ -317,7 +318,7 @@
 // adapt to smaller display areas
 @container grapher (max-width:900px) {
     .Tooltip {
-        section {
+        .content {
             padding: 4px 12px;
             .variable .values {
                 font-size: 16px;
@@ -329,7 +330,7 @@
                 padding-top: 4px;
             }
 
-            table {
+            table.series-list {
                 font-size: 12px;
                 line-height: 18px;
                 letter-spacing: 0.01em;

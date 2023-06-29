@@ -137,7 +137,7 @@ export class TooltipTable extends React.Component<TooltipTableProps> {
             )
 
         return (
-            <table className={classnames({ focal, swatched })}>
+            <table className={classnames("series-list", { focal, swatched })}>
                 {columns.length > 1 && (
                     <thead>
                         <tr>

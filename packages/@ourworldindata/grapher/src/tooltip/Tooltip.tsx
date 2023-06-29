@@ -78,6 +78,7 @@ class TooltipCard extends React.Component<
 
     render(): JSX.Element {
         let {
+            id,
             title,
             subtitle,
             subtitleFormat,
@@ -126,11 +127,13 @@ class TooltipCard extends React.Component<
         // style the box differently if just displaying title/subtitle
         const plain = hasHeader && !children
 
+        // skip transition delay if reqeusted
         const immediate = dissolve == "immediate"
 
         return (
             <div
                 ref={this.base}
+                id={id?.toString()}
                 className={classnames("Tooltip", {
                     plain,
                     dissolve,
@@ -143,21 +146,21 @@ class TooltipCard extends React.Component<
                 }}
             >
                 {hasHeader && (
-                    <header>
-                        {title && <h1>{title}</h1>}
+                    <header className="headline">
+                        {title && <div className="title">{title}</div>}
                         {subtitle && (
-                            <h2>
+                            <div className="subtitle">
                                 {notice && (
                                     <FontAwesomeIcon icon={faInfoCircle} />
                                 )}
                                 {subtitle}
-                            </h2>
+                            </div>
                         )}
                     </header>
                 )}
-                {children && <section>{children}</section>}
+                {children && <div className="content">{children}</div>}
                 {footer && (
-                    <footer>
+                    <footer className="time-notice-detail">
                         <FontAwesomeIcon icon={faInfoCircle} />
                         <p>{footer}</p>
                     </footer>
