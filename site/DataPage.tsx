@@ -2,6 +2,7 @@ import {
     getVariableDataRoute,
     getVariableMetadataRoute,
     GrapherInterface,
+    GrapherProgrammaticInterface,
 } from "@ourworldindata/grapher"
 import {
     uniq,
@@ -74,9 +75,10 @@ export const DataPage = (props: {
 
     const variableIds = uniq(grapher.dimensions!.map((d) => d.variableId))
 
-    const grapherConfig = {
+    const grapherConfig: GrapherProgrammaticInterface = {
         ...grapher,
         isEmbeddedInADataPage: true,
+        bindUrlToWindow: true,
         bakedGrapherURL: BAKED_GRAPHER_URL,
         adminBaseUrl: ADMIN_BASE_URL,
     }
