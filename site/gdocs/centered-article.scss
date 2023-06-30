@@ -87,6 +87,7 @@ h3.article-block__heading {
 .article-block__sticky-left,
 .article-block__sticky-right {
     @include md-up {
+        .article-block__heading:first-child,
         .article-block__image:first-child {
             margin-top: 0;
         }
