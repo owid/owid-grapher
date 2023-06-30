@@ -48,25 +48,43 @@ $banner-height: 200px;
     margin-top: 0;
 }
 
-.article-block__heading:hover {
+.article-block__heading {
     a.deep-link {
-        opacity: 1;
+        position: absolute;
+    }
+
+    &:hover {
+        a.deep-link {
+            opacity: 1;
+        }
     }
 }
 
 h1.article-block__heading {
     a.deep-link {
-        height: 20px;
+        margin-top: 16px;
+        height: 16px;
+        @include sm-only {
+            margin-top: 10px;
+        }
     }
 }
 h2.article-block__heading {
     a.deep-link {
-        height: 18px;
+        margin-top: 11px;
+        height: 14px;
+        @include sm-only {
+            margin-top: 10px;
+        }
     }
 }
 h3.article-block__heading {
     a.deep-link {
-        height: 16px;
+        margin-top: 8px;
+        height: 12px;
+        @include sm-only {
+            margin-top: 10px;
+        }
     }
 }
 
