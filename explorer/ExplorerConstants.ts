@@ -10,7 +10,7 @@ export enum ExplorerControlType {
 
 export enum ExplorerChartCreationMode {
     FromGrapherId = "FromGrapherId",
-    FromIndicatorIds = "FromIndicatorIds",
+    FromVariableIds = "FromVariableIds",
     FromExplorerTableColumnSlugs = "FromExplorerTableColumnSlugs",
 }
 

@@ -346,10 +346,10 @@ export class Explorer
         const {
             grapherId,
             tableSlug,
-            yIndicatorIds = "",
-            xIndicatorId,
-            colorIndicatorId,
-            sizeIndicatorId,
+            yVariableIds = "",
+            xVariableId,
+            colorVariableId,
+            sizeVariableId,
             yScaleToggle,
             yAxisMin,
             facetYDomain,
@@ -360,10 +360,10 @@ export class Explorer
         const grapherConfigFromExplorerOnlyGrapherProps = omit(
             grapherConfigFromExplorer,
             [
-                "yIndicatorIds",
-                "xIndicatorId",
-                "colorIndicatorId",
-                "sizeIndicatorId",
+                "yVariableIds",
+                "xVariableId",
+                "colorVariableId",
+                "sizeVariableId",
                 "mapTargetTime",
             ]
         )
@@ -371,8 +371,8 @@ export class Explorer
         let creationMode: ExplorerChartCreationMode
         if (grapherId && isNotErrorValue(grapherId))
             creationMode = ExplorerChartCreationMode.FromGrapherId
-        else if (yIndicatorIds)
-            creationMode = ExplorerChartCreationMode.FromIndicatorIds
+        else if (yVariableIds)
+            creationMode = ExplorerChartCreationMode.FromVariableIds
         else
             creationMode =
                 ExplorerChartCreationMode.FromExplorerTableColumnSlugs
@@ -392,35 +392,35 @@ export class Explorer
                 ExplorerChartCreationMode.FromExplorerTableColumnSlugs,
         }
 
-        if (creationMode === ExplorerChartCreationMode.FromIndicatorIds) {
+        if (creationMode === ExplorerChartCreationMode.FromVariableIds) {
             const dimensions = config.dimensions ?? []
-            if (yIndicatorIds) {
-                const yIndicatorIdsList = yIndicatorIds
+            if (yVariableIds) {
+                const yVariableIdsList = yVariableIds
                     .split(" ")
                     .map((item) => parseInt(item, 10))
                     .filter((item) => !isNaN(item))
-                yIndicatorIdsList.forEach((yIndicatorId) => {
+                yVariableIdsList.forEach((yVariableId) => {
                     dimensions.push({
-                        variableId: yIndicatorId,
+                        variableId: yVariableId,
                         property: DimensionProperty.y,
                     })
                 })
             }
-            if (xIndicatorId) {
+            if (xVariableId) {
                 dimensions.push({
-                    variableId: xIndicatorId,
+                    variableId: xVariableId,
                     property: DimensionProperty.x,
                 })
             }
-            if (colorIndicatorId) {
+            if (colorVariableId) {
                 dimensions.push({
-                    variableId: colorIndicatorId,
+                    variableId: colorVariableId,
                     property: DimensionProperty.color,
                 })
             }
-            if (sizeIndicatorId) {
+            if (sizeVariableId) {
                 dimensions.push({
-                    variableId: sizeIndicatorId,
+                    variableId: sizeVariableId,
                     property: DimensionProperty.size,
                 })
             }

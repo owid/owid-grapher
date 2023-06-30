@@ -48,10 +48,10 @@ export const GrapherGrammar: Grammar = {
         description: "ColumnSlug(s) for the yAxis",
         keyword: "ySlugs",
     },
-    yIndicatorIds: {
+    yVariableIds: {
         ...PositiveIntegersCellDef,
-        keyword: "yIndicatorIds",
-        description: "Indicator ID(s) for the yAxis",
+        keyword: "yVariableIds",
+        description: "Variable ID(s) for the yAxis",
     },
     type: {
         ...StringCellDef,
@@ -91,30 +91,30 @@ export const GrapherGrammar: Grammar = {
         description: "ColumnSlug for the xAxis",
         keyword: "xSlug",
     },
-    xIndicatorId: {
+    xVariableId: {
         ...IntegerCellDef,
-        keyword: "xIndicatorId",
-        description: "Indicator ID for the xAxis",
+        keyword: "xVariableId",
+        description: "Variable ID for the xAxis",
     },
     colorSlug: {
         ...SlugDeclarationCellDef,
         description: "ColumnSlug for the color",
         keyword: "colorSlug",
     },
-    colorIndicatorId: {
+    colorVariableId: {
         ...IntegerCellDef,
-        keyword: "colorIndicatorId",
-        description: "Indicator ID for the color",
+        keyword: "colorVariableId",
+        description: "Variable ID for the color",
     },
     sizeSlug: {
         ...SlugDeclarationCellDef,
         description: "ColumnSlug for the size of points on scatters",
         keyword: "sizeSlug",
     },
-    sizeIndicatorId: {
+    sizeVariableId: {
         ...IntegerCellDef,
-        keyword: "sizeIndicatorId",
-        description: "Indicator ID for the size of points on scatters",
+        keyword: "sizeVariableId",
+        description: "Variable ID for the size of points on scatters",
     },
     tableSlugs: {
         ...SlugsDeclarationCellDef,
