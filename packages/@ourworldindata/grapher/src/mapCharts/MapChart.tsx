@@ -190,7 +190,7 @@ export class MapChart
         // metadata or grapher-config level, use the chart title for the tooltip
         const mapColumn = transformedTable.get(this.mapColumnSlug)
         mapColumn.def.display ??= {}
-        mapColumn.def.display.name ??= this.manager.title
+        mapColumn.def.display.name ||= this.manager.title
 
         return transformedTable
     }

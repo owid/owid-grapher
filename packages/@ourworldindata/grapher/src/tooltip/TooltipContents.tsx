@@ -91,12 +91,18 @@ class Variable extends React.Component<{
         if (column.isMissing || column.name == "time") return null
 
         const { unit, shortUnit } = column,
-            [_m, displayName, parentheticalUnit] =
+            [_m, baseName, parentheticalUnit] =
                 column.displayName.match(/^(.*?)(?:\s*\((.*?)\))?$/) ?? [],
             displayUnit =
-                unit && unit != shortUnit && !displayName.match(unit)
+                unit &&
+                unit != shortUnit &&
+                !baseName.toLowerCase().includes(unit.toLowerCase())
                     ? unit.replace(/(^\(|\)$)/g, "")
                     : parentheticalUnit || null,
+            displayName =
+                parentheticalUnit && displayUnit !== parentheticalUnit
+                    ? column.displayName
+                    : baseName,
             noticeSpan = notice && (
                 <span className="notice">
                     <FontAwesomeIcon icon={faInfoCircle} />
