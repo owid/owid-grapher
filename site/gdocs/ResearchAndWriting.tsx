@@ -80,12 +80,13 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
     const { primary, secondary, more, rows, className } = props
     return (
         <div className={cx(className, "grid")}>
-            <h2
-                className="span-cols-12 display-1-semibold"
+            <h1
+                className="article-block__heading span-cols-12 h1-semibold"
                 id={RESEARCH_AND_WRITING_ID}
             >
                 Research & Writing
-            </h2>
+                <a className="deep-link" href={`#${RESEARCH_AND_WRITING_ID}`} />
+            </h1>
             <ResearchAndWritingLinkContainer
                 className="span-cols-6 span-md-cols-6 span-sm-cols-12"
                 {...primary}

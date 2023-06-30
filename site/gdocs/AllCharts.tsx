@@ -47,9 +47,13 @@ export function AllCharts(props: AllChartsProps) {
     const sortedRelatedCharts = sortRelatedCharts(relatedCharts, topSlugs)
     return (
         <div className={cx(className)}>
-            <h2 className="h1-semibold" id={ALL_CHARTS_ID}>
+            <h1
+                className="article-block__heading h1-semibold"
+                id={ALL_CHARTS_ID}
+            >
                 {heading}
-            </h2>
+                <a className="deep-link" href={`#${ALL_CHARTS_ID}`} />
+            </h1>
             <RelatedCharts charts={sortedRelatedCharts} />
         </div>
     )

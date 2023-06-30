@@ -270,6 +270,10 @@ export default function ArticleBlock({
                 id={convertHeadingTextToId(block.text)}
             >
                 {renderSpans(block.text)}
+                <a
+                    className="deep-link"
+                    href={`#${convertHeadingTextToId(block.text)}`}
+                />
             </h1>
         ))
         .with({ type: "heading", level: 2 }, (block) => {
@@ -306,6 +310,7 @@ export default function ArticleBlock({
                             </div>
                         ) : null}
                         {renderSpans(text)}
+                        <a className="deep-link" href={`#${id}`} />
                     </h2>
                 </>
             )
@@ -338,6 +343,7 @@ export default function ArticleBlock({
                         </div>
                     ) : null}
                     {renderSpans(text)}
+                    <a className="deep-link" href={`#${id}`} />
                 </h3>
             )
         })

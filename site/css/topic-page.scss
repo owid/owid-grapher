@@ -11,6 +11,19 @@
         @include body-1-regular;
     }
 
+    @include sm-only {
+        .large-banner .article-header {
+            padding: 24px 16px 16px 16px;
+            .authors-byline {
+                font-size: 0.875rem;
+            }
+        }
+    }
+
+    .tools {
+        display: none;
+    }
+
     h2 {
         @include h1-semibold;
     }
