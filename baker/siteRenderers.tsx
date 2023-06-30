@@ -595,7 +595,7 @@ export const renderExplorerPage = async (
     program: ExplorerProgram,
     urlMigrationSpec?: ExplorerPageUrlMigrationSpec
 ) => {
-    const { requiredGrapherIds, requiredIndicatorIds } = program.decisionMatrix
+    const { requiredGrapherIds, requiredVariableIds } = program.decisionMatrix
 
     type ChartRow = { id: number; config: string }
     let grapherConfigRows: ChartRow[] = []
@@ -609,10 +609,10 @@ export const renderExplorerPage = async (
         id: number
         grapherConfig: string | null
     }[] = []
-    if (requiredIndicatorIds.length) {
+    if (requiredVariableIds.length) {
         partialGrapherConfigRows = await queryMysql(
             `SELECT id, grapherConfig FROM variables WHERE id IN (?)`,
-            [requiredIndicatorIds]
+            [requiredVariableIds]
         )
     }
 

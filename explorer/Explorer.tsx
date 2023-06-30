@@ -198,7 +198,7 @@ export class Explorer
         return grapherConfigsMap
     }
 
-    @computed get partialGrapherConfigsByIndicatorId() {
+    @computed get partialGrapherConfigsByVariableId() {
         const arr = this.props.partialGrapherConfigs || []
         const grapherConfigsMap: Map<number, GrapherInterface> = new Map()
         arr.forEach((config) => grapherConfigsMap.set(config.id!, config))
@@ -473,13 +473,13 @@ export class Explorer
             sizeSlug,
         } = this.explorerProgram.grapherConfig
 
-        const yIndicatorIdsList = yIndicatorIds
+        const yVariableIdsList = yVariableIds
             .split(" ")
             .map((item) => parseInt(item, 10))
             .filter((item) => !isNaN(item))
 
         const partialGrapherConfig =
-            this.partialGrapherConfigsByIndicatorId.get(yIndicatorIdsList[0]) ??
+            this.partialGrapherConfigsByVariableId.get(yVariableIdsList[0]) ??
             {}
 
         const config: GrapherProgrammaticInterface = {
@@ -493,13 +493,13 @@ export class Explorer
         // download the data and metadata for these variables
         const dimensions = config.dimensions ?? []
 
-        yIndicatorIdsList.forEach((yIndicatorId) => {
+        yVariableIdsList.forEach((yVariableId) => {
             dimensions.push({
-                variableId: yIndicatorId,
+                variableId: yVariableId,
                 property: DimensionProperty.y,
             })
         })
-        if (xIndicatorId) {
+        if (xVariableId) {
             dimensions.push({
                 variableId: xVariableId,
                 property: DimensionProperty.x,

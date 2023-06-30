@@ -125,11 +125,11 @@ export class DecisionMatrix {
         return this.table.get(GrapherGrammar.grapherId.keyword).uniqValues
     }
 
-    get requiredIndicatorIds() {
+    get requiredVariableIds() {
         // only the first partial Grapher config of the y-dimension is taken into account
         return uniq(
             this.table
-                .get(GrapherGrammar.yIndicatorIds.keyword)
+                .get(GrapherGrammar.yVariableIds.keyword)
                 .values.map((value: string) =>
                     value
                         .split(" ")
