@@ -347,13 +347,13 @@ export class Explorer
     @computed private get chartCreationMode(): ExplorerChartCreationMode {
         const { decisionMatrix, grapherConfig } = this.explorerProgram
         const { grapherId } = grapherConfig
-        const yIndicatorIdsColumn = decisionMatrix.table.get(
-            GrapherGrammar.yIndicatorIds.keyword
+        const yVariableIdsColumn = decisionMatrix.table.get(
+            GrapherGrammar.yVariableIds.keyword
         )
-        // referring to an indicator in a single row triggers
-        // ExplorerChartCreationMode.FromIndicatorIds for all rows
-        if (yIndicatorIdsColumn.numValues)
-            return ExplorerChartCreationMode.FromIndicatorIds
+        // referring to a variable in a single row triggers
+        // ExplorerChartCreationMode.FromVariableIds for all rows
+        if (yVariableIdsColumn.numValues)
+            return ExplorerChartCreationMode.FromVariableIds
         if (grapherId && isNotErrorValue(grapherId))
             return ExplorerChartCreationMode.FromGrapherId
         return ExplorerChartCreationMode.FromExplorerTableColumnSlugs
@@ -364,8 +364,8 @@ export class Explorer
             case ExplorerChartCreationMode.FromGrapherId:
                 this.updateGrapherFromExplorerUsingGrapherId()
                 break
-            case ExplorerChartCreationMode.FromIndicatorIds:
-                this.updateGrapherFromExplorerUsingIndicatorIds()
+            case ExplorerChartCreationMode.FromVariableIds:
+                this.updateGrapherFromExplorerUsingVariableIds()
                 break
             case ExplorerChartCreationMode.FromExplorerTableColumnSlugs:
                 this.updateGrapherFromExplorerUsingColumnSlugs()
@@ -429,22 +429,22 @@ export class Explorer
         ])
     }
 
-    // gets the IDs of all indicators that a transformed column depends on;
+    // gets the IDs of all variables that a transformed column depends on;
     // for example, if a there are two columns, 'slug' and 'other_slug', that
     // are defined by the transforms 'divideBy 170775 other_slug' and 'multiplyBy 539022 2',
-    // respectively, then getBaseIndicatorIdsForColumnWithTransform('slug')
-    // returns ['539022', '170775'] as these are the IDs of the two indicators
+    // respectively, then getBaseVariableIdsForColumnWithTransform('slug')
+    // returns ['539022', '170775'] as these are the IDs of the two variables
     // that the 'slug' column depends on
-    private getBaseIndicatorIdsForColumnWithTransform(slug: string): string[] {
+    private getBaseVariableIdsForColumnWithTransform(slug: string): string[] {
         const { columnDefsWithoutTableSlug } = this.explorerProgram
-        const baseIndicatorIdsAndColumnSlugs =
+        const baseVariableIdsAndColumnSlugs =
             this.getBaseColumnsForColumnWithTransform(slug)
         const slugsInColumnBlock: string[] = columnDefsWithoutTableSlug
             .filter((def) => !def.owidVariableId)
             .map((def) => def.slug)
-        return baseIndicatorIdsAndColumnSlugs.filter(
-            (indicatorIdOrColumnSlug) =>
-                !slugsInColumnBlock.includes(indicatorIdOrColumnSlug)
+        return baseVariableIdsAndColumnSlugs.filter(
+            (variableIdOrColumnSlug) =>
+                !slugsInColumnBlock.includes(variableIdOrColumnSlug)
         )
     }
 
@@ -469,14 +469,14 @@ export class Explorer
         grapher.downloadData()
     }
 
-    @action.bound private async updateGrapherFromExplorerUsingIndicatorIds() {
+    @action.bound private async updateGrapherFromExplorerUsingVariableIds() {
         const grapher = this.grapher
         if (!grapher) return
         const {
-            yIndicatorIds = "",
-            xIndicatorId,
-            colorIndicatorId,
-            sizeIndicatorId,
+            yVariableIds = "",
+            xVariableId,
+            colorVariableId,
+            sizeVariableId,
             ySlugs = "",
             xSlug,
             colorSlug,
@@ -489,47 +489,47 @@ export class Explorer
             hideEntityControls: this.showExplorerControls,
         }
 
-        // set given indicator IDs as dimensions to make Grapher
-        // download the data and metadata for these indicators
+        // set given variable IDs as dimensions to make Grapher
+        // download the data and metadata for these variables
         const dimensions = config.dimensions ?? []
-        if (yIndicatorIds) {
-            const yIndicatorIdsList = yIndicatorIds
+        if (yVariableIds) {
+            const yVariableIdsList = yVariableIds
                 .split(" ")
                 .map((item) => parseInt(item, 10))
                 .filter((item) => !isNaN(item))
-            yIndicatorIdsList.forEach((yIndicatorId) => {
+            yVariableIdsList.forEach((yVariableId) => {
                 dimensions.push({
-                    variableId: yIndicatorId,
+                    variableId: yVariableId,
                     property: DimensionProperty.y,
                 })
             })
         }
-        if (xIndicatorId) {
+        if (xVariableId) {
             dimensions.push({
-                variableId: xIndicatorId,
+                variableId: xVariableId,
                 property: DimensionProperty.x,
             })
         }
-        if (colorIndicatorId) {
+        if (colorVariableId) {
             dimensions.push({
-                variableId: colorIndicatorId,
+                variableId: colorVariableId,
                 property: DimensionProperty.color,
             })
         }
-        if (sizeIndicatorId) {
+        if (sizeVariableId) {
             dimensions.push({
-                variableId: sizeIndicatorId,
+                variableId: sizeVariableId,
                 property: DimensionProperty.size,
             })
         }
 
-        // Slugs that are used to create a chart refer to columns derived from indicators
+        // Slugs that are used to create a chart refer to columns derived from variables
         // by a transform string (e.g. 'multiplyBy 539022 2'). To render such a chart, we
-        // need to download the data for all indicators the transformed columns depend on
+        // need to download the data for all variables the transformed columns depend on
         // and construct an appropriate Grapher table. This is done in three steps:
-        //   1. find all indicators that the transformed columns depend on and add them to
+        //   1. find all variables that the transformed columns depend on and add them to
         //      the config's dimensions array
-        //   2. download data and metadata of the indicators
+        //   2. download data and metadata of the variables
         //   3. append the transformed columns to the Grapher table (note that this includes
         //      intermediate columns that are defined for multi-step transforms but are not
         //      referred to in any Grapher row)
@@ -539,18 +539,18 @@ export class Explorer
             [...ySlugs.split(" "), xSlug, colorSlug, sizeSlug].filter(identity)
         ) as string[]
 
-        // find all indicators the the transformed columns depend on and add them to the dimensions array
+        // find all variables the the transformed columns depend on and add them to the dimensions array
         if (uniqueSlugsInGrapherRow.length) {
-            const baseIndicatorIds = uniq(
+            const baseVariableIds = uniq(
                 uniqueSlugsInGrapherRow.flatMap((slug) =>
-                    this.getBaseIndicatorIdsForColumnWithTransform(slug)
+                    this.getBaseVariableIdsForColumnWithTransform(slug)
                 )
             )
                 .map((id) => parseInt(id, 10))
                 .filter((id) => !isNaN(id))
-            baseIndicatorIds.forEach((indicatorId) => {
+            baseVariableIds.forEach((variableId) => {
                 dimensions.push({
-                    variableId: indicatorId,
+                    variableId: variableId,
                     property: DimensionProperty.table, // no specific dimension
                 })
             })

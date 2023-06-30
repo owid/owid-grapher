@@ -16,10 +16,10 @@ import {
 } from "../gridLang/GridLangConstants.js"
 
 export const ColumnGrammar: Grammar = {
-    indicatorId: {
+    variableId: {
         ...IntegerCellDef,
-        keyword: "indicatorId",
-        description: "Numerical indicator ID",
+        keyword: "variableId",
+        description: "Numerical variable ID",
     },
     slug: {
         ...SlugDeclarationCellDef,

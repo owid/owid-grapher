@@ -326,10 +326,10 @@ export class ExplorerProgram extends GridProgram {
 
     get grapherConfigOnlyGrapherProps() {
         return omit(this.grapherConfig, [
-            GrapherGrammar.yIndicatorIds.keyword,
-            GrapherGrammar.xIndicatorId.keyword,
-            GrapherGrammar.colorIndicatorId.keyword,
-            GrapherGrammar.sizeIndicatorId.keyword,
+            GrapherGrammar.yVariableIds.keyword,
+            GrapherGrammar.xVariableId.keyword,
+            GrapherGrammar.colorVariableId.keyword,
+            GrapherGrammar.sizeVariableId.keyword,
             GrapherGrammar.mapTargetTime.keyword,
         ])
     }
@@ -429,27 +429,27 @@ const parseColumnDefs = (block: string[][]): OwidColumnDef[] => {
         .appendColumnsIfNew([
             { slug: "slug", type: ColumnTypeNames.String, name: "slug" },
             {
-                slug: "indicatorId",
+                slug: "variableId",
                 type: ColumnTypeNames.Numeric,
-                name: "indicatorId",
+                name: "variableId",
             },
         ])
-        .renameColumn("indicatorId", "owidVariableId")
+        .renameColumn("variableId", "owidVariableId")
         .combineColumns(
             ["slug", "owidVariableId"],
             {
-                slug: "slugOrIndicatorId",
+                slug: "slugOrVariableId",
                 type: ColumnTypeNames.String,
-                name: "slugOrIndicatorId",
+                name: "slugOrVariableId",
             },
             (values) => values.slug ?? values.owidVariableId?.toString()
         )
         .columnFilter(
-            "slugOrIndicatorId",
+            "slugOrVariableId",
             (value: CoreValueType) => !!value,
-            "Keep only column defs with a slug or indicator id"
+            "Keep only column defs with a slug or variable id"
         )
-        .dropColumns(["slugOrIndicatorId"])
+        .dropColumns(["slugOrVariableId"])
     return columnsTable.rows.map((row) => {
         // ignore slug if a variable id is given
         if (
