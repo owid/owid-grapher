@@ -31,9 +31,15 @@ export class GrapherFigureView extends React.Component<{ grapher: Grapher }> {
     }
 
     render() {
+        const { grapher } = this.props
+
         const props: GrapherProgrammaticInterface = {
-            ...this.props.grapher.toObject(),
-            isEmbeddedInADataPage: this.props.grapher.isEmbeddedInADataPage,
+            ...grapher.toObject(),
+            isEmbeddedInADataPage: grapher.isEmbeddedInADataPage,
+            bindUrlToWindow: grapher.props.bindUrlToWindow,
+            queryStr: grapher.props.bindUrlToWindow
+                ? window.location.search
+                : undefined,
             bounds: this.bounds,
             dataApiUrlForAdmin:
                 this.context?.admin?.settings?.DATA_API_FOR_ADMIN_UI, // passed this way because clientSettings are baked and need a recompile to be updated
