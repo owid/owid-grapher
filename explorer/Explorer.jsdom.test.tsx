@@ -4,7 +4,6 @@ import { Explorer } from "./Explorer.js"
 import {
     SampleExplorerOfGraphers,
     SampleInlineDataExplorer,
-    SampleIndicatorBasedExplorer,
 } from "./Explorer.sample.js"
 
 import Enzyme from "enzyme"
@@ -101,22 +100,5 @@ describe("inline data explorer", () => {
         expect(explorer.grapher?.ySlugs).toEqual("y")
         expect(explorer.grapher?.colorSlug).toEqual(undefined)
         expect(explorer.grapher?.sizeSlug).toEqual(undefined)
-    })
-})
-
-describe("indicator-based explorer", () => {
-    const element = Enzyme.mount(SampleIndicatorBasedExplorer())
-    const explorer = element.instance() as Explorer
-
-    it("renders", () => {
-        expect(element.find(".ExplorerHeaderBox").text()).toContain(
-            "Sample Explorer"
-        )
-        expect(explorer.queryParams).toMatchObject({
-            Test: "Life Expectancy",
-        })
-        expect(explorer.grapher?.dimensions[0].variableId).toEqual(539022)
-        explorer.onChangeChoice("Test")("Scatter Plot")
-        expect(element.find(`.HeaderHTML`).text()).toContain("Title")
     })
 })

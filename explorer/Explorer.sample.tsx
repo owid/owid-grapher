@@ -150,23 +150,3 @@ export const SampleInlineDataExplorer = (props?: Partial<ExplorerProps>) => {
         />
     )
 }
-
-const SampleIndicatorBasedExplorerProgram = `explorerTitle	Sample Explorer
-selection	World
-graphers
-	Test Radio	yIndicatorIds	xIndicatorId	type	stackMode	title
-	Life Expectancy	539022
-	Scatter Plot	170775	170773	ScatterPlot		Title
-	Stacked Area	525241 525236		StackedArea	relative`
-
-export const SampleIndicatorBasedExplorer = (
-    props?: Partial<ExplorerProps>
-) => {
-    return (
-        <Explorer
-            slug="test-slug-indicator-based"
-            program={SampleIndicatorBasedExplorerProgram}
-            {...props}
-        />
-    )
-}
