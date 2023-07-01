@@ -100,13 +100,14 @@
                 align-items: baseline;
                 justify-content: space-between;
                 color: $dark-grey;
-                padding: 4px 0;
-                line-height: 23px;
-                font-size: 20px;
+                padding: 2px 0;
+                line-height: 21px;
+                font-size: 18px;
                 font-weight: 700;
                 svg.arrow {
-                    height: 15px;
-                    margin-right: 2px;
+                    height: 14px;
+                    padding-right: 1px;
+                    padding-left: 2px;
                     &.up path {
                         fill: $green;
                     }
@@ -315,7 +316,7 @@
             line-height: 15px;
             margin: 0;
             padding-left: 19px;
-            max-width: 280px;
+            max-width: 260px;
 
             &.prompt {
                 padding-left: 0;
