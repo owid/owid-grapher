@@ -18,6 +18,7 @@ import {
     AllKeysRequired,
     checkIsVeryShortUnit,
     PrimitiveType,
+    first,
     last,
 } from "@ourworldindata/utils"
 import { LineChartManager } from "../lineCharts/LineChartConstants"
@@ -108,8 +109,16 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
         return this.timeSeriesTable ?? new OwidTable()
     }
     @computed private get sparklineManager(): LineChartManager {
-        // use the whole time range for the sparkline, not just the region with data
-        const { minTime, maxTime } = this.props.timeSeriesTable ?? {}
+        // use the whole time range for the sparkline, not just the range where this series has data
+        let { minTime, maxTime } = this.props.timeSeriesTable ?? {}
+        if (this.mapColumnSlug) {
+            const times =
+                this.props.timeSeriesTable.getTimesUniqSortedAscForColumns([
+                    this.mapColumnSlug,
+                ])
+            minTime = first(times) ?? minTime
+            maxTime = last(times) ?? maxTime
+        }
 
         // Pass down short units, while omitting long or undefined ones.
         const unit = this.sparklineTable.get(this.mapColumnSlug).shortUnit
