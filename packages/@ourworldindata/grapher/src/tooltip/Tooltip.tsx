@@ -82,7 +82,8 @@ class TooltipCard extends React.Component<
             title,
             subtitle,
             subtitleFormat,
-            footer,
+            notice,
+            prompt,
             dissolve,
             children,
             offsetX = 0,
@@ -122,7 +123,9 @@ class TooltipCard extends React.Component<
             const preposition = !unit.match(/^(per|in|\() /i) ? "in " : ""
             subtitle = preposition + unit.replace(/(^\(|\)$)/g, "")
         }
-        const notice = !!subtitle && subtitleFormat == "notice"
+
+        // flag the year in the header if neccesary
+        const timeNotice = !!subtitle && subtitleFormat == "notice"
 
         // style the box differently if just displaying title/subtitle
         const plain = hasHeader && !children
@@ -146,24 +149,32 @@ class TooltipCard extends React.Component<
                 }}
             >
                 {hasHeader && (
-                    <header className="headline">
+                    <div className="frontmatter">
                         {title && <div className="title">{title}</div>}
                         {subtitle && (
                             <div className="subtitle">
-                                {notice && (
+                                {timeNotice && (
                                     <FontAwesomeIcon icon={faInfoCircle} />
                                 )}
                                 {subtitle}
                             </div>
                         )}
-                    </header>
+                    </div>
                 )}
                 {children && <div className="content">{children}</div>}
-                {footer && (
-                    <footer className="time-notice-detail">
-                        <FontAwesomeIcon icon={faInfoCircle} />
-                        <p>{footer}</p>
-                    </footer>
+                {(notice || prompt) && (
+                    <div className="endmatter">
+                        {notice && (
+                            <>
+                                <FontAwesomeIcon icon={faInfoCircle} />
+                                <p className="notice">
+                                    No data available for {notice}. Showing
+                                    closest available data point instead.
+                                </p>
+                            </>
+                        )}
+                        {prompt && <p className="prompt">{prompt}</p>}
+                    </div>
                 )}
             </div>
         )

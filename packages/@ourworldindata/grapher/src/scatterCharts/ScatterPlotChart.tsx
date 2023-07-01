@@ -747,12 +747,9 @@ export class ScatterPlotChart
 
         const { startTime, endTime } = this.manager
         const datumTime = first(values)?.time.y
-        const notice = startTime == endTime && datumTime != endTime
-        const footer =
-            notice && endTime !== undefined
-                ? `No data available for ${this.yColumn.formatTime(
-                      endTime
-                  )}. Showing closest available data point instead.`
+        const notice =
+            endTime && startTime == endTime && datumTime != endTime
+                ? this.yColumn.formatTime(endTime)
                 : undefined
 
         return (
@@ -813,7 +810,7 @@ export class ScatterPlotChart
                         subtitle={timeLabel}
                         subtitleFormat={notice ? "notice" : undefined}
                         dissolve={fading}
-                        footer={footer}
+                        notice={notice}
                     >
                         <TooltipValueRange
                             column={this.xColumn}

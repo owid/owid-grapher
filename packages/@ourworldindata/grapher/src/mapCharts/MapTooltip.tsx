@@ -216,10 +216,9 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                 (last(customValueLabels) || max || yColumn.max) ?? 0
             )
 
-        const notice = datum && datum.time !== targetTime
-        const footer = notice
-            ? `No data available for ${displayTime}. Showing closest available data point instead.`
-            : undefined
+        const notice =
+            datum && datum.time !== targetTime ? displayTime : undefined
+        const prompt = target?.clickable ? clickToSelectMessage : undefined
 
         return (
             <Tooltip
@@ -228,15 +227,16 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                 key="mapTooltip"
                 x={position.x}
                 y={position.y}
-                style={{ width: "250px" }}
+                style={{ maxWidth: this.showSparkline ? "250px" : "auto" }}
                 offsetX={20}
                 offsetY={-16}
                 offsetYDirection={"downward"}
                 title={target?.featureId}
                 subtitle={datum ? displayDatumTime : displayTime}
                 subtitleFormat={notice ? "notice" : undefined}
+                notice={notice}
+                prompt={prompt}
                 dissolve={fading}
-                footer={footer}
             >
                 <TooltipValue
                     column={yColumn}
@@ -290,10 +290,6 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                             </g>
                         </svg>
                     </div>
-                )}
-
-                {target?.clickable && (
-                    <div className="callout">{clickToSelectMessage}</div>
                 )}
             </Tooltip>
         )

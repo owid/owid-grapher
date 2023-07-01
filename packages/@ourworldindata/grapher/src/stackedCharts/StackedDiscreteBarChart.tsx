@@ -706,11 +706,7 @@ export class StackedDiscreteBarChart
             hasNotice = item?.bars.some(
                 ({ point }) => !point.fake && point.time != targetTime
             ),
-            footer = hasNotice
-                ? `No data available for ${timeColumn.formatValue(
-                      targetTime
-                  )}. Showing closest available data point instead.`
-                : undefined
+            notice = hasNotice ? timeColumn.formatValue(targetTime) : undefined
 
         return (
             target &&
@@ -726,7 +722,7 @@ export class StackedDiscreteBarChart
                     title={target.entityName}
                     subtitle={unit != shortUnit ? unit : undefined}
                     subtitleFormat="unit"
-                    footer={footer}
+                    notice={notice}
                     dissolve={fading}
                 >
                     <TooltipTable

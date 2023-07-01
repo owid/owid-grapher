@@ -921,11 +921,9 @@ export class MarimekkoChart
         const shouldShowXTimeNotice =
             xPoint && xPoint.time !== endTime && xOverrideTime === undefined
         const xNotice = shouldShowXTimeNotice ? xPoint?.time : undefined
-        const footer =
+        const notice =
             xNotice || yValues.some(({ notice }) => !!notice)
-                ? `No data available for ${timeColumn.formatValue(
-                      endTime
-                  )}. Showing closest available data point instead.`
+                ? timeColumn.formatValue(endTime)
                 : undefined
 
         return (
@@ -956,7 +954,7 @@ export class MarimekkoChart
                         offsetY={-16}
                         title={entityName}
                         subtitle={entityColor?.colorDomainValue}
-                        footer={footer}
+                        notice={notice}
                         dissolve={fading}
                     >
                         {yValues.map(({ name, value, notice }) => (

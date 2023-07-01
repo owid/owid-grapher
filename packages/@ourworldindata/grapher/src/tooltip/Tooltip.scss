@@ -24,15 +24,7 @@
         box-sizing: border-box;
     }
 
-    &.dissolve {
-        opacity: 0;
-        transition: opacity $fade-time $fade-delay;
-        &.immediate {
-            transition: opacity $fade-time;
-        }
-    }
-
-    header.headline {
+    .frontmatter {
         background: $background-fill;
         color: black;
         padding: 8px 12px;
@@ -70,7 +62,6 @@
     }
 
     .content {
-        margin: 0;
         padding: 8px 12px;
 
         > p {
@@ -84,9 +75,23 @@
                 font-size: 12px;
                 line-height: 16px;
                 letter-spacing: 0.01em;
-                em {
+                font-weight: 700;
+
+                .name {
+                    margin-right: 0.25em;
+                }
+
+                .unit {
                     font-weight: 500;
                     font-style: normal;
+
+                    &::before {
+                        content: "(";
+                    }
+
+                    &::after {
+                        content: ")";
+                    }
                 }
             }
 
@@ -290,7 +295,7 @@
     }
 
     // tolerance captions w/ circle-i icon
-    footer.time-notice-detail {
+    .endmatter {
         position: relative;
         background: $background-fill;
         color: $grey;
@@ -311,6 +316,33 @@
             margin: 0;
             padding-left: 19px;
             max-width: 280px;
+
+            &.prompt {
+                padding-left: 0;
+                text-align: center;
+                font-weight: 600;
+                font-size: 12px;
+                font-style: italic;
+                letter-spacing: 0.01em;
+                color: $grey;
+            }
+        }
+
+        p.notice + p.prompt {
+            border-top: 2px solid $light-grey;
+            padding-top: 0.3em;
+            margin-top: 0.35em;
+            margin-left: 19px;
+            text-align: left;
+        }
+    }
+
+    // class names passed to the `dissolve` prop control fade-out timing
+    &.dissolve {
+        opacity: 0;
+        transition: opacity $fade-time $fade-delay;
+        &.immediate {
+            transition: opacity $fade-time;
         }
     }
 }
