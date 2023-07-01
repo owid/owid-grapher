@@ -80,6 +80,11 @@ export class TooltipValueRange extends React.Component<TooltipValueRangeProps> {
     }
 }
 
+const includesInsensitive = (str?: string, fragment?: string): boolean =>
+    !!str &&
+    !!fragment &&
+    str.toLocaleLowerCase().includes(fragment.toLocaleLowerCase())
+
 class Variable extends React.Component<{
     column: CoreColumn
     color?: string
@@ -90,19 +95,23 @@ class Variable extends React.Component<{
         const { column, children, color, notice } = this.props
         if (column.isMissing || column.name == "time") return null
 
-        const { unit, shortUnit } = column,
+        // use the `unit` if it's defined, otherwise look for a parenthetical
+        // at the end of the `displayName` and treat that as the unit
+        const { unit, shortUnit, displayName: fullName } = column,
             [_m, baseName, parentheticalUnit] =
-                column.displayName.match(/^(.*?)(?:\s*\((.*?)\))?$/) ?? [],
+                fullName.match(/^(.*?)(?:\s*\(([^\(\=]*?)\))?$/) ?? [],
+            longUnit =
+                unit && unit != shortUnit
+                    ? unit.replace(/^\((.*)\)$/, "$1")
+                    : undefined,
             displayUnit =
-                unit &&
-                unit != shortUnit &&
-                !baseName.toLowerCase().includes(unit.toLowerCase())
-                    ? unit.replace(/(^\(|\)$)/g, "")
-                    : parentheticalUnit || null,
+                longUnit && !includesInsensitive(fullName, longUnit)
+                    ? longUnit
+                    : parentheticalUnit,
             displayName =
-                parentheticalUnit && displayUnit !== parentheticalUnit
-                    ? column.displayName
-                    : baseName,
+                parentheticalUnit && displayUnit === parentheticalUnit
+                    ? baseName
+                    : fullName,
             noticeSpan = notice && (
                 <span className="notice">
                     <FontAwesomeIcon icon={faInfoCircle} />
@@ -113,7 +122,7 @@ class Variable extends React.Component<{
         return (
             <div className="variable">
                 <div className="definition">
-                    <span className="name">{displayName}</span>
+                    {displayName && <span className="name">{displayName}</span>}
                     {displayUnit && <span className="unit">{displayUnit}</span>}
                 </div>
                 <div className="values" style={{ color }}>

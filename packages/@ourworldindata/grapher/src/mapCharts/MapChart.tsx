@@ -185,13 +185,6 @@ export class MapChart
                 this.mapConfig.timeTolerance,
                 this.mapConfig.toleranceStrategy
             )
-
-        // if the variable name doesn't have a display.name set at either the
-        // metadata or grapher-config level, use the chart title for the tooltip
-        const mapColumn = transformedTable.get(this.mapColumnSlug)
-        mapColumn.def.display ??= {}
-        mapColumn.def.display.name ||= this.manager.title
-
         return transformedTable
     }
 

@@ -346,6 +346,24 @@
             transition: opacity $fade-time;
         }
     }
+
+    //
+    // ‘TEMPORARY’ FIX:
+    // Until the map variable displayNames can be copy-edited, hide the variable name entirely
+    // and use just the unit (if present) as a label
+    //
+    &#mapTooltip {
+        .variable .definition {
+            .name {
+                display: none;
+            }
+
+            .unit::after,
+            .unit::before {
+                content: none;
+            }
+        }
+    }
 }
 
 // adapt to smaller display areas
