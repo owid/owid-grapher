@@ -458,6 +458,7 @@ export class StackedAreaChart
                 offsetY={-16}
                 offsetX={20}
                 offsetXDirection="left"
+                style={{ maxWidth: "50%" }}
                 title={formattedTime}
                 subtitle={unit != shortUnit ? unit : undefined}
                 subtitleFormat="unit"
