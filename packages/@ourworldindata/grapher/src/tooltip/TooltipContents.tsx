@@ -123,7 +123,9 @@ class Variable extends React.Component<{
             <div className="variable">
                 <div className="definition">
                     {displayName && <span className="name">{displayName}</span>}
-                    {displayUnit && <span className="unit">{displayUnit}</span>}
+                    {displayUnit && displayUnit.length > 1 && (
+                        <span className="unit">{displayUnit}</span>
+                    )}
                 </div>
                 <div className="values" style={{ color }}>
                     {children}
