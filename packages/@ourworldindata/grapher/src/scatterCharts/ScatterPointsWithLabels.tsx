@@ -420,6 +420,7 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                                     fontSize={label.fontSize.toFixed(2)}
                                     fontWeight={label.fontWeight}
                                     fill={isLayerMode ? "#aaa" : label.color}
+                                    style={{ pointerEvents: "none" }}
                                 >
                                     {label.text}
                                 </text>
