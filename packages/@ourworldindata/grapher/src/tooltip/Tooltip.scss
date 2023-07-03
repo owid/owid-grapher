@@ -106,8 +106,8 @@
                 font-weight: 700;
                 svg.arrow {
                     height: 14px;
-                    padding-right: 1px;
-                    padding-left: 2px;
+                    padding-right: 3px;
+                    padding-left: 1px;
                     &.up path {
                         fill: $green;
                     }
@@ -374,10 +374,13 @@
             .variable .values {
                 font-size: 16px;
                 line-height: 18px;
+                svg.arrow {
+                    height: 12px;
+                    padding-right: 2px;
+                }
             }
 
             .variable + .variable {
-                margin-top: 0px;
                 padding-top: 4px;
             }
 
