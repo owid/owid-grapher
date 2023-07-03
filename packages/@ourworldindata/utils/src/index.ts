@@ -318,6 +318,7 @@ export {
     type NodeWithUrl,
     filterValidStringValues,
     traverseEnrichedSpan,
+    isSettledPromiseFulfilled,
 } from "./Util.js"
 
 export {

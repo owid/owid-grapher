@@ -1651,3 +1651,9 @@ export function filterValidStringValues<ValidValue extends string>(
 
     return filteredValues
 }
+
+export function isSettledPromiseFulfilled<T>(
+    result: PromiseSettledResult<T>
+): result is PromiseFulfilledResult<T> {
+    return result.status === "fulfilled"
+}

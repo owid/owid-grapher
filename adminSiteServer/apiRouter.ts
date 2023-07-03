@@ -1770,6 +1770,27 @@ apiRouter.get(
     }
 )
 
+// Used in explorer preview
+apiRouter.get(
+    "/variables/:variableId.grapherConfig.json",
+    async (req: Request, res: Response) => {
+        const variableId = expectInt(req.params.variableId)
+
+        const variable = await db.mysqlFirst(
+            `SELECT id, grapherConfig FROM variables WHERE id=?`,
+            [variableId]
+        )
+
+        if (!variable) {
+            throw new JsonError(`No variable by id '${variableId}'`, 404)
+        }
+
+        const config = JSON.parse(variable.grapherConfig)
+        config.id = variable.id
+        return config
+    }
+)
+
 apiRouter.put("/variables/:variableId", async (req: Request) => {
     const variableId = expectInt(req.params.variableId)
     const variable = (req.body as { variable: VariableSingleMeta }).variable

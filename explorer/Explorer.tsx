@@ -34,6 +34,7 @@ import {
     flatten,
     identity,
     isInIFrame,
+    isSettledPromiseFulfilled,
     keyBy,
     keyMap,
     omitUndefinedValues,
@@ -85,18 +86,92 @@ export interface ExplorerProps extends SerializedGridProgram {
     selection?: SelectionArray
 }
 
+const grapherConfigPath = (chartId: number): string =>
+    `${ADMIN_BASE_URL}/admin/api/charts/${chartId}.config.json`
+const partialGrapherConfigPath = (variableId: number): string =>
+    `${ADMIN_BASE_URL}/admin/api/variables/${variableId}.grapherConfig.json`
+
+async function fetchJSON<T>(url: string): Promise<T> {
+    return fetch(url, {
+        method: "GET",
+        credentials: "same-origin",
+        headers: { Accept: "application/json" },
+    }).then((response) => response.json())
+}
+
+async function fetchGrapherConfigs(
+    urls: string[]
+): Promise<GrapherInterface[]> {
+    return Promise.allSettled<GrapherInterface>(
+        urls.map((url) => fetchJSON(url))
+    ).then((results) => {
+        const fulfilledResults = results.filter((result) =>
+            isSettledPromiseFulfilled(result)
+        ) as PromiseFulfilledResult<GrapherInterface>[]
+        return fulfilledResults.map(({ value: config }) => ({
+            ...config,
+            adminBaseUrl: ADMIN_BASE_URL,
+            bakedGrapherURL: BAKED_GRAPHER_URL,
+        }))
+    })
+}
+
+const checkForMissingGrapherConfigs = (props: ExplorerProps): number[] => {
+    const { requiredGrapherIds = [] } =
+        ExplorerProgram.fromJson(props).decisionMatrix
+    const isGrapherConfigLoaded = keyBy(
+        props.grapherConfigs ?? [],
+        (config) => config.id
+    )
+    return requiredGrapherIds.filter((id) => !isGrapherConfigLoaded[id])
+}
+
+const checkForMissingPartialGrapherConfigs = (
+    props: ExplorerProps
+): number[] => {
+    const { requiredVariableIds = [] } =
+        ExplorerProgram.fromJson(props).decisionMatrix
+    const isPartialGrapherConfigLoaded = keyBy(
+        props.partialGrapherConfigs ?? [],
+        (config) => config.id
+    )
+    return requiredVariableIds.filter((id) => !isPartialGrapherConfigLoaded[id])
+}
+
 const renderLivePreviewVersion = (props: ExplorerProps) => {
     let renderedVersion: string
-    setInterval(() => {
+    setInterval(async () => {
         const versionToRender =
             localStorage.getItem(UNSAVED_EXPLORER_DRAFT + props.slug) ??
             props.program
         if (versionToRender === renderedVersion) return
 
         const newProps = { ...props, program: versionToRender }
+
+        // grapher configs might be missing for new explorers that
+        // havn't been saved yet. if that's the case, fetch them here
+        const missingGrapherIds = checkForMissingGrapherConfigs(newProps)
+        const missingGrapherConfigs = await fetchGrapherConfigs(
+            missingGrapherIds.map((id) => grapherConfigPath(id))
+        )
+        const grapherConfigs = props.grapherConfigs ?? []
+        grapherConfigs.push(...missingGrapherConfigs)
+
+        // partial grapher configs might be missing for new explorers that
+        // havn't been saved yet. if that's the case, fetch them here
+        const missingVariableIds =
+            checkForMissingPartialGrapherConfigs(newProps)
+        const missingPartialGrapherConfigs = await fetchGrapherConfigs(
+            missingVariableIds.map((id) => partialGrapherConfigPath(id))
+        )
+        const partialGrapherConfigs = props.partialGrapherConfigs ?? []
+        partialGrapherConfigs.push(...missingPartialGrapherConfigs)
+
         ReactDOM.render(
             <Explorer
                 {...newProps}
+                grapherConfigs={grapherConfigs}
+                partialGrapherConfigs={partialGrapherConfigs}
                 queryStr={window.location.search}
                 key={Date.now()}
                 isPreview={true}
