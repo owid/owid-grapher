@@ -272,17 +272,16 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                             />
                             <g className="min-max-labels">
                                 <text
-                                    x={SPARKLINE_WIDTH - SPARKLINE_PADDING - 3}
-                                    y={0.5 * SPARKLINE_PADDING}
+                                    x={SPARKLINE_WIDTH - SPARKLINE_PADDING}
+                                    y={0.75 * SPARKLINE_PADDING}
                                 >
                                     {maxLabel}
                                 </text>
                                 <text
-                                    x={SPARKLINE_WIDTH - SPARKLINE_PADDING - 3}
+                                    x={SPARKLINE_WIDTH - SPARKLINE_PADDING}
                                     y={
                                         SPARKLINE_HEIGHT -
-                                        2 * SPARKLINE_PADDING +
-                                        5
+                                        1.4 * SPARKLINE_PADDING
                                     }
                                 >
                                     {minLabel}
