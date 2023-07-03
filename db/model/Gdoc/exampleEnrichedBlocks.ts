@@ -2,6 +2,7 @@ import {
     BlockImageSize,
     EnrichedBlockChart,
     EnrichedBlockText,
+    HorizontalAlign,
     OwidEnrichedGdocBlock,
     Span,
     SpanSimpleText,
@@ -410,5 +411,11 @@ export const enrichedBlockExamples: Record<
                 ],
             },
         ],
+    },
+    align: {
+        type: "align",
+        alignment: HorizontalAlign.center,
+        content: [enrichedBlockText],
+        parseErrors: [],
     },
 }

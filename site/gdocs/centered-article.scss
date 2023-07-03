@@ -128,17 +128,6 @@ h2.article-block__heading.has-supertitle {
         color: $blue-50;
         margin-bottom: 8px;
     }
-
-    // Center the next three subsequent paragraphs 🥴
-    + .article-block__text {
-        text-align: center;
-        + .article-block__text {
-            text-align: center;
-            + .article-block__text {
-                text-align: center;
-            }
-        }
-    }
 }
 
 .centered-article-container > .article-block__divider {
@@ -633,6 +622,20 @@ h3.article-block__heading.has-supertitle {
     .slide[data-active="true"] {
         // Have to override the WP styles, which we can undo once they're removed
         display: grid !important;
+    }
+}
+
+.article-block__align {
+    &.align-left {
+        text-align: left;
+    }
+
+    &.align-center {
+        text-align: center;
+    }
+
+    &.align-right {
+        text-align: right;
     }
 }
 

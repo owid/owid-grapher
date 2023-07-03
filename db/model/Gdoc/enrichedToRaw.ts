@@ -34,6 +34,7 @@ import {
 } from "@ourworldindata/utils"
 import { spanToHtmlString } from "./gdocUtils.js"
 import { match, P } from "ts-pattern"
+import { RawBlockAlign } from "@ourworldindata/utils/dist/owidTypes.js"
 
 function spansToHtmlText(spans: Span[]): string {
     return spans.map(spanToHtmlString).join("")
@@ -362,5 +363,14 @@ export function enrichedBlockToRawBlock(
                 }
             }
         )
+        .with({ type: "align" }, (b): RawBlockAlign => {
+            return {
+                type: b.type,
+                value: {
+                    alignment: b.alignment as string,
+                    content: b.content.map(enrichedBlockToRawBlock),
+                },
+            }
+        })
         .exhaustive()
 }

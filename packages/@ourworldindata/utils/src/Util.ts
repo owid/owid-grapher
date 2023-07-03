@@ -1540,6 +1540,12 @@ export function traverseEnrichedBlocks(
                 traverseEnrichedBlocks(textBlock, callback, spanCallback)
             })
         })
+        .with({ type: "align" }, (align) => {
+            callback(align)
+            align.content.forEach((node) => {
+                traverseEnrichedBlocks(node, callback, spanCallback)
+            })
+        })
         .with(
             {
                 type: P.union(
