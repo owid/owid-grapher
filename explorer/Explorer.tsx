@@ -193,16 +193,12 @@ export class Explorer
 
     @computed get grapherConfigs() {
         const arr = this.props.grapherConfigs || []
-        const grapherConfigsMap: Map<number, GrapherInterface> = new Map()
-        arr.forEach((config) => grapherConfigsMap.set(config.id!, config))
-        return grapherConfigsMap
+        return new Map(arr.map((config) => [config.id!, config]))
     }
 
     @computed get partialGrapherConfigsByVariableId() {
         const arr = this.props.partialGrapherConfigs || []
-        const grapherConfigsMap: Map<number, GrapherInterface> = new Map()
-        arr.forEach((config) => grapherConfigsMap.set(config.id!, config))
-        return grapherConfigsMap
+        return new Map(arr.map((config) => [config.id!, config]))
     }
 
     disposers: (() => void)[] = []
