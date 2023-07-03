@@ -487,10 +487,18 @@ export class LineChart
         })
 
         const formattedTime = formatColumn.formatTime(target.x),
-            { unit, shortUnit } = formatColumn
+            { unit, shortUnit } = formatColumn,
+            { isRelativeMode, startTime } = this.manager
 
         const columns = [formatColumn]
         if (hasColorScale) columns.push(colorColumn)
+
+        const unitLabel = unit != shortUnit ? unit : undefined
+        const subtitle =
+            isRelativeMode && startTime
+                ? `% change since ${formatColumn.formatTime(startTime)}`
+                : unitLabel
+        const subtitleFormat = subtitle === unitLabel ? "unit" : undefined
 
         return (
             <Tooltip
@@ -503,8 +511,8 @@ export class LineChart
                 offsetX={20}
                 offsetY={-16}
                 title={formattedTime}
-                subtitle={unit != shortUnit ? unit : undefined}
-                subtitleFormat="unit"
+                subtitle={subtitle}
+                subtitleFormat={subtitleFormat}
                 dissolve={fading}
             >
                 <TooltipTable

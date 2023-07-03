@@ -741,11 +741,17 @@ export class ScatterPlotChart
 
         const points = target?.series.points ?? []
         const values = compact(uniq([first(points), last(points)]))
-        const timeLabel = uniq(
-            values.map((v) => this.yColumn.formatTime(v.time.y))
-        ).join(" to ")
 
-        const { startTime, endTime } = this.manager
+        const { startTime, endTime, isRelativeMode } = this.manager
+        const timeRange = isRelativeMode
+            ? [startTime, endTime]
+            : values.map((v) => v.time.y)
+        const timeSuffix = isRelativeMode ? " (avg. annual change)" : ""
+        const timeLabel =
+            uniq(compact(timeRange))
+                .map((v) => this.yColumn.formatTime(v))
+                .join(" to ") + timeSuffix
+
         const datumTime = first(values)?.time.y
         const notice =
             endTime && startTime == endTime && datumTime != endTime
