@@ -18,6 +18,7 @@ export const GdocsSaveButtons = ({
     hasChanges,
     isLightningUpdate,
     doPublish,
+    saveDraft,
 }: {
     published: boolean
     originalGdoc: OwidGdocInterface | undefined
@@ -29,6 +30,7 @@ export const GdocsSaveButtons = ({
     isLightningUpdate: boolean
     setDiffOpen: (open: boolean) => void
     doPublish: VoidFunction
+    saveDraft: VoidFunction
 }) => {
     const confirmPublish = async () => {
         const styleDiff = hasChanges
@@ -91,6 +93,11 @@ export const GdocsSaveButtons = ({
     return (
         <>
             <Space>
+                {!published && (
+                    <Button disabled={!hasChanges} onClick={saveDraft}>
+                        Save draft
+                    </Button>
+                )}
                 <Badge {...badgeProps}>
                     {/* #gdocsvalidationclient: prevent saving published articles with errors */}
                     <Button
