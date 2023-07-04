@@ -40,7 +40,7 @@ export const LoginPage = (props: { next?: string; errorMessage?: string }) => {
                             name="username"
                             type="email"
                             className="form-control"
-                            placeholder="Enter email"
+                            placeholder="Enter email - if in doubt, try admin@example.com"
                             required
                         />
                     </div>
@@ -50,7 +50,7 @@ export const LoginPage = (props: { next?: string; errorMessage?: string }) => {
                             name="password"
                             type="password"
                             className="form-control"
-                            placeholder="Password"
+                            placeholder="Password - if in doubt, try admin"
                             required
                         />
                     </div>
