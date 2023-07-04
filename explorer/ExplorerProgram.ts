@@ -442,7 +442,7 @@ const parseColumnDefs = (block: string[][]): OwidColumnDef[] => {
                 type: ColumnTypeNames.String,
                 name: "slugOrVariableId",
             },
-            (values) => values.slug ?? values.owidVariableId?.toString()
+            (values) => values.slug || values.owidVariableId?.toString()
         )
         .columnFilter(
             "slugOrVariableId",
