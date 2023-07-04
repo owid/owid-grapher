@@ -146,6 +146,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                     "published",
                     "publishedAt",
                     "publicationContext",
+                    "breadcrumbs",
                 ]),
             }))
         }
