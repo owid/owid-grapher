@@ -12,10 +12,12 @@ export const BreadcrumbLine = ({
     item,
     setItem,
     removeItem,
+    urlFieldDisabled,
 }: {
     item: BreadcrumbItem
     setItem: (item: BreadcrumbItem) => void
     removeItem: () => void
+    urlFieldDisabled?: boolean
 }) => {
     return (
         <div className="my-2">
@@ -23,10 +25,15 @@ export const BreadcrumbLine = ({
                 <Col span={11}>
                     <Input
                         addonBefore="URL"
-                        value={item.href}
+                        value={
+                            urlFieldDisabled
+                                ? "The last breadcrumb isn't clickable"
+                                : item.href
+                        }
                         onChange={(e) =>
                             setItem({ ...item, href: e.target.value })
                         }
+                        disabled={urlFieldDisabled}
                     />
                 </Col>
                 <Col span={11}>
@@ -57,8 +64,13 @@ export const GdocsBreadcrumbsInput = ({
     setCurrentGdoc: (gdoc: OwidGdocInterface) => void
     errors?: OwidGdocErrorMessage[]
 }) => {
-    const setBreadcrumbs = (breadcrumbs: BreadcrumbItem[]) =>
+    const setBreadcrumbs = (breadcrumbs: BreadcrumbItem[]) => {
+        if (breadcrumbs?.length) {
+            // The last breadcrumb is not clickable, so we don't need a URL
+            breadcrumbs[breadcrumbs.length - 1].href = undefined
+        }
         setCurrentGdoc({ ...gdoc, breadcrumbs })
+    }
 
     const setItemAtIndex = (item: BreadcrumbItem, i: number) => {
         const breadcrumbs = gdoc.breadcrumbs ?? []
@@ -81,6 +93,7 @@ export const GdocsBreadcrumbsInput = ({
                     setItem={(item) => setItemAtIndex(item, i)}
                     removeItem={() => removeItemAtIndex(i)}
                     key={i}
+                    urlFieldDisabled={i === gdoc.breadcrumbs!.length - 1}
                 />
             ))}
             <Button
