@@ -1,10 +1,10 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
-import { Gdoc } from "../model/Gdoc/Gdoc.js"
 import { cloneDeep, forEach, forOwn, isArray, isObject } from "lodash"
+import { OwidGdocContent } from "@ourworldindata/utils"
 export class FixCalloutComponentMissingErrors1685107184417
     implements MigrationInterface
 {
-    public async up(_queryRunner: QueryRunner): Promise<void> {
+    public async up(queryRunner: QueryRunner): Promise<void> {
         // sanity check that the migration works
         recursivelyFixCalloutComponents(testItemBefore)
         if (JSON.stringify(testItemBefore) !== JSON.stringify(expectedAfter)) {
@@ -14,13 +14,19 @@ export class FixCalloutComponentMissingErrors1685107184417
         }
 
         // Now run the migration over all gdocs
-        const allGdocs = await Gdoc.find()
+        const allGdocs = await queryRunner.query(
+            "SELECT id, slug, content FROM posts_gdocs"
+        )
         for (const gdoc of allGdocs) {
+            gdoc.content = JSON.parse(gdoc.content) as OwidGdocContent
             const old = cloneDeep(gdoc.content.body)
             recursivelyFixCalloutComponents(gdoc.content.body)
             if (JSON.stringify(old) !== JSON.stringify(gdoc.content.body)) {
                 console.log(`Updating callout component in gdoc ${gdoc.slug}`)
-                await gdoc.save()
+                await queryRunner.query(
+                    "UPDATE posts_gdocs SET content = ? WHERE id = ?",
+                    [JSON.stringify(gdoc.content), gdoc.id]
+                )
             }
         }
     }
