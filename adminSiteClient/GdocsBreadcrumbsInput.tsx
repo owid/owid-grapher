@@ -85,7 +85,7 @@ export const GdocsBreadcrumbsInput = ({
     }
 
     return (
-        <>
+        <div className="form-group">
             Breadcrumbs
             {gdoc.breadcrumbs?.map((item, i) => (
                 <BreadcrumbLine
@@ -96,15 +96,20 @@ export const GdocsBreadcrumbsInput = ({
                     urlFieldDisabled={i === gdoc.breadcrumbs!.length - 1}
                 />
             ))}
-            <Button
-                type="dashed"
-                onClick={() =>
-                    setBreadcrumbs([...(gdoc.breadcrumbs ?? []), { label: "" }])
-                }
-            >
-                <FontAwesomeIcon icon={faPlus} className="mr-1" /> Add
-                breadcrumb
-            </Button>
-        </>
+            <div>
+                <Button
+                    type="dashed"
+                    onClick={() =>
+                        setBreadcrumbs([
+                            ...(gdoc.breadcrumbs ?? []),
+                            { label: "" },
+                        ])
+                    }
+                >
+                    <FontAwesomeIcon icon={faPlus} className="mr-1" /> Add
+                    breadcrumb
+                </Button>
+            </div>
+        </div>
     )
 }
