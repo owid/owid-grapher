@@ -392,7 +392,8 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                     onLoad={onIframeLoad}
                     src={`/gdocs/${currentGdoc.id}/preview#owid-document-root`}
                     style={{ width: "100%", border: "none" }}
-                    key={currentGdoc.revisionId}
+                    // use `updatedAt` as a proxy for when database-level settings such as breadcrumbs have changed
+                    key={`${currentGdoc.revisionId}-${originalGdoc?.updatedAt}`}
                 />
 
                 {currentGdoc.published && (
