@@ -64,11 +64,12 @@ export const GdocsBreadcrumbsInput = ({
     setCurrentGdoc: (gdoc: OwidGdocInterface) => void
     errors?: OwidGdocErrorMessage[]
 }) => {
-    const setBreadcrumbs = (breadcrumbs: BreadcrumbItem[]) => {
+    const setBreadcrumbs = (breadcrumbs: BreadcrumbItem[] | undefined) => {
         if (breadcrumbs?.length) {
             // The last breadcrumb is not clickable, so we don't need a URL
             breadcrumbs[breadcrumbs.length - 1].href = undefined
-        }
+        } else breadcrumbs = undefined
+
         setCurrentGdoc({ ...gdoc, breadcrumbs })
     }
 
