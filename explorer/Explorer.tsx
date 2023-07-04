@@ -92,11 +92,12 @@ const partialGrapherConfigPath = (variableId: number): string =>
     `${ADMIN_BASE_URL}/admin/api/variables/${variableId}.grapherConfig.json`
 
 async function fetchJSON<T>(url: string): Promise<T> {
-    return fetch(url, {
-        method: "GET",
-        credentials: "same-origin",
-        headers: { Accept: "application/json" },
-    }).then((response) => response.json())
+    const headers = { Accept: "application/json" }
+    return fetch(url, { headers })
+        .then((response) => response.json())
+        .catch((error) => {
+            console.error(`Failed fetching JSON for URL ${url}: ${error}`)
+        })
 }
 
 async function fetchGrapherConfigs(
@@ -116,26 +117,12 @@ async function fetchGrapherConfigs(
     })
 }
 
-const checkForMissingGrapherConfigs = (props: ExplorerProps): number[] => {
-    const { requiredGrapherIds = [] } =
-        ExplorerProgram.fromJson(props).decisionMatrix
-    const isGrapherConfigLoaded = keyBy(
-        props.grapherConfigs ?? [],
-        (config) => config.id
-    )
-    return requiredGrapherIds.filter((id) => !isGrapherConfigLoaded[id])
-}
-
-const checkForMissingPartialGrapherConfigs = (
-    props: ExplorerProps
+const checkForMissingGrapherConfigs = (
+    requiredIds: number[],
+    givenConfigs: GrapherInterface[]
 ): number[] => {
-    const { requiredVariableIds = [] } =
-        ExplorerProgram.fromJson(props).decisionMatrix
-    const isPartialGrapherConfigLoaded = keyBy(
-        props.partialGrapherConfigs ?? [],
-        (config) => config.id
-    )
-    return requiredVariableIds.filter((id) => !isPartialGrapherConfigLoaded[id])
+    const isGrapherConfigGiven = keyBy(givenConfigs, (config) => config.id)
+    return requiredIds.filter((id) => !isGrapherConfigGiven[id])
 }
 
 const renderLivePreviewVersion = (props: ExplorerProps) => {
@@ -147,24 +134,30 @@ const renderLivePreviewVersion = (props: ExplorerProps) => {
         if (versionToRender === renderedVersion) return
 
         const newProps = { ...props, program: versionToRender }
+        const { decisionMatrix } = ExplorerProgram.fromJson(newProps)
+        const { requiredGrapherIds, requiredVariableIds } = decisionMatrix
+        const { grapherConfigs = [], partialGrapherConfigs = [] } = newProps
 
         // grapher configs might be missing for new explorers that
         // havn't been saved yet. if that's the case, fetch them here
-        const missingGrapherIds = checkForMissingGrapherConfigs(newProps)
+        const missingGrapherIds = checkForMissingGrapherConfigs(
+            requiredGrapherIds,
+            grapherConfigs
+        )
         const missingGrapherConfigs = await fetchGrapherConfigs(
             missingGrapherIds.map((id) => grapherConfigPath(id))
         )
-        const grapherConfigs = props.grapherConfigs ?? []
         grapherConfigs.push(...missingGrapherConfigs)
 
         // partial grapher configs might be missing for new explorers that
         // havn't been saved yet. if that's the case, fetch them here
-        const missingVariableIds =
-            checkForMissingPartialGrapherConfigs(newProps)
+        const missingVariableIds = checkForMissingGrapherConfigs(
+            requiredVariableIds,
+            partialGrapherConfigs
+        )
         const missingPartialGrapherConfigs = await fetchGrapherConfigs(
             missingVariableIds.map((id) => partialGrapherConfigPath(id))
         )
-        const partialGrapherConfigs = props.partialGrapherConfigs ?? []
         partialGrapherConfigs.push(...missingPartialGrapherConfigs)
 
         ReactDOM.render(
