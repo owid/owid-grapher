@@ -18,4 +18,7 @@ export class Origin extends BaseEntity {
     @Column({ type: "text", nullable: true }) datasetUrlDownload!: string | null
     @Column({ type: "date", nullable: true }) dateAccessed!: Date | null
     @Column({ type: "varchar", nullable: true }) datePublished!: string | null
+    // Note: there is an N:M relationship between origins and variables but
+    // because variables is not a typeORM class but a knew class we don't
+    // expose it here.
 }
