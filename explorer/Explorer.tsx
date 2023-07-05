@@ -5,7 +5,6 @@ import {
     ColumnTypeNames,
     CoreColumnDef,
     extractPotentialDataSlugsFromTransform,
-    isNotErrorValue,
     OwidColumnDef,
     OwidTable,
     SortOrder,
@@ -54,7 +53,6 @@ import React from "react"
 import ReactDOM from "react-dom"
 import { ExplorerControlBar, ExplorerControlPanel } from "./ExplorerControls.js"
 import { ExplorerProgram } from "./ExplorerProgram.js"
-import { GrapherGrammar } from "./GrapherGrammar.js"
 import {
     ADMIN_BASE_URL,
     BAKED_BASE_URL,
@@ -341,26 +339,8 @@ export class Explorer
         this.explorerProgram.constructTable(slug)
     )
 
-    // for backward compatibility, we currently support explorers
-    // that use Grapher IDs as well as CSV data files to create charts,
-    // but we plan to drop support for mixed-content explorers in the future
-    @computed private get chartCreationMode(): ExplorerChartCreationMode {
-        const { decisionMatrix, grapherConfig } = this.explorerProgram
-        const { grapherId } = grapherConfig
-        const yVariableIdsColumn = decisionMatrix.table.get(
-            GrapherGrammar.yVariableIds.keyword
-        )
-        // referring to a variable in a single row triggers
-        // ExplorerChartCreationMode.FromVariableIds for all rows
-        if (yVariableIdsColumn.numValues)
-            return ExplorerChartCreationMode.FromVariableIds
-        if (grapherId && isNotErrorValue(grapherId))
-            return ExplorerChartCreationMode.FromGrapherId
-        return ExplorerChartCreationMode.FromExplorerTableColumnSlugs
-    }
-
     @action.bound private updateGrapherFromExplorer() {
-        switch (this.chartCreationMode) {
+        switch (this.explorerProgram.chartCreationMode) {
             case ExplorerChartCreationMode.FromGrapherId:
                 this.updateGrapherFromExplorerUsingGrapherId()
                 break

@@ -32,6 +32,17 @@
     right: 10px;
 }
 
+.WhyIsExplorerProgramInvalid {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background-color: #fff;
+    max-width: 310px;
+    padding: 4px 8px;
+    font-weight: bold;
+    border: 4px solid #ce261e;
+}
+
 // Hide the noisy arrow in the autocomplete dropdown.
 .handsontable {
     .htAutocompleteArrow {

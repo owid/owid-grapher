@@ -30,6 +30,7 @@ import { GridProgram } from "../gridLang/GridProgram.js"
 import { ColumnGrammar } from "./ColumnGrammar.js"
 import {
     DefaultNewExplorerSlug,
+    ExplorerChartCreationMode,
     ExplorerChoiceParams,
     EXPLORERS_ROUTE_FOLDER,
 } from "./ExplorerConstants.js"
@@ -232,6 +233,39 @@ export class ExplorerProgram extends GridProgram {
         return this.lines
             .filter((line) => line[0] === ExplorerGrammar.table.keyword)
             .map((line) => line[2])
+    }
+
+    // for backward compatibility, we currently support explorers
+    // that use Grapher IDs as well as CSV data files to create charts,
+    // but we plan to drop support for mixed-content explorers in the future
+    get chartCreationMode(): ExplorerChartCreationMode {
+        const { decisionMatrix, grapherConfig } = this
+        const { grapherId } = grapherConfig
+        const yVariableIdsColumn = decisionMatrix.table.get(
+            GrapherGrammar.yVariableIds.keyword
+        )
+        // referring to a variable in a single row triggers
+        // ExplorerChartCreationMode.FromVariableIds for all rows
+        if (yVariableIdsColumn.numValues)
+            return ExplorerChartCreationMode.FromVariableIds
+        if (grapherId && isNotErrorValue(grapherId))
+            return ExplorerChartCreationMode.FromGrapherId
+        return ExplorerChartCreationMode.FromExplorerTableColumnSlugs
+    }
+
+    get whyIsExplorerProgramInvalid(): string {
+        const { table } = this.decisionMatrix
+        if (
+            this.chartCreationMode === ExplorerChartCreationMode.FromVariableIds
+        ) {
+            const grapherIdColumn = table.get(GrapherGrammar.grapherId.keyword)
+            if (grapherIdColumn.numValues)
+                return "When using variable IDs to create charts, you cannot also use Grapher IDs."
+            const tableSlugColumn = table.get(GrapherGrammar.tableSlug.keyword)
+            if (tableSlugColumn.numValues || this.tableCount)
+                return "When using variable IDs to create charts, you cannot also use tabular data."
+        }
+        return ""
     }
 
     get columnDefsByTableSlug(): Map<TableSlug | undefined, OwidColumnDef[]> {
