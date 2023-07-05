@@ -198,6 +198,12 @@ describe("getVariableData", () => {
         mockS3data(s3data)
         jest.spyOn(db, "mysqlFirst").mockResolvedValueOnce(variableResult)
         jest.spyOn(db, "queryMysql").mockResolvedValueOnce([
+            {
+                id: 1,
+                datasetTitleOwid: "dataset title",
+            },
+        ])
+        jest.spyOn(db, "queryMysql").mockResolvedValueOnce([
             { id: 1, name: "UK", code: "code" },
         ])
 
@@ -226,6 +232,12 @@ describe("getVariableData", () => {
                     name: "source",
                     retrievedDate: "",
                 },
+                origins: [
+                    {
+                        id: 1,
+                        datasetTitleOwid: "dataset title",
+                    },
+                ],
                 type: "int",
                 unit: "",
                 updatedAt: date,
