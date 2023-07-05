@@ -104,18 +104,30 @@
                 line-height: 21px;
                 font-size: 18px;
                 font-weight: 700;
-                svg.arrow {
-                    height: 14px;
-                    padding-right: 3px;
-                    padding-left: 1px;
-                    &.up path {
-                        fill: $green;
+
+                .range {
+                    display: flex;
+                    flex-wrap: wrap;
+                    align-items: baseline;
+                    column-gap: 0.2em;
+                    flex-grow: 1;
+
+                    .term {
+                        overflow-wrap: anywhere;
                     }
-                    &.down path {
-                        fill: $red;
-                    }
-                    &.right path {
-                        fill: $grey;
+
+                    svg.arrow {
+                        height: 14px;
+                        padding-right: 0.15em;
+                        &.up path {
+                            fill: $green;
+                        }
+                        &.down path {
+                            fill: $red;
+                        }
+                        &.right path {
+                            fill: $grey;
+                        }
                     }
                 }
 
@@ -123,10 +135,11 @@
                     position: relative;
                     font-weight: 400;
                     font-size: 14px;
-                    line-height: 14px;
-                    text-indent: 20px;
+                    line-height: 21px;
+                    padding-left: 20px;
                     svg.fa-circle-info {
                         position: absolute;
+                        top: 3px;
                         left: 0;
                     }
                     color: $grey;
