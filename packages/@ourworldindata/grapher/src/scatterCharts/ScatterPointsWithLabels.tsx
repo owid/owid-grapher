@@ -367,6 +367,8 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
 
     @action.bound onMouseLeave(): void {
         // hide tooltip and clear hover state when leaving the chart's bounds
+        this.nearSeries = undefined
+        this.overSeries = undefined
         if (this.props.onMouseLeave) this.props.onMouseLeave()
     }
 
