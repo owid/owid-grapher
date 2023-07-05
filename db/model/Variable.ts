@@ -15,6 +15,7 @@ import {
     OwidVariableTypeOptions,
     omitNullableValues,
     OwidSource,
+    OwidOrigin,
     retryPromise,
 } from "@ourworldindata/utils"
 import pl from "nodejs-polars"
@@ -101,6 +102,7 @@ export async function getVariableMetadataFromMySQL(
     variableId: number,
     variableData: OwidVariableMixedData
 ): Promise<OwidVariableWithSourceAndDimension> {
+    // TODO: support multiple sources
     const variableQuery: Promise<VariableQueryRow | undefined> = db.mysqlFirst(
         `
         SELECT
@@ -120,6 +122,26 @@ export async function getVariableMetadataFromMySQL(
     const row = await variableQuery
     if (row === undefined) throw new Error(`Variable ${variableId} not found`)
 
+    const originRows: OwidOrigin[] = await db.queryMysql(
+        `
+        SELECT
+            origins.id,
+            origins.datasetTitleOwid,
+            origins.datasetDescriptionOwid,
+            origins.datasetDescriptionProducer,
+            origins.producer,
+            origins.citationProducer,
+            origins.datasetUrlMain,
+            origins.datasetUrlDownload,
+            origins.dateAccessed,
+            origins.datePublished
+        FROM origins
+        JOIN origins_variables ON origins.id = origins_variables.originId
+        WHERE origins_variables.variableId = ?
+        `,
+        [variableId]
+    )
+
     const {
         sourceId,
         sourceName,
@@ -135,6 +157,7 @@ export async function getVariableMetadataFromMySQL(
         type: detectValuesType(variableData.values),
         nonRedistributable: Boolean(nonRedistributable),
         display,
+        // TODO: support multiple sources
         source: {
             id: sourceId,
             name: sourceName,
@@ -144,6 +167,7 @@ export async function getVariableMetadataFromMySQL(
             retrievedDate: partialSource.retrievedDate || "",
             additionalInfo: partialSource.additionalInfo || "",
         },
+        origins: originRows,
     }
 
     const entities = await loadEntitiesInfo(variableData.entities)

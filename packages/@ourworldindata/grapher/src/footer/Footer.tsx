@@ -28,6 +28,7 @@ export class Footer extends React.Component<{
 
     @computed private get sourcesText(): string {
         const sourcesLine = this.manager.sourcesLine
+        // TODO: support multiple sources and also origins
         return sourcesLine ? `Source: ${sourcesLine}` : ""
     }
 

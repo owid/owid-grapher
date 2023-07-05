@@ -2,6 +2,7 @@ import {
     ColumnSlug,
     OwidVariableDisplayConfigInterface,
     ToleranceStrategy,
+    OwidOrigin,
 } from "@ourworldindata/utils"
 import { CoreValueType, Color } from "./CoreTableConstants.js"
 
@@ -67,12 +68,15 @@ export interface CoreColumnDef extends ColumnColorScale {
     color?: Color // A column can have a fixed color for use in charts where the columns are series
 
     // Source information used for display only
+    // TODO: support multiple sources
     sourceName?: string
     sourceLink?: string
     dataPublishedBy?: string
     dataPublisherSource?: string
     retrievedDate?: string
     additionalInfo?: string
+
+    origins?: OwidOrigin[]
 
     // Dataset information
     datasetId?: number

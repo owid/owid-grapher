@@ -558,6 +558,7 @@ const columnDefFromOwidVariable = (
         datasetId,
         datasetName,
         source,
+        origins,
         display,
         nonRedistributable,
     } = variable
@@ -578,12 +579,14 @@ const columnDefFromOwidVariable = (
         datasetName,
         display,
         nonRedistributable,
+        // TODO: support multiple sources
         sourceLink: source?.link,
         sourceName: source?.name,
         dataPublishedBy: source?.dataPublishedBy,
         dataPublisherSource: source?.dataPublisherSource,
         retrievedDate: source?.retrievedDate,
         additionalInfo: source?.additionalInfo,
+        origins,
         owidVariableId: variable.id,
         type: isContinent
             ? ColumnTypeNames.Continent
