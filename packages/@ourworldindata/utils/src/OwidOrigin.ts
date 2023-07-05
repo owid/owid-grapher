@@ -9,5 +9,4 @@ export interface OwidOrigin {
     datasetUrlDownload?: string
     dateAccessed?: Date
     datePublished?: string
-
 }
