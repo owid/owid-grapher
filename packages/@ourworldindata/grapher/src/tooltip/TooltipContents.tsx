@@ -113,7 +113,7 @@ class Variable extends React.Component<{
                     ? baseName
                     : fullName,
             noticeSpan = notice && (
-                <span className="notice">
+                <span className="time-notice">
                     <FontAwesomeIcon icon={faInfoCircle} />
                     {notice}
                 </span>
@@ -225,7 +225,7 @@ export class TooltipTable extends React.Component<TooltipTableProps> {
                                     ) : null
                                 })}
                                 {notice && (
-                                    <td className="notice">
+                                    <td className="time-notice">
                                         <FontAwesomeIcon icon={faInfoCircle} />{" "}
                                         {notice}
                                     </td>

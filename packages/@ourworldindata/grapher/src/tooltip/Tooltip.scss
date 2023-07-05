@@ -131,7 +131,7 @@
                     }
                 }
 
-                .notice {
+                .time-notice {
                     position: relative;
                     font-weight: 400;
                     font-size: 14px;
@@ -221,7 +221,7 @@
                 }
             }
 
-            td.notice {
+            td.time-notice {
                 font-weight: 400;
                 text-indent: 20px;
                 text-align: right;
@@ -277,7 +277,7 @@
                     .parenthetical {
                         font-weight: 500;
                     }
-                    &.notice {
+                    &.time-notice {
                         font-weight: 400;
                     }
                 }
