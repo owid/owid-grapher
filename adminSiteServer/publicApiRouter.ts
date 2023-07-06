@@ -1,34 +1,12 @@
 import { FunctionalRouter } from "./FunctionalRouter.js"
 import { Request, Response } from "./authentication.js"
-import { writeVariableCSV } from "../db/model/Variable.js"
-import { expectInt } from "../serverUtils/serverUtil.js"
 import * as db from "../db/db.js"
-import { stringifyUnknownError } from "@ourworldindata/utils"
-import { Writable } from "stream"
 
 export const publicApiRouter = new FunctionalRouter()
 
 function rejectAfterDelay(ms: number) {
     return new Promise((resolve, reject) => setTimeout(reject, ms))
 }
-publicApiRouter.router.get(
-    "/variables/:variableIds.csv",
-    async (req: Request, res: Response) => {
-        const variableIds = req.params.variableIds.split("+").map(expectInt)
-        try {
-            const writeStream = new Writable({
-                write(chunk, encoding, callback) {
-                    res.write(chunk.toString())
-                    callback(null)
-                },
-            })
-            await writeVariableCSV(variableIds, writeStream)
-            res.end()
-        } catch (error) {
-            res.send(`Error: ${stringifyUnknownError(error)}`)
-        }
-    }
-)
 
 publicApiRouter.router.get("/health", async (req: Request, res: Response) => {
     const sqlPromise = db.mysqlFirst(`SELECT id FROM charts LIMIT 1`)

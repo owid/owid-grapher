@@ -18,7 +18,6 @@ import { TagEditPage } from "./TagEditPage.js"
 import { TagsIndexPage } from "./TagsIndexPage.js"
 import { PostsIndexPage } from "./PostsIndexPage.js"
 import { TestIndexPage } from "./TestIndexPage.js"
-import { ImportPage } from "./ImportPage.js"
 import { NotFoundPage } from "./NotFoundPage.js"
 import { PostEditorPage } from "./PostEditorPage.js"
 import { DeployStatusPage } from "./DeployStatusPage.js"
@@ -201,11 +200,6 @@ export class AdminApp extends React.Component<{
                                 exact
                                 path="/users"
                                 component={UsersIndexPage}
-                            />
-                            <Route
-                                exact
-                                path="/import"
-                                component={ImportPage}
                             />
                             <Route
                                 exact
