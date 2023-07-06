@@ -4,7 +4,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
     faChartBar,
     faFile,
-    faUpload,
     faTable,
     faTruckFast,
     faSkullCrossbones,
