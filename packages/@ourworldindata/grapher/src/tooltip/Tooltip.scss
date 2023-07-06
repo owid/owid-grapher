@@ -8,6 +8,8 @@
     $green: #2c8465;
     $fade-time: 200ms;
     $fade-delay: 200ms;
+    $medium: 400;
+    $bold: 700;
 
     border-radius: 4px;
     border: 1px solid $background-stroke;
@@ -16,7 +18,7 @@
     text-align: left;
     position: absolute;
     pointer-events: none;
-    font-family: "Lato";
+    font-family: $sans-serif-font-stack;
     font-size: 16px;
 
     &,
@@ -40,13 +42,13 @@
 
         .title {
             font-size: 14px;
-            font-weight: 700;
+            font-weight: $bold;
             letter-spacing: 0;
         }
         .subtitle {
             margin: 4px 0 2px 0;
             font-size: 12px;
-            font-weight: 500;
+            font-weight: $medium;
             letter-spacing: 0.01em;
 
             svg.fa-circle-info {
@@ -75,14 +77,14 @@
                 font-size: 12px;
                 line-height: 16px;
                 letter-spacing: 0.01em;
-                font-weight: 700;
+                font-weight: $bold;
 
                 .name {
                     margin-right: 0.25em;
                 }
 
                 .unit {
-                    font-weight: 500;
+                    font-weight: $medium;
                     font-style: normal;
 
                     &::before {
@@ -103,7 +105,7 @@
                 padding: 2px 0;
                 line-height: 21px;
                 font-size: 18px;
-                font-weight: 700;
+                font-weight: $bold;
 
                 .range {
                     display: flex;
@@ -133,7 +135,7 @@
 
                 .time-notice {
                     position: relative;
-                    font-weight: 400;
+                    font-weight: $medium;
                     font-size: 14px;
                     line-height: 21px;
                     padding-left: 20px;
@@ -157,7 +159,7 @@
             color: $dark-grey;
             font-size: 14px;
             line-height: 22px;
-            font-weight: 500;
+            font-weight: $medium;
             white-space: normal;
             border-collapse: collapse;
             width: 100%;
@@ -168,7 +170,7 @@
                 letter-spacing: 0.01em;
 
                 tr td.series-value {
-                    font-weight: 500;
+                    font-weight: $medium;
                 }
             }
 
@@ -207,7 +209,7 @@
             }
 
             td.series-value {
-                font-weight: 700;
+                font-weight: $bold;
                 text-align: right;
                 white-space: nowrap;
 
@@ -222,7 +224,7 @@
             }
 
             td.time-notice {
-                font-weight: 400;
+                font-weight: $medium;
                 text-indent: 20px;
                 text-align: right;
                 padding-right: 0;
@@ -268,17 +270,17 @@
             // highlight hovered row
             &.focal {
                 td.series-value {
-                    font-weight: 500;
+                    font-weight: $medium;
                 }
 
                 tr.focused td {
-                    font-weight: 700;
+                    font-weight: $bold;
 
                     .parenthetical {
-                        font-weight: 500;
+                        font-weight: $medium;
                     }
                     &.time-notice {
-                        font-weight: 400;
+                        font-weight: $medium;
                     }
                 }
             }
@@ -295,7 +297,7 @@
         .callout {
             margin: 0.28em;
             text-align: center;
-            font-weight: 600;
+            font-weight: $bold;
             font-size: 12px;
             font-style: italic;
             letter-spacing: 0.01em;
@@ -334,7 +336,7 @@
             &.prompt {
                 padding-left: 0;
                 text-align: center;
-                font-weight: 600;
+                font-weight: $bold;
                 font-size: 12px;
                 font-style: italic;
                 letter-spacing: 0.01em;
