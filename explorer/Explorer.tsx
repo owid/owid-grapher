@@ -529,14 +529,20 @@ export class Explorer
                 .map((id) => parseInt(id, 10))
                 .filter((id) => !isNaN(id))
             baseVariableIds.forEach((variableId) => {
-                dimensions.push({
-                    variableId: variableId,
-                    property: DimensionProperty.table, // no specific dimension
-                })
+                const hasDimension = dimensions.some(
+                    (d) => d.variableId === variableId
+                )
+                if (!hasDimension) {
+                    dimensions.push({
+                        variableId: variableId,
+                        property: DimensionProperty.table, // no specific dimension
+                    })
+                }
             })
         }
 
         config.dimensions = dimensions
+        if (config.ySlugs && yVariableIds) config.ySlugs += " " + yVariableIds
 
         grapher.setAuthoredVersion(config)
         grapher.reset()
