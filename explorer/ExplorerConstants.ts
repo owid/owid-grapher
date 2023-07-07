@@ -8,6 +8,12 @@ export enum ExplorerControlType {
     Dropdown = "Dropdown",
 }
 
+export enum ExplorerChartCreationMode {
+    FromGrapherId = "FromGrapherId",
+    FromVariableIds = "FromVariableIds",
+    FromExplorerTableColumnSlugs = "FromExplorerTableColumnSlugs",
+}
+
 export const DefaultNewExplorerSlug = "new"
 
 export const ExplorerControlTypeRegex = new RegExp(

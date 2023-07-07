@@ -106,6 +106,15 @@ export const IntegerCellDef: CellDef = {
     parse: (value: any) => parseInt(value),
 }
 
+export const PositiveIntegersCellDef: CellDef = {
+    keyword: "",
+    cssClass: "IntegerCellDef",
+    description: "",
+    regex: /^[0-9 ]+$/,
+    requirementsDescription: `Must be a positive integer or a list of positive integers`,
+    valuePlaceholder: "12345 23456",
+}
+
 export const SubTableHeaderCellDef: CellDef = {
     keyword: "",
     cssClass: "SubTableHeaderCellDef",

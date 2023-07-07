@@ -27,6 +27,7 @@ import {
     ColumnSlug,
     debounce,
     DEFAULT_BOUNDS,
+    DimensionProperty,
     excludeUndefined,
     exposeInstanceOnWindow,
     flatten,
@@ -52,8 +53,13 @@ import {
     ExplorerControlPanel,
 } from "../explorer/ExplorerControls.js"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
-import { ADMIN_BASE_URL, BAKED_BASE_URL } from "../settings/clientSettings.js"
 import {
+    ADMIN_BASE_URL,
+    BAKED_BASE_URL,
+    BAKED_GRAPHER_URL,
+} from "../settings/clientSettings.js"
+import {
+    ExplorerChartCreationMode,
     ExplorerChoiceParams,
     ExplorerContainerId,
     ExplorerFullQueryParams,
@@ -340,6 +346,10 @@ export class Explorer
         const {
             grapherId,
             tableSlug,
+            yVariableIds = "",
+            xVariableId,
+            colorVariableId,
+            sizeVariableId,
             yScaleToggle,
             yAxisMin,
             facetYDomain,
@@ -349,20 +359,72 @@ export class Explorer
         } = grapherConfigFromExplorer
         const grapherConfigFromExplorerOnlyGrapherProps = omit(
             grapherConfigFromExplorer,
-            ["mapTargetTime"]
+            [
+                "yVariableIds",
+                "xVariableId",
+                "colorVariableId",
+                "sizeVariableId",
+                "mapTargetTime",
+            ]
         )
 
-        const hasGrapherId = grapherId && isNotErrorValue(grapherId)
+        let creationMode: ExplorerChartCreationMode
+        if (grapherId && isNotErrorValue(grapherId))
+            creationMode = ExplorerChartCreationMode.FromGrapherId
+        else if (yVariableIds)
+            creationMode = ExplorerChartCreationMode.FromVariableIds
+        else
+            creationMode =
+                ExplorerChartCreationMode.FromExplorerTableColumnSlugs
 
-        const grapherConfig = hasGrapherId
-            ? this.grapherConfigs.get(grapherId!) ?? {}
-            : {}
+        const grapherConfig =
+            creationMode === ExplorerChartCreationMode.FromGrapherId
+                ? this.grapherConfigs.get(grapherId!) ?? {}
+                : {}
 
         const config: GrapherProgrammaticInterface = {
             ...grapherConfig,
             ...grapherConfigFromExplorerOnlyGrapherProps,
+            bakedGrapherURL: BAKED_GRAPHER_URL,
             hideEntityControls: this.showExplorerControls,
-            manuallyProvideData: tableSlug ? true : false,
+            manuallyProvideData:
+                creationMode ===
+                ExplorerChartCreationMode.FromExplorerTableColumnSlugs,
+        }
+
+        if (creationMode === ExplorerChartCreationMode.FromVariableIds) {
+            const dimensions = config.dimensions ?? []
+            if (yVariableIds) {
+                const yVariableIdsList = yVariableIds
+                    .split(" ")
+                    .map((item) => parseInt(item, 10))
+                    .filter((item) => !isNaN(item))
+                yVariableIdsList.forEach((yVariableId) => {
+                    dimensions.push({
+                        variableId: yVariableId,
+                        property: DimensionProperty.y,
+                    })
+                })
+            }
+            if (xVariableId) {
+                dimensions.push({
+                    variableId: xVariableId,
+                    property: DimensionProperty.x,
+                })
+            }
+            if (colorVariableId) {
+                dimensions.push({
+                    variableId: colorVariableId,
+                    property: DimensionProperty.color,
+                })
+            }
+            if (sizeVariableId) {
+                dimensions.push({
+                    variableId: sizeVariableId,
+                    property: DimensionProperty.size,
+                })
+            }
+            config.dimensions = dimensions
         }
 
         grapher.setAuthoredVersion(config)
@@ -382,7 +444,10 @@ export class Explorer
         }
         grapher.updateFromObject(config)
 
-        if (!hasGrapherId) {
+        if (
+            creationMode ===
+            ExplorerChartCreationMode.FromExplorerTableColumnSlugs
+        ) {
             // Clear any error messages, they are likely to be related to dataset loading.
             this.grapher?.clearErrors()
             // Set a table immediately. A BlankTable shows a loading animation.
@@ -390,8 +455,10 @@ export class Explorer
                 BlankOwidTable(tableSlug, `Loading table '${tableSlug}'`)
             )
             this.futureGrapherTable.set(this.tableLoader.get(tableSlug))
-            grapher.id = 0
         }
+
+        // Make sure grapher has an id
+        if (!grapher.id) grapher.id = 0
 
         // Download data if this is a Grapher ID inside the Explorer specification
         grapher.downloadData()
