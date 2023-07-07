@@ -1,11 +1,13 @@
 import {
-    columnDefinitionsFromInput,
-    CoreColumnDef,
     CoreMatrix,
+    ColumnTypeNames,
     CoreTable,
     CoreTableInputOption,
+    CoreValueType,
+    OwidColumnDef,
     OwidTable,
     TableSlug,
+    isNotErrorValue,
 } from "@ourworldindata/core-table"
 import { FacetAxisDomain, GrapherInterface } from "@ourworldindata/grapher"
 import {
@@ -14,6 +16,7 @@ import {
     SerializedGridProgram,
     SubNavId,
     trimObject,
+    omit,
 } from "@ourworldindata/utils"
 import {
     CellDef,
@@ -27,6 +30,7 @@ import { GridProgram } from "../gridLang/GridProgram.js"
 import { ColumnGrammar } from "./ColumnGrammar.js"
 import {
     DefaultNewExplorerSlug,
+    ExplorerChartCreationMode,
     ExplorerChoiceParams,
     EXPLORERS_ROUTE_FOLDER,
 } from "./ExplorerConstants.js"
@@ -38,7 +42,7 @@ export const EXPLORER_FILE_SUFFIX = ".explorer.tsv"
 
 export interface TableDef {
     url?: string
-    columnDefinitions?: CoreColumnDef[]
+    columnDefinitions?: OwidColumnDef[]
     inlineData?: string[][]
 }
 
@@ -231,8 +235,41 @@ export class ExplorerProgram extends GridProgram {
             .map((line) => line[2])
     }
 
-    get columnDefsByTableSlug(): Map<TableSlug | undefined, CoreColumnDef[]> {
-        const columnDefs = new Map<TableSlug | undefined, CoreColumnDef[]>()
+    // for backward compatibility, we currently support explorers
+    // that use Grapher IDs as well as CSV data files to create charts,
+    // but we plan to drop support for mixed-content explorers in the future
+    get chartCreationMode(): ExplorerChartCreationMode {
+        const { decisionMatrix, grapherConfig } = this
+        const { grapherId } = grapherConfig
+        const yVariableIdsColumn = decisionMatrix.table.get(
+            GrapherGrammar.yVariableIds.keyword
+        )
+        // referring to a variable in a single row triggers
+        // ExplorerChartCreationMode.FromVariableIds for all rows
+        if (yVariableIdsColumn.numValues)
+            return ExplorerChartCreationMode.FromVariableIds
+        if (grapherId && isNotErrorValue(grapherId))
+            return ExplorerChartCreationMode.FromGrapherId
+        return ExplorerChartCreationMode.FromExplorerTableColumnSlugs
+    }
+
+    get whyIsExplorerProgramInvalid(): string {
+        const { table } = this.decisionMatrix
+        if (
+            this.chartCreationMode === ExplorerChartCreationMode.FromVariableIds
+        ) {
+            const grapherIdColumn = table.get(GrapherGrammar.grapherId.keyword)
+            if (grapherIdColumn.numValues)
+                return "When using variable IDs to create charts, you cannot also use Grapher IDs."
+            const tableSlugColumn = table.get(GrapherGrammar.tableSlug.keyword)
+            if (tableSlugColumn.numValues || this.tableCount)
+                return "When using variable IDs to create charts, you cannot also use tabular data."
+        }
+        return ""
+    }
+
+    get columnDefsByTableSlug(): Map<TableSlug | undefined, OwidColumnDef[]> {
+        const columnDefs = new Map<TableSlug | undefined, OwidColumnDef[]>()
         const colDefsRows = this.getAllRowsMatchingWords(
             ExplorerGrammar.columns.keyword
         )
@@ -240,10 +277,7 @@ export class ExplorerProgram extends GridProgram {
         const matrix = this.lines
         for (const row of colDefsRows) {
             const tableSlugs = matrix[row].slice(1)
-            const columnDefinitions: CoreColumnDef[] =
-                columnDefinitionsFromInput(this.getBlock(row) ?? "").map(
-                    (row) => trimAndParseObject(row, ColumnGrammar)
-                )
+            const columnDefinitions = parseColumnDefs(this.getBlock(row) ?? [])
             if (tableSlugs.length === 0)
                 columnDefs.set(undefined, columnDefinitions)
             else
@@ -252,6 +286,10 @@ export class ExplorerProgram extends GridProgram {
                 })
         }
         return columnDefs
+    }
+
+    get columnDefsWithoutTableSlug(): OwidColumnDef[] {
+        return this.columnDefsByTableSlug.get(undefined) ?? []
     }
 
     async autofillMissingColumnDefinitionsForTableCommand(tableSlug?: string) {
@@ -320,6 +358,16 @@ export class ExplorerProgram extends GridProgram {
         return rootObject
     }
 
+    get grapherConfigOnlyGrapherProps() {
+        return omit(this.grapherConfig, [
+            GrapherGrammar.yVariableIds.keyword,
+            GrapherGrammar.xVariableId.keyword,
+            GrapherGrammar.colorVariableId.keyword,
+            GrapherGrammar.sizeVariableId.keyword,
+            GrapherGrammar.mapTargetTime.keyword,
+        ])
+    }
+
     /**
      * A static method so that all explorers on the page share requests,
      * and no duplicate requests are sent.
@@ -378,7 +426,7 @@ export class ExplorerProgram extends GridProgram {
             url = `https://raw.githubusercontent.com/owid/owid-datasets/master/datasets/${owidDatasetSlug}/${owidDatasetSlug}.csv`
         }
 
-        const columnDefinitions: CoreColumnDef[] | undefined =
+        const columnDefinitions: OwidColumnDef[] | undefined =
             this.columnDefsByTableSlug.get(tableSlug)
 
         return {
@@ -408,4 +456,42 @@ export const trimAndParseObject = (config: any, grammar: Grammar) => {
         }
     })
     return trimmedRow
+}
+
+const parseColumnDefs = (block: string[][]): OwidColumnDef[] => {
+    const columnsTable = new CoreTable(block)
+        .appendColumnsIfNew([
+            { slug: "slug", type: ColumnTypeNames.String, name: "slug" },
+            {
+                slug: "variableId",
+                type: ColumnTypeNames.Numeric,
+                name: "variableId",
+            },
+        ])
+        .renameColumn("variableId", "owidVariableId")
+        .combineColumns(
+            ["slug", "owidVariableId"],
+            {
+                slug: "slugOrVariableId",
+                type: ColumnTypeNames.String,
+                name: "slugOrVariableId",
+            },
+            (values) => values.slug || values.owidVariableId?.toString()
+        )
+        .columnFilter(
+            "slugOrVariableId",
+            (value: CoreValueType) => !!value,
+            "Keep only column defs with a slug or variable id"
+        )
+        .dropColumns(["slugOrVariableId"])
+    return columnsTable.rows.map((row) => {
+        // ignore slug if a variable id is given
+        if (
+            row.owidVariableId &&
+            isNotErrorValue(row.owidVariableId) &&
+            row.slug
+        )
+            delete row.slug
+        return trimAndParseObject(row, ColumnGrammar)
+    })
 }

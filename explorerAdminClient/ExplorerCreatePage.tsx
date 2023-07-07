@@ -288,6 +288,11 @@ export class ExplorerCreatePage extends React.Component<{
                     <a className="PreviewLink" href={previewLink}>
                         Visit preview
                     </a>
+                    {program.whyIsExplorerProgramInvalid && (
+                        <div className="WhyIsExplorerProgramInvalid">
+                            {program.whyIsExplorerProgramInvalid}
+                        </div>
+                    )}
                 </main>
             </>
         )

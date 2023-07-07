@@ -184,7 +184,6 @@ export class CoreTable<
             valuesFromColumnDefs,
             inputColumnsToParsedColumnStore,
             inputColumnDefs,
-            isRoot,
             advancedOptions,
         } = this
 
@@ -203,12 +202,12 @@ export class CoreTable<
                 inputColumnsToParsedColumnStore
             )
 
-        // NB: transforms are *only* run on the root table for now. They will not be rerun later on (after adding or filtering rows, for example)
         const columnsFromTransforms = inputColumnDefs.filter(
-            (def) => def.transform
+            (def) => def.transform && !def.transformHasRun
         ) // todo: sort by graph dependency order
-        if (isRoot && columnsFromTransforms.length)
+        if (columnsFromTransforms.length) {
             columnStore = applyTransforms(columnStore, columnsFromTransforms)
+        }
 
         return advancedOptions.filterMask
             ? advancedOptions.filterMask.apply(columnStore)
@@ -1112,6 +1111,28 @@ export class CoreTable<
             this.defs,
             `Replaced all cells across columns ${columnSlugs.join(" and ")}`,
             TransformType.UpdateRows
+        )
+    }
+
+    combineColumns(
+        columnSlugs: ColumnSlug[],
+        def: COL_DEF_TYPE,
+        combineFn: (values: Record<ColumnSlug, CoreValueType>) => CoreValueType
+    ): this {
+        if (columnSlugs.length === 0) return this
+        const newStore: CoreColumnStore = { ...this.columnStore }
+        newStore[def.slug] = this.indices.map((index) => {
+            const values: Record<ColumnSlug, CoreValueType> = {}
+            columnSlugs.forEach((slug) => {
+                values[slug] = this.get(slug).valuesIncludingErrorValues[index]
+            })
+            return combineFn(values)
+        })
+        return this.transform(
+            newStore,
+            [...this.defs, def],
+            `Combined columns '${columnSlugs.join(", ")}' into '${def.slug}'`,
+            TransformType.CombineColumns
         )
     }
 

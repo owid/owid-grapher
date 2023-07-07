@@ -741,7 +741,7 @@ export class Grapher
     }
 
     @action.bound
-    private async downloadLegacyDataFromOwidVariableIds(): Promise<void> {
+    async downloadLegacyDataFromOwidVariableIds(): Promise<void> {
         if (this.variableIds.length === 0)
             // No data to download
             return
