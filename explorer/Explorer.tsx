@@ -76,6 +76,7 @@ import {
 
 export interface ExplorerProps extends SerializedGridProgram {
     grapherConfigs?: GrapherInterface[]
+    partialGrapherConfigs?: GrapherInterface[]
     queryStr?: string
     isEmbeddedInAnOwidPage?: boolean
     isInStandalonePage?: boolean
@@ -121,11 +122,13 @@ export class Explorer
     static renderSingleExplorerOnExplorerPage(
         program: ExplorerProps,
         grapherConfigs: GrapherInterface[],
+        partialGrapherConfigs: GrapherInterface[],
         urlMigrationSpec?: ExplorerPageUrlMigrationSpec
     ) {
         const props: ExplorerProps = {
             ...program,
             grapherConfigs,
+            partialGrapherConfigs,
             isEmbeddedInAnOwidPage: false,
             isInStandalonePage: true,
         }
@@ -190,9 +193,12 @@ export class Explorer
 
     @computed get grapherConfigs() {
         const arr = this.props.grapherConfigs || []
-        const grapherConfigsMap: Map<number, GrapherInterface> = new Map()
-        arr.forEach((config) => grapherConfigsMap.set(config.id!, config))
-        return grapherConfigsMap
+        return new Map(arr.map((config) => [config.id!, config]))
+    }
+
+    @computed get partialGrapherConfigsByVariableId() {
+        const arr = this.props.partialGrapherConfigs || []
+        return new Map(arr.map((config) => [config.id!, config]))
     }
 
     disposers: (() => void)[] = []
@@ -463,7 +469,17 @@ export class Explorer
             sizeSlug,
         } = this.explorerProgram.grapherConfig
 
+        const yVariableIdsList = yVariableIds
+            .split(" ")
+            .map((item) => parseInt(item, 10))
+            .filter((item) => !isNaN(item))
+
+        const partialGrapherConfig =
+            this.partialGrapherConfigsByVariableId.get(yVariableIdsList[0]) ??
+            {}
+
         const config: GrapherProgrammaticInterface = {
+            ...partialGrapherConfig,
             ...this.explorerProgram.grapherConfigOnlyGrapherProps,
             bakedGrapherURL: BAKED_GRAPHER_URL,
             hideEntityControls: this.showExplorerControls,
@@ -472,18 +488,13 @@ export class Explorer
         // set given variable IDs as dimensions to make Grapher
         // download the data and metadata for these variables
         const dimensions = config.dimensions ?? []
-        if (yVariableIds) {
-            const yVariableIdsList = yVariableIds
-                .split(" ")
-                .map((item) => parseInt(item, 10))
-                .filter((item) => !isNaN(item))
-            yVariableIdsList.forEach((yVariableId) => {
-                dimensions.push({
-                    variableId: yVariableId,
-                    property: DimensionProperty.y,
-                })
+
+        yVariableIdsList.forEach((yVariableId) => {
+            dimensions.push({
+                variableId: yVariableId,
+                property: DimensionProperty.y,
             })
-        }
+        })
         if (xVariableId) {
             dimensions.push({
                 variableId: xVariableId,

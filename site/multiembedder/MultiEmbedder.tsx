@@ -29,6 +29,7 @@ import { Explorer, ExplorerProps } from "../../explorer/Explorer.js"
 import {
     EMBEDDED_EXPLORER_DELIMITER,
     EMBEDDED_EXPLORER_GRAPHER_CONFIGS,
+    EMBEDDED_EXPLORER_PARTIAL_GRAPHER_CONFIGS,
     EXPLORER_EMBEDDED_FIGURE_SELECTOR,
 } from "../../explorer/ExplorerConstants.js"
 import {
@@ -157,6 +158,10 @@ class MultiEmbedder {
                 html,
                 EMBEDDED_EXPLORER_GRAPHER_CONFIGS
             )
+            let partialGrapherConfigs = deserializeJSONFromHTML(
+                html,
+                EMBEDDED_EXPLORER_PARTIAL_GRAPHER_CONFIGS
+            )
             if (isArray(grapherConfigs)) {
                 grapherConfigs = grapherConfigs.map((grapherConfig) => ({
                     ...grapherConfig,
@@ -164,10 +169,20 @@ class MultiEmbedder {
                     bakedGrapherURL: BAKED_GRAPHER_URL,
                 }))
             }
+            if (isArray(partialGrapherConfigs)) {
+                partialGrapherConfigs = partialGrapherConfigs.map(
+                    (grapherConfig) => ({
+                        ...grapherConfig,
+                        adminBaseUrl: ADMIN_BASE_URL,
+                        bakedGrapherURL: BAKED_GRAPHER_URL,
+                    })
+                )
+            }
             const props: ExplorerProps = {
                 ...common,
                 ...deserializeJSONFromHTML(html, EMBEDDED_EXPLORER_DELIMITER),
                 grapherConfigs,
+                partialGrapherConfigs,
                 queryStr,
                 selection: new SelectionArray(
                     this.selection.selectedEntityNames
