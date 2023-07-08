@@ -1,5 +1,4 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
-import { Gdoc } from "../model/Gdoc/Gdoc.js"
 import {
     cloneDeep,
     forEach,
@@ -9,11 +8,12 @@ import {
     isObject,
     set,
 } from "lodash"
+import { OwidGdocContent } from "@ourworldindata/utils"
 
 export class UpdateGdocRecircComponent1685107433682
     implements MigrationInterface
 {
-    public async up(_queryRunner: QueryRunner): Promise<void> {
+    public async up(queryRunner: QueryRunner): Promise<void> {
         // sanity check that the migration works
         recursivelyFixRecircComponents(recircBefore)
         if (!isEqual(recircBefore, recircAfter)) {
@@ -23,13 +23,19 @@ export class UpdateGdocRecircComponent1685107433682
         }
 
         // Now run the migration over all gdocs
-        const allGdocs = await Gdoc.find()
+        const allGdocs = await queryRunner.query(
+            "SELECT id, slug, content FROM posts_gdocs"
+        )
         for (const gdoc of allGdocs) {
+            gdoc.content = JSON.parse(gdoc.content) as OwidGdocContent
             const old = cloneDeep(gdoc.content.body)
             recursivelyFixRecircComponents(gdoc.content.body)
             if (JSON.stringify(old) !== JSON.stringify(gdoc.content.body)) {
                 console.log(`Updating callout component in gdoc ${gdoc.slug}`)
-                await gdoc.save()
+                await queryRunner.query(
+                    "UPDATE posts_gdocs SET content = ? WHERE id = ?",
+                    [JSON.stringify(gdoc.content), gdoc.id]
+                )
             }
         }
     }
