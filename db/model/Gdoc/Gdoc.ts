@@ -17,7 +17,6 @@ import {
     GdocsContentSource,
     JsonError,
     getUrlTarget,
-    getLinkType,
     keyBy,
     excludeNull,
     ImageMetadata,
@@ -55,7 +54,6 @@ import {
     BAKED_GRAPHER_EXPORTS_BASE_URL,
 } from "../../../settings/clientSettings.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../../../explorer/ExplorerConstants.js"
-import { formatUrls } from "../../../site/formatting.js"
 import { parseDetails } from "./rawToEnriched.js"
 import { match, P } from "ts-pattern"
 import {

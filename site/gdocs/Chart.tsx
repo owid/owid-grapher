@@ -13,7 +13,7 @@ import {
     Url,
     merge,
 } from "@ourworldindata/utils"
-import { renderSpans } from "./utils.js"
+import { renderSpans, useLinkedChart } from "./utils.js"
 import cx from "classnames"
 
 export default function Chart({
@@ -27,6 +27,11 @@ export default function Chart({
     useEmbedChart(0, refChartContainer)
 
     const url = Url.fromURL(d.url)
+    // url may point to an old slug, useLinkedChart resolves these redirects
+    const { linkedChart } = useLinkedChart(url.slug!)
+    if (!linkedChart) return null
+    const resolvedUrl = `${linkedChart.resolvedUrl}${linkedChart.queryString}`
+
     const isExplorer = url.isExplorer
     const hasControls = url.queryParams.hideControls !== "true"
     const height = d.height || (isExplorer && hasControls ? 700 : 575)
@@ -72,9 +77,9 @@ export default function Chart({
         >
             <figure
                 // Use unique `key` to force React to re-render tree
-                key={d.url}
-                data-grapher-src={isExplorer ? undefined : d.url}
-                data-explorer-src={isExplorer ? d.url : undefined}
+                key={resolvedUrl}
+                data-grapher-src={isExplorer ? undefined : resolvedUrl}
+                data-explorer-src={isExplorer ? resolvedUrl : undefined}
                 data-grapher-config={
                     isCustomized && !isExplorer
                         ? JSON.stringify(config)
