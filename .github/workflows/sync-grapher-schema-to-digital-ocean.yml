@@ -11,6 +11,10 @@ jobs:
         steps:
             - name: Checkout Repository
               uses: actions/checkout@master
+
+            - uses: ./.github/actions/setup-node-yarn-deps
+            - uses: ./.github/actions/build-tsc
+
             - uses: hustcer/setup-nu@v3
               with:
                   version: "0.80" # Don't use 0.80 here, as it was a float number and will be convert to 0.8, you can use v0.80/0.80.0 or '0.80'
@@ -23,6 +27,19 @@ jobs:
                       | save -f ($yaml.name
                           | path parse
                           | upsert extension "json"
+                          | path join) })
+              shell: nu {0}
+            # Construct default config objects for all grapher schemas in the schema directory (should only be one)
+            - run: |
+                  (ls packages/@ourworldindata/grapher/src/schema/grapher-schema.*.json
+                  | each {|json|
+                      node itsJustJavascript/devTools/schema/generate-default-object-from-schema.js $json.name
+                      | save -f ($json.name
+                          | path parse
+                          | upsert stem ($json.name
+                              | path parse
+                              | get stem
+                              | str replace 'grapher-schema' 'grapher-schema.default')
                           | path join) })
               shell: nu {0}
             # Get all files in the schema directory that end with digits.json or digits.yaml and

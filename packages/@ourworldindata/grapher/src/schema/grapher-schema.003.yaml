@@ -200,7 +200,7 @@ properties:
         type: string
         description: Url of the concrete schema version to use to validate this document
         format: uri
-        default: "https://files.ourworldindata.org/schemas/grapher-schema.003.json"
+        default: "https://files.ourworldindata.org/schemas/grapher-schema.latest.json"
     id:
         type: integer
         description: Internal DB id. Useful internally for OWID but not required if just using grapher directly.
