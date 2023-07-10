@@ -1,6 +1,5 @@
 import { SiteFooterContext } from "@ourworldindata/utils"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
-import { runBlocks } from "./blocks/index.js"
 import { hydrateProminentLink } from "./blocks/ProminentLink.js"
 import { runCookiePreferencesManager } from "./CookiePreferencesManager.js"
 import { hydrateDataPageContent } from "./DataPageContent.js"
@@ -11,6 +10,13 @@ import { MultiEmbedderSingleton } from "./multiembedder/MultiEmbedder.js"
 import { runSiteNavigation } from "./SiteNavigation.js"
 import { runSiteTools } from "./SiteTools.js"
 import { runDetailsOnDemand } from "./detailsOnDemand.js"
+import { runDataTokens } from "./runDataTokens.js"
+import { runSearchCountry } from "./SearchCountry.js"
+import { hydrate as hydrateAdditionalInformation } from "./blocks/AdditionalInformation.js"
+import { hydrateKeyInsights } from "./blocks/KeyInsights.js"
+import { hydrateExpandableParagraphs } from "./blocks/ExpandableParagraph.js"
+import { hydrateCodeSnippets } from "./blocks/CodeSnippet.js"
+import { hydrateStickyNav } from "./blocks/StickyNav.js"
 
 export const runSiteFooterScripts = (
     args:
@@ -39,10 +45,28 @@ export const runSiteFooterScripts = (
             break
         case SiteFooterContext.gdocsDocument:
             hydrateOwidGdoc(debug, isPreviewing)
-        // no break here, we additionally want to run the default scripts
-        default:
             runSiteNavigation(BAKED_BASE_URL)
-            runBlocks(context)
+            runFootnotes()
+            runDetailsOnDemand()
+            runLightbox()
+            runSiteTools()
+            runCookiePreferencesManager()
+            break
+        default:
+            // Features that were not ported over to gdocs, are only being run on WP pages:
+            // - global entity selector
+            // - data tokens
+            // - country-aware prominent links
+            // - search country widget leading to topic country profiles
+            // - embedding charts through MultiEmbedderSingleton.embedAll()
+            runSiteNavigation(BAKED_BASE_URL)
+            runDataTokens()
+            runSearchCountry()
+            hydrateAdditionalInformation()
+            hydrateKeyInsights()
+            hydrateExpandableParagraphs()
+            hydrateCodeSnippets()
+            hydrateStickyNav()
             MultiEmbedderSingleton.setUpGlobalEntitySelectorForEmbeds()
             MultiEmbedderSingleton.embedAll()
             runLightbox()
