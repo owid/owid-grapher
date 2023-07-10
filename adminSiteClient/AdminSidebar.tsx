@@ -4,7 +4,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
     faChartBar,
     faFile,
-    faUpload,
     faTable,
     faTruckFast,
     faSkullCrossbones,
@@ -47,11 +46,7 @@ export const AdminSidebar = (): JSX.Element => (
                 </Link>
             </li>
             <li className="header">DATA</li>
-            <li>
-                <Link to="/import">
-                    <FontAwesomeIcon icon={faUpload} /> Import CSV
-                </Link>
-            </li>
+
             <li>
                 <a
                     href={FASTTRACK_URL}
