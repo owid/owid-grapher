@@ -288,44 +288,51 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
     ): Promise<void> {
         const slugToIdMap = await Chart.mapSlugsToIds()
         const uniqueSlugsByLinkType = this.links.reduce(
-            (slugsByLinkType, { linkType, target }) => {
+            (slugsByLinkType, { linkType, target, queryString }) => {
                 if (linkType === "grapher" || linkType === "explorer") {
-                    slugsByLinkType[linkType].add(target)
+                    slugsByLinkType[linkType].add({ target, queryString })
                 }
                 return slugsByLinkType
             },
-            { grapher: new Set<string>(), explorer: new Set<string>() }
+            {
+                grapher: new Set<{ target: string; queryString: string }>(),
+                explorer: new Set<{ target: string; queryString: string }>(),
+            }
         )
 
         const linkedGrapherCharts = await Promise.all(
-            [...uniqueSlugsByLinkType.grapher.values()].map(
-                async (originalSlug) => {
-                    const chartId = slugToIdMap[originalSlug]
-                    if (!chartId) return
-                    const chart = await Chart.findOneBy({ id: chartId })
-                    if (!chart) return
-                    const resolvedSlug = chart.config.slug ?? ""
-                    const resolvedTitle = chart.config.title ?? ""
-                    const linkedChart: LinkedChart = {
-                        originalSlug,
-                        title: resolvedTitle,
-                        resolvedUrl: `${BAKED_GRAPHER_URL}/${resolvedSlug}`,
-                        thumbnail: `${BAKED_GRAPHER_EXPORTS_BASE_URL}/${resolvedSlug}.svg`,
-                    }
-                    return linkedChart
+            [...uniqueSlugsByLinkType.grapher.values()].map(async (link) => {
+                const originalSlug = link.target
+                const queryString = link.queryString
+                const chartId = slugToIdMap[originalSlug]
+                if (!chartId) return
+                const chart = await Chart.findOneBy({ id: chartId })
+                if (!chart) return
+                const resolvedSlug = chart.config.slug ?? ""
+                const resolvedTitle = chart.config.title ?? ""
+                const linkedChart: LinkedChart = {
+                    originalSlug,
+                    queryString,
+                    title: resolvedTitle,
+                    resolvedUrl: `${BAKED_GRAPHER_URL}/${resolvedSlug}`,
+                    thumbnail: `${BAKED_GRAPHER_EXPORTS_BASE_URL}/${resolvedSlug}.svg`,
                 }
-            )
+                return linkedChart
+            })
         ).then(excludeNullish)
 
         const linkedExplorerCharts = await Promise.all(
-            [...uniqueSlugsByLinkType.explorer.values()].map((slug) => {
-                const explorer = publishedExplorersBySlug[slug]
+            [...uniqueSlugsByLinkType.explorer.values()].map((link) => {
+                const originalSlug = link.target
+                const queryString = link.queryString
+                const explorer = publishedExplorersBySlug[originalSlug]
                 if (!explorer) return
                 const linkedChart: LinkedChart = {
                     // we are assuming explorer slugs won't change
-                    originalSlug: slug,
+                    originalSlug,
+                    queryString,
                     title: explorer?.explorerTitle ?? "",
-                    resolvedUrl: `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${slug}`,
+                    resolvedUrl: `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${originalSlug}`,
                     thumbnail: `${BAKED_BASE_URL}/default-thumbnail.jpg`,
                 }
                 return linkedChart
@@ -374,10 +381,9 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
         if (span.spanType === "span-link") {
             const url = span.url
             if (!checkIsRefAnchor(url)) {
-                return Link.create({
-                    linkType: getLinkType(url),
+                return Link.createFromUrl({
+                    url,
                     source: this,
-                    target: getUrlTarget(formatUrls(url)),
                     componentType: span.spanType,
                     text: spansToSimpleString(span.children),
                 })
@@ -388,31 +394,26 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
     extractLinksFromNode(node: OwidEnrichedGdocBlock): Link[] | void {
         const links: Link[] = match(node)
             .with({ type: "prominent-link" }, (node) => [
-                Link.create({
-                    linkType: getLinkType(node.url),
+                Link.createFromUrl({
+                    url: node.url,
                     source: this,
-                    target: getUrlTarget(formatUrls(node.url)),
                     componentType: node.type,
-                    text: node.title ?? "",
+                    text: node.title,
                 }),
             ])
             .with({ type: "chart" }, (node) => [
-                Link.create({
-                    linkType: getLinkType(node.url),
+                Link.createFromUrl({
+                    url: node.url,
                     source: this,
-                    target: getUrlTarget(formatUrls(node.url)),
                     componentType: node.type,
-                    text: "",
                 }),
             ])
             .with({ type: "all-charts" }, (node) =>
                 node.top.map((item) =>
-                    Link.create({
-                        linkType: getLinkType(item.url),
+                    Link.createFromUrl({
+                        url: item.url,
                         source: this,
-                        target: getUrlTarget(formatUrls(item.url)),
                         componentType: node.type,
-                        text: "",
                     })
                 )
             )
@@ -421,10 +422,9 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
 
                 node.links.forEach(({ url }, i) => {
                     links.push(
-                        Link.create({
-                            linkType: getLinkType(url),
+                        Link.createFromUrl({
+                            url,
                             source: this,
-                            target: getUrlTarget(formatUrls(url)),
                             componentType: node.type,
                             text: `Recirc link ${i + 1}`,
                         })
@@ -437,10 +437,9 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
                 const links: Link[] = []
 
                 node.blocks.forEach(({ url, text }, i) => {
-                    const chartLink = Link.create({
-                        linkType: getLinkType(url),
+                    const chartLink = Link.createFromUrl({
+                        url,
                         source: this,
-                        target: getUrlTarget(formatUrls(url)),
                         componentType: node.type,
                         text: `Scroller block ${i + 1}`,
                     })
@@ -459,10 +458,9 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
                 const links: Link[] = []
 
                 node.items.forEach((storyItem, i) => {
-                    const chartLink = Link.create({
-                        linkType: getLinkType(storyItem.chart.url),
+                    const chartLink = Link.createFromUrl({
+                        url: storyItem.chart.url,
                         source: this,
-                        target: getUrlTarget(formatUrls(storyItem.chart.url)),
                         componentType: node.type,
                         text: `chart-story item ${i + 1}`,
                     })
@@ -489,12 +487,9 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
                 const links: Link[] = []
 
                 if (node.downloadButton) {
-                    const downloadButtonLink = Link.create({
-                        linkType: getLinkType(node.downloadButton.url),
+                    const downloadButtonLink = Link.createFromUrl({
+                        url: node.downloadButton.url,
                         source: this,
-                        target: getUrlTarget(
-                            formatUrls(node.downloadButton.url)
-                        ),
                         componentType: node.type,
                         text: node.downloadButton.text,
                     })
@@ -502,10 +497,9 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
                 }
                 if (node.relatedTopics) {
                     node.relatedTopics.forEach((relatedTopic) => {
-                        const relatedTopicLink = Link.create({
-                            linkType: getLinkType(relatedTopic.url),
+                        const relatedTopicLink = Link.createFromUrl({
+                            url: relatedTopic.url,
                             source: this,
-                            target: getUrlTarget(formatUrls(relatedTopic.url)),
                             componentType: node.type,
                             text: relatedTopic.text ?? "",
                         })
@@ -530,12 +524,11 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
                 // insights content is traversed by traverseEnrichedBlocks
                 node.insights.forEach((insight) => {
                     if (insight.url) {
-                        const insightLink = Link.create({
-                            linkType: getLinkType(insight.url),
+                        const insightLink = Link.createFromUrl({
+                            url: insight.url,
                             source: this,
-                            target: getUrlTarget(formatUrls(insight.url)),
                             componentType: node.type,
-                            text: insight.title ?? "",
+                            text: insight.title,
                         })
                         links.push(insightLink)
                     }
@@ -556,14 +549,11 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
                     return allLinks.reduce(
                         (links, link) => [
                             ...links,
-                            Link.create({
-                                linkType: getLinkType(link.value.url),
+                            Link.createFromUrl({
                                 source: this,
-                                target: getUrlTarget(
-                                    formatUrls(link.value.url)
-                                ),
+                                url: link.value.url,
                                 componentType: researchAndWriting.type,
-                                text: link.value.title || "",
+                                text: link.value.title,
                             }),
                         ],
                         [] as Link[]

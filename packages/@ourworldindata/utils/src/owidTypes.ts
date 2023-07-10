@@ -1138,6 +1138,7 @@ export interface OwidGdocTag {
 export interface LinkedChart {
     originalSlug: string
     resolvedUrl: string
+    queryString: string
     title: string
     thumbnail?: string
 }

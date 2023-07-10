@@ -325,6 +325,7 @@ export class SiteBaker {
                 mapValues(results, (cur) => ({
                     originalSlug: cur.slug,
                     resolvedUrl: `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${cur.slug}`,
+                    queryString: "",
                     title: cur.title || "",
                     thumbnail:
                         cur.thumbnail ||
@@ -340,6 +341,7 @@ export class SiteBaker {
                         [cur.slug]: {
                             originalSlug: cur.slug,
                             resolvedUrl: `${BAKED_GRAPHER_URL}/${cur.config.slug}`,
+                            queryString: "",
                             title: cur.config.title || "",
                             thumbnail: `${BAKED_GRAPHER_EXPORTS_BASE_URL}/${cur.config.slug}.svg`,
                         },

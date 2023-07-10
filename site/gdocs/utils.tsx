@@ -103,7 +103,10 @@ const LinkedA = ({ span }: { span: SpanLink }): JSX.Element => {
     }
     if (linkedChart) {
         return (
-            <a href={linkedChart.resolvedUrl} className="span-link">
+            <a
+                href={`${linkedChart.resolvedUrl}${linkedChart.queryString}`}
+                className="span-link"
+            >
                 {renderSpans(span.children)}
             </a>
         )
