@@ -8,7 +8,7 @@ import {
     ExplorersRouteResponse,
 } from "../explorer/ExplorerConstants.js"
 import { simpleGit, SimpleGit } from "simple-git"
-import { GitCommit, keyBy } from "@ourworldindata/utils"
+import { GitCommit, keyBy, sortBy } from "@ourworldindata/utils"
 import { Dictionary } from "lodash"
 
 export class ExplorerAdminServer {
@@ -79,7 +79,8 @@ export class ExplorerAdminServer {
 
     async getAllPublishedExplorers() {
         const explorers = await this.getAllExplorers()
-        return explorers.filter((exp) => exp.isPublished)
+        const publishedExplorers = explorers.filter((exp) => exp.isPublished)
+        return sortBy(publishedExplorers, (exp) => exp.explorerTitle)
     }
 
     async getAllPublishedExplorersBySlug() {
