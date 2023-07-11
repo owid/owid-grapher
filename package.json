@@ -121,7 +121,7 @@
         "entities": "^4.4.0",
         "enzyme": "^3.11.0",
         "enzyme-adapter-react-16": "^1.15.6",
-        "eslint": "^8.40.0",
+        "eslint": "^8.44.0",
         "eslint-import-resolver-typescript": "^3.5.5",
         "eslint-plugin-import": "^2.27.5",
         "eslint-plugin-react-hooks": "^4.6.0",
