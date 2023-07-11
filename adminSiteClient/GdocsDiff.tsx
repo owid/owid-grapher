@@ -17,6 +17,7 @@ export const GdocsDiff = ({
                 "imageMetadata",
                 "linkedCharts",
                 "linkedDocuments",
+                "relatedCharts",
             ]),
             null,
             2
@@ -27,6 +28,7 @@ export const GdocsDiff = ({
                 "imageMetadata",
                 "linkedCharts",
                 "linkedDocuments",
+                "relatedCharts",
             ]),
             null,
             2
