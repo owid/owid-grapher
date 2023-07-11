@@ -355,8 +355,8 @@ export class StackedBarChart
         const xValueToOffset = new Map<number, number>()
         let xOffset = dualAxis.innerBounds.left + barSpacing
 
-        for (let i = 0; i < this.xValues.length; i++) {
-            xValueToOffset.set(this.xValues[i], xOffset)
+        for (const xValue of this.xValues) {
+            xValueToOffset.set(xValue, xOffset)
             xOffset += barWidth + barSpacing
         }
         return xValueToOffset

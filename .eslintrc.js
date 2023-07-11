@@ -37,6 +37,7 @@ module.exports = {
         "@typescript-eslint/no-namespace": "warn",
         "@typescript-eslint/no-non-null-assertion": "off", // TODO: enable this rule
         "@typescript-eslint/no-this-alias": "warn",
+        "@typescript-eslint/prefer-for-of": "warn",
         "@typescript-eslint/no-unused-vars": [
             "warn",
             { varsIgnorePattern: "^_", argsIgnorePattern: "^_" },

@@ -250,12 +250,9 @@ export const legacyToOwidTableAndDimensions = (
             OwidTableSlugs.day,
         ])[0]
         const yearsForDaysValues = []
-        for (let i = 0; i < daysColumn.values.length; i++) {
+        for (const dayValue of daysColumn.values) {
             yearsForDaysValues.push(
-                getYearFromISOStringAndDayOffset(
-                    EPOCH_DATE,
-                    daysColumn.values[i] as number
-                )
+                getYearFromISOStringAndDayOffset(EPOCH_DATE, dayValue as number)
             )
         }
         const newYearColumn = {
