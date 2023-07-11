@@ -33,22 +33,16 @@ module.exports = {
         "@typescript-eslint/no-empty-interface": "warn",
         "@typescript-eslint/no-explicit-any": "off", // TODO: enable this rule
         "@typescript-eslint/no-for-in-array": "warn",
-        "@typescript-eslint/no-inferrable-types": "off", // If this is on the ESLint automatic fixing removes type annotations in assignments like "somenumber: number = 4"
-        "@typescript-eslint/no-namespace": "warn",
         "@typescript-eslint/no-non-null-assertion": "off", // TODO: enable this rule
-        "@typescript-eslint/no-this-alias": "warn",
         "@typescript-eslint/no-unused-vars": [
             "warn",
             { varsIgnorePattern: "^_", argsIgnorePattern: "^_" },
         ],
-        "@typescript-eslint/no-use-before-define": "off", // This was useful in the past with var and variable hoisting changing depending on scope but AFAIK typescript deals with this in a sane way and we can leave this off
-        "@typescript-eslint/no-var-requires": "warn",
         "@typescript-eslint/prefer-for-of": "warn",
         "@typescript-eslint/restrict-plus-operands": "warn",
         "import/namespace": "off",
         "import/no-named-as-default-member": "off", // probably makes sense to enable this at some point
         "no-console": ["warn", { allow: ["warn", "error"] }],
-        "no-var": "warn",
         "prefer-const": ["warn", { destructuring: "all" }],
         "react/display-name": "warn",
         "react/jsx-key": "warn",
