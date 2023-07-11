@@ -1015,6 +1015,7 @@ export function getClosestTimePairs(
 
     let indexB = 0
 
+    // eslint-disable-next-line @typescript-eslint/prefer-for-of
     for (let indexA = 0; indexA < sortedTimesA.length; indexA++) {
         const timeA = sortedTimesA[indexA]
 
