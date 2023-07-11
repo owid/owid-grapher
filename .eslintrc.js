@@ -48,7 +48,7 @@ module.exports = {
         "react/jsx-key": "warn",
         "react/jsx-no-target-blank": ["warn", { allowReferrer: true }],
         "react/no-render-return-value": "warn",
-        "react/no-unescaped-entities": "off", // This rule is overly noisy in JSX blocks when quotes are used for little gain
+        "react/no-unescaped-entities": ["warn", { forbid: [">", "}"] }],
         "react/prop-types": "warn",
     },
     settings: {
