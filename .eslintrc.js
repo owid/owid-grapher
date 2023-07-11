@@ -21,12 +21,12 @@ module.exports = {
         },
     ],
     rules: {
+        // These rules are only preliminary to ease the migration from tslint, many of them might make sense to have enabled!
         // use `export type` whenever applicable
         "@typescript-eslint/consistent-type-exports": [
             "warn",
             { fixMixedExportsWithInlineTypeSpecifier: true },
         ],
-        // These rules are only preliminary to ease the migration from tslint, many of them might make sense to have enabled!
         "@typescript-eslint/explicit-function-return-type": "off", // This rule is enabled on a folder by folder basis and should be enabled project wide soon
         "@typescript-eslint/explicit-module-boundary-types": "off", // This rule is enabled on a folder by folder basis and should be enabled project wide soon
         "@typescript-eslint/no-empty-function": "warn",
@@ -37,16 +37,16 @@ module.exports = {
         "@typescript-eslint/no-namespace": "warn",
         "@typescript-eslint/no-non-null-assertion": "off", // TODO: enable this rule
         "@typescript-eslint/no-this-alias": "warn",
-        "@typescript-eslint/prefer-for-of": "warn",
         "@typescript-eslint/no-unused-vars": [
             "warn",
             { varsIgnorePattern: "^_", argsIgnorePattern: "^_" },
         ],
         "@typescript-eslint/no-use-before-define": "off", // This was useful in the past with var and variable hoisting changing depending on scope but AFAIK typescript deals with this in a sane way and we can leave this off
         "@typescript-eslint/no-var-requires": "warn",
+        "@typescript-eslint/prefer-for-of": "warn",
         "@typescript-eslint/restrict-plus-operands": "warn",
-        "import/no-named-as-default-member": "off", // probably makes sense to enable this at some point
         "import/namespace": "off",
+        "import/no-named-as-default-member": "off", // probably makes sense to enable this at some point
         "no-console": ["warn", { allow: ["warn", "error"] }],
         "no-var": "warn",
         "prefer-const": ["warn", { destructuring: "all" }],
