@@ -19,6 +19,7 @@ import {
     OwidGdocErrorMessage,
     OwidGdocErrorMessageType,
     slugify,
+    pick,
 } from "@ourworldindata/utils"
 import { Button, Col, Drawer, Row, Space, Tag, Typography } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -49,8 +50,15 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     }>({ original: undefined, current: undefined })
     const originalGdoc = gdoc.original
     const currentGdoc = gdoc.current
-    const setCurrentGdoc = (current: OwidGdocInterface | undefined) => {
-        setGdoc({ original: originalGdoc, current })
+    const setCurrentGdoc = (
+        updater: (
+            current: OwidGdocInterface | undefined
+        ) => OwidGdocInterface | undefined
+    ) => {
+        setGdoc(({ original, current }) => ({
+            original,
+            current: updater(current),
+        }))
     }
     const hasChanges = useGdocsChanged(originalGdoc, currentGdoc)
     const [isSettingsOpen, setSettingsOpen] = useState(false)
@@ -129,13 +137,17 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                 setIframeScrollY(iframeRef.current?.contentWindow?.scrollY)
             }
 
-            setCurrentGdoc({
+            setCurrentGdoc((current) => ({
                 ...latestGdoc,
-                slug: currentGdoc.slug,
-                published: currentGdoc.published,
-                publishedAt: currentGdoc.publishedAt,
-                publicationContext: currentGdoc.publicationContext,
-            })
+
+                // keep values that might've been updated in the admin (e.g. slug) as they are locally
+                ...pick(current, [
+                    "slug",
+                    "published",
+                    "publishedAt",
+                    "publicationContext",
+                ]),
+            }))
         }
     }, 5000)
 
@@ -332,7 +344,9 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                 >
                     <GdocsSettingsForm
                         gdoc={currentGdoc}
-                        setCurrentGdoc={setCurrentGdoc}
+                        setCurrentGdoc={(updatedGdoc) =>
+                            setCurrentGdoc(() => updatedGdoc)
+                        }
                         errors={errors}
                     />
                 </Drawer>
