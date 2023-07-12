@@ -69,7 +69,7 @@
             .definition {
                 color: #858585;
                 font-size: 12px;
-                line-height: 16px;
+                line-height: 15px;
                 letter-spacing: 0.01em;
                 font-weight: $bold;
 
@@ -186,6 +186,8 @@
 
             td.series-name {
                 padding-right: 0.9em;
+                line-height: 16px;
+
                 .parenthetical {
                     color: $grey;
                 }
@@ -193,12 +195,8 @@
                 .annotation {
                     display: block;
                     color: $grey;
-                    line-height: 1.4em;
                     font-size: 12px;
                     letter-spacing: 0.01em;
-                    &::before {
-                        content: " ";
-                    }
                 }
             }
 
@@ -395,6 +393,7 @@
                 font-size: 12px;
                 line-height: 18px;
                 letter-spacing: 0.01em;
+
                 tr.total {
                     td:last-child::before {
                         height: 4px;
@@ -403,6 +402,7 @@
 
                 td.series-name .annotation {
                     font-size: 10px;
+                    line-height: 12px;
                 }
             }
         }
