@@ -120,6 +120,42 @@ class PublishedAtHandler extends AbstractHandler {
     }
 }
 
+class BreadcrumbsHandler extends AbstractHandler {
+    handle(gdoc: OwidGdocInterface, messages: OwidGdocErrorMessage[]) {
+        const { breadcrumbs } = gdoc
+
+        if (breadcrumbs) {
+            for (const [i, breadcrumb] of breadcrumbs.entries()) {
+                if (!breadcrumb.label) {
+                    messages.push({
+                        property: `breadcrumbs[${i}].label`,
+                        type: OwidGdocErrorMessageType.Error,
+                        message: `Breadcrumb must have a label`,
+                    })
+                }
+
+                // Last item can be missing a href
+                if (!breadcrumb.href && i !== breadcrumbs.length - 1) {
+                    messages.push({
+                        property: `breadcrumbs[${i}].href`,
+                        type: OwidGdocErrorMessageType.Error,
+                        message: `Breadcrumb must have a url`,
+                    })
+                }
+                if (breadcrumb.href && !breadcrumb.href.startsWith("/")) {
+                    messages.push({
+                        property: `breadcrumbs[${i}].href`,
+                        type: OwidGdocErrorMessageType.Error,
+                        message: `Breadcrumb url must start with a /`,
+                    })
+                }
+            }
+        }
+
+        return super.handle(gdoc, messages)
+    }
+}
+
 export class ExcerptHandler extends AbstractHandler {
     static maxLength = 150
     handle(gdoc: OwidGdocInterface, messages: OwidGdocErrorMessage[]) {
@@ -214,6 +250,7 @@ export const getErrors = (gdoc: OwidGdocInterface): OwidGdocErrorMessage[] => {
         .setNext(new RSSFieldsHandler())
         .setNext(new SlugHandler())
         .setNext(new PublishedAtHandler())
+        .setNext(new BreadcrumbsHandler())
         .setNext(new ExcerptHandler())
         .setNext(new AttachmentsHandler())
         .setNext(new DocumentTypeHandler())

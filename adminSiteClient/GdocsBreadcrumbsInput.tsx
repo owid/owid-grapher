@@ -7,17 +7,23 @@ import {
 } from "@ourworldindata/utils"
 import { Button, Col, Input, Row } from "antd"
 import React from "react"
+import { getPropertyMostCriticalError } from "./gdocsValidation.js"
+import { GdocsErrorHelp } from "./GdocsErrorHelp.js"
 
 export const BreadcrumbLine = ({
     item,
     setItem,
     removeItem,
     isLastBreadcrumbItem,
+    labelError,
+    hrefError,
 }: {
     item: BreadcrumbItem
     setItem: (item: BreadcrumbItem) => void
     removeItem: () => void
     isLastBreadcrumbItem?: boolean
+    labelError?: OwidGdocErrorMessage
+    hrefError?: OwidGdocErrorMessage
 }) => {
     return (
         <div className="my-2">
@@ -34,7 +40,9 @@ export const BreadcrumbLine = ({
                             setItem({ ...item, href: e.target.value })
                         }
                         disabled={isLastBreadcrumbItem}
+                        status={hrefError?.type}
                     />
+                    {hrefError && <GdocsErrorHelp error={hrefError} />}
                 </Col>
                 <Col span={11}>
                     <Input
@@ -48,7 +56,9 @@ export const BreadcrumbLine = ({
                                 ? "Concise version of the article's title"
                                 : undefined
                         }
+                        status={labelError?.type}
                     />
+                    {labelError && <GdocsErrorHelp error={labelError} />}
                 </Col>
                 <Col span={2}>
                     <Button danger onClick={removeItem}>
@@ -113,6 +123,14 @@ export const GdocsBreadcrumbsInput = ({
                     setItem={(item) => setItemAtIndex(item, i)}
                     removeItem={() => removeItemAtIndex(i)}
                     key={i}
+                    labelError={getPropertyMostCriticalError(
+                        `breadcrumbs[${i}].label`,
+                        errors
+                    )}
+                    hrefError={getPropertyMostCriticalError(
+                        `breadcrumbs[${i}].href`,
+                        errors
+                    )}
                     isLastBreadcrumbItem={i === gdoc.breadcrumbs!.length - 1}
                 />
             ))}
