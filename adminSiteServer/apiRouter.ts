@@ -392,8 +392,9 @@ const saveGrapher = async (
         `DELETE FROM chart_dimensions WHERE chartId=?`,
         [chartId]
     )
-    for (let i = 0; i < newConfig.dimensions!.length; i++) {
-        const dim = newConfig.dimensions![i]
+
+    const newDimensions = newConfig.dimensions ?? []
+    for (const [i, dim] of newDimensions.entries()) {
         await transactionContext.execute(
             `INSERT INTO chart_dimensions (chartId, variableId, property, \`order\`) VALUES (?)`,
             [[chartId, dim.variableId, dim.property, i]]
@@ -403,7 +404,7 @@ const saveGrapher = async (
     // So we can generate country profiles including this chart data
     if (newConfig.isPublished && referencedVariablesMightChange)
         await denormalizeLatestCountryData(
-            newConfig.dimensions!.map((d) => d.variableId)
+            newDimensions.map((d) => d.variableId)
         )
 
     if (
