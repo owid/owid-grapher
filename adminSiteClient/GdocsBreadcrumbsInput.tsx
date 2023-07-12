@@ -41,6 +41,7 @@ export const BreadcrumbLine = ({
                         }
                         disabled={isLastBreadcrumbItem}
                         status={hrefError?.type}
+                        placeholder="e.g. /poverty"
                     />
                     {hrefError && <GdocsErrorHelp error={hrefError} />}
                 </Col>
