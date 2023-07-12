@@ -9,6 +9,7 @@ import {
 import { GdocsDateline } from "./GdocsDateline.js"
 import { GdocsPublicationContext } from "./GdocsPublicationContext.js"
 import { Alert } from "antd"
+import { GdocsBreadcrumbsInput } from "./GdocsBreadcrumbsInput.js"
 
 export const GdocsSettingsForm = ({
     gdoc,
@@ -113,6 +114,11 @@ export const GdocsSettingsForm = ({
                     description="An optional property to override the excerpt of this post in our atom feed, which is used for the newsletter"
                 />
             </div>
+            <GdocsBreadcrumbsInput
+                gdoc={gdoc}
+                errors={errors}
+                setCurrentGdoc={setCurrentGdoc}
+            />
         </form>
     ) : null
 }

@@ -1,5 +1,6 @@
 import React from "react"
 import {
+    BreadcrumbItem,
     OwidGdocContent,
     OwidGdocType,
     formatDate,
@@ -9,19 +10,25 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faBook } from "@fortawesome/free-solid-svg-icons"
 import { faCreativeCommons } from "@fortawesome/free-brands-svg-icons"
 import Image from "./Image.js"
+import { Breadcrumbs } from "../Breadcrumb/Breadcrumb.js"
+import { breadcrumbColorForCoverColor } from "./utils.js"
 
 function OwidArticleHeader({
     content,
     authors,
     publishedAt,
+    breadcrumbs,
 }: {
     content: OwidGdocContent
     authors: string[]
     publishedAt: Date | null
+    breadcrumbs?: BreadcrumbItem[]
 }) {
     const coverStyle = content["cover-color"]
         ? { backgroundColor: `var(--${content["cover-color"]})` }
         : undefined
+
+    const breadcrumbColor = breadcrumbColorForCoverColor(content["cover-color"])
 
     return (
         <>
@@ -38,6 +45,14 @@ function OwidArticleHeader({
                     />
                 </div>
             ) : null}
+            {breadcrumbs?.length && (
+                <div className="centered-article-header__breadcrumbs-container col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
+                    <Breadcrumbs
+                        items={breadcrumbs}
+                        className={`centered-article-header__breadcrumbs breadcrumbs-${breadcrumbColor}`}
+                    />
+                </div>
+            )}
             <header className="centered-article-header align-center grid grid-cols-8 col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
                 <div className="centered-article-header__title-container col-start-2 span-cols-6">
                     {content.supertitle ? (
@@ -123,6 +138,7 @@ export function OwidGdocHeader(props: {
     content: OwidGdocContent
     authors: string[]
     publishedAt: Date | null
+    breadcrumbs?: BreadcrumbItem[]
 }) {
     if (props.content.type === OwidGdocType.Article)
         return <OwidArticleHeader {...props} />

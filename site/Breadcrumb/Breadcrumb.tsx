@@ -1,5 +1,5 @@
 import React from "react"
-import { SubNavId } from "@ourworldindata/utils"
+import { SubNavId, BreadcrumbItem } from "@ourworldindata/utils"
 import { getSubnavItem, SubnavItem, subnavs } from "../SiteSubnavigation.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faAngleRight } from "@fortawesome/free-solid-svg-icons"
@@ -20,7 +20,7 @@ export const getSubnavParent = (
 export const getBreadcrumbItems = (
     subnavCurrentId: string | undefined,
     subnavItems: SubnavItem[]
-): SubnavItem[] | undefined => {
+): BreadcrumbItem[] | undefined => {
     const breadcrumb = []
     let currentItem = getSubnavItem(subnavCurrentId, subnavItems)
     if (!currentItem) return
@@ -34,13 +34,7 @@ export const getBreadcrumbItems = (
     return breadcrumb.reverse()
 }
 
-const BreadcrumbSeparator = () => (
-    <span className="separator">
-        <FontAwesomeIcon icon={faAngleRight} />
-    </span>
-)
-
-export const Breadcrumb = ({
+export const BreadcrumbsFromSubnav = ({
     subnavId,
     subnavCurrentId,
 }: {
@@ -52,23 +46,44 @@ export const Breadcrumb = ({
         : null
 
     return breadcrumbItems ? (
-        <div className="breadcrumb">
-            <a href="/">Home</a>
-            <BreadcrumbSeparator />
-            {breadcrumbItems.map((item, idx) => (
-                <React.Fragment key={item.href}>
-                    {idx !== breadcrumbItems.length - 1 ? (
-                        <>
-                            <a data-track-note="breadcrumb" href={item.href}>
-                                {item.label}
-                            </a>
-                            <BreadcrumbSeparator />
-                        </>
-                    ) : (
-                        <span>{item.label}</span>
-                    )}
-                </React.Fragment>
-            ))}
-        </div>
+        <Breadcrumbs items={breadcrumbItems} className="breadcrumb" />
     ) : null
 }
+
+const BreadcrumbSeparator = () => (
+    <span className="separator">
+        <FontAwesomeIcon icon={faAngleRight} />
+    </span>
+)
+
+export const Breadcrumbs = ({
+    items,
+    className,
+}: {
+    items: BreadcrumbItem[]
+    className: string
+}) => (
+    <div className={className}>
+        <a href="/">Home</a>
+        <BreadcrumbSeparator />
+        {items.map((item, idx) => {
+            const isLast = idx === items.length - 1
+
+            const breadcrumb =
+                !isLast && item.href ? (
+                    <a href={item.href} data-track-note="breadcrumb">
+                        {item.label}
+                    </a>
+                ) : (
+                    <span>{item.label}</span>
+                )
+
+            return (
+                <React.Fragment key={item.label}>
+                    {breadcrumb}
+                    {!isLast && <BreadcrumbSeparator />}
+                </React.Fragment>
+            )
+        })}
+    </div>
+)

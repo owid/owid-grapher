@@ -34,6 +34,7 @@ import {
     EnrichedBlockResearchAndWritingLink,
     traverseEnrichedSpan,
     RelatedChart,
+    BreadcrumbItem,
 } from "@ourworldindata/utils"
 import {
     BAKED_GRAPHER_URL,
@@ -89,6 +90,9 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
     @Column({ type: Date, nullable: true }) publishedAt: Date | null = null
     @UpdateDateColumn({ nullable: true }) updatedAt: Date | null = null
     @Column({ type: String, nullable: true }) revisionId: string | null = null
+    @Column({ type: "json", nullable: true }) breadcrumbs:
+        | BreadcrumbItem[]
+        | null = null
 
     @ManyToMany(() => Tag)
     @JoinTable({

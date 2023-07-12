@@ -103,6 +103,11 @@ export interface FormattingOptions {
     footnotes?: boolean
 }
 
+export interface BreadcrumbItem {
+    label: string
+    href?: string
+}
+
 export interface KeyValueProps {
     [key: string]: string | boolean | undefined
 }
@@ -1153,6 +1158,7 @@ export interface OwidGdocInterface {
     updatedAt: Date | null
     publicationContext: OwidGdocPublicationContext
     revisionId: string | null
+    breadcrumbs?: BreadcrumbItem[] | null
     linkedCharts?: Record<string, LinkedChart>
     linkedDocuments?: Record<string, OwidGdocInterface>
     relatedCharts?: RelatedChart[]
@@ -1166,8 +1172,12 @@ export enum OwidGdocErrorMessageType {
     Warning = "warning",
 }
 
+export type OwidGdocProperty = keyof OwidGdocInterface | keyof OwidGdocContent
+export type OwidGdocErrorMessageProperty =
+    | OwidGdocProperty
+    | `${OwidGdocProperty}${string}` // also allows for nesting, like `breadcrumbs[0].label`
 export interface OwidGdocErrorMessage {
-    property: keyof OwidGdocInterface | keyof OwidGdocContent
+    property: OwidGdocErrorMessageProperty
     type: OwidGdocErrorMessageType
     message: string
 }

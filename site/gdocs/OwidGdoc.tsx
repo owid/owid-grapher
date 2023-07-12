@@ -44,6 +44,7 @@ export function OwidGdoc({
     content,
     publishedAt,
     slug,
+    breadcrumbs,
     linkedCharts = {},
     linkedDocuments = {},
     imageMetadata = {},
@@ -92,6 +93,7 @@ export function OwidGdoc({
                         content={content}
                         authors={content.authors}
                         publishedAt={publishedAt}
+                        breadcrumbs={breadcrumbs ?? undefined}
                     />
                     {content.type === "topic-page" && stickyNavLinks ? (
                         <nav className="sticky-nav sticky-nav--dark span-cols-14 grid grid-cols-12-full-width">
