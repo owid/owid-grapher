@@ -6,6 +6,7 @@ import {
     OwidGdocType,
     checkIsOwidGdocType,
     traverseEnrichedBlocks,
+    OwidGdocErrorMessageProperty,
 } from "@ourworldindata/utils"
 
 interface Handler {
@@ -225,12 +226,12 @@ export const getErrors = (gdoc: OwidGdocInterface): OwidGdocErrorMessage[] => {
 
 export const getPropertyFirstErrorOfType = (
     type: OwidGdocErrorMessageType,
-    property: keyof OwidGdocInterface | keyof OwidGdocContent,
+    property: OwidGdocErrorMessageProperty,
     errors?: OwidGdocErrorMessage[]
 ) => errors?.find((error) => error.property === property && error.type === type)
 
 export const getPropertyMostCriticalError = (
-    property: keyof OwidGdocInterface | keyof OwidGdocContent,
+    property: OwidGdocErrorMessageProperty,
     errors: OwidGdocErrorMessage[] | undefined
 ): OwidGdocErrorMessage | undefined => {
     return (

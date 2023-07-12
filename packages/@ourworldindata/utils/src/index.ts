@@ -93,6 +93,7 @@ export {
     type OwidGdocContent,
     type LinkedChart,
     OwidGdocPublicationContext,
+    type OwidGdocErrorMessageProperty,
     type OwidGdocErrorMessage,
     OwidGdocErrorMessageType,
     type OwidGdocLinkJSON,

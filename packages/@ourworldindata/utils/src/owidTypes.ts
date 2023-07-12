@@ -1172,8 +1172,12 @@ export enum OwidGdocErrorMessageType {
     Warning = "warning",
 }
 
+export type OwidGdocProperty = keyof OwidGdocInterface | keyof OwidGdocContent
+export type OwidGdocErrorMessageProperty =
+    | OwidGdocProperty
+    | `${OwidGdocProperty}${string}` // also allows for nesting, like `breadcrumbs[0].label`
 export interface OwidGdocErrorMessage {
-    property: keyof OwidGdocInterface | keyof OwidGdocContent
+    property: OwidGdocErrorMessageProperty
     type: OwidGdocErrorMessageType
     message: string
 }
