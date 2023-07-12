@@ -163,6 +163,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                     // Show minimum and maximum
                     { value: -Infinity, priority: 2 },
                     { value: Infinity, priority: 2 },
+                    { value: 0, priority: 1 },
                 ],
             },
             xAxisConfig: {
@@ -219,7 +220,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                 key="mapTooltip"
                 x={position.x}
                 y={position.y}
-                style={{ maxWidth: this.showSparkline ? "250px" : "auto" }}
+                style={{ maxWidth: "250px" }}
                 offsetX={20}
                 offsetY={-16}
                 offsetYDirection={"downward"}

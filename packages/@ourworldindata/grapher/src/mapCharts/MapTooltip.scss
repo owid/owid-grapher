@@ -17,14 +17,18 @@
     }
 
     .AxisGridLines.horizontalLines {
-        line:nth-child(1) {
-            stroke: #787878;
-            stroke-dasharray: 2;
+        line {
+            stroke-dasharray: 0;
+            stroke-linecap: square;
         }
 
+        line:nth-child(1),
         line:nth-child(2) {
             stroke: #dadada;
-            stroke-dasharray: 0;
+        }
+
+        line:nth-child(3) {
+            stroke: #787878;
         }
     }
 
