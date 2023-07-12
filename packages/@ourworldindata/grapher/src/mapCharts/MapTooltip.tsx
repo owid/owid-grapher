@@ -181,20 +181,13 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
     }
 
     render(): JSX.Element {
-        const { mapTable, datum, lineColorScale, hasTimeSeriesData } = this
+        const { mapTable, datum, lineColorScale } = this
         const {
             targetTime,
-            manager,
             formatValue,
             customValueLabels,
             tooltipState: { target, position, fading },
         } = this.props
-
-        // Only LineChart and ScatterPlot allow `mapIsClickable`
-        const clickToSelectMessage =
-            manager.type === ChartTypeName.LineChart && hasTimeSeriesData
-                ? "Click for change over time"
-                : "Click to select"
 
         const { timeColumn } = mapTable
         const displayTime = !timeColumn.isMissing
@@ -218,7 +211,6 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
 
         const notice =
             datum && datum.time !== targetTime ? displayTime : undefined
-        const prompt = target?.clickable ? clickToSelectMessage : undefined
 
         return (
             <Tooltip
@@ -235,7 +227,6 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                 subtitle={datum ? displayDatumTime : displayTime}
                 subtitleFormat={notice ? "notice" : undefined}
                 notice={notice}
-                prompt={prompt}
                 dissolve={fading}
             >
                 <TooltipValue
