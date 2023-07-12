@@ -74,13 +74,13 @@ export const GdocsBreadcrumbsInput = ({
     }
 
     const setItemAtIndex = (item: BreadcrumbItem, i: number) => {
-        const breadcrumbs = gdoc.breadcrumbs ?? []
+        const breadcrumbs = [...(gdoc.breadcrumbs ?? [])]
         breadcrumbs[i] = item
         setBreadcrumbs(breadcrumbs)
     }
 
     const removeItemAtIndex = (i: number) => {
-        const breadcrumbs = gdoc.breadcrumbs ?? []
+        const breadcrumbs = [...(gdoc.breadcrumbs ?? [])]
         breadcrumbs.splice(i, 1)
         setBreadcrumbs(breadcrumbs)
     }
