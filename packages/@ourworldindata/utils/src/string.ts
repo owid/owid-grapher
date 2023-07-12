@@ -16,3 +16,11 @@ export const camelCaseProperties = (
     }
     return newObj
 }
+
+export const includesCaseInsensitive = (
+    str?: string,
+    fragment?: string
+): boolean =>
+    !!str &&
+    !!fragment &&
+    str.toLocaleLowerCase().includes(fragment.toLocaleLowerCase())

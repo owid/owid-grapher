@@ -4,7 +4,11 @@ import { CoreColumn } from "@ourworldindata/core-table"
 import { NO_DATA_LABEL } from "../color/ColorScale.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons"
-import { sum, zip } from "@ourworldindata/utils"
+import {
+    sum,
+    zip,
+    includesCaseInsensitive,
+} from "@ourworldindata/utils"
 import {
     TooltipTableProps,
     TooltipValueProps,
@@ -80,11 +84,6 @@ export class TooltipValueRange extends React.Component<TooltipValueRangeProps> {
     }
 }
 
-const includesInsensitive = (str?: string, fragment?: string): boolean =>
-    !!str &&
-    !!fragment &&
-    str.toLocaleLowerCase().includes(fragment.toLocaleLowerCase())
-
 class Variable extends React.Component<{
     column: CoreColumn
     color?: string
@@ -105,7 +104,7 @@ class Variable extends React.Component<{
                     ? unit.replace(/^\((.*)\)$/, "$1")
                     : undefined,
             displayUnit =
-                longUnit && !includesInsensitive(fullName, longUnit)
+                longUnit && !includesCaseInsensitive(fullName, longUnit)
                     ? longUnit
                     : parentheticalUnit,
             displayName =

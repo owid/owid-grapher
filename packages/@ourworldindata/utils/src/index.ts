@@ -550,7 +550,11 @@ export {
     highlightFunctionForSearchWords,
 } from "./search.js"
 
-export { findUrlsInText, camelCaseProperties } from "./string.js"
+export {
+    findUrlsInText,
+    camelCaseProperties,
+    includesCaseInsensitive,
+} from "./string.js"
 
 export { serializeJSONForHTML, deserializeJSONFromHTML } from "./serializers.js"
 
