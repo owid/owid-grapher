@@ -261,6 +261,10 @@
 
             // highlight hovered row
             &.focal {
+                tr:not(.focused, .total) td {
+                    opacity: 0.6;
+                }
+
                 td.series-value {
                     font-weight: $medium;
                 }
