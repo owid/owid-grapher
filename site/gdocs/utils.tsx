@@ -9,6 +9,7 @@ import {
     ImageMetadata,
     LinkedChart,
     OwidGdocContent,
+    Url,
 } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
 import { AttachmentsContext } from "./OwidGdoc.js"
@@ -62,17 +63,29 @@ export const useLinkedDocument = (
 export const useLinkedChart = (
     url: string
 ): { linkedChart?: LinkedChart; errorMessage?: string } => {
-    let errorMessage: string | undefined = undefined
     const { linkedCharts } = useContext(AttachmentsContext)
-    const urlTarget = getUrlTarget(url)
+    let errorMessage: string | undefined = undefined
+    let linkedChart: LinkedChart | undefined = undefined
     const linkType = getLinkType(url)
-    const linkedChart = linkedCharts?.[urlTarget]
-    if (linkType === "grapher" || linkType === "explorer") {
-        if (!linkedChart) {
-            errorMessage = `${linkType} chart with slug ${urlTarget} not found`
-        }
+    if (linkType !== "grapher" && linkType !== "explorer")
+        return { linkedChart }
+
+    const queryString = Url.fromURL(url).queryStr
+    const urlTarget = getUrlTarget(url)
+    linkedChart = linkedCharts?.[urlTarget]
+    if (!linkedChart) {
+        errorMessage = `${linkType} chart with slug ${urlTarget} not found`
     }
-    return { linkedChart, errorMessage }
+
+    return {
+        linkedChart: {
+            ...linkedChart,
+            // linkedCharts doesn't store any querystring information, because it's indexed by slug
+            // Instead we get the querystring from the original URL and append it to resolvedUrl
+            resolvedUrl: `${linkedChart.resolvedUrl}${queryString}`,
+        },
+        errorMessage,
+    }
 }
 
 export const useImage = (
@@ -103,10 +116,7 @@ const LinkedA = ({ span }: { span: SpanLink }): JSX.Element => {
     }
     if (linkedChart) {
         return (
-            <a
-                href={`${linkedChart.resolvedUrl}${linkedChart.queryString}`}
-                className="span-link"
-            >
+            <a href={linkedChart.resolvedUrl} className="span-link">
                 {renderSpans(span.children)}
             </a>
         )

@@ -50,11 +50,11 @@ export const ProminentLink = (props: {
         description = description ?? linkedDocument?.content.excerpt
         thumbnail = thumbnail ?? linkedDocument?.content["featured-image"]
     } else if (linkType === "grapher" || linkType === "explorer") {
-        href = `${linkedChart?.resolvedUrl}${linkedChart?.queryString}`
+        href = `${linkedChart?.resolvedUrl}`
         title = title ?? linkedChart?.title
         thumbnail = thumbnail ?? linkedChart?.thumbnail
         description =
-            // Adding extra context for graphers by default.
+            // Adding extra context for graphers by default
             // Not needed for Explorers as their titles are self-explanatory
             description ?? linkType === "grapher"
                 ? "See the data in our interactive visualization"

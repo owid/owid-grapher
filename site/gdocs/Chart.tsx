@@ -26,12 +26,16 @@ export default function Chart({
     const refChartContainer = useRef<HTMLDivElement>(null)
     useEmbedChart(0, refChartContainer)
 
-    const url = Url.fromURL(d.url)
-    // url may point to an old slug, useLinkedChart resolves these redirects
-    const { linkedChart } = useLinkedChart(url.slug!)
+    // d.url may use an old slug that has since had a redirect created for it
+    // useLinkedChart references a hashmap that has resolved these old slugs to their current chart
+    // It also extracts the queryString from d.url (if present) and appends it to linkedChart.resolvedUrl
+    // This means we can link to the same chart multiple times with different querystrings
+    // and it should all resolve correctly via the same linkedChart
+    const { linkedChart } = useLinkedChart(d.url)
     if (!linkedChart) return null
-    const resolvedUrl = `${linkedChart.resolvedUrl}${linkedChart.queryString}`
 
+    const url = Url.fromURL(d.url)
+    const resolvedUrl = linkedChart.resolvedUrl
     const isExplorer = url.isExplorer
     const hasControls = url.queryParams.hideControls !== "true"
     const height = d.height || (isExplorer && hasControls ? 700 : 575)

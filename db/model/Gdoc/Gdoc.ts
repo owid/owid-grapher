@@ -286,49 +286,45 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
     ): Promise<void> {
         const slugToIdMap = await Chart.mapSlugsToIds()
         const uniqueSlugsByLinkType = this.links.reduce(
-            (slugsByLinkType, { linkType, target, queryString }) => {
+            (slugsByLinkType, { linkType, target }) => {
                 if (linkType === "grapher" || linkType === "explorer") {
-                    slugsByLinkType[linkType].add({ target, queryString })
+                    slugsByLinkType[linkType].add(target)
                 }
                 return slugsByLinkType
             },
             {
-                grapher: new Set<{ target: string; queryString: string }>(),
-                explorer: new Set<{ target: string; queryString: string }>(),
+                grapher: new Set<string>(),
+                explorer: new Set<string>(),
             }
         )
 
         const linkedGrapherCharts = await Promise.all(
-            [...uniqueSlugsByLinkType.grapher.values()].map(async (link) => {
-                const originalSlug = link.target
-                const queryString = link.queryString
-                const chartId = slugToIdMap[originalSlug]
-                if (!chartId) return
-                const chart = await Chart.findOneBy({ id: chartId })
-                if (!chart) return
-                const resolvedSlug = chart.config.slug ?? ""
-                const resolvedTitle = chart.config.title ?? ""
-                const linkedChart: LinkedChart = {
-                    originalSlug,
-                    queryString,
-                    title: resolvedTitle,
-                    resolvedUrl: `${BAKED_GRAPHER_URL}/${resolvedSlug}`,
-                    thumbnail: `${BAKED_GRAPHER_EXPORTS_BASE_URL}/${resolvedSlug}.svg`,
+            [...uniqueSlugsByLinkType.grapher.values()].map(
+                async (originalSlug) => {
+                    const chartId = slugToIdMap[originalSlug]
+                    if (!chartId) return
+                    const chart = await Chart.findOneBy({ id: chartId })
+                    if (!chart) return
+                    const resolvedSlug = chart.config.slug ?? ""
+                    const resolvedTitle = chart.config.title ?? ""
+                    const linkedChart: LinkedChart = {
+                        originalSlug,
+                        title: resolvedTitle,
+                        resolvedUrl: `${BAKED_GRAPHER_URL}/${resolvedSlug}`,
+                        thumbnail: `${BAKED_GRAPHER_EXPORTS_BASE_URL}/${resolvedSlug}.svg`,
+                    }
+                    return linkedChart
                 }
-                return linkedChart
-            })
+            )
         ).then(excludeNullish)
 
         const linkedExplorerCharts = await Promise.all(
-            [...uniqueSlugsByLinkType.explorer.values()].map((link) => {
-                const originalSlug = link.target
-                const queryString = link.queryString
+            [...uniqueSlugsByLinkType.explorer.values()].map((originalSlug) => {
                 const explorer = publishedExplorersBySlug[originalSlug]
                 if (!explorer) return
                 const linkedChart: LinkedChart = {
                     // we are assuming explorer slugs won't change
                     originalSlug,
-                    queryString,
                     title: explorer?.explorerTitle ?? "",
                     resolvedUrl: `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${originalSlug}`,
                     thumbnail: `${BAKED_BASE_URL}/default-thumbnail.jpg`,
