@@ -7,6 +7,7 @@ import { faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 import {
     sum,
     zip,
+    isNumber,
     includesCaseInsensitive,
 } from "@ourworldindata/utils"
 import {
@@ -20,9 +21,9 @@ export const NO_DATA_COLOR = "#999"
 export class TooltipValue extends React.Component<TooltipValueProps> {
     render(): JSX.Element | null {
         const { column, value, color, notice } = this.props,
-            displayValue =
-                (value !== undefined && column.formatValueShort(value)) ||
-                NO_DATA_LABEL,
+            displayValue = isNumber(value)
+                ? column.formatValueShort(value)
+                : value ?? NO_DATA_LABEL,
             displayColor =
                 displayValue === NO_DATA_LABEL ? NO_DATA_COLOR : color
 
