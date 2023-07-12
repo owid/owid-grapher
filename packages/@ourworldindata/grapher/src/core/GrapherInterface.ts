@@ -30,6 +30,7 @@ import { ColorSchemeName } from "../color/ColorConstants"
 // Ideally, this is also all of the interaction state: when a grapher is saved and loaded again
 // under the same rendering conditions it ought to remain visually identical
 export interface GrapherInterface extends SortConfig {
+    $schema?: string
     type?: ChartTypeName
     id?: number
     version?: number
@@ -125,6 +126,7 @@ export interface LegacyGrapherQueryParams extends GrapherQueryParams {
 
 // Another approach we may want to try is this: https://github.com/mobxjs/serializr
 export const grapherKeysToSerialize = [
+    "$schema",
     "type",
     "id",
     "version",

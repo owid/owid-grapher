@@ -80,6 +80,7 @@ import {
     FacetAxisDomain,
     AnnotationFieldsInTitle,
     MissingDataStrategy,
+    DEFAULT_GRAPHER_CONFIG_SCHEMA,
     DEFAULT_GRAPHER_WIDTH,
     DEFAULT_GRAPHER_HEIGHT,
     SeriesStrategy,
@@ -303,6 +304,7 @@ export class Grapher
         FacetChartManager,
         MapChartManager
 {
+    @observable.ref $schema = DEFAULT_GRAPHER_CONFIG_SCHEMA
     @observable.ref type = ChartTypeName.LineChart
     @observable.ref id?: number = undefined
     @observable.ref version = 1
@@ -472,6 +474,9 @@ export class Grapher
         obj.selectedEntityNames = this.selection.selectedEntityNames
 
         deleteRuntimeAndUnchangedProps(obj, defaultObject)
+
+        // always include the schema, even if it's the default
+        obj.$schema = this.$schema || DEFAULT_GRAPHER_CONFIG_SCHEMA
 
         // todo: nulls got into the DB for this one. we can remove after moving Graphers from DB.
         if (obj.stackMode === null) delete obj.stackMode
