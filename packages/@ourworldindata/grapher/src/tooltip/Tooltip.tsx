@@ -102,19 +102,20 @@ class TooltipCard extends React.Component<
         }
 
         // Ensure tooltip remains inside chart
-        let x = this.props.x + offsetX
-        let y = this.props.y + offsetY
+        let left = this.props.x + offsetX
+        let top = this.props.y + offsetY
         if (this.bounds) {
-            if (x + this.bounds.width > this.props.containerWidth)
-                x -= this.bounds.width + 2 * offsetX // flip left
-            if (y + this.bounds.height * 0.75 > this.props.containerHeight)
-                y -= this.bounds.height + 2 * offsetY // flip upwards eventually...
-            if (y + this.bounds.height > this.props.containerHeight)
-                y = this.props.containerHeight - this.bounds.height // ...but first pin at bottom
+            if (left + this.bounds.width > this.props.containerWidth)
+                left -= this.bounds.width + 2 * offsetX // flip left
+            if (top + this.bounds.height * 0.75 > this.props.containerHeight)
+                top -= this.bounds.height + 2 * offsetY // flip upwards eventually...
+            if (top + this.bounds.height > this.props.containerHeight)
+                top = this.props.containerHeight - this.bounds.height // ...but first pin at bottom
 
-            if (x < 0) x = 0 // pin on left
-            if (y < 0) y = 0 // pin at top
+            if (left < 0) left = 0 // pin on left
+            if (top < 0) top = 0 // pin at top
         }
+        const style = { left, top, ...this.props.style }
 
         // add a preposition to unit-based subtitles
         const hasHeader = title !== undefined || subtitle !== undefined
@@ -124,13 +125,13 @@ class TooltipCard extends React.Component<
             subtitle = preposition + unit.replace(/(^\(|\)$)/g, "")
         }
 
-        // flag the year in the header if neccesary
+        // flag the year in the header if necessary
         const timeNotice = !!subtitle && subtitleFormat == "notice"
 
         // style the box differently if just displaying title/subtitle
         const plain = hasHeader && !children
 
-        // skip transition delay if reqeusted
+        // skip transition delay if requested
         const immediate = dissolve == "immediate"
 
         return (
@@ -142,11 +143,7 @@ class TooltipCard extends React.Component<
                     dissolve,
                     immediate,
                 })}
-                style={{
-                    left: `${x}px`,
-                    top: `${y}px`,
-                    ...this.props.style,
-                }}
+                style={style}
             >
                 {hasHeader && (
                     <div className="frontmatter">

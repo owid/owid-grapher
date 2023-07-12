@@ -701,7 +701,7 @@ export class StackedDiscreteBarChart
                 inputTable: { timeColumn },
             } = this,
             item = this.placedItems.find(
-                ({ label }) => label == this.tooltipState.target?.entityName
+                ({ label }) => label == target?.entityName
             ),
             hasNotice = item?.bars.some(
                 ({ point }) => !point.fake && point.time != targetTime

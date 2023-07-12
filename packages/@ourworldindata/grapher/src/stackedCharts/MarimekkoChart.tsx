@@ -250,7 +250,7 @@ export class MarimekkoChart
     // currently hovered legend color
     @observable focusColorBin?: ColorScaleBin
 
-    // currrent tooltip target & position
+    // current tooltip target & position
     @observable tooltipState = new TooltipState<{
         entityName: string
     }>()
