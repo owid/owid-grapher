@@ -43,6 +43,7 @@ export default function Chart({
             .filter(identity) as GrapherProgrammaticInterface[]
 
         config = merge(
+            {},
             !showAllControls ? grapherInterfaceWithHiddenControlsOnly : {},
             !showAllTabs ? grapherInterfaceWithHiddenTabsOnly : {},
             ...listOfPartialGrapherConfigs,
