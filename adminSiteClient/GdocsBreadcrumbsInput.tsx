@@ -12,12 +12,12 @@ export const BreadcrumbLine = ({
     item,
     setItem,
     removeItem,
-    urlFieldDisabled,
+    isLastBreadcrumbItem,
 }: {
     item: BreadcrumbItem
     setItem: (item: BreadcrumbItem) => void
     removeItem: () => void
-    urlFieldDisabled?: boolean
+    isLastBreadcrumbItem?: boolean
 }) => {
     return (
         <div className="my-2">
@@ -26,14 +26,14 @@ export const BreadcrumbLine = ({
                     <Input
                         addonBefore="URL"
                         value={
-                            urlFieldDisabled
+                            isLastBreadcrumbItem
                                 ? "The last breadcrumb isn't clickable"
                                 : item.href
                         }
                         onChange={(e) =>
                             setItem({ ...item, href: e.target.value })
                         }
-                        disabled={urlFieldDisabled}
+                        disabled={isLastBreadcrumbItem}
                     />
                 </Col>
                 <Col span={11}>
@@ -42,6 +42,11 @@ export const BreadcrumbLine = ({
                         value={item.label}
                         onChange={(e) =>
                             setItem({ ...item, label: e.target.value })
+                        }
+                        placeholder={
+                            isLastBreadcrumbItem
+                                ? "Concise version of the article's title"
+                                : undefined
                         }
                     />
                 </Col>
@@ -87,23 +92,14 @@ export const GdocsBreadcrumbsInput = ({
 
     return (
         <div className="form-group">
-            Breadcrumbs
-            {gdoc.breadcrumbs?.map((item, i) => (
-                <BreadcrumbLine
-                    item={item}
-                    setItem={(item) => setItemAtIndex(item, i)}
-                    removeItem={() => removeItemAtIndex(i)}
-                    key={i}
-                    urlFieldDisabled={i === gdoc.breadcrumbs!.length - 1}
-                />
-            ))}
-            <div>
+            <div className="d-flex justify-content-between">
+                Breadcrumbs
                 <Button
                     type="dashed"
                     onClick={() =>
                         setBreadcrumbs([
-                            ...(gdoc.breadcrumbs ?? []),
                             { label: "" },
+                            ...(gdoc.breadcrumbs ?? []),
                         ])
                     }
                 >
@@ -111,6 +107,16 @@ export const GdocsBreadcrumbsInput = ({
                     breadcrumb
                 </Button>
             </div>
+            {gdoc.breadcrumbs?.map((item, i) => (
+                <BreadcrumbLine
+                    item={item}
+                    setItem={(item) => setItemAtIndex(item, i)}
+                    removeItem={() => removeItemAtIndex(i)}
+                    key={i}
+                    isLastBreadcrumbItem={i === gdoc.breadcrumbs!.length - 1}
+                />
+            ))}
+            {!gdoc.breadcrumbs?.length && <i>No breadcrumbs</i>}
         </div>
     )
 }
