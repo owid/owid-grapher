@@ -7,7 +7,12 @@ import {
     Relation,
     In,
 } from "typeorm"
-import { OwidGdocLinkJSON, getLinkType, Url } from "@ourworldindata/utils"
+import {
+    OwidGdocLinkJSON,
+    getLinkType,
+    Url,
+    getUrlTarget,
+} from "@ourworldindata/utils"
 import { Gdoc } from "./Gdoc/Gdoc.js"
 import { formatUrls } from "../../site/formatting.js"
 
@@ -46,10 +51,7 @@ export class Link extends BaseEntity implements OwidGdocLinkJSON {
         const formattedUrl = formatUrls(url)
         const urlObject = Url.fromURL(formattedUrl)
         const linkType = getLinkType(formattedUrl)
-        const target =
-            linkType === "grapher" || linkType === "explorer"
-                ? urlObject.slug
-                : urlObject.originAndPath
+        const target = getUrlTarget(formattedUrl)
         const queryString = urlObject.queryStr
         const hash = urlObject.hash
         return Link.create({

@@ -45,19 +45,31 @@ export const breadcrumbColorForCoverColor = (
 export const useLinkedDocument = (
     url: string
 ): { linkedDocument?: OwidGdocInterface; errorMessage?: string } => {
-    let errorMessage: string | undefined = undefined
     const { linkedDocuments } = useContext(AttachmentsContext)
-    const urlTarget = getUrlTarget(url)
+    let errorMessage: string | undefined = undefined
+    let linkedDocument: OwidGdocInterface | undefined = undefined
     const linkType = getLinkType(url)
-    const linkedDocument = linkedDocuments?.[urlTarget]
-    if (linkType === "gdoc") {
-        if (!linkedDocument) {
-            errorMessage = `Google doc URL ${url} isn't registered.`
-        } else if (!linkedDocument.published) {
-            errorMessage = `Article with slug "${linkedDocument.slug}" isn't published.`
-        }
+    if (linkType !== "gdoc") {
+        return { linkedDocument }
     }
-    return { linkedDocument, errorMessage }
+
+    const urlObj = Url.fromURL(url)
+    const queryString = urlObj.queryStr
+    const hash = urlObj.hash
+    const urlTarget = getUrlTarget(url)
+    linkedDocument = linkedDocuments?.[urlTarget]
+    if (!linkedDocument) {
+        errorMessage = `Google doc URL ${url} isn't registered.`
+    } else if (!linkedDocument.published) {
+        errorMessage = `Article with slug "${linkedDocument.slug}" isn't published.`
+    }
+    return {
+        linkedDocument: {
+            ...linkedDocument,
+            slug: `${linkedDocument.slug}${queryString}${hash}`,
+        },
+        errorMessage,
+    }
 }
 
 export const useLinkedChart = (
