@@ -10,7 +10,6 @@ import {
     EntityName,
     OwidVariableRow,
 } from "@ourworldindata/core-table"
-import { ChartTypeName } from "../core/GrapherConstants"
 import { LineChart } from "../lineCharts/LineChart"
 import {
     Bounds,
@@ -18,8 +17,11 @@ import {
     AllKeysRequired,
     checkIsVeryShortUnit,
     PrimitiveType,
+    isString,
     first,
     last,
+    min,
+    max,
 } from "@ourworldindata/utils"
 import { LineChartManager } from "../lineCharts/LineChartConstants"
 import { darkenColorForHighContrastText } from "../color/ColorUtils"
@@ -199,16 +201,23 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                 ? timeColumn.formatValue(datum?.time)
                 : datum?.time.toString() ?? ""
         const valueColor: string | undefined = darkenColorForHighContrastText(
-            lineColorScale?.getColor(datum?.value) ?? "#333"
-        )
+                lineColorScale?.getColor(datum?.value) ?? "#333"
+            ),
+            valueLabel = datum ? formatValue(datum.value) : undefined
 
-        const yColumn = this.sparklineTable.get(this.mapColumnSlug),
-            { min, max } = this.sparklineManager?.yAxisConfig ?? {},
-            valueLabel = datum ? formatValue(datum.value) : undefined,
-            minLabel = formatValue(min || 0),
-            maxLabel = formatValue(
-                (last(customValueLabels) || max || yColumn.max) ?? 0
-            )
+        const { yAxisConfig } = this.sparklineManager,
+            yColumn = this.sparklineTable.get(this.mapColumnSlug),
+            minVal = min([yColumn.min, yAxisConfig?.min]),
+            maxVal = max([yColumn.max, yAxisConfig?.max]),
+            minCustom = isNumber(minVal) && customValueLabels[minVal],
+            maxCustom = isNumber(maxVal) && customValueLabels[maxVal],
+            useCustom = isString(minCustom) && isString(maxCustom),
+            minLabel = useCustom
+                ? minCustom
+                : yColumn.formatValueShort(minVal ?? 0),
+            maxLabel = useCustom
+                ? maxCustom
+                : yColumn.formatValueShort(maxVal ?? 0)
 
         const notice =
             datum && datum.time !== targetTime ? displayTime : undefined
@@ -263,12 +272,18 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                                 })}
                             />
                             <g className="min-max-labels">
-                                <text
-                                    x={SPARKLINE_WIDTH - SPARKLINE_PADDING - 3}
-                                    y={0.75 * SPARKLINE_PADDING}
-                                >
-                                    {maxLabel}
-                                </text>
+                                {maxLabel != minLabel && (
+                                    <text
+                                        x={
+                                            SPARKLINE_WIDTH -
+                                            SPARKLINE_PADDING -
+                                            3
+                                        }
+                                        y={0.75 * SPARKLINE_PADDING}
+                                    >
+                                        {maxLabel}
+                                    </text>
+                                )}
                                 <text
                                     x={SPARKLINE_WIDTH - SPARKLINE_PADDING - 3}
                                     y={
