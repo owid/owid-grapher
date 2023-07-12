@@ -2,6 +2,7 @@
 import { Grapher, GrapherProgrammaticInterface } from "../core/Grapher"
 import {
     ChartTypeName,
+    DEFAULT_GRAPHER_CONFIG_SCHEMA,
     EntitySelectionMode,
     GrapherTabOption,
     ScaleType,
@@ -75,17 +76,24 @@ it("can get dimension slots", () => {
     expect(grapher.dimensionSlots.length).toBe(4)
 })
 
-it("an empty Grapher serializes to an empty object", () => {
-    expect(new Grapher().toObject()).toEqual({})
+it("an empty Grapher serializes to an object that includes only the schema", () => {
+    expect(new Grapher().toObject()).toEqual({
+        $schema: DEFAULT_GRAPHER_CONFIG_SCHEMA,
+    })
 })
 
 it("a bad chart type does not crash grapher", () => {
-    const input = { type: "fff" as any }
+    const input = {
+        $schema: DEFAULT_GRAPHER_CONFIG_SCHEMA,
+        type: "fff" as any,
+    }
     expect(new Grapher(input).toObject()).toEqual(input)
 })
 
-it("does not preserve defaults in the object", () => {
-    expect(new Grapher({ tab: GrapherTabOption.chart }).toObject()).toEqual({})
+it("does not preserve defaults in the object (except for the schema)", () => {
+    expect(new Grapher({ tab: GrapherTabOption.chart }).toObject()).toEqual({
+        $schema: DEFAULT_GRAPHER_CONFIG_SCHEMA,
+    })
 })
 
 const unit = "% of children under 5"
