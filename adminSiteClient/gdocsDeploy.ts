@@ -4,6 +4,7 @@ import {
     isEqual,
     omit,
 } from "@ourworldindata/utils"
+import { GDOC_DIFF_OMITTABLE_PROPERTIES } from "./GdocsDiff.js"
 
 export const checkFullDeployFallback = (
     prevGdoc: OwidGdocInterface,
@@ -70,19 +71,6 @@ export const checkHasChanges = (
     nextGdoc: OwidGdocInterface
 ) =>
     !isEqual(
-        // Ignore non-deterministic attachments
-        omit(prevGdoc, [
-            "linkedDocuments",
-            "imageMetadata",
-            "linkedCharts",
-            "relatedCharts",
-            "errors",
-        ]),
-        omit(nextGdoc, [
-            "linkedDocuments",
-            "imageMetadata",
-            "linkedCharts",
-            "relatedCharts",
-            "errors",
-        ])
+        omit(prevGdoc, GDOC_DIFF_OMITTABLE_PROPERTIES),
+        omit(nextGdoc, GDOC_DIFF_OMITTABLE_PROPERTIES)
     )

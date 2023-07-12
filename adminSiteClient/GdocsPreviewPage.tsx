@@ -175,6 +175,18 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
             (error) => error.type === OwidGdocErrorMessageType.Error
         ) ?? false
 
+    const saveDraft = async () => {
+        if (!currentGdoc) return
+        cancelAllRequests()
+
+        if (currentGdoc.published)
+            throw new Error("Cannot save a published doc as a draft")
+
+        const updatedGdoc = await store.update(currentGdoc)
+        setGdoc({ original: updatedGdoc, current: updatedGdoc })
+        openSuccessNotification("draft")
+    }
+
     const doPublish = async () => {
         if (!currentGdoc) return
         cancelAllRequests()
@@ -187,7 +199,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
             slug,
         })
         setGdoc({ original: publishedGdoc, current: publishedGdoc })
-        openSuccessNotification()
+        openSuccessNotification("published")
     }
 
     const doUnpublish = async () => {
@@ -195,7 +207,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
         cancelAllRequests()
         const unpublishedGdoc = await store.unpublish(currentGdoc)
         setGdoc({ original: unpublishedGdoc, current: unpublishedGdoc })
-        openSuccessNotification()
+        openSuccessNotification("unpublished")
     }
 
     const onDelete = async () => {
@@ -307,6 +319,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                                 isLightningUpdate={isLightningUpdate}
                                 setDiffOpen={setDiffOpen}
                                 doPublish={doPublish}
+                                saveDraft={saveDraft}
                             />
                             <IconBadge
                                 status={
