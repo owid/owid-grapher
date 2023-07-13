@@ -742,21 +742,27 @@ export class ScatterPlotChart
         const points = target?.series.points ?? []
         const values = compact(uniq([first(points), last(points)]))
 
-        const { startTime, endTime, isRelativeMode } = this.manager
-        const timeRange = isRelativeMode
-            ? [startTime, endTime]
-            : values.map((v) => v.time.y)
-        const timeSuffix = isRelativeMode ? " (avg. annual change)" : ""
-        const timeLabel =
-            uniq(compact(timeRange))
-                .map((v) => this.yColumn.formatTime(v))
-                .join(" to ") + timeSuffix
+        const { startTime, endTime, isRelativeMode } = this.manager,
+            { x: xStart, y: yStart } = first(values)?.time ?? {},
+            { x: xEnd, y: yEnd } = last(values)?.time ?? {}
 
-        const datumTime = first(values)?.time.y
-        const notice =
-            endTime && startTime == endTime && datumTime != endTime
-                ? this.yColumn.formatTime(endTime)
-                : undefined
+        const xNoticeNeeded =
+                (xStart !== undefined && xStart != startTime && xStart) ||
+                (xEnd !== undefined && xEnd != endTime && xEnd),
+            xNotice = xNoticeNeeded ? [xStart, xEnd] : []
+
+        const yNoticeNeeded =
+                (yStart !== undefined && yStart != startTime && yStart) ||
+                (yEnd !== undefined && yEnd != endTime && yEnd),
+            yNotice = yNoticeNeeded ? [yStart, yEnd] : []
+
+        const timeRange = uniq(compact([startTime, endTime]))
+                .map((t) => this.yColumn.formatTime(t))
+                .join(" to "),
+            targetNotice =
+                xNoticeNeeded || yNoticeNeeded ? timeRange : undefined,
+            timeLabel =
+                timeRange + (isRelativeMode ? " (avg. annual change)" : "")
 
         return (
             <g className="ScatterPlot" onMouseMove={this.onScatterMouseMove}>
@@ -814,17 +820,18 @@ export class ScatterPlotChart
                         style={{ maxWidth: "250px" }}
                         title={target.series.label}
                         subtitle={timeLabel}
-                        subtitleFormat={notice ? "notice" : undefined}
                         dissolve={fading}
-                        notice={notice}
+                        notice={targetNotice}
                     >
                         <TooltipValueRange
                             column={this.xColumn}
                             values={values.map((v) => v.x)}
+                            notice={xNotice}
                         />
                         <TooltipValueRange
                             column={this.yColumn}
                             values={values.map((v) => v.y)}
+                            notice={yNotice}
                         />
                         <TooltipValueRange
                             column={this.sizeColumn}
