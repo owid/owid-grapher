@@ -316,8 +316,14 @@ export class MarimekkoChart
             table = table.dropRowsWithErrorValuesForColumn(
                 table.timeColumn.slug
             )
-            if (xColumnSlug)
+            if (xColumnSlug) {
                 table = table.toPercentageFromEachEntityForEachTime(xColumnSlug)
+
+                // relativized columns ditch their units, making "Population %" hard to parse. Add a sensible replacement
+                Object.assign(table.get(xColumnSlug)?.def, {
+                    unit: "share of total",
+                })
+            }
         }
 
         return table
