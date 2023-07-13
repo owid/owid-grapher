@@ -39,7 +39,7 @@ export interface TooltipValueRangeProps {
     column: CoreColumn
     values: number[]
     color?: string
-    notice?: number | string // actual year data was drawn (when ≠ target year)
+    notice?: (number | string | undefined)[] // actual year data was drawn (when ≠ target year)
 }
 
 export interface TooltipTableProps {

@@ -4,12 +4,7 @@ import { CoreColumn } from "@ourworldindata/core-table"
 import { NO_DATA_LABEL } from "../color/ColorScale.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons"
-import {
-    sum,
-    zip,
-    isNumber,
-    includesCaseInsensitive,
-} from "@ourworldindata/utils"
+import { sum, zip, uniq, isNumber } from "@ourworldindata/utils"
 import {
     TooltipTableProps,
     TooltipValueProps,
@@ -28,7 +23,11 @@ export class TooltipValue extends React.Component<TooltipValueProps> {
                 displayValue === NO_DATA_LABEL ? NO_DATA_COLOR : color
 
         return (
-            <Variable column={column} color={displayColor} notice={notice}>
+            <Variable
+                column={column}
+                color={displayColor}
+                notice={notice ? [notice] : undefined}
+            >
                 {displayValue}
             </Variable>
         )
@@ -75,49 +74,40 @@ export class TooltipValueRange extends React.Component<TooltipValueRangeProps> {
                     ? this.arrowIcon("down")
                     : this.arrowIcon("right")
 
-        return (
+        return values.length ? (
             <Variable column={column} color={color} notice={notice}>
                 <span className="range">
-                    {firstTerm} {trend} {lastTerm}
+                    <span className="term">{firstTerm}</span>
+                    {trend}
+                    <span className="term">{lastTerm}</span>
                 </span>
             </Variable>
-        )
+        ) : null
     }
 }
 
 class Variable extends React.Component<{
     column: CoreColumn
     color?: string
-    notice?: number | string
+    notice?: (number | string | undefined)[]
     children?: React.ReactNode
 }> {
     render(): JSX.Element | null {
         const { column, children, color, notice } = this.props
+
         if (column.isMissing || column.name == "time") return null
 
-        // use the `unit` if it's defined, otherwise look for a parenthetical
-        // at the end of the `displayName` and treat that as the unit
-        const { unit, shortUnit, displayName: fullName } = column,
-            [_m, baseName, parentheticalUnit] =
-                fullName.match(/^(.*?)(?:\s*\(([^\(\=]*?)\))?$/) ?? [],
-            longUnit =
+        const { unit, shortUnit, displayName } = column,
+            displayUnit =
                 unit && unit != shortUnit
                     ? unit.replace(/^\((.*)\)$/, "$1")
                     : undefined,
-            displayUnit =
-                longUnit && !includesCaseInsensitive(fullName, longUnit)
-                    ? longUnit
-                    : parentheticalUnit,
-            displayName =
-                parentheticalUnit && displayUnit === parentheticalUnit
-                    ? baseName
-                    : fullName,
-            noticeSpan = notice && (
-                <span className="time-notice">
-                    <FontAwesomeIcon icon={faInfoCircle} />
-                    {notice}
-                </span>
-            )
+            displayNotice =
+                uniq((notice ?? []).filter((t) => t != undefined))
+                    .map((time) =>
+                        typeof time == "number" ? column.formatTime(time) : time
+                    )
+                    .join("\u2013") || null
 
         return (
             <div className="variable">
@@ -129,7 +119,12 @@ class Variable extends React.Component<{
                 </div>
                 <div className="values" style={{ color }}>
                     {children}
-                    {noticeSpan}
+                    {displayNotice && (
+                        <span className="time-notice">
+                            <FontAwesomeIcon icon={faInfoCircle} />
+                            {displayNotice}
+                        </span>
+                    )}
                 </div>
             </div>
         )
