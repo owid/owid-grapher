@@ -7,7 +7,7 @@ import { gdocUrlRegex } from "./GdocsUtils.js"
 export const EPOCH_DATE = "2020-01-21"
 
 /** The "plot" is a chart without any header, footer or controls */
-export const IDEAL_PLOT_ASPECT_RATIO: number = 1.8
+export const IDEAL_PLOT_ASPECT_RATIO = 1.8
 
 export interface Box {
     x: number
@@ -1251,6 +1251,7 @@ export interface OwidGdocContent {
         | "sdg-color-15"
         | "sdg-color-16"
         | "sdg-color-17"
+        | "amber"
     "sticky-nav"?: []
     details?: DetailDictionary
 }

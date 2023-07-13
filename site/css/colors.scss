@@ -96,8 +96,9 @@ $sdgColors: (
 );
 
 :root {
+    // See also owidTypes.ts > OwidGdocContent > cover-color
+    --amber: #{$amber};
     @each $i, $sdgColor in $sdgColors {
-        // See also owidTypes.ts > OwidGdocContent > cover-color
         --sdg-color-#{$i}: #{$sdgColor};
     }
 }

@@ -36,7 +36,8 @@ export const breadcrumbColorForCoverColor = (
         case "sdg-color-2": // orange
         case "sdg-color-7": // yellow
         case "sdg-color-11": // orange
-        case undefined: // default cover color: yellow
+        case "amber": // amber
+        case undefined: // default cover color: blue-10
             return "blue"
     }
 }
