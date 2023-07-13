@@ -89,10 +89,11 @@ interface StackedBarChartContext {
     formatColumn: CoreColumn
     formatValueForLabel: (value: number) => string
     focusSeriesName?: string
+    hoverSeriesName?: string
+    hoverEntityName?: string
     barHeight: number
     x0: number
     baseFontSize: number
-    isInteractive: boolean
 }
 
 @observer
@@ -509,9 +510,10 @@ export class StackedDiscreteBarChart
             formatValueForLabel: this.formatValueForLabel,
             barHeight: this.barHeight,
             focusSeriesName: this.focusSeriesName,
+            hoverSeriesName: this.tooltipState.target?.seriesName,
+            hoverEntityName: this.tooltipState.target?.entityName,
             x0: this.x0,
             baseFontSize: this.baseFontSize,
-            isInteractive: !this.manager.isExportingtoSvgOrPng,
         }
 
         const handlePositionUpdate = (d: PlacedItem): HashMap => ({
@@ -639,6 +641,9 @@ export class StackedDiscreteBarChart
 
         const isFaint =
             focusSeriesName !== undefined && focusSeriesName !== bar.seriesName
+        const isHover =
+            chartContext.hoverSeriesName === bar.seriesName &&
+            chartContext.hoverEntityName === entity
         const barX = yAxis.place(chartContext.x0 + bar.point.valueOffset)
         const barWidth =
             yAxis.place(bar.point.value) - yAxis.place(chartContext.x0)
@@ -669,7 +674,7 @@ export class StackedDiscreteBarChart
                     width={barWidth}
                     height={barHeight}
                     fill={bar.color}
-                    opacity={isFaint ? 0.1 : 0.85}
+                    opacity={isHover ? 1 : isFaint ? 0.1 : 0.8}
                     style={{
                         transition: "height 200ms ease",
                     }}
