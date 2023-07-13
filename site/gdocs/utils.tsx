@@ -76,17 +76,16 @@ export const useLinkedChart = (
     url: string
 ): { linkedChart?: LinkedChart; errorMessage?: string } => {
     const { linkedCharts } = useContext(AttachmentsContext)
-    let errorMessage: string | undefined = undefined
-    let linkedChart: LinkedChart | undefined = undefined
     const linkType = getLinkType(url)
-    if (linkType !== "grapher" && linkType !== "explorer")
-        return { linkedChart }
+    if (linkType !== "grapher" && linkType !== "explorer") return {}
 
     const queryString = Url.fromURL(url).queryStr
     const urlTarget = getUrlTarget(url)
-    linkedChart = linkedCharts?.[urlTarget]
+    const linkedChart = linkedCharts?.[urlTarget]
     if (!linkedChart) {
-        errorMessage = `${linkType} chart with slug ${urlTarget} not found`
+        return {
+            errorMessage: `${linkType} chart with slug ${urlTarget} not found`,
+        }
     }
 
     return {
@@ -96,7 +95,6 @@ export const useLinkedChart = (
             // Instead we get the querystring from the original URL and append it to resolvedUrl
             resolvedUrl: `${linkedChart.resolvedUrl}${queryString}`,
         },
-        errorMessage,
     }
 }
 
