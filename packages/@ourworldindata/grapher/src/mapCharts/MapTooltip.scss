@@ -1,10 +1,6 @@
 .sparkline {
     padding-bottom: 4px;
 
-    // .Lines polyline {
-    //     stroke: #787878 !important;
-    // }
-
     .HorizontalAxis text {
         fill: #787878;
         font-weight: 700;
@@ -16,20 +12,23 @@
         }
     }
 
+    // min-line + zero-line
     .AxisGridLines.horizontalLines {
         line {
             stroke-dasharray: 0;
             stroke-linecap: square;
-        }
-
-        line:nth-child(1),
-        line:nth-child(2) {
             stroke: #dadada;
         }
 
-        line:nth-child(3) {
+        // the zero line
+        line:nth-child(2) {
             stroke: #787878;
         }
+    }
+
+    line.max-line {
+        stroke-linecap: square;
+        stroke: #dadada;
     }
 
     .min-max-labels text {

@@ -162,9 +162,8 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                     ? this.props.manager.yAxisConfig?.max
                     : undefined,
                 ticks: [
-                    // Show minimum and maximum
+                    // Show minimum and zero (maximum is added by hand in render so it's never omitted)
                     { value: -Infinity, priority: 2 },
-                    { value: Infinity, priority: 2 },
                     { value: 0, priority: 1 },
                 ],
             },
@@ -255,6 +254,13 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                             width={SPARKLINE_WIDTH}
                             height={SPARKLINE_HEIGHT}
                         >
+                            <line
+                                className="max-line"
+                                x1={SPARKLINE_PADDING}
+                                y1={SPARKLINE_PADDING}
+                                x2={SPARKLINE_WIDTH - SPARKLINE_PADDING}
+                                y2={SPARKLINE_PADDING}
+                            />
                             <LineChart
                                 manager={this.sparklineManager}
                                 // Add padding so that the edges of the plot doesn't get clipped.
