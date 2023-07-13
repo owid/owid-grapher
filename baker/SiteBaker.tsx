@@ -201,8 +201,7 @@ export class SiteBaker {
     // Bake an individual post/page
     async bakeGDocPost(post: OwidGdocPublished) {
         const html = renderGdoc(post)
-        const slugAsPath = post.slug.replaceAll("__", "/")
-        const outPath = path.join(this.bakedSiteDir, `${slugAsPath}.html`)
+        const outPath = path.join(this.bakedSiteDir, `${post.slug}.html`)
         await fs.mkdirp(path.dirname(outPath))
         await this.stageWrite(outPath, html)
     }

@@ -427,15 +427,23 @@ export const makeAnnotationsSlug = (columnSlug: string): string =>
     `${columnSlug}-annotations`
 
 // Take an arbitrary string and turn it into a nice url slug
-export const slugify = (str: string): string =>
-    slugifySameCase(str.toLowerCase())
+export const slugify = (str: string, allowSlashes?: boolean): string =>
+    slugifySameCase(str.toLowerCase(), allowSlashes)
 
-export const slugifySameCase = (str: string): string =>
-    str
+export const slugifySameCase = (
+    str: string,
+    allowSlashes: boolean = false
+): string => {
+    let slug = str
         .trim()
         .replace(/\s*\*.+\*/, "")
-        .replace(/[^\w- ]+/g, "")
+        .replace(/[^\w\- \/]+/g, "")
         .replace(/ +/g, "-")
+    if (!allowSlashes) {
+        slug = slug.replace(/\//g, "")
+    }
+    return slug
+}
 
 // Unique number for this execution context
 // Useful for coordinating between embeds to avoid conflicts in their ids

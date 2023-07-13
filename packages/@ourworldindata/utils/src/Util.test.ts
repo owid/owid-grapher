@@ -524,6 +524,13 @@ describe("slugifySameCase", () => {
     cases.forEach(([input, output]) => {
         expect(slugifySameCase(input)).toBe(output)
     })
+
+    describe("it can allow slashes", () => {
+        expect(slugifySameCase("sdgs/energy", true)).toBe("sdgs/energy")
+        expect(slugifySameCase("sdgs/economic development", true)).toBe(
+            "sdgs/economic-development"
+        )
+    })
 })
 
 describe(greatestCommonDivisor, () => {

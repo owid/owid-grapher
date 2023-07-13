@@ -246,7 +246,7 @@ mockSiteRouter.get("/dods.json", async (_, res) => {
 })
 
 mockSiteRouter.get("/*", async (req, res) => {
-    const slug = req.path.replace(/^\//, "").replace("/", "__")
+    const slug = req.path.replace(/^\//, "")
 
     try {
         res.send(await renderGdocsPageBySlug(slug))
