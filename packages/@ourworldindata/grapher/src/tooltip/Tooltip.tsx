@@ -165,7 +165,7 @@ class TooltipCard extends React.Component<
                             <>
                                 <FontAwesomeIcon icon={faInfoCircle} />
                                 <p className="time-notice">
-                                    No data available for {notice}. Showing
+                                    Data not available for {notice}. Showing
                                     closest available data point instead.
                                 </p>
                             </>
