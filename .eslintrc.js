@@ -34,6 +34,7 @@ module.exports = {
         "@typescript-eslint/no-explicit-any": "off", // TODO: enable this rule
         "@typescript-eslint/no-for-in-array": "warn",
         "@typescript-eslint/no-non-null-assertion": "off", // TODO: enable this rule
+        "@typescript-eslint/no-inferrable-types": "off", // typeorm needs types to be explicitly set, even when they're inferrable
         "@typescript-eslint/no-unused-vars": [
             "warn",
             { varsIgnorePattern: "^_", argsIgnorePattern: "^_" },
