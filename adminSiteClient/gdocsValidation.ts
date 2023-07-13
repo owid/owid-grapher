@@ -93,11 +93,11 @@ class SlugHandler extends AbstractHandler {
     handle(gdoc: OwidGdocInterface, messages: OwidGdocErrorMessage[]) {
         const { slug } = gdoc
         // !slug would be invalid, but we call setSlugSyncing(true) in GdocsSlug.tsx if that happens
-        if (slug && !slug.match(/^[a-z0-9-]+$/)) {
+        if (slug && !slug.match(/^[a-z0-9-_]+$/)) {
             messages.push({
                 property: "slug",
                 type: OwidGdocErrorMessageType.Error,
-                message: `Slug must only contain lowercase letters, numbers and hyphens`,
+                message: `Slug must only contain lowercase letters, numbers and hyphens. Double underscores are interpreted as slashes.`,
             })
         }
 
