@@ -905,7 +905,7 @@ export class MarimekkoChart
             tooltipState: { target, position, fading },
         } = this
 
-        const { entityName, entityColor, xPoint, bars } = tooltipItem ?? {}
+        const { entityName, xPoint, bars } = tooltipItem ?? {}
 
         const yValues =
             bars?.map((bar: any) => {
@@ -959,7 +959,7 @@ export class MarimekkoChart
                         offsetX={20}
                         offsetY={-16}
                         title={entityName}
-                        subtitle={entityColor?.colorDomainValue}
+                        subtitle={timeColumn.formatValue(endTime)}
                         notice={notice}
                         dissolve={fading}
                     >
