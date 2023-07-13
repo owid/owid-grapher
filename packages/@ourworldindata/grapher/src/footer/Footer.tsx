@@ -119,10 +119,11 @@ export class Footer extends React.Component<{
 
     // Put the license stuff to the side if there's room
     @computed private get isCompact(): boolean {
-        return (
-            this.maxWidth - this.sources.width - 5 >
-            this.licenseAndOriginUrl.width
-        )
+        return true
+        // return (
+        //     this.maxWidth - this.sources.width - 5 >
+        //     this.licenseAndOriginUrl.width
+        // )
     }
 
     @computed private get paraMargin(): number {
