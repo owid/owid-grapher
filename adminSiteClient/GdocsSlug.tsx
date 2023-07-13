@@ -22,7 +22,7 @@ export const GdocsSlug = ({
         content: { title = "" },
         slug,
     } = gdoc
-    const slugFromTitle = slugify(title)
+    const slugFromTitle = slugify(title, true)
 
     useEffect(() => {
         if (gdoc.published) {
@@ -54,7 +54,7 @@ export const GdocsSlug = ({
                     <Input
                         addonBefore="ourworldindata.org/"
                         value={slug}
-                        onChange={(e) => setSlug(slugify(e.target.value))}
+                        onChange={(e) => setSlug(slugify(e.target.value, true))}
                         placeholder={slugFromTitle}
                         required
                         status={
