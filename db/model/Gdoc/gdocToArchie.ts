@@ -64,7 +64,7 @@ export async function gdocToArchie(
                                 level: headingLevel,
                             },
                         }
-                        return OwidRawGdocBlockToArchieMLString(heading)
+                        return `\n${OwidRawGdocBlockToArchieMLString(heading)}`
                     }
                     return text
                 }
@@ -111,8 +111,8 @@ function parseParagraph(
 
         let span: Span = { spanType: "span-simple-text", text: content }
 
-        // step through optional text styles to check for an associated URL
-        if (!textRun.textStyle) return span
+        // If there's no URL, or other styling, or the content is just a newline, return without wrapping in anything else
+        if (!textRun.textStyle || content === "\n") return span
 
         if (textRun.textStyle.link?.url)
             span = {
