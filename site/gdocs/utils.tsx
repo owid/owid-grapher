@@ -33,6 +33,7 @@ export const breadcrumbColorForCoverColor = (
         case "sdg-color-16": // blue
         case "sdg-color-17": // dark blue
             return "white"
+        case "sdg-color-landing-page": // light gray
         case "sdg-color-2": // orange
         case "sdg-color-7": // yellow
         case "sdg-color-11": // orange

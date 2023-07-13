@@ -1251,6 +1251,7 @@ export interface OwidGdocContent {
         | "sdg-color-15"
         | "sdg-color-16"
         | "sdg-color-17"
+        | "sdg-color-landing-page"
     "sticky-nav"?: []
     details?: DetailDictionary
 }
