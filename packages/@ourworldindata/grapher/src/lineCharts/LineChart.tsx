@@ -3,6 +3,7 @@ import {
     sortBy,
     sum,
     guid,
+    compact,
     getRelativeMouse,
     pointsToPath,
     minBy,
@@ -34,7 +35,7 @@ import {
     LineLegendManager,
 } from "../lineLegend/LineLegend"
 import { ComparisonLine } from "../scatterCharts/ComparisonLine"
-import { Tooltip } from "../tooltip/Tooltip"
+import { Tooltip, TooltipState, TooltipTable } from "../tooltip/Tooltip"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { extent } from "d3-array"
 import {
@@ -82,10 +83,7 @@ import {
 import { ColorSchemeName, OwidNoDataGray } from "../color/ColorConstants"
 import { MultiColorPolyline } from "../scatterCharts/MultiColorPolyline"
 import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner"
-import {
-    darkenColorForHighContrastText,
-    darkenColorForLine,
-} from "../color/ColorUtils"
+import { darkenColorForLine } from "../color/ColorUtils"
 import {
     HorizontalColorLegendManager,
     HorizontalNumericColorLegend,
@@ -329,19 +327,31 @@ export class LineChart
     }
 
     @action.bound private onCursorLeave(): void {
-        this.onHover(undefined)
+        this.tooltipState.target = null
     }
 
     @computed private get allValues(): LinePoint[] {
         return flatten(this.placedSeries.map((series) => series.points))
     }
 
+    @observable tooltipState = new TooltipState<{
+        x: number
+    }>({ fade: "immediate" })
+
     @action.bound private onCursorMove(
         ev: React.MouseEvent | React.TouchEvent
     ): void {
-        if (!this.base.current) return
+        const ref = this.base.current,
+            parentRef = this.manager.base?.current
 
-        const mouse = getRelativeMouse(this.base.current, ev)
+        // the tooltip's origin needs to be in the parent's coordinates
+        if (parentRef) {
+            this.tooltipState.position = getRelativeMouse(parentRef, ev)
+        }
+
+        if (!ref) return
+
+        const mouse = getRelativeMouse(ref, ev)
 
         const boxPadding = isMobile() ? 44 : 25
 
@@ -361,17 +371,7 @@ export class LineChart
             hoverX = closestValue?.x
         }
 
-        this.onHover(hoverX)
-    }
-
-    @observable hoverX?: number = undefined
-
-    @action.bound onHover(hoverX: number | undefined): void {
-        this.hoverX = hoverX
-    }
-
-    @computed get activeX(): number | undefined {
-        return this.hoverX ?? this.props.manager.annotation?.year
+        this.tooltipState.target = hoverX === undefined ? null : { x: hoverX }
     }
 
     @computed private get manager(): LineChartManager {
@@ -424,6 +424,12 @@ export class LineChart
         )
     }
 
+    @computed get activeX(): number | undefined {
+        return (
+            this.tooltipState.target?.x ?? this.props.manager.annotation?.year
+        )
+    }
+
     @computed get activeXVerticalLine(): JSX.Element | undefined {
         const { activeX, dualAxis } = this
         const { horizontalAxis, verticalAxis } = dualAxis
@@ -470,66 +476,54 @@ export class LineChart
     }
 
     @computed private get tooltip(): JSX.Element | undefined {
-        const { activeX, dualAxis, formatColumn, hasColorScale } = this
+        const { formatColumn, colorColumn, hasColorScale } = this
+        const { target, position, fading } = this.tooltipState
 
-        if (activeX === undefined) return undefined
+        if (!target) return undefined
 
         const sortedData = sortBy(this.series, (series) => {
-            const value = series.points.find((point) => point.x === activeX)
+            const value = series.points.find((point) => point.x === target.x)
             return value !== undefined ? -value.y : Infinity
         })
 
-        const formatted = formatColumn.formatTime(activeX)
+        const formattedTime = formatColumn.formatTime(target.x),
+            { unit, shortUnit } = formatColumn,
+            { isRelativeMode, startTime } = this.manager
+
+        const columns = [formatColumn]
+        if (hasColorScale) columns.push(colorColumn)
+
+        const unitLabel = unit != shortUnit ? unit : undefined
+        const subtitle =
+            isRelativeMode && startTime
+                ? `% change since ${formatColumn.formatTime(startTime)}`
+                : unitLabel
+        const subtitleFormat = subtitle === unitLabel ? "unit" : undefined
 
         return (
             <Tooltip
                 id={this.renderUid}
                 tooltipManager={this.manager}
-                x={dualAxis.horizontalAxis.place(activeX)}
-                y={
-                    dualAxis.verticalAxis.rangeMin +
-                    dualAxis.verticalAxis.rangeSize / 2
-                }
-                style={{ padding: "0.3em" }}
-                offsetX={5}
+                x={position.x}
+                y={position.y}
+                style={{ maxWidth: "400px" }}
+                offsetXDirection="left"
+                offsetX={20}
+                offsetY={-16}
+                title={formattedTime}
+                subtitle={subtitle}
+                subtitleFormat={subtitleFormat}
+                dissolve={fading}
             >
-                <table
-                    style={{
-                        fontSize: "0.9em",
-                        lineHeight: "1.4em",
-                        whiteSpace: "normal",
-                    }}
-                >
-                    <thead>
-                        <tr>
-                            <td colSpan={3}>
-                                <strong>{formatted}</strong>
-                            </td>
-                            {hasColorScale && (
-                                <td
-                                    style={{
-                                        paddingLeft: "0.5em",
-                                        fontSize: "0.9em",
-                                        color: "#999",
-                                        whiteSpace: "normal",
-                                        maxWidth: "5em",
-                                        textAlign: "right",
-                                        lineHeight: "1.1em",
-                                    }}
-                                >
-                                    {this.colorScale.legendDescription}
-                                </td>
-                            )}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {sortedData.map((series) => {
-                            const value = series.points.find(
-                                (point) => point.x === activeX
-                            )
-
-                            const annotation = this.getAnnotationsForSeries(
-                                series.seriesName
+                <TooltipTable
+                    columns={columns}
+                    rows={compact(
+                        sortedData.map((series) => {
+                            const { seriesName: name } = series
+                            const annotation =
+                                this.getAnnotationsForSeries(name)
+                            const point = series.points.find(
+                                (point) => point.x === target.x
                             )
 
                             // It sometimes happens that data is missing for some years for a particular
@@ -537,7 +531,7 @@ export class LineChart
                             // notice. However, we only want to show this notice when we are in the middle
                             // of a time series – when data points exist before and after the current year.
                             // Otherwise we want to entirely exclude the entity from the tooltip.
-                            if (!value) {
+                            if (!point) {
                                 const [startX, endX] = extent(
                                     series.points,
                                     (point) => point.x
@@ -545,101 +539,33 @@ export class LineChart
                                 if (
                                     startX === undefined ||
                                     endX === undefined ||
-                                    startX > activeX ||
-                                    endX < activeX
+                                    startX > target.x ||
+                                    endX < target.x
                                 )
                                     return undefined
                             }
 
-                            const isBlur =
+                            const blurred =
                                 this.seriesIsBlurred(series) ||
-                                value === undefined
-                            const circleColor = isBlur
+                                point === undefined
+
+                            const swatch = blurred
                                 ? BLUR_LINE_COLOR
                                 : this.hasColorScale
                                 ? darkenColorForLine(
-                                      this.getColorScaleColor(value.colorValue)
+                                      this.getColorScaleColor(point?.colorValue)
                                   )
                                 : series.color
-                            const textColor = isBlur
-                                ? "#ddd"
-                                : darkenColorForHighContrastText(circleColor)
-                            const annotationColor = isBlur ? "#ddd" : "#999"
-                            return (
-                                <tr
-                                    key={getSeriesKey(series)}
-                                    style={{ color: textColor }}
-                                >
-                                    <td>
-                                        <div
-                                            style={{
-                                                width: "10px",
-                                                height: "10px",
-                                                borderRadius: "5px",
-                                                backgroundColor: circleColor,
-                                                display: "inline-block",
-                                                marginRight: "2px",
-                                            }}
-                                        />
-                                    </td>
-                                    <td
-                                        style={{
-                                            paddingRight: "0.8em",
-                                            fontWeight: 700,
-                                        }}
-                                    >
-                                        {series.seriesName}
-                                        {annotation && (
-                                            <span
-                                                className="tooltipAnnotation"
-                                                style={{
-                                                    color: annotationColor,
-                                                    fontSize: "90%",
-                                                }}
-                                            >
-                                                {" "}
-                                                {annotation}
-                                            </span>
-                                        )}
-                                    </td>
-                                    <td
-                                        style={{
-                                            textAlign: "right",
-                                            whiteSpace: "nowrap",
-                                            fontWeight: 700,
-                                        }}
-                                    >
-                                        {value === undefined
-                                            ? "No data"
-                                            : formatColumn.formatValueShort(
-                                                  value.y,
-                                                  { trailingZeroes: true }
-                                              )}
-                                    </td>
-                                    {hasColorScale && (
-                                        <td
-                                            style={{
-                                                textAlign: "right",
-                                                whiteSpace: "nowrap",
-                                                fontSize: "0.95em",
-                                                paddingLeft: "0.5em",
-                                            }}
-                                        >
-                                            {value?.colorValue !== undefined
-                                                ? this.colorColumn.formatValueShort(
-                                                      value.colorValue,
-                                                      {
-                                                          trailingZeroes: true,
-                                                      }
-                                                  )
-                                                : undefined}
-                                        </td>
-                                    )}
-                                </tr>
-                            )
-                        })}
-                    </tbody>
-                </table>
+
+                            const values = [
+                                point?.y,
+                                point?.colorValue as undefined | number,
+                            ]
+
+                            return { name, annotation, swatch, blurred, values }
+                        })
+                    )}
+                />
             </Tooltip>
         )
     }

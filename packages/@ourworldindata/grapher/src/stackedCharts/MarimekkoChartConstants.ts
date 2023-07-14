@@ -1,12 +1,7 @@
 import { ChartManager } from "../chart/ChartManager"
 
 import { Color, SortConfig, Time, Bounds } from "@ourworldindata/utils"
-import {
-    EntityId,
-    EntityName,
-    OwidTable,
-    CoreColumn,
-} from "@ourworldindata/core-table"
+import { EntityId, EntityName, OwidTable } from "@ourworldindata/core-table"
 import { StackedPoint } from "./StackedConstants"
 import { DualAxis } from "../axis/Axis"
 export interface MarimekkoChartManager extends ChartManager {
@@ -67,16 +62,6 @@ export interface PlacedItem extends Item {
     xPosition: number // x value (in pixel space) when placed in final sorted order and including shifts due to one pixel entity minimum
 }
 
-export interface TooltipProps {
-    item: Item
-    highlightedSeriesName?: string
-    targetTime?: Time
-    timeColumn: CoreColumn
-    yAxisColumn: CoreColumn
-    xAxisColumn: CoreColumn | undefined
-    xOverrideTime?: Time
-}
-
 export interface EntityWithSize {
     entityName: string
     xValue: number
@@ -102,13 +87,11 @@ export interface LabelCandidateWithElement {
 }
 export interface MarimekkoBarProps {
     bar: BarOrPlaceholder
-    tooltipProps: TooltipProps | undefined
     barWidth: number
     isHovered: boolean
     isSelected: boolean
     isFaint: boolean
     entityColor: string | undefined
     y0: number
-    isInteractive: boolean
     dualAxis: DualAxis
 }

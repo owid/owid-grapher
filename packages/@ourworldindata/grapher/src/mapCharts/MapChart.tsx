@@ -8,7 +8,6 @@ import {
     getRelativeMouse,
     sortBy,
     guid,
-    minBy,
     difference,
     exposeInstanceOnWindow,
     isPresent,
@@ -28,7 +27,9 @@ import { MapProjectionName, MapProjectionGeos } from "./MapProjections"
 import { GeoPathRoundingContext } from "./GeoPathRoundingContext"
 import { select } from "d3-selection"
 import { easeCubic } from "d3-ease"
+import { Quadtree, quadtree } from "d3-quadtree"
 import { MapTooltip } from "./MapTooltip"
+import { TooltipState } from "../tooltip/Tooltip.js"
 import { ProjectionChooser } from "./ProjectionChooser"
 import { isOnTheMap } from "./EntitiesOnTheMap"
 import { EntityName, OwidTable, CoreColumn } from "@ourworldindata/core-table"
@@ -40,6 +41,7 @@ import {
     ChoroplethMapManager,
     RenderFeature,
     ChoroplethSeries,
+    MAP_HOVER_TARGET_RANGE,
 } from "./MapChartConstants"
 import { MapConfig } from "./MapConfig"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale"
@@ -167,21 +169,23 @@ export class MapChart
     extends React.Component<MapChartProps>
     implements ChartInterface, HorizontalColorLegendManager, ColorScaleManager
 {
-    @observable.ref tooltip: React.ReactNode | null = null
-    @observable tooltipTarget?: { x: number; y: number; featureId: string }
-
     @observable focusEntity?: MapEntity
     @observable focusBracket?: MapBracket
+    @observable tooltipState = new TooltipState<{
+        featureId: string
+        clickable: boolean
+    }>()
 
     transformTable(table: OwidTable): OwidTable {
         if (!table.has(this.mapColumnSlug)) return table
-        return this.dropNonMapEntities(table)
+        const transformedTable = this.dropNonMapEntities(table)
             .dropRowsWithErrorValuesForColumn(this.mapColumnSlug)
             .interpolateColumnWithTolerance(
                 this.mapColumnSlug,
                 this.mapConfig.timeTolerance,
                 this.mapConfig.toleranceStrategy
             )
+        return transformedTable
     }
 
     private dropNonMapEntities(table: OwidTable): OwidTable {
@@ -235,10 +239,7 @@ export class MapChart
     }
 
     base: React.RefObject<SVGGElement> = React.createRef()
-    @action.bound onMapMouseOver(
-        feature: GeoFeature,
-        ev: React.MouseEvent
-    ): void {
+    @action.bound onMapMouseOver(feature: GeoFeature): void {
         const series =
             feature.id === undefined
                 ? undefined
@@ -248,21 +249,23 @@ export class MapChart
             series: series || { value: "No data" },
         }
 
-        const { containerElement } = this.props
-        if (!containerElement) return
+        if (feature.id !== undefined) {
+            const featureId = feature.id as string,
+                clickable = this.isEntityClickable(featureId)
+            this.tooltipState.target = { featureId, clickable }
+        }
+    }
 
-        const mouse = getRelativeMouse(containerElement, ev)
-        if (feature.id !== undefined)
-            this.tooltipTarget = {
-                x: mouse.x,
-                y: mouse.y,
-                featureId: feature.id as string,
-            }
+    @action.bound onMapMouseMove(ev: React.MouseEvent): void {
+        const ref = this.manager?.base?.current
+        if (ref) {
+            this.tooltipState.position = getRelativeMouse(ref, ev)
+        }
     }
 
     @action.bound onMapMouseLeave(): void {
         this.focusEntity = undefined
-        this.tooltipTarget = undefined
+        this.tooltipState.target = null
     }
 
     @computed get manager(): MapChartManager {
@@ -325,7 +328,7 @@ export class MapChart
         this.mapConfig.projection = value
     }
 
-    @computed private get formatTooltipValue(): (d: number | string) => string {
+    @computed private get formatTooltipValue(): (d: PrimitiveType) => string {
         const { mapConfig, mapColumn, colorScale } = this
 
         return (d: PrimitiveType): string => {
@@ -336,7 +339,7 @@ export class MapChart
                 if (label !== undefined && label !== "") return label
             }
             return isNumber(d)
-                ? mapColumn?.formatValueLong(d) ?? ""
+                ? mapColumn?.formatValueShort(d) ?? ""
                 : anyToString(d)
         }
     }
@@ -612,10 +615,19 @@ export class MapChart
                 />
             )
 
-        const { tooltipTarget, projectionChooserBounds, projection } = this
+        const {
+            projectionChooserBounds,
+            projection,
+            colorScale: { customNumericLabels },
+            tooltipState,
+        } = this
 
         return (
-            <g ref={this.base} className="mapTab">
+            <g
+                ref={this.base}
+                className="mapTab"
+                onMouseMove={this.onMapMouseMove}
+            >
                 <ChoroplethMap manager={this} />
                 {this.renderMapLegend()}
                 {this.manager.isExportingtoSvgOrPng ? null : ( // only use projection chooser if we are not exporting
@@ -637,16 +649,13 @@ export class MapChart
                         />
                     </foreignObject>
                 )}
-                {tooltipTarget && (
+                {tooltipState.target && (
                     <MapTooltip
-                        entityName={tooltipTarget?.featureId}
+                        tooltipState={tooltipState}
                         timeSeriesTable={this.inputTable}
                         formatValue={this.formatTooltipValue}
-                        isEntityClickable={this.isEntityClickable(
-                            tooltipTarget?.featureId
-                        )}
-                        tooltipTarget={tooltipTarget}
                         manager={this.manager}
+                        customValueLabels={customNumericLabels}
                         colorScaleManager={this}
                         targetTime={this.targetTime}
                     />
@@ -802,8 +811,15 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
 
     // Map uses a hybrid approach to mouseover
     // If mouse is inside an element, that is prioritized
-    // Otherwise we look for the closest center point of a feature bounds, so that we can hover
-    // very small countries without trouble
+    // Otherwise we do a quadtree search for the closest center point of a feature bounds,
+    // so that we can hover very small countries without trouble
+
+    @computed private get quadtree(): Quadtree<RenderFeature> {
+        return quadtree<RenderFeature>()
+            .x(({ center }) => center.x)
+            .y(({ center }) => center.y)
+            .addAll(this.featuresInProjection)
+    }
 
     @observable private hoverEnterFeature?: RenderFeature
     @observable private hoverNearbyFeature?: RenderFeature
@@ -811,38 +827,27 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
         if (ev.shiftKey) this.showSelectedStyle = true // Turn on highlight selection. To turn off, user can switch tabs.
         if (this.hoverEnterFeature) return
 
-        const { featuresInProjection } = this
         const subunits = this.base.current?.querySelector(".subunits")
         if (subunits) {
-            const mouse = getRelativeMouse(subunits, ev)
+            const { x, y } = getRelativeMouse(subunits, ev)
+            const distance = MAP_HOVER_TARGET_RANGE
+            const feature = this.quadtree.find(x, y, distance)
 
-            const featuresWithDistance = featuresInProjection.map((feature) => {
-                return {
-                    feature,
-                    distance: PointVector.distance(feature.center, mouse),
+            if (feature) {
+                if (feature.id !== this.hoverNearbyFeature?.id) {
+                    this.hoverNearbyFeature = feature
+                    this.manager.onMapMouseOver(feature.geo)
                 }
-            })
-
-            const feature = minBy(featuresWithDistance, (d) => d.distance)
-
-            if (feature && feature.distance < 20) {
-                if (feature.feature !== this.hoverNearbyFeature) {
-                    this.hoverNearbyFeature = feature.feature
-                    this.manager.onMapMouseOver(feature.feature.geo, ev)
-                }
-            } else {
+            } else if (this.hoverNearbyFeature) {
                 this.hoverNearbyFeature = undefined
                 this.manager.onMapMouseLeave()
             }
         } else console.error("subunits was falsy")
     }
 
-    @action.bound private onMouseEnter(
-        feature: RenderFeature,
-        ev: SVGMouseEvent
-    ): void {
+    @action.bound private onMouseEnter(feature: RenderFeature): void {
         this.hoverEnterFeature = feature
-        this.manager.onMapMouseOver(feature.geo, ev)
+        this.manager.onMapMouseOver(feature.geo)
     }
 
     @action.bound private onMouseLeave(): void {
@@ -883,6 +888,9 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
         const blurStrokeOpacity = 0.5
 
         const clipPath = makeClipPath(uid, bounds)
+
+        // this needs to be referenced here or it will be recomputed on every mousemove
+        const _cachedCentroids = this.quadtree
 
         return (
             <g
@@ -980,8 +988,8 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
                                                 ev
                                             )
                                         }
-                                        onMouseEnter={(ev): void =>
-                                            this.onMouseEnter(feature, ev)
+                                        onMouseEnter={(): void =>
+                                            this.onMouseEnter(feature)
                                         }
                                         onMouseLeave={this.onMouseLeave}
                                     />
@@ -1032,8 +1040,8 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
                                     onClick={(ev: SVGMouseEvent): void =>
                                         this.manager.onClick(feature.geo, ev)
                                     }
-                                    onMouseEnter={(ev): void =>
-                                        this.onMouseEnter(feature, ev)
+                                    onMouseEnter={(): void =>
+                                        this.onMouseEnter(feature)
                                     }
                                     onMouseLeave={this.onMouseLeave}
                                 />

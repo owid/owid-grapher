@@ -9,6 +9,7 @@ import { ChartSeries } from "../chart/ChartInterface"
 
 export type GeoFeature = GeoJSON.Feature<GeoJSON.GeometryObject>
 export type MapBracket = ColorScaleBin
+export const MAP_HOVER_TARGET_RANGE = 20
 
 export interface MapEntity {
     id: string | number | undefined
@@ -34,7 +35,7 @@ export interface ChoroplethMapManager {
     focusBracket?: MapBracket
     focusEntity?: MapEntity
     onClick: (d: GeoFeature, ev: React.MouseEvent<SVGElement>) => void
-    onMapMouseOver: (d: GeoFeature, ev: React.MouseEvent<SVGElement>) => void
+    onMapMouseOver: (d: GeoFeature) => void
     onMapMouseLeave: () => void
 }
 
@@ -56,4 +57,5 @@ export interface MapChartManager extends ChartManager {
     resetHandleTimeBounds?: () => void // Used to reset the timeline on map click
     mapConfig?: MapConfig
     endTime?: Time
+    title?: string
 }

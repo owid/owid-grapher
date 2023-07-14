@@ -91,7 +91,10 @@ export const makeMidLabels = (
         : 7
     const fontWeight = 400
 
-    return series.points.slice(1, -1).map((v, i) => {
+    // label all the way to the end for the tooltip series, otherwise to n-1
+    const lastIndex = series.isTooltip && !series.isFocus ? Infinity : -1
+
+    return series.points.slice(1, lastIndex).map((v, i) => {
         const prevPos = i > 0 && series.points[i - 1].position
         const prevSegment = prevPos && v.position.subtract(prevPos)
         const nextPos = series.points[i + 1].position
@@ -199,6 +202,8 @@ export const makeEndLabel = (
         text:
             hideConnectedScatterLines && series.isForeground
                 ? lastValue.label
+                : series.isTooltip && !series.isFocus
+                ? "" // don't doubly label the series name when the tooltip is visible
                 : series.text,
         fontSize,
         fontWeight,

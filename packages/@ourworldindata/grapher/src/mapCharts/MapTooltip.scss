@@ -1,32 +1,39 @@
-.map-value-with-sparkline {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
+.sparkline {
+    padding-bottom: 4px;
 
-    .sparkline {
-        flex: 0;
-    }
+    .HorizontalAxis text {
+        fill: #787878;
+        font-weight: 700;
+        font-size: 10px;
+        transform: translate(2px, 2px);
 
-    .value-wrapper {
-        flex: 1;
-        text-align: left;
-        line-height: 1.3;
-        white-space: nowrap;
-        padding: 0 0 0 0.75em;
-
-        .value {
-            font-size: 1.125em;
-            font-weight: 700;
-        }
-
-        .time {
-            font-size: 0.8125em;
-            font-weight: 400;
+        &:last-child {
+            transform: translate(-2px, 2px);
         }
     }
 
-    .value-wrapper.no-plot {
-        text-align: center;
-        padding: 0;
+    // min-line + zero-line
+    .AxisGridLines.horizontalLines {
+        line {
+            stroke-dasharray: 0;
+            stroke-linecap: square;
+            stroke: #dadada;
+        }
+
+        // the zero line
+        line:nth-child(2) {
+            stroke: #787878;
+        }
+    }
+
+    line.max-line {
+        stroke-linecap: square;
+        stroke: #dadada;
+    }
+
+    .min-max-labels text {
+        font: 700 10px Lato;
+        text-anchor: end;
+        fill: #787878;
     }
 }

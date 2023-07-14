@@ -1,8 +1,56 @@
 import React from "react"
+import classnames from "classnames"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { Bounds } from "@ourworldindata/utils"
-import { TooltipProps, TooltipManager } from "./TooltipProps"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { faInfoCircle } from "@fortawesome/free-solid-svg-icons"
+import { Bounds, PointVector } from "@ourworldindata/utils"
+import { TooltipProps, TooltipManager, TooltipFadeMode } from "./TooltipProps"
+export * from "./TooltipContents.js"
+
+export const TOOLTIP_FADE_DURATION = 400 // $fade-time + $fade-delay in scss
+
+export class TooltipState<T> {
+    @observable position = new PointVector(0, 0)
+    @observable _target?: T
+    @observable _timer?: NodeJS.Timeout
+    _fade: TooltipFadeMode
+
+    constructor({ fade }: { fade?: TooltipFadeMode } = {}) {
+        // "delayed" mode is good for charts with gaps between targetable areas
+        // "immediate" is better if the tooltip is displayed for all points in the chart's bounds
+        // "none" disables the fade transition altogether
+        this._fade = fade ?? "delayed"
+    }
+
+    @computed
+    get target(): T | undefined {
+        return this._target
+    }
+
+    set target(newTarget: T | null) {
+        // delay clearing the target (and hiding the tooltip) for a bit to prevent
+        // flicker when frobbing between neighboring elements and allow an opacity
+        // transition to smoothly fade the tooltip out
+        clearTimeout(this._timer)
+        if (newTarget === null) {
+            const speed = { delayed: 1, immediate: 0.5, none: 0 }[this._fade]
+            this._timer = setTimeout(() => {
+                this._target = undefined
+                this._timer = undefined
+            }, speed * TOOLTIP_FADE_DURATION)
+        } else {
+            this._target = newTarget
+            this._timer = undefined
+        }
+    }
+
+    @computed
+    get fading(): TooltipFadeMode | undefined {
+        // returns "delayed"|"immediate" during the timeout after clearing the target
+        return !!this._timer && !!this._target ? this._fade : undefined
+    }
+}
 
 @observer
 class TooltipCard extends React.Component<
@@ -29,41 +77,102 @@ class TooltipCard extends React.Component<
     }
 
     render(): JSX.Element {
-        const offsetX = this.props.offsetX ?? 0
-        let offsetY = this.props.offsetY ?? 0
+        let {
+            id,
+            title,
+            subtitle,
+            subtitleFormat,
+            notice,
+            prompt,
+            dissolve,
+            children,
+            offsetX = 0,
+            offsetY = 0,
+        } = this.props
+
         if (this.props.offsetYDirection === "upward") {
             offsetY = -offsetY - (this.bounds?.height ?? 0)
         }
 
-        let x = this.props.x + offsetX
-        let y = this.props.y + offsetY
+        if (
+            this.props.offsetXDirection === "left" &&
+            this.props.x > (this.bounds?.width ?? 0)
+        ) {
+            offsetX = -offsetX - (this.bounds?.width ?? 0)
+        }
 
         // Ensure tooltip remains inside chart
+        let left = this.props.x + offsetX
+        let top = this.props.y + offsetY
         if (this.bounds) {
-            if (x + this.bounds.width > this.props.containerWidth)
-                x -= this.bounds.width + 2 * offsetX
-            if (y + this.bounds.height > this.props.containerHeight)
-                y -= this.bounds.height + 2 * offsetY
-            if (x < 0) x = 0
-            if (y < 0) y = 0
+            if (left + this.bounds.width > this.props.containerWidth)
+                left -= this.bounds.width + 2 * offsetX // flip left
+            if (top + this.bounds.height * 0.75 > this.props.containerHeight)
+                top -= this.bounds.height + 2 * offsetY // flip upwards eventually...
+            if (top + this.bounds.height > this.props.containerHeight)
+                top = this.props.containerHeight - this.bounds.height // ...but first pin at bottom
+
+            if (left < 0) left = 0 // pin on left
+            if (top < 0) top = 0 // pin at top
+        }
+        const style = { left, top, ...this.props.style }
+
+        // add a preposition to unit-based subtitles
+        const hasHeader = title !== undefined || subtitle !== undefined
+        if (!!subtitle && subtitleFormat == "unit") {
+            const unit = subtitle.toString()
+            const preposition = !unit.match(/^(per|in|\() /i) ? "in " : ""
+            subtitle = preposition + unit.replace(/(^\(|\)$)/g, "")
         }
 
-        const style: React.CSSProperties = {
-            position: "absolute",
-            pointerEvents: "none",
-            left: `${x}px`,
-            top: `${y}px`,
-            whiteSpace: "nowrap",
-            backgroundColor: "rgba(255,255,255,0.95)",
-            boxShadow: "0 2px 2px rgba(0,0,0,.12), 0 0 1px rgba(0,0,0,.35)",
-            borderRadius: "2px",
-            textAlign: "left",
-            fontSize: "0.9em",
-            ...this.props.style,
-        }
+        // flag the year in the header if necessary
+        const timeNotice = !!subtitle && subtitleFormat == "notice"
+
+        // style the box differently if just displaying title/subtitle
+        const plain = hasHeader && !children
+
+        // skip transition delay if requested
+        const immediate = dissolve == "immediate"
+
         return (
-            <div ref={this.base} className="Tooltip" style={style}>
-                {this.props.children}
+            <div
+                ref={this.base}
+                id={id?.toString()}
+                className={classnames("Tooltip", {
+                    plain,
+                    dissolve,
+                    immediate,
+                })}
+                style={style}
+            >
+                {hasHeader && (
+                    <div className="frontmatter">
+                        {title && <div className="title">{title}</div>}
+                        {subtitle && (
+                            <div className="subtitle">
+                                {timeNotice && (
+                                    <FontAwesomeIcon icon={faInfoCircle} />
+                                )}
+                                {subtitle}
+                            </div>
+                        )}
+                    </div>
+                )}
+                {children && <div className="content">{children}</div>}
+                {(notice || prompt) && (
+                    <div className="endmatter">
+                        {notice && (
+                            <>
+                                <FontAwesomeIcon icon={faInfoCircle} />
+                                <p className="time-notice">
+                                    Data not available for {notice}. Showing
+                                    closest available data point instead.
+                                </p>
+                            </>
+                        )}
+                        {prompt && <p className="prompt">{prompt}</p>}
+                    </div>
+                )}
             </div>
         )
     }

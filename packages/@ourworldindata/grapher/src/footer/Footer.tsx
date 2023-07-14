@@ -259,11 +259,14 @@ export class Footer extends React.Component<{
                         x={tooltipTarget.x}
                         y={tooltipTarget.y}
                         style={{
-                            textAlign: "center",
-                            maxWidth: "300px",
+                            textAlign: "left",
+                            maxWidth: "304px",
                             whiteSpace: "inherit",
-                            padding: "10px",
-                            fontSize: "0.8em",
+                            fontSize: "14px",
+                            padding: "0",
+                            lineHeight: "21px",
+                            fontWeight: 400,
+                            letterSpacing: "0.01em",
                         }}
                     >
                         <p>

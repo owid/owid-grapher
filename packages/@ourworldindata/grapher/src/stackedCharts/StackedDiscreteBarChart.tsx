@@ -17,7 +17,7 @@ import {
     SortBy,
     SortConfig,
     HorizontalAlign,
-    TippyIfInteractive,
+    getRelativeMouse,
 } from "@ourworldindata/utils"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -42,6 +42,7 @@ import {
     withMissingValuesAsZeroes,
 } from "../stackedCharts/StackedUtils"
 import { ChartManager } from "../chart/ChartManager"
+import { Tooltip, TooltipState, TooltipTable } from "../tooltip/Tooltip"
 import { StackedPoint, StackedSeries } from "./StackedConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
 import {
@@ -49,8 +50,6 @@ import {
     HorizontalColorLegendManager,
 } from "../horizontalColorLegend/HorizontalColorLegends"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 import { isDarkColor } from "../color/ColorUtils"
 import { HorizontalAxis } from "../axis/Axis"
 import { SelectionArray } from "../selection/SelectionArray"
@@ -83,11 +82,6 @@ interface Bar {
     point: StackedPoint<EntityName>
 }
 
-interface TooltipProps extends StackedBarChartContext {
-    item: PlacedItem
-    highlightedSeriesName: string | undefined
-}
-
 interface StackedBarChartContext {
     yAxis: HorizontalAxis
     targetTime?: number
@@ -95,10 +89,11 @@ interface StackedBarChartContext {
     formatColumn: CoreColumn
     formatValueForLabel: (value: number) => string
     focusSeriesName?: string
+    hoverSeriesName?: string
+    hoverEntityName?: string
     barHeight: number
     x0: number
     baseFontSize: number
-    isInteractive: boolean
 }
 
 @observer
@@ -106,6 +101,7 @@ export class StackedDiscreteBarChart
     extends React.Component<{
         bounds?: Bounds
         manager: StackedDiscreteBarChartManager
+        containerElement?: HTMLDivElement
     }>
     implements ChartInterface, HorizontalColorLegendManager
 {
@@ -471,6 +467,29 @@ export class StackedDiscreteBarChart
         })
     }
 
+    @observable tooltipState = new TooltipState<{
+        entityName: string
+        seriesName?: string
+    }>()
+
+    @action.bound private onEntityMouseEnter(
+        entityName: string,
+        seriesName?: string
+    ): void {
+        this.tooltipState.target = { entityName, seriesName }
+    }
+
+    @action.bound private onMouseMove(ev: React.MouseEvent): void {
+        const ref = this.manager.base?.current
+        if (ref) {
+            this.tooltipState.position = getRelativeMouse(ref, ev)
+        }
+    }
+
+    @action.bound private onEntityMouseLeave(): void {
+        this.tooltipState.target = null
+    }
+
     render(): JSX.Element {
         if (this.failMessage)
             return (
@@ -491,9 +510,10 @@ export class StackedDiscreteBarChart
             formatValueForLabel: this.formatValueForLabel,
             barHeight: this.barHeight,
             focusSeriesName: this.focusSeriesName,
+            hoverSeriesName: this.tooltipState.target?.seriesName,
+            hoverEntityName: this.tooltipState.target?.entityName,
             x0: this.x0,
             baseFontSize: this.baseFontSize,
-            isInteractive: !this.manager.isExportingtoSvgOrPng,
         }
 
         const handlePositionUpdate = (d: PlacedItem): HashMap => ({
@@ -501,8 +521,71 @@ export class StackedDiscreteBarChart
             timing: { duration: 350, ease: easeQuadOut },
         })
 
+        const renderRow = ({
+            data,
+            state,
+        }: {
+            data: PlacedItem
+            state: { translateY: number }
+        }): JSX.Element => {
+            const { label, bars, totalValue } = data
+
+            const totalLabel = this.formatValueForLabel(totalValue)
+            const showLabelInsideBar = bars.length > 1
+
+            return (
+                <g
+                    key={label}
+                    className="bar"
+                    transform={`translate(0, ${state.translateY})`}
+                >
+                    <text
+                        transform={`translate(${
+                            yAxis.place(this.x0) - labelToBarPadding
+                        }, 0)`}
+                        fill="#555"
+                        dominantBaseline="middle"
+                        textAnchor="end"
+                        onMouseEnter={(): void =>
+                            this.onEntityMouseEnter(label)
+                        }
+                        onMouseLeave={this.onEntityMouseLeave}
+                        {...this.labelStyle}
+                    >
+                        {label}
+                    </text>
+                    {bars.map((bar) => (
+                        <StackedDiscreteBarChart.Bar
+                            key={bar.seriesName}
+                            entity={label}
+                            bar={bar}
+                            chartContext={chartContext}
+                            showLabelInsideBar={showLabelInsideBar}
+                            onMouseEnter={this.onEntityMouseEnter}
+                            onMouseLeave={this.onEntityMouseLeave}
+                        />
+                    ))}
+                    {this.showTotalValueLabel && (
+                        <text
+                            transform={`translate(${
+                                yAxis.place(totalValue) + labelToBarPadding
+                            }, 0)`}
+                            dominantBaseline="middle"
+                            {...this.totalValueLabelStyle}
+                        >
+                            {totalLabel}
+                        </text>
+                    )}
+                </g>
+            )
+        }
+
         return (
-            <g ref={this.base} className="StackedDiscreteBarChart">
+            <g
+                ref={this.base}
+                className="StackedDiscreteBarChart"
+                onMouseMove={this.onMouseMove}
+            >
                 <rect
                     x={bounds.left}
                     y={bounds.top}
@@ -532,116 +615,35 @@ export class StackedDiscreteBarChart
                     update={handlePositionUpdate}
                 >
                     {(nodes): JSX.Element => (
-                        <g>
-                            {nodes.map(
-                                ({
-                                    data,
-                                    state,
-                                }: {
-                                    data: PlacedItem
-                                    state: { translateY: number }
-                                }) => {
-                                    const { label, bars, totalValue } = data
-                                    const tooltipProps = {
-                                        ...chartContext,
-                                        item: data,
-                                    }
-
-                                    const totalLabel =
-                                        this.formatValueForLabel(totalValue)
-                                    const showLabelInsideBar = bars.length > 1
-
-                                    return (
-                                        <g
-                                            key={label}
-                                            className="bar"
-                                            transform={`translate(0, ${state.translateY})`}
-                                        >
-                                            <TippyIfInteractive
-                                                lazy
-                                                isInteractive={
-                                                    !this.manager
-                                                        .isExportingtoSvgOrPng
-                                                }
-                                                hideOnClick={false}
-                                                content={
-                                                    <StackedDiscreteBarChart.Tooltip
-                                                        {...tooltipProps}
-                                                        highlightedSeriesName={
-                                                            undefined
-                                                        }
-                                                    />
-                                                }
-                                            >
-                                                <text
-                                                    transform={`translate(${
-                                                        yAxis.place(this.x0) -
-                                                        labelToBarPadding
-                                                    }, 0)`}
-                                                    fill="#555"
-                                                    dominantBaseline="middle"
-                                                    textAnchor="end"
-                                                    {...this.labelStyle}
-                                                >
-                                                    {label}
-                                                </text>
-                                            </TippyIfInteractive>
-                                            {bars.map((bar) => (
-                                                <StackedDiscreteBarChart.Bar
-                                                    key={bar.seriesName}
-                                                    bar={bar}
-                                                    chartContext={chartContext}
-                                                    tooltipProps={{
-                                                        ...tooltipProps,
-                                                        highlightedSeriesName:
-                                                            bar.seriesName,
-                                                    }}
-                                                    showLabelInsideBar={
-                                                        showLabelInsideBar
-                                                    }
-                                                />
-                                            ))}
-                                            {this.showTotalValueLabel && (
-                                                <text
-                                                    transform={`translate(${
-                                                        yAxis.place(
-                                                            totalValue
-                                                        ) + labelToBarPadding
-                                                    }, 0)`}
-                                                    dominantBaseline="middle"
-                                                    {...this
-                                                        .totalValueLabelStyle}
-                                                >
-                                                    {totalLabel}
-                                                </text>
-                                            )}
-                                        </g>
-                                    )
-                                }
-                            )}
-                        </g>
+                        <g>{nodes.map((node) => renderRow(node))}</g>
                     )}
                 </NodeGroup>
                 <HorizontalAxisZeroLine
                     horizontalAxis={yAxis}
                     bounds={innerBounds}
                 />
+                {this.Tooltip}
             </g>
         )
     }
 
     private static Bar(props: {
         bar: Bar
+        entity: string
         chartContext: StackedBarChartContext
-        tooltipProps: TooltipProps
         showLabelInsideBar: boolean
+        onMouseEnter: (entityName: string, seriesName?: string) => void
+        onMouseLeave: () => void
     }): JSX.Element {
-        const { bar, chartContext, tooltipProps } = props
+        const { entity, bar, chartContext } = props
         const { yAxis, formatValueForLabel, focusSeriesName, barHeight } =
             chartContext
 
         const isFaint =
             focusSeriesName !== undefined && focusSeriesName !== bar.seriesName
+        const isHover =
+            chartContext.hoverSeriesName === bar.seriesName &&
+            chartContext.hoverEntityName === entity
         const barX = yAxis.place(chartContext.x0 + bar.point.valueOffset)
         const barWidth =
             yAxis.place(bar.point.value) - yAxis.place(chartContext.x0)
@@ -659,223 +661,100 @@ export class StackedDiscreteBarChart
         const labelColor = isDarkColor(bar.color) ? "#fff" : "#000"
 
         return (
-            <TippyIfInteractive
-                lazy
-                isInteractive={chartContext.isInteractive}
-                key={bar.seriesName}
-                hideOnClick={false}
-                content={<StackedDiscreteBarChart.Tooltip {...tooltipProps} />}
+            <g
+                onMouseEnter={(): void =>
+                    props?.onMouseEnter(entity, bar.seriesName)
+                }
+                onMouseLeave={props?.onMouseLeave}
             >
-                <g>
-                    <rect
-                        x={0}
+                <rect
+                    x={0}
+                    y={0}
+                    transform={`translate(${barX}, ${-barHeight / 2})`}
+                    width={barWidth}
+                    height={barHeight}
+                    fill={bar.color}
+                    opacity={isHover ? 1 : isFaint ? 0.1 : 0.8}
+                    style={{
+                        transition: "height 200ms ease",
+                    }}
+                />
+                {showLabelInsideBar && (
+                    <text
+                        x={barX + barWidth / 2}
                         y={0}
-                        transform={`translate(${barX}, ${-barHeight / 2})`}
                         width={barWidth}
                         height={barHeight}
-                        fill={bar.color}
-                        opacity={isFaint ? 0.1 : 0.85}
-                        style={{
-                            transition: "height 200ms ease",
-                        }}
-                    />
-                    {showLabelInsideBar && (
-                        <text
-                            x={barX + barWidth / 2}
-                            y={0}
-                            width={barWidth}
-                            height={barHeight}
-                            fill={labelColor}
-                            opacity={isFaint ? 0 : 1}
-                            fontSize={labelFontSize}
-                            textAnchor="middle"
-                            dominantBaseline="middle"
-                        >
-                            {barLabel}
-                        </text>
-                    )}
-                </g>
-            </TippyIfInteractive>
+                        fill={labelColor}
+                        opacity={isFaint ? 0 : 1}
+                        fontSize={labelFontSize}
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                    >
+                        {barLabel}
+                    </text>
+                )}
+            </g>
         )
     }
 
-    private static Tooltip(props: TooltipProps): JSX.Element {
-        let hasTimeNotice = false
-        const { highlightedSeriesName, item } = props
-        const showTotal = !item.bars.some((bar) => bar.point.fake) // If some data is missing, don't calculate a total
-
-        const timeNoticeStyle = {
-            fontWeight: "normal",
-            color: "#707070",
-            fontSize: "0.8em",
-            whiteSpace: "nowrap",
-            paddingLeft: "8px",
-        } as React.CSSProperties
+    @computed private get Tooltip(): JSX.Element | undefined {
+        const {
+                tooltipState: { target, position, fading },
+                formatColumn: { unit, shortUnit },
+                manager: { endTime: targetTime },
+                inputTable: { timeColumn },
+            } = this,
+            item = this.placedItems.find(
+                ({ label }) => label == target?.entityName
+            ),
+            hasNotice = item?.bars.some(
+                ({ point }) => !point.fake && point.time != targetTime
+            ),
+            notice = hasNotice ? timeColumn.formatValue(targetTime) : undefined
 
         return (
-            <table
-                style={{
-                    lineHeight: "1em",
-                    whiteSpace: "normal",
-                    borderSpacing: "0.5em",
-                }}
-            >
-                <tbody>
-                    <tr>
-                        <td colSpan={4} style={{ color: "#111" }}>
-                            <strong>{item.label}</strong>
-                        </td>
-                    </tr>
-                    {item.bars.map((bar) => {
-                        const squareColor = bar.color
-                        const isHighlighted =
-                            bar.seriesName === highlightedSeriesName
-                        const isFaint =
-                            highlightedSeriesName !== null && !isHighlighted
-                        const shouldShowTimeNotice =
-                            !bar.point.fake &&
-                            bar.point.time !== props.targetTime
-                        hasTimeNotice ||= shouldShowTimeNotice
+            target &&
+            item && (
+                <Tooltip
+                    id="stackedDiscreteBarTooltip"
+                    tooltipManager={this.manager}
+                    x={position.x}
+                    y={position.y}
+                    style={{ maxWidth: "400px" }}
+                    offsetX={20}
+                    offsetY={-16}
+                    title={target.entityName}
+                    subtitle={unit != shortUnit ? unit : undefined}
+                    subtitleFormat="unit"
+                    notice={notice}
+                    dissolve={fading}
+                >
+                    <TooltipTable
+                        columns={[this.formatColumn]}
+                        totals={[item.totalValue]}
+                        rows={item.bars.map((bar) => {
+                            const {
+                                seriesName: name,
+                                color: swatch,
+                                point: { value, time, fake: blurred },
+                            } = bar
 
-                        return (
-                            <tr
-                                key={`${bar.seriesName}`}
-                                style={{
-                                    color: isHighlighted
-                                        ? "#000"
-                                        : isFaint
-                                        ? "#707070"
-                                        : "#444",
-                                    fontWeight: isHighlighted
-                                        ? "bold"
+                            return {
+                                name,
+                                swatch,
+                                blurred,
+                                focused: name == target.seriesName,
+                                values: [!blurred ? value : undefined],
+                                notice:
+                                    !blurred && time != targetTime
+                                        ? timeColumn.formatValue(time)
                                         : undefined,
-                                }}
-                            >
-                                <td>
-                                    <div
-                                        style={{
-                                            width: "10px",
-                                            height: "10px",
-                                            backgroundColor: squareColor,
-                                            display: "inline-block",
-                                        }}
-                                    />
-                                </td>
-                                <td
-                                    style={{
-                                        paddingRight: "0.8em",
-                                        fontSize: "0.9em",
-                                    }}
-                                >
-                                    {bar.seriesName}
-                                </td>
-                                <td
-                                    style={{
-                                        textAlign: "right",
-                                        whiteSpace: "nowrap",
-                                    }}
-                                >
-                                    {bar.point.fake
-                                        ? "No data"
-                                        : props.formatColumn.formatValueShort(
-                                              bar.point.value,
-                                              {
-                                                  trailingZeroes: true,
-                                              }
-                                          )}
-                                </td>
-                                {shouldShowTimeNotice && (
-                                    <td style={timeNoticeStyle}>
-                                        <span className="icon">
-                                            <FontAwesomeIcon
-                                                icon={faInfoCircle}
-                                                style={{
-                                                    marginRight: "0.25em",
-                                                }}
-                                            />{" "}
-                                        </span>
-                                        {props.timeColumn.formatValue(
-                                            bar.point.time
-                                        )}
-                                    </td>
-                                )}
-                            </tr>
-                        )
-                    })}
-                    {/* Total */}
-                    {showTotal && (
-                        <tr
-                            style={{
-                                color: "#000",
-                                fontWeight: highlightedSeriesName
-                                    ? undefined
-                                    : "bold",
-                            }}
-                        >
-                            <td />
-                            <td
-                                style={{
-                                    paddingRight: "0.8em",
-                                    fontSize: "0.9em",
-                                }}
-                            >
-                                Total
-                            </td>
-                            <td
-                                style={{
-                                    textAlign: "right",
-                                    whiteSpace: "nowrap",
-                                }}
-                            >
-                                {props.formatColumn.formatValueShort(
-                                    item.totalValue,
-                                    {
-                                        trailingZeroes: true,
-                                    }
-                                )}
-                            </td>
-                            {/* If we're showing a time notice for some year already, then also show it for the total */}
-                            {hasTimeNotice && (
-                                <td style={timeNoticeStyle}>
-                                    <span className="icon">
-                                        <FontAwesomeIcon icon={faInfoCircle} />
-                                    </span>
-                                </td>
-                            )}
-                        </tr>
-                    )}
-                    {hasTimeNotice && (
-                        <tr>
-                            <td
-                                colSpan={4}
-                                style={{
-                                    ...timeNoticeStyle,
-                                    paddingLeft: undefined,
-                                    whiteSpace: undefined,
-                                    paddingTop: "10px",
-                                }}
-                            >
-                                <div style={{ display: "flex" }}>
-                                    <span
-                                        className="icon"
-                                        style={{ marginRight: "0.5em" }}
-                                    >
-                                        <FontAwesomeIcon icon={faInfoCircle} />{" "}
-                                    </span>
-                                    <span>
-                                        No data available for{" "}
-                                        {props.timeColumn.formatValue(
-                                            props.targetTime
-                                        )}
-                                        . Showing closest available data point
-                                        instead.
-                                    </span>
-                                </div>
-                            </td>
-                        </tr>
-                    )}
-                </tbody>
-            </table>
+                            }
+                        })}
+                    ></TooltipTable>
+                </Tooltip>
+            )
         )
     }
 

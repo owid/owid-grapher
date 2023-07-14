@@ -1,7 +1,7 @@
 import React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { Tooltip } from "../tooltip/Tooltip"
+import { Tooltip, TooltipValue, TooltipState } from "../tooltip/Tooltip"
 import { MapChartManager } from "./MapChartConstants"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale"
 import {
@@ -10,32 +10,35 @@ import {
     EntityName,
     OwidVariableRow,
 } from "@ourworldindata/core-table"
-import { ChartTypeName } from "../core/GrapherConstants"
 import { LineChart } from "../lineCharts/LineChart"
-import classNames from "classnames"
 import {
     Bounds,
     isNumber,
     AllKeysRequired,
     checkIsVeryShortUnit,
+    PrimitiveType,
+    isString,
+    first,
+    last,
+    min,
+    max,
 } from "@ourworldindata/utils"
 import { LineChartManager } from "../lineCharts/LineChartConstants"
 import { darkenColorForHighContrastText } from "../color/ColorUtils"
 
 interface MapTooltipProps {
-    entityName: EntityName
+    tooltipState: TooltipState<{ featureId: string; clickable: boolean }>
     manager: MapChartManager
+    customValueLabels: (string | undefined)[]
     colorScaleManager: ColorScaleManager
-    formatValue: (d: number | string) => string
+    formatValue: (d: PrimitiveType) => string
     timeSeriesTable: OwidTable
-    tooltipTarget: { x: number; y: number; featureId: string }
     targetTime?: Time
-    isEntityClickable?: boolean
 }
 
-const SPARKLINE_WIDTH = 140
-const SPARKLINE_HEIGHT = 60
-const SPARKLINE_PADDING = 7
+const SPARKLINE_WIDTH = 250
+const SPARKLINE_HEIGHT = 87
+const SPARKLINE_PADDING = 15
 
 @observer
 export class MapTooltip extends React.Component<MapTooltipProps> {
@@ -51,7 +54,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
     }
 
     @computed private get entityName(): EntityName {
-        return this.props.entityName
+        return this.props.tooltipState.target?.featureId ?? ""
     }
 
     // Table pre-filtered by targetTime, exlcudes time series
@@ -103,25 +106,22 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
         return this.hasTimeSeriesData
     }
 
-    @computed private get tooltipTarget(): {
-        x: number
-        y: number
-        featureId: string
-    } {
-        return (
-            this.props.tooltipTarget ?? {
-                x: 0,
-                y: 0,
-                featureId: "Default Tooltip",
-            }
-        )
-    }
-
     // Line chart fields
     @computed private get sparklineTable(): OwidTable {
         return this.timeSeriesTable ?? new OwidTable()
     }
     @computed private get sparklineManager(): LineChartManager {
+        // use the whole time range for the sparkline, not just the range where this series has data
+        let { minTime, maxTime } = this.props.timeSeriesTable ?? {}
+        if (this.mapColumnSlug) {
+            const times =
+                this.props.timeSeriesTable.getTimesUniqSortedAscForColumns([
+                    this.mapColumnSlug,
+                ])
+            minTime = first(times) ?? minTime
+            maxTime = last(times) ?? maxTime
+        }
+
         // Pass down short units, while omitting long or undefined ones.
         const unit = this.sparklineTable.get(this.mapColumnSlug).shortUnit
         const yAxisUnit =
@@ -142,13 +142,13 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
             hidePoints: true,
             baseFontSize: 11,
             disableIntroAnimation: true,
-            lineStrokeWidth: 3.5,
+            lineStrokeWidth: 2,
             annotation: {
                 entityName: this.entityName,
                 year: this.datum?.time,
             },
             yAxisConfig: {
-                hideAxis: false,
+                hideAxis: true,
                 hideGridlines: false,
                 tickFormattingOptions: {
                     unit: yAxisUnit,
@@ -162,20 +162,17 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                     ? this.props.manager.yAxisConfig?.max
                     : undefined,
                 ticks: [
-                    { value: 0, priority: 1, solid: true },
-                    // Show minimum and maximum
+                    // Show minimum and zero (maximum is added by hand in render so it's never omitted)
                     { value: -Infinity, priority: 2 },
-                    { value: Infinity, priority: 2 },
+                    { value: 0, priority: 1 },
                 ],
             },
             xAxisConfig: {
                 hideAxis: false,
                 hideGridlines: true,
                 tickFormattingOptions: {},
-                // Always show up to the target time on the X axis,
-                // even if there is no data for it.
-                min: this.props.targetTime,
-                max: this.props.targetTime,
+                min: minTime ?? this.props.targetTime,
+                max: maxTime ?? this.props.targetTime,
                 ticks: [
                     // Show minimum and maximum
                     { value: -Infinity, priority: 1 },
@@ -186,24 +183,15 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
     }
 
     render(): JSX.Element {
+        const { mapTable, datum, lineColorScale } = this
         const {
-            tooltipTarget,
-            mapTable,
-            datum,
-            lineColorScale,
-            hasTimeSeriesData,
-        } = this
-        const { isEntityClickable, targetTime, manager } = this.props
+            targetTime,
+            formatValue,
+            customValueLabels,
+            tooltipState: { target, position, fading },
+        } = this.props
 
-        // Only LineChart and ScatterPlot allow `mapIsClickable`
-        const clickToSelectMessage =
-            manager.type === ChartTypeName.LineChart && hasTimeSeriesData
-                ? "Click for change over time"
-                : "Click to select"
-
-        // TODO simplify?
         const { timeColumn } = mapTable
-        const preposition = OwidTable.getPreposition(timeColumn)
         const displayTime = !timeColumn.isMissing
             ? timeColumn.formatValue(targetTime)
             : targetTime
@@ -212,98 +200,107 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                 ? timeColumn.formatValue(datum?.time)
                 : datum?.time.toString() ?? ""
         const valueColor: string | undefined = darkenColorForHighContrastText(
-            lineColorScale?.getColor(datum?.value) ?? "#333"
-        )
+                lineColorScale?.getColor(datum?.value) ?? "#333"
+            ),
+            valueLabel = datum ? formatValue(datum.value) : undefined
+
+        const { yAxisConfig } = this.sparklineManager,
+            yColumn = this.sparklineTable.get(this.mapColumnSlug),
+            minVal = min([yColumn.min, yAxisConfig?.min]),
+            maxVal = max([yColumn.max, yAxisConfig?.max]),
+            minCustom = isNumber(minVal) && customValueLabels[minVal],
+            maxCustom = isNumber(maxVal) && customValueLabels[maxVal],
+            useCustom = isString(minCustom) && isString(maxCustom),
+            minLabel = useCustom
+                ? minCustom
+                : yColumn.formatValueShort(minVal ?? 0),
+            maxLabel = useCustom
+                ? maxCustom
+                : yColumn.formatValueShort(maxVal ?? 0)
+
+        const notice =
+            datum && datum.time !== targetTime ? displayTime : undefined
 
         return (
             <Tooltip
                 id="mapTooltip"
                 tooltipManager={this.props.manager}
                 key="mapTooltip"
-                x={tooltipTarget.x}
-                y={tooltipTarget.y}
-                style={{ textAlign: "center", padding: "0.3em" }}
-                offsetX={15}
-                offsetY={10}
-                offsetYDirection={"upward"}
+                x={position.x}
+                y={position.y}
+                style={{ maxWidth: "250px" }}
+                offsetX={20}
+                offsetY={-16}
+                offsetYDirection={"downward"}
+                title={target?.featureId}
+                subtitle={datum ? displayDatumTime : displayTime}
+                subtitleFormat={notice ? "notice" : undefined}
+                notice={notice}
+                dissolve={fading}
             >
-                <div
-                    style={{
-                        padding: "0.3em",
-                        margin: 0,
-                        fontWeight: "normal",
-                        fontSize: "1em",
-                    }}
-                >
-                    {tooltipTarget.featureId}
-                </div>
-                <div
-                    className="map-tooltip"
-                    style={{
-                        margin: 0,
-                        padding: "0.3em",
-                    }}
-                >
-                    <div className="map-value-with-sparkline">
-                        {this.showSparkline && (
-                            <div className="sparkline">
-                                <svg
-                                    className="plot"
-                                    width={SPARKLINE_WIDTH}
-                                    height={SPARKLINE_HEIGHT}
+                <TooltipValue
+                    column={yColumn}
+                    value={valueLabel}
+                    color={valueColor}
+                />
+                {this.showSparkline && (
+                    <div
+                        className="sparkline"
+                        // negative margin to align the padding (added below) with the text labels
+                        style={{ margin: `0 -${SPARKLINE_PADDING}px` }}
+                    >
+                        <svg
+                            className="plot"
+                            width={SPARKLINE_WIDTH}
+                            height={SPARKLINE_HEIGHT}
+                        >
+                            <line
+                                className="max-line"
+                                x1={SPARKLINE_PADDING}
+                                y1={SPARKLINE_PADDING}
+                                x2={SPARKLINE_WIDTH - SPARKLINE_PADDING}
+                                y2={SPARKLINE_PADDING}
+                            />
+                            <LineChart
+                                manager={this.sparklineManager}
+                                // Add padding so that the edges of the plot doesn't get clipped.
+                                // The plot can go out of boundaries due to line stroke thickness & labels.
+                                bounds={new Bounds(
+                                    0,
+                                    0,
+                                    SPARKLINE_WIDTH,
+                                    SPARKLINE_HEIGHT
+                                ).pad({
+                                    top: SPARKLINE_PADDING,
+                                    left: SPARKLINE_PADDING,
+                                    right: SPARKLINE_PADDING,
+                                    bottom: 3,
+                                })}
+                            />
+                            <g className="min-max-labels">
+                                {maxLabel != minLabel && (
+                                    <text
+                                        x={
+                                            SPARKLINE_WIDTH -
+                                            SPARKLINE_PADDING -
+                                            3
+                                        }
+                                        y={0.75 * SPARKLINE_PADDING}
+                                    >
+                                        {maxLabel}
+                                    </text>
+                                )}
+                                <text
+                                    x={SPARKLINE_WIDTH - SPARKLINE_PADDING - 3}
+                                    y={
+                                        SPARKLINE_HEIGHT -
+                                        1.45 * SPARKLINE_PADDING
+                                    }
                                 >
-                                    <LineChart
-                                        manager={this.sparklineManager}
-                                        // Add padding so that the edges of the plot doesn't get clipped.
-                                        // The plot can go out of boundaries due to line stroke thickness.
-                                        bounds={new Bounds(
-                                            0,
-                                            0,
-                                            SPARKLINE_WIDTH,
-                                            SPARKLINE_HEIGHT
-                                        ).pad({
-                                            top: SPARKLINE_PADDING,
-                                            left: SPARKLINE_PADDING,
-                                            right: SPARKLINE_PADDING,
-                                        })}
-                                    />
-                                </svg>
-                            </div>
-                        )}
-
-                        <div
-                            className={classNames({
-                                "value-wrapper": true,
-                                "no-plot": !this.showSparkline,
-                            })}
-                        >
-                            <div
-                                className="value"
-                                style={{ color: valueColor }}
-                            >
-                                {datum
-                                    ? this.props.formatValue(datum.value)
-                                    : this.props.formatValue("No data")}
-                            </div>
-                            <div className="time">
-                                {preposition}{" "}
-                                {datum ? displayDatumTime : displayTime}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {isEntityClickable && (
-                    <div>
-                        <p
-                            style={{
-                                margin: 0,
-                                padding: "0.3em",
-                                fontSize: "13px",
-                                opacity: 0.6,
-                            }}
-                        >
-                            {clickToSelectMessage}
-                        </p>
+                                    {minLabel}
+                                </text>
+                            </g>
+                        </svg>
                     </div>
                 )}
             </Tooltip>

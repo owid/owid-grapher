@@ -1,6 +1,6 @@
 import { ScaleLinear } from "d3-scale"
+import { Quadtree } from "d3-quadtree"
 import {
-    CoreColumn,
     Color,
     Time,
     EntityId,
@@ -34,16 +34,6 @@ export interface ScatterPlotManager extends ChartManager {
     endTime?: Time
     hasTimeline?: boolean
     hideScatterLabels?: boolean
-}
-
-export interface ScatterTooltipProps {
-    yColumn: CoreColumn
-    xColumn: CoreColumn
-    series: ScatterSeries
-    maxWidth: number
-    fontSize: number
-    x: number
-    y: number
 }
 
 export interface ScatterSeries extends ChartSeries {
@@ -98,6 +88,7 @@ export interface ScatterRenderSeries extends ChartSeries {
     points: ScatterRenderPoint[]
     text: string
     isHover?: boolean
+    isTooltip?: boolean
     isFocus?: boolean
     isForeground?: boolean
     offsetVector: PointVector
@@ -124,11 +115,12 @@ export interface ScatterPointsWithLabelsProps {
     seriesArray: ScatterSeries[]
     hoveredSeriesNames: SeriesName[]
     focusedSeriesNames: SeriesName[]
+    tooltipSeriesName?: SeriesName
     dualAxis: DualAxis
     colorScale?: ColorScale
     sizeScale: ScaleLinear<number, number>
     fontScale: ScaleLinear<number, number>
-    onMouseOver: (series: ScatterSeries) => void
+    onMouseEnter: (series: ScatterSeries) => void
     onMouseLeave: () => void
     onClick: () => void
     isConnected: boolean
@@ -136,4 +128,14 @@ export interface ScatterPointsWithLabelsProps {
     noDataModalManager: NoDataModalManager
     disableIntroAnimation?: boolean
     hideScatterLabels?: boolean
+    quadtree: Quadtree<ScatterPointQuadtreeNode>
+}
+
+export const SCATTER_QUADTREE_SAMPLING_DISTANCE = 10
+export const SCATTER_POINT_HOVER_TARGET_RANGE = 20
+
+export interface ScatterPointQuadtreeNode {
+    series: ScatterSeries
+    x: number
+    y: number
 }

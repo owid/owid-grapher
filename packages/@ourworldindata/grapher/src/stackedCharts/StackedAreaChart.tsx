@@ -1,5 +1,6 @@
 import React from "react"
 import {
+    extend,
     reverse,
     clone,
     last,
@@ -23,7 +24,7 @@ import {
     LineLegendManager,
 } from "../lineLegend/LineLegend"
 import { NoDataModal } from "../noDataModal/NoDataModal"
-import { Tooltip } from "../tooltip/Tooltip"
+import { Tooltip, TooltipState, TooltipTable } from "../tooltip/Tooltip"
 import { rgb } from "d3-color"
 import {
     AbstractStackedChart,
@@ -43,6 +44,9 @@ interface AreasProps extends React.SVGAttributes<SVGGElement> {
     dualAxis: DualAxis
     seriesArr: readonly StackedSeries<Time>[]
     focusedSeriesNames: SeriesName[]
+    hoveredAreaName?: SeriesName
+    onAreaMouseEnter: (seriesName: SeriesName) => void
+    onAreaMouseLeave: () => void
 }
 
 const BLUR_COLOR = "#ddd"
@@ -126,7 +130,7 @@ class Areas extends React.Component<AreasProps> {
 
     @computed private get areas(): JSX.Element[] {
         const { placedSeriesArr } = this
-        const { dualAxis } = this.props
+        const { dualAxis, hoveredAreaName } = this.props
         const { verticalAxis } = dualAxis
 
         return placedSeriesArr.map((series, index) => {
@@ -147,6 +151,11 @@ class Areas extends React.Component<AreasProps> {
                 ]
             }
             const points = [...placedPoints, ...reverse(clone(prevPoints))]
+            const opacity = !hoveredAreaName
+                ? 0.7 // normal opacity
+                : hoveredAreaName == series.seriesName
+                ? 0.7 // hovered
+                : 0.2 // non-hovered
 
             return (
                 <path
@@ -155,8 +164,14 @@ class Areas extends React.Component<AreasProps> {
                     strokeLinecap="round"
                     d={pointsToPath(points)}
                     fill={this.seriesIsBlur(series) ? BLUR_COLOR : series.color}
-                    fillOpacity={0.7}
+                    fillOpacity={opacity}
                     clipPath={this.props.clipPath}
+                    onMouseEnter={(): void => {
+                        this.props.onAreaMouseEnter(series.seriesName)
+                    }}
+                    onMouseLeave={(): void => {
+                        this.props.onAreaMouseLeave()
+                    }}
                 />
             )
         })
@@ -164,8 +179,16 @@ class Areas extends React.Component<AreasProps> {
 
     @computed private get borders(): JSX.Element[] {
         const { placedSeriesArr } = this
+        const { hoveredAreaName } = this.props
 
         return placedSeriesArr.map((placedSeries) => {
+            const opacity =
+                hoveredAreaName == placedSeries.seriesName
+                    ? 1 // hovered
+                    : 0.7 // non-hovered
+            const weight =
+                hoveredAreaName == placedSeries.seriesName ? 1.5 : 0.5
+
             return (
                 <path
                     className={
@@ -181,10 +204,16 @@ class Areas extends React.Component<AreasProps> {
                     )
                         .darker(0.5)
                         .toString()}
-                    strokeOpacity={0.7}
-                    strokeWidth={0.5}
+                    strokeOpacity={opacity}
+                    strokeWidth={weight}
                     fill="none"
                     clipPath={this.props.clipPath}
+                    onMouseEnter={(): void => {
+                        this.props.onAreaMouseEnter(placedSeries.seriesName)
+                    }}
+                    onMouseLeave={(): void => {
+                        this.props.onAreaMouseLeave()
+                    }}
                 />
             )
         })
@@ -256,7 +285,18 @@ export class StackedAreaChart
         return new LineLegend({ manager: this })
     }
 
-    @observable hoveredPointIndex?: number
+    @observable tooltipState = new TooltipState<{
+        index: number // time-index into points array
+        series?: SeriesName
+    }>({ fade: "immediate" })
+
+    @action.bound private onAreaMouseEnter(seriesName: SeriesName): void {
+        extend(this.tooltipState.target, { series: seriesName })
+    }
+
+    @action.bound private onAreaMouseLeave(): void {
+        extend(this.tooltipState.target, { series: undefined })
+    }
 
     @observable hoverSeriesName?: SeriesName
     @action.bound onLineLegendClick(): void {
@@ -307,11 +347,18 @@ export class StackedAreaChart
     @action.bound private onCursorMove(
         ev: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGElement>
     ): void {
-        if (!this.base.current) return
+        const ref = this.base.current,
+            parentRef = this.manager.base?.current
+
+        // the tooltip's origin needs to be in the parent's coordinates
+        if (parentRef) {
+            this.tooltipState.position = getRelativeMouse(parentRef, ev)
+        }
+
+        if (!ref) return undefined
+
         const { series } = this
-
-        const mouse = getRelativeMouse(this.base.current, ev.nativeEvent)
-
+        const mouse = getRelativeMouse(ref, ev.nativeEvent)
         const boxPadding = isMobile() ? 44 : 25
 
         // expand the box width, so it's easier to see the tooltip for the first & last timepoints
@@ -320,6 +367,7 @@ export class StackedAreaChart
             right: boxPadding,
         })
 
+        let hoveredIndex
         if (boundedBox.contains(mouse)) {
             const invertedX = this.dualAxis.horizontalAxis.invert(mouse.x)
             const closestPoint = minBy(series[0].points, (d) =>
@@ -327,27 +375,33 @@ export class StackedAreaChart
             )
             if (closestPoint) {
                 const index = series[0].points.indexOf(closestPoint)
-                this.hoveredPointIndex = index
-            } else {
-                this.hoveredPointIndex = undefined
+                hoveredIndex = index
             }
-        } else {
-            this.hoveredPointIndex = undefined
         }
+        this.tooltipState.target =
+            hoveredIndex === undefined
+                ? null
+                : {
+                      index: hoveredIndex,
+                      series: this.tooltipState.target?.series,
+                  }
     }
 
     @action.bound private onCursorLeave(): void {
-        this.hoveredPointIndex = undefined
+        this.hoverSeriesName = undefined
+        this.tooltipState.target = null
     }
 
     @computed private get activeXVerticalLine(): JSX.Element | undefined {
-        const { dualAxis, series, hoveredPointIndex } = this
+        const { dualAxis, series } = this
         const { horizontalAxis, verticalAxis } = dualAxis
+        const hoveredPointIndex = this.tooltipState.target?.index
 
         if (hoveredPointIndex === undefined) return undefined
 
         return (
-            <g className="hoverIndicator">
+            // disable pointer events to avoid interfering with enter/leave tracking of areas
+            <g className="hoverIndicator" style={{ pointerEvents: "none" }}>
                 {series.map((series) => {
                     const point = series.points[hoveredPointIndex]
                     return this.seriesIsBlur(series) ||
@@ -380,120 +434,58 @@ export class StackedAreaChart
     }
 
     @computed private get tooltip(): JSX.Element | undefined {
-        if (this.hoveredPointIndex === undefined) return undefined
-
-        const { hoveredPointIndex, dualAxis, series } = this
+        const { target, position, fading } = this.tooltipState
+        if (!target) return undefined
 
         // Grab the first value to get the year from
+        const { series } = this
+        const hoveredPointIndex = target.index
         const bottomSeriesPoint = series[0].points[hoveredPointIndex]
 
-        // If some data is missing, don't calculate a total
-        const somePointsMissingForHoveredTime = series.some(
-            (series) => series.points[hoveredPointIndex].fake
-        )
-
-        const legendBlockStyle = {
-            width: "10px",
-            height: "10px",
-            display: "inline-block",
-            marginRight: "2px",
-        }
+        const yColumn = this.yColumns[0], // Assumes same type for all columns.
+            formattedTime = yColumn.formatTime(bottomSeriesPoint.position),
+            { unit, shortUnit } = yColumn
 
         const lastStackedPoint = last(series)!.points[hoveredPointIndex]
         const totalValue = lastStackedPoint.value + lastStackedPoint.valueOffset
-
-        const yColumn = this.yColumns[0] // Assumes same type for all columns.
 
         return (
             <Tooltip
                 id={this.renderUid}
                 tooltipManager={this.props.manager}
-                x={dualAxis.horizontalAxis.place(bottomSeriesPoint.position)}
-                y={
-                    dualAxis.verticalAxis.rangeMin +
-                    dualAxis.verticalAxis.rangeSize / 2
-                }
-                style={{ padding: "0.3em" }}
-                offsetX={5}
+                x={position.x}
+                y={position.y}
+                offsetY={-16}
+                offsetX={20}
+                offsetXDirection="left"
+                style={{ maxWidth: "50%" }}
+                title={formattedTime}
+                subtitle={unit != shortUnit ? unit : undefined}
+                subtitleFormat="unit"
+                dissolve={fading}
             >
-                <table style={{ fontSize: "0.9em", lineHeight: "1.4em" }}>
-                    <tbody>
-                        <tr>
-                            <td>
-                                <strong>
-                                    {yColumn.formatTime(
-                                        bottomSeriesPoint.position
-                                    )}
-                                </strong>
-                            </td>
-                            <td></td>
-                        </tr>
-                        {series
-                            .slice()
-                            .reverse()
-                            .map((series) => {
-                                const point = series.points[hoveredPointIndex]
-                                const isBlur = this.seriesIsBlur(series)
-                                const textColor = isBlur ? "#ddd" : "#333"
-                                const blockColor = isBlur
-                                    ? BLUR_COLOR
-                                    : series.color
-                                return (
-                                    <tr
-                                        key={series.seriesName}
-                                        style={{ color: textColor }}
-                                    >
-                                        <td
-                                            style={{
-                                                paddingRight: "0.8em",
-                                                fontSize: "0.9em",
-                                            }}
-                                        >
-                                            <div
-                                                style={{
-                                                    ...legendBlockStyle,
-                                                    backgroundColor: blockColor,
-                                                }}
-                                            />{" "}
-                                            {series.seriesName}
-                                        </td>
-                                        <td style={{ textAlign: "right" }}>
-                                            {point.fake
-                                                ? "No data"
-                                                : yColumn.formatValueLong(
-                                                      point.value,
-                                                      { trailingZeroes: true }
-                                                  )}
-                                        </td>
-                                    </tr>
-                                )
-                            })}
-                        {/* Total */}
-                        {!somePointsMissingForHoveredTime && (
-                            <tr>
-                                <td style={{ fontSize: "0.9em" }}>
-                                    <div
-                                        style={{
-                                            ...legendBlockStyle,
-                                            backgroundColor: "transparent",
-                                        }}
-                                    />{" "}
-                                    <strong>Total</strong>
-                                </td>
-                                <td style={{ textAlign: "right" }}>
-                                    <span>
-                                        <strong>
-                                            {yColumn.formatValueLong(
-                                                totalValue,
-                                                { trailingZeroes: true }
-                                            )}
-                                        </strong>
-                                    </span>
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
+                <TooltipTable
+                    columns={[yColumn]}
+                    totals={[totalValue]}
+                    rows={series
+                        .slice()
+                        .reverse()
+                        .map((series) => {
+                            const {
+                                seriesName: name,
+                                color: swatch,
+                                points,
+                            } = series
+                            const point = points[hoveredPointIndex]
+                            const blurred = this.seriesIsBlur(series)
+                            const focused = name == target.series
+                            const values = [
+                                point?.fake ? undefined : point?.value,
+                            ]
+
+                            return { name, swatch, focused, blurred, values }
+                        })}
+                />
             </Tooltip>
         )
     }
@@ -509,6 +501,7 @@ export class StackedAreaChart
             )
 
         const { bounds, dualAxis, renderUid, series } = this
+        const { target } = this.tooltipState
 
         const showLegend = !this.manager.hideLegend
 
@@ -542,6 +535,9 @@ export class StackedAreaChart
                         dualAxis={dualAxis}
                         seriesArr={series}
                         focusedSeriesNames={this.focusedSeriesNames}
+                        hoveredAreaName={target?.series}
+                        onAreaMouseEnter={this.onAreaMouseEnter}
+                        onAreaMouseLeave={this.onAreaMouseLeave}
                     />
                 </g>
                 {this.activeXVerticalLine}

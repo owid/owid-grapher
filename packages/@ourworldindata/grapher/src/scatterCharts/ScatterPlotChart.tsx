@@ -5,22 +5,30 @@ import {
 } from "../scatterCharts/ComparisonLine"
 import { observable, computed, action } from "mobx"
 import { ScaleLinear, scaleSqrt } from "d3-scale"
+import { Quadtree, quadtree } from "d3-quadtree"
+import { quantize, interpolate } from "d3-interpolate"
 import {
     intersection,
     without,
+    compact,
     uniq,
+    first,
     last,
+    pairs,
+    clone,
     excludeUndefined,
     flatten,
     isEmpty,
     isNumber,
     domainExtent,
+    getRelativeMouse,
     lowerCaseFirstLetterUnlessAbbreviation,
     exposeInstanceOnWindow,
     groupBy,
     sampleFrom,
     intersectionOfSets,
     max,
+    PointVector,
     Bounds,
     DEFAULT_BOUNDS,
 } from "@ourworldindata/utils"
@@ -73,8 +81,9 @@ import {
     SCATTER_POINT_DEFAULT_RADIUS,
     SCATTER_POINT_MAX_RADIUS,
     SeriesPoint,
+    ScatterPointQuadtreeNode,
+    SCATTER_QUADTREE_SAMPLING_DISTANCE,
 } from "./ScatterPlotChartConstants"
-import { ScatterTooltip } from "./ScatterTooltip"
 import { ScatterPointsWithLabels } from "./ScatterPointsWithLabels"
 import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
 import { ColorSchemeName, OwidNoDataGray } from "../color/ColorConstants"
@@ -88,6 +97,7 @@ import {
     ScatterSizeLegend,
     ScatterSizeLegendManager,
 } from "./ScatterSizeLegend"
+import { Tooltip, TooltipState, TooltipValueRange } from "../tooltip/Tooltip"
 
 @observer
 export class ScatterPlotChart
@@ -102,10 +112,12 @@ export class ScatterPlotChart
         VerticalColorLegendManager,
         ColorScaleManager
 {
-    // currently hovered individual series key
-    @observable private hoveredSeries?: SeriesName
     // currently hovered legend color
     @observable private hoverColor?: Color
+    // current hovered individual series + tooltip position
+    @observable tooltipState = new TooltipState<{
+        series: ScatterSeries
+    }>()
 
     transformTable(table: OwidTable): OwidTable {
         const {
@@ -387,7 +399,7 @@ export class ScatterPlotChart
 
     // All currently hovered series keys, combining the legend and the main UI
     @computed private get hoveredSeriesNames(): string[] {
-        const { hoverColor, hoveredSeries } = this
+        const { hoverColor, tooltipState } = this
 
         const hoveredSeriesNames =
             hoverColor === undefined
@@ -398,7 +410,9 @@ export class ScatterPlotChart
                           .map((g) => g.seriesName)
                   )
 
-        if (hoveredSeries !== undefined) hoveredSeriesNames.push(hoveredSeries)
+        if (tooltipState.target) {
+            hoveredSeriesNames.push(tooltipState.target.series.seriesName)
+        }
 
         return hoveredSeriesNames
     }
@@ -435,27 +449,30 @@ export class ScatterPlotChart
         return new ConnectedScatterLegend(this)
     }
 
-    @action.bound private onScatterMouseOver(series: ScatterSeries): void {
-        this.hoveredSeries = series.seriesName
+    @action.bound private onScatterMouseEnter(series: ScatterSeries): void {
+        this.tooltipState.target = { series }
     }
 
     @action.bound private onScatterMouseLeave(): void {
-        this.hoveredSeries = undefined
+        this.tooltipState.target = null
+    }
+
+    @action.bound private onScatterMouseMove(
+        ev: React.MouseEvent<SVGGElement>
+    ): void {
+        const ref = this.manager?.base?.current
+        if (ref) {
+            this.tooltipState.position = getRelativeMouse(ref, ev)
+        }
     }
 
     @action.bound private onScatterClick(): void {
-        if (this.hoveredSeries) this.onSelectEntity(this.hoveredSeries)
+        const { target } = this.tooltipState
+        if (target) this.onSelectEntity(target.series.seriesName)
     }
 
     @computed get tooltipSeries(): ScatterSeries | undefined {
-        const { hoveredSeries, focusedEntityNames } = this
-        if (hoveredSeries !== undefined)
-            return this.series.find((g) => g.seriesName === hoveredSeries)
-        if (focusedEntityNames && focusedEntityNames.length === 1)
-            return this.series.find(
-                (g) => g.seriesName === focusedEntityNames[0]
-            )
-        return undefined
+        return this.tooltipState.target?.series
     }
 
     @computed private get legendDimensions(): VerticalColorLegend {
@@ -538,6 +555,66 @@ export class ScatterPlotChart
         return !!this.manager.hideScatterLabels
     }
 
+    @computed private get quadtree(): Quadtree<ScatterPointQuadtreeNode> {
+        const {
+            series: seriesArray,
+            dualAxis: { horizontalAxis, verticalAxis, innerBounds },
+        } = this
+
+        const xAxis = horizontalAxis.clone()
+        xAxis.range = innerBounds.xRange()
+        const yAxis = verticalAxis.clone()
+        yAxis.range = innerBounds.yRange()
+
+        const nodes: ScatterPointQuadtreeNode[] = seriesArray.flatMap(
+            (series) => {
+                const points = series.points.map((point) => {
+                    return new PointVector(
+                        xAxis.place(point.x),
+                        yAxis.place(point.y)
+                    )
+                })
+
+                // add single points as is
+                if (points.length < 2)
+                    return points.map((point) => ({
+                        series,
+                        x: point.x,
+                        y: point.y,
+                    }))
+
+                // sample points from line segments with a fixed step size
+                return pairs(points, (a, b) => {
+                    const numPoints =
+                            2 + // always include endpoints
+                            Math.floor(
+                                PointVector.distance(a, b) /
+                                    SCATTER_QUADTREE_SAMPLING_DISTANCE
+                            ),
+                        lineRange = interpolate(
+                            { x: a.x, y: a.y },
+                            { x: b.x, y: b.y }
+                        ),
+                        coords = quantize(
+                            (pct: number) => clone(lineRange(pct)),
+                            numPoints
+                        )
+
+                    return coords.map((point) => ({
+                        series,
+                        x: point.x,
+                        y: point.y,
+                    }))
+                }).flat()
+            }
+        )
+
+        return quadtree<ScatterPointQuadtreeNode>()
+            .x(({ x }) => x)
+            .y(({ y }) => y)
+            .addAll(nodes)
+    }
+
     @computed private get points(): JSX.Element {
         return (
             <ScatterPointsWithLabels
@@ -553,11 +630,13 @@ export class ScatterPlotChart
                 fontScale={this.fontScale}
                 focusedSeriesNames={this.focusedEntityNames}
                 hoveredSeriesNames={this.hoveredSeriesNames}
+                tooltipSeriesName={this.tooltipSeries?.seriesName}
                 disableIntroAnimation={this.manager.disableIntroAnimation}
                 hideScatterLabels={this.hideScatterLabels}
-                onMouseOver={this.onScatterMouseOver}
+                onMouseEnter={this.onScatterMouseEnter}
                 onMouseLeave={this.onScatterMouseLeave}
                 onClick={this.onScatterClick}
+                quadtree={this.quadtree}
             />
         )
     }
@@ -650,21 +729,43 @@ export class ScatterPlotChart
             arrowLegend,
             sizeLegend,
             sidebarWidth,
-            tooltipSeries,
+            tooltipState: { target, position, fading },
             comparisonLines,
             legendDimensions,
         } = this
 
-        const sizeLegendY = bounds.top + legendDimensions.height + 8
+        const sizeLegendY = bounds.top + legendDimensions.height + 16
         const arrowLegendY = sizeLegend
             ? sizeLegendY + sizeLegend.height + 15
             : sizeLegendY
-        const tooltipY = arrowLegend
-            ? arrowLegendY + arrowLegend.height + 10
-            : arrowLegendY
+
+        const points = target?.series.points ?? []
+        const values = compact(uniq([first(points), last(points)]))
+
+        const { startTime, endTime, isRelativeMode } = this.manager,
+            { x: xStart, y: yStart } = first(values)?.time ?? {},
+            { x: xEnd, y: yEnd } = last(values)?.time ?? {}
+
+        const xNoticeNeeded =
+                (xStart !== undefined && xStart != startTime && xStart) ||
+                (xEnd !== undefined && xEnd != endTime && xEnd),
+            xNotice = xNoticeNeeded ? [xStart, xEnd] : []
+
+        const yNoticeNeeded =
+                (yStart !== undefined && yStart != startTime && yStart) ||
+                (yEnd !== undefined && yEnd != endTime && yEnd),
+            yNotice = yNoticeNeeded ? [yStart, yEnd] : []
+
+        const timeRange = uniq(compact([startTime, endTime]))
+                .map((t) => this.yColumn.formatTime(t))
+                .join(" to "),
+            targetNotice =
+                xNoticeNeeded || yNoticeNeeded ? timeRange : undefined,
+            timeLabel =
+                timeRange + (isRelativeMode ? " (avg. annual change)" : "")
 
         return (
-            <g className="ScatterPlot">
+            <g className="ScatterPlot" onMouseMove={this.onScatterMouseMove}>
                 <DualAxisComponent dualAxis={dualAxis} showTickMarks={false} />
                 {comparisonLines &&
                     comparisonLines.map((line, i) => (
@@ -676,34 +777,67 @@ export class ScatterPlotChart
                     ))}
                 {this.points}
                 <VerticalColorLegend manager={this} />
-                {this.sizeLegend?.render(this.legendX, sizeLegendY)}
-                {(arrowLegend || tooltipSeries) && (
-                    <line
-                        x1={bounds.right - sidebarWidth}
-                        y1={arrowLegendY - 7}
-                        x2={bounds.right - 5}
-                        y2={arrowLegendY - 7}
-                        stroke="#ccc"
-                    />
+                {sizeLegend && (
+                    <>
+                        <line
+                            x1={bounds.right - sidebarWidth}
+                            y1={sizeLegendY - 14}
+                            x2={bounds.right - 5}
+                            y2={sizeLegendY - 14}
+                            stroke="#ccc"
+                        />
+                        {sizeLegend.render(this.legendX, sizeLegendY)}
+                    </>
                 )}
                 {arrowLegend && (
-                    <g className="clickable" onClick={this.onToggleEndpoints}>
-                        {arrowLegend.render(
-                            bounds.right - sidebarWidth,
-                            arrowLegendY
-                        )}
-                    </g>
+                    <>
+                        <line
+                            x1={bounds.right - sidebarWidth}
+                            y1={arrowLegendY - 7}
+                            x2={bounds.right - 5}
+                            y2={arrowLegendY - 7}
+                            stroke="#ccc"
+                        />
+                        <g
+                            className="clickable"
+                            onClick={this.onToggleEndpoints}
+                        >
+                            {arrowLegend.render(
+                                bounds.right - sidebarWidth,
+                                arrowLegendY
+                            )}
+                        </g>
+                    </>
                 )}
-                {tooltipSeries && (
-                    <ScatterTooltip
-                        yColumn={this.yColumn!}
-                        xColumn={this.xColumn!}
-                        series={tooltipSeries}
-                        maxWidth={sidebarWidth}
-                        fontSize={this.fontSize}
-                        x={bounds.right - sidebarWidth}
-                        y={tooltipY}
-                    />
+                {target && (
+                    <Tooltip
+                        id="scatterTooltip"
+                        tooltipManager={this.manager}
+                        x={position.x}
+                        y={position.y}
+                        offsetX={20}
+                        offsetY={-16}
+                        style={{ maxWidth: "250px" }}
+                        title={target.series.label}
+                        subtitle={timeLabel}
+                        dissolve={fading}
+                        notice={targetNotice}
+                    >
+                        <TooltipValueRange
+                            column={this.xColumn}
+                            values={values.map((v) => v.x)}
+                            notice={xNotice}
+                        />
+                        <TooltipValueRange
+                            column={this.yColumn}
+                            values={values.map((v) => v.y)}
+                            notice={yNotice}
+                        />
+                        <TooltipValueRange
+                            column={this.sizeColumn}
+                            values={compact(values.map((v) => v.size))}
+                        />
+                    </Tooltip>
                 )}
             </g>
         )
