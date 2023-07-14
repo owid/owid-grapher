@@ -57,7 +57,7 @@ export function OwidGdoc({
         content.title
     }". Published online at OurWorldInData.org. Retrieved from: '${`${BAKED_BASE_URL}/${slug}`}' [Online Resource]`
 
-    const bibtex = `@article{owid${slug.replace(/-/g, "")},
+    const bibtex = `@article{owid${slug.replace(/[-\/]/g, "")},
     author = {${formatAuthors({
         authors: content.authors,
         forBibtex: true,
