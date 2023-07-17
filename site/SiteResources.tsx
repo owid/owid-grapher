@@ -7,11 +7,7 @@ export const SiteResources = () => {
                 <a href="/charts">Charts and Explorers</a>
             </li>
             <li>
-                <a
-                    href="https://sdg-tracker.org"
-                    target="_blank"
-                    rel="noopener"
-                >
+                <a href="/sdgs" target="_blank" rel="noopener">
                     Sustainable Development Goals Tracker
                 </a>
             </li>
