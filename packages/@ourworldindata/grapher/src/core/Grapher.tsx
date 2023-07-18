@@ -63,6 +63,7 @@ import {
     firstOfNonEmptyArray,
     spansToUnformattedPlainText,
     EnrichedDetail,
+    includesWithTypeGuard,
 } from "@ourworldindata/utils"
 import {
     ChartTypeName,
@@ -83,6 +84,7 @@ import {
     DEFAULT_GRAPHER_WIDTH,
     DEFAULT_GRAPHER_HEIGHT,
     SeriesStrategy,
+    GrapherTabOverlayOption,
 } from "../core/GrapherConstants"
 import Cookies from "js-cookie"
 import {
@@ -125,7 +127,6 @@ import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons"
 import {
     AbsRelToggleManager,
     FacetStrategyDropdownManager,
-    FooterControls,
     FooterControlsManager,
 } from "../controls/Controls"
 import { TooltipContainer } from "../tooltip/Tooltip"
@@ -334,7 +335,7 @@ export class Grapher
     @observable.ref hasChartTab: boolean = true
     @observable.ref hasMapTab: boolean = false
     @observable.ref tab = GrapherTabOption.chart
-    @observable.ref overlay?: GrapherTabOption = undefined
+    @observable.ref overlay?: GrapherTabOverlayOption = undefined
     @observable.ref internalNotes = ""
     @observable.ref variantName?: string = undefined
     @observable.ref originUrl = ""
@@ -518,16 +519,21 @@ export class Grapher
         // Set tab if specified
         const tab = params.tab
         if (tab) {
-            if (!this.availableTabs.includes(tab as GrapherTabOption))
+            if (!includesWithTypeGuard(this.availableTabs, tab))
                 console.error("Unexpected tab: " + tab)
-            else this.tab = tab as GrapherTabOption
+            else this.tab = tab
         }
 
         const overlay = params.overlay
         if (overlay) {
-            if (!this.availableTabs.includes(overlay as GrapherTabOption))
+            console.error("Unexpected overlay: " + overlay)
+            if (
+                !includesWithTypeGuard(this.availableTabOverlays, overlay) ||
+                // for backwards compatibility, we allow overlay to be a tab option
+                !includesWithTypeGuard(this.availableTabs, overlay)
+            )
                 console.error("Unexpected overlay: " + overlay)
-            else this.overlay = overlay as GrapherTabOption
+            else this.overlay = overlay
         }
 
         // Stack mode for bar and stacked area charts
@@ -1052,15 +1058,15 @@ export class Grapher
         return url
     }
 
-    @computed get overlayTab(): GrapherTabOption | undefined {
+    @computed get overlayTab(): GrapherTabOverlayOption | undefined {
         return this.overlay
     }
 
-    @computed get currentTab(): GrapherTabOption {
+    @computed get currentTab(): GrapherTabOption | GrapherTabOverlayOption {
         return this.overlay ? this.overlay : this.tab
     }
 
-    set currentTab(desiredTab: GrapherTabOption) {
+    set currentTab(desiredTab: GrapherTabOption | GrapherTabOverlayOption) {
         if (
             desiredTab === GrapherTabOption.chart ||
             desiredTab === GrapherTabOption.map ||
@@ -1072,7 +1078,10 @@ export class Grapher
         }
 
         // table tab cannot be downloaded, so revert to default tab
-        if (desiredTab === GrapherTabOption.download && this.isOnTableTab)
+        if (
+            desiredTab === GrapherTabOverlayOption.download &&
+            this.isOnTableTab
+        )
             this.tab = this.authorsVersion.tab ?? GrapherTabOption.chart
         this.overlay = desiredTab
     }
@@ -1194,9 +1203,14 @@ export class Grapher
             this.hasChartTab && GrapherTabOption.chart,
             this.hasMapTab && GrapherTabOption.map,
             this.hasTableTab && GrapherTabOption.table,
-            this.hasSourcesTab && GrapherTabOption.sources,
-            this.hasDownloadTab && GrapherTabOption.download,
         ].filter(identity) as GrapherTabOption[]
+    }
+
+    @computed get availableTabOverlays(): GrapherTabOverlayOption[] {
+        return [
+            this.hasSourcesTab && GrapherTabOverlayOption.sources,
+            this.hasDownloadTab && GrapherTabOverlayOption.download,
+        ].filter(identity) as GrapherTabOverlayOption[]
     }
 
     @computed get currentTitle(): string {
@@ -1808,17 +1822,17 @@ export class Grapher
         this.popups = this.popups.filter((d) => !(d.type === vnodeType))
     }
 
-    private renderPrimaryTab(): JSX.Element | undefined {
+    private renderPrimaryTab(): JSX.Element {
         return <CaptionedChart manager={this} />
     }
 
     private renderOverlayTab(): JSX.Element | undefined {
         const bounds = this.tabBounds
-        if (this.overlayTab === GrapherTabOption.sources)
+        if (this.overlayTab === GrapherTabOverlayOption.sources)
             return (
                 <SourcesTab key="sourcesTab" bounds={bounds} manager={this} />
             )
-        if (this.overlayTab === GrapherTabOption.download)
+        if (this.overlayTab === GrapherTabOverlayOption.download)
             return (
                 <DownloadTab key="downloadTab" bounds={bounds} manager={this} />
             )
@@ -2214,7 +2228,6 @@ export class Grapher
         return (
             <>
                 {this.hasBeenVisible && this.renderPrimaryTab()}
-                <FooterControls manager={this} />
                 {this.renderOverlayTab()}
                 {this.popups}
                 <TooltipContainer

@@ -4,6 +4,7 @@ import {
     ChartTypeName,
     EntitySelectionMode,
     GrapherTabOption,
+    GrapherTabOverlayOption,
     ScaleType,
 } from "./GrapherConstants"
 import {
@@ -220,11 +221,11 @@ describe("hasTimeline", () => {
         const grapher = new Grapher(legacyConfig)
         grapher.type = ChartTypeName.LineChart
 
-        grapher.currentTab = GrapherTabOption.sources
+        grapher.currentTab = GrapherTabOverlayOption.sources
         expect(grapher.hasTimeline).toBeTruthy()
         expect(grapher.showTimeline).toBeFalsy()
 
-        grapher.currentTab = GrapherTabOption.download
+        grapher.currentTab = GrapherTabOverlayOption.download
         expect(grapher.hasTimeline).toBeTruthy()
         expect(grapher.showTimeline).toBeFalsy()
     })

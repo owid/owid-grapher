@@ -4,7 +4,12 @@ import { MapProjectionName } from "./MapProjections"
 import { ChartManager } from "../chart/ChartManager"
 import { MapConfig } from "./MapConfig"
 import { Color, Time } from "@ourworldindata/core-table"
-import { ChartTypeName, SeriesName } from "../core/GrapherConstants"
+import {
+    ChartTypeName,
+    GrapherTabOption,
+    GrapherTabOverlayOption,
+    SeriesName,
+} from "../core/GrapherConstants"
 import { ChartSeries } from "../chart/ChartInterface"
 
 export type GeoFeature = GeoJSON.Feature<GeoJSON.GeometryObject>
@@ -50,7 +55,7 @@ export interface RenderFeature {
 export interface MapChartManager extends ChartManager {
     mapColumnSlug?: ColumnSlug
     mapIsClickable?: boolean
-    currentTab?: string // Used to switch to chart tab on map click
+    currentTab?: GrapherTabOption | GrapherTabOverlayOption // Used to switch to chart tab on map click
     type?: ChartTypeName // Used to determine the "Click to select" text in MapTooltip
     isLineChartThatTurnedIntoDiscreteBar?: boolean // Used to determine whether to reset the timeline on map click
     hasTimeline?: boolean // Used to determine whether to reset the timeline on map click
