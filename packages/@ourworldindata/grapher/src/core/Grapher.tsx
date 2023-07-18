@@ -135,7 +135,7 @@ import ReactDOM from "react-dom"
 import { observer } from "mobx-react"
 import "d3-transition"
 import { SourcesTab, SourcesTabManager } from "../sourcesTab/SourcesTab"
-import { DataTable, DataTableManager } from "../dataTable/DataTable"
+import { DataTableManager } from "../dataTable/DataTable"
 import { MapChartManager } from "../mapCharts/MapChartConstants"
 import { MapChart } from "../mapCharts/MapChart"
 import { DiscreteBarChartManager } from "../barCharts/DiscreteBarChartConstants"
@@ -587,12 +587,16 @@ export class Grapher
         ) as TimeBounds
     }
 
-    @computed private get isChartOrMapTab(): boolean {
+    @computed get isOnChartOrMapTab(): boolean {
         return this.tab === GrapherTabOption.chart || this.isOnMapTab
     }
 
-    @computed private get isOnMapTab(): boolean {
+    @computed get isOnMapTab(): boolean {
         return this.tab === GrapherTabOption.map
+    }
+
+    @computed get isOnTableTab(): boolean {
+        return this.tab === GrapherTabOption.table
     }
 
     @computed get yAxisConfig(): Readonly<AxisConfigInterface> {
@@ -643,7 +647,7 @@ export class Grapher
     @computed
     get tableAfterAuthorTimelineAndActiveChartTransform(): OwidTable {
         const table = this.tableAfterAuthorTimelineFilter
-        if (!this.isReady || !this.isChartOrMapTab) return table
+        if (!this.isReady || !this.isOnChartOrMapTab) return table
         return this.chartInstance.transformTable(table)
     }
 
@@ -1804,26 +1808,8 @@ export class Grapher
         this.popups = this.popups.filter((d) => !(d.type === vnodeType))
     }
 
-    @computed private get isOnTableTab(): boolean {
-        return this.tab === GrapherTabOption.table
-    }
-
     private renderPrimaryTab(): JSX.Element | undefined {
-        if (this.isChartOrMapTab) return <CaptionedChart manager={this} />
-
-        const { tabBounds } = this
-        if (this.isOnTableTab)
-            // todo: should this "Div" and styling just be in DataTable class?
-            return (
-                <div
-                    className="tableTab"
-                    style={{ ...tabBounds.toCSS(), position: "absolute" }}
-                >
-                    <DataTable bounds={tabBounds} manager={this} />
-                </div>
-            )
-
-        return undefined
+        return <CaptionedChart manager={this} />
     }
 
     private renderOverlayTab(): JSX.Element | undefined {

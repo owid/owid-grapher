@@ -70,7 +70,7 @@ const inverseSortOrder = (order: SortOrder): SortOrder =>
 
 export interface DataTableManager {
     table: OwidTable
-    entityType: string
+    entityType?: string
     endTime?: Time
     startTime?: Time
     dataTableSlugs?: ColumnSlug[]
@@ -135,11 +135,11 @@ export class DataTable extends React.Component<{
     }
 
     @computed private get entityType(): string {
-        return this.manager.entityType
+        return this.manager.entityType ?? "country or region"
     }
 
     @computed private get entitiesAreCountryLike(): boolean {
-        return !!this.manager.entityType.match(/\bcountry\b/i)
+        return !!this.entityType.match(/\bcountry\b/i)
     }
 
     @computed private get sortValueMapper(): (
@@ -413,8 +413,8 @@ export class DataTable extends React.Component<{
         return (
             <div
                 style={{
-                    width: "100%",
-                    height: "100%",
+                    width: `${this.bounds.width}px`,
+                    height: `${this.bounds.height}px`,
                     overflow: "auto",
                 }}
             >
