@@ -34,6 +34,8 @@ const SDGTile = ({
     goal: string
     link: string
 }) => {
+    const sdgNumberPadded = number.toString().padStart(2, "0")
+
     return (
         <li
             className="span-cols-2 span-lg-cols-4 span-sm-cols-8 col-sm-start-3"
@@ -45,7 +47,14 @@ const SDGTile = ({
             key={number}
         >
             <a href={link}>
-                <span className="display-1-semibold number">{number}</span>
+                <div
+                    className="sdg-grid__icon"
+                    style={{
+                        mask: `url(/images/sdg-icons/sdg-icon-${sdgNumberPadded}.svg) no-repeat center`,
+                        WebkitMask: `url(/images/sdg-icons/sdg-icon-${sdgNumberPadded}.svg) no-repeat center`,
+                    }}
+                />
+                <h4 className="overline-black-caps">SDG {number}</h4>
                 <span className="h3-bold goal">{goal}</span>
             </a>
         </li>
