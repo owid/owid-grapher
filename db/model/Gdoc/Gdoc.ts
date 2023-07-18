@@ -35,6 +35,7 @@ import {
     traverseEnrichedSpan,
     RelatedChart,
     BreadcrumbItem,
+    uniq,
 } from "@ourworldindata/utils"
 import {
     BAKED_GRAPHER_URL,
@@ -269,22 +270,21 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
     }
 
     getLinkedDocumentIds(): string[] {
-        return this.links
-            .filter((link) => link.linkType === "gdoc")
-            .map((link) => link.target)
+        return uniq(
+            this.links
+                .filter((link) => link.linkType === "gdoc")
+                .map((link) => link.target)
+        )
     }
 
     async loadLinkedDocuments(): Promise<void> {
         const linkedDocuments = await Promise.all(
-            this.getLinkedDocumentIds()
-                // filter duplicates
-                .filter((target, i, links) => links.indexOf(target) === i)
-                .map(async (target) => {
-                    const linkedDocument = await Gdoc.findOneBy({
-                        id: target,
-                    })
-                    return linkedDocument
+            this.getLinkedDocumentIds().map(async (target) => {
+                const linkedDocument = await Gdoc.findOneBy({
+                    id: target,
                 })
+                return linkedDocument
+            })
         ).then(excludeNull)
 
         this.linkedDocuments = keyBy(linkedDocuments, "id")
