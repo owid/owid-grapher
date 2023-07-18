@@ -1803,14 +1803,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@bugsnag/cuid@npm:^3.0.0":
-  version: 3.0.0
-  resolution: "@bugsnag/cuid@npm:3.0.0"
-  checksum: bf9ea46c63f921ca7ba6da2f577871db50145f0270094e55ae3e19237de2a8a2b92fd148e1a53446c3adb258158bb4f874ca0d3ca392c3f86f8a38c3a4285677
-  languageName: node
-  linkType: hard
-
-"@bugsnag/cuid@npm:^3.0.2":
+"@bugsnag/cuid@npm:^3.0.0, @bugsnag/cuid@npm:^3.0.2":
   version: 3.0.2
   resolution: "@bugsnag/cuid@npm:3.0.2"
   checksum: cf85d78f0107b25bcfc4396e5c2cf7eb58a28777f07b9c6e976d529417a8284bb69ec715f13917c2b6ad3803e7bb563621b0374c31e09d4c6b3156aba9939955
