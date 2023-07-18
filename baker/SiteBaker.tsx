@@ -2,7 +2,7 @@ import fs from "fs-extra"
 import { writeFile } from "node:fs/promises"
 import path from "path"
 import { glob } from "glob"
-import { keyBy, without, uniq, mapValues, chunk } from "lodash"
+import { keyBy, without, uniq, mapValues, chunk, pick } from "lodash"
 import cheerio from "cheerio"
 import ProgressBar from "progress"
 import * as wpdb from "../db/wpdb.js"
@@ -349,12 +349,21 @@ export class SiteBaker {
         )
 
         for (const publishedGdoc of publishedGdocs) {
-            publishedGdoc.imageMetadata = imageMetadataDictionary
-            publishedGdoc.linkedDocuments = publishedGdocsDictionary
+            // Pick the necessary metadata from the dictionaries we prefetched
+            publishedGdoc.linkedDocuments = pick(
+                publishedGdocsDictionary,
+                publishedGdoc.getLinkedDocumentIds()
+            )
+            publishedGdoc.imageMetadata = pick(
+                imageMetadataDictionary,
+                publishedGdoc.getLinkedImageFilenames()
+            )
+            const linkedChartSlugs = publishedGdoc.getLinkedChartSlugs()
             publishedGdoc.linkedCharts = {
-                ...publishedChartsBySlug,
-                ...publishedExplorersBySlug,
+                ...pick(publishedChartsBySlug, linkedChartSlugs.grapher),
+                ...pick(publishedExplorersBySlug, linkedChartSlugs.explorer),
             }
+
             // this is a no-op if the gdoc doesn't have an all-chart block
             await publishedGdoc.loadRelatedCharts()
 

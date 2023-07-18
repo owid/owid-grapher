@@ -248,14 +248,17 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
         return [...details]
     }
 
-    async loadImageMetadata(): Promise<void> {
+    getLinkedImageFilenames(): string[] {
         // Used for prominent links
         const featuredImages = Object.values(this.linkedDocuments)
             .map((gdoc: Gdoc) => gdoc.content["featured-image"])
             .filter((filename?: string): filename is string => !!filename)
 
-        const filenamesToLoad = [...this.filenames, ...featuredImages]
+        return [...this.filenames, ...featuredImages]
+    }
 
+    async loadImageMetadata(): Promise<void> {
+        const filenamesToLoad = this.getLinkedImageFilenames()
         if (filenamesToLoad.length) {
             await imageStore.fetchImageMetadata(filenamesToLoad)
             const images = await imageStore
@@ -265,11 +268,15 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
         }
     }
 
+    getLinkedDocumentIds(): string[] {
+        return this.links
+            .filter((link) => link.linkType === "gdoc")
+            .map((link) => link.target)
+    }
+
     async loadLinkedDocuments(): Promise<void> {
         const linkedDocuments = await Promise.all(
-            this.links
-                .filter((link) => link.linkType === "gdoc")
-                .map((link) => link.target)
+            this.getLinkedDocumentIds()
                 // filter duplicates
                 .filter((target, i, links) => links.indexOf(target) === i)
                 .map(async (target) => {
@@ -283,11 +290,8 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
         this.linkedDocuments = keyBy(linkedDocuments, "id")
     }
 
-    async loadLinkedCharts(
-        publishedExplorersBySlug: Record<string, any>
-    ): Promise<void> {
-        const slugToIdMap = await Chart.mapSlugsToIds()
-        const uniqueSlugsByLinkType = this.links.reduce(
+    getLinkedChartSlugs(): { grapher: string[]; explorer: string[] } {
+        const { grapher, explorer } = this.links.reduce(
             (slugsByLinkType, { linkType, target }) => {
                 if (linkType === "grapher" || linkType === "explorer") {
                     slugsByLinkType[linkType].add(target)
@@ -297,6 +301,14 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
             { grapher: new Set<string>(), explorer: new Set<string>() }
         )
 
+        return { grapher: [...grapher], explorer: [...explorer] }
+    }
+
+    async loadLinkedCharts(
+        publishedExplorersBySlug: Record<string, any>
+    ): Promise<void> {
+        const slugToIdMap = await Chart.mapSlugsToIds()
+        const uniqueSlugsByLinkType = this.getLinkedChartSlugs()
         const linkedGrapherCharts = await Promise.all(
             [...uniqueSlugsByLinkType.grapher.values()].map(
                 async (originalSlug) => {
