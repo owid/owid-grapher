@@ -96,25 +96,6 @@ export const ReferencesSection = (props: {
     ) : (
         <></>
     )
-    const legacySdgCharts = props.references?.legacySdgCharts?.length ? (
-        <>
-            <React.Fragment>
-                <p>
-                    Legacy SDG referenced charts (slugs of charts only, links to
-                    precise SDG page are not available):
-                </p>
-                <ul className="list-group">
-                    {props.references.legacySdgCharts.map((sdgSlug) => (
-                        <li key={sdgSlug} className="list-group-item">
-                            {sdgSlug}
-                        </li>
-                    ))}
-                </ul>
-            </React.Fragment>
-        </>
-    ) : (
-        <></>
-    )
 
     return (
         <>
@@ -125,7 +106,6 @@ export const ReferencesSection = (props: {
                     {wpPosts}
                     {gdocsPosts}
                     {explorers}
-                    {legacySdgCharts}
                 </>
             ) : (
                 <p>No references found</p>
