@@ -153,7 +153,7 @@ class TooltipCard extends React.Component<
                                 {timeNotice && (
                                     <FontAwesomeIcon icon={faInfoCircle} />
                                 )}
-                                {subtitle}
+                                <span>{subtitle}</span>
                             </div>
                         )}
                     </div>

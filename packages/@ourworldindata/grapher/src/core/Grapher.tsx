@@ -2229,7 +2229,7 @@ export class Grapher
             <>
                 {this.hasBeenVisible && this.renderPrimaryTab()}
                 <FooterControls manager={this} />
-                {this.renderOverlayTab()}
+                {this.hasBeenVisible && this.renderOverlayTab()}
                 {this.popups}
                 <TooltipContainer
                     containerWidth={this.renderWidth}
