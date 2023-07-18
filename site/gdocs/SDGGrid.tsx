@@ -1,6 +1,7 @@
 import React from "react"
 import { EnrichedBlockSDGGrid } from "@ourworldindata/utils"
 import cx from "classnames"
+import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
 
 export default function SDGGrid({
     d,
@@ -35,6 +36,7 @@ const SDGTile = ({
     link: string
 }) => {
     const sdgNumberPadded = number.toString().padStart(2, "0")
+    const sdgIconUrl = `${BAKED_BASE_URL}/images/sdg-icons/sdg-icon-${sdgNumberPadded}.svg`
 
     return (
         <li
@@ -50,8 +52,8 @@ const SDGTile = ({
                 <div
                     className="sdg-grid__icon"
                     style={{
-                        mask: `url(/images/sdg-icons/sdg-icon-${sdgNumberPadded}.svg) no-repeat center`,
-                        WebkitMask: `url(/images/sdg-icons/sdg-icon-${sdgNumberPadded}.svg) no-repeat center`,
+                        mask: `url(${sdgIconUrl}) no-repeat center`,
+                        WebkitMask: `url(${sdgIconUrl}) no-repeat center`,
                     }}
                 />
                 <h4 className="overline-black-caps">SDG {number}</h4>
