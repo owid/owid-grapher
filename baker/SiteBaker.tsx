@@ -2,7 +2,7 @@ import fs from "fs-extra"
 import { writeFile } from "node:fs/promises"
 import path from "path"
 import { glob } from "glob"
-import { keyBy, without, uniq, mapValues } from "lodash"
+import { keyBy, without, uniq, mapValues, chunk } from "lodash"
 import cheerio from "cheerio"
 import ProgressBar from "progress"
 import * as wpdb from "../db/wpdb.js"
@@ -587,55 +587,62 @@ export class SiteBaker {
             "published"
         )
 
-        await Promise.all(
-            images.map(async (image) => {
-                const remoteFilePath = path.join(
-                    IMAGE_HOSTING_CDN_URL,
-                    IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH,
-                    image.filename
-                )
-                return fetch(remoteFilePath)
-                    .then((response) => {
-                        if (!response.ok) {
-                            throw new Error(
-                                `Fetching image failed: ${response.status} ${response.statusText} ${response.url}`
-                            )
-                        }
-                        return response.arrayBuffer()
-                    })
-                    .then((arrayBuffer) => Buffer.from(arrayBuffer))
-                    .then(async (buffer) => {
-                        if (!image.isSvg) {
-                            await Promise.all(
-                                image.sizes!.map((width) => {
-                                    const localResizedFilepath = path.join(
-                                        imagesDirectory,
-                                        `${image.filenameWithoutExtension}_${width}.webp`
+        const imageChunks = chunk(images, 10)
+        for (const imageChunk of imageChunks) {
+            await Promise.all(
+                imageChunk.map(async (image) => {
+                    const remoteFilePath = path.join(
+                        IMAGE_HOSTING_CDN_URL,
+                        IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH,
+                        image.filename
+                    )
+                    return fetch(remoteFilePath)
+                        .then((response) => {
+                            if (!response.ok) {
+                                throw new Error(
+                                    `Fetching image failed: ${response.status} ${response.statusText} ${response.url}`
+                                )
+                            }
+                            return response.arrayBuffer()
+                        })
+                        .then((arrayBuffer) => Buffer.from(arrayBuffer))
+                        .then(async (buffer) => {
+                            if (!image.isSvg) {
+                                await Promise.all(
+                                    image.sizes!.map((width) => {
+                                        const localResizedFilepath = path.join(
+                                            imagesDirectory,
+                                            `${image.filenameWithoutExtension}_${width}.webp`
+                                        )
+                                        return sharp(buffer)
+                                            .resize(width)
+                                            .webp({
+                                                lossless: true,
+                                            })
+                                            .toFile(localResizedFilepath)
+                                    })
+                                )
+                            } else {
+                                // A PNG alternative to the SVG for the "Download image" link
+                                const pngFilename = getFilenameAsPng(
+                                    image.filename
+                                )
+                                await sharp(buffer)
+                                    .resize(2000)
+                                    .png()
+                                    .toFile(
+                                        path.join(imagesDirectory, pngFilename)
                                     )
-                                    return sharp(buffer)
-                                        .resize(width)
-                                        .webp({
-                                            lossless: true,
-                                        })
-                                        .toFile(localResizedFilepath)
-                                })
+                            }
+                            // For SVG, and a non-webp fallback copy of the image
+                            await writeFile(
+                                path.join(imagesDirectory, image.filename),
+                                buffer
                             )
-                        } else {
-                            // A PNG alternative to the SVG for the "Download image" link
-                            const pngFilename = getFilenameAsPng(image.filename)
-                            await sharp(buffer)
-                                .resize(2000)
-                                .png()
-                                .toFile(path.join(imagesDirectory, pngFilename))
-                        }
-                        // For SVG, and a non-webp fallback copy of the image
-                        await writeFile(
-                            path.join(imagesDirectory, image.filename),
-                            buffer
-                        )
-                    })
-            })
-        )
+                        })
+                })
+            )
+        }
         this.progressBar.tick({ name: "✅ baked google drive images" })
     }
 
