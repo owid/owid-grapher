@@ -322,7 +322,7 @@ export const FrontPage = (props: {
                     <div className="wrapper">
                         <div className="list">
                             <a
-                                href="https://sdg-tracker.org"
+                                href="/sdgs"
                                 className="list-item"
                                 data-track-note="homepage_projects"
                             >
