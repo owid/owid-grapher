@@ -496,11 +496,12 @@ export const bakeSingleGrapherChart = async (
 export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
     async (bakedSiteDir: string) => {
         const variablesToBake: { varId: number }[] =
-            await db.queryMysql(`select distinct vars.varID as varId
-            from
-            charts c,
+            await db.queryMysql(`select vars.varID as varId
+            from charts c,
             json_table(c.config, '$.dimensions[*]' columns (varID integer path '$.variableId') ) as vars
-            where JSON_EXTRACT(c.config, '$.isPublished')=true`)
+            where JSON_EXTRACT(c.config, '$.isPublished')=true
+            union
+            select variableId as varId from explorer_variables`)
 
         const chartsToBake: { id: number; config: string; slug: string }[] =
             await db.queryMysql(`
