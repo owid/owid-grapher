@@ -44,12 +44,6 @@ $banner-height: 200px;
     padding-top: 48px;
 }
 
-.centered-article-header--has-long-breadcrumbs {
-    @include sm-only {
-        margin-top: 100px;
-    }
-}
-
 .article-block__text {
     margin-top: 0;
 }
