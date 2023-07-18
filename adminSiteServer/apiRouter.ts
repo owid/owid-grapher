@@ -203,7 +203,6 @@ const getReferencesByChartId = async (chartId: number): Promise<References> => {
             postsGdocs: [],
             postsWordpress: [],
             explorers: [],
-            legacySdgCharts: [],
         }
 
     const postsPromise = getPostsForSlugs(slugs)
@@ -216,30 +215,13 @@ const getReferencesByChartId = async (chartId: number): Promise<References> => {
         `select distinct explorerSlug from explorer_charts where chartId = ?`,
         [chartId]
     )
-    const legacySdgChartReferencesPromise = db.queryMysql(
-        `-- sql
-        select
-            slug
-        from
-            legacy_sdg_chart_references
-        where
-            slug in (?)
-        `,
-        [slugs]
-    )
-    const [
-        posts,
-        permalinks,
-        publishedLinksToChart,
-        explorerSlugs,
-        legacySdgChartReferences,
-    ] = await Promise.all([
-        postsPromise,
-        permalinksPromise,
-        publishedLinksToChartPromise,
-        explorerSlugsPromise,
-        legacySdgChartReferencesPromise,
-    ])
+    const [posts, permalinks, publishedLinksToChart, explorerSlugs] =
+        await Promise.all([
+            postsPromise,
+            permalinksPromise,
+            publishedLinksToChartPromise,
+            explorerSlugsPromise,
+        ])
 
     const publishedGdocPostsThatReferenceChart = publishedLinksToChart.map(
         (link) => ({
@@ -265,9 +247,6 @@ const getReferencesByChartId = async (chartId: number): Promise<References> => {
         postsWordpress: publishedWPPostsThatReferenceChart,
         explorers: explorerSlugs.map(
             (row: { explorerSlug: string }) => row.explorerSlug
-        ),
-        legacySdgCharts: legacySdgChartReferences.map(
-            (row: { slug: string }) => row.slug
         ),
     }
 }

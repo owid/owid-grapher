@@ -38,15 +38,13 @@ export interface References {
     postsWordpress: PostReference[]
     postsGdocs: PostReference[]
     explorers: string[]
-    legacySdgCharts: string[]
 }
 
 export const getFullReferencesCount = (references: References): number => {
     return (
         references.postsWordpress.length +
         references.postsGdocs.length +
-        references.explorers.length +
-        references.legacySdgCharts.length
+        references.explorers.length
     )
 }
 
