@@ -118,8 +118,10 @@ export const getVariableDataRoute = (
     variableId: number
 ): string => {
     if (dataBaseUrl.includes("v1/indicators/")) {
+        // fetching from Data API, e.g. https://api.ourworldindata.org/v1/indicators/123.data.json
         return `${dataBaseUrl}${variableId}.data.json`
     } else {
+        // fetching from the same domain, e.g. https://ourworldindata.org/grapher/data/variables/data/123.json
         return `${dataBaseUrl}data/${variableId}.json`
     }
 }
@@ -129,8 +131,10 @@ export const getVariableMetadataRoute = (
     variableId: number
 ): string => {
     if (dataBaseUrl.includes("v1/indicators/")) {
+        // fetching from Data API, e.g. https://api.ourworldindata.org/v1/indicators/123.metadata.json
         return `${dataBaseUrl}${variableId}.metadata.json`
     } else {
+        // fetching from the same domain, e.g. https://ourworldindata.org/grapher/data/variables/metadata/123.json
         return `${dataBaseUrl}metadata/${variableId}.json`
     }
 }

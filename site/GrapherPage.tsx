@@ -60,8 +60,8 @@ export const GrapherPage = (props: {
     //     `${grapher.slug}.png?v=${grapher.version}`
     // )
     const imageUrl: string = urljoin(baseUrl, "default-grapher-thumbnail.png")
-    const imageWidth: string = "1200"
-    const imageHeight: string = "628"
+    const imageWidth = "1200"
+    const imageHeight = "628"
 
     const script = `const jsonConfig = ${serializeJSONForHTML({
         ...grapher,
@@ -70,9 +70,6 @@ export const GrapherPage = (props: {
         dataBaseUrl: DATA_BASE_URL,
     })}
 window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
-
-    const dataBaseUrl =
-        DATA_BASE_URL || `${BAKED_GRAPHER_URL ?? ""}/data/variables/`
 
     const variableIds = uniq(grapher.dimensions!.map((d) => d.variableId))
 
@@ -96,8 +93,8 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                 {flatten(
                     variableIds.map((variableId) =>
                         [
-                            getVariableDataRoute(dataBaseUrl, variableId),
-                            getVariableMetadataRoute(dataBaseUrl, variableId),
+                            getVariableDataRoute(DATA_BASE_URL, variableId),
+                            getVariableMetadataRoute(DATA_BASE_URL, variableId),
                         ].map((href) => (
                             <link
                                 key={href}

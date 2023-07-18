@@ -71,11 +71,8 @@ export const DataPage = (props: {
     //     `${grapher.slug}.png?v=${grapher.version}`
     // )
     const imageUrl: string = urljoin(baseUrl, "default-grapher-thumbnail.png")
-    const imageWidth: string = "1200"
-    const imageHeight: string = "628"
-
-    const dataBaseUrl =
-        DATA_BASE_URL || `${BAKED_GRAPHER_URL ?? ""}/data/variables/`
+    const imageWidth = "1200"
+    const imageHeight = "628"
 
     const variableIds = uniq(grapher.dimensions!.map((d) => d.variableId))
 
@@ -106,8 +103,8 @@ export const DataPage = (props: {
                 </noscript>
                 {variableIds.flatMap((variableId) =>
                     [
-                        getVariableDataRoute(dataBaseUrl, variableId),
-                        getVariableMetadataRoute(dataBaseUrl, variableId),
+                        getVariableDataRoute(DATA_BASE_URL, variableId),
+                        getVariableMetadataRoute(DATA_BASE_URL, variableId),
                     ].map((href) => (
                         <link
                             key={href}
