@@ -218,6 +218,13 @@ export const configureAlgolia = async () => {
             "satisfaction",
             "life satisfaction",
         ],
+        [
+            "sdg",
+            "sdgs",
+            "sustainable development goal",
+            "sustainable development goals",
+            "sdg tracker",
+        ],
     ]
 
     // Send all our country variant names to algolia as synonyms
