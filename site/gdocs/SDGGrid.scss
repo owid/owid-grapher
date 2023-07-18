@@ -41,32 +41,16 @@
                 background-color: $blue-30;
             }
 
+            .goal {
+                margin: 0;
+            }
+
             &:hover {
                 border-color: var(--sdg-color);
                 .sdg-grid__icon {
                     background-color: var(--sdg-color);
                 }
-
-                .number {
-                    text-decoration-color: $white;
-                }
-
-                img {
-                    filter: unset;
-                    -webkit-filter: unset;
-                }
             }
-        }
-
-        .number {
-            display: inline-block;
-            margin: 0;
-            text-decoration: underline 2px solid $blue-20;
-            text-underline-offset: 24px;
-        }
-
-        .goal {
-            margin: 0;
         }
     }
 }
