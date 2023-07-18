@@ -6,6 +6,7 @@ import { isPathRedirectedToExplorer } from "../../explorerAdminServer/ExplorerRe
 import { ChartRecord } from "../../site/search/searchTypes.js"
 import { MarkdownTextWrap } from "@ourworldindata/utils"
 import { Pageview } from "../../db/model/Pageview.js"
+import { Link } from "../../db/model/Link.js"
 
 const computeScore = (record: Omit<ChartRecord, "score">): number => {
     const { numRelatedArticles, views_7d } = record
@@ -51,6 +52,7 @@ const getChartsRecords = async (): Promise<ChartRecord[]> => {
         if (isPathRedirectedToExplorer(`/grapher/${c.slug}`)) continue
 
         const relatedArticles = (await getRelatedArticles(c.id)) ?? []
+        const linksFromGdocs = await Link.getPublishedLinksTo(c.slug, "grapher")
 
         const plaintextSubtitle = new MarkdownTextWrap({
             text: c.subtitle,
@@ -72,7 +74,7 @@ const getChartsRecords = async (): Promise<ChartRecord[]> => {
             keyChartForTags: c.keyChartForTags,
             titleLength: c.title.length,
             // Number of references to this chart in all our posts and pages
-            numRelatedArticles: relatedArticles.length,
+            numRelatedArticles: relatedArticles.length + linksFromGdocs.length,
             views_7d: pageviews[`/grapher/${c.slug}`]?.views_7d ?? 0,
         }
         const score = computeScore(record)
