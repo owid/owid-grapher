@@ -21,17 +21,38 @@
             height: 193px;
             text-align: center;
             padding: 0 20px;
-            border: 2px solid var(--sdg-color);
+            border: 2px solid $blue-30;
             text-decoration: none;
             color: $blue-100;
             background-color: $white;
             transition: 0.15s all;
+
+            h4 {
+                margin: 0;
+                color: $blue-30;
+            }
+
+            .sdg-grid__icon {
+                height: 64px;
+                width: 64px;
+                margin: 0 auto;
+                margin-top: 16px;
+                background-color: $blue-30;
+            }
+
             &:hover {
-                background-color: var(--sdg-color);
-                color: $white;
+                border-color: var(--sdg-color);
+                .sdg-grid__icon {
+                    background-color: var(--sdg-color);
+                }
 
                 .number {
                     text-decoration-color: $white;
+                }
+
+                img {
+                    filter: unset;
+                    -webkit-filter: unset;
                 }
             }
         }
@@ -44,7 +65,7 @@
         }
 
         .goal {
-            margin: auto;
+            margin: 0;
         }
     }
 }
