@@ -34,9 +34,9 @@ export const BAKED_GRAPHER_EXPORTS_BASE_URL: string =
 export const ADMIN_BASE_URL: string =
     process.env.ADMIN_BASE_URL ??
     `http://${ADMIN_SERVER_HOST}:${ADMIN_SERVER_PORT}`
-// e.g. "https://api.ourworldindata.org/v1/indicators/", fallback to BAKED_GRAPHER_URL if not given
-export const DATA_BASE_URL: string =
-    process.env.DATA_BASE_URL ?? `${BAKED_GRAPHER_URL ?? ""}/data/variables/`
+// e.g. "https://api.ourworldindata.org/v1/indicators/" or "https://api-staging.owid.io/mojmir/v1/indicators/"
+export const DATA_API_URL: string =
+    process.env.DATA_API_URL ?? "https://api.ourworldindata.org/v1/indicators/"
 export const WORDPRESS_URL: string = process.env.WORDPRESS_URL ?? ""
 
 export const ALGOLIA_ID: string = process.env.ALGOLIA_ID ?? ""

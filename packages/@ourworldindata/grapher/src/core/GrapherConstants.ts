@@ -114,28 +114,26 @@ export enum ScatterPointLabelStrategy {
 export type SeriesName = string
 
 export const getVariableDataRoute = (
-    dataBaseUrl: string,
+    dataApiUrl: string,
     variableId: number
 ): string => {
-    if (dataBaseUrl.includes("v1/indicators/")) {
+    if (dataApiUrl.includes("v1/indicators/")) {
         // fetching from Data API, e.g. https://api.ourworldindata.org/v1/indicators/123.data.json
-        return `${dataBaseUrl}${variableId}.data.json`
+        return `${dataApiUrl}${variableId}.data.json`
     } else {
-        // fetching from the same domain, e.g. https://ourworldindata.org/grapher/data/variables/data/123.json
-        return `${dataBaseUrl}data/${variableId}.json`
+        throw new Error(`dataApiUrl format not supported: ${dataApiUrl}`)
     }
 }
 
 export const getVariableMetadataRoute = (
-    dataBaseUrl: string,
+    dataApiUrl: string,
     variableId: number
 ): string => {
-    if (dataBaseUrl.includes("v1/indicators/")) {
+    if (dataApiUrl.includes("v1/indicators/")) {
         // fetching from Data API, e.g. https://api.ourworldindata.org/v1/indicators/123.metadata.json
-        return `${dataBaseUrl}${variableId}.metadata.json`
+        return `${dataApiUrl}${variableId}.metadata.json`
     } else {
-        // fetching from the same domain, e.g. https://ourworldindata.org/grapher/data/variables/metadata/123.json
-        return `${dataBaseUrl}metadata/${variableId}.json`
+        throw new Error(`dataApiUrl format not supported: ${dataApiUrl}`)
     }
 }
 

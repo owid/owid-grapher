@@ -214,12 +214,12 @@ async function loadVariablesDataAdmin(
 
 async function loadVariablesDataSite(
     variableIds: number[],
-    dataBaseUrl: string
+    dataApiUrl: string
 ): Promise<MultipleOwidVariableDataDimensionsMap> {
     const loadVariableDataPromises = variableIds.map(async (variableId) => {
-        const dataPromise = fetch(getVariableDataRoute(dataBaseUrl, variableId))
+        const dataPromise = fetch(getVariableDataRoute(dataApiUrl, variableId))
         const metadataPromise = fetch(
-            getVariableMetadataRoute(dataBaseUrl, variableId)
+            getVariableMetadataRoute(dataApiUrl, variableId)
         )
         const [dataResponse, metadataResponse] = await Promise.all([
             dataPromise,
@@ -250,7 +250,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     table?: OwidTable
     bakedGrapherURL?: string
     adminBaseUrl?: string
-    dataBaseUrl?: string
+    dataApiUrl?: string
     env?: string
     dataApiUrlForAdmin?: string
     annotation?: Annotation
@@ -407,7 +407,8 @@ export class Grapher
         typeof window !== "undefined" && (window as any).isEditor === true
     @observable bakedGrapherURL = this.props.bakedGrapherURL
     adminBaseUrl = this.props.adminBaseUrl
-    dataBaseUrl = this.props.dataBaseUrl || `${this.bakedGrapherURL ?? ""}/data/variables/`
+    dataApiUrl =
+        this.props.dataApiUrl ?? "https://api.ourworldindata.org/v1/indicators/"
 
     @observable.ref inputTable: OwidTable
 
@@ -768,7 +769,7 @@ export class Grapher
             } else {
                 const variablesDataMap = await loadVariablesDataSite(
                     this.variableIds,
-                    this.dataBaseUrl
+                    this.dataApiUrl
                 )
                 this._receiveOwidDataAndApplySelection(variablesDataMap)
             }

@@ -20,7 +20,7 @@ import urljoin from "url-join"
 import {
     ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
-    DATA_BASE_URL,
+    DATA_API_URL,
 } from "../settings/clientSettings.js"
 import { ChartListItemVariant } from "./ChartListItemVariant.js"
 import { Head } from "./Head.js"
@@ -67,7 +67,7 @@ export const GrapherPage = (props: {
         ...grapher,
         adminBaseUrl: ADMIN_BASE_URL,
         bakedGrapherURL: BAKED_GRAPHER_URL,
-        dataBaseUrl: DATA_BASE_URL,
+        dataApiUrl: DATA_API_URL,
     })}
 window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
 
@@ -93,8 +93,8 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                 {flatten(
                     variableIds.map((variableId) =>
                         [
-                            getVariableDataRoute(DATA_BASE_URL, variableId),
-                            getVariableMetadataRoute(DATA_BASE_URL, variableId),
+                            getVariableDataRoute(DATA_API_URL, variableId),
+                            getVariableMetadataRoute(DATA_API_URL, variableId),
                         ].map((href) => (
                             <link
                                 key={href}
