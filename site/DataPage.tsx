@@ -77,8 +77,6 @@ export const DataPage = (props: {
 
     const grapherConfig: GrapherProgrammaticInterface = {
         ...grapher,
-        isEmbeddedInADataPage: true,
-        bindUrlToWindow: true,
         bakedGrapherURL: BAKED_GRAPHER_URL,
         adminBaseUrl: ADMIN_BASE_URL,
     }
