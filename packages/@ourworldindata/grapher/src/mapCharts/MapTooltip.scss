@@ -1,3 +1,6 @@
+$inset: 15px; // space between the sparkline and tooltip frame
+$nudge: 3px; // step away from the axis
+
 .sparkline {
     padding-bottom: 4px;
 
@@ -31,9 +34,28 @@
         stroke: #dadada;
     }
 
-    .min-max-labels text {
-        font: 700 10px Lato;
-        text-anchor: end;
-        fill: #787878;
+    .axis-label {
+        &.max {
+            transform: translate(calc(100% - $inset - $nudge), $inset - $nudge);
+        }
+
+        &.min {
+            transform: translate(
+                calc(100% - $inset - $nudge),
+                calc(100% - $inset - 2 * $nudge)
+            );
+        }
+
+        text {
+            font: 400 10px Lato;
+            letter-spacing: 0.01em;
+            font-style: italic;
+            text-anchor: end;
+            fill: #787878;
+            &.outline {
+                stroke: rgba(255, 255, 255, 0.85);
+                stroke-width: 2px;
+            }
+        }
     }
 }
