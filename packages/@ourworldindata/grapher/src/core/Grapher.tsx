@@ -407,7 +407,7 @@ export class Grapher
         typeof window !== "undefined" && (window as any).isEditor === true
     @observable bakedGrapherURL = this.props.bakedGrapherURL
     adminBaseUrl = this.props.adminBaseUrl
-    dataBaseUrl = this.props.dataBaseUrl
+    dataBaseUrl = this.props.dataBaseUrl || `${this.bakedGrapherURL ?? ""}/data/variables/`
 
     @observable.ref inputTable: OwidTable
 
@@ -768,7 +768,7 @@ export class Grapher
             } else {
                 const variablesDataMap = await loadVariablesDataSite(
                     this.variableIds,
-                    this.dataBaseUrl!
+                    this.dataBaseUrl
                 )
                 this._receiveOwidDataAndApplySelection(variablesDataMap)
             }

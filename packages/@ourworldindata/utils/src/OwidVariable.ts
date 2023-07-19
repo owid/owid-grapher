@@ -50,8 +50,6 @@ export class OwidVariableDisplayConfig
     }
 }
 
-export type OwidVariableTypeOptions = "string" | "float" | "int" | "mixed"
-
 export interface OwidVariableWithSource {
     id: number
     name?: string
@@ -83,10 +81,6 @@ export interface OwidVariableMixedData {
 
 export type OwidVariableWithDataAndSource = OwidVariableWithSource &
     OwidVariableMixedData
-
-export type OwidVariableWithSourceAndType = OwidVariableWithSource & {
-    type: OwidVariableTypeOptions
-}
 
 export interface OwidVariableDimension {
     values: OwidVariableDimensionValuePartial[]
