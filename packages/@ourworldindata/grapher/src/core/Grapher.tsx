@@ -210,19 +210,44 @@ async function loadVariablesDataAdmin(
     return variablesDataMap
 }
 
+const BUGSNAG_SAMPLE_RATE = 0.1
+
+/** This function is a temporary workaround creatd on 2023-07-19 to let us sample a fraction
+    of our data/metadata requests to Bugsnag. We are doing this because we are hitting our
+    Bugsnag quota even though this should automatically throttle. This function will, with a
+    probability of BUGSNAG_SAMPLE_RATE, start a Bugsnag performance span and end it when the
+    promise resolves. The data is fetched always.
+ */
+async function fetchDataAndPossiblySamplePerfomance<T>(
+    spanName: string,
+    fn: () => Promise<T>
+): Promise<T> {
+    const randomFloat = Math.random()
+    let span
+    if (randomFloat < BUGSNAG_SAMPLE_RATE) {
+        span = BugsnagPerformance.startSpan(spanName)
+    }
+    const result = await fn()
+    if (span) span.end()
+    return result
+}
+
 async function loadVariablesDataSite(
     variableIds: number[],
     baseUrl: string
 ): Promise<MultipleOwidVariableDataDimensionsMap> {
     const loadVariableDataPromises = variableIds.map(async (variableId) => {
-        const span = BugsnagPerformance.startSpan("Data-fetch")
-        const dataPromise = fetch(`${baseUrl}data/${variableId}.json`)
-        const metadataPromise = fetch(`${baseUrl}metadata/${variableId}.json`)
-        const [dataResponse, metadataResponse] = await Promise.all([
-            dataPromise,
-            metadataPromise,
-        ])
-        span.end()
+        const fetchFn = async (): Promise<[Response, Response]> => {
+            const dataPromise = fetch(`${baseUrl}data/${variableId}.json`)
+            const metadataPromise = fetch(
+                `${baseUrl}metadata/${variableId}.json`
+            )
+            const result = await Promise.all([dataPromise, metadataPromise])
+            return result
+        }
+        const [dataResponse, metadataResponse] =
+            await fetchDataAndPossiblySamplePerfomance(baseUrl, fetchFn)
+
         if (!dataResponse.ok) throw new Error(dataResponse.statusText)
         if (!metadataResponse.ok) throw new Error(metadataResponse.statusText)
         const data = await dataResponse.json()
