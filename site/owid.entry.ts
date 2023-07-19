@@ -51,7 +51,7 @@ if (BUGSNAG_API_KEY) {
             apiKey: BUGSNAG_API_KEY,
             plugins: [new BugsnagPluginReact()],
         })
-        BugsnagPerformance.start(BUGSNAG_API_KEY)
+        // BugsnagPerformance.start(BUGSNAG_API_KEY)
     } catch (error) {
         console.error("Failed to initialize Bugsnag")
     }
