@@ -408,7 +408,7 @@ export const bakeAllPublishedChartsVariableDataAndMetadata = async (
     await fs.mkdirp(checksumsDir)
 
     const progressBar = new ProgressBar(
-        "bake variable data/metadata json [:bar] :current/:total :elapseds :rate/s :etas :name\n",
+        "check existence of variable in Data API [:bar] :current/:total :elapseds :rate/s :etas :name\n",
         {
             width: 20,
             total: variableIds.length + 1,
