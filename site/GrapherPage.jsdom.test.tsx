@@ -75,7 +75,7 @@ describe("when the page is rendered", () => {
             view
                 .find(`link[rel="preload"]`)
                 .filterWhere((element: any): boolean =>
-                    element.prop("href").endsWith("/data/3512.json")
+                    element.prop("href").endsWith("/3512.data.json")
                 )
         ).toHaveLength(1)
 
@@ -83,7 +83,7 @@ describe("when the page is rendered", () => {
             view
                 .find(`link[rel="preload"]`)
                 .filterWhere((element: any): boolean =>
-                    element.prop("href").endsWith("/metadata/3512.json")
+                    element.prop("href").endsWith("/3512.metadata.json")
                 )
         ).toHaveLength(1)
     })
