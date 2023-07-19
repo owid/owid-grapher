@@ -127,7 +127,6 @@ import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons"
 import {
     AbsRelToggleManager,
     FacetStrategyDropdownManager,
-    FooterControlsManager,
 } from "../controls/Controls"
 import { TooltipContainer } from "../tooltip/Tooltip"
 import { EntitySelectorModal } from "../controls/EntitySelectorModal"
@@ -296,7 +295,6 @@ export class Grapher
         ShareMenuManager,
         AbsRelToggleManager,
         TooltipManager,
-        FooterControlsManager,
         DataTableManager,
         ScatterPlotManager,
         MarimekkoChartManager,
@@ -1788,10 +1786,7 @@ export class Grapher
     }
 
     @computed get tabBounds(): Bounds {
-        const bounds = new Bounds(0, 0, this.renderWidth, this.renderHeight)
-        return this.isExportingtoSvgOrPng
-            ? bounds
-            : bounds.padBottom(this.footerControlsHeight)
+        return new Bounds(0, 0, this.renderWidth, this.renderHeight)
     }
 
     @observable.ref private popups: JSX.Element[] = []
@@ -2357,18 +2352,6 @@ export class Grapher
             hasRelatedQuestion &&
             getWindowUrl().pathname !==
                 Url.fromURL(this.relatedQuestions[0]?.url).pathname
-        )
-    }
-
-    @computed private get footerControlsLines(): number {
-        return this.hasTimeline ? 2 : 1
-    }
-
-    @computed get footerControlsHeight(): number {
-        const footerRowHeight = 32 // todo: cleanup. needs to keep in sync with grapher.scss' $footerRowHeight
-        return (
-            this.footerControlsLines * footerRowHeight +
-            (this.hasRelatedQuestion ? 20 : 0)
         )
     }
 

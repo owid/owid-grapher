@@ -413,8 +413,8 @@ export class DataTable extends React.Component<{
         return (
             <div
                 style={{
-                    width: `${this.bounds.width}px`,
-                    height: `${this.bounds.height}px`,
+                    width: "100%",
+                    height: "100%",
                     overflow: "auto",
                 }}
             >

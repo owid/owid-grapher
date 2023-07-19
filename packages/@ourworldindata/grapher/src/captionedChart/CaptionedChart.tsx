@@ -20,15 +20,19 @@ import {
     FacetStrategy,
     GrapherTabOption,
     Patterns,
+    RelatedQuestionsConfig,
     STATIC_EXPORT_DETAIL_SPACING,
 } from "../core/GrapherConstants"
 import { MapChartManager } from "../mapCharts/MapChartConstants"
 import { ChartManager } from "../chart/ChartManager"
 import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
 import { FacetChart } from "../facetChart/FacetChart"
-import { faRightLeft, faPencilAlt } from "@fortawesome/free-solid-svg-icons"
+import {
+    faRightLeft,
+    faPencilAlt,
+    faExternalLinkAlt,
+} from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { CollapsibleList } from "../controls/CollapsibleList/CollapsibleList"
 import {
     ZoomToggle,
     AbsRelToggle,
@@ -38,8 +42,6 @@ import {
     FacetStrategyDropdown,
     FacetStrategyDropdownManager,
     NoDataAreaToggle,
-    FooterControls,
-    FooterControlsManager,
 } from "../controls/Controls"
 import { ScaleSelector } from "../controls/ScaleSelector"
 import { AddEntityButton } from "../controls/AddEntityButton"
@@ -49,6 +51,12 @@ import { SelectionArray } from "../selection/SelectionArray"
 import { EntityName } from "@ourworldindata/core-table"
 import { AxisConfig } from "../axis/AxisConfig"
 import { DataTable, DataTableManager } from "../dataTable/DataTable"
+import {
+    ContentSwitchers,
+    ContentSwitchersManager,
+} from "../controls/ContentSwitchers"
+import { TimelineComponent } from "../timeline/TimelineComponent"
+import { TimelineController } from "../timeline/TimelineController"
 
 export interface CaptionedChartManager
     extends ChartManager,
@@ -59,7 +67,7 @@ export interface CaptionedChartManager
         FacetYDomainToggleManager,
         FacetStrategyDropdownManager,
         DataTableManager,
-        FooterControlsManager {
+        ContentSwitchersManager {
     containerElement?: HTMLDivElement
     tabBounds?: Bounds
     fontSize?: number
@@ -85,6 +93,11 @@ export interface CaptionedChartManager
     detailRenderers: MarkdownTextWrap[]
     isOnMapTab?: boolean
     isOnTableTab?: boolean
+    showTimeline?: boolean
+    timelineController?: TimelineController
+    hasRelatedQuestion?: boolean
+    isRelatedQuestionTargetDifferentFromCurrentPage?: boolean
+    relatedQuestions?: RelatedQuestionsConfig[]
 }
 
 interface CaptionedChartProps {
@@ -94,9 +107,14 @@ interface CaptionedChartProps {
 }
 
 const OUTSIDE_PADDING = 15
-const PADDING_BELOW_HEADER = 16
+const PADDING_BELOW_HEADER = 4
+const PADDING_ABOVE_CHART_AREA = 16
 const CONTROLS_ROW_HEIGHT = 36
 const PADDING_ABOVE_FOOTER = 25
+const TIMELINE_HEIGHT = 36
+const RELATED_QUESTION_HEIGHT = 20
+
+// todo(redesign): we might want to rename CaptionedChart later
 
 @observer
 export class CaptionedChart extends React.Component<CaptionedChartProps> {
@@ -143,14 +161,17 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         )
     }
 
+    // todo(redesign): double-check that this is correct
     @computed protected get chartHeight(): number {
-        const controlsRowHeight = this.controls.length ? CONTROLS_ROW_HEIGHT : 0
         return Math.floor(
             this.bounds.height -
                 this.header.height -
-                controlsRowHeight -
+                PADDING_BELOW_HEADER -
+                CONTROLS_ROW_HEIGHT -
+                (this.manager.showTimeline ? TIMELINE_HEIGHT : 0) -
+                PADDING_ABOVE_FOOTER -
                 this.footer.height -
-                PADDING_ABOVE_FOOTER
+                (this.showRelatedQuestion ? RELATED_QUESTION_HEIGHT : 0)
         )
     }
 
@@ -158,17 +179,30 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         return this.props.bounds ?? this.manager.tabBounds ?? DEFAULT_BOUNDS
     }
 
-    // The bounds for the middle chart part
     @computed protected get boundsForChart(): Bounds {
-        const topPadding = this.manager.isOnMapTab
-            ? 0
-            : this.manager.type === ChartTypeName.Marimekko
-            ? PADDING_BELOW_HEADER / 2
-            : PADDING_BELOW_HEADER
         return new Bounds(0, 0, this.bounds.width, this.chartHeight)
             .padWidth(OUTSIDE_PADDING)
-            .padTop(topPadding)
-            .padBottom(OUTSIDE_PADDING)
+            .padTop(PADDING_ABOVE_CHART_AREA)
+            .padBottom(PADDING_ABOVE_CHART_AREA / 2)
+    }
+
+    @computed protected get boundsForMap(): Bounds {
+        return new Bounds(0, 0, this.bounds.width, this.chartHeight).padWidth(
+            OUTSIDE_PADDING
+        )
+    }
+
+    @computed protected get boundsForChartOrMap(): Bounds {
+        return this.manager.isOnMapTab ? this.boundsForMap : this.boundsForChart
+    }
+
+    @computed protected get boundsForTable(): Bounds {
+        return new Bounds(
+            0,
+            0,
+            this.bounds.width,
+            this.chartHeight + 2 // todo(redesign): magic number
+        ).padWidth(OUTSIDE_PADDING)
     }
 
     @computed get isFaceted(): boolean {
@@ -180,7 +214,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
 
     renderChart(): JSX.Element {
         const { manager } = this
-        const bounds = this.boundsForChart
+        const bounds = this.boundsForChartOrMap
 
         const chartTypeName = this.manager.isOnMapTab
             ? ChartTypeName.WorldMap
@@ -322,68 +356,70 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         return this.manager.selection
     }
 
-    private renderControlsRow(): JSX.Element | null {
-        return this.controls.length ? (
-            <div className="controlsRow">
-                <CollapsibleList>{this.controls}</CollapsibleList>
-            </div>
-        ) : null
+    @computed get showRelatedQuestion(): boolean {
+        return (
+            !!this.manager.relatedQuestions &&
+            !!this.manager.hasRelatedQuestion &&
+            !!this.manager.isRelatedQuestionTargetDifferentFromCurrentPage
+        )
+    }
+
+    private renderControlsRow(): JSX.Element {
+        return (
+            <nav className="controlsRow">
+                <ContentSwitchers manager={this.manager} />
+                <div className="controls">
+                    {this.controls.length > 0 && (
+                        <button className="configure">Configure</button>
+                    )}
+                </div>
+            </nav>
+        )
+    }
+
+    private maybeRenderRelatedQuestion(): JSX.Element | null {
+        const { relatedQuestions } = this.manager
+        if (this.showRelatedQuestion)
+            return (
+                <div className="relatedQuestion">
+                    Related:&nbsp;
+                    <a
+                        href={relatedQuestions![0].url}
+                        target="_blank"
+                        rel="noopener"
+                        data-track-note="chart_click_related"
+                    >
+                        {relatedQuestions![0].text}
+                        <FontAwesomeIcon icon={faExternalLinkAlt} />
+                    </a>
+                </div>
+            )
+        return null
     }
 
     private renderLoadingIndicator(): JSX.Element {
         return (
-            <foreignObject {...this.boundsForChart.toProps()}>
+            <foreignObject {...this.boundsForChartOrMap.toProps()}>
                 <LoadingIndicator title={this.manager.whatAreWeWaitingFor} />
             </foreignObject>
         )
     }
 
-    renderSVGDetails(): JSX.Element | null {
-        if (!this.manager.shouldIncludeDetailsInStaticExport) {
-            return null
+    private renderDataTable(): JSX.Element {
+        const { boundsForTable } = this
+        const containerStyle: React.CSSProperties = {
+            position: "relative",
+            ...this.boundsForTable.toCSS(),
         }
-
-        let yOffset = 0
-        let previousOffset = 0
         return (
-            <>
-                <line
-                    x1={OUTSIDE_PADDING}
-                    y1={this.bounds.height}
-                    x2={this.boundsForChart.width + OUTSIDE_PADDING}
-                    y2={this.bounds.height}
-                    stroke="#777"
-                ></line>
-                <g
-                    style={{
-                        transform: `translate(15px, ${
-                            // + padding below the grey line
-                            this.bounds.height + OUTSIDE_PADDING
-                        }px)`,
-                    }}
-                >
-                    {this.manager.detailRenderers.map((detail, i) => {
-                        previousOffset = yOffset
-                        yOffset += detail.height + STATIC_EXPORT_DETAIL_SPACING
-                        return detail.renderSVG(0, previousOffset, { key: i })
-                    })}
-                </g>
-            </>
-        )
-    }
-
-    renderDataTable(): JSX.Element {
-        const { boundsForChart } = this
-        // todo(redesign): spacing is temporary
-        return (
-            <div style={{ marginBottom: `${PADDING_ABOVE_FOOTER}px` }}>
-                <DataTable bounds={boundsForChart} manager={this.manager} />
+            <div style={containerStyle}>
+                <DataTable bounds={boundsForTable} manager={this.manager} />
             </div>
         )
     }
 
-    render(): JSX.Element {
-        const { bounds, chartHeight, maxWidth } = this
+    private renderChartArea(): JSX.Element {
+        const { bounds, chartHeight } = this
         const { width } = bounds
 
         const containerStyle: React.CSSProperties = {
@@ -391,29 +427,45 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
             clear: "both",
         }
 
+        return this.manager.isOnTableTab ? (
+            this.renderDataTable()
+        ) : (
+            <div style={containerStyle}>
+                <svg
+                    {...this.svgProps}
+                    width={width}
+                    height={chartHeight}
+                    viewBox={`0 0 ${width} ${chartHeight}`}
+                >
+                    {this.patterns}
+                    {this.manager.isReady
+                        ? this.renderChart()
+                        : this.renderLoadingIndicator()}
+                </svg>
+            </div>
+        )
+    }
+
+    private maybeRenderTimeline(): JSX.Element | null {
+        if (this.manager.showTimeline)
+            return (
+                <TimelineComponent
+                    timelineController={this.manager.timelineController!}
+                    height={TIMELINE_HEIGHT}
+                />
+            )
+        return null
+    }
+
+    render(): JSX.Element {
         return (
             <>
-                <Header manager={this.manager} maxWidth={maxWidth} />
+                {this.header.render()}
                 {this.renderControlsRow()}
-                {this.manager.isOnTableTab ? (
-                    this.renderDataTable()
-                ) : (
-                    <div style={containerStyle}>
-                        <svg
-                            {...this.svgProps}
-                            width={width}
-                            height={chartHeight}
-                            viewBox={`0 0 ${width} ${chartHeight}`}
-                        >
-                            {this.patterns}
-                            {this.manager.isReady
-                                ? this.renderChart()
-                                : this.renderLoadingIndicator()}
-                        </svg>
-                    </div>
-                )}
-                <Footer manager={this.manager} maxWidth={maxWidth} />
-                <FooterControls manager={this.manager} />
+                {this.renderChartArea()}
+                {this.maybeRenderTimeline()}
+                {this.footer.render()}
+                {this.maybeRenderRelatedQuestion()}
             </>
         )
     }
@@ -445,11 +497,45 @@ export class StaticCaptionedChart extends CaptionedChart {
     }
 
     // The bounds for the middle chart part
-    @computed protected get boundsForChart(): Bounds {
+    @computed protected get boundsForChartOrMap(): Bounds {
         return this.paddedBounds
             .padTop(this.header.height)
             .padBottom(this.footer.height + PADDING_ABOVE_FOOTER)
-            .padTop(this.manager.isOnMapTab ? 0 : PADDING_BELOW_HEADER)
+            .padTop(this.manager.isOnMapTab ? 0 : PADDING_ABOVE_CHART_AREA)
+    }
+
+    renderSVGDetails(): JSX.Element | null {
+        if (!this.manager.shouldIncludeDetailsInStaticExport) {
+            return null
+        }
+
+        let yOffset = 0
+        let previousOffset = 0
+        return (
+            <>
+                <line
+                    x1={OUTSIDE_PADDING}
+                    y1={this.bounds.height}
+                    x2={this.boundsForChartOrMap.width + OUTSIDE_PADDING}
+                    y2={this.bounds.height}
+                    stroke="#777"
+                ></line>
+                <g
+                    style={{
+                        transform: `translate(15px, ${
+                            // + padding below the grey line
+                            this.bounds.height + OUTSIDE_PADDING
+                        }px)`,
+                    }}
+                >
+                    {this.manager.detailRenderers.map((detail, i) => {
+                        previousOffset = yOffset
+                        yOffset += detail.height + STATIC_EXPORT_DETAIL_SPACING
+                        return detail.renderSVG(0, previousOffset, { key: i })
+                    })}
+                </g>
+            </>
+        )
     }
 
     render(): JSX.Element {
