@@ -33,10 +33,6 @@ import { GdocsContentSource } from "@ourworldindata/utils"
 import OwidGdocPage from "../site/gdocs/OwidGdocPage.js"
 import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
-
-// library does not provide type definitions
-// eslint-disable-next-line
-import expressErrorSlack from "express-error-slack"
 import url from "url"
 
 interface OwidAdminAppOptions {
