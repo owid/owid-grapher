@@ -39,7 +39,7 @@ const PublicationContext = () => {
             />
             <CheckboxControl
                 label="Latest"
-                help='Will be shown in the list of articles (currently "/blog")'
+                help='Will be shown in the list of articles (currently "/latest")'
                 checked={context.latest}
                 onChange={onChangeHandler}
             />

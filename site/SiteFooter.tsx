@@ -116,7 +116,7 @@ export const SiteFooter = (props: SiteFooterProps) => (
                         <ul>
                             <li>
                                 <a
-                                    href="/blog"
+                                    href="/latest"
                                     data-track-note="footer_navigation"
                                 >
                                     Latest work

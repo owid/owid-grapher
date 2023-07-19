@@ -41,6 +41,8 @@ export const getRedirects = async () => {
         "/data/political-regimes/* /:splat 301",
         "/data/population-growth-vital-statistics/* /:splat 301",
         "/data/growth-and-distribution-of-prosperity/* /:splat 301",
+        "/blog /latest 301",
+        "/blog/* /latest/:splat 301",
 
         // Backwards compatibility-- grapher url style
         "/chart-builder/* /grapher/:splat 301",
