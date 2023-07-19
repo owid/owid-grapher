@@ -11,6 +11,9 @@ import * as db from "./db.js"
 import * as Variable from "./model/Variable.js"
 import pl from "nodejs-polars"
 import { Writable } from "stream"
+import { OwidVariableId } from "@ourworldindata/utils"
+
+import { jest } from "@jest/globals"
 
 afterEach(() => {
     jest.restoreAllMocks()
@@ -18,7 +21,7 @@ afterEach(() => {
 
 export const mockS3data = (s3data: Record<string, any>): void => {
     jest.spyOn(Variable, "fetchS3Values").mockImplementation(
-        jest.fn((key) => s3data[key])
+        jest.fn((key: OwidVariableId) => s3data[key])
     )
 
     const entities = pl

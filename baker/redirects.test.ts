@@ -3,10 +3,7 @@ import { formatUrls } from "../site/formatting.js"
 import * as redirects from "./redirects.js"
 import { resolveInternalRedirect } from "./redirects.js"
 
-jest.mock("../settings/clientSettings.js", () => ({
-    WORDPRESS_URL: "http://localhost:8080",
-    BAKED_BASE_URL: "http://localhost:3030",
-}))
+import { jest } from "@jest/globals"
 
 type ArrayForMap = [string, string][]
 

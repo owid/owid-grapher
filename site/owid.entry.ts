@@ -51,11 +51,13 @@ if (BUGSNAG_API_KEY) {
             apiKey: BUGSNAG_API_KEY,
             plugins: [new BugsnagPluginReact()],
         })
+
+        const instrumentNetworkRequests = Math.random() < 0.05 // 5% sample rate
         BugsnagPerformance.start({
             apiKey: BUGSNAG_API_KEY,
             autoInstrumentFullPageLoads: false, // TODO: We might want to sample some page loads in the future
             autoInstrumentRouteChanges: false,
-            autoInstrumentNetworkRequests: true,
+            autoInstrumentNetworkRequests: instrumentNetworkRequests,
         })
     } catch (error) {
         console.error("Failed to initialize Bugsnag")
