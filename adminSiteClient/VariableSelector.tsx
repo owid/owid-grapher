@@ -86,7 +86,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
         return sortBy(datasets, (d) => d.name)
     }
 
-    @computed get datasetsByName(): lodash.Dictionary<Dataset> {
+    @computed get datasetsByName(): Record<string, Dataset> {
         return lodash.keyBy(this.datasets, (d) => d.name)
     }
 

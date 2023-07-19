@@ -55,7 +55,6 @@ import {
 } from "../datapage/Datapage.js"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { Image } from "../db/model/Image.js"
-import { Dictionary } from "lodash"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 
 /**
@@ -69,7 +68,7 @@ import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 export const renderDataPageOrGrapherPage = async (
     grapher: GrapherInterface,
     publishedExplorersBySlug?: Record<string, ExplorerProgram>,
-    imageMetadataDictionary?: Dictionary<Image>
+    imageMetadataDictionary?: Record<string, Image>
 ) => {
     const variableIds = uniq(grapher.dimensions!.map((d) => d.variableId))
     // this shows that multi-metric charts are not really supported, and will
@@ -342,7 +341,7 @@ const chartIsSameVersion = async (
 
 const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
     bakedSiteDir: string,
-    imageMetadataDictionary: Dictionary<Image>,
+    imageMetadataDictionary: Record<string, Image>,
     grapher: GrapherInterface
 ) => {
     const htmlPath = `${bakedSiteDir}/grapher/${grapher.slug}.html`
@@ -469,7 +468,7 @@ export interface BakeSingleGrapherChartArguments {
     config: string
     bakedSiteDir: string
     slug: string
-    imageMetadataDictionary: Dictionary<Image>
+    imageMetadataDictionary: Record<string, Image>
 }
 
 export const bakeSingleGrapherChart = async (

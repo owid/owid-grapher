@@ -9,7 +9,6 @@ import {
 } from "../explorer/ExplorerConstants.js"
 import { simpleGit, SimpleGit } from "simple-git"
 import { GitCommit, keyBy, sortBy } from "@ourworldindata/utils"
-import { Dictionary } from "lodash"
 
 export class ExplorerAdminServer {
     constructor(gitDir: string) {
@@ -19,7 +18,7 @@ export class ExplorerAdminServer {
     }
 
     private gitDir: string
-    private _cachedExplorers: null | Dictionary<ExplorerProgram>
+    private _cachedExplorers: null | Record<string, ExplorerProgram>
     private _cacheTime: Date
 
     private _simpleGit?: SimpleGit
