@@ -1,6 +1,5 @@
+$framePadding: 15px; // keep in sync with CaptionedChart.tsx's FRAME_PADDING
 $controlRowHeight: 36px; // keep in sync with CaptionedChart.tsx's CONTROLS_ROW_HEIGHT
-$outsidePadding: 15px; // keep in sync with CaptionedChart.tsx's OUTSIDE_PADDING
-$paddingBelowHeader: 4px; // keep in sync with CaptionedChart.tsx's PADDING_BELOW_HEADER
 $relatedQuestionHeight: 20px; // keep in sync with CaptionedChart.tsx's RELATED_QUESTION_HEIGHT
 
 .HeaderHTML,
@@ -11,8 +10,8 @@ $relatedQuestionHeight: 20px; // keep in sync with CaptionedChart.tsx's RELATED_
 }
 
 .HeaderHTML {
-    padding: $outsidePadding;
-    padding-bottom: $paddingBelowHeader;
+    padding: $framePadding;
+    padding-bottom: 0;
     text-align: left;
 
     a {
@@ -48,7 +47,7 @@ $relatedQuestionHeight: 20px; // keep in sync with CaptionedChart.tsx's RELATED_
 }
 
 .SourcesFooterHTML {
-    padding: 0 $outsidePadding;
+    padding: 0 $framePadding;
     text-align: left;
 
     a {
@@ -68,7 +67,7 @@ $relatedQuestionHeight: 20px; // keep in sync with CaptionedChart.tsx's RELATED_
 }
 
 .controlsRow {
-    padding: 0 $outsidePadding;
+    padding: 0 $framePadding;
     width: 100%;
     display: flex;
     justify-content: space-between;
@@ -118,7 +117,7 @@ $relatedQuestionHeight: 20px; // keep in sync with CaptionedChart.tsx's RELATED_
 .relatedQuestion {
     font-size: 12px;
     height: $relatedQuestionHeight;
-    padding: 0 15px;
+    padding: 0 $framePadding;
     display: flex;
     justify-content: flex-end;
     align-items: center;

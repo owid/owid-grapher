@@ -106,11 +106,12 @@ interface CaptionedChartProps {
     maxWidth?: number
 }
 
-const OUTSIDE_PADDING = 15
-const PADDING_BELOW_HEADER = 4
-const PADDING_ABOVE_CHART_AREA = 16
-const CONTROLS_ROW_HEIGHT = 36
+const FRAME_PADDING = 15
 const PADDING_ABOVE_FOOTER = 25
+const CHART_PADDING_TOP = 16
+const CHART_PADDING_BOTTOM = CHART_PADDING_TOP / 2
+
+const CONTROLS_ROW_HEIGHT = 36
 const TIMELINE_HEIGHT = 36
 const RELATED_QUESTION_HEIGHT = 20
 
@@ -127,7 +128,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     }
 
     @computed private get maxWidth(): number {
-        return this.props.maxWidth ?? this.bounds.width - OUTSIDE_PADDING * 2
+        return this.props.maxWidth ?? this.bounds.width - FRAME_PADDING * 2
     }
 
     @computed protected get header(): Header {
@@ -161,15 +162,14 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         )
     }
 
-    // todo(redesign): double-check that this is correct
     @computed protected get chartHeight(): number {
         return Math.floor(
             this.bounds.height -
                 this.header.height -
-                PADDING_BELOW_HEADER -
                 CONTROLS_ROW_HEIGHT -
+                CHART_PADDING_TOP -
+                CHART_PADDING_BOTTOM -
                 (this.manager.showTimeline ? TIMELINE_HEIGHT : 0) -
-                PADDING_ABOVE_FOOTER -
                 this.footer.height -
                 (this.showRelatedQuestion ? RELATED_QUESTION_HEIGHT : 0)
         )
@@ -181,14 +181,14 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
 
     @computed protected get boundsForChart(): Bounds {
         return new Bounds(0, 0, this.bounds.width, this.chartHeight)
-            .padWidth(OUTSIDE_PADDING)
-            .padTop(PADDING_ABOVE_CHART_AREA)
-            .padBottom(PADDING_ABOVE_CHART_AREA / 2)
+            .padWidth(FRAME_PADDING)
+            .padTop(CHART_PADDING_TOP)
+            .padBottom(CHART_PADDING_BOTTOM)
     }
 
     @computed protected get boundsForMap(): Bounds {
         return new Bounds(0, 0, this.bounds.width, this.chartHeight).padWidth(
-            OUTSIDE_PADDING
+            FRAME_PADDING
         )
     }
 
@@ -202,7 +202,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
             0,
             this.bounds.width,
             this.chartHeight + 2 // todo(redesign): magic number
-        ).padWidth(OUTSIDE_PADDING)
+        ).padWidth(FRAME_PADDING)
     }
 
     @computed get isFaceted(): boolean {
@@ -493,7 +493,7 @@ export class StaticCaptionedChart extends CaptionedChart {
     }
 
     @computed private get paddedBounds(): Bounds {
-        return this.bounds.pad(OUTSIDE_PADDING)
+        return this.bounds.pad(FRAME_PADDING)
     }
 
     // The bounds for the middle chart part
@@ -501,7 +501,7 @@ export class StaticCaptionedChart extends CaptionedChart {
         return this.paddedBounds
             .padTop(this.header.height)
             .padBottom(this.footer.height + PADDING_ABOVE_FOOTER)
-            .padTop(this.manager.isOnMapTab ? 0 : PADDING_ABOVE_CHART_AREA)
+            .padTop(this.manager.isOnMapTab ? 0 : CHART_PADDING_TOP)
     }
 
     renderSVGDetails(): JSX.Element | null {
@@ -514,9 +514,9 @@ export class StaticCaptionedChart extends CaptionedChart {
         return (
             <>
                 <line
-                    x1={OUTSIDE_PADDING}
+                    x1={FRAME_PADDING}
                     y1={this.bounds.height}
-                    x2={this.boundsForChartOrMap.width + OUTSIDE_PADDING}
+                    x2={this.boundsForChartOrMap.width + FRAME_PADDING}
                     y2={this.bounds.height}
                     stroke="#777"
                 ></line>
@@ -524,7 +524,7 @@ export class StaticCaptionedChart extends CaptionedChart {
                     style={{
                         transform: `translate(15px, ${
                             // + padding below the grey line
-                            this.bounds.height + OUTSIDE_PADDING
+                            this.bounds.height + FRAME_PADDING
                         }px)`,
                     }}
                 >
