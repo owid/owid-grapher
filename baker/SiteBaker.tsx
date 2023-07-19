@@ -596,7 +596,7 @@ export class SiteBaker {
             "published"
         )
 
-        const imageChunks = chunk(images, 10)
+        const imageChunks = chunk(images, 2)
         for (const imageChunk of imageChunks) {
             await Promise.all(
                 imageChunk.map(async (image) => {
