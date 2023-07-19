@@ -172,6 +172,7 @@ import { MarimekkoChartManager } from "../stackedCharts/MarimekkoChartConstants"
 import { AxisConfigInterface } from "../axis/AxisConfigInterface"
 import Bugsnag from "@bugsnag/js"
 import { FacetChartManager } from "../facetChart/FacetChartConstants"
+import BugsnagPerformance from "@bugsnag/browser-performance"
 
 declare const window: any
 
@@ -214,12 +215,14 @@ async function loadVariablesDataSite(
     baseUrl: string
 ): Promise<MultipleOwidVariableDataDimensionsMap> {
     const loadVariableDataPromises = variableIds.map(async (variableId) => {
+        const span = BugsnagPerformance.startSpan("Data-fetch")
         const dataPromise = fetch(`${baseUrl}data/${variableId}.json`)
         const metadataPromise = fetch(`${baseUrl}metadata/${variableId}.json`)
         const [dataResponse, metadataResponse] = await Promise.all([
             dataPromise,
             metadataPromise,
         ])
+        span.end()
         if (!dataResponse.ok) throw new Error(dataResponse.statusText)
         if (!metadataResponse.ok) throw new Error(metadataResponse.statusText)
         const data = await dataResponse.json()

@@ -53,9 +53,9 @@ if (BUGSNAG_API_KEY) {
         })
         BugsnagPerformance.start({
             apiKey: BUGSNAG_API_KEY,
-            autoInstrumentFullPageLoads: false, // TODO: We might want to sample some page loads in the future
+            autoInstrumentFullPageLoads: false,
             autoInstrumentRouteChanges: false,
-            autoInstrumentNetworkRequests: true,
+            autoInstrumentNetworkRequests: false,
         })
     } catch (error) {
         console.error("Failed to initialize Bugsnag")
