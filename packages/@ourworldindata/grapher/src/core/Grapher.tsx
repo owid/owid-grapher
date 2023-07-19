@@ -765,6 +765,11 @@ export class Grapher
             // eslint-disable-next-line no-console
             console.log(`Error fetching '${err}'`)
             console.error(err)
+            Bugsnag?.notify(`Error fetching variables: ${err}`, (event) => {
+                event.addMetadata("context", {
+                    variableIds: this.variableIds,
+                })
+            })
         }
     }
 
