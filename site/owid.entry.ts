@@ -22,6 +22,7 @@ import { CoreTable } from "@ourworldindata/core-table"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 import Bugsnag from "@bugsnag/js"
 import BugsnagPluginReact from "@bugsnag/plugin-react"
+import BugsnagPerformance from "@bugsnag/browser-performance"
 import { runMonkeyPatchForGoogleTranslate } from "./hacks.js"
 import { runSiteFooterScripts } from "./runSiteFooterScripts.js"
 
@@ -50,6 +51,7 @@ if (BUGSNAG_API_KEY) {
             apiKey: BUGSNAG_API_KEY,
             plugins: [new BugsnagPluginReact()],
         })
+        BugsnagPerformance.start(BUGSNAG_API_KEY)
     } catch (error) {
         console.error("Failed to initialize Bugsnag")
     }
