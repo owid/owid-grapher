@@ -51,7 +51,12 @@ if (BUGSNAG_API_KEY) {
             apiKey: BUGSNAG_API_KEY,
             plugins: [new BugsnagPluginReact()],
         })
-        // BugsnagPerformance.start(BUGSNAG_API_KEY)
+        BugsnagPerformance.start({
+            apiKey: BUGSNAG_API_KEY,
+            autoInstrumentFullPageLoads: false, // TODO: We might want to sample some page loads in the future
+            autoInstrumentRouteChanges: false,
+            autoInstrumentNetworkRequests: true,
+        })
     } catch (error) {
         console.error("Failed to initialize Bugsnag")
     }
