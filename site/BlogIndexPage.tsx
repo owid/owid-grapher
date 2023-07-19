@@ -19,7 +19,8 @@ export const BlogIndexPage = (props: {
         <html>
             <Head
                 canonicalUrl={
-                    `${baseUrl}/latest` + (pageNum > 1 ? `/page/${pageNum}` : "")
+                    `${baseUrl}/latest` +
+                    (pageNum > 1 ? `/page/${pageNum}` : "")
                 }
                 pageTitle={pageTitle}
                 baseUrl={baseUrl}
