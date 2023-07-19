@@ -1,5 +1,7 @@
 import { PromiseSwitcher } from "./PromiseSwitcher.js"
 
+import { jest } from "@jest/globals"
+
 const delayResolve = (result: any, ms: number = 10): Promise<void> =>
     new Promise((resolve) => {
         setTimeout(() => resolve(result), ms)
