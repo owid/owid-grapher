@@ -1,11 +1,6 @@
 #! /usr/bin/env yarn jest
 
-import {
-    writeVariableCSV,
-    getVariableData,
-    VariableQueryRow,
-    _dataAsDFfromS3,
-} from "./model/Variable.js"
+import { writeVariableCSV, _dataAsDFfromS3 } from "./model/Variable.js"
 import * as db from "./db.js"
 import * as Variable from "./model/Variable.js"
 import pl from "nodejs-polars"
