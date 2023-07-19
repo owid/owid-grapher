@@ -7,8 +7,14 @@ import {
     Relation,
     In,
 } from "typeorm"
-import { OwidGdocLinkJSON } from "@ourworldindata/utils"
+import {
+    OwidGdocLinkJSON,
+    getLinkType,
+    Url,
+    getUrlTarget,
+} from "@ourworldindata/utils"
 import { Gdoc } from "./Gdoc/Gdoc.js"
+import { formatUrls } from "../../site/formatting.js"
 
 @Entity("posts_gdocs_links")
 export class Link extends BaseEntity implements OwidGdocLinkJSON {
@@ -16,6 +22,8 @@ export class Link extends BaseEntity implements OwidGdocLinkJSON {
     @ManyToOne(() => Gdoc, (gdoc) => gdoc.id) source!: Relation<Gdoc>
     @Column() linkType!: "gdoc" | "url" | "grapher" | "explorer"
     @Column() target!: string
+    @Column() queryString!: string
+    @Column() hash!: string
     @Column() componentType!: string
     @Column() text!: string
 
@@ -27,5 +35,33 @@ export class Link extends BaseEntity implements OwidGdocLinkJSON {
             where: { target: In(ids), linkType },
             relations: ["source"],
         }).then((links) => links.filter((link) => link.source.published))
+    }
+
+    static createFromUrl({
+        url,
+        source,
+        text = "",
+        componentType = "",
+    }: {
+        url: string
+        source: Gdoc
+        text?: string
+        componentType?: string
+    }): Link {
+        const formattedUrl = formatUrls(url)
+        const urlObject = Url.fromURL(formattedUrl)
+        const linkType = getLinkType(formattedUrl)
+        const target = getUrlTarget(formattedUrl)
+        const queryString = urlObject.queryStr
+        const hash = urlObject.hash
+        return Link.create({
+            target,
+            linkType,
+            queryString,
+            hash,
+            source,
+            text,
+            componentType,
+        })
     }
 }

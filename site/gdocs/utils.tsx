@@ -9,6 +9,7 @@ import {
     ImageMetadata,
     LinkedChart,
     OwidGdocContent,
+    Url,
 } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
 import { AttachmentsContext } from "./OwidGdoc.js"
@@ -45,35 +46,57 @@ export const breadcrumbColorForCoverColor = (
 export const useLinkedDocument = (
     url: string
 ): { linkedDocument?: OwidGdocInterface; errorMessage?: string } => {
-    let errorMessage: string | undefined = undefined
     const { linkedDocuments } = useContext(AttachmentsContext)
-    const urlTarget = getUrlTarget(url)
+    let errorMessage: string | undefined = undefined
+    let linkedDocument: OwidGdocInterface | undefined = undefined
     const linkType = getLinkType(url)
-    const linkedDocument = linkedDocuments?.[urlTarget]
-    if (linkType === "gdoc") {
-        if (!linkedDocument) {
-            errorMessage = `Google doc URL ${url} isn't registered.`
-        } else if (!linkedDocument.published) {
-            errorMessage = `Article with slug "${linkedDocument.slug}" isn't published.`
-        }
+    if (linkType !== "gdoc") {
+        return { linkedDocument }
     }
-    return { linkedDocument, errorMessage }
+
+    const urlObj = Url.fromURL(url)
+    const queryString = urlObj.queryStr
+    const hash = urlObj.hash
+    const urlTarget = getUrlTarget(url)
+    linkedDocument = linkedDocuments?.[urlTarget]
+    if (!linkedDocument) {
+        errorMessage = `Google doc URL ${url} isn't registered.`
+    } else if (!linkedDocument.published) {
+        errorMessage = `Article with slug "${linkedDocument.slug}" isn't published.`
+    }
+    return {
+        linkedDocument: {
+            ...linkedDocument,
+            slug: `${linkedDocument.slug}${queryString}${hash}`,
+        },
+        errorMessage,
+    }
 }
 
 export const useLinkedChart = (
     url: string
 ): { linkedChart?: LinkedChart; errorMessage?: string } => {
-    let errorMessage: string | undefined = undefined
     const { linkedCharts } = useContext(AttachmentsContext)
-    const urlTarget = getUrlTarget(url)
     const linkType = getLinkType(url)
+    if (linkType !== "grapher" && linkType !== "explorer") return {}
+
+    const queryString = Url.fromURL(url).queryStr
+    const urlTarget = getUrlTarget(url)
     const linkedChart = linkedCharts?.[urlTarget]
-    if (linkType === "grapher" || linkType === "explorer") {
-        if (!linkedChart) {
-            errorMessage = `${linkType} chart with slug ${urlTarget} not found`
+    if (!linkedChart) {
+        return {
+            errorMessage: `${linkType} chart with slug ${urlTarget} not found`,
         }
     }
-    return { linkedChart, errorMessage }
+
+    return {
+        linkedChart: {
+            ...linkedChart,
+            // linkedCharts doesn't store any querystring information, because it's indexed by slug
+            // Instead we get the querystring from the original URL and append it to resolvedUrl
+            resolvedUrl: `${linkedChart.resolvedUrl}${queryString}`,
+        },
+    }
 }
 
 export const useImage = (
