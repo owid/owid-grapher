@@ -10,6 +10,7 @@ import {
     ALGOLIA_SECRET_KEY,
 } from "../../settings/serverSettings.js"
 import { countries } from "@ourworldindata/utils"
+import esMain from "es-main"
 
 export const CONTENT_GRAPH_ALGOLIA_INDEX = "graph"
 
@@ -260,4 +261,4 @@ export const configureAlgolia = async () => {
     }
 }
 
-if (require.main === module) configureAlgolia()
+if (esMain(import.meta)) configureAlgolia()

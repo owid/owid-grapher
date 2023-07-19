@@ -15,6 +15,7 @@ import {
     CONTENT_GRAPH_ALGOLIA_INDEX,
     getAlgoliaClient,
 } from "./configureAlgolia.js"
+import esMain from "es-main"
 interface TopicsTrailsByLevel {
     [facetLevelKey: string]: string[]
 }
@@ -158,4 +159,4 @@ const indexContentGraphToAlgolia = async () => {
     await wpdb.singleton.end()
 }
 
-if (require.main === module) indexContentGraphToAlgolia()
+if (esMain(import.meta)) indexContentGraphToAlgolia()
