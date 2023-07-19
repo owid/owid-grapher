@@ -5,6 +5,8 @@ import { GitCmsServer } from "./GitCmsServer.js"
 import fs from "fs-extra"
 import express from "express"
 
+import { jest } from "@jest/globals"
+
 jest.setTimeout(10000) // wait for up to 10s for the server to respond
 
 describe("client/server integration tests", () => {
