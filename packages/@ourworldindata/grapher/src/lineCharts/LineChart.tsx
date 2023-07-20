@@ -1,9 +1,12 @@
 import React from "react"
 import {
     sortBy,
+    groupBy,
+    mapValues,
     sum,
     guid,
     compact,
+    values,
     getRelativeMouse,
     pointsToPath,
     minBy,
@@ -481,7 +484,29 @@ export class LineChart
 
         if (!target) return undefined
 
-        const sortedData = sortBy(this.series, (series) => {
+        // Duplicate seriesNames will be present if there is a projected-values line
+        const seriesSegments = mapValues(
+            groupBy(this.series, "seriesName"),
+            (segments) =>
+                segments.find((series) =>
+                    // Ideally pick series with a defined value at the target time
+                    series.points.find((point) => point.x === target.x)
+                ) ??
+                segments.find((series): boolean | void => {
+                    // Otherwise pick the series whose start & end contains the target time
+                    // and display a "No data" notice.
+                    const [startX, endX] = extent(series.points, ({ x }) => x)
+                    return (
+                        isNumber(startX) &&
+                        isNumber(endX) &&
+                        startX < target.x &&
+                        target.x < endX
+                    )
+                }) ??
+                null // If neither series matches, exclude the entity from the tooltip altogether
+        )
+
+        const sortedData = sortBy(compact(values(seriesSegments)), (series) => {
             const value = series.points.find((point) => point.x === target.x)
             return value !== undefined ? -value.y : Infinity
         })
@@ -522,28 +547,10 @@ export class LineChart
                             const { seriesName: name } = series
                             const annotation =
                                 this.getAnnotationsForSeries(name)
+
                             const point = series.points.find(
                                 (point) => point.x === target.x
                             )
-
-                            // It sometimes happens that data is missing for some years for a particular
-                            // entity. If the user hovers over these years, we want to show a "No data"
-                            // notice. However, we only want to show this notice when we are in the middle
-                            // of a time series – when data points exist before and after the current year.
-                            // Otherwise we want to entirely exclude the entity from the tooltip.
-                            if (!point) {
-                                const [startX, endX] = extent(
-                                    series.points,
-                                    (point) => point.x
-                                )
-                                if (
-                                    startX === undefined ||
-                                    endX === undefined ||
-                                    startX > target.x ||
-                                    endX < target.x
-                                )
-                                    return undefined
-                            }
 
                             const blurred =
                                 this.seriesIsBlurred(series) ||
