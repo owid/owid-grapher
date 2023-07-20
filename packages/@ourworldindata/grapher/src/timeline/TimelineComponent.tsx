@@ -20,6 +20,7 @@ const HANDLE_TOOLTIP_FADE_TIME_MS = 2000
 @observer
 export class TimelineComponent extends React.Component<{
     timelineController: TimelineController
+    height?: number
 }> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
 
@@ -282,6 +283,7 @@ export class TimelineComponent extends React.Component<{
                 className="TimelineComponent"
                 onMouseOver={this.onMouseOver}
                 onMouseLeave={this.onMouseLeave}
+                style={{ height: this.props.height ?? "100%" }}
             >
                 {!this.manager.disablePlay && (
                     <div

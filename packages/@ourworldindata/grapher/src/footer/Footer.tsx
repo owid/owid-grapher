@@ -10,8 +10,14 @@ import {
     MarkdownTextWrap,
 } from "@ourworldindata/utils"
 import { Tooltip } from "../tooltip/Tooltip"
-import { BASE_FONT_SIZE } from "../core/GrapherConstants"
+import {
+    BASE_FONT_SIZE,
+    GrapherTabOverlayOption,
+} from "../core/GrapherConstants"
 import { FooterManager } from "./FooterManager"
+import { ActionButtons } from "../controls/ActionButtons"
+
+const PADDING_ABOVE_CONTROLS = 4
 
 @observer
 export class Footer extends React.Component<{
@@ -86,9 +92,9 @@ export class Footer extends React.Component<{
     }
 
     @computed private get sources(): MarkdownTextWrap {
-        const { maxWidth, fontSize, sourcesText } = this
+        const { maxWidth, fontSize, sourcesText, actionButtons } = this
         return new MarkdownTextWrap({
-            maxWidth,
+            maxWidth: maxWidth - actionButtons.width - 5,
             fontSize,
             text: sourcesText,
         })
@@ -117,11 +123,16 @@ export class Footer extends React.Component<{
         })
     }
 
+    @computed private get actionButtons(): ActionButtons {
+        return new ActionButtons({
+            manager: this.manager,
+        })
+    }
+
     // Put the license stuff to the side if there's room
     @computed private get isCompact(): boolean {
         return (
-            this.maxWidth - this.sources.width - 5 >
-            this.licenseAndOriginUrl.width
+            this.maxWidth - this.note.width - 5 > this.licenseAndOriginUrl.width
         )
     }
 
@@ -130,32 +141,61 @@ export class Footer extends React.Component<{
     }
 
     @computed get height(): number {
-        const { sources, note, licenseAndOriginUrl, isCompact, paraMargin } =
-            this
-        return (
-            sources.height +
-            (note.height ? paraMargin + note.height : 0) +
+        const {
+            sources,
+            note,
+            licenseAndOriginUrl,
+            isCompact,
+            paraMargin,
+            actionButtons,
+        } = this
+        const height =
+            Math.max(note.height, licenseAndOriginUrl.height) +
+            PADDING_ABOVE_CONTROLS +
+            Math.max(sources.height, actionButtons.height) +
             (isCompact ? 0 : paraMargin + licenseAndOriginUrl.height)
+        return height
+    }
+
+    // todo(redesign): `sourcesStatic` and `isCompactStatic` are only used for static exports;
+    // this is a workaround to keep the static version as is for now
+
+    @computed private get sourcesStatic(): MarkdownTextWrap {
+        const { maxWidth, fontSize, sourcesText } = this
+        return new MarkdownTextWrap({
+            maxWidth,
+            fontSize,
+            text: sourcesText,
+        })
+    }
+
+    @computed private get isCompactStatic(): boolean {
+        return (
+            this.maxWidth - this.sources.width - 5 >
+            this.licenseAndOriginUrl.width
         )
     }
 
     renderStatic(targetX: number, targetY: number): JSX.Element {
         const {
-            sources,
+            sourcesStatic,
             note,
             licenseAndOriginUrl,
             maxWidth,
-            isCompact,
             paraMargin,
+            isCompactStatic,
         } = this
 
         return (
             <g className="SourcesFooter" style={{ fill: "#777" }}>
                 <g style={{ fill: "#777" }}>
-                    {sources.renderSVG(targetX, targetY)}
+                    {sourcesStatic.renderSVG(targetX, targetY)}
                 </g>
-                {note.renderSVG(targetX, targetY + sources.height + paraMargin)}
-                {isCompact
+                {note.renderSVG(
+                    targetX,
+                    targetY + sourcesStatic.height + paraMargin
+                )}
+                {isCompactStatic
                     ? licenseAndOriginUrl.render(
                           targetX + maxWidth - licenseAndOriginUrl.width,
                           targetY
@@ -163,7 +203,7 @@ export class Footer extends React.Component<{
                     : licenseAndOriginUrl.render(
                           targetX,
                           targetY +
-                              sources.height +
+                              sourcesStatic.height +
                               paraMargin +
                               (note.height ? note.height + paraMargin : 0)
                       )}
@@ -246,12 +286,27 @@ export class Footer extends React.Component<{
                 ref={this.base}
                 style={{ color: "#777" }}
             >
-                {this.isCompact && license}
-                <p style={this.sources.style}>{this.sources.renderHTML()}</p>
-                {this.note && (
+                <div className="NoteAndLicense">
                     <p style={this.note.style}>{this.note.renderHTML()}</p>
-                )}
-                {!this.isCompact && license}
+                    {license}
+                </div>
+                <div
+                    className="FooterControls"
+                    style={{ marginTop: PADDING_ABOVE_CONTROLS }}
+                >
+                    <p style={this.sources.style}>
+                        <a
+                            data-track-note="chart_click_sources"
+                            onClick={(): void => {
+                                this.manager.currentTab =
+                                    GrapherTabOverlayOption.sources
+                            }}
+                        >
+                            {this.sources.renderHTML()}
+                        </a>
+                    </p>
+                    <ActionButtons manager={this.manager} />
+                </div>
                 {tooltipTarget && (
                     <Tooltip
                         id="footer"

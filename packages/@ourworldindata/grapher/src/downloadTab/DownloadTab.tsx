@@ -12,7 +12,11 @@ import {
 } from "@ourworldindata/utils"
 import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faDownload, faInfoCircle } from "@fortawesome/free-solid-svg-icons"
+import {
+    faDownload,
+    faInfoCircle,
+    faTimes,
+} from "@fortawesome/free-solid-svg-icons"
 import {
     BlankOwidTable,
     OwidTable,
@@ -36,6 +40,7 @@ export interface DownloadTabManager {
 interface DownloadTabProps {
     bounds?: Bounds
     manager: DownloadTabManager
+    onDismiss: () => void
 }
 
 const polyfillToBlob = (): void => {
@@ -387,6 +392,9 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
                         </div>
                     )}
                 </div>
+                <button className="dismiss" onClick={this.props.onDismiss}>
+                    <FontAwesomeIcon icon={faTimes} />
+                </button>
             </div>
         )
     }
