@@ -26,7 +26,7 @@ export class ContentSwitchers extends React.Component<{
     render(): JSX.Element {
         const { manager } = this
         return (
-            <ul className="contentSwitchers">
+            <ul className="ContentSwitchers">
                 {this.availableTabs.map((tabName) => (
                     <li
                         key={tabName}

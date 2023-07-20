@@ -38,6 +38,8 @@ it("correctly passes non-redistributable flag", () => {
             table: tableFalse,
             detailRenderers: [],
         },
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        onDismiss: (): void => {},
     })
     expect(viewFalse["nonRedistributable"]).toBeFalsy()
 
@@ -49,6 +51,8 @@ it("correctly passes non-redistributable flag", () => {
             table: tableTrue,
             detailRenderers: [],
         },
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        onDismiss: (): void => {},
     })
     expect(viewTrue["nonRedistributable"]).toBeTruthy()
 })

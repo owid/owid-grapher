@@ -2,6 +2,9 @@ $framePadding: 15px; // keep in sync with CaptionedChart.tsx's FRAME_PADDING
 $controlRowHeight: 36px; // keep in sync with CaptionedChart.tsx's CONTROLS_ROW_HEIGHT
 $relatedQuestionHeight: 20px; // keep in sync with CaptionedChart.tsx's RELATED_QUESTION_HEIGHT
 
+$actionButtonSize: 30px; // keep in sync with ActionButtons.tsx's BUTTON_SIZE
+$marginBetweenActionButtons: 5px; // keep in sync with ActionButtons.tsx's MARGIN_BETWEEN_BUTTONS
+
 .HeaderHTML,
 .SourcesFooterHTML {
     font-family: $sans-serif-font-stack;
@@ -60,10 +63,41 @@ $relatedQuestionHeight: 20px; // keep in sync with CaptionedChart.tsx's RELATED_
     p {
         margin: 0;
     }
+
+    .FooterControls {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+    }
+
+    .ActionButtons {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        white-space: nowrap;
+
+        ul {
+            height: 100%;
+        }
+
+        li {
+            height: 100%;
+            width: $actionButtonSize;
+            background-color: whitesmoke;
+            display: inline-grid;
+            place-items: center;
+            padding: 0 0.5em;
+        }
+
+        li + li {
+            margin-left: $marginBetweenActionButtons;
+        }
+    }
 }
 
-.SourcesFooterHTML.compact .license {
-    float: right;
+.SourcesFooterHTML.compact .NoteAndLicense {
+    display: flex;
+    justify-content: space-between;
 }
 
 .controlsRow {
@@ -72,7 +106,7 @@ $relatedQuestionHeight: 20px; // keep in sync with CaptionedChart.tsx's RELATED_
     display: flex;
     justify-content: space-between;
 
-    ul.contentSwitchers {
+    .ContentSwitchers {
         list-style: none;
         margin: 0;
         padding: 0;

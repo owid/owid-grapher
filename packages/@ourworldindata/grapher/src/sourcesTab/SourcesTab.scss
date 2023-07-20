@@ -7,6 +7,15 @@
     padding: 1rem;
     text-align: left;
     background: rgba(255, 255, 255, 0.95);
+
+    .dismiss {
+        height: 30px;
+        width: 30px;
+        padding: 0;
+        position: absolute;
+        top: 15px;
+        right: 15px;
+    }
 }
 
 .sourcesTab > div {

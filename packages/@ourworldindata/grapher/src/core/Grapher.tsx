@@ -1825,11 +1825,21 @@ export class Grapher
         const bounds = this.tabBounds
         if (this.overlayTab === GrapherTabOverlayOption.sources)
             return (
-                <SourcesTab key="sourcesTab" bounds={bounds} manager={this} />
+                <SourcesTab
+                    key="sourcesTab"
+                    bounds={bounds}
+                    manager={this}
+                    onDismiss={action(() => (this.currentTab = this.tab))}
+                />
             )
         if (this.overlayTab === GrapherTabOverlayOption.download)
             return (
-                <DownloadTab key="downloadTab" bounds={bounds} manager={this} />
+                <DownloadTab
+                    key="downloadTab"
+                    bounds={bounds}
+                    manager={this}
+                    onDismiss={action(() => (this.currentTab = this.tab))}
+                />
             )
         return undefined
     }

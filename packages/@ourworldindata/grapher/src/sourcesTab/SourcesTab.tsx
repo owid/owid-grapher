@@ -2,7 +2,7 @@ import { Bounds, DEFAULT_BOUNDS, linkify } from "@ourworldindata/utils"
 import React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { faPencilAlt } from "@fortawesome/free-solid-svg-icons"
+import { faPencilAlt, faTimes } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { CoreColumn, OwidColumnDef } from "@ourworldindata/core-table"
 
@@ -19,6 +19,7 @@ export interface SourcesTabManager {
 export class SourcesTab extends React.Component<{
     bounds?: Bounds
     manager: SourcesTabManager
+    onDismiss: () => void
 }> {
     @computed private get bounds(): Bounds {
         return this.props.bounds ?? DEFAULT_BOUNDS
@@ -149,6 +150,9 @@ export class SourcesTab extends React.Component<{
                     <h2>Sources</h2>
                     <div>{cols.map((col) => this.renderSource(col))}</div>
                 </div>
+                <button className="dismiss" onClick={this.props.onDismiss}>
+                    <FontAwesomeIcon icon={faTimes} />
+                </button>
             </div>
         )
     }

@@ -1,7 +1,8 @@
 import { TooltipManager } from "../tooltip/TooltipProps"
 import { GrapherInterface } from "../core/GrapherInterface"
+import { ActionButtonsManager } from "../controls/ActionButtons"
 
-export interface FooterManager extends TooltipManager {
+export interface FooterManager extends TooltipManager, ActionButtonsManager {
     fontSize?: number
     sourcesLine?: string
     note?: string
