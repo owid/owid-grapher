@@ -36,14 +36,17 @@ const getChartsRecords = async (): Promise<ChartRecord[]> => {
     `)
 
     for (const c of chartsToIndex) {
-        // This is a very rough way to check for the Algolia record size limit, but it's better than the update failing
-        if (c.availableEntities.length < 12000)
-            c.availableEntities = JSON.parse(c.availableEntities)
-        else {
-            console.info(
-                `Chart ${c.id} has too many entities, skipping its entities`
-            )
-            c.availableEntities = []
+        if (c.availableEntities !== null) {
+            // This is a very rough way to check for the Algolia record size limit, but it's better than the update failing
+            // because we exceed the 20KB record size limit
+            if (c.availableEntities.length < 12000)
+                c.availableEntities = JSON.parse(c.availableEntities)
+            else {
+                console.info(
+                    `Chart ${c.id} has too many entities, skipping its entities`
+                )
+                c.availableEntities = []
+            }
         }
 
         c.tags = JSON.parse(c.tags)
