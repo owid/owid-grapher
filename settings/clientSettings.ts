@@ -6,8 +6,9 @@
 import dotenv from "dotenv"
 import findBaseDir from "./findBaseDir.js"
 import url from "url"
+import { isRunningInNode, parseIntOrUndefined } from "@ourworldindata/utils"
 
-if (process?.versions?.node) {
+if (isRunningInNode()) {
     // only run this code in node, not in the browser.
     // in the browser, process.env is already populated by vite.
     const baseDir = findBaseDir(
@@ -15,8 +16,6 @@ if (process?.versions?.node) {
     )
     if (baseDir) dotenv.config({ path: `${baseDir}/.env` })
 }
-
-import { parseIntOrUndefined } from "@ourworldindata/utils"
 
 export const ENV: "development" | "production" =
     process.env.ENV === "production" ? "production" : "development"
