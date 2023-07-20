@@ -165,10 +165,9 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     @computed protected get chartHeight(): number {
         return Math.floor(
             this.bounds.height -
+                2 * FRAME_PADDING -
                 this.header.height -
                 CONTROLS_ROW_HEIGHT -
-                CHART_PADDING_TOP -
-                CHART_PADDING_BOTTOM -
                 (this.manager.showTimeline ? TIMELINE_HEIGHT : 0) -
                 this.footer.height -
                 (this.showRelatedQuestion ? RELATED_QUESTION_HEIGHT : 0)
@@ -192,10 +191,6 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         )
     }
 
-    @computed protected get boundsForChartOrMap(): Bounds {
-        return this.manager.isOnMapTab ? this.boundsForMap : this.boundsForChart
-    }
-
     @computed protected get boundsForTable(): Bounds {
         return new Bounds(
             0,
@@ -203,6 +198,10 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
             this.bounds.width,
             this.chartHeight + 2 // todo(redesign): magic number
         ).padWidth(FRAME_PADDING)
+    }
+
+    @computed protected get boundsForChartOrMap(): Bounds {
+        return this.manager.isOnMapTab ? this.boundsForMap : this.boundsForChart
     }
 
     @computed get isFaceted(): boolean {
@@ -253,7 +252,6 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
 
     @computed get controls(): JSX.Element[] {
         const manager = this.manager
-        // Todo: we don't yet show any controls on Maps, but seems like we would want to.
         if (
             !manager.isReady ||
             this.manager.isOnMapTab ||
@@ -418,7 +416,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         )
     }
 
-    private renderChartArea(): JSX.Element {
+    private renderChartOrMap(): JSX.Element {
         const { bounds, chartHeight } = this
         const { width } = bounds
 
@@ -427,9 +425,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
             clear: "both",
         }
 
-        return this.manager.isOnTableTab ? (
-            this.renderDataTable()
-        ) : (
+        return (
             <div style={containerStyle}>
                 <svg
                     {...this.svgProps}
@@ -462,7 +458,9 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
             <>
                 {this.header.render()}
                 {this.renderControlsRow()}
-                {this.renderChartArea()}
+                {this.manager.isOnTableTab
+                    ? this.renderDataTable()
+                    : this.renderChartOrMap()}
                 {this.maybeRenderTimeline()}
                 {this.footer.render()}
                 {this.maybeRenderRelatedQuestion()}
