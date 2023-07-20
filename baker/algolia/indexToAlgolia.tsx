@@ -61,6 +61,7 @@ function generateCountryRecords(
             title: country.name,
             content: `All available indicators for ${country.name}.`,
             views_7d: pageviews[`/country/${country.slug}`]?.views_7d ?? 0,
+            documentType: "country-page" as const,
         }
         const score = computeScore(record)
         return { ...record, score }
@@ -127,6 +128,7 @@ async function generateWordpressRecords(
                 content: c,
                 tags: tags.map((t) => t.name),
                 views_7d: pageviews[`/${post.path}`]?.views_7d ?? 0,
+                documentType: "wordpress" as const,
             }
             const score = computeScore(record)
             records.push({ ...record, score })
@@ -178,6 +180,7 @@ function generateGdocRecords(
                 date: gdoc.publishedAt!.toISOString(),
                 modifiedDate: gdoc.updatedAt!.toISOString(),
                 tags: gdoc.tags.map((t) => t.name),
+                documentType: "gdoc" as const,
                 // authors: gdoc.content.byline, // different format
             }
             const score = computeScore(record)

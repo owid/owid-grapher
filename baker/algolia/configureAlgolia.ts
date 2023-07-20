@@ -104,6 +104,7 @@ export const configureAlgolia = async () => {
             "type",
             "searchable(tags)",
             "searchable(authors)",
+            "documentType",
         ],
         disableExactOnAttributes: ["tags"],
     })
