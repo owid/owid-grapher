@@ -18,9 +18,7 @@ import {
     NewsletterSubscriptionForm,
     NewsletterSubscriptionContext,
 } from "../site/NewsletterSubscription.js"
-import {
-    IndexPost,
-} from "@ourworldindata/utils"
+import { IndexPost } from "@ourworldindata/utils"
 import PostCard from "./PostCard/PostCard.js"
 
 export const FrontPage = (props: {
