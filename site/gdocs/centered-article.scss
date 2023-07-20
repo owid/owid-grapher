@@ -44,12 +44,6 @@ $banner-height: 200px;
     padding-top: 48px;
 }
 
-.centered-article-header--has-long-breadcrumbs {
-    @include sm-only {
-        margin-top: 100px;
-    }
-}
-
 .article-block__text {
     margin-top: 0;
 }
@@ -169,8 +163,16 @@ h3.article-block__heading.has-supertitle {
             color: $blue-100;
         }
 
-        position: absolute;
-        margin-top: 40px;
+        // Idea here: By using this positioning, we can have the breadcrumbs
+        // take up exactly: (number of lines - 1) * line-height
+        // in height, effectively, such that the header is always the same height
+        // unless the breadcrumbs are longer than a single line.
+        $header-breadcrumb-margin-top: 40px;
+        margin-top: $header-breadcrumb-margin-top;
+        margin-bottom: calc(-1.6em - $header-breadcrumb-margin-top);
+        // lh is a relatively recent CSS unit, so we use ems as a fallback in the rule above
+        margin-bottom: calc(-1lh - $header-breadcrumb-margin-top);
+
         font-size: 1rem;
         a {
             @include owid-link-90;
