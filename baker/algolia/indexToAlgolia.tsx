@@ -8,6 +8,7 @@ import {
     FormattedPost,
     isEmpty,
     keyBy,
+    OwidGdocType,
     type RawPageview,
 } from "@ourworldindata/utils"
 import { formatPost } from "../formatWordpressPost.js"
@@ -37,20 +38,6 @@ const getPostTags = async (postId: number) => {
         .select("tags.id", "tags.name")
         .where({ post_id: postId })
         .join("tags", "tags.id", "=", "post_tags.tag_id")) as Tag[]
-}
-
-const getPostTypeAndImportance = (
-    post: FormattedPost,
-    tags: Tag[]
-): TypeAndImportance => {
-    if (post.slug.startsWith("about/") || post.slug === "about")
-        return { type: "about", importance: 1 }
-    if (post.slug.match(/\bfaqs?\b/i)) return { type: "faq", importance: 1 }
-    if (post.type === "post") return { type: "article", importance: 0 }
-    if (tags.some((t) => t.name === "Entries"))
-        return { type: "topic", importance: 3 }
-
-    return { type: "other", importance: 0 }
 }
 
 const computeScore = (record: Omit<PageRecord, "score">): number => {
@@ -95,6 +82,20 @@ async function generateWordpressRecords(
     postsApi: wpdb.PostAPI[],
     pageviews: Record<string, RawPageview>
 ): Promise<PageRecord[]> {
+    const getPostTypeAndImportance = (
+        post: FormattedPost,
+        tags: Tag[]
+    ): TypeAndImportance => {
+        if (post.slug.startsWith("about/") || post.slug === "about")
+            return { type: "about", importance: 1 }
+        if (post.slug.match(/\bfaqs?\b/i)) return { type: "faq", importance: 1 }
+        if (post.type === "post") return { type: "article", importance: 0 }
+        if (tags.some((t) => t.name === "Entries"))
+            return { type: "topic", importance: 3 }
+
+        return { type: "other", importance: 0 }
+    }
+
     const records: PageRecord[] = []
 
     for (const postApi of postsApi) {
@@ -139,6 +140,19 @@ function generateGdocRecords(
     gdocs: Gdoc[],
     pageviews: Record<string, RawPageview>
 ): PageRecord[] {
+    const getPostTypeAndImportance = (gdoc: Gdoc): TypeAndImportance => {
+        switch (gdoc.content.type) {
+            case OwidGdocType.TopicPage:
+                return { type: "topic", importance: 3 }
+            case OwidGdocType.Fragment:
+                // this should not happen because we filter out fragments; but we want to have an exhaustive switch/case so we include it
+                return { type: "other", importance: 0 }
+            case OwidGdocType.Article:
+            case undefined:
+                return { type: "article", importance: 0 }
+        }
+    }
+
     const records: PageRecord[] = []
     for (const gdoc of gdocs) {
         if (!gdoc.content.body) continue
@@ -149,13 +163,13 @@ function generateGdocRecords(
             </div>
         )
         const chunks = generateChunksFromHtmlText(renderedPostContent)
+        const postTypeAndImportance = getPostTypeAndImportance(gdoc)
         let i = 0
 
         for (const chunk of chunks) {
             const record = {
                 objectID: `${gdoc.id}-c${i}`,
-                type: "article" as const, // Gdocs can only be articles for now
-                importance: 0, // Gdocs can only be articles for now
+                ...postTypeAndImportance,
                 slug: gdoc.slug,
                 title: gdoc.content.title || "",
                 content: chunk,
