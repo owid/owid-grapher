@@ -59,17 +59,6 @@ export const FrontPage = (props: {
                             Research and data to make progress against the
                             world’s largest problems
                         </h1>
-                        <a
-                            href="#entries"
-                            className="see-all"
-                            data-smooth-scroll
-                            data-track-note="homepage_scroll"
-                        >
-                            Scroll to all of our topics
-                            <span className="icon">
-                                <FontAwesomeIcon icon={faAngleDoubleDown} />
-                            </span>
-                        </a>
                         <p>{totalCharts} charts across 297 topics</p>
                         <p>All free: open access and open source</p>
                     </div>

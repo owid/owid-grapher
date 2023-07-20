@@ -23,32 +23,6 @@
         }
     }
 
-    .see-all {
-        font-size: 1.125rem;
-        font-weight: 700;
-        color: $tertiary-text-color;
-        border: 3px solid $tertiary-text-color;
-        padding: 0.35rem 0.7rem;
-        display: inline-block;
-        transition: color 150ms ease, border-color 150ms ease;
-        margin-bottom: 1rem;
-
-        &:hover {
-            color: $amber-10;
-            border-color: $amber-10;
-        }
-
-        .icon {
-            margin-left: 0.6rem;
-            transition: transform 200ms ease;
-            display: inline-block;
-        }
-
-        &:hover .icon {
-            transform: translate(0, 2px);
-        }
-    }
-
     p {
         font-size: 1.125rem;
         font-weight: 700;
