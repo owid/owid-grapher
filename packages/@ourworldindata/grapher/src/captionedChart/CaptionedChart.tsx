@@ -46,6 +46,7 @@ import { HeaderManager } from "../header/HeaderManager"
 import { SelectionArray } from "../selection/SelectionArray"
 import { EntityName } from "@ourworldindata/core-table"
 import { AxisConfig } from "../axis/AxisConfig"
+import { DataTable, DataTableManager } from "../dataTable/DataTable"
 
 export interface CaptionedChartManager
     extends ChartManager,
@@ -54,7 +55,8 @@ export interface CaptionedChartManager
         FooterManager,
         HeaderManager,
         FacetYDomainToggleManager,
-        FacetStrategyDropdownManager {
+        FacetStrategyDropdownManager,
+        DataTableManager {
     containerElement?: HTMLDivElement
     tabBounds?: Bounds
     fontSize?: number
@@ -78,6 +80,8 @@ export interface CaptionedChartManager
     showSelectEntitiesButton?: boolean
     shouldIncludeDetailsInStaticExport?: boolean
     detailRenderers: MarkdownTextWrap[]
+    isOnMapTab?: boolean
+    isOnTableTab?: boolean
 }
 
 interface CaptionedChartProps {
@@ -147,18 +151,13 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         )
     }
 
-    // todo: should we remove this and not make a distinction between map and chart tabs?
-    @computed protected get isMapTab(): boolean {
-        return this.manager.tab === GrapherTabOption.map
-    }
-
     @computed protected get bounds(): Bounds {
         return this.props.bounds ?? this.manager.tabBounds ?? DEFAULT_BOUNDS
     }
 
     // The bounds for the middle chart part
     @computed protected get boundsForChart(): Bounds {
-        const topPadding = this.isMapTab
+        const topPadding = this.manager.isOnMapTab
             ? 0
             : this.manager.type === ChartTypeName.Marimekko
             ? PADDING_BELOW_HEADER / 2
@@ -173,14 +172,14 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         const hasStrategy =
             !!this.manager.facetStrategy &&
             this.manager.facetStrategy !== FacetStrategy.none
-        return !this.isMapTab && hasStrategy
+        return !this.manager.isOnMapTab && hasStrategy
     }
 
     renderChart(): JSX.Element {
         const { manager } = this
         const bounds = this.boundsForChart
 
-        const chartTypeName = this.isMapTab
+        const chartTypeName = this.manager.isOnMapTab
             ? ChartTypeName.WorldMap
             : manager.typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart ??
               manager.type ??
@@ -218,7 +217,12 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     @computed get controls(): JSX.Element[] {
         const manager = this.manager
         // Todo: we don't yet show any controls on Maps, but seems like we would want to.
-        if (!manager.isReady || this.isMapTab) return []
+        if (
+            !manager.isReady ||
+            this.manager.isOnMapTab ||
+            this.manager.isOnTableTab
+        )
+            return []
 
         const { showYScaleToggle, showXScaleToggle } = manager
 
@@ -365,6 +369,16 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         )
     }
 
+    renderDataTable(): JSX.Element {
+        const { boundsForChart } = this
+        // todo(redesign): spacing is temporary
+        return (
+            <div style={{ marginBottom: `${PADDING_ABOVE_FOOTER}px` }}>
+                <DataTable bounds={boundsForChart} manager={this.manager} />
+            </div>
+        )
+    }
+
     render(): JSX.Element {
         const { bounds, chartHeight, maxWidth } = this
         const { width } = bounds
@@ -378,19 +392,23 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
             <>
                 <Header manager={this.manager} maxWidth={maxWidth} />
                 {this.renderControlsRow()}
-                <div style={containerStyle}>
-                    <svg
-                        {...this.svgProps}
-                        width={width}
-                        height={chartHeight}
-                        viewBox={`0 0 ${width} ${chartHeight}`}
-                    >
-                        {this.patterns}
-                        {this.manager.isReady
-                            ? this.renderChart()
-                            : this.renderLoadingIndicator()}
-                    </svg>
-                </div>
+                {this.manager.isOnTableTab ? (
+                    this.renderDataTable()
+                ) : (
+                    <div style={containerStyle}>
+                        <svg
+                            {...this.svgProps}
+                            width={width}
+                            height={chartHeight}
+                            viewBox={`0 0 ${width} ${chartHeight}`}
+                        >
+                            {this.patterns}
+                            {this.manager.isReady
+                                ? this.renderChart()
+                                : this.renderLoadingIndicator()}
+                        </svg>
+                    </div>
+                )}
                 <Footer manager={this.manager} maxWidth={maxWidth} />
             </>
         )
@@ -427,7 +445,7 @@ export class StaticCaptionedChart extends CaptionedChart {
         return this.paddedBounds
             .padTop(this.header.height)
             .padBottom(this.footer.height + PADDING_ABOVE_FOOTER)
-            .padTop(this.isMapTab ? 0 : PADDING_BELOW_HEADER)
+            .padTop(this.manager.isOnMapTab ? 0 : PADDING_BELOW_HEADER)
     }
 
     render(): JSX.Element {
