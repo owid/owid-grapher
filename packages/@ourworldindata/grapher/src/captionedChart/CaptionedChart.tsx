@@ -456,13 +456,13 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     render(): JSX.Element {
         return (
             <>
-                {this.header.render()}
+                <Header manager={this.manager} maxWidth={this.maxWidth} />
                 {this.renderControlsRow()}
                 {this.manager.isOnTableTab
                     ? this.renderDataTable()
                     : this.renderChartOrMap()}
                 {this.maybeRenderTimeline()}
-                {this.footer.render()}
+                <Footer manager={this.manager} maxWidth={this.maxWidth} />
                 {this.maybeRenderRelatedQuestion()}
             </>
         )
