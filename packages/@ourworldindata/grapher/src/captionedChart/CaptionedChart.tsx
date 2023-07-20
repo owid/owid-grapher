@@ -170,7 +170,9 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                 CONTROLS_ROW_HEIGHT -
                 (this.manager.showTimeline ? TIMELINE_HEIGHT : 0) -
                 this.footer.height -
-                (this.showRelatedQuestion ? RELATED_QUESTION_HEIGHT : 0)
+                (this.showRelatedQuestion
+                    ? RELATED_QUESTION_HEIGHT - 0.5 * FRAME_PADDING // reduce padding on the bottom
+                    : 0)
         )
     }
 
