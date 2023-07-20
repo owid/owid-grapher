@@ -157,23 +157,45 @@ export class Footer extends React.Component<{
         return height
     }
 
+    // todo(redesign): `sourcesStatic` and `isCompactStatic` are only used for static exports;
+    // this is a workaround to keep the static version as is for now
+
+    @computed private get sourcesStatic(): MarkdownTextWrap {
+        const { maxWidth, fontSize, sourcesText } = this
+        return new MarkdownTextWrap({
+            maxWidth,
+            fontSize,
+            text: sourcesText,
+        })
+    }
+
+    @computed private get isCompactStatic(): boolean {
+        return (
+            this.maxWidth - this.sources.width - 5 >
+            this.licenseAndOriginUrl.width
+        )
+    }
+
     renderStatic(targetX: number, targetY: number): JSX.Element {
         const {
-            sources,
+            sourcesStatic,
             note,
             licenseAndOriginUrl,
             maxWidth,
-            isCompact,
             paraMargin,
+            isCompactStatic,
         } = this
 
         return (
             <g className="SourcesFooter" style={{ fill: "#777" }}>
                 <g style={{ fill: "#777" }}>
-                    {sources.renderSVG(targetX, targetY)}
+                    {sourcesStatic.renderSVG(targetX, targetY)}
                 </g>
-                {note.renderSVG(targetX, targetY + sources.height + paraMargin)}
-                {isCompact
+                {note.renderSVG(
+                    targetX,
+                    targetY + sourcesStatic.height + paraMargin
+                )}
+                {isCompactStatic
                     ? licenseAndOriginUrl.render(
                           targetX + maxWidth - licenseAndOriginUrl.width,
                           targetY
@@ -181,7 +203,7 @@ export class Footer extends React.Component<{
                     : licenseAndOriginUrl.render(
                           targetX,
                           targetY +
-                              sources.height +
+                              sourcesStatic.height +
                               paraMargin +
                               (note.height ? note.height + paraMargin : 0)
                       )}
