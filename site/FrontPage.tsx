@@ -6,7 +6,6 @@ import {
     faRss,
     faAngleRight,
     faExternalLinkAlt,
-    faAngleDoubleDown,
 } from "@fortawesome/free-solid-svg-icons"
 import {
     faTwitter,
