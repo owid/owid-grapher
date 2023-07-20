@@ -61,6 +61,7 @@ function ResearchAndWritingLinkContainer(
                     <figure>
                         <Image
                             filename={filename}
+                            shouldLightbox={false}
                             containerType={isSmall ? "thumbnail" : "default"}
                         />
                     </figure>
