@@ -232,4 +232,9 @@ const indexToAlgolia = async () => {
     await db.closeTypeOrmAndKnexConnections()
 }
 
+process.on("unhandledRejection", (e) => {
+    console.error(e)
+    process.exit(1)
+})
+
 indexToAlgolia()
