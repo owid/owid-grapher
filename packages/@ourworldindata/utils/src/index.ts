@@ -320,6 +320,7 @@ export {
     type NodeWithUrl,
     filterValidStringValues,
     traverseEnrichedSpan,
+    includesWithTypeGuard,
 } from "./Util.js"
 
 export {

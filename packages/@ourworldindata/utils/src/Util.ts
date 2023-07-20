@@ -1660,3 +1660,10 @@ export function filterValidStringValues<ValidValue extends string>(
 
     return filteredValues
 }
+
+export function includesWithTypeGuard<TItem>(
+    array: TItem[],
+    item: unknown
+): item is TItem {
+    return array.includes(item as any)
+}

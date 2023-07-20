@@ -14,6 +14,7 @@ import {
     FacetAxisDomain,
     FacetStrategy,
     GrapherTabOption,
+    GrapherTabOverlayOption,
     RelatedQuestionsConfig,
     StackMode,
 } from "../core/GrapherConstants"
@@ -271,7 +272,8 @@ export interface FooterControlsManager extends ShareMenuManager {
     isShareMenuActive?: boolean
     isSelectingData?: boolean
     availableTabs?: GrapherTabOption[]
-    currentTab?: GrapherTabOption
+    availableTabOverlays?: GrapherTabOverlayOption[]
+    currentTab?: GrapherTabOption | GrapherTabOverlayOption
     isInIFrame?: boolean
     canonicalUrl?: string
     showTimeline?: boolean
@@ -300,39 +302,74 @@ export class FooterControls extends React.Component<{
         return this.manager.availableTabs || []
     }
 
+    @computed private get availableTabOverlays(): GrapherTabOverlayOption[] {
+        return this.manager.availableTabOverlays || []
+    }
+
+    @computed private get hasSourcesOverlayTab(): boolean {
+        return this.availableTabOverlays.includes(
+            GrapherTabOverlayOption.sources
+        )
+    }
+
+    @computed private get hasDownloadOverlayTab(): boolean {
+        return this.availableTabOverlays.includes(
+            GrapherTabOverlayOption.download
+        )
+    }
+
     private _getTabsElement(): JSX.Element {
         const { manager } = this
         return (
             <nav className="tabs">
                 <ul>
-                    {this.availableTabs.map((tabName) => {
-                        return tabName !== GrapherTabOption.download ? (
-                            <li
-                                key={tabName}
-                                className={
-                                    "tab clickable" +
-                                    (tabName === manager.currentTab
-                                        ? " active"
-                                        : "")
-                                }
+                    {this.availableTabs.map((tabName) => (
+                        <li
+                            key={tabName}
+                            className={
+                                "tab clickable" +
+                                (tabName === manager.currentTab
+                                    ? " active"
+                                    : "")
+                            }
+                        >
+                            <a
+                                onClick={(): void => {
+                                    manager.currentTab = tabName
+                                }}
+                                data-track-note={"chart_click_" + tabName}
                             >
-                                <a
-                                    onClick={(): void => {
-                                        manager.currentTab = tabName
-                                    }}
-                                    data-track-note={"chart_click_" + tabName}
-                                >
-                                    {tabName}
-                                </a>
-                            </li>
-                        ) : null
-                    })}
-                    {manager.hasDownloadTab && (
+                                {tabName}
+                            </a>
+                        </li>
+                    ))}
+                    {this.hasSourcesOverlayTab && (
+                        <li
+                            className={
+                                "tab clickable" +
+                                (manager.currentTab ===
+                                GrapherTabOverlayOption.sources
+                                    ? " active"
+                                    : "")
+                            }
+                        >
+                            <a
+                                onClick={(): void => {
+                                    manager.currentTab =
+                                        GrapherTabOverlayOption.sources
+                                }}
+                                data-track-note={"chart_click_sources"}
+                            >
+                                Sources
+                            </a>
+                        </li>
+                    )}
+                    {this.hasDownloadOverlayTab && (
                         <li
                             className={
                                 "tab clickable icon download-tab-button" +
                                 (manager.currentTab ===
-                                GrapherTabOption.download
+                                GrapherTabOverlayOption.download
                                     ? " active"
                                     : "")
                             }
@@ -340,9 +377,11 @@ export class FooterControls extends React.Component<{
                         >
                             <a
                                 data-track-note="chart_click_download"
-                                onClick={(): GrapherTabOption =>
+                                onClick={():
+                                    | GrapherTabOption
+                                    | GrapherTabOverlayOption =>
                                     (manager.currentTab =
-                                        GrapherTabOption.download)
+                                        GrapherTabOverlayOption.download)
                                 }
                             >
                                 <FontAwesomeIcon icon={faDownload} /> Download
@@ -360,33 +399,19 @@ export class FooterControls extends React.Component<{
                             </a>
                         </li>
                     )}
-                    {manager.isInIFrame &&
-                        (this.availableTabs.length > 0 ? (
-                            <li className="clickable icon icon-only">
-                                <a
-                                    title="Open chart in new tab"
-                                    href={manager.canonicalUrl}
-                                    data-track-note="chart_click_newtab"
-                                    target="_blank"
-                                    rel="noopener"
-                                >
-                                    <FontAwesomeIcon icon={faExpand} />
-                                </a>
-                            </li>
-                        ) : (
-                            <li className="clickable icon open-in-another-tab-button">
-                                <a
-                                    title="Open chart in new tab"
-                                    href={manager.canonicalUrl}
-                                    data-track-note="chart_click_newtab"
-                                    target="_blank"
-                                    rel="noopener"
-                                >
-                                    Explore data
-                                    <FontAwesomeIcon icon={faExternalLinkAlt} />
-                                </a>
-                            </li>
-                        ))}
+                    {manager.isInIFrame && (
+                        <li className="clickable icon icon-only">
+                            <a
+                                title="Open chart in new tab"
+                                href={manager.canonicalUrl}
+                                data-track-note="chart_click_newtab"
+                                target="_blank"
+                                rel="noopener"
+                            >
+                                <FontAwesomeIcon icon={faExpand} />
+                            </a>
+                        </li>
+                    )}
                 </ul>
             </nav>
         )

@@ -77,9 +77,12 @@ export type SeriesColorMap = Map<SeriesName, Color>
 export enum GrapherTabOption {
     chart = "chart",
     map = "map",
+    table = "table",
+}
+
+export enum GrapherTabOverlayOption {
     sources = "sources",
     download = "download",
-    table = "table",
 }
 
 export enum ScaleType {

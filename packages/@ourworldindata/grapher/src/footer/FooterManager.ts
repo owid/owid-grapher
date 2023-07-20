@@ -1,6 +1,10 @@
 import { TooltipManager } from "../tooltip/TooltipProps"
 import { Bounds } from "@ourworldindata/utils"
 import { GrapherInterface } from "../core/GrapherInterface"
+import {
+    GrapherTabOption,
+    GrapherTabOverlayOption,
+} from "../core/GrapherConstants"
 
 export interface FooterManager {
     fontSize?: number
@@ -8,7 +12,7 @@ export interface FooterManager {
     note?: string
     hasOWIDLogo?: boolean
     originUrlWithProtocol?: string
-    currentTab?: string
+    currentTab?: GrapherTabOption | GrapherTabOverlayOption
     tooltips?: TooltipManager["tooltips"]
     tabBounds?: Bounds
     details?: GrapherInterface["details"]

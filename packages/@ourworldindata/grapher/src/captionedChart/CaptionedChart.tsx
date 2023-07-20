@@ -38,6 +38,8 @@ import {
     FacetStrategyDropdown,
     FacetStrategyDropdownManager,
     NoDataAreaToggle,
+    FooterControls,
+    FooterControlsManager,
 } from "../controls/Controls"
 import { ScaleSelector } from "../controls/ScaleSelector"
 import { AddEntityButton } from "../controls/AddEntityButton"
@@ -56,7 +58,8 @@ export interface CaptionedChartManager
         HeaderManager,
         FacetYDomainToggleManager,
         FacetStrategyDropdownManager,
-        DataTableManager {
+        DataTableManager,
+        FooterControlsManager {
     containerElement?: HTMLDivElement
     tabBounds?: Bounds
     fontSize?: number
@@ -410,6 +413,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                     </div>
                 )}
                 <Footer manager={this.manager} maxWidth={maxWidth} />
+                <FooterControls manager={this.manager} />
             </>
         )
     }
