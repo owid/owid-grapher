@@ -21,13 +21,13 @@ createTestDb() {
     echo "Waiting for DB to be online"
     mysqladmin ping -h$DB_ROOT_HOST -uroot --password=$DB_ROOT_PASS --wait=30
 
-    _mysql -e "DROP DATABASE IF EXISTS $GRAPHER_TEST_DB_NAME;"
+    _mysql --database="" -e "DROP DATABASE IF EXISTS $GRAPHER_TEST_DB_NAME;"
 
     echo "executing: CREATE DATABASE $GRAPHER_TEST_DB_NAME;"
-    _mysql -e "CREATE DATABASE $GRAPHER_TEST_DB_NAME;"
+    _mysql --database="" -e "CREATE DATABASE $GRAPHER_TEST_DB_NAME;"
 
     echo "creating user if it doesn't exist"
-    _mysql -e "CREATE USER IF NOT EXISTS '$GRAPHER_TEST_DB_USER' IDENTIFIED BY '$GRAPHER_TEST_DB_PASS'; GRANT ALL PRIVILEGES ON * . * TO '$GRAPHER_TEST_DB_USER'; FLUSH PRIVILEGES;"
+    _mysql --database="" -e "CREATE USER IF NOT EXISTS '$GRAPHER_TEST_DB_USER' IDENTIFIED BY '$GRAPHER_TEST_DB_PASS'; GRANT ALL PRIVILEGES ON * . * TO '$GRAPHER_TEST_DB_USER'; FLUSH PRIVILEGES;"
 
     echo "Ingesting sql creation script"
     cat /migration/pre-migrations-schema.sql | _mysql $GRAPHER_TEST_DB_NAME
