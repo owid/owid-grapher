@@ -544,7 +544,8 @@ export class LineChart
                     columns={columns}
                     rows={compact(
                         sortedData.map((series) => {
-                            const { seriesName: name } = series
+                            const { seriesName: name, isProjection: striped } =
+                                series
                             const annotation =
                                 this.getAnnotationsForSeries(name)
 
@@ -569,7 +570,14 @@ export class LineChart
                                 point?.colorValue as undefined | number,
                             ]
 
-                            return { name, annotation, swatch, blurred, values }
+                            return {
+                                name,
+                                annotation,
+                                swatch,
+                                blurred,
+                                striped,
+                                values,
+                            }
                         })
                     )}
                 />
