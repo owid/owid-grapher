@@ -21,6 +21,16 @@
     font-family: $sans-serif-font-stack;
     font-size: 16px;
 
+    @mixin diagonal-background($background, $color) {
+        background: repeating-linear-gradient(
+            -45deg,
+            $background,
+            $background 16%,
+            $color 16%,
+            $color 25%
+        );
+    }
+
     .frontmatter {
         background: $background-fill;
         color: black;
@@ -181,6 +191,7 @@
                     display: inline-block;
                     margin-right: 0.3em;
                     text-align: left;
+                    position: relative;
                 }
             }
 
@@ -286,6 +297,19 @@
                 td.series-color {
                     display: none;
                 }
+            }
+
+            // overlay a diagonal line pattern on striped swatches
+            tr.striped .series-color .swatch::before {
+                content: " ";
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                @include diagonal-background(transparent, white);
+            }
+
+            tr.striped.blurred .series-color .swatch::before {
+                @include diagonal-background($grey, white);
             }
         }
 

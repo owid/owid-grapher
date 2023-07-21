@@ -170,6 +170,7 @@ export class TooltipTable extends React.Component<TooltipTableProps> {
                             name,
                             focused,
                             blurred,
+                            striped,
                             annotation,
                             values,
                             notice,
@@ -181,7 +182,11 @@ export class TooltipTable extends React.Component<TooltipTableProps> {
                         return (
                             <tr
                                 key={name}
-                                className={classnames({ focused, blurred })}
+                                className={classnames({
+                                    focused,
+                                    blurred,
+                                    striped,
+                                })}
                             >
                                 <td className="series-color">
                                     <div
