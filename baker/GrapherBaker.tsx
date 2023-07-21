@@ -294,15 +294,15 @@ const renderGrapherPage = async (grapher: GrapherInterface) => {
     )
 }
 
-interface BakeVariableDataArguments {
+interface CheckVariableDataArguments {
     bakedSiteDir: string
     checksumsDir: string
     variableId: number
 }
 
-export const bakeVariableData = async (
-    bakeArgs: BakeVariableDataArguments
-): Promise<BakeVariableDataArguments> => {
+export const checkVariableData = async (
+    bakeArgs: CheckVariableDataArguments
+): Promise<CheckVariableDataArguments> => {
     const { dataPath, metadataPath } = await getOwidVariableDataAndMetadataPath(
         bakeArgs.variableId
     )
@@ -415,10 +415,9 @@ export const bakeAllPublishedChartsVariableDataAndMetadata = async (
         }
     )
 
-    // NOTE: we don't bake data, just make sure it exists on S3
     await Promise.all(
         variableIds.map(async (variableId) => {
-            await bakeVariableData({
+            await checkVariableData({
                 bakedSiteDir,
                 variableId,
                 checksumsDir,

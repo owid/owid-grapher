@@ -146,7 +146,7 @@ export async function getVariableData(
     )
 
     const [data, metadata] = await Promise.all([
-        fetchS3ValuesByPath(dataPath),
+        fetchS3DataValuesByPath(dataPath),
         fetchS3MetadataByPath(metadataPath),
     ])
 
@@ -438,10 +438,10 @@ export const fetchS3Values = async (
     if (!metadataPath) {
         throw new Error(`Missing metadataPath for variable ${variableId}`)
     }
-    return fetchS3ValuesByPath(dataPath)
+    return fetchS3DataValuesByPath(dataPath)
 }
 
-export const fetchS3ValuesByPath = async (
+export const fetchS3DataValuesByPath = async (
     dataPath: string
 ): Promise<OwidVariableMixedData> => {
     const resp = await retryPromise(() => fetch(dataPath, { keepalive: true }))
