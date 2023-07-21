@@ -13,7 +13,7 @@
         "buildLerna": "lerna run build",
         "buildVite": "vite build",
         "buildWordpressPlugin": "cd ./wordpress/web/app/plugins/owid && yarn && yarn build",
-        "cleanTsc": "rm -rf itsJustJavascript && tsc -b -clean",
+        "cleanTsc": "rm -rf itsJustJavascript && tsc -b -clean && lerna exec -- rm -rf dist",
         "deployWordpress": "./wordpress/scripts/deploy.sh",
         "fetchServerStatus": "node --enable-source-maps ./itsJustJavascript/baker/liveCommit.js",
         "fixLint": "eslint . --fix",

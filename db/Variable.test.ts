@@ -1,12 +1,6 @@
 #! /usr/bin/env yarn jest
 
-import {
-    writeVariableCSV,
-    getVariableData,
-    VariableQueryRow,
-    _dataAsDFfromS3,
-    detectValuesType,
-} from "./model/Variable.js"
+import { writeVariableCSV, _dataAsDFfromS3 } from "./model/Variable.js"
 import * as db from "./db.js"
 import * as Variable from "./model/Variable.js"
 import pl from "nodejs-polars"
@@ -169,74 +163,6 @@ UK,2001,2,,
     })
 })
 
-describe("getVariableData", () => {
-    it("returns proper data and metadata", async () => {
-        const date = new Date(Date.UTC(2023, 1, 1))
-        const variableResult: VariableQueryRow = {
-            id: 1,
-            datasetName: "dataset",
-            nonRedistributable: 0,
-            sourceId: 1,
-            sourceName: "source",
-            sourceDescription: "{}",
-            name: "",
-            code: null,
-            unit: "",
-            shortUnit: null,
-            description: null,
-            createdAt: date,
-            updatedAt: date,
-            datasetId: 0,
-            display: "{}",
-            dimensions: "",
-        }
-
-        const s3data = {
-            1: {
-                values: [1, 2],
-                years: [2000, 2001],
-                entities: [1, 1],
-            },
-        }
-        mockS3data(s3data)
-        jest.spyOn(db, "mysqlFirst").mockResolvedValueOnce(variableResult)
-        jest.spyOn(db, "queryMysql").mockResolvedValueOnce([
-            { id: 1, name: "UK", code: "code" },
-        ])
-
-        const dataMetadata = await getVariableData(1)
-
-        expect(dataMetadata).toEqual({
-            data: { entities: [1, 1], values: [1, 2], years: [2000, 2001] },
-            metadata: {
-                createdAt: date,
-                datasetId: 0,
-                datasetName: "dataset",
-                dimensions: {
-                    entities: { values: [{ code: "code", id: 1, name: "UK" }] },
-                    years: { values: [{ id: 2000 }, { id: 2001 }] },
-                },
-                display: {},
-                id: 1,
-                name: "",
-                nonRedistributable: false,
-                source: {
-                    additionalInfo: "",
-                    dataPublishedBy: "",
-                    dataPublisherSource: "",
-                    id: 1,
-                    link: "",
-                    name: "source",
-                    retrievedDate: "",
-                },
-                type: "int",
-                unit: "",
-                updatedAt: date,
-            },
-        })
-    })
-})
-
 describe("_dataAsDFfromS3", () => {
     it("works correctly for mixed data", async () => {
         const s3data = {
@@ -256,35 +182,5 @@ describe("_dataAsDFfromS3", () => {
             variableId: [1, 1],
             year: [2000, 2001],
         })
-    })
-})
-
-describe("detectValuesType", () => {
-    test("returns 'int' when all values are integers", () => {
-        expect(detectValuesType([1, 2, 3])).toEqual("int")
-    })
-
-    test("returns 'float' when all values are floats", () => {
-        expect(detectValuesType([1.1, 2.2, 3.3])).toEqual("float")
-    })
-
-    test("returns 'string' when all values are strings", () => {
-        expect(detectValuesType(["a", "b", "c"])).toEqual("string")
-    })
-
-    test("returns 'mixed' when values are a mix of integers and strings", () => {
-        expect(detectValuesType([1, "a", 2, "b"])).toEqual("mixed")
-    })
-
-    test("returns 'float' when values are a mix of integers and floats", () => {
-        expect(detectValuesType([1, 1.1, 2, 2.2])).toEqual("float")
-    })
-
-    test("returns 'mixed' when values are a mix of floats and strings", () => {
-        expect(detectValuesType([1.1, "a", 2.2, "b"])).toEqual("mixed")
-    })
-
-    test("returns 'mixed' when values are empty", () => {
-        expect(detectValuesType([])).toEqual("mixed")
     })
 })

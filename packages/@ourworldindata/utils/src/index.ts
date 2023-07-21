@@ -456,14 +456,12 @@ export {
     type OwidVariableWithSourceAndDimensionWithoutId,
     type OwidVariableMixedData,
     type OwidVariableWithDataAndSource,
-    type OwidVariableWithSourceAndType,
     type OwidVariableDimension,
     type OwidVariableDimensions,
     type OwidVariableDataMetadataDimensions,
     type MultipleOwidVariableDataDimensionsMap,
     type OwidVariableDimensionValuePartial,
     type OwidVariableDimensionValueFull,
-    type OwidVariableTypeOptions,
     type OwidEntityKey,
 } from "./OwidVariable.js"
 

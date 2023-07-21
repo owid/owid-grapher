@@ -84,6 +84,8 @@ import {
     DEFAULT_GRAPHER_WIDTH,
     DEFAULT_GRAPHER_HEIGHT,
     SeriesStrategy,
+    getVariableDataRoute,
+    getVariableMetadataRoute,
 } from "../core/GrapherConstants"
 import Cookies from "js-cookie"
 import {
@@ -212,11 +214,13 @@ async function loadVariablesDataAdmin(
 
 async function loadVariablesDataSite(
     variableIds: number[],
-    baseUrl: string
+    dataApiUrl: string
 ): Promise<MultipleOwidVariableDataDimensionsMap> {
     const loadVariableDataPromises = variableIds.map(async (variableId) => {
-        const dataPromise = fetch(`${baseUrl}data/${variableId}.json`)
-        const metadataPromise = fetch(`${baseUrl}metadata/${variableId}.json`)
+        const dataPromise = fetch(getVariableDataRoute(dataApiUrl, variableId))
+        const metadataPromise = fetch(
+            getVariableMetadataRoute(dataApiUrl, variableId)
+        )
         const [dataResponse, metadataResponse] = await Promise.all([
             dataPromise,
             metadataPromise,
@@ -246,6 +250,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     table?: OwidTable
     bakedGrapherURL?: string
     adminBaseUrl?: string
+    dataApiUrl?: string
     env?: string
     dataApiUrlForAdmin?: string
     annotation?: Annotation
@@ -321,7 +326,7 @@ export class Grapher
     @observable.ref timelineMaxTime?: Time = undefined
     @observable.ref addCountryMode = EntitySelectionMode.MultipleEntities
     @observable.ref stackMode = StackMode.absolute
-    @observable.ref showNoDataArea: boolean = true
+    @observable.ref showNoDataArea = true
     @observable.ref hideLegend?: boolean = false
     @observable.ref logo?: LogoOption = undefined
     @observable.ref hideLogo?: boolean = undefined
@@ -333,8 +338,8 @@ export class Grapher
     @observable.ref hideScatterLabels?: boolean = undefined
     @observable.ref zoomToSelection?: boolean = undefined
     @observable.ref showYearLabels?: boolean = undefined // Always show year in labels for bar charts
-    @observable.ref hasChartTab: boolean = true
-    @observable.ref hasMapTab: boolean = false
+    @observable.ref hasChartTab = true
+    @observable.ref hasMapTab = false
     @observable.ref tab = GrapherTabOption.chart
     @observable.ref overlay?: GrapherTabOption = undefined
     @observable.ref internalNotes = ""
@@ -402,6 +407,8 @@ export class Grapher
         typeof window !== "undefined" && (window as any).isEditor === true
     @observable bakedGrapherURL = this.props.bakedGrapherURL
     adminBaseUrl = this.props.adminBaseUrl
+    dataApiUrl =
+        this.props.dataApiUrl ?? "https://api.ourworldindata.org/v1/indicators/"
 
     @observable.ref inputTable: OwidTable
 
@@ -762,7 +769,7 @@ export class Grapher
             } else {
                 const variablesDataMap = await loadVariablesDataSite(
                     this.variableIds,
-                    this.dataBaseUrl
+                    this.dataApiUrl
                 )
                 this._receiveOwidDataAndApplySelection(variablesDataMap)
             }
@@ -974,10 +981,6 @@ export class Grapher
 
     @computed.struct private get variableIds(): number[] {
         return uniq(this.dimensions.map((d) => d.variableId))
-    }
-
-    @computed get dataBaseUrl(): string {
-        return `${this.bakedGrapherURL ?? ""}/data/variables/`
     }
 
     externalCsvLink = ""
