@@ -22,7 +22,7 @@ echo '==> Running migrations'
 yarn typeorm migration:run -d itsJustJavascript/db/tests/dataSource.dbtests.js
 
 echo '==> Running tests'
-if ! yarn run jest --config=jest.db.config.js --runInBand # runInBand runs multiple test files serially - useful to avoid weird race conditions
+if ! NODE_OPTIONS=--experimental-vm-modules yarn run jest --config=jest.db.config.js --runInBand # runInBand runs multiple test files serially - useful to avoid weird race conditions
 then
     echo '💀 Tests failed'
     ./devTools/docker/mark-test-mysql-dirty.sh

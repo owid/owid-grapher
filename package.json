@@ -5,6 +5,7 @@
         "node": ">=18.16"
     },
     "packageManager": "yarn@3.3.0",
+    "type": "module",
     "scripts": {
         "buildAndDeploySite": "node --enable-source-maps ./itsJustJavascript/baker/buildAndDeploySite.js",
         "buildCoverage": "jest --coverage=true --coverageProvider=v8",
@@ -37,7 +38,7 @@
         "testLint": "eslint .",
         "testPrettierAll": "yarn prettier --check \"**/*.{tsx,ts,jsx,js,json,md,html,css,scss,yml,php}\"",
         "testPrettierChanged": "yarn fixPrettierChanged --check",
-        "testJest": "lerna run buildTests && jest"
+        "testJest": "lerna run buildTests && NODE_OPTIONS=--experimental-vm-modules jest"
     },
     "dependencies": {
         "@aws-sdk/client-s3": "^3.352.0",
