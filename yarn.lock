@@ -13841,7 +13841,7 @@ __metadata:
     react-dom: ^16.14.0
     react-error-boundary: ^4.0.10
     react-flip-toolkit: ^7.0.9
-    react-horizontal-scrolling-menu: ^4.0.3
+    react-horizontal-scrolling-menu: ^4.1.0
     react-intersection-observer: ^9.4.0
     react-move: ^6.5.0
     react-recaptcha: ^2.3.10
@@ -21037,14 +21037,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-horizontal-scrolling-menu@npm:^4.0.3":
-  version: 4.0.3
-  resolution: "react-horizontal-scrolling-menu@npm:4.0.3"
+"react-horizontal-scrolling-menu@npm:^4.1.0":
+  version: 4.1.0
+  resolution: "react-horizontal-scrolling-menu@npm:4.1.0"
   dependencies:
     smooth-scroll-into-view-if-needed: ~1.1
   peerDependencies:
     react: ">=16.8"
-  checksum: 2d6505dafd007bf222e51bfee6e12b83eb4cc5f7e1dceb91439ce12674f99efef96113a74367282584fcc3b26d913886102441bbef06525a8cf718468d266e08
+  checksum: 6e11d9b6e77fae93e12f848007728d8ae8964950b49607545212165bddb6a2d75a88986d561d608cba49cc24a7f149932f871a16abc502c4b2c485bf2bd3f2fa
   languageName: node
   linkType: hard
 
