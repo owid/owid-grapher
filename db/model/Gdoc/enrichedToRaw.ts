@@ -31,10 +31,10 @@ import {
     RawBlockTopicPageIntro,
     EnrichedBlockResearchAndWritingLink,
     RawBlockResearchAndWritingLink,
+    RawBlockAlign,
 } from "@ourworldindata/utils"
 import { spanToHtmlString } from "./gdocUtils.js"
 import { match, P } from "ts-pattern"
-import { RawBlockAlign } from "@ourworldindata/utils/dist/owidTypes.js"
 
 function spansToHtmlText(spans: Span[]): string {
     return spans.map(spanToHtmlString).join("")

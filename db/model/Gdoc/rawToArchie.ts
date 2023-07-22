@@ -29,8 +29,8 @@ import {
     RawBlockResearchAndWritingLink,
     RawBlockTopicPageIntro,
     RawBlockExpandableParagraph,
+    RawBlockAlign,
 } from "@ourworldindata/utils"
-import { RawBlockAlign } from "@ourworldindata/utils/dist/owidTypes.js"
 import { match } from "ts-pattern"
 
 export function appendDotEndIfMultiline(
