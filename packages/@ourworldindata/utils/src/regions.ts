@@ -1,4 +1,4 @@
-import entities from "./regions.json"
+import entities from "./regions.json" assert { type: "json" }
 
 export enum RegionType {
     Country = "country",
