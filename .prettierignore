@@ -13,3 +13,4 @@ coverage
 /wordpress/web/app/uploads
 packages/@ourworldindata/*/dist/
 dist/
+grapherData/
