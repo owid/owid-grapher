@@ -3,11 +3,11 @@
 // Settings in here will be made available to the client-side code that is
 // bundled and shipped out to our users.
 
-import dotenv from "dotenv"
-import findBaseDir from "./findBaseDir.js"
 import { parseIntOrUndefined, isRunningInNode } from "@ourworldindata/utils"
 
-if (isRunningInNode()) {
+if (!process.env.VITE_BUILD && isRunningInNode()) {
+    const dotenv = await import("dotenv")
+    const findBaseDir = (await import("./findBaseDir.js")).default
     // only run this code in node, not in the browser.
     // in the browser, process.env is already populated by vite.
     const baseDir = findBaseDir(__dirname)

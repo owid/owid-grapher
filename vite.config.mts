@@ -37,6 +37,7 @@ export default defineConfig({
                 JSON.stringify(value),
             ])
         ),
+        "process.env.VITE_BUILD": "true",
     },
     build: {
         manifest: true, // creates a manifest.json file, which we use to determine which files to load in prod
