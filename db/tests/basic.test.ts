@@ -4,12 +4,12 @@ import { dbTestConfig } from "./dbTestConfig.js"
 import { dataSource } from "./dataSource.dbtests.js"
 import { knex, Knex } from "knex"
 import { getConnection } from "../db.js"
-import * as typeorm from "typeorm"
+import { DataSource } from "typeorm"
 import { User } from "../model/User.js"
 import { Chart } from "../model/Chart.js"
 
 let knexInstance: Knex<any, unknown[]> | undefined = undefined
-let typeOrmConnection: typeorm.DataSource | undefined = undefined
+let typeOrmConnection: DataSource | undefined = undefined
 
 beforeAll(async () => {
     const dataSpec = {

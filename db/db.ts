@@ -1,5 +1,5 @@
 import mysql from "mysql"
-import * as typeorm from "typeorm"
+import { DataSource, EntityManager } from "typeorm"
 import { dataSource } from "./dataSource.js"
 import { knex, Knex } from "knex"
 import {
@@ -10,11 +10,11 @@ import {
     GRAPHER_DB_PORT,
 } from "../settings/serverSettings.js"
 import { registerExitHandler } from "./cleanup.js"
-let typeormDataSource: typeorm.DataSource
+let typeormDataSource: DataSource
 
 export const getConnection = async (
-    source: typeorm.DataSource = dataSource
-): Promise<typeorm.DataSource> => {
+    source: DataSource = dataSource
+): Promise<DataSource> => {
     if (typeormDataSource) return typeormDataSource
 
     typeormDataSource = await source.initialize()
@@ -27,8 +27,8 @@ export const getConnection = async (
 }
 
 export class TransactionContext {
-    manager: typeorm.EntityManager
-    constructor(manager: typeorm.EntityManager) {
+    manager: EntityManager
+    constructor(manager: EntityManager) {
         this.manager = manager
     }
 
