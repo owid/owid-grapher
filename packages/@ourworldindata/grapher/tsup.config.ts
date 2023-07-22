@@ -8,4 +8,5 @@ export default defineConfig({
     clean: true,
     esbuildPlugins: [sassPlugin()],
     tsconfig: "./tsconfig.src.json",
+    format: "esm",
 })
