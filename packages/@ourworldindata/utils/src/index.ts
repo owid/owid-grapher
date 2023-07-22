@@ -320,6 +320,7 @@ export {
     type NodeWithUrl,
     filterValidStringValues,
     traverseEnrichedSpan,
+    isRunningInNode,
 } from "./Util.js"
 
 export {
