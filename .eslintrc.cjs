@@ -13,7 +13,7 @@ module.exports = {
             jsx: true,
         },
         project: "./tsconfig.eslint.json",
-        ecmaVersion: 2018,
+        ecmaVersion: "latest",
     },
     overrides: [
         {
