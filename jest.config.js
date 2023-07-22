@@ -4,6 +4,7 @@ export default {
         {
             displayName: { name: "node", color: "magenta" },
             testEnvironment: "node",
+            transform: {},
             testPathIgnorePatterns: [
                 ".jsdom.test.",
                 "<rootDir>/itsJustJavascript/db/tests",
@@ -14,6 +15,7 @@ export default {
         {
             displayName: { name: "jsdom", color: "cyan" },
             testEnvironment: "jsdom",
+            transform: {},
             testMatch: ["**/*.jsdom.test.(jsx|js)"],
             // modulePathIgnorePatterns: ["<rootDir>/wordpress/"],
         },
