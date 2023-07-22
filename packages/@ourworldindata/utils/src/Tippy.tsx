@@ -1,5 +1,6 @@
 import React from "react"
 import { default as OriginalTippy, TippyProps } from "@tippyjs/react"
+import { isRunningInNode } from "./Util.js"
 
 interface CustomTippyProps extends TippyProps {
     lazy?: boolean
@@ -8,8 +9,11 @@ interface CustomTippyProps extends TippyProps {
 export const Tippy = (props: CustomTippyProps): JSX.Element => {
     const { lazy, ...tippyProps } = props
 
-    const TippyInstance = lazy ? LazyTippy : OriginalTippy
-    return <TippyInstance theme="light" {...tippyProps} />
+    if (isRunningInNode()) return <>{props.children}</>
+    else {
+        const TippyInstance = lazy ? LazyTippy : OriginalTippy
+        return <TippyInstance theme="light" {...tippyProps} />
+    }
 }
 
 // A Tippy instance that only evaluates `content` when the tooltip is shown.
