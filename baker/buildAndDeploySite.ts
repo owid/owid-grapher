@@ -7,6 +7,7 @@ import os from "os"
 import path from "path"
 import { BakeStep, bakeSteps } from "./SiteBaker.js"
 import { DeployTarget } from "./DeployTarget.js"
+import { nodeDirname } from "@ourworldindata/utils"
 
 yargs(hideBin(process.argv))
     .command<{
@@ -31,7 +32,9 @@ yargs(hideBin(process.argv))
             const deployer = new Deployer({
                 target: target as any,
                 userRunningTheDeploy: os.userInfo().username,
-                owidGrapherRootDir: path.normalize(__dirname + "/../../"),
+                owidGrapherRootDir: path.normalize(
+                    nodeDirname(import.meta) + "/../../"
+                ),
                 skipChecks,
                 runChecksRemotely: runChecksRemotely,
                 bakeSteps,

@@ -13,6 +13,7 @@ import {
     keyBy,
     OwidGdocType,
     retryPromise,
+    nodeDirname,
 } from "@ourworldindata/utils"
 import {
     getRelatedArticles,
@@ -522,7 +523,10 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
                 minWorkers: 2,
                 maxWorkers: MAX_NUM_BAKE_PROCESSES,
             }
-            const pool = workerpool.pool(__dirname + "/worker.js", poolOptions)
+            const pool = workerpool.pool(
+                nodeDirname(import.meta) + "/worker.js",
+                poolOptions
+            )
             try {
                 await Promise.all(
                     jobs.map((job) =>

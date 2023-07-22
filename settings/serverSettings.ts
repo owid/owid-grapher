@@ -5,13 +5,13 @@ import path from "path"
 import dotenv from "dotenv"
 import findBaseDir from "./findBaseDir.js"
 
-const baseDir = findBaseDir(__dirname)
+const baseDir = findBaseDir(nodeDirname(import.meta))
 if (baseDir === undefined) throw new Error("could not locate base package.json")
 
 dotenv.config({ path: `${baseDir}/.env` })
 
 import * as clientSettings from "./clientSettings.js"
-import { parseIntOrUndefined } from "@ourworldindata/utils"
+import { nodeDirname, parseIntOrUndefined } from "@ourworldindata/utils"
 
 const serverSettings = process.env ?? {}
 

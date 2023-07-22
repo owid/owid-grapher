@@ -5,6 +5,7 @@ import * as utils from "./utils.js"
 import fs from "fs-extra"
 
 import workerpool from "workerpool"
+import { nodeDirname } from "@ourworldindata/utils"
 
 async function main(parsedArgs: parseArgs.ParsedArgs) {
     try {
@@ -43,7 +44,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
             rmOnError,
         }))
 
-        const pool = workerpool.pool(__dirname + "/worker.js", {
+        const pool = workerpool.pool(nodeDirname(import.meta) + "/worker.js", {
             minWorkers: 2,
         })
 

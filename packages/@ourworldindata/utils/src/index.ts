@@ -321,6 +321,7 @@ export {
     filterValidStringValues,
     traverseEnrichedSpan,
     isRunningInNode,
+    nodeDirname,
 } from "./Util.js"
 
 export {

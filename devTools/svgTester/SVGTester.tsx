@@ -8,6 +8,7 @@ import {
     bakeGrapherToSvg,
     getPublishedGraphersBySlug,
 } from "../../baker/GrapherImageBaker.js"
+import { nodeDirname } from "@ourworldindata/utils"
 
 const header = `bakeOrder,timeToBake,slug,chartType,md5`
 const sampleRow = `1,123,world-pop,LineChart,ee5a6312...`
@@ -46,7 +47,7 @@ export const svgCompareFormPage = (
 
 export async function bakeAndSaveResultsFile(
     bakeLimit: number = 100000,
-    outDir: string = __dirname + "/bakedSvgs"
+    outDir: string = nodeDirname(import.meta) + "/bakedSvgs"
 ) {
     if (!fs.existsSync(outDir)) fs.mkdirSync(outDir)
     const { graphersBySlug } = await getPublishedGraphersBySlug()

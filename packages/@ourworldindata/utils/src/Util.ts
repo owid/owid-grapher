@@ -164,6 +164,8 @@ import {
 import { PointVector } from "./PointVector.js"
 import React from "react"
 import { match, P } from "ts-pattern"
+import path from "path"
+import url from "url"
 
 export type NoUndefinedValues<T> = {
     [P in keyof T]: Required<NonNullable<T[P]>>
@@ -1668,4 +1670,11 @@ export function isRunningInNode(): boolean {
             typeof process !== "undefined" ? process : 0
         ) === "[object process]"
     )
+}
+
+export function nodeDirname(meta: ImportMeta): string {
+    // taken from https://www.npmjs.com/package/detect-node-es
+    if (!isRunningInNode()) return ""
+
+    return path.resolve(url.fileURLToPath(meta.url), "..")
 }

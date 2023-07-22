@@ -10,13 +10,17 @@ import {
 } from "geojson"
 import prettier from "prettier"
 import * as _ from "lodash-es"
+import { nodeDirname } from "@ourworldindata/utils"
 
 const ETL_REGIONS_URL =
         process.env.ETL_REGIONS_URL ||
         "https://catalog.ourworldindata.org/grapher/regions/latest/regions/regions.csv",
     GEO_JSON_URL =
         "https://raw.githubusercontent.com/alexabruck/worldmap-sensitive/master/dist/world.geo.json",
-    GRAPHER_ROOT = __dirname.replace(/\/(itsJustJavascript\/)?devTools.*/, ""),
+    GRAPHER_ROOT = nodeDirname(import.meta).replace(
+        /\/(itsJustJavascript\/)?devTools.*/,
+        ""
+    ),
     GRAPHER_REGIONS_PATH = `${GRAPHER_ROOT}/packages/@ourworldindata/utils/src/regions.json`,
     GRAPHER_TOPOLOGY_PATH = `${GRAPHER_ROOT}/packages/@ourworldindata/grapher/src/mapCharts/MapTopology.ts`,
     ADDITIONAL_CONTINENT_MEMBERS = {

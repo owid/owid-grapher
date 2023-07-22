@@ -8,20 +8,24 @@ import {
     GrapherProgrammaticInterface,
     LegacyGrapherInterface,
 } from "@ourworldindata/grapher"
-import { isPresent, mapToObjectLiteral } from "@ourworldindata/utils"
+import {
+    isPresent,
+    mapToObjectLiteral,
+    nodeDirname,
+} from "@ourworldindata/utils"
 import fs from "fs"
 import parseArgs from "minimist"
 import { getPublishedGraphersBySlug } from "../../baker/GrapherImageBaker.js"
 import { closeTypeOrmAndKnexConnections } from "../../db/db.js"
 
-const GRAPHER_DUMP_LOCATION = __dirname + "/graphers.json"
-const GRAPHER_TRIMMED_LOCATION = __dirname + "/graphers-trimmed.json"
-const GRAPHER_SELECTIONS_LOCATION = __dirname + "/graphers-selections.txt"
-const GRAPHER_COLOR_SCALES_LOCATION = __dirname + "/graphers-colorscales.json"
-const GRAPHER_ALL_COLOR_SCALES_LOCATION =
-    __dirname + "/graphers-colorscales.tsv"
+const dirname = nodeDirname(import.meta)
+const GRAPHER_DUMP_LOCATION = dirname + "/graphers.json"
+const GRAPHER_TRIMMED_LOCATION = dirname + "/graphers-trimmed.json"
+const GRAPHER_SELECTIONS_LOCATION = dirname + "/graphers-selections.txt"
+const GRAPHER_COLOR_SCALES_LOCATION = dirname + "/graphers-colorscales.json"
+const GRAPHER_ALL_COLOR_SCALES_LOCATION = dirname + "/graphers-colorscales.tsv"
 const GRAPHER_MAP_COLOR_SCALES_LOCATION =
-    __dirname + "/graphers-mapcolorscales.json"
+    dirname + "/graphers-mapcolorscales.json"
 
 const rawGraphers = () =>
     Object.values(

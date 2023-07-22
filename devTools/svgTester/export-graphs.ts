@@ -6,6 +6,7 @@ import fs from "fs-extra"
 
 import path from "path"
 import workerpool from "workerpool"
+import { nodeDirname } from "@ourworldindata/utils"
 
 function parseArgAsList(arg?: unknown): string[] {
     return (arg ?? "")
@@ -67,7 +68,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         const jobDescriptions: utils.RenderSvgAndSaveJobDescription[] =
             directories.map((dir) => ({ dir: path.join(inDir, dir), outDir }))
 
-        const pool = workerpool.pool(__dirname + "/worker.js", {
+        const pool = workerpool.pool(nodeDirname(import.meta) + "/worker.js", {
             minWorkers: 2,
         })
 
