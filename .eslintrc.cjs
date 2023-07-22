@@ -14,6 +14,7 @@ module.exports = {
         },
         project: "./tsconfig.eslint.json",
         ecmaVersion: "latest",
+        sourceType: "module",
     },
     overrides: [
         {
