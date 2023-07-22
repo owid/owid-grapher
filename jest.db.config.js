@@ -1,4 +1,4 @@
-module.exports = {
+export default {
     testTimeout: 10000,
     projects: [
         {
