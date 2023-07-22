@@ -1,7 +1,7 @@
 import React from "react"
 import { observer } from "mobx-react"
 import { observable, computed, runInAction, action } from "mobx"
-import * as lodash from "lodash"
+import * as lodash from "lodash-es"
 import { Prompt, Redirect } from "react-router-dom"
 import filenamify from "filenamify"
 

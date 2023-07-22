@@ -1,4 +1,4 @@
-import { cloneDeep } from "lodash"
+import { cloneDeep } from "lodash-es"
 import { MigrationInterface, QueryRunner } from "typeorm"
 
 export class ChartsFixSchemaViolations1686644029475

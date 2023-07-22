@@ -23,7 +23,7 @@ import {
 } from "./GitCmsConstants.js"
 import { sync } from "glob"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
-import _ from "lodash"
+import * as _ from "lodash-es"
 
 // todo: cleanup typings
 interface ResponseWithUserInfo extends Response {

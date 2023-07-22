@@ -1,4 +1,4 @@
-import _ from "lodash"
+import * as _ from "lodash-es"
 import { Writable } from "stream"
 import * as db from "../db.js"
 import {

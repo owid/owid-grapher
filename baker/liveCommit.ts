@@ -1,4 +1,4 @@
-import { keyBy, mapValues, sortBy, memoize } from "lodash"
+import { keyBy, mapValues, sortBy, memoize } from "lodash-es"
 import parseArgs from "minimist"
 import opener from "opener"
 import { execWrapper } from "../db/execWrapper.js"

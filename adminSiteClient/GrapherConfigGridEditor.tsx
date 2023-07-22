@@ -25,7 +25,7 @@ import {
 import { Disposer, observer } from "mobx-react"
 import { observable, computed, action, runInAction, autorun } from "mobx"
 import { match, P } from "ts-pattern"
-//import * as lodash from "lodash"
+//import * as lodash from "lodash-es"
 import {
     cloneDeep,
     findLastIndex,
@@ -37,7 +37,7 @@ import {
     omitBy,
     pick,
     range,
-} from "lodash"
+} from "lodash-es"
 
 import { BaseEditorComponent, HotColumn, HotTable } from "@handsontable/react"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"

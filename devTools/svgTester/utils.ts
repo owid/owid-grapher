@@ -19,7 +19,7 @@ import {
 import { getVariableData } from "../../db/model/Variable.js"
 
 import { GrapherInterface } from "@ourworldindata/grapher"
-import _ from "lodash"
+import * as _ from "lodash-es"
 import util from "util"
 import {
     BAKED_GRAPHER_URL,

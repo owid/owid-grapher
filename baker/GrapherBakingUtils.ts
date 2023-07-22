@@ -1,6 +1,6 @@
 import { glob } from "glob"
 import path from "path"
-import * as lodash from "lodash"
+import * as lodash from "lodash-es"
 import {
     BAKED_BASE_URL,
     OPTIMIZE_SVG_EXPORTS,
