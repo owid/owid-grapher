@@ -4,7 +4,7 @@ import {
     Column,
     BaseEntity,
     ManyToOne,
-    Relation,
+    type Relation,
 } from "typeorm"
 import { Chart } from "./Chart.js"
 import { User } from "./User.js"

@@ -10,7 +10,7 @@ import {
 import {
     OwidGdocTag,
     LinkedChart,
-    OwidGdocContent,
+    type OwidGdocContent,
     OwidGdocInterface,
     OwidGdocPublished,
     OwidGdocPublicationContext,

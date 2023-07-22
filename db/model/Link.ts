@@ -4,7 +4,7 @@ import {
     Column,
     BaseEntity,
     ManyToOne,
-    Relation,
+    type Relation,
     In,
 } from "typeorm"
 import {

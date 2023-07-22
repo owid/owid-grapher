@@ -5,7 +5,7 @@ import {
     BaseEntity,
     ManyToOne,
     Unique,
-    Relation,
+    type Relation,
 } from "typeorm"
 import { Writable } from "stream"
 
