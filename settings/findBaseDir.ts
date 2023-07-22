@@ -10,7 +10,7 @@ import fs from "fs"
 export default function findProjectBaseDir(from: string): string | undefined {
     if (!fs.existsSync) return undefined // if fs.existsSync doesn't exist, we're probably running in the browser
 
-    let dir = path.dirname(from)
+    let dir = from
 
     while (dir.length) {
         if (fs.existsSync(path.resolve(dir, "package.json"))) return dir
