@@ -1,7 +1,7 @@
 import React from "react"
 import { simpleGit } from "simple-git"
 import express, { NextFunction } from "express"
-require("express-async-errors") // todo: why the require?
+import "express-async-errors"
 import cookieParser from "cookie-parser"
 import "reflect-metadata"
 import http from "http"
