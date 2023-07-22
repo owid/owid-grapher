@@ -1,4 +1,4 @@
-import { load } from "archieml"
+import archieml from "archieml"
 import { createHash } from "crypto"
 import {
     OwidGdocContent,
@@ -215,7 +215,7 @@ export function extractRefs(text: string): {
                 )
             )
             if (!isAlreadySeen) {
-                const rawInlineRef = load(`
+                const rawInlineRef = archieml.load(`
                 id: ${id}
                 [.+content]
                 ${contentOrId}
@@ -247,7 +247,7 @@ export const archieToEnriched = (text: string): OwidGdocContent => {
     // Inside .body all keys will be sanitized to lowercase but
     // for the frontmatter this doesn't happen down there - do it now so
     // that "Title: bla" works as well as "title: bla"
-    const parsed_unsanitized = load(noLeadingWSLinks)
+    const parsed_unsanitized = archieml.load(noLeadingWSLinks)
     const parsed: any = lowercaseObjectKeys(parsed_unsanitized)
 
     // Parse elements of the ArchieML into enrichedBlocks

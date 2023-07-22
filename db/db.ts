@@ -1,7 +1,7 @@
 import mysql from "mysql"
 import { DataSource, EntityManager } from "typeorm"
 import { dataSource } from "./dataSource.js"
-import { knex, Knex } from "knex"
+import knex, { Knex } from "knex"
 import {
     GRAPHER_DB_HOST,
     GRAPHER_DB_USER,

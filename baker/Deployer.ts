@@ -1,5 +1,5 @@
 import fs from "fs-extra"
-import { prompt } from "prompts"
+import prompts from "prompts"
 import ProgressBar from "progress"
 import { execWrapper } from "../db/execWrapper.js"
 import { spawn } from "child_process"
@@ -103,7 +103,7 @@ yarn testPrettierAll`
             this.printAndExit(JSON.stringify(err))
         }
 
-        const response = await prompt({
+        const response = await prompts.prompt({
             type: "confirm",
             name: "confirmed",
             message: "Are you sure you want to deploy to live?",

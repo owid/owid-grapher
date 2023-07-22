@@ -16,7 +16,7 @@ import { archieToEnriched } from "./model/Gdoc/archieToEnriched.js"
 import { OwidRawGdocBlockToArchieMLString } from "./model/Gdoc/rawToArchie.js"
 import { enrichedBlockExamples } from "./model/Gdoc/exampleEnrichedBlocks.js"
 import { enrichedBlockToRawBlock } from "./model/Gdoc/enrichedToRaw.js"
-import { load } from "archieml"
+import archieml from "archieml"
 import {
     parseRawBlocksToEnrichedBlocks,
     parseSimpleText,
@@ -285,7 +285,7 @@ level: 2
             ${serializedRawBlock}
             []
             `
-            const deserializedRawBlock = load(simpleArchieMLDocument)
+            const deserializedRawBlock = archieml.load(simpleArchieMLDocument)
             const bodyNodes: OwidRawGdocBlock[] = deserializedRawBlock.body
             let deserializedEnrichedBlocks = bodyNodes.map(
                 parseRawBlocksToEnrichedBlocks
