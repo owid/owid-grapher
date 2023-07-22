@@ -3,10 +3,11 @@
 
 import * as db from "../db/db.js"
 import { denormalizeLatestCountryData } from "../baker/countryProfiles.js"
+import esMain from "es-main"
 
 const main = async () => {
     await denormalizeLatestCountryData()
     await db.closeTypeOrmAndKnexConnections()
 }
 
-if (require.main === module) main()
+if (esMain(import.meta)) main()

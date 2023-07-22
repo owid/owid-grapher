@@ -10995,6 +10995,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"es-main@npm:^1.2.0":
+  version: 1.2.0
+  resolution: "es-main@npm:1.2.0"
+  checksum: b1feaaa71c0c5b0c494cd7d4f1fdb32fcdc9835b824ca2f61a7fbb899627305d88efef584490c24ebacde79289ac14908823c066176e15a784c49fa924db9b0b
+  languageName: node
+  linkType: hard
+
 "es-module-lexer@npm:^1.0.0":
   version: 1.0.3
   resolution: "es-module-lexer@npm:1.0.3"
@@ -13769,6 +13776,7 @@ __metadata:
     entities: ^4.4.0
     enzyme: ^3.11.0
     enzyme-adapter-react-16: ^1.15.6
+    es-main: ^1.2.0
     eslint: ^8.44.0
     eslint-config-prettier: ^8.8.0
     eslint-import-resolver-typescript: ^3.5.5

@@ -250,4 +250,4 @@ export const getContentGraph = once(async () => {
 //     const graph = await getContentGraph()
 // }
 
-// if (require.main === module) main()
+// if (esMain(import.meta)) main()

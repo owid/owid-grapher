@@ -33,6 +33,7 @@ import { GdocsContentSource } from "@ourworldindata/utils"
 import OwidGdocPage from "../site/gdocs/OwidGdocPage.js"
 import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
+import esMain from "es-main"
 
 interface OwidAdminAppOptions {
     gitCmsDir: string
@@ -260,7 +261,7 @@ export class OwidAdminApp {
     }
 }
 
-if (!module.parent)
+if (esMain(import.meta))
     new OwidAdminApp({
         gitCmsDir: GIT_CMS_DIR,
         isDev: ENV === "development",
