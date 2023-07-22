@@ -29,8 +29,11 @@ import {
     findGreatestCommonDivisorOfArray,
     traverseEnrichedBlocks,
 } from "./Util.js"
-import { OwidEnrichedGdocBlock, SortOrder } from "./owidTypes.js"
-import { BlockImageSize } from "./index.js"
+import {
+    OwidEnrichedGdocBlock,
+    SortOrder,
+    BlockImageSize,
+} from "./owidTypes.js"
 
 describe(findClosestTime, () => {
     describe("without tolerance", () => {

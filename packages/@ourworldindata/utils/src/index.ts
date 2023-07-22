@@ -584,6 +584,13 @@ export {
 } from "./MarkdownTextWrap/parser.js"
 
 export {
+    getLinkType,
+    getUrlTarget,
+    checkIsInternalLink,
+    convertHeadingTextToId,
+} from "./GdocsUtils.js"
+
+export {
     ALL_CHARTS_ID,
     LICENSE_ID,
     CITATION_ID,
@@ -593,8 +600,4 @@ export {
     IMAGES_DIRECTORY,
     gdocUrlRegex,
     detailOnDemandRegex,
-    getLinkType,
-    getUrlTarget,
-    checkIsInternalLink,
-    convertHeadingTextToId,
-} from "./GdocsUtils.js"
+} from "./GdocsConstants.js"
