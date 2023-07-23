@@ -19,9 +19,9 @@ export interface TooltipProps {
     offsetYDirection?: "upward" | "downward"
     title?: string | number // header text
     subtitle?: string | number // header deck
-    subtitleFormat?: "unit" | "notice" // optional postprocessing for subtitle
-    notice?: string | number // target year displayed in footer tolerance text
-    prompt?: string // freeform message displayed in footer
+    subtitleFormat?: "notice" | "unit" // optional postprocessing for subtitle
+    footer?: string // target year for tolerance notice or freeform contents
+    footerFormat?: "notice" | "stripes" // add icon for tolerance or projection
     style?: React.CSSProperties // css overrides (particularly width/maxWidth)
     dissolve?: TooltipFadeMode // flag that the tooltip should begin fading out
     tooltipManager: TooltipManager

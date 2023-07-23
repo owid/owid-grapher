@@ -524,6 +524,9 @@ export class LineChart
                 ? `% change since ${formatColumn.formatTime(startTime)}`
                 : unitLabel
         const subtitleFormat = subtitle === unitLabel ? "unit" : undefined
+        const footer = sortedData.some((series) => series.isProjection)
+            ? `Values are extrapolations projected from available data.`
+            : undefined
 
         return (
             <Tooltip
@@ -538,6 +541,8 @@ export class LineChart
                 title={formattedTime}
                 subtitle={subtitle}
                 subtitleFormat={subtitleFormat}
+                footer={footer}
+                footerFormat="stripes"
                 dissolve={fading}
             >
                 <TooltipTable

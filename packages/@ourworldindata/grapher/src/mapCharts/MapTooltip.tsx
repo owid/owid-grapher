@@ -194,7 +194,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
         const { timeColumn } = mapTable
         const displayTime = !timeColumn.isMissing
             ? timeColumn.formatValue(targetTime)
-            : targetTime
+            : targetTime?.toString()
         const displayDatumTime =
             timeColumn && datum
                 ? timeColumn.formatValue(datum?.time)
@@ -235,7 +235,8 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                 title={target?.featureId}
                 subtitle={datum ? displayDatumTime : displayTime}
                 subtitleFormat={notice ? "notice" : undefined}
-                notice={notice}
+                footer={notice}
+                footerFormat="notice"
                 dissolve={fading}
             >
                 <TooltipValue

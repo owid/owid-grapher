@@ -855,7 +855,8 @@ export class ScatterPlotChart
                 title={target.series.label}
                 subtitle={timeLabel}
                 dissolve={fading}
-                notice={targetNotice}
+                footer={targetNotice}
+                footerFormat="notice"
             >
                 <TooltipValueRange
                     column={xColumn}

@@ -198,7 +198,7 @@
             td.series-name {
                 padding-right: 0.9em;
                 line-height: 16px;
-
+                width: 100%;
                 .parenthetical {
                     color: $grey;
                 }
@@ -313,24 +313,13 @@
             }
         }
 
-        // the 'click to select' prompt in MapTooltip
-        .callout {
-            margin: 0.28em;
-            text-align: center;
-            font-weight: $bold;
-            font-size: 12px;
-            font-style: italic;
-            letter-spacing: 0.01em;
-            color: $grey;
-        }
-
         .hoverIndicator circle {
             stroke-width: 1;
             r: 5px;
         }
     }
 
-    // tolerance captions w/ circle-i icon
+    // tolerance captions w/ circle-i icon or projection warning with striped swatch
     .endmatter {
         position: relative;
         color: $grey;
@@ -338,9 +327,15 @@
         border-radius: 0 0 3px 3px;
         border-top: 1px solid $light-grey;
 
-        svg {
+        .icon {
             position: absolute;
             width: 12px;
+
+            &.stripes {
+                content: " ";
+                height: 12px;
+                @include diagonal-background($grey, white);
+            }
         }
 
         p {
@@ -348,26 +343,21 @@
             letter-spacing: 0.01em;
             line-height: 15px;
             margin: 0;
-            padding-left: 19px;
             max-width: 260px;
+        }
 
-            &.prompt {
-                padding-left: 0;
-                text-align: center;
-                font-weight: $bold;
-                font-size: 12px;
-                font-style: italic;
-                letter-spacing: 0.01em;
-                color: $grey;
+        // add boilerplate around time value for tolerance notices
+        p.notice {
+            &::before {
+                content: "Data not available for ";
+            }
+            &::after {
+                content: ". Showing closest available data point instead";
             }
         }
 
-        p.time-notice + p.prompt {
-            border-top: 2px solid $light-grey;
-            padding-top: 0.3em;
-            margin-top: 0.35em;
-            margin-left: 19px;
-            text-align: left;
+        .icon ~ p {
+            padding-left: 19px;
         }
     }
 

@@ -727,7 +727,8 @@ export class StackedDiscreteBarChart
                     title={target.entityName}
                     subtitle={unit != shortUnit ? unit : undefined}
                     subtitleFormat="unit"
-                    notice={notice}
+                    footer={notice}
+                    footerFormat="notice"
                     dissolve={fading}
                 >
                     <TooltipTable
