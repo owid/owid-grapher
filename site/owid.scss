@@ -23,7 +23,6 @@
 @import "css/mixins.scss";
 @import "css/grid.scss";
 @import "css/typography.scss";
-@import "css/category-coloring.scss";
 @import "css/util.scss";
 @import "css/layout.scss";
 @import "css/general.scss";
@@ -447,12 +446,6 @@ h6:hover .deep-link {
     color: #002147;
     text-align: center;
     position: relative;
-}
-
-.owid-data .link-container {
-    border-top: 2px solid #002147;
-    border-left: 1px solid #ddd;
-    margin-top: 3px;
 }
 
 .owid-data li a {

@@ -6,8 +6,6 @@ import {
     faRss,
     faAngleRight,
     faExternalLinkAlt,
-    faAngleDoubleDown,
-    faArrowRight,
 } from "@fortawesome/free-solid-svg-icons"
 import {
     faTwitter,
@@ -19,28 +17,15 @@ import {
     NewsletterSubscriptionForm,
     NewsletterSubscriptionContext,
 } from "../site/NewsletterSubscription.js"
-import {
-    CategoryWithEntries,
-    EntryNode,
-    IndexPost,
-} from "@ourworldindata/utils"
+import { IndexPost } from "@ourworldindata/utils"
 import PostCard from "./PostCard/PostCard.js"
 
-const splitOnLastWord = (str: string) => {
-    const endIndex = (str.lastIndexOf(" ") as number) + 1
-    return {
-        start: endIndex === 0 ? "" : str.substring(0, endIndex),
-        end: str.substring(endIndex),
-    }
-}
-
 export const FrontPage = (props: {
-    entries: CategoryWithEntries[]
     totalCharts: number
     baseUrl: string
     featuredWork: IndexPost[]
 }) => {
-    const { entries, totalCharts, baseUrl, featuredWork } = props
+    const { totalCharts, baseUrl, featuredWork } = props
 
     // Structured data for google
     const structuredMarkup = {
@@ -52,43 +37,6 @@ export const FrontPage = (props: {
             target: `${baseUrl}/search?q={search_term_string}`,
             "query-input": "required name=search_term_string",
         },
-    }
-
-    const renderEntry = (entry: EntryNode, categorySlug: string) => {
-        const { start: titleStart, end: titleEnd } = splitOnLastWord(
-            entry.title
-        )
-        return (
-            <a
-                key={entry.slug}
-                href={`/${entry.slug}`}
-                className={`entry-item-container ${categorySlug}-color`}
-                data-track-note="homepage_entries"
-            >
-                <div className="entry-item">
-                    <div className="top">
-                        {entry.kpi && (
-                            <div
-                                className="kpi"
-                                dangerouslySetInnerHTML={{
-                                    __html: entry.kpi,
-                                }}
-                            />
-                        )}
-                        <p className="excerpt">{entry.excerpt}</p>
-                    </div>
-                    <div className="bottom">
-                        <h5>
-                            {titleStart}
-                            <span>
-                                {titleEnd}
-                                <FontAwesomeIcon icon={faArrowRight} />
-                            </span>
-                        </h5>
-                    </div>
-                </div>
-            </a>
-        )
     }
 
     return (
@@ -110,17 +58,6 @@ export const FrontPage = (props: {
                             Research and data to make progress against the
                             world’s largest problems
                         </h1>
-                        <a
-                            href="#entries"
-                            className="see-all"
-                            data-smooth-scroll
-                            data-track-note="homepage_scroll"
-                        >
-                            Scroll to all of our topics
-                            <span className="icon">
-                                <FontAwesomeIcon icon={faAngleDoubleDown} />
-                            </span>
-                        </a>
                         <p>{totalCharts} charts across 297 topics</p>
                         <p>All free: open access and open source</p>
                     </div>
@@ -373,53 +310,6 @@ export const FrontPage = (props: {
                         </div>
                     </div>
                 </section>
-
-                <section id="entries" className="homepage-entries">
-                    <div className="wrapper">
-                        <h2>
-                            All of our pages on global problems and global
-                            changes
-                        </h2>
-                        {entries.map((category) => (
-                            <div
-                                key={category.slug}
-                                className="category-wrapper"
-                            >
-                                <h3
-                                    className={`${category.slug}-color`}
-                                    id={category.slug}
-                                >
-                                    {category.name}
-                                </h3>
-                                {!!category.entries.length && (
-                                    <div className="category-entries">
-                                        {category.entries.map((entry) =>
-                                            renderEntry(entry, category.slug)
-                                        )}
-                                    </div>
-                                )}
-                                {category.subcategories.map((subcategory) => (
-                                    <div key={subcategory.slug}>
-                                        <h4
-                                            className={`${category.slug}-color`}
-                                        >
-                                            {subcategory.name}
-                                        </h4>
-                                        <div className="category-entries">
-                                            {subcategory.entries.map((entry) =>
-                                                renderEntry(
-                                                    entry,
-                                                    category.slug
-                                                )
-                                            )}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        ))}
-                    </div>
-                </section>
-
                 <SiteFooter baseUrl={baseUrl} />
             </body>
         </html>

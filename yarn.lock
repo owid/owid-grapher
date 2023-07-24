@@ -6252,13 +6252,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/smooth-scroll@npm:^16.1.1":
-  version: 16.1.1
-  resolution: "@types/smooth-scroll@npm:16.1.1"
-  checksum: 652cd9fd1cdf8d8a17c4ef97cd4824fcd7bad72d8912c09d039a436e64ae73d4176c6a61ec449bd60a894998a784bc80814ab6477660f5a1bc6f390634f64b26
-  languageName: node
-  linkType: hard
-
 "@types/stack-utils@npm:^2.0.0":
   version: 2.0.0
   resolution: "@types/stack-utils@npm:2.0.0"
@@ -13727,7 +13720,6 @@ __metadata:
     "@types/react-tag-autocomplete": ^6.1.1
     "@types/shell-quote": ^1.7.1
     "@types/shelljs": ^0.8.11
-    "@types/smooth-scroll": ^16.1.1
     "@types/string-pixel-width": ^1.7.2
     "@types/topojson-client": ^3.1.1
     "@types/topojson-server": ^3.0.1
@@ -13843,7 +13835,6 @@ __metadata:
     shelljs: ^0.8.5
     simple-git: ^3.16.1
     simple-statistics: ^7.3.2
-    smooth-scroll: ^16.1.0
     sql-fixtures: ^1.0.4
     string-pixel-width: ^1.10.0
     striptags: ^3.2.0
@@ -22412,13 +22403,6 @@ __metadata:
   dependencies:
     scroll-into-view-if-needed: ^2.2.28
   checksum: feb4c58fd18a5372121beb9d6b6711092fe8766fce5622f454036066e9f14735cc45dddc1d0f09a9437fdc186083c095c569066671db0f1365adbff02da0cd43
-  languageName: node
-  linkType: hard
-
-"smooth-scroll@npm:^16.1.0":
-  version: 16.1.0
-  resolution: "smooth-scroll@npm:16.1.0"
-  checksum: 506d6b7c6f9a720803a3345e6bc94c8524f5fb5e2a5fa45ac328356d04270447a65f80d9456624d0cf6837fba1f707d337363489329e517ff582166bcb10ae05
   languageName: node
   linkType: hard
 

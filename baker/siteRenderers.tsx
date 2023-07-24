@@ -225,7 +225,6 @@ export const renderPost = async (
 }
 
 export const renderFrontPage = async () => {
-    const entries = await getEntriesByCategory()
     const wpPosts = await Promise.all(
         (await getPosts()).map((post) => getFullPost(post, true))
     )
@@ -300,7 +299,6 @@ export const renderFrontPage = async () => {
     )[0].count as number
     return renderToHtmlPage(
         <FrontPage
-            entries={entries}
             featuredWork={featuredWork}
             totalCharts={totalCharts}
             baseUrl={BAKED_BASE_URL}
