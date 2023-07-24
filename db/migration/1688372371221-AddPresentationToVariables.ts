@@ -21,7 +21,7 @@ export class AddPresentationToVariables1688372371221
                 ADD COLUMN licenses JSON;`
         )
         await queryRunner.query(`
-        CREATE TABLE posts_gdocs_variables (
+        CREATE TABLE posts_gdocs_variables_faqs (
             gdocId varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_as_cs NOT NULL,
             variableId INT NOT NULL,
             fragmentId VARCHAR(255) NOT NULL,
@@ -33,7 +33,7 @@ export class AddPresentationToVariables1688372371221
 
     public async down(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`
-        DROP TABLE IF EXISTS posts_gdocs_variables;`)
+        DROP TABLE IF EXISTS posts_gdocs_variables_faqs;`)
 
         await queryRunner.query(
             `ALTER TABLE variables
