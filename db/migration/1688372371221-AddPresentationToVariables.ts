@@ -24,12 +24,17 @@ export class AddPresentationToVariables1688372371221
         )
         await queryRunner.query(
             `ALTER TABLE datasets
-                ADD COLUMN updatePeriod INT;`
+                ADD COLUMN updatePeriodDays INT;`
         )
 
         // make variables.souceId nullable
         await queryRunner.query(
             `ALTER TABLE variables MODIFY sourceId int NULL;`
+        )
+
+        // rename grapherConfig to grapherConfigAdmin
+        await queryRunner.query(
+            `ALTER TABLE variables RENAME COLUMN grapherConfig TO grapherConfigAdmin;`
         )
 
         // posts_gdocs.id uses utf8mb4_0900_as_cs collation, so we need to use it here too
@@ -81,8 +86,12 @@ export class AddPresentationToVariables1688372371221
 
         await queryRunner.query(
             `ALTER TABLE datasets
-                DROP COLUMN updatePeriod;
+                DROP COLUMN updatePeriodDays;
             `
+        )
+
+        await queryRunner.query(
+            `ALTER TABLE variables RENAME COLUMN grapherConfigAdmin TO grapherConfig;`
         )
 
         await queryRunner.query(
