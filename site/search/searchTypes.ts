@@ -28,7 +28,7 @@ export interface PageRecord {
 
 export type AlgoliaMatchLevel = "none" | "full" | "partial"
 
-export interface PageHit extends PageRecord {
+export type AlgoliaHit = {
     _snippetResult?: {
         content?: {
             value: string
@@ -45,6 +45,30 @@ export interface PageHit extends PageRecord {
             matchLevel: AlgoliaMatchLevel
         }
     }
+}
+
+export type PageHit = PageRecord & AlgoliaHit
+
+//     type: "article" | "topic"
+//     importance: number
+//     slug: string
+//     title: string
+//     excerpt: string
+//     authors: string[]
+//     date: string
+//     modifiedDate: string
+//     content: string
+//     tags: string[]
+//     objectID: string
+// }
+
+export type ExplorerHit = AlgoliaHit & {
+    objectID: string
+    slug: string
+    subtitle: string
+    text: string
+    title: string
+    views_7d: number
 }
 
 export interface ChartRecord {

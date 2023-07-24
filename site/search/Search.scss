@@ -1,0 +1,153 @@
+.search-panel {
+    max-width: 1280px;
+    margin: auto;
+    margin-top: 24px;
+}
+
+.searchbox form {
+    position: relative;
+    margin: 8px auto;
+    max-width: 1280px;
+
+    .ais-SearchBox-input {
+        width: 100%;
+        height: 56px;
+        line-height: 56px;
+        padding-left: 16px;
+    }
+
+    .ais-SearchBox-submit,
+    .ais-SearchBox-reset {
+        position: absolute;
+        right: 8px;
+        height: 100%;
+        line-height: 0.1;
+        border: none;
+        background: none;
+    }
+
+    .ais-SearchBox-reset {
+        right: 32px;
+    }
+}
+
+.search-panel__header {
+    display: flex;
+    justify-content: space-between;
+}
+
+.search-panel__section-title {
+    display: inline-block;
+    margin-top: 24px;
+    margin-bottom: 24px;
+    color: $blue-50;
+}
+
+.search-panel__show-more-container {
+    margin-top: 24px;
+    line-height: 2rem;
+    p {
+        margin: 0;
+        display: inline-block;
+    }
+    button {
+        @include owid-link-90;
+        display: inline-block;
+        background: none;
+        border: none;
+    }
+}
+
+.search-panel__pages-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    border-bottom: 1px solid $blue-20;
+    padding-bottom: 24px;
+}
+
+.search-panel__page-item {
+    list-style: none;
+    margin-bottom: 24px;
+    display: none;
+    &:nth-child(1),
+    &:nth-child(2),
+    &:nth-child(3),
+    &:nth-child(4) {
+        display: block;
+    }
+
+    .page-hit__title {
+        display: inline-block;
+        color: $blue-90;
+        margin: 0;
+    }
+
+    .page-hit__snippet {
+        margin: 4px 0;
+    }
+
+    &:hover {
+        // Just the title, not the page type
+        .ais-Highlight {
+            text-decoration: underline;
+        }
+    }
+
+    .page-hit__page-type {
+        color: $blue-60;
+        margin-left: 0.5em;
+    }
+
+    .ais-Snippet {
+        color: $blue-60;
+    }
+}
+
+.search-panel__pages-container--is-expanded .search-panel__page-item {
+    display: block;
+}
+
+.search-panel__explorers-container {
+    border-bottom: 1px solid #dbe5f0;
+    padding-bottom: 24px;
+}
+
+.search-panel__explorer-item {
+    list-style: none;
+}
+
+.explorer-hit {
+    background-color: $blue-10;
+    height: 100%;
+    padding: 24px;
+    display: block;
+    color: $blue-90;
+
+    &:hover {
+        h4 .ais-Highlight {
+            text-decoration: underline;
+        }
+    }
+
+    h4 {
+        margin: 0;
+    }
+
+    p {
+        color: $blue-60;
+    }
+}
+
+.search-panel__chart-item {
+    list-style: none;
+    margin-bottom: 24px;
+    p {
+        color: $blue-90;
+    }
+    &:hover {
+        p {
+            text-decoration: underline;
+        }
+    }
+}
