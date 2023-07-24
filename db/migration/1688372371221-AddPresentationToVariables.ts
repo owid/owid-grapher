@@ -7,7 +7,7 @@ export class AddPresentationToVariables1688372371221
         await queryRunner.query(
             `ALTER TABLE variables
                 ADD COLUMN schemaVersion INT NOT NULL DEFAULT 1,
-                ADD COLUMN processingLevel ENUM('minor', 'major'),
+                ADD COLUMN processingLevel VARCHAR(30),
                 ADD COLUMN processingLog JSON,
                 ADD COLUMN titlePublic TEXT,
                 ADD COLUMN titleVariant TEXT,
@@ -32,6 +32,7 @@ export class AddPresentationToVariables1688372371221
             `ALTER TABLE variables MODIFY sourceId int NULL;`
         )
 
+        // posts_gdocs.id uses utf8mb4_0900_as_cs collation, so we need to use it here too
         await queryRunner.query(`
         CREATE TABLE posts_gdocs_variables_faqs (
             gdocId varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_as_cs NOT NULL,
