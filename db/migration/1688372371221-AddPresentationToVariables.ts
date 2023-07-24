@@ -25,6 +25,12 @@ export class AddPresentationToVariables1688372371221
             `ALTER TABLE datasets
                 ADD COLUMN updatePeriod VARCHAR(255);`
         )
+
+        // make variables.souceId nullable
+        await queryRunner.query(
+            `ALTER TABLE variables MODIFY sourceId int NULL;`
+        )
+
         await queryRunner.query(`
         CREATE TABLE posts_gdocs_variables_faqs (
             gdocId varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_as_cs NOT NULL,
@@ -63,6 +69,10 @@ export class AddPresentationToVariables1688372371221
             `ALTER TABLE datasets
                 DROP COLUMN updatePeriod;
             `
+        )
+
+        await queryRunner.query(
+            `ALTER TABLE variables MODIFY sourceId int NOT NULL;`
         )
     }
 }
