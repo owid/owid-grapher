@@ -16,7 +16,7 @@ export class AddPresentationToVariables1688372371221
                 ADD COLUMN descriptionShort TEXT,
                 ADD COLUMN descriptionFromProducer TEXT,
                 -- ADD COLUMN topicTagsLinks JSON,
-                ADD COLUMN keyInfoText TEXT,
+                ADD COLUMN keyInfoText JSON,
                 ADD COLUMN processingInfo TEXT,
                 ADD COLUMN licenses JSON,
                 ADD COLUMN grapherConfigETL JSON;`
