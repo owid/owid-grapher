@@ -18,7 +18,7 @@ export class CreateOriginsTable1687770112891 implements MigrationInterface {
             datasetUrlDownload TEXT,
             dateAccessed DATE,
             datePublished VARCHAR(10),
-            license JSON;
+            license JSON
         );
         `)
 
