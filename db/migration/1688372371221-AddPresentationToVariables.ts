@@ -23,7 +23,7 @@ export class AddPresentationToVariables1688372371221
         )
         await queryRunner.query(
             `ALTER TABLE datasets
-                ADD COLUMN updatePeriod VARCHAR(255);`
+                ADD COLUMN updatePeriod INT;`
         )
 
         // make variables.souceId nullable
