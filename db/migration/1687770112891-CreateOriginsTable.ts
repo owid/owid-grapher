@@ -13,7 +13,7 @@ export class CreateOriginsTable1687770112891 implements MigrationInterface {
             datasetUrlMain TEXT,
             datasetUrlDownload TEXT,
             dateAccessed DATE,
-            datePublished DATE
+            datePublished VARCHAR(10)
         );
         `)
 
