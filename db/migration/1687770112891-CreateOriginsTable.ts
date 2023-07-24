@@ -6,6 +6,7 @@ export class CreateOriginsTable1687770112891 implements MigrationInterface {
         CREATE TABLE origins (
             id INT AUTO_INCREMENT PRIMARY KEY,
             datasetTitleOwid VARCHAR(512),
+            datasetTitleProducer VARCHAR(512),
             datasetDescriptionOwid TEXT,
             datasetDescriptionProducer TEXT,
             producer VARCHAR(255),

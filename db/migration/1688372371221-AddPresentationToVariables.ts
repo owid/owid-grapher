@@ -6,7 +6,7 @@ export class AddPresentationToVariables1688372371221
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(
             `ALTER TABLE variables
-                ADD COLUMN schemaVersion INT,
+                ADD COLUMN schemaVersion INT NOT NULL DEFAULT 1,
                 ADD COLUMN processingLevel ENUM('minor', 'medium', 'major'),
                 ADD COLUMN processingLog JSON,
                 ADD COLUMN titlePublic TEXT,
@@ -18,7 +18,12 @@ export class AddPresentationToVariables1688372371221
                 -- ADD COLUMN topicTagsLinks JSON,
                 ADD COLUMN keyInfoText TEXT,
                 ADD COLUMN processingInfo TEXT,
-                ADD COLUMN licenses JSON;`
+                ADD COLUMN licenses JSON,
+                ADD COLUMN grapherConfigETL JSON;`
+        )
+        await queryRunner.query(
+            `ALTER TABLE datasets
+                ADD COLUMN updatePeriod VARCHAR(255);`
         )
         await queryRunner.query(`
         CREATE TABLE posts_gdocs_variables_faqs (
@@ -49,7 +54,14 @@ export class AddPresentationToVariables1688372371221
                 -- DROP COLUMN topicTagsLinks,
                 DROP COLUMN keyInfoText,
                 DROP COLUMN processingInfo,
-                DROP COLUMN licenses;
+                DROP COLUMN licenses,
+                DROP COLUMN grapherConfigETL;
+            `
+        )
+
+        await queryRunner.query(
+            `ALTER TABLE datasets
+                DROP COLUMN updatePeriod;
             `
         )
     }
