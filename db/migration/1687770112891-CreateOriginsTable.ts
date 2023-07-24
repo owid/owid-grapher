@@ -11,10 +11,14 @@ export class CreateOriginsTable1687770112891 implements MigrationInterface {
             datasetDescriptionProducer TEXT,
             producer VARCHAR(255),
             citationProducer TEXT,
+            attribution TEXT,
+            attributionShort VARCHAR(512),
+            version VARCHAR(255),
             datasetUrlMain TEXT,
             datasetUrlDownload TEXT,
             dateAccessed DATE,
-            datePublished VARCHAR(10)
+            datePublished VARCHAR(10),
+            license JSON;
         );
         `)
 

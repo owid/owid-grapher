@@ -7,7 +7,7 @@ export class AddPresentationToVariables1688372371221
         await queryRunner.query(
             `ALTER TABLE variables
                 ADD COLUMN schemaVersion INT NOT NULL DEFAULT 1,
-                ADD COLUMN processingLevel ENUM('minor', 'medium', 'major'),
+                ADD COLUMN processingLevel ENUM('minor', 'major'),
                 ADD COLUMN processingLog JSON,
                 ADD COLUMN titlePublic TEXT,
                 ADD COLUMN titleVariant TEXT,
@@ -19,6 +19,7 @@ export class AddPresentationToVariables1688372371221
                 ADD COLUMN keyInfoText JSON,
                 ADD COLUMN processingInfo TEXT,
                 ADD COLUMN licenses JSON,
+                ADD COLUMN presentationLicense JSON,
                 ADD COLUMN grapherConfigETL JSON;`
         )
         await queryRunner.query(
@@ -40,11 +41,23 @@ export class AddPresentationToVariables1688372371221
             FOREIGN KEY (gdocId) REFERENCES posts_gdocs(id),
             FOREIGN KEY (variableId) REFERENCES variables(id)
         )`)
+
+        await queryRunner.query(`
+        CREATE TABLE tags_variables_topic_tags (
+            tagId INT NOT NULL,
+            variableId INT NOT NULL,
+            PRIMARY KEY (tagId, variableId),
+            FOREIGN KEY (tagId) REFERENCES tags(id),
+            FOREIGN KEY (variableId) REFERENCES variables(id)
+        )`)
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`
         DROP TABLE IF EXISTS posts_gdocs_variables_faqs;`)
+
+        await queryRunner.query(`
+        DROP TABLE IF EXISTS tags_variables_topic_tags;`)
 
         await queryRunner.query(
             `ALTER TABLE variables
