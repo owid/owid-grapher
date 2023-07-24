@@ -5,13 +5,14 @@ export class AddPresentationToVariables1688372371221
 {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(
-            `ALTER TABLE variables
+            `-- sql
+            ALTER TABLE variables
                 ADD COLUMN schemaVersion INT NOT NULL DEFAULT 1,
                 ADD COLUMN processingLevel VARCHAR(30),
                 ADD COLUMN processingLog JSON,
-                ADD COLUMN titlePublic TEXT,
-                ADD COLUMN titleVariant TEXT,
-                ADD COLUMN producerShort TEXT,
+                ADD COLUMN titlePublic VARCHAR(512),
+                ADD COLUMN titleVariant VARCHAR(255),
+                ADD COLUMN producerShort VARCHAR(512),
                 ADD COLUMN citationInline TEXT,
                 ADD COLUMN descriptionShort TEXT,
                 ADD COLUMN descriptionFromProducer TEXT,
