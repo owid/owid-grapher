@@ -80,6 +80,7 @@ export class AddPresentationToVariables1688372371221
                 DROP COLUMN keyInfoText,
                 DROP COLUMN processingInfo,
                 DROP COLUMN licenses,
+                DROP COLUMN presentationLicense,
                 DROP COLUMN grapherConfigETL;
             `
         )
