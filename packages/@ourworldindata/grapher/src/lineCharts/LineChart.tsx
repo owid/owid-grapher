@@ -525,7 +525,7 @@ export class LineChart
                 : unitLabel
         const subtitleFormat = subtitle === unitLabel ? "unit" : undefined
         const footer = sortedData.some((series) => series.isProjection)
-            ? `Values are extrapolations projected from available data.`
+            ? `Projected data`
             : undefined
 
         return (
