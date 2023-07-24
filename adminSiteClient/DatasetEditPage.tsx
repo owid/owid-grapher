@@ -80,7 +80,6 @@ class DatasetEditable {
 class DatasetTagEditor extends React.Component<{
     newDataset: DatasetEditable
     availableTags: { id: number; name: string; parentName: string }[]
-    isBulkImport: boolean
 }> {
     @action.bound onSaveTags(tags: Tag[]) {
         this.props.newDataset.tags = tags
@@ -337,7 +336,6 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                                 <DatasetTagEditor
                                     newDataset={newDataset}
                                     availableTags={dataset.availableTags}
-                                    isBulkImport={isBulkImport}
                                 />
                                 <FieldsRow>
                                     <Toggle
@@ -358,7 +356,6 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                                         value={newDataset.nonRedistributable}
                                         onValue={(v) => {
                                             newDataset.nonRedistributable = v
-                                            if (v) newDataset.isPrivate = true
                                         }}
                                     />
                                 </FieldsRow>
@@ -400,13 +397,11 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                                 />
                             </div>
                         </div>
-                        {!isBulkImport && (
-                            <input
-                                type="submit"
-                                className="btn btn-success"
-                                value="Update dataset"
-                            />
-                        )}
+                        <input
+                            type="submit"
+                            className="btn btn-success"
+                            value="Update dataset"
+                        />
                     </form>
                 </section>
                 <section>
