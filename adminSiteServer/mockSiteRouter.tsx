@@ -166,11 +166,11 @@ mockSiteRouter.get("/search", async (req, res) =>
     res.send(await renderSearchPage())
 )
 
-mockSiteRouter.get("/blog", async (req, res) =>
+mockSiteRouter.get("/latest", async (req, res) =>
     res.send(await renderBlogByPageNum(1))
 )
 
-mockSiteRouter.get("/blog/page/:pageno", async (req, res) => {
+mockSiteRouter.get("/latest/page/:pageno", async (req, res) => {
     const pagenum = parseInt(req.params.pageno, 10)
     if (!isNaN(pagenum))
         res.send(await renderBlogByPageNum(isNaN(pagenum) ? 1 : pagenum))

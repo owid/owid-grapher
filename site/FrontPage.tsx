@@ -138,7 +138,7 @@ export const FrontPage = (props: {
                                     </ul>
                                     <div className="see-all">
                                         <a
-                                            href="/blog"
+                                            href="/latest"
                                             data-track-note="homepage_see_all_explainers"
                                         >
                                             <div className="label">

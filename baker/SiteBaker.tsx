@@ -231,7 +231,7 @@ export class SiteBaker {
                     !path.startsWith("grapher") &&
                     !path.startsWith("countries") &&
                     !path.startsWith("country") &&
-                    !path.startsWith("blog") &&
+                    !path.startsWith("latest") &&
                     !path.startsWith("entries-by-year") &&
                     !path.startsWith("explore") &&
                     !countryProfileSpecs.some((spec) =>
@@ -564,7 +564,7 @@ export class SiteBaker {
         const numPages = Math.ceil(allPosts.length / BLOG_POSTS_PER_PAGE)
 
         for (let i = 1; i <= numPages; i++) {
-            const slug = i === 1 ? "blog" : `blog/page/${i}`
+            const slug = i === 1 ? "latest" : `latest/page/${i}`
             const html = await renderBlogByPageNum(i)
             await this.stageWrite(`${this.bakedSiteDir}/${slug}.html`, html)
         }

@@ -129,7 +129,7 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                                     </SiteNavigationToggle>
                                 </li>
                                 <li>
-                                    <a href="/blog">Latest</a>
+                                    <a href="/latest">Latest</a>
                                 </li>
                                 <li className="with-relative-dropdown">
                                     <SiteNavigationToggle
