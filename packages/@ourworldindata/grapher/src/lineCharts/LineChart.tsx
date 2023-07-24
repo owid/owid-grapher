@@ -5,7 +5,7 @@ import {
     mapValues,
     sum,
     guid,
-    compact,
+    excludeNullish,
     values,
     getRelativeMouse,
     pointsToPath,
@@ -506,10 +506,15 @@ export class LineChart
                 null // If neither series matches, exclude the entity from the tooltip altogether
         )
 
-        const sortedData = sortBy(compact(values(seriesSegments)), (series) => {
-            const value = series.points.find((point) => point.x === target.x)
-            return value !== undefined ? -value.y : Infinity
-        })
+        const sortedData = sortBy(
+            excludeNullish(values(seriesSegments)),
+            (series) => {
+                const value = series.points.find(
+                    (point) => point.x === target.x
+                )
+                return value !== undefined ? -value.y : Infinity
+            }
+        )
 
         const formattedTime = formatColumn.formatTime(target.x),
             { unit, shortUnit } = formatColumn,
@@ -547,44 +552,40 @@ export class LineChart
             >
                 <TooltipTable
                     columns={columns}
-                    rows={compact(
-                        sortedData.map((series) => {
-                            const { seriesName: name, isProjection: striped } =
-                                series
-                            const annotation =
-                                this.getAnnotationsForSeries(name)
+                    rows={sortedData.map((series) => {
+                        const { seriesName: name, isProjection: striped } =
+                            series
+                        const annotation = this.getAnnotationsForSeries(name)
 
-                            const point = series.points.find(
-                                (point) => point.x === target.x
-                            )
+                        const point = series.points.find(
+                            (point) => point.x === target.x
+                        )
 
-                            const blurred =
-                                this.seriesIsBlurred(series) ||
-                                point === undefined
+                        const blurred =
+                            this.seriesIsBlurred(series) || point === undefined
 
-                            const swatch = blurred
-                                ? BLUR_LINE_COLOR
-                                : this.hasColorScale
-                                ? darkenColorForLine(
-                                      this.getColorScaleColor(point?.colorValue)
-                                  )
-                                : series.color
+                        const swatch = blurred
+                            ? BLUR_LINE_COLOR
+                            : this.hasColorScale
+                            ? darkenColorForLine(
+                                  this.getColorScaleColor(point?.colorValue)
+                              )
+                            : series.color
 
-                            const values = [
-                                point?.y,
-                                point?.colorValue as undefined | number,
-                            ]
+                        const values = [
+                            point?.y,
+                            point?.colorValue as undefined | number,
+                        ]
 
-                            return {
-                                name,
-                                annotation,
-                                swatch,
-                                blurred,
-                                striped,
-                                values,
-                            }
-                        })
-                    )}
+                        return {
+                            name,
+                            annotation,
+                            swatch,
+                            blurred,
+                            striped,
+                            values,
+                        }
+                    })}
                 />
             </Tooltip>
         )

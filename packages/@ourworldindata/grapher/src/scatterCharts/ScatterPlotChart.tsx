@@ -10,7 +10,7 @@ import { quantize, interpolate } from "d3-interpolate"
 import {
     intersection,
     without,
-    compact,
+    excludeNullish,
     uniq,
     first,
     last,
@@ -798,7 +798,7 @@ export class ScatterPlotChart
             tooltipState: { target, position, fading },
         } = this
         const points = target.series.points ?? []
-        const values = compact(uniq([first(points), last(points)]))
+        const values = excludeNullish(uniq([first(points), last(points)]))
 
         let { startTime, endTime } = this.manager
         const { x: xStart, y: yStart } = first(values)?.time ?? {},
@@ -835,7 +835,7 @@ export class ScatterPlotChart
         }
 
         const { isRelativeMode } = this.manager,
-            timeRange = uniq(compact([startTime, endTime]))
+            timeRange = uniq(excludeNullish([startTime, endTime]))
                 .map((t) => this.yColumn.formatTime(t))
                 .join(" to "),
             targetNotice =
@@ -870,7 +870,7 @@ export class ScatterPlotChart
                 />
                 <TooltipValueRange
                     column={this.sizeColumn}
-                    values={compact(values.map((v) => v.size))}
+                    values={excludeNullish(values.map((v) => v.size))}
                 />
             </Tooltip>
         )
