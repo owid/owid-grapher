@@ -58,9 +58,13 @@ export const useLinkedDocument = (
     const queryString = urlObj.queryStr
     const hash = urlObj.hash
     const urlTarget = getUrlTarget(url)
-    linkedDocument = linkedDocuments?.[urlTarget]
+    linkedDocument = linkedDocuments?.[urlTarget] as
+        | OwidGdocInterface
+        | undefined
+
     if (!linkedDocument) {
         errorMessage = `Google doc URL ${url} isn't registered.`
+        return { errorMessage }
     } else if (!linkedDocument.published) {
         errorMessage = `Article with slug "${linkedDocument.slug}" isn't published.`
     }
