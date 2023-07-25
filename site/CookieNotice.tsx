@@ -36,13 +36,8 @@ export const CookieNotice = ({
                     </p>
                     <p className="cookie-notice__text">
                         By agreeing, you consent to our use of cookies and other
-                        tracking technologies.
-                    </p>
-                    <p className="cookie-notice__text">
-                        <a href="/privacy-policy">
-                            Read more about our use of cookies in our privacy
-                            policy.
-                        </a>
+                        tracking technologies according to{" "}
+                        <a href="/privacy-policy">our privacy policy</a>.
                     </p>
                 </div>
                 <div className="actions">

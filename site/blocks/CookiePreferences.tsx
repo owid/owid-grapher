@@ -107,7 +107,10 @@ export const CookiePreferences = ({
                     })
                 }
             >
-                We use these cookies to monitor and improve website performance.
+                We use these cookies to monitor website usage and performance,
+                helping us prioritize and demonstrate the reach of our work.{" "}
+                <br />
+                We are a non-profit and don't sell any of your data.
             </CookiePreference>
             {date ? (
                 <div className="last-updated">
