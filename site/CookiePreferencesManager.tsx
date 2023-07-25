@@ -44,7 +44,7 @@ const defaultState: State = {
 }
 
 export const CookiePreferencesManager = ({
-    initialState = defaultState,
+    initialState,
 }: {
     initialState: State
 }) => {
@@ -117,7 +117,10 @@ const reducer = (
 }
 
 const getInitialState = (): State => {
-    return parseRawCookieValue(Cookies.get(COOKIE_NAME)) ?? defaultState
+    const cookieValue = parseRawCookieValue(Cookies.get(COOKIE_NAME))
+    if (!cookieValue || arePreferencesOutdated(cookieValue.date, POLICY_DATE))
+        return defaultState
+    return cookieValue
 }
 
 export const parseRawCookieValue = (cookieValue?: string) => {
