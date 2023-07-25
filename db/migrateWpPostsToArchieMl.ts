@@ -21,6 +21,7 @@ import {
 
 const migrate = async (): Promise<void> => {
     const writeToFile = false
+    const errors = []
     await db.getConnection()
 
     const posts = await Post.select(
@@ -147,7 +148,7 @@ const migrate = async (): Promise<void> => {
             }
         } catch (e) {
             console.error("Caught an exception", post.id)
-            throw e
+            errors.push(e)
         }
     }
 
@@ -160,6 +161,11 @@ const migrate = async (): Promise<void> => {
     // }
 
     await db.closeTypeOrmAndKnexConnections()
+
+    if (errors.length > 0) {
+        console.error("Errors", errors)
+        throw new Error(`${errors.length} items had errors`)
+    }
 }
 
 migrate()
