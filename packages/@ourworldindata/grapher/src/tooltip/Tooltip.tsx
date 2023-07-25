@@ -123,21 +123,21 @@ class TooltipCard extends React.Component<
 
         // add a preposition to unit-based subtitles
         const hasHeader = title !== undefined || subtitle !== undefined
-        if (!!subtitle && subtitleFormat == "unit") {
+        if (!!subtitle && subtitleFormat === "unit") {
             const unit = subtitle.toString()
             const preposition = !unit.match(/^(per|in|\() /i) ? "in " : ""
             subtitle = preposition + unit.replace(/(^\(|\)$)/g, "")
         }
 
         // flag the year in the header and add note in footer (if necessary)
-        const timeNotice = !!subtitle && subtitleFormat == "notice"
-        const tolerance = footerFormat == "notice"
+        const timeNotice = !!subtitle && subtitleFormat === "notice"
+        const tolerance = footerFormat === "notice"
 
         // style the box differently if just displaying title/subtitle
         const plain = hasHeader && !children
 
         // skip transition delay if requested
-        const immediate = dissolve == "immediate"
+        const immediate = dissolve === "immediate"
 
         return (
             <div

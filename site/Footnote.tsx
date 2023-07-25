@@ -1,4 +1,4 @@
-import { parseIntOrUndefined, Tippy } from "@ourworldindata/utils"
+import { isNil, parseIntOrUndefined, Tippy } from "@ourworldindata/utils"
 import React from "react"
 import ReactDOM from "react-dom"
 
@@ -65,7 +65,7 @@ export function runFootnotes() {
 
     footnotes.forEach((f) => {
         const footnoteContent = getFootnoteContent(f)
-        if (footnoteContent == null) return
+        if (isNil(footnoteContent)) return
 
         ReactDOM.hydrate(
             <Footnote

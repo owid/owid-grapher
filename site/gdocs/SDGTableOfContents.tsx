@@ -47,7 +47,7 @@ export default function SDGTableOfContents({
                 className="sdg-toc-content span-cols-6 span-md-cols-8 span-sm-cols-10"
                 height={height}
                 onHeightAnimationStart={(newHeight) => {
-                    if (newHeight != 0) setIsOpen(true)
+                    if (newHeight !== 0) setIsOpen(true)
                 }}
                 onHeightAnimationEnd={(newHeight) => {
                     if (newHeight === 0) setIsOpen(false)

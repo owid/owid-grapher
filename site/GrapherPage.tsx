@@ -120,13 +120,16 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                         <p>Interactive visualization requires JavaScript</p>
                     </noscript>
 
-                    {((relatedArticles && relatedArticles.length != 0) ||
-                        (relatedCharts && relatedCharts.length != 0)) && (
+                    {((relatedArticles && relatedArticles.length !== 0) ||
+                        (relatedCharts && relatedCharts.length !== 0)) && (
                         <div className="related-research-data">
                             <h2>All our related research and data</h2>
-                            {relatedArticles && relatedArticles.length != 0 && (
-                                <RelatedArticles articles={relatedArticles} />
-                            )}
+                            {relatedArticles &&
+                                relatedArticles.length !== 0 && (
+                                    <RelatedArticles
+                                        articles={relatedArticles}
+                                    />
+                                )}
                             {relatedCharts && relatedCharts.length !== 0 && (
                                 <>
                                     <h3>Charts</h3>

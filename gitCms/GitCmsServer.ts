@@ -190,7 +190,7 @@ export class GitCmsServer {
 
             // do not push in dev
             // XXX: we should not push in staging either!
-            if (ENV == "production") {
+            if (ENV === "production") {
                 await this.commitFile(
                     filepath,
                     `Deleted ${filepath}`,
@@ -229,7 +229,7 @@ export class GitCmsServer {
 
             // do not push in dev
             // XXX: we should not push in staging either!
-            if (ENV == "production") {
+            if (ENV === "production") {
                 const commitMsg = commitMessage
                     ? commitMessage
                     : fs.existsSync(absolutePath)
