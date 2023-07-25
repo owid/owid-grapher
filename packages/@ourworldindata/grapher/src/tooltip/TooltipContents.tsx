@@ -59,7 +59,8 @@ export class TooltipValueRange extends React.Component<TooltipValueRangeProps> {
                 column.formatValueShort(v)
             ),
             [firstTerm, lastTerm] =
-                // TODO: would be nicer to actually measure the typeset text
+                // TODO: would be nicer to actually measure the typeset text but we would need to
+                // add Lato's metrics to the `string-pixel-width` module to use Bounds.forText
                 sum([firstValue?.length, lastValue?.length]) > 20
                     ? values.map((v) =>
                           column.formatValueShortWithAbbreviations(v)
@@ -169,18 +170,23 @@ export class TooltipTable extends React.Component<TooltipTableProps> {
                             name,
                             focused,
                             blurred,
+                            striped,
                             annotation,
                             values,
                             notice,
                             swatch = "transparent",
                         } = row
                         const [_m, seriesName, seriesParenthetical] =
-                            name.match(/^(.*?)(\(.*)?$/) ?? []
+                            name.match(/^(.*?)(\([^()]*\))?$/) ?? []
 
                         return (
                             <tr
                                 key={name}
-                                className={classnames({ focused, blurred })}
+                                className={classnames({
+                                    focused,
+                                    blurred,
+                                    striped,
+                                })}
                             >
                                 <td className="series-color">
                                     <div

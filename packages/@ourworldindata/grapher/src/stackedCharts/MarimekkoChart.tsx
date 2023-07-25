@@ -960,7 +960,8 @@ export class MarimekkoChart
                         offsetY={-16}
                         title={entityName}
                         subtitle={timeColumn.formatValue(endTime)}
-                        notice={notice}
+                        footer={notice}
+                        footerFormat="notice"
                         dissolve={fading}
                     >
                         {yValues.map(({ name, value, notice }) => (

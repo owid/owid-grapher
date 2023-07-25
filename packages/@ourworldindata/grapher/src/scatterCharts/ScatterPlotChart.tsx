@@ -10,7 +10,7 @@ import { quantize, interpolate } from "d3-interpolate"
 import {
     intersection,
     without,
-    compact,
+    excludeNullish,
     uniq,
     first,
     last,
@@ -27,6 +27,7 @@ import {
     groupBy,
     sampleFrom,
     intersectionOfSets,
+    min,
     max,
     PointVector,
     Bounds,
@@ -729,7 +730,6 @@ export class ScatterPlotChart
             arrowLegend,
             sizeLegend,
             sidebarWidth,
-            tooltipState: { target, position, fading },
             comparisonLines,
             legendDimensions,
         } = this
@@ -738,31 +738,6 @@ export class ScatterPlotChart
         const arrowLegendY = sizeLegend
             ? sizeLegendY + sizeLegend.height + 15
             : sizeLegendY
-
-        const points = target?.series.points ?? []
-        const values = compact(uniq([first(points), last(points)]))
-
-        const { startTime, endTime, isRelativeMode } = this.manager,
-            { x: xStart, y: yStart } = first(values)?.time ?? {},
-            { x: xEnd, y: yEnd } = last(values)?.time ?? {}
-
-        const xNoticeNeeded =
-                (xStart !== undefined && xStart != startTime && xStart) ||
-                (xEnd !== undefined && xEnd != endTime && xEnd),
-            xNotice = xNoticeNeeded ? [xStart, xEnd] : []
-
-        const yNoticeNeeded =
-                (yStart !== undefined && yStart != startTime && yStart) ||
-                (yEnd !== undefined && yEnd != endTime && yEnd),
-            yNotice = yNoticeNeeded ? [yStart, yEnd] : []
-
-        const timeRange = uniq(compact([startTime, endTime]))
-                .map((t) => this.yColumn.formatTime(t))
-                .join(" to "),
-            targetNotice =
-                xNoticeNeeded || yNoticeNeeded ? timeRange : undefined,
-            timeLabel =
-                timeRange + (isRelativeMode ? " (avg. annual change)" : "")
 
         return (
             <g className="ScatterPlot" onMouseMove={this.onScatterMouseMove}>
@@ -809,37 +784,93 @@ export class ScatterPlotChart
                         </g>
                     </>
                 )}
-                {target && (
-                    <Tooltip
-                        id="scatterTooltip"
-                        tooltipManager={this.manager}
-                        x={position.x}
-                        y={position.y}
-                        offsetX={20}
-                        offsetY={-16}
-                        style={{ maxWidth: "250px" }}
-                        title={target.series.label}
-                        subtitle={timeLabel}
-                        dissolve={fading}
-                        notice={targetNotice}
-                    >
-                        <TooltipValueRange
-                            column={this.xColumn}
-                            values={values.map((v) => v.x)}
-                            notice={xNotice}
-                        />
-                        <TooltipValueRange
-                            column={this.yColumn}
-                            values={values.map((v) => v.y)}
-                            notice={yNotice}
-                        />
-                        <TooltipValueRange
-                            column={this.sizeColumn}
-                            values={compact(values.map((v) => v.size))}
-                        />
-                    </Tooltip>
-                )}
+                {this.tooltip}
             </g>
+        )
+    }
+
+    @computed get tooltip(): JSX.Element | null {
+        if (!this.tooltipState.target) return null
+
+        const {
+            xColumn,
+            yColumn,
+            tooltipState: { target, position, fading },
+        } = this
+        const points = target.series.points ?? []
+        const values = excludeNullish(uniq([first(points), last(points)]))
+
+        let { startTime, endTime } = this.manager
+        const { x: xStart, y: yStart } = first(values)?.time ?? {},
+            { x: xEnd, y: yEnd } = last(values)?.time ?? {}
+
+        let xValues = xStart === xEnd ? [values[0].x] : values.map((v) => v.x),
+            xNoticeNeeded =
+                (xStart !== undefined && xStart != startTime && xStart) ||
+                (xEnd !== undefined && xEnd != endTime && xEnd),
+            xNotice = xNoticeNeeded ? [xStart, xEnd] : []
+
+        let yValues = yStart === yEnd ? [values[0].y] : values.map((v) => v.y),
+            yNoticeNeeded =
+                (yStart !== undefined && yStart != startTime && yStart) ||
+                (yEnd !== undefined && yEnd != endTime && yEnd),
+            yNotice = yNoticeNeeded ? [yStart, yEnd] : []
+
+        // handle the special case where the same variable is used for both axes
+        // with a different year's value on each
+        if (
+            xColumn.def.datasetId === yColumn.def.datasetId &&
+            points.length == 1
+        ) {
+            const { x, y, time } = points[0]
+            if (time.x != time.y && isNumber(time.x) && isNumber(time.y)) {
+                startTime = min([time.x, time.y])
+                endTime = max([time.x, time.y])
+                xValues = time.x < time.y ? [x, y] : [y, x]
+                xNotice = yNotice = yValues = []
+                xNoticeNeeded = yNoticeNeeded = false
+            }
+        }
+
+        const { isRelativeMode } = this.manager,
+            timeRange = uniq(excludeNullish([startTime, endTime]))
+                .map((t) => this.yColumn.formatTime(t))
+                .join(" to "),
+            targetNotice =
+                xNoticeNeeded || yNoticeNeeded ? timeRange : undefined,
+            timeLabel =
+                timeRange + (isRelativeMode ? " (avg. annual change)" : "")
+
+        return (
+            <Tooltip
+                id="scatterTooltip"
+                tooltipManager={this.manager}
+                x={position.x}
+                y={position.y}
+                offsetX={20}
+                offsetY={-16}
+                style={{ maxWidth: "250px" }}
+                title={target.series.label}
+                subtitle={timeLabel}
+                dissolve={fading}
+                footer={targetNotice}
+                footerFormat="notice"
+            >
+                <TooltipValueRange
+                    column={xColumn}
+                    values={xValues}
+                    notice={xNotice}
+                />
+                <TooltipValueRange
+                    column={yColumn}
+                    values={yValues}
+                    notice={yNotice}
+                />
+                <TooltipValueRange
+                    column={this.sizeColumn}
+                    values={excludeNullish(values.map((v) => v.size))}
+                />
+            </Tooltip>
         )
     }
 
