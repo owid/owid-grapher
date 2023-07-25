@@ -1,9 +1,10 @@
 import ReactDOM from "react-dom"
-import React, { useEffect, useReducer } from "react"
+import React, { useEffect, useMemo, useReducer } from "react"
 import Cookies from "js-cookie"
 import { CookiePreferences } from "../site/blocks/CookiePreferences.js"
 import { CookieNotice } from "../site/CookieNotice.js"
 import { dayjs } from "@ourworldindata/utils"
+import { SiteAnalytics } from "./SiteAnalytics.js"
 
 export enum PreferenceType {
     Analytics = "a",
@@ -33,6 +34,8 @@ interface State {
     date?: number
     preferences: Preference[]
 }
+
+const analytics = new SiteAnalytics()
 
 const defaultState: State = {
     preferences: [
@@ -65,6 +68,20 @@ export const CookiePreferencesManager = ({
             })
         }
     }, [state])
+
+    // Set GA consent
+    const analyticsConsent = useMemo(
+        () =>
+            getPreferenceValue(PreferenceType.Analytics, state.preferences)
+                ? "granted"
+                : "denied",
+        [state.preferences]
+    )
+    useEffect(() => {
+        analytics.updateGAConsentSettings({
+            analytics_storage: analyticsConsent,
+        })
+    }, [analyticsConsent])
 
     return (
         <div data-test-policy-date={POLICY_DATE} className="cookie-manager">
