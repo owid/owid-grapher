@@ -15,6 +15,7 @@ export enum Action {
     Accept,
     TogglePreference,
     Reset,
+    Persist,
 }
 
 export interface Preference {
@@ -128,6 +129,11 @@ const reducer = (
             }
         case Action.Reset:
             return defaultState
+        case Action.Persist:
+            return {
+                ...state,
+                date: payload.date,
+            }
         default:
             return state
     }

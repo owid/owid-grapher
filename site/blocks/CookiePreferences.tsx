@@ -122,17 +122,16 @@ export const CookiePreferences = ({
                     className="owid-button"
                     onClick={() =>
                         dispatch({
-                            type: Action.Accept,
+                            type: Action.Persist,
                             payload: { date: getTodayDate() },
                         })
                     }
-                    data-test="accept"
                     data-track-note={ANALYTICS_ACTION}
                 >
                     <span className="icon">
                         <FontAwesomeIcon icon={faCheck} />
                     </span>
-                    I agree
+                    Save preferences
                 </button>
             )}
         </div>,
