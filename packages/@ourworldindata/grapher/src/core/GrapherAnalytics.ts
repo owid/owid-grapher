@@ -175,6 +175,14 @@ export class GrapherAnalytics {
     }
 
     updateGAConsentSettings(consent: GAConsentParams): void {
-        window.dataLayer?.push(["consent", "update", consent])
+        function pushToDataLayer(..._args: any): void {
+            // Google Tag Manager is super weird here: it will not accept a normal array or object
+            // being pushed to dataLayer, it absolutely has to be an `Arguments` object.
+            // see https://stackoverflow.com/q/60400130/10670163
+
+            // eslint-disable-next-line prefer-rest-params
+            window.dataLayer?.push(arguments as unknown as GAConsent)
+        }
+        pushToDataLayer("consent", "default", consent)
     }
 }
