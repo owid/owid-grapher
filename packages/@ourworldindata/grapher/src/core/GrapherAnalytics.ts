@@ -183,6 +183,6 @@ export class GrapherAnalytics {
             // eslint-disable-next-line prefer-rest-params
             window.dataLayer?.push(arguments as unknown as GAConsent)
         }
-        pushToDataLayer("consent", "default", consent)
+        pushToDataLayer("consent", "update", consent)
     }
 }
