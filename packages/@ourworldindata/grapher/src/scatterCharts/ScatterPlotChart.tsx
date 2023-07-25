@@ -804,13 +804,13 @@ export class ScatterPlotChart
         const { x: xStart, y: yStart } = first(values)?.time ?? {},
             { x: xEnd, y: yEnd } = last(values)?.time ?? {}
 
-        let xValues = values.map((v) => v.x),
+        let xValues = xStart === xEnd ? [values[0].x] : values.map((v) => v.x),
             xNoticeNeeded =
                 (xStart !== undefined && xStart != startTime && xStart) ||
                 (xEnd !== undefined && xEnd != endTime && xEnd),
             xNotice = xNoticeNeeded ? [xStart, xEnd] : []
 
-        let yValues = values.map((v) => v.y),
+        let yValues = yStart === yEnd ? [values[0].y] : values.map((v) => v.y),
             yNoticeNeeded =
                 (yStart !== undefined && yStart != startTime && yStart) ||
                 (yEnd !== undefined && yEnd != endTime && yEnd),
@@ -818,17 +818,15 @@ export class ScatterPlotChart
 
         // handle the special case where the same variable is used for both axes
         // with a different year's value on each
-        if (xColumn.def.datasetId === yColumn.def.datasetId) {
-            const xTime = xColumn.def.targetTime ?? this.manager.endTime,
-                yTime = yColumn.def.targetTime ?? this.manager.endTime
-
-            if (xTime != yTime && isNumber(xTime) && isNumber(yTime)) {
-                startTime = min([xTime, yTime])
-                endTime = max([xTime, yTime])
-                xValues =
-                    xTime < yTime
-                        ? [values[0]?.x, values[0]?.y]
-                        : [values[0]?.y, values[0]?.x]
+        if (
+            xColumn.def.datasetId === yColumn.def.datasetId &&
+            points.length == 1
+        ) {
+            const { x, y, time } = points[0]
+            if (time.x != time.y && isNumber(time.x) && isNumber(time.y)) {
+                startTime = min([time.x, time.y])
+                endTime = max([time.x, time.y])
+                xValues = time.x < time.y ? [x, y] : [y, x]
                 xNotice = yNotice = yValues = []
                 xNoticeNeeded = yNoticeNeeded = false
             }
