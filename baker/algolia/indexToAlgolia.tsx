@@ -19,7 +19,6 @@ import { Pageview } from "../../db/model/Pageview.js"
 import { Gdoc } from "../../db/model/Gdoc/Gdoc.js"
 import { ArticleBlocks } from "../../site/gdocs/ArticleBlocks.js"
 import React from "react"
-import { logErrorAndMaybeSendToBugsnag } from "../../serverUtils/errorLog.js"
 
 interface Tag {
     id: number
@@ -185,30 +184,9 @@ const getPagesRecords = async () => {
             posts.filter((post) => !publishedGdocsBySlug[`/${post.slug}`])
         )
 
-    let countryRecords: PageRecord[] = []
-    let wordpressRecords: PageRecord[] = []
-    let gdocsRecords: PageRecord[] = []
-    try {
-        countryRecords = generateCountryRecords(countries, pageviews)
-    } catch (e) {
-        logErrorAndMaybeSendToBugsnag(
-            `Error generating country records for Algolia sync: ${e}`
-        )
-    }
-    try {
-        wordpressRecords = await generateWordpressRecords(postsApi, pageviews)
-    } catch (e) {
-        logErrorAndMaybeSendToBugsnag(
-            `Error generating wordpress records for Algolia sync: ${e}`
-        )
-    }
-    try {
-        gdocsRecords = generateGdocRecords(gdocs, pageviews)
-    } catch (e) {
-        logErrorAndMaybeSendToBugsnag(
-            `Error generating gdocs records for Algolia sync: ${e}`
-        )
-    }
+    const countryRecords = generateCountryRecords(countries, pageviews)
+    const wordpressRecords = await generateWordpressRecords(postsApi, pageviews)
+    const gdocsRecords = generateGdocRecords(gdocs, pageviews)
 
     return [...countryRecords, ...wordpressRecords, ...gdocsRecords]
 }
