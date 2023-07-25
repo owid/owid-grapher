@@ -10,7 +10,7 @@ export * from "./TooltipContents.js"
 
 export const TOOLTIP_FADE_DURATION = 400 // $fade-time + $fade-delay in scss
 const TOOLTIP_ICON = {
-    notice: <FontAwesomeIcon className="notice icon" icon={faInfoCircle} />,
+    notice: <FontAwesomeIcon className="icon" icon={faInfoCircle} />,
     stripes: <div className="stripes icon"></div>,
 }
 
@@ -129,8 +129,9 @@ class TooltipCard extends React.Component<
             subtitle = preposition + unit.replace(/(^\(|\)$)/g, "")
         }
 
-        // flag the year in the header if necessary
+        // flag the year in the header and add note in footer (if necessary)
         const timeNotice = !!subtitle && subtitleFormat == "notice"
+        const tolerance = footerFormat == "notice"
 
         // style the box differently if just displaying title/subtitle
         const plain = hasHeader && !children
@@ -164,7 +165,7 @@ class TooltipCard extends React.Component<
                 {footer && (
                     <div className="endmatter">
                         {footerFormat && TOOLTIP_ICON[footerFormat]}
-                        <p className={footerFormat}>{footer}</p>
+                        <p className={classnames({ tolerance })}>{footer}</p>
                     </div>
                 )}
             </div>

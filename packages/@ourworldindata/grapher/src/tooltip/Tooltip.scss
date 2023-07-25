@@ -347,7 +347,7 @@
         }
 
         // add boilerplate around time value for tolerance notices
-        p.notice {
+        p.tolerance {
             &::before {
                 content: "Data not available for ";
             }
