@@ -41,7 +41,6 @@ import {
     PromiseSwitcher,
     SerializedGridProgram,
     setWindowUrl,
-    throttle,
     uniq,
     uniqBy,
     Url,
@@ -220,10 +219,8 @@ export class Explorer
         this.grapher?.populateFromQueryParams(url.queryParams)
 
         exposeInstanceOnWindow(this, "explorer")
-        this.onResize() // call resize for the first time to initialize chart
-        this.updateEntityPickerTable() // call for the first time to initialize EntityPicker
-
         this.attachEventListeners()
+        this.updateEntityPickerTable() // call for the first time to initialize EntityPicker
     }
 
     componentDidUpdate() {
@@ -253,11 +250,13 @@ export class Explorer
     }
 
     private attachEventListeners() {
-        this.onResizeThrottled = throttle(this.onResize, 100)
-        window.addEventListener("resize", this.onResizeThrottled)
+        const onResizeThrottled = debounce(this.onResize, 200, {
+            leading: true,
+        })
+        const resizeObserver = new ResizeObserver(onResizeThrottled)
+        resizeObserver.observe(this.grapherContainerRef.current!)
         this.disposers.push(() => {
-            if (this.onResizeThrottled !== undefined)
-                window.removeEventListener("resize", this.onResizeThrottled)
+            resizeObserver.disconnect()
         })
 
         // We always prefer the entity picker metric to be sourced from the currently displayed table.
@@ -790,13 +789,15 @@ export class Explorer
         )
     }
 
-    private onResizeThrottled?: () => void
-
     @action.bound private toggleMobileControls() {
         this.showMobileControlsPopup = !this.showMobileControlsPopup
     }
 
     @action.bound private onResize() {
+        // Don't bother rendering if the container is hidden
+        // see https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/offsetParent
+        if (this.grapherContainerRef.current?.offsetParent === null) return
+
         const oldIsNarrow = this.isNarrow
         this.isNarrow = isNarrow()
         this.updateGrapherBounds()
