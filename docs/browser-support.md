@@ -2,11 +2,11 @@
 
 As of **2023-07-27**, we support the following browsers:
 
--   Safari 12+ (earlier versions are missing support for [the CSS `gap` property](https://caniuse.com/mdn-css_properties_gap_grid_context))
--   iOS Safari 12+ (earlier versions are missing support for [the CSS `gap` property](https://caniuse.com/mdn-css_properties_gap_grid_context))
--   Chrome/Edge: 66+ (earlier versions are missing support for [Optional catch binding](https://caniuse.com/mdn-javascript_statements_try_catch_optional_catch_binding))
--   Opera 53+ (since Opera 53 is based on Chromium 66)
--   Firefox: 61+ (earlier versions are missing support for [the CSS `gap` property](https://caniuse.com/mdn-css_properties_gap_grid_context))
+-   Safari 12+ [September 2018] (earlier versions are missing support for [the CSS `gap` property](https://caniuse.com/mdn-css_properties_gap_grid_context))
+-   iOS Safari 12+ [September 2018] (earlier versions are missing support for [the CSS `gap` property](https://caniuse.com/mdn-css_properties_gap_grid_context))
+-   Chrome/Edge: 66+ [April 2018] (earlier versions are missing support for [Optional catch binding](https://caniuse.com/mdn-javascript_statements_try_catch_optional_catch_binding))
+-   Opera 53+ [May 2018] (since Opera 53 is based on Chromium 66)
+-   Firefox: 61+ [June 2018] (earlier versions are missing support for [the CSS `gap` property](https://caniuse.com/mdn-css_properties_gap_grid_context))
 
 **Overall, [this caniuse link shows which browsers are supported](https://caniuse.com/async-functions,mdn-css_properties_gap_grid_context,mdn-javascript_operators_destructuring_rest_in_objects,es6-module,mdn-javascript_statements_try_catch_optional_catch_binding)** (scroll down to "Feature summary").
 
