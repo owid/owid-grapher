@@ -118,7 +118,7 @@ function parseParagraph(
         if (textRun.textStyle.link?.url)
             span = {
                 spanType: "span-link",
-                url: textRun.textStyle.link!.url!,
+                url: textRun.textStyle.link.url,
                 children: [span],
             }
 

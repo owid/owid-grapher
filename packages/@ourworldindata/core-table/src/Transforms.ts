@@ -104,7 +104,7 @@ export function computeRollingAverage(
                 value !== null &&
                 !(value instanceof ErrorValue)
             ) {
-                sum += value!
+                sum += value
                 count++
             }
         }
@@ -421,7 +421,7 @@ export const applyTransforms = (
     for (const def of defs) {
         if (!def.transform || def.transformHasRun) continue
         const { transformName, params = [] } =
-            extractTransformNameAndParams(def.transform!) ?? {}
+            extractTransformNameAndParams(def.transform) ?? {}
         if (!transformName) continue
         const { fn } = availableTransforms[transformName]
         try {

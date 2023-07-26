@@ -182,9 +182,9 @@ export class ChartEditor {
     }
 
     async loadVariableUsageCounts(): Promise<void> {
-        const data = (await this.manager.admin.getJSON(
+        const data: VariableIdUsageRecord[] = await this.manager.admin.getJSON(
             `/api/variables.usages.json`
-        )) as VariableIdUsageRecord[]
+        )
         const finalData = new Map(
             data.map(({ variableId, usageCount }: VariableIdUsageRecord) => [
                 variableId,

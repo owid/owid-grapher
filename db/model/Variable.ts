@@ -94,9 +94,7 @@ export async function getVariableData(
 export async function getDataForMultipleVariables(
     variableIds: number[]
 ): Promise<MultipleOwidVariableDataDimensionsMap> {
-    const promises = variableIds.map(
-        async (id) => await getVariableData(id as number)
-    )
+    const promises = variableIds.map(async (id) => await getVariableData(id))
     const allVariablesDataAndMetadata = await Promise.all(promises)
     const allVariablesDataAndMetadataMap = new Map(
         allVariablesDataAndMetadata.map((item) => [item.metadata.id, item])

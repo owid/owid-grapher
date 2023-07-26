@@ -403,8 +403,7 @@ export class Grapher
     // TODO: Pass these 5 in as options, don't get them as globals.
     isDev = this.props.env === "development"
     analytics = new GrapherAnalytics(this.props.env ?? "")
-    isEditor =
-        typeof window !== "undefined" && (window as any).isEditor === true
+    isEditor = typeof window !== "undefined" && window.isEditor === true
     @observable bakedGrapherURL = this.props.bakedGrapherURL
     adminBaseUrl = this.props.adminBaseUrl
     dataApiUrl =

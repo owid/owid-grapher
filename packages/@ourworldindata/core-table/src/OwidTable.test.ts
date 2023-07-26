@@ -138,7 +138,7 @@ describe("timeColumn", () => {
     usa,usa,1,322,2000,2`
 
         const table = new OwidTable(csv)
-        expect(table.timeColumn!.slug).toBe("day")
+        expect(table.timeColumn.slug).toBe("day")
     })
 })
 

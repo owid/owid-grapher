@@ -364,7 +364,7 @@ export class CoreTable<
 
     getTimesAtIndices(indices: number[]): number[] {
         if (!indices.length) return []
-        return this.getValuesAtIndices(this.timeColumn!.slug, indices) as Time[]
+        return this.getValuesAtIndices(this.timeColumn.slug, indices) as Time[]
     }
 
     getValuesAtIndices(

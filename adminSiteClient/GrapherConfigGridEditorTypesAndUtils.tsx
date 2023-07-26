@@ -454,10 +454,10 @@ export function filterTreeToSExpression(
                     }
                 )
                 .when(
-                    (op) => op && getNullCheckOperator(op as string),
+                    (op) => op && getNullCheckOperator(op),
                     (op) => {
                         const operator = getNullCheckOperator(op as string)!
-                        return new NullCheckOperation(operator!, field)
+                        return new NullCheckOperation(operator, field)
                     }
                 )
                 .with("is_empty", "is_not_empty", (operator) => {

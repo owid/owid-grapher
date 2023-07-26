@@ -61,9 +61,9 @@ export class GdocsStore {
 
     @action
     async fetchGdocs() {
-        const gdocs = (await this.admin.getJSON(
+        const gdocs: OwidGdocInterface[] = await this.admin.getJSON(
             "/api/gdocs"
-        )) as OwidGdocInterface[]
+        )
         this.gdocs = gdocs
     }
 

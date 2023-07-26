@@ -35,6 +35,7 @@ module.exports = {
         "@typescript-eslint/no-explicit-any": "off", // TODO: enable this rule
         "@typescript-eslint/no-for-in-array": "warn",
         "@typescript-eslint/no-non-null-assertion": "off", // TODO: enable this rule
+        "@typescript-eslint/no-unnecessary-type-assertion": "warn",
         "@typescript-eslint/no-unused-vars": [
             "warn",
             { varsIgnorePattern: "^_", argsIgnorePattern: "^_" },

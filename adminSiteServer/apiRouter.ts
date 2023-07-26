@@ -516,34 +516,30 @@ apiRouter.get(
 apiRouter.get(
     "/charts/:chartId.logs.json",
     async (req: Request, res: Response) => ({
-        logs: await getLogsByChartId(parseInt(req.params.chartId as string)),
+        logs: await getLogsByChartId(parseInt(req.params.chartId)),
     })
 )
 
 apiRouter.get(
     "/charts/:chartId.references.json",
     async (req: Request, res: Response) => ({
-        references: await getReferencesByChartId(
-            parseInt(req.params.chartId as string)
-        ),
+        references: await getReferencesByChartId(parseInt(req.params.chartId)),
     })
 )
 
 apiRouter.get(
     "/charts/:chartId.redirects.json",
     async (req: Request, res: Response) => ({
-        redirects: await getRedirectsByChartId(
-            parseInt(req.params.chartId as string)
-        ),
+        redirects: await getRedirectsByChartId(parseInt(req.params.chartId)),
     })
 )
 
 apiRouter.get(
     "/charts/:chartId.pageviews.json",
     async (req: Request, res: Response) => {
-        const slug = await Chart.getById(
-            parseInt(req.params.chartId as string)
-        ).then((chart) => chart?.config?.slug)
+        const slug = await Chart.getById(parseInt(req.params.chartId)).then(
+            (chart) => chart?.config?.slug
+        )
         if (!slug) return {}
 
         const pageviewsByUrl = await Pageview.findOneBy({
@@ -681,7 +677,7 @@ apiRouter.get(
 apiRouter.get(
     "/data/variables/data/:variableStr.json",
     async (req: Request, res: Response) => {
-        const variableStr = req.params.variableStr as string
+        const variableStr = req.params.variableStr
         if (!variableStr) throw new JsonError("No variable id given")
         if (variableStr.includes("+"))
             throw new JsonError(
@@ -696,7 +692,7 @@ apiRouter.get(
 apiRouter.get(
     "/data/variables/metadata/:variableStr.json",
     async (req: Request, res: Response) => {
-        const variableStr = req.params.variableStr as string
+        const variableStr = req.params.variableStr
         if (!variableStr) throw new JsonError("No variable id given")
         if (variableStr.includes("+"))
             throw new JsonError(

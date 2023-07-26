@@ -158,7 +158,7 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
                                 <div>
                                     <br />
                                     {this.parentTag && (
-                                        <TagBadge tag={this.parentTag as Tag} />
+                                        <TagBadge tag={this.parentTag} />
                                     )}
                                 </div>
                             </FieldsRow>
@@ -188,7 +188,7 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
                     <section>
                         <h3>Subcategories</h3>
                         {tag.children.map((c) => (
-                            <TagBadge tag={c as Tag} key={c.id} />
+                            <TagBadge tag={c} key={c.id} />
                         ))}
                     </section>
                 )}

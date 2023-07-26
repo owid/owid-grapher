@@ -190,7 +190,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     filterByTimeRange(start: TimeBound, end: TimeBound): this {
         // We may want to do this time adjustment in Grapher instead of here.
         const adjustedStart = start === Infinity ? this.maxTime! : start
-        const adjustedEnd = end === -Infinity ? this.minTime! : end
+        const adjustedEnd = end === -Infinity ? this.minTime : end
         // todo: we should set a time column onload so we don't have to worry about it again.
         const timeColumnSlug = this.timeColumn?.slug || OwidTableSlugs.time
         // Sorting by time, because incidentally some parts of the code depended on this method
@@ -205,7 +205,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     }
 
     filterByTargetTimes(targetTimes: Time[], tolerance = 0): this {
-        const timeColumn = this.timeColumn!
+        const timeColumn = this.timeColumn
         const timeValues = timeColumn.valuesIncludingErrorValues
         const entityNameToIndices = this.rowIndicesByEntityName
         const matchingIndices = new Set<number>()
@@ -293,7 +293,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     // Shows how much each entity contributed to the given column for each time period
     toPercentageFromEachEntityForEachTime(columnSlug: ColumnSlug): this {
         if (!this.has(columnSlug)) return this
-        const timeColumn = this.timeColumn!
+        const timeColumn = this.timeColumn
         const col = this.get(columnSlug)
         const timeTotals = this.sumsByTime(columnSlug)
         const timeValues = timeColumn.values
@@ -671,7 +671,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         const timeColumnOfTable = !this.timeColumn.isMissing
             ? this.timeColumn
             : // CovidTable does not have a day or year column so we need to use time.
-              (this.get(OwidTableSlugs.time) as CoreColumn)
+              this.get(OwidTableSlugs.time)
 
         const maybeTimeColumnOfValue =
             getOriginalTimeColumnSlug(this, columnSlug) ??
@@ -754,8 +754,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             getOriginalTimeColumnSlug(this, columnSlug) ??
             timeColumnSlugFromColumnDef(columnDef)
         const timeColumn =
-            this.get(maybeTimeColumnSlug) ??
-            (this.get(OwidTableSlugs.time) as CoreColumn) // CovidTable does not have a day or year column so we need to use time.
+            this.get(maybeTimeColumnSlug) ?? this.get(OwidTableSlugs.time) // CovidTable does not have a day or year column so we need to use time.
 
         // todo: we can probably do this once early in the pipeline so we dont have to do it again since complete and sort can be expensive.
         const withAllRows = this.complete([
@@ -860,9 +859,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
                 maxDiff
             )
             const timeAtoTimeB = new Map(timePairs)
-            const pairedTimesInA = sortNumeric(
-                Array.from(timeAtoTimeB.keys())
-            ) as Time[]
+            const pairedTimesInA = sortNumeric(Array.from(timeAtoTimeB.keys()))
 
             for (let index = startIndex; index < endIndex; index++) {
                 const currentTime = times[index]

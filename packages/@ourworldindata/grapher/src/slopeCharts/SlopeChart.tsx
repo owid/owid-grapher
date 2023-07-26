@@ -279,7 +279,7 @@ export class SlopeChart
                 <LabelledSlopes
                     manager={manager}
                     bounds={innerBounds}
-                    yColumn={this.yColumn!}
+                    yColumn={this.yColumn}
                     seriesArr={series}
                     focusKeys={focusKeys}
                     hoverKeys={hoverKeys}

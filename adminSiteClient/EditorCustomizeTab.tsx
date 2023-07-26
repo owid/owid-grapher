@@ -397,7 +397,7 @@ class ComparisonLineSection extends React.Component<{ editor: ChartEditor }> {
 
     @action.bound onRemoveComparisonLine(index: number) {
         const { grapher } = this.props.editor
-        grapher.comparisonLines!.splice(index, 1)
+        grapher.comparisonLines.splice(index, 1)
     }
 
     render() {

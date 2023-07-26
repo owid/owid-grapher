@@ -852,8 +852,8 @@ const parseSdgGrid = (raw: RawBlockSDGGrid): EnrichedBlockSDGGrid => {
                     },
                 ]
             // TODO: make the type not just a string and then parse spans here
-            const goal = item.goal!
-            const link = item.link!
+            const goal = item.goal
+            const link = item.link
 
             //const errors = goal.parseErrors.concat(link.parseErrors)
 

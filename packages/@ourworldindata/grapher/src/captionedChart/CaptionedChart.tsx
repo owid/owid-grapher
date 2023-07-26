@@ -228,7 +228,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
             controls.push(
                 <ScaleSelector
                     key="scaleSelector"
-                    manager={manager.yAxis!}
+                    manager={manager.yAxis}
                     prefix={showXScaleToggle ? "Y: " : ""}
                 />
             )
@@ -237,7 +237,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
             controls.push(
                 <ScaleSelector
                     key="scaleSelector"
-                    manager={manager.xAxis!}
+                    manager={manager.xAxis}
                     prefix={"X: "}
                 />
             )

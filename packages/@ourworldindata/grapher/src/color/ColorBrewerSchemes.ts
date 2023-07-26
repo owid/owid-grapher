@@ -64,7 +64,7 @@ export const ColorBrewerSchemes: ColorSchemeInterface[] = brewerKeys
     .filter((brewerName) => ColorBrewerSchemeIndex[brewerName])
     .map((brewerName) => {
         const props = ColorBrewerSchemeIndex[brewerName]!
-        const colorSets = (colorbrewer as any)[brewerName] as any
+        const colorSets = (colorbrewer as any)[brewerName]
         const colorSetsArray: Color[][] = []
         Object.keys(colorSets).forEach(
             (numColors) => (colorSetsArray[+numColors] = colorSets[numColors])

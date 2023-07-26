@@ -112,9 +112,9 @@ export class DeployStatusPage extends React.Component {
         const { admin } = this.context
         if (admin.currentRequests.length > 0) return
 
-        const json = (await admin.getJSON("/api/deploys.json")) as {
-            deploys: Deploy[]
-        }
+        const json: { deploys: Deploy[] } = await admin.getJSON(
+            "/api/deploys.json"
+        )
         runInAction(() => {
             this.deploys = json.deploys
         })

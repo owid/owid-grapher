@@ -172,7 +172,7 @@ export function enrichedBlockToRawBlock(
                     title: spansToHtmlText([b.title]),
                     links: b.links.map(
                         (link): RawRecircLink => ({
-                            url: link.url!,
+                            url: link.url,
                         })
                     ),
                 },

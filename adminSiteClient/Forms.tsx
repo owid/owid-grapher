@@ -304,9 +304,7 @@ export class SelectField extends React.Component<SelectFieldProps> {
                 {props.label && <label>{props.label}</label>}
                 <select
                     className="form-control"
-                    onChange={(e) =>
-                        props.onValue(e.currentTarget.value as string)
-                    }
+                    onChange={(e) => props.onValue(e.currentTarget.value)}
                     value={props.value}
                     defaultValue={undefined}
                 >
@@ -359,9 +357,7 @@ export class SelectGroupsField extends React.Component<SelectGroupsFieldProps> {
                 {props.label && <label>{props.label}</label>}
                 <select
                     className="form-control"
-                    onChange={(e) =>
-                        props.onValue(e.currentTarget.value as string)
-                    }
+                    onChange={(e) => props.onValue(e.currentTarget.value)}
                     value={props.value}
                 >
                     {props.options.map((opt) => (

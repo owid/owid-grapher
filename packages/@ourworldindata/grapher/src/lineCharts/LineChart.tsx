@@ -185,7 +185,7 @@ class Lines extends React.Component<LinesProps> {
                             series.placedPoints.map((value) => [
                                 value.x,
                                 value.y,
-                            ]) as [number, number][]
+                            ])
                         )}
                     />
                     <MultiColorPolyline
@@ -221,10 +221,7 @@ class Lines extends React.Component<LinesProps> {
                     strokeLinejoin="round"
                     stroke="#ddd"
                     d={pointsToPath(
-                        series.placedPoints.map((value) => [
-                            value.x,
-                            value.y,
-                        ]) as [number, number][]
+                        series.placedPoints.map((value) => [value.x, value.y])
                     )}
                     fill="none"
                     strokeWidth={1}

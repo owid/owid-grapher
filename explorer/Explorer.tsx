@@ -203,7 +203,7 @@ export class Explorer
 
     disposers: (() => void)[] = []
     componentDidMount() {
-        this.setGrapher(this.grapherRef!.current!)
+        this.setGrapher(this.grapherRef.current!)
         this.updateGrapherFromExplorer()
 
         let url = Url.fromQueryParams(this.initialQueryParams)

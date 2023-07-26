@@ -153,7 +153,7 @@ export const parsePreferences = (preferences?: string): Preference[] => {
 
 export const isValidPreference = ({ type, value }: Preference) => {
     return (
-        Object.values(PreferenceType).includes(type as PreferenceType) &&
+        Object.values(PreferenceType).includes(type) &&
         typeof value === "boolean"
     )
 }

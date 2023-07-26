@@ -1213,8 +1213,8 @@ export class ScatterPlotChart
                     label: this.getPointLabel(row) ?? "",
                     timeValue: row[timeColumn.slug],
                     time: {
-                        x: row[this.xColumn!.originalTimeColumnSlug!],
-                        y: row[this.yColumn!.originalTimeColumnSlug!],
+                        x: row[this.xColumn.originalTimeColumnSlug],
+                        y: row[this.yColumn.originalTimeColumnSlug],
                     },
                 }
             })

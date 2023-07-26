@@ -152,7 +152,7 @@ function extractSchemaRecursive(
                 for (const key of Object.keys(schema.properties)) {
                     const newPath = `${pointer}/${key}`
                     extractSchemaRecursive(
-                        (schema.properties as Record<string, unknown>)[key],
+                        schema.properties[key],
                         newPath,
                         items
                     )

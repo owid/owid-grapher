@@ -62,7 +62,7 @@ export class GridCell implements ParsedCell {
         if (!isFirstWordAKeyword) return undefined
 
         // It has a keyword but it is column >1
-        const def = grammar[firstWordOnLine!]
+        const def = grammar[firstWordOnLine]
         const positionalCellTypeDef =
             def.positionalCellDefs && def.positionalCellDefs[this.column - 2]
         if (positionalCellTypeDef) return positionalCellTypeDef
@@ -207,7 +207,7 @@ export class GridCell implements ParsedCell {
             ? validate(
                   contents,
                   catchAllKeywordRegex,
-                  catchAllCellDef!.requirementsDescription
+                  catchAllCellDef.requirementsDescription
               )
             : undefined
 

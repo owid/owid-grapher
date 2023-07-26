@@ -43,8 +43,8 @@ class CSV {
     @computed get allCountries(): string[] {
         const standardNames = Object.values(
             this.mapCountriesInputToOutput
-        ).filter((value: string | undefined) => value !== undefined) as string[]
-        return uniq(sortBy(standardNames)) as string[]
+        ).filter((value: string | undefined) => value !== undefined)
+        return uniq(sortBy(standardNames))
     }
 
     @computed get countryColumnIndex() {
@@ -129,9 +129,7 @@ class CSV {
         const entriesByCountry = new Map<string, CountryEntry>()
         const countries = rows
             .slice(1) // remove header row
-            .map((row: string[]) =>
-                unidecode(row[countryColumnIndex] as string)
-            )
+            .map((row: string[]) => unidecode(row[countryColumnIndex]))
             .filter(
                 (country?: string) => country !== "" && country !== undefined
             ) // exclude empty strings
@@ -142,7 +140,7 @@ class CSV {
         )
         const outputCountries = inputCountries.map(
             (key) => mapCountriesInputToOutput[key]
-        ) as string[]
+        )
         const fuzz = FuzzySet(inputCountries.concat(outputCountries))
 
         let autoMatched = 0

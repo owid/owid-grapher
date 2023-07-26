@@ -37,7 +37,7 @@ const SynthesizeOwidTable = (
             OwidTableSlugs.entityId,
             OwidTableSlugs.year,
         ] as ColumnSlug[]
-    ).concat(columnDefs.map((col) => col.slug!))
+    ).concat(columnDefs.map((col) => col.slug))
 
     const entities = entityNames.length
         ? entityNames.map((name) => {

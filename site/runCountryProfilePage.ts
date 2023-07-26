@@ -45,10 +45,10 @@ class ChartFilter {
         ) as HTMLInputElement
         this.sections = Array.from(
             document.querySelectorAll(".CountryProfilePage main section")
-        ) as HTMLDivElement[]
-        const lis = Array.from(
+        )
+        const lis: HTMLLIElement[] = Array.from(
             document.querySelectorAll(".CountryProfilePage main li")
-        ) as HTMLLIElement[]
+        )
         this.chartItems = lis.map((li) => ({
             title:
                 li

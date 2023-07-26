@@ -1006,9 +1006,7 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
                                 this.isSelected(feature.id)
                             const outOfFocusBracket =
                                 !!this.focusBracket && !isFocus
-                            const series = choroplethData.get(
-                                feature.id as string
-                            )
+                            const series = choroplethData.get(feature.id)
                             const stroke =
                                 isFocus || showSelectedStyle
                                     ? focusStrokeColor
