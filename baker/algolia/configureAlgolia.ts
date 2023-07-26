@@ -101,9 +101,10 @@ export const configureAlgolia = async () => {
         attributesToSnippet: ["excerpt:20", "content:20"],
         attributeForDistinct: "slug",
         attributesForFaceting: [
-            "type",
-            "searchable(tags)",
-            "searchable(authors)",
+            "afterDistinct(type)",
+            "afterDistinct(searchable(tags))",
+            "afterDistinct(searchable(authors))",
+            "afterDistinct(documentType)",
         ],
         disableExactOnAttributes: ["tags"],
     })
