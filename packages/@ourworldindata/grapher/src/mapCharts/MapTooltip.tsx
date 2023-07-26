@@ -73,6 +73,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                 isNumber,
                 "Drop rows with non-number values in Y column"
             )
+            .sortBy([this.props.timeSeriesTable.timeColumn.slug])
     }
 
     @computed private get datum():
