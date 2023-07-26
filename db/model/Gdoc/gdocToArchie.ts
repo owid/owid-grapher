@@ -33,7 +33,7 @@ export async function gdocToArchie(
             const needsBullet = !isNil(paragraph.bullet)
             if (needsBullet && !isInList) {
                 isInList = true
-                text += `[.list]\n`
+                text += `\n[.list]\n`
             } else if (!needsBullet && isInList) {
                 isInList = false
                 text += `[]\n`
