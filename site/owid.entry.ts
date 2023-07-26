@@ -49,6 +49,8 @@ if (BUGSNAG_API_KEY) {
         Bugsnag.start({
             apiKey: BUGSNAG_API_KEY,
             plugins: [new BugsnagPluginReact()],
+            autoTrackSessions: false,
+            collectUserIp: false,
         })
 
         const instrumentNetworkRequests = Math.random() < 0.05 // 5% sample rate
