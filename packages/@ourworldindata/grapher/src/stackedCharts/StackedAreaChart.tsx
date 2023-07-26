@@ -153,7 +153,7 @@ class Areas extends React.Component<AreasProps> {
             const points = [...placedPoints, ...reverse(clone(prevPoints))]
             const opacity = !hoveredAreaName
                 ? 0.7 // normal opacity
-                : hoveredAreaName == series.seriesName
+                : hoveredAreaName === series.seriesName
                 ? 0.7 // hovered
                 : 0.2 // non-hovered
 
@@ -183,11 +183,11 @@ class Areas extends React.Component<AreasProps> {
 
         return placedSeriesArr.map((placedSeries) => {
             const opacity =
-                hoveredAreaName == placedSeries.seriesName
+                hoveredAreaName === placedSeries.seriesName
                     ? 1 // hovered
                     : 0.7 // non-hovered
             const weight =
-                hoveredAreaName == placedSeries.seriesName ? 1.5 : 0.5
+                hoveredAreaName === placedSeries.seriesName ? 1.5 : 0.5
 
             return (
                 <path
@@ -460,7 +460,7 @@ export class StackedAreaChart
                 offsetXDirection="left"
                 style={{ maxWidth: "50%" }}
                 title={formattedTime}
-                subtitle={unit != shortUnit ? unit : undefined}
+                subtitle={unit !== shortUnit ? unit : undefined}
                 subtitleFormat="unit"
                 dissolve={fading}
             >
@@ -478,7 +478,7 @@ export class StackedAreaChart
                             } = series
                             const point = points[hoveredPointIndex]
                             const blurred = this.seriesIsBlur(series)
-                            const focused = name == target.series
+                            const focused = name === target.series
                             const values = [
                                 point?.fake ? undefined : point?.value,
                             ]

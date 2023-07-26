@@ -907,7 +907,7 @@ apiRouter.post(
             ? String(req.body.changesInDataSummary)
             : null
         const convertStringsToNull =
-            typeof req.body.convertStringsToNull == "boolean"
+            typeof req.body.convertStringsToNull === "boolean"
                 ? req.body.convertStringsToNull
                 : true
         const suggestedConfigs = req.body.suggestedConfigs as any[]
@@ -1000,7 +1000,7 @@ apiRouter.post(
             suggestedConfigs.map((config) => {
                 for (const key of Object.keys(config)) {
                     if (
-                        typeof config[key] == "string" &&
+                        typeof config[key] === "string" &&
                         isNullString(config[key])
                     ) {
                         config[key] = null

@@ -272,7 +272,7 @@ export class StackedBarChart
                 offsetX={20}
                 offsetY={-16}
                 title={yColumn.formatTime(hoverTime)}
-                subtitle={unit != shortUnit ? unit : undefined}
+                subtitle={unit !== shortUnit ? unit : undefined}
                 subtitleFormat="unit"
                 dissolve={fading}
             >

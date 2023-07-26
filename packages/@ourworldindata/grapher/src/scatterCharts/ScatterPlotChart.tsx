@@ -806,24 +806,24 @@ export class ScatterPlotChart
 
         let xValues = xStart === xEnd ? [values[0].x] : values.map((v) => v.x),
             xNoticeNeeded =
-                (xStart !== undefined && xStart != startTime && xStart) ||
-                (xEnd !== undefined && xEnd != endTime && xEnd),
+                (xStart !== undefined && xStart !== startTime && xStart) ||
+                (xEnd !== undefined && xEnd !== endTime && xEnd),
             xNotice = xNoticeNeeded ? [xStart, xEnd] : []
 
         let yValues = yStart === yEnd ? [values[0].y] : values.map((v) => v.y),
             yNoticeNeeded =
-                (yStart !== undefined && yStart != startTime && yStart) ||
-                (yEnd !== undefined && yEnd != endTime && yEnd),
+                (yStart !== undefined && yStart !== startTime && yStart) ||
+                (yEnd !== undefined && yEnd !== endTime && yEnd),
             yNotice = yNoticeNeeded ? [yStart, yEnd] : []
 
         // handle the special case where the same variable is used for both axes
         // with a different year's value on each
         if (
             xColumn.def.datasetId === yColumn.def.datasetId &&
-            points.length == 1
+            points.length === 1
         ) {
             const { x, y, time } = points[0]
-            if (time.x != time.y && isNumber(time.x) && isNumber(time.y)) {
+            if (time.x !== time.y && isNumber(time.x) && isNumber(time.y)) {
                 startTime = min([time.x, time.y])
                 endTime = max([time.x, time.y])
                 xValues = time.x < time.y ? [x, y] : [y, x]

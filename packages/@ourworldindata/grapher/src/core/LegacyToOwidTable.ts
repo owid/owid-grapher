@@ -560,7 +560,7 @@ const columnDefFromOwidVariable = (
     } = variable
 
     // Without this the much used var 123 appears as "Countries Continent". We could rename in Grapher but not sure the effects of that.
-    const isContinent = variable.id == 123
+    const isContinent = variable.id === 123
     const name = isContinent ? "Continent" : variable.name
 
     return {

@@ -60,7 +60,7 @@ export function setValueRecursive(
     newValue: unknown
 ): any {
     // If the pointer is empty at this recursion level then just return newValue
-    if (pointer.length == 0) {
+    if (pointer.length === 0) {
         return newValue
     } else {
         // We check if the currently relevant part of the pointer is a number or a string
@@ -120,7 +120,7 @@ export function setValueRecursive(
                     pointer.slice(1),
                     newValue
                 )
-                if (updatedValue == null) return null
+                if (isNil(updatedValue)) return null
                 else return [updatedValue]
             }
         }
@@ -138,7 +138,7 @@ export function compileGetValueFunction(jsonPointer: string): (x: any) => any {
 export function applyPatch(patchSet: GrapherConfigPatch, config: unknown): any {
     const pointer = jsonpointer.parse(patchSet.jsonPointer) as string[]
 
-    if (pointer.length == 0) throw Error("Empty JSON path is not supported")
+    if (pointer.length === 0) throw Error("Empty JSON path is not supported")
     if (
         config !== undefined &&
         config !== null &&

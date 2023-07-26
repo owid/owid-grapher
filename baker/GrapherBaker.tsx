@@ -510,7 +510,7 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
             }
         )
 
-        if (MAX_NUM_BAKE_PROCESSES == 1) {
+        if (MAX_NUM_BAKE_PROCESSES === 1) {
             await Promise.all(
                 jobs.map(async (job) => {
                     await bakeSingleGrapherChart(job)

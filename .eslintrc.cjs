@@ -40,6 +40,7 @@ module.exports = {
         ],
         "@typescript-eslint/prefer-for-of": "warn",
         "@typescript-eslint/restrict-plus-operands": "warn",
+        eqeqeq: "warn",
         "import/namespace": "off",
         "import/no-named-as-default-member": "off", // probably makes sense to enable this at some point
         "no-console": ["warn", { allow: ["warn", "error"] }],

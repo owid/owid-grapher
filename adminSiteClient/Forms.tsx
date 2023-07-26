@@ -976,7 +976,7 @@ export class Timeago extends React.Component<{
         return (
             <>
                 {this.props.time && dayjs(this.props.time).fromNow()}
-                {this.props.by != null && <> by {this.props.by}</>}
+                {this.props.by && <> by {this.props.by}</>}
             </>
         )
     }

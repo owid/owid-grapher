@@ -229,7 +229,7 @@ export class DataTable extends React.Component<{
             const unit =
                 actualColumn.unit === "%" ? "percent" : dim.coreTableColumn.unit
             const targetTime =
-                dim.columns.length == 1 ? dim.columns[0].targetTime : undefined
+                dim.columns.length === 1 ? dim.columns[0].targetTime : undefined
             const columnName =
                 actualColumn.displayName !== ""
                     ? actualColumn.displayName

@@ -569,7 +569,7 @@ class ResponseMessages extends React.Component<{
                         <h5>{capitalize(m.type)}</h5>
                         <p>
                             {m.text}
-                            {m.type == "success" && (
+                            {m.type === "success" && (
                                 <React.Fragment>
                                     <br />
                                     <span>

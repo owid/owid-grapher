@@ -343,6 +343,7 @@ export {
     isBoolean,
     isEmpty,
     isEqual,
+    isNil,
     isNull,
     isNumber,
     isString,

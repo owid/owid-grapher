@@ -174,7 +174,7 @@ export const getDataValue = async ({
         df = df.sort(["year"], true).limit(1)
     }
 
-    if (df.shape.height == 0) return
+    if (df.shape.height === 0) return
     if (df.shape.height > 1) {
         throw new Error(
             `More than one data value found for variable ${variableId}, entity ${entityId}, year ${year}`
@@ -277,7 +277,7 @@ const emptyDataDF = (): pl.DataFrame => {
 export const _dataAsDFfromS3 = async (
     variableIds: OwidVariableId[]
 ): Promise<pl.DataFrame> => {
-    if (variableIds.length == 0) {
+    if (variableIds.length === 0) {
         return emptyDataDF()
     }
 
@@ -308,7 +308,7 @@ export const _dataAsDFfromS3 = async (
 
     const df = pl.concat(dfs)
 
-    if (df.height == 0) {
+    if (df.height === 0) {
         return emptyDataDF()
     }
 

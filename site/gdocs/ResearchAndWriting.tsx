@@ -119,7 +119,7 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
                     <h5 className="overline-black-caps">{row.heading}</h5>
                     <div className="grid grid-cols-4 research-and-writing-row__link-container">
                         {/* center the two thumbnails with a filler element */}
-                        {row.articles.length == 2 ? <div /> : null}
+                        {row.articles.length === 2 ? <div /> : null}
                         {row.articles.map((link, i) => (
                             <ResearchAndWritingLinkContainer
                                 shouldHideSubtitle

@@ -2002,7 +2002,7 @@ export class Grapher
             isLineChart,
         } = this
 
-        if (hideFacetControl != undefined) return !hideFacetControl
+        if (hideFacetControl !== undefined) return !hideFacetControl
 
         // heuristic: if the chart doesn't make sense unfaceted, then it probably
         // also makes sense to let the user switch between entity/metric facets

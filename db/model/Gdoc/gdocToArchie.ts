@@ -5,6 +5,7 @@ import {
     Span,
     RawBlockHorizontalRule,
     RawBlockHeading,
+    isNil,
 } from "@ourworldindata/utils"
 import { spanToHtmlString } from "./gdocUtils.js"
 import { OwidRawGdocBlockToArchieMLString } from "./rawToArchie.js"
@@ -29,7 +30,7 @@ export async function gdocToArchie(
             const paragraph: docs_v1.Schema$Paragraph = element.paragraph
 
             // this is a list
-            const needsBullet = paragraph.bullet != null
+            const needsBullet = !isNil(paragraph.bullet)
             if (needsBullet && !isInList) {
                 isInList = true
                 text += `[.list]\n`

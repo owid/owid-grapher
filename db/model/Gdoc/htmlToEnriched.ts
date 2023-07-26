@@ -525,7 +525,7 @@ function finishWpComponent(
             }
             // If one of the children is empty then don't create a two column layout but
             // just return the non-empty child
-            if (firstChild.childrenResults.length == 0) {
+            if (firstChild.childrenResults.length === 0) {
                 return {
                     errors,
                     content: convertAllWpComponentsToArchieMLBlocks(
@@ -533,7 +533,7 @@ function finishWpComponent(
                     ),
                 }
             }
-            if (secondChild.childrenResults.length == 0) {
+            if (secondChild.childrenResults.length === 0) {
                 return {
                     errors,
                     content: convertAllWpComponentsToArchieMLBlocks(
@@ -797,7 +797,7 @@ function cheerioToArchieML(
                     const level = parseInt(element.tagName.slice(1))
                     const spansResult = getSpansFromChildren(element, context)
                     const errors = spansResult.errors
-                    if (spansResult.content.length == 0)
+                    if (spansResult.content.length === 0)
                         errors.push({
                             name: "exepcted a single plain text element, got zero" as const,
                             details: `Found 0 elements after transforming to archieml`,

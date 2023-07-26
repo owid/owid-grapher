@@ -523,7 +523,7 @@ export class LineChart
         const columns = [formatColumn]
         if (hasColorScale) columns.push(colorColumn)
 
-        const unitLabel = unit != shortUnit ? unit : undefined
+        const unitLabel = unit !== shortUnit ? unit : undefined
         const subtitle =
             isRelativeMode && startTime
                 ? `% change since ${formatColumn.formatTime(startTime)}`
