@@ -25,8 +25,7 @@ const getInsightsClient = (): InsightsClient => {
         insightsClient("init", {
             appId: ALGOLIA_ID,
             apiKey: ALGOLIA_SEARCH_KEY,
-            userHasOptedOut: !getPreferenceValue(PreferenceType.Analytics),
-            useCookie: true, // insightsClient doesn't set the cookie when userHasOptedOut is true
+            useCookie: getPreferenceValue(PreferenceType.Analytics),
         })
         insightsInitialized = true
     }
