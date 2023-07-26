@@ -32,9 +32,11 @@ export class SourcesTab extends React.Component<{
         const { slug, source, def } = column
         const { datasetId, coverage } = def as OwidColumnDef
 
-        const editUrl = this.manager.showAdminControls
-            ? `${this.props.manager.adminBaseUrl}/admin/datasets/${datasetId}`
-            : undefined
+        // there will not be a datasetId for explorers that define the FASTT in TSV
+        const editUrl =
+            this.manager.showAdminControls && datasetId
+                ? `${this.props.manager.adminBaseUrl}/admin/datasets/${datasetId}`
+                : undefined
 
         const { minTime, maxTime } = column
         let timespan = ""
