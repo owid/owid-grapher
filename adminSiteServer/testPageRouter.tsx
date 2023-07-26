@@ -415,7 +415,7 @@ testPageRouter.get("/embeds/:id", async (req, res) => {
     const chart = await Chart.createQueryBuilder()
         .where("id = :id", { id: id })
         .getOne()
-    const viewProps = await getViewPropsFromQueryParams(req.query)
+    const viewProps = getViewPropsFromQueryParams(req.query)
     if (chart) {
         const charts = [
             {
@@ -588,7 +588,7 @@ testPageRouter.get("/previews", async (req, res) => {
 testPageRouter.get("/embedVariants", async (req, res) => {
     const rows = await db.queryMysql(`SELECT config FROM charts WHERE id=64`)
     const charts = rows.map((row: any) => JSON.parse(row.config))
-    const viewProps = await getViewPropsFromQueryParams(req.query)
+    const viewProps = getViewPropsFromQueryParams(req.query)
 
     res.send(
         renderToHtmlPage(

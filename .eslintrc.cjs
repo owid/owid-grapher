@@ -22,6 +22,7 @@ module.exports = {
     ],
     rules: {
         // These rules are only preliminary to ease the migration from tslint, many of them might make sense to have enabled!
+        "@typescript-eslint/await-thenable": "error",
         // use `export type` whenever applicable
         "@typescript-eslint/consistent-type-exports": [
             "warn",

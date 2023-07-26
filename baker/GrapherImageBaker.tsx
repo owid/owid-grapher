@@ -201,7 +201,7 @@ const svgoConfig: svgo.Config = {
 }
 
 async function optimizeSvg(svgString: string): Promise<string> {
-    const optimizedSvg = await svgo.optimize(svgString, svgoConfig)
+    const optimizedSvg = svgo.optimize(svgString, svgoConfig)
     return optimizedSvg.data
 }
 

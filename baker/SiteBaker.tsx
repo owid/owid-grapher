@@ -400,19 +400,19 @@ export class SiteBaker {
         )
         await this.stageWrite(
             `${this.bakedSiteDir}/donate.html`,
-            await renderDonatePage()
+            renderDonatePage()
         )
         await this.stageWrite(
             `${this.bakedSiteDir}/feedback.html`,
-            await feedbackPage()
+            feedbackPage()
         )
         await this.stageWrite(
             `${this.bakedSiteDir}/search.html`,
-            await renderSearchPage()
+            renderSearchPage()
         )
         await this.stageWrite(
             `${this.bakedSiteDir}/404.html`,
-            await renderNotFoundPage()
+            renderNotFoundPage()
         )
         await this.stageWrite(
             `${this.bakedSiteDir}/headerMenu.json`,

@@ -85,7 +85,7 @@ yarn testPrettierAll`
     private async runLiveSafetyChecks() {
         const { simpleGit } = this
         const branches = await simpleGit.branchLocal()
-        const branch = await branches.current
+        const branch = branches.current
         if (branch !== "master")
             this.printAndExit(
                 "To deploy to live please run from the master branch."

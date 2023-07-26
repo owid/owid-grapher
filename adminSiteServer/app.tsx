@@ -55,7 +55,7 @@ export class OwidAdminApp {
             maxConcurrentProcesses: 1,
         })
         const branches = await git.branchLocal()
-        const gitCmsBranchName = await branches.current
+        const gitCmsBranchName = branches.current
         return gitCmsBranchName
     }
 

@@ -42,7 +42,7 @@ export class ExplorerAdminServer {
         try {
             const explorers = await this.getAllExplorers()
             const branches = await this.simpleGit.branchLocal()
-            const gitCmsBranchName = await branches.current
+            const gitCmsBranchName = branches.current
             const needsPull = false // todo: add
 
             return {

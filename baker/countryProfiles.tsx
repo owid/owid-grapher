@@ -188,7 +188,7 @@ export const countryProfilePage = async (
 }
 
 export const bakeCountries = async (baker: SiteBaker) => {
-    const html = await countriesIndexPage(baker.baseUrl)
+    const html = countriesIndexPage(baker.baseUrl)
     await baker.writeFile("/countries.html", html)
 
     await baker.ensureDir("/country")

@@ -147,9 +147,7 @@ mockSiteRouter.get("/", async (req, res) => {
     res.send(await renderFrontPage())
 })
 
-mockSiteRouter.get("/donate", async (req, res) =>
-    res.send(await renderDonatePage())
-)
+mockSiteRouter.get("/donate", async (req, res) => res.send(renderDonatePage()))
 
 mockSiteRouter.get("/charts", async (req, res) => {
     const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
@@ -162,9 +160,7 @@ countryProfileSpecs.forEach((spec) =>
     )
 )
 
-mockSiteRouter.get("/search", async (req, res) =>
-    res.send(await renderSearchPage())
-)
+mockSiteRouter.get("/search", async (req, res) => res.send(renderSearchPage()))
 
 mockSiteRouter.get("/latest", async (req, res) =>
     res.send(await renderBlogByPageNum(1))
@@ -179,7 +175,7 @@ mockSiteRouter.get("/latest/page/:pageno", async (req, res) => {
 
 mockSiteRouter.get("/headerMenu.json", async (req, res) => {
     if (!isWordpressAPIEnabled) {
-        res.status(404).send(await renderNotFoundPage())
+        res.status(404).send(renderNotFoundPage())
         return
     }
     res.contentType("application/json")
@@ -213,16 +209,14 @@ mockSiteRouter.use("/grapher/exports/:slug.svg", async (req, res) => {
 mockSiteRouter.use("/", express.static(path.join(BASE_DIR, "public")))
 
 mockSiteRouter.get("/countries", async (req, res) =>
-    res.send(await countriesIndexPage(BAKED_BASE_URL))
+    res.send(countriesIndexPage(BAKED_BASE_URL))
 )
 
 mockSiteRouter.get("/country/:countrySlug", async (req, res) =>
     res.send(await countryProfilePage(req.params.countrySlug, BAKED_BASE_URL))
 )
 
-mockSiteRouter.get("/feedback", async (req, res) =>
-    res.send(await feedbackPage())
-)
+mockSiteRouter.get("/feedback", async (req, res) => res.send(feedbackPage()))
 
 mockSiteRouter.get("/multiEmbedderTest", async (req, res) =>
     res.send(
@@ -258,7 +252,7 @@ mockSiteRouter.get("/*", async (req, res) => {
         res.send(await renderPageBySlug(slug))
     } catch (e) {
         console.error(e)
-        res.status(404).send(await renderNotFoundPage())
+        res.status(404).send(renderNotFoundPage())
     }
 })
 
