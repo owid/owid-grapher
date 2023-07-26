@@ -676,7 +676,7 @@ const parseRecirc = (raw: RawBlockRecirc): EnrichedBlockRecirc => {
         })
     }
 
-    if (!raw.value?.links || !raw.value?.links.length) {
+    if (!raw.value?.links?.length) {
         return createError({
             message: "Recirc must have at least one link",
         })

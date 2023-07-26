@@ -111,10 +111,7 @@ export class GridProgram {
                     return
                 pointer.started = true
 
-                if (
-                    lines[pointer.row] === undefined ||
-                    lines[pointer.row][pointer.column] === undefined
-                ) {
+                if (lines[pointer.row]?.[pointer.column] === undefined) {
                     pointer.row++
                     pointer.column = 0
                     if (pointer.row >= numRows) pointer.row = 0

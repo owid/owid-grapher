@@ -417,7 +417,7 @@ class CSVSelector extends React.Component<{
     fileInput?: HTMLInputElement
 
     @action.bound onChooseCSV({ target }: { target: HTMLInputElement }) {
-        const file = target.files && target.files[0]
+        const file = target.files?.[0]
         if (!file) return
 
         const reader = new FileReader()

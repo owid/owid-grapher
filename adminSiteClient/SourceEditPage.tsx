@@ -170,7 +170,7 @@ export class SourceEditPage extends React.Component<{ sourceId: number }> {
 
     render() {
         return (
-            <AdminLayout title={this.source && this.source.name}>
+            <AdminLayout title={this.source?.name}>
                 {this.source && <SourceEditor source={this.source} />}
             </AdminLayout>
         )

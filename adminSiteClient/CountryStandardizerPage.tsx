@@ -347,7 +347,7 @@ export class CountryStandardizerPage extends React.Component {
     }
 
     @action.bound onChooseCSV({ target }: { target: HTMLInputElement }) {
-        const file = target.files && target.files[0]
+        const file = target.files?.[0]
         if (!file) return
 
         const reader = new FileReader()
@@ -431,7 +431,7 @@ export class CountryStandardizerPage extends React.Component {
     @computed get fileUploadLabel() {
         const { csv } = this
 
-        if (csv === undefined || csv.filename === undefined) {
+        if (csv?.filename === undefined) {
             return "Choose CSV file"
         }
         return csv.filename

@@ -161,10 +161,10 @@ export const countryProfilePage = async (
     let indicators: CountryProfileIndicator[] = []
     for (const grapher of graphers) {
         const firstDimension = grapher.dimensions![0]
-        const vid = firstDimension && firstDimension.variableId
+        const vid = firstDimension?.variableId
         const values = valuesByVariableId[vid]
 
-        if (values && values.length) {
+        if (values?.length) {
             const latestValue = values[0]
 
             indicators.push({

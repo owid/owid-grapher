@@ -742,14 +742,13 @@ export class ScatterPlotChart
         return (
             <g className="ScatterPlot" onMouseMove={this.onScatterMouseMove}>
                 <DualAxisComponent dualAxis={dualAxis} showTickMarks={false} />
-                {comparisonLines &&
-                    comparisonLines.map((line, i) => (
-                        <ComparisonLine
-                            key={i}
-                            dualAxis={dualAxis}
-                            comparisonLine={line}
-                        />
-                    ))}
+                {comparisonLines?.map((line, i) => (
+                    <ComparisonLine
+                        key={i}
+                        dualAxis={dualAxis}
+                        comparisonLine={line}
+                    />
+                ))}
                 {this.points}
                 <VerticalColorLegend manager={this} />
                 {sizeLegend && (

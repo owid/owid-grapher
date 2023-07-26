@@ -294,7 +294,7 @@ export class ChartEditorPage
 
         this.disposers.push(
             reaction(
-                () => this.editor && this.editor.previewMode,
+                () => this.editor?.previewMode,
                 () => {
                     if (this.editor) {
                         localStorage.setItem(

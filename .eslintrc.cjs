@@ -41,6 +41,7 @@ module.exports = {
             { varsIgnorePattern: "^_", argsIgnorePattern: "^_" },
         ],
         "@typescript-eslint/prefer-for-of": "warn",
+        "@typescript-eslint/prefer-optional-chain": "warn",
         "@typescript-eslint/restrict-plus-operands": "warn",
         eqeqeq: "warn",
         "import/namespace": "off",

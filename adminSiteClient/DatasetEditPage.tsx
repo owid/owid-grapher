@@ -484,7 +484,7 @@ export class DatasetEditPage extends React.Component<{ datasetId: number }> {
 
     render() {
         return (
-            <AdminLayout title={this.dataset && this.dataset.name}>
+            <AdminLayout title={this.dataset?.name}>
                 {this.dataset && <DatasetEditor dataset={this.dataset} />}
             </AdminLayout>
         )

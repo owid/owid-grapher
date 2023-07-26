@@ -1130,8 +1130,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                         </li>
                         <li>
                             <b>Reason for suggested revision:</b>{" "}
-                            {this.currentSuggestedChartRevision &&
-                            this.currentSuggestedChartRevision.suggestedReason
+                            {this.currentSuggestedChartRevision?.suggestedReason
                                 ? this.currentSuggestedChartRevision
                                       .suggestedReason
                                 : "None provided."}
@@ -1144,8 +1143,8 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                 </div>
                 <div className="changes_summary">
                     <h2>Indicator changes</h2>{" "}
-                    {this.currentSuggestedChartRevision &&
-                    this.currentSuggestedChartRevision.changesInDataSummary ? (
+                    {this.currentSuggestedChartRevision
+                        ?.changesInDataSummary ? (
                         <div
                             dangerouslySetInnerHTML={{
                                 __html: this.currentSuggestedChartRevision

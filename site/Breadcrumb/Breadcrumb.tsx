@@ -26,7 +26,7 @@ export const getBreadcrumbItems = (
     if (!currentItem) return
     breadcrumb.push(currentItem)
 
-    while (currentItem && currentItem.parentId) {
+    while (currentItem?.parentId) {
         currentItem = getSubnavParent(currentItem, subnavItems)
         if (currentItem) breadcrumb.push(currentItem)
     }

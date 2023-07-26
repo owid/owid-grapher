@@ -106,11 +106,7 @@ export class Dataset extends BaseEntity {
             name: this.name,
             title: this.name,
             id: this.id,
-            description:
-                (sources[0] &&
-                    sources[0].description &&
-                    sources[0].description.additionalInfo) ||
-                "",
+            description: sources[0]?.description?.additionalInfo || "",
             sources: sources.map((s) => s.toDatapackage()),
             owidTags: tags.map((t: any) => t.name),
             resources: [

@@ -16,7 +16,7 @@ export function objectWithPersistablesToObject<T>(
     const keysSet = new Set(keysToSerialize)
     Object.keys(obj).forEach((key) => {
         const val = (objWithPersistables as any)[key]
-        const valIsPersistable = val && val.toObject
+        const valIsPersistable = val?.toObject
 
         // Delete any keys we don't want to serialize, if a keep list is provided
         if (keysToSerialize.length && !keysSet.has(key)) {

@@ -216,7 +216,7 @@ export class TagEditPage extends React.Component<{ tagId: number }> {
 
     render() {
         return (
-            <AdminLayout title={this.tag && this.tag.name}>
+            <AdminLayout title={this.tag?.name}>
                 {this.tag && <TagEditor tag={this.tag} />}
             </AdminLayout>
         )

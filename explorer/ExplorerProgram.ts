@@ -447,7 +447,7 @@ export const trimAndParseObject = (config: any, grammar: Grammar) => {
     // parse types
     Object.keys(trimmedRow).forEach((key) => {
         const def = grammar[key]
-        if (def && def.parse) trimmedRow[key] = def.parse(trimmedRow[key])
+        if (def?.parse) trimmedRow[key] = def.parse(trimmedRow[key])
         // If there no definition but it is a boolean, parse it (todo: always have a def)
         else if (!def) {
             const value = trimmedRow[key]

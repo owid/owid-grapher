@@ -192,10 +192,7 @@ const getReferencesByChartId = async (chartId: number): Promise<References> => {
     )
 
     const slugs: string[] = rows
-        .map(
-            (row: { slug?: string }) =>
-                row.slug && row.slug.replace(/^"|"$/g, "")
-        )
+        .map((row: { slug?: string }) => row.slug?.replace(/^"|"$/g, ""))
         .filter((slug: string | undefined) => !isUndefined(slug))
 
     if (!slugs || slugs.length === 0)
@@ -339,7 +336,7 @@ const saveGrapher = async (
 
     // Execute the actual database update or creation
     const now = new Date()
-    let chartId = existingConfig && existingConfig.id
+    let chartId = existingConfig?.id
     const newJsonConfig = JSON.stringify(newConfig)
     // todo: drop "isExplorable"
     if (existingConfig)

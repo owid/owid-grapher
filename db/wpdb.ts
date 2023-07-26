@@ -160,7 +160,7 @@ const apiQuery = async (
 ): Promise<any> => {
     const url = new URL(endpoint)
 
-    if (params && params.searchParams) {
+    if (params?.searchParams) {
         params.searchParams.forEach((param) => {
             url.searchParams.append(param[0], String(param[1]))
         })

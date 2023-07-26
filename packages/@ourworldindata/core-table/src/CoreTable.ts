@@ -659,7 +659,7 @@ export class CoreTable<
             }
         )
         // Include the end of the last group, which doesn't result in a change in value above.
-        if (values && values.length) {
+        if (values?.length) {
             arr.push(values.length)
         }
         return arr

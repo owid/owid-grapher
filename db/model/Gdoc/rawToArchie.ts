@@ -420,7 +420,7 @@ function* rawBlockTopicPageIntroToArchieMLString(
         yield "{}"
     }
     const relatedTopics = block.value["related-topics"]
-    if (relatedTopics && relatedTopics.length) {
+    if (relatedTopics?.length) {
         yield "[.related-topics]"
         for (const relatedTopic of relatedTopics) {
             yield* propertyToArchieMLString("text", relatedTopic)

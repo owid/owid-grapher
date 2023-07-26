@@ -2178,7 +2178,7 @@ export class Grapher
                     </a>
                     .
                 </p>
-                {this.uncaughtError && this.uncaughtError.message && (
+                {this.uncaughtError?.message && (
                     <pre style={{ fontSize: "11px" }}>
                         Error: {this.uncaughtError.message}
                     </pre>

@@ -15,10 +15,7 @@ import { JsonError } from "@ourworldindata/utils"
 
 const datasetToReadme = async (dataset: Dataset): Promise<string> => {
     const source = await Source.findOneBy({ datasetId: dataset.id })
-    return `# ${dataset.name}\n\n${
-        (source && source.description && source.description.additionalInfo) ||
-        ""
-    }`
+    return `# ${dataset.name}\n\n${source?.description?.additionalInfo || ""}`
 }
 
 export async function removeDatasetFromGitRepo(

@@ -6,8 +6,7 @@ import { SelectionArray } from "../selection/SelectionArray"
 import { ChartManager } from "./ChartManager"
 
 export const autoDetectYColumnSlugs = (manager: ChartManager): string[] => {
-    if (manager.yColumnSlugs && manager.yColumnSlugs.length)
-        return manager.yColumnSlugs
+    if (manager.yColumnSlugs?.length) return manager.yColumnSlugs
     if (manager.yColumnSlug) return [manager.yColumnSlug]
     return manager.table.numericColumnSlugs
 }

@@ -154,7 +154,7 @@ export class Header extends React.Component<{
 
         return (
             <div className="HeaderHTML">
-                {this.logo && this.logo.renderHTML()}
+                {this.logo?.renderHTML()}
                 <a
                     href={manager.canonicalUrl}
                     target="_blank"

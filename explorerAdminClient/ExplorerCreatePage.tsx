@@ -371,7 +371,7 @@ class HotEditor extends React.Component<{
             cellProperties.comment = comment ? { value: comment } : undefined
             cellProperties.placeholder = placeholder
 
-            if (optionKeywords && optionKeywords.length) {
+            if (optionKeywords?.length) {
                 cellProperties.type = "autocomplete"
                 cellProperties.source = optionKeywords
             }

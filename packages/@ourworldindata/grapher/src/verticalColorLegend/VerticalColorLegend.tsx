@@ -136,7 +136,7 @@ export class VerticalColorLegend extends React.Component<{
 
         return (
             <>
-                {title && title.render(x, y, { fontWeight: 700 })}
+                {title?.render(x, y, { fontWeight: 700 })}
                 <g
                     className="ScatterColorLegend clickable"
                     style={{ cursor: "pointer" }}

@@ -130,16 +130,15 @@ class Label extends React.Component<{
                     series.bounds.y,
                     { fill: textColor }
                 )}
-                {series.annotationTextWrap &&
-                    series.annotationTextWrap.render(
-                        needsLines ? markerX2 + MARKER_MARGIN : markerX1,
-                        series.bounds.y + series.textWrap.height,
-                        {
-                            fill: annotationColor,
-                            className: "textAnnotation",
-                            style: { fontWeight: "lighter" },
-                        }
-                    )}
+                {series.annotationTextWrap?.render(
+                    needsLines ? markerX2 + MARKER_MARGIN : markerX1,
+                    series.bounds.y + series.textWrap.height,
+                    {
+                        fill: annotationColor,
+                        className: "textAnnotation",
+                        style: { fontWeight: "lighter" },
+                    }
+                )}
             </g>
         )
     }
