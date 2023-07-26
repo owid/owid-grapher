@@ -1659,7 +1659,11 @@ export class Grapher
         const setBoundsFromContainerAndRender = (
             entries: ResizeObserverEntry[]
         ): void => {
-            const entry = entries[0] // We always observe exactly one element
+            const entry = entries?.[0] // We always observe exactly one element
+            if (!entry)
+                throw new Error(
+                    "Couldn't resize grapher, expected exactly one ResizeObserverEntry"
+                )
 
             // Don't bother rendering if the container is hidden
             // see https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/offsetParent
@@ -1678,6 +1682,7 @@ export class Grapher
         }
 
         const resizeObserver = new ResizeObserver(
+            // Use a leading debounce to render immediately upon first load, and also immediately upon orientation change on mobile
             debounce(setBoundsFromContainerAndRender, 400, { leading: true })
         )
         resizeObserver.observe(containerNode)
