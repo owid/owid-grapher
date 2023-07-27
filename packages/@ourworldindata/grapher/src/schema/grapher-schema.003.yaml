@@ -485,7 +485,9 @@ properties:
                             default: true
                             description: Whether to render this time series in the table sheet
                         shortUnit:
-                            type: string
+                            type:
+                                - string
+                                - "null"
                             description: Short unit symbol - This is used in tight UI spaces when the value is shown
                         conversionFactor:
                             type: number
