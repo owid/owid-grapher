@@ -81,9 +81,10 @@ export default function Image(props: {
             : LIGHTBOX_IMAGE_CLASS
 
     if (isPreviewing) {
+        const previewSrc = `${IMAGE_HOSTING_CDN_URL}/${IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH}/${filename}`
         return (
             <img
-                src={`${IMAGE_HOSTING_CDN_URL}/${IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH}/${filename}`}
+                src={encodeURI(previewSrc)}
                 alt={alt}
                 className={cx(maybeLightboxClassName, className, "lazyload")}
             />
@@ -92,10 +93,11 @@ export default function Image(props: {
 
     if (filename.endsWith(".svg")) {
         const pngFilename = `${getFilenameWithoutExtension(filename)}.png`
+        const imgSrc = `${IMAGES_DIRECTORY}${filename}`
         return (
             <div className={className}>
                 <img
-                    src={`${IMAGES_DIRECTORY}${filename}`}
+                    src={encodeURI(imgSrc)}
                     alt={alt}
                     className={maybeLightboxClassName}
                 />
@@ -114,6 +116,7 @@ export default function Image(props: {
 
     const sizes = getSizes(image.originalWidth)
     const srcSet = generateSrcSet(sizes, filename)
+    const imageSrc = `${IMAGES_DIRECTORY}${filename}`
 
     return (
         <picture className={className}>
@@ -123,7 +126,7 @@ export default function Image(props: {
                 sizes={containerSizes[containerType] ?? containerSizes.default}
             />
             <img
-                src={`${IMAGES_DIRECTORY}${filename}`}
+                src={encodeURI(imageSrc)}
                 alt={alt}
                 className={maybeLightboxClassName}
                 loading="lazy"
