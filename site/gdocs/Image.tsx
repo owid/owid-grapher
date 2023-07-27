@@ -116,6 +116,7 @@ export default function Image(props: {
 
     const sizes = getSizes(image.originalWidth)
     const srcSet = generateSrcSet(sizes, filename)
+    const imageSrc = `${IMAGES_DIRECTORY}${filename}`
 
     return (
         <picture className={className}>
@@ -125,7 +126,7 @@ export default function Image(props: {
                 sizes={containerSizes[containerType] ?? containerSizes.default}
             />
             <img
-                src={`${IMAGES_DIRECTORY}${filename}`}
+                src={encodeURI(imageSrc)}
                 alt={alt}
                 className={maybeLightboxClassName}
                 loading="lazy"
