@@ -119,7 +119,11 @@ export const LongFormPage = (props: {
                 pageTitle={pageTitleSEO}
                 pageDesc={pageDesc}
                 canonicalUrl={canonicalUrl}
-                imageUrl={post.imageUrl ? formatUrls(post.imageUrl) : undefined}
+                imageUrl={
+                    post.imageUrl
+                        ? encodeURI(formatUrls(post.imageUrl))
+                        : undefined
+                }
                 baseUrl={baseUrl}
             >
                 {withCitation && (

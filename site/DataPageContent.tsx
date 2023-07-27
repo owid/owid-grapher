@@ -251,7 +251,9 @@ export const DataPageContent = ({
                                                     className="related-research__item grid grid-cols-4 grid-lg-cols-6 grid-sm-cols-12 span-cols-4 span-lg-cols-6 span-sm-cols-12"
                                                 >
                                                     <img
-                                                        src={research.imageUrl}
+                                                        src={encodeURI(
+                                                            research.imageUrl
+                                                        )}
                                                         alt=""
                                                         className="span-lg-cols-2 span-sm-cols-3"
                                                     />

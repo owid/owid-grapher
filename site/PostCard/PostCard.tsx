@@ -17,8 +17,8 @@ const PostCard = ({
                     <div
                         className="cover-image"
                         style={{
-                            backgroundImage: `url(${formatUrls(
-                                post.imageUrl
+                            backgroundImage: `url(${encodeURI(
+                                formatUrls(post.imageUrl)
                             )})`,
                         }}
                     />
