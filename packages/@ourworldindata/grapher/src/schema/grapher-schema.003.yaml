@@ -260,9 +260,12 @@ properties:
                           - latest
             variableId:
                 type: integer
-                description: "Variable ID to show. TODO: remove this and use dimensions instead"
+                description: "Variable ID to show. TODO: remove this once we have a convention of using the first y dimension instead"
                 maximum: 2147483647
                 minimum: 0
+            columnSlug:
+                description: "Variable ID to show (similar to variableId). TODO: remove this once we have a convention of using the first y dimension instead"
+                type: integer
         additionalProperties: false
     maxTime:
         description: End point of the initially selected time span.
