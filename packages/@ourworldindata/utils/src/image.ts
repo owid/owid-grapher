@@ -44,12 +44,12 @@ export function generateSrcSet(
     filename: ImageMetadata["filename"]
 ): string {
     return sizes
-        .map(
-            (size) =>
-                `/images/published/${getFilenameWithoutExtension(
-                    filename
-                )}_${size}.webp ${size}w`
-        )
+        .map((size) => {
+            const path = `/images/published/${getFilenameWithoutExtension(
+                filename
+            )}_${size}.webp`
+            return `${encodeURI(path)} ${size}w`
+        })
         .join(", ")
 }
 
