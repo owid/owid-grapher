@@ -52,7 +52,9 @@ export default function OwidGdocPage({
                 pageTitle={content.title}
                 pageDesc={content.excerpt}
                 canonicalUrl={canonicalUrl}
-                imageUrl={featuredImageUrl}
+                imageUrl={
+                    featuredImageUrl ? encodeURI(featuredImageUrl) : undefined
+                }
                 baseUrl={baseUrl}
             >
                 <CitationMeta

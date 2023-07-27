@@ -354,7 +354,9 @@ ${posts
     .map((post) => {
         const postUrl = `${BAKED_BASE_URL}/${post.slug}`
         const image = post.imageUrl
-            ? `<br><br><a href="${postUrl}" target="_blank"><img src="${post.imageUrl}"/></a>`
+            ? `<br><br><a href="${postUrl}" target="_blank"><img src="${encodeURI(
+                  post.imageUrl
+              )}"/></a>`
             : ""
 
         return `<entry>

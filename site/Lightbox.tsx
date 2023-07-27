@@ -121,7 +121,7 @@ const Image = ({
                 className={cx({
                     "lightbox__img--is-svg": src.endsWith(".svg"),
                 })}
-                src={src}
+                src={encodeURI(src)}
                 alt={alt}
                 style={{ opacity: !isLoaded ? 0 : 1, transition: "opacity 1s" }}
             />
