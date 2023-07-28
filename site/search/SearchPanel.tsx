@@ -25,26 +25,21 @@ import { observer } from "mobx-react"
 function PagesHit({ hit }: { hit: any }) {
     return (
         <a href={`${BAKED_BASE_URL}/${hit.slug}`}>
-            <div className="page-hit">
-                {/* TODO: index featured images */}
-                <h4 className="h3-bold page-hit__title">
-                    <Highlight
-                        attribute="title"
-                        highlightedTagName="strong"
-                        hit={hit}
-                    />
-                    <span className="body-3-medium page-hit__page-type">
-                        {hit.type === "article" ? "Article" : "Topic page"}
-                    </span>
+            {/* TODO: index featured images */}
+            <header className="page-hit__header">
+                <h4 className="h3-bold search-panel__page-hit-title">
+                    {hit.title}
                 </h4>
-                <p className="body-3-medium page-hit__snippet">
-                    <Snippet
-                        attribute="excerpt"
-                        highlightedTagName="strong"
-                        hit={hit}
-                    />
-                </p>
-            </div>
+                <span className="body-3-medium search-panel__page-hit-type">
+                    {hit.type === "article" ? "Article" : "Topic page"}
+                </span>
+            </header>
+            <Snippet
+                className="body-3-medium search-panel__page-hit-snippet"
+                attribute="excerpt"
+                highlightedTagName="strong"
+                hit={hit}
+            />
         </a>
     )
 }
@@ -53,24 +48,21 @@ function ChartHit({ hit }: { hit: any }) {
     return (
         <a href={`${BAKED_GRAPHER_URL}/${hit.slug}`}>
             <img src={`${BAKED_GRAPHER_URL}/exports/${hit.slug}.svg`} />
-            <p>
-                <Highlight attribute="title" hit={hit} />
-            </p>
+            <Highlight
+                attribute="title"
+                highlightedTagName="strong"
+                className="search-panel__chart-hit-highlight"
+                hit={hit}
+            />
         </a>
     )
 }
 
 function ExplorersHit({ hit }: { hit: any }) {
     return (
-        <a className="explorer-hit" href={hit.slug}>
-            <div>
-                <h4 className="h3-bold">
-                    <Highlight attribute="title" hit={hit} />
-                </h4>
-                <p className="body-3-medium">
-                    <Highlight attribute="subtitle" hit={hit} />
-                </p>
-            </div>
+        <a href={hit.slug}>
+            <h4 className="h3-bold">{hit.title}</h4>
+            <p className="body-3-medium">{hit.subtitle}</p>
         </a>
     )
 }
@@ -93,6 +85,12 @@ function ShowMore({
             <p>Showing {results.hits.length} results</p>
         </div>
     )
+}
+
+function Filters() {
+    const { scopedResults } = useInstantSearch()
+    console.log("scopedResults", scopedResults)
+    return <div></div>
 }
 
 @observer
@@ -129,36 +127,36 @@ export class InstantSearchContainer extends React.Component {
                             className="searchbox"
                             queryHook={this.handleQuery}
                         />
+                        <Filters />
                         {/* TODO: lift out into <SearchResults /> component to remove ternary */}
                         {this.inputValue ? (
                             <>
-                                <Index indexName="pages">
-                                    <Configure hitsPerPage={20} distinct={1} />
-                                    <header className="search-panel__header">
-                                        <h2 className="h2-bold search-panel__section-title">
-                                            Research & Writing
-                                        </h2>
-                                        <ShowMore
-                                            isExpanded={this.isPagesExpanded}
-                                            toggleIsExpanded={
-                                                this.toggleIsPagesExpanded
-                                            }
-                                        />
-                                    </header>
-                                    <Hits
-                                        classNames={{
-                                            root: cx({
-                                                "search-panel__pages-container":
-                                                    true,
-                                                "search-panel__pages-container--is-expanded":
-                                                    this.isPagesExpanded,
-                                            }),
-                                            list: "search-panel__pages-list grid grid-cols-2 grid-cols-sm-1",
-                                            item: "search-panel__page-item",
-                                        }}
-                                        hitComponent={PagesHit}
+                                {/* This is using the InstantSearch index */}
+                                <Configure hitsPerPage={20} distinct={1} />
+                                <header className="search-panel__header">
+                                    <h2 className="h2-bold search-panel__section-title">
+                                        Research & Writing
+                                    </h2>
+                                    <ShowMore
+                                        isExpanded={this.isPagesExpanded}
+                                        toggleIsExpanded={
+                                            this.toggleIsPagesExpanded
+                                        }
                                     />
-                                </Index>
+                                </header>
+                                <Hits
+                                    classNames={{
+                                        root: cx({
+                                            "search-panel__pages-container":
+                                                true,
+                                            "search-panel__pages-container--is-expanded":
+                                                this.isPagesExpanded,
+                                        }),
+                                        list: "search-panel__pages-list grid grid-cols-2 grid-cols-sm-1",
+                                        item: "search-panel__page-hit",
+                                    }}
+                                    hitComponent={PagesHit}
+                                />
                                 <h2 className="h2-bold search-panel__section-title">
                                     Data Explorers
                                 </h2>
@@ -169,7 +167,7 @@ export class InstantSearchContainer extends React.Component {
                                         classNames={{
                                             root: "search-panel__explorers-container",
                                             list: "search-panel__explorers-list grid grid-cols-2 grid-cols-sm-1",
-                                            item: "search-panel__explorer-item",
+                                            item: "search-panel__explorer-hit",
                                         }}
                                         hitComponent={ExplorersHit}
                                     />
@@ -183,7 +181,7 @@ export class InstantSearchContainer extends React.Component {
                                         classNames={{
                                             root: "search-panel__charts-container",
                                             list: "search-panel__charts-list grid grid-cols-4 grid-cols-sm-2",
-                                            item: "search-panel__chart-item",
+                                            item: "search-panel__chart-hit",
                                         }}
                                         hitComponent={ChartHit}
                                     />

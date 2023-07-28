@@ -59,14 +59,11 @@
 }
 
 .search-panel__pages-container {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
     border-bottom: 1px solid $blue-20;
     padding-bottom: 24px;
 }
 
-.search-panel__page-item {
+.search-panel__page-hit {
     list-style: none;
     margin-bottom: 24px;
     display: none;
@@ -77,34 +74,32 @@
         display: block;
     }
 
-    .page-hit__title {
-        display: inline-block;
-        color: $blue-90;
-        margin: 0;
-    }
-
-    .page-hit__snippet {
-        margin: 4px 0;
-    }
-
     &:hover {
         // Just the title, not the page type
-        .ais-Highlight {
+        .search-panel__page-hit-title {
             text-decoration: underline;
         }
     }
-
-    .page-hit__page-type {
-        color: $blue-60;
-        margin-left: 0.5em;
-    }
-
-    .ais-Snippet {
-        color: $blue-60;
-    }
 }
 
-.search-panel__pages-container--is-expanded .search-panel__page-item {
+.search-panel__pages-container--is-expanded .search-panel__page-hit {
+    display: block;
+}
+
+.search-panel__page-hit-title {
+    display: inline-block;
+    color: $blue-90;
+    margin: 0;
+}
+
+.search-panel__page-hit-type {
+    color: $blue-60;
+    margin-left: 0.5em;
+}
+
+.search-panel__page-hit-snippet {
+    margin: 4px 0;
+    color: $blue-60;
     display: block;
 }
 
@@ -117,21 +112,21 @@
     list-style: none;
 }
 
-.explorer-hit {
+.search-panel__explorer-hit {
     background-color: $blue-10;
     height: 100%;
     padding: 24px;
-    display: block;
-    color: $blue-90;
+    list-style: none;
 
     &:hover {
-        h4 .ais-Highlight {
+        h4 {
             text-decoration: underline;
         }
     }
 
     h4 {
         margin: 0;
+        color: $blue-90;
     }
 
     p {
@@ -139,15 +134,16 @@
     }
 }
 
-.search-panel__chart-item {
+.search-panel__chart-hit {
     list-style: none;
     margin-bottom: 24px;
-    p {
-        color: $blue-90;
-    }
     &:hover {
-        p {
+        .search-panel__chart-hit-highlight {
             text-decoration: underline;
         }
     }
+}
+
+.search-panel__chart-hit-highlight {
+    color: $blue-90;
 }
