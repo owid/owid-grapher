@@ -147,7 +147,7 @@ const config: GrapherConfigGridEditorConfig = {
         version: 1,
         dimensions: [{ property: DimensionProperty.y, variableId: id }],
         map: {
-            variableId: id,
+            columnSlug: `${id}`,
         },
     }),
 }

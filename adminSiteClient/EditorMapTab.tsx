@@ -6,31 +6,21 @@ import {
     MapProjectionLabels,
     MapProjectionName,
 } from "@ourworldindata/grapher"
-import {
-    isEmpty,
-    OwidVariableId,
-    ToleranceStrategy,
-} from "@ourworldindata/utils"
+import { ColumnSlug, isEmpty, ToleranceStrategy } from "@ourworldindata/utils"
 import { action, computed } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"
 import { ChartEditor } from "./ChartEditor.js"
 import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
-import {
-    NumberField,
-    NumericSelectField,
-    Section,
-    SelectField,
-    Toggle,
-} from "./Forms.js"
+import { NumberField, Section, SelectField, Toggle } from "./Forms.js"
 
 @observer
 class VariableSection extends React.Component<{
     mapConfig: MapConfig
     filledDimensions: ChartDimension[]
 }> {
-    @action.bound onVariableId(variableId: OwidVariableId) {
-        this.props.mapConfig.columnSlug = variableId.toString()
+    @action.bound onColumnSlug(columnSlug: ColumnSlug) {
+        this.props.mapConfig.columnSlug = columnSlug
     }
 
     @action.bound onProjection(projection: string | undefined) {
@@ -52,18 +42,14 @@ class VariableSection extends React.Component<{
 
         return (
             <Section name="Map">
-                <NumericSelectField
+                <SelectField
                     label="Indicator"
-                    value={
-                        mapConfig.columnSlug
-                            ? parseInt(mapConfig.columnSlug)
-                            : undefined
-                    }
+                    value={mapConfig.columnSlug}
                     options={filledDimensions.map((d) => ({
-                        value: d.variableId,
+                        value: d.columnSlug,
                         label: d.column.displayName,
                     }))}
-                    onValue={this.onVariableId}
+                    onValue={this.onColumnSlug}
                 />
                 <SelectField
                     label="Region"
