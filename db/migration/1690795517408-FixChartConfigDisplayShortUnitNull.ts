@@ -14,11 +14,13 @@ export class FixChartConfigDisplayShortUnitNull1690795517408
             // if any of the dimensions has a shortUnit field that is null, remove it
             if (chart.config.dimensions) {
                 for (const dimension of chart.config.dimensions) {
-                    if (dimension.display) {
-                        if (dimension.display.shortUnit === null) {
-                            delete dimension.display.shortUnit
-                            chartModified = true
-                        }
+                    if (
+                        dimension.display &&
+                        "shortUnit" in dimension.display &&
+                        dimension.display.shortUnit === null
+                    ) {
+                        delete dimension.display.shortUnit
+                        chartModified = true
                     }
                 }
             }
