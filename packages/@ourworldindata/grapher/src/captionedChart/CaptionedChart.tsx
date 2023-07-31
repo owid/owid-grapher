@@ -9,7 +9,7 @@ import {
     sumTextWrapHeights,
 } from "@ourworldindata/utils"
 import { Header } from "../header/Header"
-import { Footer } from "../footer/Footer"
+import { Footer, StaticFooter } from "../footer/Footer"
 import {
     ChartComponentClassMap,
     DefaultChartClass,
@@ -128,7 +128,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         return this.manager?.containerElement
     }
 
-    @computed private get maxWidth(): number {
+    @computed protected get maxWidth(): number {
         return this.props.maxWidth ?? this.bounds.width - FRAME_PADDING * 2
     }
 
@@ -540,7 +540,7 @@ export class StaticCaptionedChart extends CaptionedChart {
     }
 
     render(): JSX.Element {
-        const { bounds, paddedBounds } = this
+        const { bounds, paddedBounds, manager, maxWidth } = this
         let { width, height } = bounds
 
         if (this.manager.shouldIncludeDetailsInStaticExport) {
@@ -566,10 +566,12 @@ export class StaticCaptionedChart extends CaptionedChart {
                 />
                 {this.header.renderStatic(paddedBounds.x, paddedBounds.y)}
                 {this.renderChart()}
-                {this.footer.renderStatic(
-                    paddedBounds.x,
-                    paddedBounds.bottom - this.footer.height
-                )}
+                <StaticFooter
+                    manager={manager}
+                    maxWidth={maxWidth}
+                    targetX={paddedBounds.x}
+                    targetY={paddedBounds.bottom - this.footer.height}
+                />
                 {this.renderSVGDetails()}
             </svg>
         )

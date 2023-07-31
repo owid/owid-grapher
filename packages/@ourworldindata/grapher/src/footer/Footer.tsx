@@ -19,12 +19,16 @@ import { ActionButtons } from "../controls/ActionButtons"
 
 const PADDING_ABOVE_CONTROLS = 4
 
-@observer
-export class Footer extends React.Component<{
+interface FooterProps {
     manager: FooterManager
     maxWidth?: number
-}> {
-    @computed private get maxWidth(): number {
+}
+
+@observer
+export class Footer<
+    Props extends FooterProps = FooterProps
+> extends React.Component<Props> {
+    @computed protected get maxWidth(): number {
         return this.props.maxWidth ?? DEFAULT_BOUNDS.width
     }
 
@@ -32,7 +36,7 @@ export class Footer extends React.Component<{
         return this.props.manager
     }
 
-    @computed private get sourcesText(): string {
+    @computed protected get sourcesText(): string {
         const sourcesLine = this.manager.sourcesLine
         return sourcesLine ? `Source: ${sourcesLine}` : ""
     }
@@ -87,11 +91,11 @@ export class Footer extends React.Component<{
         return [originUrlLink, ccSvg].join(" • ")
     }
 
-    @computed private get fontSize(): number {
+    @computed protected get fontSize(): number {
         return 0.7 * (this.manager.fontSize ?? BASE_FONT_SIZE)
     }
 
-    @computed private get sources(): MarkdownTextWrap {
+    @computed protected get sources(): MarkdownTextWrap {
         const { maxWidth, fontSize, sourcesText, actionButtons } = this
         return new MarkdownTextWrap({
             maxWidth: maxWidth - actionButtons.width - 5,
@@ -100,7 +104,7 @@ export class Footer extends React.Component<{
         })
     }
 
-    @computed private get note(): MarkdownTextWrap {
+    @computed protected get note(): MarkdownTextWrap {
         const { maxWidth, fontSize, noteText } = this
         return new MarkdownTextWrap({
             maxWidth,
@@ -113,7 +117,7 @@ export class Footer extends React.Component<{
         })
     }
 
-    @computed private get licenseAndOriginUrl(): TextWrap {
+    @computed protected get licenseAndOriginUrl(): TextWrap {
         const { maxWidth, fontSize, licenseAndOriginUrlSvg } = this
         return new TextWrap({
             maxWidth: maxWidth * 3,
@@ -130,13 +134,13 @@ export class Footer extends React.Component<{
     }
 
     // Put the license stuff to the side if there's room
-    @computed private get isCompact(): boolean {
+    @computed protected get isCompact(): boolean {
         return (
             this.maxWidth - this.note.width - 5 > this.licenseAndOriginUrl.width
         )
     }
 
-    @computed private get paraMargin(): number {
+    @computed protected get paraMargin(): number {
         return 2
     }
 
@@ -155,60 +159,6 @@ export class Footer extends React.Component<{
             Math.max(sources.height, actionButtons.height) +
             (isCompact ? 0 : paraMargin + licenseAndOriginUrl.height)
         return height
-    }
-
-    // todo(redesign): `sourcesStatic` and `isCompactStatic` are only used for static exports;
-    // this is a workaround to keep the static version as is for now
-
-    @computed private get sourcesStatic(): MarkdownTextWrap {
-        const { maxWidth, fontSize, sourcesText } = this
-        return new MarkdownTextWrap({
-            maxWidth,
-            fontSize,
-            text: sourcesText,
-        })
-    }
-
-    @computed private get isCompactStatic(): boolean {
-        return (
-            this.maxWidth - this.sources.width - 5 >
-            this.licenseAndOriginUrl.width
-        )
-    }
-
-    renderStatic(targetX: number, targetY: number): JSX.Element {
-        const {
-            sourcesStatic,
-            note,
-            licenseAndOriginUrl,
-            maxWidth,
-            paraMargin,
-            isCompactStatic,
-        } = this
-
-        return (
-            <g className="SourcesFooter" style={{ fill: "#777" }}>
-                <g style={{ fill: "#777" }}>
-                    {sourcesStatic.renderSVG(targetX, targetY)}
-                </g>
-                {note.renderSVG(
-                    targetX,
-                    targetY + sourcesStatic.height + paraMargin
-                )}
-                {isCompactStatic
-                    ? licenseAndOriginUrl.render(
-                          targetX + maxWidth - licenseAndOriginUrl.width,
-                          targetY
-                      )
-                    : licenseAndOriginUrl.render(
-                          targetX,
-                          targetY +
-                              sourcesStatic.height +
-                              paraMargin +
-                              (note.height ? note.height + paraMargin : 0)
-                      )}
-            </g>
-        )
     }
 
     base: React.RefObject<HTMLDivElement> = React.createRef()
@@ -335,6 +285,67 @@ export class Footer extends React.Component<{
                     </Tooltip>
                 )}
             </footer>
+        )
+    }
+}
+
+interface StaticFooterProps extends FooterProps {
+    targetX: number
+    targetY: number
+}
+
+@observer
+export class StaticFooter extends Footer<StaticFooterProps> {
+    constructor(props: StaticFooterProps) {
+        super(props)
+    }
+
+    @computed protected get sources(): MarkdownTextWrap {
+        const { maxWidth, fontSize, sourcesText } = this
+        return new MarkdownTextWrap({
+            maxWidth,
+            fontSize,
+            text: sourcesText,
+        })
+    }
+
+    @computed protected get isCompact(): boolean {
+        return (
+            this.maxWidth - this.sources.width - 5 >
+            this.licenseAndOriginUrl.width
+        )
+    }
+
+    render(): JSX.Element {
+        const {
+            sources,
+            note,
+            licenseAndOriginUrl,
+            maxWidth,
+            paraMargin,
+            isCompact,
+        } = this
+        const { targetX, targetY } = this.props
+
+        return (
+            <g className="SourcesFooter" style={{ fill: "#777" }}>
+                <g style={{ fill: "#777" }}>
+                    {sources.renderSVG(targetX, targetY)}
+                </g>
+                {note.renderSVG(targetX, targetY + sources.height + paraMargin)}
+                {isCompact
+                    ? licenseAndOriginUrl.render(
+                          targetX + maxWidth - licenseAndOriginUrl.width,
+                          targetY
+                      )
+                    : licenseAndOriginUrl.render(
+                          targetX,
+                          targetY +
+                              sources.height +
+                              paraMargin +
+                              (note.height ? note.height + paraMargin : 0)
+                      )}
+            </g>
         )
     }
 }
