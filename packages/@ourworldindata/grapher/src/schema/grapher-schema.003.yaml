@@ -259,13 +259,15 @@ properties:
                       enum:
                           - latest
             variableId:
+                # TODO: remove this once we have a convention of using the first y dimension instead"
                 type: integer
-                description: "Variable ID to show. TODO: remove this once we have a convention of using the first y dimension instead"
+                description: "Variable ID to show."
                 maximum: 2147483647
                 minimum: 0
             columnSlug:
-                description: "Variable ID to show (similar to variableId). TODO: remove this once we have a convention of using the first y dimension instead"
-                type: integer
+                # TODO: remove this once we have a convention of using the first y dimension instead
+                description: "Variable ID to show (similar to variableId)."
+                type: string
         additionalProperties: false
     maxTime:
         description: End point of the initially selected time span.
@@ -485,9 +487,7 @@ properties:
                             default: true
                             description: Whether to render this time series in the table sheet
                         shortUnit:
-                            type:
-                                - string
-                                - "null"
+                            type: string
                             description: Short unit symbol - This is used in tight UI spaces when the value is shown
                         conversionFactor:
                             type: number
