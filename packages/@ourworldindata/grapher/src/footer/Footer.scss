@@ -1,0 +1,26 @@
+.SourcesFooterHTML {
+    padding: 0 $framePadding;
+    text-align: left;
+
+    a {
+        color: #777;
+        &:visited {
+            color: #777;
+        }
+    }
+
+    p {
+        margin: 0;
+    }
+
+    .FooterControls {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+    }
+}
+
+.SourcesFooterHTML.compact .NoteAndLicense {
+    display: flex;
+    justify-content: space-between;
+}

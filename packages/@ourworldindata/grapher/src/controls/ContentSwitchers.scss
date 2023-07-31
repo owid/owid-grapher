@@ -1,0 +1,31 @@
+.ContentSwitchers {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-width: max-content;
+
+    li {
+        display: inline-block;
+        height: $controlRowHeight;
+    }
+
+    li > a {
+        display: block;
+        text-transform: uppercase;
+        color: #777;
+        font-size: 0.8em;
+        height: $controlRowHeight - 1;
+        line-height: $controlRowHeight;
+        padding: 0 0.6em;
+    }
+
+    li > a:hover {
+        color: rgba(0, 33, 71, 0.9);
+        text-decoration: none;
+    }
+
+    li.active > a {
+        color: rgba(0, 33, 71, 0.9);
+        background-color: aliceblue;
+    }
+}

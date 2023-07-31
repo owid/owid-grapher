@@ -22,6 +22,7 @@ export interface ActionButtonsManager extends ShareMenuManager {
     canonicalUrl?: string
 }
 
+// keep in sync with sass variables in ActionButtons.scss
 const BUTTON_SIZE = 30
 const MARGIN_BETWEEN_BUTTONS = 5
 

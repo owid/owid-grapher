@@ -106,14 +106,15 @@ interface CaptionedChartProps {
     maxWidth?: number
 }
 
+// keep in sync with sass variables in CaptionedChart.scss
 const FRAME_PADDING = 15
+const CONTROLS_ROW_HEIGHT = 36
+const RELATED_QUESTION_HEIGHT = 20
+
 const PADDING_ABOVE_FOOTER = 25
 const CHART_PADDING_TOP = 16
 const CHART_PADDING_BOTTOM = CHART_PADDING_TOP / 2
-
-const CONTROLS_ROW_HEIGHT = 36
 const TIMELINE_HEIGHT = 36
-const RELATED_QUESTION_HEIGHT = 20
 
 // todo(redesign): we might want to rename CaptionedChart later
 
