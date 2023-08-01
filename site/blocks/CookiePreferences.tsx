@@ -80,6 +80,7 @@ export const CookiePreferences = ({
 
     return ReactDOM.createPortal(
         <div data-test="cookie-preferences" className="cookie-preferences">
+            <h2>Cookie preferences</h2>
             <CookiePreference
                 title="Necessary cookies"
                 name="necessary"
@@ -107,10 +108,11 @@ export const CookiePreferences = ({
                     })
                 }
             >
-                We use these cookies to monitor website usage and performance,
-                helping us prioritize and demonstrate the reach of our work.{" "}
-                <br />
-                We are a non-profit and don't sell any of your data.
+                With your consent we use cookies to better understand how you
+                interact with our website. This helps us prioritize our work,
+                improve our navigation and search, and demonstrate the reach of
+                our work. As a non-profit organization we take your privacy
+                seriously and do not sell your data to any third parties.
             </CookiePreference>
             {date ? (
                 <div className="last-updated">

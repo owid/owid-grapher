@@ -16,6 +16,7 @@ export enum Action {
     TogglePreference,
     Reset,
     Persist,
+    Reject,
 }
 
 export interface Preference {
@@ -133,6 +134,15 @@ const reducer = (
             return {
                 ...state,
                 date: payload.date,
+            }
+        case Action.Reject:
+            return {
+                date: payload.date,
+                preferences: updatePreference(
+                    PreferenceType.Analytics,
+                    false,
+                    state.preferences
+                ),
             }
         default:
             return state

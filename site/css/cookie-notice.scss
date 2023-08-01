@@ -29,9 +29,10 @@
     }
 
     .cookie-notice__text {
+        margin: 0;
+
         @include lg-up {
             text-align: left;
-            margin: 0;
         }
     }
 
@@ -57,7 +58,7 @@
         border: 2px solid rgba($text-color, 0.2);
         transition: border-color 150ms linear;
         margin-top: 8px;
-        min-width: 196px;
+        background-color: transparent;
 
         @include md-up {
             flex: 0;
@@ -83,6 +84,7 @@
         border-color: $oxford-blue;
         color: #fff;
         transition: background-color 150ms linear, border-color 150ms linear;
+        min-width: 196px;
 
         &:hover {
             background-color: $oxford-blue;
