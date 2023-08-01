@@ -102,10 +102,7 @@ export class Header extends React.Component<{
     }
 
     @computed get height(): number {
-        return Math.max(
-            this.title.height + this.subtitle.height + this.titleMarginBottom,
-            this.logoHeight
-        )
+        return this.title.height + this.subtitle.height + this.titleMarginBottom
     }
 
     renderStatic(x: number, y: number): JSX.Element {

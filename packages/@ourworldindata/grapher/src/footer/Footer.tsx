@@ -17,7 +17,8 @@ import {
 import { FooterManager } from "./FooterManager"
 import { ActionButtons } from "../controls/ActionButtons"
 
-const PADDING_ABOVE_CONTROLS = 4
+const PADDING_ABOVE_CONTROLS = 16
+const PADDING_BELOW_NOTE = 4
 const HORIZONTAL_PADDING = 2
 
 interface FooterProps {
@@ -176,11 +177,18 @@ export class Footer<
         })
     }
 
+    @computed private get paddingAboveControls(): number {
+        return this.sources.htmlLines.length > 1 && this.noteText
+            ? PADDING_ABOVE_CONTROLS
+            : 0
+    }
+
     @computed get height(): number {
         const { sources, note, licenseAndOriginUrl, actionButtons } = this
         const height =
             Math.max(note.height, licenseAndOriginUrl.height) +
-            PADDING_ABOVE_CONTROLS +
+            PADDING_BELOW_NOTE +
+            this.paddingAboveControls +
             Math.max(sources.height, actionButtons.height)
         return height
     }
@@ -261,18 +269,23 @@ export class Footer<
             >
                 <div
                     className="NoteAndLicense"
-                    style={{ minHeight: this.licenseAndOriginUrl.height }}
+                    style={{
+                        minHeight: this.licenseAndOriginUrl.height,
+                        marginBottom: PADDING_BELOW_NOTE,
+                    }}
                 >
                     <p className="note" style={this.note.style}>
                         {this.note.renderHTML()}
                     </p>
                     {license}
                 </div>
-                <div
-                    className="SourcesAndActionButtons"
-                    style={{ marginTop: PADDING_ABOVE_CONTROLS }}
-                >
-                    <p style={this.sources.style}>
+                <div className="SourcesAndActionButtons">
+                    <p
+                        style={{
+                            ...this.sources.style,
+                            marginTop: this.paddingAboveControls,
+                        }}
+                    >
                         <a
                             data-track-note="chart_click_sources"
                             onClick={(): void => {

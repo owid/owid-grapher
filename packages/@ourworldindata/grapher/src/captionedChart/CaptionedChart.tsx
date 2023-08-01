@@ -106,15 +106,14 @@ interface CaptionedChartProps {
     maxWidth?: number
 }
 
+const VERTICAL_SPACING = 16
+
 // keep in sync with sass variables in CaptionedChart.scss
-const FRAME_PADDING = 15
-const CONTROLS_ROW_HEIGHT = 36
+const FRAME_PADDING = VERTICAL_SPACING
+const CONTROLS_ROW_HEIGHT = 32
 const RELATED_QUESTION_HEIGHT = 20
 
-const PADDING_ABOVE_FOOTER = 25
-const CHART_PADDING_TOP = 16
-const CHART_PADDING_BOTTOM = CHART_PADDING_TOP / 2
-const TIMELINE_HEIGHT = 36
+const TIMELINE_HEIGHT = CONTROLS_ROW_HEIGHT
 
 // todo(redesign): we might want to rename CaptionedChart later
 
@@ -167,6 +166,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         return Math.floor(
             this.bounds.height -
                 2 * FRAME_PADDING -
+                4 * VERTICAL_SPACING -
                 this.header.height -
                 CONTROLS_ROW_HEIGHT -
                 (this.manager.showTimeline ? TIMELINE_HEIGHT : 0) -
@@ -181,30 +181,11 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         return this.props.bounds ?? this.manager.tabBounds ?? DEFAULT_BOUNDS
     }
 
-    @computed protected get boundsForChart(): Bounds {
-        return new Bounds(0, 0, this.bounds.width, this.chartHeight)
-            .padWidth(FRAME_PADDING)
-            .padTop(CHART_PADDING_TOP)
-            .padBottom(CHART_PADDING_BOTTOM)
-    }
-
-    @computed protected get boundsForMap(): Bounds {
-        return new Bounds(0, 0, this.bounds.width, this.chartHeight).padWidth(
+    @computed protected get boundsForChartArea(): Bounds {
+        const { bounds, chartHeight } = this
+        return new Bounds(0, 0, bounds.width, chartHeight).padWidth(
             FRAME_PADDING
         )
-    }
-
-    @computed protected get boundsForTable(): Bounds {
-        return new Bounds(
-            0,
-            0,
-            this.bounds.width,
-            this.chartHeight + 2 // todo(redesign): magic number
-        ).padWidth(FRAME_PADDING)
-    }
-
-    @computed protected get boundsForChartOrMap(): Bounds {
-        return this.manager.isOnMapTab ? this.boundsForMap : this.boundsForChart
     }
 
     @computed get isFaceted(): boolean {
@@ -216,7 +197,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
 
     renderChart(): JSX.Element {
         const { manager } = this
-        const bounds = this.boundsForChartOrMap
+        const bounds = this.boundsForChartArea
 
         const chartTypeName = this.manager.isOnMapTab
             ? ChartTypeName.WorldMap
@@ -400,21 +381,21 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
 
     private renderLoadingIndicator(): JSX.Element {
         return (
-            <foreignObject {...this.boundsForChartOrMap.toProps()}>
+            <foreignObject {...this.boundsForChartArea.toProps()}>
                 <LoadingIndicator title={this.manager.whatAreWeWaitingFor} />
             </foreignObject>
         )
     }
 
     private renderDataTable(): JSX.Element {
-        const { boundsForTable } = this
+        const { boundsForChartArea } = this
         const containerStyle: React.CSSProperties = {
             position: "relative",
-            ...this.boundsForTable.toCSS(),
+            ...this.boundsForChartArea.toCSS(),
         }
         return (
             <div style={containerStyle}>
-                <DataTable bounds={boundsForTable} manager={this.manager} />
+                <DataTable bounds={boundsForChartArea} manager={this.manager} />
             </div>
         )
     }
@@ -426,6 +407,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         const containerStyle: React.CSSProperties = {
             position: "relative",
             clear: "both",
+            height: chartHeight,
         }
 
         return (
@@ -456,15 +438,30 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         return null
     }
 
+    private renderVerticalSpace(): JSX.Element {
+        return (
+            <div
+                style={{
+                    height: VERTICAL_SPACING,
+                    width: this.bounds.width,
+                }}
+            />
+        )
+    }
+
     render(): JSX.Element {
         return (
             <>
                 <Header manager={this.manager} maxWidth={this.maxWidth} />
+                {this.renderVerticalSpace()}
                 {this.renderControlsRow()}
+                {this.renderVerticalSpace()}
                 {this.manager.isOnTableTab
                     ? this.renderDataTable()
                     : this.renderChartOrMap()}
+                {this.renderVerticalSpace()}
                 {this.maybeRenderTimeline()}
+                {this.renderVerticalSpace()}
                 <Footer manager={this.manager} maxWidth={this.maxWidth} />
                 {this.maybeRenderRelatedQuestion()}
             </>
@@ -482,6 +479,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                 backgroundColor: "white",
                 textRendering: "geometricPrecision",
                 WebkitFontSmoothing: "antialiased",
+                overflow: "visible",
             },
         }
     }
@@ -507,11 +505,11 @@ export class StaticCaptionedChart extends CaptionedChart {
         return this.bounds.pad(FRAME_PADDING)
     }
 
-    @computed protected get boundsForChartOrMap(): Bounds {
+    @computed protected get boundsForChartArea(): Bounds {
         return this.paddedBounds
             .padTop(this.header.height)
-            .padBottom(this.staticFooter.height + PADDING_ABOVE_FOOTER)
-            .padTop(this.manager.isOnMapTab ? 0 : CHART_PADDING_TOP)
+            .padBottom(this.staticFooter.height + VERTICAL_SPACING)
+            .padTop(this.manager.isOnMapTab ? 0 : VERTICAL_SPACING)
     }
 
     renderSVGDetails(): JSX.Element | null {
@@ -526,7 +524,7 @@ export class StaticCaptionedChart extends CaptionedChart {
                 <line
                     x1={FRAME_PADDING}
                     y1={this.bounds.height}
-                    x2={this.boundsForChartOrMap.width + FRAME_PADDING}
+                    x2={this.boundsForChartArea.width + FRAME_PADDING}
                     y2={this.bounds.height}
                     stroke="#777"
                 ></line>
