@@ -178,11 +178,8 @@ export class Footer<
     @computed private get actionButtons(): ActionButtons {
         return new ActionButtons({
             manager: this.manager,
+            maxWidth: this.maxWidth,
         })
-    }
-
-    @computed private get paddingAboveControls(): number {
-        return this.sources.htmlLines.length > 1 ? PADDING_ABOVE_CONTROLS : 0
     }
 
     @computed get height(): number {
@@ -190,7 +187,7 @@ export class Footer<
         const height =
             Math.max(note.height, licenseAndOriginUrl.height) +
             PADDING_BELOW_NOTE +
-            this.paddingAboveControls +
+            PADDING_ABOVE_CONTROLS +
             Math.max(sources.height, actionButtons.height)
         return height
     }
@@ -281,13 +278,17 @@ export class Footer<
                     </p>
                     {license}
                 </div>
-                <div className="SourcesAndActionButtons">
-                    <p
-                        style={{
-                            ...this.sources.style,
-                            marginTop: this.paddingAboveControls,
-                        }}
-                    >
+                <div
+                    className="SourcesAndActionButtons"
+                    style={{
+                        marginTop: PADDING_ABOVE_CONTROLS,
+                        alignItems:
+                            this.sources.htmlLines.length > 2
+                                ? "flex-end"
+                                : "center",
+                    }}
+                >
+                    <p style={this.sources.style}>
                         <a
                             className="sources"
                             data-track-note="chart_click_sources"
@@ -299,7 +300,10 @@ export class Footer<
                             {this.sources.renderHTML()}
                         </a>
                     </p>
-                    <ActionButtons manager={this.manager} />
+                    <ActionButtons
+                        manager={this.manager}
+                        maxWidth={this.maxWidth}
+                    />
                 </div>
                 {tooltipTarget && (
                     <Tooltip
