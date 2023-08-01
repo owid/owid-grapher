@@ -15,7 +15,7 @@ export const SearchPage = (props: { baseUrl: string }) => {
             />
             <body className="SearchPage">
                 <SiteHeader baseUrl={baseUrl} />
-                <main />
+                <main style={{ minHeight: "calc(100vh - 516px)" }} />
                 <SiteFooter hideDonate={true} baseUrl={baseUrl} />
                 <script type="module">{`window.runSearchPage()`}</script>
             </body>

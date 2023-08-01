@@ -115,3 +115,18 @@ export interface SiteSearchResults {
     charts: SearchResponse<ChartHit>
     countries: Country[]
 }
+
+export enum SearchIndexName {
+    Explorers = "explorers-test",
+    Charts = "charts-test",
+    Pages = "pages",
+}
+
+export type SearchCategoryFilter = SearchIndexName | "all"
+
+export const searchCategoryFilters: [string, SearchCategoryFilter][] = [
+    ["All", "all"],
+    ["Research & Writing", SearchIndexName.Pages],
+    ["Explorers", SearchIndexName.Explorers],
+    ["Charts", SearchIndexName.Charts],
+]
