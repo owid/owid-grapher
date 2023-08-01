@@ -56,26 +56,25 @@ export class Header extends React.Component<{
     @computed get title(): TextWrap {
         const { logoWidth } = this
         const maxWidth = this.maxWidth - logoWidth - 20
+        const titleStyle = { maxWidth, fontWeight: 600, lineHeight: 1.2 }
 
         // Try to fit the title into a single line if possible-- but not if it would make the text super small
         let title: TextWrap
         let fontScale = 1.4
         while (true) {
             title = new TextWrap({
-                maxWidth,
+                ...titleStyle,
                 fontSize: fontScale * this.fontSize,
                 text: this.titleText,
-                lineHeight: 1,
             })
             if (fontScale <= 1.2 || title.lines.length <= 1) break
             fontScale -= 0.05
         }
 
         return new TextWrap({
-            maxWidth,
+            ...titleStyle,
             fontSize: fontScale * this.fontSize,
             text: this.titleText,
-            lineHeight: 1,
         })
     }
 

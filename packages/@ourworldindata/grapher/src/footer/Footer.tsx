@@ -40,11 +40,11 @@ export class Footer<
 
     @computed protected get sourcesText(): string {
         const sourcesLine = this.manager.sourcesLine
-        return sourcesLine ? `Source: ${sourcesLine}` : ""
+        return sourcesLine ? `**Data source:** ${sourcesLine}` : ""
     }
 
     @computed protected get noteText(): string {
-        return this.manager.note ? `Note: ${this.manager.note}` : ""
+        return this.manager.note ? `**Note:** ${this.manager.note}` : ""
     }
 
     @computed protected get ccSvg(): string {
@@ -102,14 +102,18 @@ export class Footer<
     }
 
     @computed protected get fontSize(): number {
-        return 0.7 * (this.manager.fontSize ?? BASE_FONT_SIZE)
+        return 0.6875 * (this.manager.fontSize ?? BASE_FONT_SIZE) // 11px when base font size = 16px
+    }
+
+    @computed private get sourcesFontSize(): number {
+        return 0.8125 * (this.manager.fontSize ?? BASE_FONT_SIZE) // 13px when base font size = 16px
     }
 
     @computed protected get sources(): MarkdownTextWrap {
-        const { maxWidth, fontSize, sourcesText } = this
+        const { maxWidth, sourcesFontSize, sourcesText } = this
         return new MarkdownTextWrap({
             maxWidth: maxWidth - this.actionButtons.width - HORIZONTAL_PADDING,
-            fontSize,
+            fontSize: sourcesFontSize,
             text: sourcesText,
         })
     }
@@ -178,9 +182,7 @@ export class Footer<
     }
 
     @computed private get paddingAboveControls(): number {
-        return this.sources.htmlLines.length > 1 && this.noteText
-            ? PADDING_ABOVE_CONTROLS
-            : 0
+        return this.sources.htmlLines.length > 1 ? PADDING_ABOVE_CONTROLS : 0
     }
 
     @computed get height(): number {
@@ -287,6 +289,7 @@ export class Footer<
                         }}
                     >
                         <a
+                            className="sources"
                             data-track-note="chart_click_sources"
                             onClick={(): void => {
                                 this.manager.currentTab =
