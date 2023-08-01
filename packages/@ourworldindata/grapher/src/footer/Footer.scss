@@ -13,14 +13,25 @@
         margin: 0;
     }
 
-    .FooterControls {
+    .NoteAndLicense {
+        position: relative;
+
+        .license {
+            position: absolute;
+            right: 0;
+            top: 0;
+            text-align: right;
+        }
+    }
+
+    .SourcesAndActionButtons {
         display: flex;
         justify-content: space-between;
         align-items: flex-end;
     }
-}
 
-.SourcesFooterHTML.compact .NoteAndLicense {
-    display: flex;
-    justify-content: space-between;
+    // removes margin that is added by default to prevent border-bottom used for dod from clipping
+    .markdown-text-wrap__line:last-child {
+        margin-bottom: 0;
+    }
 }

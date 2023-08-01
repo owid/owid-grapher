@@ -18,6 +18,7 @@ import { FooterManager } from "./FooterManager"
 import { ActionButtons } from "../controls/ActionButtons"
 
 const PADDING_ABOVE_CONTROLS = 4
+const HORIZONTAL_PADDING = 2
 
 interface FooterProps {
     manager: FooterManager
@@ -46,8 +47,10 @@ export class Footer<
     }
 
     @computed private get ccSvg(): string {
-        if (this.manager.hasOWIDLogo)
-            return `<a style="fill: #777;" class="cclogo" href="http://creativecommons.org/licenses/by/4.0/deed.en_US" target="_blank">CC BY</a>`
+        if (this.manager.hasOWIDLogo) {
+            // dash in CC-BY prevents break but is not rendered
+            return `<a style="fill: #777;" class="cclogo" href="http://creativecommons.org/licenses/by/4.0/deed.en_US" target="_blank">CC-BY</a>`
+        }
 
         return `<a href="https://ourworldindata.org" target="_blank">Powered by ourworldindata.org</a>`
     }
@@ -71,24 +74,30 @@ export class Footer<
             return undefined
 
         const url = parseUrl(originUrl)
-        const finalUrlText = `${url.hostname}${url.pathname}`.replace(
-            "ourworldindata.org",
-            "OurWorldInData.org"
-        )
+        const finalUrlText = `${url.hostname}${url.pathname}`
+            .replace("ourworldindata.org", "OurWorldInData.org")
+            .replace(/\/$/, "") // remove trailing slash
+
         if (
             Bounds.forText(finalUrlText, { fontSize: this.fontSize }).width >
             0.7 * this.maxWidth
         )
             return undefined
+
         return finalUrlText
     }
 
-    @computed private get licenseAndOriginUrlSvg(): string {
+    @computed protected get licenseAndOriginUrlSvg(): string {
         const { finalUrl, finalUrlText, ccSvg } = this
         if (!finalUrlText) return ccSvg
 
-        const originUrlLink = `<a target='_blank' style='fill: #777;' href='${finalUrl}'>${finalUrlText}</a>`
-        return [originUrlLink, ccSvg].join(" • ")
+        // trick to allow for line breaks after "/" and "-"
+        const finalUrlTextWithSpaces = finalUrlText
+            .replace(/\//g, "/ ")
+            .replace(/-/g, "- ")
+
+        const originUrlLink = `<a target='_blank' style='fill: #777;' href='${finalUrl}'> ${finalUrlTextWithSpaces} </a>`
+        return [originUrlLink, ccSvg].join(" | ")
     }
 
     @computed protected get fontSize(): number {
@@ -96,9 +105,9 @@ export class Footer<
     }
 
     @computed protected get sources(): MarkdownTextWrap {
-        const { maxWidth, fontSize, sourcesText, actionButtons } = this
+        const { maxWidth, fontSize, sourcesText } = this
         return new MarkdownTextWrap({
-            maxWidth: maxWidth - actionButtons.width - 5,
+            maxWidth: maxWidth - this.actionButtons.width - HORIZONTAL_PADDING,
             fontSize,
             text: sourcesText,
         })
@@ -107,7 +116,8 @@ export class Footer<
     @computed protected get note(): MarkdownTextWrap {
         const { maxWidth, fontSize, noteText } = this
         return new MarkdownTextWrap({
-            maxWidth,
+            maxWidth:
+                maxWidth - this.licenseAndOriginUrl.width - HORIZONTAL_PADDING,
             fontSize,
             text: noteText,
             detailsOrderedByReference: this.manager
@@ -117,10 +127,32 @@ export class Footer<
         })
     }
 
+    @computed protected get licenseAndOriginUrlMaxWidth(): number {
+        const { maxWidth, fontSize, noteText } = this
+        const noteWidth = new MarkdownTextWrap({
+            maxWidth: Infinity,
+            fontSize,
+            text: noteText,
+        }).width
+        const licenseAndOriginUrlMaxWidth = 0.33 * maxWidth
+        // If the note is short enough, we can make the license and origin url wider
+        if (
+            noteWidth + HORIZONTAL_PADDING <=
+            maxWidth - licenseAndOriginUrlMaxWidth
+        ) {
+            return maxWidth - noteWidth
+        }
+        return licenseAndOriginUrlMaxWidth
+    }
+
     @computed protected get licenseAndOriginUrl(): TextWrap {
-        const { maxWidth, fontSize, licenseAndOriginUrlSvg } = this
+        const {
+            fontSize,
+            licenseAndOriginUrlSvg,
+            licenseAndOriginUrlMaxWidth,
+        } = this
         return new TextWrap({
-            maxWidth: maxWidth * 3,
+            maxWidth: licenseAndOriginUrlMaxWidth,
             fontSize,
             text: licenseAndOriginUrlSvg,
             rawHtml: true,
@@ -133,31 +165,12 @@ export class Footer<
         })
     }
 
-    // Put the license stuff to the side if there's room
-    @computed protected get isCompact(): boolean {
-        return (
-            this.maxWidth - this.note.width - 5 > this.licenseAndOriginUrl.width
-        )
-    }
-
-    @computed protected get paraMargin(): number {
-        return 2
-    }
-
     @computed get height(): number {
-        const {
-            sources,
-            note,
-            licenseAndOriginUrl,
-            isCompact,
-            paraMargin,
-            actionButtons,
-        } = this
+        const { sources, note, licenseAndOriginUrl, actionButtons } = this
         const height =
             Math.max(note.height, licenseAndOriginUrl.height) +
             PADDING_ABOVE_CONTROLS +
-            Math.max(sources.height, actionButtons.height) +
-            (isCompact ? 0 : paraMargin + licenseAndOriginUrl.height)
+            Math.max(sources.height, actionButtons.height)
         return height
     }
 
@@ -193,6 +206,7 @@ export class Footer<
                 style={{
                     fontSize: this.licenseAndOriginUrl.fontSize,
                     lineHeight: this.sources.lineHeight,
+                    width: this.licenseAndOriginUrl.width,
                 }}
             >
                 {this.finalUrlText && (
@@ -202,7 +216,7 @@ export class Footer<
                         rel="noopener"
                         style={{ textDecoration: "none" }}
                     >
-                        {this.finalUrlText} •{" "}
+                        {this.finalUrlText} |{" "}
                     </a>
                 )}
                 {this.manager.hasOWIDLogo ? (
@@ -230,18 +244,21 @@ export class Footer<
 
         return (
             <footer
-                className={
-                    "SourcesFooterHTML" + (this.isCompact ? " compact" : "")
-                }
+                className="SourcesFooterHTML"
                 ref={this.base}
                 style={{ color: "#777" }}
             >
-                <div className="NoteAndLicense">
-                    <p style={this.note.style}>{this.note.renderHTML()}</p>
+                <div
+                    className="NoteAndLicense"
+                    style={{ minHeight: this.licenseAndOriginUrl.height }}
+                >
+                    <p className="note" style={this.note.style}>
+                        {this.note.renderHTML()}
+                    </p>
                     {license}
                 </div>
                 <div
-                    className="FooterControls"
+                    className="SourcesAndActionButtons"
                     style={{ marginTop: PADDING_ABOVE_CONTROLS }}
                 >
                     <p style={this.sources.style}>
@@ -309,6 +326,16 @@ export class StaticFooter extends Footer<StaticFooterProps> {
         })
     }
 
+    @computed protected get licenseAndOriginUrl(): TextWrap {
+        const { maxWidth, fontSize, licenseAndOriginUrlSvg } = this
+        return new TextWrap({
+            maxWidth: maxWidth * 3,
+            fontSize,
+            text: licenseAndOriginUrlSvg,
+            rawHtml: true,
+        })
+    }
+
     @computed protected get isCompact(): boolean {
         return (
             this.maxWidth - this.sources.width - 5 >
@@ -317,15 +344,9 @@ export class StaticFooter extends Footer<StaticFooterProps> {
     }
 
     render(): JSX.Element {
-        const {
-            sources,
-            note,
-            licenseAndOriginUrl,
-            maxWidth,
-            paraMargin,
-            isCompact,
-        } = this
+        const { sources, note, licenseAndOriginUrl, maxWidth, isCompact } = this
         const { targetX, targetY } = this.props
+        const paraMargin = 2
 
         return (
             <g className="SourcesFooter" style={{ fill: "#777" }}>
