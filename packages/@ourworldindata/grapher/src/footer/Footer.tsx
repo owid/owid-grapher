@@ -33,7 +33,7 @@ export class Footer<
         return this.props.maxWidth ?? DEFAULT_BOUNDS.width
     }
 
-    @computed private get manager(): FooterManager {
+    @computed protected get manager(): FooterManager {
         return this.props.manager
     }
 
@@ -42,11 +42,11 @@ export class Footer<
         return sourcesLine ? `Source: ${sourcesLine}` : ""
     }
 
-    @computed private get noteText(): string {
+    @computed protected get noteText(): string {
         return this.manager.note ? `Note: ${this.manager.note}` : ""
     }
 
-    @computed private get ccSvg(): string {
+    @computed protected get ccSvg(): string {
         if (this.manager.hasOWIDLogo) {
             // dash in CC-BY prevents break but is not rendered
             return `<a style="fill: #777;" class="cclogo" href="http://creativecommons.org/licenses/by/4.0/deed.en_US" target="_blank">CC-BY</a>`
@@ -59,13 +59,13 @@ export class Footer<
         return this.manager.originUrlWithProtocol ?? "http://localhost"
     }
 
-    @computed private get finalUrl(): string {
+    @computed protected get finalUrl(): string {
         const originUrl = this.originUrlWithProtocol
         const url = parseUrl(originUrl)
         return `https://${url.hostname}${url.pathname}`
     }
 
-    @computed private get finalUrlText(): string | undefined {
+    @computed protected get finalUrlText(): string | undefined {
         const originUrl = this.originUrlWithProtocol
 
         // Make sure the link back to OWID is consistent
@@ -317,12 +317,40 @@ export class StaticFooter extends Footer<StaticFooterProps> {
         super(props)
     }
 
+    @computed protected get ccSvg(): string {
+        if (this.manager.hasOWIDLogo) {
+            return `<a style="fill: #777;" class="cclogo" href="http://creativecommons.org/licenses/by/4.0/deed.en_US" target="_blank">CC BY</a>`
+        }
+
+        return `<a href="https://ourworldindata.org" target="_blank">Powered by ourworldindata.org</a>`
+    }
+
+    @computed protected get licenseAndOriginUrlSvg(): string {
+        const { finalUrl, finalUrlText, ccSvg } = this
+        if (!finalUrlText) return ccSvg
+        const originUrlLink = `<a target='_blank' style='fill: #777;' href='${finalUrl}'>${finalUrl}</a>`
+        return [originUrlLink, ccSvg].join(" | ")
+    }
+
     @computed protected get sources(): MarkdownTextWrap {
         const { maxWidth, fontSize, sourcesText } = this
         return new MarkdownTextWrap({
             maxWidth,
             fontSize,
             text: sourcesText,
+        })
+    }
+
+    @computed protected get note(): MarkdownTextWrap {
+        const { maxWidth, fontSize, noteText } = this
+        return new MarkdownTextWrap({
+            maxWidth,
+            fontSize,
+            text: noteText,
+            detailsOrderedByReference: this.manager
+                .shouldIncludeDetailsInStaticExport
+                ? this.manager.detailsOrderedByReference
+                : new Set(),
         })
     }
 
