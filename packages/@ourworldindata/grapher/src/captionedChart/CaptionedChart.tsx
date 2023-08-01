@@ -493,15 +493,24 @@ export class StaticCaptionedChart extends CaptionedChart {
         super(props)
     }
 
+    @computed protected get staticFooter(): Footer {
+        const { paddedBounds } = this
+        return new StaticFooter({
+            manager: this.manager,
+            maxWidth: this.maxWidth,
+            targetX: paddedBounds.x,
+            targetY: paddedBounds.bottom - this.footer.height,
+        })
+    }
+
     @computed private get paddedBounds(): Bounds {
         return this.bounds.pad(FRAME_PADDING)
     }
 
-    // The bounds for the middle chart part
     @computed protected get boundsForChartOrMap(): Bounds {
         return this.paddedBounds
             .padTop(this.header.height)
-            .padBottom(this.footer.height + PADDING_ABOVE_FOOTER)
+            .padBottom(this.staticFooter.height + PADDING_ABOVE_FOOTER)
             .padTop(this.manager.isOnMapTab ? 0 : CHART_PADDING_TOP)
     }
 
@@ -570,7 +579,7 @@ export class StaticCaptionedChart extends CaptionedChart {
                     manager={manager}
                     maxWidth={maxWidth}
                     targetX={paddedBounds.x}
-                    targetY={paddedBounds.bottom - this.footer.height}
+                    targetY={paddedBounds.bottom - this.staticFooter.height}
                 />
                 {this.renderSVGDetails()}
             </svg>
