@@ -19,9 +19,9 @@ interface LogoAttributes {
 const logos: Record<LogoOption, LogoAttributes> = {
     owid: {
         svg: OWID_LOGO_SVG,
-        width: 210,
-        height: 120,
-        targetHeight: 35,
+        width: 73,
+        height: 40,
+        targetHeight: 40,
         url: "https://ourworldindata.org",
     },
     "core+owid": {
