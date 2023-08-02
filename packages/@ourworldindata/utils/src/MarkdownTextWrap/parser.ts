@@ -211,8 +211,11 @@ export type EveryMarkdownNode =
 // #endregion
 
 //#region Terminal parsers
-const fallbackTextParser = (): P.Parser<Text> =>
-    P.regex(/[^\s]+/).map((val) => ({ type: "text", value: val }))
+const wordWithoutParensParser = (): P.Parser<Text> =>
+    P.regex(/[^\s\(\)\[\]]+/).map((val) => ({ type: "text", value: val }))
+
+const singleParenParser = (): P.Parser<Text> =>
+    P.regex(/[\(\)\[\]]/).map((val) => ({ type: "text", value: val }))
 
 const newlineParser = (): P.Parser<Newline> =>
     P.regex(/\n/).result({ type: "newline" })
@@ -262,8 +265,8 @@ const nonDoubleStarWordParser: (
 ) => P.Parser<NonDoubleStarWord> = () =>
     P.regex(/([^*\s]|\*(?!\*))+/).map((val) => ({ type: "text", value: val })) // no WS, no **
 
-const nonStylingCharactersParser: (r: MdParser) => P.Parser<Text> = () =>
-    P.regex(/[^\s*_]+/).map((value) => ({ type: "text", value })) // Consume up to * or _
+const nonSpecialCharactersParser: (r: MdParser) => P.Parser<Text> = () =>
+    P.regex(/[^\s*_\(\)\[\]]+/).map((value) => ({ type: "text", value })) // Consume up to one of *_()[]
 
 const dodCategoryParser: (r: MdParser) => P.Parser<DodCategory> = () =>
     P.regex(/([^\(\):\s]|:(?!:))+/).map((val) => ({
@@ -386,7 +389,7 @@ const boldContentParser: (r: MdParser) => P.Parser<BoldContent> = (
         r.detailOnDemand,
         r.markdownLink,
         r.plainUrl,
-        r.nonStylingCharacters
+        r.nonSpecialCharacters
     )
 
 const boldParser: (r: MdParser) => P.Parser<Bold> = (r: MdParser) =>
@@ -430,7 +433,7 @@ const italicWithoutBoldContentParser: (
         r.detailOnDemand,
         r.markdownLink,
         r.plainUrl,
-        r.nonStylingCharacters
+        r.nonSpecialCharacters
     )
 
 const italicWithoutBoldParser: (r: MdParser) => P.Parser<ItalicWithoutBold> = (
@@ -455,7 +458,7 @@ const italicContentParser: (r: MdParser) => P.Parser<ItalicContent> = (
         r.detailOnDemand,
         r.markdownLink,
         r.plainUrl,
-        r.nonStylingCharacters
+        r.nonSpecialCharacters
     )
 
 const italicParser: (r: MdParser) => P.Parser<Italic> = (r: MdParser) =>
@@ -506,9 +509,10 @@ const markdownParser: (r: MdParser) => P.Parser<MarkdownRoot> = (r) =>
         r.bold,
         r.italic,
         // Consume up to ** or _, if possible
-        r.nonStylingCharacters,
+        r.nonSpecialCharacters,
         // Otherwise consume everything
-        r.fallbackText
+        r.wordWithoutParens,
+        r.singleParen
     )
         .atLeast(1)
         .map(
@@ -530,7 +534,8 @@ const languageParts = {
     italic: italicParser,
     plainBold: plainBoldParser,
     plainItalic: plainItalicParser,
-    fallbackText: fallbackTextParser,
+    wordWithoutParens: wordWithoutParensParser,
+    singleParen: singleParenParser,
     // Utility parsers below - these will never be tried on the top level because text covers everything else
     detailOnDemandContent: detailOnDemandContentParser,
     markdownLinkContent: markdownLinkContentParser,
@@ -546,7 +551,7 @@ const languageParts = {
     nonParensWord: nonParensWordParser,
     nonDoubleColonOrParensWord: nonDoubleColonOrParensWordParser,
     nonDoubleStarWord: nonDoubleStarWordParser,
-    nonStylingCharacters: nonStylingCharactersParser,
+    nonSpecialCharacters: nonSpecialCharactersParser,
     nonSingleUnderscoreWord: nonSingleUnderscoreWordParser,
     dodCategory: dodCategoryParser,
     dodTerm: dodTermParser,
