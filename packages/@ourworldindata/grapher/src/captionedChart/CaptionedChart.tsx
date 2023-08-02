@@ -433,6 +433,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                 <TimelineComponent
                     timelineController={this.manager.timelineController!}
                     height={TIMELINE_HEIGHT}
+                    maxWidth={this.maxWidth}
                 />
             )
         return null
