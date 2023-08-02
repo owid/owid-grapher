@@ -24,14 +24,15 @@ export interface ActionButtonsManager extends ShareMenuManager {
 }
 
 // keep in sync with sass variables in ActionButtons.scss
-const BUTTON_SIZE = 32
 const PADDING_BETWEEN_BUTTONS = 8
 const PADDING_BETWEEN_ICON_AND_LABEL = 4
+
+const BUTTON_HEIGHT = 32
+const BUTTON_WIDTH_ICON_ONLY = BUTTON_HEIGHT
 
 @observer
 export class ActionButtons extends React.Component<{
     manager: ActionButtonsManager
-    height?: number
     maxWidth?: number
 }> {
     @computed private get manager(): ActionButtonsManager {
@@ -43,13 +44,13 @@ export class ActionButtons extends React.Component<{
     }
 
     @computed get height(): number {
-        return BUTTON_SIZE
+        return BUTTON_HEIGHT
     }
 
     @computed private get widthWithButtonLabels(): number {
         const {
             buttonCount,
-            hasDownloadOverlayTab,
+            hasDownloadButton,
             hasShareButton,
             hasOpenInNewTabButton,
             downloadButtonWithLabelWidth,
@@ -58,7 +59,7 @@ export class ActionButtons extends React.Component<{
         } = this
 
         let width = 0
-        if (hasDownloadOverlayTab) {
+        if (hasDownloadButton) {
             width += downloadButtonWithLabelWidth
         }
         if (hasShareButton) {
@@ -82,38 +83,39 @@ export class ActionButtons extends React.Component<{
             return widthWithButtonLabels
         } else {
             return (
-                buttonCount * BUTTON_SIZE +
+                buttonCount * BUTTON_WIDTH_ICON_ONLY +
                 (buttonCount - 1) * PADDING_BETWEEN_BUTTONS
             )
         }
     }
 
+    private static computeButtonWidth(label: string): number {
+        const labelWidth = Bounds.forText(label, { fontSize: 13 }).width
+        return (
+            BUTTON_WIDTH_ICON_ONLY + PADDING_BETWEEN_ICON_AND_LABEL + labelWidth
+        )
+    }
+
     @computed private get downloadButtonWithLabelWidth(): number {
-        const text = "Download"
-        const textWidth = Bounds.forText(text, { fontSize: 13 }).width
-        return BUTTON_SIZE + PADDING_BETWEEN_ICON_AND_LABEL + textWidth
+        return ActionButtons.computeButtonWidth("Download")
     }
 
     @computed private get shareButtonWithLabelWidth(): number {
-        const text = "Share"
-        const textWidth = Bounds.forText(text, { fontSize: 13 }).width
-        return BUTTON_SIZE + PADDING_BETWEEN_ICON_AND_LABEL + textWidth
+        return ActionButtons.computeButtonWidth("Share")
     }
 
     @computed private get openInNewTabButtonWithLabelWidth(): number {
-        const text = "Open in a new tab"
-        const textWidth = Bounds.forText(text, { fontSize: 13 }).width
-        return BUTTON_SIZE + PADDING_BETWEEN_ICON_AND_LABEL + textWidth
+        return ActionButtons.computeButtonWidth("Open in a new tab")
     }
 
     @computed private get downloadButtonWidth(): number {
         const {
-            hasDownloadOverlayTab,
+            hasDownloadButton,
             showButtonLabels,
             downloadButtonWithLabelWidth,
         } = this
-        if (!hasDownloadOverlayTab) return 0
-        if (!showButtonLabels) return BUTTON_SIZE
+        if (!hasDownloadButton) return 0
+        if (!showButtonLabels) return BUTTON_WIDTH_ICON_ONLY
         return downloadButtonWithLabelWidth
     }
 
@@ -121,7 +123,7 @@ export class ActionButtons extends React.Component<{
         const { hasShareButton, showButtonLabels, shareButtonWithLabelWidth } =
             this
         if (!hasShareButton) return 0
-        if (!showButtonLabels) return BUTTON_SIZE
+        if (!showButtonLabels) return BUTTON_WIDTH_ICON_ONLY
         return shareButtonWithLabelWidth
     }
 
@@ -132,7 +134,7 @@ export class ActionButtons extends React.Component<{
             openInNewTabButtonWithLabelWidth,
         } = this
         if (!hasOpenInNewTabButton) return 0
-        if (!showButtonLabels) return BUTTON_SIZE
+        if (!showButtonLabels) return BUTTON_WIDTH_ICON_ONLY
         return openInNewTabButtonWithLabelWidth
     }
 
@@ -144,7 +146,7 @@ export class ActionButtons extends React.Component<{
         return this.manager.availableTabOverlays || []
     }
 
-    @computed private get hasDownloadOverlayTab(): boolean {
+    @computed private get hasDownloadButton(): boolean {
         return this.availableTabOverlays.includes(
             GrapherTabOverlayOption.download
         )
@@ -160,7 +162,7 @@ export class ActionButtons extends React.Component<{
 
     @computed private get buttonCount(): number {
         let count = 0
-        if (this.hasDownloadOverlayTab) count += 1
+        if (this.hasDownloadButton) count += 1
         if (this.hasShareButton) count += 1
         if (this.hasOpenInNewTabButton) count += 1
         return count
@@ -180,7 +182,7 @@ export class ActionButtons extends React.Component<{
                 style={{ height: this.height, width: this.width }}
             >
                 <ul>
-                    {this.hasDownloadOverlayTab && (
+                    {this.hasDownloadButton && (
                         <li
                             className={
                                 "tab clickable icon download-tab-button" +
