@@ -934,4 +934,19 @@ how **are** you?`)
             },
         })
     })
+
+    it("parses too many underscores as text", () => {
+        expect(mdParser.markdown.parse("____abc__")).toEqual({
+            status: true,
+            value: {
+                type: "MarkdownRoot",
+                children: [
+                    {
+                        type: "text",
+                        value: "____abc__",
+                    },
+                ],
+            },
+        })
+    })
 })
