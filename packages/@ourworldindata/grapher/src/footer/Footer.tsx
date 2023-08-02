@@ -175,10 +175,21 @@ export class Footer<
         })
     }
 
+    @computed private get availableWidthActionButtons(): number {
+        const { sourcesFontSize, sourcesText, maxWidth } = this
+        const sourcesWidth = new MarkdownTextWrap({
+            maxWidth: Infinity, // no line breaks
+            fontSize: sourcesFontSize,
+            text: sourcesText,
+        }).width
+        return maxWidth - sourcesWidth - HORIZONTAL_PADDING
+    }
+
     @computed private get actionButtons(): ActionButtons {
         return new ActionButtons({
             manager: this.manager,
             maxWidth: this.maxWidth,
+            availableWidth: this.availableWidthActionButtons,
         })
     }
 
@@ -303,6 +314,7 @@ export class Footer<
                     <ActionButtons
                         manager={this.manager}
                         maxWidth={this.maxWidth}
+                        availableWidth={this.availableWidthActionButtons}
                     />
                 </div>
                 {tooltipTarget && (

@@ -34,6 +34,7 @@ const BUTTON_WIDTH_ICON_ONLY = BUTTON_HEIGHT
 export class ActionButtons extends React.Component<{
     manager: ActionButtonsManager
     maxWidth?: number
+    availableWidth?: number
 }> {
     @computed private get manager(): ActionButtonsManager {
         return this.props.manager
@@ -41,6 +42,10 @@ export class ActionButtons extends React.Component<{
 
     @computed protected get maxWidth(): number {
         return this.props.maxWidth ?? DEFAULT_BOUNDS.width
+    }
+
+    @computed protected get availableWidth(): number {
+        return this.props.availableWidth ?? this.maxWidth
     }
 
     @computed get height(): number {
@@ -73,7 +78,9 @@ export class ActionButtons extends React.Component<{
     }
 
     @computed private get showButtonLabels(): boolean {
-        return this.widthWithButtonLabels < 0.33 * this.maxWidth
+        const { availableWidth, widthWithButtonLabels, maxWidth } = this
+        if (widthWithButtonLabels <= availableWidth) return true
+        return widthWithButtonLabels < 0.33 * maxWidth
     }
 
     @computed get width(): number {
