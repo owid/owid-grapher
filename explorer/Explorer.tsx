@@ -72,6 +72,7 @@ import {
     explorerUrlMigrationsById,
     migrateExplorerUrl,
 } from "./urlMigrations/ExplorerUrlMigrations.js"
+import Bugsnag from "@bugsnag/js"
 
 export interface ExplorerProps extends SerializedGridProgram {
     grapherConfigs?: GrapherInterface[]
@@ -259,11 +260,16 @@ export class Explorer
             this.disposers.push(() => {
                 resizeObserver.disconnect()
             })
-        } else if (typeof window === "object" && typeof document === "object") {
+        } else if (
+            typeof window === "object" &&
+            typeof document === "object" &&
+            !navigator.userAgent.includes("jsdom")
+        ) {
             // only show the warning when we're in something that roughly resembles a browser
             console.warn(
                 "ResizeObserver not available; the explorer will not be responsive to window resizes"
             )
+            Bugsnag?.notify("ResizeObserver not available")
 
             this.onResize() // fire once to initialize, at least
         }

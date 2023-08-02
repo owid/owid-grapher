@@ -1689,11 +1689,16 @@ export class Grapher
                 })
             )
             resizeObserver.observe(containerNode)
-        } else if (typeof window === "object" && typeof document === "object") {
+        } else if (
+            typeof window === "object" &&
+            typeof document === "object" &&
+            !navigator.userAgent.includes("jsdom")
+        ) {
             // only show the warning when we're in something that roughly resembles a browser
             console.warn(
                 "ResizeObserver not available; grapher will not be able to render"
             )
+            Bugsnag?.notify("ResizeObserver not available")
         }
 
         return grapherInstanceRef.current
