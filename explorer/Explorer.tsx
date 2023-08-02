@@ -250,14 +250,23 @@ export class Explorer
     }
 
     private attachEventListeners() {
-        const onResizeThrottled = debounce(this.onResize, 200, {
-            leading: true,
-        })
-        const resizeObserver = new ResizeObserver(onResizeThrottled)
-        resizeObserver.observe(this.grapherContainerRef.current!)
-        this.disposers.push(() => {
-            resizeObserver.disconnect()
-        })
+        if (typeof window !== "undefined" && "ResizeObserver" in window) {
+            const onResizeThrottled = debounce(this.onResize, 200, {
+                leading: true,
+            })
+            const resizeObserver = new ResizeObserver(onResizeThrottled)
+            resizeObserver.observe(this.grapherContainerRef.current!)
+            this.disposers.push(() => {
+                resizeObserver.disconnect()
+            })
+        } else if (typeof window === "object" && typeof document === "object") {
+            // only show the warning when we're in something that roughly resembles a browser
+            console.warn(
+                "ResizeObserver not available; the explorer will not be responsive to window resizes"
+            )
+
+            this.onResize() // fire once to initialize, at least
+        }
 
         // We always prefer the entity picker metric to be sourced from the currently displayed table.
         // To do this properly, we need to also react to the table changing.

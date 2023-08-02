@@ -1681,11 +1681,20 @@ export class Grapher
             )
         }
 
-        const resizeObserver = new ResizeObserver(
-            // Use a leading debounce to render immediately upon first load, and also immediately upon orientation change on mobile
-            debounce(setBoundsFromContainerAndRender, 400, { leading: true })
-        )
-        resizeObserver.observe(containerNode)
+        if (typeof window !== "undefined" && "ResizeObserver" in window) {
+            const resizeObserver = new ResizeObserver(
+                // Use a leading debounce to render immediately upon first load, and also immediately upon orientation change on mobile
+                debounce(setBoundsFromContainerAndRender, 400, {
+                    leading: true,
+                })
+            )
+            resizeObserver.observe(containerNode)
+        } else if (typeof window === "object" && typeof document === "object") {
+            // only show the warning when we're in something that roughly resembles a browser
+            console.warn(
+                "ResizeObserver not available; grapher will not be able to render"
+            )
+        }
 
         return grapherInstanceRef.current
     }
