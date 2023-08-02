@@ -37,6 +37,7 @@ import {
     BAKED_GRAPHER_URL,
 } from "../../settings/clientSettings.js"
 import { hydrateAnnotatingDataValue } from "../AnnotatingDataValue.js"
+import Bugsnag from "@bugsnag/js"
 
 const figuresFromDOM = (
     container: HTMLElement | Document = document,
@@ -73,11 +74,16 @@ class MultiEmbedder {
                     rootMargin: "200%",
                 }
             )
-        } else if (typeof window === "object" && typeof document === "object") {
+        } else if (
+            typeof window === "object" &&
+            typeof document === "object" &&
+            !navigator.userAgent.includes("jsdom")
+        ) {
             // only show the warning when we're in something that roughly resembles a browser
             console.warn(
                 "IntersectionObserver not available; interactive embeds won't load on this page"
             )
+            Bugsnag?.notify("IntersectionObserver not available")
         }
     }
 
