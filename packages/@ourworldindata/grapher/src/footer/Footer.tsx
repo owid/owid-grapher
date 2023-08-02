@@ -128,21 +128,32 @@ export class Footer<
     }
 
     @computed protected get licenseAndOriginUrlMaxWidth(): number {
-        const { maxWidth, fontSize, noteText } = this
+        const { maxWidth, fontSize, noteText, licenseAndOriginUrlSvg } = this
+
+        // use full width if there is no note
+        if (!noteText) return maxWidth
+
         const noteWidth = new MarkdownTextWrap({
-            maxWidth: Infinity,
+            maxWidth: Infinity, // no line breaks
             fontSize,
             text: noteText,
         }).width
-        const licenseAndOriginUrlMaxWidth = 0.33 * maxWidth
-        // If the note is short enough, we can make the license and origin url wider
+        const licenseAndOriginUrlWidth = new TextWrap({
+            maxWidth: Infinity, // no line breaks
+            fontSize,
+            text: licenseAndOriginUrlSvg,
+            rawHtml: true,
+        }).width
+
+        // note and licenseAndOriginUrl fit into a single line
         if (
-            noteWidth + HORIZONTAL_PADDING <=
-            maxWidth - licenseAndOriginUrlMaxWidth
+            noteWidth + HORIZONTAL_PADDING + licenseAndOriginUrlWidth <=
+            maxWidth
         ) {
-            return maxWidth - noteWidth
+            return maxWidth
         }
-        return licenseAndOriginUrlMaxWidth
+
+        return 0.33 * maxWidth
     }
 
     @computed protected get licenseAndOriginUrl(): TextWrap {
