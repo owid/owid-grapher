@@ -89,7 +89,7 @@ export interface OwidVariablePresentation {
     citationInline?: string
     descriptionShort?: string
     descriptionFromProducer?: string
-    keyInfoText?: string
+    keyInfoText?: string[]
     processingInfo?: string
     licenses?: OwidLicense[]
     grapherConfig?: Record<string, unknown> // TODO: move grapher config interface up to types, use it here, clean up types

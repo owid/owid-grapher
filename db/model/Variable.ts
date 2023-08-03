@@ -47,7 +47,7 @@ export interface VariableRow {
     citationInline?: string
     descriptionShort?: string
     descriptionFromProducer?: string
-    keyInfoText?: string
+    keyInfoText?: string[] // this is json in the db but by convention it is always a list of strings
     processingInfo?: string
     licenses?: OwidLicense[]
     grapherConfig?: GrapherInterface
@@ -65,8 +65,12 @@ interface Dimensions {
     }[]
 }
 
-export type UnparsedVariableRow = Omit<VariableRow, "display"> & {
+export type UnparsedVariableRow = Omit<
+    VariableRow,
+    "display" | "keyInfoText"
+> & {
     display: string
+    keyInfoText?: string
 }
 
 export type VariableQueryRow = Readonly<
@@ -87,10 +91,20 @@ export const variableTable = "variables"
 export function parseVariableRows(
     plainRows: UnparsedVariableRow[]
 ): VariableRow[] {
-    for (const row of plainRows) {
-        row.display = row.display ? JSON.parse(row.display) : undefined
+    const parsedRows: VariableRow[] = []
+    for (const plainRow of plainRows) {
+        const row = {
+            ...plainRow,
+            display: plainRow.display
+                ? JSON.parse(plainRow.display)
+                : undefined,
+            keyInfoText: plainRow.keyInfoText
+                ? JSON.parse(plainRow.keyInfoText)
+                : [],
+        }
+        parsedRows.push(row)
     }
-    return plainRows as VariableRow[]
+    return parsedRows
 }
 
 export async function getVariableData(
