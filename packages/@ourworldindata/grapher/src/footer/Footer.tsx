@@ -115,6 +115,7 @@ export class Footer<
             maxWidth: maxWidth - this.actionButtons.width - HORIZONTAL_PADDING,
             fontSize: sourcesFontSize,
             text: sourcesText,
+            lineHeight: 1.2,
         })
     }
 
@@ -125,6 +126,7 @@ export class Footer<
                 maxWidth - this.licenseAndOriginUrl.width - HORIZONTAL_PADDING,
             fontSize,
             text: noteText,
+            lineHeight: 1.2,
             detailsOrderedByReference: this.manager
                 .shouldIncludeDetailsInStaticExport
                 ? this.manager.detailsOrderedByReference
@@ -171,6 +173,7 @@ export class Footer<
             maxWidth: licenseAndOriginUrlMaxWidth,
             fontSize,
             text: licenseAndOriginUrlSvg,
+            lineHeight: 1.2,
             rawHtml: true,
         })
     }
@@ -377,6 +380,7 @@ export class StaticFooter extends Footer<StaticFooterProps> {
             maxWidth,
             fontSize,
             text: sourcesText,
+            lineHeight: 1.2,
         })
     }
 
@@ -386,6 +390,7 @@ export class StaticFooter extends Footer<StaticFooterProps> {
             maxWidth,
             fontSize,
             text: noteText,
+            lineHeight: 1.2,
             detailsOrderedByReference: this.manager
                 .shouldIncludeDetailsInStaticExport
                 ? this.manager.detailsOrderedByReference
