@@ -55,6 +55,8 @@ export interface OwidVariableWithSource {
     id: number
     name?: string
     description?: string
+    descriptionShort?: string
+    descriptionFromProducer?: string
     unit?: string
     display?: OwidVariableDisplayConfigInterface
     shortUnit?: string
@@ -65,11 +67,17 @@ export interface OwidVariableWithSource {
     source?: OwidSource
     origins?: OwidOrigin[]
     schemaVersion?: number
-    processingLevel?: "minor" | "medium" | "major"
+    processingLevel?: "minor" | "major"
     presentation?: OwidVariablePresentation
     shortName?: string
     timespan?: string
     catalogPath?: string
+    presentationLicense?: OwidLicense
+    topicTagsLinks: string[]
+    updatePeriod: number
+    datasetVersion: string
+    licenses?: OwidLicense[]
+
     // omitted:
     // code
     // coverage
@@ -87,11 +95,8 @@ export interface OwidVariablePresentation {
     titleVariant?: string
     producerShort?: string
     citationInline?: string
-    descriptionShort?: string
-    descriptionFromProducer?: string
     keyInfoText?: string[]
     processingInfo?: string
-    licenses?: OwidLicense[]
     grapherConfig?: Record<string, unknown> // TODO: move grapher config interface up to types, use it here, clean up types
 }
 export type OwidVariableWithSourceAndDimension = OwidVariableWithSource & {
