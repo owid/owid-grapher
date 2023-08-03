@@ -305,9 +305,7 @@ export class TimelineComponent extends React.Component<{
                     <div
                         onMouseDown={(e): void => e.stopPropagation()}
                         onClick={this.togglePlay}
-                        className={
-                            "play" + (!this.showPlayLabel ? " icon-only" : "")
-                        }
+                        className="play"
                         data-track-note={
                             manager.isPlaying
                                 ? "timeline_pause"
