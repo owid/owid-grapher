@@ -51,9 +51,7 @@ export interface VariableRow {
     licenses?: OwidLicense[]
     grapherConfigAdmin?: GrapherInterface
     grapherConfigETL?: GrapherInterface
-    attribution?: string
-    attributionShort?: string
-    presentationLicense?: OwidLicense
+    license?: OwidLicense
     updatePeriodDays?: number
     datasetVersion?: string
     version?: string
@@ -77,14 +75,14 @@ export type UnparsedVariableRow = Omit<
     | "keyInfoText"
     | "grapherConfigAdmin"
     | "grapherConfigETL"
-    | "presentationLicense"
+    | "license"
     | "licenses"
 > & {
     display: string
     keyInfoText?: string
     grapherConfigAdmin?: string
     grapherConfigETL?: string
-    presentationLicense?: string
+    license?: string
     licenses?: string
 }
 
@@ -123,9 +121,7 @@ export function parseVariableRows(
                 ? JSON.parse(plainRow.grapherConfigETL)
                 : [],
             licenses: plainRow.licenses ? JSON.parse(plainRow.licenses) : [],
-            presentationLicense: plainRow.presentationLicense
-                ? JSON.parse(plainRow.presentationLicense)
-                : [],
+            license: plainRow.license ? JSON.parse(plainRow.license) : [],
         }
         parsedRows.push(row)
     }

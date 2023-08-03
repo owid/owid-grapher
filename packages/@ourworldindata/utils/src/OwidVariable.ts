@@ -72,7 +72,7 @@ export interface OwidVariableWithSource {
     shortName?: string
     timespan?: string
     catalogPath?: string
-    presentationLicense?: OwidLicense
+    license?: OwidLicense
     updatePeriodDays?: number
     datasetVersion?: string
     licenses?: OwidLicense[]
@@ -93,7 +93,7 @@ export interface OwidVariablePresentation {
     titlePublic?: string
     titleVariant?: string
     producerShort?: string
-    citationInline?: string
+    attribution?: string
     keyInfoText?: string[]
     processingInfo?: string
     topicTagsLinks?: string[]
