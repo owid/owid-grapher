@@ -1,4 +1,4 @@
-import _, { isEmpty } from "lodash"
+import _ from "lodash"
 import { Writable } from "stream"
 import * as db from "../db.js"
 import {
@@ -15,7 +15,6 @@ import {
     retryPromise,
     OwidLicense,
     OwidVariableWithSource,
-    OwidVariablePresentation,
 } from "@ourworldindata/utils"
 import { GrapherInterface } from "@ourworldindata/grapher"
 import pl from "nodejs-polars"
@@ -132,6 +131,17 @@ export function parseVariableRows(
         parsedRows.push(row)
     }
     return parsedRows
+}
+
+export async function getVariableMetadata(
+    variableId: number
+): Promise<OwidVariableWithSourceAndDimension> {
+    const { metadataPath } = await getOwidVariableDataAndMetadataPath(
+        variableId
+    )
+
+    const metadata = await fetchS3MetadataByPath(metadataPath)
+    return metadata
 }
 
 export async function getVariableData(
