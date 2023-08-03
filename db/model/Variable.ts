@@ -15,6 +15,7 @@ import {
     retryPromise,
     OwidLicense,
 } from "@ourworldindata/utils"
+import { GrapherInterface } from "@ourworldindata/grapher"
 import pl from "nodejs-polars"
 
 export interface VariableRow {
@@ -35,6 +36,7 @@ export interface VariableRow {
     columnOrder?: number
     catalogPath?: string
     dataPath?: string
+    metadataPath?: string
     dimensions?: Dimensions
     schemaVersion?: number
     processingLevel?: "minor" | "medium" | "major"
@@ -47,6 +49,10 @@ export interface VariableRow {
     keyInfoText?: string
     processingInfo?: string
     licenses?: OwidLicense[]
+    grapherConfig?: GrapherInterface
+    grapherConfigETL?: GrapherInterface
+    // missing here but existsin the DB:
+    // originalMetadata
 }
 
 interface Dimensions {

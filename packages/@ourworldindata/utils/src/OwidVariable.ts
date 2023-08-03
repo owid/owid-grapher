@@ -67,6 +67,14 @@ export interface OwidVariableWithSource {
     schemaVersion?: number
     processingLevel?: "minor" | "medium" | "major"
     presentation?: OwidVariablePresentation
+    shortName?: string
+    timespan?: string
+    catalogPath?: string
+    // omitted:
+    // code
+    // coverage
+    // dataPath
+    // metadataPath
 }
 
 export interface OwidLicense {
