@@ -21,7 +21,7 @@ import {
     OperationContext,
 } from "./SqlFilterSExpression.js"
 const context: OperationContext = {
-    grapherConfigFieldName: "grapherConfig",
+    grapherConfigFieldName: "grapherConfigAdmin",
     whitelistedColumnNamesAndTypes:
         variableAnnotationAllowedColumnNamesAndTypes,
 }
@@ -157,7 +157,7 @@ describe("transpile to expected SQL", () => {
         checkSql("(NOT true)", "(NOT true)")
         checkSql(
             '(CONTAINS /map/projection "Europe")',
-            "(JSON_EXTRACT(grapherConfig, \"$.map.projection\") COLLATE utf8mb4_0900_ai_ci LIKE '%Europe%')"
+            "(JSON_EXTRACT(grapherConfigAdmin, \"$.map.projection\") COLLATE utf8mb4_0900_ai_ci LIKE '%Europe%')"
         )
         checkSql('(= "hello" "hello")', "('hello' = 'hello')")
         checkSql('(= "hello\\\\" "hello")', "('hello\\\\' = 'hello')")
@@ -183,7 +183,7 @@ describe("transpile to expected SQL", () => {
     it("should transpile some more complicated expressions correctly to SQL", async () => {
         checkSql(
             "(AND (NOT (< 1 2)) (= /firstYear /map/lastYear) (<> (/ 1 2) (/ 2 (+ 1 1))))",
-            `((NOT (1 < 2)) AND (JSON_EXTRACT(grapherConfig, "$.firstYear") = JSON_EXTRACT(grapherConfig, "$.map.lastYear")) AND ((1/2) <> (2/(1+1))))`
+            `((NOT (1 < 2)) AND (JSON_EXTRACT(grapherConfigAdmin, "$.firstYear") = JSON_EXTRACT(grapherConfigAdmin, "$.map.lastYear")) AND ((1/2) <> (2/(1+1))))`
         )
     })
 })

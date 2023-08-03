@@ -12,7 +12,9 @@ import {
     OwidVariableWithSourceAndDimension,
     OwidVariableId,
     retryPromise,
+    OwidLicense,
 } from "@ourworldindata/utils"
+import { GrapherInterface } from "@ourworldindata/grapher"
 import pl from "nodejs-polars"
 
 export interface VariableRow {
@@ -33,7 +35,28 @@ export interface VariableRow {
     columnOrder?: number
     catalogPath?: string
     dataPath?: string
+    metadataPath?: string
     dimensions?: Dimensions
+    schemaVersion?: number
+    processingLevel?: "minor" | "major"
+    titlePublic?: string
+    titleVariant?: string
+    producerShort?: string
+    citationInline?: string
+    descriptionShort?: string
+    descriptionFromProducer?: string
+    keyInfoText?: string[] // this is json in the db but by convention it is always a list of strings
+    processingInfo?: string
+    licenses?: OwidLicense[]
+    grapherConfigAdmin?: GrapherInterface
+    grapherConfigETL?: GrapherInterface
+    license?: OwidLicense
+    updatePeriodDays?: number
+    datasetVersion?: string
+    version?: string
+
+    // missing here but existsin the DB:
+    // originalMetadata
 }
 
 interface Dimensions {
@@ -45,8 +68,21 @@ interface Dimensions {
     }[]
 }
 
-export type UnparsedVariableRow = Omit<VariableRow, "display"> & {
+export type UnparsedVariableRow = Omit<
+    VariableRow,
+    | "display"
+    | "keyInfoText"
+    | "grapherConfigAdmin"
+    | "grapherConfigETL"
+    | "license"
+    | "licenses"
+> & {
     display: string
+    keyInfoText?: string
+    grapherConfigAdmin?: string
+    grapherConfigETL?: string
+    license?: string
+    licenses?: string
 }
 
 export type VariableQueryRow = Readonly<
@@ -67,10 +103,39 @@ export const variableTable = "variables"
 export function parseVariableRows(
     plainRows: UnparsedVariableRow[]
 ): VariableRow[] {
-    for (const row of plainRows) {
-        row.display = row.display ? JSON.parse(row.display) : undefined
+    const parsedRows: VariableRow[] = []
+    for (const plainRow of plainRows) {
+        const row = {
+            ...plainRow,
+            display: plainRow.display
+                ? JSON.parse(plainRow.display)
+                : undefined,
+            keyInfoText: plainRow.keyInfoText
+                ? JSON.parse(plainRow.keyInfoText)
+                : [],
+            grapherConfigAdmin: plainRow.grapherConfigAdmin
+                ? JSON.parse(plainRow.grapherConfigAdmin)
+                : [],
+            grapherConfigETL: plainRow.grapherConfigETL
+                ? JSON.parse(plainRow.grapherConfigETL)
+                : [],
+            licenses: plainRow.licenses ? JSON.parse(plainRow.licenses) : [],
+            license: plainRow.license ? JSON.parse(plainRow.license) : [],
+        }
+        parsedRows.push(row)
     }
-    return plainRows as VariableRow[]
+    return parsedRows
+}
+
+export async function getVariableMetadata(
+    variableId: number
+): Promise<OwidVariableWithSourceAndDimension> {
+    const { metadataPath } = await getOwidVariableDataAndMetadataPath(
+        variableId
+    )
+
+    const metadata = await fetchS3MetadataByPath(metadataPath)
+    return metadata
 }
 
 export async function getVariableData(

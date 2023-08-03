@@ -63,6 +63,9 @@ import {
     firstOfNonEmptyArray,
     spansToUnformattedPlainText,
     EnrichedDetail,
+    isEmpty,
+    dayjs,
+    compact,
 } from "@ourworldindata/utils"
 import {
     ChartTypeName,
@@ -1429,15 +1432,45 @@ export class Grapher
 
         return this.inputTable
             .getColumns(uniq(columnSlugs))
-            .filter((column) => !!column.source.name)
+            .filter(
+                (column) => !!column.source.name || !isEmpty(column.def.origins)
+            )
     }
 
     @computed private get defaultSourcesLine(): string {
-        const sourceNames = this.columnsWithSources.map(
-            (column) => column.source.name ?? ""
-        )
+        const attributions = this.columnsWithSources.flatMap((column) => {
+            // if the variable metadata specifies an attribution on the
+            // variable level then this is preferred over assembling it from
+            // the source and origins
+            if (
+                column.def.attribution !== undefined &&
+                column.def.attribution !== ""
+            )
+                return [column.def.attribution]
+            else {
+                const originFragments = column.def.origins
+                    ? column.def.origins.map((origin) => {
+                          const yearPublished = origin.datePublished
+                              ? dayjs(origin.datePublished, [
+                                    "YYYY",
+                                    "YYYY-MM-DD",
+                                ]).year()
+                              : undefined
+                          return (
+                              origin.attribution ??
+                              `${origin.producer} ${yearPublished}`
+                          )
+                      })
+                    : []
+                return [column.source.name, ...originFragments]
+            }
+        })
 
-        return uniq(sourceNames).join(", ")
+        const uniqueAttributions = uniq(compact(attributions))
+
+        if (uniqueAttributions.length > 3) return "Multiple sources"
+
+        return uniqueAttributions.join(", ")
     }
 
     @computed private get axisDimensions(): ChartDimension[] {

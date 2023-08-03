@@ -16,7 +16,7 @@ import {
 import { expectInt, isValidSlug } from "../serverUtils/serverUtil.js"
 import { OldChart, Chart, getGrapherById } from "../db/model/Chart.js"
 import { Request, Response, CurrentUser } from "./authentication.js"
-import { getVariableData } from "../db/model/Variable.js"
+import { getVariableData, getVariableMetadata } from "../db/model/Variable.js"
 import {
     applyPatch,
     BulkChartEditResponseRow,
@@ -39,6 +39,7 @@ import {
     variableAnnotationAllowedColumnNamesAndTypes,
     VariableAnnotationsResponseRow,
     isUndefined,
+    OwidVariableWithSource,
 } from "@ourworldindata/utils"
 import {
     GrapherInterface,
@@ -275,7 +276,7 @@ const saveGrapher = async (
     user: CurrentUser,
     newConfig: GrapherInterface,
     existingConfig?: GrapherInterface,
-    referencedVariablesMightChange: boolean = true // if the variables a chart uses can change then we need
+    referencedVariablesMightChange = true // if the variables a chart uses can change then we need
     // to update the latest country data which takes quite a long time (hundreds of ms)
 ) => {
     // Slugs need some special logic to ensure public urls remain consistent whenever possible
@@ -1594,7 +1595,7 @@ apiRouter.get(
         req
     ): Promise<BulkGrapherConfigResponse<VariableAnnotationsResponseRow>> => {
         const context: OperationContext = {
-            grapherConfigFieldName: "grapherConfig",
+            grapherConfigFieldName: "grapherConfigAdmin",
             whitelistedColumnNamesAndTypes:
                 variableAnnotationAllowedColumnNamesAndTypes,
         }
@@ -1613,7 +1614,7 @@ apiRouter.get(
         const resultsWithStringGrapherConfigs =
             await db.queryMysql(`SELECT variables.id as id,
             variables.name as name,
-            variables.grapherConfig as config,
+            variables.grapherConfigAdmin as config,
             d.name as datasetname,
             namespaces.name as namespacename,
             variables.createdAt as createdAt,
@@ -1646,13 +1647,13 @@ apiRouter.patch("/variable-annotations", async (req) => {
 
     await db.transaction(async (manager) => {
         const configsAndIds = await manager.query(
-            `SELECT id, grapherConfig FROM variables where id IN (?)`,
+            `SELECT id, grapherConfigAdmin FROM variables where id IN (?)`,
             [[...variableIds.values()]]
         )
         const configMap = new Map(
             configsAndIds.map((item: any) => [
                 item.id,
-                item.grapherConfig ? JSON.parse(item.grapherConfig) : {},
+                item.grapherConfigAdmin ? JSON.parse(item.grapherConfig) : {},
             ])
         )
         // console.log("ids", configsAndIds.map((item : any) => item.id))
@@ -1663,7 +1664,7 @@ apiRouter.patch("/variable-annotations", async (req) => {
 
         for (const [variableId, newConfig] of configMap.entries()) {
             await manager.execute(
-                `UPDATE variables SET grapherConfig = ? where id = ?`,
+                `UPDATE variables SET grapherConfigAdmin = ? where id = ?`,
                 [JSON.stringify(newConfig), variableId]
             )
         }
@@ -1704,28 +1705,7 @@ apiRouter.get(
     async (req: Request, res: Response) => {
         const variableId = expectInt(req.params.variableId)
 
-        const variable = await db.mysqlFirst(
-            `
-            SELECT v.id, v.name, v.unit, v.shortUnit, v.description, v.sourceId, u.fullName AS uploadedBy,
-                v.display, d.id AS datasetId, d.name AS datasetName, d.namespace AS datasetNamespace
-            FROM variables v
-            JOIN datasets d ON d.id=v.datasetId
-            JOIN users u ON u.id=d.dataEditedByUserId
-            WHERE v.id = ?
-            `,
-            [variableId]
-        )
-
-        if (!variable) {
-            throw new JsonError(`No variable by id '${variableId}'`, 404)
-        }
-
-        variable.display = JSON.parse(variable.display)
-
-        variable.source = await db.mysqlFirst(
-            `SELECT id, name FROM sources AS s WHERE id = ?`,
-            variable.sourceId
-        )
+        const variable = await getVariableMetadata(variableId)
 
         const charts = await db.queryMysql(
             `
@@ -1742,10 +1722,15 @@ apiRouter.get(
 
         await Chart.assignTagsForCharts(charts)
 
-        variable.charts = charts
+        const variablesWithCharts: OwidVariableWithSource & {
+            charts: Record<string, any>
+        } = {
+            ...variable,
+            charts,
+        }
 
         return {
-            variable: variable as VariableSingleMeta,
+            variable: variablesWithCharts,
         } /*, vardata: await getVariableData([variableId]) }*/
     }
 )
@@ -1887,6 +1872,8 @@ apiRouter.get("/datasets/:datasetId.json", async (req: Request) => {
     }
 
     dataset.variables = variables
+
+    // TODO: support multiple origins here as well
 
     // Currently for backwards compatibility datasets can still have multiple sources
     // but the UI presents only a single item of source metadata, we use the first source

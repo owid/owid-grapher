@@ -400,6 +400,7 @@ export type {
 } from "./dayjs.js"
 
 export type { OwidSource } from "./OwidSource.js"
+export type { OwidOrigin } from "./OwidOrigin.js"
 export {
     formatValue,
     checkIsVeryShortUnit,
@@ -463,7 +464,9 @@ export {
     type MultipleOwidVariableDataDimensionsMap,
     type OwidVariableDimensionValuePartial,
     type OwidVariableDimensionValueFull,
+    type OwidVariablePresentation,
     type OwidEntityKey,
+    type OwidLicense,
 } from "./OwidVariable.js"
 
 export {

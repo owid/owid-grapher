@@ -8,6 +8,7 @@ import {
     deleteRuntimeAndUnchangedProps,
 } from "./persistable/Persistable.js"
 import { OwidSource } from "./OwidSource.js"
+import { OwidOrigin } from "./OwidOrigin.js"
 import {
     OwidVariableDataTableConfigInteface,
     OwidVariableDisplayConfigInterface,
@@ -54,6 +55,8 @@ export interface OwidVariableWithSource {
     id: number
     name?: string
     description?: string
+    descriptionShort?: string
+    descriptionFromProducer?: string
     unit?: string
     display?: OwidVariableDisplayConfigInterface
     shortUnit?: string
@@ -62,8 +65,40 @@ export interface OwidVariableWithSource {
     coverage?: string
     nonRedistributable?: boolean
     source?: OwidSource
+    origins?: OwidOrigin[]
+    schemaVersion?: number
+    processingLevel?: "minor" | "major"
+    presentation?: OwidVariablePresentation
+    shortName?: string
+    timespan?: string
+    catalogPath?: string
+    license?: OwidLicense
+    updatePeriodDays?: number
+    datasetVersion?: string
+    licenses?: OwidLicense[]
+
+    // omitted:
+    // code
+    // coverage
+    // dataPath
+    // metadataPath
 }
 
+export interface OwidLicense {
+    name: string
+    url: string
+}
+
+export interface OwidVariablePresentation {
+    titlePublic?: string
+    titleVariant?: string
+    producerShort?: string
+    attribution?: string
+    keyInfoText?: string[]
+    processingInfo?: string
+    topicTagsLinks?: string[]
+    grapherConfig?: Record<string, unknown> // TODO: move grapher config interface up to types, use it here, clean up types
+}
 export type OwidVariableWithSourceAndDimension = OwidVariableWithSource & {
     dimensions: OwidVariableDimensions
 }
