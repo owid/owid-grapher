@@ -7,6 +7,7 @@ import { Bounds } from "@ourworldindata/utils"
 import {
     ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
+    DATA_API_URL,
 } from "../settings/clientSettings.js"
 
 // Wrapper for Grapher that uses css on figure element to determine the bounds
@@ -41,6 +42,7 @@ export class GrapherFigureView extends React.Component<{ grapher: Grapher }> {
                 ? window.location.search
                 : undefined,
             bounds: this.bounds,
+            dataApiUrl: DATA_API_URL,
             dataApiUrlForAdmin:
                 this.context?.admin?.settings?.DATA_API_FOR_ADMIN_UI, // passed this way because clientSettings are baked and need a recompile to be updated
         }

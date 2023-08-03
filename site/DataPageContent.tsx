@@ -14,6 +14,7 @@ import StickyNav from "./blocks/StickyNav.js"
 import cx from "classnames"
 import { DebugProvider } from "./gdocs/DebugContext.js"
 import { CodeSnippet } from "./blocks/CodeSnippet.js"
+import { DATA_API_URL } from "../settings/clientSettings.js"
 
 declare global {
     interface Window {
@@ -773,6 +774,7 @@ export const hydrateDataPageContent = (isPreviewing?: boolean) => {
         ...window._OWID_GRAPHER_CONFIG,
         isEmbeddedInADataPage: true,
         bindUrlToWindow: true,
+        dataApiUrlForAdmin: DATA_API_URL,
     }
 
     ReactDOM.hydrate(

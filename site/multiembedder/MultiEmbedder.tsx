@@ -35,6 +35,7 @@ import {
 import {
     ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
+    DATA_API_URL,
 } from "../../settings/clientSettings.js"
 import { hydrateAnnotatingDataValue } from "../AnnotatingDataValue.js"
 import Bugsnag from "@bugsnag/js"
@@ -155,6 +156,7 @@ class MultiEmbedder {
             queryStr,
             adminBaseUrl: ADMIN_BASE_URL,
             bakedGrapherURL: BAKED_GRAPHER_URL,
+            dataApiUrl: DATA_API_URL,
         }
 
         const html = await fetchText(fullUrl)

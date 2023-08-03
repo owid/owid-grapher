@@ -86,6 +86,7 @@ export const DataPageV2 = (props: {
         bindUrlToWindow: true,
         bakedGrapherURL: BAKED_GRAPHER_URL,
         adminBaseUrl: ADMIN_BASE_URL,
+        dataApiUrl: DATA_API_URL,
     }
 
     return (
