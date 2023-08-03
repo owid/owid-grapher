@@ -14,6 +14,7 @@ import {
     OwidOrigin,
     retryPromise,
     OwidLicense,
+    OwidVariableWithSource,
 } from "@ourworldindata/utils"
 import { GrapherInterface } from "@ourworldindata/grapher"
 import pl from "nodejs-polars"
