@@ -215,7 +215,11 @@ export async function renderDataPageV2(
         (grapher.dimensions as OwidChartDimensionInterface[]).length === 0
     ) {
         const dimensions: OwidChartDimensionInterface[] = [
-            { variableId: variableId, property: DimensionProperty.y },
+            {
+                variableId: variableId,
+                property: DimensionProperty.y,
+                display: variableMetadata.display,
+            },
         ]
         grapher.dimensions = dimensions
     }

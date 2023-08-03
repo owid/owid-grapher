@@ -32,6 +32,7 @@ interface VariablePageData
     extends Omit<OwidVariableWithDataAndSource, "source"> {
     datasetNamespace: string
     charts: ChartListItem[]
+    grapherConfig: GrapherInterface | undefined
     source: { id: number; name: string }
 }
 
@@ -296,19 +297,28 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
     }
 
     @computed private get grapherConfig(): GrapherInterface {
-        return {
-            yAxis: { min: 0 },
-            map: { columnSlug: this.props.variable.id.toString() },
-            tab: GrapherTabOption.map,
-            hasMapTab: true,
-            dimensions: [
-                {
-                    property: DimensionProperty.y,
-                    variableId: this.props.variable.id,
-                    display: lodash.clone(this.newVariable.display),
-                },
-            ],
-        }
+        const { variable } = this.props
+        const grapherConfig = variable.grapherConfig
+        if (grapherConfig)
+            return {
+                ...grapherConfig,
+                hasMapTab: true,
+                tab: GrapherTabOption.map,
+            }
+        else
+            return {
+                yAxis: { min: 0 },
+                map: { columnSlug: this.props.variable.id.toString() },
+                tab: GrapherTabOption.map,
+                hasMapTab: true,
+                dimensions: [
+                    {
+                        property: DimensionProperty.y,
+                        variableId: this.props.variable.id,
+                        display: lodash.clone(this.newVariable.display),
+                    },
+                ],
+            }
     }
 
     dispose!: IReactionDisposer
