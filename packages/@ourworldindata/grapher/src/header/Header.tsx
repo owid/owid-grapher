@@ -78,7 +78,7 @@ export class Header extends React.Component<{
         })
     }
 
-    titleMarginBottom = 4
+    subtitleMarginTop = 4
 
     @computed get subtitleWidth(): number {
         // If the subtitle is entirely below the logo, we can go underneath it
@@ -101,7 +101,11 @@ export class Header extends React.Component<{
     }
 
     @computed get height(): number {
-        return this.title.height + this.subtitle.height + this.titleMarginBottom
+        const { title, subtitle, subtitleText, subtitleMarginTop } = this
+        return (
+            title.height +
+            (subtitleText ? subtitle.height + subtitleMarginTop : 0)
+        )
     }
 
     renderStatic(x: number, y: number): JSX.Element {
@@ -125,7 +129,7 @@ export class Header extends React.Component<{
                 </a>
                 {subtitle.renderSVG(
                     x,
-                    y + title.height + this.titleMarginBottom,
+                    y + title.height + this.subtitleMarginTop,
                     {
                         fill: "#666",
                     }
@@ -137,13 +141,9 @@ export class Header extends React.Component<{
     render(): JSX.Element {
         const { manager } = this
 
-        const titleStyle = {
-            ...this.title.htmlStyle,
-            marginBottom: this.titleMarginBottom,
-        }
-
         const subtitleStyle = {
             ...this.subtitle.style,
+            marginTop: this.subtitleMarginTop,
             // make sure there are no scrollbars on subtitle
             overflowY: "hidden",
         }
@@ -156,7 +156,9 @@ export class Header extends React.Component<{
                     target="_blank"
                     rel="noopener noreferrer"
                 >
-                    <h1 style={titleStyle}>{this.title.renderHTML()}</h1>
+                    <h1 style={this.title.htmlStyle}>
+                        {this.title.renderHTML()}
+                    </h1>
                 </a>
                 <p style={subtitleStyle}>{this.subtitle.renderHTML()}</p>
             </div>
