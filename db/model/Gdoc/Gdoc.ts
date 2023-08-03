@@ -115,7 +115,7 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
             this.id = id
         }
         this.content = {
-            authors: ["Our World In Data"],
+            authors: ["Our World in Data team"],
         }
     }
     static table = "posts_gdocs"
