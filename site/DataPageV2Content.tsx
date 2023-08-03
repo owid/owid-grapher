@@ -242,7 +242,7 @@ export const DataPageV2Content = ({
         "YYYY",
         "YYYY-MM-DD",
     ]).year()
-    const citationShort = `${producers} — ${processedAdapted} by OWID (${yearOfUpdate})`
+    const citationShort = `${producers} — ${processedAdapted} OWID (${yearOfUpdate})`
     const originsLong = datapageData.origins
         .map(
             (o) =>
@@ -347,7 +347,7 @@ export const DataPageV2Content = ({
                                                 />
                                             ) : null}
                                         </div>
-                                        {datapageData?.faqs && (
+                                        {datapageData?.faqs.length > 0 && (
                                             <a
                                                 className="key-info__learn-more"
                                                 href="#faqs"
@@ -565,7 +565,7 @@ export const DataPageV2Content = ({
                     </div>
                     <div className="bg-gray-10">
                         <div className="wrapper">
-                            {datapageData?.faqs && (
+                            {datapageData?.faqs.length > 0 && (
                                 <div className="section-wrapper section-wrapper__faqs grid">
                                     <h2
                                         className="faqs__title span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
