@@ -11,7 +11,6 @@ import {
     DataValueResult,
     OwidVariableWithSourceAndDimension,
     OwidVariableId,
-    OwidOrigin,
     retryPromise,
     OwidLicense,
 } from "@ourworldindata/utils"

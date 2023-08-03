@@ -65,7 +65,6 @@ import {
     EnrichedDetail,
     isEmpty,
     dayjs,
-    omitUndefinedValues,
     compact,
 } from "@ourworldindata/utils"
 import {
@@ -1380,7 +1379,6 @@ export class Grapher
     }
 
     @computed get sourcesLine(): string {
-        console.log("sourceDesc", this.sourceDesc)
         return this.sourceDesc ?? this.defaultSourcesLine
     }
 
