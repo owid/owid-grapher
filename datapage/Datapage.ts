@@ -37,11 +37,10 @@ const getETLPathComonents = (path: string): ETLPathComponents => {
 }
 
 export const getDatapageDataV2 = async (
-    variableMetadata: OwidVariableWithSource
+    variableMetadata: OwidVariableWithSource,
+    partialGrapherConfig: GrapherInterface
 ): Promise<DataPageDataV2> => {
     {
-        const partialGrapherConfig = (variableMetadata.presentation
-            ?.grapherConfig ?? {}) as GrapherInterface
         const processingLevel = variableMetadata.processingLevel ?? "major"
         const version =
             getETLPathComonents(variableMetadata.catalogPath ?? "")?.version ??
@@ -81,7 +80,7 @@ export const getDatapageDataV2 = async (
             relatedResearch: [],
             source: variableMetadata.source,
             origins: variableMetadata.origins ?? [],
-            chartConfig: variableMetadata.presentation?.grapherConfig ?? {},
+            chartConfig: partialGrapherConfig as Record<string, unknown>,
         }
         return datapageJson
     }

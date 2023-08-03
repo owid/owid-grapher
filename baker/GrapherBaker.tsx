@@ -47,6 +47,7 @@ import {
     getOwidVariableDataAndMetadataPath,
     assertFileExistsInS3,
     getVariableMetadata,
+    getMergedGrapherConfigForVariable,
 } from "../db/model/Variable.js"
 import {
     getDatapageDataV2,
@@ -212,7 +213,12 @@ export const renderPreviewDataPageOrGrapherPage = async (
             variableMetadata.schemaVersion !== undefined &&
             variableMetadata.schemaVersion >= 2
         ) {
-            const datapageData = await getDatapageDataV2(variableMetadata)
+            const grapherConfigForVariable =
+                await getMergedGrapherConfigForVariable(variableId)
+            const datapageData = await getDatapageDataV2(
+                variableMetadata,
+                grapherConfigForVariable ?? {}
+            )
 
             // Get the charts this variable is being used in (aka "related charts")
             // and exclude the current chart to avoid duplicates
