@@ -1,6 +1,7 @@
 import fs from "fs-extra"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import { Value } from "@sinclair/typebox/value"
+import { dayjs } from "dayjs"
 import {
     OwidEnrichedGdocBlock,
     OwidGdocInterface,
@@ -13,16 +14,12 @@ import {
     DataPageJsonTypeObject,
     DataPageParseError,
     AllowedDataPageGdocFields,
-    min,
-    max,
+    DataPageDataV2,
+    OwidVariableWithSource,
 } from "@ourworldindata/utils"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
-import {
-    getVariableData,
-    getVariableMetadataFromMySQL,
-    getVariableMetadataFromMySQLWithoutDimensions,
-} from "../db/model/Variable.js"
+import { getVariableData } from "../db/model/Variable.js"
 import { GrapherInterface } from "@ourworldindata/grapher"
 
 interface ETLPathComponents {
@@ -32,41 +29,44 @@ interface ETLPathComponents {
     dataset: string
 }
 
-const getETLPathComonents = (path: string) => {
+const getETLPathComonents = (path: string): ETLPathComponents => {
     const [channel, publisher, version, dataset] = path.split("/")
     return { channel, publisher, version, dataset }
 }
 
 export const getDatapageDataV2 = async (
-    variableId: number
+    variableMetadata: OwidVariableWithSource
 ): Promise<DataPageDataV2> => {
-    const variableMetadata =
-        await getVariableMetadataFromMySQLWithoutDimensions(variableId)
-    if (
-        variableMetadata.schemaVersion !== undefined &&
-        variableMetadata.schemaVersion >= 2
-    ) {
+    {
         const partialGrapherConfig = (variableMetadata.presentation
             ?.grapherConfig ?? {}) as GrapherInterface
         const processingLevel = variableMetadata.processingLevel ?? "medium"
         const version =
             getETLPathComonents(variableMetadata.catalogPath ?? "")?.version ??
             ""
-        datapageJson = {
-            showDataPageOnChartIds: [],
+        let nextUpdate = undefined
+        if (variableMetadata.updatePeriod) {
+            const date = dayjs(version)
+            nextUpdate = date
+                .add(variableMetadata.updatePeriod, "day")
+                .format("MMMM YYYY")
+        }
+        const datapageJson: DataPageDataV2 = {
             status: "draft",
             title:
                 variableMetadata.presentation?.titlePublic ??
                 partialGrapherConfig.title ??
                 variableMetadata.name ??
                 "",
-            subtitle:
+            descriptionShort:
                 variableMetadata.presentation?.descriptionShort ??
                 partialGrapherConfig.subtitle,
-            variantSource: variableMetadata.presentation?.titleVariant,
-
-            topicTagsLinks: [],
-            nameOfSource:
+            producerShort: variableMetadata.presentation?.producerShort,
+            titleVariant: variableMetadata.presentation?.titleVariant,
+            topicTagsLinks: [], // TODO: add this to metadata
+            // TODO: assemble citation inline
+            citationInline:
+                variableMetadata.presentation?.citationInline ??
                 variableMetadata.presentation?.producerShort ??
                 variableMetadata.origins?.[0]?.producer ??
                 variableMetadata.source?.name ??
@@ -74,11 +74,10 @@ export const getDatapageDataV2 = async (
             owidProcessingLevel: processingLevel,
             dateRange: variableMetadata.timespan ?? "",
             lastUpdated: version,
-            nextUpdate: "",
+            nextUpdate: nextUpdate,
             relatedData: [],
             allCharts: [],
             relatedResearch: [],
-            googleDocEditLink: undefined,
             variantMethods: undefined,
             descriptionFromSource: undefined,
             sources: [],
@@ -86,7 +85,7 @@ export const getDatapageDataV2 = async (
             citationDataFull: undefined,
             citationDatapage: undefined,
         }
-        return { datapageJson, parseErrors: [] }
+        return datapageJson
     }
 }
 

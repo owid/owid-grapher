@@ -14,6 +14,7 @@ import {
     OwidGdocType,
     retryPromise,
     DataPageDataV2,
+    DimensionProperty,
 } from "@ourworldindata/utils"
 import {
     getRelatedArticles,
@@ -44,8 +45,10 @@ import {
     getVariableData,
     getOwidVariableDataAndMetadataPath,
     assertFileExistsInS3,
+    getVariableMetadata,
 } from "../db/model/Variable.js"
 import {
+    getDatapageDataV2,
     getDatapageGdoc,
     getDatapageJson,
     parseGdocContentFromAllowedLevelOneHeadings,
@@ -194,6 +197,41 @@ export const renderPreviewDataPageOrGrapherPage = async (
     grapher: GrapherInterface,
     publishedExplorersBySlug?: Record<string, ExplorerProgram>
 ) => {
+    // If we have a single Y variable and that one has a schema version >= 2,
+    // meaning it has the metadata to render a datapage, then we show the datapage
+    // based on this information. Otherwise we see if there is a legacy datapage.json
+    // available and if all else fails we render a classic Grapher page.
+    const yVariableIds = grapher
+        .dimensions!.filter((d) => d.property === DimensionProperty.y)
+        .map((d) => d.variableId)
+    if (yVariableIds.length === 1) {
+        const variableId = yVariableIds[0]
+        const variableMetadata = await getVariableMetadata(variableId)
+        if (
+            variableMetadata.schemaVersion !== undefined &&
+            variableMetadata.schemaVersion >= 2
+        ) {
+            const datapageData = await getDatapageDataV2(variableMetadata)
+
+            // Get the charts this variable is being used in (aka "related charts")
+            // and exclude the current chart to avoid duplicates
+            datapageData.allCharts = await getRelatedChartsForVariable(
+                variableId,
+                [grapher.id!]
+            )
+            const isPreviewingGdoc = false
+            return renderToHtmlPage(
+                <DataPageV2
+                    grapher={grapher}
+                    variableId={variableId}
+                    datapageData={datapageData}
+                    baseUrl={BAKED_BASE_URL}
+                    baseGrapherUrl={BAKED_GRAPHER_URL}
+                    isPreviewing={isPreviewingGdoc}
+                />
+            )
+        }
+    }
     const variableIds = uniq(grapher.dimensions!.map((d) => d.variableId))
     // this shows that multi-metric charts are not really supported, and will
     // render a datapage corresponding to the first variable found.
@@ -219,9 +257,9 @@ export const renderPreviewDataPageOrGrapherPage = async (
         !datapageJson ||
         // We only want to render datapages on selected charts, even if the
         // variable found on the chart has a datapage configuration.
-        !grapher.id // ||
+        !grapher.id ||
         // TODO: consider what to do with the check below
-        //!datapageJson.showDataPageOnChartIds.includes(grapher.id)
+        !datapageJson.showDataPageOnChartIds.includes(grapher.id)
     )
         return renderGrapherPage(grapher)
 

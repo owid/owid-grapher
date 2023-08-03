@@ -1367,18 +1367,35 @@ export interface DataPageDataV2 {
     citationInline: string
     descriptionShort?: string
     descriptionFromProducer?: string
-    faqs: FaqLink[]
+    faqs: FaqLink[] // Todo: resolve these at this level to the point where we can preview them
     keyInfoText: string[]
     processingInfo?: string
     owidProcessingLevel: "minor" | "medium" | "major"
     dateRange: string
     lastUpdated: string
-    updatedPeriod: number
-    relatedResearch: string[] // GDoc IDs
-    allCharts: string[] // Chart slugs
+    nextUpdate: string
+    relatedResearch: DataPageRelatedResearch[]
+    relatedData: DataPageRelatedData[]
+    allCharts: RelatedChart[] // Chart slugs
     source: OwidSource
     origins: OwidOrigin[]
     chartConfig: Record<string, unknown>
+}
+
+export interface DataPageRelatedResearch {
+    title: string
+    url: string
+    authors: string[]
+    imageUrl: string
+}
+
+export interface DataPageRelatedData {
+    type?: string
+    title: string
+    source?: string
+    url: string
+    content?: string
+    featured?: boolean
 }
 
 // This gives us a typed object we can use to validate datapage JSON files at runtime (see

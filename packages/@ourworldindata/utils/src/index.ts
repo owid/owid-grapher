@@ -201,6 +201,8 @@ export {
     AllowedDataPageGdocFields,
     type DataPageContentFields,
     type DataPageDataV2,
+    type DataPageRelatedData,
+    type DataPageRelatedResearch,
     type FaqLink,
     type RawBlockResearchAndWritingRow,
     type EnrichedBlockAlign,
