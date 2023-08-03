@@ -16,6 +16,9 @@ import {
     retryPromise,
     DataPageDataV2,
     DimensionProperty,
+    OwidVariableWithSource,
+    mergePartialGrapherConfigs,
+    OwidChartDimensionInterface,
 } from "@ourworldindata/utils"
 import {
     getRelatedArticles,
@@ -191,6 +194,55 @@ export const renderDataPageOrGrapherPage = async (
     )
 }
 
+export async function renderDataPageV2(
+    variableId: number,
+    variableMetadata: OwidVariableWithSource,
+    pageGrapher: GrapherInterface | undefined
+) {
+    const grapherConfigForVariable = await getMergedGrapherConfigForVariable(
+        variableId
+    )
+    const grapher = mergePartialGrapherConfigs(
+        grapherConfigForVariable as Record<string, unknown>,
+        pageGrapher as Record<string, unknown>
+    )
+
+    // If we are rendering this in the context of an indicator page preview or similar,
+    // then the chart config might be entirely empty. Make sure that dimensions is
+    // set to the variableId as a Y variable in theses cases.
+    if (
+        !grapher.dimensions ||
+        (grapher.dimensions as OwidChartDimensionInterface[]).length === 0
+    ) {
+        const dimensions: OwidChartDimensionInterface[] = [
+            { variableId: variableId, property: DimensionProperty.y },
+        ]
+        grapher.dimensions = dimensions
+    }
+    const datapageData = await getDatapageDataV2(
+        variableMetadata,
+        grapherConfigForVariable ?? {}
+    )
+
+    // Get the charts this variable is being used in (aka "related charts")
+    // and exclude the current chart to avoid duplicates
+    datapageData.allCharts = await getRelatedChartsForVariable(
+        variableId,
+        grapher && "id" in grapher ? [grapher.id as number] : []
+    )
+    const isPreviewingGdoc = false
+    return renderToHtmlPage(
+        <DataPageV2
+            grapher={grapher}
+            variableId={variableId}
+            datapageData={datapageData}
+            baseUrl={BAKED_BASE_URL}
+            baseGrapherUrl={BAKED_GRAPHER_URL}
+            isPreviewing={isPreviewingGdoc}
+        />
+    )
+}
+
 /**
  *
  * Similar to renderDataPageOrGrapherPage(), but for admin previews
@@ -213,30 +265,7 @@ export const renderPreviewDataPageOrGrapherPage = async (
             variableMetadata.schemaVersion !== undefined &&
             variableMetadata.schemaVersion >= 2
         ) {
-            const grapherConfigForVariable =
-                await getMergedGrapherConfigForVariable(variableId)
-            const datapageData = await getDatapageDataV2(
-                variableMetadata,
-                grapherConfigForVariable ?? {}
-            )
-
-            // Get the charts this variable is being used in (aka "related charts")
-            // and exclude the current chart to avoid duplicates
-            datapageData.allCharts = await getRelatedChartsForVariable(
-                variableId,
-                [grapher.id!]
-            )
-            const isPreviewingGdoc = false
-            return renderToHtmlPage(
-                <DataPageV2
-                    grapher={grapher}
-                    variableId={variableId}
-                    datapageData={datapageData}
-                    baseUrl={BAKED_BASE_URL}
-                    baseGrapherUrl={BAKED_GRAPHER_URL}
-                    isPreviewing={isPreviewingGdoc}
-                />
-            )
+            return await renderDataPageV2(variableId, variableMetadata, grapher)
         }
     }
     const variableIds = uniq(grapher.dimensions!.map((d) => d.variableId))

@@ -19,7 +19,7 @@ export const GrapherWithFallback = ({
     className?: string
     id?: string
 }) => {
-    return slug ? (
+    return (
         <div className={cx("GrapherWithFallback", className)} id={id}>
             <>
                 {grapher ? (
@@ -32,7 +32,9 @@ export const GrapherWithFallback = ({
                         className="GrapherWithFallback__fallback"
                     >
                         <img
-                            src={`${BAKED_GRAPHER_EXPORTS_BASE_URL}/${slug}.svg`}
+                            src={`${BAKED_GRAPHER_EXPORTS_BASE_URL}/${
+                                slug ?? ""
+                            }.svg`}
                             width={DEFAULT_GRAPHER_WIDTH}
                             height={DEFAULT_GRAPHER_HEIGHT}
                             loading="lazy"
@@ -41,5 +43,5 @@ export const GrapherWithFallback = ({
                 )}
             </>
         </div>
-    ) : null
+    )
 }

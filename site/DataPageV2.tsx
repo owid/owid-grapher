@@ -13,6 +13,7 @@ import {
     OwidGdocInterface,
     serializeJSONForHTML,
     mergePartialGrapherConfigs,
+    compact,
 } from "@ourworldindata/utils"
 import React from "react"
 import urljoin from "url-join"
@@ -32,7 +33,7 @@ import { IFrameDetector } from "./IframeDetector.js"
 import { DebugProvider } from "./gdocs/DebugContext.js"
 
 export const DataPageV2 = (props: {
-    grapher: GrapherInterface
+    grapher: GrapherInterface | undefined
     variableId: number
     datapageData: DataPageDataV2
     baseUrl: string
@@ -47,10 +48,12 @@ export const DataPageV2 = (props: {
         baseUrl,
         isPreviewing,
     } = props
-    const pageTitle = grapher.title
-    const canonicalUrl = urljoin(baseGrapherUrl, grapher.slug as string)
+    const pageTitle = grapher?.title ?? datapageData.title
+    const canonicalUrl = grapher?.slug
+        ? urljoin(baseGrapherUrl, grapher.slug as string)
+        : ""
     let pageDesc: string
-    if (grapher.subtitle?.length) {
+    if (grapher?.subtitle?.length) {
         // convert subtitle from markdown to plaintext
         pageDesc = new MarkdownTextWrap({
             text: grapher.subtitle,
@@ -72,12 +75,12 @@ export const DataPageV2 = (props: {
     const imageHeight = "628"
 
     const variableIds: number[] = uniq(
-        grapher.dimensions!.map((d) => d.variableId)
+        compact(grapher?.dimensions?.map((d) => d.variableId))
     )
 
     const mergedGrapherConfig = mergePartialGrapherConfigs(
         datapageData.chartConfig as GrapherInterface,
-        grapher
+        grapher ?? {}
     )
 
     const grapherConfig: GrapherProgrammaticInterface = {

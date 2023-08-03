@@ -33,7 +33,7 @@ import { Chart, OldChart } from "../db/model/Chart.js"
 import { countryProfileSpecs } from "../site/countryProfileProjects.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { grapherToSVG } from "../baker/GrapherImageBaker.js"
-import { getVariableData } from "../db/model/Variable.js"
+import { getVariableData, getVariableMetadata } from "../db/model/Variable.js"
 import { MultiEmbedderTestPage } from "../site/multiembedder/MultiEmbedderTestPage.js"
 import { JsonError } from "@ourworldindata/utils"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
@@ -42,7 +42,10 @@ import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants.js"
 import { getExplorerRedirectForPath } from "../explorerAdminServer/ExplorerRedirects.js"
 import { explorerUrlMigrationsById } from "../explorer/urlMigrations/ExplorerUrlMigrations.js"
 import { generateEmbedSnippet } from "../site/viteUtils.js"
-import { renderPreviewDataPageOrGrapherPage } from "../baker/GrapherBaker.js"
+import {
+    renderPreviewDataPageOrGrapherPage,
+    renderDataPageV2,
+} from "../baker/GrapherBaker.js"
 import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
 
 require("express-async-errors")
@@ -154,6 +157,15 @@ mockSiteRouter.get("/donate", async (req, res) =>
 mockSiteRouter.get("/charts", async (req, res) => {
     const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
     res.send(await renderChartsPage(explorerAdminServer))
+})
+
+mockSiteRouter.get("/datapage-preview/:id", async (req, res) => {
+    console.log("previewing datapage")
+    const variableId = expectInt(req.params.id)
+    const variableMetadata = await getVariableMetadata(variableId)
+    if (!variableMetadata) throw new JsonError("No such variable", 404)
+
+    res.send(await renderDataPageV2(variableId, variableMetadata, undefined))
 })
 
 countryProfileSpecs.forEach((spec) =>

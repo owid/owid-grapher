@@ -139,6 +139,9 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                         >
                             <section>
                                 <h3>Indicator metadata</h3>
+                                <a href={`/datapage-preview/${variable.id}`}>
+                                    View data page
+                                </a>
                                 {isBulkImport ? (
                                     <p>
                                         This indicator came from an automated

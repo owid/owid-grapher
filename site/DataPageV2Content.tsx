@@ -317,7 +317,11 @@ export const DataPageV2Content = ({
                     <div className="chart-key-info">
                         <GrapherWithFallback
                             grapher={grapher}
-                            slug={grapherConfig.slug}
+                            slug={grapherConfig.slug} // TODO: On grapher pages,
+                            // there will always be a slug, but if we just show a data page preview for an indicator in the admin, there will be no slug
+                            // and then thumbnails will be broken for those. When we consider baking data pages for
+                            // non-grapher pages then we need to make sure that there are thunbnails that are generated for the these non-chart graphers and
+                            // then this piece will have to change anyhow and know how to provide the thumbnail.
                             className="wrapper"
                             id="explore-the-data"
                         />
