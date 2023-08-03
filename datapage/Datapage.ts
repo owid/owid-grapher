@@ -17,6 +17,7 @@ import {
     DataPageDataV2,
     OwidVariableWithSource,
     dayjs,
+    getAttributionFromVariable,
 } from "@ourworldindata/utils"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
@@ -41,7 +42,7 @@ export const getDatapageDataV2 = async (
     {
         const partialGrapherConfig = (variableMetadata.presentation
             ?.grapherConfig ?? {}) as GrapherInterface
-        const processingLevel = variableMetadata.processingLevel ?? "medium"
+        const processingLevel = variableMetadata.processingLevel ?? "major"
         const version =
             getETLPathComonents(variableMetadata.catalogPath ?? "")?.version ??
             ""
@@ -67,12 +68,7 @@ export const getDatapageDataV2 = async (
             titleVariant: variableMetadata.presentation?.titleVariant,
             topicTagsLinks: [], // TODO: add this to metadata
             // TODO: assemble citation inline
-            citationInline:
-                variableMetadata.presentation?.attribution ??
-                variableMetadata.presentation?.producerShort ??
-                variableMetadata.origins?.[0]?.producer ??
-                variableMetadata.source?.name ??
-                "",
+            attribution: getAttributionFromVariable(variableMetadata),
             faqs: [],
             keyInfoText: variableMetadata.presentation?.keyInfoText ?? [],
             processingInfo: variableMetadata.presentation?.processingInfo,

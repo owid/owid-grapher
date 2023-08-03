@@ -238,7 +238,10 @@ export const DataPageV2Content = ({
         datapageData.owidProcessingLevel === "minor"
             ? `Processed by`
             : `Adapted by`
-    const yearOfUpdate = dayjs(datapageData.lastUpdated).year()
+    const yearOfUpdate = dayjs(datapageData.lastUpdated, [
+        "YYYY",
+        "YYYY-MM-DD",
+    ]).year()
     const citationShort = `${producers} — ${processedAdapted} by OWID (${yearOfUpdate})`
     const originsLong = datapageData.origins
         .map(
@@ -247,6 +250,10 @@ export const DataPageV2Content = ({
         )
         .join("; ")
     const citationLong = `${citationShort}. ${datapageData.title}. ${originsLong}, ${processedAdapted} by Our World In Data. Retrieved {date} from {url}`
+    const processedAdaptedText =
+        datapageData.owidProcessingLevel === "minor"
+            ? `Processed by Our World In Data`
+            : `Adapted by Our World In Data`
 
     const {
         linkedDocuments = {},
@@ -331,11 +338,13 @@ export const DataPageV2Content = ({
                                                     containerType="datapage"
                                                 />
                                             ) : datapageData.descriptionShort ? (
-                                                <div>
-                                                    {
-                                                        datapageData.descriptionShort
-                                                    }
-                                                </div>
+                                                <ArticleBlocks
+                                                    blocks={[
+                                                        markdownToEnrichedTextBlock(
+                                                            datapageData.descriptionShort
+                                                        ),
+                                                    ]}
+                                                />
                                             ) : null}
                                         </div>
                                         {datapageData?.faqs && (
@@ -379,13 +388,13 @@ export const DataPageV2Content = ({
                                     <div className="key-data__title">
                                         Source
                                     </div>
-                                    <div>{datapageData.citationInline}</div>
+                                    <div>{datapageData.attribution}</div>
                                     {datapageData.owidProcessingLevel && (
-                                        <div
-                                            dangerouslySetInnerHTML={{
-                                                __html: datapageData.owidProcessingLevel,
-                                            }}
-                                        ></div>
+                                        <div>
+                                            <a href="#sources-and-processing">
+                                                {processedAdaptedText}
+                                            </a>
+                                        </div>
                                     )}
                                 </div>
                                 <div className="key-data span-cols-3 span-lg-cols-4 span-sm-cols-6">
@@ -597,152 +606,151 @@ export const DataPageV2Content = ({
                                                     sources
                                                 ) => {
                                                     return (
-                                                        <div key={idx}></div>
-                                                        // <div
-                                                        //     className="data-sources__source-item"
-                                                        //     key={source.id}
-                                                        // >
-                                                        //     <ExpandableToggle
-                                                        //         label={
-                                                        //             source.producer ??
-                                                        //             source.datasetDescriptionOwid ??
-                                                        //             source.datasetDescriptionProducer ??
-                                                        //             ""
-                                                        //         }
-                                                        //         isStacked={
-                                                        //             idx !==
-                                                        //             sources.length -
-                                                        //                 1
-                                                        //         }
-                                                        //         hasTeaser
-                                                        //         content={
-                                                        //             <>
-                                                        //                 {source.datasetDescriptionProducer && (
-                                                        //                     <ArticleBlocks
-                                                        //                         blocks={[
-                                                        //                             markdownToEnrichedTextBlock(
-                                                        //                                 source.datasetDescriptionProducer
-                                                        //                             ),
-                                                        //                         ]}
-                                                        //                         containerType="datapage"
-                                                        //                     />
-                                                        //                 )}
-                                                        //                 {(source.dateAccessed ||
-                                                        //                     source.datasetUrlDownload) && (
-                                                        //                     <div
-                                                        //                         className="grid source__key-data"
-                                                        //                         style={{
-                                                        //                             gridTemplateColumns:
-                                                        //                                 "minmax(0,1fr) minmax(0,2fr)",
-                                                        //                         }}
-                                                        //                     >
-                                                        //                         {source.dateAccessed && (
-                                                        //                             <div className="key-data">
-                                                        //                                 <div className="key-data__title--dark">
-                                                        //                                     Retrieved
-                                                        //                                     on
-                                                        //                                 </div>
-                                                        //                                 <div>
-                                                        //                                     {
-                                                        //                                         source.dateAccessed
-                                                        //                                     }
-                                                        //                                 </div>
-                                                        //                             </div>
-                                                        //                         )}
-                                                        //                         {source.datasetUrlDownload && (
-                                                        //                             <div className="key-data key-data--hide-overflow">
-                                                        //                                 <div className="key-data__title--dark">
-                                                        //                                     Retrieved
-                                                        //                                     from
-                                                        //                                 </div>
-                                                        //                                 <div>
-                                                        //                                     <a
-                                                        //                                         href={
-                                                        //                                             source.datasetUrlDownload
-                                                        //                                         }
-                                                        //                                         target="_blank"
-                                                        //                                         rel="noreferrer"
-                                                        //                                     >
-                                                        //                                         {
-                                                        //                                             source.datasetUrlDownload
-                                                        //                                         }
-                                                        //                                     </a>
-                                                        //                                 </div>
-                                                        //                             </div>
-                                                        //                         )}
-                                                        //                         {source.citationProducer && (
-                                                        //                             <div
-                                                        //                                 className="key-data"
-                                                        //                                 style={{
-                                                        //                                     gridColumn:
-                                                        //                                         "span 2",
-                                                        //                                 }}
-                                                        //                             >
-                                                        //                                 <div className="key-data__title--dark">
-                                                        //                                     Citation
-                                                        //                                 </div>
-                                                        //                                 This
-                                                        //                                 is
-                                                        //                                 the
-                                                        //                                 citation
-                                                        //                                 of
-                                                        //                                 the
-                                                        //                                 original
-                                                        //                                 data
-                                                        //                                 obtained
-                                                        //                                 from
-                                                        //                                 the
-                                                        //                                 source,
-                                                        //                                 prior
-                                                        //                                 to
-                                                        //                                 any
-                                                        //                                 processing
-                                                        //                                 or
-                                                        //                                 adaptation
-                                                        //                                 by
-                                                        //                                 Our
-                                                        //                                 World
-                                                        //                                 in
-                                                        //                                 Data.
-                                                        //                                 To
-                                                        //                                 cite
-                                                        //                                 data
-                                                        //                                 downloaded
-                                                        //                                 from
-                                                        //                                 this
-                                                        //                                 page,
-                                                        //                                 please
-                                                        //                                 use
-                                                        //                                 the
-                                                        //                                 suggested
-                                                        //                                 citation
-                                                        //                                 given
-                                                        //                                 in{" "}
-                                                        //                                 <a
-                                                        //                                     href={
-                                                        //                                         REUSE_THIS_WORK_ANCHOR
-                                                        //                                     }
-                                                        //                                 >
-                                                        //                                     Reuse
-                                                        //                                     This
-                                                        //                                     Work
-                                                        //                                 </a>{" "}
-                                                        //                                 below.
-                                                        //                                 <CodeSnippet
-                                                        //                                     code={
-                                                        //                                         source.citationProducer
-                                                        //                                     }
-                                                        //                                     theme="light"
-                                                        //                                     isTruncated
-                                                        //                                 />
-                                                        //                             </div>
-                                                        //                         )}
-                                                        //                     </div>
-                                                        //                 )}
-                                                        //             </>
-                                                        //         }
-                                                        //     />
-                                                        // </div>
+                                                        <div
+                                                            className="data-sources__source-item"
+                                                            key={idx}
+                                                        >
+                                                            <ExpandableToggle
+                                                                label={
+                                                                    source.producer ??
+                                                                    source.datasetDescriptionOwid ??
+                                                                    source.datasetDescriptionProducer ??
+                                                                    ""
+                                                                }
+                                                                isStacked={
+                                                                    idx !==
+                                                                    sources.length -
+                                                                        1
+                                                                }
+                                                                hasTeaser
+                                                                content={
+                                                                    <>
+                                                                        {source.datasetDescriptionProducer && (
+                                                                            <ArticleBlocks
+                                                                                blocks={[
+                                                                                    markdownToEnrichedTextBlock(
+                                                                                        source.datasetDescriptionProducer
+                                                                                    ),
+                                                                                ]}
+                                                                                containerType="datapage"
+                                                                            />
+                                                                        )}
+                                                                        {(source.dateAccessed ||
+                                                                            source.datasetUrlDownload) && (
+                                                                            <div
+                                                                                className="grid source__key-data"
+                                                                                style={{
+                                                                                    gridTemplateColumns:
+                                                                                        "minmax(0,1fr) minmax(0,2fr)",
+                                                                                }}
+                                                                            >
+                                                                                {source.dateAccessed && (
+                                                                                    <div className="key-data">
+                                                                                        <div className="key-data__title--dark">
+                                                                                            Retrieved
+                                                                                            on
+                                                                                        </div>
+                                                                                        <div>
+                                                                                            {
+                                                                                                source.dateAccessed
+                                                                                            }
+                                                                                        </div>
+                                                                                    </div>
+                                                                                )}
+                                                                                {source.datasetUrlDownload && (
+                                                                                    <div className="key-data key-data--hide-overflow">
+                                                                                        <div className="key-data__title--dark">
+                                                                                            Retrieved
+                                                                                            from
+                                                                                        </div>
+                                                                                        <div>
+                                                                                            <a
+                                                                                                href={
+                                                                                                    source.datasetUrlDownload
+                                                                                                }
+                                                                                                target="_blank"
+                                                                                                rel="noreferrer"
+                                                                                            >
+                                                                                                {
+                                                                                                    source.datasetUrlDownload
+                                                                                                }
+                                                                                            </a>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                )}
+                                                                                {source.citationProducer && (
+                                                                                    <div
+                                                                                        className="key-data"
+                                                                                        style={{
+                                                                                            gridColumn:
+                                                                                                "span 2",
+                                                                                        }}
+                                                                                    >
+                                                                                        <div className="key-data__title--dark">
+                                                                                            Citation
+                                                                                        </div>
+                                                                                        This
+                                                                                        is
+                                                                                        the
+                                                                                        citation
+                                                                                        of
+                                                                                        the
+                                                                                        original
+                                                                                        data
+                                                                                        obtained
+                                                                                        from
+                                                                                        the
+                                                                                        source,
+                                                                                        prior
+                                                                                        to
+                                                                                        any
+                                                                                        processing
+                                                                                        or
+                                                                                        adaptation
+                                                                                        by
+                                                                                        Our
+                                                                                        World
+                                                                                        in
+                                                                                        Data.
+                                                                                        To
+                                                                                        cite
+                                                                                        data
+                                                                                        downloaded
+                                                                                        from
+                                                                                        this
+                                                                                        page,
+                                                                                        please
+                                                                                        use
+                                                                                        the
+                                                                                        suggested
+                                                                                        citation
+                                                                                        given
+                                                                                        in{" "}
+                                                                                        <a
+                                                                                            href={
+                                                                                                REUSE_THIS_WORK_ANCHOR
+                                                                                            }
+                                                                                        >
+                                                                                            Reuse
+                                                                                            This
+                                                                                            Work
+                                                                                        </a>{" "}
+                                                                                        below.
+                                                                                        <CodeSnippet
+                                                                                            code={
+                                                                                                source.citationProducer
+                                                                                            }
+                                                                                            theme="light"
+                                                                                            isTruncated
+                                                                                        />
+                                                                                    </div>
+                                                                                )}
+                                                                            </div>
+                                                                        )}
+                                                                    </>
+                                                                }
+                                                            />
+                                                        </div>
                                                     )
                                                 }
                                             )}

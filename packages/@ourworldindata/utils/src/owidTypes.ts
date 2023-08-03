@@ -1365,13 +1365,13 @@ export interface DataPageDataV2 {
     titleVariant?: string
     producerShort?: string
     topicTagsLinks?: string[]
-    citationInline: string
+    attribution: string
     descriptionShort?: string
     descriptionFromProducer?: string
     faqs: FaqLink[] // Todo: resolve these at this level to the point where we can preview them
     keyInfoText: string[]
     processingInfo?: string
-    owidProcessingLevel: "minor" | "medium" | "major"
+    owidProcessingLevel: "minor" | "major"
     dateRange: string
     lastUpdated: string
     nextUpdate?: string

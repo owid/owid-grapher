@@ -66,6 +66,7 @@ import {
     isEmpty,
     dayjs,
     compact,
+    getOriginAttributionFragments,
 } from "@ourworldindata/utils"
 import {
     ChartTypeName,
@@ -1448,20 +1449,9 @@ export class Grapher
             )
                 return [column.def.attribution]
             else {
-                const originFragments = column.def.origins
-                    ? column.def.origins.map((origin) => {
-                          const yearPublished = origin.datePublished
-                              ? dayjs(origin.datePublished, [
-                                    "YYYY",
-                                    "YYYY-MM-DD",
-                                ]).year()
-                              : undefined
-                          return (
-                              origin.attribution ??
-                              `${origin.producer} ${yearPublished}`
-                          )
-                      })
-                    : []
+                const originFragments = getOriginAttributionFragments(
+                    column.def.origins
+                )
                 return [column.source.name, ...originFragments]
             }
         })

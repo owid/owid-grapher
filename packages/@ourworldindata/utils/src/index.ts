@@ -326,6 +326,8 @@ export {
     filterValidStringValues,
     traverseEnrichedSpan,
     mergePartialGrapherConfigs,
+    getOriginAttributionFragments,
+    getAttributionFromVariable,
 } from "./Util.js"
 
 export {
