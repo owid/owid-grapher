@@ -37,7 +37,9 @@ export class AddPresentationToVariables1688372371221
             `ALTER TABLE variables RENAME COLUMN grapherConfig TO grapherConfigAdmin;`
         )
 
-        // posts_gdocs.id uses utf8mb4_0900_as_cs collation, so we need to use it here too
+        // The collation here is probably an artifact of a wrong default collation that we had
+        // on dev servers until July 2023. Starting from scratch with a prod database this
+        // the collation here should be automatic but it also doesn't hurt to specify it.
         await queryRunner.query(`
         CREATE TABLE posts_gdocs_variables_faqs (
             gdocId varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_as_cs NOT NULL,
