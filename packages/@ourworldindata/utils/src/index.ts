@@ -464,6 +464,7 @@ export {
     type OwidVariableDimensionValuePartial,
     type OwidVariableDimensionValueFull,
     type OwidEntityKey,
+    type OwidLicense,
 } from "./OwidVariable.js"
 
 export {

@@ -76,18 +76,17 @@ export interface OwidLicense {
 }
 
 export interface OwidVariablePresentation {
-    titlePublic: string
-    titleVariant: string
-    producerShort: string
-    citationInline: string
-    descriptionShort: string
-    descriptionFromProducer: string
-    keyInfoText: string
-    processingInfo: string
-    licenses: OwidLicense[]
-    grapherConfig: any // TODO: move grapher config interface up to types, use it here, clean up types
+    titlePublic?: string
+    titleVariant?: string
+    producerShort?: string
+    citationInline?: string
+    descriptionShort?: string
+    descriptionFromProducer?: string
+    keyInfoText?: string
+    processingInfo?: string
+    licenses?: OwidLicense[]
+    grapherConfig?: Record<string, unknown> // TODO: move grapher config interface up to types, use it here, clean up types
 }
-
 export type OwidVariableWithSourceAndDimension = OwidVariableWithSource & {
     dimensions: OwidVariableDimensions
 }

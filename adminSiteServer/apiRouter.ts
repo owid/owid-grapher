@@ -16,7 +16,10 @@ import {
 import { expectInt, isValidSlug } from "../serverUtils/serverUtil.js"
 import { OldChart, Chart, getGrapherById } from "../db/model/Chart.js"
 import { Request, Response, CurrentUser } from "./authentication.js"
-import { getVariableData } from "../db/model/Variable.js"
+import {
+    getVariableData,
+    liftVariablePresentationIntoObject,
+} from "../db/model/Variable.js"
 import {
     applyPatch,
     BulkChartEditResponseRow,
@@ -1704,12 +1707,12 @@ apiRouter.get(
     async (req: Request, res: Response) => {
         const variableId = expectInt(req.params.variableId)
 
-        const variable = await db.mysqlFirst(
+        const variableRaw = await db.mysqlFirst(
             `
             SELECT v.id, v.name, v.unit, v.shortUnit, v.description, v.sourceId, u.fullName AS uploadedBy,
                 v.display, d.id AS datasetId, d.name AS datasetName, d.namespace AS datasetNamespace, v.schemaVersion,
                 v.processingLevel, v.titlePublic, v.titleVariant, v.producerShort, v.citationInline, v.descriptionShort,
-                v.descriptionFromProducer, v.keyInfoText, v.processingInfo, v.licenses
+                v.descriptionFromProducer, v.keyInfoText, v.processingInfo, v.licenses, v.grapherConfig
             FROM variables v
             JOIN datasets d ON d.id=v.datasetId
             JOIN users u ON u.id=d.dataEditedByUserId
@@ -1718,10 +1721,10 @@ apiRouter.get(
             [variableId]
         )
 
-        if (!variable) {
+        if (!variableRaw) {
             throw new JsonError(`No variable by id '${variableId}'`, 404)
         }
-
+        const variable = liftVariablePresentationIntoObject(variableRaw)
         variable.display = JSON.parse(variable.display)
 
         // TODO: support multiple sources
