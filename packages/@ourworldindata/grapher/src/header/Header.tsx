@@ -49,7 +49,8 @@ export class Header extends React.Component<{
     @computed private get logoWidth(): number {
         return this.logo ? this.logo.width : 0
     }
-    @computed private get logoHeight(): number {
+
+    @computed get logoHeight(): number {
         return this.logo ? this.logo.height : 0
     }
 
@@ -125,13 +126,13 @@ export class Header extends React.Component<{
                     target="_blank"
                     rel="noopener"
                 >
-                    {title.render(x, y, { fill: "#555" })}
+                    {title.render(x, y, { fill: "#4E4E4E" })}
                 </a>
                 {subtitle.renderSVG(
                     x,
                     y + title.height + this.subtitleMarginTop,
                     {
-                        fill: "#666",
+                        fill: "#4E4E4E",
                     }
                 )}
             </g>

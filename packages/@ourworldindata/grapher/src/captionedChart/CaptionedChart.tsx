@@ -510,7 +510,7 @@ export class StaticCaptionedChart extends CaptionedChart {
 
     @computed protected get boundsForChartArea(): Bounds {
         return this.paddedBounds
-            .padTop(this.header.height)
+            .padTop(Math.max(this.header.height, this.header.logoHeight))
             .padBottom(this.staticFooter.height + VERTICAL_SPACING)
             .padTop(this.manager.isOnMapTab ? 0 : VERTICAL_SPACING)
     }

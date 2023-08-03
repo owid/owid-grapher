@@ -50,7 +50,7 @@ export class Footer<
     @computed protected get ccSvg(): string {
         if (this.manager.hasOWIDLogo) {
             // dash in CC-BY prevents break but is not rendered
-            return `<a style="fill: #777;" class="cclogo" href="http://creativecommons.org/licenses/by/4.0/deed.en_US" target="_blank">CC-BY</a>`
+            return `<a class="cclogo" href="http://creativecommons.org/licenses/by/4.0/deed.en_US" target="_blank">CC-BY</a>`
         }
 
         return `<a href="https://ourworldindata.org" target="_blank">Powered by ourworldindata.org</a>`
@@ -97,7 +97,7 @@ export class Footer<
             .replace(/\//g, "/ ")
             .replace(/-/g, "- ")
 
-        const originUrlLink = `<a target='_blank' style='fill: #777;' href='${finalUrl}'> ${finalUrlTextWithSpaces} </a>`
+        const originUrlLink = `<a target='_blank' href='${finalUrl}'> ${finalUrlTextWithSpaces} </a>`
         return [originUrlLink, ccSvg].join(" | ")
     }
 
@@ -272,11 +272,7 @@ export class Footer<
         )
 
         return (
-            <footer
-                className="SourcesFooterHTML"
-                ref={this.base}
-                style={{ color: "#777" }}
-            >
+            <footer className="SourcesFooterHTML" ref={this.base}>
                 <div
                     className="NoteAndLicense"
                     style={{
@@ -362,7 +358,7 @@ export class StaticFooter extends Footer<StaticFooterProps> {
 
     @computed protected get ccSvg(): string {
         if (this.manager.hasOWIDLogo) {
-            return `<a style="fill: #777;" class="cclogo" href="http://creativecommons.org/licenses/by/4.0/deed.en_US" target="_blank">CC BY</a>`
+            return `<a class="cclogo" href="http://creativecommons.org/licenses/by/4.0/deed.en_US" target="_blank">CC BY</a>`
         }
 
         return `<a href="https://ourworldindata.org" target="_blank">Powered by ourworldindata.org</a>`
@@ -371,7 +367,7 @@ export class StaticFooter extends Footer<StaticFooterProps> {
     @computed protected get licenseAndOriginUrlSvg(): string {
         const { finalUrl, finalUrlText, ccSvg } = this
         if (!finalUrlText) return ccSvg
-        const originUrlLink = `<a target='_blank' style='fill: #777;' href='${finalUrl}'>${finalUrl}</a>`
+        const originUrlLink = `<a target='_blank' href='${finalUrl}'>${finalUrl}</a>`
         return [originUrlLink, ccSvg].join(" | ")
     }
 
@@ -417,11 +413,11 @@ export class StaticFooter extends Footer<StaticFooterProps> {
     render(): JSX.Element {
         const { sources, note, licenseAndOriginUrl, maxWidth, isCompact } = this
         const { targetX, targetY } = this.props
-        const paraMargin = 2
+        const paraMargin = 4
 
         return (
-            <g className="SourcesFooter" style={{ fill: "#777" }}>
-                <g style={{ fill: "#777" }}>
+            <g className="SourcesFooter" style={{ fill: "#5B5B5B" }}>
+                <g style={{ fill: "#5B5B5B" }}>
                     {sources.renderSVG(targetX, targetY)}
                 </g>
                 {note.renderSVG(targetX, targetY + sources.height + paraMargin)}
