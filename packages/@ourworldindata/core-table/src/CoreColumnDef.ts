@@ -62,7 +62,12 @@ export interface CoreColumnDef extends ColumnColorScale {
 
     // Column information used for display only
     name?: string // The display name for the column
+    titlePublic?: string // The Metadata V2 display title for the variable
+    titleVariant?: string // The Metadata V2 title disambiguation fragment for the variant (e.g. "projected")
+    producerShort?: string // The Metadata V2 title disambiguation fragment for the producer
     description?: string
+    descriptionShort?: string
+    descriptionFromProducer?: string
     note?: string // Any internal notes the author wants to record for display in admin interfaces
 
     // Color
@@ -75,6 +80,8 @@ export interface CoreColumnDef extends ColumnColorScale {
     dataPublisherSource?: string
     retrievedDate?: string
     additionalInfo?: string
+    attribution?: string
+    timespanFromMetadata?: string
 
     origins?: OwidOrigin[]
 

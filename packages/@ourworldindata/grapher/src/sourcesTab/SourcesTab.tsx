@@ -1,4 +1,10 @@
-import { Bounds, DEFAULT_BOUNDS, linkify } from "@ourworldindata/utils"
+import {
+    Bounds,
+    DEFAULT_BOUNDS,
+    MarkdownTextWrap,
+    OwidOrigin,
+    linkify,
+} from "@ourworldindata/utils"
 import React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
@@ -29,7 +35,10 @@ export class SourcesTab extends React.Component<{
     }
 
     private renderSource(column: CoreColumn): JSX.Element {
-        // TODO: support multiple origins
+        // NOTE: Some decisions about which texts are shown (e.g. descriptionShort is
+        // preferred over the long description if it exists) are
+        // made when the CoreColumn is filled from the Variable metadata
+        // in columnDefFromOwidVariable in packages/@ourworldindata/grapher/src/core/LegacyToOwidTable.ts
         const { slug, source, def } = column
         const { datasetId, coverage } = def as OwidColumnDef
 
@@ -38,16 +47,39 @@ export class SourcesTab extends React.Component<{
             : undefined
 
         const { minTime, maxTime } = column
-        let timespan = ""
-        if (minTime !== undefined && maxTime !== undefined)
+        let timespan = column.def.timespanFromMetadata
+        if (
+            (timespan === undefined || timespan === "") &&
+            minTime !== undefined &&
+            maxTime !== undefined
+        )
             timespan = `${column.formatTime(minTime)} – ${column.formatTime(
                 maxTime
             )}`
 
+        const title =
+            column.def.titlePublic && column.def.titlePublic !== ""
+                ? column.def.titlePublic
+                : column.name
+
+        const attribution = column.def.attribution
+            ? [column.def.attribution]
+            : column.def.origins
+            ? column.def.origins.map(
+                  (origin: OwidOrigin) => origin.attribution ?? origin.producer
+              )
+            : []
+
+        const retrievedDate =
+            source.retrievedDate ??
+            (column.def.origins && column.def.origins.length
+                ? column.def.origins[0].dateAccessed
+                : undefined)
+
         return (
             <div key={slug} className="datasource-wrapper">
                 <h2>
-                    {column.name}{" "}
+                    {title}{" "}
                     {editUrl && (
                         <a href={editUrl} target="_blank" rel="noopener">
                             <FontAwesomeIcon icon={faPencilAlt} />
@@ -56,7 +88,20 @@ export class SourcesTab extends React.Component<{
                 </h2>
                 <table className="variable-desc">
                     <tbody>
-                        {column.description ? (
+                        {column.def.descriptionShort ? (
+                            <tr>
+                                <td>Variable description</td>
+                                <td>
+                                    <MarkdownTextWrap
+                                        text={column.def.descriptionShort}
+                                        fontSize={12}
+                                    />
+                                </td>
+                            </tr>
+                        ) : null}
+                        {!column.def.descriptionShort && column.description ? (
+                            // Show the description field only if we don't have a
+                            // metadata V2 shortDescription
                             <tr>
                                 <td>Variable description</td>
                                 <td
@@ -84,7 +129,13 @@ export class SourcesTab extends React.Component<{
                                 <td>{column.unitConversionFactor}</td>
                             </tr>
                         ) : null}
-                        {source.dataPublishedBy ? (
+                        {attribution ? (
+                            <tr>
+                                <td>Data published by</td>
+                                <td>{attribution.join(", ")}</td>
+                            </tr>
+                        ) : null}
+                        {!attribution && source.dataPublishedBy ? (
                             <tr>
                                 <td>Data published by</td>
                                 <td
@@ -118,10 +169,10 @@ export class SourcesTab extends React.Component<{
                                 />
                             </tr>
                         ) : null}
-                        {source.retrievedDate ? (
+                        {retrievedDate ? (
                             <tr>
                                 <td>Retrieved</td>
-                                <td>{source.retrievedDate}</td>
+                                <td>{retrievedDate}</td>
                             </tr>
                         ) : null}
                     </tbody>
@@ -133,6 +184,16 @@ export class SourcesTab extends React.Component<{
                         }}
                     />
                 )}
+                {column.def.origins &&
+                    column.def.origins.length &&
+                    column.def.origins[0].citationProducer && (
+                        <p>
+                            <MarkdownTextWrap
+                                text={column.def.origins[0].citationProducer}
+                                fontSize={12}
+                            />
+                        </p>
+                    )}
             </div>
         )
     }

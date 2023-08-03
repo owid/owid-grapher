@@ -402,7 +402,6 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return this.jsType === "string" ? values.sort() : sortNumeric(values)
     }
 
-    // TODO: support multiple sources
     get source(): OwidSource {
         const { def } = this
         return {
