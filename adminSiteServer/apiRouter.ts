@@ -1707,7 +1707,9 @@ apiRouter.get(
         const variable = await db.mysqlFirst(
             `
             SELECT v.id, v.name, v.unit, v.shortUnit, v.description, v.sourceId, u.fullName AS uploadedBy,
-                v.display, d.id AS datasetId, d.name AS datasetName, d.namespace AS datasetNamespace
+                v.display, d.id AS datasetId, d.name AS datasetName, d.namespace AS datasetNamespace, v.schemaVersion,
+                v.processingLevel, v.titlePublic, v.titleVariant, v.producerShort, v.citationInline, v.descriptionShort,
+                v.descriptionFromProducer, v.keyInfoText, v.processingInfo, v.licenses
             FROM variables v
             JOIN datasets d ON d.id=v.datasetId
             JOIN users u ON u.id=d.dataEditedByUserId

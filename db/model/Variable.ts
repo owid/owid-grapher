@@ -35,6 +35,17 @@ export interface VariableRow {
     catalogPath?: string
     dataPath?: string
     dimensions?: Dimensions
+    schemaVersion?: number
+    processingLevel?: "minor" | "medium" | "major"
+    titlePublic?: string
+    titleVariant?: string
+    producerShort?: string
+    citationInline?: string
+    descriptionShort?: string
+    descriptionFromProducer?: string
+    keyInfoText?: string
+    processingInfo?: string
+    licenses?: OwidLicense[]
 }
 
 interface Dimensions {

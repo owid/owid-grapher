@@ -65,6 +65,27 @@ export interface OwidVariableWithSource {
     // TODO: support multiple sources
     source?: OwidSource
     origins?: OwidOrigin[]
+    schemaVersion?: number
+    processingLevel?: "minor" | "medium" | "major"
+    presentation?: OwidVariablePresentation
+}
+
+export interface OwidLicense {
+    name: string
+    url: string
+}
+
+export interface OwidVariablePresentation {
+    titlePublic: string
+    titleVariant: string
+    producerShort: string
+    citationInline: string
+    descriptionShort: string
+    descriptionFromProducer: string
+    keyInfoText: string
+    processingInfo: string
+    licenses: OwidLicense[]
+    grapherConfig: any // TODO: move grapher config interface up to types, use it here, clean up types
 }
 
 export type OwidVariableWithSourceAndDimension = OwidVariableWithSource & {
