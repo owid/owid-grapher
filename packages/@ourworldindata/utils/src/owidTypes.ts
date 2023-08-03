@@ -1373,11 +1373,11 @@ export interface DataPageDataV2 {
     owidProcessingLevel: "minor" | "medium" | "major"
     dateRange: string
     lastUpdated: string
-    nextUpdate: string
+    nextUpdate?: string
     relatedResearch: DataPageRelatedResearch[]
     relatedData: DataPageRelatedData[]
     allCharts: RelatedChart[] // Chart slugs
-    source: OwidSource
+    source: OwidSource | undefined
     origins: OwidOrigin[]
     chartConfig: Record<string, unknown>
 }
