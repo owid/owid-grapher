@@ -13,6 +13,7 @@ import {
     keyBy,
     OwidGdocType,
     retryPromise,
+    DataPageDataV2,
 } from "@ourworldindata/utils"
 import {
     getRelatedArticles,

@@ -2,6 +2,8 @@ import { Tag as TagReactTagAutocomplete } from "react-tag-autocomplete"
 import { ImageMetadata } from "./image.js"
 import { Static, Type } from "@sinclair/typebox"
 import { gdocUrlRegex } from "./GdocsConstants.js"
+import { OwidOrigin } from "./OwidOrigin.js"
+import { OwidSource } from "./OwidSource.js"
 
 // todo: remove when we ditch Year and YearIsDay
 export const EPOCH_DATE = "2020-01-21"
@@ -1373,6 +1375,10 @@ export interface DataPageDataV2 {
     lastUpdated: string
     updatedPeriod: number
     relatedResearch: string[] // GDoc IDs
+    allCharts: string[] // Chart slugs
+    source: OwidSource
+    origins: OwidOrigin[]
+    chartConfig: Record<string, unknown>
 }
 
 // This gives us a typed object we can use to validate datapage JSON files at runtime (see

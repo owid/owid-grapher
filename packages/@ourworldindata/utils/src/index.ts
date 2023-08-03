@@ -200,6 +200,8 @@ export {
     type DataPageParseError,
     AllowedDataPageGdocFields,
     type DataPageContentFields,
+    type DataPageDataV2,
+    type FaqLink,
     type RawBlockResearchAndWritingRow,
     type EnrichedBlockAlign,
     type RawBlockAlign,
