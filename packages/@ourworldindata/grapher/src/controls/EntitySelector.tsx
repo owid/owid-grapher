@@ -6,6 +6,7 @@ import { FuzzySearch } from "./FuzzySearch"
 import { faTimes } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { SelectionArray } from "../selection/SelectionArray"
+import { ModalContext } from "../modal/Modal"
 
 interface SearchableEntity {
     name: string
@@ -49,14 +50,14 @@ class EntitySearchResult extends React.PureComponent<SearchResultProps> {
 }
 
 @observer
-export class EntitySelectorModal extends React.Component<{
+export class EntitySelector extends React.Component<{
     selectionArray: SelectionArray
     isMulti: boolean
-    onDismiss: () => void
 }> {
+    static contextType = ModalContext
+
     @observable searchInput: string = ""
     searchField!: HTMLInputElement
-    base: React.RefObject<HTMLDivElement> = React.createRef()
 
     @computed get sortedAvailableEntities(): string[] {
         return sortBy(this.props.selectionArray.availableEntityNames)
@@ -87,33 +88,12 @@ export class EntitySelectorModal extends React.Component<{
             this.props.selectionArray.toggleSelection(entityName)
         } else {
             this.props.selectionArray.setSelectedEntities([entityName])
-            this.props.onDismiss()
+            this.context.onDismiss()
         }
     }
 
-    @action.bound onDocumentClick(e: MouseEvent): void {
-        // check if the click was outside of the modal
-        if (
-            this.base?.current &&
-            !this.base.current.contains(e.target as Node) &&
-            // check that the target is still mounted to the document; we also get click events on nodes that have since been removed by React
-            document.contains(e.target as Node)
-        )
-            this.props.onDismiss()
-    }
-
     componentDidMount(): void {
-        document.addEventListener("click", this.onDocumentClick)
-
         if (!isTouchDevice()) this.searchField.focus()
-    }
-
-    componentWillUnmount(): void {
-        document.removeEventListener("click", this.onDocumentClick)
-    }
-
-    @action.bound onOverlayKeyDown(e: React.KeyboardEvent<HTMLElement>): void {
-        if (e.key === "Escape") this.props.onDismiss()
     }
 
     @action.bound onSearchKeyDown(e: React.KeyboardEvent<HTMLElement>): void {
@@ -175,55 +155,44 @@ export class EntitySelectorModal extends React.Component<{
 
         return (
             <div
-                className="entitySelectorOverlay"
-                onKeyDown={this.onOverlayKeyDown}
+                className={
+                    this.isMulti
+                        ? "EntitySelectorMulti"
+                        : "EntitySelectorSingle"
+                }
             >
-                <div
-                    ref={this.base}
-                    className={
-                        this.isMulti
-                            ? "EntitySelectorMulti"
-                            : "EntitySelectorSingle"
-                    }
-                >
-                    <header className="wrapper">
-                        <h2>
-                            Choose data to show{" "}
-                            <button onClick={this.props.onDismiss}>
-                                <FontAwesomeIcon icon={faTimes} />
-                            </button>
-                        </h2>
-                    </header>
-                    <div className="entities wrapper">
-                        <div className="searchResults">
-                            <input
-                                type="search"
-                                placeholder="Search..."
-                                value={searchInput}
-                                onChange={(e): void => {
-                                    this.searchInput = e.currentTarget.value
-                                }}
-                                onKeyDown={this.onSearchKeyDown}
-                                ref={(e): HTMLInputElement =>
-                                    (this.searchField = e as HTMLInputElement)
-                                }
-                            />
-                            <ul>
-                                {searchResults.map((result) => (
-                                    <EntitySearchResult
-                                        key={result.name}
-                                        result={result}
-                                        isMulti={this.isMulti}
-                                        isChecked={selectionArray.selectedSet.has(
-                                            result.name
-                                        )}
-                                        onSelect={this.onSelect}
-                                    />
-                                ))}
-                            </ul>
-                        </div>
-                        {this.renderSelectedData()}
+                <header className="wrapper">
+                    <h2>Choose data to show</h2>
+                </header>
+                <div className="entities wrapper">
+                    <div className="searchResults">
+                        <input
+                            type="search"
+                            placeholder="Search..."
+                            value={searchInput}
+                            onChange={(e): void => {
+                                this.searchInput = e.currentTarget.value
+                            }}
+                            onKeyDown={this.onSearchKeyDown}
+                            ref={(e): HTMLInputElement =>
+                                (this.searchField = e as HTMLInputElement)
+                            }
+                        />
+                        <ul>
+                            {searchResults.map((result) => (
+                                <EntitySearchResult
+                                    key={result.name}
+                                    result={result}
+                                    isMulti={this.isMulti}
+                                    isChecked={selectionArray.selectedSet.has(
+                                        result.name
+                                    )}
+                                    onSelect={this.onSelect}
+                                />
+                            ))}
+                        </ul>
                     </div>
+                    {this.renderSelectedData()}
                 </div>
             </div>
         )

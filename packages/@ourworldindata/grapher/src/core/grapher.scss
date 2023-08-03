@@ -44,6 +44,7 @@ $zindex-chart: 1;
 $zindex-tab: 1;
 $zindex-global-entity-select: 11;
 $zindex-Tooltip: 20;
+$zindex-modal: 30;
 
 // needed for .global-entity-control-container
 @mixin xxlg-down {
@@ -66,7 +67,7 @@ $zindex-Tooltip: 20;
     @import "../noDataModal/NoDataModal.scss";
     @import "../controls/CollapsibleList/CollapsibleList.scss";
     @import "../captionedChart/CaptionedChart.scss";
-    @import "../controls/EntitySelectorModal.scss";
+    @import "../controls/EntitySelector.scss";
     @import "../controls/AddEntityButton.scss";
     @import "../controls/ContentSwitchers.scss";
     @import "../controls/ActionButtons.scss";
@@ -78,6 +79,7 @@ $zindex-Tooltip: 20;
     @import "../loadingIndicator/LoadingIndicator.scss";
     @import "../footer/Footer.scss";
     @import "../header/Header.scss";
+    @import "../modal/Modal.scss";
 }
 
 // These rules are currently used elsewhere in the site. e.g. Explorers

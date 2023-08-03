@@ -135,7 +135,7 @@ import {
     FacetStrategyDropdownManager,
 } from "../controls/Controls"
 import { TooltipContainer } from "../tooltip/Tooltip"
-import { EntitySelectorModal } from "../controls/EntitySelectorModal"
+import { EntitySelector } from "../controls/EntitySelector"
 import { DownloadTab, DownloadTabManager } from "../downloadTab/DownloadTab"
 import ReactDOM from "react-dom"
 import { observer } from "mobx-react"
@@ -178,6 +178,7 @@ import { MarimekkoChartManager } from "../stackedCharts/MarimekkoChartConstants"
 import { AxisConfigInterface } from "../axis/AxisConfigInterface"
 import Bugsnag from "@bugsnag/js"
 import { FacetChartManager } from "../facetChart/FacetChartConstants"
+import { Modal } from "../modal/Modal"
 
 declare const window: any
 
@@ -629,7 +630,7 @@ export class Grapher
     }
 
     @computed get tableForSelection(): OwidTable {
-        // This table specifies which entities can be selected in the charts EntitySelectorModal.
+        // This table specifies which entities can be selected in the charts EntitySelector.
         // It should contain all entities that can be selected, and none more.
         // Depending on the chart type, the criteria for being able to select an entity are
         // different; e.g. for scatterplots, the entity needs to (1) not be excluded and
@@ -2315,11 +2316,14 @@ export class Grapher
                     tooltipProvider={this}
                 />
                 {this.isSelectingData && (
-                    <EntitySelectorModal
-                        isMulti={!this.canChangeEntity}
-                        selectionArray={this.selection}
+                    <Modal
                         onDismiss={action(() => (this.isSelectingData = false))}
-                    />
+                    >
+                        <EntitySelector
+                            isMulti={!this.canChangeEntity}
+                            selectionArray={this.selection}
+                        />
+                    </Modal>
                 )}
             </>
         )
