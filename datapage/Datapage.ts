@@ -16,6 +16,7 @@ import {
     AllowedDataPageGdocFields,
     DataPageDataV2,
     OwidVariableWithSource,
+    dayjs,
 } from "@ourworldindata/utils"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
@@ -44,13 +45,13 @@ export const getDatapageDataV2 = async (
         const version =
             getETLPathComonents(variableMetadata.catalogPath ?? "")?.version ??
             ""
-        const nextUpdate = undefined
-        // if (variableMetadata.updatePeriod) {
-        //     const date = dayjs(version)
-        //     nextUpdate = date
-        //         .add(variableMetadata.updatePeriod, "day")
-        //         .format("MMMM YYYY")
-        // }
+        let nextUpdate = undefined
+        if (variableMetadata.updatePeriodDays) {
+            const date = dayjs(version)
+            nextUpdate = date
+                .add(variableMetadata.updatePeriodDays, "day")
+                .format("MMMM YYYY")
+        }
         const datapageJson: DataPageDataV2 = {
             status: "draft",
             title:
@@ -67,7 +68,7 @@ export const getDatapageDataV2 = async (
             topicTagsLinks: [], // TODO: add this to metadata
             // TODO: assemble citation inline
             citationInline:
-                variableMetadata.presentation?.citationInline ??
+                variableMetadata.presentation?.attribution ??
                 variableMetadata.presentation?.producerShort ??
                 variableMetadata.origins?.[0]?.producer ??
                 variableMetadata.source?.name ??
