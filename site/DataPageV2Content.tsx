@@ -194,11 +194,12 @@ export const DataPageV2Content = ({
             : datapageData.producerShort || datapageData.titleVariant
 
     // Initialize the grapher for client-side rendering
-    const mergedGrapherConfig = merge(
-        {},
-        datapageData.chartConfig,
-        grapherConfig
-    )
+    const mergedGrapherConfig = grapherConfig
+    // merge(
+    //     {},
+    //     datapageData.chartConfig,
+    //     grapherConfig
+    // )
     useEffect(() => {
         setGrapher(new Grapher(mergedGrapherConfig))
     }, [mergedGrapherConfig])

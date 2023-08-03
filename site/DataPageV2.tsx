@@ -66,8 +66,8 @@ export const DataPageV2 = (props: {
     //     `${grapher.slug}.png?v=${grapher.version}`
     // )
     const imageUrl: string = urljoin(baseUrl, "default-grapher-thumbnail.png")
-    const imageWidth: string = "1200"
-    const imageHeight: string = "628"
+    const imageWidth = "1200"
+    const imageHeight = "628"
 
     const variableIds: number[] = uniq(
         grapher.dimensions!.map((d) => d.variableId)

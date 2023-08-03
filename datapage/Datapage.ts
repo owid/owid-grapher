@@ -59,10 +59,9 @@ export const getDatapageDataV2 = async (
                 variableMetadata.name ??
                 "",
             descriptionShort:
-                variableMetadata.presentation?.descriptionShort ??
+                variableMetadata.descriptionShort ??
                 partialGrapherConfig.subtitle,
-            descriptionFromProducer:
-                variableMetadata.presentation?.descriptionFromProducer,
+            descriptionFromProducer: variableMetadata.descriptionFromProducer,
             producerShort: variableMetadata.presentation?.producerShort,
             titleVariant: variableMetadata.presentation?.titleVariant,
             topicTagsLinks: [], // TODO: add this to metadata
