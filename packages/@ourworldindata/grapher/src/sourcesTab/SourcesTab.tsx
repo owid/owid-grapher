@@ -29,7 +29,7 @@ export class SourcesTab extends React.Component<{
     }
 
     private renderSource(column: CoreColumn): JSX.Element {
-        // TODO: support multiple sources and also origins
+        // TODO: support multiple origins
         const { slug, source, def } = column
         const { datasetId, coverage } = def as OwidColumnDef
 

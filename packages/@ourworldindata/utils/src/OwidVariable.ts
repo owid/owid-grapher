@@ -62,7 +62,6 @@ export interface OwidVariableWithSource {
     datasetId?: number
     coverage?: string
     nonRedistributable?: boolean
-    // TODO: support multiple sources
     source?: OwidSource
     origins?: OwidOrigin[]
     schemaVersion?: number

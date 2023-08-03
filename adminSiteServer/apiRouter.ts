@@ -1727,7 +1727,6 @@ apiRouter.get(
         const variable = liftVariablePresentationIntoObject(variableRaw)
         variable.display = JSON.parse(variable.display)
 
-        // TODO: support multiple sources
         variable.source = await db.mysqlFirst(
             `SELECT id, name FROM sources AS s WHERE id = ?`,
             variable.sourceId
@@ -1901,7 +1900,8 @@ apiRouter.get("/datasets/:datasetId.json", async (req: Request) => {
 
     dataset.variables = variables
 
-    // TODO: support multiple sources
+    // TODO: support multiple origins here as well
+
     // Currently for backwards compatibility datasets can still have multiple sources
     // but the UI presents only a single item of source metadata, we use the first source
     const sources = await db.queryMysql(

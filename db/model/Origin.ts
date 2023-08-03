@@ -3,6 +3,9 @@ import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm"
 @Entity("origins")
 export class Origin extends BaseEntity {
     @PrimaryGeneratedColumn() id!: number
+    @Column({ type: "varchar", nullable: true }) datasetTitleProducer!:
+        | string
+        | null
     @Column({ type: "varchar", nullable: true }) datasetTitleOwid!:
         | string
         | null

@@ -576,7 +576,6 @@ const columnDefFromOwidVariable = (
         datasetName,
         display,
         nonRedistributable,
-        // TODO: support multiple sources
         sourceLink: source?.link,
         sourceName: source?.name,
         dataPublishedBy: source?.dataPublishedBy,
