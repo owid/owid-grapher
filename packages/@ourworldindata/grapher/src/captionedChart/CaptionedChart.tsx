@@ -163,10 +163,12 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     }
 
     @computed protected get chartHeight(): number {
+        const verticalSpacingsCount = this.manager.showTimeline ? 4 : 3
+
         return Math.floor(
             this.bounds.height -
                 2 * FRAME_PADDING -
-                4 * VERTICAL_SPACING -
+                verticalSpacingsCount * VERTICAL_SPACING -
                 this.header.height -
                 CONTROLS_ROW_HEIGHT -
                 (this.manager.showTimeline ? TIMELINE_HEIGHT : 0) -
@@ -460,7 +462,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                 {this.manager.isOnTableTab
                     ? this.renderDataTable()
                     : this.renderChartOrMap()}
-                {this.renderVerticalSpace()}
+                {this.manager.showTimeline && this.renderVerticalSpace()}
                 {this.maybeRenderTimeline()}
                 {this.renderVerticalSpace()}
                 <Footer manager={this.manager} maxWidth={this.maxWidth} />
