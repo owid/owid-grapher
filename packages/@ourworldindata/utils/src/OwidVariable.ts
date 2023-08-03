@@ -8,6 +8,7 @@ import {
     deleteRuntimeAndUnchangedProps,
 } from "./persistable/Persistable.js"
 import { OwidSource } from "./OwidSource.js"
+import { OwidOrigin } from "./OwidOrigin.js"
 import {
     OwidVariableDataTableConfigInteface,
     OwidVariableDisplayConfigInterface,
@@ -61,7 +62,9 @@ export interface OwidVariableWithSource {
     datasetId?: number
     coverage?: string
     nonRedistributable?: boolean
+    // TODO: support multiple sources
     source?: OwidSource
+    origins?: OwidOrigin[]
 }
 
 export type OwidVariableWithSourceAndDimension = OwidVariableWithSource & {

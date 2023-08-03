@@ -11,6 +11,7 @@ import {
     DataValueResult,
     OwidVariableWithSourceAndDimension,
     OwidVariableId,
+    OwidOrigin,
     retryPromise,
 } from "@ourworldindata/utils"
 import pl from "nodejs-polars"
