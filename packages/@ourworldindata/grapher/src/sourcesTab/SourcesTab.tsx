@@ -78,6 +78,13 @@ export class SourcesTab extends React.Component<{
                 ? column.def.origins[0].dateAccessed
                 : undefined)
 
+        const citationProducer =
+            column.def.origins &&
+            column.def.origins.length &&
+            column.def.origins[0].citationProducer
+                ? column.def.origins[0].citationProducer
+                : undefined
+
         return (
             <div key={slug} className="datasource-wrapper">
                 <h2>
@@ -181,21 +188,20 @@ export class SourcesTab extends React.Component<{
                 </table>
                 {source.additionalInfo && (
                     <p
+                        key={"additionalInfo"}
                         dangerouslySetInnerHTML={{
                             __html: formatText(source.additionalInfo),
                         }}
                     />
                 )}
-                {column.def.origins &&
-                    column.def.origins.length &&
-                    column.def.origins[0].citationProducer && (
-                        <p>
-                            <MarkdownTextWrap
-                                text={column.def.origins[0].citationProducer}
-                                fontSize={12}
-                            />
-                        </p>
-                    )}
+                {citationProducer && (
+                    <p key={"citationProducer"}>
+                        <MarkdownTextWrap
+                            text={citationProducer}
+                            fontSize={12}
+                        />
+                    </p>
+                )}
             </div>
         )
     }
