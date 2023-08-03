@@ -111,7 +111,7 @@ const VERTICAL_SPACING = 16
 // keep in sync with sass variables in CaptionedChart.scss
 const FRAME_PADDING = VERTICAL_SPACING
 const CONTROLS_ROW_HEIGHT = 32
-const RELATED_QUESTION_HEIGHT = 20
+const RELATED_QUESTION_HEIGHT = 28
 
 const TIMELINE_HEIGHT = CONTROLS_ROW_HEIGHT
 
@@ -173,9 +173,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                 CONTROLS_ROW_HEIGHT -
                 (this.manager.showTimeline ? TIMELINE_HEIGHT : 0) -
                 this.footer.height -
-                (this.showRelatedQuestion
-                    ? RELATED_QUESTION_HEIGHT - 0.5 * FRAME_PADDING // reduce padding on the bottom
-                    : 0)
+                (this.showRelatedQuestion ? RELATED_QUESTION_HEIGHT : 0)
         )
     }
 
@@ -374,8 +372,8 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                         data-track-note="chart_click_related"
                     >
                         {relatedQuestions![0].text}
-                        <FontAwesomeIcon icon={faExternalLinkAlt} />
                     </a>
+                    <FontAwesomeIcon icon={faExternalLinkAlt} />
                 </div>
             )
         return null
