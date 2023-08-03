@@ -1,6 +1,5 @@
 import { computed } from "mobx"
 import { ChartEditor } from "./ChartEditor.js"
-import { EntitySelectionMode } from "@ourworldindata/grapher"
 
 // Responsible for determining what parts of the editor should be shown, based on the
 // type of chart being edited
