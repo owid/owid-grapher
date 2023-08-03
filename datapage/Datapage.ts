@@ -44,13 +44,13 @@ export const getDatapageDataV2 = async (
         const version =
             getETLPathComonents(variableMetadata.catalogPath ?? "")?.version ??
             ""
-        let nextUpdate = undefined
-        if (variableMetadata.updatePeriod) {
-            const date = dayjs(version)
-            nextUpdate = date
-                .add(variableMetadata.updatePeriod, "day")
-                .format("MMMM YYYY")
-        }
+        const nextUpdate = undefined
+        // if (variableMetadata.updatePeriod) {
+        //     const date = dayjs(version)
+        //     nextUpdate = date
+        //         .add(variableMetadata.updatePeriod, "day")
+        //         .format("MMMM YYYY")
+        // }
         const datapageJson: DataPageDataV2 = {
             status: "draft",
             title:
@@ -61,6 +61,8 @@ export const getDatapageDataV2 = async (
             descriptionShort:
                 variableMetadata.presentation?.descriptionShort ??
                 partialGrapherConfig.subtitle,
+            descriptionFromProducer:
+                variableMetadata.presentation?.descriptionFromProducer,
             producerShort: variableMetadata.presentation?.producerShort,
             titleVariant: variableMetadata.presentation?.titleVariant,
             topicTagsLinks: [], // TODO: add this to metadata
@@ -71,6 +73,9 @@ export const getDatapageDataV2 = async (
                 variableMetadata.origins?.[0]?.producer ??
                 variableMetadata.source?.name ??
                 "",
+            faqs: [],
+            keyInfoText: variableMetadata.presentation?.keyInfoText,
+            processingInfo: variableMetadata.presentation?.processingInfo,
             owidProcessingLevel: processingLevel,
             dateRange: variableMetadata.timespan ?? "",
             lastUpdated: version,
@@ -78,12 +83,9 @@ export const getDatapageDataV2 = async (
             relatedData: [],
             allCharts: [],
             relatedResearch: [],
-            variantMethods: undefined,
-            descriptionFromSource: undefined,
-            sources: [],
-            citationDataInline: undefined,
-            citationDataFull: undefined,
-            citationDatapage: undefined,
+            source: variableMetadata.source,
+            origins: variableMetadata.origins ?? [],
+            chartConfig: variableMetadata.presentation?.grapherConfig,
         }
         return datapageJson
     }
