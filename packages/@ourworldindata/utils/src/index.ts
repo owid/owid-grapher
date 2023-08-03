@@ -325,6 +325,7 @@ export {
     type NodeWithUrl,
     filterValidStringValues,
     traverseEnrichedSpan,
+    mergePartialGrapherConfigs,
 } from "./Util.js"
 
 export {

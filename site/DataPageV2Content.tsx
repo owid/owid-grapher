@@ -195,11 +195,7 @@ export const DataPageV2Content = ({
 
     // Initialize the grapher for client-side rendering
     const mergedGrapherConfig = grapherConfig
-    // merge(
-    //     {},
-    //     datapageData.chartConfig,
-    //     grapherConfig
-    // )
+
     useEffect(() => {
         setGrapher(new Grapher(mergedGrapherConfig))
     }, [mergedGrapherConfig])
@@ -361,16 +357,10 @@ export const DataPageV2Content = ({
                                         content={
                                             <ArticleBlocks
                                                 blocks={[
-                                                    {
-                                                        // TODO: convert markdown to enriched texts
-                                                        type: "simple-text",
-                                                        value: {
-                                                            spanType:
-                                                                "span-simple-text",
-                                                            text: datapageData.descriptionFromProducer,
-                                                        },
-                                                        parseErrors: [],
-                                                    },
+                                                    markdownToEnrichedTextBlock(
+                                                        datapageData.descriptionFromProducer ??
+                                                            ""
+                                                    ),
                                                 ]}
                                                 containerType="datapage"
                                             />

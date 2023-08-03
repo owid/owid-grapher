@@ -12,6 +12,7 @@ import {
     DataPageDataV2,
     OwidGdocInterface,
     serializeJSONForHTML,
+    mergePartialGrapherConfigs,
 } from "@ourworldindata/utils"
 import React from "react"
 import urljoin from "url-join"
@@ -73,8 +74,13 @@ export const DataPageV2 = (props: {
         grapher.dimensions!.map((d) => d.variableId)
     )
 
+    const mergedGrapherConfig = mergePartialGrapherConfigs(
+        datapageData.chartConfig as GrapherInterface,
+        grapher
+    )
+
     const grapherConfig: GrapherProgrammaticInterface = {
-        ...grapher,
+        ...mergedGrapherConfig,
         isEmbeddedInADataPage: true,
         bindUrlToWindow: true,
         bakedGrapherURL: BAKED_GRAPHER_URL,

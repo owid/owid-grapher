@@ -1660,3 +1660,10 @@ export function filterValidStringValues<ValidValue extends string>(
 
     return filteredValues
 }
+
+// TODO: type this correctly once we have moved types into their own top level package
+export function mergePartialGrapherConfigs<T extends Record<string, any>>(
+    ...grapherConfigs: T[]
+): T {
+    return merge({}, ...grapherConfigs)
+}
