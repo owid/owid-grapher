@@ -1277,6 +1277,7 @@ export enum SiteFooterContext {
     gdocsDocument = "gdocsDocument", // the rendered version (on the site)
     grapherPage = "grapherPage",
     dataPage = "dataPage",
+    dataPageV2 = "dataPageV2",
     explorerPage = "explorerPage",
     default = "default",
 }
@@ -1481,5 +1482,11 @@ export interface DataPageContentFields {
     datapageJson: DataPageJson
     datapageGdoc?: OwidGdocInterface | null
     datapageGdocContent?: DataPageGdocContent | null
+    isPreviewing?: boolean
+}
+
+export interface DataPageV2ContentFields {
+    datapageData: DataPageDataV2
+    // TODO: add gdocs for FAQs
     isPreviewing?: boolean
 }

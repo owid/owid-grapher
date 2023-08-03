@@ -1,5 +1,6 @@
 import React from "react"
 import { GrapherPage } from "../site/GrapherPage.js"
+import { DataPageV2 } from "../site/DataPageV2.js"
 import { DataPage } from "../site/DataPage.js"
 import { renderToHtmlPage } from "../baker/siteRenderers.js"
 import {

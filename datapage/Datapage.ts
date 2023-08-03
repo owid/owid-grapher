@@ -1,7 +1,7 @@
 import fs from "fs-extra"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import { Value } from "@sinclair/typebox/value"
-import { dayjs } from "dayjs"
+import "dayjs"
 import {
     OwidEnrichedGdocBlock,
     OwidGdocInterface,
@@ -74,7 +74,7 @@ export const getDatapageDataV2 = async (
                 variableMetadata.source?.name ??
                 "",
             faqs: [],
-            keyInfoText: variableMetadata.presentation?.keyInfoText,
+            keyInfoText: variableMetadata.presentation?.keyInfoText ?? [],
             processingInfo: variableMetadata.presentation?.processingInfo,
             owidProcessingLevel: processingLevel,
             dateRange: variableMetadata.timespan ?? "",
@@ -85,7 +85,7 @@ export const getDatapageDataV2 = async (
             relatedResearch: [],
             source: variableMetadata.source,
             origins: variableMetadata.origins ?? [],
-            chartConfig: variableMetadata.presentation?.grapherConfig,
+            chartConfig: variableMetadata.presentation?.grapherConfig ?? {},
         }
         return datapageJson
     }

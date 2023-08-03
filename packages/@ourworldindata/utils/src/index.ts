@@ -200,6 +200,7 @@ export {
     type DataPageParseError,
     AllowedDataPageGdocFields,
     type DataPageContentFields,
+    type DataPageV2ContentFields,
     type DataPageDataV2,
     type DataPageRelatedData,
     type DataPageRelatedResearch,
@@ -589,6 +590,10 @@ export {
 export {
     extractDetailsFromSyntax,
     mdParser,
+    type MarkdownRoot,
+    type EveryMarkdownChildNode,
+    type EveryMarkdownNode,
+    type EveryMarkdownRootNode,
 } from "./MarkdownTextWrap/parser.js"
 
 export {
