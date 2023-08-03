@@ -98,6 +98,11 @@ export type OwidVariableWithSourceAndDimension = OwidVariableWithSource & {
     dimensions: OwidVariableDimensions
 }
 
+export type OwidVariableWithSourceAndDimensionAndType =
+    OwidVariableWithSourceAndDimension & {
+        type: OwidVariableTypeOptions
+    }
+
 export type OwidVariableWithSourceAndDimensionWithoutId = Omit<
     OwidVariableWithSourceAndDimension,
     "id"
