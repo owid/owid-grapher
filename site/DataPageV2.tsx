@@ -19,6 +19,7 @@ import urljoin from "url-join"
 import {
     ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
+    DATA_API_URL,
 } from "../settings/clientSettings.js"
 import {
     DataPageV2Content,
@@ -106,8 +107,8 @@ export const DataPageV2 = (props: {
                 </noscript>
                 {variableIds.flatMap((variableId) =>
                     [
-                        getVariableDataRoute(variableId),
-                        getVariableMetadataRoute(variableId),
+                        getVariableDataRoute(DATA_API_URL, variableId),
+                        getVariableMetadataRoute(DATA_API_URL, variableId),
                     ].map((href) => (
                         <link
                             key={href}
