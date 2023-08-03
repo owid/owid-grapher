@@ -18,7 +18,6 @@ import { OldChart, Chart, getGrapherById } from "../db/model/Chart.js"
 import { Request, Response, CurrentUser } from "./authentication.js"
 import {
     getVariableData,
-    getVariableMetadataFromMySQL,
     getVariableMetadataFromMySQLWithoutDimensions,
 } from "../db/model/Variable.js"
 import {

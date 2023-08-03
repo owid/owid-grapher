@@ -1,4 +1,4 @@
-import _, { isEmpty, isNil, omitBy } from "lodash"
+import _, { isEmpty } from "lodash"
 import { Writable } from "stream"
 import * as db from "../db.js"
 import {
