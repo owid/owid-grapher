@@ -15,5 +15,4 @@ export interface OwidOrigin {
     datasetUrlDownload?: string
     dateAccessed?: Date
     datePublished?: string
-    // TODO: add remaining things here
 }
