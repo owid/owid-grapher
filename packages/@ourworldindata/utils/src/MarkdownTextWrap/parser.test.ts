@@ -906,6 +906,34 @@ how **are** you?`)
             },
         })
     })
+    it("parses link inside brackets", () => {
+        expect(mdParser.markdown.parse("[[link](www.google.com)]")).toEqual({
+            status: true,
+            value: {
+                type: "MarkdownRoot",
+                children: [
+                    {
+                        type: "text",
+                        value: "[",
+                    },
+                    {
+                        type: "markdownLink",
+                        children: [
+                            {
+                                type: "text",
+                                value: "link",
+                            },
+                        ],
+                        href: "www.google.com",
+                    },
+                    {
+                        type: "text",
+                        value: "]",
+                    },
+                ],
+            },
+        })
+    })
     it("parses link inside parentheses", () => {
         expect(mdParser.markdown.parse("([link](www.google.com))")).toEqual({
             status: true,
@@ -922,6 +950,50 @@ how **are** you?`)
                             {
                                 type: "text",
                                 value: "link",
+                            },
+                        ],
+                        href: "www.google.com",
+                    },
+                    {
+                        type: "text",
+                        value: ")",
+                    },
+                ],
+            },
+        })
+    })
+    it("parses parens inside link inside parentheses", () => {
+        expect(mdParser.markdown.parse("([l(i)nk](www.google.com))")).toEqual({
+            status: true,
+            value: {
+                type: "MarkdownRoot",
+                children: [
+                    {
+                        type: "text",
+                        value: "(",
+                    },
+                    {
+                        type: "markdownLink",
+                        children: [
+                            {
+                                type: "text",
+                                value: "l",
+                            },
+                            {
+                                type: "text",
+                                value: "(",
+                            },
+                            {
+                                type: "text",
+                                value: "i",
+                            },
+                            {
+                                type: "text",
+                                value: ")",
+                            },
+                            {
+                                type: "text",
+                                value: "nk",
                             },
                         ],
                         href: "www.google.com",
