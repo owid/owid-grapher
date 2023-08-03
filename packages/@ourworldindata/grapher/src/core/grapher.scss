@@ -77,7 +77,6 @@ $zindex-Tooltip: 20;
 
 .GrapherComponent {
     display: inline-block;
-    border: 1px solid #e7e7e7;
     text-align: left;
 
     line-height: 1em;
@@ -89,6 +88,8 @@ $zindex-Tooltip: 20;
     container-type: size;
     container-name: grapher;
 
+    // make sure the border is in the foreground
+    box-shadow: 0 0 0 1px #e7e7e7; // equivalent to `border: 1px solid #e7e7e7`
     z-index: $zindex-chart;
 
     * {
