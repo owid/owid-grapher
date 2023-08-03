@@ -30,6 +30,8 @@ export {
     type DeployChange,
     DeployStatus,
     type EnrichedDetail,
+    type EnrichedFaq,
+    type FaqEntryData,
     type DetailDictionary,
     DimensionProperty,
     type DocumentNode,
@@ -205,6 +207,7 @@ export {
     type DataPageRelatedData,
     type DataPageRelatedResearch,
     type FaqLink,
+    type FaqDictionary,
     type RawBlockResearchAndWritingRow,
     type EnrichedBlockAlign,
     type RawBlockAlign,
@@ -615,5 +618,6 @@ export {
     RESEARCH_AND_WRITING_ID,
     IMAGES_DIRECTORY,
     gdocUrlRegex,
+    gdocIdRegex,
     detailOnDemandRegex,
 } from "./GdocsConstants.js"

@@ -8,12 +8,11 @@ import {
     uniq,
     SiteFooterContext,
     MarkdownTextWrap,
-    DataPageGdocContent,
     DataPageDataV2,
-    OwidGdocInterface,
     serializeJSONForHTML,
     mergePartialGrapherConfigs,
     compact,
+    FaqEntryData,
 } from "@ourworldindata/utils"
 import React from "react"
 import urljoin from "url-join"
@@ -34,19 +33,19 @@ import { DebugProvider } from "./gdocs/DebugContext.js"
 
 export const DataPageV2 = (props: {
     grapher: GrapherInterface | undefined
-    variableId: number
     datapageData: DataPageDataV2
     baseUrl: string
     baseGrapherUrl: string
     isPreviewing: boolean
+    faqEntries?: FaqEntryData
 }) => {
     const {
         grapher,
-        variableId,
         datapageData,
         baseGrapherUrl,
         baseUrl,
         isPreviewing,
+        faqEntries,
     } = props
     const pageTitle = grapher?.title ?? datapageData.title
     const canonicalUrl = grapher?.slug
@@ -133,6 +132,7 @@ export const DataPageV2 = (props: {
                                 __html: `window._OWID_DATAPAGEV2_PROPS = ${JSON.stringify(
                                     {
                                         datapageData,
+                                        faqEntries,
                                     }
                                 )}`,
                             }}
@@ -143,6 +143,7 @@ export const DataPageV2 = (props: {
                                     datapageData={datapageData}
                                     grapherConfig={grapherConfig}
                                     isPreviewing={isPreviewing}
+                                    faqEntries={faqEntries}
                                 />
                             </DebugProvider>
                         </div>

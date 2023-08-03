@@ -55,7 +55,7 @@ import {
     BAKED_GRAPHER_EXPORTS_BASE_URL,
 } from "../../../settings/clientSettings.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../../../explorer/ExplorerConstants.js"
-import { parseDetails } from "./rawToEnriched.js"
+import { parseDetails, parseFaqs } from "./rawToEnriched.js"
 import { match, P } from "ts-pattern"
 import {
     getAllLinksFromResearchAndWritingBlock,
@@ -709,6 +709,21 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
             dodDocumentErrors.push(...errors)
         }
 
+        const faqs = this.content.faqs
+            ? parseFaqs(this.content.faqs, this.id)
+            : undefined
+        const faqErrors: OwidGdocErrorMessage[] = []
+        if (faqs?.parseErrors.length) {
+            const errors: OwidGdocErrorMessage[] = faqs.parseErrors.map(
+                (parseError) => ({
+                    ...parseError,
+                    property: "faqs",
+                    type: OwidGdocErrorMessageType.Error,
+                })
+            )
+            faqErrors.push(...errors)
+        }
+
         const allChartsErrors: OwidGdocErrorMessage[] = []
         if (this.hasAllChartsBlock && !this.tags.length) {
             allChartsErrors.push({
@@ -724,6 +739,7 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
             ...dodErrors,
             ...dodDocumentErrors,
             ...allChartsErrors,
+            ...faqErrors,
         ]
     }
 

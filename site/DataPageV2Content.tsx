@@ -184,6 +184,7 @@ export const DataPageV2Content = ({
     datapageData,
     grapherConfig,
     isPreviewing = false,
+    faqEntries,
 }: DataPageV2ContentFields & {
     grapherConfig: GrapherInterface
 }) => {
@@ -261,7 +262,7 @@ export const DataPageV2Content = ({
         imageMetadata = {},
         linkedCharts = {},
         relatedCharts = [],
-    } = {} // Todo: fill this from GDocs when adding FAQs
+    } = faqEntries ?? {}
 
     const citationDatapage = `Our World In Data (${yearOfUpdate}). Data Page: ${datapageData.title} – ${producers}. Retriefed from {url} [online resource]`
     return (
@@ -573,7 +574,7 @@ export const DataPageV2Content = ({
                     </div>
                     <div className="bg-gray-10">
                         <div className="wrapper">
-                            {datapageData?.faqs.length > 0 && (
+                            {faqEntries?.faqs.length && (
                                 <div className="section-wrapper section-wrapper__faqs grid">
                                     <h2
                                         className="faqs__title span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
@@ -583,11 +584,7 @@ export const DataPageV2Content = ({
                                     </h2>
                                     <div className="faqs__items grid grid-cols-10 grid-lg-cols-9 grid-md-cols-12 span-cols-10 span-lg-cols-9 span-md-cols-12 span-sm-cols-12">
                                         <ArticleBlocks
-                                            blocks={
-                                                []
-                                                // TODO: handle FAQs
-                                                // datapageData.faqs
-                                            }
+                                            blocks={faqEntries.faqs}
                                             containerType="datapage"
                                         />
                                     </div>

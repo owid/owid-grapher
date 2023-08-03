@@ -1256,6 +1256,7 @@ export interface OwidGdocContent {
         | "amber"
     "sticky-nav"?: []
     details?: DetailDictionary
+    faqs?: DetailDictionary
 }
 
 export type OwidGdocStickyNavItem = { target: string; text: string }
@@ -1293,6 +1294,13 @@ export type EnrichedDetail = {
 } & EnrichedBlockWithParseErrors
 
 export type DetailDictionary = Record<string, EnrichedDetail>
+
+export type EnrichedFaq = {
+    id: string
+    content: OwidEnrichedGdocBlock[]
+} & EnrichedBlockWithParseErrors
+
+export type FaqDictionary = Record<string, EnrichedFaq>
 
 /**
  * An unbounded value (±Infinity) or a concrete point in time (year or date).
@@ -1485,8 +1493,16 @@ export interface DataPageContentFields {
     isPreviewing?: boolean
 }
 
+export type FaqEntryData = Pick<
+    OwidGdocInterface,
+    "linkedCharts" | "linkedDocuments" | "relatedCharts" | "imageMetadata"
+> & {
+    faqs: OwidEnrichedGdocBlock[]
+}
+
 export interface DataPageV2ContentFields {
     datapageData: DataPageDataV2
+    faqEntries: FaqEntryData | undefined
     // TODO: add gdocs for FAQs
     isPreviewing?: boolean
 }

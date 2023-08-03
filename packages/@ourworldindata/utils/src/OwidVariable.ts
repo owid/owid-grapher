@@ -97,7 +97,14 @@ export interface OwidVariablePresentation {
     keyInfoText?: string[]
     processingInfo?: string
     topicTagsLinks?: string[]
+    faqs?: FaqLink[]
 }
+
+export interface FaqLink {
+    gdocId: string
+    fragmentId: string
+}
+
 export type OwidVariableWithSourceAndDimension = OwidVariableWithSource & {
     dimensions: OwidVariableDimensions
 }

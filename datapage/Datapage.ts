@@ -18,6 +18,7 @@ import {
     OwidVariableWithSource,
     dayjs,
     getAttributionFromVariable,
+    gdocIdRegex,
 } from "@ourworldindata/utils"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
@@ -143,16 +144,18 @@ export const getDatapageJson = async (
  * see https://github.com/owid/owid-grapher/issues/2121#issue-1676097164
  */
 export const getDatapageGdoc = async (
-    googleDocEditLink: string,
+    googleDocEditLinkOrId: string,
     isPreviewing: boolean,
     publishedExplorersBySlug?: Record<string, ExplorerProgram>
 ): Promise<OwidGdocInterface | null> => {
     // Get the google doc id from the datapage JSON file and return early if
     // none found
-    const googleDocId =
-        getLinkType(googleDocEditLink) === "gdoc"
-            ? getUrlTarget(googleDocEditLink)
-            : null
+    const isPlainGoogleId = gdocIdRegex.exec(googleDocEditLinkOrId)
+    const googleDocId = isPlainGoogleId
+        ? googleDocEditLinkOrId
+        : getLinkType(googleDocEditLinkOrId) === "gdoc"
+        ? getUrlTarget(googleDocEditLinkOrId)
+        : null
 
     if (!googleDocId) return null
 

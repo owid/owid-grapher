@@ -14,11 +14,14 @@ import {
     keyBy,
     OwidGdocType,
     retryPromise,
-    DataPageDataV2,
     DimensionProperty,
     OwidVariableWithSource,
     mergePartialGrapherConfigs,
     OwidChartDimensionInterface,
+    compact,
+    OwidGdocInterface,
+    merge,
+    EnrichedFaq,
 } from "@ourworldindata/utils"
 import {
     getRelatedArticles,
@@ -61,6 +64,11 @@ import {
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { Image } from "../db/model/Image.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
+import {
+    FaqEntryData,
+    FaqDictionary,
+} from "@ourworldindata/utils/dist/owidTypes.js"
+import { parseFaqs } from "../db/model/Gdoc/rawToEnriched.js"
 
 /**
  *
@@ -197,7 +205,8 @@ export const renderDataPageOrGrapherPage = async (
 export async function renderDataPageV2(
     variableId: number,
     variableMetadata: OwidVariableWithSource,
-    pageGrapher: GrapherInterface | undefined
+    pageGrapher: GrapherInterface | undefined,
+    publishedExplorersBySlug?: Record<string, ExplorerProgram>
 ) {
     const grapherConfigForVariable = await getMergedGrapherConfigForVariable(
         variableId
@@ -206,6 +215,58 @@ export async function renderDataPageV2(
         grapherConfigForVariable as Record<string, unknown>,
         pageGrapher as Record<string, unknown>
     )
+
+    const faqDocs = compact(
+        uniq(variableMetadata.presentation?.faqs?.map((faq) => faq.gdocId))
+    )
+    const gdocFetchPromises = faqDocs.map((gdocId) =>
+        getDatapageGdoc(gdocId, true, publishedExplorersBySlug)
+    )
+    const gdocs = await Promise.all(gdocFetchPromises)
+    const gdocIdToFragmentIdToBlock: Record<string, FaqDictionary> = {}
+    gdocs.forEach((gdoc) => {
+        if (!gdoc) return
+        const faqs = parseFaqs(gdoc.content.faqs, gdoc.id)
+        gdocIdToFragmentIdToBlock[gdoc.id] = faqs.faqs
+    })
+
+    const linkedCharts: OwidGdocInterface["linkedCharts"] = merge(
+        {},
+        ...compact(gdocs.map((gdoc) => gdoc?.linkedCharts ?? {}))
+    )
+    const linkedDocuments: OwidGdocInterface["linkedDocuments"] = merge(
+        {},
+        ...compact(gdocs.map((gdoc) => gdoc?.linkedDocuments ?? {}))
+    )
+    const imageMetadata: OwidGdocInterface["imageMetadata"] = merge(
+        {},
+        ...compact(gdocs.map((gdoc) => gdoc?.imageMetadata ?? {}))
+    )
+    const relatedCharts: OwidGdocInterface["relatedCharts"] = gdocs.flatMap(
+        (gdoc) => gdoc?.relatedCharts ?? []
+    )
+
+    // TODO: if a fragment can't be resolved we should create an error object
+    // here. If there are any errors and we are on prod we should send a slack
+    // message.
+    const resolvedFaqs: EnrichedFaq[] = variableMetadata.presentation?.faqs
+        ? compact(
+              variableMetadata.presentation.faqs.map(
+                  (faq) =>
+                      gdocIdToFragmentIdToBlock[faq.gdocId]?.[
+                          faq.fragmentId
+                      ] as EnrichedFaq | undefined
+              )
+          )
+        : []
+
+    const faqEntries: FaqEntryData = {
+        linkedCharts,
+        linkedDocuments,
+        imageMetadata,
+        relatedCharts,
+        faqs: resolvedFaqs?.flatMap((faq) => faq.content) ?? [],
+    }
 
     // If we are rendering this in the context of an indicator page preview or similar,
     // then the chart config might be entirely empty. Make sure that dimensions is
@@ -238,11 +299,11 @@ export async function renderDataPageV2(
     return renderToHtmlPage(
         <DataPageV2
             grapher={grapher}
-            variableId={variableId}
             datapageData={datapageData}
             baseUrl={BAKED_BASE_URL}
             baseGrapherUrl={BAKED_GRAPHER_URL}
             isPreviewing={isPreviewingGdoc}
+            faqEntries={faqEntries}
         />
     )
 }
@@ -265,11 +326,17 @@ export const renderPreviewDataPageOrGrapherPage = async (
     if (yVariableIds.length === 1) {
         const variableId = yVariableIds[0]
         const variableMetadata = await getVariableMetadata(variableId)
+
         if (
             variableMetadata.schemaVersion !== undefined &&
             variableMetadata.schemaVersion >= 2
         ) {
-            return await renderDataPageV2(variableId, variableMetadata, grapher)
+            return await renderDataPageV2(
+                variableId,
+                variableMetadata,
+                grapher,
+                publishedExplorersBySlug
+            )
         }
     }
     const variableIds = uniq(grapher.dimensions!.map((d) => d.variableId))
