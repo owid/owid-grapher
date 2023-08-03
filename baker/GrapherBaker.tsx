@@ -29,7 +29,6 @@ import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
     MAX_NUM_BAKE_PROCESSES,
-    DATA_FILES_CHECKSUMS_DIRECTORY,
     ADMIN_BASE_URL,
 } from "../settings/serverSettings.js"
 import * as db from "../db/db.js"
@@ -294,23 +293,13 @@ const renderGrapherPage = async (grapher: GrapherInterface) => {
     )
 }
 
-interface CheckVariableDataArguments {
-    bakedSiteDir: string
-    checksumsDir: string
-    variableId: number
-}
-
-export const checkVariableData = async (
-    bakeArgs: CheckVariableDataArguments
-): Promise<CheckVariableDataArguments> => {
+export const checkVariableData = async (variableId: number) => {
     const { dataPath, metadataPath } = await getOwidVariableDataAndMetadataPath(
-        bakeArgs.variableId
+        variableId
     )
 
     await retryPromise(() => assertFileExistsInS3(dataPath))
     await retryPromise(() => assertFileExistsInS3(metadataPath))
-
-    return bakeArgs
 }
 
 const chartIsSameVersion = async (
@@ -401,12 +390,8 @@ const deleteOldGraphers = async (bakedSiteDir: string, newSlugs: string[]) => {
 }
 
 export const bakeAllPublishedChartsVariableDataAndMetadata = async (
-    bakedSiteDir: string,
-    variableIds: number[],
-    checksumsDir: string
+    variableIds: number[]
 ) => {
-    await fs.mkdirp(checksumsDir)
-
     const progressBar = new ProgressBar(
         "check existence of variable in Data API [:bar] :current/:total :elapseds :rate/s :etas :name\n",
         {
@@ -417,11 +402,7 @@ export const bakeAllPublishedChartsVariableDataAndMetadata = async (
 
     await Promise.all(
         variableIds.map(async (variableId) => {
-            await checkVariableData({
-                bakedSiteDir,
-                variableId,
-                checksumsDir,
-            })
+            await checkVariableData(variableId)
             progressBar.tick({ name: `variableid ${variableId}` })
         })
     )
@@ -476,9 +457,7 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
 
         // NOTE: this has to be run after `chartsToBake` in case someone edits chart variable that hasn't been baked yet
         await bakeAllPublishedChartsVariableDataAndMetadata(
-            bakedSiteDir,
-            variablesToBake.map((v) => v.varId),
-            DATA_FILES_CHECKSUMS_DIRECTORY
+            variablesToBake.map((v) => v.varId)
         )
 
         const newSlugs = chartsToBake.map((row) => row.slug)

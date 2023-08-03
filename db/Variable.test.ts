@@ -37,14 +37,6 @@ describe("writeVariableCSV", () => {
         const spy = jest.spyOn(Variable, "readSQLasDF")
         if (variablesDf) spy.mockResolvedValueOnce(variablesDf)
 
-        jest.spyOn(db, "queryMysql").mockResolvedValueOnce(
-            [
-                { id: 1, dataPath: "datapath1", metadataPath: "datapath1" },
-                { id: 2, dataPath: "datapath2", metadataPath: "datapath2" },
-                { id: 3, dataPath: "datapath3", metadataPath: "datapath3" },
-            ].filter((row) => variableIds.includes(row.id))
-        )
-
         if (s3data) mockS3data(s3data)
 
         let out = ""
