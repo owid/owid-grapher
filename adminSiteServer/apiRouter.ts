@@ -1599,7 +1599,7 @@ apiRouter.get(
         req
     ): Promise<BulkGrapherConfigResponse<VariableAnnotationsResponseRow>> => {
         const context: OperationContext = {
-            grapherConfigFieldName: "grapherConfig",
+            grapherConfigFieldName: "grapherConfigAdmin",
             whitelistedColumnNamesAndTypes:
                 variableAnnotationAllowedColumnNamesAndTypes,
         }
@@ -1618,7 +1618,7 @@ apiRouter.get(
         const resultsWithStringGrapherConfigs =
             await db.queryMysql(`SELECT variables.id as id,
             variables.name as name,
-            variables.grapherConfig as config,
+            variables.grapherConfigAdmin as config,
             d.name as datasetname,
             namespaces.name as namespacename,
             variables.createdAt as createdAt,
@@ -1651,13 +1651,13 @@ apiRouter.patch("/variable-annotations", async (req) => {
 
     await db.transaction(async (manager) => {
         const configsAndIds = await manager.query(
-            `SELECT id, grapherConfig FROM variables where id IN (?)`,
+            `SELECT id, grapherConfigAdmin FROM variables where id IN (?)`,
             [[...variableIds.values()]]
         )
         const configMap = new Map(
             configsAndIds.map((item: any) => [
                 item.id,
-                item.grapherConfig ? JSON.parse(item.grapherConfig) : {},
+                item.grapherConfigAdmin ? JSON.parse(item.grapherConfig) : {},
             ])
         )
         // console.log("ids", configsAndIds.map((item : any) => item.id))
@@ -1668,7 +1668,7 @@ apiRouter.patch("/variable-annotations", async (req) => {
 
         for (const [variableId, newConfig] of configMap.entries()) {
             await manager.execute(
-                `UPDATE variables SET grapherConfig = ? where id = ?`,
+                `UPDATE variables SET grapherConfigAdmin = ? where id = ?`,
                 [JSON.stringify(newConfig), variableId]
             )
         }

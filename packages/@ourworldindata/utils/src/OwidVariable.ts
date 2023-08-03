@@ -73,7 +73,7 @@ export interface OwidVariableWithSource {
     timespan?: string
     catalogPath?: string
     presentationLicense?: OwidLicense
-    updatePeriod?: number
+    updatePeriodDays?: number
     datasetVersion?: string
     licenses?: OwidLicense[]
 

@@ -51,12 +51,12 @@ export interface VariableRow {
     keyInfoText?: string[] // this is json in the db but by convention it is always a list of strings
     processingInfo?: string
     licenses?: OwidLicense[]
-    grapherConfig?: GrapherInterface
+    grapherConfigAdmin?: GrapherInterface
     grapherConfigETL?: GrapherInterface
     attribution?: string
     attributionShort?: string
     presentationLicense?: OwidLicense
-    updatePeriod?: number
+    updatePeriodDays?: number
     datasetVersion?: string
     version?: string
 
@@ -77,14 +77,14 @@ export type UnparsedVariableRow = Omit<
     VariableRow,
     | "display"
     | "keyInfoText"
-    | "grapherConfig"
+    | "grapherConfigAdmin"
     | "grapherConfigETL"
     | "presentationLicense"
     | "licenses"
 > & {
     display: string
     keyInfoText?: string
-    grapherConfig?: string
+    grapherConfigAdmin?: string
     grapherConfigETL?: string
     presentationLicense?: string
     licenses?: string
@@ -118,8 +118,8 @@ export function parseVariableRows(
             keyInfoText: plainRow.keyInfoText
                 ? JSON.parse(plainRow.keyInfoText)
                 : [],
-            grapherConfig: plainRow.grapherConfig
-                ? JSON.parse(plainRow.grapherConfig)
+            grapherConfigAdmin: plainRow.grapherConfigAdmin
+                ? JSON.parse(plainRow.grapherConfigAdmin)
                 : [],
             grapherConfigETL: plainRow.grapherConfigETL
                 ? JSON.parse(plainRow.grapherConfigETL)

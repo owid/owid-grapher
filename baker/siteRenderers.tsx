@@ -607,11 +607,11 @@ export const renderExplorerPage = async (
 
     let partialGrapherConfigRows: {
         id: number
-        grapherConfig: string | null
+        grapherConfigAdmin: string | null
     }[] = []
     if (requiredVariableIds.length) {
         partialGrapherConfigRows = await queryMysql(
-            `SELECT id, grapherConfig FROM variables WHERE id IN (?)`,
+            `SELECT id, grapherConfigAdmin FROM variables WHERE id IN (?)`,
             [requiredVariableIds]
         )
     }
@@ -625,11 +625,11 @@ export const renderExplorerPage = async (
     }
     const grapherConfigs = grapherConfigRows.map(parseGrapherConfigFromRow)
     const partialGrapherConfigs = partialGrapherConfigRows
-        .filter((row) => row.grapherConfig)
+        .filter((row) => row.grapherConfigAdmin)
         .map((row) =>
             parseGrapherConfigFromRow({
                 id: row.id,
-                config: row.grapherConfig as string,
+                config: row.grapherConfigAdmin as string,
             })
         )
 
