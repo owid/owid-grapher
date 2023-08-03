@@ -18,7 +18,8 @@ import { OldChart, Chart, getGrapherById } from "../db/model/Chart.js"
 import { Request, Response, CurrentUser } from "./authentication.js"
 import {
     getVariableData,
-    liftVariablePresentationIntoObject,
+    getVariableMetadataFromMySQL,
+    getVariableMetadataFromMySQLWithoutDimensions,
 } from "../db/model/Variable.js"
 import {
     applyPatch,
@@ -42,6 +43,7 @@ import {
     variableAnnotationAllowedColumnNamesAndTypes,
     VariableAnnotationsResponseRow,
     isUndefined,
+    OwidVariableWithSource,
 } from "@ourworldindata/utils"
 import {
     GrapherInterface,
@@ -278,7 +280,7 @@ const saveGrapher = async (
     user: CurrentUser,
     newConfig: GrapherInterface,
     existingConfig?: GrapherInterface,
-    referencedVariablesMightChange: boolean = true // if the variables a chart uses can change then we need
+    referencedVariablesMightChange = true // if the variables a chart uses can change then we need
     // to update the latest country data which takes quite a long time (hundreds of ms)
 ) => {
     // Slugs need some special logic to ensure public urls remain consistent whenever possible
@@ -1707,36 +1709,89 @@ apiRouter.get(
     async (req: Request, res: Response) => {
         const variableId = expectInt(req.params.variableId)
 
-        const variableRaw = await db.mysqlFirst(
-            `
-            SELECT v.id, v.name, v.unit, v.shortUnit, v.description, v.sourceId, u.fullName AS uploadedBy,
-                v.display, d.id AS datasetId, d.name AS datasetName, d.namespace AS datasetNamespace, v.schemaVersion,
-                v.processingLevel, v.titlePublic, v.titleVariant, v.producerShort, v.citationInline, v.descriptionShort,
-                v.descriptionFromProducer, v.keyInfoText, v.processingInfo, v.licenses, v.grapherConfig
-            FROM variables v
-            JOIN datasets d ON d.id=v.datasetId
-            JOIN users u ON u.id=d.dataEditedByUserId
-            WHERE v.id = ?
-            `,
-            [variableId]
-        )
+        // const variableRaw: {
+        //     id: number
+        //     name: string
+        //     unit: string | null
+        //     shortUnit: string | null
+        //     description: string | null
+        //     sourceId: number
+        //     uploadedBy: string
+        //     display: string // JSON - OwidVariableDisplayConfig
+        //     datasetId: number
+        //     datasetName: string
+        //     datasetNamespace: string
+        //     schemaVersion: number | null
+        //     processingLevel: "minor" | "major" | null
+        //     titlePublic: string | null
+        //     titleVariant: string | null
+        //     producerShort: string | null
+        //     citationInline: string | null
+        //     descriptionShort: string | null
+        //     descriptionFromProducer: string | null
+        //     keyInfoText: string | null // JSON - array of strings
+        //     processingInfo: string | null
+        //     licenses: string | null // JSON - array of OwidLicense
+        //     presentationLicense: string | null // JSON - OwidLicense
+        //     grapherConfig: string | null // JSON - GrapherInterface
+        //     grapherConfigETL: string | null // JSON - GrapherInterface
+        //     updatePeriod: number | null
+        // } = await db.mysqlFirst(
+        //     `-- sql
+        //     SELECT v.id,
+        //         v.name,
+        //         v.unit,
+        //         v.shortUnit,
+        //         v.description,
+        //         v.sourceId,
+        //         u.fullName AS uploadedBy,
+        //         v.display,
+        //         d.id AS datasetId,
+        //         d.name AS datasetName,
+        //         d.namespace AS datasetNamespace,
+        //         d.updatePeriod as updatePeriod,
+        //         v.schemaVersion,
+        //         v.processingLevel,
+        //         v.titlePublic,
+        //         v.titleVariant,
+        //         v.producerShort,
+        //         v.citationInline,
+        //         v.descriptionShort,
+        //         v.descriptionFromProducer,
+        //         v.keyInfoText,
+        //         v.processingInfo,
+        //         v.licenses,
+        //         v.presentationLicense,
+        //         v.grapherConfig,
+        //         v.grapherConfigETL,
+        //     FROM variables v
+        //     JOIN datasets d ON d.id=v.datasetId
+        //     JOIN users u ON u.id=d.dataEditedByUserId
+        //     WHERE v.id = ?
+        //     `,
+        //     [variableId]
+        // )
 
-        if (!variableRaw) {
-            throw new JsonError(`No variable by id '${variableId}'`, 404)
-        }
-        const variable = liftVariablePresentationIntoObject(variableRaw)
-        variable.display = JSON.parse(variable.display)
+        // if (!variableRaw) {
+        //     throw new JsonError(`No variable by id '${variableId}'`, 404)
+        // }
+        // const variable = extractVariablePresentation(variableRaw)
+        // variable.display = JSON.parse(variable.display)
 
-        variable.source = await db.mysqlFirst(
-            `SELECT id, name FROM sources AS s WHERE id = ?`,
-            variable.sourceId
-        )
+        // variable.source = await db.mysqlFirst(
+        //     `SELECT id, name FROM sources AS s WHERE id = ?`,
+        //     variable.sourceId
+        // )
 
-        variable.origins = await db.queryMysql(
-            `SELECT * from origins o
-             join origins_variables ov on o.id = ov.originId
-             where ov.variableId = ?`,
-            [variableId]
+        // variable.origins = await db.queryMysql(
+        //     `SELECT * from origins o
+        //      join origins_variables ov on o.id = ov.originId
+        //      where ov.variableId = ?`,
+        //     [variableId]
+        // )
+
+        const variable = await getVariableMetadataFromMySQLWithoutDimensions(
+            variableId
         )
 
         const charts = await db.queryMysql(
@@ -1754,10 +1809,15 @@ apiRouter.get(
 
         await Chart.assignTagsForCharts(charts)
 
-        variable.charts = charts
+        const variablesWithCharts: OwidVariableWithSource & {
+            charts: Record<string, any>
+        } = {
+            ...variable,
+            charts,
+        }
 
         return {
-            variable: variable as VariableSingleMeta,
+            variable: variablesWithCharts,
         } /*, vardata: await getVariableData([variableId]) }*/
     }
 )

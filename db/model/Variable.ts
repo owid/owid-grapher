@@ -15,6 +15,7 @@ import {
     retryPromise,
     OwidLicense,
     OwidVariableWithSource,
+    OwidVariablePresentation,
 } from "@ourworldindata/utils"
 import { GrapherInterface } from "@ourworldindata/grapher"
 import pl from "nodejs-polars"
@@ -55,8 +56,8 @@ export interface VariableRow {
     attribution?: string
     attributionShort?: string
     presentationLicense?: OwidLicense
-    updatePeriod: number
-    datasetVersion: string
+    updatePeriod?: number
+    datasetVersion?: string
     version?: string
 
     // missing here but existsin the DB:
@@ -74,10 +75,19 @@ interface Dimensions {
 
 export type UnparsedVariableRow = Omit<
     VariableRow,
-    "display" | "keyInfoText"
+    | "display"
+    | "keyInfoText"
+    | "grapherConfig"
+    | "grapherConfigETL"
+    | "presentationLicense"
+    | "licenses"
 > & {
     display: string
     keyInfoText?: string
+    grapherConfig?: string
+    grapherConfigETL?: string
+    presentationLicense?: string
+    licenses?: string
 }
 
 export type VariableQueryRow = Readonly<
@@ -107,6 +117,16 @@ export function parseVariableRows(
                 : undefined,
             keyInfoText: plainRow.keyInfoText
                 ? JSON.parse(plainRow.keyInfoText)
+                : [],
+            grapherConfig: plainRow.grapherConfig
+                ? JSON.parse(plainRow.grapherConfig)
+                : [],
+            grapherConfigETL: plainRow.grapherConfigETL
+                ? JSON.parse(plainRow.grapherConfigETL)
+                : [],
+            licenses: plainRow.licenses ? JSON.parse(plainRow.licenses) : [],
+            presentationLicense: plainRow.presentationLicense
+                ? JSON.parse(plainRow.presentationLicense)
                 : [],
         }
         parsedRows.push(row)

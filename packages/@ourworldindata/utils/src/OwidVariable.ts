@@ -73,9 +73,8 @@ export interface OwidVariableWithSource {
     timespan?: string
     catalogPath?: string
     presentationLicense?: OwidLicense
-    topicTagsLinks: string[]
-    updatePeriod: number
-    datasetVersion: string
+    updatePeriod?: number
+    datasetVersion?: string
     licenses?: OwidLicense[]
 
     // omitted:
@@ -97,6 +96,7 @@ export interface OwidVariablePresentation {
     citationInline?: string
     keyInfoText?: string[]
     processingInfo?: string
+    topicTagsLinks?: string[]
     grapherConfig?: Record<string, unknown> // TODO: move grapher config interface up to types, use it here, clean up types
 }
 export type OwidVariableWithSourceAndDimension = OwidVariableWithSource & {
