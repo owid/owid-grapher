@@ -40,7 +40,7 @@ export interface VariableRow {
     metadataPath?: string
     dimensions?: Dimensions
     schemaVersion?: number
-    processingLevel?: "minor" | "medium" | "major"
+    processingLevel?: "minor" | "major"
     titlePublic?: string
     titleVariant?: string
     producerShort?: string
@@ -52,6 +52,13 @@ export interface VariableRow {
     licenses?: OwidLicense[]
     grapherConfig?: GrapherInterface
     grapherConfigETL?: GrapherInterface
+    attribution?: string
+    attributionShort?: string
+    presentationLicense?: OwidLicense
+    updatePeriod: number
+    datasetVersion: string
+    version?: string
+
     // missing here but existsin the DB:
     // originalMetadata
 }
