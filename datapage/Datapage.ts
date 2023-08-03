@@ -65,8 +65,7 @@ export const getDatapageDataV2 = async (
             descriptionFromProducer: variableMetadata.descriptionFromProducer,
             producerShort: variableMetadata.presentation?.producerShort,
             titleVariant: variableMetadata.presentation?.titleVariant,
-            topicTagsLinks: [], // TODO: add this to metadata
-            // TODO: assemble citation inline
+            topicTagsLinks: variableMetadata.presentation?.topicTagsLinks ?? [],
             attribution: getAttributionFromVariable(variableMetadata),
             faqs: [],
             keyInfoText: variableMetadata.presentation?.keyInfoText ?? [],

@@ -18,6 +18,7 @@ import {
     Span,
     EnrichedBlockText,
     excludeNullish,
+    slugify,
 } from "@ourworldindata/utils"
 import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
 import StickyNav from "./blocks/StickyNav.js"
@@ -298,8 +299,11 @@ export const DataPageV2Content = ({
                                 <div className="topic-tags">
                                     {datapageData.topicTagsLinks?.map(
                                         (topic: any) => (
-                                            <a href={topic.url} key={topic.url}>
-                                                {topic.title}
+                                            <a
+                                                href={`/${slugify(topic)}`}
+                                                key={topic}
+                                            >
+                                                {topic}
                                             </a>
                                         )
                                     )}
