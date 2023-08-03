@@ -102,16 +102,26 @@ export class EditorFeatures {
     }
 
     @computed get canSpecifyMissingDataStrategy() {
-        return (
-            this.grapher.hasMultipleYColumns &&
-            (this.grapher.canChangeEntity ||
-                this.grapher.canSelectMultipleEntities) &&
-            (this.grapher.isStackedArea ||
-                this.grapher.isStackedBar ||
-                this.grapher.isStackedDiscreteBar ||
-                this.grapher.isDiscreteBar ||
-                this.grapher.isLineChart)
-        )
+        if (!this.grapher.hasMultipleYColumns) return false
+
+        if (this.grapher.isStackedArea || this.grapher.isStackedBar) {
+            return true
+        }
+
+        // for line charts and discrete bar charts, specifying a missing
+        // data strategy only makes sense if there are multiple entities
+        if (
+            this.grapher.isLineChart ||
+            this.grapher.isDiscreteBar ||
+            this.grapher.isStackedDiscreteBar
+        ) {
+            return (
+                this.grapher.canChangeEntity ||
+                this.grapher.canSelectMultipleEntities
+            )
+        }
+
+        return false
     }
 
     @computed get showChangeInPrefixToggle() {
