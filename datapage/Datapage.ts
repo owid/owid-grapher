@@ -21,6 +21,7 @@ import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
 import {
     getVariableData,
     getVariableMetadataFromMySQL,
+    getVariableMetadataFromMySQLWithoutDimensions,
 } from "../db/model/Variable.js"
 import { GrapherInterface } from "@ourworldindata/grapher"
 
@@ -36,19 +37,11 @@ const getETLPathComonents = (path: string) => {
     return { channel, publisher, version, dataset }
 }
 
-export const getDatapageJson = async (
+export const getDatapageDataV2 = async (
     variableId: number
-): Promise<{
-    datapageJson: DataPageJson | null
-    parseErrors: DataPageParseError[]
-}> => {
-    let datapageJson: DataPageJson | null = null
-    // TODO: this is very inefficient for bulk operations - rethink how to do this
-    const variableData = await getVariableData(variableId)
-    const variableMetadata = await getVariableMetadataFromMySQL(
-        variableId,
-        variableData.data
-    )
+): Promise<DataPageDataV2> => {
+    const variableMetadata =
+        await getVariableMetadataFromMySQLWithoutDimensions(variableId)
     if (
         variableMetadata.schemaVersion !== undefined &&
         variableMetadata.schemaVersion >= 2
@@ -56,12 +49,9 @@ export const getDatapageJson = async (
         const partialGrapherConfig = (variableMetadata.presentation
             ?.grapherConfig ?? {}) as GrapherInterface
         const processingLevel = variableMetadata.processingLevel ?? "medium"
-        const years = variableMetadata.dimensions.years.values.map(
-            (year) => year.id
-        )
-        const timerangeStart = min(years)
-        const timerangeEnd = max(years)
-        const version = "" //getETLPathComonents(variableMetadata.path ?? "")?.version ?? ""
+        const version =
+            getETLPathComonents(variableMetadata.catalogPath ?? "")?.version ??
+            ""
         datapageJson = {
             showDataPageOnChartIds: [],
             status: "draft",
@@ -82,7 +72,7 @@ export const getDatapageJson = async (
                 variableMetadata.source?.name ??
                 "",
             owidProcessingLevel: processingLevel,
-            dateRange: `${timerangeStart}-${timerangeEnd}`,
+            dateRange: variableMetadata.timespan ?? "",
             lastUpdated: version,
             nextUpdate: "",
             relatedData: [],
@@ -98,6 +88,15 @@ export const getDatapageJson = async (
         }
         return { datapageJson, parseErrors: [] }
     }
+}
+
+export const getDatapageJson = async (
+    variableId: number
+): Promise<{
+    datapageJson: DataPageJson | null
+    parseErrors: DataPageParseError[]
+}> => {
+    let datapageJson: DataPageJson | null = null
     try {
         const fullPath = `${GIT_CMS_DIR}/datapages/${variableId}.json`
         const datapageJsonFile = await fs.readFile(fullPath, "utf8")

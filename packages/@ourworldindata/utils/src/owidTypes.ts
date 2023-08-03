@@ -1351,6 +1351,30 @@ export type DataPageGdocContent = Record<
     OwidEnrichedGdocBlock[]
 >
 
+export interface FaqLink {
+    gdocId: string
+    fragmentId: string
+}
+
+export interface DataPageDataV2 {
+    status: "published" | "draft"
+    title: string
+    titleVariant?: string
+    producerShort?: string
+    topicTagsLinks?: string[]
+    citationInline: string
+    descriptionShort?: string
+    descriptionFromProducer?: string
+    faqs: FaqLink[]
+    keyInfoText: string[]
+    processingInfo?: string
+    owidProcessingLevel: "minor" | "medium" | "major"
+    dateRange: string
+    lastUpdated: string
+    updatedPeriod: number
+    relatedResearch: string[] // GDoc IDs
+}
+
 // This gives us a typed object we can use to validate datapage JSON files at runtime (see
 // Value.Check() and Value.Errors() below), as well as a type that we can use
 // for typechecking at compile time (see "type DataPageJson" below).
