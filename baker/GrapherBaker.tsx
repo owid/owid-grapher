@@ -218,8 +218,9 @@ export const renderPreviewDataPageOrGrapherPage = async (
         !datapageJson ||
         // We only want to render datapages on selected charts, even if the
         // variable found on the chart has a datapage configuration.
-        !grapher.id ||
-        !datapageJson.showDataPageOnChartIds.includes(grapher.id)
+        !grapher.id // ||
+        // TODO: consider what to do with the check below
+        //!datapageJson.showDataPageOnChartIds.includes(grapher.id)
     )
         return renderGrapherPage(grapher)
 

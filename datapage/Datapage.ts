@@ -13,9 +13,28 @@ import {
     DataPageJsonTypeObject,
     DataPageParseError,
     AllowedDataPageGdocFields,
+    min,
+    max,
 } from "@ourworldindata/utils"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
+import {
+    getVariableData,
+    getVariableMetadataFromMySQL,
+} from "../db/model/Variable.js"
+import { GrapherInterface } from "@ourworldindata/grapher"
+
+interface ETLPathComponents {
+    channel: string
+    publisher: string
+    version: string
+    dataset: string
+}
+
+const getETLPathComonents = (path: string) => {
+    const [channel, publisher, version, dataset] = path.split("/")
+    return { channel, publisher, version, dataset }
+}
 
 export const getDatapageJson = async (
     variableId: number
@@ -24,6 +43,61 @@ export const getDatapageJson = async (
     parseErrors: DataPageParseError[]
 }> => {
     let datapageJson: DataPageJson | null = null
+    // TODO: this is very inefficient for bulk operations - rethink how to do this
+    const variableData = await getVariableData(variableId)
+    const variableMetadata = await getVariableMetadataFromMySQL(
+        variableId,
+        variableData.data
+    )
+    if (
+        variableMetadata.schemaVersion !== undefined &&
+        variableMetadata.schemaVersion >= 2
+    ) {
+        const partialGrapherConfig = (variableMetadata.presentation
+            ?.grapherConfig ?? {}) as GrapherInterface
+        const processingLevel = variableMetadata.processingLevel ?? "medium"
+        const years = variableMetadata.dimensions.years.values.map(
+            (year) => year.id
+        )
+        const timerangeStart = min(years)
+        const timerangeEnd = max(years)
+        const version = "" //getETLPathComonents(variableMetadata.path ?? "")?.version ?? ""
+        datapageJson = {
+            showDataPageOnChartIds: [],
+            status: "draft",
+            title:
+                variableMetadata.presentation?.titlePublic ??
+                partialGrapherConfig.title ??
+                variableMetadata.name ??
+                "",
+            subtitle:
+                variableMetadata.presentation?.descriptionShort ??
+                partialGrapherConfig.subtitle,
+            variantSource: variableMetadata.presentation?.titleVariant,
+
+            topicTagsLinks: [],
+            nameOfSource:
+                variableMetadata.presentation?.producerShort ??
+                variableMetadata.origins?.[0]?.producer ??
+                variableMetadata.source?.name ??
+                "",
+            owidProcessingLevel: processingLevel,
+            dateRange: `${timerangeStart}-${timerangeEnd}`,
+            lastUpdated: version,
+            nextUpdate: "",
+            relatedData: [],
+            allCharts: [],
+            relatedResearch: [],
+            googleDocEditLink: undefined,
+            variantMethods: undefined,
+            descriptionFromSource: undefined,
+            sources: [],
+            citationDataInline: undefined,
+            citationDataFull: undefined,
+            citationDatapage: undefined,
+        }
+        return { datapageJson, parseErrors: [] }
+    }
     try {
         const fullPath = `${GIT_CMS_DIR}/datapages/${variableId}.json`
         const datapageJsonFile = await fs.readFile(fullPath, "utf8")
@@ -111,7 +185,7 @@ export const getDatapageGdoc = async (
  * Takes a gdoc and splits its content into sections based on the heading 1s.
 
 * The heading 1 texts are used as keys, which can represent a nested structure,
- * e.g. `descriptionFromSource.content`. 
+ * e.g. `descriptionFromSource.content`.
  *
  * Validation: only a subset of the possible fields found is allowed (see
  * AllowedDataPageGdocFields). This means the gdoc can contain extra heading
