@@ -32,21 +32,22 @@ import {
     SearchIndexName,
     searchCategoryFilters,
 } from "./searchTypes.js"
+import { EXPLORERS_ROUTE_FOLDER } from "../../explorer/ExplorerConstants.js"
 
 function PagesHit({ hit }: { hit: any }) {
     return (
         <a href={`${BAKED_BASE_URL}/${hit.slug}`}>
             {/* TODO: index featured images */}
             <header className="page-hit__header">
-                <h4 className="h3-bold search-panel__page-hit-title">
+                <h4 className="h3-bold search-results__page-hit-title">
                     {hit.title}
                 </h4>
-                <span className="body-3-medium search-panel__page-hit-type">
+                <span className="body-3-medium search-results__page-hit-type">
                     {hit.type === "article" ? "Article" : "Topic page"}
                 </span>
             </header>
             <Snippet
-                className="body-3-medium search-panel__page-hit-snippet"
+                className="body-3-medium search-results__page-hit-snippet"
                 attribute="excerpt"
                 highlightedTagName="strong"
                 hit={hit}
@@ -58,11 +59,16 @@ function PagesHit({ hit }: { hit: any }) {
 function ChartHit({ hit }: { hit: any }) {
     return (
         <a href={`${BAKED_GRAPHER_URL}/${hit.slug}`}>
-            <img src={`${BAKED_GRAPHER_URL}/exports/${hit.slug}.svg`} />
+            <div className="search-results__chart-hit-img-container">
+                <img
+                    loading="lazy"
+                    src={`${BAKED_GRAPHER_URL}/exports/${hit.slug}.svg`}
+                />
+            </div>
             <Highlight
                 attribute="title"
                 highlightedTagName="strong"
-                className="search-panel__chart-hit-highlight"
+                className="search-results__chart-hit-highlight"
                 hit={hit}
             />
         </a>
@@ -71,30 +77,38 @@ function ChartHit({ hit }: { hit: any }) {
 
 function ExplorersHit({ hit }: { hit: any }) {
     return (
-        <a href={hit.slug}>
+        <a href={`${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${hit.slug}`}>
             <h4 className="h3-bold">{hit.title}</h4>
-            <p className="body-3-medium">{hit.subtitle}</p>
+            {/* Explorer subtitles are mostly useless at the moment, so we're only showing titles */}
         </a>
     )
 }
 
 function ShowMore({
-    toggleIsExpanded,
-    isExpanded,
+    category,
+    cutoffNumber,
+    activeCategoryFilter,
+    setActiveCategoryFilter,
 }: {
-    toggleIsExpanded: () => void
-    isExpanded: boolean
+    category: SearchIndexName
+    cutoffNumber: number
+    activeCategoryFilter: SearchCategoryFilter
+    setActiveCategoryFilter: (x: SearchIndexName) => void
 }) {
     const { results } = useInstantSearch()
-    return !isExpanded ? (
-        <div className="search-panel__show-more-container">
-            <em>Showing 4 out of {results.hits.length} results</em>
-            {/* TODO: make this switch to R&W tab instead */}
-            <button onClick={toggleIsExpanded}>Show all</button>
-        </div>
-    ) : (
-        <div className="search-panel__show-more-container">
-            <em>Showing {results.hits.length} results</em>
+    // Don't show if we're on the same tab as the category this button is for
+    if (activeCategoryFilter === category) return null
+    if (results.hits.length === 0) return null
+    const numberShowing =
+        cutoffNumber < results.hits.length ? cutoffNumber : results.hits.length
+    return (
+        <div className="search-results__show-more-container">
+            <em>
+                Showing {numberShowing} out of {results.hits.length} results
+            </em>
+            <button onClick={() => setActiveCategoryFilter(category)}>
+                Show all
+            </button>
         </div>
     )
 }
@@ -118,20 +132,20 @@ function Filters({
     )
 
     return (
-        <div className="search-panel__filters-container">
-            <div className="search-panel__content-filter-container">
+        <div className="search-filters">
+            <div className="search-filters__tabs">
                 {searchCategoryFilters.map(([label, key]) => (
                     <button
                         key={label}
                         disabled={hitsLengthByIndexName[key] === 0}
                         onClick={() => setActiveCategoryFilter(key)}
-                        className={cx("search-panel__content-filter-button", {
-                            "search-panel__content-filter-button--is-active":
+                        className={cx("search-filters__tab-button", {
+                            "search-filters__tab-button--is-active":
                                 activeCategoryFilter === key,
                         })}
                     >
                         {label}
-                        <span className="search-panel__content-filter-count">
+                        <span className="search-filters__tab-count">
                             {hitsLengthByIndexName[key]}
                         </span>
                     </button>
@@ -139,6 +153,116 @@ function Filters({
             </div>
         </div>
     )
+}
+
+interface SearchResultsProps {
+    isHidden: boolean
+}
+
+@observer
+class SearchResults extends React.Component<SearchResultsProps> {
+    constructor(props: SearchResultsProps) {
+        super(props)
+    }
+
+    @observable activeCategoryFilter: SearchCategoryFilter = "all"
+
+    @action.bound setActiveCategoryFilter(filter: SearchCategoryFilter) {
+        this.activeCategoryFilter = filter
+    }
+
+    render() {
+        if (this.props.isHidden) return null
+        return (
+            <div
+                className="search-results"
+                data-active-filter={this.activeCategoryFilter}
+            >
+                <Filters
+                    activeCategoryFilter={this.activeCategoryFilter}
+                    setActiveCategoryFilter={this.setActiveCategoryFilter}
+                />
+                {/* This is using the InstantSearch index */}
+                <Configure hitsPerPage={40} distinct />
+
+                <div className="search-results__pages">
+                    <header className="search-results__header">
+                        <h2 className="h2-bold search-results__section-title">
+                            Research & Writing
+                        </h2>
+                        <ShowMore
+                            category={SearchIndexName.Pages}
+                            cutoffNumber={4}
+                            activeCategoryFilter={this.activeCategoryFilter}
+                            setActiveCategoryFilter={
+                                this.setActiveCategoryFilter
+                            }
+                        />
+                    </header>
+                    <Hits
+                        classNames={{
+                            root: "search-results__pages-list-container",
+                            list: "search-results__pages-list grid grid-cols-2 grid-cols-sm-1",
+                            item: "search-results__page-hit",
+                        }}
+                        hitComponent={PagesHit}
+                    />
+                </div>
+                <div className="search-results__explorers">
+                    <Index indexName={SearchIndexName.Explorers}>
+                        <header className="search-results__header">
+                            <h2 className="h2-bold search-results__section-title">
+                                Data Explorers
+                            </h2>
+                            <ShowMore
+                                category={SearchIndexName.Explorers}
+                                cutoffNumber={2}
+                                activeCategoryFilter={this.activeCategoryFilter}
+                                setActiveCategoryFilter={
+                                    this.setActiveCategoryFilter
+                                }
+                            />
+                        </header>
+                        <Configure hitsPerPage={10} distinct />
+                        <Hits
+                            classNames={{
+                                root: "search-results__explorers-list-container",
+                                list: "search-results__explorers-list grid grid-cols-2 grid-cols-sm-1",
+                                item: "search-results__explorer-hit",
+                            }}
+                            hitComponent={ExplorersHit}
+                        />
+                    </Index>
+                </div>
+                <div className="search-results__charts">
+                    <Index indexName={SearchIndexName.Charts}>
+                        <header className="search-results__header">
+                            <h2 className="h2-bold search-results__section-title">
+                                Charts
+                            </h2>
+                            <ShowMore
+                                category={SearchIndexName.Charts}
+                                cutoffNumber={15}
+                                activeCategoryFilter={this.activeCategoryFilter}
+                                setActiveCategoryFilter={
+                                    this.setActiveCategoryFilter
+                                }
+                            />
+                        </header>
+                        <Configure hitsPerPage={40} distinct />
+                        <Hits
+                            classNames={{
+                                root: "search-results__charts-list-container",
+                                list: "search-results__charts-list grid grid-cols-4 grid-cols-sm-2",
+                                item: "search-results__chart-hit",
+                            }}
+                            hitComponent={ChartHit}
+                        />
+                    </Index>
+                </div>
+            </div>
+        )
+    }
 }
 
 @observer
@@ -151,23 +275,12 @@ export class InstantSearchContainer extends React.Component {
     }
 
     @observable inputValue: string = ""
-    @observable isPagesExpanded: boolean = false
-    @observable activeCategoryFilter: SearchCategoryFilter = "all"
 
     @action.bound handleQuery(query: string, search: (value: string) => void) {
         this.inputValue = query
-        this.isPagesExpanded = false
         if (query) {
             search(query)
         }
-    }
-
-    @action.bound toggleIsPagesExpanded() {
-        this.isPagesExpanded = !this.isPagesExpanded
-    }
-
-    @action.bound setActiveCategoryFilter(filter: SearchCategoryFilter) {
-        this.activeCategoryFilter = filter
     }
 
     render() {
@@ -177,98 +290,12 @@ export class InstantSearchContainer extends React.Component {
                 indexName={SearchIndexName.Pages}
             >
                 <div className="search-panel">
-                    <div
-                        className="search-panel__results"
-                        data-active-filter={this.activeCategoryFilter}
-                    >
-                        <SearchBox
-                            placeholder="Try “COVID”, “Poverty”, “New Zealand”, “CO2 emissions per capita”..."
-                            className="searchbox"
-                            queryHook={this.handleQuery}
-                        />
-                        {/* TODO: lift out into <SearchResults /> component to remove ternary */}
-                        {this.inputValue ? (
-                            <>
-                                <Filters
-                                    activeCategoryFilter={
-                                        this.activeCategoryFilter
-                                    }
-                                    setActiveCategoryFilter={
-                                        this.setActiveCategoryFilter
-                                    }
-                                />
-                                {/* This is using the InstantSearch index */}
-                                <Configure hitsPerPage={20} distinct={1} />
-
-                                <div className="search-panel__pages">
-                                    <header className="search-panel__header">
-                                        <h2 className="h2-bold search-panel__section-title">
-                                            Research & Writing
-                                        </h2>
-                                        <ShowMore
-                                            isExpanded={this.isPagesExpanded}
-                                            toggleIsExpanded={
-                                                this.toggleIsPagesExpanded
-                                            }
-                                        />
-                                    </header>
-                                    <Hits
-                                        classNames={{
-                                            root: cx({
-                                                "search-panel__pages-list-container":
-                                                    true,
-                                                "search-panel__pages-list-container--is-expanded":
-                                                    this.isPagesExpanded,
-                                            }),
-                                            list: "search-panel__pages-list grid grid-cols-2 grid-cols-sm-1",
-                                            item: "search-panel__page-hit",
-                                        }}
-                                        hitComponent={PagesHit}
-                                    />
-                                </div>
-                                <div className="search-panel__explorers">
-                                    <h2 className="h2-bold search-panel__section-title">
-                                        Data Explorers
-                                    </h2>
-                                    <Index
-                                        indexName={SearchIndexName.Explorers}
-                                    >
-                                        <Configure
-                                            hitsPerPage={2}
-                                            distinct={1}
-                                        />
-                                        <Hits
-                                            classNames={{
-                                                root: "search-panel__explorers-list-container",
-                                                list: "search-panel__explorers-list grid grid-cols-2 grid-cols-sm-1",
-                                                item: "search-panel__explorer-hit",
-                                            }}
-                                            hitComponent={ExplorersHit}
-                                        />
-                                    </Index>
-                                </div>
-                                <div className="search-panel__charts">
-                                    <h2 className="h2-bold search-panel__section-title">
-                                        Charts
-                                    </h2>
-                                    <Index indexName={SearchIndexName.Charts}>
-                                        <Configure
-                                            hitsPerPage={20}
-                                            distinct={1}
-                                        />
-                                        <Hits
-                                            classNames={{
-                                                root: "search-panel__charts-list-container",
-                                                list: "search-panel__charts-list grid grid-cols-4 grid-cols-sm-2",
-                                                item: "search-panel__chart-hit",
-                                            }}
-                                            hitComponent={ChartHit}
-                                        />
-                                    </Index>
-                                </div>
-                            </>
-                        ) : null}
-                    </div>
+                    <SearchBox
+                        placeholder="Try “COVID”, “Poverty”, “New Zealand”, “CO2 emissions per capita”..."
+                        className="searchbox"
+                        queryHook={this.handleQuery}
+                    />
+                    <SearchResults isHidden={!this.inputValue} />
                 </div>
             </InstantSearch>
         )
