@@ -198,9 +198,6 @@ $zindex-Tooltip: 20;
 
     a.dod-span {
         border-bottom: 1px dotted #666;
-
-        &:hover {
-            text-decoration: none;
-        }
+        text-decoration: none;
     }
 }
