@@ -204,36 +204,6 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
         )}`
     }
 
-    @computed get zipFileUrl() {
-        return "/"
-    }
-
-    async uploadZip(file: File) {
-        const json = await this.context.admin.requestJSON(
-            `/api/datasets/${this.props.dataset.id}/uploadZip`,
-            file,
-            "PUT"
-        )
-        if (json.success) {
-            this.props.dataset.zipFile = { filename: file.name }
-        }
-    }
-
-    @action.bound onChooseZip(ev: { target: HTMLInputElement }) {
-        if (!ev.target.files) return
-
-        const file = ev.target.files[0]
-        this.uploadZip(file)
-    }
-
-    @action.bound startChooseZip() {
-        const input = document.createElement("input")
-        input.type = "file"
-        input.accept = ".zip"
-        input.addEventListener("change", this.onChooseZip as any)
-        input.click()
-    }
-
     render() {
         if (this.isDeleted) return <Redirect to="/datasets" />
 

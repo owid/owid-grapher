@@ -84,26 +84,6 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
         )
     }
 
-    async delete() {
-        const { variable } = this.props
-        if (
-            !window.confirm(
-                `Really delete the indicator ${variable.name}? This action cannot be undone!`
-            )
-        )
-            return
-
-        const json = await this.context.admin.requestJSON(
-            `/api/variables/${variable.id}`,
-            {},
-            "DELETE"
-        )
-
-        if (json.success) {
-            this.isDeleted = true
-        }
-    }
-
     render() {
         const { variable } = this.props
         const { newVariable } = this
@@ -131,12 +111,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                 </ol>
                 <div className="row">
                     <div className="col">
-                        <form
-                            onSubmit={(e) => {
-                                e.preventDefault()
-                                this.save()
-                            }}
-                        >
+                        <form>
                             <section>
                                 <h3>Indicator metadata</h3>
                                 <p>
@@ -247,12 +222,6 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                     helpText="Additional text to show next to entity labels. Each note should be in a separate line."
                                 />
                             </section>
-                            <input
-                                type="submit"
-                                className="btn btn-success"
-                                value="Update variable"
-                                disabled={isDisabled}
-                            />
                         </form>
                     </div>
                     {this.grapher && (
@@ -278,19 +247,6 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                 </section>
             </main>
         )
-    }
-
-    async save() {
-        const { variable } = this.props
-        const json = await this.context.admin.requestJSON(
-            `/api/variables/${variable.id}`,
-            { variable: this.newVariable },
-            "PUT"
-        )
-
-        if (json.success) {
-            Object.assign(this.props.variable, this.newVariable)
-        }
     }
 
     @computed private get grapherConfig(): GrapherInterface {
