@@ -241,7 +241,7 @@
     font-size: 1.75rem;
     font-weight: bold;
     line-height: 1.2;
-    margin: 0 0 2 * $vertical-spacing;
+    margin: 2 * $vertical-spacing 0 2 * $vertical-spacing;
 }
 
 @mixin posts-list {
