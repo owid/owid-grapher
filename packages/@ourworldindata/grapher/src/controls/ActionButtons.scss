@@ -17,18 +17,19 @@ $paddingBetweenIconAndLabel: 4px; // keep in sync with PADDING_BETWEEN_ICON_AND_
         background-color: #f2f2f2;
         display: inline-block;
         border-radius: 4px;
-        padding: 8px;
     }
 
     li + li {
         margin-left: $paddingBetweenButtons;
     }
 
-    li a {
+    li button {
         display: block;
         height: 100%;
         width: 100%;
         position: relative;
+        padding: 0;
+        cursor: inherit;
 
         svg {
             width: 14px;

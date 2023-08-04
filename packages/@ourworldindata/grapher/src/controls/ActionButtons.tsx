@@ -10,6 +10,7 @@ import {
     faShareNodes,
     faExpand,
     faDownload,
+    IconDefinition,
 } from "@fortawesome/free-solid-svg-icons"
 import { ShareMenu, ShareMenuManager } from "./ShareMenu"
 import { DEFAULT_BOUNDS, Bounds } from "@ourworldindata/utils"
@@ -190,71 +191,73 @@ export class ActionButtons extends React.Component<{
             >
                 <ul>
                     {this.hasDownloadButton && (
-                        <li
-                            className={
-                                "tab clickable icon download-tab-button" +
-                                (manager.currentTab ===
-                                GrapherTabOverlayOption.download
-                                    ? " active"
-                                    : "")
-                            }
+                        <ActionButton
+                            width={this.downloadButtonWidth}
+                            label="Download"
                             title="Download as .png or .svg"
-                            style={{ width: this.downloadButtonWidth }}
-                        >
-                            <a
-                                data-track-note="chart_click_download"
-                                onClick={():
-                                    | GrapherTabOption
-                                    | GrapherTabOverlayOption =>
-                                    (manager.currentTab =
-                                        GrapherTabOverlayOption.download)
-                                }
-                            >
-                                <FontAwesomeIcon icon={faDownload} />
-                                {this.showButtonLabels && (
-                                    <div className="label">Download</div>
-                                )}
-                            </a>
-                        </li>
+                            dataTrackNote="chart_click_download"
+                            showLabel={this.showButtonLabels}
+                            icon={faDownload}
+                            onClick={():
+                                | GrapherTabOption
+                                | GrapherTabOverlayOption =>
+                                (manager.currentTab =
+                                    GrapherTabOverlayOption.download)
+                            }
+                        />
                     )}
                     {this.hasShareButton && (
-                        <li
-                            className="clickable icon"
-                            style={{ width: this.shareButtonWidth }}
-                        >
-                            <a
-                                title="Share"
-                                onClick={this.onShareMenu}
-                                data-track-note="chart_click_share"
-                            >
-                                <FontAwesomeIcon icon={faShareNodes} />
-                                {this.showButtonLabels && (
-                                    <div className="label">Share</div>
-                                )}
-                            </a>
-                        </li>
+                        <ActionButton
+                            width={this.shareButtonWidth}
+                            label="Share"
+                            dataTrackNote="chart_click_share"
+                            showLabel={this.showButtonLabels}
+                            icon={faShareNodes}
+                            onClick={this.onShareMenu}
+                        />
                     )}
                     {this.hasEnterFullScreenButton && (
-                        <li
-                            className="clickable icon"
-                            style={{ width: this.enterFullScreenButtonWidth }}
-                        >
-                            <a
-                                title="Enter full-screen"
-                                data-track-note="chart_click_newtab"
-                            >
-                                <FontAwesomeIcon icon={faExpand} />
-                                {this.showButtonLabels && (
-                                    <div className="label">
-                                        Enter full-screen
-                                    </div>
-                                )}
-                            </a>
-                        </li>
+                        <ActionButton
+                            width={this.enterFullScreenButtonWidth}
+                            label="Enter full-screen"
+                            dataTrackNote="chart_click_fullscreen"
+                            showLabel={this.showButtonLabels}
+                            icon={faExpand}
+                            onClick={() => {}}
+                        />
                     )}
                 </ul>
                 {shareMenuElement}
             </div>
         )
     }
+}
+
+function ActionButton(props: {
+    width: number
+    dataTrackNote: string
+    onClick: () => void
+    showLabel: boolean
+    label: string
+    icon: IconDefinition
+    title?: string
+}): JSX.Element {
+    return (
+        <li
+            className="clickable"
+            style={{
+                height: BUTTON_HEIGHT,
+                width: props.width,
+            }}
+        >
+            <button
+                title={props.title ?? props.label}
+                data-track-note={props.dataTrackNote}
+                onClick={props.onClick}
+            >
+                <FontAwesomeIcon icon={props.icon} />
+                {props.showLabel && <div className="label">{props.label}</div>}
+            </button>
+        </li>
+    )
 }
