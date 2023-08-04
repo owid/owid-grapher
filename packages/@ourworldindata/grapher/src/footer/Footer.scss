@@ -30,9 +30,12 @@
         justify-content: space-between;
         align-items: flex-end;
 
-        a.sources .markdown-text-wrap__line {
-            border-bottom: 1px solid lighten(#5b5b5b, 15%);
-            width: max-content;
+        > * {
+            flex-shrink: 0;
+        }
+
+        a {
+            text-decoration: underline;
         }
     }
 

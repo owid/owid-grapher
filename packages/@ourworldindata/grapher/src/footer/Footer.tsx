@@ -19,7 +19,7 @@ import { ActionButtons } from "../controls/ActionButtons"
 
 const PADDING_ABOVE_CONTROLS = 16
 const PADDING_BELOW_NOTE = 4
-const HORIZONTAL_PADDING = 2
+const HORIZONTAL_PADDING = 16
 
 interface FooterProps {
     manager: FooterManager
@@ -40,7 +40,9 @@ export class Footer<
 
     @computed protected get sourcesText(): string {
         const sourcesLine = this.manager.sourcesLine
-        return sourcesLine ? `**Data source:** ${sourcesLine}` : ""
+        return sourcesLine
+            ? `Data source: ${sourcesLine} – Learn more about this data`
+            : ""
     }
 
     @computed protected get noteText(): string {
@@ -298,7 +300,13 @@ export class Footer<
                                 : "center",
                     }}
                 >
-                    <p style={this.sources.style}>
+                    <p
+                        style={{
+                            ...this.sources.style,
+                            maxWidth: this.sources.maxWidth,
+                        }}
+                    >
+                        <b>Data source:</b> {this.manager.sourcesLine} –{" "}
                         <a
                             className="sources"
                             data-track-note="chart_click_sources"
@@ -307,7 +315,7 @@ export class Footer<
                                     GrapherTabOverlayOption.sources
                             }}
                         >
-                            {this.sources.renderHTML()}
+                            Learn more about this data
                         </a>
                     </p>
                     <ActionButtons
