@@ -35,6 +35,7 @@ import {
     OwidGdocPublished,
     orderBy,
     IMAGES_DIRECTORY,
+    uniqBy,
 } from "@ourworldindata/utils"
 import { Topic } from "@ourworldindata/grapher"
 import {
@@ -678,7 +679,13 @@ export const getRelatedArticles = async (
             }
         })
     )
-    return [...relatedArticles, ...publishedGdocPostsThatReferenceChart]
+    return uniqBy(
+        [...relatedArticles, ...publishedGdocPostsThatReferenceChart],
+        "slug"
+    ).sort(
+        // Alphabetise
+        (a, b) => (a.title.toLowerCase() > b.title.toLowerCase() ? 1 : -1)
+    )
 }
 
 export const getBlockContent = async (
