@@ -319,7 +319,10 @@ export class TimelineComponent extends React.Component<{
                                 <FontAwesomeIcon icon={faPlay} />
                             )}
                             {this.showPlayLabel && (
-                                <span className="label">Play time-lapse</span>
+                                <span className="label">
+                                    {manager.isPlaying ? "Pause" : "Play"}{" "}
+                                    time-lapse
+                                </span>
                             )}
                         </div>
                     </div>
