@@ -34,7 +34,7 @@
             flex-shrink: 0;
         }
 
-        a {
+        a:not(.btn) {
             text-decoration: underline;
         }
     }
