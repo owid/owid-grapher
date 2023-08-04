@@ -64,7 +64,6 @@ import {
     spansToUnformattedPlainText,
     EnrichedDetail,
     isEmpty,
-    dayjs,
     compact,
     getOriginAttributionFragments,
 } from "@ourworldindata/utils"

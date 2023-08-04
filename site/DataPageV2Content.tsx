@@ -11,8 +11,6 @@ import { RelatedCharts } from "./blocks/RelatedCharts.js"
 import {
     DataPageV2ContentFields,
     mdParser,
-    merge,
-    EveryMarkdownChildNode,
     MarkdownRoot,
     EveryMarkdownNode,
     Span,
@@ -25,7 +23,7 @@ import StickyNav from "./blocks/StickyNav.js"
 import cx from "classnames"
 import { DebugProvider } from "./gdocs/DebugContext.js"
 import { CodeSnippet } from "./blocks/CodeSnippet.js"
-import dayjs, { Dayjs } from "dayjs"
+import dayjs from "dayjs"
 import { P, match } from "ts-pattern"
 declare global {
     interface Window {

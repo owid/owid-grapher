@@ -22,7 +22,6 @@ import {
 } from "@ourworldindata/utils"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
-import { getVariableData } from "../db/model/Variable.js"
 import { GrapherInterface } from "@ourworldindata/grapher"
 
 interface ETLPathComponents {

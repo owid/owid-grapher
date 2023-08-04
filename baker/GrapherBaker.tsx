@@ -24,6 +24,7 @@ import {
     EnrichedFaq,
     FaqEntryData,
     FaqDictionary,
+    partition,
 } from "@ourworldindata/utils"
 import {
     getRelatedArticles,
@@ -201,6 +202,18 @@ export const renderDataPageOrGrapherPage = async (
     )
 }
 
+type EnrichedFaqLookupError = {
+    type: "error"
+    error: string
+}
+
+type EnrichedFaqLookupSuccess = {
+    type: "success"
+    enrichedFaq: EnrichedFaq
+}
+
+type EnrichedFaqLookupResult = EnrichedFaqLookupError | EnrichedFaqLookupSuccess
+
 export async function renderDataPageV2(
     variableId: number,
     variableMetadata: OwidVariableWithSource,
@@ -246,26 +259,45 @@ export async function renderDataPageV2(
         (gdoc) => gdoc?.relatedCharts ?? []
     )
 
-    // TODO: if a fragment can't be resolved we should create an error object
-    // here. If there are any errors and we are on prod we should send a slack
-    // message.
-    const resolvedFaqs: EnrichedFaq[] = variableMetadata.presentation?.faqs
-        ? compact(
-              variableMetadata.presentation.faqs.map(
-                  (faq) =>
-                      gdocIdToFragmentIdToBlock[faq.gdocId]?.[
-                          faq.fragmentId
-                      ] as EnrichedFaq | undefined
-              )
-          )
+    const resolvedFaqsResults: EnrichedFaqLookupResult[] = variableMetadata
+        .presentation?.faqs
+        ? variableMetadata.presentation.faqs.map((faq) => {
+              const enrichedFaq = gdocIdToFragmentIdToBlock[faq.gdocId]?.[
+                  faq.fragmentId
+              ] as EnrichedFaq | undefined
+              if (!enrichedFaq)
+                  return {
+                      type: "error",
+                      error: `Could not find fragment ${faq.fragmentId} in gdoc ${faq.gdocId}`,
+                  }
+              return {
+                  type: "success",
+                  enrichedFaq,
+              }
+          })
         : []
+
+    const [resolvedFaqs, faqResolveErrors] = partition(
+        resolvedFaqsResults,
+        (result) => result.type === "success"
+    ) as [EnrichedFaqLookupSuccess[], EnrichedFaqLookupError[]]
+
+    if (faqResolveErrors.length > 0) {
+        for (const error of faqResolveErrors) {
+            logErrorAndMaybeSendToBugsnag(
+                new JsonError(
+                    `Data page error in finding FAQs for variable ${variableId}: ${error.error}`
+                )
+            )
+        }
+    }
 
     const faqEntries: FaqEntryData = {
         linkedCharts,
         linkedDocuments,
         imageMetadata,
         relatedCharts,
-        faqs: resolvedFaqs?.flatMap((faq) => faq.content) ?? [],
+        faqs: resolvedFaqs?.flatMap((faq) => faq.enrichedFaq.content) ?? [],
     }
 
     // If we are rendering this in the context of an indicator page preview or similar,
@@ -366,7 +398,6 @@ export const renderPreviewDataPageOrGrapherPage = async (
         // We only want to render datapages on selected charts, even if the
         // variable found on the chart has a datapage configuration.
         !grapher.id ||
-        // TODO: consider what to do with the check below
         !datapageJson.showDataPageOnChartIds.includes(grapher.id)
     )
         return renderGrapherPage(grapher)
