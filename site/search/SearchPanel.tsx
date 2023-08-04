@@ -17,8 +17,6 @@ import {
     Index,
     Snippet,
     useInstantSearch,
-    RefinementList,
-    useRefinementList,
 } from "react-instantsearch-hooks-web"
 import algoliasearch, { SearchClient } from "algoliasearch"
 import {
@@ -214,7 +212,6 @@ export class InstantSearchContainer extends React.Component {
                                             }
                                         />
                                     </header>
-                                    <RefinementList attribute="tags" />
                                     <Hits
                                         classNames={{
                                             root: cx({
@@ -255,7 +252,6 @@ export class InstantSearchContainer extends React.Component {
                                         Charts
                                     </h2>
                                     <Index indexName={SearchIndexName.Charts}>
-                                        <RefinementList attribute="tags" />
                                         <Configure
                                             hitsPerPage={20}
                                             distinct={1}
