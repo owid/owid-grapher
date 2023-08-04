@@ -22,6 +22,8 @@ import {
     OwidGdocInterface,
     merge,
     EnrichedFaq,
+    FaqEntryData,
+    FaqDictionary,
 } from "@ourworldindata/utils"
 import {
     getRelatedArticles,
@@ -64,10 +66,7 @@ import {
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { Image } from "../db/model/Image.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
-import {
-    FaqEntryData,
-    FaqDictionary,
-} from "@ourworldindata/utils/dist/owidTypes.js"
+
 import { parseFaqs } from "../db/model/Gdoc/rawToEnriched.js"
 
 /**
@@ -205,22 +204,23 @@ export const renderDataPageOrGrapherPage = async (
 export async function renderDataPageV2(
     variableId: number,
     variableMetadata: OwidVariableWithSource,
-    pageGrapher: GrapherInterface | undefined,
+    isPreviewing: boolean,
+    pageGrapher?: GrapherInterface,
     publishedExplorersBySlug?: Record<string, ExplorerProgram>
 ) {
     const grapherConfigForVariable = await getMergedGrapherConfigForVariable(
         variableId
     )
     const grapher = mergePartialGrapherConfigs(
-        grapherConfigForVariable as Record<string, unknown>,
-        pageGrapher as Record<string, unknown>
+        grapherConfigForVariable,
+        pageGrapher
     )
 
     const faqDocs = compact(
         uniq(variableMetadata.presentation?.faqs?.map((faq) => faq.gdocId))
     )
     const gdocFetchPromises = faqDocs.map((gdocId) =>
-        getDatapageGdoc(gdocId, true, publishedExplorersBySlug)
+        getDatapageGdoc(gdocId, isPreviewing, publishedExplorersBySlug)
     )
     const gdocs = await Promise.all(gdocFetchPromises)
     const gdocIdToFragmentIdToBlock: Record<string, FaqDictionary> = {}
@@ -232,15 +232,15 @@ export async function renderDataPageV2(
 
     const linkedCharts: OwidGdocInterface["linkedCharts"] = merge(
         {},
-        ...compact(gdocs.map((gdoc) => gdoc?.linkedCharts ?? {}))
+        ...compact(gdocs.map((gdoc) => gdoc?.linkedCharts))
     )
     const linkedDocuments: OwidGdocInterface["linkedDocuments"] = merge(
         {},
-        ...compact(gdocs.map((gdoc) => gdoc?.linkedDocuments ?? {}))
+        ...compact(gdocs.map((gdoc) => gdoc?.linkedDocuments))
     )
     const imageMetadata: OwidGdocInterface["imageMetadata"] = merge(
         {},
-        ...compact(gdocs.map((gdoc) => gdoc?.imageMetadata ?? {}))
+        ...compact(gdocs.map((gdoc) => gdoc?.imageMetadata))
     )
     const relatedCharts: OwidGdocInterface["relatedCharts"] = gdocs.flatMap(
         (gdoc) => gdoc?.relatedCharts ?? []
@@ -334,6 +334,7 @@ export const renderPreviewDataPageOrGrapherPage = async (
             return await renderDataPageV2(
                 variableId,
                 variableMetadata,
+                true,
                 grapher,
                 publishedExplorersBySlug
             )

@@ -268,7 +268,7 @@ adminRouter.get("/datapage-preview/:id", async (req, res) => {
     const variableMetadata = await getVariableMetadata(variableId)
     if (!variableMetadata) throw new JsonError("No such variable", 404)
 
-    res.send(await renderDataPageV2(variableId, variableMetadata, undefined))
+    res.send(await renderDataPageV2(variableId, variableMetadata, true))
 })
 
 adminRouter.get("/grapher/:slug", async (req, res) => {

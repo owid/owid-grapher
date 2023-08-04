@@ -160,12 +160,10 @@ mockSiteRouter.get("/charts", async (req, res) => {
 })
 
 mockSiteRouter.get("/datapage-preview/:id", async (req, res) => {
-    console.log("previewing datapage")
     const variableId = expectInt(req.params.id)
     const variableMetadata = await getVariableMetadata(variableId)
-    if (!variableMetadata) throw new JsonError("No such variable", 404)
 
-    res.send(await renderDataPageV2(variableId, variableMetadata, undefined))
+    res.send(await renderDataPageV2(variableId, variableMetadata, true))
 })
 
 countryProfileSpecs.forEach((spec) =>

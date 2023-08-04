@@ -79,7 +79,7 @@ export const DataPageV2 = (props: {
 
     const mergedGrapherConfig = mergePartialGrapherConfigs(
         datapageData.chartConfig as GrapherInterface,
-        grapher ?? {}
+        grapher
     )
 
     const grapherConfig: GrapherProgrammaticInterface = {

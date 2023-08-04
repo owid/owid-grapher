@@ -574,7 +574,7 @@ export const DataPageV2Content = ({
                     </div>
                     <div className="bg-gray-10">
                         <div className="wrapper">
-                            {faqEntries?.faqs.length && (
+                            {!!faqEntries?.faqs.length && (
                                 <div className="section-wrapper section-wrapper__faqs grid">
                                     <h2
                                         className="faqs__title span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
