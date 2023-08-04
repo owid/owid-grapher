@@ -57,10 +57,10 @@ export class ActionButtons extends React.Component<{
             buttonCount,
             hasDownloadButton,
             hasShareButton,
-            hasOpenInNewTabButton,
+            hasEnterFullScreenButton,
             downloadButtonWithLabelWidth,
             shareButtonWithLabelWidth,
-            openInNewTabButtonWithLabelWidth,
+            enterFullScreenButtonWithLabelWidth,
         } = this
 
         let width = 0
@@ -70,8 +70,8 @@ export class ActionButtons extends React.Component<{
         if (hasShareButton) {
             width += shareButtonWithLabelWidth
         }
-        if (hasOpenInNewTabButton) {
-            width += openInNewTabButtonWithLabelWidth
+        if (hasEnterFullScreenButton) {
+            width += enterFullScreenButtonWithLabelWidth
         }
 
         return width + (buttonCount - 1) * PADDING_BETWEEN_BUTTONS
@@ -111,8 +111,8 @@ export class ActionButtons extends React.Component<{
         return ActionButtons.computeButtonWidth("Share")
     }
 
-    @computed private get openInNewTabButtonWithLabelWidth(): number {
-        return ActionButtons.computeButtonWidth("Open in a new tab")
+    @computed private get enterFullScreenButtonWithLabelWidth(): number {
+        return ActionButtons.computeButtonWidth("Enter full-screen")
     }
 
     @computed private get downloadButtonWidth(): number {
@@ -134,15 +134,15 @@ export class ActionButtons extends React.Component<{
         return shareButtonWithLabelWidth
     }
 
-    @computed private get openInNewTabButtonWidth(): number {
+    @computed private get enterFullScreenButtonWidth(): number {
         const {
-            hasOpenInNewTabButton,
+            hasEnterFullScreenButton,
             showButtonLabels,
-            openInNewTabButtonWithLabelWidth,
+            enterFullScreenButtonWithLabelWidth,
         } = this
-        if (!hasOpenInNewTabButton) return 0
+        if (!hasEnterFullScreenButton) return 0
         if (!showButtonLabels) return BUTTON_WIDTH_ICON_ONLY
-        return openInNewTabButtonWithLabelWidth
+        return enterFullScreenButtonWithLabelWidth
     }
 
     @action.bound onShareMenu(): void {
@@ -163,15 +163,15 @@ export class ActionButtons extends React.Component<{
         return !this.manager.hideShareTabButton
     }
 
-    @computed private get hasOpenInNewTabButton(): boolean {
-        return !!this.manager.isInIFrame
+    @computed private get hasEnterFullScreenButton(): boolean {
+        return !this.manager.isInIFrame
     }
 
     @computed private get buttonCount(): number {
         let count = 0
         if (this.hasDownloadButton) count += 1
         if (this.hasShareButton) count += 1
-        if (this.hasOpenInNewTabButton) count += 1
+        if (this.hasEnterFullScreenButton) count += 1
         return count
     }
 
@@ -234,22 +234,19 @@ export class ActionButtons extends React.Component<{
                             </a>
                         </li>
                     )}
-                    {this.hasOpenInNewTabButton && (
+                    {this.hasEnterFullScreenButton && (
                         <li
                             className="clickable icon"
-                            style={{ width: this.openInNewTabButtonWidth }}
+                            style={{ width: this.enterFullScreenButtonWidth }}
                         >
                             <a
-                                title="Open chart in new tab"
-                                href={manager.canonicalUrl}
+                                title="Enter full-screen"
                                 data-track-note="chart_click_newtab"
-                                target="_blank"
-                                rel="noopener"
                             >
                                 <FontAwesomeIcon icon={faExpand} />
                                 {this.showButtonLabels && (
                                     <div className="label">
-                                        Open in a new tab
+                                        Enter full-screen
                                     </div>
                                 )}
                             </a>
