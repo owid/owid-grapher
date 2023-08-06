@@ -1,6 +1,7 @@
 import {
     GrapherInterface,
     GRAPHER_PAGE_BODY_CLASS,
+    GRAPHER_SETTINGS_DRAWER_ID,
     LoadingIndicator,
 } from "@ourworldindata/grapher"
 import { serializeJSONForHTML, SiteFooterContext } from "@ourworldindata/utils"
@@ -108,6 +109,7 @@ window.Explorer.renderSingleExplorerOnExplorerPage(explorerProgram, grapherConfi
                     hideAlertBanner={hideAlertBanner || false}
                 />
                 {subNav}
+                <nav id={GRAPHER_SETTINGS_DRAWER_ID}></nav>
                 <main id={ExplorerContainerId}>
                     <LoadingIndicator />
                 </main>
