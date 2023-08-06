@@ -1,5 +1,5 @@
 import React from "react"
-import { action, computed } from "mobx"
+import { computed } from "mobx"
 import { observer } from "mobx-react"
 import {
     Bounds,
@@ -29,24 +29,13 @@ import { MapChartManager } from "../mapCharts/MapChartConstants"
 import { ChartManager } from "../chart/ChartManager"
 import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
 import { FacetChart } from "../facetChart/FacetChart"
-import {
-    faRightLeft,
-    faPencilAlt,
-    faExternalLinkAlt,
-} from "@fortawesome/free-solid-svg-icons"
+import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
-    ZoomToggle,
-    AbsRelToggle,
-    AbsRelToggleManager,
-    FacetYDomainToggle,
-    FacetYDomainToggleManager,
-    FacetStrategyDropdown,
-    FacetStrategyDropdownManager,
-    NoDataAreaToggle,
+    SettingsMenuManager,
+    SettingsMenu,
+    EntitySelectorToggle,
 } from "../controls/Controls"
-import { ScaleSelector } from "../controls/ScaleSelector"
-import { AddEntityButton } from "../controls/AddEntityButton"
 import { FooterManager } from "../footer/FooterManager"
 import { HeaderManager } from "../header/HeaderManager"
 import { SelectionArray } from "../selection/SelectionArray"
@@ -66,11 +55,9 @@ import { TimelineController } from "../timeline/TimelineController"
 export interface CaptionedChartManager
     extends ChartManager,
         MapChartManager,
-        AbsRelToggleManager,
         FooterManager,
         HeaderManager,
-        FacetYDomainToggleManager,
-        FacetStrategyDropdownManager,
+        SettingsMenuManager,
         DataTableManager,
         ContentSwitchersManager {
     containerElement?: HTMLDivElement
@@ -86,6 +73,7 @@ export interface CaptionedChartManager
     whatAreWeWaitingFor?: string
     entityType?: string
     entityTypePlural?: string
+    showSettingsMenuToggle?: boolean
     showYScaleToggle?: boolean
     showXScaleToggle?: boolean
     showZoomToggle?: boolean
@@ -198,24 +186,27 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         return (this.manager.availableTabs?.length ?? 0) > 1
     }
 
+    @computed get chartTypeName(): ChartTypeName {
+        const { manager } = this
+        return this.manager.isOnMapTab
+            ? ChartTypeName.WorldMap
+            : manager.typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart ??
+                  manager.type ??
+                  ChartTypeName.LineChart
+    }
+
     renderChart(): JSX.Element {
         const { manager } = this
         const bounds = this.boundsForChartArea
-
-        const chartTypeName = this.manager.isOnMapTab
-            ? ChartTypeName.WorldMap
-            : manager.typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart ??
-              manager.type ??
-              ChartTypeName.LineChart
         const ChartClass =
-            ChartComponentClassMap.get(chartTypeName) ?? DefaultChartClass
+            ChartComponentClassMap.get(this.chartTypeName) ?? DefaultChartClass
 
         // Todo: make FacetChart a chart type name?
         if (this.isFaceted)
             return (
                 <FacetChart
                     bounds={bounds}
-                    chartTypeName={chartTypeName}
+                    chartTypeName={this.chartTypeName}
                     manager={manager}
                 />
             )
@@ -233,110 +224,6 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         exposeInstanceOnWindow(this, "captionedChart")
     }
 
-    @action.bound startSelecting(): void {
-        this.manager.isSelectingData = true
-    }
-
-    @computed get controls(): JSX.Element[] {
-        const manager = this.manager
-        if (
-            !manager.isReady ||
-            this.manager.isOnMapTab ||
-            this.manager.isOnTableTab
-        )
-            return []
-
-        const { showYScaleToggle, showXScaleToggle } = manager
-
-        const controls: JSX.Element[] = []
-
-        if (showYScaleToggle)
-            controls.push(
-                <ScaleSelector
-                    key="scaleSelector"
-                    manager={manager.yAxis!}
-                    prefix={showXScaleToggle ? "Y: " : ""}
-                />
-            )
-
-        if (showXScaleToggle)
-            controls.push(
-                <ScaleSelector
-                    key="scaleSelector"
-                    manager={manager.xAxis!}
-                    prefix={"X: "}
-                />
-            )
-
-        if (manager.showSelectEntitiesButton)
-            controls.push(
-                <button
-                    type="button"
-                    key="grapher-select-entities"
-                    data-track-note="grapher_select_entities"
-                    style={controls.length === 0 ? { padding: 0 } : {}} // If there are no controls to the left then set padding to 0 for better alignment
-                    onClick={this.startSelecting}
-                >
-                    <span className="SelectEntitiesButton">
-                        <FontAwesomeIcon icon={faPencilAlt} />
-                        {`Select ${manager.entityTypePlural}`}
-                    </span>
-                </button>
-            )
-
-        if (manager.showChangeEntityButton)
-            controls.push(
-                <button
-                    type="button"
-                    key="grapher-change-entities"
-                    data-track-note="grapher_change_entity"
-                    className="ChangeEntityButton"
-                    onClick={this.startSelecting}
-                >
-                    <FontAwesomeIcon icon={faRightLeft} /> Change{" "}
-                    {manager.entityType}
-                </button>
-            )
-
-        if (manager.showAddEntityButton)
-            controls.push(
-                <AddEntityButton key="AddEntityButton" manager={manager} />
-            )
-
-        if (manager.showZoomToggle)
-            controls.push(<ZoomToggle key="ZoomToggle" manager={manager} />)
-
-        if (
-            manager.showFacetControl &&
-            manager.availableFacetStrategies.length > 1
-        ) {
-            controls.push(
-                <FacetStrategyDropdown
-                    key="FacetStrategyDropdown"
-                    manager={manager}
-                />
-            )
-        }
-
-        if (manager.showAbsRelToggle)
-            controls.push(<AbsRelToggle key="AbsRelToggle" manager={manager} />)
-
-        if (manager.showNoDataAreaToggle)
-            controls.push(
-                <NoDataAreaToggle key="NoDataAreaToggle" manager={manager} />
-            )
-
-        if (manager.showFacetYDomainToggle)
-            controls.push(
-                <FacetYDomainToggle
-                    key="FacetYDomainToggle"
-                    manager={manager}
-                />
-            )
-
-        return controls
-    }
-
     @computed get selectionArray(): SelectionArray | EntityName[] | undefined {
         return this.manager.selection
     }
@@ -349,13 +236,49 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         )
     }
 
-    private renderControlsRow(): JSX.Element {
+    @computed get showEntitySelector(): boolean {
+        const {
+            showSelectEntitiesButton,
+            showChangeEntityButton,
+            // showAddEntityButton,
+        } = this.manager
+
+        // TODO: merge addEntity behavior into EntitySelectorToggle
+
+        return !!showSelectEntitiesButton || !!showChangeEntityButton
+    }
+
+    private renderControlsRow(): JSX.Element | null {
+        const {
+            showEntitySelector,
+            manager: {
+                isReady,
+                isOnMapTab,
+                isOnTableTab,
+                showSettingsMenuToggle,
+            },
+        } = this
+
+        if (!isReady || isOnMapTab || isOnTableTab) return null
+
         return (
             <nav className="controlsRow">
                 <ContentSwitchers manager={this.manager} />
                 <div className="controls">
-                    {this.controls.length > 0 && (
-                        <button className="configure">Configure</button>
+                    {showEntitySelector && (
+                        <EntitySelectorToggle manager={this.manager} />
+                    )}
+                    {showSettingsMenuToggle && (
+                        <SettingsMenu
+                            manager={this.manager}
+                            top={
+                                this.header.height +
+                                CONTROLS_ROW_HEIGHT +
+                                FRAME_PADDING
+                            }
+                            padding={FRAME_PADDING}
+                            chart={this.chartTypeName}
+                        />
                     )}
                 </div>
             </nav>

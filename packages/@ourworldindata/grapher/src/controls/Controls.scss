@@ -1,175 +1,396 @@
-$zindex-ControlsFooterMenu: 3;
-$zindex-ControlsFooter: 2;
+$zindex-ControlsDrawer: 105; // needs to be higher than .site-tools
+$zindex-ControlsBackdrop: 104;
 
-.SelectEntitiesButton {
-    color: $controls-color;
+$light-stroke: #e7e7e7;
+$dark-stroke: #2d2d2d;
 
-    svg {
-        margin-right: 3px;
-    }
-}
+$light-fill: #dadada;
+$active-fill: #dbe5f0;
+$hover-fill: #f2f2f2;
 
-.ChangeEntityButton {
-    color: $controls-color;
-}
+$light-text: #858585;
+$dark-text: #5b5b5b;
+$active-text: #1d3d63;
 
-// FACET STRATEGY SELECTOR
+$info-icon: #a1a1a1;
+$active-switch: #6e87a2;
 
-// the fake dropdown menu
-.FacetStrategyDropdown {
-    font-family: $sans-serif-font-stack;
-    font-size: 12px;
-    font-weight: bold;
-    border: 1px solid #afb7c1;
-    border-radius: 5px;
-    padding-left: 10px;
-    padding-right: 10px;
-    cursor: pointer;
-}
+$medium: 400;
+$bold: 700;
+$lato: $sans-serif-font-stack;
 
-// the chevron
-.FacetStrategyDropdown div {
-    float: right;
-    margin-left: 8px;
-}
+$indent: 15px;
 
-// the pop-up list of options
-.FacetStrategyFloat {
+// Buttons in the main controls row of the grapher view
+nav.controlsRow .controls {
     display: flex;
-}
+    gap: 8px;
 
-// one of those options
-.FacetStrategyOption {
-    padding: 4px;
+    button.menu-toggle {
+        font: $medium 13px/1.3 $lato;
+        letter-spacing: 0.01em;
+        display: flex;
+        align-items: center;
+        border: 1px solid $light-stroke;
+        border-radius: 4px;
+        padding: 7px;
+        color: $dark-text;
 
-    position: static;
-    width: 96px;
-    left: 4px;
-    top: 4px;
+        &:hover {
+            background: $hover-fill;
+            cursor: pointer;
+        }
 
-    background: #ffffff;
-    margin: 0px 0px;
+        &.active,
+        &:active {
+            background: $active-fill;
+            border: 1px solid $active-fill;
+        }
 
-    > a {
-        text-decoration: none;
+        svg {
+            height: 12px;
+            margin-right: 5px;
+            vertical-align: bottom;
+        }
+    }
+
+    .settings-menu {
+        // the pop-up version of the settings menu
+        .settings-menu-controls {
+            position: absolute;
+            width: 300px;
+            right: $indent;
+            background: white;
+            border-radius: 4px;
+            box-shadow: 0px 4px 23px 4px #0000000f;
+            z-index: $zindex-ControlsDrawer;
+            overflow-y: scroll;
+        }
+
+        // transparent mouse-event catcher while popup is visible
+        .settings-menu-backdrop {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            z-index: $zindex-ControlsBackdrop;
+        }
     }
 }
 
-.FacetStrategyLabel {
-    position: static;
-    left: 4.17%;
-    right: 44.79%;
-    top: 5.88%;
-    bottom: 64.71%;
+@at-root {
+    // the drawer version of the settings menu (see GRAPHER_SETTINGS_DRAWER_ID)
+    nav#grapher-settings-drawer .settings-menu-contents {
+        .settings-menu-controls {
+            position: fixed;
+            right: 0;
+            top: 0;
+            width: 300px;
+            height: 100vh;
+            z-index: $zindex-ControlsDrawer;
+            overflow-y: scroll;
+            background: white;
+            padding-top: 80px;
 
-    font-family: $sans-serif-font-stack;
-    font-style: normal;
-    font-weight: bold;
-    font-size: 12px;
-    line-height: 1.2;
-
-    margin-top: 4px;
-}
-
-.selected .FacetStrategyLabel {
-    color: #0073e6;
-}
-.FacetStrategyLabel {
-    color: #7d899c;
-}
-
-.FacetStrategyPreview-none-child {
-    position: absolute;
-    left: 0%;
-    right: 0%;
-    top: 0%;
-    bottom: 0%;
-
-    border-radius: 1px;
-}
-
-.FacetStrategyPreview-parent {
-    position: relative;
-    width: 100%;
-    height: 36px;
-}
-
-.FacetStrategyPreview-split-child {
-    float: left;
-    width: 28px;
-    height: 17px;
-    border-radius: 1px;
-}
-
-// set appropriate margins for our manual 3x2 grid
-.FacetStrategyPreview-split-child:nth-of-type(1),
-.FacetStrategyPreview-split-child:nth-of-type(2),
-.FacetStrategyPreview-split-child:nth-of-type(3) {
-    margin-bottom: 2px;
-}
-
-.FacetStrategyPreview-split-child:nth-of-type(1),
-.FacetStrategyPreview-split-child:nth-of-type(2),
-.FacetStrategyPreview-split-child:nth-of-type(4),
-.FacetStrategyPreview-split-child:nth-of-type(5) {
-    margin-right: 2px;
-}
-
-.selected .FacetStrategyPreview-none-child {
-    background: #d9eafb;
-}
-
-.FacetStrategyPreview-none-child {
-    background: #dde1e7;
-}
-
-.selected .FacetStrategyPreview-split-child {
-    background: #d9eafb;
-}
-
-.FacetStrategyPreview-split-child {
-    background: #dde1e7;
-}
-
-@keyframes bounceIn {
-    from,
-    20%,
-    40%,
-    60%,
-    80%,
-    to {
-        animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
+            .config-header {
+                position: static;
+            }
+        }
+        .settings-menu-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.2);
+            z-index: $zindex-ControlsBackdrop;
+        }
     }
 
-    0% {
-        transform: scale3d(8, 8, 8);
-        opacity: 0;
-    }
+    .settings-menu-contents {
+        .settings-menu-controls {
+            //
+            // shared button coloring & behaviors
+            //
+            button {
+                display: flex;
+                align-items: center;
+                color: $light-text;
+                background: white;
+                border: 1px solid $light-stroke;
+                font: $medium 13px/1.3 $lato;
+                letter-spacing: 0.01em;
+                border-radius: 4px;
+                padding: 7px;
+                height: 40px;
 
-    40% {
-        transform: scale3d(0.8, 0.8, 0.8);
-        opacity: 1;
-    }
+                &:hover {
+                    background: $hover-fill;
+                    cursor: pointer;
 
-    60% {
-        transform: scale3d(1.25, 1.25, 1.25);
-    }
+                    &:not(.active) {
+                        color: $dark-text;
+                    }
+                }
 
-    80% {
-        transform: scale3d(0.97, 0.97, 0.97);
-    }
+                &.active,
+                &:active {
+                    background: $active-fill;
+                    border: 1px solid $active-fill;
+                }
 
-    to {
-        transform: scale3d(1, 1, 1);
-        opacity: 1;
+                &.active {
+                    cursor: default;
+                    color: $active-text;
+                }
+            }
+
+            //
+            // chart-type label and close button
+            //
+            .config-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                background: white;
+                padding: 9px $indent 3px $indent;
+                position: sticky;
+                top: 0;
+
+                .config-title {
+                    text-transform: uppercase;
+                    letter-spacing: 0.1em;
+                    color: $light-text;
+                    font: $bold 12px/16px $lato;
+                }
+
+                button.close {
+                    position: relative;
+                    border-radius: 50%;
+                    height: 32px;
+                    width: 32px;
+                    text-align: center;
+                    justify-content: center;
+                    svg {
+                        height: 14px;
+                        width: 14px;
+                    }
+                }
+            }
+
+            //
+            // each titled block of control widgets (with optional info-circle + tooltip)
+            //
+            section {
+                font: $medium 14px/1.2 $lato;
+                color: $light-text;
+                padding: 1em 0;
+                margin: 0 $indent;
+
+                .config-name {
+                    font: $bold 14px/1.2 $lato;
+                    color: $dark-text;
+                    list-style: none;
+
+                    svg {
+                        color: $info-icon;
+                        height: 13px;
+                        padding: 0 0.333em;
+                    }
+
+                    // the tooltip triggered by hovering the circle-i
+                    @at-root .tippy-box[data-theme="settings"] {
+                        background: white;
+                        color: $dark-text;
+                        font: 400 14px/1.5 $sans-serif-font-stack;
+                        box-shadow: 0px 4px 40px 0px rgba(0, 0, 0, 0.15);
+
+                        .tippy-content {
+                            padding: $indent;
+                        }
+                        .tippy-arrow {
+                            color: white;
+                        }
+                    }
+                }
+
+                .config-subtitle {
+                    margin-top: 0.25em;
+                }
+
+                .config-toggle {
+                    display: flex;
+                    justify-content: space-between;
+                    padding: 0.5em 0;
+                }
+
+                & + section {
+                    border-top: 1px solid $light-stroke;
+                }
+            }
+
+            //
+            // resuable widgets
+            //
+            section {
+                // left/right pairs of options
+                .config-toggle {
+                    button {
+                        width: 130px;
+                    }
+                }
+
+                // on/off switch with label written to the right
+                .config-switch {
+                    position: relative;
+                    margin: 14px 0;
+                    -webkit-user-select: none;
+                    user-select: none;
+
+                    label {
+                        color: $dark-text;
+                        padding-left: 35px;
+                        &:hover {
+                            cursor: pointer;
+                        }
+                    }
+
+                    input {
+                        position: absolute;
+                        opacity: 0;
+                        left: 0;
+                    }
+
+                    .outer {
+                        position: absolute;
+                        left: 0;
+                        top: 0;
+                        content: " ";
+                        width: 29px;
+                        height: 16px;
+                        background: $light-fill;
+                        border-radius: 8px;
+                        pointer-events: none;
+                        .inner {
+                            position: relative;
+                            content: " ";
+                            width: 10px;
+                            height: 10px;
+                            background: $light-text;
+                            border-radius: 5px;
+                            top: 3px;
+                            left: 3px;
+                            pointer-events: none;
+                            transition: transform 333ms;
+                        }
+                    }
+
+                    &:hover {
+                        .outer .inner {
+                            background: $dark-text;
+                        }
+                    }
+
+                    input:checked + .outer {
+                        background: $active-fill;
+                        .inner {
+                            background: $active-switch;
+                            transform: translate(13px, 0);
+                        }
+                    }
+                    &:hover input:checked + .outer .inner {
+                        background: darken($active-switch, 13%);
+                    }
+                }
+
+                // vertical list of options (for selecting faceting mode)
+                .config-list {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 8px;
+                    padding: 7px 0;
+                    button {
+                        width: 100%;
+
+                        .faceting-icon {
+                            display: flex;
+                            flex-wrap: wrap;
+                            width: 34px;
+                            height: 24px;
+                            justify-content: space-between;
+                            margin-right: 8px;
+                            span {
+                                // the round-rects that make up the grid
+                                display: inline-block;
+                                width: 100%;
+                                height: 100%;
+                                border-radius: 2px;
+                                background: $light-stroke;
+                            }
+                        }
+
+                        &.entity span {
+                            width: 10px;
+                            height: 10px;
+                        }
+
+                        &.metric span {
+                            width: 10px;
+                            height: 10px;
+                            border-radius: 5px;
+                        }
+
+                        &.active span {
+                            background: #a4b6ca;
+                        }
+
+                        &:hover:not(.active) span {
+                            background: $light-fill;
+                        }
+
+                        &:active:not(.active) span {
+                            background: $light-text;
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
-@keyframes appear {
+@keyframes settings-menu-backdrop-enter {
     0% {
         opacity: 0;
     }
     100% {
         opacity: 1;
+    }
+}
+
+@keyframes settings-menu-backdrop-exit {
+    0% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
+@keyframes settings-menu-controls-enter {
+    0% {
+        transform: translate(301px, 0);
+    }
+    100% {
+        transform: translate(0, 0);
+    }
+}
+
+@keyframes settings-menu-controls-exit {
+    0% {
+        transform: translate(0, 0);
+    }
+    100% {
+        transform: translate(301px, 0);
     }
 }
