@@ -131,10 +131,7 @@ import { isOnTheMap } from "../mapCharts/EntitiesOnTheMap"
 import { ChartManager } from "../chart/ChartManager"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons"
-import {
-    AbsRelToggleManager,
-    FacetStrategyDropdownManager,
-} from "../controls/Controls"
+import { SettingsMenuManager } from "../controls/Controls"
 import { TooltipContainer } from "../tooltip/Tooltip"
 import { EntitySelector } from "../controls/EntitySelector"
 import { DownloadTab, DownloadTabManager } from "../downloadTab/DownloadTab"
@@ -306,13 +303,12 @@ export class Grapher
         DiscreteBarChartManager,
         LegacyDimensionsManager,
         ShareMenuManager,
-        AbsRelToggleManager,
         TooltipManager,
         DataTableManager,
         ScatterPlotManager,
         MarimekkoChartManager,
-        FacetStrategyDropdownManager,
         FacetChartManager,
+        SettingsMenuManager,
         MapChartManager
 {
     @observable.ref $schema = DEFAULT_GRAPHER_CONFIG_SCHEMA
@@ -2788,6 +2784,20 @@ export class Grapher
             this.isMarimekko &&
             this.xColumnSlug !== undefined
         )
+    }
+
+    @computed get showSettingsMenuToggle(): boolean {
+        return !!(
+            this.showYScaleToggle ||
+            this.showXScaleToggle ||
+            this.showFacetYDomainToggle ||
+            this.showZoomToggle ||
+            this.showNoDataAreaToggle ||
+            this.showFacetControl ||
+            this.showAbsRelToggle
+        )
+
+        // TODO: add a showCompareEndPointsOnlyTogggle to complement compareEndPointsOnly
     }
 
     @computed get showChangeEntityButton(): boolean {
