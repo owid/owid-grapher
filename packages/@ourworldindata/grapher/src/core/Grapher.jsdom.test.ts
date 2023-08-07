@@ -904,14 +904,6 @@ describe("year parameter (applies to map only)", () => {
     })
 })
 
-// TODO migrate the database property
-it("migrates map.targetYear correctly", () => {
-    const grapher = new Grapher({
-        map: { targetYear: 2005 } as any,
-    })
-    expect(grapher.map.time).toEqual(2005)
-})
-
 it("correctly identifies activeColumnSlugs", () => {
     const table =
         new OwidTable(`entityName,entityId,entityColor,year,gdp,gdp-annotations,child_mortality,population,continent,happiness
