@@ -223,6 +223,7 @@ export class ActionButtons extends React.Component<{
                             dataTrackNote="chart_click_fullscreen"
                             showLabel={this.showButtonLabels}
                             icon={faExpand}
+                            // eslint-disable-next-line
                             onClick={() => {}}
                         />
                     )}

@@ -40,7 +40,7 @@ export class Footer<
     @computed protected get sourcesText(): string {
         const sourcesLine = this.manager.sourcesLine
         return sourcesLine
-            ? `**Data source:** ${sourcesLine} – Learn more about this data`
+            ? `**Data source:** ${sourcesLine} - Learn more about this data`
             : ""
     }
 
@@ -295,7 +295,7 @@ export class Footer<
                             maxWidth: this.sources.maxWidth,
                         }}
                     >
-                        <b>Data source:</b> {this.manager.sourcesLine} –{" "}
+                        <b>Data source:</b> {this.manager.sourcesLine} -{" "}
                         <a
                             className="sources"
                             data-track-note="chart_click_sources"
