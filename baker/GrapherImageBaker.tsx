@@ -10,6 +10,7 @@ import sharp from "sharp"
 import svgo from "svgo"
 import * as db from "../db/db.js"
 import { getDataForMultipleVariables } from "../db/model/Variable.js"
+import { BAKED_BASE_URL } from "../settings/serverSettings.js"
 import {
     grapherSlugToExportFileKey,
     grapherUrlToSlugAndQueryStr,

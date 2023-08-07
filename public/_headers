@@ -20,3 +20,6 @@
 /dods.json
     Access-Control-Allow-Origin: *
     Access-Control-Allow-Headers: content-type
+
+/fonts/*
+    Access-Control-Allow-Origin: *
