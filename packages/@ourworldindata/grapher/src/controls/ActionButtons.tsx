@@ -21,6 +21,7 @@ export interface ActionButtonsManager extends ShareMenuManager {
     currentTab?: GrapherTabOption | GrapherTabOverlayOption
     isShareMenuActive?: boolean
     hideShareTabButton?: boolean
+    hideEnterFullScreenButton?: boolean
     hideExploreTheDataButton?: boolean
     isInIFrame?: boolean
     canonicalUrl?: string
@@ -197,7 +198,7 @@ export class ActionButtons extends React.Component<{
     }
 
     @computed private get hasEnterFullScreenButton(): boolean {
-        return !this.manager.isInIFrame
+        return !this.manager.hideEnterFullScreenButton
     }
 
     @computed private get hasExploreTheDataButton(): boolean {
