@@ -163,17 +163,17 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     }
 
     @computed protected get chartHeight(): number {
-        let verticalSpacingsCount = 2
-        if (this.manager.showTimeline) verticalSpacingsCount += 1
-        if (this.showControlsRow) verticalSpacingsCount += 1
-
         return Math.floor(
             this.bounds.height -
                 2 * FRAME_PADDING -
-                verticalSpacingsCount * VERTICAL_SPACING -
+                2 * VERTICAL_SPACING -
                 this.header.height -
-                CONTROLS_ROW_HEIGHT -
-                (this.manager.showTimeline ? TIMELINE_HEIGHT : 0) -
+                (this.showControlsRow
+                    ? VERTICAL_SPACING + CONTROLS_ROW_HEIGHT
+                    : 0) -
+                (this.manager.showTimeline
+                    ? VERTICAL_SPACING + TIMELINE_HEIGHT
+                    : 0) -
                 this.footer.height -
                 (this.showRelatedQuestion ? RELATED_QUESTION_HEIGHT : 0)
         )
