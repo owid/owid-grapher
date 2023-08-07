@@ -260,6 +260,8 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     hasSourcesTab?: boolean
     hasDownloadTab?: boolean
     hideShareTabButton?: boolean
+    hideEnterFullScreenButton?: boolean
+    hideExploreTheDataButton?: boolean
     hideRelatedQuestion?: boolean
 
     getGrapherInstance?: (instance: Grapher) => void
@@ -2695,6 +2697,8 @@ export class Grapher
     @observable hasSourcesTab = true
     @observable hasDownloadTab = true
     @observable hideShareTabButton = false
+    @observable hideEnterFullScreenButton = false
+    @observable hideExploreTheDataButton = true
     @observable hideRelatedQuestion = false
 }
 

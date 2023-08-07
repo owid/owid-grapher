@@ -533,7 +533,6 @@ export enum ChartTabKeyword {
     chart = "chart",
     map = "map",
     table = "table",
-    download = "download",
 }
 
 export type RawBlockChartValue = {

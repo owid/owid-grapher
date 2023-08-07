@@ -155,6 +155,4 @@ export const grapherInterfaceWithHiddenTabsOnly: GrapherProgrammaticInterface =
         hasChartTab: false,
         hasMapTab: false,
         hasTableTab: false,
-        hasDownloadTab: false,
-        hideShareTabButton: true,
     }

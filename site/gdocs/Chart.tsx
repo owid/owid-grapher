@@ -47,7 +47,11 @@ export default function Chart({
             !showAllControls ? grapherInterfaceWithHiddenControlsOnly : {},
             !showAllTabs ? grapherInterfaceWithHiddenTabsOnly : {},
             ...listOfPartialGrapherConfigs,
-            { hideRelatedQuestion: true },
+            {
+                hideRelatedQuestion: true,
+                hideExploreTheDataButton: false,
+                hideShareTabButton: true,
+            },
             {
                 title: d.title,
                 subtitle: d.subtitle,
@@ -136,9 +140,6 @@ const mapKeywordToGrapherConfig = (
 
         case ChartTabKeyword.table:
             return { hasTableTab: true }
-
-        case ChartTabKeyword.download:
-            return { hasDownloadTab: true }
 
         default:
             return null
