@@ -146,9 +146,6 @@ const config: GrapherConfigGridEditorConfig = {
     finalVariableLayerModificationFn: (id: number) => ({
         version: 1,
         dimensions: [{ property: DimensionProperty.y, variableId: id }],
-        map: {
-            columnSlug: `${id}`,
-        },
     }),
 }
 
