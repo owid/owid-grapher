@@ -7,6 +7,8 @@ import {
     DEPLOY_PENDING_FILE_PATH,
 } from "../settings/serverSettings.js"
 
+import { jest } from "@jest/globals"
+
 describe("parseQueueContent", () => {
     const server = new DeployQueueServer()
     it("parses newline delimited JSON objects", async () => {

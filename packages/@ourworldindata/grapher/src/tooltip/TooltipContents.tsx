@@ -46,7 +46,7 @@ export class TooltipValueRange extends React.Component<TooltipValueRangeProps> {
             <svg
                 className={classnames("arrow", direction)}
                 xmlns="http://www.w3.org/2000/svg"
-                viewBox={`0 0 ${direction == "right" ? 20 : 15} 15`}
+                viewBox={`0 0 ${direction === "right" ? 20 : 15} 15`}
             >
                 <path d={this.ARROW_PATHS[direction]} />
             </svg>
@@ -59,7 +59,8 @@ export class TooltipValueRange extends React.Component<TooltipValueRangeProps> {
                 column.formatValueShort(v)
             ),
             [firstTerm, lastTerm] =
-                // TODO: would be nicer to actually measure the typeset text
+                // TODO: would be nicer to actually measure the typeset text but we would need to
+                // add Lato's metrics to the `string-pixel-width` module to use Bounds.forText
                 sum([firstValue?.length, lastValue?.length]) > 20
                     ? values.map((v) =>
                           column.formatValueShortWithAbbreviations(v)
@@ -95,17 +96,19 @@ class Variable extends React.Component<{
     render(): JSX.Element | null {
         const { column, children, color, notice } = this.props
 
-        if (column.isMissing || column.name == "time") return null
+        if (column.isMissing || column.name === "time") return null
 
         const { unit, shortUnit, displayName } = column,
             displayUnit =
-                unit && unit != shortUnit
+                unit && unit !== shortUnit
                     ? unit.replace(/^\((.*)\)$/, "$1")
                     : undefined,
             displayNotice =
-                uniq((notice ?? []).filter((t) => t != undefined))
+                uniq((notice ?? []).filter((t) => t !== undefined))
                     .map((time) =>
-                        typeof time == "number" ? column.formatTime(time) : time
+                        typeof time === "number"
+                            ? column.formatTime(time)
+                            : time
                     )
                     .join("\u2013") || null
 
@@ -169,18 +172,23 @@ export class TooltipTable extends React.Component<TooltipTableProps> {
                             name,
                             focused,
                             blurred,
+                            striped,
                             annotation,
                             values,
                             notice,
                             swatch = "transparent",
                         } = row
                         const [_m, seriesName, seriesParenthetical] =
-                            name.match(/^(.*?)(\(.*)?$/) ?? []
+                            name.match(/^(.*?)(\([^()]*\))?$/) ?? []
 
                         return (
                             <tr
                                 key={name}
-                                className={classnames({ focused, blurred })}
+                                className={classnames({
+                                    focused,
+                                    blurred,
+                                    striped,
+                                })}
                             >
                                 <td className="series-color">
                                     <div

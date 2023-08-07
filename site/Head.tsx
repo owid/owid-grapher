@@ -45,14 +45,14 @@ export const Head = (props: {
             <meta property="og:url" content={canonicalUrl} />
             <meta property="og:title" content={pageTitle} />
             <meta property="og:description" content={pageDesc} />
-            <meta property="og:image" content={imageUrl} />
+            <meta property="og:image" content={encodeURI(imageUrl)} />
             <meta property="og:site_name" content="Our World in Data" />
             <meta name="twitter:card" content="summary_large_image" />
             <meta name="twitter:site" content="@OurWorldInData" />
             <meta name="twitter:creator" content="@OurWorldInData" />
             <meta name="twitter:title" content={pageTitle} />
             <meta name="twitter:description" content={pageDesc} />
-            <meta name="twitter:image" content={imageUrl} />
+            <meta name="twitter:image" content={encodeURI(imageUrl)} />
             {stylesheets}
             {props.children}
         </head>

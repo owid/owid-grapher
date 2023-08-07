@@ -60,7 +60,7 @@ export class CategoricalColorAssigner {
     private get availableColors(): Color[] {
         // copy the colors array because we might need to reverse it
         const colors =
-            (this.numColorsInUse != undefined
+            (this.numColorsInUse !== undefined
                 ? this.colorScheme.getColors(this.numColorsInUse)
                 : last(this.colorScheme.colorSets)
             )?.slice() ?? []

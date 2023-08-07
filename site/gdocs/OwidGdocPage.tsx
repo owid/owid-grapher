@@ -50,9 +50,11 @@ export default function OwidGdocPage({
         <html>
             <Head
                 pageTitle={content.title}
-                pageDesc={content.subtitle}
+                pageDesc={content.excerpt}
                 canonicalUrl={canonicalUrl}
-                imageUrl={featuredImageUrl}
+                imageUrl={
+                    featuredImageUrl ? encodeURI(featuredImageUrl) : undefined
+                }
                 baseUrl={baseUrl}
             >
                 <CitationMeta

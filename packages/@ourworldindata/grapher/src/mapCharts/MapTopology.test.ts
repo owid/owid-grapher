@@ -8,7 +8,7 @@ it("contains the same list of mappable countries as regions.json", () => {
             (region: any) => region.id
         ),
         inRegions = regions
-            .filter((entity) => entity.regionType == "country")
+            .filter((entity) => entity.regionType === "country")
             .filter((entity) => (entity as Country).isMappable)
             .map((entity) => entity.name)
 

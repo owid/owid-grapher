@@ -31,7 +31,7 @@ export const stackSeries = <PositionType extends StackedPointPositionType>(
 export function withUniformSpacing(values: number[]): number[] {
     const deltas = rollingMap(values, (a, b) => b - a)
     const gcd = findGreatestCommonDivisorOfArray(deltas)
-    if (gcd == null) return values
+    if (gcd === null) return values
     return range(values[0], values[values.length - 1] + gcd, gcd)
 }
 

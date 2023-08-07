@@ -41,7 +41,6 @@ import {
     PromiseSwitcher,
     SerializedGridProgram,
     setWindowUrl,
-    throttle,
     uniq,
     uniqBy,
     Url,
@@ -73,6 +72,7 @@ import {
     explorerUrlMigrationsById,
     migrateExplorerUrl,
 } from "./urlMigrations/ExplorerUrlMigrations.js"
+import Bugsnag from "@bugsnag/js"
 
 export interface ExplorerProps extends SerializedGridProgram {
     grapherConfigs?: GrapherInterface[]
@@ -220,10 +220,8 @@ export class Explorer
         this.grapher?.populateFromQueryParams(url.queryParams)
 
         exposeInstanceOnWindow(this, "explorer")
-        this.onResize() // call resize for the first time to initialize chart
-        this.updateEntityPickerTable() // call for the first time to initialize EntityPicker
-
         this.attachEventListeners()
+        this.updateEntityPickerTable() // call for the first time to initialize EntityPicker
     }
 
     componentDidUpdate() {
@@ -253,12 +251,28 @@ export class Explorer
     }
 
     private attachEventListeners() {
-        this.onResizeThrottled = throttle(this.onResize, 100)
-        window.addEventListener("resize", this.onResizeThrottled)
-        this.disposers.push(() => {
-            if (this.onResizeThrottled !== undefined)
-                window.removeEventListener("resize", this.onResizeThrottled)
-        })
+        if (typeof window !== "undefined" && "ResizeObserver" in window) {
+            const onResizeThrottled = debounce(this.onResize, 200, {
+                leading: true,
+            })
+            const resizeObserver = new ResizeObserver(onResizeThrottled)
+            resizeObserver.observe(this.grapherContainerRef.current!)
+            this.disposers.push(() => {
+                resizeObserver.disconnect()
+            })
+        } else if (
+            typeof window === "object" &&
+            typeof document === "object" &&
+            !navigator.userAgent.includes("jsdom")
+        ) {
+            // only show the warning when we're in something that roughly resembles a browser
+            console.warn(
+                "ResizeObserver not available; the explorer will not be responsive to window resizes"
+            )
+            Bugsnag?.notify("ResizeObserver not available")
+
+            this.onResize() // fire once to initialize, at least
+        }
 
         // We always prefer the entity picker metric to be sourced from the currently displayed table.
         // To do this properly, we need to also react to the table changing.
@@ -790,13 +804,15 @@ export class Explorer
         )
     }
 
-    private onResizeThrottled?: () => void
-
     @action.bound private toggleMobileControls() {
         this.showMobileControlsPopup = !this.showMobileControlsPopup
     }
 
     @action.bound private onResize() {
+        // Don't bother rendering if the container is hidden
+        // see https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/offsetParent
+        if (this.grapherContainerRef.current?.offsetParent === null) return
+
         const oldIsNarrow = this.isNarrow
         this.isNarrow = isNarrow()
         this.updateGrapherBounds()

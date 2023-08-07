@@ -38,7 +38,7 @@ interface MapTooltipProps {
 
 const SPARKLINE_WIDTH = 250
 const SPARKLINE_HEIGHT = 87
-const SPARKLINE_PADDING = 15
+const SPARKLINE_PADDING = 15 // same as $inset in scss
 
 @observer
 export class MapTooltip extends React.Component<MapTooltipProps> {
@@ -73,6 +73,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                 isNumber,
                 "Drop rows with non-number values in Y column"
             )
+            .sortBy([this.props.timeSeriesTable.timeColumn.slug])
     }
 
     @computed private get datum():
@@ -194,7 +195,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
         const { timeColumn } = mapTable
         const displayTime = !timeColumn.isMissing
             ? timeColumn.formatValue(targetTime)
-            : targetTime
+            : targetTime?.toString()
         const displayDatumTime =
             timeColumn && datum
                 ? timeColumn.formatValue(datum?.time)
@@ -235,7 +236,8 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                 title={target?.featureId}
                 subtitle={datum ? displayDatumTime : displayTime}
                 subtitleFormat={notice ? "notice" : undefined}
-                notice={notice}
+                footer={notice}
+                footerFormat="notice"
                 dissolve={fading}
             >
                 <TooltipValue
@@ -277,28 +279,16 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                                     bottom: 3,
                                 })}
                             />
-                            <g className="min-max-labels">
-                                {maxLabel != minLabel && (
-                                    <text
-                                        x={
-                                            SPARKLINE_WIDTH -
-                                            SPARKLINE_PADDING -
-                                            3
-                                        }
-                                        y={0.75 * SPARKLINE_PADDING}
-                                    >
-                                        {maxLabel}
-                                    </text>
-                                )}
-                                <text
-                                    x={SPARKLINE_WIDTH - SPARKLINE_PADDING - 3}
-                                    y={
-                                        SPARKLINE_HEIGHT -
-                                        1.45 * SPARKLINE_PADDING
-                                    }
-                                >
-                                    {minLabel}
-                                </text>
+
+                            {maxLabel !== minLabel && (
+                                <g className="max axis-label">
+                                    <text>{maxLabel}</text>
+                                </g>
+                            )}
+
+                            <g className="min axis-label">
+                                <text className="outline">{minLabel}</text>
+                                <text>{minLabel}</text>
                             </g>
                         </svg>
                     </div>

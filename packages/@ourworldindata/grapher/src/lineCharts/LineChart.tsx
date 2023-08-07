@@ -1,9 +1,12 @@
 import React from "react"
 import {
     sortBy,
+    groupBy,
+    mapValues,
     sum,
     guid,
-    compact,
+    excludeNullish,
+    values,
     getRelativeMouse,
     pointsToPath,
     minBy,
@@ -481,10 +484,37 @@ export class LineChart
 
         if (!target) return undefined
 
-        const sortedData = sortBy(this.series, (series) => {
-            const value = series.points.find((point) => point.x === target.x)
-            return value !== undefined ? -value.y : Infinity
-        })
+        // Duplicate seriesNames will be present if there is a projected-values line
+        const seriesSegments = mapValues(
+            groupBy(this.series, "seriesName"),
+            (segments) =>
+                segments.find((series) =>
+                    // Ideally pick series with a defined value at the target time
+                    series.points.find((point) => point.x === target.x)
+                ) ??
+                segments.find((series): boolean | void => {
+                    // Otherwise pick the series whose start & end contains the target time
+                    // and display a "No data" notice.
+                    const [startX, endX] = extent(series.points, ({ x }) => x)
+                    return (
+                        isNumber(startX) &&
+                        isNumber(endX) &&
+                        startX < target.x &&
+                        target.x < endX
+                    )
+                }) ??
+                null // If neither series matches, exclude the entity from the tooltip altogether
+        )
+
+        const sortedData = sortBy(
+            excludeNullish(values(seriesSegments)),
+            (series) => {
+                const value = series.points.find(
+                    (point) => point.x === target.x
+                )
+                return value !== undefined ? -value.y : Infinity
+            }
+        )
 
         const formattedTime = formatColumn.formatTime(target.x),
             { unit, shortUnit } = formatColumn,
@@ -493,12 +523,15 @@ export class LineChart
         const columns = [formatColumn]
         if (hasColorScale) columns.push(colorColumn)
 
-        const unitLabel = unit != shortUnit ? unit : undefined
+        const unitLabel = unit !== shortUnit ? unit : undefined
         const subtitle =
             isRelativeMode && startTime
                 ? `% change since ${formatColumn.formatTime(startTime)}`
                 : unitLabel
         const subtitleFormat = subtitle === unitLabel ? "unit" : undefined
+        const footer = sortedData.some((series) => series.isProjection)
+            ? `Projected data`
+            : undefined
 
         return (
             <Tooltip
@@ -513,58 +546,46 @@ export class LineChart
                 title={formattedTime}
                 subtitle={subtitle}
                 subtitleFormat={subtitleFormat}
+                footer={footer}
+                footerFormat="stripes"
                 dissolve={fading}
             >
                 <TooltipTable
                     columns={columns}
-                    rows={compact(
-                        sortedData.map((series) => {
-                            const { seriesName: name } = series
-                            const annotation =
-                                this.getAnnotationsForSeries(name)
-                            const point = series.points.find(
-                                (point) => point.x === target.x
-                            )
+                    rows={sortedData.map((series) => {
+                        const { seriesName: name, isProjection: striped } =
+                            series
+                        const annotation = this.getAnnotationsForSeries(name)
 
-                            // It sometimes happens that data is missing for some years for a particular
-                            // entity. If the user hovers over these years, we want to show a "No data"
-                            // notice. However, we only want to show this notice when we are in the middle
-                            // of a time series – when data points exist before and after the current year.
-                            // Otherwise we want to entirely exclude the entity from the tooltip.
-                            if (!point) {
-                                const [startX, endX] = extent(
-                                    series.points,
-                                    (point) => point.x
-                                )
-                                if (
-                                    startX === undefined ||
-                                    endX === undefined ||
-                                    startX > target.x ||
-                                    endX < target.x
-                                )
-                                    return undefined
-                            }
+                        const point = series.points.find(
+                            (point) => point.x === target.x
+                        )
 
-                            const blurred =
-                                this.seriesIsBlurred(series) ||
-                                point === undefined
+                        const blurred =
+                            this.seriesIsBlurred(series) || point === undefined
 
-                            const swatch = blurred
-                                ? BLUR_LINE_COLOR
-                                : this.hasColorScale
-                                ? darkenColorForLine(
-                                      this.getColorScaleColor(point?.colorValue)
-                                  )
-                                : series.color
+                        const swatch = blurred
+                            ? BLUR_LINE_COLOR
+                            : this.hasColorScale
+                            ? darkenColorForLine(
+                                  this.getColorScaleColor(point?.colorValue)
+                              )
+                            : series.color
 
-                            const values = [
-                                point?.y,
-                                point?.colorValue as undefined | number,
-                            ]
+                        const values = [
+                            point?.y,
+                            point?.colorValue as undefined | number,
+                        ]
 
-                            return { name, annotation, swatch, blurred, values }
-                        })
-                    )}
+                        return {
+                            name,
+                            annotation,
+                            swatch,
+                            blurred,
+                            striped,
+                            values,
+                        }
+                    })}
                 />
             </Tooltip>
         )

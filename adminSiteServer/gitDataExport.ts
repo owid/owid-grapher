@@ -14,6 +14,7 @@ import { execFormatted } from "../db/execWrapper.js"
 import { JsonError } from "@ourworldindata/utils"
 
 const datasetToReadme = async (dataset: Dataset): Promise<string> => {
+    // TODO: add origins here
     const source = await Source.findOneBy({ datasetId: dataset.id })
     return `# ${dataset.name}\n\n${
         (source && source.description && source.description.additionalInfo) ||

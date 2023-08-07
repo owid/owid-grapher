@@ -8,12 +8,11 @@ import {
     without,
     deserializeJSONFromHTML,
     OwidVariableDataMetadataDimensions,
-    OwidVariableMixedData,
-    OwidVariableWithSourceAndDimension,
     uniq,
     JsonError,
     keyBy,
     OwidGdocType,
+    retryPromise,
 } from "@ourworldindata/utils"
 import {
     getRelatedArticles,
@@ -37,17 +36,14 @@ import * as db from "../db/db.js"
 import { glob } from "glob"
 import { isPathRedirectedToExplorer } from "../explorerAdminServer/ExplorerRedirects.js"
 import { getPostBySlug } from "../db/model/Post.js"
-import {
-    GRAPHER_VARIABLES_ROUTE,
-    GRAPHER_VARIABLE_DATA_ROUTE,
-    GRAPHER_VARIABLE_METADATA_ROUTE,
-    getVariableDataRoute,
-    getVariableMetadataRoute,
-    GrapherInterface,
-} from "@ourworldindata/grapher"
+import { GrapherInterface } from "@ourworldindata/grapher"
 import workerpool from "workerpool"
 import ProgressBar from "progress"
-import { getVariableData } from "../db/model/Variable.js"
+import {
+    getVariableData,
+    getOwidVariableDataAndMetadataPath,
+    assertFileExistsInS3,
+} from "../db/model/Variable.js"
 import {
     getDatapageGdoc,
     getDatapageJson,
@@ -55,7 +51,6 @@ import {
 } from "../datapage/Datapage.js"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { Image } from "../db/model/Image.js"
-import { Dictionary } from "lodash"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 
 /**
@@ -69,7 +64,7 @@ import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 export const renderDataPageOrGrapherPage = async (
     grapher: GrapherInterface,
     publishedExplorersBySlug?: Record<string, ExplorerProgram>,
-    imageMetadataDictionary?: Dictionary<Image>
+    imageMetadataDictionary?: Record<string, Image>
 ) => {
     const variableIds = uniq(grapher.dimensions!.map((d) => d.variableId))
     // this shows that multi-metric charts are not really supported, and will
@@ -308,20 +303,12 @@ interface BakeVariableDataArguments {
 export const bakeVariableData = async (
     bakeArgs: BakeVariableDataArguments
 ): Promise<BakeVariableDataArguments> => {
-    const { data, metadata } = await getVariableData(bakeArgs.variableId)
-
-    // NOTE: if variable has dataPath (its data exists in S3), we still write the data to disk
-    // in the future when all our data lives in S3 we should just pass the link to grapher and
-    // let it load the data from S3
-    const path = `${bakeArgs.bakedSiteDir}${getVariableDataRoute(
+    const { dataPath, metadataPath } = await getOwidVariableDataAndMetadataPath(
         bakeArgs.variableId
-    )}`
-    await fs.writeFile(path, JSON.stringify(data))
+    )
 
-    const metadataPath = `${bakeArgs.bakedSiteDir}${getVariableMetadataRoute(
-        bakeArgs.variableId
-    )}`
-    await fs.writeFile(metadataPath, JSON.stringify(metadata))
+    await retryPromise(() => assertFileExistsInS3(dataPath))
+    await retryPromise(() => assertFileExistsInS3(metadataPath))
 
     return bakeArgs
 }
@@ -342,7 +329,7 @@ const chartIsSameVersion = async (
 
 const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
     bakedSiteDir: string,
-    imageMetadataDictionary: Dictionary<Image>,
+    imageMetadataDictionary: Record<string, Image>,
     grapher: GrapherInterface
 ) => {
     const htmlPath = `${bakedSiteDir}/grapher/${grapher.slug}.html`
@@ -374,26 +361,7 @@ const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
     const pngPath = `${bakedSiteDir}/grapher/exports/${grapher.slug}.png`
     if (!isSameVersion || !fs.existsSync(svgPath) || !fs.existsSync(pngPath)) {
         const loadDataMetadataPromises: Promise<OwidVariableDataMetadataDimensions>[] =
-            variableIds.map(async (variableId) => {
-                const metadataPath = `${bakedSiteDir}${getVariableMetadataRoute(
-                    variableId
-                )}`
-                const metadataString = await fs.readFile(metadataPath, "utf8")
-                const metadataJson = JSON.parse(
-                    metadataString
-                ) as OwidVariableWithSourceAndDimension
-
-                const dataPath = `${bakedSiteDir}${getVariableDataRoute(
-                    variableId
-                )}`
-                const dataString = await fs.readFile(dataPath, "utf8")
-                const dataJson = JSON.parse(dataString) as OwidVariableMixedData
-
-                return {
-                    data: dataJson,
-                    metadata: metadataJson,
-                }
-            })
+            variableIds.map(getVariableData)
         const variableDataMetadata = await Promise.all(loadDataMetadataPromises)
         const variableDataMedadataMap = new Map(
             variableDataMetadata.map((item) => [item.metadata.id, item])
@@ -437,29 +405,25 @@ export const bakeAllPublishedChartsVariableDataAndMetadata = async (
     variableIds: number[],
     checksumsDir: string
 ) => {
-    await fs.mkdirp(`${bakedSiteDir}${GRAPHER_VARIABLES_ROUTE}`)
-    await fs.mkdirp(`${bakedSiteDir}${GRAPHER_VARIABLE_DATA_ROUTE}`)
-    await fs.mkdirp(`${bakedSiteDir}${GRAPHER_VARIABLE_METADATA_ROUTE}`)
     await fs.mkdirp(checksumsDir)
 
     const progressBar = new ProgressBar(
-        "bake variable data/metadata json [:bar] :current/:total :elapseds :rate/s :etas :name\n",
+        "check existence of variable in Data API [:bar] :current/:total :elapseds :rate/s :etas :name\n",
         {
             width: 20,
             total: variableIds.length + 1,
         }
     )
 
-    const jobs: BakeVariableDataArguments[] = variableIds.map((variableId) => ({
-        bakedSiteDir,
-        variableId,
-        checksumsDir,
-    }))
-
+    // NOTE: we don't bake data, just make sure it exists on S3
     await Promise.all(
-        jobs.map(async (job) => {
-            await bakeVariableData(job)
-            progressBar.tick({ name: `variableid ${job.variableId}` })
+        variableIds.map(async (variableId) => {
+            await bakeVariableData({
+                bakedSiteDir,
+                variableId,
+                checksumsDir,
+            })
+            progressBar.tick({ name: `variableid ${variableId}` })
         })
     )
 }
@@ -469,7 +433,7 @@ export interface BakeSingleGrapherChartArguments {
     config: string
     bakedSiteDir: string
     slug: string
-    imageMetadataDictionary: Dictionary<Image>
+    imageMetadataDictionary: Record<string, Image>
 }
 
 export const bakeSingleGrapherChart = async (
@@ -496,11 +460,12 @@ export const bakeSingleGrapherChart = async (
 export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
     async (bakedSiteDir: string) => {
         const variablesToBake: { varId: number }[] =
-            await db.queryMysql(`select distinct vars.varID as varId
-            from
-            charts c,
+            await db.queryMysql(`select vars.varID as varId
+            from charts c,
             json_table(c.config, '$.dimensions[*]' columns (varID integer path '$.variableId') ) as vars
-            where JSON_EXTRACT(c.config, '$.isPublished')=true`)
+            where JSON_EXTRACT(c.config, '$.isPublished')=true
+            union
+            select variableId as varId from explorer_variables`)
 
         const chartsToBake: { id: number; config: string; slug: string }[] =
             await db.queryMysql(`
@@ -545,7 +510,7 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
             }
         )
 
-        if (MAX_NUM_BAKE_PROCESSES == 1) {
+        if (MAX_NUM_BAKE_PROCESSES === 1) {
             await Promise.all(
                 jobs.map(async (job) => {
                     await bakeSingleGrapherChart(job)

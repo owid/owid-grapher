@@ -584,7 +584,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
     @action
     async undoAction(): Promise<void> {
         const { undoStack, redoStack } = this
-        if (undoStack.length == 0) return
+        if (undoStack.length === 0) return
         // TODO: not yet properly implemented - figure out how to update the flat data rows and
         // set them here. Also change the rich data row entries
         const lastStep = undoStack.pop()
@@ -595,7 +595,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
     @action
     async redoAction(): Promise<void> {
         const { redoStack } = this
-        if (redoStack.length == 0) return
+        if (redoStack.length === 0) return
         // TODO: not yet properly implemented - figure out how to update the flat data rows and
         // set them here. Also change the rich data row entries
         const lastStep = redoStack.pop()
@@ -656,7 +656,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                     (fieldDesc) =>
                         [
                             fieldDesc.pointer,
-                            row.config != undefined
+                            row.config !== undefined
                                 ? cloneDeep(
                                       fieldDesc.getter(
                                           row.config as Record<string, unknown>

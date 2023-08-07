@@ -2,7 +2,7 @@ import fs from "fs-extra"
 import { writeFile } from "node:fs/promises"
 import path from "path"
 import { glob } from "glob"
-import { keyBy, without, uniq, mapValues } from "lodash"
+import { keyBy, without, uniq, mapValues, chunk, pick } from "lodash"
 import cheerio from "cheerio"
 import ProgressBar from "progress"
 import * as wpdb from "../db/wpdb.js"
@@ -231,7 +231,7 @@ export class SiteBaker {
                     !path.startsWith("grapher") &&
                     !path.startsWith("countries") &&
                     !path.startsWith("country") &&
-                    !path.startsWith("blog") &&
+                    !path.startsWith("latest") &&
                     !path.startsWith("entries-by-year") &&
                     !path.startsWith("explore") &&
                     !countryProfileSpecs.some((spec) =>
@@ -325,6 +325,7 @@ export class SiteBaker {
                 mapValues(results, (cur) => ({
                     originalSlug: cur.slug,
                     resolvedUrl: `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${cur.slug}`,
+                    queryString: "",
                     title: cur.title || "",
                     thumbnail:
                         cur.thumbnail ||
@@ -340,6 +341,7 @@ export class SiteBaker {
                         [cur.slug]: {
                             originalSlug: cur.slug,
                             resolvedUrl: `${BAKED_GRAPHER_URL}/${cur.config.slug}`,
+                            queryString: "",
                             title: cur.config.title || "",
                             thumbnail: `${BAKED_GRAPHER_EXPORTS_BASE_URL}/${cur.config.slug}.svg`,
                         },
@@ -349,12 +351,21 @@ export class SiteBaker {
         )
 
         for (const publishedGdoc of publishedGdocs) {
-            publishedGdoc.imageMetadata = imageMetadataDictionary
-            publishedGdoc.linkedDocuments = publishedGdocsDictionary
+            // Pick the necessary metadata from the dictionaries we prefetched
+            publishedGdoc.linkedDocuments = pick(
+                publishedGdocsDictionary,
+                publishedGdoc.getLinkedDocumentIds()
+            )
+            publishedGdoc.imageMetadata = pick(
+                imageMetadataDictionary,
+                publishedGdoc.getLinkedImageFilenames()
+            )
+            const linkedChartSlugs = publishedGdoc.getLinkedChartSlugs()
             publishedGdoc.linkedCharts = {
-                ...publishedChartsBySlug,
-                ...publishedExplorersBySlug,
+                ...pick(publishedChartsBySlug, linkedChartSlugs.grapher),
+                ...pick(publishedExplorersBySlug, linkedChartSlugs.explorer),
             }
+
             // this is a no-op if the gdoc doesn't have an all-chart block
             await publishedGdoc.loadRelatedCharts()
 
@@ -450,19 +461,19 @@ export class SiteBaker {
 
         const charts: { slug: string; subtitle: string; note: string }[] =
             await db.queryMysql(`
-                SELECT 
-                    config ->> '$.slug' as slug, 
-                    config ->> '$.subtitle' as subtitle, 
-                    config ->> '$.note' as note 
-                FROM 
-                    charts 
-                WHERE 
-                    JSON_EXTRACT(config, "$.isPublished") = true 
+                SELECT
+                    config ->> '$.slug' as slug,
+                    config ->> '$.subtitle' as subtitle,
+                    config ->> '$.note' as note
+                FROM
+                    charts
+                WHERE
+                    JSON_EXTRACT(config, "$.isPublished") = true
                 AND (
-                    JSON_EXTRACT(config, "$.subtitle") LIKE "%#dod:%" 
+                    JSON_EXTRACT(config, "$.subtitle") LIKE "%#dod:%"
                     OR JSON_EXTRACT(config, "$.note") LIKE "%#dod:%"
-                ) 
-                ORDER BY 
+                )
+                ORDER BY
                     JSON_EXTRACT(config, "$.slug") ASC
             `)
 
@@ -553,7 +564,7 @@ export class SiteBaker {
         const numPages = Math.ceil(allPosts.length / BLOG_POSTS_PER_PAGE)
 
         for (let i = 1; i <= numPages; i++) {
-            const slug = i === 1 ? "blog" : `blog/page/${i}`
+            const slug = i === 1 ? "latest" : `latest/page/${i}`
             const html = await renderBlogByPageNum(i)
             await this.stageWrite(`${this.bakedSiteDir}/${slug}.html`, html)
         }
@@ -587,55 +598,62 @@ export class SiteBaker {
             "published"
         )
 
-        await Promise.all(
-            images.map(async (image) => {
-                const remoteFilePath = path.join(
-                    IMAGE_HOSTING_CDN_URL,
-                    IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH,
-                    image.filename
-                )
-                return fetch(remoteFilePath)
-                    .then((response) => {
-                        if (!response.ok) {
-                            throw new Error(
-                                `Fetching image failed: ${response.status} ${response.statusText} ${response.url}`
-                            )
-                        }
-                        return response.arrayBuffer()
-                    })
-                    .then((arrayBuffer) => Buffer.from(arrayBuffer))
-                    .then(async (buffer) => {
-                        if (!image.isSvg) {
-                            await Promise.all(
-                                image.sizes!.map((width) => {
-                                    const localResizedFilepath = path.join(
-                                        imagesDirectory,
-                                        `${image.filenameWithoutExtension}_${width}.webp`
+        const imageChunks = chunk(images, 2)
+        for (const imageChunk of imageChunks) {
+            await Promise.all(
+                imageChunk.map(async (image) => {
+                    const remoteFilePath = path.join(
+                        IMAGE_HOSTING_CDN_URL,
+                        IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH,
+                        image.filename
+                    )
+                    return fetch(remoteFilePath)
+                        .then((response) => {
+                            if (!response.ok) {
+                                throw new Error(
+                                    `Fetching image failed: ${response.status} ${response.statusText} ${response.url}`
+                                )
+                            }
+                            return response.arrayBuffer()
+                        })
+                        .then((arrayBuffer) => Buffer.from(arrayBuffer))
+                        .then(async (buffer) => {
+                            if (!image.isSvg) {
+                                await Promise.all(
+                                    image.sizes!.map((width) => {
+                                        const localResizedFilepath = path.join(
+                                            imagesDirectory,
+                                            `${image.filenameWithoutExtension}_${width}.webp`
+                                        )
+                                        return sharp(buffer)
+                                            .resize(width)
+                                            .webp({
+                                                lossless: true,
+                                            })
+                                            .toFile(localResizedFilepath)
+                                    })
+                                )
+                            } else {
+                                // A PNG alternative to the SVG for the "Download image" link
+                                const pngFilename = getFilenameAsPng(
+                                    image.filename
+                                )
+                                await sharp(buffer)
+                                    .resize(2000)
+                                    .png()
+                                    .toFile(
+                                        path.join(imagesDirectory, pngFilename)
                                     )
-                                    return sharp(buffer)
-                                        .resize(width)
-                                        .webp({
-                                            lossless: true,
-                                        })
-                                        .toFile(localResizedFilepath)
-                                })
+                            }
+                            // For SVG, and a non-webp fallback copy of the image
+                            await writeFile(
+                                path.join(imagesDirectory, image.filename),
+                                buffer
                             )
-                        } else {
-                            // A PNG alternative to the SVG for the "Download image" link
-                            const pngFilename = getFilenameAsPng(image.filename)
-                            await sharp(buffer)
-                                .resize(2000)
-                                .png()
-                                .toFile(path.join(imagesDirectory, pngFilename))
-                        }
-                        // For SVG, and a non-webp fallback copy of the image
-                        await writeFile(
-                            path.join(imagesDirectory, image.filename),
-                            buffer
-                        )
-                    })
-            })
-        )
+                        })
+                })
+            )
+        }
         this.progressBar.tick({ name: "✅ baked google drive images" })
     }
 

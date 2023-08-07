@@ -13,7 +13,7 @@ import {
     Url,
     merge,
 } from "@ourworldindata/utils"
-import { renderSpans } from "./utils.js"
+import { renderSpans, useLinkedChart } from "./utils.js"
 import cx from "classnames"
 
 export default function Chart({
@@ -26,7 +26,16 @@ export default function Chart({
     const refChartContainer = useRef<HTMLDivElement>(null)
     useEmbedChart(0, refChartContainer)
 
+    // d.url may use an old slug that has since had a redirect created for it
+    // useLinkedChart references a hashmap that has resolved these old slugs to their current chart
+    // It also extracts the queryString from d.url (if present) and appends it to linkedChart.resolvedUrl
+    // This means we can link to the same chart multiple times with different querystrings
+    // and it should all resolve correctly via the same linkedChart
+    const { linkedChart } = useLinkedChart(d.url)
+    if (!linkedChart) return null
+
     const url = Url.fromURL(d.url)
+    const resolvedUrl = linkedChart.resolvedUrl
     const isExplorer = url.isExplorer
     const hasControls = url.queryParams.hideControls !== "true"
     const height = d.height || (isExplorer && hasControls ? 700 : 575)
@@ -76,9 +85,9 @@ export default function Chart({
         >
             <figure
                 // Use unique `key` to force React to re-render tree
-                key={d.url}
-                data-grapher-src={isExplorer ? undefined : d.url}
-                data-explorer-src={isExplorer ? d.url : undefined}
+                key={resolvedUrl}
+                data-grapher-src={isExplorer ? undefined : resolvedUrl}
+                data-explorer-src={isExplorer ? resolvedUrl : undefined}
                 data-grapher-config={
                     isCustomized && !isExplorer
                         ? JSON.stringify(config)

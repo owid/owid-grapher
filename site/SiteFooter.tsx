@@ -116,7 +116,7 @@ export const SiteFooter = (props: SiteFooterProps) => (
                         <ul>
                             <li>
                                 <a
-                                    href="/blog"
+                                    href="/latest"
                                     data-track-note="footer_navigation"
                                 >
                                     Latest work
@@ -154,6 +154,14 @@ export const SiteFooter = (props: SiteFooterProps) => (
                                     data-track-note="footer_navigation"
                                 >
                                     Instagram
+                                </a>
+                            </li>
+                            <li>
+                                <a
+                                    href="https://www.threads.net/@ourworldindata"
+                                    data-track-note="footer_navigation"
+                                >
+                                    Threads
                                 </a>
                             </li>
                             <li>

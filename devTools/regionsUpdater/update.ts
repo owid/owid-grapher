@@ -231,7 +231,7 @@ async function main() {
         // merge in alternate search terms
         entity.variant_names = _.get(SEARCH_ALIASES, entity.code)
 
-        return _(entity)
+        return _.chain(entity)
             .mapKeys((val, key) =>
                 // rename keys to camelCase
                 _.camelCase(key)

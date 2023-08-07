@@ -1,10 +1,11 @@
 /*
     Cache-Control: public, max-age=0, must-revalidate
     Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+    Access-Control-Allow-Origin: https://owid.cloud
 
 
 /assets/*
-  Access-Control-Allow-Origin: *
+    Access-Control-Allow-Origin: *
 
 /grapher/*
     Access-Control-Allow-Origin: *

@@ -23,6 +23,7 @@ export interface PageRecord {
     date?: string
     modifiedDate?: string
     tags?: string[]
+    documentType?: "wordpress" | "gdoc" | "country-page"
 }
 
 export type AlgoliaMatchLevel = "none" | "full" | "partial"

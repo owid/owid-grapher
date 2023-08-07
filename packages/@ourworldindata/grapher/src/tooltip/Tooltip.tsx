@@ -9,6 +9,10 @@ import { TooltipProps, TooltipManager, TooltipFadeMode } from "./TooltipProps"
 export * from "./TooltipContents.js"
 
 export const TOOLTIP_FADE_DURATION = 400 // $fade-time + $fade-delay in scss
+const TOOLTIP_ICON = {
+    notice: <FontAwesomeIcon className="icon" icon={faInfoCircle} />,
+    stripes: <div className="stripes icon"></div>,
+}
 
 export class TooltipState<T> {
     @observable position = new PointVector(0, 0)
@@ -82,8 +86,8 @@ class TooltipCard extends React.Component<
             title,
             subtitle,
             subtitleFormat,
-            notice,
-            prompt,
+            footer,
+            footerFormat,
             dissolve,
             children,
             offsetX = 0,
@@ -119,20 +123,21 @@ class TooltipCard extends React.Component<
 
         // add a preposition to unit-based subtitles
         const hasHeader = title !== undefined || subtitle !== undefined
-        if (!!subtitle && subtitleFormat == "unit") {
+        if (!!subtitle && subtitleFormat === "unit") {
             const unit = subtitle.toString()
             const preposition = !unit.match(/^(per|in|\() /i) ? "in " : ""
             subtitle = preposition + unit.replace(/(^\(|\)$)/g, "")
         }
 
-        // flag the year in the header if necessary
-        const timeNotice = !!subtitle && subtitleFormat == "notice"
+        // flag the year in the header and add note in footer (if necessary)
+        const timeNotice = !!subtitle && subtitleFormat === "notice"
+        const tolerance = footerFormat === "notice"
 
         // style the box differently if just displaying title/subtitle
         const plain = hasHeader && !children
 
         // skip transition delay if requested
-        const immediate = dissolve == "immediate"
+        const immediate = dissolve === "immediate"
 
         return (
             <div
@@ -150,27 +155,17 @@ class TooltipCard extends React.Component<
                         {title && <div className="title">{title}</div>}
                         {subtitle && (
                             <div className="subtitle">
-                                {timeNotice && (
-                                    <FontAwesomeIcon icon={faInfoCircle} />
-                                )}
-                                {subtitle}
+                                {timeNotice && TOOLTIP_ICON.notice}
+                                <span>{subtitle}</span>
                             </div>
                         )}
                     </div>
                 )}
                 {children && <div className="content">{children}</div>}
-                {(notice || prompt) && (
+                {footer && (
                     <div className="endmatter">
-                        {notice && (
-                            <>
-                                <FontAwesomeIcon icon={faInfoCircle} />
-                                <p className="time-notice">
-                                    Data not available for {notice}. Showing
-                                    closest available data point instead.
-                                </p>
-                            </>
-                        )}
-                        {prompt && <p className="prompt">{prompt}</p>}
+                        {footerFormat && TOOLTIP_ICON[footerFormat]}
+                        <p className={classnames({ tolerance })}>{footer}</p>
                     </div>
                 )}
             </div>

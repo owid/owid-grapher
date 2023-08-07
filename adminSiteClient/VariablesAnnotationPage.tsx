@@ -135,7 +135,7 @@ const variableAnnotationsColumnSets: ColumnSet[] = [
 const config: GrapherConfigGridEditorConfig = {
     source: GrapherConfigGridEditorSource.SourceVariableAnnotation,
     sExpressionContext: {
-        grapherConfigFieldName: "grapherConfig",
+        grapherConfigFieldName: "grapherConfigAdmin",
         whitelistedColumnNamesAndTypes:
             variableAnnotationAllowedColumnNamesAndTypes,
     },
@@ -146,9 +146,6 @@ const config: GrapherConfigGridEditorConfig = {
     finalVariableLayerModificationFn: (id: number) => ({
         version: 1,
         dimensions: [{ property: DimensionProperty.y, variableId: id }],
-        map: {
-            variableId: id,
-        },
     }),
 }
 

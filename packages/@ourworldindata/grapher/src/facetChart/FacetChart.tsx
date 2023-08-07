@@ -190,9 +190,12 @@ export class FacetChart
     @computed private get gridParams(): GridParameters {
         const count = this.facetCount
         const { width, height } = this.bounds
+
+        const aspectRatio = width / height // can be NaN if height is 0, which can happen when the chart is temporarily hidden
+
         return getIdealGridParams({
             count,
-            containerAspectRatio: width / height,
+            containerAspectRatio: isNaN(aspectRatio) ? 1 : aspectRatio,
             idealAspectRatio: IDEAL_PLOT_ASPECT_RATIO,
         })
     }

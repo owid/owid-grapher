@@ -706,10 +706,10 @@ export class StackedDiscreteBarChart
                 inputTable: { timeColumn },
             } = this,
             item = this.placedItems.find(
-                ({ label }) => label == target?.entityName
+                ({ label }) => label === target?.entityName
             ),
             hasNotice = item?.bars.some(
-                ({ point }) => !point.fake && point.time != targetTime
+                ({ point }) => !point.fake && point.time !== targetTime
             ),
             notice = hasNotice ? timeColumn.formatValue(targetTime) : undefined
 
@@ -725,9 +725,10 @@ export class StackedDiscreteBarChart
                     offsetX={20}
                     offsetY={-16}
                     title={target.entityName}
-                    subtitle={unit != shortUnit ? unit : undefined}
+                    subtitle={unit !== shortUnit ? unit : undefined}
                     subtitleFormat="unit"
-                    notice={notice}
+                    footer={notice}
+                    footerFormat="notice"
                     dissolve={fading}
                 >
                     <TooltipTable
@@ -744,10 +745,10 @@ export class StackedDiscreteBarChart
                                 name,
                                 swatch,
                                 blurred,
-                                focused: name == target.seriesName,
+                                focused: name === target.seriesName,
                                 values: [!blurred ? value : undefined],
                                 notice:
-                                    !blurred && time != targetTime
+                                    !blurred && time !== targetTime
                                         ? timeColumn.formatValue(time)
                                         : undefined,
                             }

@@ -54,7 +54,7 @@ export const ProminentLink = (props: {
         title = title ?? linkedChart?.title
         thumbnail = thumbnail ?? linkedChart?.thumbnail
         description =
-            // Adding extra context for graphers by default.
+            // Adding extra context for graphers by default
             // Not needed for Explorers as their titles are self-explanatory
             description ?? linkType === "grapher"
                 ? "See the data in our interactive visualization"

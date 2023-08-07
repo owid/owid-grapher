@@ -23,7 +23,7 @@ import {
 import { ComparisonLineConfig } from "../scatterCharts/ComparisonLine"
 import { LogoOption } from "../captionedChart/Logos"
 import { ColorScaleConfigInterface } from "../color/ColorScaleConfig"
-import { MapConfigWithLegacyInterface } from "../mapCharts/MapConfig"
+import { MapConfigInterface } from "../mapCharts/MapConfig"
 import { ColumnSlugs, Time, EntityName } from "@ourworldindata/core-table"
 import { ColorSchemeName } from "../color/ColorConstants"
 
@@ -31,6 +31,7 @@ import { ColorSchemeName } from "../color/ColorConstants"
 // Ideally, this is also all of the interaction state: when a grapher is saved and loaded again
 // under the same rendering conditions it ought to remain visually identical
 export interface GrapherInterface extends SortConfig {
+    $schema?: string
     type?: ChartTypeName
     id?: number
     version?: number
@@ -90,7 +91,7 @@ export interface GrapherInterface extends SortConfig {
     xAxis?: Partial<AxisConfigInterface>
     yAxis?: Partial<AxisConfigInterface>
     colorScale?: Partial<ColorScaleConfigInterface>
-    map?: Partial<MapConfigWithLegacyInterface>
+    map?: Partial<MapConfigInterface>
 
     // When we move graphers to Git, and remove dimensions, we can clean this up.
     ySlugs?: ColumnSlugs
@@ -126,6 +127,7 @@ export interface LegacyGrapherQueryParams extends GrapherQueryParams {
 
 // Another approach we may want to try is this: https://github.com/mobxjs/serializr
 export const grapherKeysToSerialize = [
+    "$schema",
     "type",
     "id",
     "version",
@@ -189,4 +191,5 @@ export const grapherKeysToSerialize = [
     "adminBaseUrl",
     "bakedGrapherURL",
     "missingDataStrategy",
+    "dataApiUrl",
 ]

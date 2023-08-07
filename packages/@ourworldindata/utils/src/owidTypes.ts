@@ -1,7 +1,7 @@
 import { Tag as TagReactTagAutocomplete } from "react-tag-autocomplete"
 import { ImageMetadata } from "./image.js"
 import { Static, Type } from "@sinclair/typebox"
-import { gdocUrlRegex } from "./GdocsUtils.js"
+import { gdocUrlRegex } from "./GdocsConstants.js"
 
 // todo: remove when we ditch Year and YearIsDay
 export const EPOCH_DATE = "2020-01-21"

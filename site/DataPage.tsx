@@ -18,6 +18,7 @@ import urljoin from "url-join"
 import {
     ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
+    DATA_API_URL,
 } from "../settings/clientSettings.js"
 import {
     DataPageContent,
@@ -70,15 +71,13 @@ export const DataPage = (props: {
     //     `${grapher.slug}.png?v=${grapher.version}`
     // )
     const imageUrl: string = urljoin(baseUrl, "default-grapher-thumbnail.png")
-    const imageWidth: string = "1200"
-    const imageHeight: string = "628"
+    const imageWidth = "1200"
+    const imageHeight = "628"
 
     const variableIds = uniq(grapher.dimensions!.map((d) => d.variableId))
 
     const grapherConfig: GrapherProgrammaticInterface = {
         ...grapher,
-        isEmbeddedInADataPage: true,
-        bindUrlToWindow: true,
         bakedGrapherURL: BAKED_GRAPHER_URL,
         adminBaseUrl: ADMIN_BASE_URL,
     }
@@ -102,8 +101,8 @@ export const DataPage = (props: {
                 </noscript>
                 {variableIds.flatMap((variableId) =>
                     [
-                        getVariableDataRoute(variableId),
-                        getVariableMetadataRoute(variableId),
+                        getVariableDataRoute(DATA_API_URL, variableId),
+                        getVariableMetadataRoute(DATA_API_URL, variableId),
                     ].map((href) => (
                         <link
                             key={href}

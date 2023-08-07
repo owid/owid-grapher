@@ -21,6 +21,9 @@ export const GRAPHER_PAGE_BODY_CLASS = "StandaloneGrapherOrExplorerPage"
 
 export const GRAPHER_IS_IN_IFRAME_CLASS = "IsInIframe"
 
+export const DEFAULT_GRAPHER_CONFIG_SCHEMA =
+    "https://files.ourworldindata.org/schemas/grapher-schema.003.json"
+
 export const DEFAULT_GRAPHER_WIDTH = 850
 export const DEFAULT_GRAPHER_HEIGHT = 600
 
@@ -113,15 +116,29 @@ export enum ScatterPointLabelStrategy {
 
 export type SeriesName = string
 
-export const GRAPHER_VARIABLES_ROUTE = "/grapher/data/variables"
-export const GRAPHER_VARIABLE_DATA_ROUTE = `${GRAPHER_VARIABLES_ROUTE}/data`
-export const GRAPHER_VARIABLE_METADATA_ROUTE = `${GRAPHER_VARIABLES_ROUTE}/metadata`
+export const getVariableDataRoute = (
+    dataApiUrl: string,
+    variableId: number
+): string => {
+    if (dataApiUrl.includes("v1/indicators/")) {
+        // fetching from Data API, e.g. https://api.ourworldindata.org/v1/indicators/123.data.json
+        return `${dataApiUrl}${variableId}.data.json`
+    } else {
+        throw new Error(`dataApiUrl format not supported: ${dataApiUrl}`)
+    }
+}
 
-export const getVariableDataRoute = (variableId: number): string =>
-    `${GRAPHER_VARIABLE_DATA_ROUTE}/${variableId}.json`
-
-export const getVariableMetadataRoute = (variableId: number): string =>
-    `${GRAPHER_VARIABLE_METADATA_ROUTE}/${variableId}.json`
+export const getVariableMetadataRoute = (
+    dataApiUrl: string,
+    variableId: number
+): string => {
+    if (dataApiUrl.includes("v1/indicators/")) {
+        // fetching from Data API, e.g. https://api.ourworldindata.org/v1/indicators/123.metadata.json
+        return `${dataApiUrl}${variableId}.metadata.json`
+    } else {
+        throw new Error(`dataApiUrl format not supported: ${dataApiUrl}`)
+    }
+}
 
 export enum Patterns {
     noDataPattern = "noDataPattern",

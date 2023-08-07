@@ -50,7 +50,7 @@ export const BUGSNAG_NODE_API_KEY: string | undefined =
 
 export const BLOG_POSTS_PER_PAGE: number =
     parseIntOrUndefined(serverSettings.BLOG_POSTS_PER_PAGE) ?? 21
-export const BLOG_SLUG: string = serverSettings.BLOG_SLUG ?? "blog"
+export const BLOG_SLUG: string = serverSettings.BLOG_SLUG ?? "latest"
 
 export const GRAPHER_DB_NAME: string = serverSettings.GRAPHER_DB_NAME ?? "owid"
 export const GRAPHER_DB_USER: string = serverSettings.GRAPHER_DB_USER ?? "root"

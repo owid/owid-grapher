@@ -86,7 +86,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
         return sortBy(datasets, (d) => d.name)
     }
 
-    @computed get datasetsByName(): lodash.Dictionary<Dataset> {
+    @computed get datasetsByName(): Record<string, Dataset> {
         return lodash.keyBy(this.datasets, (d) => d.name)
     }
 
@@ -130,7 +130,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
     @computed get resultsByDataset(): { [datasetName: string]: Variable[] } {
         const { searchResults, searchWords, availableVariables } = this
         let datasetListToUse = searchResults
-        if (searchWords.length == 0) {
+        if (searchWords.length === 0) {
             datasetListToUse = availableVariables
         }
         return groupBy(datasetListToUse, (d) => d.datasetName)
@@ -496,7 +496,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
                 usageCount: variableUsageCounts.get(d.variableId) ?? 0,
                 datasetName: datasetName || "",
                 namespaceName:
-                    datasetName != undefined && datasetName in datasetsByName
+                    datasetName !== undefined && datasetName in datasetsByName
                         ? datasetsByName[datasetName].namespace
                         : "",
             }

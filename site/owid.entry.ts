@@ -5,7 +5,6 @@ import "@ourworldindata/grapher/src/core/grapher.scss"
 // from a very large icon down to a properly sized one a moment later."
 import "@fortawesome/fontawesome-svg-core/styles.css"
 
-import SmoothScroll from "smooth-scroll"
 import { runChartsIndexPage } from "./runChartsIndexPage.js"
 import { runSearchPage } from "./search/SearchPageMain.js"
 import { runNotFoundPage } from "./NotFoundPageMain.js"
@@ -22,6 +21,7 @@ import { CoreTable } from "@ourworldindata/core-table"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 import Bugsnag from "@bugsnag/js"
 import BugsnagPluginReact from "@bugsnag/plugin-react"
+import BugsnagPerformance from "@bugsnag/browser-performance"
 import { runMonkeyPatchForGoogleTranslate } from "./hacks.js"
 import { runSiteFooterScripts } from "./runSiteFooterScripts.js"
 
@@ -50,6 +50,14 @@ if (BUGSNAG_API_KEY) {
             apiKey: BUGSNAG_API_KEY,
             plugins: [new BugsnagPluginReact()],
         })
+
+        const instrumentNetworkRequests = Math.random() < 0.05 // 5% sample rate
+        BugsnagPerformance.start({
+            apiKey: BUGSNAG_API_KEY,
+            autoInstrumentFullPageLoads: false, // TODO: We might want to sample some page loads in the future
+            autoInstrumentRouteChanges: false,
+            autoInstrumentNetworkRequests: instrumentNetworkRequests,
+        })
     } catch (error) {
         console.error("Failed to initialize Bugsnag")
     }
@@ -67,12 +75,5 @@ if (
     const adminbar = document.getElementById("wpadminbar")
     if (adminbar) adminbar.style.display = ""
 }
-
-new SmoothScroll('a[href*="#"][data-smooth-scroll]', {
-    speed: 600,
-    durationMax: 800,
-    durationMin: 100,
-    popstate: false,
-})
 
 analytics.startClickTracking()

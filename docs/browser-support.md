@@ -1,14 +1,14 @@
 ## Supported browsers
 
-As of **2023-02-18**, we support the following browsers:
+As of **2023-07-27**, we support the following browsers:
 
--   Safari 11.1+ (earlier versions are missing support for [Object rest destructuring](https://caniuse.com/mdn-javascript_operators_destructuring_rest_in_objects))
--   iOS Safari 11.3+ (earlier versions are missing support for [Object rest destructuring](https://caniuse.com/mdn-javascript_operators_destructuring_rest_in_objects))
--   Chrome/Edge: 66+ (earlier versions are missing support for [Optional catch binding](https://caniuse.com/mdn-javascript_statements_try_catch_optional_catch_binding))
--   Opera 53+ (since Opera 53 is based on Chromium 66)
--   Firefox: 60+ (earlier versions are missing support for [importing modules](https://caniuse.com/es6-module))
+-   Safari 12+ [September 2018] (earlier versions are missing support for [the CSS `gap` property](https://caniuse.com/mdn-css_properties_gap_grid_context))
+-   iOS Safari 12+ [September 2018] (earlier versions are missing support for [the CSS `gap` property](https://caniuse.com/mdn-css_properties_gap_grid_context))
+-   Chrome/Edge: 66+ [April 2018] (earlier versions are missing support for [Optional catch binding](https://caniuse.com/mdn-javascript_statements_try_catch_optional_catch_binding))
+-   Opera 53+ [May 2018] (since Opera 53 is based on Chromium 66)
+-   Firefox: 61+ [June 2018] (earlier versions are missing support for [the CSS `gap` property](https://caniuse.com/mdn-css_properties_gap_grid_context))
 
-**Overall, [this caniuse link shows which browsers are supported](https://caniuse.com/async-functions,mdn-javascript_operators_destructuring_rest_in_objects,es6-module,mdn-javascript_statements_try_catch_optional_catch_binding)** (scroll down to "Feature summary").
+**Overall, [this caniuse link shows which browsers are supported](https://caniuse.com/async-functions,mdn-css_properties_gap_grid_context,mdn-javascript_operators_destructuring_rest_in_objects,es6-module,mdn-javascript_statements_try_catch_optional_catch_binding)** (scroll down to "Feature summary").
 
 ### "Most breaking" features
 
@@ -19,8 +19,7 @@ As of **2023-02-18**, we support the following browsers:
 -   [Optional catch binding](https://caniuse.com/mdn-javascript_statements_try_catch_optional_catch_binding), which allows for `catch {}` instead of `catch (e) {}`.
     We don't _have_ to use it, but Chrome < 66 is so uncommon now that's it not a worry.
 -   [ES6 modules](https://caniuse.com/es6-module), where we use `<script type="module">` (in HTML) and `import ... from "..."` (in JS)
-
-Things will look a bit odd at times in browsers that don't support the [CSS grid `gap` property](https://caniuse.com/mdn-css_properties_gap_grid_context), but things still work just fine.
+-   [The CSS `gap` property](https://caniuse.com/mdn-css_properties_gap_grid_context), together with `row-gap` and `column-gap`, which was previously prefixed by `grid-` in most browsers. Without support for these properties Google Docs-based pages are borderline unusable; however our interactive charts themselves work pretty much fine on their standalone pages.
 
 ### Polyfills
 

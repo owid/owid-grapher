@@ -1,4 +1,5 @@
 import React from "react"
+import cx from "classnames"
 import {
     BreadcrumbItem,
     OwidGdocContent,
@@ -53,7 +54,11 @@ function OwidArticleHeader({
                     />
                 </div>
             )}
-            <header className="centered-article-header align-center grid grid-cols-8 col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
+            <header
+                className={cx(
+                    "centered-article-header align-center grid grid-cols-8 col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12"
+                )}
+            >
                 <div className="centered-article-header__title-container col-start-2 span-cols-6">
                     {content.supertitle ? (
                         <h3 className="centered-article-header__supertitle span-cols-8">

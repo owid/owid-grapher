@@ -20,6 +20,7 @@ import urljoin from "url-join"
 import {
     ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
+    DATA_API_URL,
 } from "../settings/clientSettings.js"
 import { ChartListItemVariant } from "./ChartListItemVariant.js"
 import { Head } from "./Head.js"
@@ -59,13 +60,14 @@ export const GrapherPage = (props: {
     //     `${grapher.slug}.png?v=${grapher.version}`
     // )
     const imageUrl: string = urljoin(baseUrl, "default-grapher-thumbnail.png")
-    const imageWidth: string = "1200"
-    const imageHeight: string = "628"
+    const imageWidth = "1200"
+    const imageHeight = "628"
 
     const script = `const jsonConfig = ${serializeJSONForHTML({
         ...grapher,
         adminBaseUrl: ADMIN_BASE_URL,
         bakedGrapherURL: BAKED_GRAPHER_URL,
+        dataApiUrl: DATA_API_URL,
     })}
 window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
 
@@ -91,8 +93,8 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                 {flatten(
                     variableIds.map((variableId) =>
                         [
-                            getVariableDataRoute(variableId),
-                            getVariableMetadataRoute(variableId),
+                            getVariableDataRoute(DATA_API_URL, variableId),
+                            getVariableMetadataRoute(DATA_API_URL, variableId),
                         ].map((href) => (
                             <link
                                 key={href}
@@ -118,13 +120,16 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                         <p>Interactive visualization requires JavaScript</p>
                     </noscript>
 
-                    {((relatedArticles && relatedArticles.length != 0) ||
-                        (relatedCharts && relatedCharts.length != 0)) && (
+                    {((relatedArticles && relatedArticles.length !== 0) ||
+                        (relatedCharts && relatedCharts.length !== 0)) && (
                         <div className="related-research-data">
                             <h2>All our related research and data</h2>
-                            {relatedArticles && relatedArticles.length != 0 && (
-                                <RelatedArticles articles={relatedArticles} />
-                            )}
+                            {relatedArticles &&
+                                relatedArticles.length !== 0 && (
+                                    <RelatedArticles
+                                        articles={relatedArticles}
+                                    />
+                                )}
                             {relatedCharts && relatedCharts.length !== 0 && (
                                 <>
                                     <h3>Charts</h3>

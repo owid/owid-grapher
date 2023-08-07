@@ -17,6 +17,7 @@ type ResearchAndWritingProps = {
 function ResearchAndWritingLinkContainer(
     props: EnrichedBlockResearchAndWritingLink & {
         className?: string
+        isSmall?: boolean
         shouldHideThumbnail?: boolean
         shouldHideSubtitle?: boolean
     }
@@ -24,6 +25,7 @@ function ResearchAndWritingLinkContainer(
     let {
         value: { url, title, subtitle, authors, filename },
         shouldHideThumbnail = false,
+        isSmall = false,
         shouldHideSubtitle = false,
         className,
     } = props
@@ -57,7 +59,11 @@ function ResearchAndWritingLinkContainer(
             <div>
                 {filename && !shouldHideThumbnail ? (
                     <figure>
-                        <Image filename={filename} containerType="thumbnail" />
+                        <Image
+                            filename={filename}
+                            shouldLightbox={false}
+                            containerType={isSmall ? "thumbnail" : "default"}
+                        />
                     </figure>
                 ) : null}
                 <h3>{title}</h3>
@@ -113,10 +119,11 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
                     <h5 className="overline-black-caps">{row.heading}</h5>
                     <div className="grid grid-cols-4 research-and-writing-row__link-container">
                         {/* center the two thumbnails with a filler element */}
-                        {row.articles.length == 2 ? <div /> : null}
+                        {row.articles.length === 2 ? <div /> : null}
                         {row.articles.map((link, i) => (
                             <ResearchAndWritingLinkContainer
                                 shouldHideSubtitle
+                                isSmall
                                 className="span-cols-1"
                                 key={i}
                                 {...link}

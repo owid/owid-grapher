@@ -11,12 +11,10 @@ import {
     DataValueResult,
     OwidVariableWithSourceAndDimension,
     OwidVariableId,
-    OwidVariableWithSourceAndType,
-    OwidVariableTypeOptions,
-    omitNullableValues,
-    OwidSource,
     retryPromise,
+    OwidLicense,
 } from "@ourworldindata/utils"
+import { GrapherInterface } from "@ourworldindata/grapher"
 import pl from "nodejs-polars"
 
 export interface VariableRow {
@@ -37,7 +35,28 @@ export interface VariableRow {
     columnOrder?: number
     catalogPath?: string
     dataPath?: string
+    metadataPath?: string
     dimensions?: Dimensions
+    schemaVersion?: number
+    processingLevel?: "minor" | "major"
+    titlePublic?: string
+    titleVariant?: string
+    producerShort?: string
+    citationInline?: string
+    descriptionShort?: string
+    descriptionFromProducer?: string
+    keyInfoText?: string[] // this is json in the db but by convention it is always a list of strings
+    processingInfo?: string
+    licenses?: OwidLicense[]
+    grapherConfigAdmin?: GrapherInterface
+    grapherConfigETL?: GrapherInterface
+    license?: OwidLicense
+    updatePeriodDays?: number
+    datasetVersion?: string
+    version?: string
+
+    // missing here but existsin the DB:
+    // originalMetadata
 }
 
 interface Dimensions {
@@ -49,8 +68,21 @@ interface Dimensions {
     }[]
 }
 
-export type UnparsedVariableRow = Omit<VariableRow, "display"> & {
+export type UnparsedVariableRow = Omit<
+    VariableRow,
+    | "display"
+    | "keyInfoText"
+    | "grapherConfigAdmin"
+    | "grapherConfigETL"
+    | "license"
+    | "licenses"
+> & {
     display: string
+    keyInfoText?: string
+    grapherConfigAdmin?: string
+    grapherConfigETL?: string
+    license?: string
+    licenses?: string
 }
 
 export type VariableQueryRow = Readonly<
@@ -71,138 +103,56 @@ export const variableTable = "variables"
 export function parseVariableRows(
     plainRows: UnparsedVariableRow[]
 ): VariableRow[] {
-    for (const row of plainRows) {
-        row.display = row.display ? JSON.parse(row.display) : undefined
+    const parsedRows: VariableRow[] = []
+    for (const plainRow of plainRows) {
+        const row = {
+            ...plainRow,
+            display: plainRow.display
+                ? JSON.parse(plainRow.display)
+                : undefined,
+            keyInfoText: plainRow.keyInfoText
+                ? JSON.parse(plainRow.keyInfoText)
+                : [],
+            grapherConfigAdmin: plainRow.grapherConfigAdmin
+                ? JSON.parse(plainRow.grapherConfigAdmin)
+                : [],
+            grapherConfigETL: plainRow.grapherConfigETL
+                ? JSON.parse(plainRow.grapherConfigETL)
+                : [],
+            licenses: plainRow.licenses ? JSON.parse(plainRow.licenses) : [],
+            license: plainRow.license ? JSON.parse(plainRow.license) : [],
+        }
+        parsedRows.push(row)
     }
-    return plainRows as VariableRow[]
+    return parsedRows
+}
+
+export async function getVariableMetadata(
+    variableId: number
+): Promise<OwidVariableWithSourceAndDimension> {
+    const { metadataPath } = await getOwidVariableDataAndMetadataPath(
+        variableId
+    )
+
+    const metadata = await fetchS3MetadataByPath(metadataPath)
+    return metadata
 }
 
 export async function getVariableData(
     variableId: number
 ): Promise<OwidVariableDataMetadataDimensions> {
-    const data = await fetchS3Values(variableId)
+    const { dataPath, metadataPath } = await getOwidVariableDataAndMetadataPath(
+        variableId
+    )
 
-    // NOTE: we could be fetching metadata from S3, but there's a latency that could
-    // cause problems with admin. It's safer to fetch it directly from the database.
-    // In the future when we isolate ETL from admin and use variable fallbacks (i.e.
-    // metadataPath would be only editable by ETL), it should be safe to fetch from S3.
-    // The only thing preventing us from doing so is that we allow editing non-ETL variables
-    // (in owid namespace). These are pretty rarely edited anyway.
-    // const metadata = await fetchS3MetadataByPath(metadataPath)
-    const metadata = await getVariableMetadataFromMySQL(variableId, data)
+    const [data, metadata] = await Promise.all([
+        fetchS3ValuesByPath(dataPath),
+        fetchS3MetadataByPath(metadataPath),
+    ])
 
     return {
         data: data,
         metadata: metadata,
-    }
-}
-
-export async function getVariableMetadataFromMySQL(
-    variableId: number,
-    variableData: OwidVariableMixedData
-): Promise<OwidVariableWithSourceAndDimension> {
-    const variableQuery: Promise<VariableQueryRow | undefined> = db.mysqlFirst(
-        `
-        SELECT
-            variables.*,
-            datasets.name AS datasetName,
-            datasets.nonRedistributable AS nonRedistributable,
-            sources.name AS sourceName,
-            sources.description AS sourceDescription
-        FROM variables
-        JOIN datasets ON variables.datasetId = datasets.id
-        JOIN sources ON variables.sourceId = sources.id
-        WHERE variables.id = ?
-        `,
-        [variableId]
-    )
-
-    const row = await variableQuery
-    if (row === undefined) throw new Error(`Variable ${variableId} not found`)
-
-    const {
-        sourceId,
-        sourceName,
-        sourceDescription,
-        nonRedistributable,
-        display: displayJson,
-        ...variable
-    } = row
-    const display = JSON.parse(displayJson)
-    const partialSource: OwidSource = JSON.parse(sourceDescription)
-    const variableMetadata: OwidVariableWithSourceAndType = {
-        ...omitNullableValues(variable),
-        type: detectValuesType(variableData.values),
-        nonRedistributable: Boolean(nonRedistributable),
-        display,
-        source: {
-            id: sourceId,
-            name: sourceName,
-            dataPublishedBy: partialSource.dataPublishedBy || "",
-            dataPublisherSource: partialSource.dataPublisherSource || "",
-            link: partialSource.link || "",
-            retrievedDate: partialSource.retrievedDate || "",
-            additionalInfo: partialSource.additionalInfo || "",
-        },
-    }
-
-    const entities = await loadEntitiesInfo(variableData.entities)
-
-    const years = _.uniq(variableData.years).map((year) => ({ id: year }))
-
-    return {
-        ...variableMetadata,
-        dimensions: {
-            years: { values: years },
-            entities: { values: entities },
-        },
-    }
-}
-
-async function loadEntitiesInfo(entityIds: number[]): Promise<any> {
-    if (entityIds.length === 0) return []
-    return db.queryMysql(
-        `
-        SELECT
-            id,
-            name,
-            code
-        FROM entities WHERE id in (?) ORDER BY name ASC
-        `,
-        [_.uniq(entityIds)]
-    )
-}
-
-export function detectValuesType(
-    values: (string | number)[]
-): OwidVariableTypeOptions {
-    let encounteredFloatDataValues = false
-    let encounteredIntDataValues = false
-    let encounteredStringDataValues = false
-
-    for (const value of values) {
-        if (Number.isInteger(value)) {
-            encounteredIntDataValues = true
-        } else if (typeof value === "number") {
-            encounteredFloatDataValues = true
-        } else {
-            encounteredStringDataValues = true
-        }
-    }
-
-    if (
-        (encounteredFloatDataValues || encounteredIntDataValues) &&
-        encounteredStringDataValues
-    ) {
-        return "mixed"
-    } else if (encounteredFloatDataValues) {
-        return "float"
-    } else if (encounteredIntDataValues) {
-        return "int"
-    } else if (encounteredStringDataValues) {
-        return "string"
-    } else {
-        return "mixed"
     }
 }
 
@@ -289,7 +239,7 @@ export const getDataValue = async ({
         df = df.sort(["year"], true).limit(1)
     }
 
-    if (df.shape.height == 0) return
+    if (df.shape.height === 0) return
     if (df.shape.height > 1) {
         throw new Error(
             `More than one data value found for variable ${variableId}, entity ${entityId}, year ${year}`
@@ -392,7 +342,7 @@ const emptyDataDF = (): pl.DataFrame => {
 export const _dataAsDFfromS3 = async (
     variableIds: OwidVariableId[]
 ): Promise<pl.DataFrame> => {
-    if (variableIds.length == 0) {
+    if (variableIds.length === 0) {
         return emptyDataDF()
     }
 
@@ -423,7 +373,7 @@ export const _dataAsDFfromS3 = async (
 
     const df = pl.concat(dfs)
 
-    if (df.height == 0) {
+    if (df.height === 0) {
         return emptyDataDF()
     }
 

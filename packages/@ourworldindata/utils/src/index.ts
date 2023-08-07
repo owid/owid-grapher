@@ -344,6 +344,7 @@ export {
     isBoolean,
     isEmpty,
     isEqual,
+    isNil,
     isNull,
     isNumber,
     isString,
@@ -400,6 +401,7 @@ export type {
 } from "./dayjs.js"
 
 export type { OwidSource } from "./OwidSource.js"
+export type { OwidOrigin } from "./OwidOrigin.js"
 export {
     formatValue,
     checkIsVeryShortUnit,
@@ -457,15 +459,15 @@ export {
     type OwidVariableWithSourceAndDimensionWithoutId,
     type OwidVariableMixedData,
     type OwidVariableWithDataAndSource,
-    type OwidVariableWithSourceAndType,
     type OwidVariableDimension,
     type OwidVariableDimensions,
     type OwidVariableDataMetadataDimensions,
     type MultipleOwidVariableDataDimensionsMap,
     type OwidVariableDimensionValuePartial,
     type OwidVariableDimensionValueFull,
-    type OwidVariableTypeOptions,
+    type OwidVariablePresentation,
     type OwidEntityKey,
+    type OwidLicense,
 } from "./OwidVariable.js"
 
 export {
@@ -587,6 +589,13 @@ export {
 } from "./MarkdownTextWrap/parser.js"
 
 export {
+    getLinkType,
+    getUrlTarget,
+    checkIsInternalLink,
+    convertHeadingTextToId,
+} from "./GdocsUtils.js"
+
+export {
     ALL_CHARTS_ID,
     LICENSE_ID,
     CITATION_ID,
@@ -596,8 +605,4 @@ export {
     IMAGES_DIRECTORY,
     gdocUrlRegex,
     detailOnDemandRegex,
-    getLinkType,
-    getUrlTarget,
-    checkIsInternalLink,
-    convertHeadingTextToId,
-} from "./GdocsUtils.js"
+} from "./GdocsConstants.js"

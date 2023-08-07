@@ -64,6 +64,9 @@ import {
     spansToUnformattedPlainText,
     EnrichedDetail,
     includesWithTypeGuard,
+    isEmpty,
+    dayjs,
+    compact,
 } from "@ourworldindata/utils"
 import {
     ChartTypeName,
@@ -81,10 +84,13 @@ import {
     FacetAxisDomain,
     AnnotationFieldsInTitle,
     MissingDataStrategy,
+    DEFAULT_GRAPHER_CONFIG_SCHEMA,
     DEFAULT_GRAPHER_WIDTH,
     DEFAULT_GRAPHER_HEIGHT,
     SeriesStrategy,
     GrapherTabOverlayOption,
+    getVariableDataRoute,
+    getVariableMetadataRoute,
 } from "../core/GrapherConstants"
 import Cookies from "js-cookie"
 import {
@@ -211,11 +217,13 @@ async function loadVariablesDataAdmin(
 
 async function loadVariablesDataSite(
     variableIds: number[],
-    baseUrl: string
+    dataApiUrl: string
 ): Promise<MultipleOwidVariableDataDimensionsMap> {
     const loadVariableDataPromises = variableIds.map(async (variableId) => {
-        const dataPromise = fetch(`${baseUrl}data/${variableId}.json`)
-        const metadataPromise = fetch(`${baseUrl}metadata/${variableId}.json`)
+        const dataPromise = fetch(getVariableDataRoute(dataApiUrl, variableId))
+        const metadataPromise = fetch(
+            getVariableMetadataRoute(dataApiUrl, variableId)
+        )
         const [dataResponse, metadataResponse] = await Promise.all([
             dataPromise,
             metadataPromise,
@@ -245,6 +253,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     table?: OwidTable
     bakedGrapherURL?: string
     adminBaseUrl?: string
+    dataApiUrl?: string
     env?: string
     dataApiUrlForAdmin?: string
     annotation?: Annotation
@@ -304,6 +313,7 @@ export class Grapher
         FacetChartManager,
         MapChartManager
 {
+    @observable.ref $schema = DEFAULT_GRAPHER_CONFIG_SCHEMA
     @observable.ref type = ChartTypeName.LineChart
     @observable.ref id?: number = undefined
     @observable.ref version = 1
@@ -320,7 +330,7 @@ export class Grapher
     @observable.ref timelineMaxTime?: Time = undefined
     @observable.ref addCountryMode = EntitySelectionMode.MultipleEntities
     @observable.ref stackMode = StackMode.absolute
-    @observable.ref showNoDataArea: boolean = true
+    @observable.ref showNoDataArea = true
     @observable.ref hideLegend?: boolean = false
     @observable.ref logo?: LogoOption = undefined
     @observable.ref hideLogo?: boolean = undefined
@@ -332,8 +342,8 @@ export class Grapher
     @observable.ref hideScatterLabels?: boolean = undefined
     @observable.ref zoomToSelection?: boolean = undefined
     @observable.ref showYearLabels?: boolean = undefined // Always show year in labels for bar charts
-    @observable.ref hasChartTab: boolean = true
-    @observable.ref hasMapTab: boolean = false
+    @observable.ref hasChartTab = true
+    @observable.ref hasMapTab = false
     @observable.ref tab = GrapherTabOption.chart
     @observable.ref overlay?: GrapherTabOverlayOption = undefined
     @observable.ref internalNotes = ""
@@ -401,6 +411,8 @@ export class Grapher
         typeof window !== "undefined" && (window as any).isEditor === true
     @observable bakedGrapherURL = this.props.bakedGrapherURL
     adminBaseUrl = this.props.adminBaseUrl
+    dataApiUrl =
+        this.props.dataApiUrl ?? "https://api.ourworldindata.org/v1/indicators/"
 
     @observable.ref inputTable: OwidTable
 
@@ -473,6 +485,9 @@ export class Grapher
         obj.selectedEntityNames = this.selection.selectedEntityNames
 
         deleteRuntimeAndUnchangedProps(obj, defaultObject)
+
+        // always include the schema, even if it's the default
+        obj.$schema = this.$schema || DEFAULT_GRAPHER_CONFIG_SCHEMA
 
         // todo: nulls got into the DB for this one. we can remove after moving Graphers from DB.
         if (obj.stackMode === null) delete obj.stackMode
@@ -767,7 +782,7 @@ export class Grapher
             } else {
                 const variablesDataMap = await loadVariablesDataSite(
                     this.variableIds,
-                    this.dataBaseUrl
+                    this.dataApiUrl
                 )
                 this._receiveOwidDataAndApplySelection(variablesDataMap)
             }
@@ -775,6 +790,11 @@ export class Grapher
             // eslint-disable-next-line no-console
             console.log(`Error fetching '${err}'`)
             console.error(err)
+            Bugsnag?.notify(`Error fetching variables: ${err}`, (event) => {
+                event.addMetadata("context", {
+                    variableIds: this.variableIds,
+                })
+            })
         }
     }
 
@@ -974,10 +994,6 @@ export class Grapher
 
     @computed.struct private get variableIds(): number[] {
         return uniq(this.dimensions.map((d) => d.variableId))
-    }
-
-    @computed get dataBaseUrl(): string {
-        return `${this.bakedGrapherURL ?? ""}/data/variables/`
     }
 
     externalCsvLink = ""
@@ -1434,15 +1450,45 @@ export class Grapher
 
         return this.inputTable
             .getColumns(uniq(columnSlugs))
-            .filter((column) => !!column.source.name)
+            .filter(
+                (column) => !!column.source.name || !isEmpty(column.def.origins)
+            )
     }
 
     @computed private get defaultSourcesLine(): string {
-        const sourceNames = this.columnsWithSources.map(
-            (column) => column.source.name ?? ""
-        )
+        const attributions = this.columnsWithSources.flatMap((column) => {
+            // if the variable metadata specifies an attribution on the
+            // variable level then this is preferred over assembling it from
+            // the source and origins
+            if (
+                column.def.attribution !== undefined &&
+                column.def.attribution !== ""
+            )
+                return [column.def.attribution]
+            else {
+                const originFragments = column.def.origins
+                    ? column.def.origins.map((origin) => {
+                          const yearPublished = origin.datePublished
+                              ? dayjs(origin.datePublished, [
+                                    "YYYY",
+                                    "YYYY-MM-DD",
+                                ]).year()
+                              : undefined
+                          return (
+                              origin.attribution ??
+                              `${origin.producer} ${yearPublished}`
+                          )
+                      })
+                    : []
+                return [column.source.name, ...originFragments]
+            }
+        })
 
-        return uniq(sourceNames).join(", ")
+        const uniqueAttributions = uniq(compact(attributions))
+
+        if (uniqueAttributions.length > 3) return "Multiple sources"
+
+        return uniqueAttributions.join(", ")
     }
 
     @computed private get axisDimensions(): ChartDimension[] {
@@ -1661,10 +1707,22 @@ export class Grapher
                 React.Fragment
         }
 
-        const setBoundsFromContainerAndRender = (): void => {
+        const setBoundsFromContainerAndRender = (
+            entries: ResizeObserverEntry[]
+        ): void => {
+            const entry = entries?.[0] // We always observe exactly one element
+            if (!entry)
+                throw new Error(
+                    "Couldn't resize grapher, expected exactly one ResizeObserverEntry"
+                )
+
+            // Don't bother rendering if the container is hidden
+            // see https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/offsetParent
+            if ((entry.target as HTMLElement).offsetParent === null) return
+
             const props: GrapherProgrammaticInterface = {
                 ...config,
-                bounds: Bounds.fromRect(containerNode.getBoundingClientRect()),
+                bounds: Bounds.fromRect(entry.contentRect),
             }
             ReactDOM.render(
                 <ErrorBoundary>
@@ -1674,11 +1732,25 @@ export class Grapher
             )
         }
 
-        setBoundsFromContainerAndRender()
-        window.addEventListener(
-            "resize",
-            debounce(setBoundsFromContainerAndRender, 400)
-        )
+        if (typeof window !== "undefined" && "ResizeObserver" in window) {
+            const resizeObserver = new ResizeObserver(
+                // Use a leading debounce to render immediately upon first load, and also immediately upon orientation change on mobile
+                debounce(setBoundsFromContainerAndRender, 400, {
+                    leading: true,
+                })
+            )
+            resizeObserver.observe(containerNode)
+        } else if (
+            typeof window === "object" &&
+            typeof document === "object" &&
+            !navigator.userAgent.includes("jsdom")
+        ) {
+            // only show the warning when we're in something that roughly resembles a browser
+            console.warn(
+                "ResizeObserver not available; grapher will not be able to render"
+            )
+            Bugsnag?.notify("ResizeObserver not available")
+        }
 
         return grapherInstanceRef.current
     }
@@ -1996,7 +2068,7 @@ export class Grapher
             isLineChart,
         } = this
 
-        if (hideFacetControl != undefined) return !hideFacetControl
+        if (hideFacetControl !== undefined) return !hideFacetControl
 
         // heuristic: if the chart doesn't make sense unfaceted, then it probably
         // also makes sense to let the user switch between entity/metric facets

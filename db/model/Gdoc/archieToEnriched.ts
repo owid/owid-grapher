@@ -131,13 +131,13 @@ function generateToc(
                 const titleString = spansToSimpleString(text)
                 const supertitleString =
                     supertitle && spansToSimpleString(supertitle)
-                if (titleString && (level == 2 || level == 3)) {
+                if (titleString && (level === 2 || level === 3)) {
                     toc.push({
                         title: titleString,
                         supertitle: supertitleString,
                         text: titleString,
                         slug: urlSlug(`${supertitleString} ${titleString}`),
-                        isSubheading: level == 3,
+                        isSubheading: level === 3,
                     })
                 }
             }

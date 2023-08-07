@@ -12,6 +12,8 @@ import { KeyInsight, getWindowUrl } from "@ourworldindata/utils"
 import { fireEvent, render, screen } from "@testing-library/react"
 import "@testing-library/jest-dom"
 
+import { jest } from "@jest/globals"
+
 const KEY_INSIGHTS_SLUG = "key-insights"
 
 //from https://stackoverflow.com/a/62148101
@@ -22,7 +24,7 @@ beforeEach(() => {
         unobserve: () => null,
         disconnect: () => null,
     })
-    window.IntersectionObserver = mockIntersectionObserver
+    window.IntersectionObserver = mockIntersectionObserver as any
 })
 
 const generateKeyInsights = (

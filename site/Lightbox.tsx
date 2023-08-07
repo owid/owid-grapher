@@ -145,7 +145,9 @@ export const runLightbox = () => {
 
         img.classList.add("lightbox-enabled")
         img.addEventListener("click", () => {
-            const imgSrc = img.getAttribute("data-high-res-src") ?? img.src
+            // getAttribute doesn't automatically URI encode values, img.src does
+            const highResSrc = img.getAttribute("data-high-res-src")
+            const imgSrc = highResSrc ? encodeURI(highResSrc) : img.src
             const imgAlt = img.alt
             if (imgSrc) {
                 ReactDOM.render(

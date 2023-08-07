@@ -225,7 +225,6 @@ export const renderPost = async (
 }
 
 export const renderFrontPage = async () => {
-    const entries = await getEntriesByCategory()
     const wpPosts = await Promise.all(
         (await getPosts()).map((post) => getFullPost(post, true))
     )
@@ -300,7 +299,6 @@ export const renderFrontPage = async () => {
     )[0].count as number
     return renderToHtmlPage(
         <FrontPage
-            entries={entries}
             featuredWork={featuredWork}
             totalCharts={totalCharts}
             baseUrl={BAKED_BASE_URL}
@@ -356,7 +354,9 @@ ${posts
     .map((post) => {
         const postUrl = `${BAKED_BASE_URL}/${post.slug}`
         const image = post.imageUrl
-            ? `<br><br><a href="${postUrl}" target="_blank"><img src="${post.imageUrl}"/></a>`
+            ? `<br><br><a href="${postUrl}" target="_blank"><img src="${encodeURI(
+                  post.imageUrl
+              )}"/></a>`
             : ""
 
         return `<entry>
@@ -607,11 +607,11 @@ export const renderExplorerPage = async (
 
     let partialGrapherConfigRows: {
         id: number
-        grapherConfig: string | null
+        grapherConfigAdmin: string | null
     }[] = []
     if (requiredVariableIds.length) {
         partialGrapherConfigRows = await queryMysql(
-            `SELECT id, grapherConfig FROM variables WHERE id IN (?)`,
+            `SELECT id, grapherConfigAdmin FROM variables WHERE id IN (?)`,
             [requiredVariableIds]
         )
     }
@@ -625,11 +625,11 @@ export const renderExplorerPage = async (
     }
     const grapherConfigs = grapherConfigRows.map(parseGrapherConfigFromRow)
     const partialGrapherConfigs = partialGrapherConfigRows
-        .filter((row) => row.grapherConfig)
+        .filter((row) => row.grapherConfigAdmin)
         .map((row) =>
             parseGrapherConfigFromRow({
                 id: row.id,
-                config: row.grapherConfig as string,
+                config: row.grapherConfigAdmin as string,
             })
         )
 

@@ -85,11 +85,11 @@ while [ "$1" != "" ]; do
 done
 
 purge_wordpress_db(){
-  wp_mysql -e "DROP DATABASE $WORDPRESS_DB_NAME;CREATE DATABASE $WORDPRESS_DB_NAME"
+  wp_mysql --database="" -e "DROP DATABASE $WORDPRESS_DB_NAME;CREATE DATABASE $WORDPRESS_DB_NAME"
 }
 
 purge_grapher_db(){
-  gr_mysql -e "DROP DATABASE $GRAPHER_DB_NAME;CREATE DATABASE $GRAPHER_DB_NAME"
+  gr_mysql --database="" -e "DROP DATABASE $GRAPHER_DB_NAME;CREATE DATABASE $GRAPHER_DB_NAME"
 }
 
 import_wordpress_db(){

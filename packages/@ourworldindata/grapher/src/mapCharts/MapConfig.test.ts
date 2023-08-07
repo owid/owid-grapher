@@ -14,11 +14,3 @@ it("can serialize for saving", () => {
         projection: "Africa",
     })
 })
-
-it("works with legacy variableId", () => {
-    const map = new MapConfig({ variableId: 23 })
-    expect(map.columnSlug).toEqual("23")
-    expect(map.toObject()).toEqual({
-        variableId: 23,
-    })
-})

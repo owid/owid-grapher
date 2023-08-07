@@ -6,6 +6,7 @@ import { isPathRedirectedToExplorer } from "../../explorerAdminServer/ExplorerRe
 import { ChartRecord } from "../../site/search/searchTypes.js"
 import { MarkdownTextWrap } from "@ourworldindata/utils"
 import { Pageview } from "../../db/model/Pageview.js"
+import { Link } from "../../db/model/Link.js"
 
 const computeScore = (record: Omit<ChartRecord, "score">): number => {
     const { numRelatedArticles, views_7d } = record
@@ -35,7 +36,19 @@ const getChartsRecords = async (): Promise<ChartRecord[]> => {
     `)
 
     for (const c of chartsToIndex) {
-        c.availableEntities = JSON.parse(c.availableEntities)
+        if (c.availableEntities !== null) {
+            // This is a very rough way to check for the Algolia record size limit, but it's better than the update failing
+            // because we exceed the 20KB record size limit
+            if (c.availableEntities.length < 12000)
+                c.availableEntities = JSON.parse(c.availableEntities)
+            else {
+                console.info(
+                    `Chart ${c.id} has too many entities, skipping its entities`
+                )
+                c.availableEntities = []
+            }
+        }
+
         c.tags = JSON.parse(c.tags)
         c.keyChartForTags = JSON.parse(c.keyChartForTags).filter(
             (t: string | null) => t
@@ -51,6 +64,7 @@ const getChartsRecords = async (): Promise<ChartRecord[]> => {
         if (isPathRedirectedToExplorer(`/grapher/${c.slug}`)) continue
 
         const relatedArticles = (await getRelatedArticles(c.id)) ?? []
+        const linksFromGdocs = await Link.getPublishedLinksTo(c.slug, "grapher")
 
         const plaintextSubtitle = new MarkdownTextWrap({
             text: c.subtitle,
@@ -72,7 +86,7 @@ const getChartsRecords = async (): Promise<ChartRecord[]> => {
             keyChartForTags: c.keyChartForTags,
             titleLength: c.title.length,
             // Number of references to this chart in all our posts and pages
-            numRelatedArticles: relatedArticles.length,
+            numRelatedArticles: relatedArticles.length + linksFromGdocs.length,
             views_7d: pageviews[`/grapher/${c.slug}`]?.views_7d ?? 0,
         }
         const score = computeScore(record)
@@ -99,5 +113,10 @@ const indexChartsToAlgolia = async () => {
 
     await db.closeTypeOrmAndKnexConnections()
 }
+
+process.on("unhandledRejection", (e) => {
+    console.error(e)
+    process.exit(1)
+})
 
 indexChartsToAlgolia()
