@@ -84,6 +84,7 @@ function ExplorersHit({ hit }: { hit: any }) {
     )
 }
 
+// TODO: extract from header, position: absolute to handle mobile styles
 function ShowMore({
     category,
     cutoffNumber,
@@ -203,7 +204,7 @@ class SearchResults extends React.Component<SearchResultsProps> {
                         classNames={{
                             root: "search-results__pages-list-container",
                             list: "search-results__pages-list grid grid-cols-2 grid-cols-sm-1",
-                            item: "search-results__page-hit",
+                            item: "search-results__page-hit span-md-cols-2",
                         }}
                         hitComponent={PagesHit}
                     />
@@ -227,7 +228,7 @@ class SearchResults extends React.Component<SearchResultsProps> {
                         <Hits
                             classNames={{
                                 root: "search-results__explorers-list-container",
-                                list: "search-results__explorers-list grid grid-cols-2 grid-cols-sm-1",
+                                list: "search-results__explorers-list grid grid-cols-2 grid-sm-cols-1",
                                 item: "search-results__explorer-hit",
                             }}
                             hitComponent={ExplorersHit}
@@ -253,8 +254,8 @@ class SearchResults extends React.Component<SearchResultsProps> {
                         <Hits
                             classNames={{
                                 root: "search-results__charts-list-container",
-                                list: "search-results__charts-list grid grid-cols-4 grid-cols-sm-2",
-                                item: "search-results__chart-hit",
+                                list: "search-results__charts-list grid grid-cols-4 grid-sm-cols-2",
+                                item: "search-results__chart-hit span-md-cols-2",
                             }}
                             hitComponent={ChartHit}
                         />

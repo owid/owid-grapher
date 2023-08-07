@@ -42,7 +42,7 @@ export const SiteSearchNavigation = ({
     }, [isActive])
 
     // Hiding the input, but keeping the <div> for flex spacing purposes
-    if (window.location.pathname === "/search")
+    if (typeof window !== "undefined" && window.location.pathname === "/search")
         return <div className="SiteSearchNavigation"></div>
 
     return (
