@@ -23,7 +23,9 @@ $paddingBetweenIconAndLabel: 4px; // keep in sync with PADDING_BETWEEN_ICON_AND_
         margin-left: $paddingBetweenButtons;
     }
 
-    li button {
+    li button,
+    li a,
+    li a:visited {
         display: block;
         height: 100%;
         width: 100%;
@@ -40,6 +42,21 @@ $paddingBetweenIconAndLabel: 4px; // keep in sync with PADDING_BETWEEN_ICON_AND_
         .label {
             display: inline-block;
             margin-left: $paddingBetweenIconAndLabel;
+        }
+    }
+
+    li a {
+        padding: 8px;
+        padding-left: 12px;
+
+        svg {
+            position: relative;
+            top: 1px;
+        }
+
+        .label {
+            margin: 0;
+            margin-right: $paddingBetweenIconAndLabel;
         }
     }
 }

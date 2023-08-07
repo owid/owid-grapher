@@ -47,7 +47,7 @@ export default function Chart({
             !showAllControls ? grapherInterfaceWithHiddenControlsOnly : {},
             !showAllTabs ? grapherInterfaceWithHiddenTabsOnly : {},
             ...listOfPartialGrapherConfigs,
-            { hideRelatedQuestion: true },
+            { hideRelatedQuestion: true, hideExploreTheDataButton: false },
             {
                 title: d.title,
                 subtitle: d.subtitle,

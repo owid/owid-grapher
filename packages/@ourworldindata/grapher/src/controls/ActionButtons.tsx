@@ -10,6 +10,7 @@ import {
     faShareNodes,
     faExpand,
     faDownload,
+    faArrowRight,
     IconDefinition,
 } from "@fortawesome/free-solid-svg-icons"
 import { ShareMenu, ShareMenuManager } from "./ShareMenu"
@@ -20,6 +21,7 @@ export interface ActionButtonsManager extends ShareMenuManager {
     currentTab?: GrapherTabOption | GrapherTabOverlayOption
     isShareMenuActive?: boolean
     hideShareTabButton?: boolean
+    hideExploreTheDataButton?: boolean
     isInIFrame?: boolean
     canonicalUrl?: string
 }
@@ -59,9 +61,11 @@ export class ActionButtons extends React.Component<{
             hasDownloadButton,
             hasShareButton,
             hasEnterFullScreenButton,
+            hasExploreTheDataButton,
             downloadButtonWithLabelWidth,
             shareButtonWithLabelWidth,
             enterFullScreenButtonWithLabelWidth,
+            exploreTheDataButtonWithLabelWidth,
         } = this
 
         let width = 0
@@ -74,6 +78,9 @@ export class ActionButtons extends React.Component<{
         if (hasEnterFullScreenButton) {
             width += enterFullScreenButtonWithLabelWidth
         }
+        if (hasExploreTheDataButton) {
+            width += exploreTheDataButtonWithLabelWidth
+        }
 
         return width + (buttonCount - 1) * PADDING_BETWEEN_BUTTONS
     }
@@ -85,10 +92,23 @@ export class ActionButtons extends React.Component<{
     }
 
     @computed get width(): number {
-        const { buttonCount, showButtonLabels, widthWithButtonLabels } = this
+        const {
+            buttonCount,
+            showButtonLabels,
+            widthWithButtonLabels,
+            hasExploreTheDataButton,
+            exploreTheDataButtonWidth,
+        } = this
 
-        if (showButtonLabels) {
-            return widthWithButtonLabels
+        if (showButtonLabels) return widthWithButtonLabels
+
+        if (hasExploreTheDataButton) {
+            // the "Explore the data" label is always shown
+            return (
+                exploreTheDataButtonWidth +
+                (buttonCount - 1) * BUTTON_WIDTH_ICON_ONLY +
+                (buttonCount - 1) * PADDING_BETWEEN_BUTTONS
+            )
         } else {
             return (
                 buttonCount * BUTTON_WIDTH_ICON_ONLY +
@@ -114,6 +134,10 @@ export class ActionButtons extends React.Component<{
 
     @computed private get enterFullScreenButtonWithLabelWidth(): number {
         return ActionButtons.computeButtonWidth("Enter full-screen")
+    }
+
+    @computed private get exploreTheDataButtonWithLabelWidth(): number {
+        return ActionButtons.computeButtonWidth("Explore the data")
     }
 
     @computed private get downloadButtonWidth(): number {
@@ -146,6 +170,14 @@ export class ActionButtons extends React.Component<{
         return enterFullScreenButtonWithLabelWidth
     }
 
+    // the "Explore the data" button is never shown without a label
+    @computed private get exploreTheDataButtonWidth(): number {
+        const { hasExploreTheDataButton, exploreTheDataButtonWithLabelWidth } =
+            this
+        if (!hasExploreTheDataButton) return 0
+        return exploreTheDataButtonWithLabelWidth
+    }
+
     @action.bound onShareMenu(): void {
         this.manager.isShareMenuActive = !this.manager.isShareMenuActive
     }
@@ -168,11 +200,16 @@ export class ActionButtons extends React.Component<{
         return !this.manager.isInIFrame
     }
 
+    @computed private get hasExploreTheDataButton(): boolean {
+        return !this.manager.hideExploreTheDataButton
+    }
+
     @computed private get buttonCount(): number {
         let count = 0
         if (this.hasDownloadButton) count += 1
         if (this.hasShareButton) count += 1
         if (this.hasEnterFullScreenButton) count += 1
+        if (this.hasExploreTheDataButton) count += 1
         return count
     }
 
@@ -226,6 +263,26 @@ export class ActionButtons extends React.Component<{
                             // eslint-disable-next-line
                             onClick={() => {}}
                         />
+                    )}
+                    {this.hasExploreTheDataButton && (
+                        <li
+                            className="clickable"
+                            style={{
+                                height: BUTTON_HEIGHT,
+                                width: this.exploreTheDataButtonWidth,
+                            }}
+                        >
+                            <a
+                                title="Explore the data"
+                                data-track-note="chart_click_exploredata"
+                                href={manager.canonicalUrl}
+                                target="_blank"
+                                rel="noopener"
+                            >
+                                <div className="label">Explore the data</div>
+                                <FontAwesomeIcon icon={faArrowRight} />
+                            </a>
+                        </li>
                     )}
                 </ul>
                 {shareMenuElement}
