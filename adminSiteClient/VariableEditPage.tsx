@@ -107,7 +107,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
 
     render() {
         const { variable } = this.props
-        const { newVariable } = this
+        const { newVariable, isV2MetadataVariable } = this
         const isBulkImport = variable.datasetNamespace !== "owid"
 
         if (this.isDeleted)
@@ -140,9 +140,13 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                         >
                             <section>
                                 <h3>Indicator metadata</h3>
-                                <a href={`/datapage-preview/${variable.id}`}>
-                                    View data page
-                                </a>
+                                {isV2MetadataVariable && (
+                                    <a
+                                        href={`/datapage-preview/${variable.id}`}
+                                    >
+                                        View data page
+                                    </a>
+                                )}
                                 {isBulkImport ? (
                                     <p>
                                         This indicator came from an automated
@@ -294,6 +298,12 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
         if (json.success) {
             Object.assign(this.props.variable, this.newVariable)
         }
+    }
+
+    @computed private get isV2MetadataVariable(): boolean {
+        const { variable } = this.props
+
+        return (variable?.schemaVersion ?? 1) >= 2
     }
 
     @computed private get grapherConfig(): GrapherInterface {
