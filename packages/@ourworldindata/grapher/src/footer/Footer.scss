@@ -1,11 +1,12 @@
 .SourcesFooterHTML {
     padding: 0 $framePadding;
     text-align: left;
+    color: $dark-text;
 
     a {
-        color: #777;
+        color: $dark-text;
         &:visited {
-            color: #777;
+            color: $dark-text;
         }
     }
 
@@ -28,6 +29,14 @@
         display: flex;
         justify-content: space-between;
         align-items: flex-end;
+
+        > * {
+            flex-shrink: 0;
+        }
+
+        a:not(.btn) {
+            text-decoration: underline;
+        }
     }
 
     // removes margin that is added by default to prevent border-bottom used for dod from clipping

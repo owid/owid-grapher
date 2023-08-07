@@ -1,7 +1,7 @@
 // keep in sync with constant values in CaptionedChart.tsx
-$framePadding: 15px; // keep in sync with FRAME_PADDING
-$controlRowHeight: 36px; // keep in sync with CONTROLS_ROW_HEIGHT
-$relatedQuestionHeight: 20px; // keep in sync with RELATED_QUESTION_HEIGHT
+$framePadding: 16px; // keep in sync with FRAME_PADDING
+$controlRowHeight: 32px; // keep in sync with CONTROLS_ROW_HEIGHT
+$relatedQuestionHeight: 28px; // keep in sync with RELATED_QUESTION_HEIGHT
 
 .HeaderHTML,
 .SourcesFooterHTML {
@@ -33,28 +33,29 @@ $relatedQuestionHeight: 20px; // keep in sync with RELATED_QUESTION_HEIGHT
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    border-top: 1px solid #e1e1e1;
+    border-top: 1px solid $light-stroke;
     position: absolute;
     width: 100%;
     bottom: 0;
+    color: $dark-text;
+    font-weight: $bold;
 
     a {
+        font-weight: normal;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-
-        &:hover {
-            text-decoration: underline;
-        }
+        text-decoration-line: underline;
     }
 
     a,
     svg {
-        color: $controls-color;
+        color: inherit;
     }
     svg {
-        margin-left: 0.4rem;
+        margin-left: 4px;
         font-size: 0.8em;
         vertical-align: unset;
+        transform: translateY(1px);
     }
 }

@@ -17,8 +17,8 @@ import {
 import { FooterManager } from "./FooterManager"
 import { ActionButtons } from "../controls/ActionButtons"
 
-const PADDING_ABOVE_CONTROLS = 4
-const HORIZONTAL_PADDING = 2
+const PADDING_ABOVE_CONTROLS = 16
+const HORIZONTAL_PADDING = 16
 
 interface FooterProps {
     manager: FooterManager
@@ -39,23 +39,27 @@ export class Footer<
 
     @computed protected get sourcesText(): string {
         const sourcesLine = this.manager.sourcesLine
-        return sourcesLine ? `Source: ${sourcesLine}` : ""
+        return sourcesLine
+            ? `**Data source:** ${sourcesLine} - Learn more about this data`
+            : ""
     }
 
     @computed protected get noteText(): string {
-        return this.manager.note ? `Note: ${this.manager.note}` : ""
+        return this.manager.note ? `**Note:** ${this.manager.note}` : ""
     }
 
-    @computed protected get ccSvg(): string {
-        if (this.manager.hasOWIDLogo) {
-            // dash in CC-BY prevents break but is not rendered
-            return `<a style="fill: #777;" class="cclogo" href="http://creativecommons.org/licenses/by/4.0/deed.en_US" target="_blank">CC-BY</a>`
-        }
-
-        return `<a href="https://ourworldindata.org" target="_blank">Powered by ourworldindata.org</a>`
+    @computed protected get licenseText(): string {
+        if (this.manager.hasOWIDLogo) return "CC BY"
+        return "Powered by ourworldindata.org"
     }
 
-    @computed private get originUrlWithProtocol(): string {
+    @computed protected get licenseUrl(): string {
+        if (this.manager.hasOWIDLogo)
+            return "http://creativecommons.org/licenses/by/4.0/deed.en_US"
+        return "https://ourworldindata.org"
+    }
+
+    @computed protected get originUrlWithProtocol(): string {
         return this.manager.originUrlWithProtocol ?? "http://localhost"
     }
 
@@ -69,7 +73,6 @@ export class Footer<
         const originUrl = this.originUrlWithProtocol
 
         // Make sure the link back to OWID is consistent
-        // And don't show the full url if there isn't enough room
         if (!originUrl || !originUrl.toLowerCase().match(/^https?:\/\/./))
             return undefined
 
@@ -78,48 +81,56 @@ export class Footer<
             .replace("ourworldindata.org", "OurWorldInData.org")
             .replace(/\/$/, "") // remove trailing slash
 
-        if (
-            Bounds.forText(finalUrlText, { fontSize: this.fontSize }).width >
-            0.7 * this.maxWidth
-        )
-            return undefined
-
         return finalUrlText
     }
 
-    @computed protected get licenseAndOriginUrlSvg(): string {
-        const { finalUrl, finalUrlText, ccSvg } = this
-        if (!finalUrlText) return ccSvg
+    @computed protected get licenseAndOriginUrlText(): string {
+        const { finalUrlText, licenseText } = this
+        if (!finalUrlText) return licenseText
 
         // trick to allow for line breaks after "/" and "-"
         const finalUrlTextWithSpaces = finalUrlText
             .replace(/\//g, "/ ")
             .replace(/-/g, "- ")
 
-        const originUrlLink = `<a target='_blank' style='fill: #777;' href='${finalUrl}'> ${finalUrlTextWithSpaces} </a>`
-        return [originUrlLink, ccSvg].join(" | ")
+        return [finalUrlTextWithSpaces, licenseText].join(" | ")
     }
 
     @computed protected get fontSize(): number {
-        return 0.7 * (this.manager.fontSize ?? BASE_FONT_SIZE)
+        return 0.6875 * (this.manager.fontSize ?? BASE_FONT_SIZE) // 11px when base font size = 16px
+    }
+
+    @computed protected get sourcesFontSize(): number {
+        return 0.8125 * (this.manager.fontSize ?? BASE_FONT_SIZE) // 13px when base font size = 16px
+    }
+
+    @computed protected get sourcesMaxWidth(): number {
+        return this.maxWidth - this.actionButtons.width - HORIZONTAL_PADDING
     }
 
     @computed protected get sources(): MarkdownTextWrap {
-        const { maxWidth, fontSize, sourcesText } = this
+        const { sourcesFontSize, sourcesText, sourcesMaxWidth } = this
         return new MarkdownTextWrap({
-            maxWidth: maxWidth - this.actionButtons.width - HORIZONTAL_PADDING,
-            fontSize,
+            maxWidth: sourcesMaxWidth,
+            fontSize: sourcesFontSize,
             text: sourcesText,
+            lineHeight: 1.2,
         })
     }
 
+    @computed protected get noteMaxWidth(): number {
+        return (
+            this.maxWidth - this.licenseAndOriginUrl.width - HORIZONTAL_PADDING
+        )
+    }
+
     @computed protected get note(): MarkdownTextWrap {
-        const { maxWidth, fontSize, noteText } = this
+        const { fontSize, noteText, noteMaxWidth } = this
         return new MarkdownTextWrap({
-            maxWidth:
-                maxWidth - this.licenseAndOriginUrl.width - HORIZONTAL_PADDING,
+            maxWidth: noteMaxWidth,
             fontSize,
             text: noteText,
+            lineHeight: 1.2,
             detailsOrderedByReference: this.manager
                 .shouldIncludeDetailsInStaticExport
                 ? this.manager.detailsOrderedByReference
@@ -128,7 +139,7 @@ export class Footer<
     }
 
     @computed protected get licenseAndOriginUrlMaxWidth(): number {
-        const { maxWidth, fontSize, noteText, licenseAndOriginUrlSvg } = this
+        const { maxWidth, fontSize, noteText, licenseAndOriginUrlText } = this
 
         // use full width if there is no note
         if (!noteText) return maxWidth
@@ -141,7 +152,7 @@ export class Footer<
         const licenseAndOriginUrlWidth = new TextWrap({
             maxWidth: Infinity, // no line breaks
             fontSize,
-            text: licenseAndOriginUrlSvg,
+            text: licenseAndOriginUrlText,
             rawHtml: true,
         }).width
 
@@ -159,20 +170,33 @@ export class Footer<
     @computed protected get licenseAndOriginUrl(): TextWrap {
         const {
             fontSize,
-            licenseAndOriginUrlSvg,
+            licenseAndOriginUrlText,
             licenseAndOriginUrlMaxWidth,
         } = this
         return new TextWrap({
             maxWidth: licenseAndOriginUrlMaxWidth,
             fontSize,
-            text: licenseAndOriginUrlSvg,
+            text: licenseAndOriginUrlText,
+            lineHeight: 1.2,
             rawHtml: true,
         })
+    }
+
+    @computed private get availableWidthActionButtons(): number {
+        const { sourcesFontSize, sourcesText, maxWidth } = this
+        const sourcesWidth = new MarkdownTextWrap({
+            maxWidth: Infinity, // no line breaks
+            fontSize: sourcesFontSize,
+            text: sourcesText,
+        }).width
+        return maxWidth - sourcesWidth - HORIZONTAL_PADDING
     }
 
     @computed private get actionButtons(): ActionButtons {
         return new ActionButtons({
             manager: this.manager,
+            maxWidth: this.maxWidth,
+            availableWidth: this.availableWidthActionButtons,
         })
     }
 
@@ -230,38 +254,25 @@ export class Footer<
                         {this.finalUrlText} |{" "}
                     </a>
                 )}
-                {this.manager.hasOWIDLogo ? (
-                    <a
-                        className="cclogo"
-                        href="http://creativecommons.org/licenses/by/4.0/deed.en_US"
-                        target="_blank"
-                        rel="noopener"
-                        style={{ textDecoration: "none" }}
-                    >
-                        CC BY
-                    </a>
-                ) : (
-                    <a
-                        href="https://ourworldindata.org"
-                        target="_blank"
-                        rel="noopener"
-                        style={{ textDecoration: "none" }}
-                    >
-                        Powered by ourworldindata.org
-                    </a>
-                )}
+                <a
+                    className={this.manager.hasOWIDLogo ? "cclogo" : undefined}
+                    href={this.licenseUrl}
+                    target="_blank"
+                    rel="noopener"
+                    style={{ textDecoration: "none" }}
+                >
+                    {this.licenseText}
+                </a>
             </div>
         )
 
         return (
-            <footer
-                className="SourcesFooterHTML"
-                ref={this.base}
-                style={{ color: "#777" }}
-            >
+            <footer className="SourcesFooterHTML" ref={this.base}>
                 <div
                     className="NoteAndLicense"
-                    style={{ minHeight: this.licenseAndOriginUrl.height }}
+                    style={{
+                        minHeight: this.licenseAndOriginUrl.height,
+                    }}
                 >
                     <p className="note" style={this.note.style}>
                         {this.note.renderHTML()}
@@ -270,20 +281,37 @@ export class Footer<
                 </div>
                 <div
                     className="SourcesAndActionButtons"
-                    style={{ marginTop: PADDING_ABOVE_CONTROLS }}
+                    style={{
+                        marginTop: PADDING_ABOVE_CONTROLS,
+                        alignItems:
+                            this.sources.htmlLines.length > 2
+                                ? "flex-end"
+                                : "center",
+                    }}
                 >
-                    <p style={this.sources.style}>
+                    <p
+                        style={{
+                            ...this.sources.style,
+                            maxWidth: this.sources.maxWidth,
+                        }}
+                    >
+                        <b>Data source:</b> {this.manager.sourcesLine} -{" "}
                         <a
+                            className="sources"
                             data-track-note="chart_click_sources"
                             onClick={(): void => {
                                 this.manager.currentTab =
                                     GrapherTabOverlayOption.sources
                             }}
                         >
-                            {this.sources.renderHTML()}
+                            Learn more about this data
                         </a>
                     </p>
-                    <ActionButtons manager={this.manager} />
+                    <ActionButtons
+                        manager={this.manager}
+                        maxWidth={this.maxWidth}
+                        availableWidth={this.availableWidthActionButtons}
+                    />
                 </div>
                 {tooltipTarget && (
                     <Tooltip
@@ -324,75 +352,89 @@ interface StaticFooterProps extends FooterProps {
 
 @observer
 export class StaticFooter extends Footer<StaticFooterProps> {
-    constructor(props: StaticFooterProps) {
-        super(props)
+    private paraMargin = 4
+    private sourceMargin = this.paraMargin * 2
+
+    @computed protected get finalUrlText(): string | undefined {
+        const originUrl = this.originUrlWithProtocol
+
+        // Make sure the link back to OWID is consistent
+        if (!originUrl || !originUrl.toLowerCase().match(/^https?:\/\/./))
+            return undefined
+
+        const url = parseUrl(originUrl)
+        const finalUrlText = `${url.hostname}${url.pathname}`
+            .replace("ourworldindata.org", "OurWorldInData.org")
+            .replace(/\/$/, "") // remove trailing slash
+
+        // If the URL is too long, don't show it
+        if (
+            Bounds.forText(finalUrlText, { fontSize: this.fontSize }).width >
+            0.7 * this.maxWidth
+        )
+            return undefined
+
+        return finalUrlText
     }
 
-    @computed protected get ccSvg(): string {
-        if (this.manager.hasOWIDLogo) {
-            return `<a style="fill: #777;" class="cclogo" href="http://creativecommons.org/licenses/by/4.0/deed.en_US" target="_blank">CC BY</a>`
-        }
-
-        return `<a href="https://ourworldindata.org" target="_blank">Powered by ourworldindata.org</a>`
+    @computed protected get licenseAndOriginUrlText(): string {
+        const { finalUrl, finalUrlText, licenseText, licenseUrl } = this
+        const licenseSvg = `<a target="_blank" style='fill: #5b5b5b;' href="${licenseUrl}">${licenseText}</a>`
+        if (!finalUrlText) return licenseSvg
+        const originUrlSvg = `<a target="_blank" href="${finalUrl}">${finalUrlText}</a>`
+        return [originUrlSvg, licenseSvg].join(" | ")
     }
 
-    @computed protected get licenseAndOriginUrlSvg(): string {
-        const { finalUrl, finalUrlText, ccSvg } = this
-        if (!finalUrlText) return ccSvg
-        const originUrlLink = `<a target='_blank' style='fill: #777;' href='${finalUrl}'>${finalUrl}</a>`
-        return [originUrlLink, ccSvg].join(" | ")
+    @computed protected get sourcesText(): string {
+        const sourcesLine = this.manager.sourcesLine
+        return sourcesLine ? `**Data source:** ${sourcesLine}` : ""
     }
 
-    @computed protected get sources(): MarkdownTextWrap {
-        const { maxWidth, fontSize, sourcesText } = this
-        return new MarkdownTextWrap({
-            maxWidth,
-            fontSize,
-            text: sourcesText,
-        })
+    @computed protected get sourcesMaxWidth(): number {
+        return this.maxWidth
     }
 
-    @computed protected get note(): MarkdownTextWrap {
-        const { maxWidth, fontSize, noteText } = this
-        return new MarkdownTextWrap({
-            maxWidth,
-            fontSize,
-            text: noteText,
-            detailsOrderedByReference: this.manager
-                .shouldIncludeDetailsInStaticExport
-                ? this.manager.detailsOrderedByReference
-                : new Set(),
-        })
+    @computed protected get noteMaxWidth(): number {
+        const { maxWidth, isCompact, licenseAndOriginUrl } = this
+        return isCompact ? maxWidth - licenseAndOriginUrl.width - 8 : maxWidth
     }
 
-    @computed protected get licenseAndOriginUrl(): TextWrap {
-        const { maxWidth, fontSize, licenseAndOriginUrlSvg } = this
-        return new TextWrap({
-            maxWidth: maxWidth * 3,
-            fontSize,
-            text: licenseAndOriginUrlSvg,
-            rawHtml: true,
-        })
+    @computed protected get licenseAndOriginUrlMaxWidth(): number {
+        return Infinity // no line breaks
     }
 
     @computed protected get isCompact(): boolean {
+        const { maxWidth, licenseAndOriginUrl, noteText } = this
+        if (!noteText) return true
+        return licenseAndOriginUrl.width < 0.33 * maxWidth
+    }
+
+    @computed get height(): number {
+        const { sources, note, isCompact, licenseAndOriginUrl } = this
         return (
-            this.maxWidth - this.sources.width - 5 >
-            this.licenseAndOriginUrl.width
+            sources.height +
+            this.sourceMargin +
+            Math.max(note.height, licenseAndOriginUrl.height) +
+            (isCompact ? 0 : licenseAndOriginUrl.height + this.paraMargin)
         )
     }
 
     render(): JSX.Element {
         const { sources, note, licenseAndOriginUrl, maxWidth, isCompact } = this
         const { targetX, targetY } = this.props
-        const paraMargin = 2
 
         return (
-            <g className="SourcesFooter" style={{ fill: "#777" }}>
-                <g style={{ fill: "#777" }}>
-                    {sources.renderSVG(targetX, targetY)}
-                </g>
-                {note.renderSVG(targetX, targetY + sources.height + paraMargin)}
+            <g className="SourcesFooter" style={{ fill: "#5b5b5b" }}>
+                {note.renderSVG(targetX, targetY)}
+                {sources.renderSVG(
+                    targetX,
+                    targetY +
+                        Math.max(note.height, licenseAndOriginUrl.height) +
+                        this.sourceMargin +
+                        (isCompact
+                            ? 0
+                            : licenseAndOriginUrl.height + this.paraMargin)
+                )}
                 {isCompact
                     ? licenseAndOriginUrl.render(
                           targetX + maxWidth - licenseAndOriginUrl.width,
@@ -400,10 +442,7 @@ export class StaticFooter extends Footer<StaticFooterProps> {
                       )
                     : licenseAndOriginUrl.render(
                           targetX,
-                          targetY +
-                              sources.height +
-                              paraMargin +
-                              (note.height ? note.height + paraMargin : 0)
+                          targetY + note.height + this.paraMargin
                       )}
             </g>
         )

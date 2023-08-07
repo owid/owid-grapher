@@ -1,31 +1,50 @@
 .ContentSwitchers {
     list-style: none;
+    height: $controlRowHeight;
     margin: 0;
-    padding: 0;
-    max-width: max-content;
+    padding: 1px;
+    border: 1px solid $light-stroke;
+    border-radius: 4px;
 
     li {
         display: inline-block;
-        height: $controlRowHeight;
+        height: 100%;
+        position: relative;
     }
 
     li > a {
         display: block;
-        text-transform: uppercase;
-        color: #777;
-        font-size: 0.8em;
-        height: $controlRowHeight - 1;
-        line-height: $controlRowHeight;
-        padding: 0 0.6em;
+        text-transform: capitalize;
+        color: $light-text;
+        font-size: 13px;
+        font-weight: $medium;
+        height: $controlRowHeight - 4px; // -2px for border, -2px for padding
+        line-height: $controlRowHeight - 4px;
+        padding: 0 8px;
+        border-radius: 3px;
+
+        svg {
+            margin-right: 4px;
+        }
+    }
+
+    li + li::after {
+        content: "";
+        display: block;
+        width: 1px;
+        height: calc(100% - 12px);
+        position: absolute;
+        top: 6px;
+        left: -0.5px;
+        background-color: $light-stroke;
     }
 
     li > a:hover {
-        color: rgba(0, 33, 71, 0.9);
-        text-decoration: none;
+        background-color: $hover-fill;
     }
 
     li.active > a {
-        color: rgba(0, 33, 71, 0.9);
-        background-color: aliceblue;
+        color: $active-text;
+        background-color: $active-fill;
     }
 }

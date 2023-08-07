@@ -1198,9 +1198,9 @@ export class Grapher
 
     @computed get availableTabs(): GrapherTabOption[] {
         return [
-            this.hasChartTab && GrapherTabOption.chart,
-            this.hasMapTab && GrapherTabOption.map,
             this.hasTableTab && GrapherTabOption.table,
+            this.hasMapTab && GrapherTabOption.map,
+            this.hasChartTab && GrapherTabOption.chart,
         ].filter(identity) as GrapherTabOption[]
     }
 

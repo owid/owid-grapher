@@ -11,4 +11,5 @@ export interface HeaderManager {
     tabBounds?: Bounds
     detailsOrderedByReference?: Set<string>
     shouldIncludeDetailsInStaticExport?: boolean
+    isExportingtoSvgOrPng?: boolean
 }

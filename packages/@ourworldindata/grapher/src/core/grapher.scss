@@ -3,6 +3,24 @@ $sans-serif-font-stack: Lato, "Helvetica Neue", Helvetica, Arial,
 $serif-font-stack: "Playfair Display", Georgia, "Times New Roman",
     "Liberation Serif", serif;
 
+$light-stroke: #e7e7e7;
+$dark-stroke: #2d2d2d;
+
+$light-fill: #dadada;
+$active-fill: #dbe5f0;
+$hover-fill: #f2f2f2;
+
+$light-text: #858585;
+$dark-text: #5b5b5b;
+$active-text: #1d3d63;
+
+$info-icon: #a1a1a1;
+$active-knob: #6e87a2;
+
+$medium: 400;
+$bold: 700;
+$lato: $sans-serif-font-stack;
+
 // Variables duplicated from site CSS
 $blue-10: #ebeef2;
 $blue-100: #002147;
@@ -77,8 +95,6 @@ $zindex-Tooltip: 20;
 
 .GrapherComponent {
     display: inline-block;
-    border-bottom: none;
-    border-radius: 2px;
     text-align: left;
 
     line-height: 1em;
@@ -90,9 +106,8 @@ $zindex-Tooltip: 20;
     container-type: size;
     container-name: grapher;
 
-    border-radius: 2px;
-    box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 2px 0px,
-        rgba(0, 0, 0, 0.25) 0px 2px 2px 0px;
+    // make sure the border is in the foreground
+    box-shadow: 0 0 0 1px $light-stroke; // equivalent to `border: 1px solid $light-stroke`
     z-index: $zindex-chart;
 
     * {
@@ -201,9 +216,6 @@ $zindex-Tooltip: 20;
 
     a.dod-span {
         border-bottom: 1px dotted #666;
-
-        &:hover {
-            text-decoration: none;
-        }
+        text-decoration: none;
     }
 }

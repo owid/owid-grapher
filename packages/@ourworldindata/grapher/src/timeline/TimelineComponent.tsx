@@ -6,6 +6,7 @@ import {
     debounce,
     Bounds,
     timeFromTimebounds,
+    DEFAULT_BOUNDS,
 } from "@ourworldindata/utils"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
@@ -21,10 +22,15 @@ const HANDLE_TOOLTIP_FADE_TIME_MS = 2000
 export class TimelineComponent extends React.Component<{
     timelineController: TimelineController
     height?: number
+    maxWidth?: number
 }> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
 
     @observable private dragTarget?: "start" | "end" | "both"
+
+    @computed protected get maxWidth(): number {
+        return this.props.maxWidth ?? DEFAULT_BOUNDS.width
+    }
 
     @computed private get isDragging(): boolean {
         return !!this.dragTarget
@@ -182,6 +188,13 @@ export class TimelineComponent extends React.Component<{
         return this.manager.isPlaying || this.isDragging
     }
 
+    @computed private get showPlayLabel(): boolean {
+        const labelWidth = Bounds.forText("Play time-lapse", {
+            fontSize: 13,
+        }).width
+        return labelWidth < 0.15 * this.maxWidth
+    }
+
     componentDidMount(): void {
         const current = this.base.current
 
@@ -280,7 +293,10 @@ export class TimelineComponent extends React.Component<{
         return (
             <div
                 ref={this.base}
-                className="TimelineComponent"
+                className={
+                    "TimelineComponent" +
+                    (this.mouseHoveringOverTimeline ? " hover" : "")
+                }
                 onMouseOver={this.onMouseOver}
                 onMouseLeave={this.onMouseLeave}
                 style={{ height: this.props.height ?? "100%" }}
@@ -296,11 +312,19 @@ export class TimelineComponent extends React.Component<{
                                 : "timeline_play"
                         }
                     >
-                        {manager.isPlaying ? (
-                            <FontAwesomeIcon icon={faPause} />
-                        ) : (
-                            <FontAwesomeIcon icon={faPlay} />
-                        )}
+                        <div>
+                            {manager.isPlaying ? (
+                                <FontAwesomeIcon icon={faPause} />
+                            ) : (
+                                <FontAwesomeIcon icon={faPlay} />
+                            )}
+                            {this.showPlayLabel && (
+                                <span className="label">
+                                    {manager.isPlaying ? "Pause" : "Play"}{" "}
+                                    time-lapse
+                                </span>
+                            )}
+                        </div>
                     </div>
                 )}
                 {this.timelineEdgeMarker("start")}

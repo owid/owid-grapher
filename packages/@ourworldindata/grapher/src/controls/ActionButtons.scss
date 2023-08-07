@@ -1,27 +1,44 @@
 // keep in sync with constant values in ActionButtons.tsx
-$buttonSize: 30px; // keep in sync with BUTTON_SIZE
-$marginBetweenButtons: 5px; // keep in sync with MARGIN_BETWEEN_BUTTONS
+$paddingBetweenButtons: 8px; // keep in sync with PADDING_BETWEEN_BUTTONS
+$paddingBetweenIconAndLabel: 4px; // keep in sync with PADDING_BETWEEN_ICON_AND_LABEL
 
 .ActionButtons {
-    list-style: none;
     margin: 0;
     padding: 0;
     white-space: nowrap;
 
     ul {
-        height: 100%;
+        list-style: none;
+        font-size: 13px;
     }
 
     li {
         height: 100%;
-        width: $buttonSize;
-        background-color: whitesmoke;
-        display: inline-grid;
-        place-items: center;
-        padding: 0 0.5em;
+        background-color: $hover-fill;
+        display: inline-block;
+        border-radius: 4px;
     }
 
     li + li {
-        margin-left: $marginBetweenButtons;
+        margin-left: $paddingBetweenButtons;
+    }
+
+    li button {
+        display: block;
+        height: 100%;
+        width: 100%;
+        position: relative;
+        padding: 0;
+        cursor: inherit;
+
+        svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .label {
+            display: inline-block;
+            margin-left: $paddingBetweenIconAndLabel;
+        }
     }
 }

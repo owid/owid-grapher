@@ -49,37 +49,43 @@ export class Header extends React.Component<{
     @computed private get logoWidth(): number {
         return this.logo ? this.logo.width : 0
     }
-    @computed private get logoHeight(): number {
+
+    @computed get logoHeight(): number {
         return this.logo ? this.logo.height : 0
     }
 
     @computed get title(): TextWrap {
-        const { logoWidth } = this
+        const { logoWidth, manager } = this
+
         const maxWidth = this.maxWidth - logoWidth - 20
+        const fontWeight = !manager.isExportingtoSvgOrPng ? 600 : undefined
+        const titleStyle = {
+            maxWidth,
+            fontWeight,
+            lineHeight: 1.2,
+        }
 
         // Try to fit the title into a single line if possible-- but not if it would make the text super small
         let title: TextWrap
         let fontScale = 1.4
         while (true) {
             title = new TextWrap({
-                maxWidth,
+                ...titleStyle,
                 fontSize: fontScale * this.fontSize,
                 text: this.titleText,
-                lineHeight: 1,
             })
             if (fontScale <= 1.2 || title.lines.length <= 1) break
             fontScale -= 0.05
         }
 
         return new TextWrap({
-            maxWidth,
+            ...titleStyle,
             fontSize: fontScale * this.fontSize,
             text: this.titleText,
-            lineHeight: 1,
         })
     }
 
-    titleMarginBottom = 4
+    subtitleMarginTop = 4
 
     @computed get subtitleWidth(): number {
         // If the subtitle is entirely below the logo, we can go underneath it
@@ -102,9 +108,10 @@ export class Header extends React.Component<{
     }
 
     @computed get height(): number {
-        return Math.max(
-            this.title.height + this.subtitle.height + this.titleMarginBottom,
-            this.logoHeight
+        const { title, subtitle, subtitleText, subtitleMarginTop } = this
+        return (
+            title.height +
+            (subtitleText ? subtitle.height + subtitleMarginTop : 0)
         )
     }
 
@@ -125,13 +132,13 @@ export class Header extends React.Component<{
                     target="_blank"
                     rel="noopener"
                 >
-                    {title.render(x, y, { fill: "#555" })}
+                    {title.render(x, y, { fill: "#4E4E4E" })}
                 </a>
                 {subtitle.renderSVG(
                     x,
-                    y + title.height + this.titleMarginBottom,
+                    y + title.height + this.subtitleMarginTop,
                     {
-                        fill: "#666",
+                        fill: "#4E4E4E",
                     }
                 )}
             </g>
@@ -141,13 +148,9 @@ export class Header extends React.Component<{
     render(): JSX.Element {
         const { manager } = this
 
-        const titleStyle = {
-            ...this.title.htmlStyle,
-            marginBottom: this.titleMarginBottom,
-        }
-
         const subtitleStyle = {
             ...this.subtitle.style,
+            marginTop: this.subtitleMarginTop,
             // make sure there are no scrollbars on subtitle
             overflowY: "hidden",
         }
@@ -160,7 +163,9 @@ export class Header extends React.Component<{
                     target="_blank"
                     rel="noopener noreferrer"
                 >
-                    <h1 style={titleStyle}>{this.title.renderHTML()}</h1>
+                    <h1 style={this.title.htmlStyle}>
+                        {this.title.renderHTML()}
+                    </h1>
                 </a>
                 <p style={subtitleStyle}>{this.subtitle.renderHTML()}</p>
             </div>

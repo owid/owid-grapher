@@ -1,10 +1,22 @@
 import React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import {
+    faTable,
+    faEarthAmericas,
+    faChartLine,
+} from "@fortawesome/free-solid-svg-icons"
 import {
     GrapherTabOption,
     GrapherTabOverlayOption,
 } from "../core/GrapherConstants"
+
+const icons = {
+    [GrapherTabOption.table]: faTable,
+    [GrapherTabOption.chart]: faEarthAmericas,
+    [GrapherTabOption.map]: faChartLine,
+} as const
 
 export interface ContentSwitchersManager {
     availableTabs?: GrapherTabOption[]
@@ -41,6 +53,7 @@ export class ContentSwitchers extends React.Component<{
                             }}
                             data-track-note={"chart_click_" + tabName}
                         >
+                            <FontAwesomeIcon icon={icons[tabName]} />
                             {tabName}
                         </a>
                     </li>
