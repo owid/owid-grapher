@@ -2,7 +2,6 @@
 
 import * as lodash from "lodash"
 import { transaction } from "../db/db.js"
-import express from "express"
 import * as db from "../db/db.js"
 import { imageStore } from "../db/model/Image.js"
 import { GdocXImage } from "../db/model/GdocXImage.js"
@@ -1683,21 +1682,6 @@ ORDER BY usageCount DESC`
 
     return rows
 })
-
-interface VariableSingleMeta {
-    id: number
-    name: string
-    unit: string
-    shortUnit: string
-    description: string
-
-    datasetId: number
-    datasetName: string
-    datasetNamespace: string
-
-    vardata: string
-    display: any
-}
 
 // Used in VariableEditPage
 apiRouter.get(
