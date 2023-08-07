@@ -3,7 +3,7 @@
     height: $controlRowHeight;
     margin: 0;
     padding: 1px;
-    border: 1px solid #e7e7e7;
+    border: 1px solid $light-stroke;
     border-radius: 4px;
 
     li {
@@ -15,9 +15,9 @@
     li > a {
         display: block;
         text-transform: capitalize;
-        color: #858585;
+        color: $light-text;
         font-size: 13px;
-        font-weight: 500;
+        font-weight: $medium;
         height: $controlRowHeight - 4px; // -2px for border, -2px for padding
         line-height: $controlRowHeight - 4px;
         padding: 0 8px;
@@ -36,15 +36,15 @@
         position: absolute;
         top: 6px;
         left: -0.5px;
-        background-color: #e7e7e7;
+        background-color: $light-stroke;
     }
 
     li > a:hover {
-        background-color: #f2f2f2;
+        background-color: $hover-fill;
     }
 
     li.active > a {
-        color: #1d3d63;
-        background-color: #dbe5f0;
+        color: $active-text;
+        background-color: $active-fill;
     }
 }

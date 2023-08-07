@@ -33,12 +33,12 @@ $relatedQuestionHeight: 28px; // keep in sync with RELATED_QUESTION_HEIGHT
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    border-top: 1px solid #e7e7e7;
+    border-top: 1px solid $light-stroke;
     position: absolute;
     width: 100%;
     bottom: 0;
-    color: #5b5b5b;
-    font-weight: 700;
+    color: $dark-text;
+    font-weight: $bold;
 
     a {
         font-weight: normal;

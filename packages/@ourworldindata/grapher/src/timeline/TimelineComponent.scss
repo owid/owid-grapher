@@ -18,8 +18,8 @@
     .date {
         height: 100%;
         font-size: 13px;
-        font-weight: 500;
-        color: #5b5b5b;
+        font-weight: $medium;
+        color: $dark-text;
         padding: 0 8px;
         border-radius: 4px;
         display: grid;
@@ -28,21 +28,21 @@
 
     .date {
         margin-right: 0;
-        border: 1px solid #e7e7e7;
+        border: 1px solid $light-stroke;
 
         &:hover {
-            background: #e7e7e7;
+            background: $light-stroke;
         }
 
         &:active {
-            background: #dbe5f0;
-            color: #1d3d63;
+            background: $active-fill;
+            color: $active-text;
         }
     }
 
     .play {
         margin-right: 8px;
-        background: #f2f2f2;
+        background: $hover-fill;
         cursor: pointer;
 
         svg {
@@ -59,7 +59,7 @@
     .slider {
         height: 2px;
         flex-grow: 1;
-        background: #e7e7e7;
+        background: $light-stroke;
         position: relative;
         display: flex;
         align-items: center;
@@ -83,7 +83,7 @@
             width: $handle-diameter;
             border-radius: 100%;
 
-            background: #a1a1a1;
+            background: $info-icon;
             border: 2px solid #fff;
             z-index: 1;
             pointer-events: none;
@@ -96,7 +96,7 @@
     .interval {
         position: absolute;
         height: 2px;
-        background: #e7e7e7;
+        background: $light-stroke;
 
         cursor: grab;
         &:active {
@@ -116,7 +116,7 @@
 
 .TimelineComponent.hover {
     .handle > .icon {
-        background: #6e87a2;
+        background: $active-knob;
         transform: scale(1.2);
     }
 

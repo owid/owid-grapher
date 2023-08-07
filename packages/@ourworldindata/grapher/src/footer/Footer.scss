@@ -1,12 +1,12 @@
 .SourcesFooterHTML {
     padding: 0 $framePadding;
     text-align: left;
-    color: #5b5b5b;
+    color: $dark-text;
 
     a {
-        color: #5b5b5b;
+        color: $dark-text;
         &:visited {
-            color: #5b5b5b;
+            color: $dark-text;
         }
     }
 
