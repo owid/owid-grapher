@@ -9,7 +9,7 @@ import {
     sumTextWrapHeights,
 } from "@ourworldindata/utils"
 import { Header } from "../header/Header"
-import { Footer } from "../footer/Footer"
+import { Footer, StaticFooter } from "../footer/Footer"
 import {
     ChartComponentClassMap,
     DefaultChartClass,
@@ -106,14 +106,15 @@ interface CaptionedChartProps {
     maxWidth?: number
 }
 
+// keep in sync with sass variables in CaptionedChart.scss
 const FRAME_PADDING = 15
+const CONTROLS_ROW_HEIGHT = 36
+const RELATED_QUESTION_HEIGHT = 20
+
 const PADDING_ABOVE_FOOTER = 25
 const CHART_PADDING_TOP = 16
 const CHART_PADDING_BOTTOM = CHART_PADDING_TOP / 2
-
-const CONTROLS_ROW_HEIGHT = 36
 const TIMELINE_HEIGHT = 36
-const RELATED_QUESTION_HEIGHT = 20
 
 // todo(redesign): we might want to rename CaptionedChart later
 
@@ -127,7 +128,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         return this.manager?.containerElement
     }
 
-    @computed private get maxWidth(): number {
+    @computed protected get maxWidth(): number {
         return this.props.maxWidth ?? this.bounds.width - FRAME_PADDING * 2
     }
 
@@ -492,15 +493,24 @@ export class StaticCaptionedChart extends CaptionedChart {
         super(props)
     }
 
+    @computed protected get staticFooter(): Footer {
+        const { paddedBounds } = this
+        return new StaticFooter({
+            manager: this.manager,
+            maxWidth: this.maxWidth,
+            targetX: paddedBounds.x,
+            targetY: paddedBounds.bottom - this.footer.height,
+        })
+    }
+
     @computed private get paddedBounds(): Bounds {
         return this.bounds.pad(FRAME_PADDING)
     }
 
-    // The bounds for the middle chart part
     @computed protected get boundsForChartOrMap(): Bounds {
         return this.paddedBounds
             .padTop(this.header.height)
-            .padBottom(this.footer.height + PADDING_ABOVE_FOOTER)
+            .padBottom(this.staticFooter.height + PADDING_ABOVE_FOOTER)
             .padTop(this.manager.isOnMapTab ? 0 : CHART_PADDING_TOP)
     }
 
@@ -539,7 +549,7 @@ export class StaticCaptionedChart extends CaptionedChart {
     }
 
     render(): JSX.Element {
-        const { bounds, paddedBounds } = this
+        const { bounds, paddedBounds, manager, maxWidth } = this
         let { width, height } = bounds
 
         if (this.manager.shouldIncludeDetailsInStaticExport) {
@@ -565,10 +575,12 @@ export class StaticCaptionedChart extends CaptionedChart {
                 />
                 {this.header.renderStatic(paddedBounds.x, paddedBounds.y)}
                 {this.renderChart()}
-                {this.footer.renderStatic(
-                    paddedBounds.x,
-                    paddedBounds.bottom - this.footer.height
-                )}
+                <StaticFooter
+                    manager={manager}
+                    maxWidth={maxWidth}
+                    targetX={paddedBounds.x}
+                    targetY={paddedBounds.bottom - this.staticFooter.height}
+                />
                 {this.renderSVGDetails()}
             </svg>
         )

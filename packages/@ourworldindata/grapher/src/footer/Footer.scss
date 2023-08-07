@@ -1,0 +1,37 @@
+.SourcesFooterHTML {
+    padding: 0 $framePadding;
+    text-align: left;
+
+    a {
+        color: #777;
+        &:visited {
+            color: #777;
+        }
+    }
+
+    p {
+        margin: 0;
+    }
+
+    .NoteAndLicense {
+        position: relative;
+
+        .license {
+            position: absolute;
+            right: 0;
+            top: 0;
+            text-align: right;
+        }
+    }
+
+    .SourcesAndActionButtons {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+    }
+
+    // removes margin that is added by default to prevent border-bottom used for dod from clipping
+    .markdown-text-wrap__line:last-child {
+        margin-bottom: 0;
+    }
+}

@@ -18,32 +18,39 @@ import { FooterManager } from "./FooterManager"
 import { ActionButtons } from "../controls/ActionButtons"
 
 const PADDING_ABOVE_CONTROLS = 4
+const HORIZONTAL_PADDING = 2
 
-@observer
-export class Footer extends React.Component<{
+interface FooterProps {
     manager: FooterManager
     maxWidth?: number
-}> {
-    @computed private get maxWidth(): number {
+}
+
+@observer
+export class Footer<
+    Props extends FooterProps = FooterProps
+> extends React.Component<Props> {
+    @computed protected get maxWidth(): number {
         return this.props.maxWidth ?? DEFAULT_BOUNDS.width
     }
 
-    @computed private get manager(): FooterManager {
+    @computed protected get manager(): FooterManager {
         return this.props.manager
     }
 
-    @computed private get sourcesText(): string {
+    @computed protected get sourcesText(): string {
         const sourcesLine = this.manager.sourcesLine
         return sourcesLine ? `Source: ${sourcesLine}` : ""
     }
 
-    @computed private get noteText(): string {
+    @computed protected get noteText(): string {
         return this.manager.note ? `Note: ${this.manager.note}` : ""
     }
 
-    @computed private get ccSvg(): string {
-        if (this.manager.hasOWIDLogo)
-            return `<a style="fill: #777;" class="cclogo" href="http://creativecommons.org/licenses/by/4.0/deed.en_US" target="_blank">CC BY</a>`
+    @computed protected get ccSvg(): string {
+        if (this.manager.hasOWIDLogo) {
+            // dash in CC-BY prevents break but is not rendered
+            return `<a style="fill: #777;" class="cclogo" href="http://creativecommons.org/licenses/by/4.0/deed.en_US" target="_blank">CC-BY</a>`
+        }
 
         return `<a href="https://ourworldindata.org" target="_blank">Powered by ourworldindata.org</a>`
     }
@@ -52,13 +59,13 @@ export class Footer extends React.Component<{
         return this.manager.originUrlWithProtocol ?? "http://localhost"
     }
 
-    @computed private get finalUrl(): string {
+    @computed protected get finalUrl(): string {
         const originUrl = this.originUrlWithProtocol
         const url = parseUrl(originUrl)
         return `https://${url.hostname}${url.pathname}`
     }
 
-    @computed private get finalUrlText(): string | undefined {
+    @computed protected get finalUrlText(): string | undefined {
         const originUrl = this.originUrlWithProtocol
 
         // Make sure the link back to OWID is consistent
@@ -67,43 +74,50 @@ export class Footer extends React.Component<{
             return undefined
 
         const url = parseUrl(originUrl)
-        const finalUrlText = `${url.hostname}${url.pathname}`.replace(
-            "ourworldindata.org",
-            "OurWorldInData.org"
-        )
+        const finalUrlText = `${url.hostname}${url.pathname}`
+            .replace("ourworldindata.org", "OurWorldInData.org")
+            .replace(/\/$/, "") // remove trailing slash
+
         if (
             Bounds.forText(finalUrlText, { fontSize: this.fontSize }).width >
             0.7 * this.maxWidth
         )
             return undefined
+
         return finalUrlText
     }
 
-    @computed private get licenseAndOriginUrlSvg(): string {
+    @computed protected get licenseAndOriginUrlSvg(): string {
         const { finalUrl, finalUrlText, ccSvg } = this
         if (!finalUrlText) return ccSvg
 
-        const originUrlLink = `<a target='_blank' style='fill: #777;' href='${finalUrl}'>${finalUrlText}</a>`
-        return [originUrlLink, ccSvg].join(" • ")
+        // trick to allow for line breaks after "/" and "-"
+        const finalUrlTextWithSpaces = finalUrlText
+            .replace(/\//g, "/ ")
+            .replace(/-/g, "- ")
+
+        const originUrlLink = `<a target='_blank' style='fill: #777;' href='${finalUrl}'> ${finalUrlTextWithSpaces} </a>`
+        return [originUrlLink, ccSvg].join(" | ")
     }
 
-    @computed private get fontSize(): number {
+    @computed protected get fontSize(): number {
         return 0.7 * (this.manager.fontSize ?? BASE_FONT_SIZE)
     }
 
-    @computed private get sources(): MarkdownTextWrap {
-        const { maxWidth, fontSize, sourcesText, actionButtons } = this
+    @computed protected get sources(): MarkdownTextWrap {
+        const { maxWidth, fontSize, sourcesText } = this
         return new MarkdownTextWrap({
-            maxWidth: maxWidth - actionButtons.width - 5,
+            maxWidth: maxWidth - this.actionButtons.width - HORIZONTAL_PADDING,
             fontSize,
             text: sourcesText,
         })
     }
 
-    @computed private get note(): MarkdownTextWrap {
+    @computed protected get note(): MarkdownTextWrap {
         const { maxWidth, fontSize, noteText } = this
         return new MarkdownTextWrap({
-            maxWidth,
+            maxWidth:
+                maxWidth - this.licenseAndOriginUrl.width - HORIZONTAL_PADDING,
             fontSize,
             text: noteText,
             detailsOrderedByReference: this.manager
@@ -113,10 +127,43 @@ export class Footer extends React.Component<{
         })
     }
 
-    @computed private get licenseAndOriginUrl(): TextWrap {
-        const { maxWidth, fontSize, licenseAndOriginUrlSvg } = this
+    @computed protected get licenseAndOriginUrlMaxWidth(): number {
+        const { maxWidth, fontSize, noteText, licenseAndOriginUrlSvg } = this
+
+        // use full width if there is no note
+        if (!noteText) return maxWidth
+
+        const noteWidth = new MarkdownTextWrap({
+            maxWidth: Infinity, // no line breaks
+            fontSize,
+            text: noteText,
+        }).width
+        const licenseAndOriginUrlWidth = new TextWrap({
+            maxWidth: Infinity, // no line breaks
+            fontSize,
+            text: licenseAndOriginUrlSvg,
+            rawHtml: true,
+        }).width
+
+        // note and licenseAndOriginUrl fit into a single line
+        if (
+            noteWidth + HORIZONTAL_PADDING + licenseAndOriginUrlWidth <=
+            maxWidth
+        ) {
+            return maxWidth
+        }
+
+        return 0.33 * maxWidth
+    }
+
+    @computed protected get licenseAndOriginUrl(): TextWrap {
+        const {
+            fontSize,
+            licenseAndOriginUrlSvg,
+            licenseAndOriginUrlMaxWidth,
+        } = this
         return new TextWrap({
-            maxWidth: maxWidth * 3,
+            maxWidth: licenseAndOriginUrlMaxWidth,
             fontSize,
             text: licenseAndOriginUrlSvg,
             rawHtml: true,
@@ -129,86 +176,13 @@ export class Footer extends React.Component<{
         })
     }
 
-    // Put the license stuff to the side if there's room
-    @computed private get isCompact(): boolean {
-        return (
-            this.maxWidth - this.note.width - 5 > this.licenseAndOriginUrl.width
-        )
-    }
-
-    @computed private get paraMargin(): number {
-        return 2
-    }
-
     @computed get height(): number {
-        const {
-            sources,
-            note,
-            licenseAndOriginUrl,
-            isCompact,
-            paraMargin,
-            actionButtons,
-        } = this
+        const { sources, note, licenseAndOriginUrl, actionButtons } = this
         const height =
             Math.max(note.height, licenseAndOriginUrl.height) +
             PADDING_ABOVE_CONTROLS +
-            Math.max(sources.height, actionButtons.height) +
-            (isCompact ? 0 : paraMargin + licenseAndOriginUrl.height)
+            Math.max(sources.height, actionButtons.height)
         return height
-    }
-
-    // todo(redesign): `sourcesStatic` and `isCompactStatic` are only used for static exports;
-    // this is a workaround to keep the static version as is for now
-
-    @computed private get sourcesStatic(): MarkdownTextWrap {
-        const { maxWidth, fontSize, sourcesText } = this
-        return new MarkdownTextWrap({
-            maxWidth,
-            fontSize,
-            text: sourcesText,
-        })
-    }
-
-    @computed private get isCompactStatic(): boolean {
-        return (
-            this.maxWidth - this.sources.width - 5 >
-            this.licenseAndOriginUrl.width
-        )
-    }
-
-    renderStatic(targetX: number, targetY: number): JSX.Element {
-        const {
-            sourcesStatic,
-            note,
-            licenseAndOriginUrl,
-            maxWidth,
-            paraMargin,
-            isCompactStatic,
-        } = this
-
-        return (
-            <g className="SourcesFooter" style={{ fill: "#777" }}>
-                <g style={{ fill: "#777" }}>
-                    {sourcesStatic.renderSVG(targetX, targetY)}
-                </g>
-                {note.renderSVG(
-                    targetX,
-                    targetY + sourcesStatic.height + paraMargin
-                )}
-                {isCompactStatic
-                    ? licenseAndOriginUrl.render(
-                          targetX + maxWidth - licenseAndOriginUrl.width,
-                          targetY
-                      )
-                    : licenseAndOriginUrl.render(
-                          targetX,
-                          targetY +
-                              sourcesStatic.height +
-                              paraMargin +
-                              (note.height ? note.height + paraMargin : 0)
-                      )}
-            </g>
-        )
     }
 
     base: React.RefObject<HTMLDivElement> = React.createRef()
@@ -243,6 +217,7 @@ export class Footer extends React.Component<{
                 style={{
                     fontSize: this.licenseAndOriginUrl.fontSize,
                     lineHeight: this.sources.lineHeight,
+                    width: this.licenseAndOriginUrl.width,
                 }}
             >
                 {this.finalUrlText && (
@@ -252,7 +227,7 @@ export class Footer extends React.Component<{
                         rel="noopener"
                         style={{ textDecoration: "none" }}
                     >
-                        {this.finalUrlText} •{" "}
+                        {this.finalUrlText} |{" "}
                     </a>
                 )}
                 {this.manager.hasOWIDLogo ? (
@@ -280,18 +255,21 @@ export class Footer extends React.Component<{
 
         return (
             <footer
-                className={
-                    "SourcesFooterHTML" + (this.isCompact ? " compact" : "")
-                }
+                className="SourcesFooterHTML"
                 ref={this.base}
                 style={{ color: "#777" }}
             >
-                <div className="NoteAndLicense">
-                    <p style={this.note.style}>{this.note.renderHTML()}</p>
+                <div
+                    className="NoteAndLicense"
+                    style={{ minHeight: this.licenseAndOriginUrl.height }}
+                >
+                    <p className="note" style={this.note.style}>
+                        {this.note.renderHTML()}
+                    </p>
                     {license}
                 </div>
                 <div
-                    className="FooterControls"
+                    className="SourcesAndActionButtons"
                     style={{ marginTop: PADDING_ABOVE_CONTROLS }}
                 >
                     <p style={this.sources.style}>
@@ -335,6 +313,99 @@ export class Footer extends React.Component<{
                     </Tooltip>
                 )}
             </footer>
+        )
+    }
+}
+
+interface StaticFooterProps extends FooterProps {
+    targetX: number
+    targetY: number
+}
+
+@observer
+export class StaticFooter extends Footer<StaticFooterProps> {
+    constructor(props: StaticFooterProps) {
+        super(props)
+    }
+
+    @computed protected get ccSvg(): string {
+        if (this.manager.hasOWIDLogo) {
+            return `<a style="fill: #777;" class="cclogo" href="http://creativecommons.org/licenses/by/4.0/deed.en_US" target="_blank">CC BY</a>`
+        }
+
+        return `<a href="https://ourworldindata.org" target="_blank">Powered by ourworldindata.org</a>`
+    }
+
+    @computed protected get licenseAndOriginUrlSvg(): string {
+        const { finalUrl, finalUrlText, ccSvg } = this
+        if (!finalUrlText) return ccSvg
+        const originUrlLink = `<a target='_blank' style='fill: #777;' href='${finalUrl}'>${finalUrl}</a>`
+        return [originUrlLink, ccSvg].join(" | ")
+    }
+
+    @computed protected get sources(): MarkdownTextWrap {
+        const { maxWidth, fontSize, sourcesText } = this
+        return new MarkdownTextWrap({
+            maxWidth,
+            fontSize,
+            text: sourcesText,
+        })
+    }
+
+    @computed protected get note(): MarkdownTextWrap {
+        const { maxWidth, fontSize, noteText } = this
+        return new MarkdownTextWrap({
+            maxWidth,
+            fontSize,
+            text: noteText,
+            detailsOrderedByReference: this.manager
+                .shouldIncludeDetailsInStaticExport
+                ? this.manager.detailsOrderedByReference
+                : new Set(),
+        })
+    }
+
+    @computed protected get licenseAndOriginUrl(): TextWrap {
+        const { maxWidth, fontSize, licenseAndOriginUrlSvg } = this
+        return new TextWrap({
+            maxWidth: maxWidth * 3,
+            fontSize,
+            text: licenseAndOriginUrlSvg,
+            rawHtml: true,
+        })
+    }
+
+    @computed protected get isCompact(): boolean {
+        return (
+            this.maxWidth - this.sources.width - 5 >
+            this.licenseAndOriginUrl.width
+        )
+    }
+
+    render(): JSX.Element {
+        const { sources, note, licenseAndOriginUrl, maxWidth, isCompact } = this
+        const { targetX, targetY } = this.props
+        const paraMargin = 2
+
+        return (
+            <g className="SourcesFooter" style={{ fill: "#777" }}>
+                <g style={{ fill: "#777" }}>
+                    {sources.renderSVG(targetX, targetY)}
+                </g>
+                {note.renderSVG(targetX, targetY + sources.height + paraMargin)}
+                {isCompact
+                    ? licenseAndOriginUrl.render(
+                          targetX + maxWidth - licenseAndOriginUrl.width,
+                          targetY
+                      )
+                    : licenseAndOriginUrl.render(
+                          targetX,
+                          targetY +
+                              sources.height +
+                              paraMargin +
+                              (note.height ? note.height + paraMargin : 0)
+                      )}
+            </g>
         )
     }
 }

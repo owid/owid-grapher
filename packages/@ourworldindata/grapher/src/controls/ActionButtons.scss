@@ -1,0 +1,27 @@
+// keep in sync with constant values in ActionButtons.tsx
+$buttonSize: 30px; // keep in sync with BUTTON_SIZE
+$marginBetweenButtons: 5px; // keep in sync with MARGIN_BETWEEN_BUTTONS
+
+.ActionButtons {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    white-space: nowrap;
+
+    ul {
+        height: 100%;
+    }
+
+    li {
+        height: 100%;
+        width: $buttonSize;
+        background-color: whitesmoke;
+        display: inline-grid;
+        place-items: center;
+        padding: 0 0.5em;
+    }
+
+    li + li {
+        margin-left: $marginBetweenButtons;
+    }
+}
