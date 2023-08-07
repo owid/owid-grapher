@@ -163,7 +163,9 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     }
 
     @computed protected get chartHeight(): number {
-        const verticalSpacingsCount = this.manager.showTimeline ? 4 : 3
+        let verticalSpacingsCount = 2
+        if (this.manager.showTimeline) verticalSpacingsCount += 1
+        if (this.showControlsRow) verticalSpacingsCount += 1
 
         return Math.floor(
             this.bounds.height -
@@ -193,6 +195,10 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
             !!this.manager.facetStrategy &&
             this.manager.facetStrategy !== FacetStrategy.none
         return !this.manager.isOnMapTab && hasStrategy
+    }
+
+    @computed get showControlsRow(): boolean {
+        return (this.manager.availableTabs?.length ?? 0) > 1
     }
 
     renderChart(): JSX.Element {
@@ -359,24 +365,22 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         )
     }
 
-    private maybeRenderRelatedQuestion(): JSX.Element | null {
+    private renderRelatedQuestion(): JSX.Element {
         const { relatedQuestions } = this.manager
-        if (this.showRelatedQuestion)
-            return (
-                <div className="relatedQuestion">
-                    Related:&nbsp;
-                    <a
-                        href={relatedQuestions![0].url}
-                        target="_blank"
-                        rel="noopener"
-                        data-track-note="chart_click_related"
-                    >
-                        {relatedQuestions![0].text}
-                    </a>
-                    <FontAwesomeIcon icon={faExternalLinkAlt} />
-                </div>
-            )
-        return null
+        return (
+            <div className="relatedQuestion">
+                Related:&nbsp;
+                <a
+                    href={relatedQuestions![0].url}
+                    target="_blank"
+                    rel="noopener"
+                    data-track-note="chart_click_related"
+                >
+                    {relatedQuestions![0].text}
+                </a>
+                <FontAwesomeIcon icon={faExternalLinkAlt} />
+            </div>
+        )
     }
 
     private renderLoadingIndicator(): JSX.Element {
@@ -427,16 +431,14 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         )
     }
 
-    private maybeRenderTimeline(): JSX.Element | null {
-        if (this.manager.showTimeline)
-            return (
-                <TimelineComponent
-                    timelineController={this.manager.timelineController!}
-                    height={TIMELINE_HEIGHT}
-                    maxWidth={this.maxWidth}
-                />
-            )
-        return null
+    private renderTimeline(): JSX.Element {
+        return (
+            <TimelineComponent
+                timelineController={this.manager.timelineController!}
+                height={TIMELINE_HEIGHT}
+                maxWidth={this.maxWidth}
+            />
+        )
     }
 
     private renderVerticalSpace(): JSX.Element {
@@ -454,17 +456,17 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         return (
             <>
                 <Header manager={this.manager} maxWidth={this.maxWidth} />
-                {this.renderVerticalSpace()}
-                {this.renderControlsRow()}
+                {this.showControlsRow && this.renderVerticalSpace()}
+                {this.showControlsRow && this.renderControlsRow()}
                 {this.renderVerticalSpace()}
                 {this.manager.isOnTableTab
                     ? this.renderDataTable()
                     : this.renderChartOrMap()}
                 {this.manager.showTimeline && this.renderVerticalSpace()}
-                {this.maybeRenderTimeline()}
+                {this.manager.showTimeline && this.renderTimeline()}
                 {this.renderVerticalSpace()}
                 <Footer manager={this.manager} maxWidth={this.maxWidth} />
-                {this.maybeRenderRelatedQuestion()}
+                {this.showRelatedQuestion && this.renderRelatedQuestion()}
             </>
         )
     }

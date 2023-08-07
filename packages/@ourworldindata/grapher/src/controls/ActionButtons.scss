@@ -30,6 +30,7 @@ $paddingBetweenIconAndLabel: 4px; // keep in sync with PADDING_BETWEEN_ICON_AND_
         position: relative;
         padding: 0;
         cursor: inherit;
+        color: $dark-text;
 
         svg {
             width: 14px;
