@@ -1256,7 +1256,7 @@ export interface OwidGdocContent {
         | "amber"
     "sticky-nav"?: []
     details?: DetailDictionary
-    faqs?: DetailDictionary
+    faqs?: FaqDictionary
 }
 
 export type OwidGdocStickyNavItem = { target: string; text: string }

@@ -195,37 +195,45 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
             filenames.add(this.content["featured-image"])
         }
 
-        this.content.body?.forEach((node) =>
-            traverseEnrichedBlocks(node, (item) => {
-                if ("type" in item) {
-                    if ("filename" in item && item.filename) {
-                        filenames.add(item.filename)
-                    }
-                    if (item.type === "prominent-link" && item.thumbnail) {
-                        filenames.add(item.thumbnail)
-                    }
-                    if (item.type === "research-and-writing") {
-                        const allLinks =
-                            getAllLinksFromResearchAndWritingBlock(item)
-                        allLinks.forEach(
-                            (link: EnrichedBlockResearchAndWritingLink) => {
-                                if (link.value.filename) {
-                                    filenames.add(link.value.filename)
+        const enrichedBlockSources = [
+            this.content.body,
+            this.content.faqs &&
+                Object.values(this.content.faqs).flatMap((faq) => faq.content),
+        ]
+
+        for (const source of enrichedBlockSources) {
+            source?.forEach((node) =>
+                traverseEnrichedBlocks(node, (item) => {
+                    if ("type" in item) {
+                        if ("filename" in item && item.filename) {
+                            filenames.add(item.filename)
+                        }
+                        if (item.type === "prominent-link" && item.thumbnail) {
+                            filenames.add(item.thumbnail)
+                        }
+                        if (item.type === "research-and-writing") {
+                            const allLinks =
+                                getAllLinksFromResearchAndWritingBlock(item)
+                            allLinks.forEach(
+                                (link: EnrichedBlockResearchAndWritingLink) => {
+                                    if (link.value.filename) {
+                                        filenames.add(link.value.filename)
+                                    }
                                 }
-                            }
-                        )
+                            )
+                        }
+                        if (item.type === "key-insights") {
+                            item.insights.forEach((insight) => {
+                                if (insight.filename) {
+                                    filenames.add(insight.filename)
+                                }
+                            })
+                        }
                     }
-                    if (item.type === "key-insights") {
-                        item.insights.forEach((insight) => {
-                            if (insight.filename) {
-                                filenames.add(insight.filename)
-                            }
-                        })
-                    }
-                }
-                return item
-            })
-        )
+                    return item
+                })
+            )
+        }
 
         return [...filenames]
     }
@@ -233,19 +241,25 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
     get details(): string[] {
         const details: Set<string> = new Set()
 
-        this.content.body?.forEach((node) =>
-            traverseEnrichedBlocks(
-                node,
-                (x) => x,
-                (span) => {
-                    if (span.spanType === "span-dod") {
-                        details.add(span.id)
-                    }
-                }
-            )
-        )
+        const enrichedBlockSources = [
+            this.content.body,
+            this.content.faqs &&
+                Object.values(this.content.faqs).flatMap((faq) => faq.content),
+        ]
 
-        // TODO: also do this for faqs
+        for (const source of enrichedBlockSources) {
+            source?.forEach((node) =>
+                traverseEnrichedBlocks(
+                    node,
+                    (x) => x,
+                    (span) => {
+                        if (span.spanType === "span-dod") {
+                            details.add(span.id)
+                        }
+                    }
+                )
+            )
+        }
 
         return [...details]
     }
@@ -366,6 +380,13 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
             ).flatMap((definition) => definition.content)
             blocksToTraverse.push(...refBlocks)
         }
+        if (this.content.faqs)
+            blocksToTraverse.push(
+                ...Object.values(this.content.faqs).flatMap(
+                    (faq) => faq.content
+                )
+            )
+
         blocksToTraverse.map((node) =>
             traverseEnrichedBlocks(
                 node,
@@ -379,7 +400,7 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
                 }
             )
         )
-        // TODO: taverse faqs
+
         return links
     }
 
