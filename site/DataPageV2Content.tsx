@@ -55,7 +55,7 @@ const convertMarkdownNodeToSpan = (node: EveryMarkdownNode): Span[] => {
             {
                 type: "newline",
             },
-            (n) => [
+            () => [
                 {
                     spanType: "span-simple-text" as const,
                     text: "\n",
@@ -66,7 +66,7 @@ const convertMarkdownNodeToSpan = (node: EveryMarkdownNode): Span[] => {
             {
                 type: "whitespace",
             },
-            (n) => [
+            () => [
                 {
                     spanType: "span-simple-text" as const,
                     text: " ",
