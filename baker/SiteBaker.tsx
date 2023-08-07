@@ -598,7 +598,9 @@ export class SiteBaker {
             "published"
         )
 
-        const imageChunks = chunk(images, 2)
+        // TODO: chunking caused issues so we disable it here by setting chunk size to 1 for now.
+        // Either switch to rclone-ing all files before baking, or switching to Cloudflare Images.
+        const imageChunks = chunk(images, 1)
         for (const imageChunk of imageChunks) {
             await Promise.all(
                 imageChunk.map(async (image) => {
