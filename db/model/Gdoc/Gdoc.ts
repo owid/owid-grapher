@@ -244,6 +244,9 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
                 }
             )
         )
+
+        // TODO: also do this for faqs
+
         return [...details]
     }
 
@@ -376,6 +379,7 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
                 }
             )
         )
+        // TODO: taverse faqs
         return links
     }
 
