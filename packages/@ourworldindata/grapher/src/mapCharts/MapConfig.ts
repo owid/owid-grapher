@@ -3,7 +3,6 @@ import { MapProjectionName } from "./MapProjections"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import {
     ColumnSlug,
-    OwidVariableId,
     Persistable,
     updatePersistables,
     objectWithPersistablesToObject,
