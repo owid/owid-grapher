@@ -977,23 +977,7 @@ how **are** you?`)
                         children: [
                             {
                                 type: "text",
-                                value: "l",
-                            },
-                            {
-                                type: "text",
-                                value: "(",
-                            },
-                            {
-                                type: "text",
-                                value: "i",
-                            },
-                            {
-                                type: "text",
-                                value: ")",
-                            },
-                            {
-                                type: "text",
-                                value: "nk",
+                                value: "l(i)nk",
                             },
                         ],
                         href: "www.google.com",
