@@ -258,15 +258,9 @@ properties:
                     - type: string
                       enum:
                           - latest
-            variableId:
-                # TODO: remove this once we have a convention of using the first y dimension instead"
-                type: integer
-                description: "Variable ID to show."
-                maximum: 2147483647
-                minimum: 0
             columnSlug:
                 # TODO: remove this once we have a convention of using the first y dimension instead
-                description: "Variable ID to show (similar to variableId)."
+                description: "Column to show in the map tab. Can be a column slug (e.g. in explorers) or a variable ID (as string)."
                 type: string
         additionalProperties: false
     maxTime:
