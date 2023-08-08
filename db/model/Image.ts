@@ -27,7 +27,12 @@ import {
     IMAGE_HOSTING_BUCKET_PATH,
     GDOCS_CLIENT_EMAIL,
     GDOCS_SHARED_DRIVE_ID,
+    CLOUDFLARE_IMAGES_ACCOUNT_ID,
+    CLOUDFLARE_IMAGES_API_KEY,
+    IMAGE_HOSTING_CDN_URL,
+    IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH,
 } from "../../settings/serverSettings.js"
+import { getConnection } from "../db.js"
 
 class ImageStore {
     images: Record<string, ImageMetadata> | undefined
@@ -255,5 +260,38 @@ export class Image extends BaseEntity implements ImageMetadata {
         console.log(
             `Successfully uploaded object: ${params.Bucket}/${params.Key}`
         )
+    }
+
+    async uploadAllToCloudflareImages(): Promise<void> {
+        const form = new FormData()
+        form.append(
+            "url",
+            `${IMAGE_HOSTING_CDN_URL}/${IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH}/${encodeURIComponent(
+                this.filename
+            )}`
+        )
+        form.append("id", this.filenameWithoutExtension)
+
+        const res = await fetch(
+            `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_IMAGES_ACCOUNT_ID}/images/v1`,
+            {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${CLOUDFLARE_IMAGES_API_KEY}`,
+                    ContentType: "multipart/form-data",
+                },
+                body: form,
+            }
+        )
+        if (!res.ok) {
+            if (res.status === 409)
+                console.info("Image already uploaded", this.filename)
+            else
+                console.error(
+                    `Error uploading image ${this.filename}: ${res.statusText}`
+                )
+        } else {
+            console.log(`Successfully uploaded image ${this.filename}`)
+        }
     }
 }

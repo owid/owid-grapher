@@ -169,3 +169,8 @@ export const IMAGE_HOSTING_SPACE_ACCESS_KEY_ID: string =
     serverSettings.IMAGE_HOSTING_SPACE_ACCESS_KEY_ID || ""
 export const IMAGE_HOSTING_SPACE_SECRET_ACCESS_KEY: string =
     serverSettings.IMAGE_HOSTING_SPACE_SECRET_ACCESS_KEY || ""
+
+export const CLOUDFLARE_IMAGES_ACCOUNT_ID =
+    serverSettings.CLOUDFLARE_IMAGES_ACCOUNT_ID ?? ""
+export const CLOUDFLARE_IMAGES_API_KEY =
+    serverSettings.CLOUDFLARE_IMAGES_API_KEY ?? ""
