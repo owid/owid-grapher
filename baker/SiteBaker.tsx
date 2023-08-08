@@ -90,6 +90,7 @@ const nonWordpressSteps = [
     "specialPages",
     "countries",
     "countryProfiles",
+    "explorers",
     "charts",
     "gdocPosts",
     "gdriveImages",
@@ -425,6 +426,16 @@ export class SiteBaker {
             await makeSitemap(this.explorerAdminServer)
         )
 
+        await this.stageWrite(
+            `${this.bakedSiteDir}/charts.html`,
+            await renderChartsPage(this.explorerAdminServer)
+        )
+        this.progressBar.tick({ name: "✅ baked special pages" })
+    }
+
+    private async bakeExplorers() {
+        if (!this.bakeSteps.has("explorers")) return
+
         await bakeAllExplorerRedirects(
             this.bakedSiteDir,
             this.explorerAdminServer
@@ -435,11 +446,7 @@ export class SiteBaker {
             this.explorerAdminServer
         )
 
-        await this.stageWrite(
-            `${this.bakedSiteDir}/charts.html`,
-            await renderChartsPage(this.explorerAdminServer)
-        )
-        this.progressBar.tick({ name: "✅ baked special pages" })
+        this.progressBar.tick({ name: "✅ baked explorers" })
     }
 
     private async validateGrapherDodReferences() {
@@ -709,6 +716,7 @@ export class SiteBaker {
         }
         await this.bakeSpecialPages()
         await this.bakeCountryProfiles()
+        await this.bakeExplorers()
         if (this.bakeSteps.has("charts")) {
             await bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers(
                 this.bakedSiteDir
