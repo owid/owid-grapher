@@ -15,7 +15,7 @@
 # Before the first run you should download the database dumps. The easiest way to do this is to run the
 # following command from a bash terminal with the root of the project as the working directory.
 #
-#     ./devTools/docker/download-grapher-mysql.sh
+#     ./devTools/docker/download-grapher-metadata-mysql.sh
 #
 # Run `docker-compose up -d` to run all these services in daemon mode. The first time it will take a few minutes
 # to build the containers and initialize and fill the database, afterwards it should be up in seconds.
