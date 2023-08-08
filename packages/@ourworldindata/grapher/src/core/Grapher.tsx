@@ -2793,7 +2793,8 @@ export class Grapher
             this.showFacetYDomainToggle ||
             this.showZoomToggle ||
             this.showNoDataAreaToggle ||
-            this.showFacetControl ||
+            (this.showFacetControl &&
+                this.availableFacetStrategies.length > 1) ||
             this.showAbsRelToggle
         )
 

@@ -168,6 +168,7 @@ export class SettingsMenu extends React.Component<{
             showZoomToggle,
             showNoDataAreaToggle,
             showFacetControl,
+            availableFacetStrategies,
             showAbsRelToggle,
             compareEndPointsOnly,
         } = manager
@@ -200,7 +201,10 @@ export class SettingsMenu extends React.Component<{
                     <Setting
                         title="Chart view"
                         info="Visualize the data all together in one chart or split it by country, region or metric."
-                        active={showFacetControl}
+                        active={
+                            showFacetControl &&
+                            availableFacetStrategies.length > 1
+                        }
                     >
                         <FacetStrategySelector manager={manager} />
                         <FacetYDomainToggle manager={manager} />
