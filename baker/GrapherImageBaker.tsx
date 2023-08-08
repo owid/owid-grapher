@@ -14,6 +14,7 @@ import {
     grapherSlugToExportFileKey,
     grapherUrlToSlugAndQueryStr,
 } from "./GrapherBakingUtils.js"
+import pMap from "p-map"
 
 export async function bakeGraphersToPngs(
     outDir: string,
@@ -165,12 +166,13 @@ export async function bakeGraphersToSvgs(
     await fs.mkdirp(outDir)
     const graphersBySlug = await getGraphersAndRedirectsBySlug()
 
-    return Promise.all(
-        Array.from(grapherUrls).map((grapherUrl) => {
+    return pMap(
+        grapherUrls,
+        async (grapherUrl) => {
             const { slug, queryStr } = grapherUrlToSlugAndQueryStr(grapherUrl)
             const jsonConfig = graphersBySlug.get(slug)
             if (jsonConfig) {
-                return bakeGrapherToSvg(
+                return await bakeGrapherToSvg(
                     jsonConfig,
                     outDir,
                     slug,
@@ -179,7 +181,8 @@ export async function bakeGraphersToSvgs(
                 )
             }
             return undefined
-        })
+        },
+        { concurrency: 10 }
     )
 }
 
