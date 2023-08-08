@@ -19,11 +19,15 @@ import { Grapher, CookieKey } from "@ourworldindata/grapher"
 import { MultiEmbedderSingleton } from "../site/multiembedder/MultiEmbedder.js"
 import { CoreTable } from "@ourworldindata/core-table"
 import { SiteAnalytics } from "./SiteAnalytics.js"
-import Bugsnag from "@bugsnag/js"
+import Bugsnag, { BrowserConfig } from "@bugsnag/js"
 import BugsnagPluginReact from "@bugsnag/plugin-react"
 import BugsnagPerformance from "@bugsnag/browser-performance"
 import { runMonkeyPatchForGoogleTranslate } from "./hacks.js"
 import { runSiteFooterScripts } from "./runSiteFooterScripts.js"
+import {
+    PreferenceType,
+    getPreferenceValue,
+} from "./CookiePreferencesManager.js"
 
 declare let window: any
 window.Grapher = Grapher
@@ -46,9 +50,33 @@ runMonkeyPatchForGoogleTranslate()
 
 if (BUGSNAG_API_KEY) {
     try {
+        const analyticsConsent = getPreferenceValue(PreferenceType.Analytics)
+
+        let bugsnagUserInformation: Pick<
+            BrowserConfig,
+            "generateAnonymousId" | "user"
+        >
+        if (analyticsConsent) {
+            bugsnagUserInformation = {
+                generateAnonymousId: true, // gets saved to localStorage, which we only want if the user has consented to analytics
+            }
+        } else {
+            bugsnagUserInformation = {
+                generateAnonymousId: false,
+                user: {
+                    // generates a random 10-character string
+                    // we use it so we can at least identify multiple errors from the same user on a single page, albeit not across pages
+                    id: Math.random().toString(36).substring(2, 12),
+                },
+            }
+        }
+
         Bugsnag.start({
             apiKey: BUGSNAG_API_KEY,
             plugins: [new BugsnagPluginReact()],
+            autoTrackSessions: false,
+            collectUserIp: false,
+            ...bugsnagUserInformation,
         })
 
         const instrumentNetworkRequests = Math.random() < 0.05 // 5% sample rate
@@ -57,6 +85,7 @@ if (BUGSNAG_API_KEY) {
             autoInstrumentFullPageLoads: false, // TODO: We might want to sample some page loads in the future
             autoInstrumentRouteChanges: false,
             autoInstrumentNetworkRequests: instrumentNetworkRequests,
+            generateAnonymousId: false,
         })
     } catch (error) {
         console.error("Failed to initialize Bugsnag")

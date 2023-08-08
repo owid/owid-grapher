@@ -80,6 +80,7 @@ export const CookiePreferences = ({
 
     return ReactDOM.createPortal(
         <div data-test="cookie-preferences" className="cookie-preferences">
+            <h2>Cookie preferences</h2>
             <CookiePreference
                 title="Necessary cookies"
                 name="necessary"
@@ -107,7 +108,11 @@ export const CookiePreferences = ({
                     })
                 }
             >
-                We use these cookies to monitor and improve website performance.
+                With your consent we use cookies to better understand how you
+                interact with our website. This helps us prioritize our work,
+                improve our navigation and search, and demonstrate the reach of
+                our work. As a non-profit organization we take your privacy
+                seriously and do not sell your data to any third parties.
             </CookiePreference>
             {date ? (
                 <div className="last-updated">
@@ -119,17 +124,16 @@ export const CookiePreferences = ({
                     className="owid-button"
                     onClick={() =>
                         dispatch({
-                            type: Action.Accept,
+                            type: Action.Persist,
                             payload: { date: getTodayDate() },
                         })
                     }
-                    data-test="accept"
                     data-track-note={ANALYTICS_ACTION}
                 >
                     <span className="icon">
                         <FontAwesomeIcon icon={faCheck} />
                     </span>
-                    I agree
+                    Save preferences
                 </button>
             )}
         </div>,
