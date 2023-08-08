@@ -192,9 +192,6 @@ export class ActionButtons extends React.Component<{
 
     @action.bound toggleFullScreenMode(): void {
         this.manager.isInFullScreenMode = !this.manager.isInFullScreenMode
-
-        // prevent scrolling when in full-screen mode
-        document.documentElement.classList.toggle("no-scroll")
     }
 
     @computed private get availableTabOverlays(): GrapherTabOverlayOption[] {

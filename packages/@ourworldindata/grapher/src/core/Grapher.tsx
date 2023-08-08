@@ -402,7 +402,7 @@ export class Grapher
     @observable sortOrder?: SortOrder
     @observable sortColumnSlug?: string
 
-    @observable.ref isInFullScreenMode = false
+    @observable.ref _isInFullScreenMode = false
 
     @observable.ref windowInnerWidth?: number
     @observable.ref windowInnerHeight?: number
@@ -2028,6 +2028,12 @@ export class Grapher
                 category: "Chart",
             },
             {
+                combo: "w",
+                fn: (): void => this.toggleFullScreenMode(),
+                title: "Toggle full-screen mode",
+                category: "Chart",
+            },
+            {
                 combo: "esc",
                 fn: (): void => this.clearErrors(),
             },
@@ -2242,6 +2248,25 @@ export class Grapher
         this.selection.setSelectedEntities(
             sampleFrom(this.selection.availableEntityNames, newNum, Date.now())
         )
+    }
+
+    @computed get isInFullScreenMode(): boolean {
+        return this._isInFullScreenMode
+    }
+
+    set isInFullScreenMode(newValue: boolean) {
+        // prevent scrolling when in full-screen mode
+        if (newValue) {
+            document.documentElement.classList.add("no-scroll")
+        } else {
+            document.documentElement.classList.remove("no-scroll")
+        }
+
+        this._isInFullScreenMode = newValue
+    }
+
+    @action.bound toggleFullScreenMode(): void {
+        this.isInFullScreenMode = !this.isInFullScreenMode
     }
 
     private renderError(): JSX.Element {
