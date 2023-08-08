@@ -72,6 +72,11 @@ export const IMAGE_HOSTING_BUCKET_PATH: string =
 export const IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH: string =
     IMAGE_HOSTING_BUCKET_PATH.slice(IMAGE_HOSTING_BUCKET_PATH.indexOf("/") + 1)
 
+// CloudFlare Images format is imagedelivery.net/{account_id}/{image_id}/{variant}
+export const IMAGE_BASE_URL: string =
+    process.env.IMAGE_BASE_URL ??
+    "https://imagedelivery.net/qLq-8BTgXU8yG0N6HnOy8g/"
+
 // Fast-track settings, by default points to staging version. You need Tailscale to access it.
 export const FASTTRACK_URL: string =
     process.env.FASTTRACK_URL ?? "http://owid-analytics:8083/"

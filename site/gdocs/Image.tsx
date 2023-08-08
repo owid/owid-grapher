@@ -8,6 +8,7 @@ import {
 import { LIGHTBOX_IMAGE_CLASS } from "../Lightbox.js"
 import cx from "classnames"
 import {
+    IMAGE_BASE_URL,
     IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH,
     IMAGE_HOSTING_CDN_URL,
 } from "../../settings/clientSettings.js"
@@ -115,7 +116,7 @@ export default function Image(props: {
     }
 
     const sizes = getSizes(image.originalWidth)
-    const srcSet = generateSrcSet(sizes, filename)
+    const srcSet = generateSrcSet(sizes, filename, IMAGE_BASE_URL)
     const imageSrc = `${IMAGES_DIRECTORY}${filename}`
 
     return (

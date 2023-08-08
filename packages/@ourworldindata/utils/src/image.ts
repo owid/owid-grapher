@@ -41,13 +41,14 @@ export function getSizes(
 
 export function generateSrcSet(
     sizes: number[],
-    filename: ImageMetadata["filename"]
+    filename: ImageMetadata["filename"],
+    baseUrl: string
 ): string {
     return sizes
         .map((size) => {
-            const path = `/images/published/${getFilenameWithoutExtension(
+            const path = `${baseUrl}${getFilenameWithoutExtension(
                 filename
-            )}_${size}.webp`
+            )}/w=${size}`
             return `${encodeURI(path)} ${size}w`
         })
         .join(", ")
