@@ -92,6 +92,9 @@
 .search-results__show-more-container {
     margin-top: 24px;
     line-height: 2rem;
+    position: absolute;
+    right: 0;
+    top: 0;
     p {
         margin: 0;
         display: inline-block;
@@ -102,11 +105,43 @@
         background: none;
         border: none;
     }
+
+    @include sm-only {
+        display: flex;
+        flex-wrap: wrap;
+        text-align: center;
+        justify-content: center;
+        bottom: -24px;
+        top: unset;
+        right: 0;
+        left: 0;
+
+        em {
+            width: 100%;
+        }
+
+        button {
+            background-color: $blue-10;
+            padding: 8px 24px;
+            cursor: pointer;
+            z-index: 1;
+            text-decoration: none;
+            margin-top: 24px;
+            &:hover {
+                background-color: $blue-20;
+            }
+        }
+    }
 }
 
 .search-results__pages-list-container {
     border-bottom: 1px solid $blue-20;
     padding-bottom: 24px;
+
+    @include sm-only {
+        // expanding to make space for .search-results__show-more-container
+        padding-bottom: 48px;
+    }
 }
 
 .search-results__page-hit {
@@ -157,6 +192,8 @@
         h4 {
             text-decoration: underline;
         }
+
+        background-color: $blue-20;
     }
 
     h4 {
@@ -209,7 +246,10 @@
     .search-results__pages,
     .search-results__explorers,
     .search-results__charts {
-        display: inline;
+        // both needed for .search-results__show-more-container absolute-positioning
+        display: inline-block;
+        position: relative;
+        width: 100%;
     }
 }
 

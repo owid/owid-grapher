@@ -191,15 +191,13 @@ class SearchResults extends React.Component<SearchResultsProps> {
                         <h2 className="h2-bold search-results__section-title">
                             Research & Writing
                         </h2>
-                        <ShowMore
-                            category={SearchIndexName.Pages}
-                            cutoffNumber={4}
-                            activeCategoryFilter={this.activeCategoryFilter}
-                            setActiveCategoryFilter={
-                                this.setActiveCategoryFilter
-                            }
-                        />
                     </header>
+                    <ShowMore
+                        category={SearchIndexName.Pages}
+                        cutoffNumber={4}
+                        activeCategoryFilter={this.activeCategoryFilter}
+                        setActiveCategoryFilter={this.setActiveCategoryFilter}
+                    />
                     <Hits
                         classNames={{
                             root: "search-results__pages-list-container",
