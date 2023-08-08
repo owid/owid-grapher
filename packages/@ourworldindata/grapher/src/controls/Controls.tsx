@@ -103,7 +103,7 @@ export interface SettingsMenuManager {
 export class SettingsMenu extends React.Component<{
     manager: SettingsMenuManager
     top: number
-    padding: number
+    bottom: number
     chart: ChartTypeName
 }> {
     @observable.ref visible: boolean = false
@@ -135,8 +135,8 @@ export class SettingsMenu extends React.Component<{
     @computed get layout(): { maxHeight: string; top: number } | void {
         // constrain height only in the pop-up case (drawers are full-height)
         if (!this.drawer) {
-            const { top, padding } = this.props,
-                maxHeight = `calc(100% - ${top + padding}px)`
+            const { top, bottom } = this.props,
+                maxHeight = `calc(100% - ${top + bottom}px)`
             return { maxHeight, top }
         }
     }
