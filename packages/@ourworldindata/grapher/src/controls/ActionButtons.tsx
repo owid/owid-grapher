@@ -9,6 +9,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
     faShareNodes,
     faExpand,
+    faCompress,
     faDownload,
     faArrowRight,
     IconDefinition,
@@ -21,17 +22,18 @@ export interface ActionButtonsManager extends ShareMenuManager {
     currentTab?: GrapherTabOption | GrapherTabOverlayOption
     isShareMenuActive?: boolean
     hideShareTabButton?: boolean
-    hideEnterFullScreenButton?: boolean
+    hideFullScreenButton?: boolean
     hideExploreTheDataButton?: boolean
     isInIFrame?: boolean
     canonicalUrl?: string
+    isInFullScreenMode?: boolean
 }
 
 // keep in sync with sass variables in ActionButtons.scss
 const PADDING_BETWEEN_BUTTONS = 8
 const PADDING_BETWEEN_ICON_AND_LABEL = 4
-
 const BUTTON_HEIGHT = 32
+
 const BUTTON_WIDTH_ICON_ONLY = BUTTON_HEIGHT
 
 @observer
@@ -61,11 +63,11 @@ export class ActionButtons extends React.Component<{
             buttonCount,
             hasDownloadButton,
             hasShareButton,
-            hasEnterFullScreenButton,
+            hasFullScreenButton,
             hasExploreTheDataButton,
             downloadButtonWithLabelWidth,
             shareButtonWithLabelWidth,
-            enterFullScreenButtonWithLabelWidth,
+            fullScreenButtonWithLabelWidth,
             exploreTheDataButtonWithLabelWidth,
         } = this
 
@@ -76,8 +78,8 @@ export class ActionButtons extends React.Component<{
         if (hasShareButton) {
             width += shareButtonWithLabelWidth
         }
-        if (hasEnterFullScreenButton) {
-            width += enterFullScreenButtonWithLabelWidth
+        if (hasFullScreenButton) {
+            width += fullScreenButtonWithLabelWidth
         }
         if (hasExploreTheDataButton) {
             width += exploreTheDataButtonWithLabelWidth
@@ -133,8 +135,13 @@ export class ActionButtons extends React.Component<{
         return ActionButtons.computeButtonWidth("Share")
     }
 
-    @computed private get enterFullScreenButtonWithLabelWidth(): number {
-        return ActionButtons.computeButtonWidth("Enter full-screen")
+    @computed private get fullScreenButtonLabel(): string {
+        const { isInFullScreenMode } = this.manager
+        return isInFullScreenMode ? "Exit full-screen" : "Enter full-screen"
+    }
+
+    @computed private get fullScreenButtonWithLabelWidth(): number {
+        return ActionButtons.computeButtonWidth(this.fullScreenButtonLabel)
     }
 
     @computed private get exploreTheDataButtonWithLabelWidth(): number {
@@ -160,15 +167,15 @@ export class ActionButtons extends React.Component<{
         return shareButtonWithLabelWidth
     }
 
-    @computed private get enterFullScreenButtonWidth(): number {
+    @computed private get fullScreenButtonWidth(): number {
         const {
-            hasEnterFullScreenButton,
+            hasFullScreenButton,
             showButtonLabels,
-            enterFullScreenButtonWithLabelWidth,
+            fullScreenButtonWithLabelWidth,
         } = this
-        if (!hasEnterFullScreenButton) return 0
+        if (!hasFullScreenButton) return 0
         if (!showButtonLabels) return BUTTON_WIDTH_ICON_ONLY
-        return enterFullScreenButtonWithLabelWidth
+        return fullScreenButtonWithLabelWidth
     }
 
     // the "Explore the data" button is never shown without a label
@@ -179,8 +186,15 @@ export class ActionButtons extends React.Component<{
         return exploreTheDataButtonWithLabelWidth
     }
 
-    @action.bound onShareMenu(): void {
+    @action.bound toggleShareMenu(): void {
         this.manager.isShareMenuActive = !this.manager.isShareMenuActive
+    }
+
+    @action.bound toggleFullScreenMode(): void {
+        this.manager.isInFullScreenMode = !this.manager.isInFullScreenMode
+
+        // prevent scrolling when in full-screen mode
+        document.documentElement.classList.toggle("no-scroll")
     }
 
     @computed private get availableTabOverlays(): GrapherTabOverlayOption[] {
@@ -197,8 +211,8 @@ export class ActionButtons extends React.Component<{
         return !this.manager.hideShareTabButton
     }
 
-    @computed private get hasEnterFullScreenButton(): boolean {
-        return !this.manager.hideEnterFullScreenButton
+    @computed private get hasFullScreenButton(): boolean {
+        return !this.manager.hideFullScreenButton
     }
 
     @computed private get hasExploreTheDataButton(): boolean {
@@ -209,7 +223,7 @@ export class ActionButtons extends React.Component<{
         let count = 0
         if (this.hasDownloadButton) count += 1
         if (this.hasShareButton) count += 1
-        if (this.hasEnterFullScreenButton) count += 1
+        if (this.hasFullScreenButton) count += 1
         if (this.hasExploreTheDataButton) count += 1
         return count
     }
@@ -219,7 +233,7 @@ export class ActionButtons extends React.Component<{
         const { isShareMenuActive } = manager
 
         const shareMenuElement = isShareMenuActive && (
-            <ShareMenu manager={manager} onDismiss={this.onShareMenu} />
+            <ShareMenu manager={manager} onDismiss={this.toggleShareMenu} />
         )
 
         return (
@@ -251,27 +265,27 @@ export class ActionButtons extends React.Component<{
                             dataTrackNote="chart_click_share"
                             showLabel={this.showButtonLabels}
                             icon={faShareNodes}
-                            onClick={this.onShareMenu}
+                            onClick={this.toggleShareMenu}
                         />
                     )}
-                    {this.hasEnterFullScreenButton && (
+                    {this.hasFullScreenButton && (
                         <ActionButton
-                            width={this.enterFullScreenButtonWidth}
-                            label="Enter full-screen"
+                            width={this.fullScreenButtonWidth}
+                            label={this.fullScreenButtonLabel}
                             dataTrackNote="chart_click_fullscreen"
                             showLabel={this.showButtonLabels}
-                            icon={faExpand}
-                            // eslint-disable-next-line
-                            onClick={() => {}}
+                            icon={
+                                manager.isInFullScreenMode
+                                    ? faCompress
+                                    : faExpand
+                            }
+                            onClick={this.toggleFullScreenMode}
                         />
                     )}
                     {this.hasExploreTheDataButton && (
                         <li
-                            className="clickable"
-                            style={{
-                                height: BUTTON_HEIGHT,
-                                width: this.exploreTheDataButtonWidth,
-                            }}
+                            className="clickable explore-data"
+                            style={{ width: this.exploreTheDataButtonWidth }}
                         >
                             <a
                                 title="Explore the data"
@@ -295,20 +309,14 @@ export class ActionButtons extends React.Component<{
 function ActionButton(props: {
     width: number
     dataTrackNote: string
-    onClick: () => void
+    onClick: React.MouseEventHandler<HTMLButtonElement>
     showLabel: boolean
     label: string
     icon: IconDefinition
     title?: string
 }): JSX.Element {
     return (
-        <li
-            className="clickable"
-            style={{
-                height: BUTTON_HEIGHT,
-                width: props.width,
-            }}
-        >
+        <li className="clickable" style={{ width: props.width }}>
             <button
                 title={props.title ?? props.label}
                 data-track-note={props.dataTrackNote}

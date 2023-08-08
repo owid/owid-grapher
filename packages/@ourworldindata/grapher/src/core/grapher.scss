@@ -46,6 +46,8 @@ $zindex-global-entity-select: 11;
 $zindex-Tooltip: 20;
 $zindex-modal: 30;
 
+$zindex-full-screen: 2000;
+
 // needed for .global-entity-control-container
 @mixin xxlg-down {
     @media only screen and (max-width: $xxlg) {
@@ -191,6 +193,16 @@ $zindex-modal: 30;
 
 .GrapherComponent.isExportingToSvgOrPng {
     padding: 0 !important;
+}
+
+.GrapherFullScreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: $zindex-full-screen;
+    background: rgba(0, 0, 0, 0.3);
+    height: 100%;
+    width: 100%;
 }
 
 .Tooltip {

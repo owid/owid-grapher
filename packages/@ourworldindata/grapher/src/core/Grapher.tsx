@@ -126,6 +126,7 @@ import {
     ColumnTypeMap,
     CoreColumn,
 } from "@ourworldindata/core-table"
+import { BodyDiv } from "../bodyDiv/BodyDiv"
 import { isOnTheMap } from "../mapCharts/EntitiesOnTheMap"
 import { ChartManager } from "../chart/ChartManager"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -270,7 +271,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     hasSourcesTab?: boolean
     hasDownloadTab?: boolean
     hideShareTabButton?: boolean
-    hideEnterFullScreenButton?: boolean
+    hideFullScreenButton?: boolean
     hideExploreTheDataButton?: boolean
     hideRelatedQuestion?: boolean
 
@@ -400,6 +401,11 @@ export class Grapher
     @observable sortBy?: SortBy
     @observable sortOrder?: SortOrder
     @observable sortColumnSlug?: string
+
+    @observable.ref isInFullScreenMode = false
+
+    @observable.ref windowInnerWidth?: number
+    @observable.ref windowInnerHeight?: number
 
     owidDataset?: MultipleOwidVariableDataDimensionsMap = undefined // This is used for passing data for testing
 
@@ -1846,17 +1852,40 @@ export class Grapher
     // These are the final render dimensions
     // Todo: add explanation around why isExporting removes 5 px
     @computed private get renderWidth(): number {
+        const {
+            bounds,
+            isInFullScreenMode,
+            useIdealBounds,
+            widthForDeviceOrientation,
+            scaleToFitIdeal,
+            isExportingtoSvgOrPng,
+            windowInnerWidth,
+        } = this
+
+        if (isInFullScreenMode) return windowInnerWidth!
         return Math.floor(
-            this.useIdealBounds
-                ? this.widthForDeviceOrientation * this.scaleToFitIdeal
-                : this.bounds.width - (this.isExportingtoSvgOrPng ? 0 : 5)
+            useIdealBounds
+                ? widthForDeviceOrientation * scaleToFitIdeal
+                : bounds.width - (isExportingtoSvgOrPng ? 0 : 5)
         )
     }
+
     @computed private get renderHeight(): number {
+        const {
+            bounds,
+            isInFullScreenMode,
+            useIdealBounds,
+            heightForDeviceOrientation,
+            scaleToFitIdeal,
+            isExportingtoSvgOrPng,
+            windowInnerHeight,
+        } = this
+
+        if (isInFullScreenMode) return windowInnerHeight!
         return Math.floor(
-            this.useIdealBounds
-                ? this.heightForDeviceOrientation * this.scaleToFitIdeal
-                : this.bounds.height - (this.isExportingtoSvgOrPng ? 0 : 5)
+            useIdealBounds
+                ? heightForDeviceOrientation * scaleToFitIdeal
+                : bounds.height - (isExportingtoSvgOrPng ? 0 : 5)
         )
     }
 
@@ -2271,36 +2300,65 @@ export class Grapher
         this.annotation = annotation
     }
 
-    render(): JSX.Element | undefined {
-        const { isExportingtoSvgOrPng, isPortrait } = this
-        // TODO how to handle errors in exports?
-        // TODO tidy this up
-        if (isExportingtoSvgOrPng) return this.renderPrimaryTab() // todo: remove this? should have a simple toStaticSVG for importing.
-
-        const { renderWidth, renderHeight } = this
-
-        const style = {
-            width: renderWidth,
-            height: renderHeight,
+    @computed private get containerStyle(): React.CSSProperties {
+        return {
+            width: this.renderWidth,
+            height: this.renderHeight,
             fontSize: this.baseFontSize,
         }
+    }
 
-        const classes = classNames(
+    @computed private get containerClasses(): string {
+        return classNames(
             "GrapherComponent",
-            isExportingtoSvgOrPng && "isExportingToSvgOrPng",
-            isPortrait && "GrapherPortraitClass"
+            this.isExportingtoSvgOrPng && "isExportingToSvgOrPng",
+            this.isPortrait && "GrapherPortraitClass"
         )
+    }
+
+    private renderIntoFullScreen(): JSX.Element {
+        const { containerStyle, containerClasses } = this
+        return (
+            <BodyDiv>
+                <div
+                    className="GrapherFullScreen"
+                    role="dialog"
+                    aria-modal="true"
+                >
+                    <div
+                        ref={this.base}
+                        className={containerClasses}
+                        style={containerStyle}
+                    >
+                        {this.uncaughtError
+                            ? this.renderError()
+                            : this.renderReady()}
+                    </div>
+                </div>
+            </BodyDiv>
+        )
+    }
+
+    render(): JSX.Element | undefined {
+        // TODO how to handle errors in exports?
+        // TODO tidy this up
+        if (this.isExportingtoSvgOrPng) return this.renderPrimaryTab() // todo: remove this? should have a simple toStaticSVG for importing.
 
         return (
-            <div
-                ref={this.base}
-                className={classes}
-                style={style}
-                data-grapher-url={this.canonicalUrl} // fully qualified grapher URL, used for analytics context
-            >
-                {this.commandPalette}
-                {this.uncaughtError ? this.renderError() : this.renderReady()}
-            </div>
+            <>
+                <div
+                    ref={this.isInFullScreenMode ? undefined : this.base} // detach base in full-screen mode
+                    className={this.containerClasses}
+                    style={this.containerStyle}
+                    data-grapher-url={this.canonicalUrl} // fully qualified grapher URL, used for analytics context
+                >
+                    {this.commandPalette}
+                    {this.uncaughtError
+                        ? this.renderError()
+                        : this.renderReady()}
+                </div>
+                {this.isInFullScreenMode && this.renderIntoFullScreen()}
+            </>
         )
     }
 
@@ -2372,9 +2430,29 @@ export class Grapher
         autorun(() => (document.title = this.currentTitle))
     }
 
+    @action.bound private setUpWindowResizeEventHandler(): void {
+        const updateWindowDimensions = () => {
+            this.windowInnerWidth = window.innerWidth
+            this.windowInnerHeight = window.innerHeight
+        }
+        const onResize = debounce(updateWindowDimensions, 400, {
+            leading: true,
+        })
+
+        if (typeof window !== "undefined") {
+            updateWindowDimensions()
+            window.addEventListener("resize", onResize)
+
+            this.disposers.push(() => {
+                window.removeEventListener("resize", onResize)
+            })
+        }
+    }
+
     componentDidMount(): void {
         this.setBaseFontSize()
         this.setUpIntersectionObserver()
+        this.setUpWindowResizeEventHandler()
         exposeInstanceOnWindow(this, "grapher")
         if (this.props.bindUrlToWindow) this.bindToWindow()
         if (this.props.enableKeyboardShortcuts) this.bindKeyboardShortcuts()
@@ -2773,7 +2851,7 @@ export class Grapher
     @observable hasSourcesTab = true
     @observable hasDownloadTab = true
     @observable hideShareTabButton = false
-    @observable hideEnterFullScreenButton = false
+    @observable hideFullScreenButton = false
     @observable hideExploreTheDataButton = true
     @observable hideRelatedQuestion = false
 }

@@ -1,6 +1,7 @@
 // keep in sync with constant values in ActionButtons.tsx
 $paddingBetweenButtons: 8px; // keep in sync with PADDING_BETWEEN_BUTTONS
 $paddingBetweenIconAndLabel: 4px; // keep in sync with PADDING_BETWEEN_ICON_AND_LABEL
+$buttonHeight: 32px; // keep in sync with BUTTON_HEIGHT
 
 .ActionButtons {
     margin: 0;
@@ -9,7 +10,7 @@ $paddingBetweenIconAndLabel: 4px; // keep in sync with PADDING_BETWEEN_ICON_AND_
 
     ul {
         list-style: none;
-        font-size: 13px;
+        height: $buttonHeight;
     }
 
     li {
@@ -26,37 +27,21 @@ $paddingBetweenIconAndLabel: 4px; // keep in sync with PADDING_BETWEEN_ICON_AND_
     li button,
     li a,
     li a:visited {
-        display: block;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: $paddingBetweenIconAndLabel;
         height: 100%;
         width: 100%;
-        position: relative;
-        padding: 0;
         cursor: inherit;
         color: $dark-text;
-
-        svg {
-            width: 14px;
-            height: 14px;
-        }
-
-        .label {
-            display: inline-block;
-            margin-left: $paddingBetweenIconAndLabel;
-        }
+        font-size: 13px;
+        padding: 0;
     }
 
-    li a {
-        padding: 8px;
-        padding-left: 12px;
-
-        svg {
-            position: relative;
-            top: 1px;
-        }
-
-        .label {
-            margin: 0;
-            margin-right: $paddingBetweenIconAndLabel;
-        }
+    li.explore-data {
+        // todo(redesign): why is this necessary?
+        position: relative;
+        top: -1.5px;
     }
 }

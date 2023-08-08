@@ -10,6 +10,10 @@ html {
     overflow-x: hidden;
 }
 
+html.no-scroll {
+    overflow-y: hidden;
+}
+
 body {
     background-color: $white;
     color: $text-color;
