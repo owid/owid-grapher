@@ -44,6 +44,9 @@ $zindex-chart: 1;
 $zindex-tab: 1;
 $zindex-global-entity-select: 11;
 $zindex-Tooltip: 20;
+$zindex-modal: 30;
+
+$zindex-full-screen: 2000;
 
 // needed for .global-entity-control-container
 @mixin xxlg-down {
@@ -66,7 +69,7 @@ $zindex-Tooltip: 20;
     @import "../noDataModal/NoDataModal.scss";
     @import "../controls/CollapsibleList/CollapsibleList.scss";
     @import "../captionedChart/CaptionedChart.scss";
-    @import "../controls/EntitySelectorModal.scss";
+    @import "../controls/EntitySelector.scss";
     @import "../controls/AddEntityButton.scss";
     @import "../controls/ContentSwitchers.scss";
     @import "../controls/ActionButtons.scss";
@@ -78,6 +81,7 @@ $zindex-Tooltip: 20;
     @import "../loadingIndicator/LoadingIndicator.scss";
     @import "../footer/Footer.scss";
     @import "../header/Header.scss";
+    @import "../modal/Modal.scss";
 }
 
 // These rules are currently used elsewhere in the site. e.g. Explorers
@@ -193,6 +197,16 @@ $zindex-Tooltip: 20;
 
 .Tooltip {
     z-index: $zindex-Tooltip;
+}
+
+.FullScreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: $zindex-full-screen;
+    background: rgba(0, 0, 0, 0.3);
+    height: 100%;
+    width: 100%;
 }
 
 .markdown-text-wrap__line {
