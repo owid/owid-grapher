@@ -237,7 +237,7 @@ export class SettingsMenu extends React.Component<{
                     ></Setting>
 
                     <Setting
-                        title="X axis scale"
+                        title="Y axis scale"
                         info="Linear scales show absolute differences between values, Log scales show percentage differences."
                         active={showYScaleToggle}
                     >
@@ -245,7 +245,7 @@ export class SettingsMenu extends React.Component<{
                     </Setting>
 
                     <Setting
-                        title="Y axis scale"
+                        title="X axis scale"
                         info="Linear scales show absolute differences between values, Log scales show percentage differences."
                         active={showXScaleToggle}
                     >
