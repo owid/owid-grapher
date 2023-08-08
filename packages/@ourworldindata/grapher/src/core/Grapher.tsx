@@ -2345,9 +2345,7 @@ export class Grapher
         const { containerStyle, containerClasses } = this
         return (
             <FullScreen
-                onDismiss={(): void => {
-                    this.isInFullScreenMode = false
-                }}
+                onDismiss={action(() => (this.isInFullScreenMode = false))}
             >
                 <div
                     ref={this.base}
