@@ -126,7 +126,7 @@ import {
     ColumnTypeMap,
     CoreColumn,
 } from "@ourworldindata/core-table"
-import { BodyDiv } from "../bodyDiv/BodyDiv"
+import { FullScreen } from "../fullScreen/FullScreen"
 import { isOnTheMap } from "../mapCharts/EntitiesOnTheMap"
 import { ChartManager } from "../chart/ChartManager"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -2344,23 +2344,21 @@ export class Grapher
     private renderIntoFullScreen(): JSX.Element {
         const { containerStyle, containerClasses } = this
         return (
-            <BodyDiv>
+            <FullScreen
+                onDismiss={(): void => {
+                    this.isInFullScreenMode = false
+                }}
+            >
                 <div
-                    className="GrapherFullScreen"
-                    role="dialog"
-                    aria-modal="true"
+                    ref={this.base}
+                    className={containerClasses}
+                    style={containerStyle}
                 >
-                    <div
-                        ref={this.base}
-                        className={containerClasses}
-                        style={containerStyle}
-                    >
-                        {this.uncaughtError
-                            ? this.renderError()
-                            : this.renderReady()}
-                    </div>
+                    {this.uncaughtError
+                        ? this.renderError()
+                        : this.renderReady()}
                 </div>
-            </BodyDiv>
+            </FullScreen>
         )
     }
 
@@ -2456,7 +2454,7 @@ export class Grapher
     }
 
     @action.bound private setUpWindowResizeEventHandler(): void {
-        const updateWindowDimensions = () => {
+        const updateWindowDimensions = (): void => {
             this.windowInnerWidth = window.innerWidth
             this.windowInnerHeight = window.innerHeight
         }
