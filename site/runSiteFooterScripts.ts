@@ -39,6 +39,7 @@ export const runSiteFooterScripts = (
             hydrateDataPageContent(isPreviewing)
         case SiteFooterContext.dataPageV2:
             hydrateDataPageV2Content(isPreviewing)
+            runLightbox()
         case SiteFooterContext.grapherPage:
         case SiteFooterContext.explorerPage:
             runSiteNavigation(BAKED_BASE_URL)
