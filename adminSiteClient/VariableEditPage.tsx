@@ -85,30 +85,10 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
         )
     }
 
-    async delete() {
-        const { variable } = this.props
-        if (
-            !window.confirm(
-                `Really delete the indicator ${variable.name}? This action cannot be undone!`
-            )
-        )
-            return
-
-        const json = await this.context.admin.requestJSON(
-            `/api/variables/${variable.id}`,
-            {},
-            "DELETE"
-        )
-
-        if (json.success) {
-            this.isDeleted = true
-        }
-    }
-
     render() {
         const { variable } = this.props
         const { newVariable, isV2MetadataVariable } = this
-        const isBulkImport = variable.datasetNamespace !== "owid"
+        const isDisabled = true
 
         if (this.isDeleted)
             return <Redirect to={`/datasets/${variable.datasetId}`} />
@@ -132,12 +112,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                 </ol>
                 <div className="row">
                     <div className="col">
-                        <form
-                            onSubmit={(e) => {
-                                e.preventDefault()
-                                this.save()
-                            }}
-                        >
+                        <form>
                             <section>
                                 <h3>Indicator metadata</h3>
                                 {isV2MetadataVariable && (
@@ -147,28 +122,21 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                         View data page
                                     </a>
                                 )}
-                                {isBulkImport ? (
-                                    <p>
-                                        This indicator came from an automated
-                                        import, so we can't change the original
-                                        metadata manually.
-                                    </p>
-                                ) : (
-                                    <p>
-                                        The core metadata for the indicator.
-                                        It's important to keep this consistent.
-                                    </p>
-                                )}
+                                <p>
+                                    Metadata is non-editable and can be only
+                                    changed in ETL.
+                                </p>
                                 <BindString
                                     field="name"
                                     store={newVariable}
                                     label="Indicator Name"
-                                    disabled={isBulkImport}
+                                    disabled={isDisabled}
                                 />
                                 <BindString
                                     label="Display name"
                                     field="name"
                                     store={newVariable.display}
+                                    disabled={isDisabled}
                                 />
                                 <FieldsRow>
                                     <BindString
@@ -176,12 +144,14 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                         field="unit"
                                         store={newVariable.display}
                                         placeholder={newVariable.unit}
+                                        disabled={isDisabled}
                                     />
                                     <BindString
                                         label="Short (axis) unit"
                                         field="shortUnit"
                                         store={newVariable.display}
                                         placeholder={newVariable.shortUnit}
+                                        disabled={isDisabled}
                                     />
                                 </FieldsRow>
                                 <FieldsRow>
@@ -190,12 +160,14 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                         field="numDecimalPlaces"
                                         store={newVariable.display}
                                         helpText={`A negative number here will round integers`}
+                                        disabled={isDisabled}
                                     />
                                     <BindFloat
                                         label="Unit conversion factor"
                                         field="conversionFactor"
                                         store={newVariable.display}
                                         helpText={`Multiply all values by this amount`}
+                                        disabled={isDisabled}
                                     />
                                 </FieldsRow>
                                 <FieldsRow>
@@ -209,14 +181,16 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                                 value)
                                         }
                                         label="Treat year column as day series"
+                                        disabled={isDisabled}
                                     />
                                     <BindString
                                         label="Zero Day as YYYY-MM-DD"
                                         field="zeroDay"
                                         store={newVariable.display}
-                                        disabled={
-                                            !newVariable.display.yearIsDay
-                                        }
+                                        // disabled={
+                                        //     !newVariable.display.yearIsDay
+                                        // }
+                                        disabled={isDisabled}
                                         placeholder={
                                             newVariable.display.yearIsDay
                                                 ? EPOCH_DATE
@@ -236,6 +210,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                                 value)
                                         }
                                         label="Include in table"
+                                        disabled={isDisabled}
                                     />
                                 </FieldsRow>
                                 <BindString
@@ -243,7 +218,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                     store={newVariable}
                                     label="Description"
                                     textarea
-                                    disabled={isBulkImport}
+                                    disabled={isDisabled}
                                 />
                                 <BindString
                                     field="entityAnnotationsMap"
@@ -251,15 +226,10 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                     store={newVariable.display}
                                     label="Entity annotations"
                                     textarea
-                                    disabled={isBulkImport}
+                                    disabled={isDisabled}
                                     helpText="Additional text to show next to entity labels. Each note should be in a separate line."
                                 />
                             </section>
-                            <input
-                                type="submit"
-                                className="btn btn-success"
-                                value="Update variable"
-                            />
                         </form>
                     </div>
                     {this.grapher && (
@@ -285,19 +255,6 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                 </section>
             </main>
         )
-    }
-
-    async save() {
-        const { variable } = this.props
-        const json = await this.context.admin.requestJSON(
-            `/api/variables/${variable.id}`,
-            { variable: this.newVariable },
-            "PUT"
-        )
-
-        if (json.success) {
-            Object.assign(this.props.variable, this.newVariable)
-        }
     }
 
     @computed private get isV2MetadataVariable(): boolean {

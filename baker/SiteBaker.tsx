@@ -49,6 +49,7 @@ import {
     getFilenameAsPng,
     extractDetailsFromSyntax,
     LinkedChart,
+    retryPromise,
 } from "@ourworldindata/utils"
 import { execWrapper } from "../db/execWrapper.js"
 import { countryProfileSpecs } from "../site/countryProfileProjects.js"
@@ -598,6 +599,8 @@ export class SiteBaker {
             "published"
         )
 
+        // TODO: chunking caused issues so we disable it here by setting chunk size to 1 for now.
+        // Either switch to rclone-ing all files before baking, or switching to Cloudflare Images.
         const imageChunks = chunk(images, 2)
         for (const imageChunk of imageChunks) {
             await Promise.all(
@@ -607,7 +610,7 @@ export class SiteBaker {
                         IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH,
                         image.filename
                     )
-                    return fetch(remoteFilePath)
+                    return retryPromise(() => fetch(remoteFilePath))
                         .then((response) => {
                             if (!response.ok) {
                                 throw new Error(

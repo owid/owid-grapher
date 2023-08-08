@@ -158,6 +158,14 @@ export const SiteFooter = (props: SiteFooterProps) => (
                             </li>
                             <li>
                                 <a
+                                    href="https://www.threads.net/@ourworldindata"
+                                    data-track-note="footer_navigation"
+                                >
+                                    Threads
+                                </a>
+                            </li>
+                            <li>
+                                <a
                                     href="https://github.com/owid"
                                     data-track-note="footer_navigation"
                                 >

@@ -35,14 +35,25 @@ export const CookieNotice = ({
                         website.
                     </p>
                     <p className="cookie-notice__text">
-                        By continuing without changing your cookie settings, we
-                        assume you agree to this.
+                        By agreeing, you consent to our use of cookies and other
+                        analytics tools according to{" "}
+                        <a href="/privacy-policy">our privacy policy</a>.
                     </p>
                 </div>
                 <div className="actions">
-                    <a href="/privacy-policy" className="button">
-                        Manage preferences
-                    </a>
+                    <button
+                        className="button"
+                        onClick={() =>
+                            dispatch({
+                                type: Action.Reject,
+                                payload: { date: getTodayDate() },
+                            })
+                        }
+                        data-test="reject"
+                        data-track-note="cookie_notice"
+                    >
+                        No thanks
+                    </button>
                     <button
                         className="button accept"
                         onClick={() =>

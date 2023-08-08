@@ -22,7 +22,7 @@ import {
 import { ComparisonLineConfig } from "../scatterCharts/ComparisonLine"
 import { LogoOption } from "../captionedChart/Logos"
 import { ColorScaleConfigInterface } from "../color/ColorScaleConfig"
-import { MapConfigWithLegacyInterface } from "../mapCharts/MapConfig"
+import { MapConfigInterface } from "../mapCharts/MapConfig"
 import { ColumnSlugs, Time, EntityName } from "@ourworldindata/core-table"
 import { ColorSchemeName } from "../color/ColorConstants"
 
@@ -90,7 +90,7 @@ export interface GrapherInterface extends SortConfig {
     xAxis?: Partial<AxisConfigInterface>
     yAxis?: Partial<AxisConfigInterface>
     colorScale?: Partial<ColorScaleConfigInterface>
-    map?: Partial<MapConfigWithLegacyInterface>
+    map?: Partial<MapConfigInterface>
 
     // When we move graphers to Git, and remove dimensions, we can clean this up.
     ySlugs?: ColumnSlugs
