@@ -621,22 +621,7 @@ export class SiteBaker {
                         })
                         .then((arrayBuffer) => Buffer.from(arrayBuffer))
                         .then(async (buffer) => {
-                            if (!image.isSvg) {
-                                await Promise.all(
-                                    image.sizes!.map((width) => {
-                                        const localResizedFilepath = path.join(
-                                            imagesDirectory,
-                                            `${image.filenameWithoutExtension}_${width}.webp`
-                                        )
-                                        return sharp(buffer)
-                                            .resize(width)
-                                            .webp({
-                                                lossless: true,
-                                            })
-                                            .toFile(localResizedFilepath)
-                                    })
-                                )
-                            } else {
+                            if (image.isSvg) {
                                 // A PNG alternative to the SVG for the "Download image" link
                                 const pngFilename = getFilenameAsPng(
                                     image.filename
