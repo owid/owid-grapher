@@ -331,6 +331,7 @@ export class LineChart
 
     @action.bound private onCursorLeave(): void {
         this.tooltipState.target = null
+        this.hoveredSeriesName = undefined
     }
 
     @computed private get allValues(): LinePoint[] {
@@ -372,6 +373,10 @@ export class LineChart
                 Math.abs(invertedX - point.x)
             )
             hoverX = closestValue?.x
+        }
+
+        if (this.dualAxis.innerBounds.contains(mouse)) {
+            this.hoveredSeriesName = undefined
         }
 
         this.tooltipState.target = hoverX === undefined ? null : { x: hoverX }
@@ -599,12 +604,20 @@ export class LineChart
             this.manager.isSelectingData = true
     }
 
+    @observable private hoverTimer?: NodeJS.Timeout
+
     @action.bound onLineLegendMouseOver(seriesName: SeriesName): void {
+        clearTimeout(this.hoverTimer)
         this.hoveredSeriesName = seriesName
     }
 
     @action.bound onLineLegendMouseLeave(): void {
-        this.hoveredSeriesName = undefined
+        clearTimeout(this.hoverTimer)
+
+        this.hoverTimer = setTimeout(() => {
+            // wait before clearing selection in case the mouse is moving quickly over neighboring labels
+            this.hoveredSeriesName = undefined
+        }, 100)
     }
 
     @computed get focusedSeriesNames(): string[] {
