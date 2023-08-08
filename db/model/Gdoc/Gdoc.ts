@@ -197,8 +197,10 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
 
         const enrichedBlockSources = [
             this.content.body,
-            this.content.faqs &&
-                Object.values(this.content.faqs).flatMap((faq) => faq.content),
+            this.content.parsedFaqs &&
+                Object.values(this.content.parsedFaqs).flatMap(
+                    (faq) => faq.content
+                ),
         ]
 
         for (const source of enrichedBlockSources) {
@@ -243,8 +245,10 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
 
         const enrichedBlockSources = [
             this.content.body,
-            this.content.faqs &&
-                Object.values(this.content.faqs).flatMap((faq) => faq.content),
+            this.content.parsedFaqs &&
+                Object.values(this.content.parsedFaqs).flatMap(
+                    (faq) => faq.content
+                ),
         ]
 
         for (const source of enrichedBlockSources) {
@@ -380,9 +384,9 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
             ).flatMap((definition) => definition.content)
             blocksToTraverse.push(...refBlocks)
         }
-        if (this.content.faqs)
+        if (this.content.parsedFaqs)
             blocksToTraverse.push(
-                ...Object.values(this.content.faqs).flatMap(
+                ...Object.values(this.content.parsedFaqs).flatMap(
                     (faq) => faq.content
                 )
             )
@@ -784,6 +788,11 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
 
         if (contentSource === GdocsContentSource.Gdocs) {
             await gdoc.fetchAndEnrichArticle()
+        }
+
+        if (gdoc.content.faqs && Object.values(gdoc.content.faqs).length) {
+            const faqResults = parseFaqs(gdoc.content.faqs, gdoc.id)
+            gdoc.content.parsedFaqs = faqResults.faqs
         }
 
         await gdoc.loadLinkedDocuments()

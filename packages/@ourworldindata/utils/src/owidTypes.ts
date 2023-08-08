@@ -1256,7 +1256,8 @@ export interface OwidGdocContent {
         | "amber"
     "sticky-nav"?: []
     details?: DetailDictionary
-    faqs?: FaqDictionary
+    faqs?: RawFaq[]
+    parsedFaqs?: FaqDictionary
 }
 
 export type OwidGdocStickyNavItem = { target: string; text: string }
@@ -1295,6 +1296,10 @@ export type EnrichedDetail = {
 
 export type DetailDictionary = Record<string, EnrichedDetail>
 
+export type RawFaq = {
+    id: string
+    content: OwidRawGdocBlock[]
+}
 export type EnrichedFaq = {
     id: string
     content: OwidEnrichedGdocBlock[]
