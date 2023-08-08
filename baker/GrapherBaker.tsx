@@ -333,14 +333,13 @@ export async function renderDataPageV2({
         variableId,
         grapher && "id" in grapher ? [grapher.id as number] : []
     )
-    const isPreviewingGdoc = false
     return renderToHtmlPage(
         <DataPageV2
             grapher={grapher}
             datapageData={datapageData}
             baseUrl={BAKED_BASE_URL}
             baseGrapherUrl={BAKED_GRAPHER_URL}
-            isPreviewing={isPreviewingGdoc}
+            isPreviewing={isPreviewing}
             faqEntries={faqEntries}
         />
     )
