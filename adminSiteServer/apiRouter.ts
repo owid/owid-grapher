@@ -2,7 +2,6 @@
 
 import * as lodash from "lodash"
 import { transaction } from "../db/db.js"
-import express from "express"
 import * as db from "../db/db.js"
 import { imageStore } from "../db/model/Image.js"
 import { GdocXImage } from "../db/model/GdocXImage.js"
@@ -1684,21 +1683,6 @@ ORDER BY usageCount DESC`
     return rows
 })
 
-interface VariableSingleMeta {
-    id: number
-    name: string
-    unit: string
-    shortUnit: string
-    description: string
-
-    datasetId: number
-    datasetName: string
-    datasetNamespace: string
-
-    vardata: string
-    display: any
-}
-
 // Used in VariableEditPage
 apiRouter.get(
     "/variables/:variableId.json",
@@ -1734,46 +1718,6 @@ apiRouter.get(
         } /*, vardata: await getVariableData([variableId]) }*/
     }
 )
-
-apiRouter.put("/variables/:variableId", async (req: Request) => {
-    const variableId = expectInt(req.params.variableId)
-    const variable = (req.body as { variable: VariableSingleMeta }).variable
-
-    await db.execute(
-        `UPDATE variables SET name=?, description=?, updatedAt=?, display=? WHERE id = ?`,
-        [
-            variable.name,
-            variable.description,
-            new Date(),
-            JSON.stringify(variable.display),
-            variableId,
-        ]
-    )
-
-    return { success: true }
-})
-
-apiRouter.delete("/variables/:variableId", async (req: Request) => {
-    const variableId = expectInt(req.params.variableId)
-
-    const variable = await db.mysqlFirst(
-        `SELECT datasets.namespace FROM variables JOIN datasets ON variables.datasetId=datasets.id WHERE variables.id=?`,
-        [variableId]
-    )
-
-    if (!variable) throw new JsonError(`No variable by id ${variableId}`, 404)
-    else if (variable.namespace !== "owid")
-        throw new JsonError(`Cannot delete bulk import variable`, 400)
-
-    await db.transaction(async (t) => {
-        await t.execute(`DELETE FROM data_values WHERE variableId=?`, [
-            variableId,
-        ])
-        await t.execute(`DELETE FROM variables WHERE id=?`, [variableId])
-    })
-
-    return { success: true }
-})
 
 apiRouter.get("/datasets.json", async (req) => {
     const datasets = await db.queryMysql(`
@@ -1932,6 +1876,8 @@ apiRouter.get("/datasets/:datasetId.json", async (req: Request) => {
 })
 
 apiRouter.put("/datasets/:datasetId", async (req: Request, res: Response) => {
+    // Only updates `nonRedistributable` and `tags`, other fields come from ETL
+    // and are not editable
     const datasetId = expectInt(req.params.datasetId)
     const dataset = await Dataset.findOneBy({ id: datasetId })
     if (!dataset) throw new JsonError(`No dataset by id ${datasetId}`, 404)
@@ -1942,18 +1888,12 @@ apiRouter.put("/datasets/:datasetId", async (req: Request, res: Response) => {
             `
             UPDATE datasets
             SET
-                name=?,
-                description=?,
-                isPrivate=?,
                 nonRedistributable=?,
                 metadataEditedAt=?,
                 metadataEditedByUserId=?
             WHERE id=?
             `,
             [
-                newDataset.name,
-                newDataset.description || "",
-                newDataset.isPrivate,
                 newDataset.nonRedistributable,
                 new Date(),
                 res.locals.user.id,
@@ -1970,14 +1910,6 @@ apiRouter.put("/datasets/:datasetId", async (req: Request, res: Response) => {
                 `INSERT INTO dataset_tags (tagId, datasetId) VALUES ?`,
                 [tagRows]
             )
-
-        const source = newDataset.source
-        const description = lodash.omit(source, ["name", "id"])
-        await t.execute(`UPDATE sources SET name=?, description=? WHERE id=?`, [
-            source.name,
-            JSON.stringify(description),
-            source.id,
-        ])
     })
 
     // Note: not currently in transaction
@@ -2018,26 +1950,6 @@ apiRouter.post(
         await Dataset.setTags(datasetId, req.body.tagIds)
 
         return { success: true }
-    }
-)
-
-apiRouter.router.put(
-    "/datasets/:datasetId/uploadZip",
-    express.raw({ type: "application/zip", limit: "50mb" }),
-    async (req: Request, res: Response) => {
-        const datasetId = expectInt(req.params.datasetId)
-
-        await db.transaction(async (t) => {
-            await t.execute(`DELETE FROM dataset_files WHERE datasetId=?`, [
-                datasetId,
-            ])
-            await t.execute(
-                `INSERT INTO dataset_files (datasetId, filename, file) VALUES (?, ?, ?)`,
-                [datasetId, "additional-material.zip", req.body]
-            )
-        })
-
-        res.send({ success: true })
     }
 )
 
