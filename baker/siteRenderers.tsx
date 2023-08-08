@@ -79,7 +79,6 @@ import { formatUrls, KEY_INSIGHTS_H2_CLASSNAME } from "../site/formatting.js"
 
 import {
     GrapherInterface,
-    Grapher,
     GrapherProgrammaticInterface,
 } from "@ourworldindata/grapher"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
