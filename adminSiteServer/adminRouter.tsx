@@ -267,8 +267,17 @@ adminRouter.get("/datapage-preview/:id", async (req, res) => {
     const variableId = expectInt(req.params.id)
     const variableMetadata = await getVariableMetadata(variableId)
     if (!variableMetadata) throw new JsonError("No such variable", 404)
+    const publishedExplorersBySlug =
+        await explorerAdminServer.getAllPublishedExplorersBySlugCached()
 
-    res.send(await renderDataPageV2(variableId, variableMetadata, true))
+    res.send(
+        await renderDataPageV2({
+            variableId,
+            variableMetadata,
+            isPreviewing: true,
+            publishedExplorersBySlug,
+        })
+    )
 })
 
 adminRouter.get("/grapher/:slug", async (req, res) => {

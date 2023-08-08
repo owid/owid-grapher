@@ -214,13 +214,19 @@ type EnrichedFaqLookupSuccess = {
 
 type EnrichedFaqLookupResult = EnrichedFaqLookupError | EnrichedFaqLookupSuccess
 
-export async function renderDataPageV2(
-    variableId: number,
-    variableMetadata: OwidVariableWithSource,
-    isPreviewing: boolean,
-    pageGrapher?: GrapherInterface,
+export async function renderDataPageV2({
+    variableId,
+    variableMetadata,
+    isPreviewing,
+    pageGrapher,
+    publishedExplorersBySlug,
+}: {
+    variableId: number
+    variableMetadata: OwidVariableWithSource
+    isPreviewing: boolean
+    pageGrapher?: GrapherInterface
     publishedExplorersBySlug?: Record<string, ExplorerProgram>
-) {
+}) {
     const grapherConfigForVariable = await getMergedGrapherConfigForVariable(
         variableId
     )
@@ -363,13 +369,13 @@ export const renderPreviewDataPageOrGrapherPage = async (
             variableMetadata.schemaVersion !== undefined &&
             variableMetadata.schemaVersion >= 2
         ) {
-            return await renderDataPageV2(
+            return await renderDataPageV2({
                 variableId,
                 variableMetadata,
-                true,
-                grapher,
-                publishedExplorersBySlug
-            )
+                isPreviewing: true,
+                pageGrapher: grapher,
+                publishedExplorersBySlug,
+            })
         }
     }
     const variableIds = uniq(grapher.dimensions!.map((d) => d.variableId))
