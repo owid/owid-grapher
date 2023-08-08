@@ -9,7 +9,11 @@ describe("mdast parsers", () => {
                 children: [
                     {
                         type: "text",
-                        value: "[some",
+                        value: "[",
+                    },
+                    {
+                        type: "text",
+                        value: "some",
                     },
                     {
                         type: "whitespace",
@@ -17,7 +21,11 @@ describe("mdast parsers", () => {
 
                     {
                         type: "text",
-                        value: "text]",
+                        value: "text",
+                    },
+                    {
+                        type: "text",
+                        value: "]",
                     },
                 ],
             },
@@ -893,6 +901,105 @@ how **are** you?`)
                     {
                         type: "text",
                         value: "but-the-newline-should-be-tracked-separately",
+                    },
+                ],
+            },
+        })
+    })
+    it("parses link inside brackets", () => {
+        expect(mdParser.markdown.parse("[[link](www.google.com)]")).toEqual({
+            status: true,
+            value: {
+                type: "MarkdownRoot",
+                children: [
+                    {
+                        type: "text",
+                        value: "[",
+                    },
+                    {
+                        type: "markdownLink",
+                        children: [
+                            {
+                                type: "text",
+                                value: "link",
+                            },
+                        ],
+                        href: "www.google.com",
+                    },
+                    {
+                        type: "text",
+                        value: "]",
+                    },
+                ],
+            },
+        })
+    })
+    it("parses link inside parentheses", () => {
+        expect(mdParser.markdown.parse("([link](www.google.com))")).toEqual({
+            status: true,
+            value: {
+                type: "MarkdownRoot",
+                children: [
+                    {
+                        type: "text",
+                        value: "(",
+                    },
+                    {
+                        type: "markdownLink",
+                        children: [
+                            {
+                                type: "text",
+                                value: "link",
+                            },
+                        ],
+                        href: "www.google.com",
+                    },
+                    {
+                        type: "text",
+                        value: ")",
+                    },
+                ],
+            },
+        })
+    })
+    it("parses parens inside link inside parentheses", () => {
+        expect(mdParser.markdown.parse("([l(i)nk](www.google.com))")).toEqual({
+            status: true,
+            value: {
+                type: "MarkdownRoot",
+                children: [
+                    {
+                        type: "text",
+                        value: "(",
+                    },
+                    {
+                        type: "markdownLink",
+                        children: [
+                            {
+                                type: "text",
+                                value: "l(i)nk",
+                            },
+                        ],
+                        href: "www.google.com",
+                    },
+                    {
+                        type: "text",
+                        value: ")",
+                    },
+                ],
+            },
+        })
+    })
+
+    it("parses too many underscores as text", () => {
+        expect(mdParser.markdown.parse("____abc__")).toEqual({
+            status: true,
+            value: {
+                type: "MarkdownRoot",
+                children: [
+                    {
+                        type: "text",
+                        value: "____abc__",
                     },
                 ],
             },

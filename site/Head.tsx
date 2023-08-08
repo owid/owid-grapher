@@ -1,5 +1,33 @@
 import React from "react"
 import { VITE_ASSET_SITE_ENTRY, viteAssets } from "./viteUtils.js"
+import { GOOGLE_TAG_MANAGER_ID } from "../settings/clientSettings.js"
+
+export const GTMScriptTags = ({ gtmId }: { gtmId: string }) => {
+    if (!gtmId || /["']/.test(gtmId)) return null
+    return (
+        <>
+            <script
+                dangerouslySetInnerHTML={{
+                    __html: `/* Prepare Google Tag Manager */
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag("consent","default",{"ad_storage":"denied","analytics_storage":"denied","wait_for_update":1000});
+`,
+                }}
+            />
+            <script
+                dangerouslySetInnerHTML={{
+                    __html: `/* Load Google Tag Manager */
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','${gtmId}');`,
+                }}
+            />
+        </>
+    )
+}
 
 export const Head = (props: {
     canonicalUrl: string
@@ -55,6 +83,7 @@ export const Head = (props: {
             <meta name="twitter:image" content={encodeURI(imageUrl)} />
             {stylesheets}
             {props.children}
+            <GTMScriptTags gtmId={GOOGLE_TAG_MANAGER_ID} />
         </head>
     )
 }

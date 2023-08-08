@@ -21,7 +21,7 @@ import { Tag } from "./TagBadge.js"
 import { VariableList, VariableListItem } from "./VariableList.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faDownload, faUpload } from "@fortawesome/free-solid-svg-icons"
+import { faDownload } from "@fortawesome/free-solid-svg-icons"
 import { faGithub } from "@fortawesome/free-brands-svg-icons"
 
 interface DatasetPageData {
@@ -44,7 +44,7 @@ interface DatasetPageData {
     tags: { id: number; name: string }[]
     variables: VariableListItem[]
     charts: ChartListItem[]
-    source: OwidSource
+    source?: OwidSource
     zipFile?: { filename: string }
 }
 
@@ -80,7 +80,6 @@ class DatasetEditable {
 class DatasetTagEditor extends React.Component<{
     newDataset: DatasetEditable
     availableTags: { id: number; name: string; parentName: string }[]
-    isBulkImport: boolean
 }> {
     @action.bound onSaveTags(tags: Tag[]) {
         this.props.newDataset.tags = tags
@@ -205,42 +204,13 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
         )}`
     }
 
-    @computed get zipFileUrl() {
-        return "/"
-    }
-
-    async uploadZip(file: File) {
-        const json = await this.context.admin.requestJSON(
-            `/api/datasets/${this.props.dataset.id}/uploadZip`,
-            file,
-            "PUT"
-        )
-        if (json.success) {
-            this.props.dataset.zipFile = { filename: file.name }
-        }
-    }
-
-    @action.bound onChooseZip(ev: { target: HTMLInputElement }) {
-        if (!ev.target.files) return
-
-        const file = ev.target.files[0]
-        this.uploadZip(file)
-    }
-
-    @action.bound startChooseZip() {
-        const input = document.createElement("input")
-        input.type = "file"
-        input.accept = ".zip"
-        input.addEventListener("change", this.onChooseZip as any)
-        input.click()
-    }
-
     render() {
         if (this.isDeleted) return <Redirect to="/datasets" />
 
         const { dataset } = this.props
         const { newDataset } = this
         const isBulkImport = dataset.namespace !== "owid"
+        const isDisabled = true
 
         return (
             <main className="DatasetEditPage">
@@ -284,15 +254,6 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                             additional-material.zip
                         </Link>
                     )}
-                    {!isBulkImport && (
-                        <button
-                            className="btn btn-secondary"
-                            onClick={this.startChooseZip}
-                        >
-                            <FontAwesomeIcon icon={faUpload} />{" "}
-                            {dataset.zipFile ? "Overwrite Zip" : "Upload Zip"}
-                        </button>
-                    )}
                 </section>
                 <section>
                     <h3>Dataset metadata</h3>
@@ -302,18 +263,10 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                             this.save()
                         }}
                     >
-                        {isBulkImport ? (
-                            <p>
-                                This dataset came from an automated import, so
-                                we can't change the original metadata manually.
-                            </p>
-                        ) : (
-                            <p>
-                                The core metadata for the dataset. It's
-                                important to keep this in a standardized style
-                                across datasets.
-                            </p>
-                        )}
+                        <p>
+                            Metadata is non-editable and can be only changed in
+                            ETL.
+                        </p>
                         <div className="row">
                             <div className="col">
                                 <BindString
@@ -321,7 +274,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                                     store={newDataset}
                                     label="Name"
                                     secondaryLabel="DB field: datasets.name"
-                                    disabled={isBulkImport}
+                                    disabled={isDisabled}
                                     helpText="Short name for this dataset, followed by the source and year. Example: Government Revenue Data – ICTD (2016)"
                                 />
                                 <BindString
@@ -330,7 +283,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                                     label="Description"
                                     secondaryLabel="DB field: sources.description ->> '$.additionalInfo' - only the lowest id source is shown!"
                                     textarea
-                                    disabled={isBulkImport}
+                                    disabled={isDisabled}
                                     helpText="Describe the dataset and the methodology used in its construction. This can be as long and detailed as you like."
                                     rows={10}
                                 />
@@ -339,7 +292,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                                     store={newDataset.source}
                                     label="Link"
                                     secondaryLabel="DB field: sources.description ->> '$.link' - only the lowest id source is shown!"
-                                    disabled={isBulkImport}
+                                    disabled={isDisabled}
                                     helpText="Link to the publication from which we retrieved this data"
                                 />
                                 <BindString
@@ -347,13 +300,12 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                                     store={newDataset.source}
                                     label="Retrieved"
                                     secondaryLabel="DB field: sources.description ->> '$.retrievedDate' - only the lowest id source is shown!"
-                                    disabled={isBulkImport}
+                                    disabled={isDisabled}
                                     helpText="Date when this data was obtained by us. Date format should always be YYYY-MM-DD."
                                 />
                                 <DatasetTagEditor
                                     newDataset={newDataset}
                                     availableTags={dataset.availableTags}
-                                    isBulkImport={isBulkImport}
                                 />
                                 <FieldsRow>
                                     <Toggle
@@ -363,7 +315,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                                             (newDataset.isPrivate = !v)
                                         }
                                         disabled={
-                                            isBulkImport ||
+                                            isDisabled ||
                                             newDataset.nonRedistributable
                                         }
                                     />
@@ -374,9 +326,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                                         value={newDataset.nonRedistributable}
                                         onValue={(v) => {
                                             newDataset.nonRedistributable = v
-                                            if (v) newDataset.isPrivate = true
                                         }}
-                                        disabled={isBulkImport}
                                     />
                                 </FieldsRow>
                             </div>
@@ -387,7 +337,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                                     store={newDataset.source}
                                     label="Source name"
                                     secondaryLabel="DB field: sources.description ->> '$.name' - only the lowest id source is shown!"
-                                    disabled={isBulkImport}
+                                    disabled={isDisabled}
                                     helpText={`Short citation of the main sources, to be displayed on the charts. Additional sources (e.g. population denominator) should not be included. Use semi-colons to separate multiple sources e.g. "UN (2022); World Bank (2022)". For institutional datasets or reports, use "Institution, Project (year or vintage)" e.g. "IHME, Global Burden of Disease (2019)". For data we have modified extensively, use "Our World in Data based on X (year)" e.g. "Our World in Data based on Pew Research Center (2022)". For academic papers, use "Authors (year)" e.g. "Arroyo-Abad and Lindert (2016)".`}
                                 />
 
@@ -396,7 +346,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                                     store={newDataset.source}
                                     label="Data published by"
                                     secondaryLabel="DB field: sources.description ->> '$.dataPublishedBy' - only the lowest id source is shown!"
-                                    disabled={isBulkImport}
+                                    disabled={isDisabled}
                                     helpText={`Full citation of main and additional sources. For academic papers, institutional datasets, and reports, use the complete citation recommended by the publisher. For data we have modified extensively, use "Our World in Data based on X (year) and Y (year)" e.g. "Our World in Data based on Pew Research Center (2022) and UN (2022)".`}
                                 />
                                 <BindString
@@ -404,7 +354,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                                     store={newDataset.source}
                                     label="Data publisher's source"
                                     secondaryLabel="DB field: sources.description ->> '$.dataPublisherSource' - only the lowest id source is shown!"
-                                    disabled={isBulkImport}
+                                    disabled={isDisabled}
                                     helpText={`Optional field. Basic indication of how the publisher collected this data e.g. "Survey data". Anything longer than a line should go in the dataset description.`}
                                 />
                                 <BindString
@@ -413,17 +363,15 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                                     label="Internal notes"
                                     secondaryLabel="DB field: datasets.description"
                                     textarea
-                                    disabled={isBulkImport}
+                                    disabled={isDisabled}
                                 />
                             </div>
                         </div>
-                        {!isBulkImport && (
-                            <input
-                                type="submit"
-                                className="btn btn-success"
-                                value="Update dataset"
-                            />
-                        )}
+                        <input
+                            type="submit"
+                            className="btn btn-success"
+                            value="Update dataset"
+                        />
                     </form>
                 </section>
                 <section>

@@ -11,6 +11,7 @@ import {
     faTwitter,
     faFacebookSquare,
     faInstagram,
+    faThreads,
 } from "@fortawesome/free-brands-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
@@ -142,7 +143,7 @@ export const FrontPage = (props: {
                                             data-track-note="homepage_see_all_explainers"
                                         >
                                             <div className="label">
-                                                See all of our work
+                                                See all of our latest work
                                             </div>
                                             <div className="icon">
                                                 <FontAwesomeIcon
@@ -229,6 +230,23 @@ export const FrontPage = (props: {
                                                 </div>
                                                 <div className="label">
                                                     Instagram
+                                                </div>
+                                            </a>
+                                            <a
+                                                href="https://www.threads.net/@ourworldindata"
+                                                className="list-item"
+                                                title="Threads"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                data-track-note="homepage_follow_us"
+                                            >
+                                                <div className="icon">
+                                                    <FontAwesomeIcon
+                                                        icon={faThreads}
+                                                    />
+                                                </div>
+                                                <div className="label">
+                                                    Threads
                                                 </div>
                                             </a>
                                             <a

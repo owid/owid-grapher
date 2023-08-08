@@ -2,6 +2,10 @@
     @include block-spacing;
     border: 2px solid $oxford-blue;
 
+    h2 {
+        margin-top: 0;
+    }
+
     .last-updated {
         font-size: 0.9rem;
     }
