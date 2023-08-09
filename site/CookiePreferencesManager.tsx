@@ -150,7 +150,14 @@ const reducer = (
 }
 
 const getInitialState = (): State => {
-    const cookieValue = parseRawCookieValue(Cookies.get(COOKIE_NAME))
+    let cookieValue = undefined
+    try {
+        // Cookie access can be restricted by iframe sandboxing, in which case the below code will throw an error
+        // see https://github.com/owid/owid-grapher/pull/2452
+
+        cookieValue = parseRawCookieValue(Cookies.get(COOKIE_NAME))
+    } catch {}
+
     if (!cookieValue || arePreferencesOutdated(cookieValue.date, POLICY_DATE))
         return defaultState
     return cookieValue

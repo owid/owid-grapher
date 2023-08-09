@@ -752,7 +752,15 @@ export class Grapher
     @computed get showAdminControls(): boolean {
         // This cookie is set by visiting ourworldindata.org/identifyadmin on the static site.
         // There is an iframe on owid.cloud to trigger a visit to that page.
-        return !!Cookies.get(CookieKey.isAdmin)
+
+        try {
+            // Cookie access can be restricted by iframe sandboxing, in which case the below code will throw an error
+            // see https://github.com/owid/owid-grapher/pull/2452
+
+            return !!Cookies.get(CookieKey.isAdmin)
+        } catch {
+            return false
+        }
     }
 
     @action.bound
