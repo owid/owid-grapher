@@ -21,7 +21,7 @@ const logos: Record<LogoOption, LogoAttributes> = {
         svg: OWID_LOGO_SVG,
         width: 73,
         height: 40,
-        targetHeight: 40,
+        targetHeight: 36,
         url: "https://ourworldindata.org",
     },
     "core+owid": {

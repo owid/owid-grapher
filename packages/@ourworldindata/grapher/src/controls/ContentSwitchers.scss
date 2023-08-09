@@ -1,10 +1,14 @@
+$borderWidth: 1px;
+$borderRadius: 4px;
+$gap: 2px;
+
 .ContentSwitchers {
     list-style: none;
     height: $controlRowHeight;
     margin: 0;
-    padding: 1px;
-    border: 1px solid $light-stroke;
-    border-radius: 4px;
+    padding: $gap;
+    border: $borderWidth solid $light-stroke;
+    border-radius: $borderRadius;
 
     li {
         display: inline-block;
@@ -18,13 +22,13 @@
         color: $light-text;
         font-size: 13px;
         font-weight: $medium;
-        height: $controlRowHeight - 4px; // -2px for border, -2px for padding
-        line-height: $controlRowHeight - 4px;
+        height: $controlRowHeight - 2 * ($borderWidth + $gap);
+        line-height: $controlRowHeight - 2 * ($borderWidth + $gap);
         padding: 0 8px;
-        border-radius: 3px;
+        border-radius: $borderRadius - $gap;
 
         svg {
-            margin-right: 4px;
+            margin-right: 6px;
         }
     }
 

@@ -96,7 +96,7 @@
     .interval {
         position: absolute;
         height: 2px;
-        background: $light-stroke;
+        background: #a4b6ca;
 
         cursor: grab;
         &:active {
@@ -117,7 +117,7 @@
 .TimelineComponent.hover {
     .handle > .icon {
         background: $active-knob;
-        transform: scale(1.2);
+        transform: scale(1.5);
     }
 
     .interval {
