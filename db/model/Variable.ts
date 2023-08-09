@@ -14,8 +14,13 @@ import {
     retryPromise,
     OwidLicense,
 } from "@ourworldindata/utils"
-import { GrapherInterface } from "@ourworldindata/grapher"
+import {
+    GrapherInterface,
+    getVariableDataRoute,
+    getVariableMetadataRoute,
+} from "@ourworldindata/grapher"
 import pl from "nodejs-polars"
+import { DATA_API_URL } from "../../settings/serverSettings.js"
 
 export interface VariableRow {
     id: number
@@ -34,8 +39,6 @@ export interface VariableRow {
     timespan?: string
     columnOrder?: number
     catalogPath?: string
-    dataPath?: string
-    metadataPath?: string
     dimensions?: Dimensions
     schemaVersion?: number
     processingLevel?: "minor" | "major"
@@ -163,7 +166,7 @@ export async function getVariableData(
     )
 
     const [data, metadata] = await Promise.all([
-        fetchS3ValuesByPath(dataPath),
+        fetchS3DataValuesByPath(dataPath),
         fetchS3MetadataByPath(metadataPath),
     ])
 
@@ -336,13 +339,6 @@ const _castDataDF = (df: pl.DataFrame): pl.DataFrame => {
     )
 }
 
-export const assertFileExistsInS3 = async (dataPath: string): Promise<void> => {
-    const resp = await fetch(dataPath, { method: "HEAD", keepalive: true })
-    if (resp.status !== 200) {
-        throw new Error("URL not found on S3: " + dataPath)
-    }
-}
-
 const emptyDataDF = (): pl.DataFrame => {
     return _castDataDF(
         pl.DataFrame({
@@ -402,63 +398,27 @@ export const _dataAsDFfromS3 = async (
 export const dataAsDF = async (
     variableIds: OwidVariableId[]
 ): Promise<pl.DataFrame> => {
-    // return variables values as a DataFrame from S3
-    const rows = await db.queryMysql(
-        `
-    SELECT
-        id,
-        dataPath
-    FROM variables
-    WHERE id in (?)
-    `,
-        [variableIds]
-    )
-
-    // variables with dataPath are stored in S3
-    const variableIdsWithDataPath = rows
-        .filter((row: any) => row.dataPath)
-        .map((row: any) => row.id)
-
-    const variableIdsWithoutDataPath = rows
-        .filter((row: any) => !row.dataPath)
-        .map((row: any) => row.id)
-
-    // variables without dataPath shouldn't exist!
-    if (variableIdsWithoutDataPath.length > 0)
-        throw new Error(
-            `Variables ${variableIdsWithoutDataPath} are missing dataPath`
-        )
-
-    return _dataAsDFfromS3(variableIdsWithDataPath)
+    return _dataAsDFfromS3(variableIds)
 }
 
 export const getOwidVariableDataAndMetadataPath = async (
     variableId: OwidVariableId
 ): Promise<{ dataPath: string; metadataPath: string }> => {
-    // NOTE: refactor this with Variable object in TypeORM
-    const row = await db.mysqlFirst(
-        `SELECT dataPath, metadataPath FROM variables WHERE id = ?`,
-        [variableId]
-    )
-    return { dataPath: row.dataPath, metadataPath: row.metadataPath }
+    return {
+        dataPath: getVariableDataRoute(DATA_API_URL, variableId),
+        metadataPath: getVariableMetadataRoute(DATA_API_URL, variableId),
+    }
 }
 
 export const fetchS3Values = async (
     variableId: OwidVariableId
 ): Promise<OwidVariableMixedData> => {
-    const { dataPath, metadataPath } = await getOwidVariableDataAndMetadataPath(
-        variableId
+    return fetchS3DataValuesByPath(
+        getVariableDataRoute(DATA_API_URL, variableId)
     )
-    if (!dataPath) {
-        throw new Error(`Missing dataPath for variable ${variableId}`)
-    }
-    if (!metadataPath) {
-        throw new Error(`Missing metadataPath for variable ${variableId}`)
-    }
-    return fetchS3ValuesByPath(dataPath)
 }
 
-export const fetchS3ValuesByPath = async (
+export const fetchS3DataValuesByPath = async (
     dataPath: string
 ): Promise<OwidVariableMixedData> => {
     const resp = await retryPromise(() => fetch(dataPath, { keepalive: true }))

@@ -13,7 +13,6 @@ import {
     JsonError,
     keyBy,
     OwidGdocType,
-    retryPromise,
     DimensionProperty,
     OwidVariableWithSource,
     mergePartialGrapherConfigs,
@@ -41,7 +40,6 @@ import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
     MAX_NUM_BAKE_PROCESSES,
-    DATA_FILES_CHECKSUMS_DIRECTORY,
     ADMIN_BASE_URL,
 } from "../settings/serverSettings.js"
 import * as db from "../db/db.js"
@@ -53,8 +51,6 @@ import workerpool from "workerpool"
 import ProgressBar from "progress"
 import {
     getVariableData,
-    getOwidVariableDataAndMetadataPath,
-    assertFileExistsInS3,
     getVariableMetadata,
     getMergedGrapherConfigForVariable,
 } from "../db/model/Variable.js"
@@ -478,25 +474,6 @@ const renderGrapherPage = async (grapher: GrapherInterface) => {
     )
 }
 
-interface BakeVariableDataArguments {
-    bakedSiteDir: string
-    checksumsDir: string
-    variableId: number
-}
-
-export const bakeVariableData = async (
-    bakeArgs: BakeVariableDataArguments
-): Promise<BakeVariableDataArguments> => {
-    const { dataPath, metadataPath } = await getOwidVariableDataAndMetadataPath(
-        bakeArgs.variableId
-    )
-
-    await retryPromise(() => assertFileExistsInS3(dataPath))
-    await retryPromise(() => assertFileExistsInS3(metadataPath))
-
-    return bakeArgs
-}
-
 const chartIsSameVersion = async (
     htmlPath: string,
     grapherVersion: number | undefined
@@ -584,34 +561,6 @@ const deleteOldGraphers = async (bakedSiteDir: string, newSlugs: string[]) => {
     }
 }
 
-export const bakeAllPublishedChartsVariableDataAndMetadata = async (
-    bakedSiteDir: string,
-    variableIds: number[],
-    checksumsDir: string
-) => {
-    await fs.mkdirp(checksumsDir)
-
-    const progressBar = new ProgressBar(
-        "check existence of variable in Data API [:bar] :current/:total :elapseds :rate/s :etas :name\n",
-        {
-            width: 20,
-            total: variableIds.length + 1,
-        }
-    )
-
-    // NOTE: we don't bake data, just make sure it exists on S3
-    await Promise.all(
-        variableIds.map(async (variableId) => {
-            await bakeVariableData({
-                bakedSiteDir,
-                variableId,
-                checksumsDir,
-            })
-            progressBar.tick({ name: `variableid ${variableId}` })
-        })
-    )
-}
-
 export interface BakeSingleGrapherChartArguments {
     id: number
     config: string
@@ -643,14 +592,6 @@ export const bakeSingleGrapherChart = async (
 
 export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
     async (bakedSiteDir: string) => {
-        const variablesToBake: { varId: number }[] =
-            await db.queryMysql(`select vars.varID as varId
-            from charts c,
-            json_table(c.config, '$.dimensions[*]' columns (varID integer path '$.variableId') ) as vars
-            where JSON_EXTRACT(c.config, '$.isPublished')=true
-            union
-            select variableId as varId from explorer_variables`)
-
         const chartsToBake: { id: number; config: string; slug: string }[] =
             await db.queryMysql(`
                 SELECT
@@ -658,13 +599,6 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
                 FROM charts WHERE JSON_EXTRACT(config, "$.isPublished")=true
                 ORDER BY JSON_EXTRACT(config, "$.slug") ASC
                 `)
-
-        // NOTE: this has to be run after `chartsToBake` in case someone edits chart variable that hasn't been baked yet
-        await bakeAllPublishedChartsVariableDataAndMetadata(
-            bakedSiteDir,
-            variablesToBake.map((v) => v.varId),
-            DATA_FILES_CHECKSUMS_DIRECTORY
-        )
 
         const newSlugs = chartsToBake.map((row) => row.slug)
         await fs.mkdirp(bakedSiteDir + "/grapher")
