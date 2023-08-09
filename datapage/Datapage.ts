@@ -31,7 +31,7 @@ interface ETLPathComponents {
     dataset: string
 }
 
-const getETLPathComonents = (path: string): ETLPathComponents => {
+const getETLPathComponents = (path: string): ETLPathComponents => {
     const [channel, publisher, version, dataset] = path.split("/")
     return { channel, publisher, version, dataset }
 }
@@ -43,7 +43,7 @@ export const getDatapageDataV2 = async (
     {
         const processingLevel = variableMetadata.processingLevel ?? "major"
         const version =
-            getETLPathComonents(variableMetadata.catalogPath ?? "")?.version ??
+            getETLPathComponents(variableMetadata.catalogPath ?? "")?.version ??
             ""
         let nextUpdate = undefined
         if (variableMetadata.updatePeriodDays) {
