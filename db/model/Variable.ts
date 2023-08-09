@@ -322,13 +322,6 @@ const _castDataDF = (df: pl.DataFrame): pl.DataFrame => {
     )
 }
 
-export const assertFileExistsInS3 = async (url: string): Promise<void> => {
-    const resp = await fetch(url, { method: "HEAD", keepalive: true })
-    if (resp.status !== 200) {
-        throw new Error("URL not found on S3: " + url)
-    }
-}
-
 const emptyDataDF = (): pl.DataFrame => {
     return _castDataDF(
         pl.DataFrame({

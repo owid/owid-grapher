@@ -12,7 +12,6 @@ import {
     JsonError,
     keyBy,
     OwidGdocType,
-    retryPromise,
 } from "@ourworldindata/utils"
 import {
     getRelatedArticles,
@@ -38,11 +37,7 @@ import { getPostBySlug } from "../db/model/Post.js"
 import { GrapherInterface } from "@ourworldindata/grapher"
 import workerpool from "workerpool"
 import ProgressBar from "progress"
-import {
-    getVariableData,
-    getOwidVariableDataAndMetadataPath,
-    assertFileExistsInS3,
-} from "../db/model/Variable.js"
+import { getVariableData } from "../db/model/Variable.js"
 import {
     getDatapageGdoc,
     getDatapageJson,
@@ -293,15 +288,6 @@ const renderGrapherPage = async (grapher: GrapherInterface) => {
     )
 }
 
-export const checkVariableData = async (variableId: number) => {
-    const { dataPath, metadataPath } = await getOwidVariableDataAndMetadataPath(
-        variableId
-    )
-
-    await retryPromise(() => assertFileExistsInS3(dataPath))
-    await retryPromise(() => assertFileExistsInS3(metadataPath))
-}
-
 const chartIsSameVersion = async (
     htmlPath: string,
     grapherVersion: number | undefined
@@ -389,27 +375,6 @@ const deleteOldGraphers = async (bakedSiteDir: string, newSlugs: string[]) => {
     }
 }
 
-export const checkAllPublishedChartsVariableDataAndMetadata = async (
-    variableIds: number[]
-) => {
-    const progressBar = new ProgressBar(
-        "check existence of variable in Data API [:bar] :current/:total :elapseds :rate/s :etas :name\n",
-        {
-            width: 20,
-            total: variableIds.length,
-        }
-    )
-
-    await Promise.all(
-        variableIds.map(async (variableId) => {
-            await checkVariableData(variableId)
-        })
-    )
-    progressBar.tick(variableIds.length, {
-        name: `✅ Checked existence of all variables in Data API`,
-    })
-}
-
 export interface BakeSingleGrapherChartArguments {
     id: number
     config: string
@@ -441,14 +406,6 @@ export const bakeSingleGrapherChart = async (
 
 export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
     async (bakedSiteDir: string) => {
-        const variablesInCharts: { varId: number }[] =
-            await db.queryMysql(`select vars.varID as varId
-            from charts c,
-            json_table(c.config, '$.dimensions[*]' columns (varID integer path '$.variableId') ) as vars
-            where JSON_EXTRACT(c.config, '$.isPublished')=true
-            union
-            select variableId as varId from explorer_variables`)
-
         const chartsToBake: { id: number; config: string; slug: string }[] =
             await db.queryMysql(`
                 SELECT
@@ -456,11 +413,6 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
                 FROM charts WHERE JSON_EXTRACT(config, "$.isPublished")=true
                 ORDER BY JSON_EXTRACT(config, "$.slug") ASC
                 `)
-
-        // NOTE: this has to be run after `chartsToBake` in case someone edits chart variable that hasn't been baked yet
-        await checkAllPublishedChartsVariableDataAndMetadata(
-            variablesInCharts.map((v) => v.varId)
-        )
 
         const newSlugs = chartsToBake.map((row) => row.slug)
         await fs.mkdirp(bakedSiteDir + "/grapher")
