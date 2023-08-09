@@ -30,9 +30,10 @@ export interface ActionButtonsManager extends ShareMenuManager {
 }
 
 // keep in sync with sass variables in ActionButtons.scss
-const PADDING_BETWEEN_BUTTONS = 8
-const PADDING_BETWEEN_ICON_AND_LABEL = 4
 const BUTTON_HEIGHT = 32
+const PADDING_BETWEEN_BUTTONS = 8
+const PADDING_BETWEEN_ICON_AND_LABEL = 8
+const PADDING_LEFT_RIGHT = 12
 
 const BUTTON_WIDTH_ICON_ONLY = BUTTON_HEIGHT
 
@@ -123,7 +124,10 @@ export class ActionButtons extends React.Component<{
     private static computeButtonWidth(label: string): number {
         const labelWidth = Bounds.forText(label, { fontSize: 13 }).width
         return (
-            BUTTON_WIDTH_ICON_ONLY + PADDING_BETWEEN_ICON_AND_LABEL + labelWidth
+            2 * PADDING_LEFT_RIGHT +
+            13 + // icon width
+            PADDING_BETWEEN_ICON_AND_LABEL +
+            labelWidth
         )
     }
 
@@ -313,14 +317,19 @@ function ActionButton(props: {
     title?: string
 }): JSX.Element {
     return (
-        <li className="clickable" style={{ width: props.width }}>
+        <li
+            className={"clickable" + (props.showLabel ? "" : " icon-only")}
+            style={{ width: props.width }}
+        >
             <button
                 title={props.title ?? props.label}
                 data-track-note={props.dataTrackNote}
                 onClick={props.onClick}
             >
                 <FontAwesomeIcon icon={props.icon} />
-                {props.showLabel && <div className="label">{props.label}</div>}
+                {props.showLabel && (
+                    <span className="label">{props.label}</span>
+                )}
             </button>
         </li>
     )

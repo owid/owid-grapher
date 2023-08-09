@@ -1,7 +1,8 @@
 // keep in sync with constant values in ActionButtons.tsx
-$paddingBetweenButtons: 8px; // keep in sync with PADDING_BETWEEN_BUTTONS
-$paddingBetweenIconAndLabel: 4px; // keep in sync with PADDING_BETWEEN_ICON_AND_LABEL
 $buttonHeight: 32px; // keep in sync with BUTTON_HEIGHT
+$paddingBetweenButtons: 8px; // keep in sync with PADDING_BETWEEN_BUTTONS
+$paddingBetweenIconAndLabel: 8px; // keep in sync with PADDING_BETWEEN_ICON_AND_LABEL
+$paddingLeftRight: 12px; // keep in sync with PADDING_LEFT_RIGHT
 
 .ActionButtons {
     margin: 0;
@@ -18,30 +19,34 @@ $buttonHeight: 32px; // keep in sync with BUTTON_HEIGHT
         background-color: $hover-fill;
         display: inline-block;
         border-radius: 4px;
+
+        button,
+        a {
+            display: flex;
+            align-items: center;
+            gap: $paddingBetweenIconAndLabel;
+            height: 100%;
+            width: 100%;
+            cursor: inherit;
+            color: $dark-text;
+            font-size: 13px;
+            padding: 0 $paddingLeftRight;
+        }
+    }
+
+    li.icon-only {
+        button,
+        a {
+            display: block;
+            padding: 0;
+        }
     }
 
     li + li {
         margin-left: $paddingBetweenButtons;
     }
 
-    li button,
-    li a,
     li a:visited {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: $paddingBetweenIconAndLabel;
-        height: 100%;
-        width: 100%;
-        cursor: inherit;
         color: $dark-text;
-        font-size: 13px;
-        padding: 0;
-    }
-
-    li.explore-data {
-        // todo(redesign): why is this necessary?
-        position: relative;
-        top: -1.5px;
     }
 }
