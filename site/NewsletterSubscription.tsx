@@ -18,7 +18,6 @@ export const NewsletterSubscription = ({
     const [isOpen, setIsOpen] = useState(false)
 
     const subscribeText = "Subscribe"
-    const closeText = "Close"
 
     return (
         <div className={`newsletter-subscription${isOpen ? " active" : ""}`}>
