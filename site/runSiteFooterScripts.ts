@@ -37,9 +37,19 @@ export const runSiteFooterScripts = (
     switch (context) {
         case SiteFooterContext.dataPage:
             hydrateDataPageContent(isPreviewing)
+            runSiteNavigation(BAKED_BASE_URL)
+            runSiteTools()
+            runCookiePreferencesManager()
+            runDetailsOnDemand()
+            break
         case SiteFooterContext.dataPageV2:
             hydrateDataPageV2Content(isPreviewing)
             runLightbox()
+            runSiteNavigation(BAKED_BASE_URL)
+            runSiteTools()
+            runCookiePreferencesManager()
+            runDetailsOnDemand()
+            break
         case SiteFooterContext.grapherPage:
         case SiteFooterContext.explorerPage:
             runSiteNavigation(BAKED_BASE_URL)
