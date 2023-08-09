@@ -76,7 +76,6 @@
             "program": "${workspaceFolder}/itsJustJavascript/adminSiteServer/app.js",
             "request": "launch",
             "type": "node",
-            "runtimeExecutable": "/Users/daniel/Library/Application Support/fnm/node-versions/v18.16.0/installation/bin/node"
         },
         {
             "name": "Attach to node",
