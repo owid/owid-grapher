@@ -130,6 +130,23 @@ export function parseVariableRows(
     return parsedRows
 }
 
+export async function getMergedGrapherConfigForVariable(
+    variableId: number
+): Promise<GrapherInterface | undefined> {
+    const row = await db.mysqlFirst(
+        `SELECT grapherConfigAdmin, grapherConfigETL FROM variables WHERE id = ?`,
+        [variableId]
+    )
+    if (!row) return
+    const grapherConfigAdmin = row.grapherConfigAdmin
+        ? JSON.parse(row.grapherConfigAdmin)
+        : undefined
+    const grapherConfigETL = row.grapherConfigETL
+        ? JSON.parse(row.grapherConfigETL)
+        : undefined
+    return _.merge({}, grapherConfigAdmin, grapherConfigETL)
+}
+
 export async function getVariableMetadata(
     variableId: number
 ): Promise<OwidVariableWithSourceAndDimension> {

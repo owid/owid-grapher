@@ -8,50 +8,197 @@ import { GrapherWithFallback } from "./GrapherWithFallback.js"
 import { formatAuthors } from "./clientFormatting.js"
 import { ArticleBlocks } from "./gdocs/ArticleBlocks.js"
 import { RelatedCharts } from "./blocks/RelatedCharts.js"
-import { DataPageContentFields } from "@ourworldindata/utils"
+import {
+    DataPageV2ContentFields,
+    mdParser,
+    MarkdownRoot,
+    EveryMarkdownNode,
+    Span,
+    EnrichedBlockText,
+    excludeNullish,
+    slugify,
+} from "@ourworldindata/utils"
 import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
 import StickyNav from "./blocks/StickyNav.js"
 import cx from "classnames"
 import { DebugProvider } from "./gdocs/DebugContext.js"
 import { CodeSnippet } from "./blocks/CodeSnippet.js"
-import { DATA_API_URL } from "../settings/clientSettings.js"
-
+import dayjs from "dayjs"
+import { P, match } from "ts-pattern"
 declare global {
     interface Window {
-        _OWID_DATAPAGE_PROPS: DataPageContentFields
+        _OWID_DATAPAGEV2_PROPS: DataPageV2ContentFields
         _OWID_GRAPHER_CONFIG: GrapherInterface
     }
 }
 
+const convertMarkdownNodeToSpan = (node: EveryMarkdownNode): Span[] => {
+    return match(node)
+        .with(
+            {
+                type: "text",
+            },
+            (n) => [
+                {
+                    spanType: "span-simple-text" as const,
+                    text: n.value,
+                } as Span,
+            ]
+        )
+        .with(
+            {
+                type: "textSegments",
+            },
+            (n) => n.children.flatMap(convertMarkdownNodeToSpan) as Span[]
+        )
+        .with(
+            {
+                type: "newline",
+            },
+            () => [
+                {
+                    spanType: "span-simple-text" as const,
+                    text: "\n",
+                } as Span,
+            ]
+        )
+        .with(
+            {
+                type: "whitespace",
+            },
+            () => [
+                {
+                    spanType: "span-simple-text" as const,
+                    text: " ",
+                } as Span,
+            ]
+        )
+        .with(
+            {
+                type: "detailOnDemand",
+            },
+            (n) => [
+                {
+                    spanType: "span-dod" as const,
+                    id: n.term,
+                    children: n.children.flatMap(convertMarkdownNodeToSpan),
+                } as Span,
+            ]
+        )
+        .with(
+            {
+                type: "markdownLink",
+            },
+            (n) => [
+                {
+                    spanType: "span-link" as const,
+                    url: n.href,
+                    children: n.children.flatMap(convertMarkdownNodeToSpan),
+                } as Span,
+            ]
+        )
+        .with(
+            {
+                type: "plainUrl",
+            },
+            (n) => [
+                {
+                    spanType: "span-link" as const,
+                    url: n.href,
+                    children: [
+                        {
+                            spanType: "span-simple-text" as const,
+                            text: n.href,
+                        },
+                    ],
+                } as Span,
+            ]
+        )
+        .with(
+            {
+                type: "bold",
+            },
+            (n) => [
+                {
+                    spanType: "span-bold" as const,
+                    children: n.children.flatMap(convertMarkdownNodeToSpan),
+                } as Span,
+            ]
+        )
+        .with(
+            {
+                type: P.union("italic", "plainItalic", "italicWithoutBold"),
+            },
+            (n) => [
+                {
+                    spanType: "span-italic" as const,
+                    children: n.children.flatMap(convertMarkdownNodeToSpan),
+                } as Span,
+            ]
+        )
+        .with(
+            {
+                type: P.union("bold", "plainBold", "boldWithoutItalic"),
+            },
+            (n) => [
+                {
+                    spanType: "span-bold" as const,
+                    children: n.children.flatMap(convertMarkdownNodeToSpan),
+                } as Span,
+            ]
+        )
+        .exhaustive()
+    //.otherwise(() => ({ spanType: "span-simple-text" as const, text: "" }))
+}
+
+const convertMarkdownNodesToSpans = (nodes: MarkdownRoot) =>
+    nodes.children.flatMap(convertMarkdownNodeToSpan)
+
+const markdownToEnrichedTextBlock = (markdown: string): EnrichedBlockText => {
+    const parsedMarkdown = mdParser.markdown.parse(markdown)
+    if (parsedMarkdown.status) {
+        const spans = convertMarkdownNodesToSpans(parsedMarkdown.value)
+        return {
+            type: "text",
+            value: spans,
+            parseErrors: [],
+        }
+    } else
+        return {
+            type: "text",
+            value: [],
+            parseErrors: [
+                {
+                    message: `Failed to parse markdown - expected ${parsedMarkdown.expected} at ${parsedMarkdown.index}`,
+                    isWarning: false,
+                },
+            ],
+        }
+}
+
 export const OWID_DATAPAGE_CONTENT_ROOT_ID = "owid-datapageJson-root"
 
-export const DataPageContent = ({
-    datapageJson,
-    datapageGdoc,
-    datapageGdocContent,
+export const DataPageV2Content = ({
+    datapageData,
     grapherConfig,
     isPreviewing = false,
-}: DataPageContentFields & {
+    faqEntries,
+}: DataPageV2ContentFields & {
     grapherConfig: GrapherInterface
 }) => {
     const [grapher, setGrapher] = React.useState<Grapher | undefined>(undefined)
 
     const sourceShortName =
-        datapageJson.variantSource && datapageJson.variantMethods
-            ? `${datapageJson.variantMethods} - ${datapageJson.variantSource}`
-            : datapageJson.variantSource || datapageJson.variantMethods
+        datapageData.producerShort && datapageData.titleVariant
+            ? `${datapageData.producerShort} - ${datapageData.titleVariant}`
+            : datapageData.producerShort || datapageData.titleVariant
 
     // Initialize the grapher for client-side rendering
-    useEffect(() => {
-        setGrapher(new Grapher(grapherConfig))
-    }, [grapherConfig])
+    const mergedGrapherConfig = grapherConfig
 
-    const {
-        linkedDocuments = {},
-        imageMetadata = {},
-        linkedCharts = {},
-        relatedCharts = [],
-    } = datapageGdoc || {}
+    useEffect(() => {
+        setGrapher(new Grapher(mergedGrapherConfig))
+    }, [mergedGrapherConfig])
 
     const REUSE_THIS_WORK_ANCHOR = "#reuse-this-work"
 
@@ -71,10 +218,10 @@ export const DataPageContent = ({
         { text: "Reuse This Work", target: REUSE_THIS_WORK_ANCHOR },
     ]
 
-    const hasRelatedDataFeatured = datapageJson.relatedData?.some(
+    const hasRelatedDataFeatured = datapageData.relatedData?.some(
         (data) => data.featured
     )
-    const hasRelatedDataNonFeatured = datapageJson.relatedData?.some(
+    const hasRelatedDataNonFeatured = datapageData.relatedData?.some(
         (data) => !data.featured
     )
     const relatedDataCategoryClasses = `related-data__category ${
@@ -83,6 +230,39 @@ export const DataPageContent = ({
             : "related-data__category--columns span-cols-8 span-lg-cols-12"
     } `
 
+    // TODO: this is missing the attribution field ATM and
+    // so assembles something only roughly similar to the citation described
+    // by Joe. Also, we need the dataset title.
+    const producers = datapageData.origins.map((o) => o.producer).join("; ")
+    const processedAdapted =
+        datapageData.owidProcessingLevel === "minor"
+            ? `Processed by`
+            : `Adapted by`
+    const yearOfUpdate = dayjs(datapageData.lastUpdated, [
+        "YYYY",
+        "YYYY-MM-DD",
+    ]).year()
+    const citationShort = `${producers} — ${processedAdapted} OWID (${yearOfUpdate})`
+    const originsLong = datapageData.origins
+        .map(
+            (o) =>
+                `${o.producer}, ${o.datasetTitleProducer ?? o.datasetTitleOwid}`
+        )
+        .join("; ")
+    const citationLong = `${citationShort}. ${datapageData.title}. ${originsLong}, ${processedAdapted} by Our World In Data. Retrieved {date} from {url}`
+    const processedAdaptedText =
+        datapageData.owidProcessingLevel === "minor"
+            ? `Processed by Our World In Data`
+            : `Adapted by Our World In Data`
+
+    const {
+        linkedDocuments = {},
+        imageMetadata = {},
+        linkedCharts = {},
+        relatedCharts = [],
+    } = faqEntries ?? {}
+
+    const citationDatapage = `Our World In Data (${yearOfUpdate}). Data Page: ${datapageData.title} – ${producers}. Retriefed from {url} [online resource]`
     return (
         <AttachmentsContext.Provider
             value={{
@@ -105,7 +285,7 @@ export const DataPageContent = ({
                             <div className="header__left span-cols-8 span-sm-cols-12">
                                 <div className="header__supertitle">Data</div>
                                 <h1 className="header__title">
-                                    {datapageJson.title}
+                                    {datapageData.title}
                                 </h1>
                                 <div className="header__source">
                                     {sourceShortName}
@@ -116,10 +296,13 @@ export const DataPageContent = ({
                                     See all data and research on:
                                 </div>
                                 <div className="topic-tags">
-                                    {datapageJson.topicTagsLinks.map(
+                                    {datapageData.topicTagsLinks?.map(
                                         (topic: any) => (
-                                            <a href={topic.url} key={topic.url}>
-                                                {topic.title}
+                                            <a
+                                                href={`/${slugify(topic)}`}
+                                                key={topic}
+                                            >
+                                                {topic}
                                             </a>
                                         )
                                     )}
@@ -133,35 +316,45 @@ export const DataPageContent = ({
                     <div className="chart-key-info">
                         <GrapherWithFallback
                             grapher={grapher}
-                            slug={grapherConfig.slug}
+                            slug={grapherConfig.slug} // TODO: On grapher pages,
+                            // there will always be a slug, but if we just show a data page preview for an indicator in the admin, there will be no slug
+                            // and then thumbnails will be broken for those. When we consider baking data pages for
+                            // non-grapher pages then we need to make sure that there are thunbnails that are generated for the these non-chart graphers and
+                            // then this piece will have to change anyhow and know how to provide the thumbnail.
                             className="wrapper"
                             id="explore-the-data"
                         />
                         <div className="key-info__wrapper wrapper grid grid-cols-12">
                             <div className="key-info__left col-start-2 span-cols-7 span-lg-cols-8 span-sm-cols-12">
-                                {(datapageGdocContent?.keyInfoText ||
-                                    datapageJson.subtitle) && (
+                                {(datapageData?.keyInfoText ||
+                                    datapageData.descriptionShort) && (
                                     <div className="key-info__curated">
                                         <h2 className="key-info__title">
-                                            {datapageGdocContent?.keyInfoText
+                                            {datapageData?.keyInfoText
                                                 ? "What you should know about this indicator"
                                                 : "About this data"}
                                         </h2>
                                         <div className="key-info__content">
-                                            {datapageGdocContent?.keyInfoText ? (
+                                            {datapageData?.keyInfoText ? (
                                                 <ArticleBlocks
-                                                    blocks={
-                                                        datapageGdocContent.keyInfoText
-                                                    }
+                                                    blocks={excludeNullish(
+                                                        datapageData.keyInfoText.flatMap(
+                                                            markdownToEnrichedTextBlock
+                                                        )
+                                                    )}
                                                     containerType="datapage"
                                                 />
-                                            ) : datapageJson.subtitle ? (
-                                                <div>
-                                                    {datapageJson.subtitle}
-                                                </div>
+                                            ) : datapageData.descriptionShort ? (
+                                                <ArticleBlocks
+                                                    blocks={[
+                                                        markdownToEnrichedTextBlock(
+                                                            datapageData.descriptionShort
+                                                        ),
+                                                    ]}
+                                                />
                                             ) : null}
                                         </div>
-                                        {datapageGdocContent?.faqs && (
+                                        {datapageData?.faqs.length > 0 && (
                                             <a
                                                 className="key-info__learn-more"
                                                 href="#faqs"
@@ -174,68 +367,67 @@ export const DataPageContent = ({
                                         )}
                                     </div>
                                 )}
-                                {datapageJson.descriptionFromSource?.title &&
-                                    datapageGdocContent?.descriptionFromSource && (
-                                        <ExpandableToggle
-                                            label={
-                                                datapageJson
-                                                    .descriptionFromSource.title
-                                            }
-                                            content={
-                                                <ArticleBlocks
-                                                    blocks={
-                                                        datapageGdocContent.descriptionFromSource
-                                                    }
-                                                    containerType="datapage"
-                                                />
-                                            }
-                                            isExpandedDefault={
-                                                !(
-                                                    datapageJson.subtitle ||
-                                                    datapageGdocContent.keyInfoText
-                                                )
-                                            }
-                                        />
-                                    )}
+                                {datapageData.descriptionFromProducer && (
+                                    <ExpandableToggle
+                                        label={`How does the producer of this data - ${datapageData.producerShort} - describe this data?`}
+                                        content={
+                                            <ArticleBlocks
+                                                blocks={[
+                                                    markdownToEnrichedTextBlock(
+                                                        datapageData.descriptionFromProducer ??
+                                                            ""
+                                                    ),
+                                                ]}
+                                                containerType="datapage"
+                                            />
+                                        }
+                                        isExpandedDefault={
+                                            !(
+                                                datapageData.descriptionShort ||
+                                                datapageData.keyInfoText
+                                            )
+                                        }
+                                    />
+                                )}
                             </div>
                             <div className="key-info__right grid grid-cols-3 grid-lg-cols-4 grid-sm-cols-12 span-cols-3 span-lg-cols-4 span-sm-cols-12">
                                 <div className="key-data span-cols-3 span-lg-cols-4 span-sm-cols-12">
                                     <div className="key-data__title">
                                         Source
                                     </div>
-                                    <div>{datapageJson.nameOfSource}</div>
-                                    {datapageJson.owidProcessingLevel && (
-                                        <div
-                                            dangerouslySetInnerHTML={{
-                                                __html: datapageJson.owidProcessingLevel,
-                                            }}
-                                        ></div>
+                                    <div>{datapageData.attribution}</div>
+                                    {datapageData.owidProcessingLevel && (
+                                        <div>
+                                            <a href="#sources-and-processing">
+                                                {processedAdaptedText}
+                                            </a>
+                                        </div>
                                     )}
                                 </div>
                                 <div className="key-data span-cols-3 span-lg-cols-4 span-sm-cols-6">
                                     <div className="key-data__title">
                                         Date range
                                     </div>
-                                    <div>{datapageJson.dateRange}</div>
+                                    <div>{datapageData.dateRange}</div>
                                 </div>
                                 <div className="key-data span-cols-3 span-lg-cols-4 span-sm-cols-6">
                                     <div className="key-data__title">
                                         Last updated
                                     </div>
-                                    <div>{datapageJson.lastUpdated}</div>
+                                    <div>{datapageData.lastUpdated}</div>
                                 </div>
                                 <div className="key-data span-cols-3 span-lg-cols-4 span-sm-cols-6">
                                     <div className="key-data__title">
                                         Next expected update
                                     </div>
-                                    <div>{datapageJson.nextUpdate}</div>
+                                    <div>{datapageData.nextUpdate}</div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div className="wrapper">
-                        {datapageJson.relatedResearch &&
-                            datapageJson.relatedResearch.length > 0 && (
+                        {datapageData.relatedResearch &&
+                            datapageData.relatedResearch.length > 0 && (
                                 <div className="section-wrapper grid">
                                     <h2
                                         className="related-research__title span-cols-3 span-lg-cols-12"
@@ -244,7 +436,7 @@ export const DataPageContent = ({
                                         Related research and writing
                                     </h2>
                                     <div className="related-research__items grid grid-cols-9 grid-lg-cols-12 span-cols-9 span-lg-cols-12">
-                                        {datapageJson.relatedResearch.map(
+                                        {datapageData.relatedResearch.map(
                                             (research: any) => (
                                                 <a
                                                     href={research.url}
@@ -252,9 +444,7 @@ export const DataPageContent = ({
                                                     className="related-research__item grid grid-cols-4 grid-lg-cols-6 grid-sm-cols-12 span-cols-4 span-lg-cols-6 span-sm-cols-12"
                                                 >
                                                     <img
-                                                        src={encodeURI(
-                                                            research.imageUrl
-                                                        )}
+                                                        src={research.imageUrl}
                                                         alt=""
                                                         className="span-lg-cols-2 span-sm-cols-3"
                                                     />
@@ -275,7 +465,7 @@ export const DataPageContent = ({
                                     </div>
                                 </div>
                             )}
-                        {!!datapageJson.relatedData?.length && (
+                        {!!datapageData.relatedData?.length && (
                             <div className="section-wrapper grid">
                                 <h2
                                     className="related-data__title span-cols-3 span-lg-cols-12"
@@ -304,7 +494,7 @@ export const DataPageContent = ({
                                                 relatedDataCategoryClasses
                                             }
                                         >
-                                            {datapageJson.relatedData
+                                            {datapageData.relatedData
                                                 .filter((data) => data.featured)
                                                 .map((data) => (
                                                     <a
@@ -338,7 +528,7 @@ export const DataPageContent = ({
                                                 relatedDataCategoryClasses
                                             }
                                         >
-                                            {datapageJson.relatedData
+                                            {datapageData.relatedData
                                                 .filter(
                                                     (data) => !data.featured
                                                 )
@@ -363,8 +553,8 @@ export const DataPageContent = ({
                                 </div>
                             </div>
                         )}
-                        {datapageJson.allCharts &&
-                        datapageJson.allCharts.length > 0 ? (
+                        {datapageData.allCharts &&
+                        datapageData.allCharts.length > 0 ? (
                             <div className="section-wrapper section-wrapper__related-charts">
                                 <h2
                                     className="related-charts__title"
@@ -374,7 +564,7 @@ export const DataPageContent = ({
                                 </h2>
                                 <div>
                                     <RelatedCharts
-                                        charts={datapageJson.allCharts}
+                                        charts={datapageData.allCharts}
                                     />
                                 </div>
                             </div>
@@ -382,7 +572,7 @@ export const DataPageContent = ({
                     </div>
                     <div className="bg-gray-10">
                         <div className="wrapper">
-                            {datapageGdocContent?.faqs && (
+                            {!!faqEntries?.faqs.length && (
                                 <div className="section-wrapper section-wrapper__faqs grid">
                                     <h2
                                         className="faqs__title span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
@@ -392,7 +582,7 @@ export const DataPageContent = ({
                                     </h2>
                                     <div className="faqs__items grid grid-cols-10 grid-lg-cols-9 grid-md-cols-12 span-cols-10 span-lg-cols-9 span-md-cols-12 span-sm-cols-12">
                                         <ArticleBlocks
-                                            blocks={datapageGdocContent.faqs}
+                                            blocks={faqEntries.faqs}
                                             containerType="datapage"
                                         />
                                     </div>
@@ -405,35 +595,30 @@ export const DataPageContent = ({
                                 >
                                     Sources and Processing
                                 </h2>
-                                {datapageJson.sources.length > 0 && (
+                                {datapageData.origins.length > 0 && (
                                     <div className="data-sources grid span-cols-12">
                                         <h3 className="data-sources__heading span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
                                             This data is based on the following
                                             sources
                                         </h3>
                                         <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                                            {datapageJson.sources.map(
+                                            {datapageData.origins.map(
                                                 (
                                                     source,
                                                     idx: number,
                                                     sources
                                                 ) => {
-                                                    const sourceDescriptionGdocContent =
-                                                        datapageGdocContent?.[
-                                                            `sourceDescription${
-                                                                idx + 1
-                                                            }` as keyof typeof datapageGdocContent
-                                                        ]
                                                     return (
                                                         <div
                                                             className="data-sources__source-item"
-                                                            key={
-                                                                source.sourceName
-                                                            }
+                                                            key={idx}
                                                         >
                                                             <ExpandableToggle
                                                                 label={
-                                                                    source.sourceName
+                                                                    source.producer ??
+                                                                    source.datasetDescriptionOwid ??
+                                                                    source.datasetDescriptionProducer ??
+                                                                    ""
                                                                 }
                                                                 isStacked={
                                                                     idx !==
@@ -443,16 +628,18 @@ export const DataPageContent = ({
                                                                 hasTeaser
                                                                 content={
                                                                     <>
-                                                                        {sourceDescriptionGdocContent && (
+                                                                        {source.datasetDescriptionProducer && (
                                                                             <ArticleBlocks
-                                                                                blocks={
-                                                                                    sourceDescriptionGdocContent
-                                                                                }
+                                                                                blocks={[
+                                                                                    markdownToEnrichedTextBlock(
+                                                                                        source.datasetDescriptionProducer
+                                                                                    ),
+                                                                                ]}
                                                                                 containerType="datapage"
                                                                             />
                                                                         )}
-                                                                        {(source.sourceRetrievedOn ||
-                                                                            source.sourceRetrievedFromUrl) && (
+                                                                        {(source.dateAccessed ||
+                                                                            source.datasetUrlDownload) && (
                                                                             <div
                                                                                 className="grid source__key-data"
                                                                                 style={{
@@ -460,7 +647,7 @@ export const DataPageContent = ({
                                                                                         "minmax(0,1fr) minmax(0,2fr)",
                                                                                 }}
                                                                             >
-                                                                                {source.sourceRetrievedOn && (
+                                                                                {source.dateAccessed && (
                                                                                     <div className="key-data">
                                                                                         <div className="key-data__title--dark">
                                                                                             Retrieved
@@ -468,12 +655,12 @@ export const DataPageContent = ({
                                                                                         </div>
                                                                                         <div>
                                                                                             {
-                                                                                                source.sourceRetrievedOn
+                                                                                                source.dateAccessed
                                                                                             }
                                                                                         </div>
                                                                                     </div>
                                                                                 )}
-                                                                                {source.sourceRetrievedFromUrl && (
+                                                                                {source.datasetUrlDownload && (
                                                                                     <div className="key-data key-data--hide-overflow">
                                                                                         <div className="key-data__title--dark">
                                                                                             Retrieved
@@ -482,19 +669,19 @@ export const DataPageContent = ({
                                                                                         <div>
                                                                                             <a
                                                                                                 href={
-                                                                                                    source.sourceRetrievedFromUrl
+                                                                                                    source.datasetUrlDownload
                                                                                                 }
                                                                                                 target="_blank"
                                                                                                 rel="noreferrer"
                                                                                             >
                                                                                                 {
-                                                                                                    source.sourceRetrievedFromUrl
+                                                                                                    source.datasetUrlDownload
                                                                                                 }
                                                                                             </a>
                                                                                         </div>
                                                                                     </div>
                                                                                 )}
-                                                                                {source.sourceCitation && (
+                                                                                {source.citationProducer && (
                                                                                     <div
                                                                                         className="key-data"
                                                                                         style={{
@@ -554,7 +741,7 @@ export const DataPageContent = ({
                                                                                         below.
                                                                                         <CodeSnippet
                                                                                             code={
-                                                                                                source.sourceCitation
+                                                                                                source.citationProducer
                                                                                             }
                                                                                             theme="light"
                                                                                             isTruncated
@@ -616,7 +803,7 @@ export const DataPageContent = ({
                                         </a>
                                     </div>
                                 </div>
-                                {datapageGdocContent?.variableProcessingInfo && (
+                                {datapageData?.processingInfo && (
                                     <div className="variable-processing-info col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
                                         <h5 className="variable-processing-info__header">
                                             Notes on our processing step for
@@ -624,9 +811,11 @@ export const DataPageContent = ({
                                         </h5>
                                         <div className="variable-processing-info__description">
                                             <ArticleBlocks
-                                                blocks={
-                                                    datapageGdocContent.variableProcessingInfo
-                                                }
+                                                blocks={[
+                                                    markdownToEnrichedTextBlock(
+                                                        datapageData.processingInfo
+                                                    ),
+                                                ]}
                                                 containerType="datapage"
                                             />
                                         </div>
@@ -675,21 +864,21 @@ export const DataPageContent = ({
                                         </li>
                                     </ul>
                                 </div>
-                                {(datapageJson.citationDataInline ||
-                                    datapageJson.citationDataFull ||
-                                    datapageJson.citationDatapage) && (
+                                {(citationShort ||
+                                    citationLong ||
+                                    citationDatapage) && (
                                     <div className="citations grid span-cols-12">
                                         <h3 className="citations__heading span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
                                             Citations
                                         </h3>
                                         <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                                            {(datapageJson.citationDataInline ||
-                                                datapageJson.citationDataFull) && (
+                                            {(citationShort ||
+                                                citationLong) && (
                                                 <div className="citations-section">
                                                     <h5 className="citation__how-to-header citation__how-to-header--data">
                                                         How to cite this data
                                                     </h5>
-                                                    {datapageJson.citationDataInline && (
+                                                    {citationShort && (
                                                         <>
                                                             <p className="citation__paragraph">
                                                                 <span className="citation__type">
@@ -709,13 +898,13 @@ export const DataPageContent = ({
                                                             </p>
                                                             <CodeSnippet
                                                                 code={
-                                                                    datapageJson.citationDataInline
+                                                                    citationShort
                                                                 }
                                                                 theme="light"
                                                             />
                                                         </>
                                                     )}
-                                                    {datapageJson.citationDataFull && (
+                                                    {citationLong && (
                                                         <>
                                                             <p className="citation__paragraph">
                                                                 <span className="citation__type">
@@ -725,7 +914,7 @@ export const DataPageContent = ({
                                                             </p>
                                                             <CodeSnippet
                                                                 code={
-                                                                    datapageJson.citationDataFull
+                                                                    citationLong
                                                                 }
                                                                 theme="light"
                                                             />
@@ -733,7 +922,7 @@ export const DataPageContent = ({
                                                     )}
                                                 </div>
                                             )}
-                                            {datapageJson.citationDatapage && (
+                                            {citationDatapage && (
                                                 <div className="citations-section">
                                                     <h5 className="citation__how-to-header">
                                                         How to cite this page
@@ -747,9 +936,7 @@ export const DataPageContent = ({
                                                         following citation:
                                                     </p>
                                                     <CodeSnippet
-                                                        code={
-                                                            datapageJson.citationDatapage
-                                                        }
+                                                        code={citationDatapage}
                                                         theme="light"
                                                     />
                                                 </div>
@@ -766,20 +953,14 @@ export const DataPageContent = ({
     )
 }
 
-export const hydrateDataPageContent = (isPreviewing?: boolean) => {
+export const hydrateDataPageV2Content = (isPreviewing?: boolean) => {
     const wrapper = document.querySelector(`#${OWID_DATAPAGE_CONTENT_ROOT_ID}`)
-    const props = window._OWID_DATAPAGE_PROPS
-
-    const grapherConfig = {
-        ...window._OWID_GRAPHER_CONFIG,
-        isEmbeddedInADataPage: true,
-        bindUrlToWindow: true,
-        dataApiUrlForAdmin: DATA_API_URL,
-    }
+    const props: DataPageV2ContentFields = window._OWID_DATAPAGEV2_PROPS
+    const grapherConfig = window._OWID_GRAPHER_CONFIG
 
     ReactDOM.hydrate(
         <DebugProvider debug={isPreviewing}>
-            <DataPageContent
+            <DataPageV2Content
                 {...props}
                 grapherConfig={grapherConfig}
                 isPreviewing={isPreviewing}

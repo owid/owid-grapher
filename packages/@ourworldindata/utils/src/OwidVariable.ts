@@ -97,8 +97,14 @@ export interface OwidVariablePresentation {
     keyInfoText?: string[]
     processingInfo?: string
     topicTagsLinks?: string[]
-    grapherConfig?: Record<string, unknown> // TODO: move grapher config interface up to types, use it here, clean up types
+    faqs?: FaqLink[]
 }
+
+export interface FaqLink {
+    gdocId: string
+    fragmentId: string
+}
+
 export type OwidVariableWithSourceAndDimension = OwidVariableWithSource & {
     dimensions: OwidVariableDimensions
 }

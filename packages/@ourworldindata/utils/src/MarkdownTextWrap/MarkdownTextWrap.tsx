@@ -1,6 +1,6 @@
 import React, { CSSProperties } from "react"
 import { computed } from "mobx"
-import { EveryMarkdownNode, MarkdownRoot, mdParser } from "./parser.js"
+import { EveryMarkdownChildNode, MarkdownRoot, mdParser } from "./parser.js"
 import { excludeUndefined, last, sum, sumBy, imemo, max } from "../Util.js"
 import { Bounds, FontFamily } from "../Bounds.js"
 import { TextWrap } from "../TextWrap/TextWrap.js"
@@ -470,7 +470,7 @@ export const sumTextWrapHeights = (
 ): number => sum(elements.map((element) => element.height + spacer))
 
 export function parsimmonToTextTokens(
-    nodes: EveryMarkdownNode[],
+    nodes: EveryMarkdownChildNode[],
     fontParams?: IRFontParams
 ): IRToken[] {
     return nodes.map((node): IRToken => {

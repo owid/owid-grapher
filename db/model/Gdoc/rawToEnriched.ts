@@ -93,6 +93,8 @@ import {
     EnrichedBlockAlign,
     HorizontalAlign,
     RawBlockAlign,
+    FaqDictionary,
+    EnrichedFaq,
 } from "@ourworldindata/utils"
 import {
     extractUrl,
@@ -1177,6 +1179,76 @@ function parseKeyInsights(raw: RawBlockKeyInsights): EnrichedBlockKeyInsights {
         heading: raw.value.heading,
         insights: enrichedInsights,
         parseErrors: [...enrichedInsightParseErrors],
+    }
+}
+
+export function parseFaqs(
+    faqs: unknown,
+    gdocId: string
+): {
+    faqs: FaqDictionary
+    parseErrors: ParseError[]
+} {
+    if (!Array.isArray(faqs))
+        return {
+            faqs: {},
+            parseErrors: [
+                {
+                    message: `No faqs defined in document with id "${gdocId}"`,
+                },
+            ],
+        }
+
+    function parseFaq(faq: unknown): EnrichedFaq {
+        const createError = (
+            error: ParseError,
+            id: string = "",
+            content: OwidEnrichedGdocBlock[] = []
+        ): EnrichedFaq => ({
+            id,
+            content,
+            parseErrors: [error],
+        })
+
+        if (!checkIsPlainObjectWithGuard(faq))
+            return createError({
+                message: "Faq is not a plain-object and cannot be parsed",
+            })
+        if (typeof faq.id !== "string")
+            return createError({
+                message: "Faq does not have an id",
+            })
+        if (!Array.isArray(faq.content) || !faq.content.length)
+            return createError({
+                message: `Faq with id "${faq.id}" does not have any blocks`,
+            })
+
+        const enrichedText = compact(
+            faq.content.map(parseRawBlocksToEnrichedBlocks)
+        )
+
+        return {
+            id: faq.id,
+            content: enrichedText,
+            parseErrors: compact([
+                ...enrichedText.flatMap((block) =>
+                    block?.parseErrors.map((parseError) => ({
+                        ...parseError,
+                        message: `Block parse error in faq with id "${faq.id}": ${parseError.message}`,
+                    }))
+                ),
+            ]),
+        }
+    }
+
+    const [enrichedFaqs, faqsWithErrors] = partition(
+        faqs.map(parseFaq),
+        (detail) => !detail.parseErrors.length
+    )
+
+    return {
+        faqs: keyBy(enrichedFaqs, "id"),
+        parseErrors: faqsWithErrors.flatMap((faq) => faq.parseErrors),
     }
 }
 

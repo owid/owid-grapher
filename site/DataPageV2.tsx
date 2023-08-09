@@ -8,10 +8,11 @@ import {
     uniq,
     SiteFooterContext,
     MarkdownTextWrap,
-    DataPageGdocContent,
-    DataPageJson,
-    OwidGdocInterface,
+    DataPageDataV2,
     serializeJSONForHTML,
+    mergePartialGrapherConfigs,
+    compact,
+    FaqEntryData,
 } from "@ourworldindata/utils"
 import React from "react"
 import urljoin from "url-join"
@@ -21,39 +22,37 @@ import {
     DATA_API_URL,
 } from "../settings/clientSettings.js"
 import {
-    DataPageContent,
+    DataPageV2Content,
     OWID_DATAPAGE_CONTENT_ROOT_ID,
-} from "./DataPageContent.js"
+} from "./DataPageV2Content.js"
 import { Head } from "./Head.js"
 import { SiteFooter } from "./SiteFooter.js"
 import { SiteHeader } from "./SiteHeader.js"
 import { IFrameDetector } from "./IframeDetector.js"
 import { DebugProvider } from "./gdocs/DebugContext.js"
 
-export const DataPage = (props: {
-    grapher: GrapherInterface
-    variableId: number
-    datapageJson: DataPageJson
-    datapageGdoc?: OwidGdocInterface | null
-    datapageGdocContent?: DataPageGdocContent | null
+export const DataPageV2 = (props: {
+    grapher: GrapherInterface | undefined
+    datapageData: DataPageDataV2
     baseUrl: string
     baseGrapherUrl: string
     isPreviewing: boolean
+    faqEntries?: FaqEntryData
 }) => {
     const {
         grapher,
-        variableId,
-        datapageJson,
-        datapageGdoc,
-        datapageGdocContent,
+        datapageData,
         baseGrapherUrl,
         baseUrl,
         isPreviewing,
+        faqEntries,
     } = props
-    const pageTitle = grapher.title
-    const canonicalUrl = urljoin(baseGrapherUrl, grapher.slug as string)
+    const pageTitle = grapher?.title ?? datapageData.title
+    const canonicalUrl = grapher?.slug
+        ? urljoin(baseGrapherUrl, grapher.slug as string)
+        : ""
     let pageDesc: string
-    if (grapher.subtitle?.length) {
+    if (grapher?.subtitle?.length) {
         // convert subtitle from markdown to plaintext
         pageDesc = new MarkdownTextWrap({
             text: grapher.subtitle,
@@ -74,10 +73,19 @@ export const DataPage = (props: {
     const imageWidth = "1200"
     const imageHeight = "628"
 
-    const variableIds = uniq(grapher.dimensions!.map((d) => d.variableId))
+    const variableIds: number[] = uniq(
+        compact(grapher?.dimensions?.map((d) => d.variableId))
+    )
+
+    const mergedGrapherConfig = mergePartialGrapherConfigs(
+        datapageData.chartConfig as GrapherInterface,
+        grapher
+    )
 
     const grapherConfig: GrapherProgrammaticInterface = {
-        ...grapher,
+        ...mergedGrapherConfig,
+        isEmbeddedInADataPage: true,
+        bindUrlToWindow: true,
         bakedGrapherURL: BAKED_GRAPHER_URL,
         adminBaseUrl: ADMIN_BASE_URL,
         dataApiUrl: DATA_API_URL,
@@ -116,48 +124,26 @@ export const DataPage = (props: {
                 )}
             </Head>
             <body className="DataPage">
-                {isPreviewing && (
-                    <div className="DataPage__edit-links">
-                        <a
-                            href={datapageJson.googleDocEditLink}
-                            target="_blank"
-                            rel="noopener"
-                            className="DataPage__edit-link"
-                        >
-                            Edit Google Doc
-                        </a>
-                        <a
-                            href={`https://github.com/owid/owid-content/blob/master/datapages/${variableId}.json`}
-                            target="_blank"
-                            rel="noopener"
-                            className="DataPage__edit-link"
-                        >
-                            Edit JSON
-                        </a>
-                    </div>
-                )}
                 <SiteHeader baseUrl={baseUrl} />
                 <main>
                     <>
                         <script
                             dangerouslySetInnerHTML={{
-                                __html: `window._OWID_DATAPAGE_PROPS = ${JSON.stringify(
+                                __html: `window._OWID_DATAPAGEV2_PROPS = ${JSON.stringify(
                                     {
-                                        datapageJson,
-                                        datapageGdoc,
-                                        datapageGdocContent,
+                                        datapageData,
+                                        faqEntries,
                                     }
                                 )}`,
                             }}
                         />
                         <div id={OWID_DATAPAGE_CONTENT_ROOT_ID}>
                             <DebugProvider debug={isPreviewing}>
-                                <DataPageContent
-                                    datapageJson={datapageJson}
-                                    datapageGdoc={datapageGdoc}
-                                    datapageGdocContent={datapageGdocContent}
+                                <DataPageV2Content
+                                    datapageData={datapageData}
                                     grapherConfig={grapherConfig}
                                     isPreviewing={isPreviewing}
+                                    faqEntries={faqEntries}
                                 />
                             </DebugProvider>
                         </div>
@@ -165,7 +151,7 @@ export const DataPage = (props: {
                 </main>
                 <SiteFooter
                     baseUrl={baseUrl}
-                    context={SiteFooterContext.dataPage}
+                    context={SiteFooterContext.dataPageV2}
                     isPreviewing={isPreviewing}
                 />
                 <script

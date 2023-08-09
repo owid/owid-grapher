@@ -1,6 +1,7 @@
 import fs from "fs-extra"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import { Value } from "@sinclair/typebox/value"
+import "dayjs"
 import {
     OwidEnrichedGdocBlock,
     OwidGdocInterface,
@@ -13,9 +14,76 @@ import {
     DataPageJsonTypeObject,
     DataPageParseError,
     AllowedDataPageGdocFields,
+    DataPageDataV2,
+    OwidVariableWithSource,
+    dayjs,
+    getAttributionFromVariable,
+    gdocIdRegex,
 } from "@ourworldindata/utils"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
+import { GrapherInterface } from "@ourworldindata/grapher"
+
+interface ETLPathComponents {
+    channel: string
+    publisher: string
+    version: string
+    dataset: string
+}
+
+const getETLPathComponents = (path: string): ETLPathComponents => {
+    const [channel, publisher, version, dataset] = path.split("/")
+    return { channel, publisher, version, dataset }
+}
+
+export const getDatapageDataV2 = async (
+    variableMetadata: OwidVariableWithSource,
+    partialGrapherConfig: GrapherInterface
+): Promise<DataPageDataV2> => {
+    {
+        const processingLevel = variableMetadata.processingLevel ?? "major"
+        const version =
+            getETLPathComponents(variableMetadata.catalogPath ?? "")?.version ??
+            ""
+        let nextUpdate = undefined
+        if (variableMetadata.updatePeriodDays) {
+            const date = dayjs(version)
+            nextUpdate = date
+                .add(variableMetadata.updatePeriodDays, "day")
+                .format("MMMM YYYY")
+        }
+        const datapageJson: DataPageDataV2 = {
+            status: "draft",
+            title:
+                variableMetadata.presentation?.titlePublic ??
+                partialGrapherConfig.title ??
+                variableMetadata.name ??
+                "",
+            descriptionShort:
+                variableMetadata.descriptionShort ??
+                partialGrapherConfig.subtitle,
+            descriptionFromProducer: variableMetadata.descriptionFromProducer,
+            producerShort: variableMetadata.presentation?.producerShort,
+            titleVariant: variableMetadata.presentation?.titleVariant,
+            topicTagsLinks: variableMetadata.presentation?.topicTagsLinks ?? [],
+            attribution: getAttributionFromVariable(variableMetadata),
+            faqs: [],
+            keyInfoText: variableMetadata.presentation?.keyInfoText ?? [],
+            processingInfo: variableMetadata.presentation?.processingInfo,
+            owidProcessingLevel: processingLevel,
+            dateRange: variableMetadata.timespan ?? "",
+            lastUpdated: version,
+            nextUpdate: nextUpdate,
+            relatedData: [],
+            allCharts: [],
+            relatedResearch: [],
+            source: variableMetadata.source,
+            origins: variableMetadata.origins ?? [],
+            chartConfig: partialGrapherConfig as Record<string, unknown>,
+        }
+        return datapageJson
+    }
+}
 
 export const getDatapageJson = async (
     variableId: number
@@ -75,16 +143,18 @@ export const getDatapageJson = async (
  * see https://github.com/owid/owid-grapher/issues/2121#issue-1676097164
  */
 export const getDatapageGdoc = async (
-    googleDocEditLink: string,
+    googleDocEditLinkOrId: string,
     isPreviewing: boolean,
     publishedExplorersBySlug?: Record<string, ExplorerProgram>
 ): Promise<OwidGdocInterface | null> => {
     // Get the google doc id from the datapage JSON file and return early if
     // none found
-    const googleDocId =
-        getLinkType(googleDocEditLink) === "gdoc"
-            ? getUrlTarget(googleDocEditLink)
-            : null
+    const isPlainGoogleId = gdocIdRegex.exec(googleDocEditLinkOrId)
+    const googleDocId = isPlainGoogleId
+        ? googleDocEditLinkOrId
+        : getLinkType(googleDocEditLinkOrId) === "gdoc"
+        ? getUrlTarget(googleDocEditLinkOrId)
+        : null
 
     if (!googleDocId) return null
 
@@ -111,7 +181,7 @@ export const getDatapageGdoc = async (
  * Takes a gdoc and splits its content into sections based on the heading 1s.
 
 * The heading 1 texts are used as keys, which can represent a nested structure,
- * e.g. `descriptionFromSource.content`. 
+ * e.g. `descriptionFromSource.content`.
  *
  * Validation: only a subset of the possible fields found is allowed (see
  * AllowedDataPageGdocFields). This means the gdoc can contain extra heading

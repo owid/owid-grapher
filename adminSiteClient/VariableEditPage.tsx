@@ -32,6 +32,7 @@ interface VariablePageData
     extends Omit<OwidVariableWithDataAndSource, "source"> {
     datasetNamespace: string
     charts: ChartListItem[]
+    grapherConfig: GrapherInterface | undefined
     source: { id: number; name: string }
 }
 
@@ -86,7 +87,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
 
     render() {
         const { variable } = this.props
-        const { newVariable } = this
+        const { newVariable, isV2MetadataVariable } = this
         const isDisabled = true
 
         if (this.isDeleted)
@@ -114,6 +115,13 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                         <form>
                             <section>
                                 <h3>Indicator metadata</h3>
+                                {isV2MetadataVariable && (
+                                    <a
+                                        href={`/datapage-preview/${variable.id}`}
+                                    >
+                                        View data page
+                                    </a>
+                                )}
                                 <p>
                                     Metadata is non-editable and can be only
                                     changed in ETL.
@@ -249,20 +257,35 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
         )
     }
 
+    @computed private get isV2MetadataVariable(): boolean {
+        const { variable } = this.props
+
+        return (variable?.schemaVersion ?? 1) >= 2
+    }
+
     @computed private get grapherConfig(): GrapherInterface {
-        return {
-            yAxis: { min: 0 },
-            map: { columnSlug: this.props.variable.id.toString() },
-            tab: GrapherTabOption.map,
-            hasMapTab: true,
-            dimensions: [
-                {
-                    property: DimensionProperty.y,
-                    variableId: this.props.variable.id,
-                    display: lodash.clone(this.newVariable.display),
-                },
-            ],
-        }
+        const { variable } = this.props
+        const grapherConfig = variable.grapherConfig
+        if (grapherConfig)
+            return {
+                ...grapherConfig,
+                hasMapTab: true,
+                tab: GrapherTabOption.map,
+            }
+        else
+            return {
+                yAxis: { min: 0 },
+                map: { columnSlug: this.props.variable.id.toString() },
+                tab: GrapherTabOption.map,
+                hasMapTab: true,
+                dimensions: [
+                    {
+                        property: DimensionProperty.y,
+                        variableId: this.props.variable.id,
+                        display: lodash.clone(this.newVariable.display),
+                    },
+                ],
+            }
     }
 
     dispose!: IReactionDisposer

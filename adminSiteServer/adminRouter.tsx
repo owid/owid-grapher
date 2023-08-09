@@ -37,8 +37,12 @@ import {
 } from "../explorer/ExplorerProgram.js"
 import fs from "fs-extra"
 import * as Post from "../db/model/Post.js"
-import { renderPreviewDataPageOrGrapherPage } from "../baker/GrapherBaker.js"
+import {
+    renderDataPageV2,
+    renderPreviewDataPageOrGrapherPage,
+} from "../baker/GrapherBaker.js"
 import { Chart } from "../db/model/Chart.js"
+import { getVariableMetadata } from "../db/model/Variable.js"
 
 // Used for rate-limiting important endpoints (login, register) to prevent brute force attacks
 const limiterMiddleware = (
@@ -257,6 +261,23 @@ adminRouter.get(`/${EXPLORERS_PREVIEW_ROUTE}/:slug`, async (req, res) => {
         return res.send(`File not found`)
     const explorer = await explorerAdminServer.getExplorerFromFile(filename)
     return res.send(await renderExplorerPage(explorer))
+})
+
+adminRouter.get("/datapage-preview/:id", async (req, res) => {
+    const variableId = expectInt(req.params.id)
+    const variableMetadata = await getVariableMetadata(variableId)
+    if (!variableMetadata) throw new JsonError("No such variable", 404)
+    const publishedExplorersBySlug =
+        await explorerAdminServer.getAllPublishedExplorersBySlugCached()
+
+    res.send(
+        await renderDataPageV2({
+            variableId,
+            variableMetadata,
+            isPreviewing: true,
+            publishedExplorersBySlug,
+        })
+    )
 })
 
 adminRouter.get("/grapher/:slug", async (req, res) => {
