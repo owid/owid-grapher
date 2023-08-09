@@ -110,10 +110,10 @@ const VERTICAL_SPACING = 16
 
 // keep in sync with sass variables in CaptionedChart.scss
 const FRAME_PADDING = VERTICAL_SPACING
-const CONTROLS_ROW_HEIGHT = 32
+const CONTROLS_ROW_HEIGHT = 34
 const RELATED_QUESTION_HEIGHT = 28
 
-const TIMELINE_HEIGHT = CONTROLS_ROW_HEIGHT
+const TIMELINE_HEIGHT = 32
 
 // todo(redesign): we might want to rename CaptionedChart later
 
