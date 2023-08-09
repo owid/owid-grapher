@@ -97,7 +97,13 @@ const nonWordpressSteps = [
     "dods",
 ] as const
 
-export const bakeSteps = [...wordpressSteps, ...nonWordpressSteps]
+const otherSteps = ["removeDeletedPosts"] as const
+
+export const bakeSteps = [
+    ...wordpressSteps,
+    ...nonWordpressSteps,
+    ...otherSteps,
+]
 
 export type BakeStep = (typeof bakeSteps)[number]
 
@@ -255,6 +261,7 @@ export class SiteBaker {
     // Bake all Wordpress posts, both blog posts and entry pages
 
     private async removeDeletedPosts() {
+        if (!this.bakeSteps.has("removeDeletedPosts")) return
         const postsApi = await wpdb.getPosts()
 
         const postSlugs = []
