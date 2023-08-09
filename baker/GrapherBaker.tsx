@@ -29,7 +29,6 @@ import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
     MAX_NUM_BAKE_PROCESSES,
-    DATA_FILES_CHECKSUMS_DIRECTORY,
     ADMIN_BASE_URL,
 } from "../settings/serverSettings.js"
 import * as db from "../db/db.js"
@@ -294,23 +293,13 @@ const renderGrapherPage = async (grapher: GrapherInterface) => {
     )
 }
 
-interface BakeVariableDataArguments {
-    bakedSiteDir: string
-    checksumsDir: string
-    variableId: number
-}
-
-export const bakeVariableData = async (
-    bakeArgs: BakeVariableDataArguments
-): Promise<BakeVariableDataArguments> => {
+export const checkVariableData = async (variableId: number) => {
     const { dataPath, metadataPath } = await getOwidVariableDataAndMetadataPath(
-        bakeArgs.variableId
+        variableId
     )
 
     await retryPromise(() => assertFileExistsInS3(dataPath))
     await retryPromise(() => assertFileExistsInS3(metadataPath))
-
-    return bakeArgs
 }
 
 const chartIsSameVersion = async (
@@ -400,32 +389,25 @@ const deleteOldGraphers = async (bakedSiteDir: string, newSlugs: string[]) => {
     }
 }
 
-export const bakeAllPublishedChartsVariableDataAndMetadata = async (
-    bakedSiteDir: string,
-    variableIds: number[],
-    checksumsDir: string
+export const checkAllPublishedChartsVariableDataAndMetadata = async (
+    variableIds: number[]
 ) => {
-    await fs.mkdirp(checksumsDir)
-
     const progressBar = new ProgressBar(
         "check existence of variable in Data API [:bar] :current/:total :elapseds :rate/s :etas :name\n",
         {
             width: 20,
-            total: variableIds.length + 1,
+            total: variableIds.length,
         }
     )
 
-    // NOTE: we don't bake data, just make sure it exists on S3
     await Promise.all(
         variableIds.map(async (variableId) => {
-            await bakeVariableData({
-                bakedSiteDir,
-                variableId,
-                checksumsDir,
-            })
-            progressBar.tick({ name: `variableid ${variableId}` })
+            await checkVariableData(variableId)
         })
     )
+    progressBar.tick(variableIds.length, {
+        name: `✅ Checked existence of all variables in Data API`,
+    })
 }
 
 export interface BakeSingleGrapherChartArguments {
@@ -459,7 +441,7 @@ export const bakeSingleGrapherChart = async (
 
 export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
     async (bakedSiteDir: string) => {
-        const variablesToBake: { varId: number }[] =
+        const variablesInCharts: { varId: number }[] =
             await db.queryMysql(`select vars.varID as varId
             from charts c,
             json_table(c.config, '$.dimensions[*]' columns (varID integer path '$.variableId') ) as vars
@@ -476,10 +458,8 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
                 `)
 
         // NOTE: this has to be run after `chartsToBake` in case someone edits chart variable that hasn't been baked yet
-        await bakeAllPublishedChartsVariableDataAndMetadata(
-            bakedSiteDir,
-            variablesToBake.map((v) => v.varId),
-            DATA_FILES_CHECKSUMS_DIRECTORY
+        await checkAllPublishedChartsVariableDataAndMetadata(
+            variablesInCharts.map((v) => v.varId)
         )
 
         const newSlugs = chartsToBake.map((row) => row.slug)

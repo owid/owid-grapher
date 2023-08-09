@@ -119,10 +119,6 @@ export const DEPLOY_PENDING_FILE_PATH: string =
     serverSettings.DEPLOY_PENDING_FILE_PATH ?? `${BASE_DIR}/.pending`
 export const CLOUDFLARE_AUD: string = serverSettings.CLOUDFLARE_AUD ?? ""
 
-export const DATA_FILES_CHECKSUMS_DIRECTORY: string =
-    serverSettings.DATA_FILES_CHECKSUMS_DIRECTORY ??
-    `${BASE_DIR}/data_files_checksums`
-
 // Either remote catalog `https://owid-catalog.nyc3.digitaloceanspaces.com/` or local catalog `.../etl/data/`
 // Note that Cloudflare proxy on `https://catalog.ourworldindata.org` does not support range requests yet
 // It is empty (turned off) by default for now, in the future it should be
@@ -169,3 +165,5 @@ export const IMAGE_HOSTING_SPACE_ACCESS_KEY_ID: string =
     serverSettings.IMAGE_HOSTING_SPACE_ACCESS_KEY_ID || ""
 export const IMAGE_HOSTING_SPACE_SECRET_ACCESS_KEY: string =
     serverSettings.IMAGE_HOSTING_SPACE_SECRET_ACCESS_KEY || ""
+
+export const DATA_API_URL: string = clientSettings.DATA_API_URL
