@@ -3,6 +3,7 @@ import ReactDOM from "react-dom"
 import { FeedbackPrompt } from "./Feedback.js"
 import { ScrollDirection, useScrollDirection } from "./hooks.js"
 import {
+    NewsletterSubscription,
     NewsletterSubscriptionForm,
     NewsletterSubscriptionContext,
 } from "./NewsletterSubscription.js"
@@ -20,6 +21,9 @@ const SiteTools = () => {
                 (scrollDirection === ScrollDirection.Down && " hide") || ""
             }`}
         >
+            <NewsletterSubscription
+                context={NewsletterSubscriptionContext.Floating}
+            />
             <FeedbackPrompt />
             <a className="prompt" data-track-note="page_open_jobs" href="/jobs">
                 <FontAwesomeIcon icon={faHandshake} /> Jobs
