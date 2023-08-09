@@ -389,23 +389,25 @@ const deleteOldGraphers = async (bakedSiteDir: string, newSlugs: string[]) => {
     }
 }
 
-export const bakeAllPublishedChartsVariableDataAndMetadata = async (
+export const checkAllPublishedChartsVariableDataAndMetadata = async (
     variableIds: number[]
 ) => {
     const progressBar = new ProgressBar(
         "check existence of variable in Data API [:bar] :current/:total :elapseds :rate/s :etas :name\n",
         {
             width: 20,
-            total: variableIds.length + 1,
+            total: variableIds.length,
         }
     )
 
     await Promise.all(
         variableIds.map(async (variableId) => {
             await checkVariableData(variableId)
-            progressBar.tick({ name: `variableid ${variableId}` })
         })
     )
+    progressBar.tick(variableIds.length, {
+        name: `✅ Checked existence of all variables in Data API`,
+    })
 }
 
 export interface BakeSingleGrapherChartArguments {
@@ -439,7 +441,7 @@ export const bakeSingleGrapherChart = async (
 
 export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
     async (bakedSiteDir: string) => {
-        const variablesToBake: { varId: number }[] =
+        const variablesInCharts: { varId: number }[] =
             await db.queryMysql(`select vars.varID as varId
             from charts c,
             json_table(c.config, '$.dimensions[*]' columns (varID integer path '$.variableId') ) as vars
@@ -456,8 +458,8 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
                 `)
 
         // NOTE: this has to be run after `chartsToBake` in case someone edits chart variable that hasn't been baked yet
-        await bakeAllPublishedChartsVariableDataAndMetadata(
-            variablesToBake.map((v) => v.varId)
+        await checkAllPublishedChartsVariableDataAndMetadata(
+            variablesInCharts.map((v) => v.varId)
         )
 
         const newSlugs = chartsToBake.map((row) => row.slug)
