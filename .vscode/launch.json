@@ -75,7 +75,7 @@
             "name": "Launch admin server",
             "program": "${workspaceFolder}/itsJustJavascript/adminSiteServer/app.js",
             "request": "launch",
-            "type": "node",
+            "type": "node"
         },
         {
             "name": "Attach to node",
