@@ -530,13 +530,7 @@ export class SiteBaker {
                 `${this.bakedSiteDir}/dods.json`,
                 JSON.stringify(details)
             )
-            // This task completes too quickly and doesn't tick correctly without this
-            await new Promise((resolve) => {
-                setTimeout(() => {
-                    this.progressBar.tick({ name: "✅ baked dods.json" })
-                    resolve(true)
-                }, 250)
-            })
+            this.progressBar.tick({ name: "✅ baked dods.json" })
         } else {
             throw Error("Details on demand not found")
         }
