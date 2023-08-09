@@ -248,19 +248,17 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         return !!showSelectEntitiesButton || !!showChangeEntityButton
     }
 
+    @computed get showSettingsMenuToggle(): boolean {
+        return (
+            !!this.manager.showSettingsMenuToggle &&
+            !!this.manager.isReady &&
+            !this.manager.isOnMapTab &&
+            !this.manager.isOnTableTab
+        )
+    }
+
     private renderControlsRow(): JSX.Element | null {
-        const {
-            showEntitySelector,
-            manager: {
-                isReady,
-                isOnMapTab,
-                isOnTableTab,
-                showSettingsMenuToggle,
-            },
-        } = this
-
-        if (!isReady || isOnMapTab || isOnTableTab) return null
-
+        const { showEntitySelector, showSettingsMenuToggle } = this
         return (
             <nav className="controlsRow">
                 <ContentSwitchers manager={this.manager} />
