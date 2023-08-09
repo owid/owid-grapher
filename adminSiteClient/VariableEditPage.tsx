@@ -117,7 +117,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                 <h3>Indicator metadata</h3>
                                 {isV2MetadataVariable && (
                                     <a
-                                        href={`/datapage-preview/${variable.id}`}
+                                        href={`/admin/datapage-preview/${variable.id}`}
                                     >
                                         View data page
                                     </a>
