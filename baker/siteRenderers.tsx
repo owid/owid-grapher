@@ -79,7 +79,6 @@ import { formatUrls, KEY_INSIGHTS_H2_CLASSNAME } from "../site/formatting.js"
 
 import {
     GrapherInterface,
-    Grapher,
     GrapherProgrammaticInterface,
 } from "@ourworldindata/grapher"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
@@ -621,7 +620,7 @@ export const renderExplorerPage = async (
         config.id = row.id // Ensure each grapher has an id
         config.adminBaseUrl = ADMIN_BASE_URL
         config.bakedGrapherURL = BAKED_GRAPHER_URL
-        return new Grapher(config).toObject()
+        return config
     }
     const grapherConfigs = grapherConfigRows.map(parseGrapherConfigFromRow)
     const partialGrapherConfigs = partialGrapherConfigRows
