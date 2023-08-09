@@ -57,7 +57,7 @@ export class Header extends React.Component<{
     @computed get title(): TextWrap {
         const { logoWidth, manager } = this
 
-        const maxWidth = this.maxWidth - logoWidth - 20
+        const maxWidth = this.maxWidth - logoWidth - 24
         const fontWeight = !manager.isExportingtoSvgOrPng ? 600 : undefined
         const titleStyle = {
             maxWidth,
