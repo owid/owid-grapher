@@ -1,5 +1,5 @@
 import ReactDOM from "react-dom"
-import React from "react"
+import React, { useRef } from "react"
 import cx from "classnames"
 import {
     keyBy,
@@ -84,44 +84,57 @@ function ExplorersHit({ hit }: { hit: any }) {
     )
 }
 
-// TODO: extract from header, position: absolute to handle mobile styles
 function ShowMore({
     category,
     cutoffNumber,
     activeCategoryFilter,
-    setActiveCategoryFilter,
+    handleCategoryFilterClick,
 }: {
     category: SearchIndexName
     cutoffNumber: number
     activeCategoryFilter: SearchCategoryFilter
-    setActiveCategoryFilter: (x: SearchIndexName) => void
+    handleCategoryFilterClick: (x: SearchIndexName) => void
 }) {
     const { results } = useInstantSearch()
-    // Don't show if we're on the same tab as the category this button is for
+    // Hide if we're on the same tab as the category this button is for
     if (activeCategoryFilter === category) return null
     if (results.hits.length === 0) return null
-    const numberShowing =
-        cutoffNumber < results.hits.length ? cutoffNumber : results.hits.length
+
+    const handleClick = () => {
+        window.scrollTo({ top: 0, behavior: "smooth" })
+        // Skip timeout if we're already at/near the top of the page
+        const timeout = window.scrollY > 100 ? 500 : 0
+        setTimeout(() => {
+            // Show the user we're back at the top of the page before updating the tab
+            handleCategoryFilterClick(category)
+        }, timeout)
+    }
+
+    const numberShowing = Math.min(cutoffNumber, results.hits.length)
     return (
         <div className="search-results__show-more-container">
             <em>
                 Showing {numberShowing} out of {results.hits.length} results
             </em>
-            <button onClick={() => setActiveCategoryFilter(category)}>
-                Show all
-            </button>
+            <button onClick={handleClick}>Show all</button>
         </div>
     )
 }
 
 function Filters({
-    setActiveCategoryFilter,
+    isHidden,
+    categoryFilterContainerRef,
+    handleCategoryFilterClick,
     activeCategoryFilter,
 }: {
+    isHidden: boolean
+    categoryFilterContainerRef: React.Ref<HTMLUListElement>
     activeCategoryFilter: SearchCategoryFilter
-    setActiveCategoryFilter: (x: SearchCategoryFilter) => void
+    handleCategoryFilterClick: (x: SearchCategoryFilter) => void
 }) {
     const { scopedResults } = useInstantSearch()
+    if (isHidden) return null
+
     const resultsByIndexName = keyBy(scopedResults, "indexId")
     const hitsLengthByIndexName = mapValues(resultsByIndexName, (results) =>
         get(results, ["results", "hits", "length"], 0)
@@ -134,30 +147,40 @@ function Filters({
 
     return (
         <div className="search-filters">
-            <div className="search-filters__tabs">
+            <ul
+                ref={categoryFilterContainerRef}
+                className="search-filters__list"
+            >
                 {searchCategoryFilters.map(([label, key]) => (
-                    <button
-                        key={label}
-                        disabled={hitsLengthByIndexName[key] === 0}
-                        onClick={() => setActiveCategoryFilter(key)}
-                        className={cx("search-filters__tab-button", {
-                            "search-filters__tab-button--is-active":
-                                activeCategoryFilter === key,
-                        })}
+                    <li
+                        key={key}
+                        data-filter-key={key}
+                        className="search-filters__tab"
                     >
-                        {label}
-                        <span className="search-filters__tab-count">
-                            {hitsLengthByIndexName[key]}
-                        </span>
-                    </button>
+                        <button
+                            disabled={hitsLengthByIndexName[key] === 0}
+                            onClick={() => handleCategoryFilterClick(key)}
+                            className={cx("search-filters__tab-button", {
+                                "search-filters__tab-button--is-active":
+                                    activeCategoryFilter === key,
+                            })}
+                        >
+                            {label}
+                            <span className="search-filters__tab-count">
+                                {hitsLengthByIndexName[key]}
+                            </span>
+                        </button>
+                    </li>
                 ))}
-            </div>
+            </ul>
         </div>
     )
 }
 
 interface SearchResultsProps {
+    activeCategoryFilter: SearchCategoryFilter
     isHidden: boolean
+    handleCategoryFilterClick: (x: SearchCategoryFilter) => void
 }
 
 @observer
@@ -166,23 +189,15 @@ class SearchResults extends React.Component<SearchResultsProps> {
         super(props)
     }
 
-    @observable activeCategoryFilter: SearchCategoryFilter = "all"
-
-    @action.bound setActiveCategoryFilter(filter: SearchCategoryFilter) {
-        this.activeCategoryFilter = filter
-    }
-
     render() {
-        if (this.props.isHidden) return null
+        const { activeCategoryFilter, isHidden, handleCategoryFilterClick } =
+            this.props
+        if (isHidden) return null
         return (
             <div
                 className="search-results"
-                data-active-filter={this.activeCategoryFilter}
+                data-active-filter={activeCategoryFilter}
             >
-                <Filters
-                    activeCategoryFilter={this.activeCategoryFilter}
-                    setActiveCategoryFilter={this.setActiveCategoryFilter}
-                />
                 {/* This is using the InstantSearch index */}
                 <Configure hitsPerPage={40} distinct />
 
@@ -195,12 +210,12 @@ class SearchResults extends React.Component<SearchResultsProps> {
                     <ShowMore
                         category={SearchIndexName.Pages}
                         cutoffNumber={4}
-                        activeCategoryFilter={this.activeCategoryFilter}
-                        setActiveCategoryFilter={this.setActiveCategoryFilter}
+                        activeCategoryFilter={activeCategoryFilter}
+                        handleCategoryFilterClick={handleCategoryFilterClick}
                     />
                     <Hits
                         classNames={{
-                            root: "search-results__pages-list-container",
+                            root: "search-results__list-container",
                             list: "search-results__pages-list grid grid-cols-2 grid-cols-sm-1",
                             item: "search-results__page-hit span-md-cols-2",
                         }}
@@ -209,23 +224,23 @@ class SearchResults extends React.Component<SearchResultsProps> {
                 </div>
                 <div className="search-results__explorers">
                     <Index indexName={SearchIndexName.Explorers}>
+                        <Configure hitsPerPage={10} distinct />
                         <header className="search-results__header">
                             <h2 className="h2-bold search-results__section-title">
                                 Data Explorers
                             </h2>
-                            <ShowMore
-                                category={SearchIndexName.Explorers}
-                                cutoffNumber={2}
-                                activeCategoryFilter={this.activeCategoryFilter}
-                                setActiveCategoryFilter={
-                                    this.setActiveCategoryFilter
-                                }
-                            />
                         </header>
-                        <Configure hitsPerPage={10} distinct />
+                        <ShowMore
+                            category={SearchIndexName.Explorers}
+                            cutoffNumber={2}
+                            activeCategoryFilter={activeCategoryFilter}
+                            handleCategoryFilterClick={
+                                handleCategoryFilterClick
+                            }
+                        />
                         <Hits
                             classNames={{
-                                root: "search-results__explorers-list-container",
+                                root: "search-results__list-container",
                                 list: "search-results__explorers-list grid grid-cols-2 grid-sm-cols-1",
                                 item: "search-results__explorer-hit",
                             }}
@@ -235,23 +250,23 @@ class SearchResults extends React.Component<SearchResultsProps> {
                 </div>
                 <div className="search-results__charts">
                     <Index indexName={SearchIndexName.Charts}>
+                        <Configure hitsPerPage={40} distinct />
                         <header className="search-results__header">
                             <h2 className="h2-bold search-results__section-title">
                                 Charts
                             </h2>
-                            <ShowMore
-                                category={SearchIndexName.Charts}
-                                cutoffNumber={15}
-                                activeCategoryFilter={this.activeCategoryFilter}
-                                setActiveCategoryFilter={
-                                    this.setActiveCategoryFilter
-                                }
-                            />
                         </header>
-                        <Configure hitsPerPage={40} distinct />
+                        <ShowMore
+                            category={SearchIndexName.Charts}
+                            cutoffNumber={15}
+                            activeCategoryFilter={activeCategoryFilter}
+                            handleCategoryFilterClick={
+                                handleCategoryFilterClick
+                            }
+                        />
                         <Hits
                             classNames={{
-                                root: "search-results__charts-list-container",
+                                root: "search-results__list-container",
                                 list: "search-results__charts-list grid grid-cols-4 grid-sm-cols-2",
                                 item: "search-results__chart-hit span-md-cols-2",
                             }}
@@ -267,10 +282,14 @@ class SearchResults extends React.Component<SearchResultsProps> {
 @observer
 export class InstantSearchContainer extends React.Component {
     searchClient: SearchClient
+    categoryFilterContainerRef: React.RefObject<HTMLUListElement>
 
     constructor(props: Record<string, never>) {
         super(props)
         this.searchClient = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY, {})
+        this.categoryFilterContainerRef = React.createRef<HTMLUListElement>()
+        this.handleCategoryFilterClick =
+            this.handleCategoryFilterClick.bind(this)
     }
 
     @observable inputValue: string = ""
@@ -280,6 +299,29 @@ export class InstantSearchContainer extends React.Component {
         if (query) {
             search(query)
         }
+    }
+
+    @observable activeCategoryFilter: SearchCategoryFilter = "all"
+
+    @action.bound setActiveCategoryFilter(filter: SearchCategoryFilter) {
+        this.activeCategoryFilter = filter
+    }
+
+    handleCategoryFilterClick(key: SearchCategoryFilter) {
+        const ul = this.categoryFilterContainerRef.current
+        if (!ul) return
+        const hasScrollbar = document.body.scrollWidth < ul.scrollWidth
+        if (hasScrollbar) {
+            const target = [...ul.children].find(
+                (node) => node.getAttribute("data-filter-key") === key
+            ) as HTMLElement
+            ul.scrollTo({
+                // 16px for button padding
+                left: target.offsetLeft - 16,
+                behavior: "smooth",
+            })
+        }
+        this.setActiveCategoryFilter(key)
     }
 
     render() {
@@ -294,7 +336,23 @@ export class InstantSearchContainer extends React.Component {
                         className="searchbox"
                         queryHook={this.handleQuery}
                     />
-                    <SearchResults isHidden={!this.inputValue} />
+                    <Filters
+                        isHidden={!this.inputValue}
+                        categoryFilterContainerRef={
+                            this.categoryFilterContainerRef
+                        }
+                        activeCategoryFilter={this.activeCategoryFilter}
+                        handleCategoryFilterClick={
+                            this.handleCategoryFilterClick
+                        }
+                    />
+                    <SearchResults
+                        isHidden={!this.inputValue}
+                        activeCategoryFilter={this.activeCategoryFilter}
+                        handleCategoryFilterClick={
+                            this.handleCategoryFilterClick
+                        }
+                    />
                 </div>
             </InstantSearch>
         )
