@@ -14,7 +14,7 @@
         margin: 0;
     }
 
-    .NoteAndLicense {
+    .SourcesAndLicense {
         position: relative;
 
         .license {
@@ -23,19 +23,19 @@
             top: 0;
             text-align: right;
         }
+
+        > p a {
+            text-decoration: underline;
+        }
     }
 
-    .SourcesAndActionButtons {
+    .NoteAndActionButtons {
         display: flex;
         justify-content: space-between;
         align-items: flex-end;
 
         > * {
             flex-shrink: 0;
-        }
-
-        > p a {
-            text-decoration: underline;
         }
     }
 

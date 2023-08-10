@@ -105,6 +105,12 @@ export class Footer<
     }
 
     @computed protected get sourcesMaxWidth(): number {
+        return (
+            this.maxWidth - this.licenseAndOriginUrl.width - HORIZONTAL_PADDING
+        )
+    }
+
+    @computed protected get noteMaxWidth(): number {
         return this.maxWidth - this.actionButtons.width - HORIZONTAL_PADDING
     }
 
@@ -116,12 +122,6 @@ export class Footer<
             text: sourcesText,
             lineHeight: 1.2,
         })
-    }
-
-    @computed protected get noteMaxWidth(): number {
-        return (
-            this.maxWidth - this.licenseAndOriginUrl.width - HORIZONTAL_PADDING
-        )
     }
 
     @computed protected get note(): MarkdownTextWrap {
@@ -139,26 +139,29 @@ export class Footer<
     }
 
     @computed protected get licenseAndOriginUrlMaxWidth(): number {
-        const { maxWidth, fontSize, noteText, licenseAndOriginUrlText } = this
+        const { maxWidth, fontSize, sourcesText, licenseAndOriginUrlText } =
+            this
 
-        // use full width if there is no note
-        if (!noteText) return maxWidth
+        // use full width if there is no source
+        if (!sourcesText) return maxWidth
 
-        const noteWidth = new MarkdownTextWrap({
+        const sourceWidth = new MarkdownTextWrap({
             maxWidth: Infinity, // no line breaks
             fontSize,
-            text: noteText,
+            text: sourcesText,
+            lineHeight: 1.2,
         }).width
         const licenseAndOriginUrlWidth = new TextWrap({
             maxWidth: Infinity, // no line breaks
             fontSize,
             text: licenseAndOriginUrlText,
             rawHtml: true,
+            lineHeight: 1.2,
         }).width
 
-        // note and licenseAndOriginUrl fit into a single line
+        // source and licenseAndOriginUrl fit into a single line
         if (
-            noteWidth + HORIZONTAL_PADDING + licenseAndOriginUrlWidth <=
+            sourceWidth + HORIZONTAL_PADDING + licenseAndOriginUrlWidth <=
             maxWidth
         ) {
             return maxWidth
@@ -183,13 +186,14 @@ export class Footer<
     }
 
     @computed private get availableWidthActionButtons(): number {
-        const { sourcesFontSize, sourcesText, maxWidth } = this
-        const sourcesWidth = new MarkdownTextWrap({
+        const { fontSize, noteText, maxWidth } = this
+        const noteWidth = new MarkdownTextWrap({
             maxWidth: Infinity, // no line breaks
-            fontSize: sourcesFontSize,
-            text: sourcesText,
+            fontSize,
+            text: noteText,
+            lineHeight: 1.2,
         }).width
-        return maxWidth - sourcesWidth - HORIZONTAL_PADDING
+        return maxWidth - noteWidth - HORIZONTAL_PADDING
     }
 
     @computed private get actionButtons(): ActionButtons {
@@ -203,9 +207,9 @@ export class Footer<
     @computed get height(): number {
         const { sources, note, licenseAndOriginUrl, actionButtons } = this
         const height =
-            Math.max(note.height, licenseAndOriginUrl.height) +
+            Math.max(sources.height, licenseAndOriginUrl.height) +
             PADDING_ABOVE_CONTROLS +
-            Math.max(sources.height, actionButtons.height)
+            Math.max(note.height, actionButtons.height)
         return height
     }
 
@@ -269,24 +273,9 @@ export class Footer<
         return (
             <footer className="SourcesFooterHTML" ref={this.base}>
                 <div
-                    className="NoteAndLicense"
+                    className="SourcesAndLicense"
                     style={{
                         minHeight: this.licenseAndOriginUrl.height,
-                    }}
-                >
-                    <p className="note" style={this.note.style}>
-                        {this.note.renderHTML()}
-                    </p>
-                    {license}
-                </div>
-                <div
-                    className="SourcesAndActionButtons"
-                    style={{
-                        marginTop: PADDING_ABOVE_CONTROLS,
-                        alignItems:
-                            this.sources.htmlLines.length > 2
-                                ? "flex-end"
-                                : "center",
                     }}
                 >
                     <p
@@ -306,6 +295,21 @@ export class Footer<
                         >
                             Learn more about this data
                         </a>
+                    </p>
+                    {license}
+                </div>
+                <div
+                    className="NoteAndActionButtons"
+                    style={{
+                        marginTop: PADDING_ABOVE_CONTROLS,
+                        alignItems:
+                            this.note.htmlLines.length > 2
+                                ? "flex-end"
+                                : "center",
+                    }}
+                >
+                    <p className="note" style={this.note.style}>
+                        {this.note.renderHTML()}
                     </p>
                     <ActionButtons
                         manager={this.manager}
@@ -390,11 +394,11 @@ export class StaticFooter extends Footer<StaticFooterProps> {
         return sourcesLine ? `**Data source:** ${sourcesLine}` : ""
     }
 
-    @computed protected get sourcesMaxWidth(): number {
+    @computed protected get noteMaxWidth(): number {
         return this.maxWidth
     }
 
-    @computed protected get noteMaxWidth(): number {
+    @computed protected get sourcesMaxWidth(): number {
         const { maxWidth, isCompact, licenseAndOriginUrl } = this
         return isCompact ? maxWidth - licenseAndOriginUrl.width - 8 : maxWidth
     }
@@ -404,17 +408,17 @@ export class StaticFooter extends Footer<StaticFooterProps> {
     }
 
     @computed protected get isCompact(): boolean {
-        const { maxWidth, licenseAndOriginUrl, noteText } = this
-        if (!noteText) return true
+        const { maxWidth, licenseAndOriginUrl, sourcesText } = this
+        if (!sourcesText) return true
         return licenseAndOriginUrl.width < 0.33 * maxWidth
     }
 
     @computed get height(): number {
         const { sources, note, isCompact, licenseAndOriginUrl } = this
         return (
-            sources.height +
+            note.height +
             this.sourceMargin +
-            Math.max(note.height, licenseAndOriginUrl.height) +
+            Math.max(sources.height, licenseAndOriginUrl.height) +
             (isCompact ? 0 : licenseAndOriginUrl.height + this.paraMargin)
         )
     }
@@ -425,11 +429,11 @@ export class StaticFooter extends Footer<StaticFooterProps> {
 
         return (
             <g className="SourcesFooter" style={{ fill: "#5b5b5b" }}>
-                {note.renderSVG(targetX, targetY)}
-                {sources.renderSVG(
+                {sources.renderSVG(targetX, targetY)}
+                {note.renderSVG(
                     targetX,
                     targetY +
-                        Math.max(note.height, licenseAndOriginUrl.height) +
+                        Math.max(sources.height, licenseAndOriginUrl.height) +
                         this.sourceMargin +
                         (isCompact
                             ? 0
@@ -442,7 +446,7 @@ export class StaticFooter extends Footer<StaticFooterProps> {
                       )
                     : licenseAndOriginUrl.render(
                           targetX,
-                          targetY + note.height + this.paraMargin
+                          targetY + sources.height + this.paraMargin
                       )}
             </g>
         )
