@@ -1,5 +1,4 @@
 import fs from "fs-extra"
-import { WriteStream } from "tty"
 import { writeFile } from "node:fs/promises"
 import path from "path"
 import { glob } from "glob"
@@ -74,7 +73,6 @@ import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_EXPORTS_BASE_URL,
 } from "../settings/clientSettings.js"
-import { ProgressStream } from "./ProgressStream.js"
 
 // These aren't all "wordpress" steps
 // But they're only run when you have the full stack available
@@ -123,7 +121,6 @@ export class SiteBaker {
     private bakedSiteDir: string
     baseUrl: string
     progressBar: ProgressBar
-    progressStream: ProgressStream
     explorerAdminServer: ExplorerAdminServer
     bakeSteps: BakeStepConfig
 
@@ -135,13 +132,10 @@ export class SiteBaker {
         this.bakedSiteDir = bakedSiteDir
         this.baseUrl = baseUrl
         this.bakeSteps = bakeSteps
-        this.progressStream = new ProgressStream(process.stdout)
         this.progressBar = new ProgressBar(
             "BakeAll [:bar] :current/:total :elapseds :name\n",
             {
                 total: getProgressBarTotal(bakeSteps),
-                renderThrottle: 0, // print on every tick
-                stream: this.progressStream as unknown as WriteStream,
             }
         )
         this.explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
@@ -752,8 +746,6 @@ export class SiteBaker {
         await this.bakeWordpressPages()
         await this._bakeNonWordpressPages()
         this.flushCache()
-
-        this.progressStream.replay()
     }
 
     async ensureDir(relPath: string) {
