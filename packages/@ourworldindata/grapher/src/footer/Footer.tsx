@@ -17,8 +17,16 @@ import {
 import { FooterManager } from "./FooterManager"
 import { ActionButtons } from "../controls/ActionButtons"
 
+// keep in sync with sass variables in Footer.scss
 const PADDING_ABOVE_CONTROLS = 16
+const PADDING_BELOW_NOTE = 4
+
 const HORIZONTAL_PADDING = 16
+
+interface TextStyle {
+    fontSize: number
+    lineHeight?: number
+}
 
 interface FooterProps {
     manager: FooterManager
@@ -40,7 +48,7 @@ export class Footer<
     @computed protected get sourcesText(): string {
         const sourcesLine = this.manager.sourcesLine
         return sourcesLine
-            ? `**Data source:** ${sourcesLine} - Learn more about this data`
+            ? `Data source: ${sourcesLine} - Learn more about this data`
             : ""
     }
 
@@ -69,7 +77,7 @@ export class Footer<
         return `https://${url.hostname}${url.pathname}`
     }
 
-    @computed protected get finalUrlText(): string | undefined {
+    @computed protected get correctedUrlText(): string | undefined {
         const originUrl = this.originUrlWithProtocol
 
         // Make sure the link back to OWID is consistent
@@ -77,37 +85,71 @@ export class Footer<
             return undefined
 
         const url = parseUrl(originUrl)
-        const finalUrlText = `${url.hostname}${url.pathname}`
+        return `${url.hostname}${url.pathname}`
             .replace("ourworldindata.org", "OurWorldInData.org")
             .replace(/\/$/, "") // remove trailing slash
+    }
 
-        return finalUrlText
+    protected static constructLicenseAndOriginUrlText(
+        urlText: string | undefined,
+        licenseText: string
+    ): string {
+        if (!urlText) return licenseText
+        return [urlText, licenseText].join(" | ")
+    }
+
+    @computed protected get finalUrlText(): string | undefined {
+        const {
+            correctedUrlText,
+            licenseText,
+            textStyle,
+            maxWidth,
+            actionButtons,
+        } = this
+
+        if (!correctedUrlText) return undefined
+
+        const licenseAndOriginUrlText = Footer.constructLicenseAndOriginUrlText(
+            correctedUrlText,
+            licenseText
+        )
+        const licenseAndOriginUrlWidth = Bounds.forText(
+            licenseAndOriginUrlText,
+            textStyle
+        ).width
+
+        // If the URL is too long, don't show it
+        if (
+            licenseAndOriginUrlWidth + HORIZONTAL_PADDING >
+            maxWidth - actionButtons.width
+        )
+            return undefined
+
+        return correctedUrlText
     }
 
     @computed protected get licenseAndOriginUrlText(): string {
         const { finalUrlText, licenseText } = this
-        if (!finalUrlText) return licenseText
-
-        // trick to allow for line breaks after "/" and "-"
-        const finalUrlTextWithSpaces = finalUrlText
-            .replace(/\//g, "/ ")
-            .replace(/-/g, "- ")
-
-        return [finalUrlTextWithSpaces, licenseText].join(" | ")
-    }
-
-    @computed protected get fontSize(): number {
-        return 0.6875 * (this.manager.fontSize ?? BASE_FONT_SIZE) // 11px when base font size = 16px
-    }
-
-    @computed protected get sourcesFontSize(): number {
-        return 0.8125 * (this.manager.fontSize ?? BASE_FONT_SIZE) // 13px when base font size = 16px
-    }
-
-    @computed protected get sourcesMaxWidth(): number {
-        return (
-            this.maxWidth - this.licenseAndOriginUrl.width - HORIZONTAL_PADDING
+        return Footer.constructLicenseAndOriginUrlText(
+            finalUrlText,
+            licenseText
         )
+    }
+
+    @computed protected get textStyle(): TextStyle {
+        const fontSize = 0.6875 * (this.manager.fontSize ?? BASE_FONT_SIZE) // 11px when base font size = 16px
+        return {
+            fontSize,
+            lineHeight: 1.2,
+        }
+    }
+
+    @computed protected get sourcesStyle(): TextStyle {
+        const fontSize = 0.8125 * (this.manager.fontSize ?? BASE_FONT_SIZE) // 13px when base font size = 16px
+        return {
+            fontSize,
+            lineHeight: 1.2,
+        }
     }
 
     @computed protected get noteMaxWidth(): number {
@@ -115,22 +157,20 @@ export class Footer<
     }
 
     @computed protected get sources(): MarkdownTextWrap {
-        const { sourcesFontSize, sourcesText, sourcesMaxWidth } = this
+        const { sourcesText, sourcesStyle, maxWidth } = this
         return new MarkdownTextWrap({
-            maxWidth: sourcesMaxWidth,
-            fontSize: sourcesFontSize,
+            ...sourcesStyle,
+            maxWidth,
             text: sourcesText,
-            lineHeight: 1.2,
         })
     }
 
     @computed protected get note(): MarkdownTextWrap {
-        const { fontSize, noteText, noteMaxWidth } = this
+        const { noteText, noteMaxWidth, textStyle } = this
         return new MarkdownTextWrap({
+            ...textStyle,
             maxWidth: noteMaxWidth,
-            fontSize,
             text: noteText,
-            lineHeight: 1.2,
             detailsOrderedByReference: this.manager
                 .shouldIncludeDetailsInStaticExport
                 ? this.manager.detailsOrderedByReference
@@ -139,61 +179,45 @@ export class Footer<
     }
 
     @computed protected get licenseAndOriginUrlMaxWidth(): number {
-        const { maxWidth, fontSize, sourcesText, licenseAndOriginUrlText } =
-            this
-
-        // use full width if there is no source
-        if (!sourcesText) return maxWidth
-
-        const sourceWidth = new MarkdownTextWrap({
-            maxWidth: Infinity, // no line breaks
-            fontSize,
-            text: sourcesText,
-            lineHeight: 1.2,
-        }).width
-        const licenseAndOriginUrlWidth = new TextWrap({
-            maxWidth: Infinity, // no line breaks
-            fontSize,
-            text: licenseAndOriginUrlText,
-            rawHtml: true,
-            lineHeight: 1.2,
-        }).width
-
-        // source and licenseAndOriginUrl fit into a single line
-        if (
-            sourceWidth + HORIZONTAL_PADDING + licenseAndOriginUrlWidth <=
-            maxWidth
-        ) {
-            return maxWidth
-        }
-
-        return 0.33 * maxWidth
+        return this.maxWidth
     }
 
     @computed protected get licenseAndOriginUrl(): TextWrap {
         const {
-            fontSize,
             licenseAndOriginUrlText,
             licenseAndOriginUrlMaxWidth,
+            textStyle,
         } = this
         return new TextWrap({
+            ...textStyle,
             maxWidth: licenseAndOriginUrlMaxWidth,
-            fontSize,
             text: licenseAndOriginUrlText,
-            lineHeight: 1.2,
             rawHtml: true,
         })
     }
 
     @computed private get availableWidthActionButtons(): number {
-        const { fontSize, noteText, maxWidth } = this
+        const { noteText, correctedUrlText, licenseText, maxWidth, textStyle } =
+            this
         const noteWidth = new MarkdownTextWrap({
+            ...textStyle,
             maxWidth: Infinity, // no line breaks
-            fontSize,
             text: noteText,
-            lineHeight: 1.2,
         }).width
-        return maxWidth - noteWidth - HORIZONTAL_PADDING
+        const licenseAndOriginUrlWidth = new TextWrap({
+            ...textStyle,
+            maxWidth: Infinity, // no line breaks
+            text: Footer.constructLicenseAndOriginUrlText(
+                correctedUrlText,
+                licenseText
+            ),
+            rawHtml: true,
+        }).width
+        return (
+            maxWidth -
+            Math.max(noteWidth, licenseAndOriginUrlWidth) -
+            HORIZONTAL_PADDING
+        )
     }
 
     @computed private get actionButtons(): ActionButtons {
@@ -205,11 +229,16 @@ export class Footer<
     }
 
     @computed get height(): number {
-        const { sources, note, licenseAndOriginUrl, actionButtons } = this
+        const { sources, note, noteText, licenseAndOriginUrl, actionButtons } =
+            this
+        const noteHeight = noteText ? note.height + PADDING_BELOW_NOTE : 0
         const height =
-            Math.max(sources.height, licenseAndOriginUrl.height) +
+            sources.height +
             PADDING_ABOVE_CONTROLS +
-            Math.max(note.height, actionButtons.height)
+            Math.max(
+                licenseAndOriginUrl.height + noteHeight,
+                actionButtons.height
+            )
         return height
     }
 
@@ -240,14 +269,7 @@ export class Footer<
         const { tooltipTarget } = this
 
         const license = (
-            <div
-                className="license"
-                style={{
-                    fontSize: this.licenseAndOriginUrl.fontSize,
-                    lineHeight: this.sources.lineHeight,
-                    width: this.licenseAndOriginUrl.width,
-                }}
-            >
+            <div className="license" style={this.licenseAndOriginUrl.htmlStyle}>
                 {this.finalUrlText && (
                     <a
                         href={this.finalUrl}
@@ -270,47 +292,37 @@ export class Footer<
             </div>
         )
 
+        const sourcesStyle = {
+            ...this.sources.style,
+            // sometimes the sources text is computed to occupy X lines,
+            // but the actual text breaks into X-1 lines. This causes the
+            // footer to render too much whitespace on the bottom. Setting
+            // min-height on the sources element renders the extra whitespace
+            // (if any) here. It's not a fix but it looks a bit better.
+            minHeight: this.sources.height,
+        }
+
         return (
             <footer className="SourcesFooterHTML" ref={this.base}>
-                <div
-                    className="SourcesAndLicense"
-                    style={{
-                        minHeight: this.licenseAndOriginUrl.height,
-                    }}
-                >
-                    <p
-                        style={{
-                            ...this.sources.style,
-                            maxWidth: this.sources.maxWidth,
+                <p className="sources" style={sourcesStyle}>
+                    <b>Data source:</b> {this.manager.sourcesLine} -{" "}
+                    <a
+                        data-track-note="chart_click_sources"
+                        onClick={(): void => {
+                            this.manager.currentTab =
+                                GrapherTabOverlayOption.sources
                         }}
                     >
-                        <b>Data source:</b> {this.manager.sourcesLine} -{" "}
-                        <a
-                            className="sources"
-                            data-track-note="chart_click_sources"
-                            onClick={(): void => {
-                                this.manager.currentTab =
-                                    GrapherTabOverlayOption.sources
-                            }}
-                        >
-                            Learn more about this data
-                        </a>
-                    </p>
-                    {license}
-                </div>
-                <div
-                    className="NoteAndActionButtons"
-                    style={{
-                        marginTop: PADDING_ABOVE_CONTROLS,
-                        alignItems:
-                            this.note.htmlLines.length > 2
-                                ? "flex-end"
-                                : "center",
-                    }}
-                >
-                    <p className="note" style={this.note.style}>
-                        {this.note.renderHTML()}
-                    </p>
+                        Learn more about this data
+                    </a>
+                </p>
+                <div className="NoteAndActionButtons">
+                    <div>
+                        <p className="note" style={this.note.style}>
+                            {this.note.renderHTML()}
+                        </p>
+                        {license}
+                    </div>
                     <ActionButtons
                         manager={this.manager}
                         maxWidth={this.maxWidth}
@@ -357,28 +369,25 @@ interface StaticFooterProps extends FooterProps {
 @observer
 export class StaticFooter extends Footer<StaticFooterProps> {
     private paraMargin = 4
-    private sourceMargin = this.paraMargin * 2
 
     @computed protected get finalUrlText(): string | undefined {
-        const originUrl = this.originUrlWithProtocol
+        const { correctedUrlText, licenseText, textStyle, maxWidth } = this
 
-        // Make sure the link back to OWID is consistent
-        if (!originUrl || !originUrl.toLowerCase().match(/^https?:\/\/./))
-            return undefined
+        if (!correctedUrlText) return undefined
 
-        const url = parseUrl(originUrl)
-        const finalUrlText = `${url.hostname}${url.pathname}`
-            .replace("ourworldindata.org", "OurWorldInData.org")
-            .replace(/\/$/, "") // remove trailing slash
+        const licenseAndOriginUrlText = Footer.constructLicenseAndOriginUrlText(
+            correctedUrlText,
+            licenseText
+        )
+        const licenseAndOriginUrlWidth = Bounds.forText(
+            licenseAndOriginUrlText,
+            textStyle
+        ).width
 
         // If the URL is too long, don't show it
-        if (
-            Bounds.forText(finalUrlText, { fontSize: this.fontSize }).width >
-            0.7 * this.maxWidth
-        )
-            return undefined
+        if (licenseAndOriginUrlWidth > maxWidth) return undefined
 
-        return finalUrlText
+        return correctedUrlText
     }
 
     @computed protected get licenseAndOriginUrlText(): string {
@@ -394,37 +403,29 @@ export class StaticFooter extends Footer<StaticFooterProps> {
         return sourcesLine ? `**Data source:** ${sourcesLine}` : ""
     }
 
+    @computed protected get sourcesStyle(): TextStyle {
+        return this.textStyle
+    }
+
     @computed protected get noteMaxWidth(): number {
         return this.maxWidth
     }
 
-    @computed protected get sourcesMaxWidth(): number {
-        const { maxWidth, isCompact, licenseAndOriginUrl } = this
-        return isCompact ? maxWidth - licenseAndOriginUrl.width - 8 : maxWidth
-    }
-
     @computed protected get licenseAndOriginUrlMaxWidth(): number {
-        return Infinity // no line breaks
-    }
-
-    @computed protected get isCompact(): boolean {
-        const { maxWidth, licenseAndOriginUrl, sourcesText } = this
-        if (!sourcesText) return true
-        return licenseAndOriginUrl.width < 0.33 * maxWidth
+        return this.maxWidth
     }
 
     @computed get height(): number {
-        const { sources, note, isCompact, licenseAndOriginUrl } = this
         return (
-            note.height +
-            this.sourceMargin +
-            Math.max(sources.height, licenseAndOriginUrl.height) +
-            (isCompact ? 0 : licenseAndOriginUrl.height + this.paraMargin)
+            this.sources.height +
+            this.paraMargin +
+            (this.note.height ? this.note.height + this.paraMargin : 0) +
+            this.licenseAndOriginUrl.height
         )
     }
 
     render(): JSX.Element {
-        const { sources, note, licenseAndOriginUrl, maxWidth, isCompact } = this
+        const { sources, note, licenseAndOriginUrl } = this
         const { targetX, targetY } = this.props
 
         return (
@@ -432,22 +433,15 @@ export class StaticFooter extends Footer<StaticFooterProps> {
                 {sources.renderSVG(targetX, targetY)}
                 {note.renderSVG(
                     targetX,
-                    targetY +
-                        Math.max(sources.height, licenseAndOriginUrl.height) +
-                        this.sourceMargin +
-                        (isCompact
-                            ? 0
-                            : licenseAndOriginUrl.height + this.paraMargin)
+                    targetY + sources.height + this.paraMargin
                 )}
-                {isCompact
-                    ? licenseAndOriginUrl.render(
-                          targetX + maxWidth - licenseAndOriginUrl.width,
-                          targetY
-                      )
-                    : licenseAndOriginUrl.render(
-                          targetX,
-                          targetY + sources.height + this.paraMargin
-                      )}
+                {licenseAndOriginUrl.render(
+                    targetX,
+                    targetY +
+                        sources.height +
+                        this.paraMargin +
+                        (note.height ? note.height + this.paraMargin : 0)
+                )}
             </g>
         )
     }
