@@ -6,7 +6,7 @@ set -x
 
 : "${GRAPHER_DB_NAME:?Need to set GRAPHER_DB_NAME non-empty}"
 : "${GRAPHER_DB_USER:?Need to set GRAPHER_DB_USER non-empty}"
-: "${GRAPHER_DB_PASS:?Need to set GRAPHER_DB_PASS non-empty}"
+: "${GRAPHER_DB_PASS:-Need to set GRAPHER_DB_PASS}"
 : "${GRAPHER_DB_HOST:?Need to set GRAPHER_DB_HOST non-empty}"
 : "${GRAPHER_DB_PORT:?Need to set GRAPHER_DB_PORT non-empty}"
 : "${DATA_FOLDER:?Need to set DATA_FOLDER non-empty}"
