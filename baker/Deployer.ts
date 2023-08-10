@@ -37,7 +37,7 @@ export class Deployer {
         this.progressBar = new ProgressBar(
             `Baking and deploying to ${target} [:bar] :current/:total :elapseds :name\n`,
             {
-                total: 25 + testSteps,
+                total: 24 + testSteps,
                 renderThrottle: 0, // print on every tick
                 stream: this.stream as unknown as WriteStream,
             }
