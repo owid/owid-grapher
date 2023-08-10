@@ -1,3 +1,7 @@
+// keep in sync with constant values in Footer.tsx
+$paddingAboveControls: 16px; // keep in sync with PADDING_ABOVE_CONTROLS
+$paddingBelowNote: 4px; // keep in sync with PADDING_BELOW_NOTE
+
 .SourcesFooterHTML {
     padding: 0 $framePadding;
     text-align: left;
@@ -14,18 +18,12 @@
         margin: 0;
     }
 
-    .NoteAndLicense {
-        position: relative;
-
-        .license {
-            position: absolute;
-            right: 0;
-            top: 0;
-            text-align: right;
-        }
+    .sources a {
+        text-decoration: underline;
     }
 
-    .SourcesAndActionButtons {
+    .NoteAndActionButtons {
+        margin-top: $paddingAboveControls;
         display: flex;
         justify-content: space-between;
         align-items: flex-end;
@@ -34,8 +32,8 @@
             flex-shrink: 0;
         }
 
-        > p a {
-            text-decoration: underline;
+        .note {
+            margin-bottom: $paddingBelowNote;
         }
     }
 
