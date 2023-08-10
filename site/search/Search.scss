@@ -19,48 +19,51 @@
     @include sm-only {
         margin: 0;
     }
+}
 
-    .ais-SearchBox-input {
-        width: 100%;
-        height: 56px;
-        line-height: 56px;
-        padding-left: 16px;
-        // To conceal the placeholder text underneath the svg buttons on mobile
-        padding-right: 100px;
-        border: none;
-        outline: $blue-20 1px solid;
-        outline-offset: 0px;
+.ais-SearchBox-input {
+    width: 100%;
+    height: 56px;
+    line-height: 56px;
+    padding-left: 16px;
+    // To conceal the placeholder text underneath the svg buttons on mobile
+    padding-right: 100px;
+    border: none;
+    outline: $blue-20 1px solid;
+    outline-offset: 0px;
+}
+
+.ais-SearchBox-submit,
+.ais-SearchBox-reset {
+    background: none;
+    border: none;
+    position: absolute;
+    line-height: 0;
+    display: inline-block;
+    padding: 8px;
+    border-radius: 16px;
+}
+
+.ais-SearchBox-submit {
+    top: 25%;
+    right: 8px;
+    @include sm-up {
+        display: none;
     }
-
-    .ais-SearchBox-submit,
-    .ais-SearchBox-reset {
-        background: none;
-        border: none;
-        position: absolute;
-        right: 8px;
-        line-height: 0;
-        display: inline-block;
-        padding: 8px;
-        border-radius: 16px;
+    svg {
+        height: 16px;
+        width: 16px;
+        fill: $blue-60;
     }
+}
 
-    .ais-SearchBox-submit {
-        top: 25%;
-        svg {
-            height: 16px;
-            width: 16px;
-            fill: $blue-60;
-        }
-    }
-
-    .ais-SearchBox-reset {
-        top: 30%;
+.ais-SearchBox-reset {
+    top: 30%;
+    background: $blue-50;
+    right: 16px;
+    @include sm-only {
         right: 32px;
         margin-right: 32px;
-        background: $blue-50;
-        &:hover {
-            background: $blue-60;
-        }
         &::after {
             content: "";
             border-right: $blue-20 solid 1px;
@@ -70,11 +73,14 @@
             display: inline-block;
             top: 3px;
         }
-        svg {
-            fill: #fff;
-            width: 8px;
-            height: 8px;
-        }
+    }
+    &:hover {
+        background: $blue-60;
+    }
+    svg {
+        fill: #fff;
+        width: 8px;
+        height: 8px;
     }
 }
 
