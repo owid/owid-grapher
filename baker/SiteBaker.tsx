@@ -97,7 +97,13 @@ const nonWordpressSteps = [
     "dods",
 ] as const
 
-export const bakeSteps = [...wordpressSteps, ...nonWordpressSteps]
+const otherSteps = ["removeDeletedPosts"] as const
+
+export const bakeSteps = [
+    ...wordpressSteps,
+    ...nonWordpressSteps,
+    ...otherSteps,
+]
 
 export type BakeStep = (typeof bakeSteps)[number]
 
@@ -106,8 +112,8 @@ export type BakeStepConfig = Set<BakeStep>
 const defaultSteps = new Set(bakeSteps)
 
 function getProgressBarTotal(bakeSteps: BakeStepConfig): number {
-    // There are 3 non-optional steps: flushCache, removeDeletedPosts, and flushCache (again)
-    const minimum = 3
+    // There are 2 non-optional steps: flushCache at the beginning and flushCache at the end (again)
+    const minimum = 2
     let total = minimum + bakeSteps.size
     // Redirects has two progress bar ticks
     if (bakeSteps.has("redirects")) total++
@@ -255,6 +261,7 @@ export class SiteBaker {
     // Bake all Wordpress posts, both blog posts and entry pages
 
     private async removeDeletedPosts() {
+        if (!this.bakeSteps.has("removeDeletedPosts")) return
         const postsApi = await wpdb.getPosts()
 
         const postSlugs = []
