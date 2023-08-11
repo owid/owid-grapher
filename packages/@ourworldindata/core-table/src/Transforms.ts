@@ -1,4 +1,10 @@
-import { flatten, ColumnSlug, zip, uniq } from "@ourworldindata/utils"
+import {
+    flatten,
+    ColumnSlug,
+    zip,
+    uniq,
+    cloneDeep,
+} from "@ourworldindata/utils"
 import { CoreColumnStore, Time, CoreValueType } from "./CoreTableConstants.js"
 import { CoreColumnDef } from "./CoreColumnDef.js"
 import {
@@ -386,20 +392,29 @@ const asPercentageOf: Transform = {
             .map((num: any) => (typeof num === "number" ? 100 * num : num)),
 }
 
+const duplicate: Transform = {
+    params: [{ type: TransformParamType.DataSlug }],
+    fn: (
+        columnStore: CoreColumnStore,
+        columnSlug: ColumnSlug
+    ): CoreValueType[] => cloneDeep(columnStore[columnSlug]),
+}
+
 const availableTransforms: Record<string, Transform> = {
-    asPercentageOf: asPercentageOf,
-    timeSinceEntityExceededThreshold: timeSinceEntityExceededThreshold,
-    divideBy: divideBy,
-    rollingAverage: rollingAverage,
-    percentChange: percentChange,
-    multiplyBy: multiplyBy,
-    subtract: subtract,
-    where: where,
+    asPercentageOf,
+    timeSinceEntityExceededThreshold,
+    divideBy,
+    rollingAverage,
+    percentChange,
+    multiplyBy,
+    subtract,
+    where,
+    duplicate,
 } as const
 
 export const AvailableTransforms = Object.keys(availableTransforms)
 
-const extractTransformNameAndParams = (
+export const extractTransformNameAndParams = (
     transform: string
 ): { transformName: string; params: string[] } | undefined => {
     const words = transform.split(" ")

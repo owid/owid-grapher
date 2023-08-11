@@ -68,7 +68,7 @@ import {
     DroppedForTesting,
 } from "./ErrorValues.js"
 import { OwidTableSlugs } from "./OwidTableConstants.js"
-import { applyTransforms } from "./Transforms.js"
+import { applyTransforms, extractTransformNameAndParams } from "./Transforms.js"
 
 interface AdvancedOptions {
     tableDescription?: string
@@ -109,6 +109,20 @@ export class CoreTable<
             typeof inputColumnDefs === "string"
                 ? columnDefinitionsFromInput<COL_DEF_TYPE>(inputColumnDefs)
                 : inputColumnDefs
+
+        // Column definitions with a "duplicate" transform are merged with the column definition of the specified source column
+        this.inputColumnDefs = this.inputColumnDefs.map((def) => {
+            if (!def.transform) return def
+            const transform = extractTransformNameAndParams(def.transform)
+            if (!transform || transform.transformName !== "duplicate")
+                return def
+            const sourceSlug = transform.params[0]
+            const sourceDef = this.inputColumnDefs.find(
+                (def) => def.slug === sourceSlug
+            )
+            if (!sourceDef) return def
+            return { ...sourceDef, ...def }
+        })
 
         // If any values were passed in, copy those to column store now and then remove them from column definitions.
         // todo: remove values property entirely? may be an anti-pattern.
