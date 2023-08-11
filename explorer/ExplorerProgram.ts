@@ -254,17 +254,30 @@ export class ExplorerProgram extends GridProgram {
     }
 
     get whyIsExplorerProgramInvalid(): string {
-        const { table } = this.decisionMatrix
+        const {
+            chartCreationMode,
+            decisionMatrix: { table },
+        } = this
+        const { FromVariableIds, FromGrapherId, FromExplorerTableColumnSlugs } =
+            ExplorerChartCreationMode
+
+        const grapherIdColumn = table.get(GrapherGrammar.grapherId.keyword)
+        const tableSlugColumn = table.get(GrapherGrammar.tableSlug.keyword)
+        const hasGrapherId = grapherIdColumn.numValues > 0
+        const hasCsvData = tableSlugColumn.numValues > 0 || this.tableCount > 0
+
+        if (chartCreationMode === FromVariableIds && hasGrapherId)
+            return "Using variables IDs and Grapher IDs to create charts is not supported."
+
+        if (chartCreationMode === FromVariableIds && hasCsvData)
+            return "Using variable IDs and CSV data files to create charts is not supported."
+
         if (
-            this.chartCreationMode === ExplorerChartCreationMode.FromVariableIds
-        ) {
-            const grapherIdColumn = table.get(GrapherGrammar.grapherId.keyword)
-            if (grapherIdColumn.numValues)
-                return "When using variable IDs to create charts, you cannot also use Grapher IDs."
-            const tableSlugColumn = table.get(GrapherGrammar.tableSlug.keyword)
-            if (tableSlugColumn.numValues || this.tableCount)
-                return "When using variable IDs to create charts, you cannot also use tabular data."
-        }
+            (chartCreationMode === FromGrapherId && hasCsvData) ||
+            (chartCreationMode === FromExplorerTableColumnSlugs && hasGrapherId)
+        )
+            return "Using Grapher IDs and CSV data files to create charts is deprecated."
+
         return ""
     }
 
