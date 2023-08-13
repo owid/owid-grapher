@@ -4,14 +4,14 @@ The scripts in this directory will update the site's self-hosted font files and 
 
 ## Usage
 
-To update the .woff2 files in `public/fonts` and the css at `fonts.css` run:
+To update the .woff2 files in `public/fonts` and the css at `public/fonts.css` run:
 
 ```console
 make
 make install
 ```
 
-The first `make` command will download Lato and Playfair Display and convert them to woff2 format using the [woff2 command line tool](https://github.com/google/woff2). After it completes, take a look at the `diff` output to make sure the changes it has made to `fonts.css` look reasonable, then running `make install` will copy the css and woff2 files into the repo's `public` directory. Afterwards, you can commit the font-related changes (if any).
+The first `make` command will download Lato and Playfair Display and convert them to woff2 format using the [woff2 command line tool](https://github.com/google/woff2). After it completes, take a look at the `diff` output to make sure the changes it has made to `fonts.css` look reasonable. Then run `make install` to copy the css and woff2 files into the repo's `public` directory. Afterwards, you can commit the font-related changes (if any) and run `make clean` to delete the intermediate files.
 
 ## Dependencies
 

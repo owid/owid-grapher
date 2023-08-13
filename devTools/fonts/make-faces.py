@@ -2,8 +2,6 @@
 
 from fontTools.ttLib import TTFont
 from more_itertools import consecutive_groups
-from pprint import pprint
-from glob import glob
 from operator import itemgetter
 from os.path import basename, splitext
 import sys
@@ -34,7 +32,6 @@ def inspect_font(path):
 
     return dict(
         family = re.sub(r'(?<=.)([A-Z])', r' \1', family),
-        # family=family,
         subset = 'Latin' in name,
         weight = WEIGHTS[weight],
         italic = italic,
@@ -60,14 +57,15 @@ def make_face(font, subset=None):
         f'font-weight: {font["weight"]};',
         f'font-style: {font["style"]};',
         f'font-display: swap;',
+        '}'
     ]
 
     if subset:
-        css.append(f'''unicode-range: {
+        css.insert(-1, f'''unicode-range: {
             ', '.join(find_ranges(set(font["codepoints"]) - set(subset["codepoints"])))
         };''')
 
-    return "\n    ".join(css) + '\n}'
+    return "\n".join(css)
 
 def main(woff_files):
     fonts = sorted([inspect_font(f) for f in woff_files], key=itemgetter('weight', 'italic'))
@@ -79,7 +77,7 @@ def main(woff_files):
     subset_for = lambda f: [s for s in lato_latin if s['weight']==f['weight'] and s['style']==f['style']][0]
     
     faces = [
-        "/* Lato: smaller latin-only subset */",
+        "/* Lato: smaller, latin-only subset */",
         *[make_face(f) for f in lato_latin],
         "/* Lato: larger, full character set version */",
         *[make_face(f, subset_for(f)) for f in lato],
