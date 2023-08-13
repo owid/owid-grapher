@@ -40,6 +40,7 @@ $(FACES): .env $(FONTS)
 	@$(PYTHON) make-faces.py $(FONTS) | $(PRETTIER) --parser css > $(FACES)
 
 install: $(FONTS) $(FACES)
+	mkdir -p $(FONTS_DIR)
 	cp $(FONTS) $(FONTS_DIR)
 	cp $(FACES) $(FONTS_CSS)
 
