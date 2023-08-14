@@ -2028,7 +2028,7 @@ export class Grapher
                 category: "Chart",
             },
             {
-                combo: "w",
+                combo: "space",
                 fn: (): void => this.toggleFullScreenMode(),
                 title: "Toggle full-screen mode",
                 category: "Chart",
