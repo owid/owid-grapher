@@ -6,6 +6,7 @@ import {
     TextWrap,
     Bounds,
     DEFAULT_BOUNDS,
+    getFontScale,
     getRelativeMouse,
     MarkdownTextWrap,
 } from "@ourworldindata/utils"
@@ -13,14 +14,13 @@ import { Tooltip } from "../tooltip/Tooltip"
 import {
     BASE_FONT_SIZE,
     GrapherTabOverlayOption,
+    SizeVariant,
 } from "../core/GrapherConstants"
 import { FooterManager } from "./FooterManager"
 import { ActionButtons } from "../controls/ActionButtons"
 
 // keep in sync with sass variables in Footer.scss
-const PADDING_ABOVE_CONTROLS = 16
-const PADDING_BELOW_NOTE = 4
-
+const LICENSE_PADDING_TOP = 4
 const HORIZONTAL_PADDING = 16
 
 interface TextStyle {
@@ -31,18 +31,27 @@ interface TextStyle {
 interface FooterProps {
     manager: FooterManager
     maxWidth?: number
+    verticalPaddingSmall?: number
 }
 
 @observer
 export class Footer<
     Props extends FooterProps = FooterProps
 > extends React.Component<Props> {
+    @computed protected get manager(): FooterManager {
+        return this.props.manager
+    }
+
+    @computed protected get sizeVariant(): SizeVariant {
+        return this.manager.sizeVariant ?? SizeVariant.lg
+    }
+
     @computed protected get maxWidth(): number {
         return this.props.maxWidth ?? DEFAULT_BOUNDS.width
     }
 
-    @computed protected get manager(): FooterManager {
-        return this.props.manager
+    @computed protected get verticalPaddingSmall(): number {
+        return this.props.verticalPaddingSmall ?? 8
     }
 
     @computed protected get sourcesText(): string {
@@ -137,15 +146,31 @@ export class Footer<
     }
 
     @computed protected get textStyle(): TextStyle {
-        const fontSize = 0.6875 * (this.manager.fontSize ?? BASE_FONT_SIZE) // 11px when base font size = 16px
+        const fontScale =
+            this.sizeVariant === SizeVariant.xs ||
+            this.sizeVariant === SizeVariant.sm
+                ? getFontScale(11)
+                : getFontScale(12)
+        const fontSize = fontScale * (this.manager.fontSize ?? BASE_FONT_SIZE)
         return {
             fontSize,
             lineHeight: 1.2,
         }
     }
 
+    // if there is no note text, put the sources next to the action buttons
+    @computed private get isCompact(): boolean {
+        return !this.noteText
+    }
+
     @computed protected get sourcesStyle(): TextStyle {
-        const fontSize = 0.8125 * (this.manager.fontSize ?? BASE_FONT_SIZE) // 13px when base font size = 16px
+        const fontScale =
+            this.sizeVariant === SizeVariant.xs
+                ? getFontScale(12)
+                : this.sizeVariant === SizeVariant.sm
+                ? getFontScale(13)
+                : getFontScale(14)
+        const fontSize = fontScale * (this.manager.fontSize ?? BASE_FONT_SIZE)
         return {
             fontSize,
             lineHeight: 1.2,
@@ -156,11 +181,17 @@ export class Footer<
         return this.maxWidth - this.actionButtons.width - HORIZONTAL_PADDING
     }
 
+    @computed protected get sourcesMaxWidth(): number {
+        return this.isCompact
+            ? this.maxWidth - this.actionButtons.width - HORIZONTAL_PADDING
+            : this.maxWidth
+    }
+
     @computed protected get sources(): MarkdownTextWrap {
-        const { sourcesText, sourcesStyle, maxWidth } = this
+        const { sourcesText, sourcesStyle, sourcesMaxWidth } = this
         return new MarkdownTextWrap({
             ...sourcesStyle,
-            maxWidth,
+            maxWidth: sourcesMaxWidth,
             text: sourcesText,
         })
     }
@@ -197,12 +228,20 @@ export class Footer<
     }
 
     @computed private get availableWidthActionButtons(): number {
-        const { noteText, correctedUrlText, licenseText, maxWidth, textStyle } =
-            this
-        const noteWidth = new MarkdownTextWrap({
-            ...textStyle,
+        const {
+            noteText,
+            correctedUrlText,
+            licenseText,
+            maxWidth,
+            textStyle,
+            sourcesStyle,
+            sourcesText,
+            isCompact,
+        } = this
+        const textWidth = new MarkdownTextWrap({
+            ...(isCompact ? sourcesStyle : textStyle),
             maxWidth: Infinity, // no line breaks
-            text: noteText,
+            text: isCompact ? sourcesText : noteText,
         }).width
         const licenseAndOriginUrlWidth = new TextWrap({
             ...textStyle,
@@ -215,7 +254,7 @@ export class Footer<
         }).width
         return (
             maxWidth -
-            Math.max(noteWidth, licenseAndOriginUrlWidth) -
+            Math.max(textWidth, licenseAndOriginUrlWidth) -
             HORIZONTAL_PADDING
         )
     }
@@ -229,14 +268,20 @@ export class Footer<
     }
 
     @computed get height(): number {
-        const { sources, note, noteText, licenseAndOriginUrl, actionButtons } =
-            this
-        const noteHeight = noteText ? note.height + PADDING_BELOW_NOTE : 0
+        const {
+            sources,
+            note,
+            licenseAndOriginUrl,
+            actionButtons,
+            verticalPaddingSmall,
+            isCompact,
+        } = this
         const height =
-            sources.height +
-            PADDING_ABOVE_CONTROLS +
+            (!isCompact ? sources.height + verticalPaddingSmall : 0) +
             Math.max(
-                licenseAndOriginUrl.height + noteHeight,
+                (isCompact ? sources.height : note.height) +
+                    LICENSE_PADDING_TOP +
+                    licenseAndOriginUrl.height,
                 actionButtons.height
             )
         return height
@@ -292,35 +337,40 @@ export class Footer<
             </div>
         )
 
-        const sourcesStyle = {
-            ...this.sources.style,
-            // sometimes the sources text is computed to occupy X lines,
-            // but the actual text breaks into X-1 lines. This causes the
-            // footer to render too much whitespace on the bottom. Setting
-            // min-height on the sources element renders the extra whitespace
-            // (if any) here. It's not a fix but it looks a bit better.
-            minHeight: this.sources.height,
-        }
+        const sources = (
+            <p className="sources" style={this.sources.style}>
+                <b>Data source:</b> {this.manager.sourcesLine} -{" "}
+                <a
+                    data-track-note="chart_click_sources"
+                    onClick={(): void => {
+                        this.manager.currentTab =
+                            GrapherTabOverlayOption.sources
+                    }}
+                >
+                    Learn more about this data
+                </a>
+            </p>
+        )
+
+        const note = (
+            <p className="note" style={this.note.style}>
+                {this.note.renderHTML()}
+            </p>
+        )
 
         return (
             <footer className="SourcesFooterHTML" ref={this.base}>
-                <p className="sources" style={sourcesStyle}>
-                    <b>Data source:</b> {this.manager.sourcesLine} -{" "}
-                    <a
-                        data-track-note="chart_click_sources"
-                        onClick={(): void => {
-                            this.manager.currentTab =
-                                GrapherTabOverlayOption.sources
-                        }}
-                    >
-                        Learn more about this data
-                    </a>
-                </p>
-                <div className="NoteAndActionButtons">
+                {!this.isCompact && sources}
+                <div
+                    className="NoteAndActionButtons"
+                    style={{
+                        marginTop: !this.isCompact
+                            ? this.verticalPaddingSmall
+                            : 0,
+                    }}
+                >
                     <div>
-                        <p className="note" style={this.note.style}>
-                            {this.note.renderHTML()}
-                        </p>
+                        {this.isCompact ? sources : note}
                         {license}
                     </div>
                     <ActionButtons
@@ -405,6 +455,10 @@ export class StaticFooter extends Footer<StaticFooterProps> {
 
     @computed protected get sourcesStyle(): TextStyle {
         return this.textStyle
+    }
+
+    @computed protected get sourcesMaxWidth(): number {
+        return this.maxWidth
     }
 
     @computed protected get noteMaxWidth(): number {

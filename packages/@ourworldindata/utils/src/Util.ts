@@ -1667,3 +1667,7 @@ export function includesWithTypeGuard<TItem>(
 ): item is TItem {
     return array.includes(item as any)
 }
+
+export function getFontScale(size: number, base = 16): number {
+    return size / base
+}

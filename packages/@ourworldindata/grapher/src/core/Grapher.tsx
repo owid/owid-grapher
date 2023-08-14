@@ -91,6 +91,7 @@ import {
     GrapherTabOverlayOption,
     getVariableDataRoute,
     getVariableMetadataRoute,
+    SizeVariant,
 } from "../core/GrapherConstants"
 import Cookies from "js-cookie"
 import {
@@ -615,8 +616,8 @@ export class Grapher
         ) as TimeBounds
     }
 
-    @computed get isOnChartOrMapTab(): boolean {
-        return this.tab === GrapherTabOption.chart || this.isOnMapTab
+    @computed get isOnChartTab(): boolean {
+        return this.tab === GrapherTabOption.chart
     }
 
     @computed get isOnMapTab(): boolean {
@@ -625,6 +626,10 @@ export class Grapher
 
     @computed get isOnTableTab(): boolean {
         return this.tab === GrapherTabOption.table
+    }
+
+    @computed get isOnChartOrMapTab(): boolean {
+        return this.isOnChartTab || this.isOnMapTab
     }
 
     @computed get yAxisConfig(): Readonly<AxisConfigInterface> {
@@ -1891,6 +1896,14 @@ export class Grapher
 
     @computed get tabBounds(): Bounds {
         return new Bounds(0, 0, this.renderWidth, this.renderHeight)
+    }
+
+    @computed get sizeVariant(): SizeVariant {
+        if (this.isExportingtoSvgOrPng) return SizeVariant.md
+        if (this.tabBounds.width <= 740) return SizeVariant.xs
+        if (this.tabBounds.width <= 840) return SizeVariant.sm
+        if (this.tabBounds.width <= 940) return SizeVariant.md
+        return SizeVariant.lg
     }
 
     @observable.ref private popups: JSX.Element[] = []

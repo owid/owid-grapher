@@ -1,6 +1,6 @@
 // keep in sync with constant values in Footer.tsx
-$paddingAboveControls: 16px; // keep in sync with PADDING_ABOVE_CONTROLS
-$paddingBelowNote: 4px; // keep in sync with PADDING_BELOW_NOTE
+$licensePaddingTop: 4px; // keep in sync with LICENSE_PADDING_TOP
+$horizontalPadding: 16px; // keep in sync with HORIZONTAL_PADDING
 
 .SourcesFooterHTML {
     padding: 0 $framePadding;
@@ -22,19 +22,15 @@ $paddingBelowNote: 4px; // keep in sync with PADDING_BELOW_NOTE
         text-decoration: underline;
     }
 
+    .license {
+        margin-top: $licensePaddingTop;
+    }
+
     .NoteAndActionButtons {
-        margin-top: $paddingAboveControls;
         display: flex;
         justify-content: space-between;
         align-items: flex-end;
-
-        > * {
-            flex-shrink: 0;
-        }
-
-        .note {
-            margin-bottom: $paddingBelowNote;
-        }
+        gap: $horizontalPadding;
     }
 
     // removes margin that is added by default to prevent border-bottom used for dod from clipping

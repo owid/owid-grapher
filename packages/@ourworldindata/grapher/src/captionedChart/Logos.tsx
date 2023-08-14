@@ -40,8 +40,8 @@ const logos: Record<LogoOption, LogoAttributes> = {
 
 interface LogoProps {
     logo?: LogoOption
+    height?: number
     isLink: boolean
-    fontSize: number
 }
 
 export class Logo {
@@ -56,8 +56,12 @@ export class Logo {
             : logos.owid
     }
 
+    @computed private get targetHeight(): number {
+        return this.props.height ?? this.spec.targetHeight
+    }
+
     @computed private get scale(): number {
-        return this.spec.targetHeight / this.spec.height
+        return this.targetHeight / this.spec.height
     }
 
     @computed get width(): number {
@@ -86,7 +90,7 @@ export class Logo {
         const props: React.HTMLAttributes<HTMLElement> = {
             className: "logo",
             dangerouslySetInnerHTML: { __html: spec.svg },
-            style: { height: `${spec.targetHeight}px` },
+            style: { height: `${this.targetHeight}px` },
         }
         if (this.props.isLink && spec.url)
             return (

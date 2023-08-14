@@ -21,7 +21,6 @@ const HANDLE_TOOLTIP_FADE_TIME_MS = 2000
 @observer
 export class TimelineComponent extends React.Component<{
     timelineController: TimelineController
-    height?: number
     maxWidth?: number
 }> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
@@ -192,7 +191,7 @@ export class TimelineComponent extends React.Component<{
         const labelWidth = Bounds.forText("Play time-lapse", {
             fontSize: 13,
         }).width
-        return labelWidth < 0.15 * this.maxWidth
+        return labelWidth < 0.1 * this.maxWidth
     }
 
     componentDidMount(): void {
@@ -299,7 +298,6 @@ export class TimelineComponent extends React.Component<{
                 }
                 onMouseOver={this.onMouseOver}
                 onMouseLeave={this.onMouseLeave}
-                style={{ height: this.props.height ?? "100%" }}
             >
                 {!this.manager.disablePlay && (
                     <div

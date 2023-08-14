@@ -1,4 +1,5 @@
 import { Bounds } from "@ourworldindata/utils"
+import { SizeVariant } from "../core/GrapherConstants"
 
 export interface HeaderManager {
     fontSize?: number
@@ -12,4 +13,5 @@ export interface HeaderManager {
     detailsOrderedByReference?: Set<string>
     shouldIncludeDetailsInStaticExport?: boolean
     isExportingtoSvgOrPng?: boolean
+    sizeVariant?: SizeVariant
 }
