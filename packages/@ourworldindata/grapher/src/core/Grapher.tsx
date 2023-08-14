@@ -2325,38 +2325,29 @@ export class Grapher
         this.annotation = annotation
     }
 
-    @computed private get containerStyle(): React.CSSProperties {
-        return {
-            width: this.renderWidth,
-            height: this.renderHeight,
-            fontSize: this.baseFontSize,
-        }
-    }
-
-    @computed private get containerClasses(): string {
-        return classNames(
+    private renderGrapher(): JSX.Element {
+        const containerClasses = classNames(
             "GrapherComponent",
             this.isExportingtoSvgOrPng && "isExportingToSvgOrPng",
             this.isPortrait && "GrapherPortraitClass"
         )
-    }
 
-    private renderIntoFullScreen(): JSX.Element {
-        const { containerStyle, containerClasses } = this
+        const containerStyle = {
+            width: this.renderWidth,
+            height: this.renderHeight,
+            fontSize: this.baseFontSize,
+        }
+
         return (
-            <FullScreen
-                onDismiss={action(() => (this.isInFullScreenMode = false))}
+            <div
+                ref={this.base}
+                className={containerClasses}
+                style={containerStyle}
+                data-grapher-url={this.canonicalUrl}
             >
-                <div
-                    ref={this.base}
-                    className={containerClasses}
-                    style={containerStyle}
-                >
-                    {this.uncaughtError
-                        ? this.renderError()
-                        : this.renderReady()}
-                </div>
-            </FullScreen>
+                {this.commandPalette}
+                {this.uncaughtError ? this.renderError() : this.renderReady()}
+            </div>
         )
     }
 
@@ -2365,22 +2356,16 @@ export class Grapher
         // TODO tidy this up
         if (this.isExportingtoSvgOrPng) return this.renderPrimaryTab() // todo: remove this? should have a simple toStaticSVG for importing.
 
-        return (
-            <>
-                <div
-                    ref={this.isInFullScreenMode ? undefined : this.base} // detach base in full-screen mode
-                    className={this.containerClasses}
-                    style={this.containerStyle}
-                    data-grapher-url={this.canonicalUrl} // fully qualified grapher URL, used for analytics context
+        if (this.isInFullScreenMode)
+            return (
+                <FullScreen
+                    onDismiss={action(() => (this.isInFullScreenMode = false))}
                 >
-                    {this.commandPalette}
-                    {this.uncaughtError
-                        ? this.renderError()
-                        : this.renderReady()}
-                </div>
-                {this.isInFullScreenMode && this.renderIntoFullScreen()}
-            </>
-        )
+                    {this.renderGrapher()}
+                </FullScreen>
+            )
+
+        return this.renderGrapher()
     }
 
     private renderReady(): JSX.Element {
