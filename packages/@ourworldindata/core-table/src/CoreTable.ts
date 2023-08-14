@@ -114,13 +114,12 @@ export class CoreTable<
         this.inputColumnDefs = this.inputColumnDefs.map((def) => {
             if (!def.transform) return def
             const transform = extractTransformNameAndParams(def.transform)
-            if (!transform || transform.transformName !== "duplicate")
-                return def
+            if (transform?.transformName !== "duplicate") return def
+
             const sourceSlug = transform.params[0]
             const sourceDef = this.inputColumnDefs.find(
                 (def) => def.slug === sourceSlug
             )
-            if (!sourceDef) return def
             return { ...sourceDef, ...def }
         })
 
