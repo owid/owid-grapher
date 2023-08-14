@@ -628,14 +628,18 @@ export const renderExplorerPage = async (
     const partialGrapherConfigs = partialGrapherConfigRows
         .filter((row) => row.grapherConfigAdmin || row.grapherConfigETL)
         .map((row) => {
-            const adminConfig = parseGrapherConfigFromRow({
-                id: row.id,
-                config: row.grapherConfigAdmin as string,
-            })
-            const etlConfig = parseGrapherConfigFromRow({
-                id: row.id,
-                config: row.grapherConfigETL as string,
-            })
+            const adminConfig = row.grapherConfigAdmin
+                ? parseGrapherConfigFromRow({
+                      id: row.id,
+                      config: row.grapherConfigAdmin as string,
+                  })
+                : {}
+            const etlConfig = row.grapherConfigETL
+                ? parseGrapherConfigFromRow({
+                      id: row.id,
+                      config: row.grapherConfigETL as string,
+                  })
+                : {}
             return mergePartialGrapherConfigs(etlConfig, adminConfig)
         })
 
