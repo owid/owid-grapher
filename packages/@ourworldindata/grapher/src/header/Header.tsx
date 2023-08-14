@@ -47,7 +47,6 @@ export class Header extends React.Component<{
         return new Logo({
             logo: manager.logo as any,
             isLink: !!manager.shouldLinkToOwid,
-            height: this.sizeVariant === SizeVariant.xs ? 28 : undefined,
         })
     }
 
