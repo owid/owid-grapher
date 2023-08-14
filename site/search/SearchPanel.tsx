@@ -1,5 +1,5 @@
 import ReactDOM from "react-dom"
-import React, { useRef } from "react"
+import React from "react"
 import cx from "classnames"
 import {
     keyBy,
@@ -292,13 +292,20 @@ export class InstantSearchContainer extends React.Component {
             this.handleCategoryFilterClick.bind(this)
     }
 
+    componentDidMount(): void {
+        const params = getWindowQueryParams()
+        if (params.q) {
+            // Algolia runs the search regardless
+            // we just need this class to be aware that a query exists so it doesn't hide the results
+            this.inputValue = decodeURI(params.q)
+        }
+    }
+
     @observable inputValue: string = ""
 
     @action.bound handleQuery(query: string, search: (value: string) => void) {
         this.inputValue = query
-        if (query) {
-            search(query)
-        }
+        search(query)
     }
 
     @observable activeCategoryFilter: SearchCategoryFilter = "all"
@@ -327,6 +334,24 @@ export class InstantSearchContainer extends React.Component {
     render() {
         return (
             <InstantSearch
+                routing={{
+                    stateMapping: {
+                        stateToRoute(uiState) {
+                            const query = uiState[SearchIndexName.Pages].query
+                            return {
+                                q: query,
+                            }
+                        },
+                        routeToState(routeState) {
+                            const query = routeState.q
+                            return {
+                                [SearchIndexName.Pages]: {
+                                    query: query,
+                                },
+                            }
+                        },
+                    },
+                }}
                 searchClient={this.searchClient}
                 indexName={SearchIndexName.Pages}
             >
