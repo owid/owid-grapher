@@ -432,7 +432,11 @@ export class StaticCaptionedChart extends CaptionedChart {
     }
 
     @computed private get fonts(): JSX.Element {
-        const css = `@import url("${this.manager.bakedGrapherURL}/fonts.css")`
+        let origin = ""
+        try {
+            origin = new URL(this.manager.bakedGrapherURL!).origin
+        } catch (e) {}
+        const css = `@import url("${origin}/fonts.css")`
         return (
             <defs>
                 <style>{css}</style>
