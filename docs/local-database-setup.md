@@ -18,7 +18,7 @@ Daily exports from the live OWID database are published here and can be used for
 
 | File                                                                          | Description                  | Size (compressed) |
 | ----------------------------------------------------------------------------- | ---------------------------- | ----------------- |
-| [owid_metadata.sql.gz](https://files.ourworldindata.org/owid_metadata.sql.gz) | Table structure and metadata | ~15 MB            |
+| [owid_metadata.sql.gz](https://files.ourworldindata.org/owid_metadata.sql.gz) | Table structure and metadata | ~70 MB            |
 
 This script will create a database, then download and import all OWID charts and their data (might take a while!):
 
