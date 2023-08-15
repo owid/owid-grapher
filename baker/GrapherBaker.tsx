@@ -1,5 +1,6 @@
 import React from "react"
 import { GrapherPage } from "../site/GrapherPage.js"
+import { DataPageV2 } from "../site/DataPageV2.js"
 import { DataPage } from "../site/DataPage.js"
 import { renderToHtmlPage } from "../baker/siteRenderers.js"
 import {
@@ -12,6 +13,17 @@ import {
     JsonError,
     keyBy,
     OwidGdocType,
+    DimensionProperty,
+    OwidVariableWithSource,
+    mergePartialGrapherConfigs,
+    OwidChartDimensionInterface,
+    compact,
+    OwidGdocInterface,
+    merge,
+    EnrichedFaq,
+    FaqEntryData,
+    FaqDictionary,
+    partition,
 } from "@ourworldindata/utils"
 import {
     getRelatedArticles,
@@ -37,8 +49,13 @@ import { getPostBySlug } from "../db/model/Post.js"
 import { GrapherInterface } from "@ourworldindata/grapher"
 import workerpool from "workerpool"
 import ProgressBar from "progress"
-import { getVariableData } from "../db/model/Variable.js"
 import {
+    getVariableData,
+    getVariableMetadata,
+    getMergedGrapherConfigForVariable,
+} from "../db/model/Variable.js"
+import {
+    getDatapageDataV2,
     getDatapageGdoc,
     getDatapageJson,
     parseGdocContentFromAllowedLevelOneHeadings,
@@ -46,6 +63,8 @@ import {
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { Image } from "../db/model/Image.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
+
+import { parseFaqs } from "../db/model/Gdoc/rawToEnriched.js"
 
 /**
  *
@@ -179,6 +198,149 @@ export const renderDataPageOrGrapherPage = async (
     )
 }
 
+type EnrichedFaqLookupError = {
+    type: "error"
+    error: string
+}
+
+type EnrichedFaqLookupSuccess = {
+    type: "success"
+    enrichedFaq: EnrichedFaq
+}
+
+type EnrichedFaqLookupResult = EnrichedFaqLookupError | EnrichedFaqLookupSuccess
+
+export async function renderDataPageV2({
+    variableId,
+    variableMetadata,
+    isPreviewing,
+    pageGrapher,
+    publishedExplorersBySlug,
+}: {
+    variableId: number
+    variableMetadata: OwidVariableWithSource
+    isPreviewing: boolean
+    pageGrapher?: GrapherInterface
+    publishedExplorersBySlug?: Record<string, ExplorerProgram>
+}) {
+    const grapherConfigForVariable = await getMergedGrapherConfigForVariable(
+        variableId
+    )
+    const grapher = mergePartialGrapherConfigs(
+        grapherConfigForVariable,
+        pageGrapher
+    )
+
+    const faqDocs = compact(
+        uniq(variableMetadata.presentation?.faqs?.map((faq) => faq.gdocId))
+    )
+    const gdocFetchPromises = faqDocs.map((gdocId) =>
+        getDatapageGdoc(gdocId, isPreviewing, publishedExplorersBySlug)
+    )
+    const gdocs = await Promise.all(gdocFetchPromises)
+    const gdocIdToFragmentIdToBlock: Record<string, FaqDictionary> = {}
+    gdocs.forEach((gdoc) => {
+        if (!gdoc) return
+        const faqs = parseFaqs(gdoc.content.faqs, gdoc.id)
+        gdocIdToFragmentIdToBlock[gdoc.id] = faqs.faqs
+    })
+
+    const linkedCharts: OwidGdocInterface["linkedCharts"] = merge(
+        {},
+        ...compact(gdocs.map((gdoc) => gdoc?.linkedCharts))
+    )
+    const linkedDocuments: OwidGdocInterface["linkedDocuments"] = merge(
+        {},
+        ...compact(gdocs.map((gdoc) => gdoc?.linkedDocuments))
+    )
+    const imageMetadata: OwidGdocInterface["imageMetadata"] = merge(
+        {},
+        ...compact(gdocs.map((gdoc) => gdoc?.imageMetadata))
+    )
+    const relatedCharts: OwidGdocInterface["relatedCharts"] = gdocs.flatMap(
+        (gdoc) => gdoc?.relatedCharts ?? []
+    )
+
+    const resolvedFaqsResults: EnrichedFaqLookupResult[] = variableMetadata
+        .presentation?.faqs
+        ? variableMetadata.presentation.faqs.map((faq) => {
+              const enrichedFaq = gdocIdToFragmentIdToBlock[faq.gdocId]?.[
+                  faq.fragmentId
+              ] as EnrichedFaq | undefined
+              if (!enrichedFaq)
+                  return {
+                      type: "error",
+                      error: `Could not find fragment ${faq.fragmentId} in gdoc ${faq.gdocId}`,
+                  }
+              return {
+                  type: "success",
+                  enrichedFaq,
+              }
+          })
+        : []
+
+    const [resolvedFaqs, faqResolveErrors] = partition(
+        resolvedFaqsResults,
+        (result) => result.type === "success"
+    ) as [EnrichedFaqLookupSuccess[], EnrichedFaqLookupError[]]
+
+    if (faqResolveErrors.length > 0) {
+        for (const error of faqResolveErrors) {
+            logErrorAndMaybeSendToBugsnag(
+                new JsonError(
+                    `Data page error in finding FAQs for variable ${variableId}: ${error.error}`
+                )
+            )
+        }
+    }
+
+    const faqEntries: FaqEntryData = {
+        linkedCharts,
+        linkedDocuments,
+        imageMetadata,
+        relatedCharts,
+        faqs: resolvedFaqs?.flatMap((faq) => faq.enrichedFaq.content) ?? [],
+    }
+
+    // If we are rendering this in the context of an indicator page preview or similar,
+    // then the chart config might be entirely empty. Make sure that dimensions is
+    // set to the variableId as a Y variable in theses cases.
+    if (
+        !grapher.dimensions ||
+        (grapher.dimensions as OwidChartDimensionInterface[]).length === 0
+    ) {
+        const dimensions: OwidChartDimensionInterface[] = [
+            {
+                variableId: variableId,
+                property: DimensionProperty.y,
+                display: variableMetadata.display,
+            },
+        ]
+        grapher.dimensions = dimensions
+    }
+    const datapageData = await getDatapageDataV2(
+        variableMetadata,
+        grapherConfigForVariable ?? {}
+    )
+
+    // Get the charts this variable is being used in (aka "related charts")
+    // and exclude the current chart to avoid duplicates
+    datapageData.allCharts = await getRelatedChartsForVariable(
+        variableId,
+        grapher && "id" in grapher ? [grapher.id as number] : []
+    )
+    return renderToHtmlPage(
+        <DataPageV2
+            grapher={grapher}
+            datapageData={datapageData}
+            baseUrl={BAKED_BASE_URL}
+            baseGrapherUrl={BAKED_GRAPHER_URL}
+            isPreviewing={isPreviewing}
+            faqEntries={faqEntries}
+        />
+    )
+}
+
 /**
  *
  * Similar to renderDataPageOrGrapherPage(), but for admin previews
@@ -187,6 +349,30 @@ export const renderPreviewDataPageOrGrapherPage = async (
     grapher: GrapherInterface,
     publishedExplorersBySlug?: Record<string, ExplorerProgram>
 ) => {
+    // If we have a single Y variable and that one has a schema version >= 2,
+    // meaning it has the metadata to render a datapage, then we show the datapage
+    // based on this information. Otherwise we see if there is a legacy datapage.json
+    // available and if all else fails we render a classic Grapher page.
+    const yVariableIds = grapher
+        .dimensions!.filter((d) => d.property === DimensionProperty.y)
+        .map((d) => d.variableId)
+    if (yVariableIds.length === 1) {
+        const variableId = yVariableIds[0]
+        const variableMetadata = await getVariableMetadata(variableId)
+
+        if (
+            variableMetadata.schemaVersion !== undefined &&
+            variableMetadata.schemaVersion >= 2
+        ) {
+            return await renderDataPageV2({
+                variableId,
+                variableMetadata,
+                isPreviewing: true,
+                pageGrapher: grapher,
+                publishedExplorersBySlug,
+            })
+        }
+    }
     const variableIds = uniq(grapher.dimensions!.map((d) => d.variableId))
     // this shows that multi-metric charts are not really supported, and will
     // render a datapage corresponding to the first variable found.

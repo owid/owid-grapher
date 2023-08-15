@@ -161,7 +161,7 @@
 
 @mixin popover-box-styles {
     border-radius: 3px;
-    width: 23rem;
+    width: 411px; // see SiteNavigationToggle__dropdown
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.15), 0 3px 15px rgba(0, 0, 0, 0.25);
     background: hsla(0, 0%, 100%, 0.98);
     color: #333;

@@ -26,12 +26,19 @@ export const SUMMARY_CLASSNAME = "wp-block-owid-summary"
 export const RESEARCH_AND_WRITING_CLASSNAME = "wp-block-research-and-writing"
 export const KEY_INSIGHTS_H2_CLASSNAME = "key-insights-heading"
 
-export const formatUrls = (html: string) =>
-    html
-        .replace(new RegExp(WORDPRESS_URL, "g"), BAKED_BASE_URL)
+export const formatUrls = (html: string) => {
+    let formatted = html
         .replace(new RegExp("https?://owid.cloud", "g"), BAKED_BASE_URL)
         .replace(new RegExp("https?://ourworldindata.org", "g"), BAKED_BASE_URL)
         .replace(new RegExp("/app/uploads", "g"), "/uploads")
+    if (WORDPRESS_URL) {
+        formatted = formatted.replace(
+            new RegExp(WORDPRESS_URL, "g"),
+            BAKED_BASE_URL
+        )
+    }
+    return formatted
+}
 
 export const splitContentIntoSectionsAndColumns = (
     cheerioEl: CheerioStatic

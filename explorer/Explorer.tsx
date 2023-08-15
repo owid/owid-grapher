@@ -544,7 +544,7 @@ export class Explorer
             [...ySlugs.split(" "), xSlug, colorSlug, sizeSlug].filter(identity)
         ) as string[]
 
-        // find all variables the the transformed columns depend on and add them to the dimensions array
+        // find all variables that the transformed columns depend on and add them to the dimensions array
         if (uniqueSlugsInGrapherRow.length) {
             const baseVariableIds = uniq(
                 uniqueSlugsInGrapherRow.flatMap((slug) =>
@@ -577,24 +577,6 @@ export class Explorer
 
         let grapherTable = grapher.inputTable
 
-        // update column definitions with manually provided properties
-        grapherTable = grapherTable.updateDefs((def: OwidColumnDef) => {
-            const manuallyProvidedDef =
-                this.columnDefsWithoutTableSlugByIdOrSlug[def.slug] ?? {}
-            const mergedDef = { ...def, ...manuallyProvidedDef }
-
-            // update display properties
-            mergedDef.display = mergedDef.display ?? {}
-            if (manuallyProvidedDef.name)
-                mergedDef.display.name = manuallyProvidedDef.name
-            if (manuallyProvidedDef.unit)
-                mergedDef.display.unit = manuallyProvidedDef.unit
-            if (manuallyProvidedDef.shortUnit)
-                mergedDef.display.shortUnit = manuallyProvidedDef.shortUnit
-
-            return mergedDef
-        })
-
         // add transformed (and intermediate) columns to the grapher table
         if (uniqueSlugsInGrapherRow.length) {
             const allColumnSlugs = uniq(
@@ -612,6 +594,24 @@ export class Explorer
                 .filter(identity)
             grapherTable = grapherTable.appendColumns(requiredColumnDefs)
         }
+
+        // update column definitions with manually provided properties
+        grapherTable = grapherTable.updateDefs((def: OwidColumnDef) => {
+            const manuallyProvidedDef =
+                this.columnDefsWithoutTableSlugByIdOrSlug[def.slug] ?? {}
+            const mergedDef = { ...def, ...manuallyProvidedDef }
+
+            // update display properties
+            mergedDef.display = mergedDef.display ?? {}
+            if (manuallyProvidedDef.name)
+                mergedDef.display.name = manuallyProvidedDef.name
+            if (manuallyProvidedDef.unit)
+                mergedDef.display.unit = manuallyProvidedDef.unit
+            if (manuallyProvidedDef.shortUnit)
+                mergedDef.display.shortUnit = manuallyProvidedDef.shortUnit
+
+            return mergedDef
+        })
 
         this.setGrapherTable(grapherTable)
     }

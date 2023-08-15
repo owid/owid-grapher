@@ -15,7 +15,11 @@ import {
 import { expectInt, isValidSlug } from "../serverUtils/serverUtil.js"
 import { OldChart, Chart, getGrapherById } from "../db/model/Chart.js"
 import { Request, Response, CurrentUser } from "./authentication.js"
-import { getVariableData, getVariableMetadata } from "../db/model/Variable.js"
+import {
+    getMergedGrapherConfigForVariable,
+    getVariableData,
+    getVariableMetadata,
+} from "../db/model/Variable.js"
 import {
     applyPatch,
     BulkChartEditResponseRow,
@@ -39,6 +43,8 @@ import {
     VariableAnnotationsResponseRow,
     isUndefined,
     OwidVariableWithSource,
+    OwidChartDimensionInterface,
+    DimensionProperty,
 } from "@ourworldindata/utils"
 import {
     GrapherInterface,
@@ -1706,11 +1712,30 @@ apiRouter.get(
 
         await Chart.assignTagsForCharts(charts)
 
+        const grapherConfig = await getMergedGrapherConfigForVariable(
+            variableId
+        )
+        if (
+            grapherConfig &&
+            (!grapherConfig.dimensions || grapherConfig.dimensions.length === 0)
+        ) {
+            const dimensions: OwidChartDimensionInterface[] = [
+                {
+                    variableId: variableId,
+                    property: DimensionProperty.y,
+                    display: variable.display,
+                },
+            ]
+            grapherConfig.dimensions = dimensions
+        }
+
         const variablesWithCharts: OwidVariableWithSource & {
             charts: Record<string, any>
+            grapherConfig: GrapherInterface | undefined
         } = {
             ...variable,
             charts,
+            grapherConfig,
         }
 
         return {

@@ -90,13 +90,20 @@ const nonWordpressSteps = [
     "specialPages",
     "countries",
     "countryProfiles",
+    "explorers",
     "charts",
     "gdocPosts",
     "gdriveImages",
     "dods",
 ] as const
 
-export const bakeSteps = [...wordpressSteps, ...nonWordpressSteps]
+const otherSteps = ["removeDeletedPosts"] as const
+
+export const bakeSteps = [
+    ...wordpressSteps,
+    ...nonWordpressSteps,
+    ...otherSteps,
+]
 
 export type BakeStep = (typeof bakeSteps)[number]
 
@@ -105,8 +112,8 @@ export type BakeStepConfig = Set<BakeStep>
 const defaultSteps = new Set(bakeSteps)
 
 function getProgressBarTotal(bakeSteps: BakeStepConfig): number {
-    // There are 3 non-optional steps: flushCache, removeDeletedPosts, and flushCache (again)
-    const minimum = 3
+    // There are 2 non-optional steps: flushCache at the beginning and flushCache at the end (again)
+    const minimum = 2
     let total = minimum + bakeSteps.size
     // Redirects has two progress bar ticks
     if (bakeSteps.has("redirects")) total++
@@ -254,6 +261,7 @@ export class SiteBaker {
     // Bake all Wordpress posts, both blog posts and entry pages
 
     private async removeDeletedPosts() {
+        if (!this.bakeSteps.has("removeDeletedPosts")) return
         const postsApi = await wpdb.getPosts()
 
         const postSlugs = []
@@ -425,6 +433,16 @@ export class SiteBaker {
             await makeSitemap(this.explorerAdminServer)
         )
 
+        await this.stageWrite(
+            `${this.bakedSiteDir}/charts.html`,
+            await renderChartsPage(this.explorerAdminServer)
+        )
+        this.progressBar.tick({ name: "✅ baked special pages" })
+    }
+
+    private async bakeExplorers() {
+        if (!this.bakeSteps.has("explorers")) return
+
         await bakeAllExplorerRedirects(
             this.bakedSiteDir,
             this.explorerAdminServer
@@ -435,11 +453,7 @@ export class SiteBaker {
             this.explorerAdminServer
         )
 
-        await this.stageWrite(
-            `${this.bakedSiteDir}/charts.html`,
-            await renderChartsPage(this.explorerAdminServer)
-        )
-        this.progressBar.tick({ name: "✅ baked special pages" })
+        this.progressBar.tick({ name: "✅ baked explorers" })
     }
 
     private async validateGrapherDodReferences() {
@@ -517,13 +531,7 @@ export class SiteBaker {
                 `${this.bakedSiteDir}/dods.json`,
                 JSON.stringify(details)
             )
-            // This task completes too quickly and doesn't tick correctly without this
-            await new Promise((resolve) => {
-                setTimeout(() => {
-                    this.progressBar.tick({ name: "✅ baked dods.json" })
-                    resolve(true)
-                }, 250)
-            })
+            this.progressBar.tick({ name: "✅ baked dods.json" })
         } else {
             throw Error("Details on demand not found")
         }
@@ -709,6 +717,7 @@ export class SiteBaker {
         }
         await this.bakeSpecialPages()
         await this.bakeCountryProfiles()
+        await this.bakeExplorers()
         if (this.bakeSteps.has("charts")) {
             await bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers(
                 this.bakedSiteDir

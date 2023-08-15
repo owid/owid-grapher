@@ -632,7 +632,7 @@ export const getRelatedChartsForVariable = async (
             ? `AND charts.id NOT IN (${chartIdsToExclude.join(", ")})`
             : ""
 
-    return db.queryMysql(`
+    return db.queryMysql(`-- sql
                 SELECT
                     charts.config->>"$.slug" AS slug,
                     charts.config->>"$.title" AS title,

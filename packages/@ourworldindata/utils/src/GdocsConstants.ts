@@ -18,6 +18,7 @@ export const IMAGES_DIRECTORY = "/images/published/"
 
 export const gdocUrlRegex =
     /https:\/\/docs\.google\.com\/.+?\/d\/([-\w]+)\/?(edit)?#?/
+export const gdocIdRegex = /^[0-9A-Za-z\-_]{44}$/
 // Works for:
 // #dod:text
 // #dod:text-hyphenated

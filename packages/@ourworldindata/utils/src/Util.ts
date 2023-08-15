@@ -161,9 +161,11 @@ import {
     EnrichedScrollerItem,
     EnrichedBlockKeyInsightsSlide,
 } from "./owidTypes.js"
+import { OwidVariableWithSource } from "./OwidVariable.js"
 import { PointVector } from "./PointVector.js"
 import React from "react"
 import { match, P } from "ts-pattern"
+import { OwidOrigin } from "./OwidOrigin.js"
 
 export type NoUndefinedValues<T> = {
     [P in keyof T]: Required<NonNullable<T[P]>>
@@ -1659,4 +1661,39 @@ export function filterValidStringValues<ValidValue extends string>(
     })
 
     return filteredValues
+}
+
+// TODO: type this correctly once we have moved types into their own top level package
+export function mergePartialGrapherConfigs<T extends Record<string, any>>(
+    ...grapherConfigs: (T | undefined)[]
+): T {
+    return merge({}, ...grapherConfigs)
+}
+
+export function getOriginAttributionFragments(
+    origins: OwidOrigin[] | undefined
+): string[] {
+    return origins
+        ? origins.map((origin) => {
+              const yearPublished = origin.datePublished
+                  ? dayjs(origin.datePublished, ["YYYY", "YYYY-MM-DD"]).year()
+                  : undefined
+              return origin.attribution ?? `${origin.producer} ${yearPublished}`
+          })
+        : []
+}
+
+export function getAttributionFromVariable(
+    variable: OwidVariableWithSource
+): string {
+    if (
+        variable.presentation?.attribution &&
+        variable.presentation?.attribution !== ""
+    )
+        return variable.presentation?.attribution
+    const originAttributionFragments = getOriginAttributionFragments(
+        variable.origins
+    )
+    const sourceName = variable.source?.name
+    return uniq(compact([sourceName, ...originAttributionFragments])).join(", ")
 }

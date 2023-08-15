@@ -38,31 +38,6 @@ interface DownloadTabProps {
     manager: DownloadTabManager
 }
 
-const polyfillToBlob = (): void => {
-    // https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toBlob#Polyfill
-    Object.defineProperty(HTMLCanvasElement.prototype, "toBlob", {
-        value: function (
-            callback: (blob: Blob) => void,
-            type: string,
-            quality: any
-        ) {
-            const binStr = atob(
-                (this as HTMLCanvasElement)
-                    .toDataURL(type, quality)
-                    .split(",")[1]
-            )
-            const len = binStr.length
-            const arr = new Uint8Array(len)
-
-            for (let i = 0; i < len; i++) {
-                arr[i] = binStr.charCodeAt(i)
-            }
-
-            callback(new Blob([arr], { type: type || "image/png" }))
-        },
-    })
-}
-
 @observer
 export class DownloadTab extends React.Component<DownloadTabProps> {
     @computed private get idealBounds(): Bounds {
@@ -102,7 +77,6 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
     @observable private isReady: boolean = false
 
     @action.bound private export(): void {
-        if (!HTMLCanvasElement.prototype.toBlob) polyfillToBlob()
         this.createSvg()
         const reader = new FileReader()
         reader.onload = (ev: any): void => {

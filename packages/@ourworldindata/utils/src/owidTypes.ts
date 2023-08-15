@@ -2,6 +2,8 @@ import { Tag as TagReactTagAutocomplete } from "react-tag-autocomplete"
 import { ImageMetadata } from "./image.js"
 import { Static, Type } from "@sinclair/typebox"
 import { gdocUrlRegex } from "./GdocsConstants.js"
+import { OwidOrigin } from "./OwidOrigin.js"
+import { OwidSource } from "./OwidSource.js"
 
 // todo: remove when we ditch Year and YearIsDay
 export const EPOCH_DATE = "2020-01-21"
@@ -1254,6 +1256,11 @@ export interface OwidGdocContent {
         | "amber"
     "sticky-nav"?: []
     details?: DetailDictionary
+    // TODO: having both the unparsed and parsed variant on the same type is pretty crude
+    // Consider moving faqs into body or splitting the types and creating
+    // a parsed and an unparsed gdoc variant.
+    faqs?: RawFaq[]
+    parsedFaqs?: FaqDictionary
 }
 
 export type OwidGdocStickyNavItem = { target: string; text: string }
@@ -1275,6 +1282,7 @@ export enum SiteFooterContext {
     gdocsDocument = "gdocsDocument", // the rendered version (on the site)
     grapherPage = "grapherPage",
     dataPage = "dataPage",
+    dataPageV2 = "dataPageV2",
     explorerPage = "explorerPage",
     default = "default",
 }
@@ -1290,6 +1298,17 @@ export type EnrichedDetail = {
 } & EnrichedBlockWithParseErrors
 
 export type DetailDictionary = Record<string, EnrichedDetail>
+
+export type RawFaq = {
+    id: string
+    content: OwidRawGdocBlock[]
+}
+export type EnrichedFaq = {
+    id: string
+    content: OwidEnrichedGdocBlock[]
+} & EnrichedBlockWithParseErrors
+
+export type FaqDictionary = Record<string, EnrichedFaq>
 
 /**
  * An unbounded value (±Infinity) or a concrete point in time (year or date).
@@ -1350,6 +1369,51 @@ export type DataPageGdocContent = Record<
     (typeof AllowedDataPageGdocFields)[number],
     OwidEnrichedGdocBlock[]
 >
+
+export interface FaqLink {
+    gdocId: string
+    fragmentId: string
+}
+
+export interface DataPageDataV2 {
+    status: "published" | "draft"
+    title: string
+    titleVariant?: string
+    producerShort?: string
+    topicTagsLinks?: string[]
+    attribution: string
+    descriptionShort?: string
+    descriptionFromProducer?: string
+    faqs: FaqLink[] // Todo: resolve these at this level to the point where we can preview them
+    keyInfoText: string[]
+    processingInfo?: string
+    owidProcessingLevel: "minor" | "major"
+    dateRange: string
+    lastUpdated: string
+    nextUpdate?: string
+    relatedResearch: DataPageRelatedResearch[]
+    relatedData: DataPageRelatedData[]
+    allCharts: RelatedChart[] // Chart slugs
+    source: OwidSource | undefined
+    origins: OwidOrigin[]
+    chartConfig: Record<string, unknown>
+}
+
+export interface DataPageRelatedResearch {
+    title: string
+    url: string
+    authors: string[]
+    imageUrl: string
+}
+
+export interface DataPageRelatedData {
+    type?: string
+    title: string
+    source?: string
+    url: string
+    content?: string
+    featured?: boolean
+}
 
 // This gives us a typed object we can use to validate datapage JSON files at runtime (see
 // Value.Check() and Value.Errors() below), as well as a type that we can use
@@ -1434,5 +1498,19 @@ export interface DataPageContentFields {
     datapageJson: DataPageJson
     datapageGdoc?: OwidGdocInterface | null
     datapageGdocContent?: DataPageGdocContent | null
+    isPreviewing?: boolean
+}
+
+export type FaqEntryData = Pick<
+    OwidGdocInterface,
+    "linkedCharts" | "linkedDocuments" | "relatedCharts" | "imageMetadata"
+> & {
+    faqs: OwidEnrichedGdocBlock[]
+}
+
+export interface DataPageV2ContentFields {
+    datapageData: DataPageDataV2
+    faqEntries: FaqEntryData | undefined
+    // TODO: add gdocs for FAQs
     isPreviewing?: boolean
 }
