@@ -13886,6 +13886,7 @@ __metadata:
     react-error-boundary: ^4.0.10
     react-flip-toolkit: ^7.0.9
     react-horizontal-scrolling-menu: ^4.0.3
+    react-instantsearch: ^7.0.1
     react-instantsearch-hooks-web: ^6.47.2
     react-intersection-observer: ^9.4.0
     react-move: ^6.5.0
@@ -14736,6 +14737,29 @@ __metadata:
   peerDependencies:
     algoliasearch: ">= 3.1 < 6"
   checksum: 9614493494c02397a401d9dc8912b0e47146639ba7ebc90544fc2b0e6349df04a7052bf6e3c626ac549cd0f4469921482869f237ef02b23f72f826cfcd9dd4b8
+  languageName: node
+  linkType: hard
+
+"instantsearch.js@npm:4.56.9":
+  version: 4.56.9
+  resolution: "instantsearch.js@npm:4.56.9"
+  dependencies:
+    "@algolia/events": ^4.0.1
+    "@algolia/ui-components-highlight-vdom": ^1.2.1
+    "@algolia/ui-components-shared": ^1.2.1
+    "@types/dom-speech-recognition": ^0.0.1
+    "@types/google.maps": ^3.45.3
+    "@types/hogan.js": ^3.0.0
+    "@types/qs": ^6.5.3
+    algoliasearch-helper: 3.14.0
+    hogan.js: ^3.0.2
+    htm: ^3.0.0
+    preact: ^10.10.0
+    qs: ^6.5.1 < 6.10
+    search-insights: ^2.6.0
+  peerDependencies:
+    algoliasearch: ">= 3.1 < 6"
+  checksum: 2de5f29fd26187ba68642a1366d0fe02a4a96d817288dfbb385b243b7f9d4f366d284a1e83a125da195b7346967759c715bbf95a223431857ee046970cb0e5a9
   languageName: node
   linkType: hard
 
@@ -21173,6 +21197,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-instantsearch-core@npm:7.0.1":
+  version: 7.0.1
+  resolution: "react-instantsearch-core@npm:7.0.1"
+  dependencies:
+    "@babel/runtime": ^7.1.2
+    algoliasearch-helper: 3.14.0
+    instantsearch.js: 4.56.9
+    use-sync-external-store: ^1.0.0
+  peerDependencies:
+    algoliasearch: ">= 3.1 < 5"
+    react: ">= 16.8.0 < 19"
+  checksum: fb1e9820c5e0ff10ebe786f3a56a9b04de53f8de6baeaa0fc26db522a03952acf5ea9a7008f915bb5f6c9bb0db311dd571463ab1139167293dd42e6661cb31b4
+  languageName: node
+  linkType: hard
+
 "react-instantsearch-hooks-web@npm:^6.47.2":
   version: 6.47.2
   resolution: "react-instantsearch-hooks-web@npm:6.47.2"
@@ -21200,6 +21239,21 @@ __metadata:
     algoliasearch: ">= 3.1 < 5"
     react: ">= 16.8.0 < 19"
   checksum: 9d41a5c3137f05b682a790daa1fb5f4962f644cfe5b2d520a5cd6579a4b52e8bf35db55aa67be84c842c4a76e47ec711bb3fa376e0636c033f209d73f13051df
+  languageName: node
+  linkType: hard
+
+"react-instantsearch@npm:^7.0.1":
+  version: 7.0.1
+  resolution: "react-instantsearch@npm:7.0.1"
+  dependencies:
+    "@babel/runtime": ^7.1.2
+    instantsearch.js: 4.56.9
+    react-instantsearch-core: 7.0.1
+  peerDependencies:
+    algoliasearch: ">= 3.1 < 5"
+    react: ">= 16.8.0 < 19"
+    react-dom: ">= 16.8.0 < 19"
+  checksum: 6030eb989e6629d7966a42ecc28e7fe8ad6ce04150470d1d4acf1938749277b4ffeef78a5f0d5c86379ee634a49d23c8f7af12a623d0474d9180b1746c39fd49
   languageName: node
   linkType: hard
 
