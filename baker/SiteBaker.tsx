@@ -655,6 +655,15 @@ export class SiteBaker {
                                     .toFile(
                                         path.join(imagesDirectory, pngFilename)
                                     )
+
+                                // Import the site's webfonts
+                                const svg = buffer
+                                    .toString()
+                                    .replace(
+                                        /(<svg.*?>)/,
+                                        `$1<defs><style>@import url(${BAKED_BASE_URL}/fonts.css)</style></defs>`
+                                    )
+                                buffer = Buffer.from(svg)
                             }
                             // For SVG, and a non-webp fallback copy of the image
                             await writeFile(
