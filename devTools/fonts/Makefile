@@ -37,7 +37,7 @@ $(PLAYFAIR).zip:
 $(PLAYFAIR): $(PLAYFAIR).zip
 	unzip -jo $< -d $@ 'PlayfairDisplay-*.otf' && touch $@/*
 Playfair%.woff2: Playfair%.otf
-	$(WOFF2) $<
+	$(SUBSET) $< --unicodes="*" --flavor=woff2 --layout-features+=subs,sups,smcp,lnum,onum,kern,calt,liga --name-IDs="*" --output-file="$@" 
 
 $(VENV):
 	python3 -m venv $@

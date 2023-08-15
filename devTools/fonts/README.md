@@ -11,14 +11,13 @@ make
 make install
 ```
 
-The first `make` command will download Lato and Playfair Display and convert them to woff2 format using the [woff2 command line tool](https://github.com/google/woff2). After it completes, take a look at the `diff` output to make sure the changes it has made to `fonts.css` look reasonable. Then run `make install` to copy the css and woff2 files into the repo's `public` directory. Afterwards, you can commit the font-related changes (if any) and run `make clean` to delete the intermediate files.
+The first `make` command will download Lato and Playfair Display and convert them to woff2 format using the FontTools library. After it completes, take a look at the `diff` output to make sure the changes it has made to `fonts.css` look reasonable. Then run `make install` to copy the css and woff2 files into the repo's `public` directory. Afterwards, you can commit the font-related changes (if any) and run `make clean` to delete the intermediate files.
 
 You can also run `make report` to display the current division of characters between the LatoLatin subset (see below) and the full Lato font. If a character needs to be added to the subset, find its hex ID in the listing and add it to the `LATIN_RANGE` variable in the Makefile then regenerate the fonts.
 
 ## Dependencies
 
--   Python3 (in order to use the [`fontTools.ttLib`](https://pypi.org/project/fonttools/) module for calculating the `unicode-range` settings for Lato)
--   `woff2_compress` (can be installed via `brew install woff2`)
+-   Python3 (in order to use the [`fontTools.ttLib`](https://pypi.org/project/fonttools/) module for converting otf to woff2, creating the LatoLatin font with its [subset](https://fonttools.readthedocs.io/en/latest/subset/index.html) tool, and unpacking the `cmap` table to calculate `unicode-range` settings for Lato)
 -   the repo's copy of prettier in `../../node_modules`
 
 ## Typefaces
