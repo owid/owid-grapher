@@ -32,6 +32,7 @@ import {
     flushCache as siteBakingFlushCache,
     renderPost,
     renderGdoc,
+    makeAtomFeedNoTopicPages,
 } from "../baker/siteRenderers.js"
 import {
     bakeGrapherUrls,
@@ -586,6 +587,10 @@ export class SiteBaker {
         await this.stageWrite(
             `${this.bakedSiteDir}/atom.xml`,
             await makeAtomFeed()
+        )
+        await this.stageWrite(
+            `${this.bakedSiteDir}/atom-no-topic-pages.xml`,
+            await makeAtomFeedNoTopicPages()
         )
         this.progressBar.tick({ name: "✅ baked rss" })
     }
