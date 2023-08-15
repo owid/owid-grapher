@@ -13,6 +13,8 @@ make install
 
 The first `make` command will download Lato and Playfair Display and convert them to woff2 format using the [woff2 command line tool](https://github.com/google/woff2). After it completes, take a look at the `diff` output to make sure the changes it has made to `fonts.css` look reasonable. Then run `make install` to copy the css and woff2 files into the repo's `public` directory. Afterwards, you can commit the font-related changes (if any) and run `make clean` to delete the intermediate files.
 
+You can also run `make report` to display the current division of characters between the LatoLatin subset (see below) and the full Lato font. If a character needs to be added to the subset, find its hex ID in the listing and add it to the `LATIN_RANGE` variable in the Makefile then regenerate the fonts.
+
 ## Dependencies
 
 -   Python3 (in order to use the [`fontTools.ttLib`](https://pypi.org/project/fonttools/) module for calculating the `unicode-range` settings for Lato)
@@ -25,9 +27,9 @@ The first `make` command will download Lato and Playfair Display and convert the
 
 Our version of Lato comes from the [project's website](https://www.latofonts.com/lato-free-fonts/). We're using the woff2 files from the webfont archive available at: https://www.latofonts.com/download/lato2oflweb-zip/
 
-The LatoLatin fonts are much smaller than Lato proper but cover a more limited set of glyphs. For our purposes the main thing they're missing is superscripts & subscripts. As a result we want to use the LatoLatin versions in the general case and only load the full face when we need a paricular glyph.
+The official distribution includes "LatoLatin" fonts which are much smaller than Lato proper but cover a more limited set of glyphs. For our purposes the main thing they're missing is superscripts & subscripts (and even the ones they include lack the proper unicode IDs and can't be used). As a result, we're creating our own custom version of "LatoLatin" which contains the same subset of characters that the Google Fonts version did, plus the sub/sup figures and some useful ff ligatures. As a result, most pages will only need to load the latin subset and will fall back to the full typeface only when a missing glyph is used.
 
-> Note that using _a single glyph_ not in the Latin face will cause the full version to load for that weight & style, so if we end up using something from the full set regularly (e.g., as part of a header or footer element present on all pages), the pageload size will start to creep up.
+> Note that using even _a single glyph_ that's not present in the Latin face will cause the full version to load for that weight & style, so if we end up using something from the full set regularly (e.g., as part of a header or footer element present on all pages), the pageload size will start to creep up.
 
 ### Playfair Display
 

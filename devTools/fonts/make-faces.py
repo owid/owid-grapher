@@ -1,5 +1,15 @@
 #!./env/bin/python3
+"""
+This script emits CSS @font-face definitons for Playfair Display and Lato (along with its LatoLatin subset).
+The arguments should be a list of .woff2 files for all the weights & styles of those families to be included. 
 
+The filenames are parsed to infer weight and normal/italic style information. Lato and LatoLatin are inspected more deeply
+using the fontTools module to extract character-map IDs. Since LatoLatin is a minimal subset of the character set (to keep
+its size small), we need to be able to fall back to the full version but want to ensure it's only loaded when necessary. 
+Even though the Lato contains all the characters in LatoLatin (and more), we define its `unicode-range` to exclude all of 
+the characters in LatoLatin, meaning it should only be loaded on pages where a rare character (greek, cyrillic, legacy 
+currencies, exotic diacriticals, etc.) occurs — and ideally only in one or two weights even then.
+"""
 from fontTools.ttLib import TTFont
 from more_itertools import consecutive_groups
 from operator import itemgetter
