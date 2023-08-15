@@ -9,8 +9,11 @@ parenthetical hex values can be added to LATIN_RANGES in the Makefile to add cha
 """
 from subprocess import run
 import xml.etree.ElementTree as ET
-import sys
 import shutil
+import sys
+
+# truncate long glyph names if necessary
+MAX_LENGTH = 32
 
 def col_print(lines, term_width=None, indent=0, pad=2):
     """Print list of strings in multiple columns
@@ -42,7 +45,18 @@ def col_print(lines, term_width=None, indent=0, pad=2):
     for row in rows:
         print(" " * indent + (" " * pad).join(line.ljust(col_width) for line in row))
 
+def print_charset(title, glyphs):
+    print(f"\n{title}:")
+    col_print(["%s (%04x) %s" % (chr(code), code, format_name(name)) for [code, name] in glyphs], indent=1)
+
+def format_name(long_glyph_name):
+    name = long_glyph_name.lower().strip().replace(' ','-')
+    if len(name) > MAX_LENGTH:
+        return name[:MAX_LENGTH-1].strip('-') + "…"
+    return name
+
 def report(font, subset_ranges):
+    # expand the ranges into individual codes
     subset_codes = []
     for chunk in [r.replace('U+','').split('-') for r in subset_ranges.split(',')]:
         nums = [int(c, 16) for c in chunk]
@@ -51,24 +65,21 @@ def report(font, subset_ranges):
         subset_codes.extend(range(*nums[:2]))
 
     ttx_output = run(['.env/bin/ttx', '-t', 'cmap', '-o', '-', font], capture_output=True).stdout
-    root = ET.fromstring(ttx_output)
-    glyphs = root.findall("./cmap//*[@platformID='0']/map") # use the unicode cmap
-   
+    parser = ET.XMLParser(target=ET.TreeBuilder(insert_comments=True)) # names are in paired comments
+    parser.feed(ttx_output)
+    root = parser.close()
+    cmap = iter(root.findall("./cmap//*[@platformID='0']/")) # use the unicode cmap
+
     subset = []
     full = []
-    for glyph in glyphs:
+    for glyph in cmap:
         code = int(glyph.get('code'), 16)
-        name = glyph.get('name')
-        if code in subset_codes:
-            subset.append([code, name])
-        else:
-            full.append([code, name])
+        comment = next(cmap).text
+        charset = subset if code in subset_codes else full
+        charset.append([code, comment])
 
-    print("The LatoLatin subset contains:")
-    col_print(["%s (%04x) %s" % (chr(code), code, name) for [code, name] in subset], indent=1, pad=1)
-
-    print("\nThe full Lato font additionally contains:")
-    col_print(["%s (%04x) %s" % (chr(code), code, name) for [code, name] in full], indent=1, pad=1)
+    print_charset("The LatoLatin subset contains", subset)
+    print_charset("The full Lato font additionally contains", full)
 
 if __name__ == "__main__":
     report(*sys.argv[1:3])
