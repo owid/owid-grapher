@@ -347,7 +347,7 @@ export async function makeAtomFeed() {
 
 // We don't want to include topic pages in the atom feed that is being consumed
 // by Mailchimp for sending the "immediate update" newsletter. Instead topic
-// pages announcemements are sent out manually.
+// pages announcements are sent out manually.
 export async function makeAtomFeedNoTopicPages() {
     const posts = (await getBlogIndex())
         .filter((post: IndexPost) => post.type !== OwidGdocType.TopicPage)
