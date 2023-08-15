@@ -48,6 +48,7 @@ $(FACES): $(VENV) $(FONTS)
 	@$(PYTHON) make-faces.py $(FONTS) | $(PRETTIER) --parser css > $@
 
 all: $(VENV) $(LATO) $(PLAYFAIR)
+	rm -f $(FACES)
 	$(MAKE) -j8 $(FACES)
 	@for font in $(LATO)/*.woff2 $(PLAYFAIR)/*.woff2; do \
 	    diff -q "$$font" $(FONTS_DIR)/`basename "$$font"` || true; \

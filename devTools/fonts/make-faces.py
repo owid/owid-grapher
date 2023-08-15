@@ -41,6 +41,7 @@ def inspect_font(path):
             break
 
     return dict(
+        ps_name = name.replace("Latin", ""),
         family = re.sub(r'(?<=.)([A-Z])', r' \1', family),
         subset = 'Latin' in name,
         weight = WEIGHTS[weight],
@@ -59,10 +60,11 @@ def find_ranges(iterable):
             yield 'U+%X-%X' % (group[0], group[-1])
 
 
-def make_face(font, subset=None):
+def make_face(font, subset=None, singleton=False):
+    family = font["ps_name" if singleton else "family"]
     css = [
         '@font-face {',
-        f'font-family: "{font["family"]}";',
+        f'font-family: "{family}";',
         f'src: url("{font["url"]}") format("woff2");',
         f'font-weight: {font["weight"]};',
         f'font-style: {font["style"]};',
@@ -89,10 +91,13 @@ def main(woff_files):
     faces = [
         "/* Lato: smaller, latin-only subset */",
         *[make_face(f) for f in lato_latin],
+        *[make_face(f, singleton=True) for f in lato_latin],
         "/* Lato: larger, full character set version */",
         *[make_face(f, subset_for(f)) for f in lato],
+        *[make_face(f, subset_for(f), singleton=True) for f in lato],
         "/* Playfair Display */",
         *[make_face(f) for f in playfair],
+        *[make_face(f, singleton=True) for f in playfair],
     ]
     print("\n\n".join(faces))
 
