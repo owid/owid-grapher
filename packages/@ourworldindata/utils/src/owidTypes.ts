@@ -293,6 +293,7 @@ export interface KeyInsight {
 export interface IndexPost {
     title: string
     slug: string
+    type?: WP_PostType | OwidGdocType
     date: Date
     modifiedDate: Date
     authors: string[]
@@ -302,7 +303,6 @@ export interface IndexPost {
 
 export interface FullPost extends IndexPost {
     id: number
-    type: WP_PostType
     path: string
     content: string
     thumbnailUrl?: string
