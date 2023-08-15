@@ -4,6 +4,7 @@ import { observer } from "mobx-react"
 import {
     GrapherTabOption,
     GrapherTabOverlayOption,
+    SizeVariant,
 } from "../core/GrapherConstants"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
@@ -27,6 +28,7 @@ export interface ActionButtonsManager extends ShareMenuManager {
     isInIFrame?: boolean
     canonicalUrl?: string
     isInFullScreenMode?: boolean
+    sizeVariant?: SizeVariant
 }
 
 // keep in sync with sass variables in ActionButtons.scss
@@ -45,6 +47,10 @@ export class ActionButtons extends React.Component<{
 }> {
     @computed private get manager(): ActionButtonsManager {
         return this.props.manager
+    }
+
+    @computed protected get sizeVariant(): SizeVariant {
+        return this.manager.sizeVariant ?? SizeVariant.lg
     }
 
     @computed protected get maxWidth(): number {
@@ -90,7 +96,9 @@ export class ActionButtons extends React.Component<{
     }
 
     @computed private get showButtonLabels(): boolean {
-        const { availableWidth, widthWithButtonLabels, maxWidth } = this
+        const { availableWidth, sizeVariant, widthWithButtonLabels, maxWidth } =
+            this
+        if (sizeVariant !== SizeVariant.lg) return false
         if (widthWithButtonLabels <= availableWidth) return true
         return widthWithButtonLabels < 0.33 * maxWidth
     }

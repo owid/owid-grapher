@@ -22,6 +22,7 @@ import {
     Patterns,
     RelatedQuestionsConfig,
     STATIC_EXPORT_DETAIL_SPACING,
+    SizeVariant,
 } from "../core/GrapherConstants"
 import { MapChartManager } from "../mapCharts/MapChartConstants"
 import { ChartManager } from "../chart/ChartManager"
@@ -70,6 +71,7 @@ export interface CaptionedChartManager
         ContentSwitchersManager {
     containerElement?: HTMLDivElement
     tabBounds?: Bounds
+    sizeVariant?: SizeVariant
     fontSize?: number
     tab?: GrapherTabOption
     type?: ChartTypeName
@@ -92,6 +94,7 @@ export interface CaptionedChartManager
     shouldIncludeDetailsInStaticExport?: boolean
     detailRenderers: MarkdownTextWrap[]
     isOnMapTab?: boolean
+    isOnChartTab?: boolean
     isOnTableTab?: boolean
     showTimeline?: boolean
     timelineController?: TimelineController
@@ -106,14 +109,10 @@ interface CaptionedChartProps {
     maxWidth?: number
 }
 
-const VERTICAL_SPACING = 16
-
 // keep in sync with sass variables in CaptionedChart.scss
-const FRAME_PADDING = VERTICAL_SPACING
-const CONTROLS_ROW_HEIGHT = 34
-const RELATED_QUESTION_HEIGHT = 28
-
-const TIMELINE_HEIGHT = 32
+const FRAME_PADDING = 16
+const CONTROLS_ROW_HEIGHT = 32
+const TIMELINE_HEIGHT = CONTROLS_ROW_HEIGHT
 
 // todo(redesign): we might want to rename CaptionedChart later
 
@@ -128,7 +127,30 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     }
 
     @computed protected get maxWidth(): number {
-        return this.props.maxWidth ?? this.bounds.width - FRAME_PADDING * 2
+        return this.props.maxWidth ?? this.bounds.width - 2 * FRAME_PADDING
+    }
+
+    @computed protected get sizeVariant(): SizeVariant {
+        return this.manager.sizeVariant ?? SizeVariant.lg
+    }
+
+    @computed protected get verticalPadding(): number {
+        const { sizeVariant } = this
+        const { xs, sm, md, lg } = SizeVariant
+        return {
+            [xs]: 4,
+            [sm]: 8,
+            [md]: 12,
+            [lg]: 16,
+        }[sizeVariant]
+    }
+
+    @computed protected get verticalPaddingSmall(): number {
+        return this.sizeVariant === SizeVariant.xs ? 4 : 8
+    }
+
+    @computed protected get relatedQuestionHeight(): number {
+        return this.sizeVariant === SizeVariant.lg ? 28 : 24
     }
 
     @computed protected get header(): Header {
@@ -142,6 +164,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         return new Footer({
             manager: this.manager,
             maxWidth: this.maxWidth,
+            verticalPaddingSmall: this.verticalPaddingSmall,
         })
     }
 
@@ -162,32 +185,16 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         )
     }
 
-    @computed protected get chartHeight(): number {
-        return Math.floor(
-            this.bounds.height -
-                2 * FRAME_PADDING -
-                2 * VERTICAL_SPACING -
-                this.header.height -
-                (this.showControlsRow
-                    ? VERTICAL_SPACING + CONTROLS_ROW_HEIGHT
-                    : 0) -
-                (this.manager.showTimeline
-                    ? VERTICAL_SPACING + TIMELINE_HEIGHT
-                    : 0) -
-                this.footer.height -
-                (this.showRelatedQuestion ? RELATED_QUESTION_HEIGHT : 0)
-        )
-    }
-
     @computed protected get bounds(): Bounds {
         return this.props.bounds ?? this.manager.tabBounds ?? DEFAULT_BOUNDS
     }
 
     @computed protected get boundsForChartArea(): Bounds {
-        const { bounds, chartHeight } = this
-        return new Bounds(0, 0, bounds.width, chartHeight).padWidth(
-            FRAME_PADDING
-        )
+        const { bounds, chartHeight, manager } = this
+        const padBottom = manager.isOnChartTab ? 4 : 0
+        return new Bounds(0, 0, bounds.width, chartHeight)
+            .padWidth(FRAME_PADDING)
+            .padBottom(padBottom)
     }
 
     @computed get isFaceted(): boolean {
@@ -368,7 +375,10 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     private renderRelatedQuestion(): JSX.Element {
         const { relatedQuestions } = this.manager
         return (
-            <div className="relatedQuestion">
+            <div
+                className="relatedQuestion"
+                style={{ height: this.relatedQuestionHeight }}
+            >
                 Related:&nbsp;
                 <a
                     href={relatedQuestions![0].url}
@@ -435,37 +445,72 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         return (
             <TimelineComponent
                 timelineController={this.manager.timelineController!}
-                height={TIMELINE_HEIGHT}
                 maxWidth={this.maxWidth}
             />
         )
     }
 
-    private renderVerticalSpace(): JSX.Element {
-        return (
-            <div
-                style={{
-                    height: VERTICAL_SPACING,
-                    width: this.bounds.width,
-                }}
-            />
+    // The height of the chart area is the total height of the frame minus the height of the header, footer, controls, etc.
+    @computed protected get chartHeight(): number {
+        return Math.floor(
+            this.bounds.height -
+                2 * FRAME_PADDING -
+                // height of the header and the padding below
+                this.header.height -
+                this.verticalPadding -
+                // if present, height of the controls row and the padding below
+                // (might not be present if there's only one tab and no controls)
+                (this.showControlsRow
+                    ? CONTROLS_ROW_HEIGHT + this.verticalPaddingSmall
+                    : 0) -
+                // if present, height of the timeline and the padding above
+                (this.manager.showTimeline
+                    ? this.verticalPaddingSmall + TIMELINE_HEIGHT
+                    : 0) -
+                // height of the footer and the padding above
+                this.verticalPadding -
+                this.footer.height -
+                // height of the related question, if present
+                (this.showRelatedQuestion
+                    ? this.relatedQuestionHeight - FRAME_PADDING * 0.25
+                    : 0)
         )
     }
 
+    // if you edit the render function, make sure to keep chartHeight in sync
     render(): JSX.Element {
         return (
             <>
+                {/* header and padding below */}
                 <Header manager={this.manager} maxWidth={this.maxWidth} />
-                {this.showControlsRow && this.renderVerticalSpace()}
+                <VerticalSpace height={this.verticalPadding} />
+
+                {/* controls row and padding below */}
                 {this.showControlsRow && this.renderControlsRow()}
-                {this.renderVerticalSpace()}
+                {this.showControlsRow && (
+                    <VerticalSpace height={this.verticalPaddingSmall} />
+                )}
+
+                {/* chart, map or table */}
                 {this.manager.isOnTableTab
                     ? this.renderDataTable()
                     : this.renderChartOrMap()}
-                {this.manager.showTimeline && this.renderVerticalSpace()}
+
+                {/* timeline and padding above */}
+                {this.manager.showTimeline && (
+                    <VerticalSpace height={this.verticalPaddingSmall} />
+                )}
                 {this.manager.showTimeline && this.renderTimeline()}
-                {this.renderVerticalSpace()}
-                <Footer manager={this.manager} maxWidth={this.maxWidth} />
+
+                {/* footer and padding above */}
+                <VerticalSpace height={this.verticalPadding} />
+                <Footer
+                    manager={this.manager}
+                    maxWidth={this.maxWidth}
+                    verticalPaddingSmall={this.verticalPaddingSmall}
+                />
+
+                {/* related question */}
                 {this.showRelatedQuestion && this.renderRelatedQuestion()}
             </>
         )
@@ -511,8 +556,8 @@ export class StaticCaptionedChart extends CaptionedChart {
     @computed protected get boundsForChartArea(): Bounds {
         return this.paddedBounds
             .padTop(Math.max(this.header.height, this.header.logoHeight))
-            .padBottom(this.staticFooter.height + VERTICAL_SPACING)
-            .padTop(this.manager.isOnMapTab ? 0 : VERTICAL_SPACING)
+            .padBottom(this.staticFooter.height + this.verticalPadding)
+            .padTop(this.manager.isOnMapTab ? 0 : this.verticalPadding)
     }
 
     renderSVGDetails(): JSX.Element | null {
@@ -586,4 +631,15 @@ export class StaticCaptionedChart extends CaptionedChart {
             </svg>
         )
     }
+}
+
+function VerticalSpace({ height }: { height: number }): JSX.Element {
+    return (
+        <div
+            style={{
+                height,
+                width: "100%",
+            }}
+        />
+    )
 }

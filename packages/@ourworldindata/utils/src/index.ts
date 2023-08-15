@@ -321,6 +321,7 @@ export {
     filterValidStringValues,
     traverseEnrichedSpan,
     includesWithTypeGuard,
+    getFontScale,
 } from "./Util.js"
 
 export {

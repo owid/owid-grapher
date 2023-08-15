@@ -91,6 +91,7 @@ import {
     GrapherTabOverlayOption,
     getVariableDataRoute,
     getVariableMetadataRoute,
+    SizeVariant,
 } from "../core/GrapherConstants"
 import Cookies from "js-cookie"
 import {
@@ -615,8 +616,8 @@ export class Grapher
         ) as TimeBounds
     }
 
-    @computed get isOnChartOrMapTab(): boolean {
-        return this.tab === GrapherTabOption.chart || this.isOnMapTab
+    @computed get isOnChartTab(): boolean {
+        return this.tab === GrapherTabOption.chart
     }
 
     @computed get isOnMapTab(): boolean {
@@ -625,6 +626,10 @@ export class Grapher
 
     @computed get isOnTableTab(): boolean {
         return this.tab === GrapherTabOption.table
+    }
+
+    @computed get isOnChartOrMapTab(): boolean {
+        return this.isOnChartTab || this.isOnMapTab
     }
 
     @computed get yAxisConfig(): Readonly<AxisConfigInterface> {
@@ -1893,6 +1898,14 @@ export class Grapher
         return new Bounds(0, 0, this.renderWidth, this.renderHeight)
     }
 
+    @computed get sizeVariant(): SizeVariant {
+        if (this.isExportingtoSvgOrPng) return SizeVariant.md
+        if (this.tabBounds.width <= 740) return SizeVariant.xs
+        if (this.tabBounds.width <= 840) return SizeVariant.sm
+        if (this.tabBounds.width <= 940) return SizeVariant.md
+        return SizeVariant.lg
+    }
+
     @observable.ref private popups: JSX.Element[] = []
 
     base: React.RefObject<HTMLDivElement> = React.createRef()
@@ -2028,7 +2041,7 @@ export class Grapher
                 category: "Chart",
             },
             {
-                combo: "w",
+                combo: "space",
                 fn: (): void => this.toggleFullScreenMode(),
                 title: "Toggle full-screen mode",
                 category: "Chart",
@@ -2325,38 +2338,29 @@ export class Grapher
         this.annotation = annotation
     }
 
-    @computed private get containerStyle(): React.CSSProperties {
-        return {
-            width: this.renderWidth,
-            height: this.renderHeight,
-            fontSize: this.baseFontSize,
-        }
-    }
-
-    @computed private get containerClasses(): string {
-        return classNames(
+    private renderGrapher(): JSX.Element {
+        const containerClasses = classNames(
             "GrapherComponent",
             this.isExportingtoSvgOrPng && "isExportingToSvgOrPng",
             this.isPortrait && "GrapherPortraitClass"
         )
-    }
 
-    private renderIntoFullScreen(): JSX.Element {
-        const { containerStyle, containerClasses } = this
+        const containerStyle = {
+            width: this.renderWidth,
+            height: this.renderHeight,
+            fontSize: this.baseFontSize,
+        }
+
         return (
-            <FullScreen
-                onDismiss={action(() => (this.isInFullScreenMode = false))}
+            <div
+                ref={this.base}
+                className={containerClasses}
+                style={containerStyle}
+                data-grapher-url={this.canonicalUrl}
             >
-                <div
-                    ref={this.base}
-                    className={containerClasses}
-                    style={containerStyle}
-                >
-                    {this.uncaughtError
-                        ? this.renderError()
-                        : this.renderReady()}
-                </div>
-            </FullScreen>
+                {this.commandPalette}
+                {this.uncaughtError ? this.renderError() : this.renderReady()}
+            </div>
         )
     }
 
@@ -2365,22 +2369,16 @@ export class Grapher
         // TODO tidy this up
         if (this.isExportingtoSvgOrPng) return this.renderPrimaryTab() // todo: remove this? should have a simple toStaticSVG for importing.
 
-        return (
-            <>
-                <div
-                    ref={this.isInFullScreenMode ? undefined : this.base} // detach base in full-screen mode
-                    className={this.containerClasses}
-                    style={this.containerStyle}
-                    data-grapher-url={this.canonicalUrl} // fully qualified grapher URL, used for analytics context
+        if (this.isInFullScreenMode)
+            return (
+                <FullScreen
+                    onDismiss={action(() => (this.isInFullScreenMode = false))}
                 >
-                    {this.commandPalette}
-                    {this.uncaughtError
-                        ? this.renderError()
-                        : this.renderReady()}
-                </div>
-                {this.isInFullScreenMode && this.renderIntoFullScreen()}
-            </>
-        )
+                    {this.renderGrapher()}
+                </FullScreen>
+            )
+
+        return this.renderGrapher()
     }
 
     private renderReady(): JSX.Element {

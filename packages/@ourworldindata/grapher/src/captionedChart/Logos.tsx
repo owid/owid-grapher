@@ -28,7 +28,7 @@ const logos: Record<LogoOption, LogoAttributes> = {
         svg: CORE_LOGO_SVG,
         width: 102,
         height: 37,
-        targetHeight: 35,
+        targetHeight: 36,
     },
     "gv+owid": {
         svg: GV_LOGO_SVG,
@@ -41,7 +41,7 @@ const logos: Record<LogoOption, LogoAttributes> = {
 interface LogoProps {
     logo?: LogoOption
     isLink: boolean
-    fontSize: number
+    heightScale?: number
 }
 
 export class Logo {
@@ -56,8 +56,12 @@ export class Logo {
             : logos.owid
     }
 
+    @computed private get targetHeight(): number {
+        return (this.props.heightScale ?? 1) * this.spec.targetHeight
+    }
+
     @computed private get scale(): number {
-        return this.spec.targetHeight / this.spec.height
+        return this.targetHeight / this.spec.height
     }
 
     @computed get width(): number {
@@ -86,7 +90,7 @@ export class Logo {
         const props: React.HTMLAttributes<HTMLElement> = {
             className: "logo",
             dangerouslySetInnerHTML: { __html: spec.svg },
-            style: { height: `${spec.targetHeight}px` },
+            style: { height: `${this.targetHeight}px` },
         }
         if (this.props.isLink && spec.url)
             return (

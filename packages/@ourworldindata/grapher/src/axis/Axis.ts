@@ -661,8 +661,7 @@ export class DualAxis {
     }
 
     @computed get bounds(): Bounds {
-        // padding prevents top-most axis label from overflowing
-        // todo(redesign): is there a better way?
-        return this.props.bounds?.padTop(8) ?? DEFAULT_BOUNDS
+        // todo(redesign): necessary because the axis somtimes overflows
+        return (this.props.bounds ?? DEFAULT_BOUNDS).padTop(6)
     }
 }

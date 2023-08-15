@@ -3,12 +3,13 @@ import {
     TextWrap,
     DEFAULT_BOUNDS,
     MarkdownTextWrap,
+    getFontScale,
 } from "@ourworldindata/utils"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { Logo } from "../captionedChart/Logos"
 import { HeaderManager } from "./HeaderManager"
-import { BASE_FONT_SIZE } from "../core/GrapherConstants"
+import { BASE_FONT_SIZE, SizeVariant } from "../core/GrapherConstants"
 
 @observer
 export class Header extends React.Component<{
@@ -23,7 +24,11 @@ export class Header extends React.Component<{
         return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
-    @computed private get maxWidth(): number {
+    @computed protected get sizeVariant(): SizeVariant {
+        return this.manager.sizeVariant ?? SizeVariant.lg
+    }
+
+    @computed protected get maxWidth(): number {
         return this.props.maxWidth ?? DEFAULT_BOUNDS.width
     }
 
@@ -36,13 +41,14 @@ export class Header extends React.Component<{
     }
 
     @computed get logo(): Logo | undefined {
-        const { manager } = this
+        const { manager, sizeVariant } = this
         if (manager.hideLogo) return undefined
 
+        const heightScale = sizeVariant === SizeVariant.xs ? 0.85 : 1
         return new Logo({
             logo: manager.logo as any,
             isLink: !!manager.shouldLinkToOwid,
-            fontSize: this.fontSize,
+            heightScale,
         })
     }
 
@@ -55,31 +61,47 @@ export class Header extends React.Component<{
     }
 
     @computed get title(): TextWrap {
-        const { logoWidth, manager } = this
+        const { logoWidth, manager, sizeVariant } = this
+        const fontScale =
+            sizeVariant === SizeVariant.xs
+                ? getFontScale(18)
+                : sizeVariant === SizeVariant.sm
+                ? getFontScale(20)
+                : getFontScale(24)
         return new TextWrap({
             maxWidth: this.maxWidth - logoWidth - 24,
             fontWeight: !manager.isExportingtoSvgOrPng ? 600 : undefined,
-            lineHeight: 1.2,
-            fontSize: 1.25 * this.fontSize,
+            lineHeight: sizeVariant === SizeVariant.xs ? 1.1 : 1.2,
+            fontSize: fontScale * this.fontSize,
             text: this.titleText,
         })
     }
 
-    subtitleMarginTop = 4
+    @computed get subtitleMarginTop(): number {
+        return 4
+    }
 
     @computed get subtitleWidth(): number {
         // If the subtitle is entirely below the logo, we can go underneath it
         return this.title.height > this.logoHeight
             ? this.maxWidth
-            : this.maxWidth - this.logoWidth - 10
+            : this.maxWidth - this.logoWidth - 12
     }
 
     @computed get subtitle(): MarkdownTextWrap {
+        const { sizeVariant } = this
+        const fontScale =
+            sizeVariant === SizeVariant.xs
+                ? getFontScale(12)
+                : sizeVariant === SizeVariant.sm
+                ? getFontScale(13)
+                : getFontScale(14)
+        const lineHeight = sizeVariant === SizeVariant.xs ? 1.1 : 1.2
         return new MarkdownTextWrap({
             maxWidth: this.subtitleWidth,
-            fontSize: 0.8 * this.fontSize,
+            fontSize: fontScale * this.fontSize,
             text: this.subtitleText,
-            lineHeight: 1.2,
+            lineHeight,
             detailsOrderedByReference: this.manager
                 .shouldIncludeDetailsInStaticExport
                 ? this.manager.detailsOrderedByReference
@@ -88,10 +110,12 @@ export class Header extends React.Component<{
     }
 
     @computed get height(): number {
-        const { title, subtitle, subtitleText, subtitleMarginTop } = this
-        return (
+        const { title, subtitle, subtitleText, subtitleMarginTop, logoHeight } =
+            this
+        return Math.max(
             title.height +
-            (subtitleText ? subtitle.height + subtitleMarginTop : 0)
+                (subtitleText ? subtitle.height + subtitleMarginTop : 0),
+            logoHeight
         )
     }
 
@@ -138,16 +162,22 @@ export class Header extends React.Component<{
         return (
             <div className="HeaderHTML">
                 {this.logo && this.logo.renderHTML()}
-                <a
-                    href={manager.canonicalUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    <h1 style={this.title.htmlStyle}>
-                        {this.title.renderHTML()}
-                    </h1>
-                </a>
-                <p style={subtitleStyle}>{this.subtitle.renderHTML()}</p>
+                <div style={{ minHeight: this.height }}>
+                    <a
+                        href={manager.canonicalUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        <h1 style={this.title.htmlStyle}>
+                            {this.title.renderHTML()}
+                        </h1>
+                    </a>
+                    {this.subtitleText && (
+                        <p style={subtitleStyle}>
+                            {this.subtitle.renderHTML()}
+                        </p>
+                    )}
+                </div>
             </div>
         )
     }

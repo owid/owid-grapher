@@ -1,7 +1,7 @@
 // keep in sync with constant values in CaptionedChart.tsx
 $framePadding: 16px; // keep in sync with FRAME_PADDING
-$controlRowHeight: 34px; // keep in sync with CONTROLS_ROW_HEIGHT
-$relatedQuestionHeight: 28px; // keep in sync with RELATED_QUESTION_HEIGHT
+$controlRowHeight: 32px; // keep in sync with CONTROLS_ROW_HEIGHT
+$timelineHeight: $controlRowHeight; // keep in sync with TIMELINE_HEIGHT
 
 .HeaderHTML,
 .SourcesFooterHTML {
@@ -28,7 +28,6 @@ $relatedQuestionHeight: 28px; // keep in sync with RELATED_QUESTION_HEIGHT
 
 .relatedQuestion {
     font-size: 12px;
-    height: $relatedQuestionHeight;
     padding: 0 $framePadding;
     display: flex;
     justify-content: flex-end;
