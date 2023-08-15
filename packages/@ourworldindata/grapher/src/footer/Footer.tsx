@@ -156,9 +156,10 @@ export class Footer<
                 ? getFontScale(11)
                 : getFontScale(12)
         const fontSize = fontScale * (this.manager.fontSize ?? BASE_FONT_SIZE)
+        const lineHeight = this.sizeVariant === SizeVariant.xs ? 1.1 : 1.2
         return {
             fontSize,
-            lineHeight: 1.2,
+            lineHeight,
         }
     }
 
@@ -174,9 +175,10 @@ export class Footer<
                 ? getFontScale(13)
                 : getFontScale(14)
         const fontSize = fontScale * (this.manager.fontSize ?? BASE_FONT_SIZE)
+        const lineHeight = this.sizeVariant === SizeVariant.xs ? 1.1 : 1.2
         return {
             fontSize,
-            lineHeight: 1.2,
+            lineHeight,
         }
     }
 

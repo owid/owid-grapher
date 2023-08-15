@@ -94,6 +94,7 @@ export interface CaptionedChartManager
     shouldIncludeDetailsInStaticExport?: boolean
     detailRenderers: MarkdownTextWrap[]
     isOnMapTab?: boolean
+    isOnChartTab?: boolean
     isOnTableTab?: boolean
     showTimeline?: boolean
     timelineController?: TimelineController
@@ -134,9 +135,14 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     }
 
     @computed protected get verticalPadding(): number {
-        const { sizeVariant: v } = this
-        const { xs, sm, md } = SizeVariant
-        return v === xs || v === sm ? 8 : v === md ? 12 : 16
+        const { sizeVariant } = this
+        const { xs, sm, md, lg } = SizeVariant
+        return {
+            [xs]: 4,
+            [sm]: 8,
+            [md]: 12,
+            [lg]: 16,
+        }[sizeVariant]
     }
 
     @computed protected get verticalPaddingSmall(): number {
@@ -184,10 +190,11 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     }
 
     @computed protected get boundsForChartArea(): Bounds {
-        const { bounds, chartHeight } = this
-        return new Bounds(0, 0, bounds.width, chartHeight).padWidth(
-            FRAME_PADDING
-        )
+        const { bounds, chartHeight, manager } = this
+        const padBottom = manager.isOnChartTab ? 4 : 0
+        return new Bounds(0, 0, bounds.width, chartHeight)
+            .padWidth(FRAME_PADDING)
+            .padBottom(padBottom)
     }
 
     @computed get isFaceted(): boolean {

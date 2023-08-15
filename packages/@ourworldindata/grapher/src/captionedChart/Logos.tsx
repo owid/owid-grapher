@@ -28,7 +28,7 @@ const logos: Record<LogoOption, LogoAttributes> = {
         svg: CORE_LOGO_SVG,
         width: 102,
         height: 37,
-        targetHeight: 35,
+        targetHeight: 36,
     },
     "gv+owid": {
         svg: GV_LOGO_SVG,
@@ -40,8 +40,8 @@ const logos: Record<LogoOption, LogoAttributes> = {
 
 interface LogoProps {
     logo?: LogoOption
-    height?: number
     isLink: boolean
+    heightScale?: number
 }
 
 export class Logo {
@@ -57,7 +57,7 @@ export class Logo {
     }
 
     @computed private get targetHeight(): number {
-        return this.props.height ?? this.spec.targetHeight
+        return (this.props.heightScale ?? 1) * this.spec.targetHeight
     }
 
     @computed private get scale(): number {

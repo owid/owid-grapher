@@ -41,12 +41,14 @@ export class Header extends React.Component<{
     }
 
     @computed get logo(): Logo | undefined {
-        const { manager } = this
+        const { manager, sizeVariant } = this
         if (manager.hideLogo) return undefined
 
+        const heightScale = sizeVariant === SizeVariant.xs ? 0.85 : 1
         return new Logo({
             logo: manager.logo as any,
             isLink: !!manager.shouldLinkToOwid,
+            heightScale,
         })
     }
 
@@ -94,11 +96,12 @@ export class Header extends React.Component<{
                 : sizeVariant === SizeVariant.sm
                 ? getFontScale(13)
                 : getFontScale(14)
+        const lineHeight = sizeVariant === SizeVariant.xs ? 1.1 : 1.2
         return new MarkdownTextWrap({
             maxWidth: this.subtitleWidth,
             fontSize: fontScale * this.fontSize,
             text: this.subtitleText,
-            lineHeight: 1.2,
+            lineHeight,
             detailsOrderedByReference: this.manager
                 .shouldIncludeDetailsInStaticExport
                 ? this.manager.detailsOrderedByReference
@@ -107,10 +110,12 @@ export class Header extends React.Component<{
     }
 
     @computed get height(): number {
-        const { title, subtitle, subtitleText, subtitleMarginTop } = this
-        return (
+        const { title, subtitle, subtitleText, subtitleMarginTop, logoHeight } =
+            this
+        return Math.max(
             title.height +
-            (subtitleText ? subtitle.height + subtitleMarginTop : 0)
+                (subtitleText ? subtitle.height + subtitleMarginTop : 0),
+            logoHeight
         )
     }
 
@@ -157,18 +162,22 @@ export class Header extends React.Component<{
         return (
             <div className="HeaderHTML">
                 {this.logo && this.logo.renderHTML()}
-                <a
-                    href={manager.canonicalUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    <h1 style={this.title.htmlStyle}>
-                        {this.title.renderHTML()}
-                    </h1>
-                </a>
-                {this.subtitleText && (
-                    <p style={subtitleStyle}>{this.subtitle.renderHTML()}</p>
-                )}
+                <div style={{ minHeight: this.height }}>
+                    <a
+                        href={manager.canonicalUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        <h1 style={this.title.htmlStyle}>
+                            {this.title.renderHTML()}
+                        </h1>
+                    </a>
+                    {this.subtitleText && (
+                        <p style={subtitleStyle}>
+                            {this.subtitle.renderHTML()}
+                        </p>
+                    )}
+                </div>
             </div>
         )
     }
