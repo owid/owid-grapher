@@ -419,6 +419,14 @@ interface StaticFooterProps extends FooterProps {
 export class StaticFooter extends Footer<StaticFooterProps> {
     private paraMargin = 4
 
+    // Put the license stuff to the side if there's room
+    @computed private get isCompact(): boolean {
+        return (
+            this.maxWidth - this.sources.width - 8 >
+            this.licenseAndOriginUrl.width
+        )
+    }
+
     @computed protected get finalUrlText(): string | undefined {
         const { correctedUrlText, licenseText, textStyle, maxWidth } = this
 
@@ -471,30 +479,40 @@ export class StaticFooter extends Footer<StaticFooterProps> {
     @computed get height(): number {
         return (
             this.sources.height +
-            this.paraMargin +
             (this.note.height ? this.note.height + this.paraMargin : 0) +
-            this.licenseAndOriginUrl.height
+            (this.isCompact
+                ? 0
+                : this.licenseAndOriginUrl.height + this.paraMargin)
         )
     }
 
     render(): JSX.Element {
-        const { sources, note, licenseAndOriginUrl } = this
+        const {
+            sources,
+            note,
+            licenseAndOriginUrl,
+            isCompact,
+            maxWidth,
+            paraMargin,
+        } = this
         const { targetX, targetY } = this.props
 
         return (
             <g className="SourcesFooter" style={{ fill: "#5b5b5b" }}>
                 {sources.renderSVG(targetX, targetY)}
-                {note.renderSVG(
-                    targetX,
-                    targetY + sources.height + this.paraMargin
-                )}
-                {licenseAndOriginUrl.render(
-                    targetX,
-                    targetY +
-                        sources.height +
-                        this.paraMargin +
-                        (note.height ? note.height + this.paraMargin : 0)
-                )}
+                {note.renderSVG(targetX, targetY + sources.height + paraMargin)}
+                {isCompact
+                    ? licenseAndOriginUrl.render(
+                          targetX + maxWidth - licenseAndOriginUrl.width,
+                          targetY
+                      )
+                    : licenseAndOriginUrl.render(
+                          targetX,
+                          targetY +
+                              sources.height +
+                              (note.height ? note.height + paraMargin : 0) +
+                              paraMargin
+                      )}
             </g>
         )
     }
