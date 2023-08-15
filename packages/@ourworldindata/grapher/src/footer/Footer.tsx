@@ -62,6 +62,10 @@ export class Footer<
     }
 
     @computed protected get noteText(): string {
+        return this.manager.note ? `Note: ${this.manager.note}` : ""
+    }
+
+    @computed protected get markdownNoteText(): string {
         return this.manager.note ? `**Note:** ${this.manager.note}` : ""
     }
 
@@ -158,9 +162,8 @@ export class Footer<
         }
     }
 
-    // if there is no note text, put the sources next to the action buttons
-    @computed private get isCompact(): boolean {
-        return !this.noteText
+    @computed private get hasNote(): boolean {
+        return !!this.noteText
     }
 
     @computed protected get sourcesStyle(): TextStyle {
@@ -182,9 +185,9 @@ export class Footer<
     }
 
     @computed protected get sourcesMaxWidth(): number {
-        return this.isCompact
-            ? this.maxWidth - this.actionButtons.width - HORIZONTAL_PADDING
-            : this.maxWidth
+        return this.hasNote
+            ? this.maxWidth
+            : this.maxWidth - this.actionButtons.width - HORIZONTAL_PADDING
     }
 
     @computed protected get sources(): MarkdownTextWrap {
@@ -197,11 +200,11 @@ export class Footer<
     }
 
     @computed protected get note(): MarkdownTextWrap {
-        const { noteText, noteMaxWidth, textStyle } = this
+        const { markdownNoteText, noteMaxWidth, textStyle } = this
         return new MarkdownTextWrap({
             ...textStyle,
             maxWidth: noteMaxWidth,
-            text: noteText,
+            text: markdownNoteText,
             detailsOrderedByReference: this.manager
                 .shouldIncludeDetailsInStaticExport
                 ? this.manager.detailsOrderedByReference
@@ -236,22 +239,18 @@ export class Footer<
             textStyle,
             sourcesStyle,
             sourcesText,
-            isCompact,
+            hasNote,
         } = this
-        const textWidth = new MarkdownTextWrap({
-            ...(isCompact ? sourcesStyle : textStyle),
-            maxWidth: Infinity, // no line breaks
-            text: isCompact ? sourcesText : noteText,
-        }).width
-        const licenseAndOriginUrlWidth = new TextWrap({
-            ...textStyle,
-            maxWidth: Infinity, // no line breaks
-            text: Footer.constructLicenseAndOriginUrlText(
+        const textWidth = hasNote
+            ? Bounds.forText(noteText, textStyle).width
+            : Bounds.forText(sourcesText, sourcesStyle).width
+        const licenseAndOriginUrlWidth = Bounds.forText(
+            Footer.constructLicenseAndOriginUrlText(
                 correctedUrlText,
                 licenseText
             ),
-            rawHtml: true,
-        }).width
+            textStyle
+        ).width
         return (
             maxWidth -
             Math.max(textWidth, licenseAndOriginUrlWidth) -
@@ -274,12 +273,12 @@ export class Footer<
             licenseAndOriginUrl,
             actionButtons,
             verticalPaddingSmall,
-            isCompact,
+            hasNote,
         } = this
         const height =
-            (!isCompact ? sources.height + verticalPaddingSmall : 0) +
+            (hasNote ? sources.height + verticalPaddingSmall : 0) +
             Math.max(
-                (isCompact ? sources.height : note.height) +
+                (hasNote ? note.height : sources.height) +
                     LICENSE_PADDING_TOP +
                     licenseAndOriginUrl.height,
                 actionButtons.height
@@ -360,17 +359,15 @@ export class Footer<
 
         return (
             <footer className="SourcesFooterHTML" ref={this.base}>
-                {!this.isCompact && sources}
+                {this.hasNote && sources}
                 <div
                     className="NoteAndActionButtons"
                     style={{
-                        marginTop: !this.isCompact
-                            ? this.verticalPaddingSmall
-                            : 0,
+                        marginTop: this.hasNote ? this.verticalPaddingSmall : 0,
                     }}
                 >
                     <div>
-                        {this.isCompact ? sources : note}
+                        {this.hasNote ? note : sources}
                         {license}
                     </div>
                     <ActionButtons
