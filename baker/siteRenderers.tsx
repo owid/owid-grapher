@@ -350,7 +350,7 @@ export async function makeAtomFeed() {
 // pages announcemements are sent out manually.
 export async function makeAtomFeedNoTopicPages() {
     const posts = (await getBlogIndex())
-        .filter((post: IndexPost) => post.type != OwidGdocType.TopicPage)
+        .filter((post: IndexPost) => post.type !== OwidGdocType.TopicPage)
         .slice(0, 10)
     return makeAtomFeedFromPosts(posts)
 }
