@@ -94,7 +94,6 @@ export interface CaptionedChartManager
     shouldIncludeDetailsInStaticExport?: boolean
     detailRenderers: MarkdownTextWrap[]
     isOnMapTab?: boolean
-    isOnChartTab?: boolean
     isOnTableTab?: boolean
     showTimeline?: boolean
     timelineController?: TimelineController
@@ -184,17 +183,8 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         return this.props.bounds ?? this.manager.tabBounds ?? DEFAULT_BOUNDS
     }
 
-    @computed protected get boundsForChart(): Bounds {
-        const { bounds, chartHeight } = this
-        return new Bounds(0, 0, bounds.width, chartHeight)
-            .padWidth(FRAME_PADDING)
-            .padTop(8) // chart overflows on top
-            .padBottom(2) // chart overflows on bottom
-    }
-
     @computed protected get boundsForChartArea(): Bounds {
-        const { bounds, chartHeight, manager } = this
-        if (manager.isOnChartTab) return this.boundsForChart
+        const { bounds, chartHeight } = this
         return new Bounds(0, 0, bounds.width, chartHeight).padWidth(
             FRAME_PADDING
         )

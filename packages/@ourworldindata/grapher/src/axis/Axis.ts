@@ -661,6 +661,7 @@ export class DualAxis {
     }
 
     @computed get bounds(): Bounds {
-        return this.props.bounds ?? DEFAULT_BOUNDS
+        // todo(redesign): necessary because the axis somtimes overflows
+        return (this.props.bounds ?? DEFAULT_BOUNDS).padTop(6)
     }
 }
