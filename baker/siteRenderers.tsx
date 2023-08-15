@@ -54,6 +54,7 @@ import {
     Url,
     IndexPost,
     mergePartialGrapherConfigs,
+    OwidGdocType,
 } from "@ourworldindata/utils"
 import { CountryProfileSpec } from "../site/countryProfileProjects.js"
 import { formatPost } from "./formatWordpressPost.js"
@@ -341,7 +342,20 @@ export const renderNotFoundPage = () =>
 
 export async function makeAtomFeed() {
     const posts = (await getBlogIndex()).slice(0, 10)
+    return makeAtomFeedFromPosts(posts)
+}
 
+// We don't want to include topic pages in the atom feed that is being consumed
+// by Mailchimp for sending the "immediate update" newsletter. Instead topic
+// pages announcemements are sent out manually.
+export async function makeAtomFeedNoTopicPages() {
+    const posts = (await getBlogIndex())
+        .filter((post: IndexPost) => post.type != OwidGdocType.TopicPage)
+        .slice(0, 10)
+    return makeAtomFeedFromPosts(posts)
+}
+
+export async function makeAtomFeedFromPosts(posts: IndexPost[]) {
     const feed = `<?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 <title>Our World in Data</title>
