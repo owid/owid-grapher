@@ -53,6 +53,7 @@ import {
     PostRow,
     Url,
     IndexPost,
+    mergePartialGrapherConfigs,
 } from "@ourworldindata/utils"
 import { CountryProfileSpec } from "../site/countryProfileProjects.js"
 import { formatPost } from "./formatWordpressPost.js"
@@ -607,10 +608,11 @@ export const renderExplorerPage = async (
     let partialGrapherConfigRows: {
         id: number
         grapherConfigAdmin: string | null
+        grapherConfigETL: string | null
     }[] = []
     if (requiredVariableIds.length) {
         partialGrapherConfigRows = await queryMysql(
-            `SELECT id, grapherConfigAdmin FROM variables WHERE id IN (?)`,
+            `SELECT id, grapherConfigETL, grapherConfigAdmin FROM variables WHERE id IN (?)`,
             [requiredVariableIds]
         )
     }
@@ -624,13 +626,22 @@ export const renderExplorerPage = async (
     }
     const grapherConfigs = grapherConfigRows.map(parseGrapherConfigFromRow)
     const partialGrapherConfigs = partialGrapherConfigRows
-        .filter((row) => row.grapherConfigAdmin)
-        .map((row) =>
-            parseGrapherConfigFromRow({
-                id: row.id,
-                config: row.grapherConfigAdmin as string,
-            })
-        )
+        .filter((row) => row.grapherConfigAdmin || row.grapherConfigETL)
+        .map((row) => {
+            const adminConfig = row.grapherConfigAdmin
+                ? parseGrapherConfigFromRow({
+                      id: row.id,
+                      config: row.grapherConfigAdmin as string,
+                  })
+                : {}
+            const etlConfig = row.grapherConfigETL
+                ? parseGrapherConfigFromRow({
+                      id: row.id,
+                      config: row.grapherConfigETL as string,
+                  })
+                : {}
+            return mergePartialGrapherConfigs(etlConfig, adminConfig)
+        })
 
     const wpContent = program.wpBlockId
         ? await renderReusableBlock(
