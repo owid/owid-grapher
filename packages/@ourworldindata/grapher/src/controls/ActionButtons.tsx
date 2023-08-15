@@ -275,6 +275,7 @@ export class ActionButtons extends React.Component<{
                             showLabel={this.showButtonLabels}
                             icon={faShareNodes}
                             onClick={this.toggleShareMenu}
+                            isActive={this.manager.isShareMenuActive}
                         />
                     )}
                     {this.hasFullScreenButton && (
@@ -323,10 +324,15 @@ function ActionButton(props: {
     label: string
     icon: IconDefinition
     title?: string
+    isActive?: boolean
 }): JSX.Element {
     return (
         <li
-            className={"clickable" + (props.showLabel ? "" : " icon-only")}
+            className={
+                "clickable" +
+                (props.isActive ? " active" : "") +
+                (props.showLabel ? "" : " icon-only")
+            }
             style={{ width: props.width }}
         >
             <button

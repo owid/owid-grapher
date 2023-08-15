@@ -6,7 +6,7 @@ import { faTwitter, faFacebook } from "@fortawesome/free-brands-svg-icons"
 import {
     faCode,
     faShareAlt,
-    faCopy,
+    faLink,
     faEdit,
 } from "@fortawesome/free-solid-svg-icons"
 import { canWriteToClipboard } from "@ourworldindata/utils"
@@ -167,7 +167,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                     <FontAwesomeIcon icon={faFacebook} /> Facebook
                 </a>
                 <a
-                    className="btn"
+                    className="btn btn-embed"
                     title="Embed this visualization in another HTML document"
                     data-track-note="chart_share_embed"
                     onClick={this.onEmbed}
@@ -191,7 +191,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                         data-track-note="chart_share_copylink"
                         onClick={this.onCopyUrl}
                     >
-                        <FontAwesomeIcon icon={faCopy} />
+                        <FontAwesomeIcon icon={faLink} />
                         {this.state.copied ? "Copied!" : "Copy link"}
                     </a>
                 )}
