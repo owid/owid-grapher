@@ -272,7 +272,6 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     hasSourcesTab?: boolean
     hasDownloadTab?: boolean
     hideShareTabButton?: boolean
-    hideFullScreenButton?: boolean
     hideExploreTheDataButton?: boolean
     hideRelatedQuestion?: boolean
 
@@ -2870,7 +2869,6 @@ export class Grapher
     @observable hasSourcesTab = true
     @observable hasDownloadTab = true
     @observable hideShareTabButton = false
-    @observable hideFullScreenButton = false
     @observable hideExploreTheDataButton = true
     @observable hideRelatedQuestion = false
 }

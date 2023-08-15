@@ -58,7 +58,6 @@ export default function Chart({
             ...listOfPartialGrapherConfigs,
             {
                 hideRelatedQuestion: true,
-                hideExploreTheDataButton: false,
                 hideShareTabButton: true,
             },
             {
@@ -77,6 +76,9 @@ export default function Chart({
         }
     }
 
+    // always show the "Explore the data" button
+    config.hideExploreTheDataButton = false
+
     return (
         <div
             className={cx(d.position, className)}
@@ -89,9 +91,7 @@ export default function Chart({
                 data-grapher-src={isExplorer ? undefined : resolvedUrl}
                 data-explorer-src={isExplorer ? resolvedUrl : undefined}
                 data-grapher-config={
-                    isCustomized && !isExplorer
-                        ? JSON.stringify(config)
-                        : undefined
+                    !isExplorer ? JSON.stringify(config) : undefined
                 }
                 style={{
                     width: "100%",
