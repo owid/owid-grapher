@@ -1941,12 +1941,9 @@ export class Grapher
         const bounds = this.tabBounds
         if (this.overlayTab === GrapherTabOverlayOption.sources)
             return (
-                <SourcesTab
-                    key="sourcesTab"
-                    bounds={bounds}
-                    manager={this}
-                    onDismiss={action(() => (this.currentTab = this.tab))}
-                />
+                <Modal onDismiss={action(() => (this.currentTab = this.tab))}>
+                    <SourcesTab manager={this} />
+                </Modal>
             )
         if (this.overlayTab === GrapherTabOverlayOption.download)
             return (

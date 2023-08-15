@@ -1,14 +1,8 @@
-import {
-    Bounds,
-    DEFAULT_BOUNDS,
-    MarkdownTextWrap,
-    OwidOrigin,
-    linkify,
-} from "@ourworldindata/utils"
+import { MarkdownTextWrap, OwidOrigin, linkify } from "@ourworldindata/utils"
 import React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { faPencilAlt, faTimes } from "@fortawesome/free-solid-svg-icons"
+import { faPencilAlt } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { CoreColumn, OwidColumnDef } from "@ourworldindata/core-table"
 
@@ -23,14 +17,8 @@ export interface SourcesTabManager {
 
 @observer
 export class SourcesTab extends React.Component<{
-    bounds?: Bounds
     manager: SourcesTabManager
-    onDismiss: () => void
 }> {
-    @computed private get bounds(): Bounds {
-        return this.props.bounds ?? DEFAULT_BOUNDS
-    }
-
     @computed private get manager(): SourcesTabManager {
         return this.props.manager
     }
@@ -208,21 +196,11 @@ export class SourcesTab extends React.Component<{
     }
 
     render(): JSX.Element {
-        const { bounds } = this
         const cols = this.manager.columnsWithSources
-
         return (
-            <div
-                className="sourcesTab"
-                style={{ ...bounds.toCSS(), position: "absolute" }}
-            >
-                <div>
-                    <h2>Sources</h2>
-                    <div>{cols.map((col) => this.renderSource(col))}</div>
-                </div>
-                <button className="dismiss" onClick={this.props.onDismiss}>
-                    <FontAwesomeIcon icon={faTimes} />
-                </button>
+            <div className="sourcesTab">
+                <h2>Sources</h2>
+                <div>{cols.map((col) => this.renderSource(col))}</div>
             </div>
         )
     }
