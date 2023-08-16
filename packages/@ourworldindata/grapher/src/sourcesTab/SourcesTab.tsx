@@ -79,11 +79,15 @@ export class SourcesTab extends React.Component<{
                 : undefined)
 
         const citationProducer =
-            column.def.origins &&
-            column.def.origins.length &&
-            column.def.origins[0].citationProducer
-                ? column.def.origins[0].citationProducer
-                : undefined
+            column.def.origins && column.def.origins.length
+                ? [
+                      ...new Set(
+                          column.def.origins.map(
+                              (origin) => origin.citationProducer
+                          )
+                      ),
+                  ]
+                : []
 
         return (
             <div key={slug} className="datasource-wrapper">
@@ -138,13 +142,34 @@ export class SourcesTab extends React.Component<{
                                 <td>{column.unitConversionFactor}</td>
                             </tr>
                         ) : null}
-                        {attribution ? (
+                        {citationProducer.length > 0 ? (
                             <tr>
                                 <td>Data published by</td>
-                                <td>{attribution.join(", ")}</td>
+                                <td>
+                                    <ul>
+                                        {citationProducer.map(
+                                            (producer, index) => (
+                                                <li key={index}>{producer}</li>
+                                            )
+                                        )}
+                                    </ul>
+                                </td>
                             </tr>
                         ) : null}
                         {!attribution && source.dataPublishedBy ? (
+                            <tr>
+                                <td>Data published by</td>
+                                <td
+                                    dangerouslySetInnerHTML={{
+                                        __html: formatText(
+                                            source.dataPublishedBy
+                                        ),
+                                    }}
+                                />
+                            </tr>
+                        ) : null}
+                        {(!citationProducer || citationProducer.length === 0) &&
+                        source.dataPublishedBy ? (
                             <tr>
                                 <td>Data published by</td>
                                 <td
@@ -193,14 +218,6 @@ export class SourcesTab extends React.Component<{
                             __html: formatText(source.additionalInfo),
                         }}
                     />
-                )}
-                {citationProducer && (
-                    <p key={"citationProducer"}>
-                        <MarkdownTextWrap
-                            text={citationProducer}
-                            fontSize={12}
-                        />
-                    </p>
                 )}
             </div>
         )
