@@ -63,7 +63,6 @@ import {
     firstOfNonEmptyArray,
     spansToUnformattedPlainText,
     EnrichedDetail,
-    includesWithTypeGuard,
     isEmpty,
     dayjs,
     compact,
@@ -88,7 +87,6 @@ import {
     DEFAULT_GRAPHER_WIDTH,
     DEFAULT_GRAPHER_HEIGHT,
     SeriesStrategy,
-    GrapherTabOverlayOption,
     getVariableDataRoute,
     getVariableMetadataRoute,
     SizeVariant,
@@ -352,7 +350,6 @@ export class Grapher
     @observable.ref hasChartTab = true
     @observable.ref hasMapTab = false
     @observable.ref tab = GrapherTabOption.chart
-    @observable.ref overlay?: GrapherTabOverlayOption = undefined
     @observable.ref internalNotes = ""
     @observable.ref variantName?: string = undefined
     @observable.ref originUrl = ""
@@ -546,21 +543,23 @@ export class Grapher
         // Set tab if specified
         const tab = params.tab
         if (tab) {
-            if (!includesWithTypeGuard(this.availableTabs, tab))
+            if (this.availableTabs.includes(tab as any)) {
+                this.tab = tab as GrapherTabOption
+            } else {
                 console.error("Unexpected tab: " + tab)
-            else this.tab = tab
+            }
         }
 
+        // Set overlay if specified
         const overlay = params.overlay
         if (overlay) {
-            console.error("Unexpected overlay: " + overlay)
-            if (
-                !includesWithTypeGuard(this.availableTabOverlays, overlay) ||
-                // for backwards compatibility, we allow overlay to be a tab option
-                !includesWithTypeGuard(this.availableTabs, overlay)
-            )
+            if (overlay === "sources") {
+                this.isSourcesModalOpen = true
+            } else if (overlay === "download") {
+                this.isDownloadModalOpen = true
+            } else {
                 console.error("Unexpected overlay: " + overlay)
-            else this.overlay = overlay
+            }
         }
 
         // Stack mode for bar and stacked area charts
@@ -749,6 +748,9 @@ export class Grapher
     tooltips?: TooltipManager["tooltips"] = observable.map({}, { deep: false })
     @observable isPlaying = false
     @observable.ref isSelectingData = false
+
+    @observable.ref isSourcesModalOpen = false
+    @observable.ref isDownloadModalOpen = false
     @observable.ref isEmbedModalOpen = false
 
     private get isStaging(): boolean {
@@ -1091,34 +1093,6 @@ export class Grapher
         return url
     }
 
-    @computed get overlayTab(): GrapherTabOverlayOption | undefined {
-        return this.overlay
-    }
-
-    @computed get currentTab(): GrapherTabOption | GrapherTabOverlayOption {
-        return this.overlay ? this.overlay : this.tab
-    }
-
-    set currentTab(desiredTab: GrapherTabOption | GrapherTabOverlayOption) {
-        if (
-            desiredTab === GrapherTabOption.chart ||
-            desiredTab === GrapherTabOption.map ||
-            desiredTab === GrapherTabOption.table
-        ) {
-            this.tab = desiredTab
-            this.overlay = undefined
-            return
-        }
-
-        // table tab cannot be downloaded, so revert to default tab
-        if (
-            desiredTab === GrapherTabOverlayOption.download &&
-            this.isOnTableTab
-        )
-            this.tab = this.authorsVersion.tab ?? GrapherTabOption.chart
-        this.overlay = desiredTab
-    }
-
     @computed get timelineHandleTimeBounds(): TimeBounds {
         if (this.isOnMapTab) {
             const time = maxTimeBoundFromJSONOrPositiveInfinity(this.map.time)
@@ -1239,13 +1213,6 @@ export class Grapher
         ].filter(identity) as GrapherTabOption[]
     }
 
-    @computed get availableTabOverlays(): GrapherTabOverlayOption[] {
-        return [
-            this.hasSourcesTab && GrapherTabOverlayOption.sources,
-            this.hasDownloadTab && GrapherTabOverlayOption.download,
-        ].filter(identity) as GrapherTabOverlayOption[]
-    }
-
     @computed get currentTitle(): string {
         let text = this.displayTitle
         const selectedEntityNames = this.selection.selectedEntityNames
@@ -1320,11 +1287,6 @@ export class Grapher
             default:
                 return false
         }
-    }
-
-    @computed get showTimeline(): boolean {
-        // don't show the timeline when on an overlay tab
-        return this.hasTimeline && this.overlay === undefined
     }
 
     @computed private get areHandlesOnSameTime(): boolean {
@@ -1932,29 +1894,6 @@ export class Grapher
         return <CaptionedChart manager={this} />
     }
 
-    private renderOverlayTab(): JSX.Element | undefined {
-        const { tabBounds } = this
-        if (this.overlayTab === GrapherTabOverlayOption.sources)
-            return (
-                <Modal
-                    title="Sources"
-                    onDismiss={action(() => (this.currentTab = this.tab))}
-                >
-                    <SourcesTab manager={this} />
-                </Modal>
-            )
-        if (this.overlayTab === GrapherTabOverlayOption.download)
-            return (
-                <Modal
-                    title="Download"
-                    onDismiss={action(() => (this.currentTab = this.tab))}
-                >
-                    <DownloadTab bounds={tabBounds} manager={this} />
-                </Modal>
-            )
-        return undefined
-    }
-
     private get commandPalette(): JSX.Element | null {
         return this.props.enableKeyboardShortcuts ? (
             <CommandPalette commands={this.keyboardShortcuts} display="none" />
@@ -1966,7 +1905,7 @@ export class Grapher
     }
 
     @action.bound private toggleTabCommand(): void {
-        this.currentTab = next(this.availableTabs, this.currentTab)
+        this.tab = next(this.availableTabs, this.tab)
     }
 
     @action.bound private togglePlayingCommand(): void {
@@ -2332,6 +2271,59 @@ export class Grapher
         this.annotation = annotation
     }
 
+    private maybeRenderModal(): JSX.Element | null {
+        const {
+            isSelectingData,
+            isSourcesModalOpen,
+            isDownloadModalOpen,
+            isEmbedModalOpen,
+            canChangeEntity,
+            selection,
+        } = this
+
+        if (isSelectingData)
+            return (
+                <Modal onDismiss={action(() => (this.isSelectingData = false))}>
+                    <EntitySelector
+                        isMulti={!canChangeEntity}
+                        selectionArray={selection}
+                    />
+                </Modal>
+            )
+
+        if (isSourcesModalOpen)
+            return (
+                <Modal
+                    title="Sources"
+                    onDismiss={action(() => (this.isSourcesModalOpen = false))}
+                >
+                    <SourcesTab manager={this} />
+                </Modal>
+            )
+
+        if (isDownloadModalOpen)
+            return (
+                <Modal
+                    title="Download"
+                    onDismiss={action(() => (this.isDownloadModalOpen = false))}
+                >
+                    <DownloadTab bounds={this.tabBounds} manager={this} />
+                </Modal>
+            )
+
+        if (isEmbedModalOpen)
+            return (
+                <Modal
+                    title="Embed"
+                    onDismiss={action(() => (this.isEmbedModalOpen = false))}
+                >
+                    <EmbedMenu manager={this} />
+                </Modal>
+            )
+
+        return null
+    }
+
     private renderGrapher(): JSX.Element {
         const containerClasses = classNames(
             "GrapherComponent",
@@ -2379,32 +2371,12 @@ export class Grapher
         return (
             <>
                 {this.hasBeenVisible && this.renderPrimaryTab()}
-                {this.renderOverlayTab()}
                 <TooltipContainer
                     containerWidth={this.renderWidth}
                     containerHeight={this.renderHeight}
                     tooltipProvider={this}
                 />
-                {this.isSelectingData && (
-                    <Modal
-                        onDismiss={action(() => (this.isSelectingData = false))}
-                    >
-                        <EntitySelector
-                            isMulti={!this.canChangeEntity}
-                            selectionArray={this.selection}
-                        />
-                    </Modal>
-                )}
-                {this.isEmbedModalOpen && (
-                    <Modal
-                        title="Embed"
-                        onDismiss={action(
-                            () => (this.isEmbedModalOpen = false)
-                        )}
-                    >
-                        <EmbedMenu manager={this} />
-                    </Modal>
-                )}
+                {this.maybeRenderModal()}
             </>
         )
     }

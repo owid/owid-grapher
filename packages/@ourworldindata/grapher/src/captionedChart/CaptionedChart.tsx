@@ -96,7 +96,7 @@ export interface CaptionedChartManager
     isOnMapTab?: boolean
     isOnChartTab?: boolean
     isOnTableTab?: boolean
-    showTimeline?: boolean
+    hasTimeline?: boolean
     timelineController?: TimelineController
     hasRelatedQuestion?: boolean
     isRelatedQuestionTargetDifferentFromCurrentPage?: boolean
@@ -464,7 +464,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                     ? CONTROLS_ROW_HEIGHT + this.verticalPaddingSmall
                     : 0) -
                 // if present, height of the timeline and the padding above
-                (this.manager.showTimeline
+                (this.manager.hasTimeline
                     ? this.verticalPaddingSmall + TIMELINE_HEIGHT
                     : 0) -
                 // height of the footer and the padding above
@@ -497,10 +497,10 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                     : this.renderChartOrMap()}
 
                 {/* timeline and padding above */}
-                {this.manager.showTimeline && (
+                {this.manager.hasTimeline && (
                     <VerticalSpace height={this.verticalPaddingSmall} />
                 )}
-                {this.manager.showTimeline && this.renderTimeline()}
+                {this.manager.hasTimeline && this.renderTimeline()}
 
                 {/* footer and padding above */}
                 <VerticalSpace height={this.verticalPadding} />

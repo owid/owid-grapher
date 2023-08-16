@@ -1,11 +1,7 @@
 import React from "react"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
-import {
-    GrapherTabOption,
-    GrapherTabOverlayOption,
-    SizeVariant,
-} from "../core/GrapherConstants"
+import { SizeVariant } from "../core/GrapherConstants"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
     faShareNodes,
@@ -19,15 +15,15 @@ import { ShareMenu, ShareMenuManager } from "./ShareMenu"
 import { DEFAULT_BOUNDS, Bounds } from "@ourworldindata/utils"
 
 export interface ActionButtonsManager extends ShareMenuManager {
-    availableTabOverlays?: GrapherTabOverlayOption[]
-    currentTab?: GrapherTabOption | GrapherTabOverlayOption
     isShareMenuActive?: boolean
     hideShareTabButton?: boolean
     hideExploreTheDataButton?: boolean
     isInIFrame?: boolean
     canonicalUrl?: string
     isInFullScreenMode?: boolean
+    isDownloadModalOpen?: boolean
     sizeVariant?: SizeVariant
+    hasDownloadTab?: boolean
 }
 
 // keep in sync with sass variables in ActionButtons.scss
@@ -205,14 +201,8 @@ export class ActionButtons extends React.Component<{
         this.manager.isInFullScreenMode = !this.manager.isInFullScreenMode
     }
 
-    @computed private get availableTabOverlays(): GrapherTabOverlayOption[] {
-        return this.manager.availableTabOverlays || []
-    }
-
     @computed private get hasDownloadButton(): boolean {
-        return this.availableTabOverlays.includes(
-            GrapherTabOverlayOption.download
-        )
+        return !!this.manager.hasDownloadTab
     }
 
     @computed private get hasShareButton(): boolean {
@@ -259,12 +249,9 @@ export class ActionButtons extends React.Component<{
                             dataTrackNote="chart_click_download"
                             showLabel={this.showButtonLabels}
                             icon={faDownload}
-                            onClick={():
-                                | GrapherTabOption
-                                | GrapherTabOverlayOption =>
-                                (manager.currentTab =
-                                    GrapherTabOverlayOption.download)
-                            }
+                            onClick={action(
+                                () => (this.manager.isDownloadModalOpen = true)
+                            )}
                         />
                     )}
                     {this.hasShareButton && (
