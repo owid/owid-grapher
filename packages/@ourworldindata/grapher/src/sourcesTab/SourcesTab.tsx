@@ -2,7 +2,6 @@ import {
     Bounds,
     DEFAULT_BOUNDS,
     MarkdownTextWrap,
-    OwidOrigin,
     linkify,
 } from "@ourworldindata/utils"
 import React from "react"
@@ -63,14 +62,6 @@ export class SourcesTab extends React.Component<{
             column.def.titlePublic && column.def.titlePublic !== ""
                 ? column.def.titlePublic
                 : column.name
-
-        // const attribution = column.def.attribution
-        //     ? [column.def.attribution]
-        //     : column.def.origins
-        //     ? column.def.origins.map(
-        //           (origin: OwidOrigin) => origin.attribution ?? origin.producer
-        //       )
-        //     : []
 
         const retrievedDate =
             source.retrievedDate ??
