@@ -17,6 +17,7 @@ import {
     Index,
     Snippet,
     useInstantSearch,
+    useConnector,
 } from "react-instantsearch-hooks-web"
 import algoliasearch, { SearchClient } from "algoliasearch"
 import {
@@ -33,6 +34,29 @@ import {
     searchCategoryFilters,
 } from "./searchTypes.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../../explorer/ExplorerConstants.js"
+
+import connectAutocomplete from "instantsearch.js/es/connectors/autocomplete/connectAutocomplete"
+
+import type {
+    AutocompleteConnectorParams,
+    AutocompleteWidgetDescription,
+} from "instantsearch.js/es/connectors/autocomplete/connectAutocomplete"
+import { Autocomplete } from "./Autocomplete.js"
+
+export type UseAutocompleteProps = AutocompleteConnectorParams
+
+export function useAutocomplete(props?: UseAutocompleteProps) {
+    return useConnector<
+        AutocompleteConnectorParams,
+        AutocompleteWidgetDescription
+    >(connectAutocomplete, props)
+}
+
+// export function Autocomplete(props: UseAutocompleteProps) {
+//     const { indices, currentRefinement, refine } = useAutocomplete(props)
+
+//     return <>hello</>
+// }
 
 function PagesHit({ hit }: { hit: any }) {
     return (
@@ -200,7 +224,6 @@ class SearchResults extends React.Component<SearchResultsProps> {
             >
                 {/* This is using the InstantSearch index */}
                 <Configure hitsPerPage={40} distinct />
-
                 <div className="search-results__pages">
                     <header className="search-results__header">
                         <h2 className="h2-bold search-results__section-title">

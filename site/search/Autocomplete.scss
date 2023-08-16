@@ -1,0 +1,102 @@
+// Base theme to override
+// Without this CSS, the Autocomplete component doesn't initialise correctly
+@import "@algolia/autocomplete-theme-classic";
+
+:root {
+    --aa-detached-media-query: (max-width: $md);
+}
+
+.aa-Form {
+    border: none;
+    border-radius: 0;
+    @include sm-up {
+        border-color: transparent;
+        border-width: 1px;
+        background-color: $blue-90;
+    }
+    &:focus-within {
+        box-shadow: none;
+        border-color: $blue-20;
+        background-color: #fff;
+    }
+}
+
+.aa-Input {
+    margin-left: 16px;
+    color: $blue-30;
+    &:focus {
+        color: $blue-90;
+    }
+}
+
+.aa-Input::placeholder {
+    color: $blue-30;
+}
+
+.aa-InputWrapperPrefix {
+    order: 4;
+}
+
+.aa-SubmitIcon,
+.aa-ClearButton {
+    fill: $blue-30;
+    color: $blue-30;
+    stroke: none;
+}
+
+.aa-Panel {
+    z-index: $zindex-lightbox + 1;
+    margin: 0;
+    border-radius: 0;
+    border: none;
+    outline: none;
+    box-shadow: none;
+}
+
+.aa-PanelLayout {
+    margin: 8px;
+    padding: 0;
+}
+
+.aa-SourceHeader {
+    padding: 16px;
+    h5.overline-black-caps {
+        margin: 0;
+        color: $blue-50;
+    }
+}
+
+.aa-Item {
+    padding: 16px;
+    border-radius: 0;
+    color: $blue-90;
+
+    &[aria-selected="true"] {
+        background-color: $blue-10;
+    }
+}
+
+// Less padding for these ones because of the icons
+section[data-autocomplete-source-id="recentSearchesPlugin"] .aa-Item {
+    padding: 9px;
+}
+
+section[data-autocomplete-source-id="runSearch"] {
+    border-top: 1px solid $blue-10;
+    margin-top: 10px;
+    padding-top: 10px;
+
+    .aa-Item {
+        padding: 9px;
+    }
+
+    .aa-ItemIcon {
+        box-shadow: none;
+        width: 16px;
+        margin-left: 8px;
+        background: none;
+        svg {
+            width: 100%;
+        }
+    }
+}

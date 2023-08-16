@@ -5,7 +5,8 @@ import classnames from "classnames"
 import { siteSearch } from "./search/searchClient.js"
 import { SearchResults } from "./search/SearchResults.js"
 import { SiteSearchResults } from "./search/searchTypes.js"
-
+import { Autocomplete } from "./search/Autocomplete.js"
+/*
 export const SiteSearchNavigation = ({
     query,
     setQuery,
@@ -87,5 +88,26 @@ export const SiteSearchNavigation = ({
             )}
             {isActive && results && <SearchResults results={results} />}
         </>
+    )
+}
+*/
+
+export const SiteSearchNavigation = ({
+    query,
+    setQuery,
+    isActive,
+    onClose,
+    onActivate,
+}: {
+    query: string
+    setQuery: (query: string) => void
+    isActive: boolean
+    onClose: VoidFunction
+    onActivate: VoidFunction
+}) => {
+    return (
+        <div className="SiteSearchNavigation">
+            <Autocomplete onActivate={onActivate} onClose={onClose} />
+        </div>
     )
 }

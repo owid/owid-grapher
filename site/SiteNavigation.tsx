@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import React, { useCallback, useEffect, useState } from "react"
 import ReactDOM from "react-dom"
 import {
     faListUl,
@@ -41,10 +41,32 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
         menu !== null &&
         [Menu.Topics, Menu.Resources, Menu.About].includes(menu)
 
-    const closeOverlay = () => {
+    // useCallback so as to not trigger a re-render for SiteSearchNavigation, which remounts
+    // Autocomplete and breaks it
+    const closeOverlay = useCallback(() => {
         setActiveMenu(null)
         setQuery("")
-    }
+    }, [])
+
+    // Same as above
+    const setSearchAsActiveMenu = useCallback(() => {
+        setActiveMenu(Menu.Search)
+        // Forced DOM manipulation of the autocomplete panel size 🙃
+        // Without this, the panel initially renders at the same width as the shrunk search input
+        // Fortunately we only have to do this when it mounts - it takes care of resizes
+        setTimeout(() => {
+            let totalOffset = 0
+            const [panel, searchContainer, navBar] = [
+                ".aa-Panel",
+                ".site-search-cta",
+                ".site-navigation-bar",
+            ].map((className) => document.querySelector<HTMLElement>(className))
+            if (navBar && searchContainer && panel) {
+                totalOffset = navBar.offsetLeft + searchContainer.offsetLeft
+                panel.style.left = `${totalOffset}px`
+            }
+        }, 10)
+    }, [])
 
     const toggleMenu = (root: Menu) => {
         if (menu === root) {
@@ -154,7 +176,7 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                                 isActive={menu === Menu.Search}
                                 setQuery={setQuery}
                                 onClose={closeOverlay}
-                                onActivate={() => setActiveMenu(Menu.Search)}
+                                onActivate={setSearchAsActiveMenu}
                             />
                             <SiteNavigationToggle
                                 isActive={menu === Menu.Subscribe}

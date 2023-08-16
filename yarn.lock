@@ -19,6 +19,145 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@algolia/autocomplete-core@npm:1.10.0":
+  version: 1.10.0
+  resolution: "@algolia/autocomplete-core@npm:1.10.0"
+  dependencies:
+    "@algolia/autocomplete-plugin-algolia-insights": 1.10.0
+    "@algolia/autocomplete-shared": 1.10.0
+  checksum: baf7b691b4089e40cab47cf00cce9fc6aa816335845e39f12e6496597fbc965bdbb94f9624b9c693cae1eeb5b45b48c2da6072727f027a26489018afd8792563
+  languageName: node
+  linkType: hard
+
+"@algolia/autocomplete-core@npm:1.11.0":
+  version: 1.11.0
+  resolution: "@algolia/autocomplete-core@npm:1.11.0"
+  dependencies:
+    "@algolia/autocomplete-plugin-algolia-insights": 1.11.0
+    "@algolia/autocomplete-shared": 1.11.0
+  checksum: e4ec2e584e4dc5511653696250f86ae46a10d3a623a068c0a2529b58051fba56b3171f508ad1f00d2e549ee17a1f03a7540bf1072a7c2e17d1e74fc50796d4dd
+  languageName: node
+  linkType: hard
+
+"@algolia/autocomplete-js@npm:1.11.0":
+  version: 1.11.0
+  resolution: "@algolia/autocomplete-js@npm:1.11.0"
+  dependencies:
+    "@algolia/autocomplete-core": 1.11.0
+    "@algolia/autocomplete-preset-algolia": 1.11.0
+    "@algolia/autocomplete-shared": 1.11.0
+    htm: ^3.1.1
+    preact: ^10.13.2
+  peerDependencies:
+    "@algolia/client-search": ">= 4.5.1 < 6"
+    algoliasearch: ">= 4.9.1 < 6"
+  checksum: 45f598d73fcc7d57d967eb2e1b1a1f376c83ee241ed11b5497a53e7f16ce20d2dde7fcae7f5e77b95ff9eea7883d48a4480c57835e2906a78d29d8f0c9397008
+  languageName: node
+  linkType: hard
+
+"@algolia/autocomplete-js@npm:^1.10.0":
+  version: 1.10.0
+  resolution: "@algolia/autocomplete-js@npm:1.10.0"
+  dependencies:
+    "@algolia/autocomplete-core": 1.10.0
+    "@algolia/autocomplete-preset-algolia": 1.10.0
+    "@algolia/autocomplete-shared": 1.10.0
+    htm: ^3.1.1
+    preact: ^10.13.2
+  peerDependencies:
+    "@algolia/client-search": ">= 4.5.1 < 6"
+    algoliasearch: ">= 4.9.1 < 6"
+  checksum: a1ea1d904c17ff258b54ccfa22a923835188e50c65315ab41304b522324fdab7b0f05058f6fc0f73773b814005507b884626ce3638653e89db1e6b8f7c180192
+  languageName: node
+  linkType: hard
+
+"@algolia/autocomplete-plugin-algolia-insights@npm:1.10.0":
+  version: 1.10.0
+  resolution: "@algolia/autocomplete-plugin-algolia-insights@npm:1.10.0"
+  dependencies:
+    "@algolia/autocomplete-shared": 1.10.0
+  peerDependencies:
+    search-insights: ">= 1 < 3"
+  checksum: 1008a03a6e8e7ed84644d47e77abfe2fb1b52060911767582a3aa2243e3327fec6e3b5315ff848b3658a051429de26571a7fc4824d9966b017f3be151e44908b
+  languageName: node
+  linkType: hard
+
+"@algolia/autocomplete-plugin-algolia-insights@npm:1.11.0":
+  version: 1.11.0
+  resolution: "@algolia/autocomplete-plugin-algolia-insights@npm:1.11.0"
+  dependencies:
+    "@algolia/autocomplete-shared": 1.11.0
+  peerDependencies:
+    search-insights: ">= 1 < 3"
+  checksum: 89f86e8ba54203a9fa6e77e900b9c7d2420b6a25df5c959cadd4553523969a4d4226b2abdc7f2fe096df21308c5a5ae5045560a4dbbcd92f28a340c617626c3d
+  languageName: node
+  linkType: hard
+
+"@algolia/autocomplete-plugin-recent-searches@npm:^1.11.0":
+  version: 1.11.0
+  resolution: "@algolia/autocomplete-plugin-recent-searches@npm:1.11.0"
+  dependencies:
+    "@algolia/autocomplete-core": 1.11.0
+    "@algolia/autocomplete-js": 1.11.0
+    "@algolia/autocomplete-preset-algolia": 1.11.0
+    "@algolia/autocomplete-shared": 1.11.0
+  peerDependencies:
+    "@algolia/client-search": ">= 4.5.1 < 6"
+  checksum: 8a1325d4a4c571aa2f0241712bc1a6a013e827bdfe04808d106b9341db39bdaa731cabba0f325c9e78459ae0bfcda23ac27c769589b39a97f2eaf320d238dc40
+  languageName: node
+  linkType: hard
+
+"@algolia/autocomplete-preset-algolia@npm:1.10.0":
+  version: 1.10.0
+  resolution: "@algolia/autocomplete-preset-algolia@npm:1.10.0"
+  dependencies:
+    "@algolia/autocomplete-shared": 1.10.0
+  peerDependencies:
+    "@algolia/client-search": ">= 4.9.1 < 6"
+    algoliasearch: ">= 4.9.1 < 6"
+  checksum: b9de85fcbcf39b7588dcfa584cd8c2c4fa71fffd73cc356894498724e85e77f9fb02d6a9ab56ffc9a2e568989fee43352be3867cbd53e24c2e3dbaf1ef811e01
+  languageName: node
+  linkType: hard
+
+"@algolia/autocomplete-preset-algolia@npm:1.11.0":
+  version: 1.11.0
+  resolution: "@algolia/autocomplete-preset-algolia@npm:1.11.0"
+  dependencies:
+    "@algolia/autocomplete-shared": 1.11.0
+  peerDependencies:
+    "@algolia/client-search": ">= 4.9.1 < 6"
+    algoliasearch: ">= 4.9.1 < 6"
+  checksum: 2fbae29efab40fc1b483529134bf4dc176b3e171e963294fbcc22bfc16252fcb239791043044a220daeef10477469966e4ee2bc285597b445c13eef7f64eeabb
+  languageName: node
+  linkType: hard
+
+"@algolia/autocomplete-shared@npm:1.10.0":
+  version: 1.10.0
+  resolution: "@algolia/autocomplete-shared@npm:1.10.0"
+  peerDependencies:
+    "@algolia/client-search": ">= 4.9.1 < 6"
+    algoliasearch: ">= 4.9.1 < 6"
+  checksum: cf02ca1173c6257dd86eb50ba30296b467aeac56a9e792a5150a73a1a05fe5156cf943f68e225e49dbdd61c7d00209dc9237ebd86e3a8dd7d3e7da3f81092b8b
+  languageName: node
+  linkType: hard
+
+"@algolia/autocomplete-shared@npm:1.11.0":
+  version: 1.11.0
+  resolution: "@algolia/autocomplete-shared@npm:1.11.0"
+  peerDependencies:
+    "@algolia/client-search": ">= 4.9.1 < 6"
+    algoliasearch: ">= 4.9.1 < 6"
+  checksum: b455d278fa0703a51e1227e5950c58966893ae526198698b5015e341ee42927f206453ca10a3dd5aa6377739d40a2deaca799b1124468bca3bf901cfebe88e86
+  languageName: node
+  linkType: hard
+
+"@algolia/autocomplete-theme-classic@npm:^1.11.0":
+  version: 1.11.0
+  resolution: "@algolia/autocomplete-theme-classic@npm:1.11.0"
+  checksum: 8ad3d80c160d8d240cd1be552432d5144d25938c974231dbcbe55c37950aa2c3d3d9a0ae4fc1d2426bb369ebf9d10e8a8f17f73b2f349e373ae8e3c12466c458
+  languageName: node
+  linkType: hard
+
 "@algolia/cache-browser-local-storage@npm:4.19.1":
   version: 4.19.1
   resolution: "@algolia/cache-browser-local-storage@npm:4.19.1"
@@ -13729,6 +13868,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "grapher@workspace:."
   dependencies:
+    "@algolia/autocomplete-js": ^1.10.0
+    "@algolia/autocomplete-plugin-recent-searches": ^1.11.0
+    "@algolia/autocomplete-theme-classic": ^1.11.0
     "@aws-sdk/client-s3": ^3.352.0
     "@bugsnag/core": ^7.19.0
     "@bugsnag/js": ^7.20.0
@@ -13842,6 +13984,7 @@ __metadata:
     handsontable: ^12.3.3
     html-to-text: ^8.2.0
     http-server: ^14.1.1
+    instantsearch.js: ^4.56.9
     jest: ^29.0.3
     jest-environment-jsdom: ^29.0.3
     js-base64: ^3.7.2
@@ -13886,7 +14029,6 @@ __metadata:
     react-error-boundary: ^4.0.10
     react-flip-toolkit: ^7.0.9
     react-horizontal-scrolling-menu: ^4.0.3
-    react-instantsearch: ^7.0.1
     react-instantsearch-hooks-web: ^6.47.2
     react-intersection-observer: ^9.4.0
     react-move: ^6.5.0
@@ -14249,7 +14391,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"htm@npm:^3.0.0":
+"htm@npm:^3.0.0, htm@npm:^3.1.1":
   version: 3.1.1
   resolution: "htm@npm:3.1.1"
   checksum: 1827a0cafffcff69690b048a4df59944086d7503fe5eb7c10b40834439205bdf992941e7aa25e92b3c2c086170565b4ed7c365bc072d31067c6e7a4e478776bd
@@ -14740,7 +14882,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"instantsearch.js@npm:4.56.9":
+"instantsearch.js@npm:^4.56.9":
   version: 4.56.9
   resolution: "instantsearch.js@npm:4.56.9"
   dependencies:
@@ -19958,6 +20100,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"preact@npm:^10.13.2":
+  version: 10.17.0
+  resolution: "preact@npm:10.17.0"
+  checksum: a106a5dd4e4e38a24f4ab62a42b4e0d9b14f0a0146819f1f2800b7033b316941987f77913893b78fe4ceb6750ec013f407ad98e2f416978fe8aecc8d7f4d086b
+  languageName: node
+  linkType: hard
+
 "prebuild-install@npm:^7.1.1":
   version: 7.1.1
   resolution: "prebuild-install@npm:7.1.1"
@@ -21197,21 +21346,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-instantsearch-core@npm:7.0.1":
-  version: 7.0.1
-  resolution: "react-instantsearch-core@npm:7.0.1"
-  dependencies:
-    "@babel/runtime": ^7.1.2
-    algoliasearch-helper: 3.14.0
-    instantsearch.js: 4.56.9
-    use-sync-external-store: ^1.0.0
-  peerDependencies:
-    algoliasearch: ">= 3.1 < 5"
-    react: ">= 16.8.0 < 19"
-  checksum: fb1e9820c5e0ff10ebe786f3a56a9b04de53f8de6baeaa0fc26db522a03952acf5ea9a7008f915bb5f6c9bb0db311dd571463ab1139167293dd42e6661cb31b4
-  languageName: node
-  linkType: hard
-
 "react-instantsearch-hooks-web@npm:^6.47.2":
   version: 6.47.2
   resolution: "react-instantsearch-hooks-web@npm:6.47.2"
@@ -21239,21 +21373,6 @@ __metadata:
     algoliasearch: ">= 3.1 < 5"
     react: ">= 16.8.0 < 19"
   checksum: 9d41a5c3137f05b682a790daa1fb5f4962f644cfe5b2d520a5cd6579a4b52e8bf35db55aa67be84c842c4a76e47ec711bb3fa376e0636c033f209d73f13051df
-  languageName: node
-  linkType: hard
-
-"react-instantsearch@npm:^7.0.1":
-  version: 7.0.1
-  resolution: "react-instantsearch@npm:7.0.1"
-  dependencies:
-    "@babel/runtime": ^7.1.2
-    instantsearch.js: 4.56.9
-    react-instantsearch-core: 7.0.1
-  peerDependencies:
-    algoliasearch: ">= 3.1 < 5"
-    react: ">= 16.8.0 < 19"
-    react-dom: ">= 16.8.0 < 19"
-  checksum: 6030eb989e6629d7966a42ecc28e7fe8ad6ce04150470d1d4acf1938749277b4ffeef78a5f0d5c86379ee634a49d23c8f7af12a623d0474d9180b1746c39fd49
   languageName: node
   linkType: hard
 
