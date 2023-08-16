@@ -137,7 +137,6 @@ class Label extends React.Component<{
                         {
                             fill: annotationColor,
                             className: "textAnnotation",
-                            style: { fontWeight: "lighter" },
                         }
                     )}
             </g>
