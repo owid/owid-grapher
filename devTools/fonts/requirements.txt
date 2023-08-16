@@ -1,0 +1,3 @@
+Brotli==1.0.9
+fonttools==4.42.0
+more-itertools==10.1.0

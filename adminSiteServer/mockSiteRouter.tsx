@@ -235,6 +235,15 @@ mockSiteRouter.use("/grapher/exports/:slug.svg", async (req, res) => {
     res.send(await grapherToSVG(grapher.config, vardata))
 })
 
+mockSiteRouter.use(
+    "/fonts",
+    express.static(path.join(BASE_DIR, "public/fonts"), {
+        setHeaders: (res) => {
+            res.set("Access-Control-Allow-Origin", "*")
+        },
+    })
+)
+
 mockSiteRouter.use("/", express.static(path.join(BASE_DIR, "public")))
 
 mockSiteRouter.get("/countries", async (req, res) =>
