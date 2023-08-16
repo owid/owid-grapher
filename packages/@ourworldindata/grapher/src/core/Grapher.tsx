@@ -148,7 +148,11 @@ import { MapChartManager } from "../mapCharts/MapChartConstants"
 import { MapChart } from "../mapCharts/MapChart"
 import { DiscreteBarChartManager } from "../barCharts/DiscreteBarChartConstants"
 import { Command, CommandPalette } from "../controls/CommandPalette"
-import { ShareMenuManager } from "../controls/ShareMenu"
+import {
+    ShareMenuManager,
+    EmbedMenuManager,
+    EmbedMenu,
+} from "../controls/ShareMenu"
 import {
     CaptionedChart,
     CaptionedChartManager,
@@ -306,6 +310,7 @@ export class Grapher
         DiscreteBarChartManager,
         LegacyDimensionsManager,
         ShareMenuManager,
+        EmbedMenuManager,
         AbsRelToggleManager,
         TooltipManager,
         DataTableManager,
@@ -744,6 +749,7 @@ export class Grapher
     tooltips?: TooltipManager["tooltips"] = observable.map({}, { deep: false })
     @observable isPlaying = false
     @observable.ref isSelectingData = false
+    @observable.ref isEmbedModalOpen = false
 
     private get isStaging(): boolean {
         if (typeof location === undefined) return false
@@ -1905,8 +1911,6 @@ export class Grapher
         return SizeVariant.lg
     }
 
-    @observable.ref private popups: JSX.Element[] = []
-
     base: React.RefObject<HTMLDivElement> = React.createRef()
 
     @computed get containerElement(): HTMLDivElement | undefined {
@@ -1922,15 +1926,6 @@ export class Grapher
 
     @action.bound clearErrors(): void {
         this.uncaughtError = undefined
-    }
-
-    // todo: clean up this popup stuff
-    addPopup(vnode: JSX.Element): void {
-        this.popups = this.popups.concat([vnode])
-    }
-
-    removePopup(vnodeType: JSX.Element): void {
-        this.popups = this.popups.filter((d) => !(d.type === vnodeType))
     }
 
     private renderPrimaryTab(): JSX.Element {
@@ -2385,7 +2380,6 @@ export class Grapher
             <>
                 {this.hasBeenVisible && this.renderPrimaryTab()}
                 {this.renderOverlayTab()}
-                {this.popups}
                 <TooltipContainer
                     containerWidth={this.renderWidth}
                     containerHeight={this.renderHeight}
@@ -2399,6 +2393,16 @@ export class Grapher
                             isMulti={!this.canChangeEntity}
                             selectionArray={this.selection}
                         />
+                    </Modal>
+                )}
+                {this.isEmbedModalOpen && (
+                    <Modal
+                        title="Embed"
+                        onDismiss={action(
+                            () => (this.isEmbedModalOpen = false)
+                        )}
+                    >
+                        <EmbedMenu manager={this} />
                     </Modal>
                 )}
             </>
