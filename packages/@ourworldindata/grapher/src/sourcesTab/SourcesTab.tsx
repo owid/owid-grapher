@@ -142,30 +142,20 @@ export class SourcesTab extends React.Component<{
                                 <td>{column.unitConversionFactor}</td>
                             </tr>
                         ) : null}
-                        {citationProducer.length > 0 ? (
+                        {citationProducer.length == 1 ? (
+                            <tr>
+                                <td>Data published by</td>
+                                <td>{citationProducer[0]}</td>
+                            </tr>
+                        ) : null}
+                        {citationProducer.length > 1 ? (
                             <tr>
                                 <td>Data published by</td>
                                 <td>
-                                    <ul>
-                                        {citationProducer.map(
-                                            (producer, index) => (
-                                                <li key={index}>{producer}</li>
-                                            )
-                                        )}
-                                    </ul>
+                                    {citationProducer.map((producer, index) => (
+                                        <li key={index}>{producer}</li>
+                                    ))}
                                 </td>
-                            </tr>
-                        ) : null}
-                        {!attribution && source.dataPublishedBy ? (
-                            <tr>
-                                <td>Data published by</td>
-                                <td
-                                    dangerouslySetInnerHTML={{
-                                        __html: formatText(
-                                            source.dataPublishedBy
-                                        ),
-                                    }}
-                                />
                             </tr>
                         ) : null}
                         {(!citationProducer || citationProducer.length === 0) &&
