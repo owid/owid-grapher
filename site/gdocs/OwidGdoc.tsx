@@ -12,6 +12,7 @@ import {
     CITATION_ID,
     LICENSE_ID,
     isEmpty,
+    OwidGdocType,
 } from "@ourworldindata/utils"
 import { CodeSnippet } from "../blocks/CodeSnippet.js"
 import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
@@ -40,6 +41,16 @@ type OwidGdocProps = OwidGdocInterface & {
     isPreviewing?: boolean
 }
 
+const citationDescriptionsByArticleType: Record<OwidGdocType, string> = {
+    [OwidGdocType.TopicPage]:
+        "Our articles and data visualizations rely on work from many different people and organizations. When citing this topic page, please also cite the underlying data sources. This topic page can be cited as:",
+    [OwidGdocType.Article]:
+        "Our articles and data visualizations rely on work from many different people and organizations. When citing this article, please also cite the underlying data sources. This article can be cited as:",
+    // This case should never occur as Fragments aren't baked and can't be viewed by themselves.
+    [OwidGdocType.Fragment]:
+        "Our articles and data visualizations rely on work from many different people and organizations. When citing this text, please also cite the underlying data sources. This text can be cited as:",
+}
+
 export function OwidGdoc({
     content,
     publishedAt,
@@ -51,6 +62,8 @@ export function OwidGdoc({
     relatedCharts = [],
     isPreviewing = false,
 }: OwidGdocProps) {
+    const citationDescription =
+        citationDescriptionsByArticleType[content.type ?? OwidGdocType.Article]
     const citationText = `${formatAuthors({
         authors: content.authors,
     })} (${publishedAt?.getFullYear()}) - "${
@@ -134,14 +147,7 @@ export function OwidGdoc({
                     >
                         <div className="col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
                             <h3>Cite this work</h3>
-                            <p>
-                                Our articles and data visualizations rely on
-                                work from many different people and
-                                organizations. When citing this topic page,
-                                please also cite the underlying data sources.
-                                This topic page can be cited as:
-                            </p>
-                            {/* TODO? renderSpans(content.citation.map((block) => block.value)) */}
+                            <p>{citationDescription}</p>
                             <div>
                                 <CodeSnippet code={citationText} />
                             </div>
