@@ -64,13 +64,13 @@ export class SourcesTab extends React.Component<{
                 ? column.def.titlePublic
                 : column.name
 
-        const attribution = column.def.attribution
-            ? [column.def.attribution]
-            : column.def.origins
-            ? column.def.origins.map(
-                  (origin: OwidOrigin) => origin.attribution ?? origin.producer
-              )
-            : []
+        // const attribution = column.def.attribution
+        //     ? [column.def.attribution]
+        //     : column.def.origins
+        //     ? column.def.origins.map(
+        //           (origin: OwidOrigin) => origin.attribution ?? origin.producer
+        //       )
+        //     : []
 
         const retrievedDate =
             source.retrievedDate ??
@@ -142,7 +142,7 @@ export class SourcesTab extends React.Component<{
                                 <td>{column.unitConversionFactor}</td>
                             </tr>
                         ) : null}
-                        {citationProducer.length == 1 ? (
+                        {citationProducer.length === 1 ? (
                             <tr>
                                 <td>Data published by</td>
                                 <td>{citationProducer[0]}</td>
