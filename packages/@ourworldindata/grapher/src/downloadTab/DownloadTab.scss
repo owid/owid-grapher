@@ -1,97 +1,83 @@
 .DownloadTab {
-    padding: 2em;
-    color: #444;
-    line-height: 1.4;
-    display: flex; // allows vertical centering when using margin:auto
-    overflow: auto; // we want to be able to scroll if contents overflow
-
-    .grouped-menu {
-        width: 100%;
-        max-width: 35em;
-        margin: auto;
-    }
+    height: calc(100% - 14px);
+    overflow-y: auto;
+    color: $dark-text;
 
     .grouped-menu-section {
         h2 {
+            color: $dark-text;
+            font-family: $serif-font-stack;
             font-size: 1.125em;
-            font-weight: 700;
+            font-weight: 600;
+            margin-bottom: 0.7em;
         }
     }
 
     .grouped-menu-section + .grouped-menu-section {
-        margin-top: 3em;
+        margin-top: 1.5em;
+    }
+
+    .grouped-menu-item + .grouped-menu-item {
+        margin-top: 4px;
     }
 
     .grouped-menu-item {
         display: flex;
         flex-direction: row;
         align-items: center;
-        color: #444;
-        background-color: #fafafa;
-        border: 1px solid rgba(0, 0, 0, 0.15);
+        color: $dark-text;
+        background-color: #f7f7f7;
         position: relative;
         width: 100%;
-        margin-top: -1px;
-        padding: 0;
+        padding: 1em;
         overflow: hidden;
         text-align: left;
 
-        &:first-child {
-            margin-top: 0;
-            border-top-left-radius: 3px;
-            border-top-right-radius: 3px;
-        }
-
-        &:last-child {
-            border-bottom-left-radius: 3px;
-            border-bottom-right-radius: 3px;
-        }
-
         &:hover {
             z-index: 1;
-            background-color: #f3f3f3;
-            border-color: rgba(0, 0, 0, 0.25);
-            color: #222;
+            background-color: $hover-fill;
         }
     }
 
     .grouped-menu-icon img {
         display: block;
-        margin: 10px;
-        margin-right: 3px;
-        box-shadow: 0 1px 1px rgba(0, 0, 0, 0.15),
-            0 2px 4px 1px rgba(0, 0, 0, 0.09);
+        box-shadow: 0px 0px 0px 0px rgba(49, 37, 2, 0.03),
+            0px 6px 13px 0px rgba(49, 37, 2, 0.03),
+            0px 93px 37px 0px rgba(49, 37, 2, 0.01),
+            0px 145px 41px 0px rgba(49, 37, 2, 0);
     }
 
     .grouped-menu-content {
         flex: 1;
-        padding: 0.85em 1em;
+        padding: 0 1.5em;
 
         .title {
+            margin: 0;
+            margin-bottom: 0.2em;
+            font-weight: 600;
             font-size: 1em;
-            margin: 0 0 0.35em;
         }
 
         .description {
-            font-size: 0.9375em;
             margin: 0;
-            opacity: 0.9;
-        }
-
-        .faint {
-            font-weight: normal;
+            color: $light-text;
+            font-size: 0.875em;
         }
     }
 
+    .grouped-menu-section-data .grouped-menu-content {
+        padding-left: 0;
+    }
+
     .download-icon {
-        opacity: 0.5;
-        padding-left: 0.5em;
-        padding-right: 1.5em;
+        padding: 0 0.5em;
+        font-size: 1.1em;
     }
     .grouped-menu-item:hover .download-icon {
         opacity: 1;
     }
 
+    // todo(redesign): restyle callout
     .grouped-menu-callout {
         display: flex;
         flex-direction: row;
@@ -131,11 +117,14 @@
     }
 }
 
+// todo(redesign): restyle input
 .static-exports-options {
-    margin: 8px 2px;
-    height: 0;
+    margin: 1em 0 1.5em;
+    padding-bottom: 1.5em;
+    border-bottom: 1px solid $hover-fill;
 
     label {
         margin-left: 8px;
+        font-size: 14px;
     }
 }

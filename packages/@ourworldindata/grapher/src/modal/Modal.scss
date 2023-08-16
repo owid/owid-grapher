@@ -4,7 +4,7 @@
     right: 0;
     bottom: 0;
     left: 0;
-    background-color: rgba(0, 0, 0, 0.08);
+    background-color: rgba(0, 0, 0, 0.4);
 
     .modalContent {
         z-index: $zindex-modal;
@@ -15,6 +15,15 @@
         background: #fff;
         box-shadow: 0px 4px 30px 0px rgba(0, 0, 0, 0.15);
         padding: 1.5em 1em;
+
+        .modalTitle {
+            text-transform: uppercase;
+            color: $light-text;
+            font-size: 0.75em;
+            font-weight: 900;
+            letter-spacing: 1.2px;
+            margin-bottom: 24px;
+        }
 
         .modalDismiss {
             z-index: inherit;
@@ -27,6 +36,10 @@
             border-radius: 50%;
             width: 32px;
             height: 32px;
+
+            &:hover {
+                background: $hover-fill;
+            }
         }
     }
 }

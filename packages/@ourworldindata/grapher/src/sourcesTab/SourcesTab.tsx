@@ -199,8 +199,7 @@ export class SourcesTab extends React.Component<{
         const cols = this.manager.columnsWithSources
         return (
             <div className="sourcesTab">
-                <h2>Sources</h2>
-                <div>{cols.map((col) => this.renderSource(col))}</div>
+                {cols.map((col) => this.renderSource(col))}
             </div>
         )
     }

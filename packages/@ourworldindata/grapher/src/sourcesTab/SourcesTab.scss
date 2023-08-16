@@ -2,26 +2,7 @@
     padding: 0;
 }
 
-.DownloadTab {
-    padding: 1rem;
-    text-align: left;
-    background: rgba(255, 255, 255, 0.95);
-}
-
 .sourcesTab {
-    height: 100%;
-}
-
-.sourcesTab > h2 {
-    text-transform: uppercase;
-    color: $light-text;
-    font-size: 0.75em;
-    font-weight: 900;
-    letter-spacing: 1.2px;
-    margin-bottom: 24px;
-}
-
-.sourcesTab > div {
     height: calc(100% - 12px);
     overflow-y: auto;
 }

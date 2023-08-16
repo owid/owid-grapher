@@ -1938,21 +1938,24 @@ export class Grapher
     }
 
     private renderOverlayTab(): JSX.Element | undefined {
-        const bounds = this.tabBounds
+        const { tabBounds } = this
         if (this.overlayTab === GrapherTabOverlayOption.sources)
             return (
-                <Modal onDismiss={action(() => (this.currentTab = this.tab))}>
+                <Modal
+                    title="Sources"
+                    onDismiss={action(() => (this.currentTab = this.tab))}
+                >
                     <SourcesTab manager={this} />
                 </Modal>
             )
         if (this.overlayTab === GrapherTabOverlayOption.download)
             return (
-                <DownloadTab
-                    key="downloadTab"
-                    bounds={bounds}
-                    manager={this}
+                <Modal
+                    title="Download"
                     onDismiss={action(() => (this.currentTab = this.tab))}
-                />
+                >
+                    <DownloadTab bounds={tabBounds} manager={this} />
+                </Modal>
             )
         return undefined
     }
