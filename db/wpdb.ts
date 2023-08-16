@@ -777,6 +777,7 @@ export const mapGdocsToWordpressPosts = (
     return gdocs.map((gdoc) => ({
         title: gdoc.content["atom-title"] || gdoc.content.title,
         slug: gdoc.slug,
+        type: gdoc.content.type,
         date: gdoc.publishedAt,
         modifiedDate: gdoc.updatedAt,
         authors: gdoc.content.authors,

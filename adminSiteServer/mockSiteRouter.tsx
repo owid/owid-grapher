@@ -15,6 +15,7 @@ import {
     renderBlogByPageNum,
     countryProfileCountryPage,
     renderExplorerPage,
+    makeAtomFeedNoTopicPages,
 } from "../baker/siteRenderers.js"
 import {
     BAKED_BASE_URL,
@@ -64,6 +65,11 @@ mockSiteRouter.get("/sitemap.xml", async (req, res) => {
 mockSiteRouter.get("/atom.xml", async (req, res) => {
     res.set("Content-Type", "application/xml")
     res.send(await makeAtomFeed())
+})
+
+mockSiteRouter.get("/atom-no-topic-pages.xml", async (req, res) => {
+    res.set("Content-Type", "application/xml")
+    res.send(await makeAtomFeedNoTopicPages())
 })
 
 mockSiteRouter.get("/entries-by-year", async (req, res) =>
