@@ -1202,7 +1202,6 @@ html:not(.js) {
             color: #002147;
             font-family: inherit;
             font-size: 1rem;
-            font-weight: 600;
 
             &:focus {
                 border-color: #002147;
@@ -1210,7 +1209,6 @@ html:not(.js) {
         }
 
         textarea {
-            font-weight: 400;
             font-size: 0.875rem;
             flex: 1;
             resize: none;
