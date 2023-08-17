@@ -1871,9 +1871,9 @@ export class Grapher
 
     @computed get sizeVariant(): SizeVariant {
         if (this.isExportingtoSvgOrPng) return SizeVariant.md
-        if (this.tabBounds.width <= 740) return SizeVariant.xs
-        if (this.tabBounds.width <= 840) return SizeVariant.sm
-        if (this.tabBounds.width <= 940) return SizeVariant.md
+        if (this.renderWidth <= 740) return SizeVariant.xs
+        if (this.renderWidth <= 840) return SizeVariant.sm
+        if (this.renderWidth <= 940) return SizeVariant.md
         return SizeVariant.lg
     }
 
@@ -2354,11 +2354,11 @@ export class Grapher
         }
     }
 
+    // todo(redesign): refactor code to make better use of the base font size
     @action.bound private setBaseFontSize(): void {
         const { renderWidth } = this
         if (renderWidth <= 400) this.baseFontSize = 14
-        else if (renderWidth < 1080) this.baseFontSize = 16
-        else if (renderWidth >= 1080) this.baseFontSize = 18
+        else this.baseFontSize = 16
     }
 
     // Binds chart properties to global window title and URL. This should only
