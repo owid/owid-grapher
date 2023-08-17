@@ -58,13 +58,13 @@ const bakeAndDeploy = async (
     try {
         if (lightningQueue?.length) {
             throw new Error("Lightning deploy not implemented yet")
-            for (const change of lightningQueue) {
-                const gdoc = (await Gdoc.findOneByOrFail({
-                    published: true,
-                    slug: change.slug,
-                })) as OwidGdocPublished
-                await baker.bakeGDocPost(gdoc)
-            }
+            // for (const change of lightningQueue) {
+            //     const gdoc = (await Gdoc.findOneByOrFail({
+            //         published: true,
+            //         slug: change.slug,
+            //     })) as OwidGdocPublished
+            //     await baker.bakeGDocPost(gdoc)
+            // }
         } else {
             // keep this when running locally
             // await baker.bakeAll()
