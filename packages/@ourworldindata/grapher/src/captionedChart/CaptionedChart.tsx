@@ -451,26 +451,26 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     }
 
     // The height of the chart area is the total height of the frame minus the height of the header, footer, controls, etc.
+    // Check out the render function for a description of the various components rendered by CaptionedChart
     @computed protected get chartHeight(): number {
         return Math.floor(
             this.bounds.height -
                 2 * FRAME_PADDING -
-                // height of the header and the padding below
+                // #1 Header
                 this.header.height -
                 this.verticalPadding -
-                // if present, height of the controls row and the padding below
-                // (might not be present if there's only one tab and no controls)
+                // #2 [Controls]
                 (this.showControlsRow
                     ? CONTROLS_ROW_HEIGHT + this.verticalPaddingSmall
                     : 0) -
-                // if present, height of the timeline and the padding above
+                // #4 [Timeline]
                 (this.manager.hasTimeline
                     ? this.verticalPaddingSmall + TIMELINE_HEIGHT
                     : 0) -
-                // height of the footer and the padding above
                 this.verticalPadding -
+                // #5 Footer
                 this.footer.height -
-                // height of the related question, if present
+                // #6 [Related question]
                 (this.showRelatedQuestion
                     ? this.relatedQuestionHeight - FRAME_PADDING * 0.25
                     : 0)
@@ -479,38 +479,47 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
 
     // if you edit the render function, make sure to keep chartHeight in sync
     render(): JSX.Element {
+        // CaptionedChart renders at the very least a header, a chart, and a Footer.
+        // Interactive charts also have controls above the chart area and a timeline below it.
+        // Some charts have a related question below the footer.
+        // A CaptionedChart looks like this (components in [brackets] are optional):
+        //    #1 Header
+        //       ---- vertical space
+        //    #2 [Controls]
+        //       ---- vertical space (small)
+        //    #3 Chart/Map/Table
+        //       ---- vertical space (small)
+        //    #4 [Timeline]
+        //       ---- vertical space
+        //    #5 Footer
+        //    #6 [Related question]
         return (
             <>
-                {/* header and padding below */}
+                {/* #1 Header */}
                 <Header manager={this.manager} maxWidth={this.maxWidth} />
                 <VerticalSpace height={this.verticalPadding} />
-
-                {/* controls row and padding below */}
+                {/* #2 [Controls] */}
                 {this.showControlsRow && this.renderControlsRow()}
                 {this.showControlsRow && (
                     <VerticalSpace height={this.verticalPaddingSmall} />
                 )}
-
-                {/* chart, map or table */}
+                {/* #3 Chart/Map/Table */}
                 {this.manager.isOnTableTab
                     ? this.renderDataTable()
                     : this.renderChartOrMap()}
-
-                {/* timeline and padding above */}
                 {this.manager.hasTimeline && (
                     <VerticalSpace height={this.verticalPaddingSmall} />
                 )}
+                {/* #4 [Timeline] */}
                 {this.manager.hasTimeline && this.renderTimeline()}
-
-                {/* footer and padding above */}
                 <VerticalSpace height={this.verticalPadding} />
+                {/* #5 Footer */}
                 <Footer
                     manager={this.manager}
                     maxWidth={this.maxWidth}
                     verticalPaddingSmall={this.verticalPaddingSmall}
                 />
-
-                {/* related question */}
+                {/* #6 [Related question] */}
                 {this.showRelatedQuestion && this.renderRelatedQuestion()}
             </>
         )
