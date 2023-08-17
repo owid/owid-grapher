@@ -444,7 +444,7 @@ export class MapChart
     }
 
     @computed get choroplethMapBounds(): Bounds {
-        return this.bounds.padBottom(this.legendHeight + 15)
+        return this.bounds.padBottom(this.legendHeight + 4)
     }
 
     @computed get projection(): MapProjectionName {
