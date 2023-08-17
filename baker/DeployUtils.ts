@@ -57,6 +57,7 @@ const bakeAndDeploy = async (
     const baker = new SiteBaker(BAKED_SITE_DIR, BAKED_BASE_URL)
     try {
         if (lightningQueue?.length) {
+            throw new Error("Lightning deploy not implemented yet")
             for (const change of lightningQueue) {
                 const gdoc = (await Gdoc.findOneByOrFail({
                     published: true,
@@ -65,9 +66,15 @@ const bakeAndDeploy = async (
                 await baker.bakeGDocPost(gdoc)
             }
         } else {
-            await baker.bakeAll()
+            // keep this when running locally
+            // await baker.bakeAll()
         }
-        await baker.deployToNetlifyAndPushToGitPush(message)
+
+        // when running in production, trigger a deploy job
+        console.log("Deploying to Cloudflare Pages...")
+
+        // run this thing! create custom script for lightning deploy
+        // /home/owid/bin/grapher-deploy
     } catch (err) {
         logErrorAndMaybeSendToBugsnag(err)
         throw err
