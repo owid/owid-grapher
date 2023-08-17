@@ -8,10 +8,8 @@ import {
     faShareAlt,
     faLink,
     faEdit,
-    faCopy,
 } from "@fortawesome/free-solid-svg-icons"
 import { canWriteToClipboard } from "@ourworldindata/utils"
-import { ModalContext } from "../modal/Modal"
 
 export interface ShareMenuManager {
     slug?: string
@@ -203,95 +201,6 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                         <FontAwesomeIcon icon={faEdit} /> Edit
                     </a>
                 )}
-            </div>
-        )
-    }
-}
-
-export interface EmbedMenuManager {
-    canonicalUrl?: string
-    embedUrl?: string
-    embedDialogAdditionalElements?: React.ReactElement
-}
-
-interface EmbedMenuProps {
-    manager: EmbedMenuManager
-}
-
-interface EmbedMenuState {
-    canWriteToClipboard: boolean
-}
-
-@observer
-export class EmbedMenu extends React.Component<EmbedMenuProps, EmbedMenuState> {
-    static contextType = ModalContext
-    dismissable = true
-
-    constructor(props: EmbedMenuProps) {
-        super(props)
-
-        this.state = {
-            canWriteToClipboard: false,
-        }
-    }
-
-    @computed private get codeSnippet(): string {
-        const url = this.manager.embedUrl ?? this.manager.canonicalUrl
-        return `<iframe src="${url}" loading="lazy" style="width: 100%; height: 600px; border: 0px none;"></iframe>`
-    }
-
-    @action.bound onClickSomewhere(): void {
-        if (this.dismissable) this.context.onDismiss()
-        else this.dismissable = true
-    }
-
-    @computed get manager(): EmbedMenuManager {
-        return this.props.manager
-    }
-
-    @action.bound onClick(): void {
-        this.dismissable = false
-    }
-
-    componentDidMount(): void {
-        document.addEventListener("click", this.onClickSomewhere)
-        canWriteToClipboard().then((canWriteToClipboard) =>
-            this.setState({ canWriteToClipboard })
-        )
-    }
-
-    componentWillUnmount(): void {
-        document.removeEventListener("click", this.onClickSomewhere)
-    }
-
-    @action.bound async onCopyCodeSnippet(): Promise<void> {
-        try {
-            await navigator.clipboard.writeText(this.codeSnippet)
-        } catch (err) {
-            console.error(
-                "couldn't copy to clipboard using navigator.clipboard",
-                err
-            )
-        }
-    }
-
-    render(): JSX.Element {
-        return (
-            <div className="embedMenu" onClick={this.onClick}>
-                <p>Paste this into any HTML page:</p>
-                <div className="embedCode">
-                    <textarea
-                        readOnly={true}
-                        onFocus={(evt): void => evt.currentTarget.select()}
-                        value={this.codeSnippet}
-                    />
-                    {this.state.canWriteToClipboard && (
-                        <button onClick={this.onCopyCodeSnippet}>
-                            <FontAwesomeIcon icon={faCopy} />
-                        </button>
-                    )}
-                </div>
-                {this.manager.embedDialogAdditionalElements}
             </div>
         )
     }

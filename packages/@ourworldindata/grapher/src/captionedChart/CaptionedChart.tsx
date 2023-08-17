@@ -560,6 +560,7 @@ export class StaticCaptionedChart extends CaptionedChart {
             .padTop(this.manager.isOnMapTab ? 0 : this.verticalPadding)
     }
 
+    // todo(redesign)
     renderSVGDetails(): JSX.Element | null {
         if (!this.manager.shouldIncludeDetailsInStaticExport) {
             return null

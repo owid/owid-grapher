@@ -135,22 +135,22 @@ import {
     FacetStrategyDropdownManager,
 } from "../controls/Controls"
 import { TooltipContainer } from "../tooltip/Tooltip"
-import { EntitySelector } from "../controls/EntitySelector"
-import { DownloadTab, DownloadTabManager } from "../downloadTab/DownloadTab"
+import {
+    EntitySelectorModal,
+    EntitySelectorModalManager,
+} from "../modal/EntitySelectorModal"
+import { DownloadModal, DownloadModalManager } from "../modal/DownloadModal"
 import ReactDOM from "react-dom"
 import { observer } from "mobx-react"
 import "d3-transition"
-import { SourcesTab, SourcesTabManager } from "../sourcesTab/SourcesTab"
+import { SourcesModal, SourcesModalManager } from "../modal/SourcesModal"
 import { DataTableManager } from "../dataTable/DataTable"
 import { MapChartManager } from "../mapCharts/MapChartConstants"
 import { MapChart } from "../mapCharts/MapChart"
 import { DiscreteBarChartManager } from "../barCharts/DiscreteBarChartConstants"
 import { Command, CommandPalette } from "../controls/CommandPalette"
-import {
-    ShareMenuManager,
-    EmbedMenuManager,
-    EmbedMenu,
-} from "../controls/ShareMenu"
+import { ShareMenuManager } from "../controls/ShareMenu"
+import { EmbedModalManager, EmbedModal } from "../modal/EmbedModal"
 import {
     CaptionedChart,
     CaptionedChartManager,
@@ -182,7 +182,6 @@ import { MarimekkoChartManager } from "../stackedCharts/MarimekkoChartConstants"
 import { AxisConfigInterface } from "../axis/AxisConfigInterface"
 import Bugsnag from "@bugsnag/js"
 import { FacetChartManager } from "../facetChart/FacetChartConstants"
-import { Modal } from "../modal/Modal"
 
 declare const window: any
 
@@ -301,12 +300,12 @@ export class Grapher
         ChartManager,
         FontSizeManager,
         CaptionedChartManager,
-        SourcesTabManager,
-        DownloadTabManager,
+        SourcesModalManager,
+        DownloadModalManager,
         DiscreteBarChartManager,
         LegacyDimensionsManager,
         ShareMenuManager,
-        EmbedMenuManager,
+        EmbedModalManager,
         AbsRelToggleManager,
         TooltipManager,
         DataTableManager,
@@ -314,7 +313,8 @@ export class Grapher
         MarimekkoChartManager,
         FacetStrategyDropdownManager,
         FacetChartManager,
-        MapChartManager
+        MapChartManager,
+        EntitySelectorModalManager
 {
     @observable.ref $schema = DEFAULT_GRAPHER_CONFIG_SCHEMA
     @observable.ref type = ChartTypeName.LineChart
@@ -1177,7 +1177,7 @@ export class Grapher
     }
 
     // Used for static exports. Defined at this level because they need to
-    // be accessed by CaptionedChart and DownloadTab
+    // be accessed by CaptionedChart and DownloadModal
     @computed get detailRenderers(): MarkdownTextWrap[] {
         return [...this.detailsOrderedByReference].map((term, i) => {
             let text = `**${i + 1}.** `
@@ -2269,59 +2269,6 @@ export class Grapher
         this.annotation = annotation
     }
 
-    private maybeRenderModal(): JSX.Element | null {
-        const {
-            isSelectingData,
-            isSourcesModalOpen,
-            isDownloadModalOpen,
-            isEmbedModalOpen,
-            canChangeEntity,
-            selection,
-        } = this
-
-        if (isSelectingData)
-            return (
-                <Modal onDismiss={action(() => (this.isSelectingData = false))}>
-                    <EntitySelector
-                        isMulti={!canChangeEntity}
-                        selectionArray={selection}
-                    />
-                </Modal>
-            )
-
-        if (isSourcesModalOpen)
-            return (
-                <Modal
-                    title="Sources"
-                    onDismiss={action(() => (this.isSourcesModalOpen = false))}
-                >
-                    <SourcesTab manager={this} />
-                </Modal>
-            )
-
-        if (isDownloadModalOpen)
-            return (
-                <Modal
-                    title="Download"
-                    onDismiss={action(() => (this.isDownloadModalOpen = false))}
-                >
-                    <DownloadTab bounds={this.tabBounds} manager={this} />
-                </Modal>
-            )
-
-        if (isEmbedModalOpen)
-            return (
-                <Modal
-                    title="Embed"
-                    onDismiss={action(() => (this.isEmbedModalOpen = false))}
-                >
-                    <EmbedMenu manager={this} />
-                </Modal>
-            )
-
-        return null
-    }
-
     private renderGrapher(): JSX.Element {
         const containerClasses = classNames(
             "GrapherComponent",
@@ -2374,7 +2321,10 @@ export class Grapher
                     containerHeight={this.renderHeight}
                     tooltipProvider={this}
                 />
-                {this.maybeRenderModal()}
+                {this.isSourcesModalOpen && <SourcesModal manager={this} />}
+                {this.isDownloadModalOpen && <DownloadModal manager={this} />}
+                {this.isEmbedModalOpen && <EmbedModal manager={this} />}
+                {this.isSelectingData && <EntitySelectorModal manager={this} />}
             </>
         )
     }
