@@ -23,7 +23,6 @@ export interface ActionButtonsManager extends ShareMenuManager {
     isInFullScreenMode?: boolean
     isDownloadModalOpen?: boolean
     sizeVariant?: SizeVariant
-    hasDownloadTab?: boolean
 }
 
 // keep in sync with sass variables in ActionButtons.scss
@@ -202,7 +201,7 @@ export class ActionButtons extends React.Component<{
     }
 
     @computed private get hasDownloadButton(): boolean {
-        return !!this.manager.hasDownloadTab
+        return true
     }
 
     @computed private get hasShareButton(): boolean {
