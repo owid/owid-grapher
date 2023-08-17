@@ -1,37 +1,27 @@
-import {
-    Bounds,
-    DEFAULT_BOUNDS,
-    MarkdownTextWrap,
-    OwidOrigin,
-    linkify,
-} from "@ourworldindata/utils"
+import { MarkdownTextWrap, OwidOrigin, linkify } from "@ourworldindata/utils"
 import React from "react"
-import { computed } from "mobx"
+import { action, computed } from "mobx"
 import { observer } from "mobx-react"
-import { faPencilAlt, faTimes } from "@fortawesome/free-solid-svg-icons"
+import { faPencilAlt } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { CoreColumn, OwidColumnDef } from "@ourworldindata/core-table"
+import { Modal } from "./Modal"
 
 const formatText = (s: string): string =>
     linkify(s).replace(/(?:\r\n|\r|\n)/g, "<br/>")
 
-export interface SourcesTabManager {
+export interface SourcesModalManager {
     adminBaseUrl?: string
     columnsWithSources: CoreColumn[]
     showAdminControls?: boolean
+    isSourcesModalOpen?: boolean
 }
 
 @observer
-export class SourcesTab extends React.Component<{
-    bounds?: Bounds
-    manager: SourcesTabManager
-    onDismiss: () => void
+export class SourcesModal extends React.Component<{
+    manager: SourcesModalManager
 }> {
-    @computed private get bounds(): Bounds {
-        return this.props.bounds ?? DEFAULT_BOUNDS
-    }
-
-    @computed private get manager(): SourcesTabManager {
+    @computed private get manager(): SourcesModalManager {
         return this.props.manager
     }
 
@@ -208,22 +198,18 @@ export class SourcesTab extends React.Component<{
     }
 
     render(): JSX.Element {
-        const { bounds } = this
         const cols = this.manager.columnsWithSources
-
         return (
-            <div
-                className="sourcesTab"
-                style={{ ...bounds.toCSS(), position: "absolute" }}
+            <Modal
+                title="Sources"
+                onDismiss={action(
+                    () => (this.manager.isSourcesModalOpen = false)
+                )}
             >
-                <div>
-                    <h2>Sources</h2>
-                    <div>{cols.map((col) => this.renderSource(col))}</div>
+                <div className="SourcesModalContent">
+                    {cols.map((col) => this.renderSource(col))}
                 </div>
-                <button className="dismiss" onClick={this.props.onDismiss}>
-                    <FontAwesomeIcon icon={faTimes} />
-                </button>
-            </div>
+            </Modal>
         )
     }
 }

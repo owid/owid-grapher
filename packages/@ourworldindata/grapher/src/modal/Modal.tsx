@@ -1,6 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { action } from "mobx"
+import { action, computed } from "mobx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faTimes } from "@fortawesome/free-solid-svg-icons"
 
@@ -9,9 +9,14 @@ export const ModalContext = React.createContext<{ onDismiss?: () => void }>({})
 @observer
 export class Modal extends React.Component<{
     onDismiss: () => void
+    title?: string
     children?: React.ReactNode
 }> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
+
+    @computed private get title(): string | undefined {
+        return this.props.title
+    }
 
     @action.bound onDocumentClick(e: MouseEvent): void {
         // check if the click was outside of the modal
@@ -40,6 +45,7 @@ export class Modal extends React.Component<{
         return (
             <div className="modalOverlay" onKeyDown={this.onOverlayKeyDown}>
                 <div className="modalContent" ref={this.base}>
+                    {this.title && <h2 className="modalTitle">{this.title}</h2>}
                     <button
                         className="modalDismiss"
                         onClick={this.props.onDismiss}

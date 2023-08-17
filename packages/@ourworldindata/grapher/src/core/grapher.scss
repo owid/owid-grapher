@@ -64,18 +64,19 @@ $zindex-full-screen: 2000;
     @import "../controls/CommandPalette.scss";
     @import "../controls/ScaleSelector.scss";
     @import "../controls/Controls.scss";
-    @import "../controls/ShareMenu.scss";
     @import "../noDataModal/NoDataModal.scss";
     @import "../controls/CollapsibleList/CollapsibleList.scss";
     @import "../captionedChart/CaptionedChart.scss";
     @import "../timeline/TimelineComponent.scss";
-    @import "../controls/EntitySelector.scss";
+    @import "../modal/EntitySelectorModal.scss";
     @import "../controls/AddEntityButton.scss";
     @import "../controls/ContentSwitchers.scss";
     @import "../controls/ActionButtons.scss";
-    @import "../downloadTab/DownloadTab.scss";
+    @import "../controls/ShareMenu.scss";
+    @import "../modal/EmbedModal.scss";
+    @import "../modal/DownloadModal.scss";
     @import "../dataTable/DataTable.scss";
-    @import "../sourcesTab/SourcesTab.scss";
+    @import "../modal/SourcesModal.scss";
     @import "../tooltip/Tooltip.scss";
     @import "../mapCharts/MapTooltip.scss";
     @import "../loadingIndicator/LoadingIndicator.scss";
@@ -184,9 +185,9 @@ $zindex-full-screen: 2000;
         display: none;
     }
 
-    .DownloadTab,
+    .DownloadModalContent,
     .tableTab,
-    .sourcesTab {
+    .SourcesModalContent {
         z-index: $zindex-tab;
     }
 }

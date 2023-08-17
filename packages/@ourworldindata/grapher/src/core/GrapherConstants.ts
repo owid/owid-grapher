@@ -89,11 +89,6 @@ export enum GrapherTabOption {
     table = "table",
 }
 
-export enum GrapherTabOverlayOption {
-    sources = "sources",
-    download = "download",
-}
-
 export enum ScaleType {
     linear = "linear",
     log = "log",

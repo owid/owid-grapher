@@ -6,7 +6,7 @@ import { faTwitter, faFacebook } from "@fortawesome/free-brands-svg-icons"
 import {
     faCode,
     faShareAlt,
-    faCopy,
+    faLink,
     faEdit,
 } from "@fortawesome/free-solid-svg-icons"
 import { canWriteToClipboard } from "@ourworldindata/utils"
@@ -15,11 +15,8 @@ export interface ShareMenuManager {
     slug?: string
     currentTitle?: string
     canonicalUrl?: string
-    embedUrl?: string
-    embedDialogAdditionalElements?: React.ReactElement
     editUrl?: string
-    addPopup: (popup: any) => void
-    removePopup: (popup: any) => void
+    isEmbedModalOpen?: boolean
 }
 
 interface ShareMenuProps {
@@ -82,11 +79,9 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
     }
 
     @action.bound onEmbed(): void {
-        if (!this.canonicalUrl) return
-
-        this.manager.addPopup(
-            <EmbedMenu key="EmbedMenu" manager={this.manager} />
-        )
+        const { canonicalUrl, manager } = this
+        if (!canonicalUrl) return
+        manager.isEmbedModalOpen = true
         this.dismiss()
     }
 
@@ -167,7 +162,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                     <FontAwesomeIcon icon={faFacebook} /> Facebook
                 </a>
                 <a
-                    className="btn"
+                    className="btn btn-embed"
                     title="Embed this visualization in another HTML document"
                     data-track-note="chart_share_embed"
                     onClick={this.onEmbed}
@@ -191,7 +186,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                         data-track-note="chart_share_copylink"
                         onClick={this.onCopyUrl}
                     >
-                        <FontAwesomeIcon icon={faCopy} />
+                        <FontAwesomeIcon icon={faLink} />
                         {this.state.copied ? "Copied!" : "Copy link"}
                     </a>
                 )}
@@ -206,50 +201,6 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                         <FontAwesomeIcon icon={faEdit} /> Edit
                     </a>
                 )}
-            </div>
-        )
-    }
-}
-
-@observer
-class EmbedMenu extends React.Component<{
-    manager: ShareMenuManager
-}> {
-    dismissable = true
-
-    @action.bound onClickSomewhere(): void {
-        if (this.dismissable) this.manager.removePopup(EmbedMenu)
-        else this.dismissable = true
-    }
-
-    @computed get manager(): ShareMenuManager {
-        return this.props.manager
-    }
-
-    @action.bound onClick(): void {
-        this.dismissable = false
-    }
-
-    componentDidMount(): void {
-        document.addEventListener("click", this.onClickSomewhere)
-    }
-
-    componentWillUnmount(): void {
-        document.removeEventListener("click", this.onClickSomewhere)
-    }
-
-    render(): JSX.Element {
-        const url = this.manager.embedUrl ?? this.manager.canonicalUrl
-        return (
-            <div className="embedMenu" onClick={this.onClick}>
-                <h2>Embed</h2>
-                <p>Paste this into any HTML page:</p>
-                <textarea
-                    readOnly={true}
-                    onFocus={(evt): void => evt.currentTarget.select()}
-                    value={`<iframe src="${url}" loading="lazy" style="width: 100%; height: 600px; border: 0px none;"></iframe>`}
-                />
-                {this.manager.embedDialogAdditionalElements}
             </div>
         )
     }

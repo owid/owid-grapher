@@ -11,11 +11,7 @@ import {
     MarkdownTextWrap,
 } from "@ourworldindata/utils"
 import { Tooltip } from "../tooltip/Tooltip"
-import {
-    BASE_FONT_SIZE,
-    GrapherTabOverlayOption,
-    SizeVariant,
-} from "../core/GrapherConstants"
+import { BASE_FONT_SIZE, SizeVariant } from "../core/GrapherConstants"
 import { FooterManager } from "./FooterManager"
 import { ActionButtons } from "../controls/ActionButtons"
 
@@ -343,10 +339,9 @@ export class Footer<
                 <b>Data source:</b> {this.manager.sourcesLine} -{" "}
                 <a
                     data-track-note="chart_click_sources"
-                    onClick={(): void => {
-                        this.manager.currentTab =
-                            GrapherTabOverlayOption.sources
-                    }}
+                    onClick={action(
+                        () => (this.manager.isSourcesModalOpen = true)
+                    )}
                 >
                     Learn more about this data
                 </a>

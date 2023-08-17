@@ -7,10 +7,7 @@ import {
     faEarthAmericas,
     faChartLine,
 } from "@fortawesome/free-solid-svg-icons"
-import {
-    GrapherTabOption,
-    GrapherTabOverlayOption,
-} from "../core/GrapherConstants"
+import { GrapherTabOption } from "../core/GrapherConstants"
 
 const icons = {
     [GrapherTabOption.table]: faTable,
@@ -20,7 +17,7 @@ const icons = {
 
 export interface ContentSwitchersManager {
     availableTabs?: GrapherTabOption[]
-    currentTab?: GrapherTabOption | GrapherTabOverlayOption
+    tab?: GrapherTabOption
 }
 
 @observer
@@ -44,12 +41,12 @@ export class ContentSwitchers extends React.Component<{
                         key={tabName}
                         className={
                             "tab clickable" +
-                            (tabName === manager.currentTab ? " active" : "")
+                            (tabName === manager.tab ? " active" : "")
                         }
                     >
                         <a
                             onClick={(): void => {
-                                manager.currentTab = tabName
+                                manager.tab = tabName
                             }}
                             data-track-note={"chart_click_" + tabName}
                         >

@@ -2,41 +2,29 @@
     padding: 0;
 }
 
-.sourcesTab,
-.DownloadTab {
-    padding: 1rem;
-    text-align: left;
-    background: rgba(255, 255, 255, 0.95);
-
-    .dismiss {
-        height: 30px;
-        width: 30px;
-        padding: 0;
-        position: absolute;
-        top: 15px;
-        right: 15px;
-    }
-}
-
-.sourcesTab > div {
-    height: 100%;
+.SourcesModalContent {
+    height: calc(100% - 12px);
     overflow-y: auto;
 }
 
 .datasource-wrapper {
     font-size: 0.8em;
     max-width: 1024px;
+    color: $light-text;
 }
 
-.datasource-wrapper h2 {
-    width: 70%;
-    padding-bottom: 0.3em;
-    text-transform: uppercase;
-    font-size: 0.9em;
-    font-family: inherit;
-    border-bottom: 1px solid #35322f;
-    margin-bottom: 0;
+.datasource-wrapper + .datasource-wrapper {
+    margin-top: 24px;
 }
+
+.datasource-wrapper > h2 {
+    color: $dark-text;
+    font-family: $serif-font-stack !important;
+    font-size: 1.4em;
+    font-weight: 600;
+    margin-bottom: 0.4em;
+}
+
 .datasource-wrapper h2,
 .datasource-wrapper h3,
 .datasource-wrapper h4 {
@@ -57,18 +45,28 @@
 }
 
 .datasource-wrapper table {
+    width: 100%;
     border-spacing: 0;
 }
 
 .datasource-wrapper td {
-    padding: 8px;
+    padding: 16px 0;
     line-height: 1.42857143;
     vertical-align: top;
     border-top: 1px solid #ddd;
 }
 
+.datasource-wrapper td:first-child {
+    padding-right: 16px;
+}
+
 .datasource-wrapper tr:first-child td {
     border: 0;
+}
+
+.datasource-wrapper a {
+    text-decoration: underline;
+    color: inherit;
 }
 
 .datasource-property {

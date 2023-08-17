@@ -2,11 +2,17 @@ import React from "react"
 import { observer } from "mobx-react"
 import { computed, action, observable } from "mobx"
 import { isTouchDevice, sortBy } from "@ourworldindata/utils"
-import { FuzzySearch } from "./FuzzySearch"
+import { FuzzySearch } from "../controls/FuzzySearch"
 import { faTimes } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { SelectionArray } from "../selection/SelectionArray"
-import { ModalContext } from "../modal/Modal"
+import { Modal, ModalContext } from "./Modal"
+
+export interface EntitySelectorModalManager {
+    selection: SelectionArray
+    canChangeEntity: boolean
+    isSelectingData?: boolean
+}
 
 interface SearchableEntity {
     name: string
@@ -50,21 +56,28 @@ class EntitySearchResult extends React.PureComponent<SearchResultProps> {
 }
 
 @observer
-export class EntitySelector extends React.Component<{
-    selectionArray: SelectionArray
-    isMulti: boolean
+export class EntitySelectorModal extends React.Component<{
+    manager: EntitySelectorModalManager
 }> {
     static contextType = ModalContext
 
     @observable searchInput: string = ""
     searchField!: HTMLInputElement
 
+    @computed private get manager(): EntitySelectorModalManager {
+        return this.props.manager
+    }
+
+    @computed private get selectionArray(): SelectionArray {
+        return this.manager.selection
+    }
+
     @computed get sortedAvailableEntities(): string[] {
-        return sortBy(this.props.selectionArray.availableEntityNames)
+        return sortBy(this.selectionArray.availableEntityNames)
     }
 
     @computed get isMulti(): boolean {
-        return this.props.isMulti
+        return !this.manager.canChangeEntity
     }
 
     @computed get fuzzy(): FuzzySearch<SearchableEntity> {
@@ -85,9 +98,9 @@ export class EntitySelector extends React.Component<{
 
     @action.bound onSelect(entityName: string): void {
         if (this.isMulti) {
-            this.props.selectionArray.toggleSelection(entityName)
+            this.selectionArray.toggleSelection(entityName)
         } else {
-            this.props.selectionArray.setSelectedEntities([entityName])
+            this.selectionArray.setSelectedEntities([entityName])
             this.context.onDismiss()
         }
     }
@@ -104,12 +117,11 @@ export class EntitySelector extends React.Component<{
     }
 
     @action.bound onClear(): void {
-        this.props.selectionArray.clearSelection()
+        this.selectionArray.clearSelection()
     }
 
     renderSelectedData(): React.ReactNode {
-        const selectedEntityNames =
-            this.props.selectionArray.selectedEntityNames
+        const selectedEntityNames = this.selectionArray.selectedEntityNames
 
         // only render something in isMulti mode
         if (this.isMulti) {
@@ -150,51 +162,54 @@ export class EntitySelector extends React.Component<{
     }
 
     render(): JSX.Element {
-        const { selectionArray } = this.props
-        const { searchResults, searchInput } = this
+        const { selectionArray, searchResults, searchInput } = this
 
         return (
-            <div
-                className={
-                    this.isMulti
-                        ? "EntitySelectorMulti"
-                        : "EntitySelectorSingle"
-                }
+            <Modal
+                onDismiss={action(() => (this.manager.isSelectingData = false))}
             >
-                <header className="wrapper">
-                    <h2>Choose data to show</h2>
-                </header>
-                <div className="entities wrapper">
-                    <div className="searchResults">
-                        <input
-                            type="search"
-                            placeholder="Search..."
-                            value={searchInput}
-                            onChange={(e): void => {
-                                this.searchInput = e.currentTarget.value
-                            }}
-                            onKeyDown={this.onSearchKeyDown}
-                            ref={(e): HTMLInputElement =>
-                                (this.searchField = e as HTMLInputElement)
-                            }
-                        />
-                        <ul>
-                            {searchResults.map((result) => (
-                                <EntitySearchResult
-                                    key={result.name}
-                                    result={result}
-                                    isMulti={this.isMulti}
-                                    isChecked={selectionArray.selectedSet.has(
-                                        result.name
-                                    )}
-                                    onSelect={this.onSelect}
-                                />
-                            ))}
-                        </ul>
+                <div
+                    className={
+                        this.isMulti
+                            ? "EntitySelectorMulti"
+                            : "EntitySelectorSingle"
+                    }
+                >
+                    <header className="wrapper">
+                        <h2>Choose data to show</h2>
+                    </header>
+                    <div className="entities wrapper">
+                        <div className="searchResults">
+                            <input
+                                type="search"
+                                placeholder="Search..."
+                                value={searchInput}
+                                onChange={(e): void => {
+                                    this.searchInput = e.currentTarget.value
+                                }}
+                                onKeyDown={this.onSearchKeyDown}
+                                ref={(e): HTMLInputElement =>
+                                    (this.searchField = e as HTMLInputElement)
+                                }
+                            />
+                            <ul>
+                                {searchResults.map((result) => (
+                                    <EntitySearchResult
+                                        key={result.name}
+                                        result={result}
+                                        isMulti={this.isMulti}
+                                        isChecked={selectionArray.selectedSet.has(
+                                            result.name
+                                        )}
+                                        onSelect={this.onSelect}
+                                    />
+                                ))}
+                            </ul>
+                        </div>
+                        {this.renderSelectedData()}
                     </div>
-                    {this.renderSelectedData()}
                 </div>
-            </div>
+            </Modal>
         )
     }
 }

@@ -13,4 +13,5 @@ export interface FooterManager extends TooltipManager, ActionButtonsManager {
     detailsOrderedByReference?: Set<string>
     shouldIncludeDetailsInStaticExport?: boolean
     sizeVariant?: SizeVariant
+    isSourcesModalOpen?: boolean
 }

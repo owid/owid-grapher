@@ -12,11 +12,7 @@ import {
 } from "@ourworldindata/utils"
 import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import {
-    faDownload,
-    faInfoCircle,
-    faTimes,
-} from "@fortawesome/free-solid-svg-icons"
+import { faDownload, faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 import {
     BlankOwidTable,
     OwidTable,
@@ -24,8 +20,9 @@ import {
     CoreColumn,
 } from "@ourworldindata/core-table"
 import { STATIC_EXPORT_DETAIL_SPACING } from "../core/GrapherConstants"
+import { Modal } from "./Modal"
 
-export interface DownloadTabManager {
+export interface DownloadModalManager {
     idealBounds?: Bounds
     staticSVG: string
     displaySlug: string
@@ -35,12 +32,12 @@ export interface DownloadTabManager {
     externalCsvLink?: string // Todo: we can ditch this once rootTable === externalCsv (currently not quite the case for Covid Explorer)
     shouldIncludeDetailsInStaticExport?: boolean
     detailRenderers: MarkdownTextWrap[]
+    isDownloadModalOpen?: boolean
+    tabBounds?: Bounds
 }
 
-interface DownloadTabProps {
-    bounds?: Bounds
-    manager: DownloadTabManager
-    onDismiss: () => void
+interface DownloadModalProps {
+    manager: DownloadModalManager
 }
 
 const polyfillToBlob = (): void => {
@@ -69,13 +66,13 @@ const polyfillToBlob = (): void => {
 }
 
 @observer
-export class DownloadTab extends React.Component<DownloadTabProps> {
+export class DownloadModal extends React.Component<DownloadModalProps> {
     @computed private get idealBounds(): Bounds {
         return this.manager.idealBounds ?? DEFAULT_BOUNDS
     }
 
     @computed private get bounds(): Bounds {
-        return this.props.bounds ?? DEFAULT_BOUNDS
+        return this.manager.tabBounds ?? DEFAULT_BOUNDS
     }
 
     @computed private get targetWidth(): number {
@@ -94,7 +91,7 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
         return this.idealBounds.height
     }
 
-    @computed private get manager(): DownloadTabManager {
+    @computed private get manager(): DownloadModalManager {
         return this.props.manager
     }
 
@@ -258,7 +255,7 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
         return (
             <div className="grouped-menu">
                 <div className="grouped-menu-section">
-                    <h2>Chart</h2>
+                    <h2>Visualization</h2>
                     <div className="grouped-menu-list">
                         <button
                             className="grouped-menu-item"
@@ -269,9 +266,7 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
                                 <img src={pngPreviewUrl} style={imgStyle} />
                             </div>
                             <div className="grouped-menu-content">
-                                <h3 className="title">
-                                    Image <span className="faint">(PNG)</span>
-                                </h3>
+                                <h3 className="title">Image (PNG)</h3>
                                 <p className="description">
                                     Suitable for most uses, widely compatible.
                                 </p>
@@ -291,10 +286,7 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
                                 <img src={svgPreviewUrl} style={imgStyle} />
                             </div>
                             <div className="grouped-menu-content">
-                                <h3 className="title">
-                                    Vector graphic{" "}
-                                    <span className="faint">(SVG)</span>
-                                </h3>
+                                <h3 className="title">Vector graphic (SVG)</h3>
                                 <p className="description">
                                     For high quality prints, or further editing
                                     the chart in graphics software.
@@ -332,8 +324,7 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
                         </div>
                     )}
                 </div>
-
-                <div className="grouped-menu-section">
+                <div className="grouped-menu-section grouped-menu-section-data">
                     <h2>Data</h2>
                     {this.nonRedistributable ? (
                         <div className="grouped-menu-callout danger">
@@ -392,9 +383,6 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
                         </div>
                     )}
                 </div>
-                <button className="dismiss" onClick={this.props.onDismiss}>
-                    <FontAwesomeIcon icon={faTimes} />
-                </button>
             </div>
         )
     }
@@ -405,16 +393,20 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
 
     render(): JSX.Element {
         return (
-            <div
-                className="DownloadTab"
-                style={{ ...this.bounds.toCSS(), position: "absolute" }}
-            >
-                {this.isReady ? (
-                    this.renderReady()
-                ) : (
-                    <LoadingIndicator color="#000" />
+            <Modal
+                title="Download"
+                onDismiss={action(
+                    () => (this.manager.isDownloadModalOpen = false)
                 )}
-            </div>
+            >
+                <div className="DownloadModalContent">
+                    {this.isReady ? (
+                        this.renderReady()
+                    ) : (
+                        <LoadingIndicator color="#000" />
+                    )}
+                </div>
+            </Modal>
         )
     }
 }

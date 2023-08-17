@@ -63,7 +63,6 @@ import {
     firstOfNonEmptyArray,
     spansToUnformattedPlainText,
     EnrichedDetail,
-    includesWithTypeGuard,
     isEmpty,
     dayjs,
     compact,
@@ -88,7 +87,6 @@ import {
     DEFAULT_GRAPHER_WIDTH,
     DEFAULT_GRAPHER_HEIGHT,
     SeriesStrategy,
-    GrapherTabOverlayOption,
     getVariableDataRoute,
     getVariableMetadataRoute,
     SizeVariant,
@@ -137,18 +135,22 @@ import {
     FacetStrategyDropdownManager,
 } from "../controls/Controls"
 import { TooltipContainer } from "../tooltip/Tooltip"
-import { EntitySelector } from "../controls/EntitySelector"
-import { DownloadTab, DownloadTabManager } from "../downloadTab/DownloadTab"
+import {
+    EntitySelectorModal,
+    EntitySelectorModalManager,
+} from "../modal/EntitySelectorModal"
+import { DownloadModal, DownloadModalManager } from "../modal/DownloadModal"
 import ReactDOM from "react-dom"
 import { observer } from "mobx-react"
 import "d3-transition"
-import { SourcesTab, SourcesTabManager } from "../sourcesTab/SourcesTab"
+import { SourcesModal, SourcesModalManager } from "../modal/SourcesModal"
 import { DataTableManager } from "../dataTable/DataTable"
 import { MapChartManager } from "../mapCharts/MapChartConstants"
 import { MapChart } from "../mapCharts/MapChart"
 import { DiscreteBarChartManager } from "../barCharts/DiscreteBarChartConstants"
 import { Command, CommandPalette } from "../controls/CommandPalette"
 import { ShareMenuManager } from "../controls/ShareMenu"
+import { EmbedModalManager, EmbedModal } from "../modal/EmbedModal"
 import {
     CaptionedChart,
     CaptionedChartManager,
@@ -180,7 +182,6 @@ import { MarimekkoChartManager } from "../stackedCharts/MarimekkoChartConstants"
 import { AxisConfigInterface } from "../axis/AxisConfigInterface"
 import Bugsnag from "@bugsnag/js"
 import { FacetChartManager } from "../facetChart/FacetChartConstants"
-import { Modal } from "../modal/Modal"
 
 declare const window: any
 
@@ -269,8 +270,6 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     hideYScaleToggle?: boolean
     forceHideAnnotationFieldsInTitle?: AnnotationFieldsInTitle
     hasTableTab?: boolean
-    hasSourcesTab?: boolean
-    hasDownloadTab?: boolean
     hideShareTabButton?: boolean
     hideExploreTheDataButton?: boolean
     hideRelatedQuestion?: boolean
@@ -301,11 +300,12 @@ export class Grapher
         ChartManager,
         FontSizeManager,
         CaptionedChartManager,
-        SourcesTabManager,
-        DownloadTabManager,
+        SourcesModalManager,
+        DownloadModalManager,
         DiscreteBarChartManager,
         LegacyDimensionsManager,
         ShareMenuManager,
+        EmbedModalManager,
         AbsRelToggleManager,
         TooltipManager,
         DataTableManager,
@@ -313,7 +313,8 @@ export class Grapher
         MarimekkoChartManager,
         FacetStrategyDropdownManager,
         FacetChartManager,
-        MapChartManager
+        MapChartManager,
+        EntitySelectorModalManager
 {
     @observable.ref $schema = DEFAULT_GRAPHER_CONFIG_SCHEMA
     @observable.ref type = ChartTypeName.LineChart
@@ -347,7 +348,6 @@ export class Grapher
     @observable.ref hasChartTab = true
     @observable.ref hasMapTab = false
     @observable.ref tab = GrapherTabOption.chart
-    @observable.ref overlay?: GrapherTabOverlayOption = undefined
     @observable.ref internalNotes = ""
     @observable.ref variantName?: string = undefined
     @observable.ref originUrl = ""
@@ -541,21 +541,23 @@ export class Grapher
         // Set tab if specified
         const tab = params.tab
         if (tab) {
-            if (!includesWithTypeGuard(this.availableTabs, tab))
+            if (this.availableTabs.includes(tab as any)) {
+                this.tab = tab as GrapherTabOption
+            } else {
                 console.error("Unexpected tab: " + tab)
-            else this.tab = tab
+            }
         }
 
+        // Set overlay if specified
         const overlay = params.overlay
         if (overlay) {
-            console.error("Unexpected overlay: " + overlay)
-            if (
-                !includesWithTypeGuard(this.availableTabOverlays, overlay) ||
-                // for backwards compatibility, we allow overlay to be a tab option
-                !includesWithTypeGuard(this.availableTabs, overlay)
-            )
+            if (overlay === "sources") {
+                this.isSourcesModalOpen = true
+            } else if (overlay === "download") {
+                this.isDownloadModalOpen = true
+            } else {
                 console.error("Unexpected overlay: " + overlay)
-            else this.overlay = overlay
+            }
         }
 
         // Stack mode for bar and stacked area charts
@@ -744,6 +746,10 @@ export class Grapher
     tooltips?: TooltipManager["tooltips"] = observable.map({}, { deep: false })
     @observable isPlaying = false
     @observable.ref isSelectingData = false
+
+    @observable.ref isSourcesModalOpen = false
+    @observable.ref _isDownloadModalOpen = false
+    @observable.ref isEmbedModalOpen = false
 
     private get isStaging(): boolean {
         if (typeof location === undefined) return false
@@ -1085,32 +1091,17 @@ export class Grapher
         return url
     }
 
-    @computed get overlayTab(): GrapherTabOverlayOption | undefined {
-        return this.overlay
+    @computed get isDownloadModalOpen(): boolean {
+        return this._isDownloadModalOpen
     }
 
-    @computed get currentTab(): GrapherTabOption | GrapherTabOverlayOption {
-        return this.overlay ? this.overlay : this.tab
-    }
-
-    set currentTab(desiredTab: GrapherTabOption | GrapherTabOverlayOption) {
-        if (
-            desiredTab === GrapherTabOption.chart ||
-            desiredTab === GrapherTabOption.map ||
-            desiredTab === GrapherTabOption.table
-        ) {
-            this.tab = desiredTab
-            this.overlay = undefined
-            return
-        }
-
+    // todo(redesign): maybe it would be better to not offer a visualization download for tables?
+    set isDownloadModalOpen(shouldDownloadModalBeOpen: boolean) {
         // table tab cannot be downloaded, so revert to default tab
-        if (
-            desiredTab === GrapherTabOverlayOption.download &&
-            this.isOnTableTab
-        )
+        if (shouldDownloadModalBeOpen && this.isOnTableTab) {
             this.tab = this.authorsVersion.tab ?? GrapherTabOption.chart
-        this.overlay = desiredTab
+        }
+        this._isDownloadModalOpen = shouldDownloadModalBeOpen
     }
 
     @computed get timelineHandleTimeBounds(): TimeBounds {
@@ -1199,7 +1190,7 @@ export class Grapher
     }
 
     // Used for static exports. Defined at this level because they need to
-    // be accessed by CaptionedChart and DownloadTab
+    // be accessed by CaptionedChart and DownloadModal
     @computed get detailRenderers(): MarkdownTextWrap[] {
         return [...this.detailsOrderedByReference].map((term, i) => {
             let text = `**${i + 1}.** `
@@ -1231,13 +1222,6 @@ export class Grapher
             this.hasMapTab && GrapherTabOption.map,
             this.hasChartTab && GrapherTabOption.chart,
         ].filter(identity) as GrapherTabOption[]
-    }
-
-    @computed get availableTabOverlays(): GrapherTabOverlayOption[] {
-        return [
-            this.hasSourcesTab && GrapherTabOverlayOption.sources,
-            this.hasDownloadTab && GrapherTabOverlayOption.download,
-        ].filter(identity) as GrapherTabOverlayOption[]
     }
 
     @computed get currentTitle(): string {
@@ -1292,10 +1276,6 @@ export class Grapher
 
     /**
      * Uses some explicit and implicit information to decide whether a timeline is shown.
-     * Note the difference between `hasTimeline` and `showTimeline`:
-     * - `hasTimeline` indicates whether the current _normal_ (non-overlay) tab has a timeline.
-     * - `showTimeline` takes into account whether we are on an overlay tab, and thus indicates
-     *    whether we should currently show the timeline.
      */
     @computed get hasTimeline(): boolean {
         // we don't have more than one distinct time point in our data, so it doesn't make sense to show a timeline
@@ -1314,11 +1294,6 @@ export class Grapher
             default:
                 return false
         }
-    }
-
-    @computed get showTimeline(): boolean {
-        // don't show the timeline when on an overlay tab
-        return this.hasTimeline && this.overlay === undefined
     }
 
     @computed private get areHandlesOnSameTime(): boolean {
@@ -1905,8 +1880,6 @@ export class Grapher
         return SizeVariant.lg
     }
 
-    @observable.ref private popups: JSX.Element[] = []
-
     base: React.RefObject<HTMLDivElement> = React.createRef()
 
     @computed get containerElement(): HTMLDivElement | undefined {
@@ -1924,40 +1897,8 @@ export class Grapher
         this.uncaughtError = undefined
     }
 
-    // todo: clean up this popup stuff
-    addPopup(vnode: JSX.Element): void {
-        this.popups = this.popups.concat([vnode])
-    }
-
-    removePopup(vnodeType: JSX.Element): void {
-        this.popups = this.popups.filter((d) => !(d.type === vnodeType))
-    }
-
     private renderPrimaryTab(): JSX.Element {
         return <CaptionedChart manager={this} />
-    }
-
-    private renderOverlayTab(): JSX.Element | undefined {
-        const bounds = this.tabBounds
-        if (this.overlayTab === GrapherTabOverlayOption.sources)
-            return (
-                <SourcesTab
-                    key="sourcesTab"
-                    bounds={bounds}
-                    manager={this}
-                    onDismiss={action(() => (this.currentTab = this.tab))}
-                />
-            )
-        if (this.overlayTab === GrapherTabOverlayOption.download)
-            return (
-                <DownloadTab
-                    key="downloadTab"
-                    bounds={bounds}
-                    manager={this}
-                    onDismiss={action(() => (this.currentTab = this.tab))}
-                />
-            )
-        return undefined
     }
 
     private get commandPalette(): JSX.Element | null {
@@ -1971,7 +1912,7 @@ export class Grapher
     }
 
     @action.bound private toggleTabCommand(): void {
-        this.currentTab = next(this.availableTabs, this.currentTab)
+        this.tab = next(this.availableTabs, this.tab)
     }
 
     @action.bound private togglePlayingCommand(): void {
@@ -2384,23 +2325,15 @@ export class Grapher
         return (
             <>
                 {this.hasBeenVisible && this.renderPrimaryTab()}
-                {this.renderOverlayTab()}
-                {this.popups}
                 <TooltipContainer
                     containerWidth={this.renderWidth}
                     containerHeight={this.renderHeight}
                     tooltipProvider={this}
                 />
-                {this.isSelectingData && (
-                    <Modal
-                        onDismiss={action(() => (this.isSelectingData = false))}
-                    >
-                        <EntitySelector
-                            isMulti={!this.canChangeEntity}
-                            selectionArray={this.selection}
-                        />
-                    </Modal>
-                )}
+                {this.isSourcesModalOpen && <SourcesModal manager={this} />}
+                {this.isDownloadModalOpen && <DownloadModal manager={this} />}
+                {this.isEmbedModalOpen && <EmbedModal manager={this} />}
+                {this.isSelectingData && <EntitySelectorModal manager={this} />}
             </>
         )
     }
@@ -2866,8 +2799,6 @@ export class Grapher
         changeInPrefix: false,
     }
     @observable hasTableTab = true
-    @observable hasSourcesTab = true
-    @observable hasDownloadTab = true
     @observable hideShareTabButton = false
     @observable hideExploreTheDataButton = true
     @observable hideRelatedQuestion = false

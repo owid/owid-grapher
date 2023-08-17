@@ -5,7 +5,6 @@ import {
     DEFAULT_GRAPHER_CONFIG_SCHEMA,
     EntitySelectionMode,
     GrapherTabOption,
-    GrapherTabOverlayOption,
     ScaleType,
 } from "./GrapherConstants"
 import {
@@ -223,19 +222,6 @@ describe("hasTimeline", () => {
         expect(grapher.hasTimeline).toBeTruthy()
         grapher.map.hideTimeline = true
         expect(grapher.hasTimeline).toBeFalsy()
-    })
-
-    it("source and download tabs do not show a timeline", () => {
-        const grapher = new Grapher(legacyConfig)
-        grapher.type = ChartTypeName.LineChart
-
-        grapher.currentTab = GrapherTabOverlayOption.sources
-        expect(grapher.hasTimeline).toBeTruthy()
-        expect(grapher.showTimeline).toBeFalsy()
-
-        grapher.currentTab = GrapherTabOverlayOption.download
-        expect(grapher.hasTimeline).toBeTruthy()
-        expect(grapher.showTimeline).toBeFalsy()
     })
 })
 

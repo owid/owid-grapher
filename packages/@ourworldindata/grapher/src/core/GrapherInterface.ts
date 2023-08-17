@@ -8,7 +8,6 @@ import {
     FacetStrategy,
     MissingDataStrategy,
     AnnotationFieldsInTitle,
-    GrapherTabOverlayOption,
 } from "./GrapherConstants"
 import { AxisConfigInterface } from "../axis/AxisConfigInterface"
 import {
@@ -63,7 +62,6 @@ export interface GrapherInterface extends SortConfig {
     hasChartTab?: boolean
     hasMapTab?: boolean
     tab?: GrapherTabOption
-    overlay?: GrapherTabOverlayOption
     relatedQuestions?: RelatedQuestionsConfig[]
     details?: DetailDictionary
     internalNotes?: string

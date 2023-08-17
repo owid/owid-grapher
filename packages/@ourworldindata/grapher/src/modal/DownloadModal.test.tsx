@@ -1,7 +1,7 @@
 #! /usr/bin/env jest
 
 import { ColumnTypeNames, OwidTable } from "@ourworldindata/core-table"
-import { DownloadTab } from "./DownloadTab"
+import { DownloadModal } from "./DownloadModal"
 
 const getTable = (options: { nonRedistributable: boolean }): OwidTable => {
     return new OwidTable(
@@ -31,28 +31,24 @@ const getTable = (options: { nonRedistributable: boolean }): OwidTable => {
 
 it("correctly passes non-redistributable flag", () => {
     const tableFalse = getTable({ nonRedistributable: false })
-    const viewFalse = new DownloadTab({
+    const viewFalse = new DownloadModal({
         manager: {
             staticSVG: "",
             displaySlug: "",
             table: tableFalse,
             detailRenderers: [],
         },
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
-        onDismiss: (): void => {},
     })
     expect(viewFalse["nonRedistributable"]).toBeFalsy()
 
     const tableTrue = getTable({ nonRedistributable: true })
-    const viewTrue = new DownloadTab({
+    const viewTrue = new DownloadModal({
         manager: {
             staticSVG: "",
             displaySlug: "",
             table: tableTrue,
             detailRenderers: [],
         },
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
-        onDismiss: (): void => {},
     })
     expect(viewTrue["nonRedistributable"]).toBeTruthy()
 })

@@ -297,7 +297,7 @@ export class MapChart
 
         if (!ev.shiftKey) {
             this.selectionArray.setSelectedEntities([entityName])
-            this.manager.currentTab = GrapherTabOption.chart
+            this.manager.tab = GrapherTabOption.chart
             if (
                 this.manager.isLineChartThatTurnedIntoDiscreteBar &&
                 this.manager.hasTimeline

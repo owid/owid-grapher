@@ -1,5 +1,5 @@
 // keep in sync with constant values in ActionButtons.tsx
-$buttonHeight: 32px; // keep in sync with BUTTON_HEIGHT
+$actionButtonHeight: 32px; // keep in sync with BUTTON_HEIGHT
 $paddingBetweenButtons: 8px; // keep in sync with PADDING_BETWEEN_BUTTONS
 $paddingBetweenIconAndLabel: 8px; // keep in sync with PADDING_BETWEEN_ICON_AND_LABEL
 $paddingLeftRight: 12px; // keep in sync with PADDING_LEFT_RIGHT
@@ -11,7 +11,7 @@ $paddingLeftRight: 12px; // keep in sync with PADDING_LEFT_RIGHT
 
     ul {
         list-style: none;
-        height: $buttonHeight;
+        height: $actionButtonHeight;
     }
 
     li {
@@ -31,7 +31,13 @@ $paddingLeftRight: 12px; // keep in sync with PADDING_LEFT_RIGHT
             color: $dark-text;
             font-size: 13px;
             padding: 0 $paddingLeftRight;
+            border-radius: inherit;
         }
+    }
+
+    li.active button {
+        color: $active-text;
+        background-color: $active-fill;
     }
 
     li.icon-only {

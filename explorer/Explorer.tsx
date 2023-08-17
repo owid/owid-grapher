@@ -918,9 +918,10 @@ export class Explorer
         this.embedDialogHideControls = !this.embedDialogHideControls
     }
 
+    // todo(redesign): style input element
     @computed get embedDialogAdditionalElements() {
         return (
-            <div style={{ marginTop: ".5rem" }}>
+            <div style={{ marginTop: "1rem" }}>
                 <label>
                     <input
                         type="checkbox"
