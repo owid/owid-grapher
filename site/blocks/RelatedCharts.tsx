@@ -18,9 +18,6 @@ export const RelatedCharts = ({
     const refChartContainer = useRef<HTMLDivElement>(null)
     const [activeChartIdx, setActiveChartIdx] = useState(0)
 
-    const isFirstSlideActive = activeChartIdx === 0
-    const isLastSlideActive = activeChartIdx === charts.length - 1
-
     const chartsToShow = showKeyChartsOnly
         ? charts.filter((chart) => !!chart.keyChartLevel)
         : charts
@@ -30,6 +27,9 @@ export const RelatedCharts = ({
         (chart) => chart.keyChartLevel,
         "desc"
     )
+
+    const isFirstSlideActive = activeChartIdx === 0
+    const isLastSlideActive = activeChartIdx === sortedCharts.length - 1
     const activeChartSlug = sortedCharts[activeChartIdx]?.slug
 
     const onClickItem = (event: React.MouseEvent, idx: number) => {
@@ -75,7 +75,9 @@ export const RelatedCharts = ({
                             direction={GalleryArrowDirection.prev}
                         ></GalleryArrow>
                         <div className="gallery-pagination">
-                            {`Chart ${activeChartIdx + 1} of ${charts.length}`}
+                            {`Chart ${activeChartIdx + 1} of ${
+                                sortedCharts.length
+                            }`}
                         </div>
                         <GalleryArrow
                             disabled={isLastSlideActive}
