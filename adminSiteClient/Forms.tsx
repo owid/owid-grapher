@@ -850,6 +850,7 @@ export class BindFloat<
     store: T
     label?: string
     helpText?: string
+    disabled?: boolean
 }> {
     @action.bound onValue(value: number | undefined) {
         this.props.store[this.props.field] = value as any

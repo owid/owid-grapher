@@ -32,6 +32,7 @@ import {
     flushCache as siteBakingFlushCache,
     renderPost,
     renderGdoc,
+    makeAtomFeedNoTopicPages,
 } from "../baker/siteRenderers.js"
 import {
     bakeGrapherUrls,
@@ -49,6 +50,7 @@ import {
     getFilenameAsPng,
     extractDetailsFromSyntax,
     LinkedChart,
+    retryPromise,
 } from "@ourworldindata/utils"
 import { execWrapper } from "../db/execWrapper.js"
 import { countryProfileSpecs } from "../site/countryProfileProjects.js"
@@ -89,13 +91,20 @@ const nonWordpressSteps = [
     "specialPages",
     "countries",
     "countryProfiles",
+    "explorers",
     "charts",
     "gdocPosts",
     "gdriveImages",
     "dods",
 ] as const
 
-export const bakeSteps = [...wordpressSteps, ...nonWordpressSteps]
+const otherSteps = ["removeDeletedPosts"] as const
+
+export const bakeSteps = [
+    ...wordpressSteps,
+    ...nonWordpressSteps,
+    ...otherSteps,
+]
 
 export type BakeStep = (typeof bakeSteps)[number]
 
@@ -104,8 +113,8 @@ export type BakeStepConfig = Set<BakeStep>
 const defaultSteps = new Set(bakeSteps)
 
 function getProgressBarTotal(bakeSteps: BakeStepConfig): number {
-    // There are 3 non-optional steps: flushCache, removeDeletedPosts, and flushCache (again)
-    const minimum = 3
+    // There are 2 non-optional steps: flushCache at the beginning and flushCache at the end (again)
+    const minimum = 2
     let total = minimum + bakeSteps.size
     // Redirects has two progress bar ticks
     if (bakeSteps.has("redirects")) total++
@@ -253,6 +262,7 @@ export class SiteBaker {
     // Bake all Wordpress posts, both blog posts and entry pages
 
     private async removeDeletedPosts() {
+        if (!this.bakeSteps.has("removeDeletedPosts")) return
         const postsApi = await wpdb.getPosts()
 
         const postSlugs = []
@@ -424,6 +434,16 @@ export class SiteBaker {
             await makeSitemap(this.explorerAdminServer)
         )
 
+        await this.stageWrite(
+            `${this.bakedSiteDir}/charts.html`,
+            await renderChartsPage(this.explorerAdminServer)
+        )
+        this.progressBar.tick({ name: "✅ baked special pages" })
+    }
+
+    private async bakeExplorers() {
+        if (!this.bakeSteps.has("explorers")) return
+
         await bakeAllExplorerRedirects(
             this.bakedSiteDir,
             this.explorerAdminServer
@@ -434,11 +454,7 @@ export class SiteBaker {
             this.explorerAdminServer
         )
 
-        await this.stageWrite(
-            `${this.bakedSiteDir}/charts.html`,
-            await renderChartsPage(this.explorerAdminServer)
-        )
-        this.progressBar.tick({ name: "✅ baked special pages" })
+        this.progressBar.tick({ name: "✅ baked explorers" })
     }
 
     private async validateGrapherDodReferences() {
@@ -516,13 +532,7 @@ export class SiteBaker {
                 `${this.bakedSiteDir}/dods.json`,
                 JSON.stringify(details)
             )
-            // This task completes too quickly and doesn't tick correctly without this
-            await new Promise((resolve) => {
-                setTimeout(() => {
-                    this.progressBar.tick({ name: "✅ baked dods.json" })
-                    resolve(true)
-                }, 250)
-            })
+            this.progressBar.tick({ name: "✅ baked dods.json" })
         } else {
             throw Error("Details on demand not found")
         }
@@ -578,6 +588,10 @@ export class SiteBaker {
             `${this.bakedSiteDir}/atom.xml`,
             await makeAtomFeed()
         )
+        await this.stageWrite(
+            `${this.bakedSiteDir}/atom-no-topic-pages.xml`,
+            await makeAtomFeedNoTopicPages()
+        )
         this.progressBar.tick({ name: "✅ baked rss" })
     }
 
@@ -598,6 +612,8 @@ export class SiteBaker {
             "published"
         )
 
+        // TODO: chunking caused issues so we disable it here by setting chunk size to 1 for now.
+        // Either switch to rclone-ing all files before baking, or switching to Cloudflare Images.
         const imageChunks = chunk(images, 2)
         for (const imageChunk of imageChunks) {
             await Promise.all(
@@ -607,7 +623,7 @@ export class SiteBaker {
                         IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH,
                         image.filename
                     )
-                    return fetch(remoteFilePath)
+                    return retryPromise(() => fetch(remoteFilePath))
                         .then((response) => {
                             if (!response.ok) {
                                 throw new Error(
@@ -644,6 +660,15 @@ export class SiteBaker {
                                     .toFile(
                                         path.join(imagesDirectory, pngFilename)
                                     )
+
+                                // Import the site's webfonts
+                                const svg = buffer
+                                    .toString()
+                                    .replace(
+                                        /(<svg.*?>)/,
+                                        `$1<defs><style>@import url(${BAKED_BASE_URL}/fonts.css)</style></defs>`
+                                    )
+                                buffer = Buffer.from(svg)
                             }
                             // For SVG, and a non-webp fallback copy of the image
                             await writeFile(
@@ -706,6 +731,7 @@ export class SiteBaker {
         }
         await this.bakeSpecialPages()
         await this.bakeCountryProfiles()
+        await this.bakeExplorers()
         if (this.bakeSteps.has("charts")) {
             await bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers(
                 this.bakedSiteDir

@@ -4,7 +4,7 @@ const DEBUG = false
 
 // Add type information for dataLayer global provided by Google Tag Manager
 type WindowWithDataLayer = Window & {
-    dataLayer?: GAEvent[]
+    dataLayer?: (GAEvent | GAConsent)[]
 }
 declare const window: WindowWithDataLayer
 
@@ -42,6 +42,16 @@ interface GAEvent {
     eventTarget?: string
     grapherPath?: string
 }
+
+// taken from https://github.com/DefinitelyTyped/DefinitelyTyped/blob/de66435d18fbdb2684947d16b5cd3a77f876324c/types/gtag.js/index.d.ts#L151-L156
+interface GAConsentParams {
+    ad_storage?: "granted" | "denied" | undefined
+    analytics_storage?: "granted" | "denied" | undefined
+    wait_for_update?: number | undefined
+    region?: string[] | undefined
+}
+
+type GAConsent = ["consent", "default" | "update", GAConsentParams]
 
 // Note: consent-based blocking dealt with at the Google Tag Manager level.
 // Events are discarded if consent not given.
@@ -162,5 +172,17 @@ export class GrapherAnalytics {
         }
 
         window.dataLayer?.push(event)
+    }
+
+    updateGAConsentSettings(consent: GAConsentParams): void {
+        function pushToDataLayer(..._args: any): void {
+            // Google Tag Manager is super weird here: it will not accept a normal array or object
+            // being pushed to dataLayer, it absolutely has to be an `Arguments` object.
+            // see https://stackoverflow.com/q/60400130/10670163
+
+            // eslint-disable-next-line prefer-rest-params
+            window.dataLayer?.push(arguments as unknown as GAConsent)
+        }
+        pushToDataLayer("consent", "update", consent)
     }
 }

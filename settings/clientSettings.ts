@@ -50,6 +50,10 @@ export const DONATE_API_URL: string =
 export const RECAPTCHA_SITE_KEY: string =
     process.env.RECAPTCHA_SITE_KEY ?? "6LcJl5YUAAAAAATQ6F4vl9dAWRZeKPBm15MAZj4Q"
 
+// e.g. "GTM-N2D4V8S" (our production GTM container)
+export const GOOGLE_TAG_MANAGER_ID: string =
+    process.env.GOOGLE_TAG_MANAGER_ID ?? ""
+
 export const TOPICS_CONTENT_GRAPH: boolean =
     process.env.TOPICS_CONTENT_GRAPH === "true" ?? false
 

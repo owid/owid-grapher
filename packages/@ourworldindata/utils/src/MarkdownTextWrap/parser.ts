@@ -176,19 +176,7 @@ interface TextSegments {
 
 export interface MarkdownRoot {
     type: "MarkdownRoot"
-    children: Array<
-        | Newline
-        | Whitespace
-        | DetailOnDemand
-        | MarkdownLink
-        | PlainUrl
-        | Bold
-        | PlainBold
-        | Italic
-        | PlainItalic
-        | TextSegments
-        | Text
-    >
+    children: Array<EveryMarkdownRootNode>
 }
 
 type languagePartsType = typeof languageParts
@@ -197,8 +185,21 @@ type MdParser = {
     [P in keyof languagePartsType]: ReturnType<languagePartsType[P]>
 }
 
+export type EveryMarkdownRootNode =
+    | Newline
+    | Whitespace
+    | DetailOnDemand
+    | MarkdownLink
+    | PlainUrl
+    | Bold
+    | PlainBold
+    | Italic
+    | PlainItalic
+    | TextSegments
+    | Text
+
 // Every possible child of a MarkdownRoot node
-export type EveryMarkdownNode =
+export type EveryMarkdownChildNode =
     | TextSegments
     | NonSingleUnderscoreWord
     | Bold
@@ -208,6 +209,12 @@ export type EveryMarkdownNode =
     | ItalicContent
     | PlainItalic
 
+export type EveryMarkdownNode =
+    | EveryMarkdownChildNode
+    | EveryMarkdownRootNode
+    | BoldWithoutItalic
+    | ItalicWithoutBold
+    | NonSingleUnderscoreWord
 // #endregion
 
 //#region Terminal parsers

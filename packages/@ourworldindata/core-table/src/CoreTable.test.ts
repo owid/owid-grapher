@@ -82,6 +82,42 @@ popChange,Pop change,percentChange time country population 2`
                 ).toEqual(expected.slice(1))
             })
         })
+
+        describe("copies data & metadata for duplicate transform", () => {
+            const table = new CoreTable(
+                `country,population
+iceland,1
+iceland,2
+france,50
+france,60`,
+                [
+                    {
+                        slug: "country",
+                        name: "Region",
+                    },
+                    {
+                        slug: "population",
+                        name: "Population in 2020",
+                        type: ColumnTypeNames.Integer,
+                    },
+                    {
+                        slug: "pop2",
+                        transform: "duplicate population",
+                    },
+                ]
+            )
+            const expected = [1, 2, 50, 60]
+            it("runs transforms correctly", () => {
+                expect(table.get("pop2").valuesIncludingErrorValues).toEqual(
+                    expected
+                )
+
+                expect(table.get("pop2").def.name).toEqual("Population in 2020")
+                expect(table.get("pop2").def.type).toEqual(
+                    ColumnTypeNames.Integer
+                )
+            })
+        })
     })
 
     it("can create an empty table", () => {

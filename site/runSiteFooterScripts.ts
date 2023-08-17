@@ -3,6 +3,7 @@ import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import { hydrateProminentLink } from "./blocks/ProminentLink.js"
 import { runCookiePreferencesManager } from "./CookiePreferencesManager.js"
 import { hydrateDataPageContent } from "./DataPageContent.js"
+import { hydrateDataPageV2Content } from "./DataPageV2Content.js"
 import { runFootnotes } from "./Footnote.js"
 import { hydrateOwidGdoc } from "./gdocs/OwidGdoc.js"
 import { runLightbox } from "./Lightbox.js"
@@ -36,6 +37,19 @@ export const runSiteFooterScripts = (
     switch (context) {
         case SiteFooterContext.dataPage:
             hydrateDataPageContent(isPreviewing)
+            runSiteNavigation(BAKED_BASE_URL)
+            runSiteTools()
+            runCookiePreferencesManager()
+            runDetailsOnDemand()
+            break
+        case SiteFooterContext.dataPageV2:
+            hydrateDataPageV2Content(isPreviewing)
+            runLightbox()
+            runSiteNavigation(BAKED_BASE_URL)
+            runSiteTools()
+            runCookiePreferencesManager()
+            runDetailsOnDemand()
+            break
         case SiteFooterContext.grapherPage:
         case SiteFooterContext.explorerPage:
             runSiteNavigation(BAKED_BASE_URL)

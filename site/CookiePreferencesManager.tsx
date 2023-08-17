@@ -1,9 +1,10 @@
 import ReactDOM from "react-dom"
-import React, { useEffect, useReducer } from "react"
+import React, { useEffect, useMemo, useReducer } from "react"
 import Cookies from "js-cookie"
 import { CookiePreferences } from "../site/blocks/CookiePreferences.js"
 import { CookieNotice } from "../site/CookieNotice.js"
 import { dayjs } from "@ourworldindata/utils"
+import { SiteAnalytics } from "./SiteAnalytics.js"
 
 export enum PreferenceType {
     Analytics = "a",
@@ -14,6 +15,8 @@ export enum Action {
     Accept,
     TogglePreference,
     Reset,
+    Persist,
+    Reject,
 }
 
 export interface Preference {
@@ -34,17 +37,19 @@ interface State {
     preferences: Preference[]
 }
 
+const analytics = new SiteAnalytics()
+
 const defaultState: State = {
     preferences: [
         {
             type: PreferenceType.Analytics,
-            value: true,
+            value: false,
         },
     ],
 }
 
 export const CookiePreferencesManager = ({
-    initialState = defaultState,
+    initialState,
 }: {
     initialState: State
 }) => {
@@ -65,6 +70,20 @@ export const CookiePreferencesManager = ({
             })
         }
     }, [state])
+
+    // Set GA consent
+    const analyticsConsent = useMemo(
+        () =>
+            getPreferenceValue(PreferenceType.Analytics, state.preferences)
+                ? "granted"
+                : "denied",
+        [state.preferences]
+    )
+    useEffect(() => {
+        analytics.updateGAConsentSettings({
+            analytics_storage: analyticsConsent,
+        })
+    }, [analyticsConsent])
 
     return (
         <div data-test-policy-date={POLICY_DATE} className="cookie-manager">
@@ -111,13 +130,37 @@ const reducer = (
             }
         case Action.Reset:
             return defaultState
+        case Action.Persist:
+            return {
+                ...state,
+                date: payload.date,
+            }
+        case Action.Reject:
+            return {
+                date: payload.date,
+                preferences: updatePreference(
+                    PreferenceType.Analytics,
+                    false,
+                    state.preferences
+                ),
+            }
         default:
             return state
     }
 }
 
 const getInitialState = (): State => {
-    return parseRawCookieValue(Cookies.get(COOKIE_NAME)) ?? defaultState
+    let cookieValue = undefined
+    try {
+        // Cookie access can be restricted by iframe sandboxing, in which case the below code will throw an error
+        // see https://github.com/owid/owid-grapher/pull/2452
+
+        cookieValue = parseRawCookieValue(Cookies.get(COOKIE_NAME))
+    } catch {}
+
+    if (!cookieValue || arePreferencesOutdated(cookieValue.date, POLICY_DATE))
+        return defaultState
+    return cookieValue
 }
 
 export const parseRawCookieValue = (cookieValue?: string) => {

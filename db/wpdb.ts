@@ -632,7 +632,7 @@ export const getRelatedChartsForVariable = async (
             ? `AND charts.id NOT IN (${chartIdsToExclude.join(", ")})`
             : ""
 
-    return db.queryMysql(`
+    return db.queryMysql(`-- sql
                 SELECT
                     charts.config->>"$.slug" AS slug,
                     charts.config->>"$.title" AS title,
@@ -777,6 +777,7 @@ export const mapGdocsToWordpressPosts = (
     return gdocs.map((gdoc) => ({
         title: gdoc.content["atom-title"] || gdoc.content.title,
         slug: gdoc.slug,
+        type: gdoc.content.type,
         date: gdoc.publishedAt,
         modifiedDate: gdoc.updatedAt,
         authors: gdoc.content.authors,

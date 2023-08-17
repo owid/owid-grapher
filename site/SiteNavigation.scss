@@ -150,7 +150,7 @@
                 position: absolute;
                 top: calc(100% + $header-border-height);
                 right: 0;
-                width: 411px;
+                width: 411px; // see popover-box-styles mixin
                 @include sm-only {
                     margin-right: -16px;
                     width: 100vw;

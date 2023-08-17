@@ -15,6 +15,7 @@ import {
     renderBlogByPageNum,
     countryProfileCountryPage,
     renderExplorerPage,
+    makeAtomFeedNoTopicPages,
 } from "../baker/siteRenderers.js"
 import {
     BAKED_BASE_URL,
@@ -33,7 +34,7 @@ import { Chart, OldChart } from "../db/model/Chart.js"
 import { countryProfileSpecs } from "../site/countryProfileProjects.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { grapherToSVG } from "../baker/GrapherImageBaker.js"
-import { getVariableData } from "../db/model/Variable.js"
+import { getVariableData, getVariableMetadata } from "../db/model/Variable.js"
 import { MultiEmbedderTestPage } from "../site/multiembedder/MultiEmbedderTestPage.js"
 import { JsonError } from "@ourworldindata/utils"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
@@ -42,7 +43,10 @@ import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants.js"
 import { getExplorerRedirectForPath } from "../explorerAdminServer/ExplorerRedirects.js"
 import { explorerUrlMigrationsById } from "../explorer/urlMigrations/ExplorerUrlMigrations.js"
 import { generateEmbedSnippet } from "../site/viteUtils.js"
-import { renderPreviewDataPageOrGrapherPage } from "../baker/GrapherBaker.js"
+import {
+    renderPreviewDataPageOrGrapherPage,
+    renderDataPageV2,
+} from "../baker/GrapherBaker.js"
 import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
 
 require("express-async-errors")
@@ -61,6 +65,11 @@ mockSiteRouter.get("/sitemap.xml", async (req, res) => {
 mockSiteRouter.get("/atom.xml", async (req, res) => {
     res.set("Content-Type", "application/xml")
     res.send(await makeAtomFeed())
+})
+
+mockSiteRouter.get("/atom-no-topic-pages.xml", async (req, res) => {
+    res.set("Content-Type", "application/xml")
+    res.send(await makeAtomFeedNoTopicPages())
 })
 
 mockSiteRouter.get("/entries-by-year", async (req, res) =>
@@ -156,6 +165,22 @@ mockSiteRouter.get("/charts", async (req, res) => {
     res.send(await renderChartsPage(explorerAdminServer))
 })
 
+mockSiteRouter.get("/datapage-preview/:id", async (req, res) => {
+    const variableId = expectInt(req.params.id)
+    const variableMetadata = await getVariableMetadata(variableId)
+    const publishedExplorersBySlug =
+        await explorerAdminServer.getAllPublishedExplorersBySlugCached()
+
+    res.send(
+        await renderDataPageV2({
+            variableId,
+            variableMetadata,
+            isPreviewing: true,
+            publishedExplorersBySlug,
+        })
+    )
+})
+
 countryProfileSpecs.forEach((spec) =>
     mockSiteRouter.get(`/${spec.rootPath}/:countrySlug`, async (req, res) =>
         res.send(await countryProfileCountryPage(spec, req.params.countrySlug))
@@ -209,6 +234,15 @@ mockSiteRouter.use("/grapher/exports/:slug.svg", async (req, res) => {
     res.setHeader("Content-Type", "image/svg+xml")
     res.send(await grapherToSVG(grapher.config, vardata))
 })
+
+mockSiteRouter.use(
+    "/fonts",
+    express.static(path.join(BASE_DIR, "public/fonts"), {
+        setHeaders: (res) => {
+            res.set("Access-Control-Allow-Origin", "*")
+        },
+    })
+)
 
 mockSiteRouter.use("/", express.static(path.join(BASE_DIR, "public")))
 

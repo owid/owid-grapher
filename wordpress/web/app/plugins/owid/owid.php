@@ -296,7 +296,6 @@ function build_static($post_ID, $post_after, $post_before)
         $post_before->post_status == "publish"
     ) {
         $current_user = wp_get_current_user();
-        putenv('PATH=' . getenv('PATH') . ':/bin:/usr/local/bin:/usr/bin');
         // Unsets colliding .env variables between PHP and node apps
         // The DB password did not collide and hence were not listed here (DB_PASS (node) vs DB_PASSWORD (php))
         // todo: cleanup, this doesn't make sense anymore since node and php env vars have now different names
@@ -307,7 +306,7 @@ function build_static($post_ID, $post_after, $post_before)
         $cmd =
             "cd " .
             ABSPATH .
-            "codelink && yarn runPostUpdateHook " .
+            "codelink && . ~/.bashrc && yarn runPostUpdateHook " .
             escapeshellarg($current_user->user_email) .
             " " .
             escapeshellarg($current_user->display_name) .

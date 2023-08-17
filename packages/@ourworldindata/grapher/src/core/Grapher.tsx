@@ -64,8 +64,8 @@ import {
     spansToUnformattedPlainText,
     EnrichedDetail,
     isEmpty,
-    dayjs,
     compact,
+    getOriginAttributionFragments,
 } from "@ourworldindata/utils"
 import {
     ChartTypeName,
@@ -779,7 +779,15 @@ export class Grapher
     @computed get showAdminControls(): boolean {
         // This cookie is set by visiting ourworldindata.org/identifyadmin on the static site.
         // There is an iframe on owid.cloud to trigger a visit to that page.
-        return !!Cookies.get(CookieKey.isAdmin)
+
+        try {
+            // Cookie access can be restricted by iframe sandboxing, in which case the below code will throw an error
+            // see https://github.com/owid/owid-grapher/pull/2452
+
+            return !!Cookies.get(CookieKey.isAdmin)
+        } catch {
+            return false
+        }
     }
 
     @action.bound
@@ -1452,20 +1460,9 @@ export class Grapher
             )
                 return [column.def.attribution]
             else {
-                const originFragments = column.def.origins
-                    ? column.def.origins.map((origin) => {
-                          const yearPublished = origin.datePublished
-                              ? dayjs(origin.datePublished, [
-                                    "YYYY",
-                                    "YYYY-MM-DD",
-                                ]).year()
-                              : undefined
-                          return (
-                              origin.attribution ??
-                              `${origin.producer} ${yearPublished}`
-                          )
-                      })
-                    : []
+                const originFragments = getOriginAttributionFragments(
+                    column.def.origins
+                )
                 return [column.source.name, ...originFragments]
             }
         })

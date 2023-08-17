@@ -30,6 +30,8 @@ export {
     type DeployChange,
     DeployStatus,
     type EnrichedDetail,
+    type EnrichedFaq,
+    type FaqEntryData,
     type DetailDictionary,
     DimensionProperty,
     type DocumentNode,
@@ -200,6 +202,12 @@ export {
     type DataPageParseError,
     AllowedDataPageGdocFields,
     type DataPageContentFields,
+    type DataPageV2ContentFields,
+    type DataPageDataV2,
+    type DataPageRelatedData,
+    type DataPageRelatedResearch,
+    type FaqLink,
+    type FaqDictionary,
     type RawBlockResearchAndWritingRow,
     type EnrichedBlockAlign,
     type RawBlockAlign,
@@ -321,6 +329,9 @@ export {
     filterValidStringValues,
     traverseEnrichedSpan,
     getFontScale,
+    mergePartialGrapherConfigs,
+    getOriginAttributionFragments,
+    getAttributionFromVariable,
 } from "./Util.js"
 
 export {
@@ -586,6 +597,10 @@ export {
 export {
     extractDetailsFromSyntax,
     mdParser,
+    type MarkdownRoot,
+    type EveryMarkdownChildNode,
+    type EveryMarkdownNode,
+    type EveryMarkdownRootNode,
 } from "./MarkdownTextWrap/parser.js"
 
 export {
@@ -604,5 +619,6 @@ export {
     RESEARCH_AND_WRITING_ID,
     IMAGES_DIRECTORY,
     gdocUrlRegex,
+    gdocIdRegex,
     detailOnDemandRegex,
 } from "./GdocsConstants.js"
