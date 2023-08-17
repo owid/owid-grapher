@@ -9,18 +9,19 @@ import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_EXPORTS_BASE_URL,
 } from "../../settings/clientSettings.js"
+import { KeyChartLevel } from "@ourworldindata/utils"
 Enzyme.configure({ adapter: new Adapter() })
 
 const charts = [
     {
         title: "Chart 1",
         slug: "chart-1",
-        isKeyChart: false,
+        isKeyChart: KeyChartLevel.Top,
     },
     {
         title: "Chart 2",
         slug: "chart-2",
-        isKeyChart: true,
+        isKeyChart: KeyChartLevel.Top,
     },
 ]
 

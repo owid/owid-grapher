@@ -63,7 +63,7 @@ export interface BasicChartInformation {
 }
 
 export interface RelatedChart extends BasicChartInformation {
-    isKeyChart?: boolean
+    isKeyChart?: KeyChartLevel
 }
 
 export type OwidVariableId = Integer // remove.

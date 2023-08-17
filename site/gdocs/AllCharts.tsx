@@ -5,6 +5,7 @@ import {
     RelatedChart,
     Url,
     ALL_CHARTS_ID,
+    KeyChartLevel,
 } from "@ourworldindata/utils"
 import { AttachmentsContext } from "./OwidGdoc.js"
 import { RelatedCharts } from "../blocks/RelatedCharts.js"
@@ -28,7 +29,7 @@ function sortRelatedCharts(
             if (relatedChart) {
                 // a teeny hack to stop the RelatedCharts component from
                 // sorting these charts below the other key charts
-                relatedChart.isKeyChart = true
+                relatedChart.isKeyChart = KeyChartLevel.Top
                 sortedRelatedCharts.push(relatedChart)
             }
         }
@@ -54,7 +55,10 @@ export function AllCharts(props: AllChartsProps) {
                 {heading}
                 <a className="deep-link" href={`#${ALL_CHARTS_ID}`} />
             </h1>
-            <RelatedCharts charts={sortedRelatedCharts} />
+            <RelatedCharts
+                showKeyChartsOnly={true}
+                charts={sortedRelatedCharts}
+            />
         </div>
     )
 }

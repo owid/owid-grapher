@@ -1,7 +1,12 @@
 #! /usr/bin/env jest
 
 import { GrapherInterface } from "@ourworldindata/grapher"
-import { DimensionProperty, PostRow, RelatedChart } from "@ourworldindata/utils"
+import {
+    DimensionProperty,
+    KeyChartLevel,
+    PostRow,
+    RelatedChart,
+} from "@ourworldindata/utils"
 import React from "react"
 import { ChartListItemVariant } from "./ChartListItemVariant.js"
 import { GrapherPage } from "./GrapherPage.js"
@@ -44,12 +49,12 @@ beforeAll(() => {
         {
             title: "Chart 1",
             slug: "chart-1",
-            isKeyChart: false,
+            isKeyChart: KeyChartLevel.Middle,
         },
         {
             title: "Chart 2",
             slug: "chart-2",
-            isKeyChart: true,
+            isKeyChart: KeyChartLevel.Top,
         },
     ]
 })
