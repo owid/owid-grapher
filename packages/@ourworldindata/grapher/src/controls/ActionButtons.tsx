@@ -90,11 +90,9 @@ export class ActionButtons extends React.Component<{
     }
 
     @computed private get showButtonLabels(): boolean {
-        const { availableWidth, sizeVariant, widthWithButtonLabels, maxWidth } =
-            this
+        const { availableWidth, sizeVariant, widthWithButtonLabels } = this
         if (sizeVariant !== SizeVariant.lg) return false
-        if (widthWithButtonLabels <= availableWidth) return true
-        return widthWithButtonLabels < 0.33 * maxWidth
+        return widthWithButtonLabels <= availableWidth
     }
 
     @computed get width(): number {
