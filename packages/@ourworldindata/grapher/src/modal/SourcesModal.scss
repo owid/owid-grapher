@@ -1,0 +1,78 @@
+&.narrow .datasource-wrapper {
+    padding: 0;
+}
+
+.SourcesModalContent {
+    height: calc(100% - 12px);
+    overflow-y: auto;
+}
+
+.datasource-wrapper {
+    font-size: 0.8em;
+    max-width: 1024px;
+    color: $light-text;
+}
+
+.datasource-wrapper + .datasource-wrapper {
+    margin-top: 24px;
+}
+
+.datasource-wrapper > h2 {
+    color: $dark-text;
+    font-family: $serif-font-stack !important;
+    font-size: 1.4em;
+    font-weight: 600;
+    margin-bottom: 0.4em;
+}
+
+.datasource-wrapper h2,
+.datasource-wrapper h3,
+.datasource-wrapper h4 {
+    margin-left: 0px;
+    font-family: inherit;
+}
+.datasource-wrapper h3,
+.datasource-wrapper h4 {
+    margin-top: 2px;
+    margin-bottom: 1px;
+    font-size: 0.9em;
+    font-weight: bold;
+}
+
+.datasource-wrapper ul,
+.datasource-wrapper ol {
+    margin-left: 1.1rem;
+}
+
+.datasource-wrapper table {
+    width: 100%;
+    border-spacing: 0;
+}
+
+.datasource-wrapper td {
+    padding: 16px 0;
+    line-height: 1.42857143;
+    vertical-align: top;
+    border-top: 1px solid #ddd;
+}
+
+.datasource-wrapper td:first-child {
+    padding-right: 16px;
+}
+
+.datasource-wrapper tr:first-child td {
+    border: 0;
+}
+
+.datasource-wrapper a {
+    text-decoration: underline;
+    color: inherit;
+}
+
+.datasource-property {
+    display: inline-block;
+    width: 150px;
+}
+.datasource-additional p {
+    margin-top: 0.3em;
+}
