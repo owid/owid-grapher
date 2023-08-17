@@ -49,12 +49,12 @@ beforeAll(() => {
         {
             title: "Chart 1",
             slug: "chart-1",
-            isKeyChart: KeyChartLevel.Middle,
+            keyChartLevel: KeyChartLevel.Middle,
         },
         {
             title: "Chart 2",
             slug: "chart-2",
-            isKeyChart: KeyChartLevel.Top,
+            keyChartLevel: KeyChartLevel.Top,
         },
     ]
 })

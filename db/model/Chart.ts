@@ -113,11 +113,15 @@ WHERE c.config -> "$.isPublished" = true
 
     static async setTags(chartId: number, tags: Tag[]): Promise<void> {
         await db.transaction(async (t) => {
-            const tagRows = tags.map((tag) => [tag.id, chartId, tag.isKeyChart])
+            const tagRows = tags.map((tag) => [
+                tag.id,
+                chartId,
+                tag.keyChartLevel,
+            ])
             await t.execute(`DELETE FROM chart_tags WHERE chartId=?`, [chartId])
             if (tagRows.length)
                 await t.execute(
-                    `INSERT INTO chart_tags (tagId, chartId, isKeyChart) VALUES ?`,
+                    `INSERT INTO chart_tags (tagId, chartId, keyChartLevel) VALUES ?`,
                     [tagRows]
                 )
 
@@ -141,7 +145,7 @@ WHERE c.config -> "$.isPublished" = true
         charts: { id: number; tags: any[] }[]
     ): Promise<void> {
         const chartTags = await db.queryMysql(`
-            SELECT ct.chartId, ct.tagId, ct.isKeyChart, t.name as tagName FROM chart_tags ct
+            SELECT ct.chartId, ct.tagId, ct.keyChartLevel, t.name as tagName FROM chart_tags ct
             JOIN charts c ON c.id=ct.chartId
             JOIN tags t ON t.id=ct.tagId
         `)
@@ -158,7 +162,7 @@ WHERE c.config -> "$.isPublished" = true
                 chart.tags.push({
                     id: ct.tagId,
                     name: ct.tagName,
-                    isKeyChart: ct.isKeyChart,
+                    keyChartLevel: ct.keyChartLevel,
                 })
         }
     }

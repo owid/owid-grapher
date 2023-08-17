@@ -16,12 +16,12 @@ const charts = [
     {
         title: "Chart 1",
         slug: "chart-1",
-        isKeyChart: KeyChartLevel.Top,
+        keyChartLevel: KeyChartLevel.Top,
     },
     {
         title: "Chart 2",
         slug: "chart-2",
-        isKeyChart: KeyChartLevel.Top,
+        keyChartLevel: KeyChartLevel.Top,
     },
 ]
 

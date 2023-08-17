@@ -1067,10 +1067,10 @@ export class EditableTags extends React.Component<{
 
     @action.bound onToggleKey(index: number) {
         const currentKeyChartLevel =
-            this.tags[index].isKeyChart || KeyChartLevel.None
+            this.tags[index].keyChartLevel || KeyChartLevel.None
 
         // We cycle through 4 states of key chart levels for a given topic / chart combination
-        this.tags[index].isKeyChart =
+        this.tags[index].keyChartLevel =
             currentKeyChartLevel === KeyChartLevel.None
                 ? KeyChartLevel.Top
                 : currentKeyChartLevel - 1
@@ -1091,7 +1091,9 @@ export class EditableTags extends React.Component<{
         if (this.isEditing) {
             // Add a default key chart level to new tags
             this.tags.forEach(
-                (tag) => (tag.isKeyChart = tag.isKeyChart ?? KeyChartLevel.None)
+                (tag) =>
+                    (tag.keyChartLevel =
+                        tag.keyChartLevel ?? KeyChartLevel.None)
             )
             this.props.onSave(this.tags.filter(filterUncategorizedTag))
         }

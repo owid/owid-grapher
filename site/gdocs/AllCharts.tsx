@@ -29,7 +29,7 @@ function sortRelatedCharts(
             if (relatedChart) {
                 // a teeny hack to stop the RelatedCharts component from
                 // sorting these charts below the other key charts
-                relatedChart.isKeyChart = KeyChartLevel.Top
+                relatedChart.keyChartLevel = KeyChartLevel.Top
                 sortedRelatedCharts.push(relatedChart)
             }
         }

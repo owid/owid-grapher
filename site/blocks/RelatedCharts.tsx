@@ -22,12 +22,12 @@ export const RelatedCharts = ({
     const isLastSlideActive = activeChartIdx === charts.length - 1
 
     const chartsToShow = showKeyChartsOnly
-        ? charts.filter((chart) => !!chart.isKeyChart)
+        ? charts.filter((chart) => !!chart.keyChartLevel)
         : charts
 
     const sortedCharts = orderBy(
         chartsToShow,
-        (chart) => chart.isKeyChart,
+        (chart) => chart.keyChartLevel,
         "desc"
     )
     const activeChartSlug = sortedCharts[activeChartIdx]?.slug

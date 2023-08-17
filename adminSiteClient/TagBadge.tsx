@@ -30,10 +30,10 @@ export class TagBadge extends React.Component<{
     render() {
         const { tag, searchHighlight, onToggleKey } = this.props
         const keyChartLevelDesc =
-            tag.isKeyChart === KeyChartLevel.None
+            tag.keyChartLevel === KeyChartLevel.None
                 ? "Not a key chart, will be hidden in the all charts block of the topic page"
                 : `Chart will show ${this.levelToDesc(
-                      tag.isKeyChart
+                      tag.keyChartLevel
                   )} of the all charts block on the topic page`
 
         return (
@@ -47,7 +47,7 @@ export class TagBadge extends React.Component<{
                             className="TagBadge__sorting"
                             onClick={onToggleKey}
                         >
-                            <TagBucketSortingIcon level={tag.isKeyChart} />
+                            <TagBucketSortingIcon level={tag.keyChartLevel} />
                         </span>
                     </Tippy>
                 ) : null}

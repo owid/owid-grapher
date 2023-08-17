@@ -63,7 +63,7 @@ export interface BasicChartInformation {
 }
 
 export interface RelatedChart extends BasicChartInformation {
-    isKeyChart?: KeyChartLevel
+    keyChartLevel?: KeyChartLevel
 }
 
 export type OwidVariableId = Integer // remove.
@@ -196,7 +196,7 @@ export enum KeyChartLevel {
 }
 
 export interface Tag extends TagReactTagAutocomplete {
-    isKeyChart?: KeyChartLevel
+    keyChartLevel?: KeyChartLevel
 }
 
 export interface EntryMeta {
