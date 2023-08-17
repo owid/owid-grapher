@@ -11,7 +11,13 @@ import { observable, action } from "mobx"
 import { observer } from "mobx-react"
 import cx from "classnames"
 
-import { pick, capitalize, dayjs, Tippy } from "@ourworldindata/utils"
+import {
+    pick,
+    capitalize,
+    dayjs,
+    Tippy,
+    KeyChartLevel,
+} from "@ourworldindata/utils"
 import { Colorpicker } from "./Colorpicker.js"
 import {
     faCog,
@@ -1060,7 +1066,15 @@ export class EditableTags extends React.Component<{
     }
 
     @action.bound onToggleKey(index: number) {
-        this.tags[index].isKeyChart = !this.tags[index].isKeyChart
+        const currentKeyChartLevel =
+            this.tags[index].isKeyChart || KeyChartLevel.None
+
+        // We cycle through 4 states of key chart levels for a given topic / chart combination
+        this.tags[index].isKeyChart =
+            currentKeyChartLevel === KeyChartLevel.None
+                ? KeyChartLevel.Top
+                : currentKeyChartLevel - 1
+
         this.props.onSave(this.tags.filter(filterUncategorizedTag))
     }
 
@@ -1075,6 +1089,10 @@ export class EditableTags extends React.Component<{
 
     @action.bound onToggleEdit() {
         if (this.isEditing) {
+            // Add a default key chart level to new tags
+            this.tags.forEach(
+                (tag) => (tag.isKeyChart = tag.isKeyChart ?? KeyChartLevel.None)
+            )
             this.props.onSave(this.tags.filter(filterUncategorizedTag))
         }
         this.isEditing = !this.isEditing

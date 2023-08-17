@@ -1,11 +1,10 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { Tag } from "@ourworldindata/utils"
+import { KeyChartLevel, Tag } from "@ourworldindata/utils"
 
 import { Link } from "./Link.js"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faStar } from "@fortawesome/free-solid-svg-icons"
 import Tippy from "@tippyjs/react"
+import { TagBucketSortingIcon } from "./TagBucketSortingIcon.js"
 
 export type { Tag }
 
@@ -15,31 +14,44 @@ export class TagBadge extends React.Component<{
     onToggleKey?: () => void
     searchHighlight?: (text: string) => string | JSX.Element
 }> {
+    levelToDesc(level?: KeyChartLevel) {
+        switch (level) {
+            case KeyChartLevel.Bottom:
+                return "at the bottom"
+            case KeyChartLevel.Middle:
+                return "in the middle"
+            case KeyChartLevel.Top:
+                return "at the top"
+            default:
+                return ""
+        }
+    }
+
     render() {
         const { tag, searchHighlight, onToggleKey } = this.props
-        const classes = ["TagBadge"]
+        const keyChartLevelDesc =
+            tag.isKeyChart === KeyChartLevel.None
+                ? "Not a key chart, will be hidden in the all charts block of the topic page"
+                : `Chart will show ${this.levelToDesc(
+                      tag.isKeyChart
+                  )} of the all charts block on the topic page`
 
-        if (onToggleKey) {
-            classes.push("hasKeyChartSupport")
-            if (tag.isKeyChart) classes.push("isKeyChart")
-            return (
-                <Tippy
-                    content={`${
-                        tag.isKeyChart ? "⬇️ Demote from" : "⬆️ Promote to"
-                    } key charts on topic "${tag.name}"`}
-                >
-                    <span className={classes.join(" ")} onClick={onToggleKey}>
-                        {searchHighlight ? searchHighlight(tag.name) : tag.name}
-                        {tag.isKeyChart && <FontAwesomeIcon icon={faStar} />}
-                    </span>
-                </Tippy>
-            )
-        } else {
-            return (
-                <Link className="TagBadge" to={`/tags/${tag.id}`}>
+        return (
+            <span className="TagBadge">
+                <Link className="TagBadge__name" to={`/tags/${tag.id}`}>
                     {searchHighlight ? searchHighlight(tag.name) : tag.name}
                 </Link>
-            )
-        }
+                {onToggleKey ? (
+                    <Tippy content={`${keyChartLevelDesc} "${tag.name}"`}>
+                        <span
+                            className="TagBadge__sorting"
+                            onClick={onToggleKey}
+                        >
+                            <TagBucketSortingIcon level={tag.isKeyChart} />
+                        </span>
+                    </Tippy>
+                ) : null}
+            </span>
+        )
     }
 }

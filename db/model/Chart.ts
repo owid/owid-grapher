@@ -113,11 +113,7 @@ WHERE c.config -> "$.isPublished" = true
 
     static async setTags(chartId: number, tags: Tag[]): Promise<void> {
         await db.transaction(async (t) => {
-            const tagRows = tags.map((tag) => [
-                tag.id,
-                chartId,
-                !!tag.isKeyChart,
-            ])
+            const tagRows = tags.map((tag) => [tag.id, chartId, tag.isKeyChart])
             await t.execute(`DELETE FROM chart_tags WHERE chartId=?`, [chartId])
             if (tagRows.length)
                 await t.execute(
@@ -162,7 +158,7 @@ WHERE c.config -> "$.isPublished" = true
                 chart.tags.push({
                     id: ct.tagId,
                     name: ct.tagName,
-                    isKeyChart: !!ct.isKeyChart,
+                    isKeyChart: ct.isKeyChart,
                 })
         }
     }
