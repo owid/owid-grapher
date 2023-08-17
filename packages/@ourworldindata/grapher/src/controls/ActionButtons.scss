@@ -12,6 +12,7 @@ $paddingLeftRight: 12px; // keep in sync with PADDING_LEFT_RIGHT
     ul {
         list-style: none;
         height: $actionButtonHeight;
+        padding: 0;
     }
 
     li {
