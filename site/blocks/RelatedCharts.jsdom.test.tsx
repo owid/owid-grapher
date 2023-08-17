@@ -16,7 +16,7 @@ const charts = [
     {
         title: "Chart 1",
         slug: "chart-1",
-        keyChartLevel: KeyChartLevel.Top,
+        keyChartLevel: KeyChartLevel.Middle,
     },
     {
         title: "Chart 2",
@@ -42,7 +42,7 @@ it("renders active chart links and loads respective chart on click", () => {
     ).toHaveLength(1)
 
     wrapper.find("a").forEach((link, idx) => {
-        // Chart 2 is a key chart, so the charts should be in reverse order: `Chart 2, Chart 1`
+        // Chart 2 has a higher priority, so the charts should be in reverse order: `Chart 2, Chart 1`
         const expectedChartIdx = 1 - idx
         link.simulate("click")
         expect(wrapper.find("figure")).toHaveLength(1)
