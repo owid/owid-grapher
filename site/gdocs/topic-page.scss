@@ -1,4 +1,4 @@
-/* 
+/*
 * Topic Page
 **/
 
@@ -139,7 +139,7 @@
     }
 
     .article-block__key-insights-content-column {
-        max-height: 575px;
+        max-height: $grapher-height;
         overflow-y: auto;
         scrollbar-width: thin;
         @include md-up {
