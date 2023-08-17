@@ -1125,7 +1125,8 @@ export class EditableTags extends React.Component<{
                         {tags.map((t, i) => (
                             <TagBadge
                                 onToggleKey={
-                                    hasKeyChartSupport
+                                    hasKeyChartSupport &&
+                                    filterUncategorizedTag(t)
                                         ? () => this.onToggleKey(i)
                                         : undefined
                                 }
