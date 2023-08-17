@@ -1,8 +1,13 @@
-$slide-content-height: $grapher-height;
-
 @import "react-horizontal-scrolling-menu/styles.css";
 
 .wp-block-owid-key-insights {
+    --slide-content-height: 625px; // keep in sync with $grapher-height
+
+    @include sm-only {
+        // 48px is the height of the header, 1rem is additional padding
+        --slide-content-height: calc(100vh - 48px - 1rem);
+    }
+
     .react-horizontal-scrolling-menu--wrapper {
         position: relative;
     }
@@ -104,8 +109,8 @@ $slide-content-height: $grapher-height;
             }
         }
 
-        figure[data-grapher-src]:not(.grapherPreview) {
-            height: $slide-content-height;
+        figure:not(.explorer):not(.grapherPreview) {
+            height: var(--slide-content-height, $grapher-height);
         }
 
         @include sm-only {
@@ -119,7 +124,7 @@ $slide-content-height: $grapher-height;
         @include lg-up {
             .wp-block-columns.is-style-sticky-right .wp-block-column {
                 &:first-child {
-                    height: $slide-content-height;
+                    height: var(--slide-content-height, $grapher-height);
                     overflow-y: auto;
                     -webkit-mask-image: linear-gradient(
                         180deg,

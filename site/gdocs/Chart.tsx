@@ -38,7 +38,6 @@ export default function Chart({
     const resolvedUrl = linkedChart.resolvedUrl
     const isExplorer = url.isExplorer
     const hasControls = url.queryParams.hideControls !== "true"
-    const height = d.height || (isExplorer && hasControls ? 700 : 575)
 
     let config: GrapherProgrammaticInterface = {}
     const isCustomized = d.title || d.subtitle
@@ -82,6 +81,7 @@ export default function Chart({
             <figure
                 // Use unique `key` to force React to re-render tree
                 key={resolvedUrl}
+                className={isExplorer && hasControls ? "explorer" : undefined}
                 data-grapher-src={isExplorer ? undefined : resolvedUrl}
                 data-explorer-src={isExplorer ? resolvedUrl : undefined}
                 data-grapher-config={
@@ -92,7 +92,7 @@ export default function Chart({
                 style={{
                     width: "100%",
                     border: "0px none",
-                    height,
+                    height: isExplorer && hasControls ? 700 : undefined,
                 }}
             />
             {d.caption ? (

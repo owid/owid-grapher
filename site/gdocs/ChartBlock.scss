@@ -1,0 +1,10 @@
+.article-block__chart {
+    figure:not(.explorer) {
+        height: $grapher-height;
+
+        @include sm-only {
+            // 48px is the height of the header, 1rem is additional padding
+            height: calc(100vh - 48px - 1rem);
+        }
+    }
+}

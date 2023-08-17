@@ -3,7 +3,12 @@
         text-align: center;
     }
 
-    figure[data-grapher-src] {
+    figure:not(.explorer) {
         height: $grapher-height;
+
+        @include sm-only {
+            // 48px is the height of the header, 1rem is the margin between the figure and the navigation, 40px is the height of the navigation, 1rem is additional padding
+            height: calc(100vh - 48px - 1rem - 40px - 1rem);
+        }
     }
 }
