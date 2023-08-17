@@ -262,7 +262,6 @@ export const SiteFooter = (props: SiteFooterProps) => (
                                 , a registered charity in England and Wales
                                 (Charity Number 1186433).
                             </p>
-                            {/* <a href="/" className="owid-logo">Our World in Data</a> */}
                         </div>
                     </div>
                 </div>
