@@ -11,8 +11,8 @@ import { GrapherTabOption } from "../core/GrapherConstants"
 
 const icons = {
     [GrapherTabOption.table]: faTable,
-    [GrapherTabOption.chart]: faEarthAmericas,
-    [GrapherTabOption.map]: faChartLine,
+    [GrapherTabOption.chart]: faChartLine,
+    [GrapherTabOption.map]: faEarthAmericas,
 } as const
 
 export interface ContentSwitchersManager {
