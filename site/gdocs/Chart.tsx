@@ -59,6 +59,7 @@ export default function Chart({
             {
                 hideRelatedQuestion: true,
                 hideShareTabButton: true,
+                hideExploreTheDataButton: false,
             },
             {
                 title: d.title,
@@ -75,9 +76,6 @@ export default function Chart({
             }
         }
     }
-
-    // always show the "Explore the data" button
-    config.hideExploreTheDataButton = false
 
     return (
         <div
