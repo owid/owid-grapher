@@ -91,6 +91,7 @@ export class ActionButtons extends React.Component<{
 
     @computed private get showButtonLabels(): boolean {
         const { availableWidth, sizeVariant, widthWithButtonLabels } = this
+        // todo(redesign: remove this restriction
         if (sizeVariant !== SizeVariant.lg) return false
         return widthWithButtonLabels <= availableWidth
     }

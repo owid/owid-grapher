@@ -17,7 +17,6 @@ $paddingLeftRight: 12px; // keep in sync with PADDING_LEFT_RIGHT
 
     li {
         height: 100%;
-        background-color: $hover-fill;
         display: inline-block;
         border-radius: 4px;
 
@@ -33,6 +32,16 @@ $paddingLeftRight: 12px; // keep in sync with PADDING_LEFT_RIGHT
             font-size: 13px;
             padding: 0 $paddingLeftRight;
             border-radius: inherit;
+            background-color: #f2f2f2;
+
+            &:hover {
+                background-color: #e7e7e7;
+            }
+
+            &:active {
+                color: #1d3d63;
+                background-color: #dbe5f0;
+            }
         }
     }
 

@@ -20,15 +20,17 @@ $gap: 2px;
         display: block;
         text-transform: capitalize;
         color: $light-text;
-        font-size: 13px;
+        font-size: 14px;
         font-weight: $medium;
         height: $controlRowHeight - 2 * ($borderWidth + $gap);
         line-height: $controlRowHeight - 2 * ($borderWidth + $gap);
+        // todo(redesign): update padding based on sizing
         padding: 0 8px;
         border-radius: $borderRadius - $gap;
 
         svg {
             margin-right: 6px;
+            color: $info-icon;
         }
     }
 
@@ -50,5 +52,9 @@ $gap: 2px;
     li.active > a {
         color: $active-text;
         background-color: $active-fill;
+
+        svg {
+            color: $active-knob;
+        }
     }
 }

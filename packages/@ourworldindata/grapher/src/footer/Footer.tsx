@@ -27,7 +27,6 @@ interface TextStyle {
 interface FooterProps {
     manager: FooterManager
     maxWidth?: number
-    verticalPaddingSmall?: number
 }
 
 @observer
@@ -46,8 +45,9 @@ export class Footer<
         return this.props.maxWidth ?? DEFAULT_BOUNDS.width
     }
 
-    @computed protected get verticalPaddingSmall(): number {
-        return this.props.verticalPaddingSmall ?? 8
+    // todo(redesign): refactor
+    @computed protected get notePaddingTop(): number {
+        return 4
     }
 
     @computed protected get sourcesText(): string {
@@ -167,9 +167,7 @@ export class Footer<
         const fontScale =
             this.sizeVariant === SizeVariant.xs
                 ? getFontScale(12)
-                : this.sizeVariant === SizeVariant.sm
-                ? getFontScale(13)
-                : getFontScale(14)
+                : getFontScale(13)
         const fontSize = fontScale * (this.manager.fontSize ?? BASE_FONT_SIZE)
         const lineHeight = this.sizeVariant === SizeVariant.xs ? 1.1 : 1.2
         return {
@@ -270,11 +268,11 @@ export class Footer<
             note,
             licenseAndOriginUrl,
             actionButtons,
-            verticalPaddingSmall,
+            notePaddingTop,
             hasNote,
         } = this
         const height =
-            (hasNote ? sources.height + verticalPaddingSmall : 0) +
+            (hasNote ? sources.height + notePaddingTop : 0) +
             Math.max(
                 (hasNote ? note.height : sources.height) +
                     LICENSE_PADDING_TOP +
@@ -313,15 +311,11 @@ export class Footer<
         const license = (
             <div className="license" style={this.licenseAndOriginUrl.htmlStyle}>
                 {this.finalUrlText && (
-                    <a
-                        href={this.finalUrl}
-                        target="_blank"
-                        rel="noopener"
-                        style={{ textDecoration: "none" }}
-                    >
-                        {this.finalUrlText} |{" "}
+                    <a href={this.finalUrl} target="_blank" rel="noopener">
+                        {this.finalUrlText}
                     </a>
-                )}
+                )}{" "}
+                |{" "}
                 <a
                     className={this.manager.hasOWIDLogo ? "cclogo" : undefined}
                     href={this.licenseUrl}
@@ -360,7 +354,7 @@ export class Footer<
                 <div
                     className="NoteAndActionButtons"
                     style={{
-                        marginTop: this.hasNote ? this.verticalPaddingSmall : 0,
+                        marginTop: this.hasNote ? this.notePaddingTop : 0,
                     }}
                 >
                     <div>

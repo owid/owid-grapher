@@ -20,10 +20,18 @@ $horizontalPadding: 16px; // keep in sync with HORIZONTAL_PADDING
 
     .sources a {
         text-decoration: underline;
+
+        &:hover {
+            text-decoration: none;
+        }
     }
 
     .license {
         margin-top: $licensePaddingTop;
+
+        a:hover {
+            text-decoration: underline;
+        }
     }
 
     .NoteAndActionButtons {

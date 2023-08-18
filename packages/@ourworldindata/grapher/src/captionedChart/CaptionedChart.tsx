@@ -112,8 +112,8 @@ interface CaptionedChartProps {
 
 // keep in sync with sass variables in CaptionedChart.scss
 const FRAME_PADDING = 16
-const CONTROLS_ROW_HEIGHT = 32
-const TIMELINE_HEIGHT = CONTROLS_ROW_HEIGHT
+const CONTROLS_ROW_HEIGHT = 34
+const TIMELINE_HEIGHT = 32
 
 // todo(redesign): we might want to rename CaptionedChart later
 
@@ -139,10 +139,10 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         const { sizeVariant } = this
         const { xs, sm, md, lg } = SizeVariant
         return {
-            [xs]: 4,
+            [xs]: 8,
             [sm]: 8,
             [md]: 12,
-            [lg]: 16,
+            [lg]: 12,
         }[sizeVariant]
     }
 
@@ -165,7 +165,6 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         return new Footer({
             manager: this.manager,
             maxWidth: this.maxWidth,
-            verticalPaddingSmall: this.verticalPaddingSmall,
         })
     }
 
@@ -515,11 +514,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                 {this.manager.hasTimeline && this.renderTimeline()}
                 <VerticalSpace height={this.verticalPadding} />
                 {/* #5 Footer */}
-                <Footer
-                    manager={this.manager}
-                    maxWidth={this.maxWidth}
-                    verticalPaddingSmall={this.verticalPaddingSmall}
-                />
+                <Footer manager={this.manager} maxWidth={this.maxWidth} />
                 {/* #6 [Related question] */}
                 {this.showRelatedQuestion && this.renderRelatedQuestion()}
             </>

@@ -300,10 +300,12 @@ export class TimelineComponent extends React.Component<{
                 onMouseLeave={this.onMouseLeave}
             >
                 {!this.manager.disablePlay && (
-                    <div
+                    <button
                         onMouseDown={(e): void => e.stopPropagation()}
                         onClick={this.togglePlay}
-                        className="play"
+                        className={
+                            "play" + (manager.isPlaying ? " playing" : "")
+                        }
                         data-track-note={
                             manager.isPlaying
                                 ? "timeline_pause"
@@ -323,7 +325,7 @@ export class TimelineComponent extends React.Component<{
                                 </span>
                             )}
                         </div>
-                    </div>
+                    </button>
                 )}
                 {this.timelineEdgeMarker("start")}
                 <div
