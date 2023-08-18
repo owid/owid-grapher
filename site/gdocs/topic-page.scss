@@ -139,7 +139,7 @@
     }
 
     .article-block__key-insights-content-column {
-        max-height: $grapher-height;
+        max-height: 575px;
         overflow-y: auto;
         scrollbar-width: thin;
         @include md-up {
