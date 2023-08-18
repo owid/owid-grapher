@@ -1,7 +1,7 @@
 @import "react-horizontal-scrolling-menu/styles.css";
 
 .wp-block-owid-key-insights {
-    --slide-content-height: 625px; // keep in sync with $grapher-height
+    --slide-content-height: 575px; // keep in sync with $grapher-height
 
     @include sm-only {
         // 48px is the height of the header, 1rem is additional padding
