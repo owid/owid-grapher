@@ -4,8 +4,9 @@
     --slide-content-height: 575px; // keep in sync with $grapher-height
 
     @include sm-only {
-        // 48px is the height of the header, 1rem is additional padding
-        --slide-content-height: calc(100vh - 48px - 1rem);
+        // 50px is the height of the header on mobile
+        // 1rem is additional padding
+        --slide-content-height: calc(100vh - 50px - 1rem);
     }
 
     .react-horizontal-scrolling-menu--wrapper {
@@ -109,12 +110,12 @@
             }
         }
 
-        figure:not(.explorer):not(.grapherPreview) {
+        figure.chart:not(.grapherPreview) {
             height: var(--slide-content-height, $grapher-height);
         }
 
         @include sm-only {
-            figure[data-grapher-src] {
+            figure.chart {
                 // override default full-width behaviour
                 width: auto;
                 margin: auto;
