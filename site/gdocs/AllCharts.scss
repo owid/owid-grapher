@@ -3,7 +3,7 @@
         text-align: center;
     }
 
-    figure.chart {
+    figure[data-grapher-src] {
         height: $grapher-height;
 
         @include sm-only {
