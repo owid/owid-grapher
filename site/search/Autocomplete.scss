@@ -7,17 +7,18 @@
 }
 
 .aa-Form {
-    border: none;
     border-radius: 0;
-    @include sm-up {
-        border-color: transparent;
-        border-width: 1px;
-        background-color: $blue-90;
-    }
+    border-color: transparent;
+    border-width: 1px;
+    background-color: $blue-90;
     &:focus-within {
         box-shadow: none;
         border-color: $blue-20;
         background-color: #fff;
+    }
+
+    @include sm-only {
+        border: none;
     }
 }
 

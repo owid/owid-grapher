@@ -48,10 +48,10 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
         setQuery("")
     }, [])
 
-    // Same as above
+    // Same SiteSearchNavigation re-rendering case as above
     const setSearchAsActiveMenu = useCallback(() => {
         setActiveMenu(Menu.Search)
-        // Forced DOM manipulation of the autocomplete panel size 🙃
+        // Forced DOM manipulation of the algolia autocomplete panel position 🙃
         // Without this, the panel initially renders at the same width as the shrunk search input
         // Fortunately we only have to do this when it mounts - it takes care of resizes
         setTimeout(() => {
@@ -63,6 +63,13 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
             ].map((className) => document.querySelector<HTMLElement>(className))
             if (navBar && searchContainer && panel) {
                 totalOffset = navBar.offsetLeft + searchContainer.offsetLeft
+                // This technique is off-by-one on Firefox when window.innerWidth is an even number
+                if (
+                    navigator.userAgent.includes("Firefox") &&
+                    totalOffset % 2
+                ) {
+                    totalOffset -= 1
+                }
                 panel.style.left = `${totalOffset}px`
             }
         }, 10)
