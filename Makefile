@@ -23,7 +23,6 @@ help:
 	@echo '  make up            start dev environment via docker-compose and tmux'
 	@echo '  make down          stop any services still running'
 	@echo '  make refresh       (while up) download a new grapher snapshot and update MySQL'
-	@echo '  make refresh.meta  (while up) refresh grapher metadata only'
 	@echo '  make migrate       (while up) run any outstanding db migrations'
 	@echo '  make test          run full suite (except db tests) of CI checks including unit tests'
 	@echo '  make dbtest        run db test suite that needs a running mysql db'
@@ -42,7 +41,7 @@ help:
 
 up: export DEBUG = 'knex:query'
 
-up: require create-if-missing.env tmp-downloads/owid_chartdata.sql.gz
+up: require create-if-missing.env tmp-downloads/owid_metadata.sql.gz
 	@make validate.env
 	@make check-port-3306
 	@echo '==> Building grapher'
@@ -69,7 +68,7 @@ up: require create-if-missing.env tmp-downloads/owid_chartdata.sql.gz
 		set -g mouse on \
 		|| make down
 
-up.devcontainer: create-if-missing.env.devcontainer tmp-downloads/owid_chartdata.sql.gz
+up.devcontainer: create-if-missing.env.devcontainer tmp-downloads/owid_metadata.sql.gz
 	@make validate.env
 	@make check-port-3306
 	@echo '==> Building grapher'
@@ -93,7 +92,7 @@ up.devcontainer: create-if-missing.env.devcontainer tmp-downloads/owid_chartdata
 
 up.full: export DEBUG = 'knex:query'
 
-up.full: require create-if-missing.env.full wordpress/.env tmp-downloads/owid_chartdata.sql.gz tmp-downloads/live_wordpress.sql.gz wordpress/web/app/uploads/2022
+up.full: require create-if-missing.env.full wordpress/.env tmp-downloads/owid_metadata.sql.gz tmp-downloads/live_wordpress.sql.gz wordpress/web/app/uploads/2022
 	@make validate.env.full
 	@make check-port-3306
 
@@ -128,17 +127,10 @@ migrate:
 
 refresh:
 	@echo '==> Downloading chart data'
-	./devTools/docker/download-grapher-mysql.sh
-
-	@echo '==> Updating grapher database'
-	@. ./.env && DATA_FOLDER=tmp-downloads ./devTools/docker/refresh-grapher-data.sh
-
-refresh.meta:
-	@echo '==> Downloading chart metadata'
 	./devTools/docker/download-grapher-metadata-mysql.sh
 
 	@echo '==> Updating grapher database'
-	@. ./.env && DATA_FOLDER=tmp-downloads SKIP_CHARTDATA=1 ./devTools/docker/refresh-grapher-data.sh
+	@. ./.env && DATA_FOLDER=tmp-downloads ./devTools/docker/refresh-grapher-data.sh
 
 refresh.wp:
 	@echo '==> Downloading wordpress data'
@@ -211,9 +203,9 @@ check-port-3306:
 		\nWe recommend using a different port (like 3307)";\
 	fi
 
-tmp-downloads/owid_chartdata.sql.gz:
-	@echo '==> Downloading chart data'
-	./devTools/docker/download-grapher-mysql.sh
+tmp-downloads/owid_metadata.sql.gz:
+	@echo '==> Downloading metadata'
+	./devTools/docker/download-grapher-metadata-mysql.sh
 
 tmp-downloads/live_wordpress.sql.gz:
 	@echo '==> Downloading wordpress data'

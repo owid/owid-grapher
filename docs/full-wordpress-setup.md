@@ -20,6 +20,4 @@ http://localhost:8080/admin - the grapher admin
 
 http://localhost:8080/wp/wp-admin - the wordpress admin
 
-Note that in the MySQL database that was set up, the `data_values` table will be incomplete – it will only contain data used in charts. In production, this table is >30GB (uncompressed) and contains unreviewed and undocumented data, so we currently don't offer a full export of it.
-
 If you'd like to interact with the databases, see the [inspecting and refreshing the databases](docker-compose-mysql.md#inspecting-the-databases) section of the prerequisite tutorial.
