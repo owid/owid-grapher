@@ -333,9 +333,22 @@ export class Footer<
                 <b>Data source:</b> {this.manager.sourcesLine} -{" "}
                 <a
                     data-track-note="chart_click_sources"
-                    onClick={action(
-                        () => (this.manager.isSourcesModalOpen = true)
-                    )}
+                    onClick={action(() => {
+                        // on data pages, scroll to the "Sources and Processing" section
+                        // on grapher pages, open the sources modal
+                        const sourcesIdOnDataPage = "sources-and-processing"
+                        const sourcesElement =
+                            document.getElementById(sourcesIdOnDataPage)
+                        if (sourcesElement && sourcesElement.scrollIntoView) {
+                            sourcesElement.scrollIntoView({
+                                behavior: "smooth",
+                            })
+                        } else if (sourcesElement) {
+                            window.location.hash = "#" + sourcesIdOnDataPage
+                        } else {
+                            this.manager.isSourcesModalOpen = true
+                        }
+                    })}
                 >
                     Learn more about this data
                 </a>
