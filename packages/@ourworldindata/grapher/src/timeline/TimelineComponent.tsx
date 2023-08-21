@@ -15,6 +15,8 @@ import classNames from "classnames"
 import { TimelineController, TimelineManager } from "./TimelineController"
 import { ActionButton } from "../controls/ActionButtons"
 
+export const TIMELINE_HEIGHT = 32 // keep in sync with $timelineHeight in TimelineController.scss
+
 const HANDLE_TOOLTIP_FADE_TIME_MS = 2000
 
 @observer
@@ -28,10 +30,6 @@ export class TimelineComponent extends React.Component<{
 
     @computed protected get maxWidth(): number {
         return this.props.maxWidth ?? DEFAULT_BOUNDS.width
-    }
-
-    @computed get height(): number {
-        return 32
     }
 
     @computed private get isDragging(): boolean {
@@ -299,7 +297,6 @@ export class TimelineComponent extends React.Component<{
                     "TimelineComponent" +
                     (this.mouseHoveringOverTimeline ? " hover" : "")
                 }
-                style={{ height: this.height }}
                 onMouseOver={this.onMouseOver}
                 onMouseLeave={this.onMouseLeave}
             >
@@ -319,7 +316,7 @@ export class TimelineComponent extends React.Component<{
                         }
                         icon={manager.isPlaying ? faPause : faPlay}
                         isActive={manager.isPlaying}
-                        style={{ minWidth: this.height }}
+                        style={{ minWidth: TIMELINE_HEIGHT }}
                     />
                 )}
                 {this.timelineEdgeMarker("start")}

@@ -56,7 +56,10 @@ import {
     ContentSwitchers,
     ContentSwitchersManager,
 } from "../controls/ContentSwitchers"
-import { TimelineComponent } from "../timeline/TimelineComponent"
+import {
+    TimelineComponent,
+    TIMELINE_HEIGHT,
+} from "../timeline/TimelineComponent"
 import { TimelineController } from "../timeline/TimelineController"
 
 export interface CaptionedChartManager
@@ -163,14 +166,6 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     @computed protected get footer(): Footer {
         return new Footer({
             manager: this.manager,
-            maxWidth: this.maxWidth,
-        })
-    }
-
-    @computed protected get timeline(): TimelineComponent | null {
-        if (!this.manager.hasTimeline) return null
-        return new TimelineComponent({
-            timelineController: this.manager.timelineController!,
             maxWidth: this.maxWidth,
         })
     }
@@ -472,7 +467,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                     : 0) -
                 // #4 [Timeline]
                 (this.manager.hasTimeline
-                    ? this.verticalPaddingSmall + this.timeline!.height
+                    ? this.verticalPaddingSmall + TIMELINE_HEIGHT
                     : 0) -
                 this.verticalPadding -
                 // #5 Footer

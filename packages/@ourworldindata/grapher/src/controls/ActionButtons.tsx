@@ -235,7 +235,10 @@ export class ActionButtons extends React.Component<{
 
         return (
             <div
-                className="ActionButtons"
+                className={
+                    "ActionButtons" +
+                    (this.showButtonLabels ? "" : " icons-only")
+                }
                 style={{ height: this.height, width: this.width }}
             >
                 <ul>
@@ -273,6 +276,7 @@ export class ActionButtons extends React.Component<{
                                 isActive={this.manager.isShareMenuActive}
                                 style={{ width: "100%" }}
                             />
+                            {shareMenuElement}
                         </li>
                     )}
                     {this.hasFullScreenButton && (
@@ -312,7 +316,6 @@ export class ActionButtons extends React.Component<{
                         </li>
                     )}
                 </ul>
-                {shareMenuElement}
             </div>
         )
     }
@@ -341,7 +344,10 @@ export function ActionButton(props: {
                 }
                 title={props.title ?? props.label}
                 data-track-note={props.dataTrackNote}
-                onClick={props.onClick}
+                onClick={(e: React.MouseEvent<HTMLButtonElement>): void => {
+                    if (props.onClick) props.onClick(e)
+                    setShowTooltip(false)
+                }}
                 onMouseDown={props.onMouseDown}
                 onMouseEnter={(): void => {
                     if (!props.showLabel) setShowTooltip(true)

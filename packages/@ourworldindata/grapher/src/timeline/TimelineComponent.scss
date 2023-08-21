@@ -1,6 +1,8 @@
+$timelineHeight: 32px;
+
 .TimelineComponent {
     width: 100%;
-    height: 100%;
+    height: $timelineHeight;
     display: flex;
     align-items: center;
     justify-content: center;
