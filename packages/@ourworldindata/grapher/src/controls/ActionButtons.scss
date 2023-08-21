@@ -2,7 +2,7 @@
 $actionButtonHeight: 32px; // keep in sync with BUTTON_HEIGHT
 $paddingBetweenButtons: 8px; // keep in sync with PADDING_BETWEEN_BUTTONS
 $paddingBetweenIconAndLabel: 8px; // keep in sync with PADDING_BETWEEN_ICON_AND_LABEL
-$paddingLeftRight: 12px; // keep in sync with PADDING_LEFT_RIGHT
+$paddingX: 12px; // keep in sync with PADDING_X
 
 .ActionButtons {
     margin: 0;
@@ -18,51 +18,64 @@ $paddingLeftRight: 12px; // keep in sync with PADDING_LEFT_RIGHT
     li {
         height: 100%;
         display: inline-block;
-        border-radius: 4px;
-
-        button,
-        a {
-            display: flex;
-            align-items: center;
-            gap: $paddingBetweenIconAndLabel;
-            height: 100%;
-            width: 100%;
-            cursor: inherit;
-            color: $dark-text;
-            font-size: 13px;
-            padding: 0 $paddingLeftRight;
-            border-radius: inherit;
-            background-color: #f2f2f2;
-
-            &:hover {
-                background-color: #e7e7e7;
-            }
-
-            &:active {
-                color: #1d3d63;
-                background-color: #dbe5f0;
-            }
-        }
-    }
-
-    li.active button {
-        color: $active-text;
-        background-color: $active-fill;
-    }
-
-    li.icon-only {
-        button,
-        a {
-            display: block;
-            padding: 0;
-        }
     }
 
     li + li {
         margin-left: $paddingBetweenButtons;
     }
+}
 
-    li a:visited {
+.ActionButton {
+    height: 100%;
+    border-radius: 4px;
+    position: relative;
+
+    button,
+    a {
+        display: flex;
+        align-items: center;
+        gap: $paddingBetweenIconAndLabel;
+        height: 100%;
+        width: 100%;
+        cursor: inherit;
         color: $dark-text;
+        font-size: 13px;
+        padding: 0 $paddingX;
+        border-radius: inherit;
+        background-color: #f2f2f2;
+        position: relative;
+
+        svg {
+            font-size: 12px;
+        }
+
+        &.icon-only {
+            display: block;
+            padding: 0;
+        }
+
+        &:hover {
+            background-color: #e7e7e7;
+        }
+
+        &:active,
+        &.active {
+            color: $active-text;
+            background-color: $active-fill;
+        }
+    }
+
+    .hover-label {
+        width: max-content;
+        position: absolute;
+        top: -100%;
+        left: 50%;
+        transform: translate(-50%, -4px);
+        padding: 8px;
+        background-color: #4e4e4e;
+        color: #fff;
+        border-radius: 4px;
+        font-size: 12px;
+        line-height: 16px;
     }
 }

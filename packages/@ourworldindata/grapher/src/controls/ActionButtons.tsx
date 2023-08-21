@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useState } from "react"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { SizeVariant } from "../core/GrapherConstants"
@@ -29,7 +29,7 @@ export interface ActionButtonsManager extends ShareMenuManager {
 const BUTTON_HEIGHT = 32
 const PADDING_BETWEEN_BUTTONS = 8
 const PADDING_BETWEEN_ICON_AND_LABEL = 8
-const PADDING_LEFT_RIGHT = 12
+const PADDING_X = 12
 
 const BUTTON_WIDTH_ICON_ONLY = BUTTON_HEIGHT
 
@@ -125,8 +125,8 @@ export class ActionButtons extends React.Component<{
     private static computeButtonWidth(label: string): number {
         const labelWidth = Bounds.forText(label, { fontSize: 13 }).width
         return (
-            2 * PADDING_LEFT_RIGHT +
-            13 + // icon width
+            2 * PADDING_X +
+            12 + // icon width
             PADDING_BETWEEN_ICON_AND_LABEL +
             labelWidth
         )
@@ -240,42 +240,59 @@ export class ActionButtons extends React.Component<{
             >
                 <ul>
                     {this.hasDownloadButton && (
-                        <ActionButton
-                            width={this.downloadButtonWidth}
-                            label="Download"
-                            title="Download as .png or .svg"
-                            dataTrackNote="chart_click_download"
-                            showLabel={this.showButtonLabels}
-                            icon={faDownload}
-                            onClick={action(
-                                () => (this.manager.isDownloadModalOpen = true)
-                            )}
-                        />
+                        <li
+                            className="clickable"
+                            style={{ width: this.downloadButtonWidth }}
+                        >
+                            <ActionButton
+                                label="Download"
+                                title="Download as .png or .svg"
+                                dataTrackNote="chart_click_download"
+                                showLabel={this.showButtonLabels}
+                                icon={faDownload}
+                                onClick={action(
+                                    () =>
+                                        (this.manager.isDownloadModalOpen =
+                                            true)
+                                )}
+                                style={{ width: "100%" }}
+                            />
+                        </li>
                     )}
                     {this.hasShareButton && (
-                        <ActionButton
-                            width={this.shareButtonWidth}
-                            label="Share"
-                            dataTrackNote="chart_click_share"
-                            showLabel={this.showButtonLabels}
-                            icon={faShareNodes}
-                            onClick={this.toggleShareMenu}
-                            isActive={this.manager.isShareMenuActive}
-                        />
+                        <li
+                            className="clickable"
+                            style={{ width: this.shareButtonWidth }}
+                        >
+                            <ActionButton
+                                label="Share"
+                                dataTrackNote="chart_click_share"
+                                showLabel={this.showButtonLabels}
+                                icon={faShareNodes}
+                                onClick={this.toggleShareMenu}
+                                isActive={this.manager.isShareMenuActive}
+                                style={{ width: "100%" }}
+                            />
+                        </li>
                     )}
                     {this.hasFullScreenButton && (
-                        <ActionButton
-                            width={this.fullScreenButtonWidth}
-                            label={this.fullScreenButtonLabel}
-                            dataTrackNote="chart_click_fullscreen"
-                            showLabel={this.showButtonLabels}
-                            icon={
-                                manager.isInFullScreenMode
-                                    ? faCompress
-                                    : faExpand
-                            }
-                            onClick={this.toggleFullScreenMode}
-                        />
+                        <li
+                            className="clickable"
+                            style={{ width: this.fullScreenButtonWidth }}
+                        >
+                            <ActionButton
+                                label={this.fullScreenButtonLabel}
+                                dataTrackNote="chart_click_fullscreen"
+                                showLabel={this.showButtonLabels}
+                                icon={
+                                    manager.isInFullScreenMode
+                                        ? faCompress
+                                        : faExpand
+                                }
+                                onClick={this.toggleFullScreenMode}
+                                style={{ width: "100%" }}
+                            />
+                        </li>
                     )}
                     {this.hasExploreTheDataButton && (
                         <li
@@ -301,35 +318,44 @@ export class ActionButtons extends React.Component<{
     }
 }
 
-function ActionButton(props: {
-    width: number
-    dataTrackNote: string
-    onClick: React.MouseEventHandler<HTMLButtonElement>
-    showLabel: boolean
+export function ActionButton(props: {
     label: string
     icon: IconDefinition
+    width?: number
+    dataTrackNote?: string
+    onClick?: React.MouseEventHandler<HTMLButtonElement>
+    onMouseDown?: React.MouseEventHandler<HTMLButtonElement>
+    showLabel?: boolean
     title?: string
     isActive?: boolean
+    style?: React.CSSProperties
 }): JSX.Element {
+    const [showTooltip, setShowTooltip] = useState(false)
+
     return (
-        <li
-            className={
-                "clickable" +
-                (props.isActive ? " active" : "") +
-                (props.showLabel ? "" : " icon-only")
-            }
-            style={{ width: props.width }}
-        >
+        <div className="ActionButton" style={props.style}>
             <button
+                className={
+                    (props.isActive ? "active" : "") +
+                    (props.showLabel ? "" : " icon-only")
+                }
                 title={props.title ?? props.label}
                 data-track-note={props.dataTrackNote}
                 onClick={props.onClick}
+                onMouseDown={props.onMouseDown}
+                onMouseEnter={(): void => {
+                    if (!props.showLabel) setShowTooltip(true)
+                }}
+                onMouseLeave={(): void => {
+                    setShowTooltip(false)
+                }}
             >
                 <FontAwesomeIcon icon={props.icon} />
                 {props.showLabel && (
                     <span className="label">{props.label}</span>
                 )}
             </button>
-        </li>
+            {showTooltip && <div className="hover-label">{props.label}</div>}
+        </div>
     )
 }

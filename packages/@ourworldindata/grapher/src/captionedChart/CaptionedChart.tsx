@@ -113,7 +113,6 @@ interface CaptionedChartProps {
 // keep in sync with sass variables in CaptionedChart.scss
 const FRAME_PADDING = 16
 const CONTROLS_ROW_HEIGHT = 34
-const TIMELINE_HEIGHT = 32
 
 // todo(redesign): we might want to rename CaptionedChart later
 
@@ -164,6 +163,14 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     @computed protected get footer(): Footer {
         return new Footer({
             manager: this.manager,
+            maxWidth: this.maxWidth,
+        })
+    }
+
+    @computed protected get timeline(): TimelineComponent | null {
+        if (!this.manager.hasTimeline) return null
+        return new TimelineComponent({
+            timelineController: this.manager.timelineController!,
             maxWidth: this.maxWidth,
         })
     }
@@ -465,7 +472,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                     : 0) -
                 // #4 [Timeline]
                 (this.manager.hasTimeline
-                    ? this.verticalPaddingSmall + TIMELINE_HEIGHT
+                    ? this.verticalPaddingSmall + this.timeline!.height
                     : 0) -
                 this.verticalPadding -
                 // #5 Footer
@@ -560,7 +567,7 @@ export class StaticCaptionedChart extends CaptionedChart {
 
     @computed protected get boundsForChartArea(): Bounds {
         return this.paddedBounds
-            .padTop(Math.max(this.header.height, this.header.logoHeight))
+            .padTop(this.header.height)
             .padBottom(this.staticFooter.height + this.verticalPadding)
             .padTop(this.manager.isOnMapTab ? 0 : this.verticalPadding)
     }

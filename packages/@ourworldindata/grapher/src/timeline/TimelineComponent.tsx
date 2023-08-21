@@ -11,10 +11,9 @@ import {
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { faPlay, faPause } from "@fortawesome/free-solid-svg-icons"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import Tippy from "@tippyjs/react"
 import classNames from "classnames"
 import { TimelineController, TimelineManager } from "./TimelineController"
+import { ActionButton } from "../controls/ActionButtons"
 
 const HANDLE_TOOLTIP_FADE_TIME_MS = 2000
 
@@ -29,6 +28,10 @@ export class TimelineComponent extends React.Component<{
 
     @computed protected get maxWidth(): number {
         return this.props.maxWidth ?? DEFAULT_BOUNDS.width
+    }
+
+    @computed get height(): number {
+        return 32
     }
 
     @computed private get isDragging(): boolean {
@@ -296,36 +299,28 @@ export class TimelineComponent extends React.Component<{
                     "TimelineComponent" +
                     (this.mouseHoveringOverTimeline ? " hover" : "")
                 }
+                style={{ height: this.height }}
                 onMouseOver={this.onMouseOver}
                 onMouseLeave={this.onMouseLeave}
             >
                 {!this.manager.disablePlay && (
-                    <button
-                        onMouseDown={(e): void => e.stopPropagation()}
-                        onClick={this.togglePlay}
-                        className={
-                            "play" + (manager.isPlaying ? " playing" : "")
-                        }
-                        data-track-note={
+                    <ActionButton
+                        dataTrackNote={
                             manager.isPlaying
                                 ? "timeline_pause"
                                 : "timeline_play"
                         }
-                    >
-                        <div>
-                            {manager.isPlaying ? (
-                                <FontAwesomeIcon icon={faPause} />
-                            ) : (
-                                <FontAwesomeIcon icon={faPlay} />
-                            )}
-                            {this.showPlayLabel && (
-                                <span className="label">
-                                    {manager.isPlaying ? "Pause" : "Play"}{" "}
-                                    time-lapse
-                                </span>
-                            )}
-                        </div>
-                    </button>
+                        onMouseDown={(e): void => e.stopPropagation()}
+                        onClick={this.togglePlay}
+                        showLabel={this.showPlayLabel}
+                        label={
+                            (manager.isPlaying ? "Pause" : "Play") +
+                            " time-lapse"
+                        }
+                        icon={manager.isPlaying ? faPause : faPlay}
+                        isActive={manager.isPlaying}
+                        style={{ minWidth: this.height }}
+                    />
                 )}
                 {this.timelineEdgeMarker("start")}
                 <div
@@ -384,13 +379,21 @@ const TimelineHandle = ({
                 left: `${offsetPercent}%`,
             }}
         >
-            <Tippy
-                content={<span>{tooltipContent}</span>}
-                visible={tooltipVisible}
-                zIndex={tooltipZIndex}
-            >
-                <div className="icon" />
-            </Tippy>
+            <div className="icon" />
+            {tooltipVisible && (
+                <>
+                    <div
+                        className="handle-label-arrow"
+                        style={{ zIndex: tooltipZIndex }}
+                    />
+                    <div
+                        className="handle-label"
+                        style={{ zIndex: tooltipZIndex }}
+                    >
+                        {tooltipContent}
+                    </div>
+                </>
+            )}
         </div>
     )
 }
