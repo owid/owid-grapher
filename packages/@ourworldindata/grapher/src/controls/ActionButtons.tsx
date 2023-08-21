@@ -237,7 +237,9 @@ export class ActionButtons extends React.Component<{
             <div
                 className={
                     "ActionButtons" +
-                    (this.showButtonLabels ? "" : " icons-only")
+                    (!this.showButtonLabels && !this.hasExploreTheDataButton
+                        ? " icons-only"
+                        : "")
                 }
                 style={{ height: this.height, width: this.width }}
             >
@@ -300,7 +302,7 @@ export class ActionButtons extends React.Component<{
                     )}
                     {this.hasExploreTheDataButton && (
                         <li
-                            className="clickable explore-data"
+                            className="ActionButton clickable"
                             style={{ width: this.exploreTheDataButtonWidth }}
                         >
                             <a
