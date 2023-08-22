@@ -236,7 +236,7 @@ class SearchResults extends React.Component<SearchResultsProps> {
             >
                 {/* This is using the InstantSearch index */}
                 <Configure hitsPerPage={40} distinct />
-                <div className="search-results__pages">
+                <section className="search-results__pages">
                     <NoResultsBoundary>
                         <>
                             <header className="search-results__header">
@@ -262,8 +262,8 @@ class SearchResults extends React.Component<SearchResultsProps> {
                             />
                         </>
                     </NoResultsBoundary>
-                </div>
-                <div className="search-results__explorers">
+                </section>
+                <section className="search-results__explorers">
                     <Index indexName={SearchIndexName.Explorers}>
                         <Configure hitsPerPage={10} distinct />
                         <NoResultsBoundary>
@@ -292,8 +292,8 @@ class SearchResults extends React.Component<SearchResultsProps> {
                             </>
                         </NoResultsBoundary>
                     </Index>
-                </div>
-                <div className="search-results__charts">
+                </section>
+                <section className="search-results__charts">
                     <Index indexName={SearchIndexName.Charts}>
                         <Configure hitsPerPage={40} distinct />
                         <NoResultsBoundary>
@@ -322,7 +322,7 @@ class SearchResults extends React.Component<SearchResultsProps> {
                             </>
                         </NoResultsBoundary>
                     </Index>
-                </div>
+                </section>
             </div>
         )
     }

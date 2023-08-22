@@ -7,6 +7,7 @@
     --aa-detached-media-query: (max-width: $md);
     --aa-detached-modal-media-query: (min-width: $md);
     --aa-detached-modal-max-width: $md;
+    --aa-muted-color-rgb: $blue-20;
 }
 
 .aa-DetachedFormContainer .aa-Form,
@@ -81,14 +82,29 @@
 }
 
 .aa-SubmitIcon,
+.aa-SubmitButton,
+.aa-ItemActionButton,
 .aa-ClearButton {
     fill: $blue-30;
     color: $blue-30;
     stroke: none;
 
+    &:focus {
+        outline: none;
+        box-shadow: none;
+        background: $blue-10;
+    }
+
     &:hover {
         fill: $blue-90;
         color: $blue-90;
+    }
+}
+
+.aa-DetachedCancelButton {
+    &:focus {
+        box-shadow: none;
+        background: $blue-10;
     }
 }
 
