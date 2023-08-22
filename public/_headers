@@ -3,6 +3,12 @@
     Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
     Access-Control-Allow-Origin: https://owid.cloud
 
+/*.html
+    Link: <assets/owid.css>; rel=preload; as=style
+    Link: <assets/common.css>; rel=preload; as=style
+    Link: <assets/assets/owid.mjs>; rel=modulepreload
+    Link: <assets/assets/common.mjs>; rel=modulepreload
+
 
 /assets/*
     ! Access-Control-Allow-Origin
