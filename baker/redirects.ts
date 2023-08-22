@@ -1,11 +1,6 @@
 import * as db from "../db/db.js"
 import * as wpdb from "../db/wpdb.js"
-import {
-    getCountryDetectionRedirects,
-    memoize,
-    JsonError,
-    Url,
-} from "@ourworldindata/utils"
+import { memoize, JsonError, Url } from "@ourworldindata/utils"
 import { isCanonicalInternalUrl } from "./formatting.js"
 import { resolveExplorerRedirect } from "./replaceExplorerRedirects.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
@@ -43,11 +38,10 @@ export const getRedirects = async () => {
 
         "/slides/* https://slides.ourworldindata.org/:splat 301",
         "/subscribe /#subscribe 301",
-    ]
 
-    getCountryDetectionRedirects().forEach((redirect) =>
-        redirects.push(redirect)
-    )
+        // Country detection
+        "/detect-country https://detect-country.owid.io 302",
+    ]
 
     // Redirects from Wordpress admin UI
     const rows = await wpdb.singleton.query(
