@@ -74,6 +74,7 @@ import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_EXPORTS_BASE_URL,
 } from "../settings/clientSettings.js"
+import pMap from "p-map"
 
 // These aren't all "wordpress" steps
 // But they're only run when you have the full stack available
@@ -305,16 +306,12 @@ export class SiteBaker {
             (postrow) => !alreadyPublishedViaGdocsSlugsSet.has(postrow.slug)
         )
 
-        const postSlugs = []
-        for (const postApi of postsApi) {
-            const post = await wpdb.getFullPost(postApi)
-
-            postSlugs.push(post.slug)
-            await this.bakePost(post)
-        }
-
-        // Maxes out resources (TODO: RCA)
-        // await Promise.all(bakingPosts.map(post => this.bakePost(post)))
+        await pMap(
+            postsApi,
+            async (postApi) =>
+                wpdb.getFullPost(postApi).then((post) => this.bakePost(post)),
+            { concurrency: 10 }
+        )
 
         this.progressBar.tick({ name: "✅ baked posts" })
     }
