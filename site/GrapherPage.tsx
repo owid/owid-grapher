@@ -14,6 +14,7 @@ import {
     uniq,
     SiteFooterContext,
     MarkdownTextWrap,
+    Url,
 } from "@ourworldindata/utils"
 import React from "react"
 import urljoin from "url-join"
@@ -41,6 +42,7 @@ export const GrapherPage = (props: {
         props
     const pageTitle = grapher.title
     const canonicalUrl = urljoin(baseGrapherUrl, grapher.slug as string)
+    const dataApiOrigin = Url.fromURL(DATA_API_URL).origin
     let pageDesc: string
     if (grapher.subtitle?.length) {
         // convert subtitle from markdown to plaintext
@@ -90,6 +92,7 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                     figure { display: none !important; }
                 `}</style>
                 </noscript>
+                <link rel="preconnect" href={dataApiOrigin} />
                 {flatten(
                     variableIds.map((variableId) =>
                         [
