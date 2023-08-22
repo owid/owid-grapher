@@ -201,6 +201,18 @@ function Filters({
     )
 }
 
+function NoResultsBoundary({ children }: { children: React.ReactElement }) {
+    const { results } = useInstantSearch()
+
+    // The `__isArtificial` flag makes sure not to display the No Results message
+    // when no hits have been returned.
+    if (!results.__isArtificial && results.nbHits === 0) {
+        return <div hidden>{children}</div>
+    }
+
+    return children
+}
+
 interface SearchResultsProps {
     activeCategoryFilter: SearchCategoryFilter
     isHidden: boolean
@@ -225,76 +237,90 @@ class SearchResults extends React.Component<SearchResultsProps> {
                 {/* This is using the InstantSearch index */}
                 <Configure hitsPerPage={40} distinct />
                 <div className="search-results__pages">
-                    <header className="search-results__header">
-                        <h2 className="h2-bold search-results__section-title">
-                            Research & Writing
-                        </h2>
-                    </header>
-                    <ShowMore
-                        category={SearchIndexName.Pages}
-                        cutoffNumber={4}
-                        activeCategoryFilter={activeCategoryFilter}
-                        handleCategoryFilterClick={handleCategoryFilterClick}
-                    />
-                    <Hits
-                        classNames={{
-                            root: "search-results__list-container",
-                            list: "search-results__pages-list grid grid-cols-2 grid-cols-sm-1",
-                            item: "search-results__page-hit span-md-cols-2",
-                        }}
-                        hitComponent={PagesHit}
-                    />
+                    <NoResultsBoundary>
+                        <>
+                            <header className="search-results__header">
+                                <h2 className="h2-bold search-results__section-title">
+                                    Research & Writing
+                                </h2>
+                            </header>
+                            <ShowMore
+                                category={SearchIndexName.Pages}
+                                cutoffNumber={4}
+                                activeCategoryFilter={activeCategoryFilter}
+                                handleCategoryFilterClick={
+                                    handleCategoryFilterClick
+                                }
+                            />
+                            <Hits
+                                classNames={{
+                                    root: "search-results__list-container",
+                                    list: "search-results__pages-list grid grid-cols-2 grid-cols-sm-1",
+                                    item: "search-results__page-hit span-md-cols-2",
+                                }}
+                                hitComponent={PagesHit}
+                            />
+                        </>
+                    </NoResultsBoundary>
                 </div>
                 <div className="search-results__explorers">
                     <Index indexName={SearchIndexName.Explorers}>
                         <Configure hitsPerPage={10} distinct />
-                        <header className="search-results__header">
-                            <h2 className="h2-bold search-results__section-title">
-                                Data Explorers
-                            </h2>
-                        </header>
-                        <ShowMore
-                            category={SearchIndexName.Explorers}
-                            cutoffNumber={2}
-                            activeCategoryFilter={activeCategoryFilter}
-                            handleCategoryFilterClick={
-                                handleCategoryFilterClick
-                            }
-                        />
-                        <Hits
-                            classNames={{
-                                root: "search-results__list-container",
-                                list: "search-results__explorers-list grid grid-cols-2 grid-sm-cols-1",
-                                item: "search-results__explorer-hit",
-                            }}
-                            hitComponent={ExplorersHit}
-                        />
+                        <NoResultsBoundary>
+                            <>
+                                <header className="search-results__header">
+                                    <h2 className="h2-bold search-results__section-title">
+                                        Data Explorers
+                                    </h2>
+                                </header>
+                                <ShowMore
+                                    category={SearchIndexName.Explorers}
+                                    cutoffNumber={2}
+                                    activeCategoryFilter={activeCategoryFilter}
+                                    handleCategoryFilterClick={
+                                        handleCategoryFilterClick
+                                    }
+                                />
+                                <Hits
+                                    classNames={{
+                                        root: "search-results__list-container",
+                                        list: "search-results__explorers-list grid grid-cols-2 grid-sm-cols-1",
+                                        item: "search-results__explorer-hit",
+                                    }}
+                                    hitComponent={ExplorersHit}
+                                />
+                            </>
+                        </NoResultsBoundary>
                     </Index>
                 </div>
                 <div className="search-results__charts">
                     <Index indexName={SearchIndexName.Charts}>
                         <Configure hitsPerPage={40} distinct />
-                        <header className="search-results__header">
-                            <h2 className="h2-bold search-results__section-title">
-                                Charts
-                            </h2>
-                        </header>
-                        <ShowMore
-                            category={SearchIndexName.Charts}
-                            cutoffNumber={15}
-                            activeCategoryFilter={activeCategoryFilter}
-                            handleCategoryFilterClick={
-                                handleCategoryFilterClick
-                            }
-                        />
-                        <Hits
-                            classNames={{
-                                root: "search-results__list-container",
-                                list: "search-results__charts-list grid grid-cols-4 grid-sm-cols-2",
-                                item: "search-results__chart-hit span-md-cols-2",
-                            }}
-                            hitComponent={ChartHit}
-                        />
+                        <NoResultsBoundary>
+                            <>
+                                <header className="search-results__header">
+                                    <h2 className="h2-bold search-results__section-title">
+                                        Charts
+                                    </h2>
+                                </header>
+                                <ShowMore
+                                    category={SearchIndexName.Charts}
+                                    cutoffNumber={15}
+                                    activeCategoryFilter={activeCategoryFilter}
+                                    handleCategoryFilterClick={
+                                        handleCategoryFilterClick
+                                    }
+                                />
+                                <Hits
+                                    classNames={{
+                                        root: "search-results__list-container",
+                                        list: "search-results__charts-list grid grid-cols-4 grid-sm-cols-2",
+                                        item: "search-results__chart-hit span-md-cols-2",
+                                    }}
+                                    hitComponent={ChartHit}
+                                />
+                            </>
+                        </NoResultsBoundary>
                     </Index>
                 </div>
             </div>
