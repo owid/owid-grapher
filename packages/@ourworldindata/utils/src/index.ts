@@ -254,7 +254,7 @@ export {
     urlToSlug,
     trimObject,
     fetchText,
-    getCountryCodeFromNetlifyRedirect,
+    getUserCountryInformation,
     stripHTML,
     getRandomNumberGenerator,
     sampleFrom,
