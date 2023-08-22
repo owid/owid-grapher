@@ -85,6 +85,12 @@ export const createTagsForManifestEntry = (
         if (entry.endsWith(".css")) {
             assets = [
                 ...assets,
+                <link
+                    key={`${entry}-preload`}
+                    rel="preload"
+                    href={assetUrl}
+                    as="style"
+                />,
                 <link key={entry} rel="stylesheet" href={assetUrl} />,
             ]
         } else if (entry.match(/\.[cm]?(js|jsx|ts|tsx)$/)) {
