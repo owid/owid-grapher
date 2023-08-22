@@ -1,7 +1,14 @@
+.search-page-container {
+    margin-top: 24px;
+    min-height: calc(100vh - $header-height-md);
+    @include sm-only {
+        min-height: calc(100vh - $header-height-sm);
+    }
+}
+
 .search-panel {
     max-width: 1280px;
     margin: auto;
-    margin-top: 24px;
 
     @include sm-only {
         margin-top: 0;
@@ -365,4 +372,37 @@
     .search-results__explorer-hit {
         display: inline;
     }
+}
+
+.search-panel section[hidden] {
+    display: none !important;
+}
+
+section.search-page__no-results {
+    display: none;
+    height: 60vh;
+    text-align: center;
+    flex-direction: column;
+    justify-content: center;
+
+    h2 {
+        margin-bottom: 0;
+    }
+    p {
+        margin-top: 0;
+    }
+
+    svg {
+        padding: 12px;
+        background: $blue-10;
+        border-radius: 24px;
+    }
+}
+
+// When all the other sections are hidden, show the no results section
+section[hidden]
+    + section[hidden]
+    + section[hidden]
+    + section.search-page__no-results {
+    display: flex;
 }

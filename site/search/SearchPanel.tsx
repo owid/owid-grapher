@@ -41,6 +41,8 @@ import type {
     AutocompleteConnectorParams,
     AutocompleteWidgetDescription,
 } from "instantsearch.js/es/connectors/autocomplete/connectAutocomplete"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faSearch } from "@fortawesome/free-solid-svg-icons"
 
 export type UseAutocompleteProps = AutocompleteConnectorParams
 
@@ -197,10 +199,12 @@ function Filters({
 function NoResultsBoundary({ children }: { children: React.ReactElement }) {
     const { results } = useInstantSearch()
 
-    // The `__isArtificial` flag makes sure not to display the No Results message
-    // when no hits have been returned.
+    // The `__isArtificial` flag makes sure not to display the No Results message when no hits have been returned.
+    // Add the `hidden` attribute to the child <section> tag,
+    // which we can leverage along with the adjacent sibling selector
+    // to show a No Results screen with CSS alone
     if (!results.__isArtificial && results.nbHits === 0) {
-        return <div hidden>{children}</div>
+        return React.cloneElement(children, { hidden: "true" })
     }
 
     return children
@@ -229,17 +233,43 @@ class SearchResults extends React.Component<SearchResultsProps> {
             >
                 {/* This is using the InstantSearch index */}
                 <Configure hitsPerPage={40} distinct />
-                <section className="search-results__pages">
+                <NoResultsBoundary>
+                    <section className="search-results__pages">
+                        <header className="search-results__header">
+                            <h2 className="h2-bold search-results__section-title">
+                                Research & Writing
+                            </h2>
+                        </header>
+                        <ShowMore
+                            category={SearchIndexName.Pages}
+                            cutoffNumber={4}
+                            activeCategoryFilter={activeCategoryFilter}
+                            handleCategoryFilterClick={
+                                handleCategoryFilterClick
+                            }
+                        />
+                        <Hits
+                            classNames={{
+                                root: "search-results__list-container",
+                                list: "search-results__pages-list grid grid-cols-2 grid-cols-sm-1",
+                                item: "search-results__page-hit span-md-cols-2",
+                            }}
+                            hitComponent={PagesHit}
+                        />
+                    </section>
+                </NoResultsBoundary>
+                <Index indexName={SearchIndexName.Explorers}>
                     <NoResultsBoundary>
-                        <>
+                        <section className="search-results__explorers">
+                            <Configure hitsPerPage={10} distinct />
                             <header className="search-results__header">
                                 <h2 className="h2-bold search-results__section-title">
-                                    Research & Writing
+                                    Data Explorers
                                 </h2>
                             </header>
                             <ShowMore
-                                category={SearchIndexName.Pages}
-                                cutoffNumber={4}
+                                category={SearchIndexName.Explorers}
+                                cutoffNumber={2}
                                 activeCategoryFilter={activeCategoryFilter}
                                 handleCategoryFilterClick={
                                     handleCategoryFilterClick
@@ -248,73 +278,53 @@ class SearchResults extends React.Component<SearchResultsProps> {
                             <Hits
                                 classNames={{
                                     root: "search-results__list-container",
-                                    list: "search-results__pages-list grid grid-cols-2 grid-cols-sm-1",
-                                    item: "search-results__page-hit span-md-cols-2",
+                                    list: "search-results__explorers-list grid grid-cols-2 grid-sm-cols-1",
+                                    item: "search-results__explorer-hit",
                                 }}
-                                hitComponent={PagesHit}
+                                hitComponent={ExplorersHit}
                             />
-                        </>
+                        </section>
                     </NoResultsBoundary>
-                </section>
-                <section className="search-results__explorers">
-                    <Index indexName={SearchIndexName.Explorers}>
-                        <Configure hitsPerPage={10} distinct />
-                        <NoResultsBoundary>
-                            <>
-                                <header className="search-results__header">
-                                    <h2 className="h2-bold search-results__section-title">
-                                        Data Explorers
-                                    </h2>
-                                </header>
-                                <ShowMore
-                                    category={SearchIndexName.Explorers}
-                                    cutoffNumber={2}
-                                    activeCategoryFilter={activeCategoryFilter}
-                                    handleCategoryFilterClick={
-                                        handleCategoryFilterClick
-                                    }
-                                />
-                                <Hits
-                                    classNames={{
-                                        root: "search-results__list-container",
-                                        list: "search-results__explorers-list grid grid-cols-2 grid-sm-cols-1",
-                                        item: "search-results__explorer-hit",
-                                    }}
-                                    hitComponent={ExplorersHit}
-                                />
-                            </>
-                        </NoResultsBoundary>
-                    </Index>
-                </section>
-                <section className="search-results__charts">
-                    <Index indexName={SearchIndexName.Charts}>
-                        <Configure hitsPerPage={40} distinct />
-                        <NoResultsBoundary>
-                            <>
-                                <header className="search-results__header">
-                                    <h2 className="h2-bold search-results__section-title">
-                                        Charts
-                                    </h2>
-                                </header>
-                                <ShowMore
-                                    category={SearchIndexName.Charts}
-                                    cutoffNumber={15}
-                                    activeCategoryFilter={activeCategoryFilter}
-                                    handleCategoryFilterClick={
-                                        handleCategoryFilterClick
-                                    }
-                                />
-                                <Hits
-                                    classNames={{
-                                        root: "search-results__list-container",
-                                        list: "search-results__charts-list grid grid-cols-4 grid-sm-cols-2",
-                                        item: "search-results__chart-hit span-md-cols-2",
-                                    }}
-                                    hitComponent={ChartHit}
-                                />
-                            </>
-                        </NoResultsBoundary>
-                    </Index>
+                </Index>
+                <Index indexName={SearchIndexName.Charts}>
+                    <Configure hitsPerPage={40} distinct />
+                    <NoResultsBoundary>
+                        <section className="search-results__charts">
+                            <header className="search-results__header">
+                                <h2 className="h2-bold search-results__section-title">
+                                    Charts
+                                </h2>
+                            </header>
+                            <ShowMore
+                                category={SearchIndexName.Charts}
+                                cutoffNumber={15}
+                                activeCategoryFilter={activeCategoryFilter}
+                                handleCategoryFilterClick={
+                                    handleCategoryFilterClick
+                                }
+                            />
+                            <Hits
+                                classNames={{
+                                    root: "search-results__list-container",
+                                    list: "search-results__charts-list grid grid-cols-4 grid-sm-cols-2",
+                                    item: "search-results__chart-hit span-md-cols-2",
+                                }}
+                                hitComponent={ChartHit}
+                            />
+                        </section>
+                    </NoResultsBoundary>
+                </Index>
+                <section className="search-page__no-results">
+                    <div className="search-page__no-results-notice-container">
+                        <FontAwesomeIcon icon={faSearch} />
+                        <h2 className="body-1-regular">
+                            There are no results for this query.
+                        </h2>
+                        <p className="body-3-medium">
+                            You may want to try using different keywords or
+                            checking for typos.
+                        </p>
+                    </div>
                 </section>
             </div>
         )

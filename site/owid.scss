@@ -1025,7 +1025,6 @@ html:not(.js) {
     border-bottom: 1px solid $blue-20;
 }
 
-.SearchPage > main,
 .NotFoundPage > main {
     > form {
         @include content-wrapper;
@@ -1089,10 +1088,6 @@ html:not(.js) {
         // show it because it does not go to the bottom of the page and looks weird
         display: none;
     }
-}
-
-.SearchPage .searchResults {
-    padding-bottom: 40px;
 }
 
 .SearchResults {

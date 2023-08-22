@@ -13,9 +13,9 @@ export const SearchPage = (props: { baseUrl: string }) => {
                 pageDesc="Search articles and charts on Our World in Data."
                 baseUrl={baseUrl}
             />
-            <body className="SearchPage">
+            <body>
                 <SiteHeader baseUrl={baseUrl} />
-                <main style={{ minHeight: "calc(100vh - 516px)" }} />
+                <main className="search-page-container" />
                 <SiteFooter hideDonate={true} baseUrl={baseUrl} />
                 <script type="module">{`window.runSearchPage()`}</script>
             </body>
