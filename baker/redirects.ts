@@ -8,7 +8,7 @@ import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 export const getRedirects = async () => {
     const redirects = [
         // RSS feed
-        "/feed /atom.xml 302!",
+        "/feed /atom.xml 302",
 
         // TODO: this should only get triggered by external hits (indexed .pdf files for instance)
         // and should be removed when no evidence of these inbound links can be found.
@@ -53,7 +53,7 @@ export const getRedirects = async () => {
                 `${row.url.replace(/__/g, "/")} ${row.action_data.replace(
                     /__/g,
                     "/"
-                )} ${row.action_code}!`
+                )} ${row.action_code}`
         )
     )
 
@@ -66,7 +66,7 @@ export const getRedirects = async () => {
     for (const row of chartRedirectRows) {
         const trueSlug = JSON.parse(row.trueSlug)
         if (row.slug !== trueSlug) {
-            redirects.push(`/grapher/${row.slug} /grapher/${trueSlug} 302!`)
+            redirects.push(`/grapher/${row.slug} /grapher/${trueSlug} 302`)
         }
     }
 
