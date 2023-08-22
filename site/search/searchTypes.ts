@@ -130,3 +130,9 @@ export const searchCategoryFilters: [string, SearchCategoryFilter][] = [
     ["Explorers", SearchIndexName.Explorers],
     ["Charts", SearchIndexName.Charts],
 ]
+
+export const indexNameToSubdirectoryMap: Record<SearchIndexName, string> = {
+    [SearchIndexName.Pages]: "",
+    [SearchIndexName.Charts]: "/grapher",
+    [SearchIndexName.Explorers]: "/explorers",
+}

@@ -41,7 +41,6 @@ import type {
     AutocompleteConnectorParams,
     AutocompleteWidgetDescription,
 } from "instantsearch.js/es/connectors/autocomplete/connectAutocomplete"
-import { Autocomplete } from "./Autocomplete.js"
 
 export type UseAutocompleteProps = AutocompleteConnectorParams
 
@@ -51,12 +50,6 @@ export function useAutocomplete(props?: UseAutocompleteProps) {
         AutocompleteWidgetDescription
     >(connectAutocomplete, props)
 }
-
-// export function Autocomplete(props: UseAutocompleteProps) {
-//     const { indices, currentRefinement, refine } = useAutocomplete(props)
-
-//     return <>hello</>
-// }
 
 function PagesHit({ hit }: { hit: any }) {
     return (
@@ -384,6 +377,8 @@ export class InstantSearchContainer extends React.Component {
         return (
             <InstantSearch
                 routing={{
+                    // This controls algolia's automatic mapping of the search query to search params
+                    // we're customizing it here to remove any filter / facet information so that it's just ?q=some+query
                     stateMapping: {
                         stateToRoute(uiState) {
                             const query = uiState[SearchIndexName.Pages].query

@@ -8,7 +8,7 @@ import {
 } from "@algolia/autocomplete-js"
 import algoliasearch from "algoliasearch"
 import { createLocalStorageRecentSearchesPlugin } from "@algolia/autocomplete-plugin-recent-searches"
-import { SearchIndexName } from "./searchTypes.js"
+import { SearchIndexName, indexNameToSubdirectoryMap } from "./searchTypes.js"
 import {
     ALGOLIA_ID,
     ALGOLIA_SEARCH_KEY,
@@ -38,7 +38,7 @@ const recentSearchesPlugin = createLocalStorageRecentSearchesPlugin({
 
 const searchClient = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
 
-// This is the same function for all three sources
+// This is the same simple function for the two non-Algolia sources
 const onSelect: AutocompleteSource<BaseItem>["onSelect"] = ({
     navigator,
     item,
@@ -48,9 +48,17 @@ const onSelect: AutocompleteSource<BaseItem>["onSelect"] = ({
     navigator.navigate({ itemUrl, item, state })
 }
 
-// This is the same function for all three sources
+// This is the same simple function for the two non-Algolia sources
 const getItemUrl: AutocompleteSource<BaseItem>["getItemUrl"] = ({ item }) =>
     item.slug as string
+
+// The slugs we index to Algolia don't include the /grapher/ or /explorers/ directories
+// Prepend them with this function when we need them
+const prependSubdirectoryToAlgoliaItemUrl = (item: BaseItem): string => {
+    const indexName = item.__autocomplete_indexName as SearchIndexName
+    const subdirectory = indexNameToSubdirectoryMap[indexName]
+    return `${subdirectory}/${item.slug}`
+}
 
 const FeaturedSearchesSource: AutocompleteSource<BaseItem> = {
     sourceId: "suggestedSearch",
@@ -80,8 +88,14 @@ const FeaturedSearchesSource: AutocompleteSource<BaseItem> = {
 
 const AlgoliaSource: AutocompleteSource<BaseItem> = {
     sourceId: "autocomplete",
-    onSelect,
-    getItemUrl,
+    onSelect({ navigator, item, state }) {
+        const itemUrl = prependSubdirectoryToAlgoliaItemUrl(item)
+        navigator.navigate({ itemUrl, item, state })
+    },
+    getItemUrl({ item }) {
+        const itemUrl = prependSubdirectoryToAlgoliaItemUrl(item)
+        return itemUrl
+    },
     getItems({ query }) {
         return getAlgoliaResults({
             searchClient,
