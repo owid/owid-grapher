@@ -132,7 +132,7 @@
 
 header.blog-header h1 {
     text-align: center;
-    font-family: $serif-font-stack;
+    @include serif;
     font-weight: 400;
     background: $oxford-blue;
     color: white;
@@ -439,7 +439,7 @@ h6:hover .deep-link {
 }
 
 .owid-data h4 {
-    font-family: $serif-font-stack;
+    @include serif;
     font-weight: 400;
     margin-top: 25px;
     margin-bottom: 0;
@@ -472,7 +472,7 @@ h6:hover .deep-link {
 /* MISPY: Front page mobile-default responsiveness and data entry listing */
 
 body.home .mobile.subheading {
-    font-family: $serif-font-stack;
+    @include serif;
     color: rgb(255, 203, 31);
     font-size: 22px;
 }
@@ -544,7 +544,7 @@ div.owid-presentations li:nth-of-type(1) a:hover {
     }
 
     .wp-block-columns h5 {
-        font-family: $serif-font-stack;
+        @include serif;
         font-weight: 400;
         font-size: 1.2rem;
         line-height: 1.2;
@@ -599,7 +599,7 @@ div.owid-presentations li:nth-of-type(1) a:hover {
 
     h2 {
         margin: 0;
-        font-family: $serif-font-stack;
+        @include serif;
         font-size: 2.5rem;
         @include md-up {
             font-size: 3rem;

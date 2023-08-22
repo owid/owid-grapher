@@ -135,7 +135,7 @@
             h6 {
                 // TODO: comprehensive typography PR
                 line-height: 1.33;
-                font-family: $serif-font-stack;
+                @include serif;
                 font-size: 18px;
                 font-style: unset;
                 font-weight: bold;

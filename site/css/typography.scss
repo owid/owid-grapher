@@ -3,7 +3,7 @@
  */
 
 @mixin display-1-semibold {
-    font-family: $serif-font-stack;
+    @include serif;
     font-size: 3.5rem;
     line-height: 1.4;
     font-weight: 600;
@@ -18,7 +18,7 @@
 }
 
 @mixin display-2-semibold {
-    font-family: $serif-font-stack;
+    @include serif;
     font-size: 2rem;
     line-height: 1.2;
     font-weight: 600;
@@ -37,7 +37,7 @@
 }
 
 @mixin h1-semibold {
-    font-family: $serif-font-stack;
+    @include serif;
     font-size: 1.5rem;
     line-height: 1.25;
     font-weight: 600;
@@ -56,7 +56,7 @@
 }
 
 @mixin h1-bold-italic {
-    font-family: $serif-font-stack;
+    @include serif;
     font-size: 1.5rem;
     line-height: 1.25;
     font-weight: 700;
@@ -76,7 +76,7 @@
 }
 
 @mixin h2-bold {
-    font-family: $serif-font-stack;
+    @include serif;
     font-size: 1.25rem;
     line-height: 1.33;
     font-weight: 700;
@@ -95,7 +95,7 @@
 }
 
 @mixin h3-bold {
-    font-family: $serif-font-stack;
+    @include serif;
     font-size: 1.125rem;
     line-height: 1.33;
     font-weight: 700;
@@ -110,7 +110,7 @@
 }
 
 @mixin h4-semibold {
-    font-family: $serif-font-stack;
+    @include serif;
     font-size: 1rem;
     line-height: 1.5;
     font-weight: 600;
