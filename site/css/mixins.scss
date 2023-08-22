@@ -1,3 +1,41 @@
+@mixin serif {
+    font-family: $serif-font-stack;
+    font-feature-settings: $serif-font-features;
+}
+
+@mixin sans {
+    font-family: $sans-serif-font-stack;
+}
+
+@mixin small-caps {
+    font-feature-settings: "c2sc", "smcp";
+    letter-spacing: 0.05em;
+}
+
+@mixin superscript {
+    vertical-align: baseline;
+    font-size: inherit;
+    font-feature-settings: "sups";
+}
+
+@mixin subscript {
+    vertical-align: baseline;
+    font-size: inherit;
+    font-feature-settings: "subs";
+}
+
+@mixin oldstyle-numerals {
+    font-feature-settings: "onum";
+}
+
+@mixin lining-numerals {
+    font-feature-settings: "lnum", "liga";
+}
+
+@mixin fraction {
+    font-feature-settings: "frac", "liga";
+}
+
 @mixin owid-link-90 {
     color: $blue-90;
     text-decoration: underline;
@@ -106,7 +144,7 @@
 }
 
 @mixin h3-style {
-    font-family: $serif-font-stack;
+    @include serif;
     font-size: 1.75rem;
     @include md-up {
         font-size: 2.25rem;
@@ -116,7 +154,7 @@
 }
 
 @mixin h4-style {
-    font-family: $serif-font-stack;
+    @include serif;
     font-weight: 400;
     font-size: 1.5rem;
     line-height: 1.4em;
@@ -237,7 +275,7 @@
 }
 
 @mixin posts-heading {
-    font-family: $serif-font-stack;
+    @include serif;
     font-size: 1.75rem;
     font-weight: bold;
     line-height: 1.2;
