@@ -3,11 +3,58 @@ const express = require("express"),
 
 const PORT = 8000
 
+const FONTS_CSS = readFileSync(".env/build/fonts.css", "utf-8")
+    .replace(/\/fonts\/(Playfair)/g, "/.env/build/playfair/$1")
+    .replace(/\/fonts\/(Lato)/g, "/.env/build/lato/$1")
+
+const FAMILIES = {
+    Lato: [
+        [100, "Hairline"],
+        [200, "Thin"],
+        [300, "Light"],
+        [400, "Regular"],
+        [500, "Medium"],
+        [600, "Semibold"],
+        [700, "Bold"],
+        [800, "Heavy"],
+        [900, "Black"],
+    ],
+
+    PlayfairDisplay: [
+        [400, "Regular"],
+        [500, "Medium"],
+        [600, "SemiBold"],
+        [700, "Bold"],
+        [800, "ExtraBold"],
+        [900, "Black"],
+    ],
+}
+
+const SAMPLE_TEXT =
+    "hamburgefonstiv 0123<sub>456</sub><sup>789</sup> ←↑→↓↔↕↖↗↘↙"
+
+function pangram(family, postscriptNames = false) {
+    return FAMILIES[family]
+        .flatMap(([wt, weight]) => {
+            const familyName = family.replace(/(.+?)([A-Z])/, "$1 $2")
+            const italicWeight = (weight + "Italic").replace(/Regular/, "")
+            const style = postscriptNames
+                ? `font-family: ${family}-${weight};`
+                : `font-family: ${familyName}; font-weight:${wt};`
+            const italic = postscriptNames
+                ? `font-family: ${family}-${italicWeight};`
+                : `font-family: ${familyName}; font-weight:${wt}; font-style:italic;`
+
+            return [
+                `<p style="${style}">${weight} ${SAMPLE_TEXT}</p>`,
+                `<p style="${italic}">${weight} Italic ${SAMPLE_TEXT}</p>`,
+            ]
+        })
+        .join("\n")
+}
+
 const app = express()
 app.get("/", (req, res) => {
-    const pangram =
-        "hamburgefonstiv 0123<sub>456</sub><sup>789</sup> ←↑→↓↔↕↖↗↘↙"
-
     res.send(`<!DOCTYPE html><html>
         <head>
             <meta charset="utf-8"><link rel="stylesheet" href="/fonts.css" type="text/css" charset="utf-8">
@@ -45,96 +92,24 @@ app.get("/", (req, res) => {
 
             <h1>Hard-coded family names</h1>
             <h2>Lato</h2>
-            <p style="font-family: Lato-Hairline">Hairline ${pangram}</p>
-            <p style="font-family: Lato-HairlineItalic">HairlineItalic ${pangram}</p>
-            <p style="font-family: Lato-Thin">Thin ${pangram}</p>
-            <p style="font-family: Lato-ThinItalic">ThinItalic ${pangram}</p>
-            <p style="font-family: Lato-Light">Light ${pangram}</p>
-            <p style="font-family: Lato-LightItalic">LightItalic ${pangram}</p>
-            <p style="font-family: Lato-Regular">Regular ${pangram}</p>
-            <p style="font-family: Lato-Italic">Italic ${pangram}</p>
-            <p style="font-family: Lato-Medium">Medium ${pangram}</p>
-            <p style="font-family: Lato-MediumItalic">MediumItalic ${pangram}</p>
-            <p style="font-family: Lato-Semibold">Semibold ${pangram}</p>
-            <p style="font-family: Lato-SemiboldItalic">SemiboldItalic ${pangram}</p>
-            <p style="font-family: Lato-Bold">Bold ${pangram}</p>
-            <p style="font-family: Lato-BoldItalic">BoldItalic ${pangram}</p>
-            <p style="font-family: Lato-Heavy">Heavy ${pangram}</p>
-            <p style="font-family: Lato-HeavyItalic">HeavyItalic ${pangram}</p>
-            <p style="font-family: Lato-Black">Black ${pangram}</p>
-            <p style="font-family: Lato-BlackItalic">BlackItalic ${pangram}</p>
-
+            ${pangram("Lato", true)}
             <h2>Playfair</h2>
-            <p style="font-family: PlayfairDisplay-Regular">Regular ${pangram}</p>
-            <p style="font-family: PlayfairDisplay-Italic">Italic ${pangram}</p>
-            <p style="font-family: PlayfairDisplay-SemiBold, fantasy">Semibold ${pangram}</p>
-            <p style="font-family: PlayfairDisplay-SemiBoldItalic, fantasy">SemiboldItalic ${pangram}</p>
-            <p style="font-family: PlayfairDisplay-Bold">Bold ${pangram}</p>
-            <p style="font-family: PlayfairDisplay-BoldItalic">BoldItalic ${pangram}</p>
-            <p style="font-family: PlayfairDisplay-ExtraBold, fantasy">ExtraBold ${pangram}</p>
-            <p style="font-family: PlayfairDisplay-ExtraBoldItalic, fantasy">ExtraBoldItalic ${pangram}</p>
-            <p style="font-family: PlayfairDisplay-Black">Black ${pangram}</p>
-            <p style="font-family: PlayfairDisplay-BlackItalic">BlackItalic ${pangram}</p>
+            ${pangram("PlayfairDisplay", true)}
 
             <h1>Style-based font selection</h1>
             <h2>Lato</h2>
-                <div style="font-family: Lato, fantasy;">
-                <p style="font-weight:100;">Hairline ${pangram}</p>
-                <p style="font-weight:100; font-style:italic;">HairlineItalic ${pangram}</p>
-                <p style="font-weight:200;">Thin ${pangram}</p>
-                <p style="font-weight:200; font-style:italic;">ThinItalic ${pangram}</p>
-                <p style="font-weight:300;">Light ${pangram}</p>
-                <p style="font-weight:300; font-style:italic;">LightItalic ${pangram}</p>
-                <p style="font-weight:400;">Regular ${pangram}</p>
-                <p style="font-weight:400; font-style:italic;">Italic ${pangram}</p>
-                <p style="font-weight:500;">Medium ${pangram}</p>
-                <p style="font-weight:500; font-style:italic;">MediumItalic ${pangram}</p>
-                <p style="font-weight:600;">Semibold ${pangram}</p>
-                <p style="font-weight:600; font-style:italic;">SemiboldItalic ${pangram}</p>
-                <p style="font-weight:700;">Bold ${pangram}</p>
-                <p style="font-weight:700; font-style:italic;">BoldItalic ${pangram}</p>
-                <p style="font-weight:800;">Heavy ${pangram}</p>
-                <p style="font-weight:800; font-style:italic;">HeavyItalic ${pangram}</p>
-                <p style="font-weight:900;">Black ${pangram}</p>
-                <p style="font-weight:900; font-style:italic;">BlackItalic ${pangram}</p>
-            </div>
-
+            ${pangram("Lato")}
             <h2>Playfair</h2>
-            <div style="font-family: 'Playfair Display', fantasy;">
-                <p style="font-weight:400;">Regular ${pangram}</p>
-                <p style="font-weight:400; font-style:italic;">Italic ${pangram}</p>
-                <p style="font-weight:600;">Semibold ${pangram}</p>
-                <p style="font-weight:600; font-style:italic;">SemiboldItalic ${pangram}</p>
-                <p style="font-weight:700;">Bold ${pangram}</p>
-                <p style="font-weight:700; font-style:italic;">BoldItalic ${pangram}</p>
-                <p style="font-weight:800;">ExtraBold ${pangram}</p>
-                <p style="font-weight:800; font-style:italic;">ExtraBoldItalic ${pangram}</p>
-                <p style="font-weight:900;">Black ${pangram}</p>
-                <p style="font-weight:900; font-style:italic;">BlackItalic ${pangram}</p>
-            </div>
-
+            ${pangram("PlayfairDisplay")}
 
             <h2>Playfair Smallcaps</h2>
-            <div style="font-family: 'Playfair Display', fantasy;" class="small-caps">
-                <p style="font-weight:400;">Regular ${pangram}</p>
-                <p style="font-weight:400; font-style:italic;">Italic ${pangram}</p>
-                <p style="font-weight:600;">Semibold ${pangram}</p>
-                <p style="font-weight:600; font-style:italic;">SemiboldItalic ${pangram}</p>
-                <p style="font-weight:700;">Bold ${pangram}</p>
-                <p style="font-weight:700; font-style:italic;">BoldItalic ${pangram}</p>
-                <p style="font-weight:800;">ExtraBold ${pangram}</p>
-                <p style="font-weight:800; font-style:italic;">ExtraBoldItalic ${pangram}</p>
-                <p style="font-weight:900;">Black ${pangram}</p>
-                <p style="font-weight:900; font-style:italic;">BlackItalic ${pangram}</p>
+            <div class="small-caps">
+                ${pangram("PlayfairDisplay")}
             </div>
 
         </body></html>
     `)
 })
-
-const FONTS_CSS = readFileSync(".env/build/fonts.css", "utf-8")
-    .replace(/\/fonts\/(Playfair)/g, "/.env/build/playfair/$1")
-    .replace(/\/fonts\/(Lato)/g, "/.env/build/lato/$1")
 
 app.get("/fonts.css", (req, res) => {
     res.contentType("text/css")

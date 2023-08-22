@@ -35,12 +35,11 @@ LatoLatin-%: Lato-%
 PLAYFAIR := $(BUILD_DIR)/playfair
 PLAYFAIR_URL := https://fonts.google.com/download/list?family=Playfair%20Display
 $(PLAYFAIR).tsv:
-	curl -sL $(PLAYFAIR_URL) | \
-	tail -n +2 | \
+	curl -sL $(PLAYFAIR_URL) |  tail -n +2 | \
 	jq -r '.manifest.fileRefs[] | select(.filename | contains("Variable") | not) | [.url, .filename] | @tsv' \
 	> $@
 $(PLAYFAIR): $(PLAYFAIR).tsv
-	mkdir -p $(PLAYFAIR)
+	mkdir -p $@
 	@cat $< | while IFS=$$'\t' read -r url filename; do \
 		curl "$$url" -o "$@/$$(basename $$filename)"; \
 	done
@@ -55,7 +54,7 @@ $(VENV):
 	mkdir -p $@/build
 
 $(FACES): $(VENV) $(FONTS)
-	$(PYTHON) make-faces.py $(FONTS) | $(PRETTIER) --parser css > $@
+	@$(PYTHON) make-faces.py $(FONTS) | $(PRETTIER) --parser css > $@
 
 all: $(VENV) $(LATO) $(PLAYFAIR)
 	rm -f $(FACES)
