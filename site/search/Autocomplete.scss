@@ -3,21 +3,32 @@
 @import "@algolia/autocomplete-theme-classic";
 
 :root {
+    // Also referenced in Autocomplete.tsx - grep "detachedMediaQuery"
     --aa-detached-media-query: (max-width: $md);
+    --aa-detached-modal-media-query: (min-width: $md);
+    --aa-detached-modal-max-width: $md;
+}
+
+.aa-DetachedFormContainer .aa-Form,
+.aa-Autocomplete[aria-expanded="true"] .aa-Form {
+    box-shadow: none;
+    border-color: $blue-20;
+    background-color: #fff;
+    &:focus-within {
+        box-shadow: none;
+    }
 }
 
 .aa-Form {
     border-radius: 0;
     border-color: transparent;
     border-width: 1px;
-    background-color: $blue-90;
-    &:focus-within {
-        box-shadow: none;
-        border-color: $blue-20;
-        background-color: #fff;
+
+    @include lg-up {
+        background-color: $blue-90;
     }
 
-    @include sm-only {
+    @include md-down {
         border: none;
     }
 }
@@ -38,11 +49,56 @@
     order: 4;
 }
 
+.aa-DetachedSearchButton {
+    padding: 0;
+    background: none;
+    border: none;
+}
+
+.aa-DetachedSearchButtonPlaceholder {
+    display: none;
+}
+
+.aa-SubmitButton {
+    cursor: pointer;
+}
+
+.aa-Form:invalid .aa-SubmitButton {
+    cursor: unset;
+    pointer-events: none;
+    svg {
+        fill: $blue-20;
+    }
+}
+
+.aa-DetachedCancelButton {
+    color: $blue-90;
+    border-radius: 0;
+    &:hover {
+        background: $blue-10;
+        box-shadow: none;
+    }
+}
+
 .aa-SubmitIcon,
 .aa-ClearButton {
     fill: $blue-30;
     color: $blue-30;
     stroke: none;
+
+    &:hover {
+        fill: $blue-90;
+        color: $blue-90;
+    }
+}
+
+@include md-down {
+    .aa-SubmitIcon {
+        fill: #fff;
+    }
+    .aa-DetachedOverlay .aa-SubmitIcon {
+        fill: $blue-90;
+    }
 }
 
 .aa-Panel {
@@ -52,6 +108,11 @@
     border: none;
     outline: none;
     box-shadow: none;
+
+    @include md-down {
+        // The detached panel gets positioned incorrectly for some reason
+        left: 0 !important;
+    }
 }
 
 .aa-PanelLayout {

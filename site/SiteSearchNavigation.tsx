@@ -1,7 +1,7 @@
 import React, { useEffect } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faSearch, faXmark } from "@fortawesome/free-solid-svg-icons"
-import classnames from "classnames"
+import cx from "classnames"
 import { siteSearch } from "./search/searchClient.js"
 import { SearchResults } from "./search/SearchResults.js"
 import { SiteSearchResults } from "./search/searchTypes.js"
@@ -106,8 +106,10 @@ export const SiteSearchNavigation = ({
     onActivate: VoidFunction
 }) => {
     return (
-        <div className="SiteSearchNavigation">
-            <Autocomplete onActivate={onActivate} onClose={onClose} />
-        </div>
+        <>
+            <div className={cx("SiteSearchNavigation", { active: isActive })}>
+                <Autocomplete onActivate={onActivate} onClose={onClose} />
+            </div>
+        </>
     )
 }

@@ -21,6 +21,7 @@ import { SiteNavigationToggle } from "./SiteNavigationToggle.js"
 import classnames from "classnames"
 import { useTriggerOnEscape } from "./hooks.js"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
+import { AUTOCOMPLETE_CONTAINER_ID } from "./search/Autocomplete.js"
 
 export enum Menu {
     Topics = "topics",
@@ -55,22 +56,21 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
         // Without this, the panel initially renders at the same width as the shrunk search input
         // Fortunately we only have to do this when it mounts - it takes care of resizes
         setTimeout(() => {
-            let totalOffset = 0
-            const [panel, searchContainer, navBar] = [
+            const [panel, autocompleteContainer] = [
                 ".aa-Panel",
-                ".site-search-cta",
-                ".site-navigation-bar",
+                AUTOCOMPLETE_CONTAINER_ID,
             ].map((className) => document.querySelector<HTMLElement>(className))
-            if (navBar && searchContainer && panel) {
-                totalOffset = navBar.offsetLeft + searchContainer.offsetLeft
-                // This technique is off-by-one on Firefox when window.innerWidth is an even number
-                if (
-                    navigator.userAgent.includes("Firefox") &&
-                    totalOffset % 2
-                ) {
-                    totalOffset -= 1
-                }
-                panel.style.left = `${totalOffset}px`
+            if (panel && autocompleteContainer) {
+                const bounds = autocompleteContainer.getBoundingClientRect()
+                panel.style.left = `${bounds.left}px`
+            }
+        }, 10)
+
+        setTimeout(() => {
+            const input = document.querySelector<HTMLElement>(".aa-Input")
+            if (input) {
+                input.focus()
+                input.setAttribute("required", "true")
             }
         }, 10)
     }, [])

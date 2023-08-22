@@ -162,6 +162,8 @@ const AllResultsSource: AutocompleteSource<BaseItem> = {
     },
 }
 
+export const AUTOCOMPLETE_CONTAINER_ID = "#autocomplete"
+
 export function Autocomplete({
     onActivate,
     onClose,
@@ -172,9 +174,10 @@ export function Autocomplete({
     useLayoutEffect(() => {
         if (window.location.pathname === "/search") return
         const search = autocomplete({
-            container: "#autocomplete",
+            container: AUTOCOMPLETE_CONTAINER_ID,
             placeholder: "Search for a topic or chart",
             openOnFocus: true,
+            detachedMediaQuery: "(max-width: 960px)",
             onStateChange({ state, prevState }) {
                 if (!prevState.isOpen && state.isOpen) {
                     onActivate()
@@ -183,8 +186,10 @@ export function Autocomplete({
                 }
             },
             onSubmit({ state, navigator }) {
+                if (!state.query) return
                 navigator.navigate({
                     itemUrl: `/search?q=${state.query}`,
+                    // this method is incorrectly typed - `item` and `state` are optional
                 } as any)
             },
             renderer: {
