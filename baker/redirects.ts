@@ -15,10 +15,6 @@ export const getRedirects = async () => {
         // RSS feed
         "/feed /atom.xml 302!",
 
-        // Backwards compatibility-- admin urls
-        "/wp-admin/* https://owid.cloud/wp/wp-admin/:splat 301",
-        "/grapher/admin/* https://owid.cloud/grapher/admin/:splat 301",
-
         // TODO: this should only get triggered by external hits (indexed .pdf files for instance)
         // and should be removed when no evidence of these inbound links can be found.
         "/wp-content/uploads/* /uploads/:splat 301",
@@ -36,11 +32,7 @@ export const getRedirects = async () => {
 
         // Backwards compatibility-- public urls
         "/entries/* /:splat 301",
-        "/entries /#entries 302",
-        "/data/food-agriculture/* /:splat 301",
-        "/data/political-regimes/* /:splat 301",
-        "/data/population-growth-vital-statistics/* /:splat 301",
-        "/data/growth-and-distribution-of-prosperity/* /:splat 301",
+        "/entries / 302",
         "/blog /latest 301",
         "/blog/* /latest/:splat 301",
 
