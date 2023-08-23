@@ -620,59 +620,83 @@ export class SiteBaker {
                         IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH,
                         image.filename
                     )
-                    return retryPromise(() => fetch(remoteFilePath))
-                        .then((response) => {
-                            if (!response.ok) {
-                                throw new Error(
-                                    `Fetching image failed: ${response.status} ${response.statusText} ${response.url}`
-                                )
-                            }
-                            return response.arrayBuffer()
-                        })
-                        .then((arrayBuffer) => Buffer.from(arrayBuffer))
-                        .then(async (buffer) => {
-                            if (!image.isSvg) {
-                                await Promise.all(
-                                    image.sizes!.map((width) => {
-                                        const localResizedFilepath = path.join(
-                                            imagesDirectory,
-                                            `${image.filenameWithoutExtension}_${width}.webp`
-                                        )
-                                        return sharp(buffer)
-                                            .resize(width)
-                                            .webp({
-                                                lossless: true,
-                                            })
-                                            .toFile(localResizedFilepath)
-                                    })
-                                )
-                            } else {
-                                // A PNG alternative to the SVG for the "Download image" link
-                                const pngFilename = getFilenameAsPng(
-                                    image.filename
-                                )
-                                await sharp(buffer)
-                                    .resize(2000)
-                                    .png()
-                                    .toFile(
-                                        path.join(imagesDirectory, pngFilename)
-                                    )
+                    const localImagePath = path.join(
+                        imagesDirectory,
+                        image.filename
+                    )
+                    const localImageEtagPath = localImagePath + ".etag"
 
-                                // Import the site's webfonts
-                                const svg = buffer
-                                    .toString()
-                                    .replace(
-                                        /(<svg.*?>)/,
-                                        `$1<defs><style>@import url(${BAKED_BASE_URL}/fonts.css)</style></defs>`
-                                    )
-                                buffer = Buffer.from(svg)
-                            }
-                            // For SVG, and a non-webp fallback copy of the image
-                            await writeFile(
-                                path.join(imagesDirectory, image.filename),
-                                buffer
-                            )
+                    // If the image already exists locally, try to use its etag
+                    const existingEtag =
+                        fs.existsSync(localImagePath) &&
+                        fs.existsSync(localImageEtagPath)
+                            ? await fs.readFile(localImageEtagPath, "utf8")
+                            : ""
+
+                    const response = await retryPromise(() =>
+                        fetch(remoteFilePath, {
+                            headers: {
+                                "If-None-Match": existingEtag,
+                            },
                         })
+                    )
+
+                    // Image has not been modified, skip
+                    if (response.status === 304) {
+                        return
+                    }
+
+                    if (!response.ok) {
+                        throw new Error(
+                            `Fetching image failed: ${response.status} ${response.statusText} ${response.url}`
+                        )
+                    }
+
+                    let buffer = Buffer.from(await response.arrayBuffer())
+
+                    if (!image.isSvg) {
+                        await Promise.all(
+                            image.sizes!.map((width) => {
+                                const localResizedFilepath = path.join(
+                                    imagesDirectory,
+                                    `${image.filenameWithoutExtension}_${width}.webp`
+                                )
+                                return sharp(buffer)
+                                    .resize(width)
+                                    .webp({
+                                        lossless: true,
+                                    })
+                                    .toFile(localResizedFilepath)
+                            })
+                        )
+                    } else {
+                        // A PNG alternative to the SVG for the "Download image" link
+                        const pngFilename = getFilenameAsPng(image.filename)
+                        await sharp(buffer)
+                            .resize(2000)
+                            .png()
+                            .toFile(path.join(imagesDirectory, pngFilename))
+
+                        // Import the site's webfonts
+                        const svg = buffer
+                            .toString()
+                            .replace(
+                                /(<svg.*?>)/,
+                                `$1<defs><style>@import url(${BAKED_BASE_URL}/fonts.css)</style></defs>`
+                            )
+                        buffer = Buffer.from(svg)
+                    }
+                    // For SVG, and a non-webp fallback copy of the image
+                    await writeFile(
+                        path.join(imagesDirectory, image.filename),
+                        buffer
+                    )
+
+                    // Save the etag to a sidecar, strip extra quotes
+                    const etag = response.headers
+                        .get("etag")!
+                        .replace(/^"|"$/g, "")
+                    await fs.writeFile(localImageEtagPath, etag, "utf8")
                 })
             )
         }
