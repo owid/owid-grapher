@@ -229,8 +229,18 @@ export const renderFrontPage = async () => {
     const wpPosts = await Promise.all(
         (await getPosts()).map((post) => getFullPost(post, true))
     )
-    const gdocPosts = await Gdoc.getPublishedGdocs()
-    const posts = [...wpPosts, ...mapGdocsToWordpressPosts(gdocPosts)]
+    const gdocPosts = await Gdoc.getPublishedGdocs().then(
+        mapGdocsToWordpressPosts
+    )
+    const gdocSlugs = new Set(gdocPosts.map(({ slug }) => slug))
+    const posts = [...gdocPosts]
+    // Only adding each wpPost if there isn't already a gdoc with the same slug,
+    // to make sure we use the most up-to-date metadata
+    for (const wpPost of wpPosts) {
+        if (!gdocSlugs.has(wpPost.slug)) {
+            posts.push(wpPost)
+        }
+    }
 
     const NUM_FEATURED_POSTS = 6
 
