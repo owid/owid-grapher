@@ -34,6 +34,7 @@ export interface DownloadModalManager {
     detailRenderers: MarkdownTextWrap[]
     isDownloadModalOpen?: boolean
     tabBounds?: Bounds
+    isOnChartOrMapTab?: boolean
 }
 
 interface DownloadModalProps {
@@ -209,7 +210,7 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
     }
 
     private renderReady(): JSX.Element {
-        const { svgPreviewUrl } = this
+        const { manager, svgPreviewUrl } = this
         const pngPreviewUrl = this.pngPreviewUrl || this.fallbackPngUrl
         const imgStyle = {
             opacity: this.isReady ? 1 : 0,
@@ -217,76 +218,81 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
 
         return (
             <div className="grouped-menu">
-                <div className="grouped-menu-section">
-                    <h2>Visualization</h2>
-                    <div className="grouped-menu-list">
-                        <button
-                            className="grouped-menu-item"
-                            onClick={this.onPngDownload}
-                            data-track-note="chart_download_png"
-                        >
-                            <div className="grouped-menu-icon">
-                                <img src={pngPreviewUrl} style={imgStyle} />
-                            </div>
-                            <div className="grouped-menu-content">
-                                <h3 className="title">Image (PNG)</h3>
-                                <p className="description">
-                                    Suitable for most uses, widely compatible.
-                                </p>
-                            </div>
-                            <div className="grouped-menu-icon">
-                                <span className="download-icon">
-                                    <FontAwesomeIcon icon={faDownload} />
-                                </span>
-                            </div>
-                        </button>
-                        <button
-                            className="grouped-menu-item"
-                            onClick={this.onSvgDownload}
-                            data-track-note="chart_download_svg"
-                        >
-                            <div className="grouped-menu-icon">
-                                <img src={svgPreviewUrl} style={imgStyle} />
-                            </div>
-                            <div className="grouped-menu-content">
-                                <h3 className="title">Vector graphic (SVG)</h3>
-                                <p className="description">
-                                    For high quality prints, or further editing
-                                    the chart in graphics software.
-                                </p>
-                            </div>
-                            <div className="grouped-menu-icon">
-                                <span className="download-icon">
-                                    <FontAwesomeIcon icon={faDownload} />
-                                </span>
-                            </div>
-                        </button>
-                    </div>
-                    {!isEmpty(this.manager.detailRenderers) && (
-                        <div className="static-exports-options">
-                            <input
-                                type="checkbox"
-                                id="shouldIncludeDetailsInStaticExport"
-                                name="shouldIncludeDetailsInStaticExport"
-                                onChange={(): void => {
-                                    this.isReady = false
-                                    this.manager.shouldIncludeDetailsInStaticExport =
-                                        !this.manager
-                                            .shouldIncludeDetailsInStaticExport
-                                    this.export()
-                                }}
-                                checked={
-                                    this.manager
-                                        .shouldIncludeDetailsInStaticExport
-                                }
-                            />
-                            <label htmlFor="shouldIncludeDetailsInStaticExport">
-                                Include terminology definitions at bottom of
-                                chart
-                            </label>
+                {manager.isOnChartOrMapTab && (
+                    <div className="grouped-menu-section">
+                        <h2>Visualization</h2>
+                        <div className="grouped-menu-list">
+                            <button
+                                className="grouped-menu-item"
+                                onClick={this.onPngDownload}
+                                data-track-note="chart_download_png"
+                            >
+                                <div className="grouped-menu-icon">
+                                    <img src={pngPreviewUrl} style={imgStyle} />
+                                </div>
+                                <div className="grouped-menu-content">
+                                    <h3 className="title">Image (PNG)</h3>
+                                    <p className="description">
+                                        Suitable for most uses, widely
+                                        compatible.
+                                    </p>
+                                </div>
+                                <div className="grouped-menu-icon">
+                                    <span className="download-icon">
+                                        <FontAwesomeIcon icon={faDownload} />
+                                    </span>
+                                </div>
+                            </button>
+                            <button
+                                className="grouped-menu-item"
+                                onClick={this.onSvgDownload}
+                                data-track-note="chart_download_svg"
+                            >
+                                <div className="grouped-menu-icon">
+                                    <img src={svgPreviewUrl} style={imgStyle} />
+                                </div>
+                                <div className="grouped-menu-content">
+                                    <h3 className="title">
+                                        Vector graphic (SVG)
+                                    </h3>
+                                    <p className="description">
+                                        For high quality prints, or further
+                                        editing the chart in graphics software.
+                                    </p>
+                                </div>
+                                <div className="grouped-menu-icon">
+                                    <span className="download-icon">
+                                        <FontAwesomeIcon icon={faDownload} />
+                                    </span>
+                                </div>
+                            </button>
                         </div>
-                    )}
-                </div>
+                        {!isEmpty(this.manager.detailRenderers) && (
+                            <div className="static-exports-options">
+                                <input
+                                    type="checkbox"
+                                    id="shouldIncludeDetailsInStaticExport"
+                                    name="shouldIncludeDetailsInStaticExport"
+                                    onChange={(): void => {
+                                        this.isReady = false
+                                        this.manager.shouldIncludeDetailsInStaticExport =
+                                            !this.manager
+                                                .shouldIncludeDetailsInStaticExport
+                                        this.export()
+                                    }}
+                                    checked={
+                                        this.manager
+                                            .shouldIncludeDetailsInStaticExport
+                                    }
+                                />
+                                <label htmlFor="shouldIncludeDetailsInStaticExport">
+                                    Include terminology definitions at bottom of
+                                    chart
+                                </label>
+                            </div>
+                        )}
+                    </div>
+                )}
                 <div className="grouped-menu-section grouped-menu-section-data">
                     <h2>Data</h2>
                     {this.nonRedistributable ? (

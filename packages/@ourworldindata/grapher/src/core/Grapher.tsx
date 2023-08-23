@@ -748,7 +748,7 @@ export class Grapher
     @observable.ref isSelectingData = false
 
     @observable.ref isSourcesModalOpen = false
-    @observable.ref _isDownloadModalOpen = false
+    @observable.ref isDownloadModalOpen = false
     @observable.ref isEmbedModalOpen = false
 
     private get isStaging(): boolean {
@@ -1097,19 +1097,6 @@ export class Grapher
         let url = this.originUrl
         if (!url.startsWith("http")) url = `https://${url}`
         return url
-    }
-
-    @computed get isDownloadModalOpen(): boolean {
-        return this._isDownloadModalOpen
-    }
-
-    // todo(redesign): maybe it would be better to not offer a visualization download for tables?
-    set isDownloadModalOpen(shouldDownloadModalBeOpen: boolean) {
-        // table tab cannot be downloaded, so revert to default tab
-        if (shouldDownloadModalBeOpen && this.isOnTableTab) {
-            this.tab = this.authorsVersion.tab ?? GrapherTabOption.chart
-        }
-        this._isDownloadModalOpen = shouldDownloadModalBeOpen
     }
 
     @computed get timelineHandleTimeBounds(): TimeBounds {
