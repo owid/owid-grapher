@@ -36,7 +36,7 @@
     }
 
     h3 {
-        font-family: $sans-serif-font-stack;
+        @include sans-serif;
         font-size: 1rem;
         text-transform: uppercase;
         font-weight: 700;

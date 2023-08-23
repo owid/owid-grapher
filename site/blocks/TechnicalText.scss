@@ -6,6 +6,6 @@
 }
 
 .article-content > section .wp-block-columns .wp-block-owid-technical-text h5 {
-    font-family: $sans-serif-font-stack;
+    @include sans-serif;
     font-size: 1rem;
 }

@@ -181,7 +181,7 @@ h1.entry-title > a:hover {
     color: #fff;
     cursor: pointer;
     display: inline-block;
-    font-family: $sans-serif-font-stack;
+    @include sans-serif;
     font-size: 14px;
     letter-spacing: 1px;
     padding: 8px 12px;

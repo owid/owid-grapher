@@ -1,7 +1,7 @@
 html {
     line-height: 1.6;
     font-weight: 400;
-    font-family: $sans-serif-font-stack;
+    @include sans-serif;
     text-size-adjust: 100%;
     -ms-text-size-adjust: 100%;
     -webkit-text-size-adjust: 100%;
@@ -21,7 +21,7 @@ input,
 optgroup,
 select,
 textarea {
-    font-family: $sans-serif-font-stack;
+    @include sans-serif;
 }
 
 /* Typographical Elements
@@ -117,7 +117,7 @@ address {
     margin-top: -15px !important;
     margin-bottom: 30px;
 
-    font-family: $sans-serif-font-stack;
+    @include sans-serif;
     font-style: normal !important;
     line-height: 14px !important;
     font-size: 10px !important;

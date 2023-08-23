@@ -14,7 +14,7 @@
 
     h4 {
         margin: 0 0 0.5rem;
-        font-family: $sans-serif-font-stack;
+        @include sans-serif;
         font-size: 1.2rem;
     }
 
