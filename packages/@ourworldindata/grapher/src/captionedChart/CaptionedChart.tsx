@@ -56,7 +56,10 @@ import {
     ContentSwitchers,
     ContentSwitchersManager,
 } from "../controls/ContentSwitchers"
-import { TimelineComponent } from "../timeline/TimelineComponent"
+import {
+    TimelineComponent,
+    TIMELINE_HEIGHT,
+} from "../timeline/TimelineComponent"
 import { TimelineController } from "../timeline/TimelineController"
 
 export interface CaptionedChartManager
@@ -112,8 +115,7 @@ interface CaptionedChartProps {
 
 // keep in sync with sass variables in CaptionedChart.scss
 const FRAME_PADDING = 16
-const CONTROLS_ROW_HEIGHT = 32
-const TIMELINE_HEIGHT = CONTROLS_ROW_HEIGHT
+const CONTROLS_ROW_HEIGHT = 34
 
 // todo(redesign): we might want to rename CaptionedChart later
 
@@ -139,10 +141,10 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         const { sizeVariant } = this
         const { xs, sm, md, lg } = SizeVariant
         return {
-            [xs]: 4,
+            [xs]: 8,
             [sm]: 8,
             [md]: 12,
-            [lg]: 16,
+            [lg]: 12,
         }[sizeVariant]
     }
 
@@ -165,7 +167,6 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         return new Footer({
             manager: this.manager,
             maxWidth: this.maxWidth,
-            verticalPaddingSmall: this.verticalPaddingSmall,
         })
     }
 
@@ -478,9 +479,9 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         )
     }
 
-    // if you edit the render function, make sure to keep chartHeight in sync
+    // make sure to keep this.chartHeight in sync if you edit the render function
     render(): JSX.Element {
-        // CaptionedChart renders at the very least a header, a chart, and a Footer.
+        // CaptionedChart renders at the very least a header, a chart, and a footer.
         // Interactive charts also have controls above the chart area and a timeline below it.
         // Some charts have a related question below the footer.
         // A CaptionedChart looks like this (components in [brackets] are optional):
@@ -515,11 +516,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                 {this.manager.hasTimeline && this.renderTimeline()}
                 <VerticalSpace height={this.verticalPadding} />
                 {/* #5 Footer */}
-                <Footer
-                    manager={this.manager}
-                    maxWidth={this.maxWidth}
-                    verticalPaddingSmall={this.verticalPaddingSmall}
-                />
+                <Footer manager={this.manager} maxWidth={this.maxWidth} />
                 {/* #6 [Related question] */}
                 {this.showRelatedQuestion && this.renderRelatedQuestion()}
             </>
@@ -565,7 +562,7 @@ export class StaticCaptionedChart extends CaptionedChart {
 
     @computed protected get boundsForChartArea(): Bounds {
         return this.paddedBounds
-            .padTop(Math.max(this.header.height, this.header.logoHeight))
+            .padTop(this.header.height)
             .padBottom(this.staticFooter.height + this.verticalPadding)
             .padTop(this.manager.isOnMapTab ? 0 : this.verticalPadding)
     }

@@ -112,7 +112,7 @@ $zindex-full-screen: 2000;
     container-name: grapher;
 
     // make sure the border is in the foreground
-    box-shadow: 0 0 0 1px $light-stroke; // equivalent to `border: 1px solid $light-stroke`
+    box-shadow: 0 0 0 1px #f2f2f2; // equivalent to `border: 1px solid #f2f2f2`
     z-index: $zindex-chart;
 
     * {

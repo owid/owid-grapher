@@ -44,7 +44,7 @@ export class Header extends React.Component<{
         const { manager, sizeVariant } = this
         if (manager.hideLogo) return undefined
 
-        const heightScale = sizeVariant === SizeVariant.xs ? 0.85 : 1
+        const heightScale = sizeVariant === SizeVariant.xs ? 0.775 : 1
         return new Logo({
             logo: manager.logo as any,
             isLink: !!manager.shouldLinkToOwid,
@@ -56,12 +56,12 @@ export class Header extends React.Component<{
         return this.logo ? this.logo.width : 0
     }
 
-    @computed get logoHeight(): number {
+    @computed private get logoHeight(): number {
         return this.logo ? this.logo.height : 0
     }
 
     @computed get title(): TextWrap {
-        const { logoWidth, manager, sizeVariant } = this
+        const { logoWidth, sizeVariant } = this
         const fontScale =
             sizeVariant === SizeVariant.xs
                 ? getFontScale(18)
@@ -70,7 +70,7 @@ export class Header extends React.Component<{
                 : getFontScale(24)
         return new TextWrap({
             maxWidth: this.maxWidth - logoWidth - 24,
-            fontWeight: !manager.isExportingtoSvgOrPng ? 600 : undefined,
+            fontWeight: 400,
             lineHeight: sizeVariant === SizeVariant.xs ? 1.1 : 1.2,
             fontSize: fontScale * this.fontSize,
             text: this.titleText,
@@ -96,7 +96,10 @@ export class Header extends React.Component<{
                 : sizeVariant === SizeVariant.sm
                 ? getFontScale(13)
                 : getFontScale(14)
-        const lineHeight = sizeVariant === SizeVariant.xs ? 1.1 : 1.2
+        const lineHeight =
+            sizeVariant === SizeVariant.md || sizeVariant === SizeVariant.lg
+                ? 1.28571
+                : 1.2
         return new MarkdownTextWrap({
             maxWidth: this.subtitleWidth,
             fontSize: fontScale * this.fontSize,

@@ -1,3 +1,5 @@
+$timelineHeight: 32px;
+
 .TimelineComponent {
     width: 100%;
     height: $timelineHeight;
@@ -14,7 +16,6 @@
         }
     }
 
-    .play,
     .date {
         height: 100%;
         font-size: 13px;
@@ -24,9 +25,6 @@
         border-radius: 4px;
         display: grid;
         place-content: center;
-    }
-
-    .date {
         margin-right: 0;
         border: 1px solid $light-stroke;
 
@@ -37,21 +35,6 @@
         &:active {
             background: $active-fill;
             color: $active-text;
-        }
-    }
-
-    .play {
-        margin-right: 8px;
-        background: $hover-fill;
-        cursor: pointer;
-
-        svg {
-            width: 16px;
-            height: 14px;
-        }
-
-        .label {
-            margin-left: 4px;
         }
     }
 
@@ -90,6 +73,29 @@
 
             transform: scale(1);
             transition: transform 0.1s ease-out;
+        }
+
+        > .handle-label {
+            position: absolute;
+            top: -32px;
+            left: 50%;
+            transform: translate(-50%, 0);
+            padding: 8px;
+            font-size: 12px;
+            line-height: 16px;
+            background-color: #4e4e4e;
+            color: #fff;
+            border-radius: 4px;
+        }
+
+        > .handle-label-arrow {
+            width: 6px;
+            height: 6px;
+            background-color: #4e4e4e;
+            top: -3px;
+            position: absolute;
+            left: 50%;
+            transform: translate(-50%, 0) rotate(45deg);
         }
     }
 

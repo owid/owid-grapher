@@ -1,7 +1,6 @@
-import React from "react"
+import React, { useState } from "react"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { SizeVariant } from "../core/GrapherConstants"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
     faShareNodes,
@@ -22,14 +21,13 @@ export interface ActionButtonsManager extends ShareMenuManager {
     canonicalUrl?: string
     isInFullScreenMode?: boolean
     isDownloadModalOpen?: boolean
-    sizeVariant?: SizeVariant
 }
 
 // keep in sync with sass variables in ActionButtons.scss
 const BUTTON_HEIGHT = 32
 const PADDING_BETWEEN_BUTTONS = 8
 const PADDING_BETWEEN_ICON_AND_LABEL = 8
-const PADDING_LEFT_RIGHT = 12
+const PADDING_X = 12
 
 const BUTTON_WIDTH_ICON_ONLY = BUTTON_HEIGHT
 
@@ -37,22 +35,13 @@ const BUTTON_WIDTH_ICON_ONLY = BUTTON_HEIGHT
 export class ActionButtons extends React.Component<{
     manager: ActionButtonsManager
     maxWidth?: number
-    availableWidth?: number
 }> {
     @computed private get manager(): ActionButtonsManager {
         return this.props.manager
     }
 
-    @computed protected get sizeVariant(): SizeVariant {
-        return this.manager.sizeVariant ?? SizeVariant.lg
-    }
-
     @computed protected get maxWidth(): number {
         return this.props.maxWidth ?? DEFAULT_BOUNDS.width
-    }
-
-    @computed protected get availableWidth(): number {
-        return this.props.availableWidth ?? this.maxWidth
     }
 
     @computed get height(): number {
@@ -90,9 +79,8 @@ export class ActionButtons extends React.Component<{
     }
 
     @computed private get showButtonLabels(): boolean {
-        const { availableWidth, sizeVariant, widthWithButtonLabels } = this
-        if (sizeVariant !== SizeVariant.lg) return false
-        return widthWithButtonLabels <= availableWidth
+        const { maxWidth, widthWithButtonLabels } = this
+        return widthWithButtonLabels <= maxWidth
     }
 
     @computed get width(): number {
@@ -124,8 +112,8 @@ export class ActionButtons extends React.Component<{
     private static computeButtonWidth(label: string): number {
         const labelWidth = Bounds.forText(label, { fontSize: 13 }).width
         return (
-            2 * PADDING_LEFT_RIGHT +
-            13 + // icon width
+            2 * PADDING_X +
+            12 + // icon width
             PADDING_BETWEEN_ICON_AND_LABEL +
             labelWidth
         )
@@ -234,51 +222,74 @@ export class ActionButtons extends React.Component<{
 
         return (
             <div
-                className="ActionButtons"
+                className={
+                    "ActionButtons" +
+                    (!this.showButtonLabels && !this.hasExploreTheDataButton
+                        ? " icons-only"
+                        : "")
+                }
                 style={{ height: this.height, width: this.width }}
             >
                 <ul>
                     {this.hasDownloadButton && (
-                        <ActionButton
-                            width={this.downloadButtonWidth}
-                            label="Download"
-                            title="Download as .png or .svg"
-                            dataTrackNote="chart_click_download"
-                            showLabel={this.showButtonLabels}
-                            icon={faDownload}
-                            onClick={action(
-                                () => (this.manager.isDownloadModalOpen = true)
-                            )}
-                        />
+                        <li
+                            className="clickable"
+                            style={{ width: this.downloadButtonWidth }}
+                        >
+                            <ActionButton
+                                label="Download"
+                                title="Download as .png or .svg"
+                                dataTrackNote="chart_click_download"
+                                showLabel={this.showButtonLabels}
+                                icon={faDownload}
+                                onClick={action(
+                                    () =>
+                                        (this.manager.isDownloadModalOpen =
+                                            true)
+                                )}
+                                style={{ width: "100%" }}
+                            />
+                        </li>
                     )}
                     {this.hasShareButton && (
-                        <ActionButton
-                            width={this.shareButtonWidth}
-                            label="Share"
-                            dataTrackNote="chart_click_share"
-                            showLabel={this.showButtonLabels}
-                            icon={faShareNodes}
-                            onClick={this.toggleShareMenu}
-                            isActive={this.manager.isShareMenuActive}
-                        />
+                        <li
+                            className="clickable"
+                            style={{ width: this.shareButtonWidth }}
+                        >
+                            <ActionButton
+                                label="Share"
+                                dataTrackNote="chart_click_share"
+                                showLabel={this.showButtonLabels}
+                                icon={faShareNodes}
+                                onClick={this.toggleShareMenu}
+                                isActive={this.manager.isShareMenuActive}
+                                style={{ width: "100%" }}
+                            />
+                            {shareMenuElement}
+                        </li>
                     )}
                     {this.hasFullScreenButton && (
-                        <ActionButton
-                            width={this.fullScreenButtonWidth}
-                            label={this.fullScreenButtonLabel}
-                            dataTrackNote="chart_click_fullscreen"
-                            showLabel={this.showButtonLabels}
-                            icon={
-                                manager.isInFullScreenMode
-                                    ? faCompress
-                                    : faExpand
-                            }
-                            onClick={this.toggleFullScreenMode}
-                        />
+                        <li
+                            className="clickable"
+                            style={{ width: this.fullScreenButtonWidth }}
+                        >
+                            <ActionButton
+                                label={this.fullScreenButtonLabel}
+                                dataTrackNote="chart_click_fullscreen"
+                                showLabel={this.showButtonLabels}
+                                icon={
+                                    manager.isInFullScreenMode
+                                        ? faCompress
+                                        : faExpand
+                                }
+                                onClick={this.toggleFullScreenMode}
+                                style={{ width: "100%" }}
+                            />
+                        </li>
                     )}
                     {this.hasExploreTheDataButton && (
                         <li
-                            className="clickable explore-data"
+                            className="ActionButton clickable"
                             style={{ width: this.exploreTheDataButtonWidth }}
                         >
                             <a
@@ -294,41 +305,52 @@ export class ActionButtons extends React.Component<{
                         </li>
                     )}
                 </ul>
-                {shareMenuElement}
             </div>
         )
     }
 }
 
-function ActionButton(props: {
-    width: number
-    dataTrackNote: string
-    onClick: React.MouseEventHandler<HTMLButtonElement>
-    showLabel: boolean
+export function ActionButton(props: {
     label: string
     icon: IconDefinition
+    width?: number
+    dataTrackNote?: string
+    onClick?: React.MouseEventHandler<HTMLButtonElement>
+    onMouseDown?: React.MouseEventHandler<HTMLButtonElement>
+    showLabel?: boolean
     title?: string
     isActive?: boolean
+    style?: React.CSSProperties
 }): JSX.Element {
+    const [showTooltip, setShowTooltip] = useState(false)
+
     return (
-        <li
-            className={
-                "clickable" +
-                (props.isActive ? " active" : "") +
-                (props.showLabel ? "" : " icon-only")
-            }
-            style={{ width: props.width }}
-        >
+        <div className="ActionButton" style={props.style}>
             <button
+                className={
+                    (props.isActive ? "active" : "") +
+                    (props.showLabel ? "" : " icon-only")
+                }
                 title={props.title ?? props.label}
                 data-track-note={props.dataTrackNote}
-                onClick={props.onClick}
+                onClick={(e: React.MouseEvent<HTMLButtonElement>): void => {
+                    if (props.onClick) props.onClick(e)
+                    setShowTooltip(false)
+                }}
+                onMouseDown={props.onMouseDown}
+                onMouseEnter={(): void => {
+                    if (!props.showLabel) setShowTooltip(true)
+                }}
+                onMouseLeave={(): void => {
+                    setShowTooltip(false)
+                }}
             >
                 <FontAwesomeIcon icon={props.icon} />
                 {props.showLabel && (
                     <span className="label">{props.label}</span>
                 )}
             </button>
-        </li>
+            {showTooltip && <div className="hover-label">{props.label}</div>}
+        </div>
     )
 }

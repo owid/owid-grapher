@@ -20,15 +20,16 @@ $gap: 2px;
         display: block;
         text-transform: capitalize;
         color: $light-text;
-        font-size: 13px;
-        font-weight: $medium;
+        font-size: 14px;
+        font-weight: 500;
         height: $controlRowHeight - 2 * ($borderWidth + $gap);
         line-height: $controlRowHeight - 2 * ($borderWidth + $gap);
-        padding: 0 8px;
         border-radius: $borderRadius - $gap;
+        padding: 0 8px;
 
         svg {
             margin-right: 6px;
+            color: $info-icon;
         }
     }
 
@@ -50,5 +51,13 @@ $gap: 2px;
     li.active > a {
         color: $active-text;
         background-color: $active-fill;
+
+        svg {
+            color: $active-knob;
+        }
     }
+}
+
+.ContentSwitchers.wide li > a {
+    padding: 0 16px;
 }

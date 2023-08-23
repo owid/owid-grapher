@@ -5,10 +5,15 @@ $zindex-ControlsFooter: 2;
     display: none;
 }
 
+.ActionButtons.icons-only .ShareMenu {
+    left: auto;
+    right: -$timelineHeight - $paddingBetweenButtons;
+}
+
 .ShareMenu {
     position: absolute;
-    right: $framePadding;
-    bottom: $framePadding + $actionButtonHeight + 8px;
+    left: -32px;
+    bottom: $timelineHeight + 8px;
     text-align: left;
     background: #fff;
     box-shadow: 0px 4px 40px 0px rgba(0, 0, 0, 0.06);
