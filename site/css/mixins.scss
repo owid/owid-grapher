@@ -8,28 +8,34 @@
 }
 
 @mixin small-caps {
+    // only applies to Playfair
+    font-family: $serif-font-stack;
     font-feature-settings: "c2sc", "smcp";
     letter-spacing: 0.05em;
 }
 
-@mixin superscript {
-    vertical-align: baseline;
-    font-size: inherit;
-    font-feature-settings: "sups";
-}
-
-@mixin subscript {
-    vertical-align: baseline;
-    font-size: inherit;
-    font-feature-settings: "subs";
-}
-
 @mixin oldstyle-numerals {
+    // useful for changing Lato's numerals
     font-feature-settings: "onum";
 }
 
 @mixin lining-numerals {
+    // useful for changing Playfair's numerals
     font-feature-settings: "lnum", "liga";
+}
+
+@mixin superscript {
+    position: static;
+    top: auto;
+    font-size: 120%;
+    font-feature-settings: "sups";
+}
+
+@mixin subscript {
+    position: static;
+    bottom: auto;
+    font-size: 100%;
+    font-feature-settings: "subs";
 }
 
 @mixin fraction {

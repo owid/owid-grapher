@@ -60,6 +60,14 @@ i {
     font-style: italic;
 }
 
+sub {
+    @include subscript;
+}
+
+sup {
+    @include superscript;
+}
+
 /* ----------------------------------------------------------- */
 
 h6 {
