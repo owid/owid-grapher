@@ -1,63 +1,3 @@
-//
-// default typefaces
-//
-
-@mixin serif {
-    font-family: $serif-font-stack;
-    font-feature-settings: $default-font-features;
-}
-
-@mixin sans-serif {
-    font-family: $sans-serif-font-stack;
-    font-feature-settings: $default-font-features;
-}
-
-//
-// typographic features
-// (be sure to use these *after* using either the `serif` or `sans-serif` mixin)
-//
-
-@mixin small-caps {
-    // only applies to Playfair
-    font-family: $serif-font-stack;
-    font-feature-settings: $default-font-features, "c2sc", "smcp";
-    letter-spacing: 0.05em;
-}
-
-@mixin oldstyle-numerals {
-    // useful for changing Lato's numerals
-    font-feature-settings: $default-font-features, "onum";
-}
-
-@mixin lining-numerals {
-    // useful for changing Playfair's numerals
-    font-feature-settings: $default-font-features, "lnum";
-}
-
-@mixin superscript {
-    position: static;
-    top: auto;
-    font-size: 100%;
-    font-feature-settings: $default-font-features, "sups";
-}
-
-@mixin subscript {
-    position: static;
-    bottom: auto;
-    font-size: 100%;
-    font-feature-settings: $default-font-features, "subs";
-}
-
-@mixin fraction {
-    // when enabled, render digits/slashes as fractions
-    // e.g., "in 3/4 time" renders as "in ¾ time"
-    font-feature-settings: $default-font-features, "frac";
-}
-
-//
-// page elements
-//
-
 @mixin owid-link-90 {
     color: $blue-90;
     text-decoration: underline;
@@ -166,7 +106,7 @@
 }
 
 @mixin h3-style {
-    @include serif;
+    font-family: $serif-font-stack;
     font-size: 1.75rem;
     @include md-up {
         font-size: 2.25rem;
@@ -176,7 +116,7 @@
 }
 
 @mixin h4-style {
-    @include serif;
+    font-family: $serif-font-stack;
     font-weight: 400;
     font-size: 1.5rem;
     line-height: 1.4em;
@@ -297,7 +237,7 @@
 }
 
 @mixin posts-heading {
-    @include serif;
+    font-family: $serif-font-stack;
     font-size: 1.75rem;
     font-weight: bold;
     line-height: 1.2;
