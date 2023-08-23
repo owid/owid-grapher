@@ -16,7 +16,7 @@ import {
     countries,
     throttle,
     noop,
-    getCountryCodeFromNetlifyRedirect,
+    getUserCountryInformation,
     sortBy,
     getWindowUrl,
     setWindowUrl,
@@ -184,11 +184,11 @@ export class GlobalEntitySelector extends React.Component<{
 
     @action.bound async populateLocalEntity(): Promise<void> {
         try {
-            const localCountryCode = await getCountryCodeFromNetlifyRedirect()
+            const localCountryCode = await getUserCountryInformation()
             if (!localCountryCode) return
 
             const country = allEntities.find(
-                (entity): boolean => entity.code === localCountryCode
+                (entity): boolean => entity.code === localCountryCode.code
             )
             if (country) this.localEntityName = country.name
         } catch (err) {}

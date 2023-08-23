@@ -1514,3 +1514,11 @@ export interface DataPageV2ContentFields {
     // TODO: add gdocs for FAQs
     isPreviewing?: boolean
 }
+
+export interface UserCountryInformation {
+    code: string
+    name: string
+    short_code: string
+    slug: string
+    regions: string[] | null
+}

@@ -160,6 +160,7 @@ import {
     EnrichedTopicPageIntroDownloadButton,
     EnrichedScrollerItem,
     EnrichedBlockKeyInsightsSlide,
+    UserCountryInformation,
 } from "./owidTypes.js"
 import { OwidVariableWithSource } from "./OwidVariable.js"
 import { PointVector } from "./PointVector.js"
@@ -559,13 +560,13 @@ export const fetchText = async (url: string): Promise<string> => {
     })
 }
 
-export const getCountryCodeFromNetlifyRedirect = async (): Promise<
-    string | undefined
+export const getUserCountryInformation = async (): Promise<
+    UserCountryInformation | undefined
 > =>
-    await fetch("/detect-country-redirect").then((res) => {
-        if (!res.ok) throw new Error("Couldn't retrieve country code")
-        return res.url.split("?")[1]
-    })
+    await fetch("/detect-country")
+        .then((res) => res.json())
+        .then((res) => res.country)
+        .catch(() => undefined)
 
 export const stripHTML = (html: string): string => striptags(html)
 
