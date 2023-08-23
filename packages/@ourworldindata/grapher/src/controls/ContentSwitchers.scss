@@ -21,12 +21,11 @@ $gap: 2px;
         text-transform: capitalize;
         color: $light-text;
         font-size: 14px;
-        font-weight: $medium;
+        font-weight: 500;
         height: $controlRowHeight - 2 * ($borderWidth + $gap);
         line-height: $controlRowHeight - 2 * ($borderWidth + $gap);
-        // todo(redesign): update padding based on sizing
-        padding: 0 8px;
         border-radius: $borderRadius - $gap;
+        padding: 0 8px;
 
         svg {
             margin-right: 6px;
@@ -57,4 +56,8 @@ $gap: 2px;
             color: $active-knob;
         }
     }
+}
+
+.ContentSwitchers.wide li > a {
+    padding: 0 16px;
 }
