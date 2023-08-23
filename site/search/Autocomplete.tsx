@@ -186,7 +186,7 @@ export function Autocomplete({
     onClose: () => void
 }) {
     useLayoutEffect(() => {
-        if (window.location.pathname === "/search") return
+        if (window.location.pathname.includes("/search")) return
         const search = autocomplete({
             container: AUTOCOMPLETE_CONTAINER_ID,
             placeholder: "Search for a topic or chart",
@@ -222,6 +222,25 @@ export function Autocomplete({
             },
             plugins: [recentSearchesPlugin],
         })
+
+        const container = document.querySelector(AUTOCOMPLETE_CONTAINER_ID)
+        if (container) {
+            const input = container.querySelector<HTMLInputElement>("input")
+            if (input) {
+                const inputId = input.id
+                const button = container.querySelector(
+                    `label[for='${inputId}'] button`
+                )
+                // Disable the button on mount. We know there's no input because the element is created by JS
+                // and thus isn't persisted between navigations
+                button?.setAttribute("disabled", "true")
+
+                input.addEventListener("change", () => {
+                    const isFormValid = input.checkValidity()
+                    button?.setAttribute("disabled", `${!isFormValid}`)
+                })
+            }
+        }
 
         return () => search.destroy()
     }, [onActivate, onClose])

@@ -51,6 +51,7 @@
             align-items: center;
             > li {
                 list-style-type: none;
+                white-space: nowrap;
                 > a,
                 .SiteNavigationToggle__button {
                     @include body-3-medium;

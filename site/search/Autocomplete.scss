@@ -4,7 +4,7 @@
 
 :root {
     // Also referenced in Autocomplete.tsx - grep "detachedMediaQuery"
-    --aa-detached-media-query: (max-width: $md);
+    --aa-detached-media-query: (max-width: $lg);
     --aa-detached-modal-media-query: (min-width: $md);
     --aa-detached-modal-max-width: $md;
     --aa-muted-color-rgb: $blue-20;
@@ -25,7 +25,12 @@
     border-color: transparent;
     border-width: 1px;
 
-    @include lg-up {
+    &:focus-within {
+        border-color: transparent;
+        box-shadow: none;
+    }
+
+    @include md-up {
         background-color: $blue-90;
     }
 
@@ -75,45 +80,30 @@
 .aa-DetachedCancelButton {
     color: $blue-90;
     border-radius: 0;
-    &:hover {
+    border: none;
+    &:hover,
+    &:focus,
+    &:focus-visible {
         background: $blue-10;
         box-shadow: none;
+        outline: none;
     }
 }
 
-.aa-SubmitIcon,
 .aa-SubmitButton,
 .aa-ItemActionButton,
-.aa-ClearButton {
-    fill: $blue-30;
-    color: $blue-30;
-    stroke: none;
-
-    &:focus {
-        outline: none;
-        box-shadow: none;
-        background: $blue-10;
-    }
-
-    &:hover {
-        fill: $blue-90;
-        color: $blue-90;
-    }
-}
-
-.aa-DetachedCancelButton {
-    &:focus {
-        box-shadow: none;
-        background: $blue-10;
+.aa-ClearButton,
+.aa-DetachedSearchButtonIcon {
+    svg {
+        fill: $blue-30;
+        color: $blue-30;
+        stroke: none;
     }
 }
 
 @include md-down {
-    .aa-SubmitIcon {
+    .aa-DetachedSearchButtonIcon svg {
         fill: #fff;
-    }
-    .aa-DetachedOverlay .aa-SubmitIcon {
-        fill: $blue-90;
     }
 }
 
