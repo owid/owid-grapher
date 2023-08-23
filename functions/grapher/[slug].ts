@@ -1,14 +1,14 @@
-export const onRequest: PagesFunction = async ({ request, params, env }) => {
+export const onRequestGet: PagesFunction = async ({ request, params, env }) => {
     const slug = params.slug as string
-    const { search } = new URL(request.url)
-    const grapherPageHtml = await env.ASSETS.fetch(`/grapher/${slug}`).then(
-        (res) => res.text()
-    )
+    const url = new URL(request.url)
+    const { search } = url
+    const grapherPageResp = await env.ASSETS.fetch(url)
+    const grapherPageHtml = await grapherPageResp.text()
 
     const transformedHtml = grapherPageHtml.replace(
         /"[^"]+\/default-grapher-thumbnail.png"/g,
         `"https://thumbnails.owid.io/grapher/${slug}.png${search}"`
     )
 
-    return new Response(transformedHtml)
+    return new Response(transformedHtml, grapherPageResp)
 }
