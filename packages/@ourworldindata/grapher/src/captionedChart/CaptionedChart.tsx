@@ -479,9 +479,9 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         )
     }
 
-    // if you edit the render function, make sure to keep chartHeight in sync
+    // make sure to keep this.chartHeight in sync if you edit the render function
     render(): JSX.Element {
-        // CaptionedChart renders at the very least a header, a chart, and a Footer.
+        // CaptionedChart renders at the very least a header, a chart, and a footer.
         // Interactive charts also have controls above the chart area and a timeline below it.
         // Some charts have a related question below the footer.
         // A CaptionedChart looks like this (components in [brackets] are optional):

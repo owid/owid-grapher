@@ -1,6 +1,5 @@
 // keep in sync with constant values in Footer.tsx
-$licensePaddingTop: 4px; // keep in sync with LICENSE_PADDING_TOP
-$horizontalPadding: 16px; // keep in sync with HORIZONTAL_PADDING
+$horizontalPadding: 8px; // keep in sync with HORIZONTAL_PADDING
 
 .SourcesFooterHTML {
     padding: 0 $framePadding;
@@ -27,14 +26,18 @@ $horizontalPadding: 16px; // keep in sync with HORIZONTAL_PADDING
     }
 
     .license {
-        margin-top: $licensePaddingTop;
-
         a:hover {
             text-decoration: underline;
         }
     }
 
-    .NoteAndActionButtons {
+    .SourcesAndLicense {
+        display: flex;
+        justify-content: space-between;
+        gap: $horizontalPadding;
+    }
+
+    .SourcesFooterHTMLBottom {
         display: flex;
         justify-content: space-between;
         align-items: flex-end;

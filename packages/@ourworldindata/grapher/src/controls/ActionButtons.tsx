@@ -1,7 +1,6 @@
 import React, { useState } from "react"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { SizeVariant } from "../core/GrapherConstants"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
     faShareNodes,
@@ -22,7 +21,6 @@ export interface ActionButtonsManager extends ShareMenuManager {
     canonicalUrl?: string
     isInFullScreenMode?: boolean
     isDownloadModalOpen?: boolean
-    sizeVariant?: SizeVariant
 }
 
 // keep in sync with sass variables in ActionButtons.scss
@@ -37,22 +35,13 @@ const BUTTON_WIDTH_ICON_ONLY = BUTTON_HEIGHT
 export class ActionButtons extends React.Component<{
     manager: ActionButtonsManager
     maxWidth?: number
-    availableWidth?: number
 }> {
     @computed private get manager(): ActionButtonsManager {
         return this.props.manager
     }
 
-    @computed protected get sizeVariant(): SizeVariant {
-        return this.manager.sizeVariant ?? SizeVariant.lg
-    }
-
     @computed protected get maxWidth(): number {
         return this.props.maxWidth ?? DEFAULT_BOUNDS.width
-    }
-
-    @computed protected get availableWidth(): number {
-        return this.props.availableWidth ?? this.maxWidth
     }
 
     @computed get height(): number {
@@ -90,10 +79,8 @@ export class ActionButtons extends React.Component<{
     }
 
     @computed private get showButtonLabels(): boolean {
-        const { availableWidth, sizeVariant, widthWithButtonLabels } = this
-        // todo(redesign: remove this restriction
-        if (sizeVariant !== SizeVariant.lg) return false
-        return widthWithButtonLabels <= availableWidth
+        const { maxWidth, widthWithButtonLabels } = this
+        return widthWithButtonLabels <= maxWidth
     }
 
     @computed get width(): number {
