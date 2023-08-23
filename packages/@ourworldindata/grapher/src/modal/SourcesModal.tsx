@@ -1,4 +1,10 @@
-import { MarkdownTextWrap, OwidOrigin, linkify } from "@ourworldindata/utils"
+import {
+    MarkdownTextWrap,
+    OwidOrigin,
+    linkify,
+    Bounds,
+    DEFAULT_BOUNDS,
+} from "@ourworldindata/utils"
 import React from "react"
 import { action, computed } from "mobx"
 import { observer } from "mobx-react"
@@ -15,6 +21,7 @@ export interface SourcesModalManager {
     columnsWithSources: CoreColumn[]
     showAdminControls?: boolean
     isSourcesModalOpen?: boolean
+    tabBounds?: Bounds
 }
 
 @observer
@@ -23,6 +30,16 @@ export class SourcesModal extends React.Component<{
 }> {
     @computed private get manager(): SourcesModalManager {
         return this.props.manager
+    }
+
+    @computed private get tabBounds(): Bounds {
+        return this.manager.tabBounds ?? DEFAULT_BOUNDS
+    }
+
+    @computed private get modalBounds(): Bounds {
+        const maxWidth = 740
+        const padWidth = Math.max(16, (this.tabBounds.width - maxWidth) / 2)
+        return this.tabBounds.padHeight(16).padWidth(padWidth)
     }
 
     private renderSource(column: CoreColumn): JSX.Element {
@@ -205,6 +222,7 @@ export class SourcesModal extends React.Component<{
                 onDismiss={action(
                     () => (this.manager.isSourcesModalOpen = false)
                 )}
+                bounds={this.modalBounds}
             >
                 <div className="SourcesModalContent">
                     {cols.map((col) => this.renderSource(col))}

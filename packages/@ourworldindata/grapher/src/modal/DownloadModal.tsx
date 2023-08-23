@@ -34,6 +34,7 @@ export interface DownloadModalManager {
     detailRenderers: MarkdownTextWrap[]
     isDownloadModalOpen?: boolean
     tabBounds?: Bounds
+    isOnChartOrMapTab?: boolean
 }
 
 interface DownloadModalProps {
@@ -46,8 +47,14 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
         return this.manager.idealBounds ?? DEFAULT_BOUNDS
     }
 
-    @computed private get bounds(): Bounds {
+    @computed private get tabBounds(): Bounds {
         return this.manager.tabBounds ?? DEFAULT_BOUNDS
+    }
+
+    @computed private get modalBounds(): Bounds {
+        const maxWidth = 640
+        const padWidth = Math.max(16, (this.tabBounds.width - maxWidth) / 2)
+        return this.tabBounds.padHeight(16).padWidth(padWidth)
     }
 
     @computed private get targetWidth(): number {
@@ -203,133 +210,118 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
     }
 
     private renderReady(): JSX.Element {
-        const { targetWidth, targetHeight, svgPreviewUrl, bounds } = this
-
+        const { manager, svgPreviewUrl } = this
         const pngPreviewUrl = this.pngPreviewUrl || this.fallbackPngUrl
-
-        let previewWidth: number
-        let previewHeight: number
-        const boundScalar = 0.17
-        if (bounds.width / bounds.height > targetWidth / targetHeight) {
-            previewHeight = bounds.height * boundScalar
-            previewWidth = (targetWidth / targetHeight) * previewHeight
-        } else {
-            previewWidth = bounds.width * boundScalar
-            previewHeight = (targetHeight / targetWidth) * previewWidth
-        }
-
         const imgStyle = {
-            minWidth: previewWidth,
-            minHeight: previewHeight,
-            maxWidth: previewWidth,
-            maxHeight: previewHeight,
             opacity: this.isReady ? 1 : 0,
         }
 
         return (
             <div className="grouped-menu">
-                <div className="grouped-menu-section">
-                    <h2>Visualization</h2>
-                    <div className="grouped-menu-list">
-                        <button
-                            className="grouped-menu-item"
-                            onClick={this.onPngDownload}
-                            data-track-note="chart_download_png"
-                        >
-                            <div className="grouped-menu-icon">
-                                <img src={pngPreviewUrl} style={imgStyle} />
-                            </div>
-                            <div className="grouped-menu-content">
-                                <h3 className="title">Image (PNG)</h3>
-                                <p className="description">
-                                    Suitable for most uses, widely compatible.
-                                </p>
-                            </div>
-                            <div className="grouped-menu-icon">
-                                <span className="download-icon">
-                                    <FontAwesomeIcon icon={faDownload} />
-                                </span>
-                            </div>
-                        </button>
-                        <button
-                            className="grouped-menu-item"
-                            onClick={this.onSvgDownload}
-                            data-track-note="chart_download_svg"
-                        >
-                            <div className="grouped-menu-icon">
-                                <img src={svgPreviewUrl} style={imgStyle} />
-                            </div>
-                            <div className="grouped-menu-content">
-                                <h3 className="title">Vector graphic (SVG)</h3>
-                                <p className="description">
-                                    For high quality prints, or further editing
-                                    the chart in graphics software.
-                                </p>
-                            </div>
-                            <div className="grouped-menu-icon">
-                                <span className="download-icon">
-                                    <FontAwesomeIcon icon={faDownload} />
-                                </span>
-                            </div>
-                        </button>
-                    </div>
-                    {!isEmpty(this.manager.detailRenderers) && (
-                        <div className="static-exports-options">
-                            <input
-                                type="checkbox"
-                                id="shouldIncludeDetailsInStaticExport"
-                                name="shouldIncludeDetailsInStaticExport"
-                                onChange={(): void => {
-                                    this.isReady = false
-                                    this.manager.shouldIncludeDetailsInStaticExport =
-                                        !this.manager
-                                            .shouldIncludeDetailsInStaticExport
-                                    this.export()
-                                }}
-                                checked={
-                                    this.manager
-                                        .shouldIncludeDetailsInStaticExport
-                                }
-                            />
-                            <label htmlFor="shouldIncludeDetailsInStaticExport">
-                                Include terminology definitions at bottom of
-                                chart
-                            </label>
+                {manager.isOnChartOrMapTab && (
+                    <div className="grouped-menu-section">
+                        <h2>Visualization</h2>
+                        <div className="grouped-menu-list">
+                            <button
+                                className="grouped-menu-item"
+                                onClick={this.onPngDownload}
+                                data-track-note="chart_download_png"
+                            >
+                                <div className="grouped-menu-icon">
+                                    <img src={pngPreviewUrl} style={imgStyle} />
+                                </div>
+                                <div className="grouped-menu-content">
+                                    <h3 className="title">Image (PNG)</h3>
+                                    <p className="description">
+                                        Suitable for most uses, widely
+                                        compatible.
+                                    </p>
+                                </div>
+                                <div className="grouped-menu-icon">
+                                    <span className="download-icon">
+                                        <FontAwesomeIcon icon={faDownload} />
+                                    </span>
+                                </div>
+                            </button>
+                            <button
+                                className="grouped-menu-item"
+                                onClick={this.onSvgDownload}
+                                data-track-note="chart_download_svg"
+                            >
+                                <div className="grouped-menu-icon">
+                                    <img src={svgPreviewUrl} style={imgStyle} />
+                                </div>
+                                <div className="grouped-menu-content">
+                                    <h3 className="title">
+                                        Vector graphic (SVG)
+                                    </h3>
+                                    <p className="description">
+                                        For high quality prints, or further
+                                        editing the chart in graphics software.
+                                    </p>
+                                </div>
+                                <div className="grouped-menu-icon">
+                                    <span className="download-icon">
+                                        <FontAwesomeIcon icon={faDownload} />
+                                    </span>
+                                </div>
+                            </button>
                         </div>
-                    )}
-                </div>
+                        {!isEmpty(this.manager.detailRenderers) && (
+                            <div className="static-exports-options">
+                                <input
+                                    type="checkbox"
+                                    id="shouldIncludeDetailsInStaticExport"
+                                    name="shouldIncludeDetailsInStaticExport"
+                                    onChange={(): void => {
+                                        this.isReady = false
+                                        this.manager.shouldIncludeDetailsInStaticExport =
+                                            !this.manager
+                                                .shouldIncludeDetailsInStaticExport
+                                        this.export()
+                                    }}
+                                    checked={
+                                        this.manager
+                                            .shouldIncludeDetailsInStaticExport
+                                    }
+                                />
+                                <label htmlFor="shouldIncludeDetailsInStaticExport">
+                                    Include terminology definitions at bottom of
+                                    chart
+                                </label>
+                            </div>
+                        )}
+                    </div>
+                )}
                 <div className="grouped-menu-section grouped-menu-section-data">
                     <h2>Data</h2>
                     {this.nonRedistributable ? (
-                        <div className="grouped-menu-callout danger">
-                            <div className="grouped-menu-callout-icon">
-                                <FontAwesomeIcon icon={faInfoCircle} />
-                            </div>
+                        <div className="grouped-menu-callout">
                             <div className="grouped-menu-callout-content">
                                 <h3 className="title">
+                                    <FontAwesomeIcon icon={faInfoCircle} />
                                     The data in this chart is not available to
                                     download
                                 </h3>
                                 <p>
                                     The data is published under a license that
                                     doesn't allow us to redistribute it.
-                                </p>
-                                {this.nonRedistributableSourceLink && (
-                                    <p>
-                                        Please visit the{" "}
-                                        <a
-                                            href={
-                                                this
-                                                    .nonRedistributableSourceLink
-                                            }
-                                        >
-                                            <strong>
+                                    {this.nonRedistributableSourceLink && (
+                                        <>
+                                            {" "}
+                                            Please visit the{" "}
+                                            <a
+                                                href={
+                                                    this
+                                                        .nonRedistributableSourceLink
+                                                }
+                                            >
                                                 data publisher's website
-                                            </strong>
-                                        </a>{" "}
-                                        for more details.
-                                    </p>
-                                )}
+                                            </a>{" "}
+                                            for more details.
+                                        </>
+                                    )}
+                                </p>
                             </div>
                         </div>
                     ) : (
@@ -340,10 +332,7 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
                                 data-track-note="chart_download_csv"
                             >
                                 <div className="grouped-menu-content">
-                                    <h3 className="title">
-                                        Full data{" "}
-                                        <span className="faint">(CSV)</span>
-                                    </h3>
+                                    <h3 className="title">Full data (CSV)</h3>
                                     <p className="description">
                                         The full dataset used in this chart.
                                     </p>
@@ -372,6 +361,7 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
                 onDismiss={action(
                     () => (this.manager.isDownloadModalOpen = false)
                 )}
+                bounds={this.modalBounds}
             >
                 <div className="DownloadModalContent">
                     {this.isReady ? (

@@ -1,16 +1,7 @@
-&.narrow .datasource-wrapper {
-    padding: 0;
-}
-
-.SourcesModalContent {
-    height: calc(100% - 12px);
-    overflow-y: auto;
-}
-
 .datasource-wrapper {
-    font-size: 0.8em;
-    max-width: 1024px;
-    color: $light-text;
+    font-size: 0.8125rem;
+    color: $dark-text;
+    line-height: 1.38461538;
 }
 
 .datasource-wrapper + .datasource-wrapper {
@@ -51,13 +42,14 @@
 
 .datasource-wrapper td {
     padding: 16px 0;
-    line-height: 1.42857143;
     vertical-align: top;
     border-top: 1px solid #ddd;
 }
 
 .datasource-wrapper td:first-child {
-    padding-right: 16px;
+    padding-right: 24px;
+    color: $light-text;
+    min-width: 100px;
 }
 
 .datasource-wrapper tr:first-child td {
