@@ -45,16 +45,17 @@
         .modalDismiss {
             z-index: inherit;
             position: absolute;
-            font-size: 0.9em;
+            font-size: 13px;
             color: $dark-text;
             top: 1em;
             right: 1em;
-            border: 1px solid $light-fill;
+            border: 1px solid $light-stroke;
             border-radius: 50%;
             width: 32px;
             height: 32px;
 
             &:hover {
+                border-color: $hover-fill;
                 background: $hover-fill;
             }
         }
