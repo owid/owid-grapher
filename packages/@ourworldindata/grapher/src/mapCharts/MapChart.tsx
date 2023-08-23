@@ -915,7 +915,7 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
                 />
                 {clipPath.element}
                 <g className="subunits" transform={matrixTransform}>
-                    {featuresOutsideProjection.length && (
+                    {featuresOutsideProjection.length > 0 && (
                         <g className="nonProjectionFeatures">
                             {featuresOutsideProjection.map((feature) => {
                                 return (
@@ -931,7 +931,7 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
                         </g>
                     )}
 
-                    {featuresWithNoData.length && (
+                    {featuresWithNoData.length > 0 && (
                         <g className="noDataFeatures">
                             <defs>
                                 <pattern
