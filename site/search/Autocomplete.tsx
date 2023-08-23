@@ -235,9 +235,13 @@ export function Autocomplete({
                 // and thus isn't persisted between navigations
                 button?.setAttribute("disabled", "true")
 
-                input.addEventListener("change", () => {
+                input.addEventListener("input", () => {
                     const isFormValid = input.checkValidity()
-                    button?.setAttribute("disabled", `${!isFormValid}`)
+                    if (isFormValid) {
+                        button?.removeAttribute("disabled")
+                    } else {
+                        button?.setAttribute("disabled", "true")
+                    }
                 })
             }
         }

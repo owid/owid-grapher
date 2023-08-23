@@ -1,8 +1,8 @@
 .search-page-container {
-    margin-top: 24px;
-    min-height: calc(100vh - $header-height-md);
-    @include sm-only {
-        min-height: calc(100vh - $header-height-sm);
+    min-height: calc(100vh - $header-height-sm);
+    @include sm-up {
+        min-height: calc(100vh - $header-height-md);
+        margin-top: 24px;
     }
 }
 
