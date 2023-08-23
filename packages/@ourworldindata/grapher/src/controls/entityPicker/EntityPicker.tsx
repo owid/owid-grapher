@@ -7,7 +7,11 @@ import classnames from "classnames"
 import { scaleLinear, ScaleLinear } from "d3-scale"
 import Select from "react-select"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faMapPin, faSearch, faTimes } from "@fortawesome/free-solid-svg-icons"
+import {
+    faLocationDot,
+    faSearch,
+    faTimes,
+} from "@fortawesome/free-solid-svg-icons"
 import { FuzzySearch } from "../../controls/FuzzySearch"
 import {
     partition,
@@ -686,7 +690,9 @@ class PickerOption extends React.Component<PickerOptionProps> {
                                     undefined && (
                                     <FontAwesomeIcon
                                         style={{ marginLeft: 5 }}
-                                        icon={faMapPin}
+                                        icon={faLocationDot}
+                                        opacity={0.9}
+                                        color="slategrey"
                                     />
                                 )}
                             </div>
