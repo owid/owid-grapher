@@ -37,7 +37,7 @@
 @mixin superscript {
     position: static;
     top: auto;
-    font-size: 120%;
+    font-size: 100%;
     font-feature-settings: $default-font-features, "sups";
 }
 
