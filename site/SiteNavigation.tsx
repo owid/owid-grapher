@@ -179,9 +179,7 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                         </nav>
                         <div className="site-search-cta">
                             <SiteSearchNavigation
-                                query={query}
                                 isActive={menu === Menu.Search}
-                                setQuery={setQuery}
                                 onClose={closeOverlay}
                                 onActivate={setSearchAsActiveMenu}
                             />
