@@ -31,7 +31,7 @@ export class EmbedModal extends React.Component<
     EmbedModalProps,
     EmbedModalState
 > {
-    dismissable = true
+    textAreaRef: React.RefObject<HTMLTextAreaElement> = React.createRef()
 
     constructor(props: EmbedModalProps) {
         super(props)
@@ -46,7 +46,7 @@ export class EmbedModal extends React.Component<
     }
 
     @computed private get modalBounds(): Bounds {
-        const maxWidth = 740
+        const maxWidth = 940
         const padWidth = Math.max(16, (this.tabBounds.width - maxWidth) / 2)
         return this.tabBounds.padHeight(16).padWidth(padWidth)
     }
@@ -56,28 +56,26 @@ export class EmbedModal extends React.Component<
         return `<iframe src="${url}" loading="lazy" style="width: 100%; height: 600px; border: 0px none;"></iframe>`
     }
 
-    @action.bound onClickSomewhere(): void {
-        if (this.dismissable) this.manager.isEmbedModalOpen = false
-        else this.dismissable = true
-    }
-
     @computed get manager(): EmbedModalManager {
         return this.props.manager
     }
 
-    @action.bound onClick(): void {
-        this.dismissable = false
+    @action.bound resizeTextArea(): void {
+        if (this.textAreaRef.current) {
+            const textArea = this.textAreaRef.current
+            textArea.style.height = textArea.scrollHeight + "px"
+        }
     }
 
     componentDidMount(): void {
-        document.addEventListener("click", this.onClickSomewhere)
         canWriteToClipboard().then((canWriteToClipboard) =>
             this.setState({ canWriteToClipboard })
         )
+        this.resizeTextArea()
     }
 
-    componentWillUnmount(): void {
-        document.removeEventListener("click", this.onClickSomewhere)
+    componentDidUpdate(): void {
+        this.resizeTextArea()
     }
 
     @action.bound async onCopyCodeSnippet(): Promise<void> {
@@ -99,11 +97,13 @@ export class EmbedModal extends React.Component<
                     () => (this.manager.isEmbedModalOpen = false)
                 )}
                 bounds={this.modalBounds}
+                alignVertical="bottom"
             >
-                <div className="embedMenu" onClick={this.onClick}>
+                <div className="embedMenu">
                     <p>Paste this into any HTML page:</p>
                     <div className="embedCode">
                         <textarea
+                            ref={this.textAreaRef}
                             readOnly={true}
                             onFocus={(evt): void => evt.currentTarget.select()}
                             value={this.codeSnippet}

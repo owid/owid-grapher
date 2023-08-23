@@ -12,6 +12,7 @@ export class Modal extends React.Component<{
     title?: string
     children?: React.ReactNode
     isHeightFixed?: boolean
+    alignVertical?: "center" | "bottom"
 }> {
     contentRef: React.RefObject<HTMLDivElement> = React.createRef()
 
@@ -25,6 +26,10 @@ export class Modal extends React.Component<{
 
     @computed private get isHeightFixed(): boolean {
         return this.props.isHeightFixed ?? false
+    }
+
+    @computed private get alignVertical(): "center" | "bottom" {
+        return this.props.alignVertical ?? "center"
     }
 
     @action.bound onDocumentClick(e: MouseEvent): void {
@@ -55,14 +60,21 @@ export class Modal extends React.Component<{
     render(): JSX.Element {
         const { bounds } = this
 
-        const contentStyle = {
+        const contentStyle: React.CSSProperties = {
             left: bounds.left,
             width: bounds.width,
             maxHeight: bounds.height,
-            height: this.isHeightFixed ? bounds.height : undefined,
-            // center vertically
-            top: "50%",
-            transform: `translateY(-50%)`,
+        }
+
+        if (this.isHeightFixed) {
+            contentStyle.height = bounds.height
+        }
+
+        if (this.alignVertical === "bottom") {
+            contentStyle.bottom = bounds.y
+        } else {
+            contentStyle.top = "50%"
+            contentStyle.transform = `translateY(-50%)`
         }
 
         return (
