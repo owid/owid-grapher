@@ -19,6 +19,7 @@ $horizontalPadding: 8px; // keep in sync with HORIZONTAL_PADDING
 
     .sources a {
         text-decoration: underline;
+        text-decoration-color: $dark-text;
 
         &:hover {
             text-decoration: none;

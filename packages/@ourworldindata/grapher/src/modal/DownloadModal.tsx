@@ -209,26 +209,9 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
     }
 
     private renderReady(): JSX.Element {
-        const { targetWidth, targetHeight, svgPreviewUrl, tabBounds } = this
-
+        const { svgPreviewUrl } = this
         const pngPreviewUrl = this.pngPreviewUrl || this.fallbackPngUrl
-
-        let previewWidth: number
-        let previewHeight: number
-        const boundScalar = 0.17
-        if (tabBounds.width / tabBounds.height > targetWidth / targetHeight) {
-            previewHeight = tabBounds.height * boundScalar
-            previewWidth = (targetWidth / targetHeight) * previewHeight
-        } else {
-            previewWidth = tabBounds.width * boundScalar
-            previewHeight = (targetHeight / targetWidth) * previewWidth
-        }
-
         const imgStyle = {
-            minWidth: previewWidth,
-            minHeight: previewHeight,
-            maxWidth: previewWidth,
-            maxHeight: previewHeight,
             opacity: this.isReady ? 1 : 0,
         }
 
@@ -307,35 +290,32 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
                 <div className="grouped-menu-section grouped-menu-section-data">
                     <h2>Data</h2>
                     {this.nonRedistributable ? (
-                        <div className="grouped-menu-callout danger">
-                            <div className="grouped-menu-callout-icon">
-                                <FontAwesomeIcon icon={faInfoCircle} />
-                            </div>
+                        <div className="grouped-menu-callout">
                             <div className="grouped-menu-callout-content">
                                 <h3 className="title">
+                                    <FontAwesomeIcon icon={faInfoCircle} />
                                     The data in this chart is not available to
                                     download
                                 </h3>
                                 <p>
                                     The data is published under a license that
                                     doesn't allow us to redistribute it.
-                                </p>
-                                {this.nonRedistributableSourceLink && (
-                                    <p>
-                                        Please visit the{" "}
-                                        <a
-                                            href={
-                                                this
-                                                    .nonRedistributableSourceLink
-                                            }
-                                        >
-                                            <strong>
+                                    {this.nonRedistributableSourceLink && (
+                                        <>
+                                            {" "}
+                                            Please visit the{" "}
+                                            <a
+                                                href={
+                                                    this
+                                                        .nonRedistributableSourceLink
+                                                }
+                                            >
                                                 data publisher's website
-                                            </strong>
-                                        </a>{" "}
-                                        for more details.
-                                    </p>
-                                )}
+                                            </a>{" "}
+                                            for more details.
+                                        </>
+                                    )}
+                                </p>
                             </div>
                         </div>
                     ) : (
@@ -346,10 +326,7 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
                                 data-track-note="chart_download_csv"
                             >
                                 <div className="grouped-menu-content">
-                                    <h3 className="title">
-                                        Full data{" "}
-                                        <span className="faint">(CSV)</span>
-                                    </h3>
+                                    <h3 className="title">Full data (CSV)</h3>
                                     <p className="description">
                                         The full dataset used in this chart.
                                     </p>

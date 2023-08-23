@@ -8,7 +8,7 @@
             font-family: $serif-font-stack;
             font-size: 1.125em;
             font-weight: 600;
-            margin-bottom: 0.7em;
+            margin-bottom: 16px;
         }
     }
 
@@ -33,8 +33,7 @@
         text-align: left;
 
         &:hover {
-            z-index: 1;
-            background-color: $hover-fill;
+            cursor: pointer;
         }
     }
 
@@ -44,6 +43,7 @@
             0px 6px 13px 0px rgba(49, 37, 2, 0.03),
             0px 93px 37px 0px rgba(49, 37, 2, 0.01),
             0px 145px 41px 0px rgba(49, 37, 2, 0);
+        max-height: 72px;
     }
 
     .grouped-menu-content {
@@ -52,15 +52,16 @@
 
         .title {
             margin: 0;
-            margin-bottom: 0.2em;
             font-weight: 600;
             font-size: 1em;
+            line-height: 1.5;
         }
 
         .description {
             margin: 0;
             color: $light-text;
             font-size: 0.875em;
+            font-weight: 500;
         }
     }
 
@@ -70,49 +71,49 @@
 
     .download-icon {
         padding: 0 0.5em;
-        font-size: 1.1em;
+        font-size: 1rem;
     }
     .grouped-menu-item:hover .download-icon {
         opacity: 1;
     }
 
-    // todo(redesign): restyle callout
     .grouped-menu-callout {
-        display: flex;
-        flex-direction: row;
-        // align-items: center;
-        color: #444;
-        border: 1px solid rgba(0, 0, 0, 0.15);
-        border-radius: 3px;
-        margin-bottom: 1.25em;
+        border-radius: 8px;
+        border: 1px solid #dadada;
+        background: #f7f7f7;
+        padding: 1rem;
 
-        &.danger {
-            background-color: #fbf3f3;
-            border-color: #bb7a76;
-            color: #851811;
+        svg {
+            margin-right: 0.5rem;
         }
 
         .title {
-            font-size: 1em;
             margin: 0;
+            font-family: $serif-font-stack;
+            font-size: 1rem;
+            font-weight: 600;
+            line-height: 1.5;
         }
 
         p {
             font-size: 0.9375em;
             margin: 0.5em 0 0;
             opacity: 0.9;
+            color: $light-text;
+            font-size: 0.875rem;
+            font-weight: 500;
+            line-height: 1.5;
+            letter-spacing: 0.14px;
         }
-    }
 
-    .grouped-menu-callout-icon {
-        flex: 0;
-        margin: 1em;
-        margin-right: 0;
-    }
+        a {
+            color: inherit;
+            text-decoration: underline;
 
-    .grouped-menu-callout-content {
-        flex: 1;
-        padding: 0.85em 1em;
+            &:hover {
+                text-decoration: none;
+            }
+        }
     }
 }
 
