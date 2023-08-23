@@ -7,11 +7,7 @@ import classnames from "classnames"
 import { scaleLinear, ScaleLinear } from "d3-scale"
 import Select from "react-select"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import {
-    faLocationArrow,
-    faSearch,
-    faTimes,
-} from "@fortawesome/free-solid-svg-icons"
+import { faMapPin, faSearch, faTimes } from "@fortawesome/free-solid-svg-icons"
 import { FuzzySearch } from "../../controls/FuzzySearch"
 import {
     partition,
@@ -24,6 +20,7 @@ import {
     ColumnSlug,
     getUserCountryInformation,
     regions,
+    sortBy,
 } from "@ourworldindata/utils"
 import { VerticalScrollContainer } from "../../controls/VerticalScrollContainer"
 import { SortIcon } from "../../controls/SortIcon"
@@ -53,7 +50,7 @@ interface EntityOptionWithMetricValue {
     entityName: EntityName
     plotValue: number | string | undefined
     formattedValue: any
-    isLocalCountry: boolean
+    localEntitiesIndex: number | undefined
 }
 
 /** Modulo that wraps negative numbers too */
@@ -82,7 +79,7 @@ export class EntityPicker extends React.Component<{
 
     @observable private isOpen = false
 
-    @observable private localEntityNames?: Set<string>
+    @observable private localEntityNames?: string[]
 
     @computed private get isDropdownMenu(): boolean {
         return !!this.props.isDropdownMenu
@@ -159,13 +156,17 @@ export class EntityPicker extends React.Component<{
             const userEntityCodes = [
                 localCountryInfo.code,
                 ...(localCountryInfo.regions ?? []),
+                "OWID_WRL",
             ]
 
-            const userRegionNames = regions
-                .filter((region) => userEntityCodes.includes(region.code))
-                .map((region) => region.name)
-            if (userRegionNames)
-                this.localEntityNames = new Set(userRegionNames)
+            const userRegionNames = sortBy(
+                regions.filter((region) =>
+                    userEntityCodes.includes(region.code)
+                ),
+                (region) => userEntityCodes.indexOf(region.code)
+            ).map((region) => region.name)
+
+            if (userRegionNames) this.localEntityNames = userRegionNames
         } catch (err) {}
     }
 
@@ -187,11 +188,16 @@ export class EntityPicker extends React.Component<{
                 plotValue !== undefined
                     ? col?.formatValueShortWithAbbreviations(plotValue)
                     : undefined
+
+            const localEntitiesIndex = localEntityNames?.indexOf(entityName)
             return {
                 entityName,
                 plotValue,
                 formattedValue,
-                isLocalCountry: localEntityNames?.has(entityName) ?? false,
+                localEntitiesIndex:
+                    localEntitiesIndex !== undefined && localEntitiesIndex >= 0
+                        ? localEntitiesIndex
+                        : undefined,
             }
         })
     }
@@ -230,14 +236,14 @@ export class EntityPicker extends React.Component<{
             this.sortOrder
         )
 
-        const [local, other] = partition(
-            sorted,
-            (option) => option.isLocalCountry
-        )
-        const [selected, unselected] = partition(other, (option) =>
+        const [selected, unselected] = partition(sorted, (option) =>
             selectionSet.has(option.entityName)
         )
-        return [...local, ...selected, ...unselected]
+        const unselectedSorted = sortByUndefinedLast(
+            unselected,
+            (option) => option.localEntitiesIndex
+        )
+        return [...selected, ...unselectedSorted]
     }
 
     private normalizeFocusIndex(index: number): number | undefined {
@@ -653,7 +659,8 @@ class PickerOption extends React.Component<PickerOptionProps> {
                             selected: isSelected,
                             focused: isFocused,
                             "local-country":
-                                optionWithMetricValue.isLocalCountry,
+                                optionWithMetricValue.localEntitiesIndex !==
+                                undefined,
                         },
                         hasDataForActiveMetric ? undefined : "MissingData"
                     )}
@@ -675,10 +682,11 @@ class PickerOption extends React.Component<PickerOptionProps> {
                         <div className="labels-container">
                             <div className="name">
                                 {highlight(entityName)}
-                                {optionWithMetricValue.isLocalCountry && (
+                                {optionWithMetricValue.localEntitiesIndex !==
+                                    undefined && (
                                     <FontAwesomeIcon
                                         style={{ marginLeft: 5 }}
-                                        icon={faLocationArrow}
+                                        icon={faMapPin}
                                     />
                                 )}
                             </div>
