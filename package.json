@@ -216,6 +216,7 @@
         "workerpool": "^6.2.0"
     },
     "devDependencies": {
+        "@cloudflare/workers-types": "^4.20230821.0",
         "@stripe/stripe-js": "^1.54.0",
         "@testing-library/jest-dom": "^5.16.5",
         "@testing-library/react": "^12",
