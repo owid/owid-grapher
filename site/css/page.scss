@@ -55,7 +55,7 @@
     }
 
     .supertitle {
-        @include sans-serif;
+        font-family: $sans-serif-font-stack;
         color: $secondary-text-color;
     }
 

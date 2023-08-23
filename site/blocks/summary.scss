@@ -9,7 +9,7 @@
 
     h2 {
         margin-top: 0;
-        @include serif;
+        font-family: $serif-font-stack;
         font-size: 2rem;
         text-align: center;
         color: inherit;

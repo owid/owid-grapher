@@ -5,7 +5,7 @@
         margin: 3rem 0 1.5rem;
 
         h1 {
-            @include serif;
+            font-family: $serif-font-stack;
             font-weight: 400;
             font-size: 2.5rem;
             color: $text-color;
@@ -36,7 +36,7 @@
     }
 
     h3 {
-        @include sans-serif;
+        font-family: $sans-serif-font-stack;
         font-size: 1rem;
         text-transform: uppercase;
         font-weight: 700;

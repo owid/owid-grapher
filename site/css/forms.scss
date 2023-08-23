@@ -175,7 +175,7 @@ $checkbox-check-height: 4px;
    ========================================================================== */
 
 %owid-input {
-    @include sans-serif;
+    font-family: $sans-serif-font-stack;
     font-size: 1.125rem;
     color: $blue-100;
     background-color: white;
@@ -212,7 +212,7 @@ $checkbox-check-height: 4px;
 }
 
 %owid-button-visual {
-    @include sans-serif;
+    font-family: $sans-serif-font-stack;
     font-size: 1.125rem;
     transition: opacity 150ms ease;
     background-color: $oxford-blue;
