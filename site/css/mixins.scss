@@ -3,8 +3,9 @@
     font-feature-settings: $serif-font-features;
 }
 
-@mixin sans {
+@mixin sans-serif {
     font-family: $sans-serif-font-stack;
+    font-feature-settings: $sans-serif-font-features;
 }
 
 @mixin small-caps {
