@@ -5,16 +5,33 @@
     bottom: 0;
     left: 0;
     background-color: rgba(0, 0, 0, 0.4);
+    z-index: $zindex-modal;
 
-    .modalContent {
-        z-index: $zindex-modal;
+    .modalWrapper {
         position: relative;
-        margin: 1em;
-        height: calc(100% - 2em);
-        border-radius: 4px;
-        background: #fff;
-        box-shadow: 0px 4px 30px 0px rgba(0, 0, 0, 0.15);
-        padding: 1.5em 1em;
+        height: 100%;
+
+        .modalContent {
+            position: absolute;
+            border-radius: 4px;
+            background: #fff;
+            box-shadow: 0px 4px 30px 0px rgba(0, 0, 0, 0.15);
+            padding: 1.5em 1em;
+            padding-bottom: 0;
+            min-height: 200px;
+            // necessary to allow modal to scroll
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modalHeader {
+            // necessary to allow modal to scroll
+            flex-shrink: 0;
+        }
+
+        .modalScrollable {
+            overflow-y: auto;
+        }
 
         .modalTitle {
             text-transform: uppercase;

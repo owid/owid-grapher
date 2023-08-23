@@ -3,7 +3,11 @@ import React from "react"
 import { computed, action } from "mobx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faCopy } from "@fortawesome/free-solid-svg-icons"
-import { canWriteToClipboard } from "@ourworldindata/utils"
+import {
+    Bounds,
+    canWriteToClipboard,
+    DEFAULT_BOUNDS,
+} from "@ourworldindata/utils"
 import { Modal } from "./Modal"
 
 export interface EmbedModalManager {
@@ -11,6 +15,7 @@ export interface EmbedModalManager {
     embedUrl?: string
     embedDialogAdditionalElements?: React.ReactElement
     isEmbedModalOpen?: boolean
+    tabBounds?: Bounds
 }
 
 interface EmbedModalProps {
@@ -34,6 +39,16 @@ export class EmbedModal extends React.Component<
         this.state = {
             canWriteToClipboard: false,
         }
+    }
+
+    @computed private get tabBounds(): Bounds {
+        return this.manager.tabBounds ?? DEFAULT_BOUNDS
+    }
+
+    @computed private get modalBounds(): Bounds {
+        const maxWidth = 740
+        const padWidth = Math.max(16, (this.tabBounds.width - maxWidth) / 2)
+        return this.tabBounds.padHeight(16).padWidth(padWidth)
     }
 
     @computed private get codeSnippet(): string {
@@ -83,6 +98,7 @@ export class EmbedModal extends React.Component<
                 onDismiss={action(
                     () => (this.manager.isEmbedModalOpen = false)
                 )}
+                bounds={this.modalBounds}
             >
                 <div className="embedMenu" onClick={this.onClick}>
                     <p>Paste this into any HTML page:</p>

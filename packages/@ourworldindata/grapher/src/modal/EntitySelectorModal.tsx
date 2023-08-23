@@ -1,17 +1,23 @@
 import React from "react"
 import { observer } from "mobx-react"
 import { computed, action, observable } from "mobx"
-import { isTouchDevice, sortBy } from "@ourworldindata/utils"
+import {
+    Bounds,
+    DEFAULT_BOUNDS,
+    isTouchDevice,
+    sortBy,
+} from "@ourworldindata/utils"
 import { FuzzySearch } from "../controls/FuzzySearch"
 import { faTimes } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { SelectionArray } from "../selection/SelectionArray"
-import { Modal, ModalContext } from "./Modal"
+import { Modal } from "./Modal"
 
 export interface EntitySelectorModalManager {
     selection: SelectionArray
     canChangeEntity: boolean
     isSelectingData?: boolean
+    tabBounds?: Bounds
 }
 
 interface SearchableEntity {
@@ -59,13 +65,19 @@ class EntitySearchResult extends React.PureComponent<SearchResultProps> {
 export class EntitySelectorModal extends React.Component<{
     manager: EntitySelectorModalManager
 }> {
-    static contextType = ModalContext
-
     @observable searchInput: string = ""
     searchField!: HTMLInputElement
 
     @computed private get manager(): EntitySelectorModalManager {
         return this.props.manager
+    }
+
+    @computed private get tabBounds(): Bounds {
+        return this.manager.tabBounds ?? DEFAULT_BOUNDS
+    }
+
+    @computed private get modalBounds(): Bounds {
+        return this.tabBounds.pad(16)
     }
 
     @computed private get selectionArray(): SelectionArray {
@@ -96,12 +108,16 @@ export class EntitySelectorModal extends React.Component<{
             : this.searchableEntities
     }
 
+    @action.bound onDismiss(): void {
+        this.manager.isSelectingData = false
+    }
+
     @action.bound onSelect(entityName: string): void {
         if (this.isMulti) {
             this.selectionArray.toggleSelection(entityName)
         } else {
             this.selectionArray.setSelectedEntities([entityName])
-            this.context.onDismiss()
+            this.onDismiss()
         }
     }
 
@@ -166,7 +182,10 @@ export class EntitySelectorModal extends React.Component<{
 
         return (
             <Modal
-                onDismiss={action(() => (this.manager.isSelectingData = false))}
+                title="Choose data to show"
+                onDismiss={this.onDismiss}
+                bounds={this.modalBounds}
+                isHeightFixed={true}
             >
                 <div
                     className={
@@ -175,9 +194,6 @@ export class EntitySelectorModal extends React.Component<{
                             : "EntitySelectorSingle"
                     }
                 >
-                    <header className="wrapper">
-                        <h2>Choose data to show</h2>
-                    </header>
                     <div className="entities wrapper">
                         <div className="searchResults">
                             <input

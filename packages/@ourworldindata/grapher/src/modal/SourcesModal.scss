@@ -2,14 +2,8 @@
     padding: 0;
 }
 
-.SourcesModalContent {
-    height: calc(100% - 12px);
-    overflow-y: auto;
-}
-
 .datasource-wrapper {
     font-size: 0.8em;
-    max-width: 1024px;
     color: $light-text;
 }
 

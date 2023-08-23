@@ -46,8 +46,14 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
         return this.manager.idealBounds ?? DEFAULT_BOUNDS
     }
 
-    @computed private get bounds(): Bounds {
+    @computed private get tabBounds(): Bounds {
         return this.manager.tabBounds ?? DEFAULT_BOUNDS
+    }
+
+    @computed private get modalBounds(): Bounds {
+        const maxWidth = 640
+        const padWidth = Math.max(16, (this.tabBounds.width - maxWidth) / 2)
+        return this.tabBounds.padHeight(16).padWidth(padWidth)
     }
 
     @computed private get targetWidth(): number {
@@ -203,18 +209,18 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
     }
 
     private renderReady(): JSX.Element {
-        const { targetWidth, targetHeight, svgPreviewUrl, bounds } = this
+        const { targetWidth, targetHeight, svgPreviewUrl, tabBounds } = this
 
         const pngPreviewUrl = this.pngPreviewUrl || this.fallbackPngUrl
 
         let previewWidth: number
         let previewHeight: number
         const boundScalar = 0.17
-        if (bounds.width / bounds.height > targetWidth / targetHeight) {
-            previewHeight = bounds.height * boundScalar
+        if (tabBounds.width / tabBounds.height > targetWidth / targetHeight) {
+            previewHeight = tabBounds.height * boundScalar
             previewWidth = (targetWidth / targetHeight) * previewHeight
         } else {
-            previewWidth = bounds.width * boundScalar
+            previewWidth = tabBounds.width * boundScalar
             previewHeight = (targetHeight / targetWidth) * previewWidth
         }
 
@@ -372,6 +378,7 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
                 onDismiss={action(
                     () => (this.manager.isDownloadModalOpen = false)
                 )}
+                bounds={this.modalBounds}
             >
                 <div className="DownloadModalContent">
                     {this.isReady ? (
