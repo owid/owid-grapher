@@ -1,5 +1,5 @@
 import ReactDOM from "react-dom"
-import React from "react"
+import React, { useCallback, useEffect } from "react"
 import cx from "classnames"
 import {
     keyBy,
@@ -29,9 +29,12 @@ import {
 import { action, observable } from "mobx"
 import { observer } from "mobx-react"
 import {
+    IExplorerHit,
+    IChartHit,
     SearchCategoryFilter,
     SearchIndexName,
     searchCategoryFilters,
+    IPageHit,
 } from "./searchTypes.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../../explorer/ExplorerConstants.js"
 
@@ -43,6 +46,11 @@ import type {
 } from "instantsearch.js/es/connectors/autocomplete/connectAutocomplete"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faSearch } from "@fortawesome/free-solid-svg-icons"
+import { logSiteSearchClick } from "./searchClient.js"
+import {
+    PreferenceType,
+    getPreferenceValue,
+} from "../CookiePreferencesManager.js"
 
 export type UseAutocompleteProps = AutocompleteConnectorParams
 
@@ -53,9 +61,14 @@ export function useAutocomplete(props?: UseAutocompleteProps) {
     >(connectAutocomplete, props)
 }
 
-function PagesHit({ hit }: { hit: any }) {
+function PagesHit({ hit }: { hit: IPageHit }) {
     return (
-        <a href={`${BAKED_BASE_URL}/${hit.slug}`}>
+        <a
+            href={`${BAKED_BASE_URL}/${hit.slug}`}
+            data-algolia-index={SearchIndexName.Pages}
+            data-algolia-object-id={hit.objectID}
+            data-algolia-position={hit.__position}
+        >
             {/* TODO: index featured images */}
             <header className="page-hit__header">
                 <h4 className="h3-bold search-results__page-hit-title">
@@ -75,9 +88,14 @@ function PagesHit({ hit }: { hit: any }) {
     )
 }
 
-function ChartHit({ hit }: { hit: any }) {
+function ChartHit({ hit }: { hit: IChartHit }) {
     return (
-        <a href={`${BAKED_GRAPHER_URL}/${hit.slug}`}>
+        <a
+            href={`${BAKED_GRAPHER_URL}/${hit.slug}`}
+            data-algolia-index={SearchIndexName.Charts}
+            data-algolia-object-id={hit.objectID}
+            data-algolia-position={hit.__position}
+        >
             <div className="search-results__chart-hit-img-container">
                 <img
                     loading="lazy"
@@ -94,9 +112,14 @@ function ChartHit({ hit }: { hit: any }) {
     )
 }
 
-function ExplorersHit({ hit }: { hit: any }) {
+function ExplorerHit({ hit }: { hit: IExplorerHit }) {
     return (
-        <a href={`${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${hit.slug}`}>
+        <a
+            data-algolia-index={SearchIndexName.Explorers}
+            data-algolia-object-id={hit.objectID}
+            data-algolia-position={hit.__position}
+            href={`${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${hit.slug}`}
+        >
             <h4 className="h3-bold">{hit.title}</h4>
             {/* Explorer subtitles are mostly useless at the moment, so we're only showing titles */}
         </a>
@@ -121,10 +144,10 @@ function ShowMore({
 
     const handleClick = () => {
         window.scrollTo({ top: 0, behavior: "smooth" })
-        // Skip timeout if we're already at/near the top of the page
+        // Wait for scroll to finish before updating the tab
+        // Skip the timeout if we were already at/near the top of the page
         const timeout = window.scrollY > 100 ? 500 : 0
         setTimeout(() => {
-            // Show the user we're back at the top of the page before updating the tab
             handleCategoryFilterClick(category)
         }, timeout)
     }
@@ -223,33 +246,106 @@ interface SearchResultsProps {
     handleCategoryFilterClick: (x: SearchCategoryFilter) => void
 }
 
-@observer
-class SearchResults extends React.Component<SearchResultsProps> {
-    constructor(props: SearchResultsProps) {
-        super(props)
-    }
+const SearchResults = (props: SearchResultsProps) => {
+    const {
+        results: { queryID },
+    } = useInstantSearch()
+    const { activeCategoryFilter, isHidden, handleCategoryFilterClick } = props
 
-    render() {
-        const { activeCategoryFilter, isHidden, handleCategoryFilterClick } =
-            this.props
-        if (isHidden) return null
-        return (
-            <div
-                className="search-results"
-                data-active-filter={activeCategoryFilter}
-            >
-                {/* This is using the InstantSearch index */}
-                <Configure hitsPerPage={40} distinct />
+    // Listen to all clicks, if user clicks on a hit (and has consented to analytics - grep "hasClickAnalyticsConsent"),
+    // Extract the pertinent hit data from the HTML and log the click to Algolia
+    const handleHitClick = useCallback(
+        (event: MouseEvent) => {
+            if (!queryID) return
+            let target = event.target as HTMLElement | null
+            if (target) {
+                let isHit = false
+                while (target) {
+                    if (target.hasAttribute("data-algolia-object-id")) {
+                        isHit = true
+                        break
+                    }
+                    target = target.parentElement
+                }
+                if (isHit && target) {
+                    const objectId = target.getAttribute(
+                        "data-algolia-object-id"
+                    )
+                    const position = target.getAttribute(
+                        "data-algolia-position"
+                    )
+                    if (objectId && position) {
+                        logSiteSearchClick({
+                            index: SearchIndexName.Charts,
+                            queryID,
+                            objectIDs: [objectId],
+                            positions: [parseInt(position)],
+                        })
+                    }
+                }
+            }
+        },
+        [queryID]
+    )
+    useEffect(() => {
+        document.addEventListener("click", handleHitClick)
+        return () => document.removeEventListener("click", handleHitClick)
+    }, [queryID, handleHitClick])
+    if (isHidden) return null
+
+    const hasClickAnalyticsConsent = getPreferenceValue(
+        PreferenceType.Analytics
+    )
+    return (
+        <div
+            className="search-results"
+            data-active-filter={activeCategoryFilter}
+        >
+            {/* This is using the InstantSearch index specified in InstantSearchContainer */}
+            <Configure
+                hitsPerPage={40}
+                distinct
+                clickAnalytics={hasClickAnalyticsConsent}
+            />
+            <NoResultsBoundary>
+                <section className="search-results__pages">
+                    <header className="search-results__header">
+                        <h2 className="h2-bold search-results__section-title">
+                            Research & Writing
+                        </h2>
+                    </header>
+                    <ShowMore
+                        category={SearchIndexName.Pages}
+                        cutoffNumber={4}
+                        activeCategoryFilter={activeCategoryFilter}
+                        handleCategoryFilterClick={handleCategoryFilterClick}
+                    />
+                    <Hits
+                        classNames={{
+                            root: "search-results__list-container",
+                            list: "search-results__pages-list grid grid-cols-2 grid-cols-sm-1",
+                            item: "search-results__page-hit span-md-cols-2",
+                        }}
+                        hitComponent={PagesHit}
+                    />
+                </section>
+            </NoResultsBoundary>
+            <Index indexName={SearchIndexName.Explorers}>
+                <Configure
+                    hitsPerPage={10}
+                    distinct
+                    clickAnalytics={hasClickAnalyticsConsent}
+                />
                 <NoResultsBoundary>
-                    <section className="search-results__pages">
+                    <section className="search-results__explorers">
                         <header className="search-results__header">
                             <h2 className="h2-bold search-results__section-title">
-                                Research & Writing
+                                Data Explorers
                             </h2>
                         </header>
                         <ShowMore
-                            category={SearchIndexName.Pages}
-                            cutoffNumber={4}
+                            category={SearchIndexName.Explorers}
+                            cutoffNumber={2}
                             activeCategoryFilter={activeCategoryFilter}
                             handleCategoryFilterClick={
                                 handleCategoryFilterClick
@@ -258,84 +354,60 @@ class SearchResults extends React.Component<SearchResultsProps> {
                         <Hits
                             classNames={{
                                 root: "search-results__list-container",
-                                list: "search-results__pages-list grid grid-cols-2 grid-cols-sm-1",
-                                item: "search-results__page-hit span-md-cols-2",
+                                list: "search-results__explorers-list grid grid-cols-2 grid-sm-cols-1",
+                                item: "search-results__explorer-hit",
                             }}
-                            hitComponent={PagesHit}
+                            hitComponent={ExplorerHit}
                         />
                     </section>
                 </NoResultsBoundary>
-                <Index indexName={SearchIndexName.Explorers}>
-                    <NoResultsBoundary>
-                        <section className="search-results__explorers">
-                            <Configure hitsPerPage={10} distinct />
-                            <header className="search-results__header">
-                                <h2 className="h2-bold search-results__section-title">
-                                    Data Explorers
-                                </h2>
-                            </header>
-                            <ShowMore
-                                category={SearchIndexName.Explorers}
-                                cutoffNumber={2}
-                                activeCategoryFilter={activeCategoryFilter}
-                                handleCategoryFilterClick={
-                                    handleCategoryFilterClick
-                                }
-                            />
-                            <Hits
-                                classNames={{
-                                    root: "search-results__list-container",
-                                    list: "search-results__explorers-list grid grid-cols-2 grid-sm-cols-1",
-                                    item: "search-results__explorer-hit",
-                                }}
-                                hitComponent={ExplorersHit}
-                            />
-                        </section>
-                    </NoResultsBoundary>
-                </Index>
-                <Index indexName={SearchIndexName.Charts}>
-                    <Configure hitsPerPage={40} distinct />
-                    <NoResultsBoundary>
-                        <section className="search-results__charts">
-                            <header className="search-results__header">
-                                <h2 className="h2-bold search-results__section-title">
-                                    Charts
-                                </h2>
-                            </header>
-                            <ShowMore
-                                category={SearchIndexName.Charts}
-                                cutoffNumber={16}
-                                activeCategoryFilter={activeCategoryFilter}
-                                handleCategoryFilterClick={
-                                    handleCategoryFilterClick
-                                }
-                            />
-                            <Hits
-                                classNames={{
-                                    root: "search-results__list-container",
-                                    list: "search-results__charts-list grid grid-cols-4 grid-sm-cols-2",
-                                    item: "search-results__chart-hit span-md-cols-2",
-                                }}
-                                hitComponent={ChartHit}
-                            />
-                        </section>
-                    </NoResultsBoundary>
-                </Index>
-                <section className="search-page__no-results">
-                    <div className="search-page__no-results-notice-container">
-                        <FontAwesomeIcon icon={faSearch} />
-                        <h2 className="body-1-regular">
-                            There are no results for this query.
-                        </h2>
-                        <p className="body-3-medium">
-                            You may want to try using different keywords or
-                            checking for typos.
-                        </p>
-                    </div>
-                </section>
-            </div>
-        )
-    }
+            </Index>
+            <Index indexName={SearchIndexName.Charts}>
+                <Configure
+                    hitsPerPage={40}
+                    distinct
+                    clickAnalytics={hasClickAnalyticsConsent}
+                />
+                <NoResultsBoundary>
+                    <section className="search-results__charts">
+                        <header className="search-results__header">
+                            <h2 className="h2-bold search-results__section-title">
+                                Charts
+                            </h2>
+                        </header>
+                        <ShowMore
+                            category={SearchIndexName.Charts}
+                            cutoffNumber={16}
+                            activeCategoryFilter={activeCategoryFilter}
+                            handleCategoryFilterClick={
+                                handleCategoryFilterClick
+                            }
+                        />
+                        <Hits
+                            classNames={{
+                                root: "search-results__list-container",
+                                list: "search-results__charts-list grid grid-cols-4 grid-sm-cols-2",
+                                item: "search-results__chart-hit span-md-cols-2",
+                            }}
+                            hitComponent={ChartHit}
+                        />
+                    </section>
+                </NoResultsBoundary>
+            </Index>
+            <section className="search-page__no-results">
+                <div className="search-page__no-results-notice-container">
+                    <FontAwesomeIcon icon={faSearch} />
+                    <h2 className="body-1-regular">
+                        There are no results for this query.
+                    </h2>
+                    <p className="body-3-medium">
+                        You may want to try using different keywords or checking
+                        for typos.
+                    </p>
+                </div>
+            </section>
+        </div>
+    )
 }
 
 @observer
@@ -345,7 +417,11 @@ export class InstantSearchContainer extends React.Component {
 
     constructor(props: Record<string, never>) {
         super(props)
-        this.searchClient = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY, {})
+        this.searchClient = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY, {
+            queryParameters: {
+                clickAnalytics: "true",
+            },
+        })
         this.categoryFilterContainerRef = React.createRef<HTMLUListElement>()
         this.handleCategoryFilterClick =
             this.handleCategoryFilterClick.bind(this)
@@ -354,8 +430,8 @@ export class InstantSearchContainer extends React.Component {
     componentDidMount(): void {
         const params = getWindowQueryParams()
         if (params.q) {
-            // Algolia runs the search regardless
-            // we just need this class to be aware that a query exists so it doesn't hide the results
+            // Algolia runs the search and fills the searchbox input regardless
+            // we just need this class to be aware that a query exists so that it doesn't hide the results
             this.inputValue = decodeURI(params.q)
         }
     }
@@ -376,6 +452,7 @@ export class InstantSearchContainer extends React.Component {
     handleCategoryFilterClick(key: SearchCategoryFilter) {
         const ul = this.categoryFilterContainerRef.current
         if (!ul) return
+        // On narrow screens, scroll horizontally to put the active tab at the left of the screen
         const hasScrollbar = document.body.scrollWidth < ul.scrollWidth
         if (hasScrollbar) {
             const target = [...ul.children].find(

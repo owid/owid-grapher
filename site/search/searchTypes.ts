@@ -1,5 +1,4 @@
-import { Country } from "@ourworldindata/utils"
-import type { SearchResponse } from "@algolia/client-search"
+import { BaseHit, Hit } from "instantsearch.js/es/types/results.js"
 
 export type PageType =
     | "about"
@@ -26,43 +25,9 @@ export interface PageRecord {
     documentType?: "wordpress" | "gdoc" | "country-page"
 }
 
-export type AlgoliaMatchLevel = "none" | "full" | "partial"
+export type IPageHit = PageRecord & Hit<BaseHit>
 
-export type AlgoliaHit = {
-    _snippetResult?: {
-        content?: {
-            value: string
-            matchLevel: AlgoliaMatchLevel
-        }
-        excerpt?: {
-            value: string
-            matchLevel: AlgoliaMatchLevel
-        }
-    }
-    _highlightResult: {
-        title: {
-            value: string
-            matchLevel: AlgoliaMatchLevel
-        }
-    }
-}
-
-export type PageHit = PageRecord & AlgoliaHit
-
-//     type: "article" | "topic"
-//     importance: number
-//     slug: string
-//     title: string
-//     excerpt: string
-//     authors: string[]
-//     date: string
-//     modifiedDate: string
-//     content: string
-//     tags: string[]
-//     objectID: string
-// }
-
-export type ExplorerHit = AlgoliaHit & {
+export type IExplorerHit = Hit<BaseHit> & {
     objectID: string
     slug: string
     subtitle: string
@@ -90,31 +55,7 @@ export interface ChartRecord {
     score: number
 }
 
-export interface ChartHit extends ChartRecord {
-    _snippetResult?: {
-        subtitle?: {
-            value: string
-        }
-    }
-    _highlightResult?: {
-        title?: {
-            value: string
-            matchLevel: AlgoliaMatchLevel
-        }
-        availableEntities?: {
-            value: string
-            matchLevel: AlgoliaMatchLevel
-            fullyHighlighted: boolean
-            matchedWords: string[]
-        }[]
-    }
-}
-
-export interface SiteSearchResults {
-    pages: SearchResponse<PageHit>
-    charts: SearchResponse<ChartHit>
-    countries: Country[]
-}
+export type IChartHit = Hit<BaseHit> & ChartRecord
 
 export enum SearchIndexName {
     Explorers = "explorers-test",
