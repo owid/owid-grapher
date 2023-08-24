@@ -60,7 +60,7 @@ export class Footer<
     }
 
     @computed protected get sizeVariant(): SizeVariant {
-        return this.manager.sizeVariant ?? SizeVariant.lg
+        return this.manager.sizeVariant ?? SizeVariant.base
     }
 
     @computed protected get maxWidth(): number {
@@ -163,13 +163,13 @@ export class Footer<
     }
 
     @computed private get lineHeight(): number {
-        return this.sizeVariant === SizeVariant.xs ? 1.1 : 1.2
+        return this.sizeVariant === SizeVariant.sm ? 1.1 : 1.2
     }
 
     @computed protected get fontSize(): number {
         const fontScale =
-            this.sizeVariant === SizeVariant.xs ||
-            this.sizeVariant === SizeVariant.sm
+            this.sizeVariant === SizeVariant.sm ||
+            this.sizeVariant === SizeVariant.md
                 ? getFontScale(11)
                 : getFontScale(12)
         return fontScale * (this.manager.fontSize ?? BASE_FONT_SIZE)
@@ -177,7 +177,7 @@ export class Footer<
 
     @computed protected get sourcesFontSize(): number {
         const fontScale =
-            this.sizeVariant === SizeVariant.xs
+            this.sizeVariant === SizeVariant.sm
                 ? getFontScale(12)
                 : getFontScale(13)
         return fontScale * (this.manager.fontSize ?? BASE_FONT_SIZE)

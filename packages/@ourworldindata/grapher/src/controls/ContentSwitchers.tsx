@@ -30,7 +30,7 @@ export class ContentSwitchers extends React.Component<{
     }
 
     @computed private get sizeVariant(): SizeVariant {
-        return this.manager.sizeVariant || SizeVariant.lg
+        return this.manager.sizeVariant ?? SizeVariant.base
     }
 
     @computed private get availableTabs(): GrapherTabOption[] {
@@ -39,10 +39,10 @@ export class ContentSwitchers extends React.Component<{
 
     render(): JSX.Element {
         const { manager, sizeVariant } = this
-        const isWide =
-            sizeVariant === SizeVariant.md || sizeVariant === SizeVariant.lg
+        const { sm, md } = SizeVariant
+        const isNarrow = sizeVariant === sm || sizeVariant === md
         return (
-            <ul className={"ContentSwitchers" + (isWide ? " wide" : "")}>
+            <ul className={"ContentSwitchers" + (isNarrow ? " narrow" : "")}>
                 {this.availableTabs.map((tab) => (
                     <Tab
                         key={tab}

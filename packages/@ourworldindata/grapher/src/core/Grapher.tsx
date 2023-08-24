@@ -889,6 +889,7 @@ export class Grapher
     }
 
     @observable private _baseFontSize = BASE_FONT_SIZE
+    @observable.ref sizeVariant = SizeVariant.base
 
     @computed get baseFontSize(): number {
         if (this.isExportingtoSvgOrPng) return 18
@@ -1895,14 +1896,6 @@ export class Grapher
         return new Bounds(0, 0, this.renderWidth, this.renderHeight)
     }
 
-    @computed get sizeVariant(): SizeVariant {
-        if (this.isExportingtoSvgOrPng) return SizeVariant.md
-        if (this.renderWidth <= 740) return SizeVariant.xs
-        if (this.renderWidth <= 840) return SizeVariant.sm
-        if (this.renderWidth <= 940) return SizeVariant.md
-        return SizeVariant.lg
-    }
-
     base: React.RefObject<HTMLDivElement> = React.createRef()
 
     @computed get containerElement(): HTMLDivElement | undefined {
@@ -2340,10 +2333,11 @@ export class Grapher
         return this.renderGrapher()
     }
 
-    private renderReady(): JSX.Element {
+    private renderReady(): JSX.Element | null {
+        if (!this.hasBeenVisible) return null
         return (
             <>
-                {this.hasBeenVisible && <CaptionedChart manager={this} />}
+                <CaptionedChart manager={this} />
                 <TooltipContainer
                     containerWidth={this.renderWidth}
                     containerHeight={this.renderHeight}
@@ -2381,6 +2375,20 @@ export class Grapher
         const { renderWidth } = this
         if (renderWidth <= 400) this.baseFontSize = 14
         else this.baseFontSize = 16
+    }
+
+    // The size variant is used throughout Grapher to determine font sizes, line heights, margins, etc.
+    @action.bound setSizeVariant(): void {
+        const { renderWidth } = this
+        // When embedded, charts are rendered into a 12-column grid.
+        // The size variant pixel thresholds are based on these breakpoints.
+        // The size variant is `sm` if the chart is rendered into 6 or 7 columns
+        // (e.g. side-by-side charts or charts in the All Charts block)
+        if (renderWidth <= 740) this.sizeVariant = SizeVariant.sm
+        // The size variant is `md` if the chart is rendered into 8 columns
+        // (e.g. stand-alone charts in the main text of an article)
+        else if (renderWidth <= 840) this.sizeVariant = SizeVariant.md
+        else this.sizeVariant = SizeVariant.base
     }
 
     // Binds chart properties to global window title and URL. This should only
@@ -2421,6 +2429,7 @@ export class Grapher
 
     componentDidMount(): void {
         this.setBaseFontSize()
+        this.setSizeVariant()
         this.setUpIntersectionObserver()
         this.setUpWindowResizeEventHandler()
         exposeInstanceOnWindow(this, "grapher")
@@ -2459,6 +2468,7 @@ export class Grapher
 
     componentDidUpdate(): void {
         this.setBaseFontSize()
+        this.setSizeVariant()
     }
 
     componentDidCatch(error: Error): void {
