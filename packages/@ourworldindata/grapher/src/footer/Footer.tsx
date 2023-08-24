@@ -55,7 +55,6 @@ If the note is missing and the sources text is not too long, the sources are pla
 
 // keep in sync with sass variables in Footer.scss
 const HORIZONTAL_PADDING = 8
-const VERTICAL_PADDING = 4
 
 interface FooterProps {
     manager: FooterManager
@@ -66,6 +65,8 @@ interface FooterProps {
 export class Footer<
     Props extends FooterProps = FooterProps
 > extends React.Component<Props> {
+    verticalPadding = 4
+
     @computed protected get manager(): FooterManager {
         return this.props.manager
     }
@@ -405,7 +406,7 @@ export class Footer<
         return (
             <div
                 style={{
-                    height: VERTICAL_PADDING,
+                    height: this.verticalPadding,
                     width: "100%",
                 }}
             />
@@ -422,9 +423,9 @@ export class Footer<
 
         return (
             (renderSources ? sources.height : 0) +
-            (renderSources && renderNote ? VERTICAL_PADDING : 0) +
+            (renderSources && renderNote ? this.verticalPadding : 0) +
             (renderNote ? note.height : 0) +
-            VERTICAL_PADDING
+            this.verticalPadding
         )
     }
 
@@ -464,7 +465,7 @@ export class Footer<
 
         const textHeight =
             (renderSources ? sources.height : renderNote ? note.height : 0) +
-            (renderPadding ? VERTICAL_PADDING : 0) +
+            (renderPadding ? this.verticalPadding : 0) +
             (renderLicense ? this.licenseAndOriginUrl.height : 0)
 
         return Math.max(textHeight, actionButtons.height)
@@ -613,10 +614,10 @@ export class StaticFooter extends Footer<StaticFooterProps> {
     @computed get height(): number {
         return (
             this.sources.height +
-            (this.note.height ? this.note.height + VERTICAL_PADDING : 0) +
+            (this.note.height ? this.note.height + this.verticalPadding : 0) +
             (this.showLicenseNextToSources
                 ? 0
-                : this.licenseAndOriginUrl.height + VERTICAL_PADDING)
+                : this.licenseAndOriginUrl.height + this.verticalPadding)
         )
     }
 
@@ -635,7 +636,7 @@ export class StaticFooter extends Footer<StaticFooterProps> {
                 {sources.renderSVG(targetX, targetY)}
                 {note.renderSVG(
                     targetX,
-                    targetY + sources.height + VERTICAL_PADDING
+                    targetY + sources.height + this.verticalPadding
                 )}
                 {showLicenseNextToSources
                     ? licenseAndOriginUrl.render(
@@ -647,9 +648,9 @@ export class StaticFooter extends Footer<StaticFooterProps> {
                           targetY +
                               sources.height +
                               (note.height
-                                  ? note.height + VERTICAL_PADDING
+                                  ? note.height + this.verticalPadding
                                   : 0) +
-                              VERTICAL_PADDING
+                              this.verticalPadding
                       )}
             </g>
         )

@@ -560,7 +560,6 @@ export class StaticCaptionedChart extends CaptionedChart {
             .padTop(this.manager.isOnMapTab ? 0 : this.verticalPadding)
     }
 
-    // todo(redesign)
     renderSVGDetails(): JSX.Element | null {
         if (!this.manager.shouldIncludeDetailsInStaticExport) {
             return null
@@ -575,7 +574,7 @@ export class StaticCaptionedChart extends CaptionedChart {
                     y1={this.bounds.height}
                     x2={this.boundsForChartArea.width + FRAME_PADDING}
                     y2={this.bounds.height}
-                    stroke="#777"
+                    stroke="#e7e7e7"
                 ></line>
                 <g
                     style={{
