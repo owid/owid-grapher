@@ -596,15 +596,19 @@ export class SiteBaker {
     // Bake the static assets
     private async bakeAssets() {
         if (!this.bakeSteps.has("assets")) return
+
+        // do not delete images/published folder so that we don't have to sync gdrive images again
+        const excludes = "--exclude images/published"
+
         await execWrapper(
-            `rsync -havL --delete ${WORDPRESS_DIR}/web/app/uploads ${this.bakedSiteDir}/`
+            `rsync -havL --delete ${WORDPRESS_DIR}/web/app/uploads ${this.bakedSiteDir}/ ${excludes}`
         )
 
         await execWrapper(
             `rm -rf ${this.bakedSiteDir}/assets && cp -r ${BASE_DIR}/dist/assets ${this.bakedSiteDir}/assets`
         )
         await execWrapper(
-            `rsync -hav --delete ${BASE_DIR}/public/* ${this.bakedSiteDir}/`
+            `rsync -hav --delete ${BASE_DIR}/public/* ${this.bakedSiteDir}/ ${excludes}`
         )
 
         await fs.writeFile(
