@@ -16,7 +16,8 @@ import { FooterManager } from "./FooterManager"
 import { ActionButtons } from "../controls/ActionButtons"
 
 /*
-The footer contains the sources, the note (optional), the action buttons and the license (CC BY) and origin URL (optional).
+
+The footer contains the sources, the note (optional), the action buttons and the license and origin URL (optional).
 
 If all elements exist, they are laid out as follows:
 +-------------------------------------------------------+
@@ -27,7 +28,16 @@ If all elements exist, they are laid out as follows:
 |  Origin URL | CC BY                |                  |
 +-------------------------------------------------------+
 
-If the origin url and license are short enough to be placed next to the sources, they are:
+If the note is long, it is placed below the sources:
++-------------------------------------------------------+
+|  Sources                                              |
++-------------------------------------------------------+
+|  Note                                                 |
++------------------------------------+------------------+
+|  Origin URL | CC BY                |  Action buttons  |
++------------------------------------+------------------+
+
+If the origin url and license are short enough, they are placed next to the sources:
 +------------------------------+------------------------+
 |  Sources                     |    Origin URL | CC BY  |
 +------------------------------+-----+------------------+
@@ -40,6 +50,7 @@ If the note is missing and the sources text is not too long, the sources are pla
 +------------------------------------+  Action buttons  |
 |  Origin URL | CC BY                |                  |
 +-------------------------------------------------------+
+
 */
 
 // keep in sync with sass variables in Footer.scss
@@ -60,7 +71,7 @@ export class Footer<
     }
 
     @computed protected get sizeVariant(): SizeVariant {
-        return this.manager.sizeVariant ?? SizeVariant.lg
+        return this.manager.sizeVariant ?? SizeVariant.base
     }
 
     @computed protected get maxWidth(): number {
@@ -163,13 +174,13 @@ export class Footer<
     }
 
     @computed private get lineHeight(): number {
-        return this.sizeVariant === SizeVariant.xs ? 1.1 : 1.2
+        return this.sizeVariant === SizeVariant.sm ? 1.1 : 1.2
     }
 
     @computed protected get fontSize(): number {
         const fontScale =
-            this.sizeVariant === SizeVariant.xs ||
-            this.sizeVariant === SizeVariant.sm
+            this.sizeVariant === SizeVariant.sm ||
+            this.sizeVariant === SizeVariant.md
                 ? getFontScale(11)
                 : getFontScale(12)
         return fontScale * (this.manager.fontSize ?? BASE_FONT_SIZE)
@@ -177,7 +188,7 @@ export class Footer<
 
     @computed protected get sourcesFontSize(): number {
         const fontScale =
-            this.sizeVariant === SizeVariant.xs
+            this.sizeVariant === SizeVariant.sm
                 ? getFontScale(12)
                 : getFontScale(13)
         return fontScale * (this.manager.fontSize ?? BASE_FONT_SIZE)

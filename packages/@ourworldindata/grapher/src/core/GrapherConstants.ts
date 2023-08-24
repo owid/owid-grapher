@@ -30,10 +30,9 @@ export const DEFAULT_GRAPHER_HEIGHT = 600
 export const STATIC_EXPORT_DETAIL_SPACING = 24
 
 export enum SizeVariant {
-    xs = "xs",
     sm = "sm",
     md = "md",
-    lg = "lg",
+    base = "base",
 }
 export enum CookieKey {
     isAdmin = "isAdmin",

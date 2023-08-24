@@ -889,6 +889,7 @@ export class Grapher
     }
 
     @observable private _baseFontSize = BASE_FONT_SIZE
+    @observable.ref sizeVariant = SizeVariant.base
 
     @computed get baseFontSize(): number {
         if (this.isExportingtoSvgOrPng) return 18
@@ -1777,7 +1778,21 @@ export class Grapher
             widthForDeviceOrientation,
             heightForDeviceOrientation,
             isInIFrame,
+            isInFullScreenMode,
+            windowInnerWidth,
+            windowInnerHeight,
         } = this
+
+        // In full-screen mode, we usually use all space available to us
+        // We use the ideal bounds only if the available space is very large
+        if (isInFullScreenMode) {
+            if (
+                windowInnerHeight! < 2 * heightForDeviceOrientation ||
+                windowInnerWidth! < 2 * widthForDeviceOrientation
+            )
+                return false
+            return true
+        }
 
         // For these, defer to the bounds that are set externally
         if (
@@ -1806,10 +1821,27 @@ export class Grapher
 
     // If we have a big screen to be in, we can define our own aspect ratio and sit in the center
     @computed private get scaleToFitIdeal(): number {
+        const {
+            bounds,
+            isInFullScreenMode,
+            widthForDeviceOrientation,
+            heightForDeviceOrientation,
+            windowInnerWidth,
+            windowInnerHeight,
+        } = this
+        const givenBounds = isInFullScreenMode
+            ? { width: windowInnerWidth!, height: windowInnerHeight! }
+            : bounds
         return Math.min(
-            (this.bounds.width * 0.95) / this.widthForDeviceOrientation,
-            (this.bounds.height * 0.95) / this.heightForDeviceOrientation
+            (givenBounds.width * 0.95) / widthForDeviceOrientation,
+            (givenBounds.height * 0.95) / heightForDeviceOrientation
         )
+    }
+
+    @computed private get fullScreenPadding(): number {
+        const { windowInnerWidth } = this
+        if (!windowInnerWidth) return 0
+        return windowInnerWidth < 940 ? 0 : 40
     }
 
     // These are the final render dimensions
@@ -1823,12 +1855,16 @@ export class Grapher
             scaleToFitIdeal,
             isExportingtoSvgOrPng,
             windowInnerWidth,
+            fullScreenPadding,
         } = this
 
-        if (isInFullScreenMode) return windowInnerWidth!
+        if (useIdealBounds) {
+            return Math.floor(widthForDeviceOrientation * scaleToFitIdeal)
+        }
+
         return Math.floor(
-            useIdealBounds
-                ? widthForDeviceOrientation * scaleToFitIdeal
+            isInFullScreenMode
+                ? windowInnerWidth! - 2 * fullScreenPadding
                 : bounds.width - (isExportingtoSvgOrPng ? 0 : 5)
         )
     }
@@ -1842,26 +1878,22 @@ export class Grapher
             scaleToFitIdeal,
             isExportingtoSvgOrPng,
             windowInnerHeight,
+            fullScreenPadding,
         } = this
 
-        if (isInFullScreenMode) return windowInnerHeight!
+        if (useIdealBounds) {
+            return Math.floor(heightForDeviceOrientation * scaleToFitIdeal)
+        }
+
         return Math.floor(
-            useIdealBounds
-                ? heightForDeviceOrientation * scaleToFitIdeal
+            isInFullScreenMode
+                ? windowInnerHeight! - 2 * fullScreenPadding
                 : bounds.height - (isExportingtoSvgOrPng ? 0 : 5)
         )
     }
 
     @computed get tabBounds(): Bounds {
         return new Bounds(0, 0, this.renderWidth, this.renderHeight)
-    }
-
-    @computed get sizeVariant(): SizeVariant {
-        if (this.isExportingtoSvgOrPng) return SizeVariant.md
-        if (this.renderWidth <= 740) return SizeVariant.xs
-        if (this.renderWidth <= 840) return SizeVariant.sm
-        if (this.renderWidth <= 940) return SizeVariant.md
-        return SizeVariant.lg
     }
 
     base: React.RefObject<HTMLDivElement> = React.createRef()
@@ -1879,10 +1911,6 @@ export class Grapher
 
     @action.bound clearErrors(): void {
         this.uncaughtError = undefined
-    }
-
-    private renderPrimaryTab(): JSX.Element {
-        return <CaptionedChart manager={this} />
     }
 
     private get commandPalette(): JSX.Element | null {
@@ -2290,8 +2318,8 @@ export class Grapher
 
     render(): JSX.Element | undefined {
         // TODO how to handle errors in exports?
-        // TODO tidy this up
-        if (this.isExportingtoSvgOrPng) return this.renderPrimaryTab() // todo: remove this? should have a simple toStaticSVG for importing.
+        // TODO remove this? should have a simple toStaticSVG for exporting
+        if (this.isExportingtoSvgOrPng) return <CaptionedChart manager={this} />
 
         if (this.isInFullScreenMode)
             return (
@@ -2305,10 +2333,11 @@ export class Grapher
         return this.renderGrapher()
     }
 
-    private renderReady(): JSX.Element {
+    private renderReady(): JSX.Element | null {
+        if (!this.hasBeenVisible) return null
         return (
             <>
-                {this.hasBeenVisible && this.renderPrimaryTab()}
+                <CaptionedChart manager={this} />
                 <TooltipContainer
                     containerWidth={this.renderWidth}
                     containerHeight={this.renderHeight}
@@ -2346,6 +2375,20 @@ export class Grapher
         const { renderWidth } = this
         if (renderWidth <= 400) this.baseFontSize = 14
         else this.baseFontSize = 16
+    }
+
+    // The size variant is used throughout Grapher to determine font sizes, line heights, margins, etc.
+    @action.bound setSizeVariant(): void {
+        const { renderWidth } = this
+        // When embedded, charts are rendered into a 12-column grid.
+        // The size variant pixel thresholds are based on these breakpoints.
+        // The size variant is `sm` if the chart is rendered into 6 or 7 columns
+        // (e.g. side-by-side charts or charts in the All Charts block)
+        if (renderWidth <= 740) this.sizeVariant = SizeVariant.sm
+        // The size variant is `md` if the chart is rendered into 8 columns
+        // (e.g. stand-alone charts in the main text of an article)
+        else if (renderWidth <= 840) this.sizeVariant = SizeVariant.md
+        else this.sizeVariant = SizeVariant.base
     }
 
     // Binds chart properties to global window title and URL. This should only
@@ -2386,6 +2429,7 @@ export class Grapher
 
     componentDidMount(): void {
         this.setBaseFontSize()
+        this.setSizeVariant()
         this.setUpIntersectionObserver()
         this.setUpWindowResizeEventHandler()
         exposeInstanceOnWindow(this, "grapher")
@@ -2424,6 +2468,7 @@ export class Grapher
 
     componentDidUpdate(): void {
         this.setBaseFontSize()
+        this.setSizeVariant()
     }
 
     componentDidCatch(error: Error): void {

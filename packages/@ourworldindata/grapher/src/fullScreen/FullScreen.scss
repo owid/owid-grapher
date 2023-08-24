@@ -1,0 +1,16 @@
+.FullScreenOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: $zindex-full-screen;
+    background: #fff;
+    height: 100%;
+    width: 100%;
+}
+
+.FullScreenContent {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}

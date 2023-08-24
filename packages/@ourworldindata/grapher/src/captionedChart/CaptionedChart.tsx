@@ -134,26 +134,19 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     }
 
     @computed protected get sizeVariant(): SizeVariant {
-        return this.manager.sizeVariant ?? SizeVariant.lg
+        return this.manager.sizeVariant ?? SizeVariant.base
     }
 
     @computed protected get verticalPadding(): number {
-        const { sizeVariant } = this
-        const { xs, sm, md, lg } = SizeVariant
-        return {
-            [xs]: 8,
-            [sm]: 8,
-            [md]: 12,
-            [lg]: 12,
-        }[sizeVariant]
+        return this.sizeVariant === SizeVariant.base ? 12 : 8
     }
 
     @computed protected get verticalPaddingSmall(): number {
-        return this.sizeVariant === SizeVariant.xs ? 4 : 8
+        return this.sizeVariant === SizeVariant.sm ? 4 : 8
     }
 
     @computed protected get relatedQuestionHeight(): number {
-        return this.sizeVariant === SizeVariant.lg ? 28 : 24
+        return this.sizeVariant === SizeVariant.base ? 28 : 24
     }
 
     @computed protected get header(): Header {
