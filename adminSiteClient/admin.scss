@@ -852,22 +852,31 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
 
 .TagBadge {
     display: inline-block;
-    padding: 6px;
     border-radius: 5px;
+    border: 1px solid #eee;
     font-size: 0.8em;
     background-color: #eee;
-    color: #333;
     margin-right: 5px;
     margin-bottom: 5px;
-    cursor: pointer;
 
-    &.hasKeyChartSupport:hover {
-        background-color: #c0c0c0;
+    .TagBadge__name {
+        color: #333;
     }
 
-    &.isKeyChart {
-        svg {
-            margin-left: 5px;
+    .TagBadge__sorting,
+    .TagBadge__name {
+        display: inline-block;
+        padding: 6px;
+    }
+
+    .TagBadge__sorting {
+        border-top-right-radius: 5px;
+        border-bottom-right-radius: 5px;
+        background-color: #fff;
+        cursor: pointer;
+
+        &:hover {
+            background-color: #eee;
         }
     }
 }

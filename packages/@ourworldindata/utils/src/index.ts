@@ -90,6 +90,7 @@ export {
     type IndexPost,
     type Integer,
     JsonError,
+    KeyChartLevel,
     type KeyInsight,
     type KeyValueProps,
     type OwidGdocContent,

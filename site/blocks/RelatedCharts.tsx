@@ -8,14 +8,28 @@ import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
 
 export const RELATED_CHARTS_CLASS_NAME = "related-charts"
 
-export const RelatedCharts = ({ charts }: { charts: RelatedChart[] }) => {
+export const RelatedCharts = ({
+    charts,
+    showKeyChartsOnly = false,
+}: {
+    charts: RelatedChart[]
+    showKeyChartsOnly?: boolean
+}) => {
     const refChartContainer = useRef<HTMLDivElement>(null)
     const [activeChartIdx, setActiveChartIdx] = useState(0)
 
-    const isFirstSlideActive = activeChartIdx === 0
-    const isLastSlideActive = activeChartIdx === charts.length - 1
+    const chartsToShow = showKeyChartsOnly
+        ? charts.filter((chart) => !!chart.keyChartLevel)
+        : charts
 
-    const sortedCharts = orderBy(charts, (chart) => chart.isKeyChart, "desc")
+    const sortedCharts = orderBy(
+        chartsToShow,
+        (chart) => chart.keyChartLevel,
+        "desc"
+    )
+
+    const isFirstSlideActive = activeChartIdx === 0
+    const isLastSlideActive = activeChartIdx === sortedCharts.length - 1
     const activeChartSlug = sortedCharts[activeChartIdx]?.slug
 
     const onClickItem = (event: React.MouseEvent, idx: number) => {
@@ -61,7 +75,9 @@ export const RelatedCharts = ({ charts }: { charts: RelatedChart[] }) => {
                             direction={GalleryArrowDirection.prev}
                         ></GalleryArrow>
                         <div className="gallery-pagination">
-                            {`Chart ${activeChartIdx + 1} of ${charts.length}`}
+                            {`Chart ${activeChartIdx + 1} of ${
+                                sortedCharts.length
+                            }`}
                         </div>
                         <GalleryArrow
                             disabled={isLastSlideActive}
@@ -84,7 +100,7 @@ export const runRelatedCharts = (charts: RelatedChart[]) => {
     if (relatedChartsEl) {
         const relatedChartsWrapper = relatedChartsEl.parentElement
         ReactDOM.hydrate(
-            <RelatedCharts charts={charts} />,
+            <RelatedCharts showKeyChartsOnly={true} charts={charts} />,
             relatedChartsWrapper
         )
     }
