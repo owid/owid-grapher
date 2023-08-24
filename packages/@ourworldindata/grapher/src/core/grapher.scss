@@ -90,6 +90,7 @@ $zindex-full-screen: 2000;
 @import "../controls/entityPicker/EntityPicker.scss";
 @import "../controls/globalEntitySelector/GlobalEntitySelector.scss";
 @import "../sparkBars/SparkBars.scss";
+@import "../fullScreen/FullScreen.scss";
 
 .GrapherComponent,
 .GrapherComponent p,
@@ -198,16 +199,6 @@ $zindex-full-screen: 2000;
 
 .Tooltip {
     z-index: $zindex-Tooltip;
-}
-
-.FullScreen {
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: $zindex-full-screen;
-    background: rgba(0, 0, 0, 0.3);
-    height: 100%;
-    width: 100%;
 }
 
 .markdown-text-wrap__line {

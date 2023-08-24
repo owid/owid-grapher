@@ -1777,7 +1777,21 @@ export class Grapher
             widthForDeviceOrientation,
             heightForDeviceOrientation,
             isInIFrame,
+            isInFullScreenMode,
+            windowInnerWidth,
+            windowInnerHeight,
         } = this
+
+        // In full-screen mode, we usually use all space available to us
+        // We use the ideal bounds only if the available space is very large
+        if (isInFullScreenMode) {
+            if (
+                windowInnerHeight! < 2 * heightForDeviceOrientation ||
+                windowInnerWidth! < 2 * widthForDeviceOrientation
+            )
+                return false
+            return true
+        }
 
         // For these, defer to the bounds that are set externally
         if (
@@ -1806,10 +1820,27 @@ export class Grapher
 
     // If we have a big screen to be in, we can define our own aspect ratio and sit in the center
     @computed private get scaleToFitIdeal(): number {
+        const {
+            bounds,
+            isInFullScreenMode,
+            widthForDeviceOrientation,
+            heightForDeviceOrientation,
+            windowInnerWidth,
+            windowInnerHeight,
+        } = this
+        const givenBounds = isInFullScreenMode
+            ? { width: windowInnerWidth!, height: windowInnerHeight! }
+            : bounds
         return Math.min(
-            (this.bounds.width * 0.95) / this.widthForDeviceOrientation,
-            (this.bounds.height * 0.95) / this.heightForDeviceOrientation
+            (givenBounds.width * 0.95) / widthForDeviceOrientation,
+            (givenBounds.height * 0.95) / heightForDeviceOrientation
         )
+    }
+
+    @computed private get fullScreenPadding(): number {
+        const { windowInnerWidth } = this
+        if (!windowInnerWidth) return 0
+        return windowInnerWidth < 940 ? 0 : 40
     }
 
     // These are the final render dimensions
@@ -1823,12 +1854,16 @@ export class Grapher
             scaleToFitIdeal,
             isExportingtoSvgOrPng,
             windowInnerWidth,
+            fullScreenPadding,
         } = this
 
-        if (isInFullScreenMode) return windowInnerWidth!
+        if (useIdealBounds) {
+            return Math.floor(widthForDeviceOrientation * scaleToFitIdeal)
+        }
+
         return Math.floor(
-            useIdealBounds
-                ? widthForDeviceOrientation * scaleToFitIdeal
+            isInFullScreenMode
+                ? windowInnerWidth! - 2 * fullScreenPadding
                 : bounds.width - (isExportingtoSvgOrPng ? 0 : 5)
         )
     }
@@ -1842,12 +1877,16 @@ export class Grapher
             scaleToFitIdeal,
             isExportingtoSvgOrPng,
             windowInnerHeight,
+            fullScreenPadding,
         } = this
 
-        if (isInFullScreenMode) return windowInnerHeight!
+        if (useIdealBounds) {
+            return Math.floor(heightForDeviceOrientation * scaleToFitIdeal)
+        }
+
         return Math.floor(
-            useIdealBounds
-                ? heightForDeviceOrientation * scaleToFitIdeal
+            isInFullScreenMode
+                ? windowInnerHeight! - 2 * fullScreenPadding
                 : bounds.height - (isExportingtoSvgOrPng ? 0 : 5)
         )
     }
