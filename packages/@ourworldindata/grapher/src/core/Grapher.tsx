@@ -1193,11 +1193,10 @@ export class Grapher
             return new MarkdownTextWrap({
                 text,
                 fontSize: 12,
-                // 30 is 15 margin on both sides
-                maxWidth: this.idealBounds.width - 30,
+                maxWidth: this.idealBounds.width,
                 lineHeight: 1.2,
                 style: {
-                    fill: "#777",
+                    fill: "#5b5b5b",
                 },
             })
         })
