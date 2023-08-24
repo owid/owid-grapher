@@ -93,6 +93,10 @@
     }
 }
 
+.aa-Autocomplete[aria-expanded="false"] .aa-SubmitButton:hover .aa-SubmitIcon {
+    fill: $blue-20;
+}
+
 .aa-DetachedCancelButton {
     color: $blue-90;
     border-radius: 0;
@@ -194,6 +198,15 @@
 // Less padding for these ones because of the icons
 section[data-autocomplete-source-id="recentSearchesPlugin"] .aa-Item {
     padding: 9px;
+}
+
+section[data-autocomplete-source-id="recentSearchesPlugin"]
+    .aa-ItemContentTitle {
+    font-weight: bold;
+
+    mark {
+        font-weight: normal;
+    }
 }
 
 section[data-autocomplete-source-id="runSearch"] {

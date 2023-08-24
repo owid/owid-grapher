@@ -130,12 +130,19 @@ function ShowMore({
     }
 
     const numberShowing = Math.min(cutoffNumber, results.hits.length)
+    const isShowingAllResults = numberShowing === results.hits.length
+    const message = isShowingAllResults
+        ? numberShowing <= 2
+            ? "Showing all results"
+            : `Showing all ${numberShowing} results`
+        : `Showing ${numberShowing} out of ${results.hits.length} results`
+
     return (
         <div className="search-results__show-more-container">
-            <em>
-                Showing {numberShowing} out of {results.hits.length} results
-            </em>
-            <button onClick={handleClick}>Show all</button>
+            <em>{message}</em>
+            {!isShowingAllResults && (
+                <button onClick={handleClick}>Show all</button>
+            )}
         </div>
     )
 }
@@ -297,7 +304,7 @@ class SearchResults extends React.Component<SearchResultsProps> {
                             </header>
                             <ShowMore
                                 category={SearchIndexName.Charts}
-                                cutoffNumber={15}
+                                cutoffNumber={16}
                                 activeCategoryFilter={activeCategoryFilter}
                                 handleCategoryFilterClick={
                                     handleCategoryFilterClick

@@ -24,6 +24,9 @@ const recentSearchesPlugin = createLocalStorageRecentSearchesPlugin({
     transformSource({ source }) {
         return {
             ...source,
+            onSelect({ item, navigator }) {
+                navigator.navigate({ itemUrl: `/search?q=${item.id}` } as any)
+            },
             templates: {
                 ...source.templates,
                 header() {
@@ -104,7 +107,7 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
                     indexName: SearchIndexName.Pages,
                     query,
                     params: {
-                        hitsPerPage: 1,
+                        hitsPerPage: 2,
                         distinct: true,
                     },
                 },
@@ -112,7 +115,7 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
                     indexName: SearchIndexName.Charts,
                     query,
                     params: {
-                        hitsPerPage: 1,
+                        hitsPerPage: 2,
                         distinct: true,
                     },
                 },
