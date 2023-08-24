@@ -28,9 +28,8 @@ export const bakeDriveImages = async (bakedSiteDir: string) => {
 
     const imagesDirectory = path.join(bakedSiteDir, "images", "published")
 
-    // TODO: chunking caused issues so we disable it here by setting chunk size to 1 for now.
-    // Either switch to rclone-ing all files before baking, or switching to Cloudflare Images.
-    const imageChunks = chunk(images, 2)
+    // If this causes timeout errors, try decreasing the chunk size (2 should be safe)
+    const imageChunks = chunk(images, 5)
     for (const imageChunk of imageChunks) {
         await Promise.all(
             imageChunk.map(async (image) => {
