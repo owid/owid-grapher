@@ -888,17 +888,8 @@ export class Grapher
             this.selection.setSelectedEntities(this.selectedEntityNames)
     }
 
-    @observable private _baseFontSize = BASE_FONT_SIZE
+    @observable.ref baseFontSize = BASE_FONT_SIZE
     @observable.ref sizeVariant = SizeVariant.base
-
-    @computed get baseFontSize(): number {
-        if (this.isExportingtoSvgOrPng) return 18
-        return this._baseFontSize
-    }
-
-    set baseFontSize(val: number) {
-        this._baseFontSize = val
-    }
 
     // Ready to go iff we have retrieved data for every variable associated with the chart
     @computed get isReady(): boolean {
