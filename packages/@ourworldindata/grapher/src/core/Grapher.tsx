@@ -1920,10 +1920,6 @@ export class Grapher
         this.uncaughtError = undefined
     }
 
-    private renderPrimaryTab(): JSX.Element {
-        return <CaptionedChart manager={this} />
-    }
-
     private get commandPalette(): JSX.Element | null {
         return this.props.enableKeyboardShortcuts ? (
             <CommandPalette commands={this.keyboardShortcuts} display="none" />
@@ -2329,8 +2325,8 @@ export class Grapher
 
     render(): JSX.Element | undefined {
         // TODO how to handle errors in exports?
-        // TODO tidy this up
-        if (this.isExportingtoSvgOrPng) return this.renderPrimaryTab() // todo: remove this? should have a simple toStaticSVG for importing.
+        // TODO remove this? should have a simple toStaticSVG for exporting
+        if (this.isExportingtoSvgOrPng) return <CaptionedChart manager={this} />
 
         if (this.isInFullScreenMode)
             return (
@@ -2347,7 +2343,7 @@ export class Grapher
     private renderReady(): JSX.Element {
         return (
             <>
-                {this.hasBeenVisible && this.renderPrimaryTab()}
+                {this.hasBeenVisible && <CaptionedChart manager={this} />}
                 <TooltipContainer
                     containerWidth={this.renderWidth}
                     containerHeight={this.renderHeight}
