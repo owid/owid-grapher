@@ -183,11 +183,10 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     }
 
     @computed protected get boundsForChartArea(): Bounds {
-        const { bounds, chartHeight, manager } = this
-        const padBottom = manager.isOnChartTab ? 4 : 0
-        return new Bounds(0, 0, bounds.width, chartHeight)
-            .padWidth(FRAME_PADDING)
-            .padBottom(padBottom)
+        const { bounds, chartHeight } = this
+        return new Bounds(0, 0, bounds.width, chartHeight).padWidth(
+            FRAME_PADDING
+        )
     }
 
     @computed get isFaceted(): boolean {
@@ -525,7 +524,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                 backgroundColor: "white",
                 textRendering: "geometricPrecision",
                 WebkitFontSmoothing: "antialiased",
-                overflow: "visible",
+                overflow: "visible", // in case the chart overflows the bounds
             },
         }
     }

@@ -634,7 +634,7 @@ export class DualAxis {
 
     @computed get verticalAxis(): VerticalAxis {
         const axis = this.props.verticalAxis.clone()
-        axis.range = this.innerBounds.yRange()
+        axis.range = this.innerBounds.padTop(6).yRange() // top padding leaves room for tick labels
         return axis
     }
 
@@ -661,7 +661,6 @@ export class DualAxis {
     }
 
     @computed get bounds(): Bounds {
-        // todo(redesign): necessary because the axis somtimes overflows
-        return (this.props.bounds ?? DEFAULT_BOUNDS).padTop(6)
+        return this.props.bounds ?? DEFAULT_BOUNDS
     }
 }
