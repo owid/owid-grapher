@@ -117,8 +117,6 @@ interface CaptionedChartProps {
 const FRAME_PADDING = 16
 const CONTROLS_ROW_HEIGHT = 34
 
-// todo(redesign): we might want to rename CaptionedChart later
-
 @observer
 export class CaptionedChart extends React.Component<CaptionedChartProps> {
     @computed protected get manager(): CaptionedChartManager {

@@ -2360,7 +2360,6 @@ export class Grapher
         }
     }
 
-    // todo(redesign): refactor code to make better use of the base font size
     @action.bound private setBaseFontSize(): void {
         const { renderWidth } = this
         if (renderWidth <= 400) this.baseFontSize = 14
