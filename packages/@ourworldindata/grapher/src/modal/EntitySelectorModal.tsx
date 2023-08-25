@@ -8,7 +8,7 @@ import {
     sortBy,
 } from "@ourworldindata/utils"
 import { FuzzySearch } from "../controls/FuzzySearch"
-import { faTimes } from "@fortawesome/free-solid-svg-icons"
+import { faMagnifyingGlass, faCheck } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { SelectionArray } from "../selection/SelectionArray"
 import { Modal } from "./Modal"
@@ -51,10 +51,11 @@ class EntitySearchResult extends React.PureComponent<SearchResultProps> {
         } else {
             return (
                 <li
-                    className="clickable"
+                    className={"clickable" + (isChecked ? " selected" : "")}
                     onClick={(): void => onSelect(result.name)}
                 >
                     {result.name}
+                    {isChecked && <FontAwesomeIcon icon={faCheck} />}
                 </li>
             )
         }
@@ -77,7 +78,9 @@ export class EntitySelectorModal extends React.Component<{
     }
 
     @computed private get modalBounds(): Bounds {
-        return this.tabBounds.pad(16)
+        const maxWidth = this.isMulti ? 740 : 640
+        const padWidth = Math.max(16, (this.tabBounds.width - maxWidth) / 2)
+        return this.tabBounds.padHeight(16).padWidth(padWidth)
     }
 
     @computed private get selectionArray(): SelectionArray {
@@ -143,6 +146,7 @@ export class EntitySelectorModal extends React.Component<{
         if (this.isMulti) {
             return (
                 <div className="selectedData">
+                    {selectedEntityNames.length > 0 && <h3>Selection</h3>}
                     <ul>
                         {selectedEntityNames.map((name) => {
                             return (
@@ -161,17 +165,6 @@ export class EntitySelectorModal extends React.Component<{
                             )
                         })}
                     </ul>
-                    {selectedEntityNames.length > 1 ? (
-                        <button
-                            className="clearSelection"
-                            onClick={this.onClear}
-                        >
-                            <span className="icon">
-                                <FontAwesomeIcon icon={faTimes} />
-                            </span>{" "}
-                            Unselect all
-                        </button>
-                    ) : undefined}
                 </div>
             )
         } else return undefined
@@ -194,8 +187,8 @@ export class EntitySelectorModal extends React.Component<{
                             : "EntitySelectorSingle"
                     }
                 >
-                    <div className="entities wrapper">
-                        <div className="searchResults">
+                    <div className="searchBar">
+                        <div className="searchInput">
                             <input
                                 type="search"
                                 placeholder="Search..."
@@ -208,6 +201,21 @@ export class EntitySelectorModal extends React.Component<{
                                     (this.searchField = e as HTMLInputElement)
                                 }
                             />
+                            <FontAwesomeIcon icon={faMagnifyingGlass} />
+                        </div>
+                        {this.isMulti &&
+                        selectionArray.selectedEntityNames.length > 0 ? (
+                            <button
+                                className="clearSelection"
+                                onClick={this.onClear}
+                            >
+                                Clear selection
+                            </button>
+                        ) : undefined}
+                    </div>
+
+                    <div className="entities">
+                        <div className="searchResults">
                             <ul>
                                 {searchResults.map((result) => (
                                     <EntitySearchResult
