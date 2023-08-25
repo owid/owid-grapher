@@ -183,11 +183,10 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     }
 
     @computed protected get boundsForChartArea(): Bounds {
-        const { bounds, chartHeight, manager } = this
-        const padBottom = manager.isOnChartTab ? 4 : 0
-        return new Bounds(0, 0, bounds.width, chartHeight)
-            .padWidth(FRAME_PADDING)
-            .padBottom(padBottom)
+        const { bounds, chartHeight } = this
+        return new Bounds(0, 0, bounds.width, chartHeight).padWidth(
+            FRAME_PADDING
+        )
     }
 
     @computed get isFaceted(): boolean {
@@ -477,13 +476,13 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         // Some charts have a related question below the footer.
         // A CaptionedChart looks like this (components in [brackets] are optional):
         //    #1 Header
-        //       ---- vertical space
+        //            ---- vertical space
         //    #2 [Controls]
-        //       ---- vertical space (small)
+        //            ---- vertical space (small)
         //    #3 Chart/Map/Table
-        //       ---- vertical space (small)
+        //            ---- vertical space (small)
         //    #4 [Timeline]
-        //       ---- vertical space
+        //            ---- vertical space
         //    #5 Footer
         //    #6 [Related question]
         return (
@@ -491,11 +490,13 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                 {/* #1 Header */}
                 <Header manager={this.manager} maxWidth={this.maxWidth} />
                 <VerticalSpace height={this.verticalPadding} />
+
                 {/* #2 [Controls] */}
                 {this.showControlsRow && this.renderControlsRow()}
                 {this.showControlsRow && (
                     <VerticalSpace height={this.verticalPaddingSmall} />
                 )}
+
                 {/* #3 Chart/Map/Table */}
                 {this.manager.isOnTableTab
                     ? this.renderDataTable()
@@ -503,11 +504,14 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                 {this.manager.hasTimeline && (
                     <VerticalSpace height={this.verticalPaddingSmall} />
                 )}
+
                 {/* #4 [Timeline] */}
                 {this.manager.hasTimeline && this.renderTimeline()}
                 <VerticalSpace height={this.verticalPadding} />
+
                 {/* #5 Footer */}
                 <Footer manager={this.manager} maxWidth={this.maxWidth} />
+
                 {/* #6 [Related question] */}
                 {this.showRelatedQuestion && this.renderRelatedQuestion()}
             </>
@@ -525,7 +529,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                 backgroundColor: "white",
                 textRendering: "geometricPrecision",
                 WebkitFontSmoothing: "antialiased",
-                overflow: "visible",
+                overflow: "visible", // in case the chart overflows the bounds
             },
         }
     }

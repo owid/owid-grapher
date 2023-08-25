@@ -2280,7 +2280,7 @@ export class Grapher
         this.annotation = annotation
     }
 
-    private renderGrapher(): JSX.Element {
+    private renderGrapherComponent(): JSX.Element {
         const containerClasses = classNames(
             "GrapherComponent",
             this.isExportingtoSvgOrPng && "isExportingToSvgOrPng",
@@ -2311,16 +2311,17 @@ export class Grapher
         // TODO remove this? should have a simple toStaticSVG for exporting
         if (this.isExportingtoSvgOrPng) return <CaptionedChart manager={this} />
 
-        if (this.isInFullScreenMode)
+        if (this.isInFullScreenMode) {
             return (
                 <FullScreen
                     onDismiss={action(() => (this.isInFullScreenMode = false))}
                 >
-                    {this.renderGrapher()}
+                    {this.renderGrapherComponent()}
                 </FullScreen>
             )
+        }
 
-        return this.renderGrapher()
+        return this.renderGrapherComponent()
     }
 
     private renderReady(): JSX.Element | null {

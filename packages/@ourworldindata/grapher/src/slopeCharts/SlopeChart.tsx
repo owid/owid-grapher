@@ -748,9 +748,13 @@ class LabelledSlopes
     @computed private get yScale():
         | ScaleLinear<number, number>
         | ScaleLogarithmic<number, number> {
-        return this.yScaleConstructor()
-            .domain(this.yDomain)
-            .range(this.props.bounds.padBottom(50).yRange())
+        return (
+            this.yScaleConstructor()
+                .domain(this.yDomain)
+                // top padding leaves room for point labels
+                // bottom padding leaves room for y-axis labels
+                .range(this.props.bounds.padTop(6).padBottom(24).yRange())
+        )
     }
 
     @computed private get xScale(): ScaleLinear<number, number> {
@@ -1122,7 +1126,7 @@ class LabelledSlopes
                     y={y1 + 10}
                     textAnchor="middle"
                     fill="#666"
-                    fontSize={fontSize}
+                    fontSize={0.875 * fontSize}
                 >
                     {xDomain[0].toString()}
                 </Text>
@@ -1131,7 +1135,7 @@ class LabelledSlopes
                     y={y1 + 10}
                     textAnchor="middle"
                     fill="#666"
-                    fontSize={fontSize}
+                    fontSize={0.875 * fontSize}
                 >
                     {xDomain[1].toString()}
                 </Text>

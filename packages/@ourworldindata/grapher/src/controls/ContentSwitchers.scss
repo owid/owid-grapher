@@ -26,6 +26,7 @@ $gap: 2px;
         line-height: $controlRowHeight - 2 * ($borderWidth + $gap);
         border-radius: $borderRadius - $gap;
         padding: 0 16px;
+        cursor: default;
 
         svg {
             margin-right: 6px;
