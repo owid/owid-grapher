@@ -156,8 +156,7 @@ export class OwidAdminApp {
         // error handler if it exists.
         if (bugsnagMiddleware) app.use(bugsnagMiddleware.errorHandler)
 
-        // todo: we probably always want to have this, and can remove the isDev
-        if (this.options.isDev) app.use("/", mockSiteRouter)
+        app.use("/", mockSiteRouter)
 
         // Give full error messages, including in production
         app.use(this.errorHandler)
