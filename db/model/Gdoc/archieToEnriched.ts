@@ -252,7 +252,6 @@ export const archieToEnriched = (text: string): OwidGdocContent => {
 
     // Parse elements of the ArchieML into enrichedBlocks
     parsed.body = compact(parsed.body.map(parseRawBlocksToEnrichedBlocks))
-    console.log("parsed.body", JSON.stringify(parsed.body, null, 2))
 
     parsed.toc = generateToc(parsed.body)
 

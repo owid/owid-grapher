@@ -1,4 +1,4 @@
-import React, { useLayoutEffect } from "react"
+import React, { useEffect } from "react"
 import { render } from "react-dom"
 import {
     AutocompleteSource,
@@ -188,8 +188,8 @@ export function Autocomplete({
     onActivate: () => void
     onClose: () => void
 }) {
-    useLayoutEffect(() => {
-        if (window.location.pathname.includes("/search")) return
+    useEffect(() => {
+        if (window.location.pathname.startsWith("/search")) return
         const search = autocomplete({
             container: AUTOCOMPLETE_CONTAINER_ID,
             placeholder: "Search for a topic or chart",

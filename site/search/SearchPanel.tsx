@@ -3,7 +3,6 @@ import React, { useCallback, useEffect } from "react"
 import cx from "classnames"
 import {
     keyBy,
-    reduce,
     getWindowQueryParams,
     get,
     mapValues,
@@ -35,6 +34,7 @@ import {
     SearchIndexName,
     searchCategoryFilters,
     IPageHit,
+    pageTypeDisplayNames,
 } from "./searchTypes.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../../explorer/ExplorerConstants.js"
 
@@ -75,7 +75,7 @@ function PagesHit({ hit }: { hit: IPageHit }) {
                     {hit.title}
                 </h4>
                 <span className="body-3-medium search-results__page-hit-type">
-                    {hit.type === "article" ? "Article" : "Topic page"}
+                    {pageTypeDisplayNames[hit.type]}
                 </span>
             </header>
             <Snippet
@@ -188,8 +188,7 @@ function Filters({
     const hitsLengthByIndexName = mapValues(resultsByIndexName, (results) =>
         get(results, ["results", "hits", "length"], 0)
     )
-    hitsLengthByIndexName.all = reduce(
-        hitsLengthByIndexName,
+    hitsLengthByIndexName.all = Object.values(hitsLengthByIndexName).reduce(
         (a: number, b: number) => a + b,
         0
     )
@@ -234,7 +233,7 @@ function NoResultsBoundary({ children }: { children: React.ReactElement }) {
     // which we can leverage along with the adjacent sibling selector
     // to show a No Results screen with CSS alone
     if (!results.__isArtificial && results.nbHits === 0) {
-        return React.cloneElement(children, { hidden: "true" })
+        return React.cloneElement(children, { hidden: true })
     }
 
     return children

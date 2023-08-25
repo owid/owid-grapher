@@ -8,6 +8,15 @@ export type PageType =
     | "article"
     | "other"
 
+export const pageTypeDisplayNames: Record<PageType, string> = {
+    about: "About",
+    topic: "Topic Page",
+    country: "Country Profile",
+    faq: "FAQ",
+    article: "Article",
+    other: "Other",
+}
+
 export interface PageRecord {
     objectID: string
     type: PageType

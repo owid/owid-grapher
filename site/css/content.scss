@@ -30,8 +30,7 @@
     @include figure-margin;
 }
 
-.article-content figure[data-grapher-src],
-.SearchResults figure[data-grapher-src] {
+.article-content figure[data-grapher-src] {
     @include figure-grapher-reset;
 
     > a {
@@ -89,13 +88,11 @@
     }
 }
 
-.article-content figure[data-grapher-src].grapherPreview,
-.SearchResults figure[data-grapher-src].grapherPreview {
+.article-content figure[data-grapher-src].grapherPreview {
     padding: 1em 0;
 }
 
-.article-content figure[data-grapher-src]:not(.grapherPreview),
-.SearchResults figure[data-grapher-src]:not(.grapherPreview) {
+.article-content figure[data-grapher-src]:not(.grapherPreview) {
     height: $grapher-height;
 }
 

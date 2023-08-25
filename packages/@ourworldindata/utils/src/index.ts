@@ -376,7 +376,6 @@ export {
     partition,
     pick,
     range,
-    reduce,
     reverse,
     round,
     sample,
