@@ -4,7 +4,7 @@ import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
 import { getAlgoliaClient } from "./configureAlgolia.js"
 import { isPathRedirectedToExplorer } from "../../explorerAdminServer/ExplorerRedirects.js"
 import { ChartRecord } from "../../site/search/searchTypes.js"
-import { MarkdownTextWrap } from "@ourworldindata/utils"
+import { KeyChartLevel, MarkdownTextWrap } from "@ourworldindata/utils"
 import { Pageview } from "../../db/model/Pageview.js"
 import { Link } from "../../db/model/Link.js"
 
@@ -25,7 +25,7 @@ const getChartsRecords = async (): Promise<ChartRecord[]> => {
         c.publishedAt,
         c.updatedAt,
         JSON_ARRAYAGG(t.name) AS tags,
-        JSON_ARRAYAGG(IF(ct.isKeyChart, t.name, NULL)) AS keyChartForTags -- this results in an array that contains null entries, will have to filter them out
+        JSON_ARRAYAGG(IF(ct.keyChartLevel = ${KeyChartLevel.Top} , t.name, NULL)) AS keyChartForTags -- this results in an array that contains null entries, will have to filter them out
     FROM charts c
         LEFT JOIN chart_tags ct ON c.id = ct.chartId
         LEFT JOIN tags t on ct.tagId = t.id

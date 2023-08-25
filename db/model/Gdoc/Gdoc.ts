@@ -892,7 +892,7 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
         charts.config->>"$.slug" AS slug,
         charts.config->>"$.title" AS title,
         charts.config->>"$.variantName" AS variantName,
-        chart_tags.isKeyChart
+        chart_tags.keyChartLevel
         FROM charts
         INNER JOIN chart_tags ON charts.id=chart_tags.chartId
         WHERE chart_tags.tagId IN (?)

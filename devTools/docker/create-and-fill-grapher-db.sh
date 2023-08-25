@@ -11,8 +11,8 @@ set -o nounset
 : "${DB_ROOT_PASS:?Need to set DB_ROOT_PASS non-empty}"
 : "${DATA_FOLDER:?Need to set DATA_FOLDER non-empty}"
 
-export GRAPHER_DB_HOST=${DB_ROOT_HOST} 
-export GRAPHER_DB_PORT=3306 
+export GRAPHER_DB_HOST=${DB_ROOT_HOST}
+export GRAPHER_DB_PORT=3306
 
 _mysql() {
     mysql -uroot -p$DB_ROOT_PASS -h$DB_ROOT_HOST --batch --skip-column-names "$@"
@@ -35,12 +35,6 @@ createAndFillGrapherDb() {
     else
         echo "could not find owid_metadata.sql.gz - please download it before running this script"
         return 1;
-    fi
-    if [ -f "${DATA_FOLDER}/owid_chartdata.sql.gz" ];then
-        echo "found owid_chartdata.sql.gz"
-    else
-        echo "could not find owid_chartdata.sql.gz - please download it before running this script"
-        return 2;
     fi
 
     echo "Creating user '$GRAPHER_DB_USER'"

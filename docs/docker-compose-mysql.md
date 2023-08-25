@@ -75,8 +75,6 @@ Use this connection configuration:
 
 We also have [a schema diagram for reference.](screenshots/er_diagram.png)
 
-Note that in the MySQL database that was set up, the `data_values` table is incomplete – it only contains data used in charts. In production, this table is >30GB (uncompressed) and contains unreviewed and undocumented data, so we currently don't offer a full export of it.
-
 ## Resetting your environment
 
 If you've modified or broken your database and want to start over from scratch, you'll need to clear the docker volumes that the database persists on.

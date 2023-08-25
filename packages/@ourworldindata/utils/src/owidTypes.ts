@@ -63,7 +63,7 @@ export interface BasicChartInformation {
 }
 
 export interface RelatedChart extends BasicChartInformation {
-    isKeyChart?: boolean
+    keyChartLevel?: KeyChartLevel
 }
 
 export type OwidVariableId = Integer // remove.
@@ -188,8 +188,15 @@ export interface PostRowWithGdocPublishStatus extends PostRow {
     isGdocPublished: boolean
 }
 
+export enum KeyChartLevel {
+    None = 0, // not a key chart, will not show in the all charts block of the related topic page
+    Bottom = 1, // chart will show at the bottom of the all charts block
+    Middle = 2, // chart will show in the middle of the all charts block
+    Top = 3, // chart will show at the top of the all charts block
+}
+
 export interface Tag extends TagReactTagAutocomplete {
-    isKeyChart?: boolean
+    keyChartLevel?: KeyChartLevel
 }
 
 export interface EntryMeta {
@@ -1512,4 +1519,12 @@ export interface DataPageV2ContentFields {
     faqEntries: FaqEntryData | undefined
     // TODO: add gdocs for FAQs
     isPreviewing?: boolean
+}
+
+export interface UserCountryInformation {
+    code: string
+    name: string
+    short_code: string
+    slug: string
+    regions: string[] | null
 }

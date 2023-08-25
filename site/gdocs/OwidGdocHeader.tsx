@@ -46,7 +46,7 @@ function OwidArticleHeader({
                     />
                 </div>
             ) : null}
-            {breadcrumbs?.length && (
+            {!!breadcrumbs?.length && (
                 <div className="centered-article-header__breadcrumbs-container col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
                     <Breadcrumbs
                         items={breadcrumbs}

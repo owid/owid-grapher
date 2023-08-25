@@ -76,13 +76,3 @@ export const isCountryName = (name: string): boolean =>
 
 export const getCountryBySlug = (slug: string): Country | undefined =>
     countriesBySlug[slug]
-
-export const getCountryDetectionRedirects = (): string[] =>
-    countries
-        .filter((country) => country.shortCode && country.code)
-        .map(
-            (country) =>
-                `/detect-country-redirect /detect-country.js?${
-                    country.code
-                } 302! Country=${country.shortCode!.toLowerCase()}`
-        )

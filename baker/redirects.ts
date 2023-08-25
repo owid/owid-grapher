@@ -1,11 +1,6 @@
 import * as db from "../db/db.js"
 import * as wpdb from "../db/wpdb.js"
-import {
-    getCountryDetectionRedirects,
-    memoize,
-    JsonError,
-    Url,
-} from "@ourworldindata/utils"
+import { memoize, JsonError, Url } from "@ourworldindata/utils"
 import { isCanonicalInternalUrl } from "./formatting.js"
 import { resolveExplorerRedirect } from "./replaceExplorerRedirects.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
@@ -14,10 +9,6 @@ export const getRedirects = async () => {
     const redirects = [
         // RSS feed
         "/feed /atom.xml 302!",
-
-        // Backwards compatibility-- admin urls
-        "/wp-admin/* https://owid.cloud/wp/wp-admin/:splat 301",
-        "/grapher/admin/* https://owid.cloud/grapher/admin/:splat 301",
 
         // TODO: this should only get triggered by external hits (indexed .pdf files for instance)
         // and should be removed when no evidence of these inbound links can be found.
@@ -36,11 +27,7 @@ export const getRedirects = async () => {
 
         // Backwards compatibility-- public urls
         "/entries/* /:splat 301",
-        "/entries /#entries 302",
-        "/data/food-agriculture/* /:splat 301",
-        "/data/political-regimes/* /:splat 301",
-        "/data/population-growth-vital-statistics/* /:splat 301",
-        "/data/growth-and-distribution-of-prosperity/* /:splat 301",
+        "/entries / 302",
         "/blog /latest 301",
         "/blog/* /latest/:splat 301",
 
@@ -51,11 +38,10 @@ export const getRedirects = async () => {
 
         "/slides/* https://slides.ourworldindata.org/:splat 301",
         "/subscribe /#subscribe 301",
-    ]
 
-    getCountryDetectionRedirects().forEach((redirect) =>
-        redirects.push(redirect)
-    )
+        // Country detection
+        "/detect-country https://detect-country.owid.io 302",
+    ]
 
     // Redirects from Wordpress admin UI
     const rows = await wpdb.singleton.query(

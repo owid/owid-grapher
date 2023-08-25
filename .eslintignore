@@ -7,7 +7,6 @@ jest.config.js
 knexfile.ts
 ormconfig.js
 postcss.config.js
-public/detect-country.js
 wordpress/web/wp/wp-includes/**
 wordpress/web/wp/wp-admin/**
 wordpress/web/app/plugins/**
