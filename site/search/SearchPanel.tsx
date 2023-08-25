@@ -17,6 +17,7 @@ import {
     Snippet,
     useInstantSearch,
     useConnector,
+    PoweredBy,
 } from "react-instantsearch-hooks-web"
 import algoliasearch, { SearchClient } from "algoliasearch"
 import {
@@ -515,6 +516,7 @@ export class InstantSearchContainer extends React.Component {
                             this.handleCategoryFilterClick
                         }
                     />
+                    <PoweredBy />
                 </div>
             </InstantSearch>
         )

@@ -396,3 +396,12 @@ section[hidden]
     + section.search-page__no-results {
     display: flex;
 }
+
+.ais-PoweredBy {
+    width: 200px;
+    margin: 32px;
+    margin-left: 0;
+    @include sm-only {
+        margin-left: 16px;
+    }
+}
