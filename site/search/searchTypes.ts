@@ -67,8 +67,8 @@ export interface ChartRecord {
 export type IChartHit = Hit<BaseHit> & ChartRecord
 
 export enum SearchIndexName {
-    Explorers = "explorers-test",
-    Charts = "charts-test",
+    Explorers = "explorers",
+    Charts = "charts",
     Pages = "pages",
 }
 

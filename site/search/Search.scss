@@ -338,7 +338,7 @@
     }
 }
 
-.search-results[data-active-filter="charts-test"] .search-results__charts {
+.search-results[data-active-filter="charts"] .search-results__charts {
     display: inline;
 
     .search-results__chart-hit {
@@ -356,8 +356,7 @@
     }
 }
 
-.search-results[data-active-filter="explorers-test"]
-    .search-results__explorers {
+.search-results[data-active-filter="explorers"] .search-results__explorers {
     display: inline;
 
     .search-results__explorer-hit {

@@ -109,6 +109,23 @@ export const configureAlgolia = async () => {
         disableExactOnAttributes: ["tags"],
     })
 
+    const explorersIndex = client.initIndex("explorers")
+
+    await explorersIndex.setSettings({
+        ...baseSettings,
+        searchableAttributes: [
+            "unordered(slug)",
+            "unordered(title)",
+            "unordered(subtitle)",
+            "unordered(views_7d)",
+            "unordered(text)",
+        ],
+        customRanking: ["desc(score)", "desc(importance)"],
+        attributesToSnippet: ["excerpt:20", "content:20"],
+        attributeForDistinct: "slug",
+        attributesForFaceting: [],
+    })
+
     const synonyms = [
         ["kids", "children"],
         ["pork", "pigmeat"],
@@ -246,6 +263,9 @@ export const configureAlgolia = async () => {
         replaceExistingSynonyms: true,
     })
     await chartsIndex.saveSynonyms(algoliaSynonyms, {
+        replaceExistingSynonyms: true,
+    })
+    await explorersIndex.saveSynonyms(algoliaSynonyms, {
         replaceExistingSynonyms: true,
     })
 

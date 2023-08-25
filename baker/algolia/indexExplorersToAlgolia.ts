@@ -7,6 +7,7 @@ import * as db from "../../db/db.js"
 import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
 import { Pageview } from "../../db/model/Pageview.js"
 import { chunkParagraphs } from "../chunk.js"
+import { SearchIndexName } from "../../site/search/searchTypes.js"
 
 type ExplorerBlockLineChart = {
     type: "LineChart"
@@ -140,7 +141,7 @@ const getExplorerRecords = async (): Promise<ExplorerRecord[]> => {
     return explorerRecords
 }
 
-const indexChartsToAlgolia = async () => {
+const indexExplorersToAlgolia = async () => {
     if (!ALGOLIA_INDEXING) return
 
     const client = getAlgoliaClient()
@@ -150,7 +151,7 @@ const indexChartsToAlgolia = async () => {
     }
 
     try {
-        const index = client.initIndex("explorers-test")
+        const index = client.initIndex(SearchIndexName.Explorers)
 
         await db.getConnection()
         const records = await getExplorerRecords()
@@ -162,4 +163,4 @@ const indexChartsToAlgolia = async () => {
     }
 }
 
-indexChartsToAlgolia()
+indexExplorersToAlgolia()
