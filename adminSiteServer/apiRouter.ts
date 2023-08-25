@@ -2072,7 +2072,7 @@ apiRouter.get("/tags/:tagId.json", async (req: Request, res: Response) => {
 
     const tag = await db.mysqlFirst(
         `
-        SELECT t.id, t.name, t.specialType, t.updatedAt, t.parentId, p.isBulkImport
+        SELECT t.id, t.name, t.specialType, t.updatedAt, t.parentId, t.isTopic, p.isBulkImport
         FROM tags t LEFT JOIN tags p ON t.parentId=p.id
         WHERE t.id = ?
     `,
@@ -2171,8 +2171,8 @@ apiRouter.put("/tags/:tagId", async (req: Request) => {
     const tagId = expectInt(req.params.tagId)
     const tag = (req.body as { tag: any }).tag
     await db.execute(
-        `UPDATE tags SET name=?, updatedAt=?, parentId=? WHERE id=?`,
-        [tag.name, new Date(), tag.parentId, tagId]
+        `UPDATE tags SET name=?, updatedAt=?, parentId=?, isTopic=? WHERE id=?`,
+        [tag.name, new Date(), tag.parentId, tag.isTopic, tagId]
     )
     return { success: true }
 })
