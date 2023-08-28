@@ -167,7 +167,8 @@ $cell-border: 1px solid rgba(0, 0, 0, 0.08);
         }
     }
 
-    tbody tr:not(.title):nth-child(2n + 1) td {
+    tbody.hasAggregateRows tr:nth-child(2n + 1) td,
+    tbody:not(.hasAggregateRows) tr:nth-child(2n) td {
         background-color: rgba(247, 247, 247);
     }
 

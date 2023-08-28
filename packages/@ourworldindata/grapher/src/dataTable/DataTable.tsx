@@ -441,6 +441,7 @@ export class DataTable extends React.Component<{
     }
 
     render(): JSX.Element {
+        const { hasAggregateRows } = this
         return (
             <div
                 style={{
@@ -451,7 +452,7 @@ export class DataTable extends React.Component<{
             >
                 <table className="data-table">
                     <thead>{this.headerRow}</thead>
-                    <tbody>
+                    <tbody className={classnames({ hasAggregateRows })}>
                         {this.titleEntityRow}
                         {this.valueEntityRows}
                         {this.titleAggregateRow}
