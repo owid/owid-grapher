@@ -365,11 +365,20 @@ export class Footer<
         )
     }
 
-    private renderSources(): JSX.Element {
+    private renderSources(): JSX.Element | null {
+        const sources = new MarkdownTextWrap({
+            text: `**Data source:** ${this.manager.sourcesLine}`,
+            maxWidth: this.sourcesMaxWidth,
+            fontSize: this.sourcesFontSize,
+            lineHeight: this.lineHeight,
+        })
+
         return (
-            <p className="sources" style={this.sources.style}>
-                <b>Data source:</b> {this.manager.sourcesLine} -{" "}
+            <p className="sources" style={sources.style}>
+                {sources.renderHTML()}
+                {" - "}
                 <a
+                    className="learn-more-about-data"
                     data-track-note="chart_click_sources"
                     onClick={action(() => {
                         // on data pages, scroll to the "Sources and Processing" section

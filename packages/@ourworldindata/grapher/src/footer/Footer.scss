@@ -17,13 +17,18 @@ $horizontalPadding: 8px; // keep in sync with HORIZONTAL_PADDING
         margin: 0;
     }
 
-    .sources a {
+    .sources a.learn-more-about-data {
         text-decoration: underline;
         text-decoration-color: $dark-text;
 
         &:hover {
             text-decoration: none;
         }
+    }
+
+    // "Learn more about this data" link is rendered after the sources and should be on the same line
+    .sources .markdown-text-wrap__line:last-child {
+        display: inline-block;
     }
 
     .license {
