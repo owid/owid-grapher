@@ -18,6 +18,9 @@ import {
     sortByUndefinedLast,
     getStylesForTargetHeight,
     ColumnSlug,
+    getUserCountryInformation,
+    regions,
+    sortBy,
 } from "@ourworldindata/utils"
 import { VerticalScrollContainer } from "../../controls/VerticalScrollContainer"
 import { SortIcon } from "../../controls/SortIcon"
@@ -47,6 +50,7 @@ interface EntityOptionWithMetricValue {
     entityName: EntityName
     plotValue: number | string | undefined
     formattedValue: any
+    localEntitiesIndex: number | undefined
 }
 
 /** Modulo that wraps negative numbers too */
@@ -74,6 +78,8 @@ export class EntityPicker extends React.Component<{
         React.createRef()
 
     @observable private isOpen = false
+
+    @observable private localEntityNames?: string[]
 
     @computed private get isDropdownMenu(): boolean {
         return !!this.props.isDropdownMenu
@@ -142,9 +148,31 @@ export class EntityPicker extends React.Component<{
         return this.grapherTable.entitiesWith(this.manager.requiredColumnSlugs)
     }
 
+    @action.bound async populateLocalEntity(): Promise<void> {
+        try {
+            const localCountryInfo = await getUserCountryInformation()
+            if (!localCountryInfo) return
+
+            const userEntityCodes = [
+                localCountryInfo.code,
+                ...(localCountryInfo.regions ?? []),
+                "OWID_WRL",
+            ]
+
+            const userRegionNames = sortBy(
+                regions.filter((region) =>
+                    userEntityCodes.includes(region.code)
+                ),
+                (region) => userEntityCodes.indexOf(region.code)
+            ).map((region) => region.name)
+
+            if (userRegionNames) this.localEntityNames = userRegionNames
+        } catch (err) {}
+    }
+
     @computed
     private get entitiesWithMetricValue(): EntityOptionWithMetricValue[] {
-        const { pickerTable, selection } = this
+        const { pickerTable, selection, localEntityNames } = this
         const col = this.activePickerMetricColumn
         const entityNames = selection.availableEntityNames.slice().sort()
         return entityNames.map((entityName) => {
@@ -160,10 +188,16 @@ export class EntityPicker extends React.Component<{
                 plotValue !== undefined
                     ? col?.formatValueShortWithAbbreviations(plotValue)
                     : undefined
+
+            const localEntitiesIndex = localEntityNames?.indexOf(entityName)
             return {
                 entityName,
                 plotValue,
                 formattedValue,
+                localEntitiesIndex:
+                    localEntitiesIndex !== undefined && localEntitiesIndex >= 0
+                        ? localEntitiesIndex
+                        : undefined,
             }
         })
     }
@@ -193,17 +227,29 @@ export class EntityPicker extends React.Component<{
 
     @computed private get searchResults(): EntityOptionWithMetricValue[] {
         if (this.searchInput) return this.fuzzy.search(this.searchInput)
-        const { selectionSet } = this
+        const {
+            entitiesWithMetricValue,
+            sortOrder,
+            selectionSet,
+            pickerTable,
+        } = this
+
         // Show the selected up top and in order.
-        const [selected, unselected] = partition(
-            sortByUndefinedLast(
-                this.entitiesWithMetricValue,
-                (option) => option.plotValue,
-                this.sortOrder
-            ),
-            (option: EntityOptionWithMetricValue): boolean =>
-                selectionSet.has(option.entityName)
+        const sorted = sortByUndefinedLast(
+            entitiesWithMetricValue,
+            (option) => option.plotValue,
+            sortOrder
         )
+
+        let [selected, unselected] = partition(sorted, (option) =>
+            selectionSet.has(option.entityName)
+        )
+        if (pickerTable === undefined) {
+            unselected = sortByUndefinedLast(
+                unselected,
+                (option) => option.localEntitiesIndex
+            )
+        }
         return [...selected, ...unselected]
     }
 
@@ -367,6 +413,8 @@ export class EntityPicker extends React.Component<{
             () => this.searchInput,
             () => this.focusOptionDirection(FocusDirection.first)
         )
+
+        this.populateLocalEntity()
     }
 
     componentDidUpdate(): void {
@@ -617,6 +665,9 @@ class PickerOption extends React.Component<PickerOptionProps> {
                         {
                             selected: isSelected,
                             focused: isFocused,
+                            "local-country":
+                                optionWithMetricValue.localEntitiesIndex !==
+                                undefined,
                         },
                         hasDataForActiveMetric ? undefined : "MissingData"
                     )}

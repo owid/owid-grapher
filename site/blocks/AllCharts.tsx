@@ -9,7 +9,10 @@ export const AllCharts = ({ post }: { post: FullPost }) => {
         <>
             <h3>Interactive charts on {post.title}</h3>
             <div className={WP_BlockClass.FullContentWidth}>
-                <RelatedCharts charts={post.relatedCharts} />
+                <RelatedCharts
+                    showKeyChartsOnly={true}
+                    charts={post.relatedCharts}
+                />
             </div>
         </>
     )

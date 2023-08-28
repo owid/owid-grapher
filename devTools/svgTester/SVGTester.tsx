@@ -150,7 +150,7 @@ export const getComparePage = async (liveRows: string, devRows: string) => {
         <div>
             <div>{summaryMessage}</div>
             <table>{rows}</table>
-            <div>{missing.length && <>{missingDivs}</>}</div>
+            <div>{missing.length > 0 && <>{missingDivs}</>}</div>
         </div>
     )
 }

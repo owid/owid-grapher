@@ -1,8 +1,7 @@
 import fs from "fs-extra"
-import { writeFile } from "node:fs/promises"
 import path from "path"
 import { glob } from "glob"
-import { keyBy, without, uniq, mapValues, chunk, pick } from "lodash"
+import { keyBy, without, uniq, mapValues, pick } from "lodash"
 import cheerio from "cheerio"
 import ProgressBar from "progress"
 import * as wpdb from "../db/wpdb.js"
@@ -11,8 +10,6 @@ import {
     BLOG_POSTS_PER_PAGE,
     BASE_DIR,
     WORDPRESS_DIR,
-    IMAGE_HOSTING_CDN_URL,
-    IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH,
     GDOCS_DETAILS_ON_DEMAND_ID,
     BAKED_GRAPHER_URL,
 } from "../settings/serverSettings.js"
@@ -41,16 +38,14 @@ import {
 } from "../baker/GrapherBakingUtils.js"
 import { makeSitemap } from "../baker/sitemap.js"
 import { bakeCountries } from "../baker/countryProfiles.js"
+import { bakeDriveImages } from "../baker/GDriveImagesBaker.js"
 import {
     countries,
     FullPost,
     OwidGdocPublished,
-    ImageMetadata,
     clone,
-    getFilenameAsPng,
     extractDetailsFromSyntax,
     LinkedChart,
-    retryPromise,
 } from "@ourworldindata/utils"
 import { execWrapper } from "../db/execWrapper.js"
 import { countryProfileSpecs } from "../site/countryProfileProjects.js"
@@ -66,7 +61,6 @@ import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.
 import { postsTable } from "../db/model/Post.js"
 import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
 import { Image } from "../db/model/Image.js"
-import sharp from "sharp"
 import { generateEmbedSnippet } from "../site/viteUtils.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 import { Chart } from "../db/model/Chart.js"
@@ -594,103 +588,27 @@ export class SiteBaker {
 
     private async bakeDriveImages() {
         if (!this.bakeSteps.has("gdriveImages")) return
-        const images: Image[] = await db
-            .queryMysql(
-                `SELECT * FROM images WHERE id IN (SELECT DISTINCT imageId FROM posts_gdocs_x_images)`
-            )
-            .then((results: ImageMetadata[]) =>
-                results.map((result) => Image.create<Image>(result))
-            )
-
-        this.ensureDir("images/published")
-        const imagesDirectory = path.join(
-            this.bakedSiteDir,
-            "images",
-            "published"
-        )
-
-        // TODO: chunking caused issues so we disable it here by setting chunk size to 1 for now.
-        // Either switch to rclone-ing all files before baking, or switching to Cloudflare Images.
-        const imageChunks = chunk(images, 2)
-        for (const imageChunk of imageChunks) {
-            await Promise.all(
-                imageChunk.map(async (image) => {
-                    const remoteFilePath = path.join(
-                        IMAGE_HOSTING_CDN_URL,
-                        IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH,
-                        image.filename
-                    )
-                    return retryPromise(() => fetch(remoteFilePath))
-                        .then((response) => {
-                            if (!response.ok) {
-                                throw new Error(
-                                    `Fetching image failed: ${response.status} ${response.statusText} ${response.url}`
-                                )
-                            }
-                            return response.arrayBuffer()
-                        })
-                        .then((arrayBuffer) => Buffer.from(arrayBuffer))
-                        .then(async (buffer) => {
-                            if (!image.isSvg) {
-                                await Promise.all(
-                                    image.sizes!.map((width) => {
-                                        const localResizedFilepath = path.join(
-                                            imagesDirectory,
-                                            `${image.filenameWithoutExtension}_${width}.webp`
-                                        )
-                                        return sharp(buffer)
-                                            .resize(width)
-                                            .webp({
-                                                lossless: true,
-                                            })
-                                            .toFile(localResizedFilepath)
-                                    })
-                                )
-                            } else {
-                                // A PNG alternative to the SVG for the "Download image" link
-                                const pngFilename = getFilenameAsPng(
-                                    image.filename
-                                )
-                                await sharp(buffer)
-                                    .resize(2000)
-                                    .png()
-                                    .toFile(
-                                        path.join(imagesDirectory, pngFilename)
-                                    )
-
-                                // Import the site's webfonts
-                                const svg = buffer
-                                    .toString()
-                                    .replace(
-                                        /(<svg.*?>)/,
-                                        `$1<defs><style>@import url(${BAKED_BASE_URL}/fonts.css)</style></defs>`
-                                    )
-                                buffer = Buffer.from(svg)
-                            }
-                            // For SVG, and a non-webp fallback copy of the image
-                            await writeFile(
-                                path.join(imagesDirectory, image.filename),
-                                buffer
-                            )
-                        })
-                })
-            )
-        }
+        await this.ensureDir("images/published")
+        await bakeDriveImages(this.bakedSiteDir)
         this.progressBar.tick({ name: "✅ baked google drive images" })
     }
 
     // Bake the static assets
     private async bakeAssets() {
         if (!this.bakeSteps.has("assets")) return
+
+        // do not delete images/published folder so that we don't have to sync gdrive images again
+        const excludes = "--exclude images/published"
+
         await execWrapper(
-            `rsync -havL --delete ${WORDPRESS_DIR}/web/app/uploads ${this.bakedSiteDir}/`
+            `rsync -havL --delete ${WORDPRESS_DIR}/web/app/uploads ${this.bakedSiteDir}/ ${excludes}`
         )
 
         await execWrapper(
             `rm -rf ${this.bakedSiteDir}/assets && cp -r ${BASE_DIR}/dist/assets ${this.bakedSiteDir}/assets`
         )
         await execWrapper(
-            `rsync -hav --delete ${BASE_DIR}/public/* ${this.bakedSiteDir}/`
+            `rsync -hav --delete ${BASE_DIR}/public/* ${this.bakedSiteDir}/ ${excludes}`
         )
 
         await fs.writeFile(
