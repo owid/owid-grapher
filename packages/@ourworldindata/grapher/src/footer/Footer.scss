@@ -7,6 +7,7 @@ $horizontalPadding: 8px; // keep in sync with HORIZONTAL_PADDING
     color: $dark-text;
 
     a {
+        text-underline-offset: auto;
         color: $dark-text;
         &:visited {
             color: $dark-text;
@@ -19,7 +20,6 @@ $horizontalPadding: 8px; // keep in sync with HORIZONTAL_PADDING
 
     .sources a.learn-more-about-data {
         text-decoration: underline;
-        text-decoration-color: $dark-text;
 
         &:hover {
             text-decoration: none;
@@ -31,8 +31,10 @@ $horizontalPadding: 8px; // keep in sync with HORIZONTAL_PADDING
         display: inline-block;
     }
 
-    .license {
-        a:hover {
+    .license a {
+        text-decoration: none;
+
+        &:hover {
             text-decoration: underline;
         }
     }
