@@ -1,6 +1,6 @@
 $cell-border: 1px solid rgba(0, 0, 0, 0.08);
 
-.tableTab {
+.DataTableContainer {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -8,11 +8,11 @@ $cell-border: 1px solid rgba(0, 0, 0, 0.08);
     text-align: center;
 }
 
-.tableTab {
+.DataTableContainer {
     border-bottom: $cell-border;
 }
 
-.tableTab .data-table {
+.DataTableContainer .data-table {
     thead {
         position: sticky;
         z-index: 20;

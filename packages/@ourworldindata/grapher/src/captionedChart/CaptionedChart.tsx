@@ -400,7 +400,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
             ...this.boundsForChartArea.toCSS(),
         }
         return (
-            <div style={containerStyle}>
+            <div className="DataTableContainer" style={containerStyle}>
                 <DataTable bounds={boundsForChartArea} manager={this.manager} />
             </div>
         )

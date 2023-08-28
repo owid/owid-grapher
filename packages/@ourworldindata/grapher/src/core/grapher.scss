@@ -185,12 +185,6 @@ $zindex-full-screen: 2000;
     .unstroked {
         display: none;
     }
-
-    .DownloadModalContent,
-    .tableTab,
-    .SourcesModalContent {
-        z-index: $zindex-tab;
-    }
 }
 
 .GrapherComponent.isExportingToSvgOrPng {
