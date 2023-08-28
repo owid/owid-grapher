@@ -6,13 +6,30 @@ $cell-border: 1px solid rgba(0, 0, 0, 0.08);
     justify-content: center;
     background: rgba(255, 255, 255, 0.95);
     text-align: center;
-}
-
-.DataTableContainer {
     border-bottom: $cell-border;
 }
 
-.DataTableContainer .data-table {
+.DataTableContainer .DataTable {
+    width: 100%;
+    height: 100%;
+    display: flex; // necessary to make .table-wrapper scrollable
+    flex-direction: column;
+
+    .caption {
+        flex-shrink: 0;
+        text-align: left;
+
+        .unit {
+            color: #858585;
+        }
+    }
+
+    .table-wrapper {
+        overflow: auto;
+    }
+}
+
+.DataTableContainer table {
     thead {
         position: sticky;
         z-index: 20;
@@ -35,7 +52,7 @@ $cell-border: 1px solid rgba(0, 0, 0, 0.08);
     }
 }
 
-.data-table {
+.DataTableContainer table {
     font-size: 0.9375rem;
     line-height: 1.333em;
     border: none;

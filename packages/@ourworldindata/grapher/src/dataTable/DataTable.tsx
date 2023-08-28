@@ -223,30 +223,29 @@ export class DataTable extends React.Component<{
         )
     }
 
-    private get dimensionHeaders(): JSX.Element[] {
+    @computed private get hasDimensionHeaders(): boolean {
+        return this.displayDimensions.length > 1
+    }
+
+    private get dimensionHeaders(): JSX.Element[] | null {
         const { sort } = this.tableState
+        if (!this.hasDimensionHeaders) return null
         return this.displayDimensions.map((dim, dimIndex) => {
-            const actualColumn = dim.coreTableColumn
-            const unit =
-                actualColumn.unit === "%" ? "percent" : dim.coreTableColumn.unit
+            const { coreTableColumn, display } = dim
             const targetTime =
                 dim.columns.length === 1 ? dim.columns[0].targetTime : undefined
-            const columnName =
-                actualColumn.displayName !== ""
-                    ? actualColumn.displayName
-                    : actualColumn.name
 
             const dimensionHeaderText = (
                 <React.Fragment>
-                    <div className="name">{upperFirst(columnName)}</div>
+                    <div className="name">{upperFirst(display.columnName)}</div>
                     <div>
-                        <span className="unit">{unit}</span>{" "}
+                        <span className="unit">{display.unit}</span>{" "}
                         <span className="divider">
-                            {unit && targetTime !== undefined && "•"}
+                            {display.unit && targetTime !== undefined && "•"}
                         </span>{" "}
                         <span className="time">
                             {targetTime !== undefined &&
-                                actualColumn.formatTime(targetTime)}
+                                coreTableColumn.formatTime(targetTime)}
                         </span>
                     </div>
                 </React.Fragment>
@@ -268,7 +267,7 @@ export class DataTable extends React.Component<{
                 dataType: "numeric" as const,
             }
 
-            return <ColumnHeader key={actualColumn.slug} {...props} />
+            return <ColumnHeader key={coreTableColumn.slug} {...props} />
         })
     }
 
@@ -440,25 +439,35 @@ export class DataTable extends React.Component<{
         )
     }
 
+    @computed private get tableCaption(): JSX.Element | null {
+        if (this.hasDimensionHeaders) return null
+        const singleDimension = this.displayDimensions[0]
+        return singleDimension ? (
+            <div className="caption">
+                {singleDimension.display.columnName}{" "}
+                {singleDimension.display.unit && (
+                    <span className="unit">{singleDimension.display.unit}</span>
+                )}
+            </div>
+        ) : null
+    }
+
     render(): JSX.Element {
         const { hasAggregateRows } = this
         return (
-            <div
-                style={{
-                    width: "100%",
-                    height: "100%",
-                    overflow: "auto",
-                }}
-            >
-                <table className="data-table">
-                    <thead>{this.headerRow}</thead>
-                    <tbody className={classnames({ hasAggregateRows })}>
-                        {this.titleEntityRow}
-                        {this.valueEntityRows}
-                        {this.titleAggregateRow}
-                        {this.valueAggregateRows}
-                    </tbody>
-                </table>
+            <div className="DataTable">
+                {this.tableCaption}
+                <div className="table-wrapper">
+                    <table>
+                        <thead>{this.headerRow}</thead>
+                        <tbody className={classnames({ hasAggregateRows })}>
+                            {this.titleEntityRow}
+                            {this.valueEntityRows}
+                            {this.titleAggregateRow}
+                            {this.valueAggregateRows}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         )
     }
@@ -757,16 +766,27 @@ export class DataTable extends React.Component<{
     @computed get displayDimensions(): DataTableDimension[] {
         const { entityCount } = this
         // Todo: for sorting etc, use CoreTable?
-        return this.columnsWithValues.map((d) => ({
-            // A top-level header is only sortable if it has a single nested column, because
-            // in that case the nested column is not rendered.
-            sortable: d.columns.length === 1,
-            columns: d.columns.map((column) => ({
-                ...column,
-                sortable: entityCount > 1,
-            })),
-            coreTableColumn: d.sourceColumn,
-        }))
+        return this.columnsWithValues.map((d) => {
+            const coreTableColumn = d.sourceColumn
+            const unit =
+                coreTableColumn.unit === "%" ? "percent" : coreTableColumn.unit
+            const columnName =
+                coreTableColumn.displayName !== ""
+                    ? coreTableColumn.displayName
+                    : coreTableColumn.name
+
+            return {
+                coreTableColumn,
+                // A top-level header is only sortable if it has a single nested column, because
+                // in that case the nested column is not rendered.
+                sortable: d.columns.length === 1,
+                columns: d.columns.map((column) => ({
+                    ...column,
+                    sortable: entityCount > 1,
+                })),
+                display: { columnName, unit },
+            }
+        })
     }
 
     @computed private get sortedEntityRows(): DataTableRow[] {
@@ -939,6 +959,7 @@ interface DataTableDimension {
     columns: DataTableColumn[]
     coreTableColumn: CoreColumn
     sortable: boolean
+    display: { columnName: string; unit?: string }
 }
 
 interface DataTableRow {

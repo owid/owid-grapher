@@ -22,25 +22,25 @@ describe("when you render a table", () => {
     })
 
     it("renders a table", () => {
-        expect(view.find("table.data-table")).toHaveLength(1)
+        expect(view.find("table")).toHaveLength(1)
     })
 
     it("renders a Country header", () => {
         expect(view.find("thead th.entity").text()).toContain("Country")
     })
 
-    it("renders a variable name in header", () => {
-        const cell = view.find("thead th.dimension .name")
+    it("renders a variable name in the caption", () => {
+        const cell = view.find(".DataTable .caption")
         expect(cell.text()).toContain("Child mortality")
     })
 
-    it("renders a unit name in header", () => {
-        const cell = view.find("thead th.dimension .unit")
+    it("renders a unit name in the caption", () => {
+        const cell = view.find(".DataTable .caption .unit")
         expect(cell.text()).toContain("percent")
     })
 
-    it("renders 'percent' in the column header when unit is '%'", () => {
-        const cell = view.find("thead th.dimension .unit")
+    it("renders 'percent' in the caption when unit is '%'", () => {
+        const cell = view.find(".DataTable .caption .unit")
         expect(cell.text()).toContain("percent")
     })
 
