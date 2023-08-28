@@ -143,7 +143,9 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
             return (
                 <div className="aa-ItemWrapper">
                     <span>{item.title}</span>
-                    <span>{indexLabel}</span>
+                    <span className="aa-ItemWrapper__contentType">
+                        {indexLabel}
+                    </span>
                 </div>
             )
         },

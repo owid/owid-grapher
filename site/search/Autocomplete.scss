@@ -210,6 +210,11 @@ section[data-autocomplete-source-id="recentSearchesPlugin"]
     }
 }
 
+section[data-autocomplete-source-id="autocomplete"]
+    .aa-ItemWrapper__contentType {
+    color: $blue-50;
+}
+
 section[data-autocomplete-source-id="runSearch"] {
     &:not(:first-child) {
         border-top: 1px solid $blue-10;
