@@ -189,7 +189,6 @@ export function Autocomplete({
     onClose: () => void
 }) {
     useEffect(() => {
-        if (window.location.pathname.startsWith("/search")) return
         const search = autocomplete({
             container: AUTOCOMPLETE_CONTAINER_ID,
             placeholder: "Search for a topic or chart",
