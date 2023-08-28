@@ -427,7 +427,7 @@ export class DataTable extends React.Component<{
             <tr className="title">
                 <td>Region</td>
                 {range(this.numberOfColumnsWidthValues).map((i) => (
-                     <td key={i} />
+                    <td key={i} />
                 ))}
             </tr>
         )

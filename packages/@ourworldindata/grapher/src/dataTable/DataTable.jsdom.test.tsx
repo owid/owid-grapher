@@ -4,7 +4,11 @@ import React from "react"
 
 import { DataTable } from "./DataTable"
 import { ChartTypeName, GrapherTabOption } from "../core/GrapherConstants"
-import { childMortalityGrapher, IncompleteDataTable } from "./DataTable.sample"
+import {
+    childMortalityGrapher,
+    IncompleteDataTable,
+    DataTableWithAggregates,
+} from "./DataTable.sample"
 
 import Enzyme, { ReactWrapper } from "enzyme"
 import Adapter from "enzyme-adapter-react-16"
@@ -111,11 +115,9 @@ describe("when the table doesn't have data for all rows", () => {
         expect(view.find("tbody .dimension").at(0).first().text()).toBe("")
     })
 
-    it("renders a tolerance notice when data is not from targetYear", () => {
+    it("renders an info icon when data is not from targetYear", () => {
         const toleranceNotices = view.find(".closest-time-notice-icon")
         expect(toleranceNotices.length).toBe(2)
-        expect(toleranceNotices.at(0).text()).toContain("2001") // first column
-        expect(toleranceNotices.at(1).text()).toContain("2009") // second column
     })
 
     it("renders a data value for the column with targetTime 2010", () => {
@@ -129,5 +131,20 @@ describe("when the table doesn't have data for all rows", () => {
         expect(timeHeaders.length).toBe(2)
         expect(timeHeaders.at(0).text()).toBe("2000")
         expect(timeHeaders.at(1).text()).toBe("2010")
+    })
+})
+
+describe("when the table has aggregates", () => {
+    let view: ReactWrapper
+    beforeAll(() => {
+        const grapher = DataTableWithAggregates()
+        view = Enzyme.mount(<DataTable manager={grapher} />)
+    })
+
+    it("renders a title row for countries and regions", () => {
+        const titleRows = view.find("tbody .title")
+        expect(titleRows).toHaveLength(2)
+        expect(titleRows.at(0).text()).toBe("Country")
+        expect(titleRows.at(1).text()).toBe("Region")
     })
 })
