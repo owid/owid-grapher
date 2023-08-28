@@ -32,7 +32,7 @@ export class Header extends React.Component<{
     }
 
     @computed private get subtitleText(): string {
-        return this.manager.subtitle ?? ""
+        return this.manager.currentSubtitle ?? ""
     }
 
     @computed get logo(): Logo | undefined {
