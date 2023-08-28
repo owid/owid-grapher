@@ -1800,6 +1800,8 @@ apiRouter.get("/datasets/:datasetId.json", async (req: Request) => {
         SELECT d.id,
             d.namespace,
             d.name,
+            d.shortName,
+            d.version,
             d.description,
             d.updatedAt,
             d.dataEditedAt,
