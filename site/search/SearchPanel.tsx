@@ -440,6 +440,7 @@ export class InstantSearchContainer extends React.Component {
 
     @action.bound handleQuery(query: string, search: (value: string) => void) {
         this.inputValue = query
+        if (query === "") return
         search(query)
     }
 
