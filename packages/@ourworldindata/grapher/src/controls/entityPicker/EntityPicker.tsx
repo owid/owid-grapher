@@ -231,23 +231,30 @@ export class EntityPicker extends React.Component<{
 
     @computed private get searchResults(): EntityOptionWithMetricValue[] {
         if (this.searchInput) return this.fuzzy.search(this.searchInput)
-        const { selectionSet } = this
+        const {
+            entitiesWithMetricValue,
+            sortOrder,
+            selectionSet,
+            pickerTable,
+        } = this
 
         // Show the selected up top and in order.
         const sorted = sortByUndefinedLast(
-            this.entitiesWithMetricValue,
+            entitiesWithMetricValue,
             (option) => option.plotValue,
-            this.sortOrder
+            sortOrder
         )
 
-        const [selected, unselected] = partition(sorted, (option) =>
+        let [selected, unselected] = partition(sorted, (option) =>
             selectionSet.has(option.entityName)
         )
-        const unselectedSorted = sortByUndefinedLast(
-            unselected,
-            (option) => option.localEntitiesIndex
-        )
-        return [...selected, ...unselectedSorted]
+        if (pickerTable === undefined) {
+            unselected = sortByUndefinedLast(
+                unselected,
+                (option) => option.localEntitiesIndex
+            )
+        }
+        return [...selected, ...unselected]
     }
 
     private normalizeFocusIndex(index: number): number | undefined {
