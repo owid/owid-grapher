@@ -47,6 +47,11 @@ export const getRedirects = async () => {
 
         // Slides
         "/slides/* https://slides.ourworldindata.org/:splat 301",
+
+        // These are needed for the Cloudflare Pages migration
+        "/uploads/* https://assets.ourworldindata.org/uploads/:splat 301",
+        "/exports/* https://assets.ourworldindata.org/exports/:splat 301",
+        "/grapher/exports/* https://assets.ourworldindata.org/grapher/exports/:splat 301",
     ]
 
     // Redirects from Wordpress admin UI
