@@ -128,20 +128,13 @@
 
 .search-results__header {
     display: flex;
-    justify-content: space-between;
-}
-
-// Space for .search-results__show-more-container
-.search-results[data-active-filter="all"] .search-results__header {
-    @include sm-up {
-        padding-bottom: 3rem;
-    }
+    align-items: baseline;
 }
 
 .search-results__section-title {
-    display: inline-block;
     margin-top: 24px;
     margin-bottom: 24px;
+    margin-right: 16px;
     color: $blue-50;
 
     @include sm-only {
@@ -150,14 +143,9 @@
 }
 
 .search-results__show-more-container {
-    margin-top: 24px;
-    line-height: 2rem;
-    position: absolute;
-    left: 0;
-    top: 2.5rem;
-    p {
-        margin: 0;
-        display: inline-block;
+    @include body-3-medium;
+    em {
+        color: $blue-50;
     }
     button {
         @include owid-link-90;
@@ -168,6 +156,7 @@
     }
 
     @include sm-only {
+        position: absolute;
         display: flex;
         flex-wrap: wrap;
         text-align: center;

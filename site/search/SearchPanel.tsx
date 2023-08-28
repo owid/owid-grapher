@@ -313,13 +313,15 @@ const SearchResults = (props: SearchResultsProps) => {
                         <h2 className="h2-bold search-results__section-title">
                             Research & Writing
                         </h2>
+                        <ShowMore
+                            category={SearchIndexName.Pages}
+                            cutoffNumber={4}
+                            activeCategoryFilter={activeCategoryFilter}
+                            handleCategoryFilterClick={
+                                handleCategoryFilterClick
+                            }
+                        />
                     </header>
-                    <ShowMore
-                        category={SearchIndexName.Pages}
-                        cutoffNumber={4}
-                        activeCategoryFilter={activeCategoryFilter}
-                        handleCategoryFilterClick={handleCategoryFilterClick}
-                    />
                     <Hits
                         classNames={{
                             root: "search-results__list-container",
@@ -342,15 +344,15 @@ const SearchResults = (props: SearchResultsProps) => {
                             <h2 className="h2-bold search-results__section-title">
                                 Data Explorers
                             </h2>
+                            <ShowMore
+                                category={SearchIndexName.Explorers}
+                                cutoffNumber={2}
+                                activeCategoryFilter={activeCategoryFilter}
+                                handleCategoryFilterClick={
+                                    handleCategoryFilterClick
+                                }
+                            />
                         </header>
-                        <ShowMore
-                            category={SearchIndexName.Explorers}
-                            cutoffNumber={2}
-                            activeCategoryFilter={activeCategoryFilter}
-                            handleCategoryFilterClick={
-                                handleCategoryFilterClick
-                            }
-                        />
                         <Hits
                             classNames={{
                                 root: "search-results__list-container",
@@ -374,15 +376,15 @@ const SearchResults = (props: SearchResultsProps) => {
                             <h2 className="h2-bold search-results__section-title">
                                 Charts
                             </h2>
+                            <ShowMore
+                                category={SearchIndexName.Charts}
+                                cutoffNumber={16}
+                                activeCategoryFilter={activeCategoryFilter}
+                                handleCategoryFilterClick={
+                                    handleCategoryFilterClick
+                                }
+                            />
                         </header>
-                        <ShowMore
-                            category={SearchIndexName.Charts}
-                            cutoffNumber={16}
-                            activeCategoryFilter={activeCategoryFilter}
-                            handleCategoryFilterClick={
-                                handleCategoryFilterClick
-                            }
-                        />
                         <Hits
                             classNames={{
                                 root: "search-results__list-container",
