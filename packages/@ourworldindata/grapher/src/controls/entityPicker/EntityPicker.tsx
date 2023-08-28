@@ -7,11 +7,7 @@ import classnames from "classnames"
 import { scaleLinear, ScaleLinear } from "d3-scale"
 import Select from "react-select"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import {
-    faLocationDot,
-    faSearch,
-    faTimes,
-} from "@fortawesome/free-solid-svg-icons"
+import { faSearch, faTimes } from "@fortawesome/free-solid-svg-icons"
 import { FuzzySearch } from "../../controls/FuzzySearch"
 import {
     partition,
@@ -691,18 +687,7 @@ class PickerOption extends React.Component<PickerOptionProps> {
                     </div>
                     <div className="info-container">
                         <div className="labels-container">
-                            <div className="name">
-                                {highlight(entityName)}
-                                {optionWithMetricValue.localEntitiesIndex !==
-                                    undefined && (
-                                    <FontAwesomeIcon
-                                        style={{ marginLeft: 5 }}
-                                        icon={faLocationDot}
-                                        opacity={0.9}
-                                        color="slategrey"
-                                    />
-                                )}
-                            </div>
+                            <div className="name">{highlight(entityName)}</div>
                             {plotValue !== undefined && (
                                 <div className="metric">{metricValue}</div>
                             )}
