@@ -6,10 +6,21 @@ import { resolveExplorerRedirect } from "./replaceExplorerRedirects.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 
 export const getRedirects = async () => {
-    const redirects = [
+    const staticRedirects = [
         // RSS feed
         "/feed /atom.xml 302",
 
+        // Entries and blog (we should keep these for a while)
+        "/entries / 302",
+        "/blog /latest 301",
+        "/subscribe /#subscribe 301",
+
+        // Country detection
+        "/detect-country https://detect-country.owid.io 302",
+    ]
+
+    // Dynamic redirects are all redirects that contain an asterisk
+    const dynamicRedirects = [
         // TODO: this should only get triggered by external hits (indexed .pdf files for instance)
         // and should be removed when no evidence of these inbound links can be found.
         "/wp-content/uploads/* /uploads/:splat 301",
@@ -25,10 +36,8 @@ export const getRedirects = async () => {
         "/slides/Max_PPT_presentations/* https://www.maxroser.com/slides/Max_PPT_presentations/:splat 301",
         "/slides/Max_Interactive_Presentations/* https://www.maxroser.com/slides/Max_Interactive_Presentations/:splat 301",
 
-        // Backwards compatibility-- public urls
+        // Entries and blog (we should keep these for a while)
         "/entries/* /:splat 301",
-        "/entries / 302",
-        "/blog /latest 301",
         "/blog/* /latest/:splat 301",
 
         // Backwards compatibility-- grapher url style
@@ -36,41 +45,46 @@ export const getRedirects = async () => {
         "/grapher/public/* /grapher/:splat 301",
         "/grapher/view/* /grapher/:splat 301",
 
+        // Slides
         "/slides/* https://slides.ourworldindata.org/:splat 301",
-        "/subscribe /#subscribe 301",
-
-        // Country detection
-        "/detect-country https://detect-country.owid.io 302",
     ]
 
     // Redirects from Wordpress admin UI
-    const rows = await wpdb.singleton.query(
+    const wpRedirectRows = await wpdb.singleton.query(
         `SELECT url, action_data, action_code FROM wp_redirection_items WHERE status = 'enabled'`
     )
-    redirects.push(
-        ...rows.map(
-            (row) =>
-                `${row.url.replace(/__/g, "/")} ${row.action_data.replace(
-                    /__/g,
-                    "/"
-                )} ${row.action_code}`
-        )
+    const wpRedirects = wpRedirectRows.map(
+        (row) =>
+            `${row.url.replace(/__/g, "/")} ${row.action_data.replace(
+                /__/g,
+                "/"
+            )} ${row.action_code}`
     )
 
     // Redirect old slugs to new slugs
-    const chartRedirectRows = await db.queryMysql(`
-    SELECT chart_slug_redirects.slug, chart_id, JSON_EXTRACT(charts.config, "$.slug") as trueSlug
+    const chartRedirectRows: Array<{
+        slug: string
+        chart_id: number
+        trueSlug: string
+    }> = await db.queryMysql(`
+    SELECT chart_slug_redirects.slug, chart_id, charts.config ->> "$.slug" as trueSlug
     FROM chart_slug_redirects INNER JOIN charts ON charts.id=chart_id
 `)
 
-    for (const row of chartRedirectRows) {
-        const trueSlug = JSON.parse(row.trueSlug)
-        if (row.slug !== trueSlug) {
-            redirects.push(`/grapher/${row.slug} /grapher/${trueSlug} 302`)
-        }
-    }
+    const grapherRedirects = chartRedirectRows
+        .filter((row) => row.slug !== row.trueSlug)
+        .map((row) => `/grapher/${row.slug} /grapher/${row.trueSlug} 302`)
 
-    return redirects
+    // Add newlines in between so we get some more overview
+    return [
+        ...staticRedirects,
+        "",
+        ...wpRedirects,
+        "",
+        ...grapherRedirects,
+        "",
+        ...dynamicRedirects, // Cloudflare requires all dynamic redirects to be at the very end of the _redirects file
+    ]
 }
 
 export const getGrapherAndWordpressRedirectsMap = memoize(
