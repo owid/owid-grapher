@@ -32,6 +32,7 @@ import {
     TickFormattingOptions,
     Tippy,
     isCountryName,
+    range,
 } from "@ourworldindata/utils"
 import { SortIcon } from "../controls/SortIcon"
 import { makeSelectionArray } from "../chart/ChartUtils"
@@ -364,14 +365,7 @@ export class DataTable extends React.Component<{
     ): JSX.Element {
         const { sort } = this.tableState
         return (
-            <tr
-                key={row.entityName}
-                className={classnames({
-                    aggregate:
-                        this.entitiesAreCountryLike &&
-                        !isCountryName(row.entityName),
-                })}
-            >
+            <tr key={row.entityName}>
                 <td
                     key="entity"
                     className={classnames({
@@ -399,14 +393,51 @@ export class DataTable extends React.Component<{
         )
     }
 
-    private get valueRows(): JSX.Element[] {
-        return this.sortedRows.map((row) =>
+    @computed private get valueEntityRows(): JSX.Element[] {
+        return this.sortedEntityRows.map((row) =>
+            this.renderEntityRow(row, this.displayDimensions)
+        )
+    }
+
+    @computed private get valueAggregateRows(): JSX.Element[] {
+        return this.sortedAggregateRows.map((row) =>
             this.renderEntityRow(row, this.displayDimensions)
         )
     }
 
     @computed get bounds(): Bounds {
         return this.props.bounds ?? DEFAULT_BOUNDS
+    }
+
+    @computed private get titleEntityRow(): JSX.Element | null {
+        if (!this.hasAggregateRows) return null
+        return (
+            <tr className="title">
+                <td>Country</td>
+                {range(this.numberOfColumnsWidthValues).map(() => (
+                    <td />
+                ))}
+            </tr>
+        )
+    }
+
+    @computed private get titleAggregateRow(): JSX.Element | null {
+        if (!this.hasAggregateRows) return null
+        return (
+            <tr className="title">
+                <td>Region</td>
+                {range(this.numberOfColumnsWidthValues).map(() => (
+                    <td />
+                ))}
+            </tr>
+        )
+    }
+
+    @computed private get numberOfColumnsWidthValues(): number {
+        return this.columnsWithValues.reduce(
+            (columnCount, item) => columnCount + item.columns.length,
+            0
+        )
     }
 
     render(): JSX.Element {
@@ -420,7 +451,12 @@ export class DataTable extends React.Component<{
             >
                 <table className="data-table">
                     <thead>{this.headerRow}</thead>
-                    <tbody>{this.valueRows}</tbody>
+                    <tbody>
+                        {this.titleEntityRow}
+                        {this.valueEntityRows}
+                        {this.titleAggregateRow}
+                        {this.valueAggregateRows}
+                    </tbody>
                 </table>
             </div>
         )
@@ -732,13 +768,14 @@ export class DataTable extends React.Component<{
         }))
     }
 
-    @computed private get sortedRows(): DataTableRow[] {
+    @computed private get sortedEntityRows(): DataTableRow[] {
         const { order } = this.tableState.sort
-        return orderBy(
-            this.displayRows,
-            [this.sortCountryOrAggregateMapper, this.sortValueMapper],
-            ["asc", order]
-        )
+        return orderBy(this.displayEntityRows, this.sortValueMapper, order)
+    }
+
+    @computed private get sortedAggregateRows(): DataTableRow[] {
+        const { order } = this.tableState.sort
+        return orderBy(this.displayAggregateRows, this.sortValueMapper, order)
     }
 
     @computed private get displayRows(): DataTableRow[] {
@@ -750,6 +787,20 @@ export class DataTable extends React.Component<{
                 ),
             }
         })
+    }
+
+    @computed private get displayEntityRows(): DataTableRow[] {
+        if (!this.entitiesAreCountryLike) return this.displayRows
+        return this.displayRows.filter((row) => isCountryName(row.entityName))
+    }
+
+    @computed private get displayAggregateRows(): DataTableRow[] {
+        if (!this.entitiesAreCountryLike) return []
+        return this.displayRows.filter((row) => !isCountryName(row.entityName))
+    }
+
+    @computed private get hasAggregateRows(): boolean {
+        return this.displayAggregateRows.length > 0
     }
 }
 
@@ -820,7 +871,6 @@ const makeClosestTimeNotice = (
         arrow={false}
     >
         <span className="closest-time-notice-icon">
-            {closestTime}{" "}
             <span className="icon">
                 <FontAwesomeIcon icon={faInfoCircle} />
             </span>
