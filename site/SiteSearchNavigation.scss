@@ -12,31 +12,6 @@
         display: block;
     }
 
-    > input {
-        height: $search-cta-height;
-        width: inherit;
-        padding: 0 40px 0 16px;
-        background-color: $blue-90;
-        border: 1px solid $blue-90;
-        color: $white;
-        outline: none;
-
-        &:hover {
-            border: 1px solid $blue-60;
-        }
-
-        &:focus,
-        &.active {
-            border: 1px solid $blue-40;
-        }
-
-        &::placeholder {
-            @include body-3-medium;
-            color: $blue-30;
-            transition: color 150ms ease;
-        }
-    }
-
     > .icon {
         position: absolute;
         top: 0;
