@@ -613,7 +613,8 @@ export const getIdealGridParams = ({
     // Also Desmos graph: https://www.desmos.com/calculator/tmajzuq5tm
     const ratio = containerAspectRatio / idealAspectRatio
     // Prefer vertical grid for count=2.
-    if (count === 2 && ratio < 2) return { rows: 2, columns: 1 }
+    if (count === 2 && containerAspectRatio < 2.8)
+        return { rows: 2, columns: 1 }
     // Otherwise, optimize for closest to the ideal aspect ratio.
     const initialColumns = Math.min(Math.round(Math.sqrt(count * ratio)), count)
     const rows = Math.ceil(count / initialColumns)
