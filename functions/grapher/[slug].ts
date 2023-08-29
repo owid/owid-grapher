@@ -21,17 +21,23 @@ export const onRequestGet: PagesFunction = async (context) => {
     // In the case of the redirect, the browser will then request the new URL which will again be handled by this worker.
     if (grapherPageResp.status !== 200) return grapherPageResp
 
-    const thumbnailUrl = `https://thumbnails.owid.io/grapher/${slug}.png${search}`
+    const openGraphThumbnailUrl = `https://thumbnails.owid.io/grapher/${slug}.png${search}`
+    const twitterThumbnailUrl = `https://thumbnails.owid.io/grapher/${slug}.png?imTwitter${
+        search ? "&" + search.slice(1) : ""
+    }`
 
     // Rewrite the two meta tags that are used for a social media preview image.
-    const rewriter = new HTMLRewriter().on(
-        'meta[property="og:image"], meta[name="twitter:image"]',
-        {
+    const rewriter = new HTMLRewriter()
+        .on('meta[property="og:image"]', {
             element: (element) => {
-                element.setAttribute("content", thumbnailUrl)
+                element.setAttribute("content", openGraphThumbnailUrl)
             },
-        }
-    )
+        })
+        .on('meta[name="twitter:image"]', {
+            element: (element) => {
+                element.setAttribute("content", twitterThumbnailUrl)
+            },
+        })
 
     return rewriter.transform(grapherPageResp)
 }
