@@ -19,6 +19,7 @@ import { Request, Response, CurrentUser } from "./authentication.js"
 import {
     getMergedGrapherConfigForVariable,
     fetchS3MetadataByPath,
+    fetchS3DataValuesByPath,
 } from "../db/model/Variable.js"
 import {
     applyPatch,
@@ -697,7 +698,7 @@ apiRouter.get(
             )
         const variableId = parseInt(variableStr)
         if (isNaN(variableId)) throw new JsonError("Invalid variable id")
-        res.redirect(
+        return await fetchS3DataValuesByPath(
             getVariableDataRoute(DATA_API_URL, variableId) + "?nocache"
         )
     }
@@ -714,7 +715,7 @@ apiRouter.get(
             )
         const variableId = parseInt(variableStr)
         if (isNaN(variableId)) throw new JsonError("Invalid variable id")
-        res.redirect(
+        return await fetchS3MetadataByPath(
             getVariableMetadataRoute(DATA_API_URL, variableId) + "?nocache"
         )
     }
