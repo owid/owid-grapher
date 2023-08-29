@@ -8,6 +8,7 @@ import {
     childMortalityGrapher,
     IncompleteDataTable,
     DataTableWithAggregates,
+    DataTableWithMultipleVariablesAndMultipleYears,
 } from "./DataTable.sample"
 
 import Enzyme, { ReactWrapper } from "enzyme"
@@ -76,15 +77,6 @@ describe("when you select a range of years", () => {
         view = Enzyme.mount(<DataTable manager={grapher} />)
     })
 
-    it("header is split into two rows", () => {
-        expect(view.find("thead tr")).toHaveLength(2)
-    })
-
-    it("entity header cell spans 2 rows", () => {
-        const cell = view.find("thead .entity").first()
-        expect(cell.prop("rowSpan")).toBe(2)
-    })
-
     it("renders start values", () => {
         const cell = view.find("tbody .dimension-start").first()
         expect(cell.text()).toBe("22.45%")
@@ -146,5 +138,17 @@ describe("when the table has aggregates", () => {
         expect(titleRows).toHaveLength(2)
         expect(titleRows.at(0).text()).toBe("Country")
         expect(titleRows.at(1).text()).toBe("Region")
+    })
+})
+
+describe("when the table has multiple variables and multiple years", () => {
+    let view: ReactWrapper
+    beforeAll(() => {
+        const grapher = DataTableWithMultipleVariablesAndMultipleYears()
+        view = Enzyme.mount(<DataTable manager={grapher} />)
+    })
+
+    it("header is split into two rows", () => {
+        expect(view.find("thead tr")).toHaveLength(2)
     })
 })
