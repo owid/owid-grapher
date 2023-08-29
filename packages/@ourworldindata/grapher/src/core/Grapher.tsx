@@ -864,7 +864,7 @@ export class Grapher
     @observable private _baseFontSize = BASE_FONT_SIZE
 
     @computed get baseFontSize(): number {
-        if (this.isExportingtoSvgOrPng) return 18
+        if (this.isExportingtoSvgOrPng) return Math.max(this._baseFontSize, 18)
         return this._baseFontSize
     }
 
@@ -1593,14 +1593,18 @@ export class Grapher
         return this.dimensions.some((d) => d.property === DimensionProperty.y)
     }
 
-    get staticSVG(): string {
+    generateStaticSvg(bounds: Bounds = this.idealBounds): string {
         const _isExportingtoSvgOrPng = this.isExportingtoSvgOrPng
         this.isExportingtoSvgOrPng = true
         const staticSvg = ReactDOMServer.renderToStaticMarkup(
-            <StaticCaptionedChart manager={this} bounds={this.idealBounds} />
+            <StaticCaptionedChart manager={this} bounds={bounds} />
         )
         this.isExportingtoSvgOrPng = _isExportingtoSvgOrPng
         return staticSvg
+    }
+
+    get staticSVG(): string {
+        return this.generateStaticSvg()
     }
 
     @computed get disableIntroAnimation(): boolean {
