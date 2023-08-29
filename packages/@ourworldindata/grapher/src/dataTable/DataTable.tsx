@@ -864,6 +864,7 @@ export class DataTable extends React.Component<{
 
     @computed private get showTitleRows(): boolean {
         return (
+            this.entitiesAreCountryLike &&
             this.displayEntityRows.length > 0 &&
             this.displayAggregateRows.length > 0
         )
