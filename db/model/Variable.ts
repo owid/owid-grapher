@@ -48,8 +48,8 @@ export interface VariableRow {
     citationInline?: string
     descriptionShort?: string
     descriptionFromProducer?: string
-    keyInfoText?: string[] // this is json in the db but by convention it is always a list of strings
-    processingInfo?: string
+    descriptionKey?: string[] // this is json in the db but by convention it is always a list of strings
+    descriptionProcessing?: string
     licenses?: OwidLicense[]
     grapherConfigAdmin?: GrapherInterface
     grapherConfigETL?: GrapherInterface
