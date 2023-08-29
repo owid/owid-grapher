@@ -238,7 +238,7 @@ export class DataTable extends React.Component<{
             const dimensionHeaderText = (
                 <React.Fragment>
                     <div className="name">{upperFirst(display.columnName)}</div>
-                    <div>
+                    <div className="description">
                         <span className="unit">{display.unit}</span>{" "}
                         <span className="divider">
                             {display.unit && targetTime !== undefined && "•"}
