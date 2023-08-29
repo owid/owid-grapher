@@ -28,6 +28,15 @@ export const onRequestGet: PagesFunction = async (context) => {
 
     // Rewrite the two meta tags that are used for a social media preview image.
     const rewriter = new HTMLRewriter()
+        .on('meta[property="og:url"]', {
+            // Replace canonical URL, otherwise the preview image will not include the search parameters.
+            element: (element) => {
+                element.setAttribute(
+                    "content",
+                    element.getAttribute("content") + search
+                )
+            },
+        })
         .on('meta[property="og:image"]', {
             element: (element) => {
                 element.setAttribute("content", openGraphThumbnailUrl)
