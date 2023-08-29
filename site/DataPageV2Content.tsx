@@ -326,19 +326,19 @@ export const DataPageV2Content = ({
                         />
                         <div className="key-info__wrapper wrapper grid grid-cols-12">
                             <div className="key-info__left col-start-2 span-cols-7 span-lg-cols-8 span-sm-cols-12">
-                                {(datapageData?.keyInfoText ||
+                                {(datapageData?.descriptionKey ||
                                     datapageData.descriptionShort) && (
                                     <div className="key-info__curated">
                                         <h2 className="key-info__title">
-                                            {datapageData?.keyInfoText
+                                            {datapageData?.descriptionKey
                                                 ? "What you should know about this indicator"
                                                 : "About this data"}
                                         </h2>
                                         <div className="key-info__content">
-                                            {datapageData?.keyInfoText ? (
+                                            {datapageData?.descriptionKey ? (
                                                 <ArticleBlocks
                                                     blocks={excludeNullish(
-                                                        datapageData.keyInfoText.flatMap(
+                                                        datapageData.descriptionKey.flatMap(
                                                             markdownToEnrichedTextBlock
                                                         )
                                                     )}
@@ -384,7 +384,7 @@ export const DataPageV2Content = ({
                                         isExpandedDefault={
                                             !(
                                                 datapageData.descriptionShort ||
-                                                datapageData.keyInfoText
+                                                datapageData.descriptionKey
                                             )
                                         }
                                     />
@@ -803,7 +803,7 @@ export const DataPageV2Content = ({
                                         </a>
                                     </div>
                                 </div>
-                                {datapageData?.processingInfo && (
+                                {datapageData?.descriptionProcessing && (
                                     <div className="variable-processing-info col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
                                         <h5 className="variable-processing-info__header">
                                             Notes on our processing step for
@@ -813,7 +813,7 @@ export const DataPageV2Content = ({
                                             <ArticleBlocks
                                                 blocks={[
                                                     markdownToEnrichedTextBlock(
-                                                        datapageData.processingInfo
+                                                        datapageData.descriptionProcessing
                                                     ),
                                                 ]}
                                                 containerType="datapage"

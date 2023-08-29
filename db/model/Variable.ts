@@ -74,14 +74,14 @@ interface Dimensions {
 export type UnparsedVariableRow = Omit<
     VariableRow,
     | "display"
-    | "keyInfoText"
+    | "descriptionKey"
     | "grapherConfigAdmin"
     | "grapherConfigETL"
     | "license"
     | "licenses"
 > & {
     display: string
-    keyInfoText?: string
+    descriptionKey?: string
     grapherConfigAdmin?: string
     grapherConfigETL?: string
     license?: string
@@ -113,8 +113,8 @@ export function parseVariableRows(
             display: plainRow.display
                 ? JSON.parse(plainRow.display)
                 : undefined,
-            keyInfoText: plainRow.keyInfoText
-                ? JSON.parse(plainRow.keyInfoText)
+            descriptionKey: plainRow.descriptionKey
+                ? JSON.parse(plainRow.descriptionKey)
                 : [],
             grapherConfigAdmin: plainRow.grapherConfigAdmin
                 ? JSON.parse(plainRow.grapherConfigAdmin)
