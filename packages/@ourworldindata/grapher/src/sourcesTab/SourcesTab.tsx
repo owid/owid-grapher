@@ -3,6 +3,8 @@ import {
     DEFAULT_BOUNDS,
     MarkdownTextWrap,
     linkify,
+    OwidOrigin,
+    uniq,
 } from "@ourworldindata/utils"
 import React from "react"
 import { computed } from "mobx"
@@ -71,13 +73,11 @@ export class SourcesTab extends React.Component<{
 
         const citationProducer =
             column.def.origins && column.def.origins.length
-                ? [
-                      ...new Set(
-                          column.def.origins.map(
-                              (origin) => origin.citationProducer
-                          )
+                ? uniq([
+                      column.def.origins.map(
+                          (origin: OwidOrigin) => origin.citationProducer
                       ),
-                  ]
+                  ])
                 : []
 
         return (
@@ -143,9 +143,16 @@ export class SourcesTab extends React.Component<{
                             <tr>
                                 <td>Data published by</td>
                                 <td>
-                                    {citationProducer.map((producer, index) => (
-                                        <li key={index}>{producer}</li>
-                                    ))}
+                                    <ul>
+                                        {citationProducer.map(
+                                            (
+                                                producer: string,
+                                                index: number
+                                            ) => (
+                                                <li key={index}>{producer}</li>
+                                            )
+                                        )}
+                                    </ul>
                                 </td>
                             </tr>
                         ) : null}
