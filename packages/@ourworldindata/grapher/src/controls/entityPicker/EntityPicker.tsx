@@ -439,18 +439,24 @@ export class EntityPicker extends React.Component<{
 
         this.manager.setEntityPicker?.({
             metric: columnSlug,
-            sort: this.isColumnTypeNumeric(col)
+            sort: this.isColumnTypeNumeric(columnSlug, col)
                 ? SortOrder.desc
                 : SortOrder.asc,
         })
         this.manager.analytics?.logEntityPickerEvent("sortBy", columnSlug)
     }
 
-    private isColumnTypeNumeric(col: CoreColumn | undefined): boolean {
-        // If the column is currently missing (not loaded yet), assume it is numeric.
+    private isColumnTypeNumeric(
+        columnSlug: ColumnSlug | undefined,
+        col: CoreColumn | undefined
+    ): boolean {
         return (
-            col !== undefined &&
-            (col.isMissing || col instanceof ColumnTypeMap.Numeric)
+            // If columnSlug is undefined, we're sorting by relevance, which is (mostly) by country name.
+            columnSlug !== undefined &&
+            // If the column is currently missing (not loaded yet), assume it is numeric.
+            (col === undefined ||
+                col.isMissing ||
+                col instanceof ColumnTypeMap.Numeric)
         )
     }
 
@@ -498,6 +504,7 @@ export class EntityPicker extends React.Component<{
                     <SortIcon
                         type={
                             this.isColumnTypeNumeric(
+                                this.metric,
                                 this.activePickerMetricColumn
                             )
                                 ? "numeric"
