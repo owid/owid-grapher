@@ -1,12 +1,11 @@
-$cell-border: 1px solid rgba(0, 0, 0, 0.08);
+$cell-border: 1px solid #f2f2f2;
 
 .DataTableContainer {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(255, 255, 255, 0.95);
-    text-align: center;
-    border-bottom: $cell-border;
+    color: $dark-text;
+    font-size: 0.875em;
 }
 
 .DataTableContainer .DataTable {
@@ -17,15 +16,18 @@ $cell-border: 1px solid rgba(0, 0, 0, 0.08);
 
     .caption {
         flex-shrink: 0;
-        text-align: left;
+        font-weight: 700;
+        margin-bottom: 4px;
 
         .unit {
-            color: #858585;
+            color: $light-text;
+            font-weight: 500;
         }
     }
 
     .table-wrapper {
         overflow: auto;
+        border: $cell-border;
     }
 }
 
@@ -41,6 +43,7 @@ $cell-border: 1px solid rgba(0, 0, 0, 0.08);
     }
 
     .entity,
+    .above-entity,
     .title td:first-child {
         position: sticky;
         left: 0;
@@ -53,34 +56,41 @@ $cell-border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .DataTableContainer table {
-    font-size: 0.9375rem;
     line-height: 1.333em;
     border: none;
     background: white;
     width: 100%;
     border-collapse: separate;
     border-spacing: 0px;
-    box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 2px 0px,
-        rgba(0, 0, 0, 0.25) 0px 2px 2px 0px;
 
-    thead tr:last-child th,
+    thead tr th,
     th.entity {
         border-bottom: $cell-border;
     }
 
     tr th:first-child,
     tr td:first-child {
-        padding-left: 15px;
+        padding-left: 16px;
     }
 
     tr th:last-child,
     tr td:last-child {
-        padding-right: 15px;
+        padding-right: 16px;
     }
 
-    thead tr:first-child th {
+    thead tr th {
         padding-top: 8px;
         padding-bottom: 8px;
+    }
+
+    th.entity,
+    th.subdimension {
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+
+    thead th {
+        background-color: #f7f7f7;
     }
 
     th {
@@ -94,10 +104,6 @@ $cell-border: 1px solid rgba(0, 0, 0, 0.08);
         padding-top: 8px;
     }
 
-    tr:last-child td {
-        padding-bottom: 15px;
-    }
-
     th.sortable {
         cursor: pointer;
     }
@@ -107,29 +113,24 @@ $cell-border: 1px solid rgba(0, 0, 0, 0.08);
     }
 
     th.sortable:hover {
-        background-color: rgb(245, 245, 245);
+        background-color: #e7e7e7;
+        border-color: #e7e7e7;
     }
 
     th,
     td {
-        padding-left: 15px;
-        padding-right: 15px;
+        padding-left: 16px;
+        padding-right: 16px;
 
         &:not(.entity) {
             vertical-align: bottom;
+            white-space: nowrap;
         }
     }
 
     th.dimension {
-        text-align: center;
-
-        > div {
-            min-height: 35px;
-        }
-    }
-
-    th.subdimension {
-        border-right: $cell-border;
+        text-align: left;
+        font-weight: 700;
     }
 
     .deltaColumn {
@@ -137,7 +138,8 @@ $cell-border: 1px solid rgba(0, 0, 0, 0.08);
     }
 
     th.entity,
-    td.entity {
+    td.entity,
+    th.above-entity {
         border-right: $cell-border;
     }
 
@@ -152,27 +154,16 @@ $cell-border: 1px solid rgba(0, 0, 0, 0.08);
         min-width: 56px;
     }
 
-    th.lastSubdimension {
-        border-right: none;
-    }
-
-    th:last-child,
-    td:last-child {
-        border-right: none;
-    }
-
     td {
         padding-top: 3px;
         padding-bottom: 3px;
     }
 
     .title td {
-        background: #e7e7e7;
-
-        &:first-child {
-            text-align: left;
-            font-weight: 700;
-        }
+        background-color: #e7e7e7;
+        text-align: left;
+        padding-top: 8px;
+        padding-bottom: 8px;
     }
 
     tbody tr {
@@ -184,18 +175,13 @@ $cell-border: 1px solid rgba(0, 0, 0, 0.08);
         }
     }
 
-    tbody.hasAggregateRows tr:nth-child(2n + 1) td,
-    tbody:not(.hasAggregateRows) tr:nth-child(2n) td {
-        background-color: rgba(247, 247, 247);
-    }
-
-    tbody tr:not(.title):hover td {
-        background-color: rgba(241, 241, 241);
+    tbody.hasTitleRows tr:not(.title):nth-child(2n + 1) td,
+    tbody:not(.hasTitleRows) tr:nth-child(2n) td {
+        background-color: #f7f7f7;
     }
 
     .entity {
         text-align: left;
-        font-weight: 700;
     }
 
     .dimension {
@@ -208,23 +194,21 @@ $cell-border: 1px solid rgba(0, 0, 0, 0.08);
         .unit,
         .time {
             font-weight: 700;
-            opacity: 0.5;
             padding-bottom: 3px;
+            color: #a1a1a1;
         }
     }
 
     .closest-time-notice-icon {
-        opacity: 0.5;
-        font-size: 13px;
         cursor: default;
 
         .icon {
-            font-size: 0.75rem;
-            opacity: 0.6;
+            font-size: 12px;
+            color: #dadada;
         }
 
         & + span {
-            margin-left: 8px;
+            margin-left: 6px;
         }
     }
 
@@ -237,25 +221,35 @@ $cell-border: 1px solid rgba(0, 0, 0, 0.08);
 
     th.sortable > div {
         display: flex;
-        align-items: end;
-        justify-content: space-between;
+        align-items: start;
+        justify-content: flex-end;
+        gap: 6px;
+    }
 
-        :first-child {
-            flex-grow: 1;
-        }
+    th.sortable.entity > div {
+        justify-content: flex-start;
     }
 
     th .sort-icon {
-        opacity: 0.15;
-        padding-left: 5px;
+        color: #c6c6c6;
+        font-size: 13px;
 
         &.active {
-            opacity: 1 !important;
+            color: $dark-text !important;
         }
     }
 
     th:hover .sort-icon {
-        opacity: 0.6;
+        color: $info-icon;
+    }
+
+    tbody tr td {
+        padding-top: 8px;
+        padding-bottom: 8px;
+    }
+
+    tbody tr.title td {
+        font-weight: 700;
     }
 }
 

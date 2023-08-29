@@ -3,7 +3,11 @@ import { computed, observable, action } from "mobx"
 import { observer } from "mobx-react"
 import classnames from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faInfoCircle } from "@fortawesome/free-solid-svg-icons"
+import {
+    faArrowDownLong,
+    faArrowUpLong,
+    faInfoCircle,
+} from "@fortawesome/free-solid-svg-icons"
 import {
     SortOrder,
     Time,
@@ -34,7 +38,6 @@ import {
     isCountryName,
     range,
 } from "@ourworldindata/utils"
-import { SortIcon } from "../controls/SortIcon"
 import { makeSelectionArray } from "../chart/ChartUtils"
 import { SelectionArray } from "../selection/SelectionArray"
 
@@ -176,13 +179,6 @@ export class DataTable extends React.Component<{
         }
     }
 
-    @computed private get sortCountryOrAggregateMapper(): (
-        row: DataTableRow
-    ) => number {
-        return (row: DataTableRow): number =>
-            isCountryName(row.entityName) ? 0 : 1
-    }
-
     @computed private get hasSubheaders(): boolean {
         return this.displayDimensions.some(
             (header) => header.columns.length > 1
@@ -215,10 +211,8 @@ export class DataTable extends React.Component<{
                 sortedCol={sort.dimIndex === ENTITY_DIM_INDEX}
                 sortOrder={sort.order}
                 onClick={(): void => this.updateSort(ENTITY_DIM_INDEX)}
-                rowSpan={this.hasSubheaders ? 2 : 1}
                 headerText={capitalize(this.entityType)}
                 colType="entity"
-                dataType="text"
             />
         )
     }
@@ -264,7 +258,6 @@ export class DataTable extends React.Component<{
                 colSpan: dim.columns.length,
                 headerText: dimensionHeaderText,
                 colType: "dimension" as const,
-                dataType: "numeric" as const,
             }
 
             return <ColumnHeader key={coreTableColumn.slug} {...props} />
@@ -292,7 +285,6 @@ export class DataTable extends React.Component<{
                         }
                         headerText={headerText}
                         colType="subdimension"
-                        dataType="numeric"
                         subdimensionType={column.key}
                         lastSubdimension={i === dim.columns.length - 1}
                     />
@@ -302,14 +294,37 @@ export class DataTable extends React.Component<{
     }
 
     private get headerRow(): JSX.Element {
-        return (
-            <React.Fragment>
+        const { hasDimensionHeaders, hasSubheaders } = this
+
+        if (hasDimensionHeaders && hasSubheaders) {
+            return (
+                <>
+                    <tr>
+                        <th className="above-entity" />
+                        {this.dimensionHeaders}
+                    </tr>
+                    <tr>
+                        {this.entityHeader}
+                        {this.dimensionSubheaders}
+                    </tr>
+                </>
+            )
+        }
+
+        if (hasSubheaders) {
+            return (
                 <tr>
                     {this.entityHeader}
-                    {this.dimensionHeaders}
+                    {this.dimensionSubheaders}
                 </tr>
-                {this.hasSubheaders && <tr>{this.dimensionSubheaders}</tr>}
-            </React.Fragment>
+            )
+        }
+
+        return (
+            <tr>
+                {this.entityHeader}
+                {this.dimensionHeaders}
+            </tr>
         )
     }
 
@@ -409,7 +424,7 @@ export class DataTable extends React.Component<{
     }
 
     @computed private get titleEntityRow(): JSX.Element | null {
-        if (!this.hasAggregateRows) return null
+        if (!this.showTitleRows) return null
         return (
             <tr className="title">
                 <td>Country</td>
@@ -421,7 +436,7 @@ export class DataTable extends React.Component<{
     }
 
     @computed private get titleAggregateRow(): JSX.Element | null {
-        if (!this.hasAggregateRows) return null
+        if (!this.showTitleRows) return null
         return (
             <tr className="title">
                 <td>Region</td>
@@ -453,14 +468,16 @@ export class DataTable extends React.Component<{
     }
 
     render(): JSX.Element {
-        const { hasAggregateRows } = this
+        const bodyClasses = classnames({
+            hasTitleRows: this.showTitleRows,
+        })
         return (
             <div className="DataTable">
                 {this.tableCaption}
                 <div className="table-wrapper">
                     <table>
                         <thead>{this.headerRow}</thead>
-                        <tbody className={classnames({ hasAggregateRows })}>
+                        <tbody className={bodyClasses}>
                             {this.titleEntityRow}
                             {this.valueEntityRows}
                             {this.titleAggregateRow}
@@ -820,8 +837,11 @@ export class DataTable extends React.Component<{
         return this.displayRows.filter((row) => !isCountryName(row.entityName))
     }
 
-    @computed private get hasAggregateRows(): boolean {
-        return this.displayAggregateRows.length > 0
+    @computed private get showTitleRows(): boolean {
+        return (
+            this.displayEntityRows.length > 0 &&
+            this.displayAggregateRows.length > 0
+        )
     }
 }
 
@@ -834,12 +854,25 @@ function ColumnHeader(props: {
     colSpan?: number
     headerText: React.ReactFragment
     colType: "entity" | "dimension" | "subdimension"
-    dataType: "text" | "numeric"
     subdimensionType?: ColumnKey
     lastSubdimension?: boolean
 }): JSX.Element {
     const { sortable, sortedCol, colType, subdimensionType, lastSubdimension } =
         props
+    const isEntityColumn = colType === "entity"
+    const sortIcon = sortable && (
+        <SortIcon
+            isActiveIcon={sortedCol}
+            order={
+                sortedCol
+                    ? props.sortOrder
+                    : isEntityColumn
+                    ? SortOrder.asc
+                    : SortOrder.desc
+            }
+        />
+    )
+
     return (
         <th
             className={classnames(colType, {
@@ -858,22 +891,38 @@ function ColumnHeader(props: {
                     deltaColumn: isDeltaColumn(subdimensionType),
                 })}
             >
+                {!isEntityColumn && sortIcon}
                 <span>{props.headerText}</span>
-                {sortable && (
-                    <SortIcon
-                        type={props.dataType}
-                        isActiveIcon={sortedCol}
-                        order={
-                            sortedCol
-                                ? props.sortOrder
-                                : colType === "entity"
-                                ? SortOrder.asc
-                                : SortOrder.desc
-                        }
-                    />
-                )}
+                {isEntityColumn && sortIcon}
             </div>
         </th>
+    )
+}
+
+function SortIcon(props: {
+    isActiveIcon?: boolean
+    order: SortOrder
+}): JSX.Element {
+    const isActiveIcon = props.isActiveIcon ?? false
+    const activeIcon =
+        props.order === SortOrder.desc ? faArrowUpLong : faArrowDownLong
+
+    return (
+        <span
+            className={classnames({ "sort-icon": true, active: isActiveIcon })}
+        >
+            {isActiveIcon ? (
+                <FontAwesomeIcon icon={activeIcon} />
+            ) : (
+                <span style={{ display: "inline-block", width: "max-content" }}>
+                    <FontAwesomeIcon icon={faArrowUpLong} />
+                    <FontAwesomeIcon
+                        icon={faArrowDownLong}
+                        style={{ marginLeft: "-4px" }}
+                    />
+                </span>
+            )}
+        </span>
     )
 }
 
