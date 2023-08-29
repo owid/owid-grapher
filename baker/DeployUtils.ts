@@ -1,5 +1,6 @@
 import fs from "fs-extra"
 import { BakeStepConfig, SiteBaker } from "../baker/SiteBaker.js"
+import { BuildkiteTrigger } from "../baker/BuildkiteTrigger.js"
 import { logErrorAndMaybeSendToBugsnag, warn } from "../serverUtils/errorLog.js"
 import { DeployQueueServer } from "./DeployQueueServer.js"
 import { BAKED_SITE_DIR, BAKED_BASE_URL } from "../settings/serverSettings.js"
@@ -33,9 +34,16 @@ const bakeAndDeploy = async (
     message = message ?? (await defaultCommitMessage())
 
     const baker = new SiteBaker(BAKED_SITE_DIR, BAKED_BASE_URL)
+    const buildkite = new BuildkiteTrigger()
 
     try {
         if (lightningQueue?.length) {
+            // co-deploy to Buildkite
+            // once we fully switch to baking on buildkite, we should await this
+            lightningQueue.map((change) =>
+                buildkite.runLightningBuild(message!, change.slug!)
+            )
+
             for (const change of lightningQueue) {
                 const gdoc = (await Gdoc.findOneByOrFail({
                     published: true,
@@ -44,6 +52,10 @@ const bakeAndDeploy = async (
                 await baker.bakeGDocPost(gdoc)
             }
         } else {
+            // co-deploy to Buildkite
+            // once we fully switch to baking on buildkite, we should await this
+            buildkite.runFullBuild(message)
+
             await baker.bakeAll()
         }
         await baker.deployToNetlifyAndPushToGitPush(message)
