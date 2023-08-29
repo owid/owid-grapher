@@ -964,7 +964,7 @@ export class Explorer
         metric,
         sort,
     }: { metric?: string; sort?: SortOrder } = {}) {
-        if (metric) this.entityPickerMetric = metric
+        this.entityPickerMetric = metric
         if (sort) this.entityPickerSort = sort
     }
 

@@ -116,20 +116,26 @@ export class EntityPicker extends React.Component<{
         return this.manager.entityPickerColumnDefs ?? []
     }
 
-    @computed private get metricOptions(): { label: string; value: string }[] {
-        return this.pickerColumnDefs.map(
-            (
-                col
-            ): {
-                label: string
-                value: string
-            } => {
-                return {
-                    label: col.name || col.slug,
-                    value: col.slug,
+    @computed private get metricOptions(): {
+        label: string
+        value: string | undefined
+    }[] {
+        return [
+            { label: "Relevance", value: undefined },
+            ...this.pickerColumnDefs.map(
+                (
+                    col
+                ): {
+                    label: string
+                    value: string
+                } => {
+                    return {
+                        label: col.name || col.slug,
+                        value: col.slug,
+                    }
                 }
-            }
-        )
+            ),
+        ]
     }
 
     private getColumn(slug: ColumnSlug | undefined): CoreColumn | undefined {
@@ -227,12 +233,7 @@ export class EntityPicker extends React.Component<{
 
     @computed private get searchResults(): EntityOptionWithMetricValue[] {
         if (this.searchInput) return this.fuzzy.search(this.searchInput)
-        const {
-            entitiesWithMetricValue,
-            sortOrder,
-            selectionSet,
-            pickerTable,
-        } = this
+        const { entitiesWithMetricValue, sortOrder, selectionSet } = this
 
         // Show the selected up top and in order.
         const sorted = sortByUndefinedLast(
@@ -244,7 +245,8 @@ export class EntityPicker extends React.Component<{
         let [selected, unselected] = partition(sorted, (option) =>
             selectionSet.has(option.entityName)
         )
-        if (pickerTable === undefined) {
+        if (this.metric === undefined) {
+            // only sort local entity names first if we're not sorting by some other metric already
             unselected = sortByUndefinedLast(
                 unselected,
                 (option) => option.localEntitiesIndex
@@ -447,9 +449,8 @@ export class EntityPicker extends React.Component<{
     private isColumnTypeNumeric(col: CoreColumn | undefined): boolean {
         // If the column is currently missing (not loaded yet), assume it is numeric.
         return (
-            col === undefined ||
-            col.isMissing ||
-            col instanceof ColumnTypeMap.Numeric
+            col !== undefined &&
+            (col.isMissing || col instanceof ColumnTypeMap.Numeric)
         )
     }
 
