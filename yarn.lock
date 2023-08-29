@@ -5853,6 +5853,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/js-yaml@npm:^4.0.5":
+  version: 4.0.5
+  resolution: "@types/js-yaml@npm:4.0.5"
+  checksum: 7dcac8c50fec31643cc9d6444b5503239a861414cdfaa7ae9a38bc22597c4d850c4b8cec3d82d73b3fbca408348ce223b0408d598b32e094470dfffc6d486b4d
+  languageName: node
+  linkType: hard
+
 "@types/jsdom@npm:^20.0.0":
   version: 20.0.0
   resolution: "@types/jsdom@npm:20.0.0"
@@ -13698,6 +13705,7 @@ __metadata:
     "@types/html-to-text": ^8.1.1
     "@types/jest": ^29.0.3
     "@types/js-cookie": ^3.0.2
+    "@types/js-yaml": ^4.0.5
     "@types/jsonwebtoken": ^9.0.0
     "@types/linkifyjs": ^2.1.4
     "@types/lodash": ^4.14.185
@@ -13778,6 +13786,7 @@ __metadata:
     jest-environment-jsdom: ^29.0.3
     js-base64: ^3.7.2
     js-cookie: ^3.0.1
+    js-yaml: ^4.1.0
     json8-pointer: ^1.0.6
     jsonwebtoken: ^9.0.0
     knex: ^2.4.2
