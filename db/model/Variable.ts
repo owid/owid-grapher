@@ -408,7 +408,12 @@ export const fetchS3Values = async (
 export const fetchS3DataValuesByPath = async (
     dataPath: string
 ): Promise<OwidVariableMixedData> => {
-    const resp = await retryPromise(() => fetch(dataPath, { keepalive: true }))
+    const resp = await retryPromise(
+        () => fetch(dataPath, { keepalive: true }),
+        3,
+        true,
+        200
+    )
     if (!resp.ok) {
         throw new Error(
             `Error fetching data from S3 for ${dataPath}: ${resp.status} ${resp.statusText}`
@@ -420,8 +425,11 @@ export const fetchS3DataValuesByPath = async (
 export const fetchS3MetadataByPath = async (
     metadataPath: string
 ): Promise<OwidVariableWithSourceAndDimension> => {
-    const resp = await retryPromise(() =>
-        fetch(metadataPath, { keepalive: true })
+    const resp = await retryPromise(
+        () => fetch(metadataPath, { keepalive: true }),
+        3,
+        true,
+        200
     )
     if (!resp.ok) {
         throw new Error(
