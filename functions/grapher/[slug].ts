@@ -21,10 +21,10 @@ export const onRequestGet: PagesFunction = async (context) => {
     // In the case of the redirect, the browser will then request the new URL which will again be handled by this worker.
     if (grapherPageResp.status !== 200) return grapherPageResp
 
-    const openGraphThumbnailUrl = `https://thumbnails.owid.io/grapher/${slug}.png?imOpenGraph${
+    const openGraphThumbnailUrl = `https://thumbnails.owid.io/grapher/${slug}.png?imType=og${
         search ? "&" + search.slice(1) : ""
     }`
-    const twitterThumbnailUrl = `https://thumbnails.owid.io/grapher/${slug}.png?imTwitter${
+    const twitterThumbnailUrl = `https://thumbnails.owid.io/grapher/${slug}.png?imType=twitter${
         search ? "&" + search.slice(1) : ""
     }`
 
