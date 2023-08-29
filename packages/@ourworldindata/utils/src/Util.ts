@@ -771,12 +771,12 @@ export const sleep = (ms: number): Promise<void> =>
 export async function retryPromise<T>(
     promiseGetter: () => Promise<T>,
     maxRetries: number = 3,
-    exponentialBackoff: boolean = false, // New optional argument
+    exponentialBackoff: boolean = false,
     initialDelay: number = 200 // Initial delay in ms
 ): Promise<T> {
     let retried = 0
     let lastError
-    let delay = initialDelay // Starting delay time
+    let delay = initialDelay
 
     while (retried++ < maxRetries) {
         try {
@@ -784,7 +784,7 @@ export async function retryPromise<T>(
         } catch (error) {
             lastError = error
             if (exponentialBackoff && retried < maxRetries) {
-                await sleep(delay) // You'll have to implement the sleep function
+                await sleep(delay)
                 delay *= 2 // Double the delay for next retry
             }
         }

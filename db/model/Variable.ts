@@ -416,7 +416,9 @@ export const fetchS3DataValuesByPath = async (
     )
     if (!resp.ok) {
         throw new Error(
-            `Error fetching data from S3 for ${dataPath}: ${resp.status} ${resp.statusText}`
+            `Error fetching data from S3 for ${dataPath}: ${resp.status} ${
+                resp.statusText
+            } ${await resp.text()}`
         )
     }
     return resp.json()
@@ -433,7 +435,9 @@ export const fetchS3MetadataByPath = async (
     )
     if (!resp.ok) {
         throw new Error(
-            `Error fetching metadata from S3 for ${metadataPath}: ${resp.status} ${resp.statusText}`
+            `Error fetching metadata from S3 for ${metadataPath}: ${
+                resp.status
+            } ${resp.statusText} ${await resp.text()}`
         )
     }
     return resp.json()
