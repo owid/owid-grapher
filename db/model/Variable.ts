@@ -150,10 +150,7 @@ export async function getMergedGrapherConfigForVariable(
 export async function getVariableMetadata(
     variableId: number
 ): Promise<OwidVariableWithSourceAndDimension> {
-    const { metadataPath } = await getOwidVariableDataAndMetadataPath(
-        variableId
-    )
-
+    const metadataPath = getVariableMetadataRoute(DATA_API_URL, variableId)
     const metadata = await fetchS3MetadataByPath(metadataPath)
     return metadata
 }
@@ -161,9 +158,8 @@ export async function getVariableMetadata(
 export async function getVariableData(
     variableId: number
 ): Promise<OwidVariableDataMetadataDimensions> {
-    const { dataPath, metadataPath } = await getOwidVariableDataAndMetadataPath(
-        variableId
-    )
+    const dataPath = getVariableDataRoute(DATA_API_URL, variableId)
+    const metadataPath = getVariableMetadataRoute(DATA_API_URL, variableId)
 
     const [data, metadata] = await Promise.all([
         fetchS3DataValuesByPath(dataPath),
@@ -401,15 +397,6 @@ export const dataAsDF = async (
     return _dataAsDFfromS3(variableIds)
 }
 
-export const getOwidVariableDataAndMetadataPath = async (
-    variableId: OwidVariableId
-): Promise<{ dataPath: string; metadataPath: string }> => {
-    return {
-        dataPath: getVariableDataRoute(DATA_API_URL, variableId),
-        metadataPath: getVariableMetadataRoute(DATA_API_URL, variableId),
-    }
-}
-
 export const fetchS3Values = async (
     variableId: OwidVariableId
 ): Promise<OwidVariableMixedData> => {
@@ -438,7 +425,7 @@ export const fetchS3MetadataByPath = async (
     )
     if (!resp.ok) {
         throw new Error(
-            `Error fetching data from S3 for ${metadataPath}: ${resp.status} ${resp.statusText}`
+            `Error fetching metadata from S3 for ${metadataPath}: ${resp.status} ${resp.statusText}`
         )
     }
     return resp.json()
