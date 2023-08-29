@@ -186,8 +186,9 @@ export class DataTable extends React.Component<{
     }
 
     @computed private get hasSubheaders(): boolean {
-        return this.displayDimensions.some(
-            (header) => header.columns.length > 1
+        return (
+            !this.hasDimensionHeaders ||
+            this.displayDimensions.some((header) => header.columns.length > 1)
         )
     }
 
@@ -229,7 +230,6 @@ export class DataTable extends React.Component<{
 
     private get dimensionHeaders(): JSX.Element[] | null {
         const { sort } = this.tableState
-        if (!this.hasDimensionHeaders) return null
         return this.displayDimensions.map((dim, dimIndex) => {
             const { coreTableColumn, display } = dim
             const targetTime =
@@ -260,7 +260,6 @@ export class DataTable extends React.Component<{
                         this.updateSort(dimIndex, SingleValueKey.single)
                     }
                 },
-                rowSpan: this.hasSubheaders && dim.columns.length < 2 ? 2 : 1,
                 colSpan: dim.columns.length,
                 headerText: dimensionHeaderText,
                 colType: "dimension" as const,
@@ -301,35 +300,23 @@ export class DataTable extends React.Component<{
 
     private get headerRow(): JSX.Element {
         const { hasDimensionHeaders, hasSubheaders } = this
-
-        if (hasDimensionHeaders && hasSubheaders) {
-            return (
-                <>
-                    <tr>
-                        <th className="above-entity" />
-                        {this.dimensionHeaders}
-                    </tr>
-                    <tr>
-                        {this.entityHeader}
-                        {this.dimensionSubheaders}
-                    </tr>
-                </>
-            )
-        }
-
-        if (hasSubheaders) {
-            return (
+        return hasDimensionHeaders && hasSubheaders ? (
+            <>
+                <tr>
+                    <th className="above-entity" />
+                    {this.dimensionHeaders}
+                </tr>
                 <tr>
                     {this.entityHeader}
                     {this.dimensionSubheaders}
                 </tr>
-            )
-        }
-
-        return (
+            </>
+        ) : (
             <tr>
                 {this.entityHeader}
-                {this.dimensionHeaders}
+                {hasSubheaders
+                    ? this.dimensionSubheaders
+                    : this.dimensionHeaders}
             </tr>
         )
     }
