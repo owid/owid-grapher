@@ -5,6 +5,7 @@ import {
     linkify,
     OwidOrigin,
     uniq,
+    omitUndefinedValues,
 } from "@ourworldindata/utils"
 import React from "react"
 import { computed } from "mobx"
@@ -73,11 +74,13 @@ export class SourcesTab extends React.Component<{
 
         const citationProducer =
             column.def.origins && column.def.origins.length
-                ? uniq([
-                      column.def.origins.map(
-                          (origin: OwidOrigin) => origin.citationProducer
-                      ),
-                  ])
+                ? omitUndefinedValues(
+                      uniq(
+                          column.def.origins.map(
+                              (origin: OwidOrigin) => origin.citationProducer
+                          )
+                      )
+                  )
                 : []
 
         return (
