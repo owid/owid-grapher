@@ -1,242 +1,186 @@
-$cell-border: 1px solid rgba(0, 0, 0, 0.08);
+$cell-border: 1px solid #f2f2f2;
 
-.tableTab {
+.DataTableContainer {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(255, 255, 255, 0.95);
-    text-align: center;
+    color: $dark-text;
+    font-size: 0.875em;
 }
 
-.tableTab {
-    border-bottom: $cell-border;
-}
+.DataTableContainer .DataTable {
+    width: 100%;
+    height: 100%;
+    display: flex; // necessary to make .table-wrapper scrollable
+    flex-direction: column;
 
-.tableTab .data-table {
-    thead {
-        position: sticky;
-        z-index: 20;
-        top: 0;
+    .caption {
+        flex-shrink: 0;
+        font-weight: 700;
+
+        .unit {
+            color: $light-text;
+            font-weight: 500;
+        }
     }
 
-    th {
-        white-space: nowrap;
-    }
-
-    .entity {
-        position: sticky;
-        left: 0;
-        z-index: 10;
-    }
-
-    th.entity {
-        top: 0;
+    .table-wrapper {
+        overflow: auto;
+        border: $cell-border;
     }
 }
 
-.data-table {
-    font-size: 0.9375rem;
+.DataTableContainer table {
     line-height: 1.333em;
     border: none;
     background: white;
     width: 100%;
     border-collapse: separate;
     border-spacing: 0px;
-    box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 2px 0px,
-        rgba(0, 0, 0, 0.25) 0px 2px 2px 0px;
 
-    thead tr:last-child th,
-    th.entity {
-        border-bottom: $cell-border;
+    // make header sticky
+    thead {
+        position: sticky;
+        z-index: 20;
+        top: 0;
     }
 
-    tr th:first-child,
-    tr td:first-child {
-        padding-left: 15px;
-    }
-
-    tr th:last-child,
-    tr td:last-child {
-        padding-right: 15px;
-    }
-
-    thead tr:first-child th {
-        padding-top: 8px;
-        padding-bottom: 8px;
-    }
-
-    th {
-        padding-top: 8px;
-        padding-bottom: 8px;
-        vertical-align: bottom;
-        line-height: 19px;
-    }
-
-    tr:first-child td {
-        padding-top: 8px;
-    }
-
-    tr:last-child td {
-        padding-bottom: 15px;
-    }
-
-    th.sortable {
-        cursor: pointer;
-    }
-
-    th {
-        background-color: white;
-    }
-
-    th.sortable:hover {
-        background-color: rgb(245, 245, 245);
-    }
-
-    th,
-    td {
-        padding-left: 15px;
-        padding-right: 15px;
-
-        &:not(.entity) {
-            vertical-align: bottom;
-        }
-    }
-
-    th.dimension {
-        text-align: center;
-
-        > div {
-            min-height: 35px;
-        }
-    }
-
-    th.subdimension {
-        border-right: $cell-border;
-    }
-
-    .deltaColumn {
-        min-width: 145px;
+    // make entity column and entity header sticky
+    .entity,
+    .above-entity {
+        position: sticky;
+        left: 0;
+        z-index: 10;
+        background-color: #fff;
     }
 
     th.entity,
-    td.entity {
+    th.above-entity {
+        top: 0;
+        background-color: #f7f7f7;
+    }
+
+    // make title row sticky
+    tr.title td:first-child {
+        position: sticky;
+        left: 0;
+        z-index: 10;
+    }
+
+    // applies to all cells
+    th,
+    td {
+        padding: 8px 16px;
+        white-space: nowrap;
+
+        &:not(.entity) {
+            vertical-align: bottom;
+            text-align: right;
+        }
+    }
+
+    // adds border on the right of the entity column
+    .entity,
+    .above-entity {
         border-right: $cell-border;
     }
 
-    tr > .dimension-start ~ .dimension-start,
+    // adds a border on the right of each dimension column
+    tr > td.dimension-start ~ td.dimension-start,
     tr > th.dimension ~ th.dimension,
     tr > th.firstSubdimension ~ th.firstSubdimension {
         border-left: $cell-border;
     }
 
-    th.firstSubdimension div,
-    th.endSubdimension div {
-        min-width: 56px;
-    }
-
-    th.lastSubdimension {
-        border-right: none;
-    }
-
-    th:last-child,
-    td:last-child {
-        border-right: none;
-    }
-
-    td {
-        padding-top: 3px;
-        padding-bottom: 3px;
-    }
-
-    tbody tr {
-        padding-top: 20px;
-        padding-bottom: 20px;
-
-        td {
-            background-color: white;
-        }
-    }
-
-    tbody tr:nth-child(2n) td {
-        background-color: rgba(247, 247, 247);
-    }
-
-    tbody tr:hover td {
-        background-color: rgba(241, 241, 241);
-    }
-
-    .entity {
-        text-align: left;
-        font-weight: 700;
-    }
-
-    tr:not(.aggregate) + tr.aggregate > td {
-        border-top: 6px solid #aaa;
-    }
-
-    .aggregate .entity {
-        font-style: italic;
-        font-weight: 400;
-    }
-
-    .dimension {
-        text-align: right;
-
-        .divider {
-            opacity: 0.25;
-        }
-
-        .unit,
-        .time {
+    thead {
+        th {
+            background-color: #f7f7f7;
+            line-height: 19px;
+            border-bottom: $cell-border;
             font-weight: 700;
-            opacity: 0.5;
-            padding-bottom: 3px;
+            vertical-align: bottom;
+
+            &.dimension,
+            &.entity,
+            &.subdimension {
+                padding-top: 10px;
+                padding-bottom: 10px;
+            }
+
+            &.dimension {
+                text-align: left;
+
+                .description {
+                    color: #a1a1a1;
+                }
+            }
+        }
+
+        th.sortable {
+            cursor: pointer;
+
+            &:hover {
+                background-color: #e7e7e7;
+                border-color: #e7e7e7;
+            }
+
+            > div {
+                display: flex;
+                align-items: start;
+                justify-content: flex-end;
+                gap: 6px;
+            }
+
+            &.entity > div {
+                justify-content: flex-start;
+            }
+
+            .sort-icon {
+                color: #c6c6c6;
+                font-size: 13px;
+                width: 19px;
+                text-align: right;
+
+                &.active {
+                    color: $dark-text !important;
+                }
+            }
+
+            &:hover .sort-icon {
+                color: $info-icon;
+            }
         }
     }
 
-    .closest-time-notice-icon {
-        opacity: 0.5;
-        font-size: 13px;
-        cursor: default;
-
-        .icon {
-            font-size: 0.75rem;
-            opacity: 0.6;
+    tbody {
+        // alternating row colors
+        &.hasTitleRows tr:not(.title):nth-child(2n + 1) td,
+        &:not(.hasTitleRows) tr:nth-child(2n) td {
+            background-color: #f7f7f7;
         }
 
-        & + span {
-            margin-left: 8px;
+        td.entity {
+            white-space: normal;
         }
-    }
 
-    .range-time {
-        opacity: 0.5;
-        font-size: 13px;
-        padding-bottom: 4px;
-        padding-left: 2px;
-    }
-
-    th.sortable > div {
-        display: flex;
-        align-items: end;
-        justify-content: space-between;
-
-        :first-child {
-            flex-grow: 1;
+        tr.title td {
+            text-align: left;
+            background-color: #e7e7e7;
+            font-weight: 700;
         }
-    }
 
-    th .sort-icon {
-        opacity: 0.15;
-        padding-left: 5px;
+        .closest-time-notice-icon {
+            cursor: default;
 
-        &.active {
-            opacity: 1 !important;
+            .icon {
+                font-size: 12px;
+                color: #dadada;
+            }
+
+            & + span {
+                margin-left: 6px;
+            }
         }
-    }
-
-    th:hover .sort-icon {
-        opacity: 0.6;
     }
 }
 

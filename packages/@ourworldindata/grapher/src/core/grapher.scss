@@ -41,7 +41,7 @@ $xxlg: 1536px;
 // These should be between 0–100 in order to avoid conflicting with
 // site dropdowns, search overlays, etc.
 $zindex-chart: 1;
-$zindex-tab: 1;
+$zindex-table: 1;
 $zindex-global-entity-select: 11;
 $zindex-Tooltip: 20;
 $zindex-modal: 30;
@@ -186,10 +186,8 @@ $zindex-full-screen: 2000;
         display: none;
     }
 
-    .DownloadModalContent,
-    .tableTab,
-    .SourcesModalContent {
-        z-index: $zindex-tab;
+    .DataTableContainer {
+        z-index: $zindex-table;
     }
 }
 

@@ -3,7 +3,11 @@ import { computed, observable, action } from "mobx"
 import { observer } from "mobx-react"
 import classnames from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faInfoCircle } from "@fortawesome/free-solid-svg-icons"
+import {
+    faArrowDownLong,
+    faArrowUpLong,
+    faInfoCircle,
+} from "@fortawesome/free-solid-svg-icons"
 import {
     SortOrder,
     Time,
@@ -32,10 +36,11 @@ import {
     TickFormattingOptions,
     Tippy,
     isCountryName,
+    range,
 } from "@ourworldindata/utils"
-import { SortIcon } from "../controls/SortIcon"
 import { makeSelectionArray } from "../chart/ChartUtils"
 import { SelectionArray } from "../selection/SelectionArray"
+import { SizeVariant } from "../core/GrapherConstants"
 
 interface DataTableState {
     sort: DataTableSortState
@@ -74,6 +79,7 @@ export interface DataTableManager {
     endTime?: Time
     startTime?: Time
     dataTableSlugs?: ColumnSlug[]
+    sizeVariant?: SizeVariant
 }
 
 @observer
@@ -83,6 +89,10 @@ export class DataTable extends React.Component<{
 }> {
     @observable private storedState: DataTableState = {
         sort: DEFAULT_SORT_STATE,
+    }
+
+    @computed private get sizeVariant(): SizeVariant {
+        return this.manager.sizeVariant ?? SizeVariant.base
     }
 
     @computed private get tableState(): DataTableState {
@@ -175,16 +185,10 @@ export class DataTable extends React.Component<{
         }
     }
 
-    @computed private get sortCountryOrAggregateMapper(): (
-        row: DataTableRow
-    ) => number {
-        return (row: DataTableRow): number =>
-            isCountryName(row.entityName) ? 0 : 1
-    }
-
     @computed private get hasSubheaders(): boolean {
-        return this.displayDimensions.some(
-            (header) => header.columns.length > 1
+        return (
+            !this.hasDimensionHeaders ||
+            this.displayDimensions.some((header) => header.columns.length > 1)
         )
     }
 
@@ -214,38 +218,34 @@ export class DataTable extends React.Component<{
                 sortedCol={sort.dimIndex === ENTITY_DIM_INDEX}
                 sortOrder={sort.order}
                 onClick={(): void => this.updateSort(ENTITY_DIM_INDEX)}
-                rowSpan={this.hasSubheaders ? 2 : 1}
                 headerText={capitalize(this.entityType)}
                 colType="entity"
-                dataType="text"
             />
         )
     }
 
-    private get dimensionHeaders(): JSX.Element[] {
+    @computed private get hasDimensionHeaders(): boolean {
+        return this.displayDimensions.length > 1
+    }
+
+    private get dimensionHeaders(): JSX.Element[] | null {
         const { sort } = this.tableState
         return this.displayDimensions.map((dim, dimIndex) => {
-            const actualColumn = dim.coreTableColumn
-            const unit =
-                actualColumn.unit === "%" ? "percent" : dim.coreTableColumn.unit
+            const { coreTableColumn, display } = dim
             const targetTime =
                 dim.columns.length === 1 ? dim.columns[0].targetTime : undefined
-            const columnName =
-                actualColumn.displayName !== ""
-                    ? actualColumn.displayName
-                    : actualColumn.name
 
             const dimensionHeaderText = (
                 <React.Fragment>
-                    <div className="name">{upperFirst(columnName)}</div>
-                    <div>
-                        <span className="unit">{unit}</span>{" "}
+                    <div className="name">{upperFirst(display.columnName)}</div>
+                    <div className="description">
+                        <span className="unit">{display.unit}</span>{" "}
                         <span className="divider">
-                            {unit && targetTime !== undefined && "•"}
+                            {display.unit && targetTime !== undefined && "•"}
                         </span>{" "}
                         <span className="time">
                             {targetTime !== undefined &&
-                                actualColumn.formatTime(targetTime)}
+                                coreTableColumn.formatTime(targetTime)}
                         </span>
                     </div>
                 </React.Fragment>
@@ -260,14 +260,12 @@ export class DataTable extends React.Component<{
                         this.updateSort(dimIndex, SingleValueKey.single)
                     }
                 },
-                rowSpan: this.hasSubheaders && dim.columns.length < 2 ? 2 : 1,
                 colSpan: dim.columns.length,
                 headerText: dimensionHeaderText,
                 colType: "dimension" as const,
-                dataType: "numeric" as const,
             }
 
-            return <ColumnHeader key={actualColumn.slug} {...props} />
+            return <ColumnHeader key={coreTableColumn.slug} {...props} />
         })
     }
 
@@ -292,7 +290,6 @@ export class DataTable extends React.Component<{
                         }
                         headerText={headerText}
                         colType="subdimension"
-                        dataType="numeric"
                         subdimensionType={column.key}
                         lastSubdimension={i === dim.columns.length - 1}
                     />
@@ -302,14 +299,25 @@ export class DataTable extends React.Component<{
     }
 
     private get headerRow(): JSX.Element {
-        return (
-            <React.Fragment>
+        const { hasDimensionHeaders, hasSubheaders } = this
+        return hasDimensionHeaders && hasSubheaders ? (
+            <>
                 <tr>
-                    {this.entityHeader}
+                    <th className="above-entity" />
                     {this.dimensionHeaders}
                 </tr>
-                {this.hasSubheaders && <tr>{this.dimensionSubheaders}</tr>}
-            </React.Fragment>
+                <tr>
+                    {this.entityHeader}
+                    {this.dimensionSubheaders}
+                </tr>
+            </>
+        ) : (
+            <tr>
+                {this.entityHeader}
+                {hasSubheaders
+                    ? this.dimensionSubheaders
+                    : this.dimensionHeaders}
+            </tr>
         )
     }
 
@@ -364,14 +372,7 @@ export class DataTable extends React.Component<{
     ): JSX.Element {
         const { sort } = this.tableState
         return (
-            <tr
-                key={row.entityName}
-                className={classnames({
-                    aggregate:
-                        this.entitiesAreCountryLike &&
-                        !isCountryName(row.entityName),
-                })}
-            >
+            <tr key={row.entityName}>
                 <td
                     key="entity"
                     className={classnames({
@@ -399,8 +400,14 @@ export class DataTable extends React.Component<{
         )
     }
 
-    private get valueRows(): JSX.Element[] {
-        return this.sortedRows.map((row) =>
+    @computed private get valueEntityRows(): JSX.Element[] {
+        return this.sortedEntityRows.map((row) =>
+            this.renderEntityRow(row, this.displayDimensions)
+        )
+    }
+
+    @computed private get valueAggregateRows(): JSX.Element[] {
+        return this.sortedAggregateRows.map((row) =>
             this.renderEntityRow(row, this.displayDimensions)
         )
     }
@@ -409,19 +416,87 @@ export class DataTable extends React.Component<{
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
-    render(): JSX.Element {
+    @computed private get titleEntityRow(): JSX.Element | null {
+        if (!this.showTitleRows) return null
         return (
-            <div
-                style={{
-                    width: "100%",
-                    height: "100%",
-                    overflow: "auto",
-                }}
-            >
-                <table className="data-table">
-                    <thead>{this.headerRow}</thead>
-                    <tbody>{this.valueRows}</tbody>
-                </table>
+            <tr className="title">
+                <td>Country</td>
+                {range(this.numberOfColumnsWidthValues).map((i) => (
+                    <td key={i} />
+                ))}
+            </tr>
+        )
+    }
+
+    @computed private get titleAggregateRow(): JSX.Element | null {
+        if (!this.showTitleRows) return null
+        return (
+            <tr className="title">
+                <td>Region</td>
+                {range(this.numberOfColumnsWidthValues).map((i) => (
+                    <td key={i} />
+                ))}
+            </tr>
+        )
+    }
+
+    @computed private get numberOfColumnsWidthValues(): number {
+        return this.columnsWithValues.reduce(
+            (columnCount, item) => columnCount + item.columns.length,
+            0
+        )
+    }
+
+    @computed private get tableCaptionPaddingTop(): number {
+        const { sizeVariant } = this
+        return sizeVariant === SizeVariant.sm || sizeVariant === SizeVariant.md
+            ? 2
+            : 4
+    }
+
+    @computed private get tableCaptionPaddingBottom(): number {
+        return {
+            [SizeVariant.sm]: 4,
+            [SizeVariant.md]: 8,
+            [SizeVariant.base]: 12,
+        }[this.sizeVariant]
+    }
+
+    @computed private get tableCaption(): JSX.Element | null {
+        if (this.hasDimensionHeaders) return null
+        const singleDimension = this.displayDimensions[0]
+        const style: React.CSSProperties = {
+            paddingTop: this.tableCaptionPaddingTop,
+            paddingBottom: this.tableCaptionPaddingBottom,
+        }
+        return singleDimension ? (
+            <div className="caption" style={style}>
+                {singleDimension.display.columnName}{" "}
+                {singleDimension.display.unit && (
+                    <span className="unit">{singleDimension.display.unit}</span>
+                )}
+            </div>
+        ) : null
+    }
+
+    render(): JSX.Element {
+        const bodyClasses = classnames({
+            hasTitleRows: this.showTitleRows,
+        })
+        return (
+            <div className="DataTable">
+                {this.tableCaption}
+                <div className="table-wrapper">
+                    <table>
+                        <thead>{this.headerRow}</thead>
+                        <tbody className={bodyClasses}>
+                            {this.titleEntityRow}
+                            {this.valueEntityRows}
+                            {this.titleAggregateRow}
+                            {this.valueAggregateRows}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         )
     }
@@ -720,25 +795,37 @@ export class DataTable extends React.Component<{
     @computed get displayDimensions(): DataTableDimension[] {
         const { entityCount } = this
         // Todo: for sorting etc, use CoreTable?
-        return this.columnsWithValues.map((d) => ({
-            // A top-level header is only sortable if it has a single nested column, because
-            // in that case the nested column is not rendered.
-            sortable: d.columns.length === 1,
-            columns: d.columns.map((column) => ({
-                ...column,
-                sortable: entityCount > 1,
-            })),
-            coreTableColumn: d.sourceColumn,
-        }))
+        return this.columnsWithValues.map((d) => {
+            const coreTableColumn = d.sourceColumn
+            const unit =
+                coreTableColumn.unit === "%" ? "percent" : coreTableColumn.unit
+            const columnName =
+                coreTableColumn.displayName !== ""
+                    ? coreTableColumn.displayName
+                    : coreTableColumn.name
+
+            return {
+                coreTableColumn,
+                // A top-level header is only sortable if it has a single nested column, because
+                // in that case the nested column is not rendered.
+                sortable: d.columns.length === 1,
+                columns: d.columns.map((column) => ({
+                    ...column,
+                    sortable: entityCount > 1,
+                })),
+                display: { columnName, unit },
+            }
+        })
     }
 
-    @computed private get sortedRows(): DataTableRow[] {
+    @computed private get sortedEntityRows(): DataTableRow[] {
         const { order } = this.tableState.sort
-        return orderBy(
-            this.displayRows,
-            [this.sortCountryOrAggregateMapper, this.sortValueMapper],
-            ["asc", order]
-        )
+        return orderBy(this.displayEntityRows, this.sortValueMapper, order)
+    }
+
+    @computed private get sortedAggregateRows(): DataTableRow[] {
+        const { order } = this.tableState.sort
+        return orderBy(this.displayAggregateRows, this.sortValueMapper, order)
     }
 
     @computed private get displayRows(): DataTableRow[] {
@@ -751,6 +838,24 @@ export class DataTable extends React.Component<{
             }
         })
     }
+
+    @computed private get displayEntityRows(): DataTableRow[] {
+        if (!this.entitiesAreCountryLike) return this.displayRows
+        return this.displayRows.filter((row) => isCountryName(row.entityName))
+    }
+
+    @computed private get displayAggregateRows(): DataTableRow[] {
+        if (!this.entitiesAreCountryLike) return []
+        return this.displayRows.filter((row) => !isCountryName(row.entityName))
+    }
+
+    @computed private get showTitleRows(): boolean {
+        return (
+            this.entitiesAreCountryLike &&
+            this.displayEntityRows.length > 0 &&
+            this.displayAggregateRows.length > 0
+        )
+    }
 }
 
 function ColumnHeader(props: {
@@ -762,12 +867,25 @@ function ColumnHeader(props: {
     colSpan?: number
     headerText: React.ReactFragment
     colType: "entity" | "dimension" | "subdimension"
-    dataType: "text" | "numeric"
     subdimensionType?: ColumnKey
     lastSubdimension?: boolean
 }): JSX.Element {
     const { sortable, sortedCol, colType, subdimensionType, lastSubdimension } =
         props
+    const isEntityColumn = colType === "entity"
+    const sortIcon = sortable && (
+        <SortIcon
+            isActiveIcon={sortedCol}
+            order={
+                sortedCol
+                    ? props.sortOrder
+                    : isEntityColumn
+                    ? SortOrder.asc
+                    : SortOrder.desc
+            }
+        />
+    )
+
     return (
         <th
             className={classnames(colType, {
@@ -786,22 +904,38 @@ function ColumnHeader(props: {
                     deltaColumn: isDeltaColumn(subdimensionType),
                 })}
             >
+                {!isEntityColumn && sortIcon}
                 <span>{props.headerText}</span>
-                {sortable && (
-                    <SortIcon
-                        type={props.dataType}
-                        isActiveIcon={sortedCol}
-                        order={
-                            sortedCol
-                                ? props.sortOrder
-                                : colType === "entity"
-                                ? SortOrder.asc
-                                : SortOrder.desc
-                        }
-                    />
-                )}
+                {isEntityColumn && sortIcon}
             </div>
         </th>
+    )
+}
+
+function SortIcon(props: {
+    isActiveIcon?: boolean
+    order: SortOrder
+}): JSX.Element {
+    const isActiveIcon = props.isActiveIcon ?? false
+    const activeIcon =
+        props.order === SortOrder.desc ? faArrowUpLong : faArrowDownLong
+
+    return (
+        <span
+            className={classnames({ "sort-icon": true, active: isActiveIcon })}
+        >
+            {isActiveIcon ? (
+                <FontAwesomeIcon icon={activeIcon} />
+            ) : (
+                <span style={{ display: "inline-block", width: "max-content" }}>
+                    <FontAwesomeIcon icon={faArrowUpLong} />
+                    <FontAwesomeIcon
+                        icon={faArrowDownLong}
+                        style={{ marginLeft: "-4px" }}
+                    />
+                </span>
+            )}
+        </span>
     )
 }
 
@@ -820,7 +954,6 @@ const makeClosestTimeNotice = (
         arrow={false}
     >
         <span className="closest-time-notice-icon">
-            {closestTime}{" "}
             <span className="icon">
                 <FontAwesomeIcon icon={faInfoCircle} />
             </span>
@@ -888,6 +1021,7 @@ interface DataTableDimension {
     columns: DataTableColumn[]
     coreTableColumn: CoreColumn
     sortable: boolean
+    display: { columnName: string; unit?: string }
 }
 
 interface DataTableRow {
