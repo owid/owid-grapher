@@ -2309,7 +2309,7 @@ export class Grapher
         const containerStyle = {
             width: this.renderWidth,
             height: this.renderHeight,
-            fontSize: this.baseFontSize,
+            fontSize: Math.min(16, this.baseFontSize), // cap font size at 16px
         }
 
         return (
