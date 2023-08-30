@@ -1724,7 +1724,13 @@ export function getOriginAttributionFragments(
               const yearPublished = origin.datePublished
                   ? dayjs(origin.datePublished, ["YYYY", "YYYY-MM-DD"]).year()
                   : undefined
-              return origin.attribution ?? `${origin.producer} ${yearPublished}`
+              const yearPublishedString = yearPublished
+                  ? ` (${yearPublished})`
+                  : ""
+              return (
+                  origin.attribution ??
+                  `${origin.producer}${yearPublishedString}`
+              )
           })
         : []
 }

@@ -57,6 +57,8 @@ export interface OwidVariableWithSource {
     description?: string
     descriptionShort?: string
     descriptionFromProducer?: string
+    descriptionKey?: string[]
+    descriptionProcessing?: string
     unit?: string
     display?: OwidVariableDisplayConfigInterface
     shortUnit?: string
@@ -94,8 +96,6 @@ export interface OwidVariablePresentation {
     titleVariant?: string
     producerShort?: string
     attribution?: string
-    keyInfoText?: string[]
-    processingInfo?: string
     topicTagsLinks?: string[]
     faqs?: FaqLink[]
 }
