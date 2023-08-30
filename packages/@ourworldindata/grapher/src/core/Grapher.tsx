@@ -2224,6 +2224,27 @@ export class Grapher
         this.isInFullScreenMode = !this.isInFullScreenMode
     }
 
+    @action.bound dismissFullScreen(): void {
+        // if a modal is open, dismiss it instead of exiting full-screen mode
+        if (this.isModalOpen) {
+            this.isSelectingData = false
+            this.isSourcesModalOpen = false
+            this.isEmbedModalOpen = false
+            this.isDownloadModalOpen = false
+        } else {
+            this.isInFullScreenMode = false
+        }
+    }
+
+    @computed private get isModalOpen(): boolean {
+        return (
+            this.isSelectingData ||
+            this.isSourcesModalOpen ||
+            this.isEmbedModalOpen ||
+            this.isDownloadModalOpen
+        )
+    }
+
     private renderError(): JSX.Element {
         return (
             <div
@@ -2314,7 +2335,8 @@ export class Grapher
         if (this.isInFullScreenMode) {
             return (
                 <FullScreen
-                    onDismiss={action(() => (this.isInFullScreenMode = false))}
+                    onDismiss={this.dismissFullScreen}
+                    overlayColor={this.isModalOpen ? "#999999" : "#fff"}
                 >
                     {this.renderGrapherComponent()}
                 </FullScreen>
