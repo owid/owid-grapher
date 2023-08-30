@@ -168,7 +168,7 @@ export class SettingsMenu extends React.Component<{
 
     @computed get showZoomToggle(): boolean {
         return (
-            !this.manager.hideZoomToggle && this.manager.type == ScatterPlot
+            !this.manager.hideZoomToggle && this.manager.type === ScatterPlot
             // TODO: make this work around the definition that `selection`
             //       might just be an array of strings…
             // && this.manager.selection.hasSelection
@@ -178,7 +178,7 @@ export class SettingsMenu extends React.Component<{
     @computed get showNoDataAreaToggle(): boolean {
         return (
             !this.manager.hideNoDataAreaToggle &&
-            this.manager.type == Marimekko &&
+            this.manager.type === Marimekko &&
             this.manager.xColumnSlug !== undefined
         )
     }
