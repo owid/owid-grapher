@@ -22,7 +22,6 @@ import {
     Patterns,
     RelatedQuestionsConfig,
     STATIC_EXPORT_DETAIL_SPACING,
-    SizeVariant,
 } from "../core/GrapherConstants"
 import { MapChartManager } from "../mapCharts/MapChartConstants"
 import { ChartManager } from "../chart/ChartManager"
@@ -74,7 +73,6 @@ export interface CaptionedChartManager
         ContentSwitchersManager {
     containerElement?: HTMLDivElement
     tabBounds?: Bounds
-    sizeVariant?: SizeVariant
     fontSize?: number
     bakedGrapherURL?: string
     tab?: GrapherTabOption
@@ -105,6 +103,8 @@ export interface CaptionedChartManager
     hasRelatedQuestion?: boolean
     isRelatedQuestionTargetDifferentFromCurrentPage?: boolean
     relatedQuestions?: RelatedQuestionsConfig[]
+    isSmall?: boolean
+    isMedium?: boolean
 }
 
 interface CaptionedChartProps {
@@ -131,20 +131,16 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         return this.props.maxWidth ?? this.bounds.width - 2 * FRAME_PADDING
     }
 
-    @computed protected get sizeVariant(): SizeVariant {
-        return this.manager.sizeVariant ?? SizeVariant.base
-    }
-
     @computed protected get verticalPadding(): number {
-        return this.sizeVariant === SizeVariant.base ? 12 : 8
+        return this.manager.isMedium ? 8 : 12
     }
 
     @computed protected get verticalPaddingSmall(): number {
-        return this.sizeVariant === SizeVariant.sm ? 4 : 8
+        return this.manager.isSmall ? 4 : 8
     }
 
     @computed protected get relatedQuestionHeight(): number {
-        return this.sizeVariant === SizeVariant.base ? 28 : 24
+        return this.manager.isMedium ? 24 : 28
     }
 
     @computed protected get header(): Header {

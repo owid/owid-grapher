@@ -10,7 +10,6 @@ import {
     MarkdownTextWrap,
 } from "@ourworldindata/utils"
 import { Tooltip } from "../tooltip/Tooltip"
-import { SizeVariant } from "../core/GrapherConstants"
 import { FooterManager } from "./FooterManager"
 import { ActionButtons } from "../controls/ActionButtons"
 
@@ -68,10 +67,6 @@ export class Footer<
 
     @computed protected get manager(): FooterManager {
         return this.props.manager
-    }
-
-    @computed protected get sizeVariant(): SizeVariant {
-        return this.manager.sizeVariant ?? SizeVariant.base
     }
 
     @computed protected get maxWidth(): number {
@@ -174,18 +169,15 @@ export class Footer<
     }
 
     @computed private get lineHeight(): number {
-        return this.sizeVariant === SizeVariant.sm ? 1.1 : 1.2
+        return this.manager.isSmall ? 1.1 : 1.2
     }
 
     @computed protected get fontSize(): number {
-        return this.sizeVariant === SizeVariant.sm ||
-            this.sizeVariant === SizeVariant.md
-            ? 11
-            : 12
+        return this.manager.isMedium ? 11 : 12
     }
 
     @computed protected get sourcesFontSize(): number {
-        return this.sizeVariant === SizeVariant.sm ? 12 : 13
+        return this.manager.isSmall ? 12 : 13
     }
 
     @computed private get hasNote(): boolean {
