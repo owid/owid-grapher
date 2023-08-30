@@ -459,8 +459,8 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                 (this.manager.hasTimeline
                     ? this.verticalPaddingSmall + TIMELINE_HEIGHT
                     : 0) -
-                this.verticalPadding -
                 // #5 Footer
+                this.verticalPadding -
                 this.footer.height -
                 // #6 [Related question]
                 (this.showRelatedQuestion
@@ -501,15 +501,15 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                 {this.manager.isOnTableTab
                     ? this.renderDataTable()
                     : this.renderChartOrMap()}
+
+                {/* #4 [Timeline] */}
                 {this.manager.hasTimeline && (
                     <VerticalSpace height={this.verticalPaddingSmall} />
                 )}
-
-                {/* #4 [Timeline] */}
                 {this.manager.hasTimeline && this.renderTimeline()}
-                <VerticalSpace height={this.verticalPadding} />
 
                 {/* #5 Footer */}
+                <VerticalSpace height={this.verticalPadding} />
                 <Footer manager={this.manager} maxWidth={this.maxWidth} />
 
                 {/* #6 [Related question] */}

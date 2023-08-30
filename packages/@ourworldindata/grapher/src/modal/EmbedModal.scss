@@ -16,27 +16,28 @@ $zindex-embedMenu: 12;
 
 .embedMenu .embedCode {
     width: 100%;
+    padding: 16px 24px;
     border: 1px solid $light-stroke;
     background: $gray-10;
     display: flex;
     align-items: flex-start;
 }
 
-.embedMenu textarea {
-    resize: none;
-    padding: 1.33em 2em;
+.embedMenu code {
     width: 100%;
     border: none;
     background: none;
     color: $light-text;
-    font-family: monospace;
     font-size: 0.75em;
     line-height: 1.33;
+    word-break: break-word;
 }
 
 .embedMenu button {
+    flex: 0 0 64px;
     cursor: pointer;
-    padding: 1em 1.5em 0 0;
     color: $dark-text;
-    font-size: 14px;
+    padding: 0;
+    text-align: right;
+    font-size: 0.875em;
 }

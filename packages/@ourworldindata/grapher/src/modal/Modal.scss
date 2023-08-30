@@ -1,9 +1,10 @@
 .modalOverlay {
     position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
+    // -1px to hide the border
+    top: -1px;
+    right: -1px;
+    bottom: -1px;
+    left: -1px;
     background-color: rgba(0, 0, 0, 0.4);
     z-index: $zindex-modal;
 

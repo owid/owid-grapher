@@ -7,6 +7,7 @@ import { BodyDiv } from "../bodyDiv/BodyDiv"
 export class FullScreen extends React.Component<{
     children: React.ReactNode
     onDismiss: () => void
+    overlayColor?: string
 }> {
     content: React.RefObject<HTMLDivElement> = React.createRef()
 
@@ -42,6 +43,9 @@ export class FullScreen extends React.Component<{
                     className="FullScreenOverlay"
                     role="dialog"
                     aria-modal="true"
+                    style={{
+                        backgroundColor: this.props.overlayColor ?? "#fff",
+                    }}
                 >
                     <div className="FullScreenContent" ref={this.content}>
                         {this.props.children}
