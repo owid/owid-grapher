@@ -247,7 +247,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                         top={
                             FRAME_PADDING +
                             this.header.height +
-                            VERTICAL_SPACING +
+                            this.verticalPadding +
                             CONTROLS_ROW_HEIGHT +
                             4 // margin between button and menu
                         }
