@@ -90,6 +90,7 @@ export {
     type IndexPost,
     type Integer,
     JsonError,
+    KeyChartLevel,
     type KeyInsight,
     type KeyValueProps,
     type OwidGdocContent,
@@ -254,7 +255,7 @@ export {
     urlToSlug,
     trimObject,
     fetchText,
-    getCountryCodeFromNetlifyRedirect,
+    getUserCountryInformation,
     stripHTML,
     getRandomNumberGenerator,
     sampleFrom,
@@ -331,6 +332,7 @@ export {
     mergePartialGrapherConfigs,
     getOriginAttributionFragments,
     getAttributionFromVariable,
+    copyToClipboard,
 } from "./Util.js"
 
 export {
@@ -435,7 +437,6 @@ export {
     countries,
     type Country,
     getCountryBySlug,
-    getCountryDetectionRedirects,
     isCountryName,
     continents,
     type Continent,

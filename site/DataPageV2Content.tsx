@@ -249,7 +249,11 @@ export const DataPageV2Content = ({
                 `${o.producer}, ${o.datasetTitleProducer ?? o.datasetTitleOwid}`
         )
         .join("; ")
-    const citationLong = `${citationShort}. ${datapageData.title}. ${originsLong}, ${processedAdapted} by Our World In Data. Retrieved {date} from {url}`
+    const dateAccessed = datapageData.origins[0].dateAccessed
+        ? dayjs(datapageData.origins[0].dateAccessed).format("MMMM D, YYYY")
+        : ""
+    const urlAccessed = datapageData.origins[0].datasetUrlDownload
+    const citationLong = `${citationShort}. ${datapageData.title}. ${originsLong}, ${processedAdapted} by Our World In Data. Retrieved ${dateAccessed} from ${urlAccessed}`
     const processedAdaptedText =
         datapageData.owidProcessingLevel === "minor"
             ? `Processed by Our World In Data`
@@ -262,7 +266,7 @@ export const DataPageV2Content = ({
         relatedCharts = [],
     } = faqEntries ?? {}
 
-    const citationDatapage = `Our World In Data (${yearOfUpdate}). Data Page: ${datapageData.title} – ${producers}. Retriefed from {url} [online resource]`
+    const citationDatapage = `Our World In Data (${yearOfUpdate}). Data Page: ${datapageData.title} – ${producers}. Retrieved from {url} [online resource]`
     return (
         <AttachmentsContext.Provider
             value={{
@@ -291,23 +295,28 @@ export const DataPageV2Content = ({
                                     {sourceShortName}
                                 </div>
                             </div>
-                            <div className="header__right col-start-9 span-cols-4 span-sm-cols-12">
-                                <div className="topic-tags__label">
-                                    See all data and research on:
-                                </div>
-                                <div className="topic-tags">
-                                    {datapageData.topicTagsLinks?.map(
-                                        (topic: any) => (
-                                            <a
-                                                href={`/${slugify(topic)}`}
-                                                key={topic}
-                                            >
-                                                {topic}
-                                            </a>
-                                        )
-                                    )}
-                                </div>
-                            </div>
+                            {datapageData.topicTagsLinks &&
+                                datapageData.topicTagsLinks.length && (
+                                    <div className="header__right col-start-9 span-cols-4 span-sm-cols-12">
+                                        <div className="topic-tags__label">
+                                            See all data and research on:
+                                        </div>
+                                        <div className="topic-tags">
+                                            {datapageData.topicTagsLinks?.map(
+                                                (topic: any) => (
+                                                    <a
+                                                        href={`/${slugify(
+                                                            topic
+                                                        )}`}
+                                                        key={topic}
+                                                    >
+                                                        {topic}
+                                                    </a>
+                                                )
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
                         </div>
                     </div>
                     <nav className="sticky-nav sticky-nav--dark">
@@ -326,31 +335,23 @@ export const DataPageV2Content = ({
                         />
                         <div className="key-info__wrapper wrapper grid grid-cols-12">
                             <div className="key-info__left col-start-2 span-cols-7 span-lg-cols-8 span-sm-cols-12">
-                                {(datapageData?.keyInfoText ||
+                                {(datapageData?.descriptionKey ||
                                     datapageData.descriptionShort) && (
                                     <div className="key-info__curated">
                                         <h2 className="key-info__title">
-                                            {datapageData?.keyInfoText
+                                            {datapageData?.descriptionKey
                                                 ? "What you should know about this indicator"
                                                 : "About this data"}
                                         </h2>
                                         <div className="key-info__content">
-                                            {datapageData?.keyInfoText ? (
+                                            {datapageData?.descriptionKey ? (
                                                 <ArticleBlocks
                                                     blocks={excludeNullish(
-                                                        datapageData.keyInfoText.flatMap(
+                                                        datapageData.descriptionKey.flatMap(
                                                             markdownToEnrichedTextBlock
                                                         )
                                                     )}
                                                     containerType="datapage"
-                                                />
-                                            ) : datapageData.descriptionShort ? (
-                                                <ArticleBlocks
-                                                    blocks={[
-                                                        markdownToEnrichedTextBlock(
-                                                            datapageData.descriptionShort
-                                                        ),
-                                                    ]}
                                                 />
                                             ) : null}
                                         </div>
@@ -384,7 +385,7 @@ export const DataPageV2Content = ({
                                         isExpandedDefault={
                                             !(
                                                 datapageData.descriptionShort ||
-                                                datapageData.keyInfoText
+                                                datapageData.descriptionKey
                                             )
                                         }
                                     />
@@ -416,12 +417,14 @@ export const DataPageV2Content = ({
                                     </div>
                                     <div>{datapageData.lastUpdated}</div>
                                 </div>
-                                <div className="key-data span-cols-3 span-lg-cols-4 span-sm-cols-6">
-                                    <div className="key-data__title">
-                                        Next expected update
+                                {datapageData.nextUpdate && (
+                                    <div className="key-data span-cols-3 span-lg-cols-4 span-sm-cols-6">
+                                        <div className="key-data__title">
+                                            Next expected update
+                                        </div>
+                                        <div>{datapageData.nextUpdate}</div>
                                     </div>
-                                    <div>{datapageData.nextUpdate}</div>
-                                </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -593,7 +596,7 @@ export const DataPageV2Content = ({
                                     className="data-sources-processing__title span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
                                     id="sources-and-processing"
                                 >
-                                    Sources and Processing
+                                    Sources and processing
                                 </h2>
                                 {datapageData.origins.length > 0 && (
                                     <div className="data-sources grid span-cols-12">
@@ -803,7 +806,7 @@ export const DataPageV2Content = ({
                                         </a>
                                     </div>
                                 </div>
-                                {datapageData?.processingInfo && (
+                                {datapageData?.descriptionProcessing && (
                                     <div className="variable-processing-info col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
                                         <h5 className="variable-processing-info__header">
                                             Notes on our processing step for
@@ -813,7 +816,7 @@ export const DataPageV2Content = ({
                                             <ArticleBlocks
                                                 blocks={[
                                                     markdownToEnrichedTextBlock(
-                                                        datapageData.processingInfo
+                                                        datapageData.descriptionProcessing
                                                     ),
                                                 ]}
                                                 containerType="datapage"

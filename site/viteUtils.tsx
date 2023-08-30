@@ -6,7 +6,7 @@ import {
     BAKED_BASE_URL,
     VITE_PREVIEW,
 } from "../settings/serverSettings.js"
-import { GOOGLE_FONTS_URL, POLYFILL_URL } from "./SiteConstants.js"
+import { POLYFILL_URL } from "./SiteConstants.js"
 import type { Manifest } from "vite"
 import { sortBy } from "@ourworldindata/utils"
 
@@ -15,11 +15,7 @@ const VITE_DEV_URL = process.env.VITE_DEV_URL ?? "http://localhost:8090"
 export const VITE_ASSET_SITE_ENTRY = "site/owid.entry.ts"
 export const VITE_ASSET_ADMIN_ENTRY = "adminSiteClient/admin.entry.ts"
 
-// We ALWAYS load Google Fonts and polyfills.
-
-const googleFontsStyles = (
-    <link key="google-fonts" href={GOOGLE_FONTS_URL} rel="stylesheet" />
-)
+// We ALWAYS load polyfills.
 
 const polyfillScript = <script key="polyfill" src={POLYFILL_URL} />
 const polyfillPreload = (
@@ -39,7 +35,7 @@ interface Assets {
 // in dev: we need to load several vite core scripts and plugins; other than that we only need to load the entry point, and vite will take care of the rest.
 const devAssets = (entry: string, baseUrl: string): Assets => {
     return {
-        forHeader: [googleFontsStyles, polyfillPreload],
+        forHeader: [polyfillPreload],
         forFooter: [
             polyfillScript,
             <script
@@ -149,10 +145,7 @@ const prodAssets = (entry: string, baseUrl: string): Assets => {
 
     return {
         // sort for some kind of consistency: first modulepreload, then preload, then stylesheet
-        forHeader: sortBy(
-            [googleFontsStyles, polyfillPreload, ...assets.forHeader],
-            "props.rel"
-        ),
+        forHeader: sortBy([polyfillPreload, ...assets.forHeader], "props.rel"),
         forFooter: [polyfillScript, ...assets.forFooter],
     }
 }

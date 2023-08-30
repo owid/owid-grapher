@@ -14,7 +14,7 @@ version: "3.7"
 # Before the first run you should download the database dumps. The easiest way to do this is to run the
 # following 3 commands from a bash terminal with the root of the project as the working directory. Note that
 # for the wordpress related downloads you'll need a working ssh setup on your host to connect to live-db.owid.io:
-# ./devTools/docker/download-grapher-mysql.sh
+# ./devTools/docker/download-grapher-metadata-mysql.sh
 # ./devTools/docker/download-wordpress-mysql.sh
 # and if you want the wordpress file uploads as well then:
 # ./devTools/docker/download-wordpress-uploads.sh

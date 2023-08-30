@@ -58,6 +58,7 @@ export interface CaptionedChartManager
     containerElement?: HTMLDivElement
     tabBounds?: Bounds
     fontSize?: number
+    bakedGrapherURL?: string
     tab?: GrapherTabOption
     type?: ChartTypeName
     yAxis?: AxisConfig
@@ -430,6 +431,18 @@ export class StaticCaptionedChart extends CaptionedChart {
             .padTop(this.isMapTab ? 0 : PADDING_BELOW_HEADER)
     }
 
+    @computed private get fonts(): JSX.Element {
+        let origin = ""
+        try {
+            origin = new URL(this.manager.bakedGrapherURL!).origin
+        } catch (e) {}
+        const css = `@import url(${origin}/fonts.css)`
+        return (
+            <defs>
+                <style>{css}</style>
+            </defs>
+        )
+    }
     render(): JSX.Element {
         const { bounds, paddedBounds } = this
         let { width, height } = bounds
@@ -448,6 +461,7 @@ export class StaticCaptionedChart extends CaptionedChart {
                 height={height}
                 viewBox={`0 0 ${width} ${height}`}
             >
+                {this.fonts}
                 {this.patterns}
                 <rect
                     className="background-fill"

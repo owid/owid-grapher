@@ -2,8 +2,10 @@ import {
     Bounds,
     DEFAULT_BOUNDS,
     MarkdownTextWrap,
-    OwidOrigin,
     linkify,
+    OwidOrigin,
+    uniq,
+    omitUndefinedValues,
 } from "@ourworldindata/utils"
 import React from "react"
 import { computed } from "mobx"
@@ -64,14 +66,6 @@ export class SourcesTab extends React.Component<{
                 ? column.def.titlePublic
                 : column.name
 
-        const attribution = column.def.attribution
-            ? [column.def.attribution]
-            : column.def.origins
-            ? column.def.origins.map(
-                  (origin: OwidOrigin) => origin.attribution ?? origin.producer
-              )
-            : []
-
         const retrievedDate =
             source.retrievedDate ??
             (column.def.origins && column.def.origins.length
@@ -79,11 +73,15 @@ export class SourcesTab extends React.Component<{
                 : undefined)
 
         const citationProducer =
-            column.def.origins &&
-            column.def.origins.length &&
-            column.def.origins[0].citationProducer
-                ? column.def.origins[0].citationProducer
-                : undefined
+            column.def.origins && column.def.origins.length
+                ? omitUndefinedValues(
+                      uniq(
+                          column.def.origins.map(
+                              (origin: OwidOrigin) => origin.citationProducer
+                          )
+                      )
+                  )
+                : []
 
         return (
             <div key={slug} className="datasource-wrapper">
@@ -138,13 +136,31 @@ export class SourcesTab extends React.Component<{
                                 <td>{column.unitConversionFactor}</td>
                             </tr>
                         ) : null}
-                        {attribution ? (
+                        {citationProducer.length === 1 ? (
                             <tr>
                                 <td>Data published by</td>
-                                <td>{attribution.join(", ")}</td>
+                                <td>{citationProducer[0]}</td>
                             </tr>
                         ) : null}
-                        {!attribution && source.dataPublishedBy ? (
+                        {citationProducer.length > 1 ? (
+                            <tr>
+                                <td>Data published by</td>
+                                <td>
+                                    <ul>
+                                        {citationProducer.map(
+                                            (
+                                                producer: string,
+                                                index: number
+                                            ) => (
+                                                <li key={index}>{producer}</li>
+                                            )
+                                        )}
+                                    </ul>
+                                </td>
+                            </tr>
+                        ) : null}
+                        {(!citationProducer || citationProducer.length === 0) &&
+                        source.dataPublishedBy ? (
                             <tr>
                                 <td>Data published by</td>
                                 <td
@@ -193,14 +209,6 @@ export class SourcesTab extends React.Component<{
                             __html: formatText(source.additionalInfo),
                         }}
                     />
-                )}
-                {citationProducer && (
-                    <p key={"citationProducer"}>
-                        <MarkdownTextWrap
-                            text={citationProducer}
-                            fontSize={12}
-                        />
-                    </p>
                 )}
             </div>
         )

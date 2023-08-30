@@ -53,6 +53,8 @@ import {
     PostRow,
     Url,
     IndexPost,
+    mergePartialGrapherConfigs,
+    OwidGdocType,
 } from "@ourworldindata/utils"
 import { CountryProfileSpec } from "../site/countryProfileProjects.js"
 import { formatPost } from "./formatWordpressPost.js"
@@ -340,7 +342,20 @@ export const renderNotFoundPage = () =>
 
 export async function makeAtomFeed() {
     const posts = (await getBlogIndex()).slice(0, 10)
+    return makeAtomFeedFromPosts(posts)
+}
 
+// We don't want to include topic pages in the atom feed that is being consumed
+// by Mailchimp for sending the "immediate update" newsletter. Instead topic
+// pages announcements are sent out manually.
+export async function makeAtomFeedNoTopicPages() {
+    const posts = (await getBlogIndex())
+        .filter((post: IndexPost) => post.type !== OwidGdocType.TopicPage)
+        .slice(0, 10)
+    return makeAtomFeedFromPosts(posts)
+}
+
+export async function makeAtomFeedFromPosts(posts: IndexPost[]) {
     const feed = `<?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 <title>Our World in Data</title>
@@ -607,10 +622,11 @@ export const renderExplorerPage = async (
     let partialGrapherConfigRows: {
         id: number
         grapherConfigAdmin: string | null
+        grapherConfigETL: string | null
     }[] = []
     if (requiredVariableIds.length) {
         partialGrapherConfigRows = await queryMysql(
-            `SELECT id, grapherConfigAdmin FROM variables WHERE id IN (?)`,
+            `SELECT id, grapherConfigETL, grapherConfigAdmin FROM variables WHERE id IN (?)`,
             [requiredVariableIds]
         )
     }
@@ -624,13 +640,22 @@ export const renderExplorerPage = async (
     }
     const grapherConfigs = grapherConfigRows.map(parseGrapherConfigFromRow)
     const partialGrapherConfigs = partialGrapherConfigRows
-        .filter((row) => row.grapherConfigAdmin)
-        .map((row) =>
-            parseGrapherConfigFromRow({
-                id: row.id,
-                config: row.grapherConfigAdmin as string,
-            })
-        )
+        .filter((row) => row.grapherConfigAdmin || row.grapherConfigETL)
+        .map((row) => {
+            const adminConfig = row.grapherConfigAdmin
+                ? parseGrapherConfigFromRow({
+                      id: row.id,
+                      config: row.grapherConfigAdmin as string,
+                  })
+                : {}
+            const etlConfig = row.grapherConfigETL
+                ? parseGrapherConfigFromRow({
+                      id: row.id,
+                      config: row.grapherConfigETL as string,
+                  })
+                : {}
+            return mergePartialGrapherConfigs(etlConfig, adminConfig)
+        })
 
     const wpContent = program.wpBlockId
         ? await renderReusableBlock(

@@ -3,6 +3,9 @@ import { observer } from "mobx-react"
 import { ChartEditor, Log } from "./ChartEditor.js"
 import { Section, Timeago } from "./Forms.js"
 import { computed, action } from "mobx"
+import { copyToClipboard } from "@ourworldindata/utils"
+import { dump } from "js-yaml"
+import { notification } from "antd"
 
 @observer
 class LogRenderer extends React.Component<{
@@ -60,6 +63,25 @@ export class EditorHistoryTab extends React.Component<{ editor: ChartEditor }> {
         grapher.rebuildInputOwidTable()
     }
 
+    @action.bound copyYamlToClipboard() {
+        // Use the Clipboard API to copy the config into the users clipboard
+        const chartConfigObject = {
+            ...this.props.editor.grapher.object,
+        }
+        delete chartConfigObject.id
+        delete chartConfigObject.dimensions
+        delete chartConfigObject.version
+        delete chartConfigObject.isPublished
+        const chartConfigAsYaml = dump(chartConfigObject)
+        copyToClipboard(chartConfigAsYaml)
+        notification["success"]({
+            message: "Copied YAML to clipboard",
+            description: "You can now paste this into the ETL",
+            placement: "bottomRight",
+            closeIcon: <></>,
+        })
+    }
+
     render() {
         // Avoid modifying the original JSON object
         // Due to mobx memoizing computed values, the JSON can be mutated.
@@ -77,6 +99,12 @@ export class EditorHistoryTab extends React.Component<{ editor: ChartEditor }> {
                     </ul>
                 ))}
                 <Section name="Debug Version">
+                    <button
+                        className="btn btn-primary"
+                        onClick={this.copyYamlToClipboard}
+                    >
+                        Copy YAML for ETL
+                    </button>
                     <textarea
                         rows={7}
                         readOnly

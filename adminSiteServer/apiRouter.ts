@@ -11,14 +11,15 @@ import {
     BAKE_ON_CHANGE,
     BAKED_BASE_URL,
     ADMIN_BASE_URL,
+    DATA_API_URL,
 } from "../settings/serverSettings.js"
 import { expectInt, isValidSlug } from "../serverUtils/serverUtil.js"
 import { OldChart, Chart, getGrapherById } from "../db/model/Chart.js"
 import { Request, Response, CurrentUser } from "./authentication.js"
 import {
     getMergedGrapherConfigForVariable,
-    getVariableData,
-    getVariableMetadata,
+    fetchS3MetadataByPath,
+    fetchS3DataValuesByPath,
 } from "../db/model/Variable.js"
 import {
     applyPatch,
@@ -49,6 +50,8 @@ import {
 import {
     GrapherInterface,
     grapherKeysToSerialize,
+    getVariableDataRoute,
+    getVariableMetadataRoute,
 } from "@ourworldindata/grapher"
 import {
     CountryNameFormat,
@@ -695,7 +698,9 @@ apiRouter.get(
             )
         const variableId = parseInt(variableStr)
         if (isNaN(variableId)) throw new JsonError("Invalid variable id")
-        return (await getVariableData(variableId)).data
+        return await fetchS3DataValuesByPath(
+            getVariableDataRoute(DATA_API_URL, variableId) + "?nocache"
+        )
     }
 )
 
@@ -710,8 +715,9 @@ apiRouter.get(
             )
         const variableId = parseInt(variableStr)
         if (isNaN(variableId)) throw new JsonError("Invalid variable id")
-        const variableData = await getVariableData(variableId)
-        return variableData.metadata
+        return await fetchS3MetadataByPath(
+            getVariableMetadataRoute(DATA_API_URL, variableId) + "?nocache"
+        )
     }
 )
 
@@ -1695,7 +1701,9 @@ apiRouter.get(
     async (req: Request, res: Response) => {
         const variableId = expectInt(req.params.variableId)
 
-        const variable = await getVariableMetadata(variableId)
+        const variable = await fetchS3MetadataByPath(
+            getVariableMetadataRoute(DATA_API_URL, variableId) + "?nocache"
+        )
 
         const charts = await db.queryMysql(
             `
@@ -1800,6 +1808,8 @@ apiRouter.get("/datasets/:datasetId.json", async (req: Request) => {
         SELECT d.id,
             d.namespace,
             d.name,
+            d.shortName,
+            d.version,
             d.description,
             d.updatedAt,
             d.dataEditedAt,
@@ -1990,10 +2000,6 @@ apiRouter.delete(
 
         await db.transaction(async (t) => {
             await t.execute(
-                `DELETE d FROM data_values AS d JOIN variables AS v ON d.variableId=v.id WHERE v.datasetId=?`,
-                [datasetId]
-            )
-            await t.execute(
                 `DELETE d FROM country_latest_data AS d JOIN variables AS v ON d.variable_id=v.id WHERE v.datasetId=?`,
                 [datasetId]
             )
@@ -2076,7 +2082,7 @@ apiRouter.get("/tags/:tagId.json", async (req: Request, res: Response) => {
 
     const tag = await db.mysqlFirst(
         `
-        SELECT t.id, t.name, t.specialType, t.updatedAt, t.parentId, p.isBulkImport
+        SELECT t.id, t.name, t.specialType, t.updatedAt, t.parentId, t.isTopic, p.isBulkImport
         FROM tags t LEFT JOIN tags p ON t.parentId=p.id
         WHERE t.id = ?
     `,
@@ -2175,8 +2181,8 @@ apiRouter.put("/tags/:tagId", async (req: Request) => {
     const tagId = expectInt(req.params.tagId)
     const tag = (req.body as { tag: any }).tag
     await db.execute(
-        `UPDATE tags SET name=?, updatedAt=?, parentId=? WHERE id=?`,
-        [tag.name, new Date(), tag.parentId, tagId]
+        `UPDATE tags SET name=?, updatedAt=?, parentId=?, isTopic=? WHERE id=?`,
+        [tag.name, new Date(), tag.parentId, tag.isTopic, tagId]
     )
     return { success: true }
 })

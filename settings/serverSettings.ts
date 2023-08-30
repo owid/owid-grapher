@@ -167,3 +167,6 @@ export const IMAGE_HOSTING_SPACE_SECRET_ACCESS_KEY: string =
     serverSettings.IMAGE_HOSTING_SPACE_SECRET_ACCESS_KEY || ""
 
 export const DATA_API_URL: string = clientSettings.DATA_API_URL
+
+export const BUILDKITE_API_ACCESS_TOKEN: string =
+    serverSettings.BUILDKITE_API_ACCESS_TOKEN ?? ""

@@ -92,7 +92,7 @@ export const bakeGrapherUrls = async (urls: string[]) => {
 export const getGrapherExportsByUrl = async (): Promise<GrapherExports> => {
     // Index the files to see what we have available, using the most recent version
     // if multiple exports exist
-    const files = glob.sync(`${BAKED_SITE_DIR}/exports/*.svg`)
+    const files = await glob(`${BAKED_SITE_DIR}/exports/*.svg`)
     const exportsByKey = new Map<string, ChartExportMeta>()
     for (const filepath of files) {
         const filename = path.basename(filepath)

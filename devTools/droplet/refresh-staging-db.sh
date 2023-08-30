@@ -41,20 +41,18 @@ mkdir -p $DL_FOLDER
 
 # Default options
 WITH_UPLOADS=false
-WITH_CHARTDATA=false
 SKIP_DB_DL=false
 
 usage()
 {
   echo "Refreshes content. At the minimum, both Wordress and Grapher databases are cleared and populated after downloading the latest archives."
-  echo "The Grapher database is only populated with owid_metadata by default. Add --with-chartdata to have access to the full content."
+  echo "The Grapher database is only populated with owid_metadata by default."
   echo "Usage: refresh [options...]"
   echo ""
   echo "Options:"
   echo -e "\t-h, --help"
   echo -e "\t-s, --skip-db-dl\tImports all databases from existing dumps. Run once without option to retrieve them."
   echo -e "\t-u, --with-uploads\tDownloads Wordpress uploads"
-  echo -e "\t-c, --with-chartdata\tDownloads additional Grapher chart data (owid_chartdata)"
 }
 
 # Arguments parsing inspired by https://gist.github.com/jehiah/855086
@@ -71,9 +69,6 @@ while [ "$1" != "" ]; do
       ;;
     -u | --with-uploads)
       WITH_UPLOADS=true
-      ;;
-    -c | --with-chartdata)
-      WITH_CHARTDATA=true
       ;;
     *)
       echo "ERROR: unknown parameter \"$PARAM\""
@@ -135,14 +130,3 @@ fi
 echo "Importing live Grapher metadata database (owid_metadata)"
 purge_grapher_db
 import_grapher_db $DL_FOLDER/owid_metadata_with_passwords.sql
-
-# Grapher database (owid_chartdata)
-if [ "${WITH_CHARTDATA}" = true ]; then
-  if [ "${SKIP_DB_DL}" = false ]; then
-    echo "Downloading live Grapher chartdata database (owid_chartdata)"
-    curl -Lo $DL_FOLDER/owid_chartdata.sql.gz https://files.ourworldindata.org/owid_chartdata.sql.gz
-    gunzip -f $DL_FOLDER/owid_chartdata.sql.gz
-  fi
-  echo "Importing live Grapher chartdata database (owid_chartdata)"
-  import_grapher_db $DL_FOLDER/owid_chartdata.sql
-fi

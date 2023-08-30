@@ -29,6 +29,8 @@ interface DatasetPageData {
     name: string
     description: string
     namespace: string
+    shortName: string
+    version: string
     isPrivate: boolean
     nonRedistributable: boolean
 
@@ -220,6 +222,12 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                 />
                 <section>
                     <h1>{dataset.name}</h1>
+                    {dataset.shortName && (
+                        <h4 style={{ color: "gray" }}>
+                            {dataset.namespace}/{dataset.version}/
+                            {dataset.shortName}
+                        </h4>
+                    )}
                     <p>
                         Uploaded{" "}
                         <Timeago
