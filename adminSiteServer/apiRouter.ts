@@ -11,14 +11,15 @@ import {
     BAKE_ON_CHANGE,
     BAKED_BASE_URL,
     ADMIN_BASE_URL,
+    DATA_API_URL,
 } from "../settings/serverSettings.js"
 import { expectInt, isValidSlug } from "../serverUtils/serverUtil.js"
 import { OldChart, Chart, getGrapherById } from "../db/model/Chart.js"
 import { Request, Response, CurrentUser } from "./authentication.js"
 import {
     getMergedGrapherConfigForVariable,
-    getVariableData,
-    getVariableMetadata,
+    fetchS3MetadataByPath,
+    fetchS3DataValuesByPath,
 } from "../db/model/Variable.js"
 import {
     applyPatch,
@@ -49,6 +50,8 @@ import {
 import {
     GrapherInterface,
     grapherKeysToSerialize,
+    getVariableDataRoute,
+    getVariableMetadataRoute,
 } from "@ourworldindata/grapher"
 import {
     CountryNameFormat,
@@ -695,7 +698,9 @@ apiRouter.get(
             )
         const variableId = parseInt(variableStr)
         if (isNaN(variableId)) throw new JsonError("Invalid variable id")
-        return (await getVariableData(variableId)).data
+        return await fetchS3DataValuesByPath(
+            getVariableDataRoute(DATA_API_URL, variableId) + "?nocache"
+        )
     }
 )
 
@@ -710,8 +715,9 @@ apiRouter.get(
             )
         const variableId = parseInt(variableStr)
         if (isNaN(variableId)) throw new JsonError("Invalid variable id")
-        const variableData = await getVariableData(variableId)
-        return variableData.metadata
+        return await fetchS3MetadataByPath(
+            getVariableMetadataRoute(DATA_API_URL, variableId) + "?nocache"
+        )
     }
 )
 
@@ -1695,7 +1701,9 @@ apiRouter.get(
     async (req: Request, res: Response) => {
         const variableId = expectInt(req.params.variableId)
 
-        const variable = await getVariableMetadata(variableId)
+        const variable = await fetchS3MetadataByPath(
+            getVariableMetadataRoute(DATA_API_URL, variableId) + "?nocache"
+        )
 
         const charts = await db.queryMysql(
             `

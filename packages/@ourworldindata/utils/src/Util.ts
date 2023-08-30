@@ -765,17 +765,34 @@ export const addDays = (date: Date, days: number): Date => {
     return newDate
 }
 
+export const sleep = (ms: number): Promise<void> =>
+    new Promise((resolve) => setTimeout(resolve, ms))
+
 export async function retryPromise<T>(
     promiseGetter: () => Promise<T>,
-    maxRetries: number = 3
+    {
+        maxRetries = 3,
+        exponentialBackoff = false,
+        initialDelay = 200,
+    }: {
+        maxRetries?: number
+        exponentialBackoff?: boolean
+        initialDelay?: number
+    } = {}
 ): Promise<T> {
     let retried = 0
     let lastError
+    let delay = initialDelay
+
     while (retried++ < maxRetries) {
         try {
             return await promiseGetter()
         } catch (error) {
             lastError = error
+            if (exponentialBackoff && retried < maxRetries) {
+                await sleep(delay)
+                delay *= 2 // Double the delay for next retry
+            }
         }
     }
     throw lastError
