@@ -20,6 +20,7 @@ import React from "react"
 import urljoin from "url-join"
 import {
     ADMIN_BASE_URL,
+    BAKED_GRAPHER_EXPORTS_BASE_URL,
     BAKED_GRAPHER_URL,
     DATA_API_URL,
 } from "../settings/clientSettings.js"
@@ -118,7 +119,7 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                     </figure>
                     <noscript id="fallback">
                         <img
-                            src={`${baseGrapherUrl}/exports/${grapher.slug}.svg`}
+                            src={`${BAKED_GRAPHER_EXPORTS_BASE_URL}/${grapher.slug}.svg`}
                         />
                         <p>Interactive visualization requires JavaScript</p>
                     </noscript>
