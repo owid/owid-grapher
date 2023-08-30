@@ -28,8 +28,11 @@ $gap: 1.5px;
         padding: 0 16px;
         cursor: default;
 
+        .label {
+            margin-left: 6px;
+        }
+
         svg {
-            margin-right: 6px;
             color: $info-icon;
         }
     }

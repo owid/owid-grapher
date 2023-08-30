@@ -51,6 +51,7 @@ export class ContentSwitchers extends React.Component<{
                         onClick={(): void => {
                             manager.tab = tab
                         }}
+                        showLabel={!manager.isNarrow}
                     />
                 ))}
             </ul>
@@ -62,6 +63,7 @@ function Tab(props: {
     tab: GrapherTabOption
     isActive?: boolean
     onClick?: React.MouseEventHandler<HTMLAnchorElement>
+    showLabel?: boolean
 }): JSX.Element {
     const className = "tab clickable" + (props.isActive ? " active" : "")
     return (
@@ -71,7 +73,7 @@ function Tab(props: {
                 data-track-note={"chart_click_" + props.tab}
             >
                 <FontAwesomeIcon icon={icons[props.tab]} />
-                {props.tab}
+                {props.showLabel && <span className="label">{props.tab}</span>}
             </a>
         </li>
     )
