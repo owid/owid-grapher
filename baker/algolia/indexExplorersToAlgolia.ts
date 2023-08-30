@@ -9,12 +9,6 @@ import { Pageview } from "../../db/model/Pageview.js"
 import { chunkParagraphs } from "../chunk.js"
 import { SearchIndexName } from "../../site/search/searchTypes.js"
 
-type ExplorerBlockLineChart = {
-    type: "LineChart"
-    title: string
-    subtitle: string
-}
-
 type ExplorerBlockColumns = {
     type: "columns"
     block: { name: string; additionalInfo?: string }[]
@@ -52,13 +46,6 @@ function extractTextFromExplorer(blocksString: string): string {
         for (const block of blocks) {
             if (checkIsPlainObjectWithGuard(block) && "type" in block) {
                 match(block)
-                    .with(
-                        { type: "LineChart" },
-                        (lineChart: ExplorerBlockLineChart) => {
-                            blockText.add(lineChart.title)
-                            blockText.add(lineChart.subtitle)
-                        }
-                    )
                     .with(
                         { type: "columns" },
                         (columns: ExplorerBlockColumns) => {
@@ -146,7 +133,9 @@ const indexExplorersToAlgolia = async () => {
 
     const client = getAlgoliaClient()
     if (!client) {
-        console.error(`Failed indexing charts (Algolia client not initialized)`)
+        console.error(
+            `Failed indexing explorers (Algolia client not initialized)`
+        )
         return
     }
 
