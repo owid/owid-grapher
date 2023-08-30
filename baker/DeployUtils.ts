@@ -57,14 +57,17 @@ const bakeAndDeploy = async (
     const baker = new SiteBaker(BAKED_SITE_DIR, BAKED_BASE_URL)
     try {
         if (lightningQueue?.length) {
-            await Promise.all(
-                lightningQueue.map(async (change) =>
-                    buildkite.runLightningBuild(message!, change.slug!)
-                )
-            )
+            for (const change of lightningQueue) {
+                const gdoc = (await Gdoc.findOneByOrFail({
+                    published: true,
+                    slug: change.slug,
+                })) as OwidGdocPublished
+                await baker.bakeGDocPost(gdoc)
+            }
         } else {
-            await buildkite.runFullBuild(message)
+            await baker.bakeAll()
         }
+        await baker.deployToNetlifyAndPushToGitPush(message)
     } catch (err) {
         logErrorAndMaybeSendToBugsnag(err)
         throw err
