@@ -3,7 +3,7 @@ import { getRelatedArticles } from "../../db/wpdb.js"
 import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
 import { getAlgoliaClient } from "./configureAlgolia.js"
 import { isPathRedirectedToExplorer } from "../../explorerAdminServer/ExplorerRedirects.js"
-import { ChartRecord } from "../../site/search/searchTypes.js"
+import { ChartRecord, SearchIndexName } from "../../site/search/searchTypes.js"
 import { KeyChartLevel, MarkdownTextWrap } from "@ourworldindata/utils"
 import { Pageview } from "../../db/model/Pageview.js"
 import { Link } from "../../db/model/Link.js"
@@ -105,7 +105,7 @@ const indexChartsToAlgolia = async () => {
         return
     }
 
-    const index = client.initIndex("charts")
+    const index = client.initIndex(SearchIndexName.Charts)
 
     await db.getConnection()
     const records = await getChartsRecords()

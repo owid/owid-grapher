@@ -15,7 +15,11 @@ import { formatPost } from "../formatWordpressPost.js"
 import ReactDOMServer from "react-dom/server.js"
 import { getAlgoliaClient } from "./configureAlgolia.js"
 import { htmlToText } from "html-to-text"
-import { PageRecord, PageType } from "../../site/search/searchTypes.js"
+import {
+    PageRecord,
+    PageType,
+    SearchIndexName,
+} from "../../site/search/searchTypes.js"
 import { Pageview } from "../../db/model/Pageview.js"
 import { Gdoc } from "../../db/model/Gdoc/Gdoc.js"
 import { ArticleBlocks } from "../../site/gdocs/ArticleBlocks.js"
@@ -216,7 +220,7 @@ const indexToAlgolia = async () => {
         console.error(`Failed indexing pages (Algolia client not initialized)`)
         return
     }
-    const index = client.initIndex("pages")
+    const index = client.initIndex(SearchIndexName.Pages)
 
     await db.getConnection()
     const records = await getPagesRecords()
