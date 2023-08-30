@@ -48,9 +48,10 @@ const bakeAndDeploy = async (
                     lightningQueue.map((change) => change.slug!)
                 )
                 .catch(logErrorAndMaybeSendToBugsnag)
+        } else {
+            // once we fully switch to baking on buildkite, we should await this
+            buildkite.runFullBuild(message).catch(logErrorAndMaybeSendToBugsnag)
         }
-        // once we fully switch to baking on buildkite, we should await this
-        buildkite.runFullBuild(message).catch(logErrorAndMaybeSendToBugsnag)
     }
 
     const baker = new SiteBaker(BAKED_SITE_DIR, BAKED_BASE_URL)
