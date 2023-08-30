@@ -325,8 +325,8 @@ const SearchResults = (props: SearchResultsProps) => {
                     <Hits
                         classNames={{
                             root: "search-results__list-container",
-                            list: "search-results__pages-list grid grid-cols-2 grid-cols-sm-1",
-                            item: "search-results__page-hit span-md-cols-2",
+                            list: "search-results__pages-list grid grid-cols-2 grid-sm-cols-1",
+                            item: "search-results__page-hit",
                         }}
                         hitComponent={PagesHit}
                     />

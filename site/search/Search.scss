@@ -195,9 +195,17 @@
     }
 }
 
+.search-results__pages-list,
+.search-results__explorers-list,
+.search-results__charts-list {
+    gap: var(--grid-gap);
+    @include sm-only {
+        padding-bottom: 24px;
+    }
+}
+
 .search-results__page-hit {
     list-style: none;
-    margin-bottom: 24px;
 
     &:hover {
         // Just the title, not the page type
@@ -224,13 +232,6 @@
     display: block;
 }
 
-.search-results__explorers-list {
-    gap: var(--grid-gap);
-    @include sm-only {
-        padding-bottom: 24px;
-    }
-}
-
 .search-results__explorer-hit a {
     background-color: $blue-10;
     height: 100%;
@@ -254,7 +255,6 @@
 
 .search-results__chart-hit {
     list-style: none;
-    margin-bottom: 24px;
     &:hover {
         .search-results__chart-hit-highlight {
             text-decoration: underline;
