@@ -3,7 +3,6 @@ import { BakeStepConfig, SiteBaker } from "../baker/SiteBaker.js"
 import { BuildkiteTrigger } from "../baker/BuildkiteTrigger.js"
 import { logErrorAndMaybeSendToBugsnag, warn } from "../serverUtils/errorLog.js"
 import { DeployQueueServer } from "./DeployQueueServer.js"
-<<<<<<< HEAD
 import {
     BAKED_SITE_DIR,
     BAKED_BASE_URL,
@@ -11,10 +10,6 @@ import {
 } from "../settings/serverSettings.js"
 import { DeployChange, OwidGdocPublished } from "@ourworldindata/utils"
 import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
-=======
-import { BAKED_SITE_DIR, BAKED_BASE_URL } from "../settings/serverSettings.js"
-import { DeployChange } from "@ourworldindata/utils"
->>>>>>> c842a8ec0 (run deploy queue on buildkite)
 
 const deployQueueServer = new DeployQueueServer()
 
@@ -42,7 +37,6 @@ const bakeAndDeploy = async (
 ) => {
     message = message ?? (await defaultCommitMessage())
 
-<<<<<<< HEAD
     // co-deploy to Buildkite
     if (BUILDKITE_API_ACCESS_TOKEN) {
         const buildkite = new BuildkiteTrigger()
@@ -59,9 +53,6 @@ const bakeAndDeploy = async (
             buildkite.runFullBuild(message).catch(logErrorAndMaybeSendToBugsnag)
         }
     }
-=======
-    const buildkite = new BuildkiteTrigger()
->>>>>>> c842a8ec0 (run deploy queue on buildkite)
 
     const baker = new SiteBaker(BAKED_SITE_DIR, BAKED_BASE_URL)
     try {
