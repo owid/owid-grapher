@@ -2,10 +2,10 @@ import { glob } from "glob"
 import path from "path"
 import * as lodash from "lodash"
 import {
-    BAKED_BASE_URL,
     OPTIMIZE_SVG_EXPORTS,
     BAKED_SITE_DIR,
 } from "../settings/serverSettings.js"
+import { BAKED_SITE_EXPORTS_BASE_URL } from "../settings/clientSettings.js"
 
 import * as db from "../db/db.js"
 import { bakeGraphersToSvgs } from "../baker/GrapherImageBaker.js"
@@ -104,7 +104,7 @@ export const getGrapherExportsByUrl = async (): Promise<GrapherExports> => {
         if (!current || current.version < versionNumber) {
             exportsByKey.set(key, {
                 key: key,
-                svgUrl: `${BAKED_BASE_URL}/exports/${filename}`,
+                svgUrl: `${BAKED_SITE_EXPORTS_BASE_URL}/${filename}`,
                 version: versionNumber,
                 width: parseInt(width),
                 height: parseInt(height),
