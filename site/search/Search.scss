@@ -65,9 +65,7 @@
 }
 
 .ais-SearchBox-input[value=""] ~ .ais-SearchBox-reset {
-    pointer-events: none;
-    cursor: unset;
-    background-color: $blue-20;
+    display: none;
 }
 
 .ais-SearchBox-loadingIndicator,
