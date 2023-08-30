@@ -101,10 +101,16 @@ export const FrontPage = (props: {
                                             className="coverage-link"
                                             data-track-note="homepage_trust"
                                         >
-                                            <img
-                                                src={`${baseUrl}/university-logos-wide.png`}
-                                                alt="Logos of the universities that have used our content"
-                                            />
+                                            <picture>
+                                                <source
+                                                    type="image/avif"
+                                                    srcSet={`${baseUrl}/university-logos-wide.avif`}
+                                                />
+                                                <img
+                                                    src={`${baseUrl}/university-logos-wide.png`}
+                                                    alt="Logos of the universities that have used our content"
+                                                />
+                                            </picture>
                                             <div className="hover-note">
                                                 <p>
                                                     Find out how our work is
@@ -282,11 +288,17 @@ export const FrontPage = (props: {
                                 data-track-note="homepage_projects"
                             >
                                 <div className="icon-left">
-                                    <img
-                                        src={`${baseUrl}/sdg-wheel.png`}
-                                        alt="SDG Tracker logo"
-                                        loading="lazy"
-                                    />
+                                    <picture>
+                                        <source
+                                            srcSet={`${baseUrl}/sdg-wheel.avif`}
+                                            type="image/avif"
+                                        />
+                                        <img
+                                            src={`${baseUrl}/sdg-wheel.png`}
+                                            alt="SDG Tracker logo"
+                                            loading="lazy"
+                                        />
+                                    </picture>
                                 </div>
                                 <div className="content">
                                     <h3>
