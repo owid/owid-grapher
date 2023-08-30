@@ -2737,64 +2737,6 @@ export class Grapher
             : timeColumn.formatValue(value)
     }
 
-    @computed get showYScaleToggle(): boolean | undefined {
-        if (this.hideYScaleToggle) return false
-        if (this.isRelativeMode) return false
-        if (this.isStackedArea || this.isStackedBar) return false // We currently do not have these charts with log scale
-        return this.yAxis.canChangeScaleType
-    }
-
-    @computed get showXScaleToggle(): boolean | undefined {
-        if (this.hideXScaleToggle) return false
-        if (this.isRelativeMode) return false
-        return this.xAxis.canChangeScaleType
-    }
-
-    @computed get showZoomToggle(): boolean {
-        return (
-            !this.hideZoomToggle &&
-            this.isScatter &&
-            this.selection.hasSelection
-        )
-    }
-
-    @computed get showAbsRelToggle(): boolean {
-        if (!this.canToggleRelativeMode) return false
-        if (this.isScatter)
-            return this.xOverrideTime === undefined && this.hasTimeline
-        return (
-            this.isStackedArea ||
-            this.isStackedBar ||
-            this.isStackedDiscreteBar ||
-            this.isScatter ||
-            this.isLineChart ||
-            this.isMarimekko
-        )
-    }
-
-    @computed get showNoDataAreaToggle(): boolean {
-        return (
-            !this.hideNoDataAreaToggle &&
-            this.isMarimekko &&
-            this.xColumnSlug !== undefined
-        )
-    }
-
-    @computed get showSettingsMenuToggle(): boolean {
-        return !!(
-            this.showYScaleToggle ||
-            this.showXScaleToggle ||
-            this.showFacetYDomainToggle ||
-            this.showZoomToggle ||
-            this.showNoDataAreaToggle ||
-            (this.showFacetControl &&
-                this.availableFacetStrategies.length > 1) ||
-            this.showAbsRelToggle
-        )
-
-        // TODO: add a showCompareEndPointsOnlyTogggle to complement compareEndPointsOnly
-    }
-
     @computed get showChangeEntityButton(): boolean {
         return !this.hideEntityControls && this.canChangeEntity
     }

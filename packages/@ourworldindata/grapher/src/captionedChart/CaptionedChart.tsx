@@ -32,9 +32,9 @@ import { FacetChart } from "../facetChart/FacetChart"
 import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
-    SettingsMenuManager,
-    SettingsMenu,
+    ControlsManager,
     EntitySelectorToggle,
+    SettingsMenu,
 } from "../controls/Controls"
 import { FooterManager } from "../footer/FooterManager"
 import { HeaderManager } from "../header/HeaderManager"
@@ -57,7 +57,7 @@ export interface CaptionedChartManager
         MapChartManager,
         FooterManager,
         HeaderManager,
-        SettingsMenuManager,
+        ControlsManager,
         DataTableManager,
         ContentSwitchersManager {
     containerElement?: HTMLDivElement
@@ -65,9 +65,9 @@ export interface CaptionedChartManager
     fontSize?: number
     bakedGrapherURL?: string
     tab?: GrapherTabOption
-    type?: ChartTypeName
-    yAxis?: AxisConfig
-    xAxis?: AxisConfig
+    type: ChartTypeName
+    yAxis: AxisConfig
+    xAxis: AxisConfig
     typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart?: ChartTypeName
     isReady?: boolean
     whatAreWeWaitingFor?: string
@@ -236,50 +236,23 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         )
     }
 
-    @computed get showEntitySelector(): boolean {
-        const {
-            showSelectEntitiesButton,
-            showChangeEntityButton,
-            // showAddEntityButton,
-        } = this.manager
-
-        // TODO: merge addEntity behavior into EntitySelectorToggle
-
-        return !!showSelectEntitiesButton || !!showChangeEntityButton
-    }
-
-    @computed get showSettingsMenuToggle(): boolean {
-        return (
-            !!this.manager.showSettingsMenuToggle &&
-            !!this.manager.isReady &&
-            !this.manager.isOnMapTab &&
-            !this.manager.isOnTableTab
-        )
-    }
-
-    private renderControlsRow(): JSX.Element | null {
-        const { showEntitySelector, showSettingsMenuToggle } = this
+    private renderControlsRow(): JSX.Element {
         return (
             <nav className="controlsRow">
                 <ContentSwitchers manager={this.manager} />
                 <div className="controls">
-                    {showEntitySelector && (
-                        <EntitySelectorToggle manager={this.manager} />
-                    )}
-                    {showSettingsMenuToggle && (
-                        <SettingsMenu
-                            manager={this.manager}
-                            top={
-                                FRAME_PADDING +
-                                this.header.height +
-                                VERTICAL_SPACING +
-                                CONTROLS_ROW_HEIGHT +
-                                4 // margin between button and menu
-                            }
-                            bottom={FRAME_PADDING}
-                            chart={this.chartTypeName}
-                        />
-                    )}
+                    <EntitySelectorToggle manager={this.manager} />
+                    <SettingsMenu
+                        manager={this.manager}
+                        top={
+                            FRAME_PADDING +
+                            this.header.height +
+                            VERTICAL_SPACING +
+                            CONTROLS_ROW_HEIGHT +
+                            4 // margin between button and menu
+                        }
+                        bottom={FRAME_PADDING}
+                    />
                 </div>
             </nav>
         )

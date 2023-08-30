@@ -157,6 +157,7 @@ nav.controlsRow .controls {
                 padding: 9px $indent 3px $indent;
                 position: sticky;
                 top: 0;
+                z-index: 1;
 
                 .config-title {
                     text-transform: uppercase;

@@ -11,6 +11,9 @@ import {
     // faEye,
     faRightLeft,
 } from "@fortawesome/free-solid-svg-icons"
+import { EntityName } from "@ourworldindata/core-table"
+import { SelectionArray } from "../selection/SelectionArray"
+import { ChartDimension } from "../chart/ChartDimension"
 import {
     GRAPHER_SETTINGS_DRAWER_ID,
     ChartTypeName,
@@ -22,6 +25,17 @@ import {
 import { AxisConfig } from "../axis/AxisConfig"
 import { Tippy, range } from "@ourworldindata/utils"
 import classnames from "classnames"
+
+const {
+    LineChart,
+    ScatterPlot,
+    StackedArea,
+    StackedDiscreteBar,
+    StackedBar,
+    Marimekko,
+} = ChartTypeName
+
+export type ControlsManager = EntitySelectionManager & SettingsMenuManager
 
 export interface EntitySelectionManager {
     showSelectEntitiesButton?: boolean
@@ -39,6 +53,7 @@ export class EntitySelectorToggle extends React.Component<{
         const {
             showSelectEntitiesButton,
             showChangeEntityButton,
+            // showAddEntityButton,
             entityType,
             entityTypePlural,
             isSelectingData: active,
@@ -46,6 +61,7 @@ export class EntitySelectorToggle extends React.Component<{
 
         if (!(showSelectEntitiesButton || showChangeEntityButton)) return null
 
+        // TODO: merge in addEntity icon/woding
         const [icon, label] = showSelectEntitiesButton
             ? [faPencilAlt, `Select ${entityTypePlural}`]
             : [faRightLeft, `Change ${entityType}`]
@@ -68,30 +84,50 @@ export class EntitySelectorToggle extends React.Component<{
 export interface SettingsMenuManager {
     showConfigurationDrawer?: boolean
 
+    // ArchieML directives
+    hideFacetControl?: boolean
+    hideRelativeToggle?: boolean
+    hideEntityControls?: boolean
+    hideZoomToggle?: boolean
+    hideNoDataAreaToggle?: boolean
+    hideFacetYDomainToggle?: boolean
+    hideXScaleToggle?: boolean
+    hideYScaleToggle?: boolean
+
+    // chart state
+    type: ChartTypeName
+    isRelativeMode?: boolean
+    selection?: SelectionArray | EntityName[]
+    filledDimensions: ChartDimension[]
+    xColumnSlug?: string
+    xOverrideTime?: number
+    hasTimeline?: boolean
+    canToggleRelativeMode: boolean
+
     // linear/log & align-faceted-axes
-    showYScaleToggle?: boolean
-    showXScaleToggle?: boolean
-    showFacetYDomainToggle?: boolean
-    yAxis?: AxisConfig
-    xAxis?: AxisConfig
+    //  showYScaleToggle?: boolean
+    //  showXScaleToggle?: boolean
+    //  showFacetYDomainToggle?: boolean
+    yAxis: AxisConfig
+    xAxis: AxisConfig
 
     // zoom-to-selection
-    showZoomToggle?: boolean
+    //  showZoomToggle?: boolean
     zoomToSelection?: boolean
 
     // show no-data entities in marimekko
-    showNoDataAreaToggle?: boolean
+    // showNoDataAreaToggle?: boolean
     showNoDataArea?: boolean
 
     // facet by
-    showFacetControl?: boolean
+    //  showFacetControl?: boolean
     availableFacetStrategies: FacetStrategy[]
     facetStrategy?: FacetStrategy
     entityType?: string
     facettingLabelByYVariables?: string
 
     // absolute/relative units
-    showAbsRelToggle?: boolean
+    //  showAbsRelToggle?: boolean
     stackMode?: StackMode
     relativeToggleLabel?: string
 
@@ -104,10 +140,101 @@ export class SettingsMenu extends React.Component<{
     manager: SettingsMenuManager
     top: number
     bottom: number
-    chart: ChartTypeName
 }> {
     @observable.ref visible: boolean = false
     @observable.ref shouldRender: boolean = false
+
+    @computed get showYScaleToggle(): boolean | undefined {
+        if (this.manager.hideYScaleToggle) return false
+        if (this.manager.isRelativeMode) return false
+        if ([StackedArea, StackedBar].includes(this.manager.type)) return false // We currently do not have these charts with log scale
+        return this.manager.yAxis.canChangeScaleType
+    }
+
+    @computed get showXScaleToggle(): boolean | undefined {
+        if (this.manager.hideXScaleToggle) return false
+        if (this.manager.isRelativeMode) return false
+        return this.manager.xAxis.canChangeScaleType
+    }
+
+    @computed get showFacetYDomainToggle(): boolean {
+        // don't offer to make the y range relative if the range is discrete
+        return (
+            !this.manager.hideFacetYDomainToggle &&
+            this.manager.facetStrategy !== FacetStrategy.none &&
+            this.manager.type !== StackedDiscreteBar
+        )
+    }
+
+    @computed get showZoomToggle(): boolean {
+        return (
+            !this.manager.hideZoomToggle && this.manager.type == ScatterPlot
+            // TODO: make this work around the definition that `selection`
+            //       might just be an array of strings…
+            // && this.manager.selection.hasSelection
+        )
+    }
+
+    @computed get showNoDataAreaToggle(): boolean {
+        return (
+            !this.manager.hideNoDataAreaToggle &&
+            this.manager.type == Marimekko &&
+            this.manager.xColumnSlug !== undefined
+        )
+    }
+
+    @computed get showAbsRelToggle(): boolean {
+        const { type, canToggleRelativeMode, hasTimeline, xOverrideTime } =
+            this.manager
+        if (!canToggleRelativeMode) return false
+        if (type === ScatterPlot)
+            return xOverrideTime === undefined && !!hasTimeline
+        return [
+            StackedArea,
+            StackedBar,
+            StackedDiscreteBar,
+            ScatterPlot,
+            LineChart,
+            Marimekko,
+        ].includes(type)
+    }
+
+    @computed get showFacetControl(): boolean {
+        const { filledDimensions, availableFacetStrategies, type } =
+            this.manager
+
+        // heuristic: if the chart doesn't make sense unfaceted, then it probably
+        // also makes sense to let the user switch between entity/metric facets
+        if (!availableFacetStrategies.includes(FacetStrategy.none)) return true
+
+        const showFacetControlChartType = [
+            StackedArea,
+            StackedBar,
+            StackedDiscreteBar,
+            LineChart,
+        ].includes(type)
+
+        const hasProjection = filledDimensions.some(
+            (dim) => dim.display.isProjection
+        )
+
+        return showFacetControlChartType && !hasProjection
+    }
+
+    @computed get showSettingsMenuToggle(): boolean {
+        const multifaceted = this.manager.availableFacetStrategies.length > 1
+        return !!(
+            this.showYScaleToggle ||
+            this.showXScaleToggle ||
+            this.showFacetYDomainToggle ||
+            this.showZoomToggle ||
+            this.showNoDataAreaToggle ||
+            (this.showFacetControl && multifaceted) ||
+            this.showAbsRelToggle
+        )
+
+        // TODO: add a showCompareEndPointsOnlyTogggle to complement compareEndPointsOnly
+    }
 
     @action.bound toggleVisibility(): void {
         this.visible = !this.visible
@@ -124,8 +251,8 @@ export class SettingsMenu extends React.Component<{
     }
 
     @computed get chartType(): string {
-        const { chart } = this.props
-        return chart.replace(/([A-Z])/g, " $1")
+        const { type } = this.manager
+        return type.replace(/([A-Z])/g, " $1")
     }
 
     @computed get drawer(): Element | null {
@@ -158,20 +285,19 @@ export class SettingsMenu extends React.Component<{
     }
 
     @computed get menuContents(): JSX.Element {
-        const { manager, chartType } = this
-
         const {
+            manager,
+            chartType,
             showYScaleToggle,
             showXScaleToggle,
-            yAxis,
-            xAxis,
             showZoomToggle,
             showNoDataAreaToggle,
             showFacetControl,
-            availableFacetStrategies,
             showAbsRelToggle,
-            compareEndPointsOnly,
-        } = manager
+        } = this
+
+        const { yAxis, xAxis, availableFacetStrategies, compareEndPointsOnly } =
+            manager
 
         return (
             <div className="settings-menu-contents">
@@ -260,9 +386,9 @@ export class SettingsMenu extends React.Component<{
         )
     }
 
-    render(): JSX.Element {
-        const { visible: active } = this
-        return (
+    render(): JSX.Element | null {
+        const { showSettingsMenuToggle, visible: active } = this
+        return showSettingsMenuToggle ? (
             <div className="settings-menu">
                 <button
                     className={classnames("menu-toggle", { active })}
@@ -272,7 +398,7 @@ export class SettingsMenu extends React.Component<{
                 </button>
                 {this.menu}
             </div>
-        )
+        ) : null
     }
 }
 
