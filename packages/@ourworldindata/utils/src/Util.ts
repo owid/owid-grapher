@@ -1664,10 +1664,6 @@ export function filterValidStringValues<ValidValue extends string>(
     return filteredValues
 }
 
-export function getFontScale(size: number, base = 16): number {
-    return size / base
-}
-
 // TODO: type this correctly once we have moved types into their own top level package
 export function mergePartialGrapherConfigs<T extends Record<string, any>>(
     ...grapherConfigs: (T | undefined)[]

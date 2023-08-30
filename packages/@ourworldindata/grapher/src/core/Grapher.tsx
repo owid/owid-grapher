@@ -2386,7 +2386,8 @@ export class Grapher
     @action.bound private setBaseFontSize(): void {
         const { renderWidth } = this
         if (renderWidth <= 400) this.baseFontSize = 14
-        else this.baseFontSize = 16
+        else if (renderWidth < 1080) this.baseFontSize = 16
+        else if (renderWidth >= 1080) this.baseFontSize = 18
     }
 
     // The size variant is used throughout Grapher to determine font sizes, line heights, margins, etc.
