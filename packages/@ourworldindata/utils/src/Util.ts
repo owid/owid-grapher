@@ -770,9 +770,15 @@ export const sleep = (ms: number): Promise<void> =>
 
 export async function retryPromise<T>(
     promiseGetter: () => Promise<T>,
-    maxRetries: number = 3,
-    exponentialBackoff: boolean = false,
-    initialDelay: number = 200 // Initial delay in ms
+    {
+        maxRetries = 3,
+        exponentialBackoff = false,
+        initialDelay = 200,
+    }: {
+        maxRetries?: number;
+        exponentialBackoff?: boolean;
+        initialDelay?: number;
+    } = {}
 ): Promise<T> {
     let retried = 0
     let lastError

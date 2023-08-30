@@ -410,9 +410,10 @@ export const fetchS3DataValuesByPath = async (
 ): Promise<OwidVariableMixedData> => {
     const resp = await retryPromise(
         () => fetch(dataPath, { keepalive: true }),
-        3,
-        true,
-        200
+        {
+            maxRetries: 3,
+            exponentialBackoff: true,
+        }
     )
     if (!resp.ok) {
         throw new Error(
@@ -429,9 +430,10 @@ export const fetchS3MetadataByPath = async (
 ): Promise<OwidVariableWithSourceAndDimension> => {
     const resp = await retryPromise(
         () => fetch(metadataPath, { keepalive: true }),
-        3,
-        true,
-        200
+        {
+            maxRetries: 3,
+            exponentialBackoff: true,
+        }
     )
     if (!resp.ok) {
         throw new Error(
