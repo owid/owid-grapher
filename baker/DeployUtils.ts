@@ -3,7 +3,11 @@ import { BakeStepConfig, SiteBaker } from "../baker/SiteBaker.js"
 import { BuildkiteTrigger } from "../baker/BuildkiteTrigger.js"
 import { logErrorAndMaybeSendToBugsnag, warn } from "../serverUtils/errorLog.js"
 import { DeployQueueServer } from "./DeployQueueServer.js"
-import { BAKED_SITE_DIR, BAKED_BASE_URL } from "../settings/serverSettings.js"
+import {
+    BAKED_SITE_DIR,
+    BAKED_BASE_URL,
+    BUILDKITE_API_ACCESS_TOKEN,
+} from "../settings/serverSettings.js"
 import { DeployChange, OwidGdocPublished } from "@ourworldindata/utils"
 import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
 
@@ -33,17 +37,25 @@ const bakeAndDeploy = async (
 ) => {
     message = message ?? (await defaultCommitMessage())
 
-    const baker = new SiteBaker(BAKED_SITE_DIR, BAKED_BASE_URL)
-    const buildkite = new BuildkiteTrigger()
+    // co-deploy to Buildkite
+    if (BUILDKITE_API_ACCESS_TOKEN) {
+        const buildkite = new BuildkiteTrigger()
+        // once we fully switch to baking on buildkite, we should await this
+        if (lightningQueue?.length) {
+            buildkite
+                .runLightningBuild(
+                    message!,
+                    lightningQueue.map((change) => change.slug!)
+                )
+                .catch(logErrorAndMaybeSendToBugsnag)
+        }
+        // once we fully switch to baking on buildkite, we should await this
+        buildkite.runFullBuild(message).catch(logErrorAndMaybeSendToBugsnag)
+    }
 
+    const baker = new SiteBaker(BAKED_SITE_DIR, BAKED_BASE_URL)
     try {
         if (lightningQueue?.length) {
-            // co-deploy to Buildkite
-            // once we fully switch to baking on buildkite, we should await this
-            lightningQueue.map((change) =>
-                buildkite.runLightningBuild(message!, change.slug!)
-            )
-
             for (const change of lightningQueue) {
                 const gdoc = (await Gdoc.findOneByOrFail({
                     published: true,
@@ -52,10 +64,6 @@ const bakeAndDeploy = async (
                 await baker.bakeGDocPost(gdoc)
             }
         } else {
-            // co-deploy to Buildkite
-            // once we fully switch to baking on buildkite, we should await this
-            buildkite.runFullBuild(message)
-
             await baker.bakeAll()
         }
         await baker.deployToNetlifyAndPushToGitPush(message)

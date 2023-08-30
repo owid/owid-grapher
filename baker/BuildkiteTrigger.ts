@@ -82,9 +82,12 @@ export class BuildkiteTrigger {
         }
     }
 
-    async runLightningBuild(message: string, gdocSlug: string): Promise<void> {
+    async runLightningBuild(
+        message: string,
+        gdocSlugs: string[]
+    ): Promise<void> {
         const buildNumber = await this.triggerBuild(message, {
-            LIGHTNING_GDOC_SLUG: gdocSlug,
+            LIGHTNING_GDOC_SLUGS: gdocSlugs.join(" "),
         })
         await this.waitForBuildToFinish(buildNumber)
     }

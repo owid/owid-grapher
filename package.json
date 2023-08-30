@@ -13,7 +13,7 @@
         "buildLerna": "lerna run build",
         "buildVite": "vite build",
         "buildWordpressPlugin": "cd ./wordpress/web/app/plugins/owid && yarn && yarn build",
-        "bakeGdocPost": "node --enable-source-maps ./itsJustJavascript/baker/bakeGdocPost.js",
+        "bakeGdocPosts": "node --enable-source-maps ./itsJustJavascript/baker/bakeGdocPosts.js",
         "cleanTsc": "rm -rf itsJustJavascript && tsc -b -clean",
         "deployWordpress": "./wordpress/scripts/deploy.sh",
         "fetchServerStatus": "node --enable-source-maps ./itsJustJavascript/baker/liveCommit.js",
