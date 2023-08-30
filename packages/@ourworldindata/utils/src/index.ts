@@ -329,7 +329,6 @@ export {
     type NodeWithUrl,
     filterValidStringValues,
     traverseEnrichedSpan,
-    getFontScale,
     mergePartialGrapherConfigs,
     getOriginAttributionFragments,
     getAttributionFromVariable,

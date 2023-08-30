@@ -3,13 +3,11 @@ import {
     TextWrap,
     DEFAULT_BOUNDS,
     MarkdownTextWrap,
-    getFontScale,
 } from "@ourworldindata/utils"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { Logo } from "../captionedChart/Logos"
 import { HeaderManager } from "./HeaderManager"
-import { BASE_FONT_SIZE, SizeVariant } from "../core/GrapherConstants"
 
 @observer
 export class Header extends React.Component<{
@@ -18,14 +16,6 @@ export class Header extends React.Component<{
 }> {
     @computed private get manager(): HeaderManager {
         return this.props.manager
-    }
-
-    @computed private get fontSize(): number {
-        return this.manager.fontSize ?? BASE_FONT_SIZE
-    }
-
-    @computed protected get sizeVariant(): SizeVariant {
-        return this.manager.sizeVariant ?? SizeVariant.base
     }
 
     @computed protected get maxWidth(): number {
@@ -41,10 +31,10 @@ export class Header extends React.Component<{
     }
 
     @computed get logo(): Logo | undefined {
-        const { manager, sizeVariant } = this
+        const { manager } = this
         if (manager.hideLogo) return undefined
 
-        const heightScale = sizeVariant === SizeVariant.sm ? 0.775 : 1
+        const heightScale = this.manager.isSmall ? 0.775 : 1
         return new Logo({
             logo: manager.logo as any,
             isLink: !!manager.shouldLinkToOwid,
@@ -61,18 +51,17 @@ export class Header extends React.Component<{
     }
 
     @computed get title(): TextWrap {
-        const { logoWidth, sizeVariant } = this
-        const fontScale =
-            sizeVariant === SizeVariant.sm
-                ? getFontScale(18)
-                : sizeVariant === SizeVariant.md
-                ? getFontScale(20)
-                : getFontScale(24)
+        const { logoWidth } = this
+        const fontSize = this.manager.isSmall
+            ? 18
+            : this.manager.isMedium
+            ? 20
+            : 24
         return new TextWrap({
             maxWidth: this.maxWidth - logoWidth - 24,
             fontWeight: 400,
-            lineHeight: sizeVariant === SizeVariant.sm ? 1.1 : 1.2,
-            fontSize: fontScale * this.fontSize,
+            lineHeight: this.manager.isSmall ? 1.1 : 1.2,
+            fontSize,
             text: this.titleText,
         })
     }
@@ -89,17 +78,15 @@ export class Header extends React.Component<{
     }
 
     @computed get subtitle(): MarkdownTextWrap {
-        const { sizeVariant } = this
-        const fontScale =
-            sizeVariant === SizeVariant.sm
-                ? getFontScale(12)
-                : sizeVariant === SizeVariant.md
-                ? getFontScale(13)
-                : getFontScale(14)
-        const lineHeight = sizeVariant === SizeVariant.base ? 1.28571 : 1.2
+        const fontSize = this.manager.isSmall
+            ? 12
+            : this.manager.isMedium
+            ? 13
+            : 14
+        const lineHeight = this.manager.isMedium ? 1.2 : 1.28571
         return new MarkdownTextWrap({
             maxWidth: this.subtitleWidth,
-            fontSize: fontScale * this.fontSize,
+            fontSize,
             text: this.subtitleText,
             lineHeight,
             detailsOrderedByReference: this.manager

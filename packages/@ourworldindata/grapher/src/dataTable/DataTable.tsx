@@ -40,7 +40,6 @@ import {
 } from "@ourworldindata/utils"
 import { makeSelectionArray } from "../chart/ChartUtils"
 import { SelectionArray } from "../selection/SelectionArray"
-import { SizeVariant } from "../core/GrapherConstants"
 
 interface DataTableState {
     sort: DataTableSortState
@@ -79,7 +78,8 @@ export interface DataTableManager {
     endTime?: Time
     startTime?: Time
     dataTableSlugs?: ColumnSlug[]
-    sizeVariant?: SizeVariant
+    isSmall?: boolean
+    isMedium?: boolean
 }
 
 @observer
@@ -89,10 +89,6 @@ export class DataTable extends React.Component<{
 }> {
     @observable private storedState: DataTableState = {
         sort: DEFAULT_SORT_STATE,
-    }
-
-    @computed private get sizeVariant(): SizeVariant {
-        return this.manager.sizeVariant ?? SizeVariant.base
     }
 
     @computed private get tableState(): DataTableState {
@@ -448,18 +444,11 @@ export class DataTable extends React.Component<{
     }
 
     @computed private get tableCaptionPaddingTop(): number {
-        const { sizeVariant } = this
-        return sizeVariant === SizeVariant.sm || sizeVariant === SizeVariant.md
-            ? 2
-            : 4
+        return this.manager.isMedium ? 2 : 4
     }
 
     @computed private get tableCaptionPaddingBottom(): number {
-        return {
-            [SizeVariant.sm]: 4,
-            [SizeVariant.md]: 8,
-            [SizeVariant.base]: 12,
-        }[this.sizeVariant]
+        return this.manager.isSmall ? 4 : this.manager.isMedium ? 8 : 12
     }
 
     @computed private get tableCaption(): JSX.Element | null {

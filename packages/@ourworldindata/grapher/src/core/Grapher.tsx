@@ -89,7 +89,6 @@ import {
     SeriesStrategy,
     getVariableDataRoute,
     getVariableMetadataRoute,
-    SizeVariant,
 } from "../core/GrapherConstants"
 import Cookies from "js-cookie"
 import {
@@ -889,7 +888,6 @@ export class Grapher
     }
 
     @observable.ref baseFontSize = BASE_FONT_SIZE
-    @observable.ref sizeVariant = SizeVariant.base
 
     // Ready to go iff we have retrieved data for every variable associated with the chart
     @computed get isReady(): boolean {
@@ -2311,7 +2309,7 @@ export class Grapher
         const containerStyle = {
             width: this.renderWidth,
             height: this.renderHeight,
-            fontSize: this.baseFontSize,
+            fontSize: Math.min(16, this.baseFontSize), // cap font size at 16px
         }
 
         return (
@@ -2386,21 +2384,24 @@ export class Grapher
     @action.bound private setBaseFontSize(): void {
         const { renderWidth } = this
         if (renderWidth <= 400) this.baseFontSize = 14
-        else this.baseFontSize = 16
+        else if (renderWidth < 1080) this.baseFontSize = 16
+        else if (renderWidth >= 1080) this.baseFontSize = 18
     }
 
-    // The size variant is used throughout Grapher to determine font sizes, line heights, margins, etc.
-    @action.bound setSizeVariant(): void {
-        const { renderWidth } = this
-        // When embedded, charts are rendered into a 12-column grid.
-        // The size variant pixel thresholds are based on these breakpoints.
-        // The size variant is `sm` if the chart is rendered into 6 or 7 columns
-        // (e.g. side-by-side charts or charts in the All Charts block)
-        if (renderWidth <= 740) this.sizeVariant = SizeVariant.sm
-        // The size variant is `md` if the chart is rendered into 8 columns
-        // (e.g. stand-alone charts in the main text of an article)
-        else if (renderWidth <= 840) this.sizeVariant = SizeVariant.md
-        else this.sizeVariant = SizeVariant.base
+    @computed get isNarrow(): boolean {
+        return this.renderWidth <= 400
+    }
+
+    // Small charts are rendered into 6 or 7 columns in a 12-column grid layout
+    // (e.g. side-by-side charts or charts in the All Charts block)
+    @computed get isSmall(): boolean {
+        return this.renderWidth <= 740
+    }
+
+    // Medium charts are rendered into 8 columns in a 12-column grid layout
+    // (e.g. stand-alone charts in the main text of an article)
+    @computed get isMedium(): boolean {
+        return this.renderWidth <= 840
     }
 
     // Binds chart properties to global window title and URL. This should only
@@ -2441,7 +2442,6 @@ export class Grapher
 
     componentDidMount(): void {
         this.setBaseFontSize()
-        this.setSizeVariant()
         this.setUpIntersectionObserver()
         this.setUpWindowResizeEventHandler()
         exposeInstanceOnWindow(this, "grapher")
@@ -2480,7 +2480,6 @@ export class Grapher
 
     componentDidUpdate(): void {
         this.setBaseFontSize()
-        this.setSizeVariant()
     }
 
     componentDidCatch(error: Error): void {

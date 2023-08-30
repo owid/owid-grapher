@@ -7,7 +7,7 @@ import {
     faEarthAmericas,
     faChartLine,
 } from "@fortawesome/free-solid-svg-icons"
-import { GrapherTabOption, SizeVariant } from "../core/GrapherConstants"
+import { GrapherTabOption } from "../core/GrapherConstants"
 
 const icons = {
     [GrapherTabOption.table]: faTable,
@@ -18,7 +18,8 @@ const icons = {
 export interface ContentSwitchersManager {
     availableTabs?: GrapherTabOption[]
     tab?: GrapherTabOption
-    sizeVariant?: SizeVariant
+    isNarrow?: boolean
+    isMedium?: boolean
 }
 
 @observer
@@ -29,29 +30,28 @@ export class ContentSwitchers extends React.Component<{
         return this.props.manager
     }
 
-    @computed private get sizeVariant(): SizeVariant {
-        return this.manager.sizeVariant ?? SizeVariant.base
-    }
-
     @computed private get availableTabs(): GrapherTabOption[] {
         return this.manager.availableTabs || []
     }
 
     render(): JSX.Element {
-        const { manager, sizeVariant } = this
-        const { sm, md } = SizeVariant
-        const isNarrow = sizeVariant === sm || sizeVariant === md
+        const { manager } = this
         return (
-            <ul className={"ContentSwitchers" + (isNarrow ? " narrow" : "")}>
+            <ul
+                className={
+                    "ContentSwitchers" +
+                    (manager.isMedium && !manager.isNarrow ? " narrow" : "")
+                }
+            >
                 {this.availableTabs.map((tab) => (
                     <Tab
                         key={tab}
                         tab={tab}
                         isActive={tab === manager.tab}
-                        sizeVariant={sizeVariant}
                         onClick={(): void => {
                             manager.tab = tab
                         }}
+                        showLabel={!manager.isNarrow}
                     />
                 ))}
             </ul>
@@ -62,8 +62,8 @@ export class ContentSwitchers extends React.Component<{
 function Tab(props: {
     tab: GrapherTabOption
     isActive?: boolean
-    sizeVariant?: SizeVariant
     onClick?: React.MouseEventHandler<HTMLAnchorElement>
+    showLabel?: boolean
 }): JSX.Element {
     const className = "tab clickable" + (props.isActive ? " active" : "")
     return (
@@ -73,7 +73,7 @@ function Tab(props: {
                 data-track-note={"chart_click_" + props.tab}
             >
                 <FontAwesomeIcon icon={icons[props.tab]} />
-                {props.tab}
+                {props.showLabel && <span className="label">{props.tab}</span>}
             </a>
         </li>
     )

@@ -210,9 +210,26 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
     }
 
     private renderReady(): JSX.Element {
-        const { manager, svgPreviewUrl } = this
+        const { manager, svgPreviewUrl, tabBounds, targetWidth, targetHeight } =
+            this
         const pngPreviewUrl = this.pngPreviewUrl || this.fallbackPngUrl
+
+        let previewWidth: number
+        let previewHeight: number
+        const boundScalar = 0.17
+        if (tabBounds.width / tabBounds.height > targetWidth / targetHeight) {
+            previewHeight = Math.min(72, tabBounds.height * boundScalar)
+            previewWidth = (targetWidth / targetHeight) * previewHeight
+        } else {
+            previewWidth = Math.min(102, tabBounds.width * boundScalar)
+            previewHeight = (targetHeight / targetWidth) * previewWidth
+        }
+
         const imgStyle = {
+            minWidth: previewWidth,
+            minHeight: previewHeight,
+            maxWidth: previewWidth,
+            maxHeight: previewHeight,
             opacity: this.isReady ? 1 : 0,
         }
 

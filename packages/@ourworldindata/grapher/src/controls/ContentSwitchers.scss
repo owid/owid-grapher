@@ -1,6 +1,6 @@
 $borderWidth: 1px;
 $borderRadius: 4px;
-$gap: 2px;
+$gap: 1.5px;
 
 .ContentSwitchers {
     list-style: none;
@@ -28,8 +28,11 @@ $gap: 2px;
         padding: 0 16px;
         cursor: default;
 
+        .label {
+            margin-left: 6px;
+        }
+
         svg {
-            margin-right: 6px;
             color: $info-icon;
         }
     }
