@@ -60,7 +60,7 @@
         grid-template-columns: repeat(2, 1fr);
         gap: $vertical-spacing;
 
-        // Hack to work raround the top border shadow being cropped for the first
+        // Hack to work around the top border shadow being cropped for the first
         // two thumbnails. See also unsatisfactory solution above.
         li {
             &:nth-child(1),

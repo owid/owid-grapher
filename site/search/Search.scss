@@ -259,6 +259,9 @@
         .search-results__chart-hit-highlight {
             text-decoration: underline;
         }
+        img {
+            box-shadow: none;
+        }
     }
 }
 
@@ -268,14 +271,14 @@
 }
 
 .search-results__chart-hit-img-container {
-    background: $gray-10;
-    // grapher thumbnail height / width
-    padding-top: calc(600 / 850 * 100%);
-    position: relative;
-
+    margin-bottom: 8px;
     img {
-        position: absolute;
-        top: 0;
+        display: block; // remove the space below the image
+        box-shadow: 0px 0px 0px 0px rgba(49, 37, 2, 0.03),
+            0px 6px 13px 0px rgba(49, 37, 2, 0.03),
+            0px 93px 37px 0px rgba(49, 37, 2, 0.01),
+            0px 145px 41px 0px rgba(49, 37, 2, 0);
+        transition: box-shadow 0.1s;
     }
 }
 
