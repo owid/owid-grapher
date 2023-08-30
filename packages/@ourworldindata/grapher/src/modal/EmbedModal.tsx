@@ -24,6 +24,7 @@ interface EmbedModalProps {
 
 interface EmbedModalState {
     canWriteToClipboard: boolean
+    copied: boolean
 }
 
 @observer
@@ -38,6 +39,7 @@ export class EmbedModal extends React.Component<
 
         this.state = {
             canWriteToClipboard: false,
+            copied: false,
         }
     }
 
@@ -60,27 +62,17 @@ export class EmbedModal extends React.Component<
         return this.props.manager
     }
 
-    @action.bound resizeTextArea(): void {
-        if (this.textAreaRef.current) {
-            const textArea = this.textAreaRef.current
-            textArea.style.height = textArea.scrollHeight + "px"
-        }
-    }
-
     componentDidMount(): void {
         canWriteToClipboard().then((canWriteToClipboard) =>
             this.setState({ canWriteToClipboard })
         )
-        this.resizeTextArea()
     }
 
-    componentDidUpdate(): void {
-        this.resizeTextArea()
-    }
-
-    @action.bound async onCopyCodeSnippet(): Promise<void> {
+    @action.bound async copyCodeSnippet(): Promise<void> {
         try {
             await navigator.clipboard.writeText(this.codeSnippet)
+            this.setState({ copied: true })
+            setTimeout(() => this.setState({ copied: false }), 2000)
         } catch (err) {
             console.error(
                 "couldn't copy to clipboard using navigator.clipboard",
@@ -102,15 +94,14 @@ export class EmbedModal extends React.Component<
                 <div className="embedMenu">
                     <p>Paste this into any HTML page:</p>
                     <div className="embedCode">
-                        <textarea
-                            ref={this.textAreaRef}
-                            readOnly={true}
-                            onFocus={(evt): void => evt.currentTarget.select()}
-                            value={this.codeSnippet}
-                        />
+                        <code>{this.codeSnippet}</code>
                         {this.state.canWriteToClipboard && (
-                            <button onClick={this.onCopyCodeSnippet}>
-                                <FontAwesomeIcon icon={faCopy} />
+                            <button onClick={this.copyCodeSnippet}>
+                                {this.state.copied ? (
+                                    "Copied!"
+                                ) : (
+                                    <FontAwesomeIcon icon={faCopy} />
+                                )}
                             </button>
                         )}
                     </div>
