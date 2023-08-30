@@ -775,9 +775,9 @@ export async function retryPromise<T>(
         exponentialBackoff = false,
         initialDelay = 200,
     }: {
-        maxRetries?: number;
-        exponentialBackoff?: boolean;
-        initialDelay?: number;
+        maxRetries?: number
+        exponentialBackoff?: boolean
+        initialDelay?: number
     } = {}
 ): Promise<T> {
     let retried = 0
