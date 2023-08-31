@@ -323,16 +323,6 @@
     }
 }
 
-.search-results__chart-hit {
-    display: none;
-}
-
-.search-results__chart-hit {
-    &:nth-child(-n + 16) {
-        display: inline;
-    }
-}
-
 .search-results[data-active-filter="charts"] .search-results__charts {
     display: inline;
 

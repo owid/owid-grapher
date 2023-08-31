@@ -376,7 +376,7 @@ const SearchResults = (props: SearchResultsProps) => {
                             </h2>
                             <ShowMore
                                 category={SearchIndexName.Charts}
-                                cutoffNumber={16}
+                                cutoffNumber={40}
                                 activeCategoryFilter={activeCategoryFilter}
                                 handleCategoryFilterClick={
                                     handleCategoryFilterClick
