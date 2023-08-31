@@ -136,13 +136,23 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                     changed in ETL.
                                 </p>
                                 <p>
+                                    Open the metadata.yaml file:
                                     <a
                                         href={`https://github.com/owid/etl/blob/master/etl/steps/data/garden/${pathFragments?.producer}/${pathFragments?.version}/${pathFragments?.table}.meta.yml`}
                                         target="_blank"
                                         rel="noopener"
                                     >
-                                        Open the garden level metadata.yaml file
+                                        garden level
                                     </a>
+                                    ,{" "}
+                                    <a
+                                        href={`https://github.com/owid/etl/blob/master/etl/steps/data/grapher/${pathFragments?.producer}/${pathFragments?.version}/${pathFragments?.table}.meta.yml`}
+                                        target="_blank"
+                                        rel="noopener"
+                                    >
+                                        grapher level
+                                    </a>
+                                    .{" "}
                                     <small>
                                         (opens on master branch - switch as
                                         needed in the Github UI)
