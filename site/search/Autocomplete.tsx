@@ -193,7 +193,7 @@ export function Autocomplete({
     useEffect(() => {
         const search = autocomplete({
             container: AUTOCOMPLETE_CONTAINER_ID,
-            placeholder: "Search for a topic or chart",
+            placeholder: "Search for a topic, chart or article...",
             openOnFocus: true,
             detachedMediaQuery: "(max-width: 960px)",
             onStateChange({ state, prevState }) {
