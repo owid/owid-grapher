@@ -1,6 +1,11 @@
 import React from "react"
 import { computed } from "mobx"
-import { OWID_LOGO_SVG, CORE_LOGO_SVG, GV_LOGO_SVG } from "./LogosSVG"
+import {
+    OWID_LOGO_SVG,
+    CORE_LOGO_SVG,
+    GV_LOGO_SVG,
+    SMALL_OWID_LOGO_SVG,
+} from "./LogosSVG"
 
 export enum LogoOption {
     owid = "owid",
@@ -19,8 +24,8 @@ interface LogoAttributes {
 const logos: Record<LogoOption, LogoAttributes> = {
     owid: {
         svg: OWID_LOGO_SVG,
-        width: 73,
-        height: 40,
+        width: 65,
+        height: 36,
         targetHeight: 36,
         url: "https://ourworldindata.org",
     },
@@ -38,10 +43,19 @@ const logos: Record<LogoOption, LogoAttributes> = {
     },
 }
 
+const smallOwidLogo = {
+    svg: SMALL_OWID_LOGO_SVG,
+    width: 51,
+    height: 28,
+    targetHeight: 28,
+    url: "https://ourworldindata.org",
+}
+
 interface LogoProps {
     logo?: LogoOption
     isLink: boolean
     heightScale?: number
+    useSmallVersion?: boolean
 }
 
 export class Logo {
@@ -51,6 +65,8 @@ export class Logo {
     }
 
     @computed private get spec(): LogoAttributes {
+        if (this.props.useSmallVersion && this.props.logo === LogoOption.owid)
+            return smallOwidLogo
         return this.props.logo !== undefined
             ? logos[this.props.logo]
             : logos.owid

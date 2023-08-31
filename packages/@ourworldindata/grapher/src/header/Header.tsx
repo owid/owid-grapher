@@ -6,7 +6,7 @@ import {
 } from "@ourworldindata/utils"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { Logo } from "../captionedChart/Logos"
+import { Logo, LogoOption } from "../captionedChart/Logos"
 import { HeaderManager } from "./HeaderManager"
 
 @observer
@@ -33,12 +33,12 @@ export class Header extends React.Component<{
     @computed get logo(): Logo | undefined {
         const { manager } = this
         if (manager.hideLogo) return undefined
-
-        const heightScale = this.manager.isSmall ? 0.775 : 1
+        const isOwidLogo = manager.logo === LogoOption.owid
         return new Logo({
             logo: manager.logo as any,
             isLink: !!manager.shouldLinkToOwid,
-            heightScale,
+            heightScale: manager.isSmall && !isOwidLogo ? 0.775 : 1,
+            useSmallVersion: manager.isSmall && isOwidLogo,
         })
     }
 
