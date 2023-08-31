@@ -17,6 +17,7 @@ import {
     OwidVariableDisplayConfig,
     DimensionProperty,
     EPOCH_DATE,
+    getETLPathComponents,
 } from "@ourworldindata/utils"
 import { GrapherFigureView } from "../site/GrapherFigureView.js"
 import { ChartList, ChartListItem } from "./ChartList.js"
@@ -90,6 +91,10 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
         const { newVariable, isV2MetadataVariable } = this
         const isDisabled = true
 
+        const pathFragments = variable.catalogPath
+            ? getETLPathComponents(variable.catalogPath)
+            : undefined
+
         if (this.isDeleted)
             return <Redirect to={`/datasets/${variable.datasetId}`} />
 
@@ -116,21 +121,44 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                             <section>
                                 <h3>Indicator metadata</h3>
                                 {isV2MetadataVariable && (
-                                    <a
-                                        href={`/admin/datapage-preview/${variable.id}`}
-                                    >
-                                        View data page
-                                    </a>
+                                    <>
+                                        <a
+                                            href={`/admin/datapage-preview/${variable.id}`}
+                                        >
+                                            View data page
+                                        </a>
+                                        <br></br>
+                                    </>
                                 )}
+
                                 <p>
                                     Metadata is non-editable and can be only
                                     changed in ETL.
+                                </p>
+                                <p>
+                                    <a
+                                        href={`https://github.com/owid/etl/blob/master/etl/steps/data/garden/${pathFragments?.producer}/${pathFragments?.version}/${pathFragments?.table}.meta.yml`}
+                                        target="_blank"
+                                        rel="noopener"
+                                    >
+                                        Open the garden level metadata.yaml file
+                                    </a>
+                                    <small>
+                                        (opens on master branch - switch as
+                                        needed in the Github UI)
+                                    </small>
                                 </p>
                                 <BindString
                                     field="name"
                                     store={newVariable}
                                     label="Indicator Name"
                                     disabled={isDisabled}
+                                />
+                                <BindString
+                                    field="catalogPath"
+                                    store={variable}
+                                    label="ETL path"
+                                    disabled={true}
                                 />
                                 <BindString
                                     label="Display name"

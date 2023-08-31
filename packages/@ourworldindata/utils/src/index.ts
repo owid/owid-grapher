@@ -333,6 +333,7 @@ export {
     getOriginAttributionFragments,
     getAttributionFromVariable,
     copyToClipboard,
+    getETLPathComponents,
 } from "./Util.js"
 
 export {
