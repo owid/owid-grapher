@@ -582,7 +582,7 @@ export class StaticFooter extends Footer<StaticFooterProps> {
         const { finalUrl, finalUrlText, licenseText, licenseUrl } = this
         const licenseSvg = `<a target="_blank" style='fill: #5b5b5b;' href="${licenseUrl}">${licenseText}</a>`
         if (!finalUrlText) return licenseSvg
-        const originUrlSvg = `<a target="_blank" href="${finalUrl}">${finalUrlText}</a>`
+        const originUrlSvg = `<a target="_blank" style='fill: #5b5b5b;' href="${finalUrl}">${finalUrlText}</a>`
         return [originUrlSvg, licenseSvg].join(" | ")
     }
 
