@@ -641,24 +641,33 @@ export class SiteBaker {
     }
 
     private async _bakeNonWordpressPages() {
+        const promises = []
+
         if (this.bakeSteps.has("countries")) {
-            await bakeCountries(this)
+            promises.push(bakeCountries(this))
         }
-        await this.bakeSpecialPages()
-        await this.bakeCountryProfiles()
-        await this.bakeExplorers()
+        promises.push(this.bakeSpecialPages())
+        promises.push(this.bakeCountryProfiles())
+        promises.push(this.bakeExplorers())
         if (this.bakeSteps.has("charts")) {
-            await bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers(
-                this.bakedSiteDir
+            promises.push(
+                bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers(
+                    this.bakedSiteDir
+                )
             )
             this.progressBar.tick({
                 name: "✅ bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers",
             })
         }
-        await this.bakeDetailsOnDemand()
-        await this.validateGrapherDodReferences()
-        await this.bakeGDocPosts()
-        await this.bakeDriveImages()
+        promises.push(async () => {
+            await this.bakeDetailsOnDemand()
+            await this.validateGrapherDodReferences()
+        })
+        promises.push(async () => {
+            await this.bakeGDocPosts()
+            await this.bakeDriveImages()
+        })
+        Promise.all(promises)
     }
 
     async bakeNonWordpressPages() {
