@@ -288,11 +288,15 @@ export class ExplorerCreatePage extends React.Component<{
                     <a className="PreviewLink" href={previewLink}>
                         Visit preview
                     </a>
-                    {program.whyIsExplorerProgramInvalid && (
+                    {/* Disabled for now since this piece of code causes an issue where
+                    the HotTable's context menu disappears right after opening it.
+                    The reason for that is that program.whyIsExplorerProgramInvalid
+                    refreshes every few seconds, which causes the HotTable to re-render. */}
+                    {/* {program.whyIsExplorerProgramInvalid && (
                         <div className="WhyIsExplorerProgramInvalid">
                             {program.whyIsExplorerProgramInvalid}
                         </div>
-                    )}
+                    )} */}
                 </main>
             </>
         )
