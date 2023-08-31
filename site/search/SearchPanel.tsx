@@ -144,13 +144,8 @@ function ShowMore({
     if (results.hits.length === 0) return null
 
     const handleClick = () => {
-        window.scrollTo({ top: 0, behavior: "smooth" })
-        // Wait for scroll to finish before updating the tab
-        // Skip the timeout if we were already at/near the top of the page
-        const timeout = window.scrollY > 100 ? 500 : 0
-        setTimeout(() => {
-            handleCategoryFilterClick(category)
-        }, timeout)
+        window.scrollTo({ top: 0 })
+        handleCategoryFilterClick(category)
     }
 
     const numberShowing = Math.min(cutoffNumber, results.hits.length)
