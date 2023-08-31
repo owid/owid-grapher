@@ -887,7 +887,16 @@ export class Grapher
             this.selection.setSelectedEntities(this.selectedEntityNames)
     }
 
-    @observable.ref baseFontSize = BASE_FONT_SIZE
+    @observable private _baseFontSize = BASE_FONT_SIZE
+
+    @computed get baseFontSize(): number {
+        if (this.isExportingtoSvgOrPng) return 18
+        return this._baseFontSize
+    }
+
+    set baseFontSize(val: number) {
+        this._baseFontSize = val
+    }
 
     // Ready to go iff we have retrieved data for every variable associated with the chart
     @computed get isReady(): boolean {
@@ -2317,7 +2326,9 @@ export class Grapher
         const containerStyle = {
             width: this.renderWidth,
             height: this.renderHeight,
-            fontSize: Math.min(16, this.baseFontSize), // cap font size at 16px
+            fontSize: this.isExportingtoSvgOrPng
+                ? 18
+                : Math.min(16, this.baseFontSize), // cap font size at 16px
         }
 
         return (
@@ -2397,18 +2408,21 @@ export class Grapher
     }
 
     @computed get isNarrow(): boolean {
+        if (this.isExportingtoSvgOrPng) return false
         return this.renderWidth <= 400
     }
 
     // Small charts are rendered into 6 or 7 columns in a 12-column grid layout
     // (e.g. side-by-side charts or charts in the All Charts block)
     @computed get isSmall(): boolean {
+        if (this.isExportingtoSvgOrPng) return false
         return this.renderWidth <= 740
     }
 
     // Medium charts are rendered into 8 columns in a 12-column grid layout
     // (e.g. stand-alone charts in the main text of an article)
     @computed get isMedium(): boolean {
+        if (this.isExportingtoSvgOrPng) return false
         return this.renderWidth <= 840
     }
 

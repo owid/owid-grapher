@@ -549,6 +549,8 @@ interface StaticFooterProps extends FooterProps {
 
 @observer
 export class StaticFooter extends Footer<StaticFooterProps> {
+    verticalPadding = 2
+
     @computed protected get showLicenseNextToSources(): boolean {
         return (
             this.maxWidth - this.sources.width - HORIZONTAL_PADDING >
@@ -587,6 +589,10 @@ export class StaticFooter extends Footer<StaticFooterProps> {
     @computed protected get sourcesText(): string {
         const sourcesLine = this.manager.sourcesLine
         return sourcesLine ? `**Data source:** ${sourcesLine}` : ""
+    }
+
+    @computed protected get fontSize(): number {
+        return 13
     }
 
     @computed protected get sourcesFontSize(): number {

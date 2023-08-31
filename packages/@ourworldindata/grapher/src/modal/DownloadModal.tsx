@@ -19,7 +19,10 @@ import {
     OwidColumnDef,
     CoreColumn,
 } from "@ourworldindata/core-table"
-import { STATIC_EXPORT_DETAIL_SPACING } from "../core/GrapherConstants"
+import {
+    GRAPHER_FRAME_PADDING,
+    STATIC_EXPORT_DETAIL_SPACING,
+} from "../core/GrapherConstants"
 import { Modal } from "./Modal"
 
 export interface DownloadModalManager {
@@ -64,6 +67,7 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
         if (this.manager.shouldIncludeDetailsInStaticExport) {
             return (
                 this.idealBounds.height +
+                2 * GRAPHER_FRAME_PADDING +
                 sumTextWrapHeights(
                     this.manager.detailRenderers,
                     STATIC_EXPORT_DETAIL_SPACING

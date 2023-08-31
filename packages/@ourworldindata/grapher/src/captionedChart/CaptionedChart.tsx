@@ -22,6 +22,7 @@ import {
     Patterns,
     RelatedQuestionsConfig,
     STATIC_EXPORT_DETAIL_SPACING,
+    GRAPHER_FRAME_PADDING,
 } from "../core/GrapherConstants"
 import { MapChartManager } from "../mapCharts/MapChartConstants"
 import { ChartManager } from "../chart/ChartManager"
@@ -114,7 +115,7 @@ interface CaptionedChartProps {
 }
 
 // keep in sync with sass variables in CaptionedChart.scss
-const FRAME_PADDING = 16
+const FRAME_PADDING = GRAPHER_FRAME_PADDING
 const CONTROLS_ROW_HEIGHT = 32
 
 @observer
@@ -558,11 +559,7 @@ export class StaticCaptionedChart extends CaptionedChart {
             .padTop(this.manager.isOnMapTab ? 0 : this.verticalPadding)
     }
 
-    renderSVGDetails(): JSX.Element | null {
-        if (!this.manager.shouldIncludeDetailsInStaticExport) {
-            return null
-        }
-
+    renderSVGDetails(): JSX.Element {
         let yOffset = 0
         let previousOffset = 0
         return (
@@ -604,15 +601,18 @@ export class StaticCaptionedChart extends CaptionedChart {
             </defs>
         )
     }
+
     render(): JSX.Element {
         const { bounds, paddedBounds, manager, maxWidth } = this
         let { width, height } = bounds
 
         if (this.manager.shouldIncludeDetailsInStaticExport) {
-            height += sumTextWrapHeights(
-                this.manager.detailRenderers,
-                STATIC_EXPORT_DETAIL_SPACING
-            )
+            height +=
+                2 * FRAME_PADDING +
+                sumTextWrapHeights(
+                    this.manager.detailRenderers,
+                    STATIC_EXPORT_DETAIL_SPACING
+                )
         }
 
         return (
@@ -638,7 +638,8 @@ export class StaticCaptionedChart extends CaptionedChart {
                     targetX={paddedBounds.x}
                     targetY={paddedBounds.bottom - this.staticFooter.height}
                 />
-                {this.renderSVGDetails()}
+                {manager.shouldIncludeDetailsInStaticExport &&
+                    this.renderSVGDetails()}
             </svg>
         )
     }
