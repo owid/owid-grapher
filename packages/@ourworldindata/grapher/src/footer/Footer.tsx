@@ -549,6 +549,8 @@ interface StaticFooterProps extends FooterProps {
 
 @observer
 export class StaticFooter extends Footer<StaticFooterProps> {
+    verticalPadding = 2
+
     @computed protected get showLicenseNextToSources(): boolean {
         return (
             this.maxWidth - this.sources.width - HORIZONTAL_PADDING >
@@ -578,15 +580,19 @@ export class StaticFooter extends Footer<StaticFooterProps> {
 
     @computed protected get licenseAndOriginUrlText(): string {
         const { finalUrl, finalUrlText, licenseText, licenseUrl } = this
-        const licenseSvg = `<a target="_blank" style='fill: #5b5b5b;' href="${licenseUrl}">${licenseText}</a>`
+        const licenseSvg = `<a target="_blank" style="fill: #5b5b5b;" href="${licenseUrl}">${licenseText}</a>`
         if (!finalUrlText) return licenseSvg
-        const originUrlSvg = `<a target="_blank" href="${finalUrl}">${finalUrlText}</a>`
+        const originUrlSvg = `<a target="_blank" style="fill: #5b5b5b; text-decoration: underline;" href="${finalUrl}">${finalUrlText}</a>`
         return [originUrlSvg, licenseSvg].join(" | ")
     }
 
     @computed protected get sourcesText(): string {
         const sourcesLine = this.manager.sourcesLine
         return sourcesLine ? `**Data source:** ${sourcesLine}` : ""
+    }
+
+    @computed protected get fontSize(): number {
+        return 13
     }
 
     @computed protected get sourcesFontSize(): number {
