@@ -16,7 +16,6 @@ import {
     Index,
     Snippet,
     useInstantSearch,
-    useConnector,
     PoweredBy,
 } from "react-instantsearch-hooks-web"
 import algoliasearch, { SearchClient } from "algoliasearch"
@@ -38,13 +37,6 @@ import {
     pageTypeDisplayNames,
 } from "./searchTypes.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../../explorer/ExplorerConstants.js"
-
-import connectAutocomplete from "instantsearch.js/es/connectors/autocomplete/connectAutocomplete"
-
-import type {
-    AutocompleteConnectorParams,
-    AutocompleteWidgetDescription,
-} from "instantsearch.js/es/connectors/autocomplete/connectAutocomplete"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faSearch } from "@fortawesome/free-solid-svg-icons"
 import { logSiteSearchClick } from "./searchClient.js"
@@ -52,15 +44,6 @@ import {
     PreferenceType,
     getPreferenceValue,
 } from "../CookiePreferencesManager.js"
-
-export type UseAutocompleteProps = AutocompleteConnectorParams
-
-export function useAutocomplete(props?: UseAutocompleteProps) {
-    return useConnector<
-        AutocompleteConnectorParams,
-        AutocompleteWidgetDescription
-    >(connectAutocomplete, props)
-}
 
 function PagesHit({ hit }: { hit: IPageHit }) {
     return (
