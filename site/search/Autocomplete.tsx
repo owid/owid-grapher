@@ -132,6 +132,7 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
     },
 
     templates: {
+        header: () => <h5 className="overline-black-caps">Top Results</h5>,
         item: ({ item }) => {
             const index = item.__autocomplete_indexName as SearchIndexName
             const indexLabel = {
