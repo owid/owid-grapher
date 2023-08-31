@@ -108,7 +108,10 @@ function ChartHit({ hit }: { hit: IChartHit }) {
                 highlightedTagName="strong"
                 className="search-results__chart-hit-highlight"
                 hit={hit}
-            />
+            />{" "}
+            <span className="search-results__chart-hit-variant">
+                {hit.variantName}
+            </span>
         </a>
     )
 }
