@@ -33,7 +33,7 @@ export class Header extends React.Component<{
     @computed get logo(): Logo | undefined {
         const { manager } = this
         if (manager.hideLogo) return undefined
-        const isOwidLogo = manager.logo === LogoOption.owid
+        const isOwidLogo = !manager.logo || manager.logo === LogoOption.owid
         return new Logo({
             logo: manager.logo as any,
             isLink: !!manager.shouldLinkToOwid,

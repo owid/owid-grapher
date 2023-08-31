@@ -64,12 +64,15 @@ export class Logo {
         this.props = props
     }
 
+    @computed private get logo(): LogoOption {
+        return this.props.logo ?? LogoOption.owid
+    }
+
     @computed private get spec(): LogoAttributes {
-        if (this.props.useSmallVersion && this.props.logo === LogoOption.owid)
+        if (this.props.useSmallVersion && this.logo === LogoOption.owid) {
             return smallOwidLogo
-        return this.props.logo !== undefined
-            ? logos[this.props.logo]
-            : logos.owid
+        }
+        return logos[this.logo]
     }
 
     @computed private get targetHeight(): number {
