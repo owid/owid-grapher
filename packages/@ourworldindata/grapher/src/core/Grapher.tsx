@@ -1208,6 +1208,14 @@ export class Grapher
         ].filter(identity) as GrapherTabOption[]
     }
 
+    @computed get currentSubtitle(): string {
+        const subtitle = this.subtitle
+        if (subtitle) return subtitle
+        const yColumns = this.yColumnsFromDimensions
+        if (yColumns.length === 1) return yColumns[0].def.descriptionShort ?? ""
+        return ""
+    }
+
     @computed get currentTitle(): string {
         let text = this.displayTitle
         const selectedEntityNames = this.selection.selectedEntityNames

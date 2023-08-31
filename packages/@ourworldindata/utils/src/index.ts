@@ -332,6 +332,7 @@ export {
     mergePartialGrapherConfigs,
     getOriginAttributionFragments,
     getAttributionFromVariable,
+    copyToClipboard,
 } from "./Util.js"
 
 export {

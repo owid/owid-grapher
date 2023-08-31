@@ -2,7 +2,7 @@ import { Bounds } from "@ourworldindata/utils"
 
 export interface HeaderManager {
     currentTitle?: string
-    subtitle?: string
+    currentSubtitle?: string
     hideLogo?: boolean
     shouldLinkToOwid?: boolean
     logo?: string

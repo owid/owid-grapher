@@ -4,7 +4,13 @@ import { observable, computed, action, runInAction } from "mobx"
 import { Prompt, Redirect } from "react-router-dom"
 
 import { AdminLayout } from "./AdminLayout.js"
-import { BindString, NumericSelectField, FieldsRow, Timeago } from "./Forms.js"
+import {
+    BindString,
+    NumericSelectField,
+    FieldsRow,
+    Timeago,
+    Toggle,
+} from "./Forms.js"
 import { DatasetList, DatasetListItem } from "./DatasetList.js"
 import { ChartList, ChartListItem } from "./ChartList.js"
 import { TagBadge, Tag } from "./TagBadge.js"
@@ -21,11 +27,13 @@ interface TagPageData {
     children: Tag[]
     possibleParents: Tag[]
     isBulkImport: boolean
+    isTopic: boolean
 }
 
 class TagEditable {
     @observable name: string = ""
     @observable parentId?: number
+    @observable isTopic: boolean = false
 
     constructor(json: TagPageData) {
         for (const key in this) {
@@ -141,27 +149,40 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
                             helpText="Category names should ideally be unique across the database and able to be understood without context"
                         />
                         {!tag.isBulkImport && (
-                            <FieldsRow>
-                                <NumericSelectField
-                                    label="Parent Category"
-                                    value={newtag.parentId || -1}
-                                    options={[
-                                        { value: -1, label: "None" },
-                                    ].concat(
-                                        tag.possibleParents.map((p) => ({
-                                            value: p.id as number,
-                                            label: p.name,
-                                        }))
-                                    )}
-                                    onValue={this.onChooseParent}
-                                />
-                                <div>
-                                    <br />
-                                    {this.parentTag && (
-                                        <TagBadge tag={this.parentTag as Tag} />
-                                    )}
-                                </div>
-                            </FieldsRow>
+                            <>
+                                <FieldsRow>
+                                    <Toggle
+                                        value={!!newtag.isTopic}
+                                        onValue={(value) => {
+                                            newtag.isTopic = value
+                                        }}
+                                        label="Tag is a topic"
+                                    />
+                                </FieldsRow>
+                                <FieldsRow>
+                                    <NumericSelectField
+                                        label="Parent Category"
+                                        value={newtag.parentId || -1}
+                                        options={[
+                                            { value: -1, label: "None" },
+                                        ].concat(
+                                            tag.possibleParents.map((p) => ({
+                                                value: p.id as number,
+                                                label: p.name,
+                                            }))
+                                        )}
+                                        onValue={this.onChooseParent}
+                                    />
+                                    <div>
+                                        <br />
+                                        {this.parentTag && (
+                                            <TagBadge
+                                                tag={this.parentTag as Tag}
+                                            />
+                                        )}
+                                    </div>
+                                </FieldsRow>
+                            </>
                         )}
                         {!tag.isBulkImport && (
                             <div>

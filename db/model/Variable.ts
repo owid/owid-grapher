@@ -48,8 +48,8 @@ export interface VariableRow {
     citationInline?: string
     descriptionShort?: string
     descriptionFromProducer?: string
-    keyInfoText?: string[] // this is json in the db but by convention it is always a list of strings
-    processingInfo?: string
+    descriptionKey?: string[] // this is json in the db but by convention it is always a list of strings
+    descriptionProcessing?: string
     licenses?: OwidLicense[]
     grapherConfigAdmin?: GrapherInterface
     grapherConfigETL?: GrapherInterface
@@ -74,14 +74,14 @@ interface Dimensions {
 export type UnparsedVariableRow = Omit<
     VariableRow,
     | "display"
-    | "keyInfoText"
+    | "descriptionKey"
     | "grapherConfigAdmin"
     | "grapherConfigETL"
     | "license"
     | "licenses"
 > & {
     display: string
-    keyInfoText?: string
+    descriptionKey?: string
     grapherConfigAdmin?: string
     grapherConfigETL?: string
     license?: string
@@ -113,8 +113,8 @@ export function parseVariableRows(
             display: plainRow.display
                 ? JSON.parse(plainRow.display)
                 : undefined,
-            keyInfoText: plainRow.keyInfoText
-                ? JSON.parse(plainRow.keyInfoText)
+            descriptionKey: plainRow.descriptionKey
+                ? JSON.parse(plainRow.descriptionKey)
                 : [],
             grapherConfigAdmin: plainRow.grapherConfigAdmin
                 ? JSON.parse(plainRow.grapherConfigAdmin)
@@ -150,10 +150,7 @@ export async function getMergedGrapherConfigForVariable(
 export async function getVariableMetadata(
     variableId: number
 ): Promise<OwidVariableWithSourceAndDimension> {
-    const { metadataPath } = await getOwidVariableDataAndMetadataPath(
-        variableId
-    )
-
+    const metadataPath = getVariableMetadataRoute(DATA_API_URL, variableId)
     const metadata = await fetchS3MetadataByPath(metadataPath)
     return metadata
 }
@@ -161,9 +158,8 @@ export async function getVariableMetadata(
 export async function getVariableData(
     variableId: number
 ): Promise<OwidVariableDataMetadataDimensions> {
-    const { dataPath, metadataPath } = await getOwidVariableDataAndMetadataPath(
-        variableId
-    )
+    const dataPath = getVariableDataRoute(DATA_API_URL, variableId)
+    const metadataPath = getVariableMetadataRoute(DATA_API_URL, variableId)
 
     const [data, metadata] = await Promise.all([
         fetchS3DataValuesByPath(dataPath),
@@ -401,15 +397,6 @@ export const dataAsDF = async (
     return _dataAsDFfromS3(variableIds)
 }
 
-export const getOwidVariableDataAndMetadataPath = async (
-    variableId: OwidVariableId
-): Promise<{ dataPath: string; metadataPath: string }> => {
-    return {
-        dataPath: getVariableDataRoute(DATA_API_URL, variableId),
-        metadataPath: getVariableMetadataRoute(DATA_API_URL, variableId),
-    }
-}
-
 export const fetchS3Values = async (
     variableId: OwidVariableId
 ): Promise<OwidVariableMixedData> => {
@@ -421,10 +408,18 @@ export const fetchS3Values = async (
 export const fetchS3DataValuesByPath = async (
     dataPath: string
 ): Promise<OwidVariableMixedData> => {
-    const resp = await retryPromise(() => fetch(dataPath, { keepalive: true }))
+    const resp = await retryPromise(
+        () => fetch(dataPath, { keepalive: true }),
+        {
+            maxRetries: 3,
+            exponentialBackoff: true,
+        }
+    )
     if (!resp.ok) {
         throw new Error(
-            `Error fetching data from S3 for ${dataPath}: ${resp.status} ${resp.statusText}`
+            `Error fetching data from S3 for ${dataPath}: ${resp.status} ${
+                resp.statusText
+            } ${await resp.text()}`
         )
     }
     return resp.json()
@@ -433,12 +428,18 @@ export const fetchS3DataValuesByPath = async (
 export const fetchS3MetadataByPath = async (
     metadataPath: string
 ): Promise<OwidVariableWithSourceAndDimension> => {
-    const resp = await retryPromise(() =>
-        fetch(metadataPath, { keepalive: true })
+    const resp = await retryPromise(
+        () => fetch(metadataPath, { keepalive: true }),
+        {
+            maxRetries: 3,
+            exponentialBackoff: true,
+        }
     )
     if (!resp.ok) {
         throw new Error(
-            `Error fetching data from S3 for ${metadataPath}: ${resp.status} ${resp.statusText}`
+            `Error fetching metadata from S3 for ${metadataPath}: ${
+                resp.status
+            } ${resp.statusText} ${await resp.text()}`
         )
     }
     return resp.json()

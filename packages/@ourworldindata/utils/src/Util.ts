@@ -765,17 +765,34 @@ export const addDays = (date: Date, days: number): Date => {
     return newDate
 }
 
+export const sleep = (ms: number): Promise<void> =>
+    new Promise((resolve) => setTimeout(resolve, ms))
+
 export async function retryPromise<T>(
     promiseGetter: () => Promise<T>,
-    maxRetries: number = 3
+    {
+        maxRetries = 3,
+        exponentialBackoff = false,
+        initialDelay = 200,
+    }: {
+        maxRetries?: number
+        exponentialBackoff?: boolean
+        initialDelay?: number
+    } = {}
 ): Promise<T> {
     let retried = 0
     let lastError
+    let delay = initialDelay
+
     while (retried++ < maxRetries) {
         try {
             return await promiseGetter()
         } catch (error) {
             lastError = error
+            if (exponentialBackoff && retried < maxRetries) {
+                await sleep(delay)
+                delay *= 2 // Double the delay for next retry
+            }
         }
     }
     throw lastError
@@ -1330,6 +1347,34 @@ export const canWriteToClipboard = async (): Promise<boolean> => {
     return true
 }
 
+/** Function to copy to clipboard. This uses the new Clipboard API if it is available.
+ */
+export async function copyToClipboard(text: string): Promise<void> {
+    const useModernClipboardApi = await canWriteToClipboard()
+    if (useModernClipboardApi) {
+        // We can use the new clipboard API
+        navigator.clipboard.writeText(text).catch((err) => {
+            console.error("Failed to copy text to clipboard", err)
+        })
+    } else {
+        // GPT 4 suggested attempt to work around the lack of clipboard API
+        const textarea = document.createElement("textarea")
+        textarea.value = text
+        document.body.appendChild(textarea)
+        textarea.focus()
+        textarea.select()
+
+        try {
+            document.execCommand("copy")
+        } catch (err) {
+            console.error("Failed to copy text to clipboard", err)
+        }
+
+        document.body.removeChild(textarea)
+    }
+    return
+}
+
 export function findDuplicates<T>(arr: T[]): T[] {
     const set = new Set()
     const duplicates: Set<T> = new Set()
@@ -1679,7 +1724,13 @@ export function getOriginAttributionFragments(
               const yearPublished = origin.datePublished
                   ? dayjs(origin.datePublished, ["YYYY", "YYYY-MM-DD"]).year()
                   : undefined
-              return origin.attribution ?? `${origin.producer} ${yearPublished}`
+              const yearPublishedString = yearPublished
+                  ? ` (${yearPublished})`
+                  : ""
+              return (
+                  origin.attribution ??
+                  `${origin.producer}${yearPublishedString}`
+              )
           })
         : []
 }

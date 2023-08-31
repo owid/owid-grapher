@@ -5,7 +5,7 @@ export interface OwidOrigin {
     datasetTitleOwid?: string
     attribution?: string
     attributionShort?: string
-    version?: string
+    versionProducer?: string
     license?: OwidLicense
     datasetDescriptionOwid?: string
     datasetDescriptionProducer?: string

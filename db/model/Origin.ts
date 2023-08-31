@@ -16,11 +16,16 @@ export class Origin extends BaseEntity {
         | string
         | null
     @Column({ type: "varchar", nullable: true }) producer!: string | null
+    @Column({ type: "varchar", nullable: true }) attribution!: string | null
+    @Column({ type: "varchar", nullable: true }) attributionShort!:
+        | string
+        | null
     @Column({ type: "text", nullable: true }) citationProducer!: string | null
     @Column({ type: "text", nullable: true }) datasetUrlMain!: string | null
     @Column({ type: "text", nullable: true }) datasetUrlDownload!: string | null
     @Column({ type: "date", nullable: true }) dateAccessed!: Date | null
     @Column({ type: "varchar", nullable: true }) datePublished!: string | null
+    @Column({ type: "varchar", nullable: true }) versionProducer!: string | null
     // Note: there is an N:M relationship between origins and variables but
     // because variables is not a typeORM class but a knew class we don't
     // expose it here.
