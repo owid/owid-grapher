@@ -180,7 +180,8 @@
 }
 
 .aa-SourceHeader {
-    padding: 16px;
+    padding: 12px;
+    margin: 0;
     h5.overline-black-caps {
         margin: 0;
         color: $blue-50;
@@ -188,7 +189,8 @@
 }
 
 .aa-Item {
-    padding: 16px;
+    padding: 12px 16px;
+    line-height: 1.5;
     border-radius: 0;
     color: $blue-90;
 
