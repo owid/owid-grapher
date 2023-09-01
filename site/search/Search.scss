@@ -215,12 +215,11 @@
 .search-results__page-hit-title {
     display: inline;
     color: $blue-90;
-    margin: 0;
+    margin: 0 8px 0 0;
 }
 
 .search-results__page-hit-type {
     color: $blue-60;
-    margin-left: 0.5em;
 }
 
 .search-results__page-hit-snippet {
