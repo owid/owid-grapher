@@ -78,6 +78,7 @@ export interface DataTableManager {
     endTime?: Time
     startTime?: Time
     dataTableSlugs?: ColumnSlug[]
+    showSelectionOnlyInDataTable?: boolean
     isSmall?: boolean
     isMedium?: boolean
 }
@@ -87,6 +88,19 @@ export class DataTable extends React.Component<{
     manager?: DataTableManager
     bounds?: Bounds
 }> {
+    transformTable(table: OwidTable): OwidTable {
+        if (this.manager.showSelectionOnlyInDataTable) {
+            table = table.filterByEntityNames(
+                this.selectionArray.selectedEntityNames
+            )
+        }
+        return table
+    }
+
+    @computed get transformedTable(): OwidTable {
+        return this.transformTable(this.manager.table)
+    }
+
     @observable private storedState: DataTableState = {
         sort: DEFAULT_SORT_STATE,
     }
@@ -124,7 +138,7 @@ export class DataTable extends React.Component<{
     }
 
     @computed get table(): OwidTable {
-        return this.inputTable
+        return this.transformedTable
     }
 
     @computed get inputTable(): OwidTable {
