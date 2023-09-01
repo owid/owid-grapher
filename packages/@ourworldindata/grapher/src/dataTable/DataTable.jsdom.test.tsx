@@ -137,7 +137,7 @@ describe("when the table has aggregates", () => {
         const titleRows = view.find("tbody .title")
         expect(titleRows).toHaveLength(2)
         expect(titleRows.at(0).text()).toBe("Country")
-        expect(titleRows.at(1).text()).toBe("Region")
+        expect(titleRows.at(1).text()).toBe("Other")
     })
 })
 
