@@ -73,11 +73,12 @@ export class Footer<
         return this.props.maxWidth ?? DEFAULT_BOUNDS.width
     }
 
+    @computed protected get sourcesLine(): string {
+        return this.manager.sourcesLine?.replace(/\r\n|\n|\r/g, "") ?? ""
+    }
+
     @computed protected get sourcesText(): string {
-        const sourcesLine = this.manager.sourcesLine
-        return sourcesLine
-            ? `Data source: ${sourcesLine} - Learn more about this data`
-            : ""
+        return `Data source: ${this.sourcesLine} - Learn more about this data`
     }
 
     @computed protected get noteText(): string {
@@ -352,7 +353,7 @@ export class Footer<
 
     private renderSources(): JSX.Element | null {
         const sources = new MarkdownTextWrap({
-            text: `**Data source:** ${this.manager.sourcesLine}`,
+            text: `**Data source:** ${this.sourcesLine}`,
             maxWidth: this.sourcesMaxWidth,
             fontSize: this.sourcesFontSize,
             lineHeight: this.lineHeight,
@@ -580,15 +581,15 @@ export class StaticFooter extends Footer<StaticFooterProps> {
 
     @computed protected get licenseAndOriginUrlText(): string {
         const { finalUrl, finalUrlText, licenseText, licenseUrl } = this
-        const licenseSvg = `<a target="_blank" style="fill: #5b5b5b;" href="${licenseUrl}">${licenseText}</a>`
+        const linkStyle = "fill: #5b5b5b; text-decoration: underline;"
+        const licenseSvg = `<a target="_blank" style="${linkStyle}" href="${licenseUrl}">${licenseText}</a>`
         if (!finalUrlText) return licenseSvg
-        const originUrlSvg = `<a target="_blank" style="fill: #5b5b5b; text-decoration: underline;" href="${finalUrl}">${finalUrlText}</a>`
+        const originUrlSvg = `<a target="_blank" style="${linkStyle}" href="${finalUrl}">${finalUrlText}</a>`
         return [originUrlSvg, licenseSvg].join(" | ")
     }
 
     @computed protected get sourcesText(): string {
-        const sourcesLine = this.manager.sourcesLine
-        return sourcesLine ? `**Data source:** ${sourcesLine}` : ""
+        return `**Data source:** ${this.sourcesLine}`
     }
 
     @computed protected get fontSize(): number {

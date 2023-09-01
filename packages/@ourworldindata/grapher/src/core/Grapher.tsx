@@ -173,7 +173,7 @@ import {
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
 } from "../chart/ChartUtils"
-import classNames from "classnames"
+import classnames from "classnames"
 import { GrapherAnalytics } from "./GrapherAnalytics"
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations"
 import { ChartInterface } from "../chart/ChartInterface"
@@ -2317,11 +2317,14 @@ export class Grapher
     }
 
     private renderGrapherComponent(): JSX.Element {
-        const containerClasses = classNames(
-            "GrapherComponent",
-            this.isExportingtoSvgOrPng && "isExportingToSvgOrPng",
-            this.isPortrait && "GrapherPortraitClass"
-        )
+        const containerClasses = classnames({
+            GrapherComponent: true,
+            GrapherPortraitClass: this.isPortrait,
+            isExportingToSvgOrPng: this.isExportingtoSvgOrPng,
+            GrapherComponentNarrow: this.isNarrow,
+            GrapherComponentSmall: this.isSmall,
+            GrapherComponentMedium: this.isMedium,
+        })
 
         const containerStyle = {
             width: this.renderWidth,

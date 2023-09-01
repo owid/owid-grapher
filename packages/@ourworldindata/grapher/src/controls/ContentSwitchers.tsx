@@ -1,6 +1,7 @@
 import React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
+import classnames from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
     faTable,
@@ -19,7 +20,6 @@ export interface ContentSwitchersManager {
     availableTabs?: GrapherTabOption[]
     tab?: GrapherTabOption
     isNarrow?: boolean
-    isMedium?: boolean
 }
 
 @observer
@@ -34,14 +34,18 @@ export class ContentSwitchers extends React.Component<{
         return this.manager.availableTabs || []
     }
 
+    @computed private get showTabLabels(): boolean {
+        return !this.manager.isNarrow
+    }
+
     render(): JSX.Element {
         const { manager } = this
         return (
             <ul
-                className={
-                    "ContentSwitchers" +
-                    (manager.isMedium && !manager.isNarrow ? " narrow" : "")
-                }
+                className={classnames({
+                    ContentSwitchers: true,
+                    iconOnly: !this.showTabLabels,
+                })}
             >
                 {this.availableTabs.map((tab) => (
                     <Tab
@@ -51,7 +55,7 @@ export class ContentSwitchers extends React.Component<{
                         onClick={(): void => {
                             manager.tab = tab
                         }}
-                        showLabel={!manager.isNarrow}
+                        showLabel={this.showTabLabels}
                     />
                 ))}
             </ul>
