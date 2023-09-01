@@ -10,8 +10,8 @@ export type PageType =
 
 export const pageTypeDisplayNames: Record<PageType, string> = {
     about: "About",
-    topic: "Topic Page",
-    country: "Country Profile",
+    topic: "Topic",
+    country: "Country",
     faq: "FAQ",
     article: "Article",
     other: "Other",
