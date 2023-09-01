@@ -963,7 +963,10 @@ export class Explorer
     setEntityPicker({
         metric,
         sort,
-    }: { metric?: string; sort?: SortOrder } = {}) {
+    }: {
+        metric: string | undefined
+        sort?: SortOrder
+    }) {
         this.entityPickerMetric = metric
         if (sort) this.entityPickerSort = sort
     }
