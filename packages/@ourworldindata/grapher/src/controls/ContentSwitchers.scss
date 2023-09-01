@@ -62,6 +62,8 @@ $gap: 1.5px;
     }
 }
 
-.ContentSwitchers.narrow li > a {
-    padding: 0 8px;
+&.GrapherComponentMedium {
+    .ContentSwitchers:not(.iconOnly) li > a {
+        padding: 0 8px;
+    }
 }
