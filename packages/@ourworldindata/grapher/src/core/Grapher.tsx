@@ -359,6 +359,7 @@ export class Grapher
     /** Hides the total value label that is normally displayed for stacked bar charts */
     @observable.ref hideTotalValueLabel?: boolean = undefined
     @observable.ref missingDataStrategy?: MissingDataStrategy = undefined
+    @observable.ref showSelectionOnlyInDataTable?: boolean = undefined
 
     @observable.ref xAxis = new AxisConfig(undefined, this)
     @observable.ref yAxis = new AxisConfig(undefined, this)
