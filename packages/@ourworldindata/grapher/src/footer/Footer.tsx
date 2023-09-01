@@ -73,11 +73,12 @@ export class Footer<
         return this.props.maxWidth ?? DEFAULT_BOUNDS.width
     }
 
+    @computed protected get sourcesLine(): string {
+        return this.manager.sourcesLine?.replace(/\r\n|\n|\r/g, "") ?? ""
+    }
+
     @computed protected get sourcesText(): string {
-        const sourcesLine = this.manager.sourcesLine
-        return sourcesLine
-            ? `Data source: ${sourcesLine} - Learn more about this data`
-            : ""
+        return `Data source: ${this.sourcesLine} - Learn more about this data`
     }
 
     @computed protected get noteText(): string {
@@ -352,7 +353,7 @@ export class Footer<
 
     private renderSources(): JSX.Element | null {
         const sources = new MarkdownTextWrap({
-            text: `**Data source:** ${this.manager.sourcesLine}`,
+            text: `**Data source:** ${this.sourcesLine}`,
             maxWidth: this.sourcesMaxWidth,
             fontSize: this.sourcesFontSize,
             lineHeight: this.lineHeight,
@@ -588,8 +589,7 @@ export class StaticFooter extends Footer<StaticFooterProps> {
     }
 
     @computed protected get sourcesText(): string {
-        const sourcesLine = this.manager.sourcesLine
-        return sourcesLine ? `**Data source:** ${sourcesLine}` : ""
+        return `**Data source:** ${this.sourcesLine}`
     }
 
     @computed protected get fontSize(): number {
