@@ -8,7 +8,12 @@ import {
 } from "@algolia/autocomplete-js"
 import algoliasearch from "algoliasearch"
 import { createLocalStorageRecentSearchesPlugin } from "@algolia/autocomplete-plugin-recent-searches"
-import { SearchIndexName, indexNameToSubdirectoryMap } from "./searchTypes.js"
+import {
+    PageType,
+    SearchIndexName,
+    indexNameToSubdirectoryMap,
+    pageTypeDisplayNames,
+} from "./searchTypes.js"
 import {
     ALGOLIA_ID,
     ALGOLIA_SEARCH_KEY,
@@ -135,11 +140,12 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
         header: () => <h5 className="overline-black-caps">Top Results</h5>,
         item: ({ item }) => {
             const index = item.__autocomplete_indexName as SearchIndexName
-            const indexLabel = {
-                [SearchIndexName.Charts]: "Chart",
-                [SearchIndexName.Explorers]: "Explorer",
-                [SearchIndexName.Pages]: "Page",
-            }[index]
+            const indexLabel =
+                index === SearchIndexName.Charts
+                    ? "Chart"
+                    : index === SearchIndexName.Explorers
+                    ? "Explorer"
+                    : pageTypeDisplayNames[item.type as PageType]
 
             return (
                 <div className="aa-ItemWrapper">
