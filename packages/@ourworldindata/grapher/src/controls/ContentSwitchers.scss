@@ -28,6 +28,10 @@ $gap: 1.5px;
         padding: 0 16px;
         cursor: default;
 
+        &:hover {
+            background-color: $hover-fill;
+        }
+
         .label {
             margin-left: 6px;
         }
@@ -37,27 +41,36 @@ $gap: 1.5px;
         }
     }
 
-    li + li::after {
-        content: "";
-        display: block;
-        width: 1px;
-        height: calc(100% - 12px);
-        position: absolute;
-        top: 6px;
-        left: -0.5px;
-        background-color: $light-stroke;
-    }
-
-    li > a:hover {
-        background-color: $hover-fill;
-    }
-
     li.active > a {
         color: $active-text;
         background-color: $active-fill;
 
         svg {
             color: $active-knob;
+        }
+    }
+
+    // separators between tabs that are hidden on hover and when a tab is active
+    li:not(:hover):not(.active) {
+        @mixin separator {
+            content: "";
+            display: block;
+            width: 0.5px;
+            height: calc(100% - 12px);
+            position: absolute;
+            top: 6px;
+            background-color: $light-stroke;
+            z-index: -1;
+        }
+
+        &:not(:first-child)::before {
+            @include separator;
+            left: -0.5px;
+        }
+
+        &:not(:last-child)::after {
+            @include separator;
+            right: -0.5px;
         }
     }
 }
