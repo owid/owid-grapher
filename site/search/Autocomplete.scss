@@ -57,6 +57,9 @@
 
 .aa-Input::placeholder {
     color: $blue-30;
+    @include lg-down {
+        color: transparent;
+    }
 }
 
 .aa-InputWrapperPrefix {
