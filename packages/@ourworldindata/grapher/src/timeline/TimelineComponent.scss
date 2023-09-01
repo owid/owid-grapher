@@ -104,13 +104,16 @@ $timelineHeight: 32px;
         position: absolute;
         height: 2px;
         background: #a4b6ca;
+        padding: 10px 0;
+
+        &:hover {
+            height: 3px;
+        }
 
         cursor: grab;
         &:active {
             cursor: grabbing;
         }
-
-        padding: 10px 0;
     }
 
     .handle,
