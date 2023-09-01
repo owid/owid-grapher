@@ -5,7 +5,7 @@ import {
     DEFAULT_BOUNDS,
     OwidOrigin,
     uniq,
-    omitUndefinedValues,
+    excludeNullish,
 } from "@ourworldindata/utils"
 import React from "react"
 import { action, computed } from "mobx"
@@ -82,7 +82,7 @@ export class SourcesModal extends React.Component<{
 
         const citationProducer =
             column.def.origins && column.def.origins.length
-                ? omitUndefinedValues(
+                ? excludeNullish(
                       uniq(
                           column.def.origins.map(
                               (origin: OwidOrigin) => origin.citationProducer
@@ -90,7 +90,6 @@ export class SourcesModal extends React.Component<{
                       )
                   )
                 : []
-
         return (
             <div key={slug} className="datasource-wrapper">
                 <h2>
