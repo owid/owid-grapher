@@ -494,7 +494,10 @@ export class EntityPicker extends React.Component<{
                     className="sort"
                     onClick={(): void => {
                         const sortOrder = toggleSort(this.sortOrder)
-                        this.manager.setEntityPicker?.({ sort: sortOrder })
+                        this.manager.setEntityPicker?.({
+                            metric: this.metric,
+                            sort: sortOrder,
+                        })
                         this.manager.analytics?.logEntityPickerEvent(
                             "sortOrder",
                             sortOrder
