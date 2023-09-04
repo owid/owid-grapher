@@ -198,6 +198,8 @@ export const SiteFooter = (props: SiteFooterProps) => (
                                         src={`${props.baseUrl}/oms-logo.png`}
                                         alt="Oxford Martin School logo"
                                         loading="lazy"
+                                        width={275}
+                                        height={139}
                                     />
                                 </picture>
                             </a>
@@ -215,6 +217,8 @@ export const SiteFooter = (props: SiteFooterProps) => (
                                         src={`${props.baseUrl}/yc-logo.png`}
                                         alt="Y Combinator logo"
                                         loading="lazy"
+                                        width={490}
+                                        height={138}
                                     />
                                 </picture>
                             </a>
@@ -270,6 +274,8 @@ export const SiteFooter = (props: SiteFooterProps) => (
                                             src={`${props.baseUrl}/gcdl-logo.png`}
                                             alt="Global Change Data Lab logo"
                                             loading="lazy"
+                                            width={106}
+                                            height={127}
                                         />
                                     </picture>
                                 </a>

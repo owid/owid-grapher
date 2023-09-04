@@ -22,6 +22,9 @@ export const SiteLogos = ({ baseUrl }: { baseUrl: string }) => {
                         <img
                             src={`${baseUrl}/oms-logo.png`}
                             alt="Oxford Martin School logo"
+                            loading="lazy"
+                            width={275}
+                            height={139}
                         />
                     </picture>
                 </a>
@@ -37,6 +40,9 @@ export const SiteLogos = ({ baseUrl }: { baseUrl: string }) => {
                         <img
                             src={`${baseUrl}/gcdl-logo.png`}
                             alt="Global Change Data Lab logo"
+                            loading="lazy"
+                            width={106}
+                            height={127}
                         />
                     </picture>
                 </a>
