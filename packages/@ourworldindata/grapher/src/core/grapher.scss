@@ -223,5 +223,9 @@ $zindex-full-screen: 2000;
     a.dod-span {
         border-bottom: 1px dotted #666;
         text-decoration: none;
+
+        &:hover {
+            text-decoration: none;
+        }
     }
 }
