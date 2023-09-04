@@ -444,7 +444,7 @@ export class DataTable extends React.Component<{
     }
 
     @computed private get tableCaptionPaddingTop(): number {
-        return this.manager.isMedium ? 4 : 10
+        return this.manager.isMedium ? 4 : 2
     }
 
     @computed private get tableCaptionPaddingBottom(): number {
