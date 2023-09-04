@@ -133,11 +133,11 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     }
 
     @computed protected get verticalPadding(): number {
-        return this.manager.isMedium ? 8 : 12
+        return this.manager.isSmall ? 8 : this.manager.isMedium ? 12 : 16
     }
 
     @computed protected get verticalPaddingSmall(): number {
-        return this.manager.isSmall ? 4 : 8
+        return this.manager.isMedium ? 8 : 16
     }
 
     @computed protected get relatedQuestionHeight(): number {
