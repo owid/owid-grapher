@@ -150,13 +150,17 @@ const prodAssets = (entry: string, baseUrl: string): Assets => {
     }
 }
 
-export const viteAssets = (entry: string) =>
-    ENV === "production" || VITE_PREVIEW
-        ? prodAssets(entry, BAKED_BASE_URL)
+const useProductionAssets = ENV === "production" || VITE_PREVIEW
+
+export const viteAssets = (entry: string, prodBaseUrl?: string) =>
+    useProductionAssets
+        ? prodAssets(entry, prodBaseUrl ?? "")
         : devAssets(entry, VITE_DEV_URL)
 
 export const generateEmbedSnippet = () => {
-    const assets = viteAssets(VITE_ASSET_SITE_ENTRY)
+    // Make sure we're using an absolute URL here, since we don't know in what context the embed snippet is used.
+    const assets = viteAssets(VITE_ASSET_SITE_ENTRY, BAKED_BASE_URL)
+
     const serializedAssets = [...assets.forHeader, ...assets.forFooter].map(
         (el) => ({
             tag: el.type,
