@@ -98,7 +98,6 @@ export interface CaptionedChartManager
     shouldIncludeDetailsInStaticExport?: boolean
     detailRenderers: MarkdownTextWrap[]
     isOnMapTab?: boolean
-    isOnChartTab?: boolean
     isOnTableTab?: boolean
     hasTimeline?: boolean
     timelineController?: TimelineController

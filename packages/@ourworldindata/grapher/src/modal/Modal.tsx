@@ -11,7 +11,7 @@ export class Modal extends React.Component<{
     onDismiss: () => void
     title?: string
     children?: React.ReactNode
-    isHeightFixed?: boolean
+    isHeightFixed?: boolean // by default, the modal height is not fixed but fits to the content
     alignVertical?: "center" | "bottom"
 }> {
     contentRef: React.RefObject<HTMLDivElement> = React.createRef()
@@ -74,7 +74,7 @@ export class Modal extends React.Component<{
             contentStyle.bottom = bounds.y
         } else {
             contentStyle.top = "50%"
-            contentStyle.transform = `translateY(-50%)`
+            contentStyle.transform = "translateY(-50%)"
         }
 
         return (
