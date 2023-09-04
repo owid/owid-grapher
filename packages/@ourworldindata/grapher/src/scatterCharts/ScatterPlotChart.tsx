@@ -505,7 +505,8 @@ export class ScatterPlotChart
     @computed get dualAxis(): DualAxis {
         const { horizontalAxisPart, verticalAxisPart } = this
         return new DualAxis({
-            bounds: this.bounds.padRight(this.sidebarWidth + 20),
+            // top padding leaves room for tick labels
+            bounds: this.bounds.padRight(this.sidebarWidth + 20).padTop(6),
             horizontalAxis: horizontalAxisPart,
             verticalAxis: verticalAxisPart,
         })

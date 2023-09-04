@@ -1160,11 +1160,14 @@ export class LineChart
 
     @computed private get dualAxis(): DualAxis {
         return new DualAxis({
-            bounds: this.boundsWithoutColorLegend.padRight(
-                this.lineLegendDimensions
-                    ? this.lineLegendDimensions.width
-                    : this.defaultRightPadding
-            ),
+            bounds: this.boundsWithoutColorLegend
+                .padRight(
+                    this.lineLegendDimensions
+                        ? this.lineLegendDimensions.width
+                        : this.defaultRightPadding
+                )
+                // top padding leaves room for tick labels
+                .padTop(6),
             verticalAxis: this.verticalAxisPart,
             horizontalAxis: this.horizontalAxisPart,
         })
