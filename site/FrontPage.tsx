@@ -82,6 +82,8 @@ export const FrontPage = (props: {
                                             <img
                                                 src={`${baseUrl}/media-logos-wide.png`}
                                                 alt="Logos of the publications that have used our content"
+                                                width={1200}
+                                                height={109}
                                             />
                                             <div className="hover-note">
                                                 <p>
@@ -109,6 +111,8 @@ export const FrontPage = (props: {
                                                 <img
                                                     src={`${baseUrl}/university-logos-wide.png`}
                                                     alt="Logos of the universities that have used our content"
+                                                    width={1200}
+                                                    height={57}
                                                 />
                                             </picture>
                                             <div className="hover-note">
