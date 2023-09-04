@@ -5,6 +5,7 @@ import {
     Bounds,
     DEFAULT_BOUNDS,
     exposeInstanceOnWindow,
+    isEmpty,
     MarkdownTextWrap,
     sumTextWrapHeights,
 } from "@ourworldindata/utils"
@@ -606,7 +607,11 @@ export class StaticCaptionedChart extends CaptionedChart {
         const { bounds, paddedBounds, manager, maxWidth } = this
         let { width, height } = bounds
 
-        if (this.manager.shouldIncludeDetailsInStaticExport) {
+        const includeDetailsInStaticExport =
+            manager.shouldIncludeDetailsInStaticExport &&
+            !isEmpty(this.manager.detailRenderers)
+
+        if (includeDetailsInStaticExport) {
             height +=
                 2 * FRAME_PADDING +
                 sumTextWrapHeights(
@@ -638,8 +643,7 @@ export class StaticCaptionedChart extends CaptionedChart {
                     targetX={paddedBounds.x}
                     targetY={paddedBounds.bottom - this.staticFooter.height}
                 />
-                {manager.shouldIncludeDetailsInStaticExport &&
-                    this.renderSVGDetails()}
+                {includeDetailsInStaticExport && this.renderSVGDetails()}
             </svg>
         )
     }
