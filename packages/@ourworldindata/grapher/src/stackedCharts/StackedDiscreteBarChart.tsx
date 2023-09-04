@@ -57,6 +57,7 @@ import { ColorScheme } from "../color/ColorScheme"
 import { HashMap, NodeGroup } from "react-move"
 import { easeQuadOut } from "d3-ease"
 import { bind } from "decko"
+import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner.js"
 
 const labelToBarPadding = 5
 
@@ -794,20 +795,31 @@ export class StackedDiscreteBarChart
         return (
             (this.manager.baseColorScheme
                 ? ColorSchemes[this.manager.baseColorScheme]
-                : undefined) ?? ColorSchemes["owid-distinct"]
+                : null) ?? ColorSchemes["owid-distinct"]
         )
+    }
+
+    @computed private get categoricalColorAssigner(): CategoricalColorAssigner {
+        const seriesCount = this.yColumns.length
+        return new CategoricalColorAssigner({
+            colorScheme: this.colorScheme,
+            invertColorScheme: this.manager.invertColorScheme,
+            colorMap: this.inputTable.columnDisplayNameToColorMap,
+            autoColorMapCache: this.manager.seriesColorMap,
+            numColorsInUse: seriesCount,
+        })
     }
 
     @computed private get unstackedSeries(): StackedSeries<EntityName>[] {
         return (
             this.yColumns
-                .map((col, i) => {
+                .map((col) => {
                     return {
                         seriesName: col.displayName,
                         columnSlug: col.slug,
-                        color:
-                            col.def.color ??
-                            this.colorScheme.getColors(this.yColumns.length)[i],
+                        color: this.categoricalColorAssigner.assign(
+                            col.displayName
+                        ),
                         points: col.owidRows.map((row) => ({
                             time: row.time,
                             position: row.entityName,
