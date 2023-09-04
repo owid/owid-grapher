@@ -5,6 +5,7 @@ import {
     Bounds,
     DEFAULT_BOUNDS,
     exposeInstanceOnWindow,
+    isEmpty,
     MarkdownTextWrap,
     sumTextWrapHeights,
 } from "@ourworldindata/utils"
@@ -97,7 +98,6 @@ export interface CaptionedChartManager
     shouldIncludeDetailsInStaticExport?: boolean
     detailRenderers: MarkdownTextWrap[]
     isOnMapTab?: boolean
-    isOnChartTab?: boolean
     isOnTableTab?: boolean
     hasTimeline?: boolean
     timelineController?: TimelineController
@@ -133,11 +133,11 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     }
 
     @computed protected get verticalPadding(): number {
-        return this.manager.isMedium ? 8 : 12
+        return this.manager.isSmall ? 8 : this.manager.isMedium ? 12 : 16
     }
 
     @computed protected get verticalPaddingSmall(): number {
-        return this.manager.isSmall ? 4 : 8
+        return this.manager.isMedium ? 8 : 16
     }
 
     @computed protected get relatedQuestionHeight(): number {
@@ -606,7 +606,11 @@ export class StaticCaptionedChart extends CaptionedChart {
         const { bounds, paddedBounds, manager, maxWidth } = this
         let { width, height } = bounds
 
-        if (this.manager.shouldIncludeDetailsInStaticExport) {
+        const includeDetailsInStaticExport =
+            manager.shouldIncludeDetailsInStaticExport &&
+            !isEmpty(this.manager.detailRenderers)
+
+        if (includeDetailsInStaticExport) {
             height +=
                 2 * FRAME_PADDING +
                 sumTextWrapHeights(
@@ -638,8 +642,7 @@ export class StaticCaptionedChart extends CaptionedChart {
                     targetX={paddedBounds.x}
                     targetY={paddedBounds.bottom - this.staticFooter.height}
                 />
-                {manager.shouldIncludeDetailsInStaticExport &&
-                    this.renderSVGDetails()}
+                {includeDetailsInStaticExport && this.renderSVGDetails()}
             </svg>
         )
     }

@@ -417,7 +417,7 @@ export class DataTable extends React.Component<{
         return (
             <tr className="title">
                 <td>Country</td>
-                {range(this.numberOfColumnsWidthValues).map((i) => (
+                {range(this.numberOfColumnsWithValues).map((i) => (
                     <td key={i} />
                 ))}
             </tr>
@@ -429,14 +429,14 @@ export class DataTable extends React.Component<{
         return (
             <tr className="title">
                 <td>Other</td>
-                {range(this.numberOfColumnsWidthValues).map((i) => (
+                {range(this.numberOfColumnsWithValues).map((i) => (
                     <td key={i} />
                 ))}
             </tr>
         )
     }
 
-    @computed private get numberOfColumnsWidthValues(): number {
+    @computed private get numberOfColumnsWithValues(): number {
         return this.columnsWithValues.reduce(
             (columnCount, item) => columnCount + item.columns.length,
             0
@@ -444,11 +444,11 @@ export class DataTable extends React.Component<{
     }
 
     @computed private get tableCaptionPaddingTop(): number {
-        return this.manager.isMedium ? 2 : 4
+        return this.manager.isMedium ? 4 : 2
     }
 
     @computed private get tableCaptionPaddingBottom(): number {
-        return this.manager.isSmall ? 4 : this.manager.isMedium ? 8 : 12
+        return this.manager.isSmall ? 4 : this.manager.isMedium ? 8 : 14
     }
 
     @computed private get tableCaption(): JSX.Element | null {

@@ -57,7 +57,7 @@ export default function Chart({
             ...listOfPartialGrapherConfigs,
             {
                 hideRelatedQuestion: true,
-                hideShareTabButton: true,
+                hideShareTabButton: true, // always hidden since the original chart would be shared, not the customized one
                 hideExploreTheDataButton: false,
             },
             {
@@ -89,7 +89,9 @@ export default function Chart({
                 data-grapher-src={isExplorer ? undefined : resolvedUrl}
                 data-explorer-src={isExplorer ? resolvedUrl : undefined}
                 data-grapher-config={
-                    !isExplorer ? JSON.stringify(config) : undefined
+                    isCustomized && !isExplorer
+                        ? JSON.stringify(config)
+                        : undefined
                 }
                 style={{
                     width: "100%",

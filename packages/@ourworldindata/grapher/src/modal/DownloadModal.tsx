@@ -64,7 +64,10 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
         return this.idealBounds.width
     }
     @computed private get targetHeight(): number {
-        if (this.manager.shouldIncludeDetailsInStaticExport) {
+        if (
+            this.manager.shouldIncludeDetailsInStaticExport &&
+            !isEmpty(this.manager.detailRenderers)
+        ) {
             return (
                 this.idealBounds.height +
                 2 * GRAPHER_FRAME_PADDING +

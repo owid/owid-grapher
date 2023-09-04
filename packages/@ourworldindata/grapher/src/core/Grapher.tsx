@@ -641,7 +641,7 @@ export class Grapher
     }
 
     @computed get tableForSelection(): OwidTable {
-        // This table specifies which entities can be selected in the charts EntitySelector.
+        // This table specifies which entities can be selected in the charts EntitySelectorModal.
         // It should contain all entities that can be selected, and none more.
         // Depending on the chart type, the criteria for being able to select an entity are
         // different; e.g. for scatterplots, the entity needs to (1) not be excluded and
@@ -1792,11 +1792,11 @@ export class Grapher
         // We use the ideal bounds only if the available space is very large
         if (isInFullScreenMode) {
             if (
-                windowInnerHeight! < 2 * heightForDeviceOrientation ||
-                windowInnerWidth! < 2 * widthForDeviceOrientation
+                windowInnerHeight! > 2 * heightForDeviceOrientation ||
+                windowInnerWidth! > 2 * widthForDeviceOrientation
             )
-                return false
-            return true
+                return true
+            return false
         }
 
         // For these, defer to the bounds that are set externally
@@ -2458,7 +2458,6 @@ export class Grapher
         if (typeof window !== "undefined") {
             updateWindowDimensions()
             window.addEventListener("resize", onResize)
-
             this.disposers.push(() => {
                 window.removeEventListener("resize", onResize)
             })

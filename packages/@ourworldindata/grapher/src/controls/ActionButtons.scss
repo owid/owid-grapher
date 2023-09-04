@@ -1,6 +1,6 @@
 // keep in sync with constant values in ActionButtons.tsx
 $actionButtonHeight: 32px; // keep in sync with BUTTON_HEIGHT
-$paddingBetweenButtons: 8px; // keep in sync with PADDING_BETWEEN_BUTTONS
+$paddingBetweenActionButtons: 8px; // keep in sync with PADDING_BETWEEN_BUTTONS
 $paddingBetweenIconAndLabel: 8px; // keep in sync with PADDING_BETWEEN_ICON_AND_LABEL
 $paddingX: 12px; // keep in sync with PADDING_X
 
@@ -22,7 +22,7 @@ $paddingX: 12px; // keep in sync with PADDING_X
     }
 
     li + li {
-        margin-left: $paddingBetweenButtons;
+        margin-left: $paddingBetweenActionButtons;
     }
 }
 

@@ -15,7 +15,7 @@ import classNames from "classnames"
 import { TimelineController, TimelineManager } from "./TimelineController"
 import { ActionButton } from "../controls/ActionButtons"
 
-export const TIMELINE_HEIGHT = 32 // keep in sync with $timelineHeight in TimelineController.scss
+export const TIMELINE_HEIGHT = 32 // keep in sync with $timelineHeight in TimelineComponent.scss
 
 const HANDLE_TOOLTIP_FADE_TIME_MS = 2000
 

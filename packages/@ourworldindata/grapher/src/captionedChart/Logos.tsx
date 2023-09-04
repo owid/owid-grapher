@@ -43,6 +43,7 @@ const logos: Record<LogoOption, LogoAttributes> = {
     },
 }
 
+// owid logo optimized for small sizes
 const smallOwidLogo = {
     svg: SMALL_OWID_LOGO_SVG,
     width: 51,
