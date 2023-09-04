@@ -236,10 +236,11 @@ export class SettingsMenu extends React.Component<{
         // TODO: add a showCompareEndPointsOnlyTogggle to complement compareEndPointsOnly
     }
 
-    @action.bound toggleVisibility(): void {
+    @action.bound toggleVisibility(e: React.MouseEvent): void {
         this.visible = !this.visible
         if (this.visible) this.shouldRender = true
         this.drawer?.classList.toggle("active", this.visible)
+        e.stopPropagation()
     }
 
     @action.bound onAnimationEnd(): void {

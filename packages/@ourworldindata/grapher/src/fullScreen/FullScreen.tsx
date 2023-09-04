@@ -11,7 +11,7 @@ export class FullScreen extends React.Component<{
 }> {
     content: React.RefObject<HTMLDivElement> = React.createRef()
 
-    @action.bound onDocumentClick(e: MouseEvent): void {
+    @action.bound onDocumentClick(e: React.MouseEvent): void {
         // check if the click was outside of the modal
         if (
             this.content?.current &&
@@ -27,12 +27,10 @@ export class FullScreen extends React.Component<{
     }
 
     componentDidMount(): void {
-        document.addEventListener("click", this.onDocumentClick)
         document.addEventListener("keydown", this.onDocumentKeyDown)
     }
 
     componentWillUnmount(): void {
-        document.removeEventListener("click", this.onDocumentClick)
         document.removeEventListener("keydown", this.onDocumentKeyDown)
     }
 
@@ -43,6 +41,7 @@ export class FullScreen extends React.Component<{
                     className="FullScreenOverlay"
                     role="dialog"
                     aria-modal="true"
+                    onClick={this.onDocumentClick}
                     style={{
                         backgroundColor: this.props.overlayColor ?? "#fff",
                     }}
