@@ -11,6 +11,7 @@ import {
     TableSlug,
 } from "@ourworldindata/core-table"
 import {
+    Checkbox,
     EntityPicker,
     EntityPickerManager,
     Grapher,
@@ -918,18 +919,14 @@ export class Explorer
         this.embedDialogHideControls = !this.embedDialogHideControls
     }
 
-    // todo(redesign): style input element
     @computed get embedDialogAdditionalElements() {
         return (
-            <div style={{ marginTop: "1rem" }}>
-                <label>
-                    <input
-                        type="checkbox"
-                        checked={this.embedDialogHideControls}
-                        onChange={this.embedDialogToggleHideControls}
-                    />{" "}
-                    Hide controls
-                </label>
+            <div style={{ marginTop: "1em" }}>
+                <Checkbox
+                    label="Hide controls"
+                    checked={this.embedDialogHideControls}
+                    onChange={this.embedDialogToggleHideControls}
+                />
             </div>
         )
     }

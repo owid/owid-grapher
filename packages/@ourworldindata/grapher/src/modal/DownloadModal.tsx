@@ -24,6 +24,7 @@ import {
     STATIC_EXPORT_DETAIL_SPACING,
 } from "../core/GrapherConstants"
 import { Modal } from "./Modal"
+import { Checkbox } from "../controls/Checkbox"
 
 export interface DownloadModalManager {
     idealBounds?: Bounds
@@ -293,10 +294,12 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
                         </div>
                         {!isEmpty(this.manager.detailRenderers) && (
                             <div className="static-exports-options">
-                                <input
-                                    type="checkbox"
-                                    id="shouldIncludeDetailsInStaticExport"
-                                    name="shouldIncludeDetailsInStaticExport"
+                                <Checkbox
+                                    checked={
+                                        !!this.manager
+                                            .shouldIncludeDetailsInStaticExport
+                                    }
+                                    label="Include terminology definitions at bottom of chart"
                                     onChange={(): void => {
                                         this.isReady = false
                                         this.manager.shouldIncludeDetailsInStaticExport =
@@ -304,15 +307,7 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
                                                 .shouldIncludeDetailsInStaticExport
                                         this.export()
                                     }}
-                                    checked={
-                                        this.manager
-                                            .shouldIncludeDetailsInStaticExport
-                                    }
                                 />
-                                <label htmlFor="shouldIncludeDetailsInStaticExport">
-                                    Include terminology definitions at bottom of
-                                    chart
-                                </label>
                             </div>
                         )}
                     </div>

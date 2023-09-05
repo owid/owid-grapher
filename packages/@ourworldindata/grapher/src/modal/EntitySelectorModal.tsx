@@ -7,6 +7,7 @@ import {
     isTouchDevice,
     sortBy,
 } from "@ourworldindata/utils"
+import { Checkbox } from "../controls/Checkbox"
 import { FuzzySearch } from "../controls/FuzzySearch"
 import { faMagnifyingGlass, faCheck } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -38,14 +39,11 @@ class EntitySearchResult extends React.PureComponent<SearchResultProps> {
         if (isMulti) {
             return (
                 <li>
-                    <label className="clickable">
-                        <input
-                            type="checkbox"
-                            checked={isChecked}
-                            onChange={(): void => onSelect(result.name)}
-                        />{" "}
-                        {result.name}
-                    </label>
+                    <Checkbox
+                        label={result.name}
+                        checked={isChecked}
+                        onChange={(): void => onSelect(result.name)}
+                    />
                 </li>
             )
         } else {
@@ -151,16 +149,13 @@ export class EntitySelectorModal extends React.Component<{
                         {selectedEntityNames.map((name) => {
                             return (
                                 <li key={name}>
-                                    <label className="clickable">
-                                        <input
-                                            type="checkbox"
-                                            checked={true}
-                                            onChange={(): void => {
-                                                this.onSelect(name)
-                                            }}
-                                        />{" "}
-                                        {name}
-                                    </label>
+                                    <Checkbox
+                                        label={name}
+                                        checked={true}
+                                        onChange={(): void => {
+                                            this.onSelect(name)
+                                        }}
+                                    />
                                 </li>
                             )
                         })}
