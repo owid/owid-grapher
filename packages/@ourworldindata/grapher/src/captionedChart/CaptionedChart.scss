@@ -1,6 +1,7 @@
 .HeaderHTML,
 .SourcesFooterHTML {
     font-family: $sans-serif-font-stack;
+    font-feature-settings: $default-font-features;
     font-size: 16px;
     -webkit-font-smoothing: antialiased;
 }

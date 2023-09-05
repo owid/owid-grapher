@@ -9,6 +9,7 @@ parenthetical hex values can be added to LATIN_RANGES in the Makefile to add cha
 """
 from subprocess import run
 import xml.etree.ElementTree as ET
+from os.path import basename
 import shutil
 import sys
 
@@ -78,8 +79,10 @@ def report(font, subset_ranges):
         charset = subset if code in subset_codes else full
         charset.append([code, comment])
 
-    print_charset("The LatoLatin subset contains", subset)
-    print_charset("The full Lato font additionally contains", full)
+    family = basename(font).split('-')[0]
+    print_charset(f"The {family}Latin subset contains", subset)
+    print_charset(f"The full {family} font additionally contains", full)
+    
 
 if __name__ == "__main__":
     report(*sys.argv[1:3])

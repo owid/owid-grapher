@@ -60,6 +60,14 @@ i {
     font-style: italic;
 }
 
+sub {
+    @include subscript;
+}
+
+sup {
+    @include superscript;
+}
+
 /* ----------------------------------------------------------- */
 
 h6 {
@@ -74,10 +82,6 @@ h6 {
     font-style: italic;
     opacity: 0.8;
     text-align: center;
-}
-
-h6 a.ref sup {
-    font-size: 12px !important;
 }
 
 /* Images

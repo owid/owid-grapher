@@ -11,14 +11,14 @@ make
 make install
 ```
 
-The first `make` command will download Lato and Playfair Display and convert them to woff2 format using the FontTools library. After it completes, take a look at the `diff` output to make sure the changes it has made to `fonts.css` look reasonable. Then run `make install` to copy the css and woff2 files into the repo's `public` directory. Afterwards, you can commit the font-related changes (if any) and run `make clean` to delete the intermediate files.
+The first `make` command will download Lato and Playfair Display and convert them to woff2 format using the FontTools library. After it completes, take a look at the `diff` output to make sure the changes it has made to `fonts.css` look reasonable. You can also try running `make test` to try the generated webfonts in a browser before proceeding. Once you're happy with the results, run `make install` to copy the css and woff2 files into the repo's `public` directory. Afterwards, you can commit the font-related changes (if any) and run `make clean` to delete the intermediate files.
 
-You can also run `make report` to display the current division of characters between the LatoLatin subset (see below) and the full Lato font. If a character needs to be added to the subset, find its hex ID in the listing and add it to the `LATIN_RANGE` variable in the Makefile then regenerate the fonts.
+You can also run `make report` to display the current division of characters between the Latin subsets (see below) and the full versions of each font. If a character needs to be added to the subset, find its hex ID in the listing and add it to the `LATIN_RANGE` variable in the Makefile then regenerate the fonts.
 
 ## Dependencies
 
--   Python3 (in order to use the [`fontTools.ttLib`](https://pypi.org/project/fonttools/) module for converting otf to woff2, creating the LatoLatin font with its [subset](https://fonttools.readthedocs.io/en/latest/subset/index.html) tool, and unpacking the `cmap` table to calculate `unicode-range` settings for Lato)
--   the repo's copy of prettier in `../../node_modules`
+-   Python3 (in order to use the [`fontTools.ttLib`](https://pypi.org/project/fonttools/) module for converting otf to woff2, creating the LatoLatin & PlayfairLatin fonts with its [subset](https://fonttools.readthedocs.io/en/latest/subset/index.html) tool, and unpacking the `cmap` table to calculate `unicode-range` settings for switching between the subset and full version in the browser)
+-   the repo's copies of prettier and express in `../../node_modules`
 
 ## Typefaces
 
@@ -32,10 +32,4 @@ The official distribution includes "LatoLatin" fonts which are much smaller than
 
 ### Playfair Display
 
-There doesn't seem to be a canonical source for Playfair, though there's a pre-release of the 2.0 variable-font version on github (which might be worth switching to when it's finalized):
-https://github.com/clauseggers/Playfair
-
-Instead, we're using the OTFs available on FontSquirrel:
-https://www.fontsquirrel.com/fonts/download/playfair-display
-
-These are then converted into woff2 files using `woff2_compress`.
+There doesn't seem to be a canonical source for Playfair, though there's a pre-release of the 2.1 variable-font version [on github](https://github.com/clauseggers/Playfair) (which we'll probably want to update to when it's finalized). Instead, we're using Playfair 1.2 TTFs downloaded from [Google Fonts](https://fonts.google.com/specimen/Playfair+Display) and generating both a full woff2 version and a PlayfairLatin subset using the same unicode ranges as for LatoLatin.
