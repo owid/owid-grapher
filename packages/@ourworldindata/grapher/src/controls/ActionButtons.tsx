@@ -212,22 +212,30 @@ export class ActionButtons extends React.Component<{
         return count
     }
 
+    private renderShareMenu(): JSX.Element {
+        // distance between the right edge of the share button and the inner border of the frame
+        let right = 0
+        if (this.hasFullScreenButton)
+            right += PADDING_BETWEEN_BUTTONS + this.fullScreenButtonWidth
+        if (this.hasExploreTheDataButton)
+            right += PADDING_BETWEEN_BUTTONS + this.exploreTheDataButtonWidth
+
+        return (
+            <ShareMenu
+                manager={this.manager}
+                onDismiss={this.toggleShareMenu}
+                right={right}
+            />
+        )
+    }
+
     render(): JSX.Element {
         const { manager } = this
         const { isShareMenuActive } = manager
 
-        const shareMenuElement = isShareMenuActive && (
-            <ShareMenu manager={manager} onDismiss={this.toggleShareMenu} />
-        )
-
         return (
             <div
-                className={
-                    "ActionButtons" +
-                    (!this.showButtonLabels && !this.hasExploreTheDataButton
-                        ? " icons-only"
-                        : "")
-                }
+                className="ActionButtons"
                 style={{ height: this.height, width: this.width }}
             >
                 <ul>
@@ -265,7 +273,7 @@ export class ActionButtons extends React.Component<{
                                 isActive={this.manager.isShareMenuActive}
                                 style={{ width: "100%" }}
                             />
-                            {shareMenuElement}
+                            {isShareMenuActive && this.renderShareMenu()}
                         </li>
                     )}
                     {this.hasFullScreenButton && (
@@ -289,19 +297,26 @@ export class ActionButtons extends React.Component<{
                     )}
                     {this.hasExploreTheDataButton && (
                         <li
-                            className="ActionButton clickable"
+                            className="clickable"
                             style={{ width: this.exploreTheDataButtonWidth }}
                         >
-                            <a
-                                title="Explore the data"
-                                data-track-note="chart_click_exploredata"
-                                href={manager.canonicalUrl}
-                                target="_blank"
-                                rel="noopener"
+                            <div
+                                className="ActionButton"
+                                style={{ width: "100%" }}
                             >
-                                <div className="label">Explore the data</div>
-                                <FontAwesomeIcon icon={faArrowRight} />
-                            </a>
+                                <a
+                                    title="Explore the data"
+                                    data-track-note="chart_click_exploredata"
+                                    href={manager.canonicalUrl}
+                                    target="_blank"
+                                    rel="noopener"
+                                >
+                                    <span className="label">
+                                        Explore the data
+                                    </span>
+                                    <FontAwesomeIcon icon={faArrowRight} />
+                                </a>
+                            </div>
                         </li>
                     )}
                 </ul>

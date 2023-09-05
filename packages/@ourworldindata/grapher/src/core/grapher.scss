@@ -70,11 +70,12 @@ $zindex-full-screen: 2000;
     @import "../controls/CollapsibleList/CollapsibleList.scss";
     @import "../captionedChart/CaptionedChart.scss";
     @import "../timeline/TimelineComponent.scss";
-    @import "../modal/EntitySelectorModal.scss";
     @import "../controls/AddEntityButton.scss";
     @import "../controls/ContentSwitchers.scss";
     @import "../controls/ActionButtons.scss";
     @import "../controls/ShareMenu.scss";
+    @import "../modal/Modal.scss";
+    @import "../modal/EntitySelectorModal.scss";
     @import "../modal/EmbedModal.scss";
     @import "../modal/DownloadModal.scss";
     @import "../dataTable/DataTable.scss";
@@ -84,7 +85,6 @@ $zindex-full-screen: 2000;
     @import "../loadingIndicator/LoadingIndicator.scss";
     @import "../footer/Footer.scss";
     @import "../header/Header.scss";
-    @import "../modal/Modal.scss";
 }
 
 // These rules are currently used elsewhere in the site. e.g. Explorers
@@ -108,7 +108,7 @@ $zindex-full-screen: 2000;
     line-height: 1em;
 
     background: white;
-    color: #333;
+    color: $dark-text;
 
     position: relative;
     container-type: size;
@@ -127,15 +127,6 @@ $zindex-full-screen: 2000;
         border: none;
     }
 
-    .btn {
-        font-size: 0.8em;
-        white-space: normal;
-    }
-
-    .flash {
-        margin: 10px;
-    }
-
     .clickable {
         cursor: pointer;
 
@@ -146,6 +137,7 @@ $zindex-full-screen: 2000;
             }
         }
     }
+
     input[type="checkbox"] {
         cursor: pointer;
     }
@@ -167,25 +159,6 @@ $zindex-full-screen: 2000;
 
     .projection .nv-point.hover {
         stroke-width: 4;
-    }
-
-    a {
-        cursor: pointer;
-        color: #0645ad;
-        fill: #0645ad;
-        border-bottom: none;
-    }
-
-    h2 {
-        font-size: 2em;
-        margin-top: 0;
-        margin-bottom: 0.8em;
-        font-weight: 400;
-        line-height: 1.1;
-    }
-
-    .unstroked {
-        display: none;
     }
 
     .DataTableContainer {

@@ -1,7 +1,7 @@
-// keep in sync with constant values in Footer.tsx
-$horizontalPadding: 8px; // keep in sync with HORIZONTAL_PADDING
-
 .SourcesFooterHTML {
+    // keep in sync with constant values in Footer.tsx
+    $horizontalPadding: 8px; // keep in sync with HORIZONTAL_PADDING
+
     padding: 0 $framePadding;
     text-align: left;
     color: $dark-text;
@@ -26,7 +26,7 @@ $horizontalPadding: 8px; // keep in sync with HORIZONTAL_PADDING
         }
     }
 
-    // "Learn more about this data" link is rendered after the sources and should be on the same line
+    // show "Learn more about this data" link on the same line
     .sources .markdown-text-wrap__line:last-child {
         display: inline-block;
     }

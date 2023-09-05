@@ -1792,7 +1792,7 @@ export class Grapher
         // We use the ideal bounds only if the available space is very large
         if (isInFullScreenMode) {
             if (
-                windowInnerHeight! > 2 * heightForDeviceOrientation ||
+                windowInnerHeight! > 2 * heightForDeviceOrientation &&
                 windowInnerWidth! > 2 * widthForDeviceOrientation
             )
                 return true

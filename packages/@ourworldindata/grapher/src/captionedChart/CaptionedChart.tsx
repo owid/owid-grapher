@@ -137,6 +137,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     }
 
     @computed protected get verticalPaddingSmall(): number {
+        if (this.manager.isOnMapTab) return 4
         return this.manager.isMedium ? 8 : 16
     }
 

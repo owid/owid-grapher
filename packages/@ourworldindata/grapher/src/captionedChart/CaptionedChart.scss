@@ -44,16 +44,21 @@ $controlRowHeight: 32px; // keep in sync with CONTROLS_ROW_HEIGHT
         overflow: hidden;
         text-overflow: ellipsis;
         text-decoration-line: underline;
+        text-underline-offset: auto;
+
+        &:hover {
+            text-decoration-line: none;
+        }
     }
 
     a,
     svg {
         color: inherit;
     }
+
     svg {
         margin-left: 4px;
-        font-size: 0.8em;
+        font-size: 0.9em;
         vertical-align: unset;
-        transform: translateY(1px);
     }
 }

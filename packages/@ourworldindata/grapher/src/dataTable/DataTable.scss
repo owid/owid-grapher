@@ -1,186 +1,203 @@
-$cell-border: 1px solid #f2f2f2;
-
 .DataTableContainer {
+    $cell-border: 1px solid #f2f2f2;
+    $header: #f7f7f7;
+    $header-hover: #e7e7e7;
+
     display: flex;
     align-items: center;
     justify-content: center;
     color: $dark-text;
     font-size: 0.875em;
-}
 
-.DataTableContainer .DataTable {
-    width: 100%;
-    height: 100%;
-    display: flex; // necessary to make .table-wrapper scrollable
-    flex-direction: column;
+    .DataTable {
+        width: 100%;
+        height: 100%;
+        display: flex; // necessary to make .table-wrapper scrollable
+        flex-direction: column;
 
-    .caption {
-        flex-shrink: 0;
-        font-weight: 700;
-
-        .unit {
-            color: $light-text;
-            font-weight: 500;
-        }
-    }
-
-    .table-wrapper {
-        overflow: auto;
-        border: $cell-border;
-    }
-}
-
-.DataTableContainer table {
-    line-height: 1.333em;
-    border: none;
-    background: white;
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0px;
-
-    // make header sticky
-    thead {
-        position: sticky;
-        z-index: 20;
-        top: 0;
-    }
-
-    // make entity column and entity header sticky
-    .entity,
-    .above-entity {
-        position: sticky;
-        left: 0;
-        z-index: 10;
-        background-color: #fff;
-    }
-
-    th.entity,
-    th.above-entity {
-        top: 0;
-        background-color: #f7f7f7;
-    }
-
-    // make title row sticky
-    tr.title td:first-child {
-        position: sticky;
-        left: 0;
-        z-index: 10;
-    }
-
-    // applies to all cells
-    th,
-    td {
-        padding: 8px 16px;
-        white-space: nowrap;
-
-        &:not(.entity) {
-            vertical-align: bottom;
-            text-align: right;
-        }
-    }
-
-    // adds border on the right of the entity column
-    .entity,
-    .above-entity {
-        border-right: $cell-border;
-    }
-
-    // adds a border on the right of each dimension column
-    tr > td.dimension-start ~ td.dimension-start,
-    tr > th.dimension ~ th.dimension,
-    tr > th.firstSubdimension ~ th.firstSubdimension {
-        border-left: $cell-border;
-    }
-
-    thead {
-        th {
-            background-color: #f7f7f7;
-            line-height: 19px;
-            border-bottom: $cell-border;
+        .caption {
+            flex-shrink: 0;
             font-weight: 700;
-            vertical-align: bottom;
+            padding-top: 2px;
+            padding-bottom: 14px;
 
-            &.dimension,
-            &.entity,
-            &.subdimension {
-                padding-top: 10px;
-                padding-bottom: 10px;
-            }
-
-            &.dimension {
-                text-align: left;
-
-                .description {
-                    color: #a1a1a1;
-                }
+            .unit {
+                color: $light-text;
+                font-weight: 500;
             }
         }
 
-        th.sortable {
-            cursor: pointer;
+        .table-wrapper {
+            overflow: auto;
+            border: $cell-border;
+        }
+    }
 
-            &:hover {
-                background-color: #e7e7e7;
-                border-color: #e7e7e7;
-            }
+    table {
+        line-height: 1.333em;
+        border: none;
+        background: white;
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0px;
 
-            > div {
-                display: flex;
-                align-items: start;
-                justify-content: flex-end;
-                gap: 6px;
-            }
+        // make header sticky
+        thead {
+            position: sticky;
+            z-index: 20;
+            top: 0;
+        }
 
-            &.entity > div {
-                justify-content: flex-start;
-            }
+        // make entity column and entity header sticky
+        .entity,
+        .above-entity {
+            position: sticky;
+            left: 0;
+            z-index: 10;
+            background-color: #fff;
+        }
 
-            .sort-icon {
-                color: #c6c6c6;
-                font-size: 13px;
-                width: 19px;
+        th.entity,
+        th.above-entity {
+            top: 0;
+            background-color: $header;
+        }
+
+        // make title row sticky
+        tr.title td:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 10;
+        }
+
+        // applies to all cells
+        th,
+        td {
+            padding: 8px 16px;
+            white-space: nowrap;
+
+            &:not(.entity) {
+                vertical-align: bottom;
                 text-align: right;
+            }
+        }
 
-                &.active {
-                    color: $dark-text !important;
+        // adds border on the right of the entity column
+        .entity,
+        .above-entity {
+            border-right: $cell-border;
+        }
+
+        // adds a border on the right of each dimension column
+        tr > td.dimension-start ~ td.dimension-start,
+        tr > th.dimension ~ th.dimension,
+        tr > th.firstSubdimension ~ th.firstSubdimension {
+            border-left: $cell-border;
+        }
+
+        thead {
+            th {
+                background-color: $header;
+                line-height: 19px;
+                border-bottom: $cell-border;
+                font-weight: 700;
+                vertical-align: bottom;
+
+                &.dimension,
+                &.entity,
+                &.subdimension {
+                    padding-top: 10px;
+                    padding-bottom: 10px;
+                }
+
+                &.dimension {
+                    text-align: left;
+
+                    .description {
+                        color: #a1a1a1;
+                    }
                 }
             }
 
-            &:hover .sort-icon {
-                color: $info-icon;
+            th.sortable {
+                cursor: pointer;
+
+                &:hover {
+                    background-color: $header-hover;
+                    border-color: $header-hover;
+                }
+
+                > div {
+                    display: flex;
+                    align-items: start;
+                    justify-content: flex-end;
+                    gap: 6px;
+                }
+
+                &.entity > div {
+                    justify-content: flex-start;
+                }
+
+                .sort-icon {
+                    color: #c6c6c6;
+                    font-size: 13px;
+                    width: 19px;
+                    text-align: right;
+
+                    &.active {
+                        color: $dark-text !important;
+                    }
+                }
+
+                &:hover .sort-icon {
+                    color: $info-icon;
+                }
+            }
+        }
+
+        tbody {
+            // alternating row colors
+            &.hasTitleRows tr:not(.title):nth-child(2n + 1) td,
+            &:not(.hasTitleRows) tr:nth-child(2n) td {
+                background-color: #f7f7f7;
+            }
+
+            td.entity {
+                white-space: normal;
+            }
+
+            tr.title td {
+                text-align: left;
+                background-color: #f2f2f2;
+                font-weight: 700;
+            }
+
+            .closest-time-notice-icon {
+                cursor: default;
+
+                .icon {
+                    font-size: 12px;
+                    color: #dadada;
+                }
+
+                & + span {
+                    margin-left: 6px;
+                }
             }
         }
     }
+}
 
-    tbody {
-        // alternating row colors
-        &.hasTitleRows tr:not(.title):nth-child(2n + 1) td,
-        &:not(.hasTitleRows) tr:nth-child(2n) td {
-            background-color: #f7f7f7;
-        }
+&.GrapherComponentMedium {
+    .DataTable .caption {
+        padding-top: 4px;
+        padding-bottom: 8px;
+    }
+}
 
-        td.entity {
-            white-space: normal;
-        }
-
-        tr.title td {
-            text-align: left;
-            background-color: #f2f2f2;
-            font-weight: 700;
-        }
-
-        .closest-time-notice-icon {
-            cursor: default;
-
-            .icon {
-                font-size: 12px;
-                color: #dadada;
-            }
-
-            & + span {
-                margin-left: 6px;
-            }
-        }
+&.GrapherComponentNarrow {
+    .DataTable .caption {
+        padding-bottom: 4px;
     }
 }
 
