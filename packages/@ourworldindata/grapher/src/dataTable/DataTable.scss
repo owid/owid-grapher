@@ -18,6 +18,8 @@
         .caption {
             flex-shrink: 0;
             font-weight: 700;
+            padding-top: 2px;
+            padding-bottom: 14px;
 
             .unit {
                 color: $light-text;
@@ -183,6 +185,19 @@
                 }
             }
         }
+    }
+}
+
+&.GrapherComponentMedium {
+    .DataTable .caption {
+        padding-top: 4px;
+        padding-bottom: 8px;
+    }
+}
+
+&.GrapherComponentNarrow {
+    .DataTable .caption {
+        padding-bottom: 4px;
     }
 }
 

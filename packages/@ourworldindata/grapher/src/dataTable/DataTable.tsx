@@ -78,8 +78,6 @@ export interface DataTableManager {
     endTime?: Time
     startTime?: Time
     dataTableSlugs?: ColumnSlug[]
-    isSmall?: boolean
-    isMedium?: boolean
 }
 
 @observer
@@ -443,23 +441,11 @@ export class DataTable extends React.Component<{
         )
     }
 
-    @computed private get tableCaptionPaddingTop(): number {
-        return this.manager.isMedium ? 4 : 2
-    }
-
-    @computed private get tableCaptionPaddingBottom(): number {
-        return this.manager.isSmall ? 4 : this.manager.isMedium ? 8 : 14
-    }
-
     @computed private get tableCaption(): JSX.Element | null {
         if (this.hasDimensionHeaders) return null
         const singleDimension = this.displayDimensions[0]
-        const style: React.CSSProperties = {
-            paddingTop: this.tableCaptionPaddingTop,
-            paddingBottom: this.tableCaptionPaddingBottom,
-        }
         return singleDimension ? (
-            <div className="caption" style={style}>
+            <div className="caption">
                 {singleDimension.display.columnName}{" "}
                 {singleDimension.display.unit && (
                     <span className="unit">{singleDimension.display.unit}</span>
