@@ -1,8 +1,8 @@
-$borderWidth: 1px;
-$borderRadius: 4px;
-$gap: 1.5px;
-
 .ContentSwitchers {
+    $borderWidth: 1px;
+    $borderRadius: 4px;
+    $gap: 1.5px;
+
     list-style: none;
     height: $controlRowHeight;
     margin: 0;
@@ -17,13 +17,15 @@ $gap: 1.5px;
     }
 
     li > a {
+        $height: $controlRowHeight - 2 * ($borderWidth + $gap);
+
         display: block;
         text-transform: capitalize;
         color: $light-text;
         font-size: 14px;
         font-weight: 500;
-        height: $controlRowHeight - 2 * ($borderWidth + $gap);
-        line-height: $controlRowHeight - 2 * ($borderWidth + $gap);
+        height: $height;
+        line-height: $height;
         border-radius: $borderRadius - $gap;
         padding: 0 16px;
         cursor: default;

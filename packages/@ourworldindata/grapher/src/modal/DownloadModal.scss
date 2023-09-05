@@ -1,6 +1,6 @@
 .DownloadModalContent {
     color: $dark-text;
-    padding-bottom: 1em;
+    padding-bottom: $modal-padding;
 
     .grouped-menu-section {
         h2 {
@@ -8,6 +8,7 @@
             font-family: $serif-font-stack;
             font-size: 1.125em;
             font-weight: 600;
+            margin: 0;
             margin-bottom: 16px;
         }
     }
@@ -51,11 +52,6 @@
         flex: 1;
         padding: 0 1.5em;
 
-        @media (max-width: 400px) {
-            padding-left: 1em;
-            padding-right: 0.5em;
-        }
-
         .title {
             margin: 0;
             font-weight: 600;
@@ -77,8 +73,9 @@
 
     .download-icon {
         padding: 0 0.5em;
-        font-size: 1rem;
+        font-size: 1em;
     }
+
     .grouped-menu-item:hover .download-icon {
         opacity: 1;
     }
@@ -87,10 +84,11 @@
         border-radius: 8px;
         border: 1px solid #dadada;
         background: #f7f7f7;
-        padding: 1rem;
+        padding: 1em;
 
         svg {
-            margin-right: 0.5rem;
+            margin-right: 0.5em;
+            color: $light-text;
         }
 
         .title {
@@ -131,5 +129,12 @@
     label {
         margin-left: 8px;
         font-size: 14px;
+    }
+}
+
+&.GrapherComponentNarrow .DownloadModalContent {
+    .grouped-menu-icon + .grouped-menu-content {
+        padding-left: 1em;
+        padding-right: 0.5em;
     }
 }

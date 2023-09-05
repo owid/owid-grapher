@@ -70,11 +70,12 @@ $zindex-full-screen: 2000;
     @import "../controls/CollapsibleList/CollapsibleList.scss";
     @import "../captionedChart/CaptionedChart.scss";
     @import "../timeline/TimelineComponent.scss";
-    @import "../modal/EntitySelectorModal.scss";
     @import "../controls/AddEntityButton.scss";
     @import "../controls/ContentSwitchers.scss";
     @import "../controls/ActionButtons.scss";
     @import "../controls/ShareMenu.scss";
+    @import "../modal/Modal.scss";
+    @import "../modal/EntitySelectorModal.scss";
     @import "../modal/EmbedModal.scss";
     @import "../modal/DownloadModal.scss";
     @import "../dataTable/DataTable.scss";
@@ -84,7 +85,6 @@ $zindex-full-screen: 2000;
     @import "../loadingIndicator/LoadingIndicator.scss";
     @import "../footer/Footer.scss";
     @import "../header/Header.scss";
-    @import "../modal/Modal.scss";
 }
 
 // These rules are currently used elsewhere in the site. e.g. Explorers

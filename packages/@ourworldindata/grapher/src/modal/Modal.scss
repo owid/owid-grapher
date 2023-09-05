@@ -1,3 +1,5 @@
+$modal-padding: 1.5em;
+
 .modalOverlay {
     position: absolute;
     // -1px to hide the border
@@ -17,7 +19,7 @@
             border-radius: 4px;
             background: #fff;
             box-shadow: 0px 4px 30px 0px rgba(0, 0, 0, 0.15);
-            padding: 1.5em 1em;
+            padding: $modal-padding;
             padding-bottom: 0;
             min-height: 150px;
             // necessary to allow modal to scroll
@@ -26,39 +28,38 @@
         }
 
         .modalHeader {
-            // necessary to allow modal to scroll
-            flex-shrink: 0;
+            flex-shrink: 0; // necessary to allow modal to scroll
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1em;
+
+            .modalTitle {
+                text-transform: uppercase;
+                color: $light-text;
+                font-size: 0.75em;
+                font-weight: 900;
+                letter-spacing: 1.2px;
+                margin: 0;
+            }
+
+            .modalDismiss {
+                font-size: 13px;
+                color: $dark-text;
+                border: 1px solid $light-stroke;
+                border-radius: 50%;
+                width: 32px;
+                height: 32px;
+
+                &:hover {
+                    border-color: $hover-fill;
+                    background: $hover-fill;
+                }
+            }
         }
 
         .modalScrollable {
             overflow-y: auto;
-        }
-
-        .modalTitle {
-            text-transform: uppercase;
-            color: $light-text;
-            font-size: 0.75em;
-            font-weight: 900;
-            letter-spacing: 1.2px;
-            margin-bottom: 24px;
-        }
-
-        .modalDismiss {
-            z-index: inherit;
-            position: absolute;
-            font-size: 13px;
-            color: $dark-text;
-            top: 1em;
-            right: 1em;
-            border: 1px solid $light-stroke;
-            border-radius: 50%;
-            width: 32px;
-            height: 32px;
-
-            &:hover {
-                border-color: $hover-fill;
-                background: $hover-fill;
-            }
         }
     }
 }

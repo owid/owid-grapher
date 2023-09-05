@@ -45,6 +45,10 @@ $controlRowHeight: 32px; // keep in sync with CONTROLS_ROW_HEIGHT
         text-overflow: ellipsis;
         text-decoration-line: underline;
         text-underline-offset: auto;
+
+        &:hover {
+            text-decoration-line: none;
+        }
     }
 
     a,

@@ -211,7 +211,7 @@ export class SourcesModal extends React.Component<{
                 </table>
                 {source.additionalInfo && (
                     <p
-                        key={"additionalInfo"}
+                        className="additionalInfo"
                         dangerouslySetInnerHTML={{
                             __html: formatText(source.additionalInfo),
                         }}

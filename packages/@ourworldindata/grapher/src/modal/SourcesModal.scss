@@ -1,71 +1,74 @@
-.datasource-wrapper {
-    font-size: 0.8125rem;
-    color: $dark-text;
-    line-height: 1.38461538;
-}
+.SourcesModalContent {
+    padding-bottom: $modal-padding;
 
-.datasource-wrapper + .datasource-wrapper {
-    margin-top: 24px;
-}
+    .datasource-wrapper {
+        font-size: 0.8125rem;
+        color: $dark-text;
+        line-height: 1.38461538;
 
-.datasource-wrapper > h2 {
-    color: $dark-text;
-    font-family: $serif-font-stack !important;
-    font-size: 1.4em;
-    font-weight: 600;
-    margin-bottom: 0.4em;
-}
+        & + .datasource-wrapper {
+            margin-top: 24px;
+        }
 
-.datasource-wrapper h2,
-.datasource-wrapper h3,
-.datasource-wrapper h4 {
-    margin-left: 0px;
-    font-family: inherit;
-}
-.datasource-wrapper h3,
-.datasource-wrapper h4 {
-    margin-top: 2px;
-    margin-bottom: 1px;
-    font-size: 0.9em;
-    font-weight: bold;
-}
+        > h2 {
+            color: $dark-text;
+            font-family: $serif-font-stack !important;
+            font-size: 1.4em;
+            font-weight: 600;
+            margin: 0;
+            margin-bottom: 0.4em;
+        }
 
-.datasource-wrapper ul,
-.datasource-wrapper ol {
-    margin-left: 1.1rem;
-}
+        h2,
+        h3,
+        h4 {
+            margin-left: 0px;
+            font-family: inherit;
+        }
 
-.datasource-wrapper table {
-    width: 100%;
-    border-spacing: 0;
-}
+        h3,
+        h4 {
+            margin-top: 2px;
+            margin-bottom: 1px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
 
-.datasource-wrapper td {
-    padding: 16px 0;
-    vertical-align: top;
-    border-top: 1px solid #ddd;
-}
+        ul,
+        ol {
+            margin-left: 1.1rem;
+        }
 
-.datasource-wrapper td:first-child {
-    padding-right: 24px;
-    color: $light-text;
-    min-width: 100px;
-}
+        table {
+            width: 100%;
+            border-spacing: 0;
+        }
 
-.datasource-wrapper tr:first-child td {
-    border: 0;
-}
+        td {
+            padding: 16px 0;
+            vertical-align: top;
+            border-top: 1px solid #ddd;
+        }
 
-.datasource-wrapper a {
-    text-decoration: underline;
-    color: inherit;
-    word-break: break-word;
-}
+        td:first-child {
+            padding-right: 24px;
+            color: $light-text;
+            min-width: 100px;
+        }
 
-.datasource-property {
-    display: inline-block;
-    width: 150px;
-}
-.datasource-additional p {
-    margin-top: 0.3em;
+        tr:first-child td {
+            border: 0;
+        }
+
+        a {
+            text-decoration: underline;
+            color: inherit;
+            word-break: break-word;
+        }
+
+        p.additionalInfo {
+            margin: 0;
+            margin-top: 1em;
+        }
+    }
 }
