@@ -297,19 +297,26 @@ export class ActionButtons extends React.Component<{
                     )}
                     {this.hasExploreTheDataButton && (
                         <li
-                            className="ActionButton clickable"
+                            className="clickable"
                             style={{ width: this.exploreTheDataButtonWidth }}
                         >
-                            <a
-                                title="Explore the data"
-                                data-track-note="chart_click_exploredata"
-                                href={manager.canonicalUrl}
-                                target="_blank"
-                                rel="noopener"
+                            <div
+                                className="ActionButton"
+                                style={{ width: "100%" }}
                             >
-                                <div className="label">Explore the data</div>
-                                <FontAwesomeIcon icon={faArrowRight} />
-                            </a>
+                                <a
+                                    title="Explore the data"
+                                    data-track-note="chart_click_exploredata"
+                                    href={manager.canonicalUrl}
+                                    target="_blank"
+                                    rel="noopener"
+                                >
+                                    <span className="label">
+                                        Explore the data
+                                    </span>
+                                    <FontAwesomeIcon icon={faArrowRight} />
+                                </a>
+                            </div>
                         </li>
                     )}
                 </ul>
