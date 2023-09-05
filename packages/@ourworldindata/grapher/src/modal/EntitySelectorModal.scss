@@ -152,16 +152,6 @@
         margin-top: 1em;
     }
 
-    li > label {
-        width: 100%;
-        color: $dark-text;
-    }
-
-    // todo(redesign): style input element
-    li input[type="checkbox"] {
-        margin-right: 8px;
-    }
-
     .clearSelection {
         font-size: 0.8125em;
         padding: 0;

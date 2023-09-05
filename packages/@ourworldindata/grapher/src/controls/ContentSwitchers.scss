@@ -29,6 +29,7 @@
         border-radius: $borderRadius - $gap;
         padding: 0 16px;
         cursor: default;
+        letter-spacing: 0.01em;
 
         &:hover {
             background-color: $hover-fill;
