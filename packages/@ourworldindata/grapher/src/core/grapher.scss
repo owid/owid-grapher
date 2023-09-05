@@ -108,7 +108,7 @@ $zindex-full-screen: 2000;
     line-height: 1em;
 
     background: white;
-    color: #333;
+    color: $dark-text;
 
     position: relative;
     container-type: size;
@@ -125,11 +125,6 @@ $zindex-full-screen: 2000;
     button {
         background: none;
         border: none;
-    }
-
-    .btn {
-        font-size: 0.8em;
-        white-space: normal;
     }
 
     .flash {

@@ -22,6 +22,7 @@ export interface ShareMenuManager {
 interface ShareMenuProps {
     manager: ShareMenuManager
     onDismiss: () => void
+    right?: number
 }
 
 interface ShareMenuState {
@@ -135,14 +136,21 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
         const { twitterHref, facebookHref, isDisabled, manager } = this
         const { editUrl } = manager
 
+        const width = 200
+        const right = this.props.right ?? 0
+        const style: React.CSSProperties = {
+            width,
+            right: Math.max(-width * 0.5, -right),
+        }
+
         return (
             <div
                 className={"ShareMenu" + (isDisabled ? " disabled" : "")}
                 onClick={action(() => (this.dismissable = false))}
+                style={style}
             >
                 <h2>Share</h2>
                 <a
-                    className="btn"
                     target="_blank"
                     title="Tweet a link"
                     data-track-note="chart_share_twitter"
@@ -152,7 +160,6 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                     <FontAwesomeIcon icon={faTwitter} /> Twitter
                 </a>
                 <a
-                    className="btn"
                     target="_blank"
                     title="Share on Facebook"
                     data-track-note="chart_share_facebook"
@@ -162,7 +169,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                     <FontAwesomeIcon icon={faFacebook} /> Facebook
                 </a>
                 <a
-                    className="btn btn-embed"
+                    className="embed"
                     title="Embed this visualization in another HTML document"
                     data-track-note="chart_share_embed"
                     onClick={this.onEmbed}
@@ -171,7 +178,6 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                 </a>
                 {"share" in navigator && (
                     <a
-                        className="btn"
                         title="Share this visualization with an app on your device"
                         data-track-note="chart_share_navigator"
                         onClick={this.onNavigatorShare}
@@ -181,7 +187,6 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                 )}
                 {this.state.canWriteToClipboard && (
                     <a
-                        className="btn"
                         title="Copy link to clipboard"
                         data-track-note="chart_share_copylink"
                         onClick={this.onCopyUrl}
@@ -192,7 +197,6 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                 )}
                 {editUrl && (
                     <a
-                        className="btn"
                         target="_blank"
                         title="Edit chart"
                         href={editUrl}

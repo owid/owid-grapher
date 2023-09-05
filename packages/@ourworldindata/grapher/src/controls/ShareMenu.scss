@@ -1,78 +1,58 @@
 $zindex-ControlsFooterMenu: 3;
 $zindex-ControlsFooter: 2;
 
-&.mobile .ShareMenu .btn-embed {
+// hide the button that opens the embed menu on mobile
+&.GrapherComponentNarrow .ShareMenu .embed {
     display: none;
-}
-
-.ActionButtons.icons-only .ShareMenu {
-    left: auto;
-    right: -$timelineHeight - $paddingBetweenActionButtons;
 }
 
 .ShareMenu {
     position: absolute;
-    left: -32px;
     bottom: $timelineHeight + 8px;
     text-align: left;
     background: #fff;
     box-shadow: 0px 4px 40px 0px rgba(0, 0, 0, 0.06);
     padding: 4px 0;
-    width: 13em;
     z-index: $zindex-ControlsFooterMenu;
     border-radius: 4px;
+
+    h2 {
+        margin: 0;
+        font-size: 12px;
+        font-weight: 700;
+        color: $light-text;
+        height: 28px;
+        line-height: 28px;
+        padding: 0 16px;
+    }
+
+    a {
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        text-align: left;
+        color: $dark-text;
+        text-decoration: none;
+        white-space: normal;
+        padding: 12px 16px;
+
+        &:hover {
+            background-color: $hover-fill;
+        }
+
+        &:active {
+            background-color: $active-fill;
+            color: $active-text;
+        }
+
+        > svg {
+            margin-right: 6px;
+            position: relative;
+        }
+    }
 }
 
 .ShareMenu.disabled a {
     pointer-events: none;
     opacity: 0.3;
-}
-
-.ShareMenu h2,
-.ShareMenu .btn {
-    padding: 12px $framePadding;
-}
-
-.ShareMenu h2 {
-    margin: 0;
-    font-size: 12px;
-    font-weight: 700;
-    color: $light-text;
-}
-
-.ShareMenu .btn {
-    font-size: 13px;
-    display: flex;
-    align-items: center;
-    text-align: left;
-    color: $dark-text;
-    text-decoration: none;
-}
-
-.ShareMenu .btn > svg {
-    font-size: 1em;
-    width: 14px;
-    height: 14px;
-    margin-right: 6px;
-    position: relative;
-}
-
-.ShareMenu .btn:hover {
-    background-color: $hover-fill;
-}
-
-.ShareMenu .btn:active {
-    background-color: $active-fill;
-    color: $active-text;
-}
-
-.ShareMenu section.share a {
-    display: block;
-    text-align: left;
-}
-
-.ShareMenu textarea {
-    width: 30em;
-    height: 20em;
-    font-size: 0.8em;
 }

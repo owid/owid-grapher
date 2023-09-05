@@ -212,22 +212,30 @@ export class ActionButtons extends React.Component<{
         return count
     }
 
+    private renderShareMenu(): JSX.Element {
+        // distance between the right edge of the share button and the inner border of the frame
+        let right = 0
+        if (this.hasFullScreenButton)
+            right += PADDING_BETWEEN_BUTTONS + this.fullScreenButtonWidth
+        if (this.hasExploreTheDataButton)
+            right += PADDING_BETWEEN_BUTTONS + this.exploreTheDataButtonWidth
+
+        return (
+            <ShareMenu
+                manager={this.manager}
+                onDismiss={this.toggleShareMenu}
+                right={right}
+            />
+        )
+    }
+
     render(): JSX.Element {
         const { manager } = this
         const { isShareMenuActive } = manager
 
-        const shareMenuElement = isShareMenuActive && (
-            <ShareMenu manager={manager} onDismiss={this.toggleShareMenu} />
-        )
-
         return (
             <div
-                className={
-                    "ActionButtons" +
-                    (!this.showButtonLabels && !this.hasExploreTheDataButton
-                        ? " icons-only"
-                        : "")
-                }
+                className="ActionButtons"
                 style={{ height: this.height, width: this.width }}
             >
                 <ul>
@@ -265,7 +273,7 @@ export class ActionButtons extends React.Component<{
                                 isActive={this.manager.isShareMenuActive}
                                 style={{ width: "100%" }}
                             />
-                            {shareMenuElement}
+                            {isShareMenuActive && this.renderShareMenu()}
                         </li>
                     )}
                     {this.hasFullScreenButton && (
