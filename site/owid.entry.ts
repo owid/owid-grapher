@@ -21,7 +21,6 @@ import { CoreTable } from "@ourworldindata/core-table"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 import Bugsnag, { BrowserConfig } from "@bugsnag/js"
 import BugsnagPluginReact from "@bugsnag/plugin-react"
-import BugsnagPerformance from "@bugsnag/browser-performance"
 import { runMonkeyPatchForGoogleTranslate } from "./hacks.js"
 import { runSiteFooterScripts } from "./runSiteFooterScripts.js"
 import {
@@ -77,15 +76,6 @@ if (BUGSNAG_API_KEY) {
             autoTrackSessions: false,
             collectUserIp: false,
             ...bugsnagUserInformation,
-        })
-
-        const instrumentNetworkRequests = Math.random() < 0.05 // 5% sample rate
-        BugsnagPerformance.start({
-            apiKey: BUGSNAG_API_KEY,
-            autoInstrumentFullPageLoads: false, // TODO: We might want to sample some page loads in the future
-            autoInstrumentRouteChanges: false,
-            autoInstrumentNetworkRequests: instrumentNetworkRequests,
-            generateAnonymousId: false,
         })
     } catch (error) {
         console.error("Failed to initialize Bugsnag")
