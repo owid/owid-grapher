@@ -573,12 +573,10 @@ export class StaticCaptionedChart extends CaptionedChart {
                     stroke="#e7e7e7"
                 ></line>
                 <g
-                    style={{
-                        transform: `translate(15px, ${
-                            // + padding below the grey line
-                            this.bounds.height + FRAME_PADDING
-                        }px)`,
-                    }}
+                    transform={`translate(15, ${
+                        // + padding below the grey line
+                        this.bounds.height + FRAME_PADDING
+                    })`}
                 >
                     {this.manager.detailRenderers.map((detail, i) => {
                         previousOffset = yOffset

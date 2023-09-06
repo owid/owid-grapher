@@ -1,6 +1,52 @@
-/*******************************************************************************
- * Mixins
- */
+//
+// typographic features
+//
+
+@mixin small-caps {
+    // only applies to Playfair
+    font-family: $serif-font-stack;
+    font-feature-settings: $default-font-features, "c2sc", "smcp";
+    letter-spacing: 0.05em;
+}
+
+@mixin oldstyle-numerals {
+    // useful for changing Lato's numerals
+    font-feature-settings: $default-font-features, "onum";
+}
+
+@mixin lining-numerals {
+    // useful for changing Playfair's numerals
+    font-feature-settings: $default-font-features, "lnum";
+}
+
+@mixin superscript {
+    position: static;
+    top: auto;
+    font-size: 100%;
+    font-feature-settings: $default-font-features, "sups";
+}
+
+@mixin subscript {
+    position: static;
+    bottom: auto;
+    font-size: 100%;
+    font-feature-settings: $default-font-features, "subs";
+}
+
+@mixin fraction {
+    // when enabled, render digits/slashes as fractions
+    // e.g., "in 3/4 time" renders as "in ¾ time"
+    font-feature-settings: $default-font-features, "frac";
+}
+
+body {
+    // use the default features everywhere
+    font-feature-settings: $default-font-features;
+}
+
+//
+// page elements
+//
 
 @mixin display-1-semibold {
     font-family: $serif-font-stack;

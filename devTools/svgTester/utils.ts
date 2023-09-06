@@ -7,11 +7,9 @@ import {
     TESTING_ONLY_reset_guid,
 } from "@ourworldindata/utils"
 import fs from "fs-extra"
-import getStream from "get-stream"
 import md5 from "md5"
 import path from "path"
 import stream from "stream"
-import { createGunzip, createGzip } from "zlib"
 import {
     buildSvgOutFilename,
     initGrapherForSvgExport,
@@ -212,21 +210,6 @@ export function getGrapherIdListFromString(rawGrapherIds: string): number[] {
     })
 }
 
-export async function writeToGzippedFile(
-    data: unknown,
-    filename: string
-): Promise<void> {
-    const json = JSON.stringify(data)
-    const writeStream = fs.createWriteStream(filename)
-
-    const gzipStream = createGzip()
-    gzipStream.pipe(writeStream)
-    gzipStream.write(json)
-    gzipStream.end()
-
-    return finished(writeStream)
-}
-
 export async function writeToFile(data: unknown, filename: string) {
     const json = JSON.stringify(data, null, 2)
     await fs.writeFile(filename, json)
@@ -322,16 +305,6 @@ export async function renderSvgAndSave(
     const cleanedSvg = prepareSvgForComparision(svg)
     await fs.writeFile(outPath, cleanedSvg)
     return Promise.resolve(svgRecord)
-}
-
-export async function readGzippedJsonFile(filename: string): Promise<unknown> {
-    const readStream = fs.createReadStream(filename)
-
-    const gzipStream = createGunzip()
-    readStream.pipe(gzipStream)
-    const content = await getStream(gzipStream)
-
-    return JSON.parse(content)
 }
 
 export async function readJsonFile(filename: string): Promise<unknown> {

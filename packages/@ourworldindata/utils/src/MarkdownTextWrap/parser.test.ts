@@ -991,6 +991,35 @@ how **are** you?`)
         })
     })
 
+    it("parses parens next to closing bold sequence", () => {
+        expect(mdParser.markdown.parse("**Our World in Data (OWID)**")).toEqual(
+            {
+                status: true,
+                value: {
+                    type: "MarkdownRoot",
+                    children: [
+                        {
+                            type: "bold",
+                            children: [
+                                { type: "text", value: "Our" },
+                                { type: "whitespace" },
+                                { type: "text", value: "World" },
+                                { type: "whitespace" },
+                                { type: "text", value: "in" },
+                                { type: "whitespace" },
+                                { type: "text", value: "Data" },
+                                { type: "whitespace" },
+                                { type: "text", value: "(" },
+                                { type: "text", value: "OWID" },
+                                { type: "text", value: ")" },
+                            ],
+                        },
+                    ],
+                },
+            }
+        )
+    })
+
     it("parses too many underscores as text", () => {
         expect(mdParser.markdown.parse("____abc__")).toEqual({
             status: true,

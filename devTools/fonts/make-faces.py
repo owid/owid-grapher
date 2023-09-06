@@ -1,14 +1,16 @@
 #!./env/bin/python3
 """
-This script emits CSS @font-face definitons for Playfair Display and Lato (along with its LatoLatin subset).
-The arguments should be a list of .woff2 files for all the weights & styles of those families to be included. 
+This script emits CSS @font-face definitons for Playfair and Lato (along with their *Latin subsets).
+The arguments should be a list of .woff2 files for all the weights & styles of those families to be included.
 
-The filenames are parsed to infer weight and normal/italic style information. Lato and LatoLatin are inspected more deeply
-using the fontTools module to extract character-map IDs. Since LatoLatin is a minimal subset of the character set (to keep
-its size small), we need to be able to fall back to the full version but want to ensure it's only loaded when necessary. 
-Even though the Lato contains all the characters in LatoLatin (and more), we define its `unicode-range` to exclude all of 
-the characters in LatoLatin, meaning it should only be loaded on pages where a rare character (greek, cyrillic, legacy 
-currencies, exotic diacriticals, etc.) occurs — and ideally only in one or two weights even then.
+The filenames are parsed to infer weight and normal/italic style information. A member of each family and its Latin
+counterpart are inspected more deeply using the fontTools module to extract character-map IDs. Since the Latin version
+is a minimal subset of the character library (to keep its size small), we need to be able to fall back to the full
+version when missing a glyph but want to ensure it's only loaded when necessary.
+
+Even though the full version of the font contains all the characters in *Latin (and more), we define its `unicode-range`
+to exclude all of the characters in the Latin subset, meaning it should only be loaded on pages where a rare character
+(greek, cyrillic, exotic currencies or diacriticals, etc.) occurs — and ideally only in one or two weights even then.
 """
 from fontTools.ttLib import TTFont
 from more_itertools import consecutive_groups
@@ -19,9 +21,11 @@ import re
 
 WEIGHTS = {
     "Black": 900,
+    "ExtraBold": 800,
     "Heavy": 800,
     "Bold": 700,
     "Semibold": 600,
+    "SemiBold": 600,
     "Medium": 500,
     "": 400,
     "Regular": 400,
@@ -66,28 +70,34 @@ def make_face(font, subset=None, singleton=False):
         '@font-face {',
         f'font-family: "{family}";',
         f'src: url("{font["url"]}") format("woff2");',
-        f'font-weight: {font["weight"]};',
-        f'font-style: {font["style"]};',
-        f'font-display: swap;',
-        '}'
     ]
 
+    if not singleton:
+        css.extend([
+            f'font-weight: {font["weight"]};',
+            f'font-style: {font["style"]};',
+        ])
+
     if subset:
-        css.insert(-1, f'''unicode-range: {
+        css.append(f'''unicode-range: {
             ', '.join(find_ranges(set(font["codepoints"]) - set(subset["codepoints"])))
         };''')
+
+    css.extend([
+        f'font-display: swap;',
+        "}",
+    ])
 
     return "\n".join(css)
 
 def main(woff_files):
     fonts = sorted([inspect_font(f) for f in woff_files], key=itemgetter('weight', 'italic'))
-    
     lato = [f for f in fonts if f['family']=='Lato' and not f['subset']]
     lato_latin = [f for f in fonts if f['family']=='Lato' and f['subset']]
     playfair = [f for f in fonts if f['family']=='Playfair Display']
 
     subset_for = lambda f: [s for s in lato_latin if s['weight']==f['weight'] and s['style']==f['style']][0]
-    
+
     faces = [
         "/* Lato: smaller, latin-only subset */",
         *[make_face(f) for f in lato_latin],

@@ -33,7 +33,7 @@ html.IsInIframe #ExplorerContainer {
         font-size: clamp(16px, 1.5vw, 19px);
         line-height: clamp(18px, 1.7vw, 23px);
         font-weight: bold;
-        font-family: "Lato";
+        font-family: $sans-serif-font-stack;
     }
 
     .ExplorerSubtitle {

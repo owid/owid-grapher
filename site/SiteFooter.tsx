@@ -189,22 +189,38 @@ export const SiteFooter = (props: SiteFooterProps) => (
                                 className="partner-logo"
                                 data-track-note="footer_navigation"
                             >
-                                <img
-                                    src={`${props.baseUrl}/oms-logo.png`}
-                                    alt="Oxford Martin School logo"
-                                    loading="lazy"
-                                />
+                                <picture>
+                                    <source
+                                        type="image/avif"
+                                        srcSet={`${props.baseUrl}/oms-logo.avif`}
+                                    />
+                                    <img
+                                        src={`${props.baseUrl}/oms-logo.png`}
+                                        alt="Oxford Martin School logo"
+                                        loading="lazy"
+                                        width={275}
+                                        height={139}
+                                    />
+                                </picture>
                             </a>
                             <a
                                 href="/owid-at-ycombinator"
                                 className="partner-logo"
                                 data-track-note="footer_navigation"
                             >
-                                <img
-                                    src={`${props.baseUrl}/yc-logo.png`}
-                                    alt="Y Combinator logo"
-                                    loading="lazy"
-                                />
+                                <picture>
+                                    <source
+                                        type="image/avif"
+                                        srcSet={`${props.baseUrl}/yc-logo.avif`}
+                                    />
+                                    <img
+                                        src={`${props.baseUrl}/yc-logo.png`}
+                                        alt="Y Combinator logo"
+                                        loading="lazy"
+                                        width={490}
+                                        height={138}
+                                    />
+                                </picture>
                             </a>
                         </div>
                     </div>
@@ -249,11 +265,19 @@ export const SiteFooter = (props: SiteFooterProps) => (
                                     className="partner-logo gcdl-logo"
                                     data-track-note="footer_navigation"
                                 >
-                                    <img
-                                        src={`${props.baseUrl}/gcdl-logo.png`}
-                                        alt="Global Change Data Lab logo"
-                                        loading="lazy"
-                                    />
+                                    <picture>
+                                        <source
+                                            type="image/webp"
+                                            srcSet={`${props.baseUrl}/gcdl-logo.webp`}
+                                        />
+                                        <img
+                                            src={`${props.baseUrl}/gcdl-logo.png`}
+                                            alt="Global Change Data Lab logo"
+                                            loading="lazy"
+                                            width={106}
+                                            height={127}
+                                        />
+                                    </picture>
                                 </a>
                                 Our World In Data is a project of the{" "}
                                 <a href="https://global-change-data-lab.org/">

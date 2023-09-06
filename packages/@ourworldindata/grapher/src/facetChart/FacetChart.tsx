@@ -60,7 +60,7 @@ import {
     NumericBin,
 } from "../color/ColorScaleBin"
 
-const facetBackgroundColor = "transparent" // we don't use color yet but may use it for background later
+const facetBackgroundColor = "none" // we don't use color yet but may use it for background later
 
 const getContentBounds = (
     containerBounds: Bounds,

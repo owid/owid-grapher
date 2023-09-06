@@ -5,6 +5,7 @@ $controlRowHeight: 32px; // keep in sync with CONTROLS_ROW_HEIGHT
 .HeaderHTML,
 .SourcesFooterHTML {
     font-family: $sans-serif-font-stack;
+    font-feature-settings: $default-font-features;
     font-size: 16px;
     -webkit-font-smoothing: antialiased;
 }
