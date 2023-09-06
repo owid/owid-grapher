@@ -18,7 +18,8 @@
         margin: 0;
     }
 
-    .sources a.learn-more-about-data {
+    .sources a.learn-more-about-data,
+    .note a {
         text-decoration: underline;
 
         &:hover {
