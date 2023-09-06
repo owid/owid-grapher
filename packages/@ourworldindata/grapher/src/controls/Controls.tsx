@@ -643,32 +643,58 @@ export class FacetStrategySelector extends React.Component<{
         )
     }
 
+    @computed get subtitle(): string {
+        const entityType = this.props.manager.entityType ?? "country or region",
+            byEntity = this.strategies.includes(FacetStrategy.entity),
+            byMetric = this.strategies.includes(FacetStrategy.metric)
+
+        if (byEntity || byMetric) {
+            const facet =
+                byEntity && byMetric
+                    ? `metric, ${entityType}`
+                    : byEntity
+                    ? entityType
+                    : "metric"
+            return (
+                "Visualize the data all together in one chart or split it by " +
+                facet
+            )
+        } else {
+            return ""
+        }
+    }
+
     render(): JSX.Element {
         return (
-            <div className="config-list">
-                {this.strategies.map((value: FacetStrategy) => {
-                    const label = this.facetStrategyLabels[value],
-                        active = value === this.facetStrategy,
-                        option = value.toString()
+            <>
+                <div className="config-subtitle">{this.subtitle}</div>
+                <div className="config-list">
+                    {this.strategies.map((value: FacetStrategy) => {
+                        const label = this.facetStrategyLabels[value],
+                            active = value === this.facetStrategy,
+                            option = value.toString()
 
-                    return (
-                        <button
-                            key={option}
-                            className={classnames(option, { active })}
-                            onClick={(): void => {
-                                this.props.manager.facetStrategy = value
-                            }}
-                        >
-                            <div className="faceting-icon">
-                                {range(value === "none" ? 1 : 6).map((i) => (
-                                    <span key={i}></span>
-                                ))}
-                            </div>
-                            {label}
-                        </button>
-                    )
-                })}
-            </div>
+                        return (
+                            <button
+                                key={option}
+                                className={classnames(option, { active })}
+                                onClick={(): void => {
+                                    this.props.manager.facetStrategy = value
+                                }}
+                            >
+                                <div className="faceting-icon">
+                                    {range(value === "none" ? 1 : 6).map(
+                                        (i) => (
+                                            <span key={i}></span>
+                                        )
+                                    )}
+                                </div>
+                                {label}
+                            </button>
+                        )
+                    })}
+                </div>
+            </>
         )
     }
 
