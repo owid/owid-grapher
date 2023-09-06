@@ -13790,7 +13790,6 @@ __metadata:
     fs-extra: ^11.1.1
     fuzzyset: ^1.0.5
     fuzzysort: ^1.1.4
-    get-stream: ^6.0.1
     glob: ^10.3.3
     googleapis: ^108.0.0
     handsontable: ^12.3.3
