@@ -1982,12 +1982,6 @@ export class Grapher
                 category: "Timeline",
             },
             {
-                combo: "f",
-                fn: (): void => this.toggleFacetControlVisibility(),
-                title: `Toggle Faceting`,
-                category: "Chart",
-            },
-            {
                 combo: "l",
                 fn: (): void => this.toggleYScaleTypeCommand(),
                 title: "Toggle Y log/linear",
@@ -2052,13 +2046,6 @@ export class Grapher
         )
     }
 
-    @action.bound private toggleFacetStrategy(): void {
-        this.facetStrategy = next(
-            this.availableFacetStrategies,
-            this.facetStrategy
-        )
-    }
-
     @computed get showFacetControl(): boolean {
         const {
             hideFacetControl,
@@ -2084,10 +2071,6 @@ export class Grapher
         )
 
         return showFacetControlChartType && !hasProjection
-    }
-
-    @action.bound private toggleFacetControlVisibility(): void {
-        this.hideFacetControl = !this.hideFacetControl
     }
 
     @computed get showFacetYDomainToggle(): boolean {
