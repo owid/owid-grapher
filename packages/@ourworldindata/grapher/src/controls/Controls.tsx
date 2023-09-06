@@ -107,29 +107,22 @@ export interface SettingsMenuManager {
     canToggleRelativeMode: boolean
 
     // linear/log & align-faceted-axes
-    //  showYScaleToggle?: boolean
-    //  showXScaleToggle?: boolean
-    //  showFacetYDomainToggle?: boolean
     yAxis: AxisConfig
     xAxis: AxisConfig
 
     // zoom-to-selection
-    //  showZoomToggle?: boolean
     zoomToSelection?: boolean
 
     // show no-data entities in marimekko
-    // showNoDataAreaToggle?: boolean
     showNoDataArea?: boolean
 
     // facet by
-    //  showFacetControl?: boolean
     availableFacetStrategies: FacetStrategy[]
     facetStrategy?: FacetStrategy
     entityType?: string
     facettingLabelByYVariables?: string
 
     // absolute/relative units
-    //  showAbsRelToggle?: boolean
     stackMode?: StackMode
     relativeToggleLabel?: string
 
@@ -330,43 +323,24 @@ export class SettingsMenu extends React.Component<{
 
                     <Setting
                         title="Chart view"
-                        info="Visualize the data all together in one chart or split it by country, region or metric."
                         active={
+                            showAbsRelToggle ||
+                            showZoomToggle ||
+                            showNoDataAreaToggle ||
                             showFacetControl
                         }
                     >
-                        <FacetStrategySelector manager={manager} />
-                        <FacetYDomainToggle manager={manager} />
-                    </Setting>
-
-                    <Setting
-                        title="Zoom to selection"
-                        info="Crop out any non-selected points."
-                        active={showZoomToggle}
-                    >
-                        <ZoomToggle manager={manager} />
-                    </Setting>
-
-                    <Setting
-                        title="Show ‘no data’ regions"
-                        info="Show all items, including ones for which there is no data."
-                        active={showNoDataAreaToggle}
-                    >
-                        <NoDataAreaToggle manager={manager} />
-                    </Setting>
-
-                    <Setting
-                        title="Proportional values"
-                        info="Display each value in terms of its share of the total."
-                        active={showAbsRelToggle}
-                    >
-                        <AbsRelToggle manager={manager} />
                         {showFacetControl && (
                             <>
                                 <FacetStrategySelector manager={manager} />
                                 <FacetYDomainToggle manager={manager} />
                             </>
                         )}
+                        {showAbsRelToggle && <AbsRelToggle manager={manager} />}
+                        {showNoDataAreaToggle && (
+                            <NoDataAreaToggle manager={manager} />
+                        )}
+                        {showZoomToggle && <ZoomToggle manager={manager} />}
                     </Setting>
 
                     <Setting
