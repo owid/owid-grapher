@@ -1609,9 +1609,9 @@ export class Grapher
     }
 
     @computed get relativeToggleLabel(): string {
-        if (this.isScatter) return "Average annual change"
-        else if (this.isLineChart) return "Relative change"
-        return "Relative"
+        if (this.isScatter) return "Display average annual change"
+        else if (this.isLineChart) return "Display relative change"
+        return "Display relative values"
     }
 
     // NB: The timeline scatterplot in relative mode calculates changes relative

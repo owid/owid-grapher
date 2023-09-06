@@ -557,7 +557,8 @@ export class AbsRelToggle extends React.Component<{
     }
 
     render(): JSX.Element {
-        const label = this.manager.relativeToggleLabel ?? "Relative"
+        const label =
+            this.manager.relativeToggleLabel ?? "Display relative values"
         return (
             <LabeledSwitch
                 label={label}
