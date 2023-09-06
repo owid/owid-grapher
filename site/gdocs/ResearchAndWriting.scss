@@ -56,15 +56,18 @@
         margin-top: 40px;
         margin-bottom: 24px;
     }
-    .research-and-writing-row__link-container {
+}
+
+.research-and-writing-row__link-container {
+    @include sm-only {
+        display: flex;
         overflow-x: auto;
         scrollbar-width: thin;
-        .research-and-writing-link {
-            // distributes 1280px between 4 tiles + 3 column gaps
-            min-width: calc((1280px - calc(3 * var(--grid-gap))) / 4);
-            h3 {
-                font-size: 1.125rem;
-            }
+    }
+    .research-and-writing-link {
+        font-size: 1.125rem;
+        @include sm-only {
+            flex: 1 0 80%;
         }
     }
 }

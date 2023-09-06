@@ -117,7 +117,7 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
             {rows.map((row, i) => (
                 <div key={i} className="span-cols-12 research-and-writing-row">
                     <h5 className="overline-black-caps">{row.heading}</h5>
-                    <div className="grid grid-cols-4 research-and-writing-row__link-container">
+                    <div className="grid grid-cols-4 grid-lg-cols-3 grid-md-cols-2 research-and-writing-row__link-container">
                         {/* center the two thumbnails with a filler element */}
                         {row.articles.length === 2 ? <div /> : null}
                         {row.articles.map((link, i) => (
