@@ -2046,42 +2046,6 @@ export class Grapher
         )
     }
 
-    @computed get showFacetControl(): boolean {
-        const {
-            hideFacetControl,
-            filledDimensions,
-            availableFacetStrategies,
-            isStackedArea,
-            isStackedBar,
-            isStackedDiscreteBar,
-            isLineChart,
-        } = this
-
-        if (hideFacetControl !== undefined) return !hideFacetControl
-
-        // heuristic: if the chart doesn't make sense unfaceted, then it probably
-        // also makes sense to let the user switch between entity/metric facets
-        if (!availableFacetStrategies.includes(FacetStrategy.none)) return true
-
-        const showFacetControlChartType =
-            isStackedArea || isStackedBar || isStackedDiscreteBar || isLineChart
-
-        const hasProjection = filledDimensions.some(
-            (dim) => dim.display.isProjection
-        )
-
-        return showFacetControlChartType && !hasProjection
-    }
-
-    @computed get showFacetYDomainToggle(): boolean {
-        // don't offer to make the y range relative if the range is discrete
-        return (
-            !this.hideFacetYDomainToggle &&
-            this.facetStrategy !== FacetStrategy.none &&
-            !this.isStackedDiscreteBar
-        )
-    }
-
     @computed get _sortConfig(): Readonly<SortConfig> {
         return {
             sortBy: this.sortBy ?? SortBy.total,
