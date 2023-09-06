@@ -1764,29 +1764,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@bugsnag/browser-performance@npm:^0.3.0":
-  version: 0.3.0
-  resolution: "@bugsnag/browser-performance@npm:0.3.0"
-  dependencies:
-    "@bugsnag/core-performance": ^0.3.0
-    "@bugsnag/cuid": ^3.0.2
-  checksum: e4a1a4639adb0031cbbd74de5dc914830040e514e0bdd20b9cda506cfd1e90b58f730fe2235dfe9240badc21c488bc4811c75f7967c9c9a90a9f42729777026c
-  languageName: node
-  linkType: hard
-
 "@bugsnag/browser@npm:^7.20.2":
   version: 7.20.2
   resolution: "@bugsnag/browser@npm:7.20.2"
   dependencies:
     "@bugsnag/core": ^7.19.0
   checksum: 676b3ea2f2e97f9f21f283fe3a801c4193c3ed998526fe2eab2ea5914715a7699341468fd201d0aa983b4131cafd84e0fdd7baf8649e2a72222b2389f2de5079
-  languageName: node
-  linkType: hard
-
-"@bugsnag/core-performance@npm:^0.3.0":
-  version: 0.3.0
-  resolution: "@bugsnag/core-performance@npm:0.3.0"
-  checksum: 0292a905adae5f8b2abeea3d9a7cb109e1035f758eef4de48fd801bb29b49e7fbc032d7a7e386a9a8bb5308b4f2c3cf9c1c0488974a97fc9bf2f6ef12411912f
   languageName: node
   linkType: hard
 
@@ -1803,7 +1786,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@bugsnag/cuid@npm:^3.0.0, @bugsnag/cuid@npm:^3.0.2":
+"@bugsnag/cuid@npm:^3.0.0":
   version: 3.0.2
   resolution: "@bugsnag/cuid@npm:3.0.2"
   checksum: cf85d78f0107b25bcfc4396e5c2cf7eb58a28777f07b9c6e976d529417a8284bb69ec715f13917c2b6ad3803e7bb563621b0374c31e09d4c6b3156aba9939955
@@ -13682,7 +13665,6 @@ __metadata:
   resolution: "grapher@workspace:."
   dependencies:
     "@aws-sdk/client-s3": ^3.352.0
-    "@bugsnag/browser-performance": ^0.3.0
     "@bugsnag/core": ^7.19.0
     "@bugsnag/js": ^7.20.0
     "@bugsnag/plugin-express": ^7.19.0
