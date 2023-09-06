@@ -205,6 +205,9 @@ export class SettingsMenu extends React.Component<{
         const { filledDimensions, availableFacetStrategies, type } =
             this.manager
 
+        // if there's no choice to be made, don't display a lone button
+        if (availableFacetStrategies.length <= 1) return false
+
         // heuristic: if the chart doesn't make sense unfaceted, then it probably
         // also makes sense to let the user switch between entity/metric facets
         if (!availableFacetStrategies.includes(FacetStrategy.none)) return true
@@ -224,14 +227,13 @@ export class SettingsMenu extends React.Component<{
     }
 
     @computed get showSettingsMenuToggle(): boolean {
-        const multifaceted = this.manager.availableFacetStrategies.length > 1
         return !!(
             this.showYScaleToggle ||
             this.showXScaleToggle ||
             this.showFacetYDomainToggle ||
             this.showZoomToggle ||
             this.showNoDataAreaToggle ||
-            (this.showFacetControl && multifaceted) ||
+            this.showFacetControl ||
             this.showAbsRelToggle
         )
 
@@ -299,8 +301,7 @@ export class SettingsMenu extends React.Component<{
             showAbsRelToggle,
         } = this
 
-        const { yAxis, xAxis, availableFacetStrategies, compareEndPointsOnly } =
-            manager
+        const { yAxis, xAxis, compareEndPointsOnly } = manager
 
         return (
             <div className="settings-menu-contents">
@@ -331,8 +332,7 @@ export class SettingsMenu extends React.Component<{
                         title="Chart view"
                         info="Visualize the data all together in one chart or split it by country, region or metric."
                         active={
-                            showFacetControl &&
-                            availableFacetStrategies.length > 1
+                            showFacetControl
                         }
                     >
                         <FacetStrategySelector manager={manager} />
@@ -361,6 +361,12 @@ export class SettingsMenu extends React.Component<{
                         active={showAbsRelToggle}
                     >
                         <AbsRelToggle manager={manager} />
+                        {showFacetControl && (
+                            <>
+                                <FacetStrategySelector manager={manager} />
+                                <FacetYDomainToggle manager={manager} />
+                            </>
+                        )}
                     </Setting>
 
                     <Setting
@@ -632,7 +638,6 @@ export class ZoomToggle extends React.Component<{
 export interface FacetStrategySelectionManager {
     availableFacetStrategies: FacetStrategy[]
     facetStrategy?: FacetStrategy
-    showFacetControl?: boolean
     entityType?: string
     facettingLabelByYVariables?: string
 }
