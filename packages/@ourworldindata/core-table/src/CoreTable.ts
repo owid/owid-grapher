@@ -1449,8 +1449,6 @@ export class CoreTable<
         const col1 = this.get(slug1)
         const col2 = this.get(slug2)
 
-        console.timeLog("c", "got cols")
-
         const cartesianProductSize =
             col1.uniqValues.length * col2.uniqValues.length
         if (this.numRows >= cartesianProductSize) {
@@ -1462,38 +1460,50 @@ export class CoreTable<
             // Table is already complete
             return this
         }
+        console.timeLog("c", "got cols")
 
-        // Map that points from a value in col1 to a set of values in col2
-        // At first we fill it with the cartesian product of unique values in col1 and col2,
-        // then we remove all the values that already exist in the table.
-        const missingValues = new Map<CoreValueType, Set<CoreValueType>>()
-        for (const val1 of col1.uniqValues) {
-            missingValues.set(val1, new Set(col2.uniqValues))
-        }
-
-        console.timeLog("c", "filled map")
-        this.indices.forEach((index) => {
+        // Map that points from a value in col1 to a set of values in col2.
+        // It's filled with all the values that already exist in the table, so we
+        // can later take the difference.
+        const existingRowValues = new Map<CoreValueType, Set<CoreValueType>>()
+        for (const index of this.indices) {
             const val1 = col1.values[index]
             const val2 = col2.values[index]
+            if (!existingRowValues.has(val1))
+                existingRowValues.set(val1, new Set())
+            existingRowValues.get(val1)!.add(val2)
+        }
 
-            missingValues.get(val1)?.delete(val2)
-        })
-
-        console.timeLog("c", "removed rows")
+        console.timeLog("c", "got existing rows")
 
         // The below code should be as performant as possible, since it's often iterating over hundreds of thousands of rows.
         // The below implementation has been benchmarked against a few alternatives (using flatMap, map, and Array.from), and
         // is the fastest.
         // See https://jsperf.app/zudoye.
-        const rowsToAdd: Record<ColumnSlug, CoreValueType>[] = []
-        for (const [val1, vals2] of missingValues.entries()) {
-            for (const val2 of vals2) {
-                rowsToAdd.push({ [slug1]: val1, [slug2]: val2 })
+        const rowsToAddCol1 = []
+        const rowsToAddCol2 = []
+        for (const val1 of col1.uniqValues) {
+            const existingVals2 = existingRowValues.get(val1)
+            for (const val2 of col2.uniqValues) {
+                if (!existingVals2?.has(val2)) {
+                    rowsToAddCol1.push(val1)
+                    rowsToAddCol2.push(val2)
+                }
             }
         }
-        console.timeLog("c", "built rows")
-        const ret = this.appendRows(
-            rowsToAdd as ROW_TYPE[],
+        const appendColumnStore: CoreColumnStore = {
+            [slug1]: rowsToAddCol1,
+            [slug2]: rowsToAddCol2,
+        }
+        console.timeLog("c", "built rowsToAdd")
+        const appendTable = new (this.constructor as typeof CoreTable<
+            any,
+            any
+        >)(appendColumnStore, this.defs, { parent: this })
+
+        console.timeLog("c", "built appendTable")
+        const ret = this.concat(
+            [appendTable],
             `Append missing combos of ${columnSlugs}`
         )
         console.timeLog("c", "appended rows")
