@@ -162,12 +162,18 @@ export class SettingsMenu extends React.Component<{
     }
 
     @computed get showZoomToggle(): boolean {
-        return (
-            !this.manager.hideZoomToggle && this.manager.type === ScatterPlot
-            // TODO: make this work around the definition that `selection`
-            //       might just be an array of strings…
-            // && this.manager.selection.hasSelection
-        )
+        // TODO:
+        // grapher passes a SelectionArray instance but programmatically defined
+        // managers treat `selection` as a string[] of entity names. do we need both?
+        const { selection, type, hideZoomToggle } = this.manager,
+            entities =
+                selection instanceof SelectionArray
+                    ? selection.selectedEntityNames
+                    : Array.isArray(selection)
+                    ? selection
+                    : []
+
+        return !hideZoomToggle && type === ScatterPlot && entities.length > 0
     }
 
     @computed get showNoDataAreaToggle(): boolean {
