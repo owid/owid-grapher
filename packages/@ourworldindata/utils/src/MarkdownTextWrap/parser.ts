@@ -396,7 +396,8 @@ const boldContentParser: (r: MdParser) => P.Parser<BoldContent> = (
         r.detailOnDemand,
         r.markdownLink,
         r.plainUrl,
-        r.nonSpecialCharacters
+        r.nonSpecialCharacters,
+        r.singleParen
     )
 
 const boldParser: (r: MdParser) => P.Parser<Bold> = (r: MdParser) =>
@@ -440,7 +441,8 @@ const italicWithoutBoldContentParser: (
         r.detailOnDemand,
         r.markdownLink,
         r.plainUrl,
-        r.nonSpecialCharacters
+        r.nonSpecialCharacters,
+        r.singleParen
     )
 
 const italicWithoutBoldParser: (r: MdParser) => P.Parser<ItalicWithoutBold> = (
@@ -465,7 +467,8 @@ const italicContentParser: (r: MdParser) => P.Parser<ItalicContent> = (
         r.detailOnDemand,
         r.markdownLink,
         r.plainUrl,
-        r.nonSpecialCharacters
+        r.nonSpecialCharacters,
+        r.singleParen
     )
 
 const italicParser: (r: MdParser) => P.Parser<Italic> = (r: MdParser) =>
