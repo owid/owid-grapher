@@ -138,7 +138,7 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
 
     templates: {
         header: () => <h5 className="overline-black-caps">Top Results</h5>,
-        item: ({ item }) => {
+        item: ({ item, components }) => {
             const index = item.__autocomplete_indexName as SearchIndexName
             const indexLabel =
                 index === SearchIndexName.Charts
@@ -149,7 +149,13 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
 
             return (
                 <div className="aa-ItemWrapper">
-                    <span>{item.title}</span>
+                    <span>
+                        <components.Highlight
+                            hit={item}
+                            attribute="title"
+                            tagName="strong"
+                        />
+                    </span>
                     <span className="aa-ItemWrapper__contentType">
                         {indexLabel}
                     </span>
