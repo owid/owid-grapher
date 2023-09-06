@@ -349,12 +349,10 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                     stroke="#777"
                 ></line>
                 <g
-                    style={{
-                        transform: `translate(15px, ${
-                            // + padding below the grey line
-                            this.bounds.height + OUTSIDE_PADDING
-                        }px)`,
-                    }}
+                    transform={`translate(15, ${
+                        // + padding below the grey line
+                        this.bounds.height + OUTSIDE_PADDING
+                    })`}
                 >
                     {this.manager.detailRenderers.map((detail, i) => {
                         previousOffset = yOffset
