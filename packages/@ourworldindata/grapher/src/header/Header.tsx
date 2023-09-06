@@ -59,7 +59,7 @@ export class Header extends React.Component<{
             : 24
         return new TextWrap({
             maxWidth: this.maxWidth - logoWidth - 24,
-            fontWeight: 400,
+            fontWeight: 500,
             lineHeight: this.manager.isSmall ? 1.1 : 1.2,
             fontSize,
             text: this.titleText,
@@ -119,6 +119,7 @@ export class Header extends React.Component<{
                     style={{
                         fontFamily:
                             "'Playfair Display', Georgia, 'Times New Roman', 'Liberation Serif', serif",
+                        fontWeight: 500,
                     }}
                     target="_blank"
                     rel="noopener"
