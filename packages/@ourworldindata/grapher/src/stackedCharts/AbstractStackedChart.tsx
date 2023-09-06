@@ -172,7 +172,8 @@ export class AbstractStackedChart
             paddingForLegend,
         } = this
         return new DualAxis({
-            bounds: bounds.padRight(paddingForLegend),
+            // top padding leaves room for tick labels
+            bounds: bounds.padRight(paddingForLegend).padTop(6),
             horizontalAxis: horizontalAxisPart,
             verticalAxis: verticalAxisPart,
         })
