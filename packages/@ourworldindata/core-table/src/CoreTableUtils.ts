@@ -1,5 +1,4 @@
 import { dsvFormat, DSVParsedArray } from "d3-dsv"
-import fastCartesian from "fast-cartesian"
 import {
     findIndexFast,
     first,
@@ -623,10 +622,6 @@ export const trimArray = (arr: any[]): any[] => {
         if (!isCellEmpty(arr[rightIndex])) break
     }
     return arr.slice(0, rightIndex + 1)
-}
-
-export function cartesianProduct<T>(...allEntries: T[][]): T[][] {
-    return fastCartesian(allEntries)
 }
 
 const applyNewSortOrder = (arr: any[], newOrder: number[]): any[] =>

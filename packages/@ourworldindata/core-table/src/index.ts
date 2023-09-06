@@ -107,7 +107,6 @@ export {
     isCellEmpty,
     trimEmptyRows,
     trimArray,
-    cartesianProduct,
     sortColumnStore,
     emptyColumnsInFirstRowInDelimited,
 } from "./CoreTableUtils.js"

@@ -57,7 +57,6 @@ import {
     getDropIndexes,
     parseDelimited,
     rowsFromMatrix,
-    cartesianProduct,
     sortColumnStore,
     emptyColumnsInFirstRowInDelimited,
     truncate,
