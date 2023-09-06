@@ -73,16 +73,6 @@ export interface CaptionedChartManager
     whatAreWeWaitingFor?: string
     entityType?: string
     entityTypePlural?: string
-    showSettingsMenuToggle?: boolean
-    showYScaleToggle?: boolean
-    showXScaleToggle?: boolean
-    showZoomToggle?: boolean
-    showAbsRelToggle?: boolean
-    showNoDataAreaToggle?: boolean
-    showFacetYDomainToggle?: boolean
-    showChangeEntityButton?: boolean
-    showAddEntityButton?: boolean
-    showSelectEntitiesButton?: boolean
     shouldIncludeDetailsInStaticExport?: boolean
     detailRenderers: MarkdownTextWrap[]
     isOnMapTab?: boolean
