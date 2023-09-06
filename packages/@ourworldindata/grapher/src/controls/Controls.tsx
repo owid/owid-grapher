@@ -395,7 +395,8 @@ export class SettingsMenu extends React.Component<{
                     className={classnames("menu-toggle", { active })}
                     onClick={this.toggleVisibility}
                 >
-                    <FontAwesomeIcon icon={faGear} /> Settings
+                    <FontAwesomeIcon icon={faGear} />
+                    <span className="label"> Settings</span>
                 </button>
                 {this.menu}
             </div>

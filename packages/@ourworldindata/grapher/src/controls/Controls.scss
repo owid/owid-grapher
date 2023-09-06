@@ -77,6 +77,19 @@ nav.controlsRow .controls {
 }
 
 @at-root {
+    // collapse the Settings toggle down to just an icon on small screens
+    .GrapherComponentSmall nav.controlsRow .settings-menu button.menu-toggle {
+        min-height: 32px;
+        svg {
+            margin-right: 0;
+        }
+        .label {
+            display: none;
+        }
+    }
+}
+
+@at-root {
     // the drawer version of the settings menu (see GRAPHER_SETTINGS_DRAWER_ID)
     nav#grapher-settings-drawer .settings-menu-contents {
         .settings-menu-controls {
@@ -214,7 +227,8 @@ nav.controlsRow .controls {
                 }
 
                 .config-subtitle {
-                    margin-top: 0.25em;
+                    font-size: 13px;
+                    margin: 5px 0;
                 }
 
                 .config-toggle {
