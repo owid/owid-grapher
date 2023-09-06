@@ -1441,15 +1441,65 @@ export class CoreTable<
      *   ```
      *
      */
-    complete(columnSlugs: ColumnSlug[]): this {
-        const index = this.rowIndex(columnSlugs)
-        const cols = this.getColumns(columnSlugs)
-        const product = cartesianProduct(...cols.map((col) => col.uniqValues))
-        const toAdd = product.filter((row) => !index.has(row.join(" ")))
-        return this.appendRows(
-            rowsFromMatrix([columnSlugs, ...toAdd]),
+    complete(columnSlugs: [ColumnSlug, ColumnSlug]): this {
+        if (columnSlugs.length !== 2)
+            throw new Error("Can only run complete() for exactly 2 columns")
+
+        console.time("c")
+        const [slug1, slug2] = columnSlugs
+        const col1 = this.get(slug1)
+        const col2 = this.get(slug2)
+
+        console.timeLog("c", "got cols")
+
+        const cartesianProductSize =
+            col1.uniqValues.length * col2.uniqValues.length
+        if (this.numRows >= cartesianProductSize) {
+            if (this.numRows > cartesianProductSize)
+                throw new Error("Table has more rows than expected")
+
+            console.timeLog("c", "skip", cartesianProductSize, this.numRows)
+            console.timeEnd("c")
+            // Table is already complete
+            return this
+        }
+
+        // Map that points from a value in col1 to a set of values in col2
+        // At first we fill it with the cartesian product of unique values in col1 and col2,
+        // then we remove all the values that already exist in the table.
+        const missingValues = new Map<CoreValueType, Set<CoreValueType>>()
+        for (const val1 of col1.uniqValues) {
+            missingValues.set(val1, new Set(col2.uniqValues))
+        }
+
+        console.timeLog("c", "filled map")
+        this.indices.forEach((index) => {
+            const val1 = col1.values[index]
+            const val2 = col2.values[index]
+
+            missingValues.get(val1)?.delete(val2)
+        })
+
+        console.timeLog("c", "removed rows")
+
+        // The below code should be as performant as possible, since it's often iterating over hundreds of thousands of rows.
+        // The below implementation has been benchmarked against a few alternatives (using flatMap, map, and Array.from), and
+        // is the fastest.
+        // See https://jsperf.app/zudoye.
+        const rowsToAdd: Record<ColumnSlug, CoreValueType>[] = []
+        for (const [val1, vals2] of missingValues.entries()) {
+            for (const val2 of vals2) {
+                rowsToAdd.push({ [slug1]: val1, [slug2]: val2 })
+            }
+        }
+        console.timeLog("c", "built rows")
+        const ret = this.appendRows(
+            rowsToAdd as ROW_TYPE[],
             `Append missing combos of ${columnSlugs}`
         )
+        console.timeLog("c", "appended rows")
+        console.timeEnd("c")
+        return ret
     }
 
     leftJoin(rightTable: CoreTable, by?: ColumnSlug[]): this {
