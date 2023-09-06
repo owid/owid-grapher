@@ -8,7 +8,7 @@ import {
     faGear,
     faInfoCircle,
     faPencilAlt,
-    // faEye,
+    faEye,
     faRightLeft,
 } from "@fortawesome/free-solid-svg-icons"
 import { EntityName } from "@ourworldindata/core-table"
@@ -40,6 +40,7 @@ export type ControlsManager = EntitySelectionManager & SettingsMenuManager
 export interface EntitySelectionManager {
     showSelectEntitiesButton?: boolean
     showChangeEntityButton?: boolean
+    showAddEntityButton?: boolean
     entityType?: string
     entityTypePlural?: string
     isSelectingData?: boolean
@@ -53,20 +54,21 @@ export class EntitySelectorToggle extends React.Component<{
         const {
             showSelectEntitiesButton,
             showChangeEntityButton,
-            // showAddEntityButton,
+            showAddEntityButton,
             entityType,
             entityTypePlural,
             isSelectingData: active,
         } = this.props.manager
 
-        if (!(showSelectEntitiesButton || showChangeEntityButton)) return null
-
-        // TODO: merge in addEntity icon/woding
         const [icon, label] = showSelectEntitiesButton
-            ? [faPencilAlt, `Select ${entityTypePlural}`]
-            : [faRightLeft, `Change ${entityType}`]
+            ? [faEye, `Select ${entityTypePlural}`]
+            : showChangeEntityButton
+            ? [faRightLeft, `Change ${entityType}`]
+            : showAddEntityButton
+            ? [faPencilAlt, `Edit ${entityTypePlural}`]
+            : []
 
-        return (
+        return icon && label ? (
             <div className="entity-selection-menu">
                 <button
                     className={classnames("menu-toggle", { active })}
@@ -77,7 +79,7 @@ export class EntitySelectorToggle extends React.Component<{
                     <FontAwesomeIcon icon={icon} /> {label}
                 </button>
             </div>
-        )
+        ) : null
     }
 }
 
