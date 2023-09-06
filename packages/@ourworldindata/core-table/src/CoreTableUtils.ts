@@ -398,22 +398,26 @@ export const concatColumnStores = (
     const slugs = slugsToKeep ?? Object.keys(first(stores)!)
 
     const newColumnStore: CoreColumnStore = {}
+
+    // The below code is performance-critical.
+    // That's why it's written using for loops and mutable arrays rather than using map or flatMap:
+    // To this day, that's still faster in JS.
     slugs.forEach((slug) => {
-        newColumnStore[slug] = flatten(
-            stores.map((store, i) => {
-                const values = store[slug] ?? []
-                const toFill = Math.max(0, lengths[i] - values.length)
-                if (toFill === 0) {
-                    return values
-                } else {
-                    return values.concat(
-                        new Array(lengths[i] - values.length).fill(
-                            ErrorValueTypes.MissingValuePlaceholder
-                        )
+        let newColumnValues: CoreValueType[] = []
+        for (const [i, store] of stores.entries()) {
+            const values = store[slug] ?? []
+            const toFill = Math.max(0, lengths[i] - values.length)
+
+            newColumnValues = newColumnValues.concat(values)
+            if (toFill > 0) {
+                newColumnValues = newColumnValues.concat(
+                    new Array(toFill).fill(
+                        ErrorValueTypes.MissingValuePlaceholder
                     )
-                }
-            })
-        )
+                )
+            }
+        }
+        newColumnStore[slug] = newColumnValues
     })
     return newColumnStore
 }
