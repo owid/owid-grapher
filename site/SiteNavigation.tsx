@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import React, { useCallback, useEffect, useState } from "react"
 import ReactDOM from "react-dom"
 import {
     faListUl,
@@ -21,6 +21,7 @@ import { SiteNavigationToggle } from "./SiteNavigationToggle.js"
 import classnames from "classnames"
 import { useTriggerOnEscape } from "./hooks.js"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
+import { AUTOCOMPLETE_CONTAINER_ID } from "./search/Autocomplete.js"
 
 export enum Menu {
     Topics = "topics",
@@ -41,10 +42,38 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
         menu !== null &&
         [Menu.Topics, Menu.Resources, Menu.About].includes(menu)
 
-    const closeOverlay = () => {
+    // useCallback so as to not trigger a re-render for SiteSearchNavigation, which remounts
+    // Autocomplete and breaks it
+    const closeOverlay = useCallback(() => {
         setActiveMenu(null)
         setQuery("")
-    }
+    }, [])
+
+    // Same SiteSearchNavigation re-rendering case as above
+    const setSearchAsActiveMenu = useCallback(() => {
+        setActiveMenu(Menu.Search)
+        // Forced DOM manipulation of the algolia autocomplete panel position 🙃
+        // Without this, the panel initially renders at the same width as the shrunk search input
+        // Fortunately we only have to do this when it mounts - it takes care of resizes
+        setTimeout(() => {
+            const [panel, autocompleteContainer] = [
+                ".aa-Panel",
+                AUTOCOMPLETE_CONTAINER_ID,
+            ].map((className) => document.querySelector<HTMLElement>(className))
+            if (panel && autocompleteContainer) {
+                const bounds = autocompleteContainer.getBoundingClientRect()
+                panel.style.left = `${bounds.left}px`
+            }
+        }, 10)
+
+        setTimeout(() => {
+            const input = document.querySelector<HTMLElement>(".aa-Input")
+            if (input) {
+                input.focus()
+                input.setAttribute("required", "true")
+            }
+        }, 10)
+    }, [])
 
     const toggleMenu = (root: Menu) => {
         if (menu === root) {
@@ -150,11 +179,9 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                         </nav>
                         <div className="site-search-cta">
                             <SiteSearchNavigation
-                                query={query}
                                 isActive={menu === Menu.Search}
-                                setQuery={setQuery}
                                 onClose={closeOverlay}
-                                onActivate={() => setActiveMenu(Menu.Search)}
+                                onActivate={setSearchAsActiveMenu}
                             />
                             <SiteNavigationToggle
                                 isActive={menu === Menu.Subscribe}

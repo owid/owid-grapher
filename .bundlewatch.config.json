@@ -6,7 +6,7 @@
         },
         {
             "path": "./dist/assets/owid.mjs",
-            "maxSize": "260 KB"
+            "maxSize": "545 KB"
         }
     ],
     "defaultCompression": "none"

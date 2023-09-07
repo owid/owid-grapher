@@ -8,7 +8,10 @@ import { Tag } from "./TagBadge.js"
 import { bind } from "decko"
 import { EditableTags, Timeago } from "./Forms.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
-import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
+import {
+    BAKED_GRAPHER_EXPORTS_BASE_URL,
+    BAKED_GRAPHER_URL,
+} from "../settings/clientSettings.js"
 import { ChartTypeName, GrapherInterface } from "@ourworldindata/grapher"
 import { startCase } from "@ourworldindata/utils"
 import { References, getFullReferencesCount } from "./ChartEditor.js"
@@ -88,7 +91,7 @@ class ChartRow extends React.Component<{
                     {chart.isPublished && (
                         <a href={`${BAKED_GRAPHER_URL}/${chart.slug}`}>
                             <img
-                                src={`${BAKED_GRAPHER_URL}/exports/${chart.slug}.svg`}
+                                src={`${BAKED_GRAPHER_EXPORTS_BASE_URL}/${chart.slug}.svg`}
                                 className="chartPreview"
                             />
                         </a>
