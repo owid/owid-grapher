@@ -88,7 +88,6 @@ export {
     toleranceInterpolation,
     interpolateRowValuesWithTolerance,
     makeKeyFn,
-    appendRowsToColumnStore,
     concatColumnStores,
     rowsToColumnStore,
     autodetectColumnDefs,

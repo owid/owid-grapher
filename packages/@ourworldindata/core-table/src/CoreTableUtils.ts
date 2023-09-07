@@ -2,7 +2,6 @@ import { dsvFormat, DSVParsedArray } from "d3-dsv"
 import {
     findIndexFast,
     first,
-    flatten,
     max,
     range,
     sampleFrom,
@@ -369,20 +368,6 @@ export const makeKeyFn =
         columnSlugs
             .map((slug) => toString(columnStore[slug][rowIndex]))
             .join(" ")
-
-export const appendRowsToColumnStore = (
-    columnStore: CoreColumnStore,
-    rows: CoreRow[]
-): CoreColumnStore => {
-    const slugs = Object.keys(columnStore)
-    const newColumnStore = columnStore
-    slugs.forEach((slug) => {
-        newColumnStore[slug] = columnStore[slug].concat(
-            rows.map((row) => row[slug])
-        )
-    })
-    return newColumnStore
-}
 
 const getColumnStoreLength = (store: CoreColumnStore): number => {
     return max(Object.values(store).map((v) => v.length)) ?? 0
