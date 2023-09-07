@@ -1626,11 +1626,27 @@ class FilterMask {
 
     apply(columnStore: CoreColumnStore): CoreColumnStore {
         const columnsObject: CoreColumnStore = {}
+        console.time("apply mask")
+        const keepIndexes: number[] = []
+        for (let i = 0; i < this.numRows; i++) {
+            if (this.mask[i]) keepIndexes.push(i)
+        }
+        console.timeLog(
+            "apply mask",
+            "got keepIndexes",
+            this.numRows,
+            keepIndexes.length
+        )
         Object.keys(columnStore).forEach((slug) => {
-            columnsObject[slug] = columnStore[slug].filter(
-                (slug, index) => this.mask[index]
-            )
+            const originalColumn = columnStore[slug]
+            const newColumn: CoreValueType[] = new Array(keepIndexes.length)
+            for (let i = 0; i < keepIndexes.length; i++) {
+                newColumn[i] = originalColumn[keepIndexes[i]]
+            }
+
+            columnsObject[slug] = newColumn
         })
+        console.timeEnd("apply mask")
         return columnsObject
     }
 }
