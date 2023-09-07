@@ -1,14 +1,22 @@
 .ContentSwitchers {
-    $borderWidth: 1px;
-    $borderRadius: 4px;
-    $gap: 1.5px;
+    $light-stroke: #e7e7e7;
+
+    $hover-fill: #f2f2f2;
+    $active-fill: #dbe5f0;
+
+    $info-icon: #a1a1a1;
+    $active-icon: #6e87a2;
+
+    $border-width: 1px;
+    $border-radius: 4px;
+    $visual-gap: 1.5px;
 
     list-style: none;
     height: $controlRowHeight;
     margin: 0;
-    padding: $gap;
-    border: $borderWidth solid $light-stroke;
-    border-radius: $borderRadius;
+    padding: $visual-gap;
+    border: $border-width solid $light-stroke;
+    border-radius: $border-radius;
 
     li {
         display: inline-block;
@@ -17,7 +25,7 @@
     }
 
     li > a {
-        $height: $controlRowHeight - 2 * ($borderWidth + $gap);
+        $height: $controlRowHeight - 2 * ($border-width + $visual-gap);
 
         display: block;
         text-transform: capitalize;
@@ -26,7 +34,7 @@
         font-weight: 500;
         height: $height;
         line-height: $height;
-        border-radius: $borderRadius - $gap;
+        border-radius: $border-radius - $visual-gap;
         padding: 0 16px;
         cursor: default;
         letter-spacing: 0.01em;
@@ -49,7 +57,7 @@
         background-color: $active-fill;
 
         svg {
-            color: $active-knob;
+            color: $active-icon;
         }
     }
 

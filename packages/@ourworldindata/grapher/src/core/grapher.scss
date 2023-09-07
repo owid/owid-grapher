@@ -3,25 +3,17 @@ $sans-serif-font-stack: Lato, "Helvetica Neue", Helvetica, Arial,
 $serif-font-stack: "Playfair Display", Georgia, "Times New Roman",
     "Liberation Serif", serif;
 
-$light-stroke: #e7e7e7;
-$dark-stroke: #2d2d2d;
-
-$light-fill: #dadada;
-$active-fill: #dbe5f0;
-$hover-fill: #f2f2f2;
-
-$light-text: #858585;
-$dark-text: #5b5b5b;
-$active-text: #1d3d63;
-
-$info-icon: #a1a1a1;
-$active-knob: #6e87a2;
-
+// grapher frame
 $frame-color: #f2f2f2;
 
-$medium: 400;
-$bold: 700;
-$lato: $sans-serif-font-stack;
+// text
+$dark-text: #5b5b5b;
+$light-text: #858585;
+$active-text: #1d3d63;
+
+// tooltip for button label
+$tooltip-fill: #4e4e4e;
+$tooltip-text: #fff;
 
 // Variables duplicated from site CSS
 $blue-10: #ebeef2;

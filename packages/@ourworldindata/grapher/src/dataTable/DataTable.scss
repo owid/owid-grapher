@@ -1,7 +1,20 @@
 .DataTableContainer {
     $cell-border: 1px solid #f2f2f2;
+
+    // header
     $header: #f7f7f7;
     $header-hover: #e7e7e7;
+
+    // rows
+    $light-fill: #f7f7f7;
+    $dark-fill: #f2f2f2;
+
+    // sort icon
+    $sort-icon: #c6c6c6;
+    $hover-icon: #a1a1a1;
+
+    // closest time notice
+    $info-icon: #dadada;
 
     display: flex;
     align-items: center;
@@ -139,7 +152,7 @@
                 }
 
                 .sort-icon {
-                    color: #c6c6c6;
+                    color: $sort-icon;
                     font-size: 13px;
                     width: 19px;
                     text-align: right;
@@ -150,7 +163,7 @@
                 }
 
                 &:hover .sort-icon {
-                    color: $info-icon;
+                    color: $hover-icon;
                 }
             }
         }
@@ -159,7 +172,7 @@
             // alternating row colors
             &.hasTitleRows tr:not(.title):nth-child(2n + 1) td,
             &:not(.hasTitleRows) tr:nth-child(2n) td {
-                background-color: #f7f7f7;
+                background-color: $light-fill;
             }
 
             td.entity {
@@ -168,7 +181,7 @@
 
             tr.title td {
                 text-align: left;
-                background-color: #f2f2f2;
+                background-color: $dark-fill;
                 font-weight: 700;
             }
 
@@ -177,7 +190,7 @@
 
                 .icon {
                     font-size: 12px;
-                    color: #dadada;
+                    color: $info-icon;
                 }
 
                 & + span {

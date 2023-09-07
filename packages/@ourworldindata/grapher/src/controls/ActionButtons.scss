@@ -27,6 +27,10 @@ $paddingX: 12px; // keep in sync with PADDING_X
 }
 
 .ActionButton {
+    $light-fill: #f2f2f2;
+    $hover-fill: #e7e7e7;
+    $active-fill: #dbe5f0;
+
     height: 100%;
     border-radius: 4px;
     position: relative;
@@ -44,7 +48,7 @@ $paddingX: 12px; // keep in sync with PADDING_X
         font-weight: 500;
         padding: 0 $paddingX;
         border-radius: inherit;
-        background-color: #f2f2f2;
+        background-color: $light-fill;
         position: relative;
         letter-spacing: 0.01em;
 
@@ -58,7 +62,7 @@ $paddingX: 12px; // keep in sync with PADDING_X
         }
 
         &:hover {
-            background-color: #e7e7e7;
+            background-color: $hover-fill;
         }
 
         &:active,
@@ -75,8 +79,8 @@ $paddingX: 12px; // keep in sync with PADDING_X
         left: 50%;
         transform: translate(-50%, -4px);
         padding: 8px;
-        background-color: #4e4e4e;
-        color: #fff;
+        background-color: $tooltip-fill;
+        color: $tooltip-text;
         border-radius: 4px;
         font-size: 12px;
         line-height: 16px;

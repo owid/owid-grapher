@@ -1,6 +1,7 @@
 import React from "react"
 import { observer } from "mobx-react"
 import { computed, action, observable } from "mobx"
+import classnames from "classnames"
 import {
     Bounds,
     DEFAULT_BOUNDS,
@@ -176,11 +177,12 @@ export class EntitySelectorModal extends React.Component<{
                 isHeightFixed={true}
             >
                 <div
-                    className={
+                    className={classnames(
+                        "EntitySelector",
                         this.isMulti
                             ? "EntitySelectorMulti"
                             : "EntitySelectorSingle"
-                    }
+                    )}
                 >
                     <div className="searchBar">
                         <div className="searchInput">
