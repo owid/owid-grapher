@@ -56,17 +56,8 @@
             margin-top: 16px;
         }
 
-        .title {
-            @include h2-bold;
-            color: $blue-90;
-        }
-
         .description {
             line-height: 1.55;
-        }
-
-        a {
-            text-decoration: none;
         }
 
         a:hover .title {
@@ -88,10 +79,14 @@
 
     .wp-block-owid-card {
         .title {
-            font-size: 18px;
+            @include owid-link-90;
+            @include h2-bold;
+            margin-top: 16px;
+            margin-bottom: 8px;
+            text-decoration: none;
         }
         .description {
-            font-size: 14px;
+            @include body-1-regular;
         }
     }
 
@@ -172,6 +167,8 @@
 
     .title {
         @include h3-bold;
+        margin-top: 16px;
+        margin-bottom: 8px;
     }
     img {
         border-color: #fff;
@@ -186,15 +183,6 @@
     }
 
     .research-and-writing__top {
-        .wp-block-owid-card {
-            .title {
-                font-size: 24px;
-            }
-            .description {
-                font-size: 18px;
-            }
-        }
-
         > .wp-block-owid-card {
             grid-column: 1 / 13;
         }

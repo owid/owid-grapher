@@ -65,7 +65,11 @@
         scrollbar-width: thin;
     }
     .research-and-writing-link {
-        font-size: 1.125rem;
+        h3 {
+            @include h3-bold;
+            margin-top: 16px;
+            margin-bottom: 8px;
+        }
         @include sm-only {
             flex: 1 0 80%;
         }
