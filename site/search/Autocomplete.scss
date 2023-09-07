@@ -48,7 +48,9 @@
 
 .aa-Input {
     margin-left: 16px;
-    font-size: 14px;
+    @include sm-up {
+        font-size: 14px; // shouldn't be set for mobile (ios zooms in on focus when font-size is < 16px)
+    }
     color: $blue-30;
     &:focus {
         color: $blue-90;
