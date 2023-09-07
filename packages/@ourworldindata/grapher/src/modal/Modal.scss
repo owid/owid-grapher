@@ -2,7 +2,7 @@ $modal-padding: 1.5em;
 
 .modalOverlay {
     position: absolute;
-    // -1px to hide the border
+    // -1px to hide the frame border
     top: -1px;
     right: -1px;
     bottom: -1px;
@@ -44,6 +44,9 @@ $modal-padding: 1.5em;
             }
 
             .modalDismiss {
+                $light-stroke: #e7e7e7;
+                $hover-fill: #f2f2f2;
+
                 font-size: 13px;
                 color: $dark-text;
                 border: 1px solid $light-stroke;

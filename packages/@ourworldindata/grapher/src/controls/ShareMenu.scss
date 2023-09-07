@@ -7,6 +7,9 @@ $zindex-ControlsFooter: 2;
 }
 
 .ShareMenu {
+    $hover-fill: #f2f2f2;
+    $active-fill: #dbe5f0;
+
     position: absolute;
     bottom: $timelineHeight + 8px;
     text-align: left;
@@ -35,6 +38,7 @@ $zindex-ControlsFooter: 2;
         text-decoration: none;
         white-space: normal;
         padding: 12px 16px;
+        letter-spacing: 0.01em;
 
         &:hover {
             background-color: $hover-fill;

@@ -240,10 +240,7 @@ export class ActionButtons extends React.Component<{
             >
                 <ul>
                     {this.hasDownloadButton && (
-                        <li
-                            className="clickable"
-                            style={{ width: this.downloadButtonWidth }}
-                        >
+                        <li style={{ width: this.downloadButtonWidth }}>
                             <ActionButton
                                 label="Download"
                                 title="Download as .png or .svg"
@@ -260,10 +257,7 @@ export class ActionButtons extends React.Component<{
                         </li>
                     )}
                     {this.hasShareButton && (
-                        <li
-                            className="clickable"
-                            style={{ width: this.shareButtonWidth }}
-                        >
+                        <li style={{ width: this.shareButtonWidth }}>
                             <ActionButton
                                 label="Share"
                                 dataTrackNote="chart_click_share"
@@ -277,10 +271,7 @@ export class ActionButtons extends React.Component<{
                         </li>
                     )}
                     {this.hasFullScreenButton && (
-                        <li
-                            className="clickable"
-                            style={{ width: this.fullScreenButtonWidth }}
-                        >
+                        <li style={{ width: this.fullScreenButtonWidth }}>
                             <ActionButton
                                 label={this.fullScreenButtonLabel}
                                 dataTrackNote="chart_click_fullscreen"
@@ -296,10 +287,7 @@ export class ActionButtons extends React.Component<{
                         </li>
                     )}
                     {this.hasExploreTheDataButton && (
-                        <li
-                            className="clickable"
-                            style={{ width: this.exploreTheDataButtonWidth }}
-                        >
+                        <li style={{ width: this.exploreTheDataButtonWidth }}>
                             <div
                                 className="ActionButton"
                                 style={{ width: "100%" }}

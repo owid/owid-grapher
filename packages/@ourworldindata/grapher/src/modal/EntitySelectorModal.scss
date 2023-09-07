@@ -1,11 +1,7 @@
-&.GrapherPortraitClass .EntitySelectorMulti {
-    .selectedData {
-        min-width: 50%;
-    }
-}
+.EntitySelector {
+    $light-stroke: #e7e7e7;
+    $active-fill: #dbe5f0;
 
-.EntitySelectorSingle,
-.EntitySelectorMulti {
     text-align: left;
     margin-bottom: $modal-padding;
 
@@ -32,8 +28,12 @@
     .searchInput {
         flex-grow: 1;
 
+        // search icon
         $svg-margin-left: 8px;
         $svg-size: 12px;
+
+        $placeholder: #a1a1a1;
+        $focus-outline: 2px solid $controls-color;
 
         svg {
             position: absolute;
@@ -55,20 +55,18 @@
             border-radius: 4px;
 
             // style placeholder text in search input
-            $placeholder-color: #a1a1a1;
             &::placeholder {
-                color: $placeholder-color;
+                color: $placeholder;
                 opacity: 1; /* Firefox */
             }
             &:-ms-input-placeholder {
-                color: $placeholder-color;
+                color: $placeholder;
             }
             &::-ms-input-placeholder {
-                color: $placeholder-color;
+                color: $placeholder;
             }
 
             // style focus state
-            $focus-outline: 2px solid $controls-color;
             &:focus {
                 outline: $focus-outline;
             }
@@ -80,89 +78,95 @@
             }
         }
     }
-}
 
-.EntitySelectorSingle {
-    ul {
-        margin-top: 8px;
-    }
-
-    li {
-        color: $dark-text;
-        cursor: pointer;
-        padding: 12px 16px;
-        border-bottom: 1px solid $light-stroke;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-
-        &:last-child {
-            border-bottom: none;
+    &.EntitySelectorSingle {
+        ul {
+            margin-top: 8px;
         }
 
-        &.selected,
-        &:hover {
-            background-color: $active-fill;
-            color: $active-text;
+        li {
+            color: $dark-text;
+            cursor: pointer;
+            padding: 12px 16px;
+            border-bottom: 1px solid $light-stroke;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            &:last-child {
+                border-bottom: none;
+            }
+
+            &.selected,
+            &:hover {
+                background-color: $active-fill;
+                color: $active-text;
+            }
+
+            svg {
+                color: $active-text;
+                font-size: 12px;
+                font-weight: 900;
+            }
+        }
+    }
+
+    &.EntitySelectorMulti {
+        .searchInput {
+            max-width: 75%;
         }
 
-        svg {
-            color: $active-text;
-            font-size: 12px;
-            font-weight: 900;
+        .entities {
+            margin-top: 1.5em;
+            display: flex;
+            justify-content: space-between;
         }
-    }
-}
 
-.EntitySelectorMulti {
-    .searchInput {
-        max-width: 75%;
-    }
+        .selectedData {
+            min-width: 25%;
+            padding-left: 1em;
 
-    .entities {
-        margin-top: 1.5em;
-        display: flex;
-        justify-content: space-between;
-    }
+            h3 {
+                color: #a1a1a1;
+                font-size: 0.8125em;
+                font-weight: 700;
+                margin: 0;
+                margin-bottom: 1em;
+            }
+        }
 
-    .selectedData {
-        min-width: 25%;
-        padding-left: 1em;
+        .searchResults {
+            width: 100%;
+        }
 
-        h3 {
-            color: #a1a1a1;
+        @media (min-width: 800px) {
+            .searchResults ul {
+                column-count: 2;
+            }
+        }
+
+        li + li {
+            margin-top: 1em;
+        }
+
+        .clearSelection {
             font-size: 0.8125em;
-            font-weight: 700;
-            margin: 0;
-            margin-bottom: 1em;
+            padding: 0;
+            margin-left: 16px;
+            color: $dark-text;
+            font-weight: 500;
+            text-decoration: underline;
+            cursor: pointer;
+
+            &:hover {
+                text-decoration: none;
+            }
         }
     }
+}
 
-    .searchResults {
-        width: 100%;
-    }
-
-    @media (min-width: 800px) {
-        .searchResults ul {
-            column-count: 2;
-        }
-    }
-
-    li + li {
-        margin-top: 1em;
-    }
-
-    .clearSelection {
-        font-size: 0.8125em;
-        padding: 0;
-        margin-left: 16px;
-        color: $dark-text;
-        font-weight: 500;
-        text-decoration: underline;
-        cursor: pointer;
-
-        &:hover {
-            text-decoration: none;
-        }
+&.GrapherPortraitClass .EntitySelectorMulti {
+    .selectedData {
+        min-width: 50%;
     }
 }

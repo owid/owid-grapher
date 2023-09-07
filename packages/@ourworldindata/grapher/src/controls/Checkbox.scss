@@ -1,6 +1,10 @@
 .checkbox {
     $checkbox-size: 16px;
 
+    $light-stroke: #dadada;
+    $hover-stroke: #a4b6ca;
+    $active-fill: #dbe5f0;
+
     position: relative;
 
     input {
@@ -19,7 +23,7 @@
         background: #fff;
         pointer-events: none;
         border-radius: 2px;
-        border: 1px solid #dadada;
+        border: 1px solid $light-stroke;
         color: $dark-text;
 
         svg {
@@ -46,7 +50,7 @@
 
     &:hover {
         input:not(:checked) + .custom {
-            border-color: #a4b6ca;
+            border-color: $hover-stroke;
         }
     }
 }

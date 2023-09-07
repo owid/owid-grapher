@@ -1,6 +1,18 @@
 $timelineHeight: 32px;
 
 .TimelineComponent {
+    // timeline slider and interval
+    $light-timeline: #e7e7e7;
+    $active-timeline: #a4b6ca;
+
+    // start/end handle
+    $light-knob: #a1a1a1;
+    $active-knob: #6e87a2;
+
+    // start/end year label
+    $hover-fill: #e7e7e7;
+    $active-fill: #dbe5f0;
+
     width: 100%;
     height: $timelineHeight;
     display: flex;
@@ -19,17 +31,17 @@ $timelineHeight: 32px;
     .date {
         height: 100%;
         font-size: 13px;
-        font-weight: $medium;
+        font-weight: 400;
         color: $dark-text;
         padding: 0 8px;
         border-radius: 4px;
         display: grid;
         place-content: center;
         margin-right: 0;
-        border: 1px solid $light-stroke;
+        border: 1px solid $hover-fill;
 
         &:hover {
-            background: $light-stroke;
+            background: $hover-fill;
         }
 
         &:active {
@@ -42,7 +54,7 @@ $timelineHeight: 32px;
     .slider {
         height: 2px;
         flex-grow: 1;
-        background: $light-stroke;
+        background: $light-timeline;
         position: relative;
         display: flex;
         align-items: center;
@@ -66,7 +78,7 @@ $timelineHeight: 32px;
             width: $handle-diameter;
             border-radius: 100%;
 
-            background: $info-icon;
+            background: $light-knob;
             border: 2px solid #fff;
             z-index: 1;
             pointer-events: none;
@@ -83,8 +95,8 @@ $timelineHeight: 32px;
             padding: 8px;
             font-size: 12px;
             line-height: 16px;
-            background-color: #4e4e4e;
-            color: #fff;
+            background-color: $tooltip-fill;
+            color: $tooltip-text;
             border-radius: 4px;
             width: max-content;
         }
@@ -92,7 +104,7 @@ $timelineHeight: 32px;
         > .handle-label-arrow {
             width: 6px;
             height: 6px;
-            background-color: #4e4e4e;
+            background-color: $tooltip-fill;
             top: -3px;
             position: absolute;
             left: 50%;
@@ -103,7 +115,7 @@ $timelineHeight: 32px;
     .interval {
         position: absolute;
         height: 2px;
-        background: #a4b6ca;
+        background: $active-timeline;
         padding: 10px 0;
 
         &:hover {
@@ -122,15 +134,11 @@ $timelineHeight: 32px;
         box-sizing: content-box !important;
         background-clip: content-box !important;
     }
-}
 
-.TimelineComponent.hover {
-    .handle > .icon {
-        background: $active-knob;
-        transform: scale(1.3);
-    }
-
-    .interval {
-        background: #a4b6ca;
+    &.hover {
+        .handle > .icon {
+            background: $active-knob;
+            transform: scale(1.3);
+        }
     }
 }
