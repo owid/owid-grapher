@@ -949,7 +949,11 @@ export class CoreTable<
 
     appendRows(rows: ROW_TYPE[], opDescription: string): this {
         return this.concat(
-            [new (this.constructor as any)(rows, this.defs) as CoreTable],
+            [
+                new (this.constructor as typeof CoreTable)(rows, this.defs, {
+                    parent: this,
+                }),
+            ],
             opDescription
         )
     }
@@ -1496,10 +1500,11 @@ export class CoreTable<
             [slug2]: rowsToAddCol2,
         }
         console.timeLog("c", "built rowsToAdd")
-        const appendTable = new (this.constructor as typeof CoreTable<
-            any,
-            any
-        >)(appendColumnStore, this.defs, { parent: this })
+        const appendTable = new (this.constructor as typeof CoreTable)(
+            appendColumnStore,
+            this.defs,
+            { parent: this }
+        )
 
         console.timeLog("c", "built appendTable")
         const ret = this.concat(
