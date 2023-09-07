@@ -1453,8 +1453,8 @@ export class CoreTable<
         const col1 = this.get(slug1)
         const col2 = this.get(slug2)
 
-        const cartesianProductSize =
-            col1.uniqValues.length * col2.uniqValues.length
+        const cartesianProductSize = col1.numUniqs * col2.numUniqs
+        console.timeLog("c", "got sizes")
         if (this.numRows >= cartesianProductSize) {
             if (this.numRows > cartesianProductSize)
                 throw new Error("Table has more rows than expected")
@@ -1486,9 +1486,9 @@ export class CoreTable<
         // See https://jsperf.app/zudoye.
         const rowsToAddCol1 = []
         const rowsToAddCol2 = []
-        for (const val1 of col1.uniqValues) {
+        for (const val1 of col1.uniqValuesAsSet) {
             const existingVals2 = existingRowValues.get(val1)
-            for (const val2 of col2.uniqValues) {
+            for (const val2 of col2.uniqValuesAsSet) {
                 if (!existingVals2?.has(val2)) {
                     rowsToAddCol1.push(val1)
                     rowsToAddCol2.push(val2)
