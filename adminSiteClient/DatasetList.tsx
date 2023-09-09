@@ -7,7 +7,8 @@ import { bind } from "decko"
 import { Link } from "./Link.js"
 import { Tag } from "./TagBadge.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
-import { EditableTags, Timeago } from "./Forms.js"
+import { Timeago } from "./Forms.js"
+import { EditableTags } from "./EditableTags.js"
 
 export interface DatasetListItem {
     id: number
