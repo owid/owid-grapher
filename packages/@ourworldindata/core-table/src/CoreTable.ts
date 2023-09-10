@@ -1637,6 +1637,11 @@ class FilterMask {
             this.numRows,
             keepIndexes.length
         )
+        if (keepIndexes.length === this.numRows) {
+            console.timeEnd("apply mask")
+            return columnStore
+        }
+
         Object.keys(columnStore).forEach((slug) => {
             const originalColumn = columnStore[slug]
             const newColumn: CoreValueType[] = new Array(keepIndexes.length)
