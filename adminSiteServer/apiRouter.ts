@@ -14,7 +14,12 @@ import {
     DATA_API_URL,
 } from "../settings/serverSettings.js"
 import { expectInt, isValidSlug } from "../serverUtils/serverUtil.js"
-import { OldChart, Chart, getGrapherById } from "../db/model/Chart.js"
+import {
+    OldChart,
+    Chart,
+    getGrapherById,
+    PUBLIC_TAG_PARENT_IDS,
+} from "../db/model/Chart.js"
 import { Request, Response, CurrentUser } from "./authentication.js"
 import {
     getMergedGrapherConfigForVariable,
@@ -46,6 +51,7 @@ import {
     OwidVariableWithSource,
     OwidChartDimensionInterface,
     DimensionProperty,
+    Tag,
 } from "@ourworldindata/utils"
 import {
     GrapherInterface,
@@ -59,7 +65,7 @@ import {
 } from "../adminSiteClient/CountryNameFormat.js"
 import { Dataset } from "../db/model/Dataset.js"
 import { User } from "../db/model/User.js"
-import { Gdoc, Tag } from "../db/model/Gdoc/Gdoc.js"
+import { Gdoc, Tag as TagEntity } from "../db/model/Gdoc/Gdoc.js"
 import { Pageview } from "../db/model/Pageview.js"
 import {
     syncDatasetToGitRepo,
@@ -91,6 +97,9 @@ import { Link } from "../db/model/Link.js"
 import { In } from "typeorm"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
+import { TaggableType } from "../adminSiteClient/EditableTags.js"
+import { Tag as TagReactTagAutocomplete } from "react-tag-autocomplete"
+import OpenAI from "openai"
 
 const apiRouter = new FunctionalRouter()
 const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
@@ -2324,7 +2333,8 @@ apiRouter.post("/posts/:postId/createGdoc", async (req: Request) => {
     }
     const tagsByPostId = await getTagsByPostId()
     const tags =
-        tagsByPostId.get(postId)?.map(({ id }) => Tag.create({ id })) || []
+        tagsByPostId.get(postId)?.map(({ id }) => TagEntity.create({ id })) ||
+        []
     const archieMl = JSON.parse(post.archieml) as OwidGdocInterface
     const gdocId = await createGdocAndInsertOwidGdocContent(
         archieMl.content,
@@ -2590,11 +2600,76 @@ apiRouter.post(
         const gdoc = await Gdoc.findOneBy({ id: gdocId })
         if (!gdoc) return Error(`Unable to find Gdoc with ID: ${gdocId}`)
         const tags = await dataSource
-            .getRepository(Tag)
+            .getRepository(TagEntity)
             .findBy({ id: In(tagIds) })
         gdoc.tags = tags
         await gdoc.save()
         return { success: true }
+    }
+)
+
+apiRouter.get(
+    `/gpt/suggest-topics/${TaggableType.Charts}/:chartId.json`,
+    async (req: Request, res: Response): Promise<Record<"topics", Tag[]>> => {
+        const openai = new OpenAI()
+        const chart = await Chart.findOneBy({
+            id: parseIntOrUndefined(req.params.chartId),
+        })
+        if (!chart)
+            throw new JsonError(
+                `No chart found for id ${req.params.chartId}`,
+                404
+            )
+
+        const topics: TagReactTagAutocomplete[] = await db.queryMysql(`
+        SELECT t.id, t.name
+        FROM tags t 
+        WHERE t.isTopic IS TRUE
+        AND t.parentId IN (${PUBLIC_TAG_PARENT_IDS.join(",")})
+    `)
+
+        const prompt = `
+            You will be provided with the chart metadata (delimited with XML tags),
+            as well as a list of possible topics (delimited with XML tags).
+            Classify the chart into two of the provided topics.
+            <chart>
+                <title>${chart.config.title}</title>
+                <description>${chart.config.subtitle}</description>
+                <listed-on>${chart.config.originUrl}</listed-on>
+            </chart>
+            <topics>
+                ${topics.map(
+                    (topic) => `<topic id=${topic.id}>${topic.name}</topic>\n`
+                )}
+            </topics>
+            
+            Respond with the two categories you think best describe the chart. 
+            
+            Format your response as follows:
+            [
+                { "id": 1, "name": "Topic 1" },
+                { "id": 2, "name": "Topic 2" }
+            ]`
+
+        const completion = await openai.chat.completions.create({
+            messages: [{ role: "user", content: prompt }],
+            model: "gpt-3.5-turbo",
+        })
+
+        const json = completion.choices[0]?.message?.content
+        if (!json) throw new JsonError("No response from GPT", 500)
+
+        const selectedTopics: TagReactTagAutocomplete[] = JSON.parse(json)
+
+        // We only want to return topics that are in the list of possible
+        // topics, in case of hallucinations
+        const confirmedTopics = selectedTopics.filter((topic) =>
+            topics.map((t) => t.id).includes(topic.id)
+        )
+
+        return {
+            topics: confirmedTopics,
+        }
     }
 )
 

@@ -5,7 +5,7 @@ import * as lodash from "lodash"
 import { Link } from "./Link.js"
 import { Tag } from "./TagBadge.js"
 import { Timeago } from "./Forms.js"
-import { EditableTags } from "./EditableTags.js"
+import { EditableTags, TaggableType } from "./EditableTags.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import {
     BAKED_GRAPHER_EXPORTS_BASE_URL,
@@ -85,7 +85,9 @@ export class ChartRow extends React.Component<{
                         tags={chart.tags}
                         suggestions={availableTags}
                         onSave={this.onSaveTags}
-                        hasKeyChartSupport={true}
+                        hasKeyChartSupport
+                        hasSuggestionsSupport
+                        taggable={{ type: TaggableType.Charts, id: chart.id }}
                     />
                 </td>
                 <td>
