@@ -8,7 +8,6 @@ import {
     slugifySameCase,
     toString,
     ColumnSlug,
-    isEqual,
 } from "@ourworldindata/utils"
 import {
     CoreColumnStore,
@@ -626,8 +625,19 @@ export const sortColumnStore = (
     const len = firstCol.length
     const newOrder = range(0, len).sort(makeSortByFn(columnStore, slugs))
 
-    // Column store is already sorted
-    if (isEqual(newOrder, range(0, len))) return columnStore
+    // Check if column store is already sorted (which is the case if newOrder is monotonically increasing).
+    // If it's not sorted, we will detect that within the first iterations usually.
+    let isSorted = true
+    let prev = -1
+    for (const newIndex of newOrder) {
+        if (newIndex < prev) {
+            isSorted = false
+            break
+        }
+        prev = newIndex
+    }
+    // Column store is already sorted; return existing store unchanged
+    if (isSorted) return columnStore
 
     const newStore: CoreColumnStore = {}
     Object.keys(columnStore).forEach((slug) => {
