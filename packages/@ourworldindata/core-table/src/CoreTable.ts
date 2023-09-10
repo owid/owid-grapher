@@ -1448,23 +1448,18 @@ export class CoreTable<
         if (columnSlugs.length !== 2)
             throw new Error("Can only run complete() for exactly 2 columns")
 
-        console.time("c")
         const [slug1, slug2] = columnSlugs
         const col1 = this.get(slug1)
         const col2 = this.get(slug2)
 
         const cartesianProductSize = col1.numUniqs * col2.numUniqs
-        console.timeLog("c", "got sizes")
         if (this.numRows >= cartesianProductSize) {
             if (this.numRows > cartesianProductSize)
                 throw new Error("Table has more rows than expected")
 
-            console.timeLog("c", "skip", cartesianProductSize, this.numRows)
-            console.timeEnd("c")
             // Table is already complete
             return this
         }
-        console.timeLog("c", "got cols")
 
         // Map that points from a value in col1 to a set of values in col2.
         // It's filled with all the values that already exist in the table, so we
@@ -1477,8 +1472,6 @@ export class CoreTable<
                 existingRowValues.set(val1, new Set())
             existingRowValues.get(val1)!.add(val2)
         }
-
-        console.timeLog("c", "got existing rows")
 
         // The below code should be as performant as possible, since it's often iterating over hundreds of thousands of rows.
         // The below implementation has been benchmarked against a few alternatives (using flatMap, map, and Array.from), and
@@ -1499,21 +1492,16 @@ export class CoreTable<
             [slug1]: rowsToAddCol1,
             [slug2]: rowsToAddCol2,
         }
-        console.timeLog("c", "built rowsToAdd")
         const appendTable = new (this.constructor as typeof CoreTable)(
             appendColumnStore,
             this.defs,
             { parent: this }
         )
 
-        console.timeLog("c", "built appendTable")
-        const ret = this.concat(
+        return this.concat(
             [appendTable],
             `Append missing combos of ${columnSlugs}`
         )
-        console.timeLog("c", "appended rows")
-        console.timeEnd("c")
-        return ret
     }
 
     leftJoin(rightTable: CoreTable, by?: ColumnSlug[]): this {
@@ -1626,21 +1614,11 @@ class FilterMask {
 
     apply(columnStore: CoreColumnStore): CoreColumnStore {
         const columnsObject: CoreColumnStore = {}
-        console.time("apply mask")
         const keepIndexes: number[] = []
         for (let i = 0; i < this.numRows; i++) {
             if (this.mask[i]) keepIndexes.push(i)
         }
-        console.timeLog(
-            "apply mask",
-            "got keepIndexes",
-            this.numRows,
-            keepIndexes.length
-        )
-        if (keepIndexes.length === this.numRows) {
-            console.timeEnd("apply mask")
-            return columnStore
-        }
+        if (keepIndexes.length === this.numRows) return columnStore
 
         Object.keys(columnStore).forEach((slug) => {
             const originalColumn = columnStore[slug]
@@ -1651,7 +1629,6 @@ class FilterMask {
 
             columnsObject[slug] = newColumn
         })
-        console.timeEnd("apply mask")
         return columnsObject
     }
 }
