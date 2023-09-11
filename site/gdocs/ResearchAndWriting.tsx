@@ -93,14 +93,20 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
                 Research & Writing
                 <a className="deep-link" href={`#${RESEARCH_AND_WRITING_ID}`} />
             </h1>
-            <ResearchAndWritingLinkContainer
-                className="span-cols-6 span-md-cols-6 span-sm-cols-12"
-                {...primary}
-            />
-            <ResearchAndWritingLinkContainer
-                className="span-cols-3 span-md-cols-6 span-sm-cols-12"
-                {...secondary}
-            />
+            {primary.map((link, i) => (
+                <ResearchAndWritingLinkContainer
+                    className="span-cols-6 span-md-cols-6 span-sm-cols-12"
+                    key={i}
+                    {...link}
+                />
+            ))}
+            {secondary.map((link, i) => (
+                <ResearchAndWritingLinkContainer
+                    key={i}
+                    className="span-cols-3 span-md-cols-6 span-sm-cols-12"
+                    {...link}
+                />
+            ))}
             {rows.map((row, i) => (
                 <div key={i} className="span-cols-12 research-and-writing-row">
                     <h2 className="h2-bold">{row.heading}</h2>
@@ -117,20 +123,22 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
                     </div>
                 </div>
             ))}
-            <div className="span-cols-12 research-and-writing-row">
-                <h2 className="h2-bold">{more.heading}</h2>
-                <div className="grid grid-cols-4 grid-lg-cols-3 grid-md-cols-2 research-and-writing-row__link-container">
-                    {more.articles.map((link, i) => (
-                        <ResearchAndWritingLinkContainer
-                            shouldHideThumbnail
-                            shouldHideSubtitle
-                            className="span-cols-1"
-                            key={i}
-                            {...link}
-                        />
-                    ))}
+            {more ? (
+                <div className="span-cols-12 research-and-writing-row">
+                    <h2 className="h2-bold">{more.heading}</h2>
+                    <div className="grid grid-cols-4 grid-lg-cols-3 grid-md-cols-2 research-and-writing-row__link-container">
+                        {more.articles.map((link, i) => (
+                            <ResearchAndWritingLinkContainer
+                                shouldHideThumbnail
+                                shouldHideSubtitle
+                                className="span-cols-1"
+                                key={i}
+                                {...link}
+                            />
+                        ))}
+                    </div>
                 </div>
-            </div>
+            ) : null}
         </div>
     )
 }

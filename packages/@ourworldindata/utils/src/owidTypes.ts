@@ -966,8 +966,13 @@ export type RawBlockResearchAndWritingRow = {
 export type RawBlockResearchAndWriting = {
     type: "research-and-writing"
     value: {
-        primary?: RawBlockResearchAndWritingLink
-        secondary?: RawBlockResearchAndWritingLink
+        // We're migrating these to be arrays, but have to support the old use-case until it's done
+        primary?:
+            | RawBlockResearchAndWritingLink
+            | RawBlockResearchAndWritingLink[]
+        secondary?:
+            | RawBlockResearchAndWritingLink
+            | RawBlockResearchAndWritingLink[]
         more?: RawBlockResearchAndWritingRow
         rows?: RawBlockResearchAndWritingRow[]
     }
@@ -990,9 +995,9 @@ export type EnrichedBlockResearchAndWritingRow = {
 
 export type EnrichedBlockResearchAndWriting = {
     type: "research-and-writing"
-    primary: EnrichedBlockResearchAndWritingLink
-    secondary: EnrichedBlockResearchAndWritingLink
-    more: EnrichedBlockResearchAndWritingRow
+    primary: EnrichedBlockResearchAndWritingLink[]
+    secondary: EnrichedBlockResearchAndWritingLink[]
+    more?: EnrichedBlockResearchAndWritingRow
     rows: EnrichedBlockResearchAndWritingRow[]
 } & EnrichedBlockWithParseErrors
 
