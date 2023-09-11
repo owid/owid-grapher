@@ -1452,6 +1452,8 @@ export class CoreTable<
         const col1 = this.get(slug1)
         const col2 = this.get(slug2)
 
+        // The output table will have exactly this many rows, since we assume that [col1, col2] are primary keys
+        // (i.e. there are no two rows with the same key), and every combination that doesn't exist yet we will add.
         const cartesianProductSize = col1.numUniqs * col2.numUniqs
         if (this.numRows >= cartesianProductSize) {
             if (this.numRows > cartesianProductSize)
@@ -1479,6 +1481,7 @@ export class CoreTable<
         // See https://jsperf.app/zudoye.
         const rowsToAddCol1 = []
         const rowsToAddCol2 = []
+        // Add rows for all combinations of values that are not contained in `existingRowValues`.
         for (const val1 of col1.uniqValuesAsSet) {
             const existingVals2 = existingRowValues.get(val1)
             for (const val2 of col2.uniqValuesAsSet) {

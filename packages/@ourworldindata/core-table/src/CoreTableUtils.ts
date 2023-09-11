@@ -626,7 +626,7 @@ export const sortColumnStore = (
     const newOrder = range(0, len).sort(makeSortByFn(columnStore, slugs))
 
     // Check if column store is already sorted (which is the case if newOrder is equal to range(0, startLen)).
-    // If it's not sorted, we will detect that within the first iterations usually.
+    // If it's not sorted, we will detect that within the first few iterations usually.
     let isSorted = true
     for (let i = 0; i <= len; i++) {
         if (newOrder[i] !== i) {
@@ -638,8 +638,8 @@ export const sortColumnStore = (
     if (isSorted) return columnStore
 
     const newStore: CoreColumnStore = {}
-    Object.keys(columnStore).forEach((slug) => {
-        newStore[slug] = applyNewSortOrder(columnStore[slug], newOrder)
+    Object.entries(columnStore).forEach(([slug, colValues]) => {
+        newStore[slug] = applyNewSortOrder(colValues, newOrder)
     })
     return newStore
 }
