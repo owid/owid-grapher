@@ -99,7 +99,7 @@ import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 import { TaggableType } from "../adminSiteClient/EditableTags.js"
 import { Tag as TagReactTagAutocomplete } from "react-tag-autocomplete"
-import OpenAI from "openai"
+import { OpenAI } from "openai"
 
 const apiRouter = new FunctionalRouter()
 const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
