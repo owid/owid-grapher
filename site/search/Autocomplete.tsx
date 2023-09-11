@@ -148,7 +148,11 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
                     : pageTypeDisplayNames[item.type as PageType]
 
             return (
-                <div className="aa-ItemWrapper">
+                <div
+                    className="aa-ItemWrapper"
+                    key={item.title as string}
+                    translate="no"
+                >
                     <span>
                         <components.Highlight
                             hit={item}
