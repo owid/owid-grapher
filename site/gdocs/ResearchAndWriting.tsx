@@ -101,25 +101,10 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
                 className="span-cols-3 span-md-cols-6 span-sm-cols-12"
                 {...secondary}
             />
-            <div className="span-cols-3 span-md-cols-12">
-                <div className="research-and-writing-more">
-                    <h5 className="overline-black-caps">{more.heading}</h5>
-                    {more.articles.map((link, i) => (
-                        <ResearchAndWritingLinkContainer
-                            shouldHideThumbnail
-                            shouldHideSubtitle
-                            key={i}
-                            {...link}
-                        />
-                    ))}
-                </div>
-            </div>
             {rows.map((row, i) => (
                 <div key={i} className="span-cols-12 research-and-writing-row">
-                    <h5 className="overline-black-caps">{row.heading}</h5>
+                    <h2 className="h2-bold">{row.heading}</h2>
                     <div className="grid grid-cols-4 grid-lg-cols-3 grid-md-cols-2 research-and-writing-row__link-container">
-                        {/* center the two thumbnails with a filler element */}
-                        {row.articles.length === 2 ? <div /> : null}
                         {row.articles.map((link, i) => (
                             <ResearchAndWritingLinkContainer
                                 shouldHideSubtitle
@@ -132,6 +117,20 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
                     </div>
                 </div>
             ))}
+            <div className="span-cols-12 research-and-writing-row">
+                <h2 className="h2-bold">{more.heading}</h2>
+                <div className="grid grid-cols-4 grid-lg-cols-3 grid-md-cols-2 research-and-writing-row__link-container">
+                    {more.articles.map((link, i) => (
+                        <ResearchAndWritingLinkContainer
+                            shouldHideThumbnail
+                            shouldHideSubtitle
+                            className="span-cols-1"
+                            key={i}
+                            {...link}
+                        />
+                    ))}
+                </div>
+            </div>
         </div>
     )
 }

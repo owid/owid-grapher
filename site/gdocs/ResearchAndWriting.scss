@@ -16,46 +16,10 @@
     }
 }
 
-.research-and-writing-more {
-    padding: 24px;
-    background: $gray-10;
-    h5 {
-        margin: 0;
-        color: $blue-50;
-    }
-
-    @include md-down {
-        margin-top: 24px;
-    }
-
-    .research-and-writing-link {
-        display: block;
-        h3 {
-            @include h3-bold;
-            margin-top: 16px;
-            margin-bottom: 8px;
-        }
-
-        p {
-            margin-bottom: 8px;
-        }
-
-        &:not(:last-child) {
-            border-bottom: 1px solid $blue-10;
-        }
-
-        &:last-child p {
-            margin-bottom: 0;
-        }
-    }
-}
-
-.research-and-writing-row {
-    h5 {
-        text-align: center;
-        margin-top: 40px;
-        margin-bottom: 24px;
-    }
+.research-and-writing-row h2 {
+    margin-top: 32px;
+    margin-bottom: 24px;
+    color: $blue-50;
 }
 
 .research-and-writing-row__link-container {
