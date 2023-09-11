@@ -329,7 +329,37 @@ uk,2001`
     const table = new CoreTable(csv)
     expect(table.numRows).toEqual(3)
     const completed = table.complete(["country", "year"])
+
     expect(completed.numRows).toEqual(6)
+    expect(completed.rows).toEqual(
+        expect.arrayContaining([
+            // compare in any order
+            { country: "usa", year: 2000 },
+            { country: "usa", year: 2001 },
+            { country: "usa", year: 2002 },
+            { country: "uk", year: 2000 },
+            { country: "uk", year: 2001 },
+            { country: "uk", year: 2002 },
+        ])
+    )
+})
+
+it("can sort a table", () => {
+    const table = new CoreTable(`country,year,population
+uk,1800,100
+iceland,1700,200
+iceland,1800,300
+uk,1700,400
+germany,1400,500`)
+
+    const sorted = table.sortBy(["country", "year"])
+    expect(sorted.rows).toEqual([
+        { country: "germany", year: 1400, population: 500 },
+        { country: "iceland", year: 1700, population: 200 },
+        { country: "iceland", year: 1800, population: 300 },
+        { country: "uk", year: 1700, population: 400 },
+        { country: "uk", year: 1800, population: 100 },
+    ])
 })
 
 describe("adding rows", () => {

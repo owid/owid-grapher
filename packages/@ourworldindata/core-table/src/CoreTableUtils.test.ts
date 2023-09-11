@@ -18,7 +18,6 @@ import {
     concatColumnStores,
     guessColumnDefFromSlugAndRow,
     standardizeSlugs,
-    cartesianProduct,
 } from "./CoreTableUtils.js"
 import { ErrorValueTypes } from "./ErrorValues.js"
 import { imemo } from "@ourworldindata/utils"
@@ -502,23 +501,5 @@ describe(concatColumnStores, () => {
                 ErrorValueTypes.MissingValuePlaceholder,
             ],
         })
-    })
-})
-
-describe(cartesianProduct, () => {
-    it("correctly calculates a cartesian product", () => {
-        const a = [1, 2, 3]
-        const b = ["a", "b"]
-
-        const product = cartesianProduct<string | number>(a, b)
-
-        expect(product).toEqual([
-            [1, "a"],
-            [1, "b"],
-            [2, "a"],
-            [2, "b"],
-            [3, "a"],
-            [3, "b"],
-        ])
     })
 })

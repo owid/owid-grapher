@@ -323,11 +323,17 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     @imemo get uniqValues(): JS_TYPE[] {
-        return uniq(this.values)
+        const set = this.uniqValuesAsSet
+
+        // Turn into array, faster than spread operator
+        const arr = new Array(set.size)
+        let i = 0
+        set.forEach((val) => (arr[i++] = val))
+        return arr
     }
 
     @imemo get uniqValuesAsSet(): Set<JS_TYPE> {
-        return new Set(this.uniqValues)
+        return new Set(this.values)
     }
 
     /**
@@ -394,7 +400,7 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     @imemo get numUniqs(): number {
-        return this.uniqValues.length
+        return this.uniqValuesAsSet.size
     }
 
     @imemo get valuesAscending(): JS_TYPE[] {
