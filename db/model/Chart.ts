@@ -138,9 +138,6 @@ WHERE c.config -> "$.isPublished" = true
                 : parentIds.some((t) =>
                       PUBLIC_TAG_PARENT_IDS.includes(t.parentId)
                   )
-                ? true
-                : false
-
             await t.execute("update charts set is_indexable = ? where id = ?", [
                 isIndexable,
                 chartId,
