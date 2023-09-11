@@ -625,16 +625,14 @@ export const sortColumnStore = (
     const len = firstCol.length
     const newOrder = range(0, len).sort(makeSortByFn(columnStore, slugs))
 
-    // Check if column store is already sorted (which is the case if newOrder is monotonically increasing).
+    // Check if column store is already sorted (which is the case if newOrder is equal to range(0, startLen)).
     // If it's not sorted, we will detect that within the first iterations usually.
     let isSorted = true
-    let prev = -1
-    for (const newIndex of newOrder) {
-        if (newIndex < prev) {
+    for (let i = 0; i <= len; i++) {
+        if (newOrder[i] !== i) {
             isSorted = false
             break
         }
-        prev = newIndex
     }
     // Column store is already sorted; return existing store unchanged
     if (isSorted) return columnStore
