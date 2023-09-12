@@ -25,17 +25,25 @@ export class EditTags extends React.Component<{
         this.dismissable = false
     }
 
+    @action.bound onKeyDown(e: KeyboardEvent) {
+        if (e.key === "Escape") {
+            this.props.onSave()
+        }
+    }
+
     onAdd = (tag: TagAutocomplete) => {
         this.props.onAdd(convertAutocompleteTotag(tag))
     }
 
     componentDidMount() {
         document.addEventListener("click", this.onClickSomewhere)
+        document.addEventListener("keydown", this.onKeyDown)
         this.reactTagsApi.current?.input?.focus()
     }
 
     componentWillUnmount() {
         document.removeEventListener("click", this.onClickSomewhere)
+        document.removeEventListener("keydown", this.onKeyDown)
     }
 
     render() {
