@@ -14,7 +14,7 @@
 }
 
 .react-tags.is-active {
-    border-color: #4f46e5;
+    border-color: #007bff;
 }
 
 .react-tags.is-disabled {
@@ -63,7 +63,7 @@
 
 .react-tags__tag:hover {
     color: #ffffff;
-    background-color: #4f46e5;
+    background-color: #dc3545;
 }
 
 .react-tags__tag::after {
@@ -148,7 +148,7 @@
 }
 
 .react-tags__listbox-option:not([aria-disabled="true"]).is-active {
-    background: #4f46e5;
+    background: #007bff;
     color: #ffffff;
 }
 
@@ -164,7 +164,7 @@
 }
 
 .react-tags__listbox-option[aria-selected="true"]:not(.is-active)::after {
-    color: #4f46e5;
+    color: #007bff;
 }
 
 .react-tags__listbox-option-highlight {
