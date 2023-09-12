@@ -201,8 +201,12 @@ export class SettingsMenu extends React.Component<{
     }
 
     @computed get showFacetControl(): boolean {
-        const { filledDimensions, availableFacetStrategies, type } =
-            this.manager
+        const {
+            filledDimensions,
+            availableFacetStrategies,
+            hideFacetControl,
+            type,
+        } = this.manager
 
         // if there's no choice to be made, don't display a lone button
         if (availableFacetStrategies.length <= 1) return false
@@ -222,7 +226,7 @@ export class SettingsMenu extends React.Component<{
             (dim) => dim.display.isProjection
         )
 
-        return showFacetControlChartType && !hasProjection
+        return showFacetControlChartType && !hideFacetControl && !hasProjection
     }
 
     @computed get showSettingsMenuToggle(): boolean {
