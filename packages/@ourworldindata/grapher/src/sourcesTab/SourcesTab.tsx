@@ -72,12 +72,12 @@ export class SourcesTab extends React.Component<{
                 ? column.def.origins[0].dateAccessed
                 : undefined)
 
-        const citationProducer =
+        const citationFull =
             column.def.origins && column.def.origins.length
                 ? excludeNullish(
                       uniq(
                           column.def.origins.map(
-                              (origin: OwidOrigin) => origin.citationProducer
+                              (origin: OwidOrigin) => origin.citationFull
                           )
                       )
                   )
@@ -135,18 +135,18 @@ export class SourcesTab extends React.Component<{
                                 <td>{column.unitConversionFactor}</td>
                             </tr>
                         ) : null}
-                        {citationProducer.length === 1 ? (
+                        {citationFull.length === 1 ? (
                             <tr>
                                 <td>Data published by</td>
-                                <td>{citationProducer[0]}</td>
+                                <td>{citationFull[0]}</td>
                             </tr>
                         ) : null}
-                        {citationProducer.length > 1 ? (
+                        {citationFull.length > 1 ? (
                             <tr>
                                 <td>Data published by</td>
                                 <td>
                                     <ul>
-                                        {citationProducer.map(
+                                        {citationFull.map(
                                             (
                                                 producer: string,
                                                 index: number
@@ -158,7 +158,7 @@ export class SourcesTab extends React.Component<{
                                 </td>
                             </tr>
                         ) : null}
-                        {(!citationProducer || citationProducer.length === 0) &&
+                        {(!citationFull || citationFull.length === 0) &&
                         source.dataPublishedBy ? (
                             <tr>
                                 <td>Data published by</td>

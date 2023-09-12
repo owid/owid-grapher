@@ -189,9 +189,9 @@ export const DataPageV2Content = ({
     const [grapher, setGrapher] = React.useState<Grapher | undefined>(undefined)
 
     const sourceShortName =
-        datapageData.producerShort && datapageData.titleVariant
-            ? `${datapageData.producerShort} - ${datapageData.titleVariant}`
-            : datapageData.producerShort || datapageData.titleVariant
+        datapageData.attributionShort && datapageData.titleVariant
+            ? `${datapageData.attributionShort} - ${datapageData.titleVariant}`
+            : datapageData.attributionShort || datapageData.titleVariant
 
     // Initialize the grapher for client-side rendering
     const mergedGrapherConfig = grapherConfig
@@ -244,15 +244,12 @@ export const DataPageV2Content = ({
     ]).year()
     const citationShort = `${producers} — ${processedAdapted} OWID (${yearOfUpdate})`
     const originsLong = datapageData.origins
-        .map(
-            (o) =>
-                `${o.producer}, ${o.datasetTitleProducer ?? o.datasetTitleOwid}`
-        )
+        .map((o) => `${o.producer}, ${o.title ?? o.titleSnapshot}`)
         .join("; ")
     const dateAccessed = datapageData.origins[0].dateAccessed
         ? dayjs(datapageData.origins[0].dateAccessed).format("MMMM D, YYYY")
         : ""
-    const urlAccessed = datapageData.origins[0].datasetUrlDownload
+    const urlAccessed = datapageData.origins[0].urlDownload
     const citationLong = `${citationShort}. ${datapageData.title}. ${originsLong}, ${processedAdapted} by Our World In Data. Retrieved ${dateAccessed} from ${urlAccessed}`
     const processedAdaptedText =
         datapageData.owidProcessingLevel === "minor"
@@ -370,7 +367,7 @@ export const DataPageV2Content = ({
                                 )}
                                 {datapageData.descriptionFromProducer && (
                                     <ExpandableToggle
-                                        label={`How does the producer of this data - ${datapageData.producerShort} - describe this data?`}
+                                        label={`How does the producer of this data - ${datapageData.attributionShort} - describe this data?`}
                                         content={
                                             <ArticleBlocks
                                                 blocks={[
@@ -620,7 +617,7 @@ export const DataPageV2Content = ({
                                                                 label={
                                                                     source.producer ??
                                                                     source.datasetDescriptionOwid ??
-                                                                    source.datasetDescriptionProducer ??
+                                                                    source.description ??
                                                                     ""
                                                                 }
                                                                 isStacked={
@@ -631,18 +628,18 @@ export const DataPageV2Content = ({
                                                                 hasTeaser
                                                                 content={
                                                                     <>
-                                                                        {source.datasetDescriptionProducer && (
+                                                                        {source.description && (
                                                                             <ArticleBlocks
                                                                                 blocks={[
                                                                                     markdownToEnrichedTextBlock(
-                                                                                        source.datasetDescriptionProducer
+                                                                                        source.description
                                                                                     ),
                                                                                 ]}
                                                                                 containerType="datapage"
                                                                             />
                                                                         )}
                                                                         {(source.dateAccessed ||
-                                                                            source.datasetUrlDownload) && (
+                                                                            source.urlDownload) && (
                                                                             <div
                                                                                 className="grid source__key-data"
                                                                                 style={{
@@ -663,7 +660,7 @@ export const DataPageV2Content = ({
                                                                                         </div>
                                                                                     </div>
                                                                                 )}
-                                                                                {source.datasetUrlDownload && (
+                                                                                {source.urlDownload && (
                                                                                     <div className="key-data key-data--hide-overflow">
                                                                                         <div className="key-data__title--dark">
                                                                                             Retrieved
@@ -672,19 +669,19 @@ export const DataPageV2Content = ({
                                                                                         <div>
                                                                                             <a
                                                                                                 href={
-                                                                                                    source.datasetUrlDownload
+                                                                                                    source.urlDownload
                                                                                                 }
                                                                                                 target="_blank"
                                                                                                 rel="noreferrer"
                                                                                             >
                                                                                                 {
-                                                                                                    source.datasetUrlDownload
+                                                                                                    source.urlDownload
                                                                                                 }
                                                                                             </a>
                                                                                         </div>
                                                                                     </div>
                                                                                 )}
-                                                                                {source.citationProducer && (
+                                                                                {source.citationFull && (
                                                                                     <div
                                                                                         className="key-data"
                                                                                         style={{
@@ -744,7 +741,7 @@ export const DataPageV2Content = ({
                                                                                         below.
                                                                                         <CodeSnippet
                                                                                             code={
-                                                                                                source.citationProducer
+                                                                                                source.citationFull
                                                                                             }
                                                                                             theme="light"
                                                                                             isTruncated
