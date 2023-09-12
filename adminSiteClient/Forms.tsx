@@ -1128,7 +1128,8 @@ export class EditableTags extends React.Component<{
                             <TagBadge
                                 onToggleKey={
                                     hasKeyChartSupport &&
-                                    filterUncategorizedTag(t)
+                                    filterUncategorizedTag(t) &&
+                                    filterUnlistedTag(t)
                                         ? () => this.onToggleKey(i)
                                         : undefined
                                 }
@@ -1168,3 +1169,5 @@ export class Button extends React.Component<{
 export const Help = ({ children }: { children: React.ReactNode }) => (
     <small className="form-text text-muted mb-4">{children}</small>
 )
+
+const filterUnlistedTag = (t: Tag) => t.name !== "Unlisted"

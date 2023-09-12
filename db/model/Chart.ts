@@ -130,10 +130,14 @@ WHERE c.config -> "$.isPublished" = true
                       tags.map((t) => t.id),
                   ])) as { parentId: number }[])
                 : []
-            const isIndexable = parentIds.some((t) =>
-                PUBLIC_TAG_PARENT_IDS.includes(t.parentId)
-            )
 
+            // A chart is indexable if it is not tagged "Unlisted" and has at
+            // least one public parent tag
+            const isIndexable = tags.some((t) => t.name === "Unlisted")
+                ? false
+                : parentIds.some((t) =>
+                      PUBLIC_TAG_PARENT_IDS.includes(t.parentId)
+                  )
             await t.execute("update charts set is_indexable = ? where id = ?", [
                 isIndexable,
                 chartId,
