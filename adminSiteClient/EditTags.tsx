@@ -2,7 +2,8 @@ import React from "react"
 import { action } from "mobx"
 import { observer } from "mobx-react"
 import { Tag } from "./TagBadge.js"
-import ReactTags from "react-tag-autocomplete"
+import { ReactTags } from "react-tag-autocomplete"
+import { Tag as TagAutocomplete } from "react-tag-autocomplete"
 
 @observer
 export class EditTags extends React.Component<{
@@ -23,6 +24,10 @@ export class EditTags extends React.Component<{
         this.dismissable = false
     }
 
+    onAdd = (tag: TagAutocomplete) => {
+        this.props.onAdd(convertAutocompleteTotag(tag))
+    }
+
     componentDidMount() {
         document.addEventListener("click", this.onClickSomewhere)
     }
@@ -36,13 +41,18 @@ export class EditTags extends React.Component<{
         return (
             <div className="EditTags" onClick={this.onClick}>
                 <ReactTags
-                    tags={tags}
-                    suggestions={suggestions}
-                    onAddition={this.props.onAdd}
+                    selected={tags.map(convertTagToAutocomplete)}
+                    suggestions={suggestions.map(convertTagToAutocomplete)}
+                    onAdd={this.onAdd}
                     onDelete={this.props.onDelete}
-                    minQueryLength={1}
                 />
             </div>
         )
     }
 }
+
+const convertTagToAutocomplete = (t: Tag) => ({ value: t.id, label: t.name })
+const convertAutocompleteTotag = (t: TagAutocomplete) => ({
+    id: t.value as number,
+    name: t.label,
+})

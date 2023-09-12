@@ -5043,7 +5043,7 @@ __metadata:
     parsimmon: ^1.18.1
     react: ^16.14.0
     react-select: ^5.7.3
-    react-tag-autocomplete: ^6.3.0
+    react-tag-autocomplete: ^7.1.0
     s-expression: ^3.1.1
     string-pixel-width: ^1.10.0
     striptags: ^3.2.0
@@ -14089,7 +14089,7 @@ __metadata:
     react-recaptcha: ^2.3.10
     react-router-dom: ^5.3.1
     react-select: ^5.7.3
-    react-tag-autocomplete: ^6.3.0
+    react-tag-autocomplete: ^7.1.0
     react-zoom-pan-pinch: ^2.1.3
     reflect-metadata: ^0.1.13
     rxjs: 6
@@ -21590,14 +21590,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-tag-autocomplete@npm:^6.3.0":
-  version: 6.3.0
-  resolution: "react-tag-autocomplete@npm:6.3.0"
+"react-tag-autocomplete@npm:^7.1.0":
+  version: 7.1.0
+  resolution: "react-tag-autocomplete@npm:7.1.0"
   peerDependencies:
-    prop-types: ^15.5.0
-    react: ^16.5.0 || ^17.0.0
-    react-dom: ^16.5.0 || ^17.0.0
-  checksum: c1d76319d0ba9635ad51f1dd0308fbe55ced3b4e2164a5f3055c80c4ae32c0139745ad9ccc2e5c32ce970f3c331445a36f1a5e458a4a93f942019b9848da192d
+    react: ^18.0.0
+  checksum: 9648dc2f3529bfdb330c9481d094fc937f27f1b628ec057c6eb1731365880e3e45cf88b90349d5575ed8944c9c850592c2b094c8caf12b0d84eb329d7f2a60a6
   languageName: node
   linkType: hard
 

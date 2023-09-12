@@ -195,7 +195,9 @@ export enum KeyChartLevel {
     Top = 3, // chart will show at the top of the all charts block
 }
 
-export interface Tag extends TagReactTagAutocomplete {
+export interface Tag {
+    id: number
+    name: string
     keyChartLevel?: KeyChartLevel
     isApproved?: boolean
 }
