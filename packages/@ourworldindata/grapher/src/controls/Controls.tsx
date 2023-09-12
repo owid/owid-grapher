@@ -631,16 +631,19 @@ export class FacetStrategySelector extends React.Component<{
     manager: FacetStrategySelectionManager
 }> {
     @computed get facetStrategyLabels(): { [key in FacetStrategy]: string } {
-        const entityType = this.props.manager.entityType ?? "country or region"
-
-        const facettingLabelByYVariables =
-            this.props.manager.facettingLabelByYVariables ?? "metric"
-
         return {
             [FacetStrategy.none]: "All together",
-            [FacetStrategy.entity]: `Split by ${entityType}`,
-            [FacetStrategy.metric]: `Split by ${facettingLabelByYVariables}`,
+            [FacetStrategy.entity]: `Split by ${this.entityName}`,
+            [FacetStrategy.metric]: `Split by ${this.metricName}`,
         }
+    }
+
+    @computed get entityName(): string {
+        return this.props.manager.entityType ?? "country or region"
+    }
+
+    @computed get metricName(): string {
+        return this.props.manager.facettingLabelByYVariables ?? "metric"
     }
 
     @computed get strategies(): FacetStrategy[] {
@@ -654,17 +657,17 @@ export class FacetStrategySelector extends React.Component<{
     }
 
     @computed get subtitle(): string {
-        const entityType = this.props.manager.entityType ?? "country or region",
+        const entityChoice = this.entityName.replace(/ or /, "/"),
             byEntity = this.strategies.includes(FacetStrategy.entity),
             byMetric = this.strategies.includes(FacetStrategy.metric)
 
         if (byEntity || byMetric) {
             const facet =
                 byEntity && byMetric
-                    ? `metric, ${entityType}`
+                    ? `${this.metricName} or ${entityChoice}`
                     : byEntity
-                    ? entityType
-                    : "metric"
+                    ? this.entityName
+                    : this.metricName
             return (
                 "Visualize the data all together in one chart or split it by " +
                 facet
