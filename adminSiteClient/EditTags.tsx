@@ -45,6 +45,7 @@ export class EditTags extends React.Component<{
                 <ReactTags
                     selected={tags.map(convertTagToAutocomplete)}
                     suggestions={suggestions.map(convertTagToAutocomplete)}
+                    activateFirstOption
                     onAdd={this.onAdd}
                     onDelete={this.props.onDelete}
                     ref={this.reactTagsApi}
