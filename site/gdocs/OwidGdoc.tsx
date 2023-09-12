@@ -15,7 +15,10 @@ import {
     OwidGdocType,
 } from "@ourworldindata/utils"
 import { CodeSnippet } from "../blocks/CodeSnippet.js"
-import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
+import {
+    ADMIN_BASE_URL,
+    BAKED_BASE_URL,
+} from "../../settings/clientSettings.js"
 import { formatAuthors } from "../clientFormatting.js"
 import { DebugProvider } from "./DebugContext.js"
 import { OwidGdocHeader } from "./OwidGdocHeader.js"
@@ -52,6 +55,7 @@ const citationDescriptionsByArticleType: Record<OwidGdocType, string> = {
 }
 
 export function OwidGdoc({
+    id,
     content,
     publishedAt,
     slug,
@@ -92,6 +96,23 @@ export function OwidGdoc({
             }}
         >
             <DocumentContext.Provider value={{ isPreviewing }}>
+                <div id="gdoc-admin-bar">
+                    <a
+                        target="_blank"
+                        rel="noreferrer noopener"
+                        href={`https://docs.google.com/document/d/${id}/edit`}
+                    >
+                        Gdoc
+                    </a>
+                    <span>/</span>
+                    <a
+                        target="_blank"
+                        rel="noreferrer noopener"
+                        href={`${ADMIN_BASE_URL}/admin/gdocs/${id}/preview`}
+                    >
+                        Admin
+                    </a>
+                </div>
                 <article
                     className={cx(
                         "centered-article-container grid grid-cols-12-full-width",
