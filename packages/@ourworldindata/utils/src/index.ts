@@ -178,6 +178,7 @@ export {
     SubNavId,
     SuggestedChartRevisionStatus,
     type Tag,
+    TaggableType,
     type Time,
     type TimeBound,
     type TimeBounds,

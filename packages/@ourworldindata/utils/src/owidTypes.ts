@@ -201,6 +201,10 @@ export interface Tag {
     isApproved?: boolean
 }
 
+export enum TaggableType {
+    Charts = "charts",
+}
+
 export interface EntryMeta {
     slug: string
     title: string

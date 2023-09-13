@@ -13,11 +13,13 @@ import { getDataForMultipleVariables } from "./Variable.js"
 import { User } from "./User.js"
 import { ChartRevision } from "./ChartRevision.js"
 import {
+    JsonError,
     KeyChartLevel,
     MultipleOwidVariableDataDimensionsMap,
     Tag,
 } from "@ourworldindata/utils"
 import type { GrapherInterface } from "@ourworldindata/grapher"
+import { OpenAI } from "openai"
 
 // XXX hardcoded filtering to public parent tags
 export const PUBLIC_TAG_PARENT_IDS = [
@@ -172,6 +174,64 @@ WHERE c.config -> "$.isPublished" = true
                     isApproved: !!ct.isApproved,
                 })
         }
+    }
+
+    static async getGptTopicSuggestions(chartId: number): Promise<Tag[]> {
+        const chart = await Chart.findOneBy({
+            id: chartId,
+        })
+        if (!chart) throw new JsonError(`No chart found for id ${chartId}`, 404)
+
+        const topics: Tag[] = await db.queryMysql(`
+            SELECT t.id, t.name
+            FROM tags t 
+            WHERE t.isTopic IS TRUE
+            AND t.parentId IN (${PUBLIC_TAG_PARENT_IDS.join(",")})
+        `)
+
+        if (!topics.length) throw new JsonError("No topics found", 404)
+
+        const prompt = `
+            You will be provided with the chart metadata (delimited with XML tags),
+            as well as a list of possible topics (delimited with XML tags).
+            Classify the chart into two of the provided topics.
+            <chart>
+                <title>${chart.config.title}</title>
+                <description>${chart.config.subtitle}</description>
+                <listed-on>${chart.config.originUrl}</listed-on>
+            </chart>
+            <topics>
+                ${topics.map(
+                    (topic) => `<topic id=${topic.id}>${topic.name}</topic>\n`
+                )}
+            </topics>
+            
+            Respond with the two categories you think best describe the chart. 
+            
+            Format your response as follows:
+            [
+                { "id": 1, "name": "Topic 1" },
+                { "id": 2, "name": "Topic 2" }
+            ]`
+
+        const openai = new OpenAI()
+        const completion = await openai.chat.completions.create({
+            messages: [{ role: "user", content: prompt }],
+            model: "gpt-3.5-turbo",
+        })
+
+        const json = completion.choices[0]?.message?.content
+        if (!json) throw new JsonError("No response from GPT", 500)
+
+        const selectedTopics: Tag[] = JSON.parse(json)
+
+        // We only want to return topics that are in the list of possible
+        // topics, in case of hallucinations
+        const confirmedTopics = selectedTopics.filter((topic) =>
+            topics.map((t) => t.id).includes(topic.id)
+        )
+
+        return confirmedTopics
     }
 
     static async all(): Promise<ChartRow[]> {

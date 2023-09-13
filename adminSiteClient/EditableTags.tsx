@@ -2,16 +2,12 @@ import React from "react"
 import * as lodash from "lodash"
 import { observable, action } from "mobx"
 import { observer } from "mobx-react"
-import { KeyChartLevel, Tag } from "@ourworldindata/utils"
+import { KeyChartLevel, Tag, TaggableType } from "@ourworldindata/utils"
 import { TagBadge } from "./TagBadge.js"
 import { EditTags } from "./EditTags.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faEdit, faWandMagicSparkles } from "@fortawesome/free-solid-svg-icons"
-
-export enum TaggableType {
-    Charts = "charts",
-}
 
 interface TaggableItem {
     id?: number
