@@ -234,6 +234,7 @@ yarn testPrettierAll`
             lernaBuild: `cd ${rsyncTargetDirTmp} && yarn lerna run build`,
             vite: `cd ${rsyncTargetDirTmp} && yarn buildVite`,
             migrateDb: `cd ${rsyncTargetDirTmp} && yarn runDbMigrations`,
+            batchTagWithGpt: `cd ${rsyncTargetDirTmp} && yarn batchTagWithGpt`,
             algolia: `cd ${rsyncTargetDirTmp} && node --enable-source-maps --unhandled-rejections=strict itsJustJavascript/baker/algolia/configureAlgolia.js`,
             createQueueFile: `cd ${rsyncTargetDirTmp} && touch .queue && chmod 0666 .queue`,
             swapFolders: `rm -rf ${oldRepoBackupDir} && mv ${finalTargetDir} ${oldRepoBackupDir} || true && mv ${rsyncTargetDirTmp} ${finalTargetDir}`,
