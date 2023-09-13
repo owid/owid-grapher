@@ -97,6 +97,8 @@ try {
     ) {
         const adminbar = document.getElementById("wpadminbar")
         if (adminbar) adminbar.style.display = ""
+        const gdocAdminBar = document.getElementById("gdoc-admin-bar")
+        if (gdocAdminBar) gdocAdminBar.style.display = "initial"
     }
 } catch {}
 

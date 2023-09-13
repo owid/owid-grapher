@@ -1,3 +1,19 @@
+#gdoc-admin-bar {
+    display: none;
+    position: absolute;
+    right: 8px;
+    margin-top: 8px;
+    opacity: 0.7;
+    z-index: $zindex-adminbar;
+    a {
+        color: $blue-30;
+    }
+    span {
+        color: $blue-60;
+        margin: 0 4px;
+    }
+}
+
 .centered-article-container {
     .ref {
         color: $vermillion;
