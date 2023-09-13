@@ -79,7 +79,10 @@ nav.controlsRow .controls {
 
 @at-root {
     // collapse the Settings toggle down to just an icon on small screens
-    .GrapherComponentSmall nav.controlsRow .settings-menu button.menu-toggle {
+    .GrapherComponentSmall:not(.GrapherComponentMedium)
+        nav.controlsRow
+        .settings-menu
+        button.menu-toggle {
         min-height: $control-row-height;
         svg {
             margin-right: 0;
