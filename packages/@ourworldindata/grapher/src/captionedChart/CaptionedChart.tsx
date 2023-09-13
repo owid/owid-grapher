@@ -227,23 +227,27 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     }
 
     private renderControlsRow(): JSX.Element {
+        const { isOnTableTab, isOnMapTab } = this.manager,
+            showControls = !(isOnTableTab || isOnMapTab)
         return (
             <nav className="controlsRow">
                 <ContentSwitchers manager={this.manager} />
-                <div className="controls">
-                    <EntitySelectorToggle manager={this.manager} />
-                    <SettingsMenu
-                        manager={this.manager}
-                        top={
-                            FRAME_PADDING +
-                            this.header.height +
-                            this.verticalPadding +
-                            CONTROLS_ROW_HEIGHT +
-                            4 // margin between button and menu
-                        }
-                        bottom={FRAME_PADDING}
-                    />
-                </div>
+                {showControls && (
+                    <div className="controls">
+                        <EntitySelectorToggle manager={this.manager} />
+                        <SettingsMenu
+                            manager={this.manager}
+                            top={
+                                FRAME_PADDING +
+                                this.header.height +
+                                this.verticalPadding +
+                                CONTROLS_ROW_HEIGHT +
+                                4 // margin between button and menu
+                            }
+                            bottom={FRAME_PADDING}
+                        />
+                    </div>
+                )}
             </nav>
         )
     }
