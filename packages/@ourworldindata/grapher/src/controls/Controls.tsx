@@ -304,7 +304,15 @@ export class SettingsMenu extends React.Component<{
             showAbsRelToggle,
         } = this
 
-        const { yAxis, xAxis, compareEndPointsOnly } = manager
+        const { yAxis, xAxis, compareEndPointsOnly, filledDimensions } = manager
+        const yLabel =
+                filledDimensions.find((d: ChartDimension) => d.property === "y")
+                    ?.display.name ?? "Y axis",
+            xLabel =
+                filledDimensions.find((d: ChartDimension) => d.property === "x")
+                    ?.display.name ?? "X axis",
+            omitLoneAxisLabel =
+                showYScaleToggle && !showXScaleToggle && yLabel === "Y axis"
 
         return (
             <div className="settings-menu-contents">
@@ -354,26 +362,31 @@ export class SettingsMenu extends React.Component<{
                     </Setting>
 
                     <Setting
+                        title="Axis scale"
+                        active={showYScaleToggle || showXScaleToggle}
+                    >
+                        {showYScaleToggle && (
+                            <AxisScaleToggle
+                                axis={yAxis!}
+                                subtitle={omitLoneAxisLabel ? "" : yLabel}
+                            />
+                        )}
+                        {showXScaleToggle && (
+                            <AxisScaleToggle axis={xAxis!} subtitle={xLabel} />
+                        )}
+                        <div className="config-subtitle">
+                            A linear scale uses absolute differences in data
+                            values to position points. Logarithmic scales use
+                            percentage differences to determine the distance
+                            between points.
+                        </div>
+                    </Setting>
+
+                    <Setting
                         title="Data series"
                         info="Include all intermediate points or show only the start and end values."
                         active={compareEndPointsOnly}
                     ></Setting>
-
-                    <Setting
-                        title="Y axis scale"
-                        info="Linear scales show absolute differences between values, Log scales show percentage differences."
-                        active={showYScaleToggle}
-                    >
-                        <AxisScaleToggle axis={yAxis!} />
-                    </Setting>
-
-                    <Setting
-                        title="X axis scale"
-                        info="Linear scales show absolute differences between values, Log scales show percentage differences."
-                        active={showXScaleToggle}
-                    >
-                        <AxisScaleToggle axis={xAxis!} />
-                    </Setting>
                 </div>
             </div>
         )
@@ -468,6 +481,7 @@ export class LabeledSwitch extends React.Component<{
 @observer
 export class AxisScaleToggle extends React.Component<{
     axis: AxisConfig
+    subtitle?: string
     prefix?: string
 }> {
     @action.bound private setAxisScale(scale: ScaleType): void {
@@ -476,25 +490,28 @@ export class AxisScaleToggle extends React.Component<{
 
     render(): JSX.Element {
         const { linear, log } = ScaleType,
-            { axis, prefix } = this.props,
+            { axis, prefix, subtitle } = this.props,
             isLinear = axis.scaleType === linear,
             label = prefix ? `${prefix}: ` : undefined
 
         return (
-            <div className="config-toggle">
-                <button
-                    className={classnames({ active: isLinear })}
-                    onClick={(): void => this.setAxisScale(linear)}
-                >
-                    {label}Linear
-                </button>
-                <button
-                    className={classnames({ active: !isLinear })}
-                    onClick={(): void => this.setAxisScale(log)}
-                >
-                    {label}Logarithmic
-                </button>
-            </div>
+            <>
+                <div className="config-toggle">
+                    {subtitle && <label>{subtitle}</label>}
+                    <button
+                        className={classnames({ active: isLinear })}
+                        onClick={(): void => this.setAxisScale(linear)}
+                    >
+                        {label}Linear
+                    </button>
+                    <button
+                        className={classnames({ active: !isLinear })}
+                        onClick={(): void => this.setAxisScale(log)}
+                    >
+                        {label}Logarithmic
+                    </button>
+                </div>
+            </>
         )
     }
 }
