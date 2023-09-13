@@ -7,7 +7,7 @@ export interface OwidOrigin {
     attributionShort?: string
     versionProducer?: string
     license?: OwidLicense
-    datasetDescriptionOwid?: string
+    descriptionSnapshot?: string
     description?: string
     producer?: string
     citationFull?: string

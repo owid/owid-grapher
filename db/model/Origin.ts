@@ -5,10 +5,10 @@ export class Origin extends BaseEntity {
     @PrimaryGeneratedColumn() id!: number
     @Column({ type: "varchar", nullable: true }) title!: string | null
     @Column({ type: "varchar", nullable: true }) titleSnapshot!: string | null
-    @Column({ type: "text", nullable: true }) datasetDescriptionOwid!:
+    @Column({ type: "text", nullable: true }) description!: string | null
+    @Column({ type: "text", nullable: true }) descriptionSnapshot!:
         | string
         | null
-    @Column({ type: "text", nullable: true }) description!: string | null
     @Column({ type: "varchar", nullable: true }) producer!: string | null
     @Column({ type: "varchar", nullable: true }) attribution!: string | null
     @Column({ type: "varchar", nullable: true }) attributionShort!:

@@ -616,7 +616,7 @@ export const DataPageV2Content = ({
                                                             <ExpandableToggle
                                                                 label={
                                                                     source.producer ??
-                                                                    source.datasetDescriptionOwid ??
+                                                                    source.descriptionSnapshot ??
                                                                     source.description ??
                                                                     ""
                                                                 }
