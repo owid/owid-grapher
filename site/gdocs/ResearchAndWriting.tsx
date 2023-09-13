@@ -93,20 +93,24 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
                 Research & Writing
                 <a className="deep-link" href={`#${RESEARCH_AND_WRITING_ID}`} />
             </h1>
-            {primary.map((link, i) => (
-                <ResearchAndWritingLinkContainer
-                    className="span-cols-6 span-md-cols-6 span-sm-cols-12"
-                    key={i}
-                    {...link}
-                />
-            ))}
-            {secondary.map((link, i) => (
-                <ResearchAndWritingLinkContainer
-                    key={i}
-                    className="span-cols-3 span-md-cols-6 span-sm-cols-12"
-                    {...link}
-                />
-            ))}
+            <div className="span-cols-12 research-and-writing-row">
+                <div className="grid research-and-writing-row__link-container">
+                    {primary.map((link, i) => (
+                        <ResearchAndWritingLinkContainer
+                            className="span-cols-6 span-md-cols-6 span-sm-cols-12"
+                            key={i}
+                            {...link}
+                        />
+                    ))}
+                    {secondary.map((link, i) => (
+                        <ResearchAndWritingLinkContainer
+                            key={i}
+                            className="span-cols-3 span-md-cols-6 span-sm-cols-12"
+                            {...link}
+                        />
+                    ))}
+                </div>
+            </div>
             {rows.map((row, i) => (
                 <div key={i} className="span-cols-12 research-and-writing-row">
                     <h2 className="h2-bold">{row.heading}</h2>
