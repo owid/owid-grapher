@@ -1,4 +1,3 @@
-import { Tag as TagReactTagAutocomplete } from "react-tag-autocomplete"
 import { ImageMetadata } from "./image.js"
 import { Static, Type } from "@sinclair/typebox"
 import { gdocUrlRegex } from "./GdocsConstants.js"

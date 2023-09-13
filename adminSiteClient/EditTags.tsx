@@ -1,9 +1,12 @@
-import React, { useRef } from "react"
+import React from "react"
 import { action } from "mobx"
 import { observer } from "mobx-react"
 import { Tag } from "./TagBadge.js"
-import { ReactTags, ReactTagsAPI } from "react-tag-autocomplete"
-import { Tag as TagAutocomplete } from "react-tag-autocomplete"
+import {
+    ReactTags,
+    ReactTagsAPI,
+    Tag as TagAutocomplete,
+} from "react-tag-autocomplete"
 
 @observer
 export class EditTags extends React.Component<{
