@@ -20,6 +20,7 @@ import {
 } from "@ourworldindata/utils"
 import type { GrapherInterface } from "@ourworldindata/grapher"
 import { OpenAI } from "openai"
+import { OPENAI_API_KEY } from "../../settings/serverSettings.js"
 
 // XXX hardcoded filtering to public parent tags
 export const PUBLIC_TAG_PARENT_IDS = [
@@ -177,6 +178,9 @@ WHERE c.config -> "$.isPublished" = true
     }
 
     static async getGptTopicSuggestions(chartId: number): Promise<Tag[]> {
+        if (!OPENAI_API_KEY)
+            throw new JsonError("No OPENAI_API_KEY env found", 500)
+
         const chart = await Chart.findOneBy({
             id: chartId,
         })
@@ -214,7 +218,9 @@ WHERE c.config -> "$.isPublished" = true
                 { "id": 2, "name": "Topic 2" }
             ]`
 
-        const openai = new OpenAI()
+        const openai = new OpenAI({
+            apiKey: OPENAI_API_KEY,
+        })
         const completion = await openai.chat.completions.create({
             messages: [{ role: "user", content: prompt }],
             model: "gpt-3.5-turbo",
