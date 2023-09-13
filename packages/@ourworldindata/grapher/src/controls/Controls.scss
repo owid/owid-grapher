@@ -17,6 +17,7 @@ $bold: 700;
 $lato: $sans-serif-font-stack;
 
 $indent: 15px;
+$control-row-height: 32px;
 
 // Buttons in the main controls row of the grapher view
 nav.controlsRow .controls {
@@ -24,7 +25,7 @@ nav.controlsRow .controls {
     gap: 8px;
 
     button.menu-toggle {
-        font: $medium 13px/1.3 $lato;
+        font: $medium 13px/1.2 $lato;
         letter-spacing: 0.01em;
         display: flex;
         align-items: center;
@@ -79,7 +80,7 @@ nav.controlsRow .controls {
 @at-root {
     // collapse the Settings toggle down to just an icon on small screens
     .GrapherComponentSmall nav.controlsRow .settings-menu button.menu-toggle {
-        min-height: 32px;
+        min-height: $control-row-height;
         svg {
             margin-right: 0;
         }
@@ -129,7 +130,7 @@ nav.controlsRow .controls {
                 color: $light-text;
                 background: white;
                 border: 1px solid $light-stroke;
-                font: $medium 13px/1.3 $lato;
+                font: $medium 13px/1.2 $lato;
                 letter-spacing: 0.01em;
                 border-radius: 4px;
                 padding: 7px;
