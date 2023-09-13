@@ -563,7 +563,7 @@ const columnDefFromOwidVariable = (
         nonRedistributable,
     } = variable
 
-    const { attribution, titlePublic, titleVariant, producerShort } =
+    const { attribution, titlePublic, titleVariant, attributionShort } =
         variable.presentation || {}
 
     // Without this the much used var 123 appears as "Countries Continent". We could rename in Grapher but not sure the effects of that.
@@ -586,9 +586,7 @@ const columnDefFromOwidVariable = (
         nonRedistributable,
         sourceLink:
             source?.link ??
-            (origins && origins.length > 0
-                ? origins[0].datasetUrlMain
-                : undefined),
+            (origins && origins.length > 0 ? origins[0].urlMain : undefined),
         sourceName: source?.name,
         dataPublishedBy: source?.dataPublishedBy,
         dataPublisherSource: source?.dataPublisherSource,
@@ -599,7 +597,7 @@ const columnDefFromOwidVariable = (
         attribution,
         titlePublic,
         titleVariant,
-        producerShort,
+        attributionShort,
         owidVariableId: variable.id,
         type: isContinent
             ? ColumnTypeNames.Continent

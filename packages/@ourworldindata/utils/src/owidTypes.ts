@@ -1386,7 +1386,7 @@ export interface DataPageDataV2 {
     status: "published" | "draft"
     title: string
     titleVariant?: string
-    producerShort?: string
+    attributionShort?: string
     topicTagsLinks?: string[]
     attribution: string
     descriptionShort?: string

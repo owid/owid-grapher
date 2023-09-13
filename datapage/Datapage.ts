@@ -63,7 +63,7 @@ export const getDatapageDataV2 = async (
                 variableMetadata.descriptionShort ??
                 partialGrapherConfig.subtitle,
             descriptionFromProducer: variableMetadata.descriptionFromProducer,
-            producerShort: variableMetadata.presentation?.producerShort,
+            attributionShort: variableMetadata.presentation?.attributionShort,
             titleVariant: variableMetadata.presentation?.titleVariant,
             topicTagsLinks: variableMetadata.presentation?.topicTagsLinks ?? [],
             attribution: getAttributionFromVariable(variableMetadata),

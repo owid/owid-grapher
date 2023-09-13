@@ -64,7 +64,7 @@ export interface CoreColumnDef extends ColumnColorScale {
     name?: string // The display name for the column
     titlePublic?: string // The Metadata V2 display title for the variable
     titleVariant?: string // The Metadata V2 title disambiguation fragment for the variant (e.g. "projected")
-    producerShort?: string // The Metadata V2 title disambiguation fragment for the producer
+    attributionShort?: string // The Metadata V2 title disambiguation fragment for the producer
     description?: string
     descriptionShort?: string
     descriptionFromProducer?: string

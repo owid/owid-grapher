@@ -44,7 +44,7 @@ export interface VariableRow {
     processingLevel?: "minor" | "major"
     titlePublic?: string
     titleVariant?: string
-    producerShort?: string
+    attributionShort?: string
     citationInline?: string
     descriptionShort?: string
     descriptionFromProducer?: string

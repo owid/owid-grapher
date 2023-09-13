@@ -94,7 +94,7 @@ export interface OwidLicense {
 export interface OwidVariablePresentation {
     titlePublic?: string
     titleVariant?: string
-    producerShort?: string
+    attributionShort?: string
     attribution?: string
     topicTagsLinks?: string[]
     faqs?: FaqLink[]

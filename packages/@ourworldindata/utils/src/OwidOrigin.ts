@@ -1,18 +1,18 @@
 import { OwidLicense } from "./OwidVariable.js"
 export interface OwidOrigin {
     id?: number
-    datasetTitleProducer?: string
-    datasetTitleOwid?: string
+    title?: string
+    titleSnapshot?: string
     attribution?: string
     attributionShort?: string
     versionProducer?: string
     license?: OwidLicense
-    datasetDescriptionOwid?: string
-    datasetDescriptionProducer?: string
+    descriptionSnapshot?: string
+    description?: string
     producer?: string
-    citationProducer?: string
-    datasetUrlMain?: string
-    datasetUrlDownload?: string
+    citationFull?: string
+    urlMain?: string
+    urlDownload?: string
     dateAccessed?: Date
     datePublished?: string
 }
