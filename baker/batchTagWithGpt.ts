@@ -1,7 +1,14 @@
 import * as db from "../db/db.js"
 import { Chart } from "../db/model/Chart.js"
+import yargs from "yargs"
+import { hideBin } from "yargs/helpers"
 
-const batchTagChartsWithGpt = async () => {
+interface BatchTagWithGptArgs {
+    debug?: boolean
+    limit?: number
+}
+
+const batchTagChartsWithGpt = async ({ debug, limit }: BatchTagWithGptArgs) => {
     // Get all charts that need tagging. These charts either have no tags, or
     // are tagged with neither a topic nor "Unlisted"
     const chartsToTag = await db.queryMysql(`
@@ -18,6 +25,7 @@ const batchTagChartsWithGpt = async () => {
         WHERE tags.isTopic = 1 OR tags.name = 'Unlisted'
     )
     GROUP BY charts.id
+    ${limit ? `LIMIT ${limit}` : ""}
     `)
 
     // Iterate through the charts and tag them with GPT-suggested topics
@@ -25,6 +33,7 @@ const batchTagChartsWithGpt = async () => {
         const gptTopicSuggestions = await Chart.getGptTopicSuggestions(chart.id)
 
         for (const tag of gptTopicSuggestions) {
+            if (debug) console.log("Tagging chart", chart.id, "with", tag.id)
             // Insert the suggested chart-tag association if it doesn't already
             // exist, giving priority to the existing tags. This is to make sure
             // already curated tags and their associated key chart levels and
@@ -36,12 +45,34 @@ const batchTagChartsWithGpt = async () => {
     }
 }
 
-const batchTagWithGpt = async () => {
-    try {
-        await batchTagChartsWithGpt()
-    } finally {
-        await db.closeTypeOrmAndKnexConnections()
-    }
+if (require.main === module) {
+    yargs(hideBin(process.argv))
+        .command<BatchTagWithGptArgs>(
+            "$0",
+            "Batch tag charts with GPT topics",
+            (yargs) => {
+                yargs
+                    .option("debug", {
+                        alias: "d",
+                        type: "boolean",
+                        description: "Enable debug mode",
+                        default: false,
+                    })
+                    .option("limit", {
+                        alias: "l",
+                        type: "number",
+                        description: "Limit the number of items processed",
+                    })
+            },
+            async (argv) => {
+                try {
+                    await batchTagChartsWithGpt(argv)
+                } finally {
+                    await db.closeTypeOrmAndKnexConnections()
+                }
+            }
+        )
+        .help()
+        .alias("help", "h")
+        .strict().argv
 }
-
-if (require.main === module) batchTagWithGpt()
