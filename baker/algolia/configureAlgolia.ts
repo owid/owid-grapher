@@ -123,6 +123,7 @@ export const configureAlgolia = async () => {
         customRanking: ["desc(views_7d)"],
         attributeForDistinct: "slug",
         attributesForFaceting: [],
+        typoTolerance: false,
     })
 
     const synonyms = [
