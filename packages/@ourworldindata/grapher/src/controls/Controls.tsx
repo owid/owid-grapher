@@ -697,7 +697,6 @@ export class FacetStrategySelector extends React.Component<{
     render(): JSX.Element {
         return (
             <>
-                <div className="config-subtitle">{this.subtitle}</div>
                 <div className="config-list">
                     {this.strategies.map((value: FacetStrategy) => {
                         const label = this.facetStrategyLabels[value],
@@ -724,6 +723,7 @@ export class FacetStrategySelector extends React.Component<{
                         )
                     })}
                 </div>
+                <div className="config-subtitle">{this.subtitle}</div>
             </>
         )
     }
