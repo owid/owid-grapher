@@ -110,6 +110,10 @@ h3.article-block__heading {
 
     img {
         width: 100%;
+
+        &.lightbox-image {
+            cursor: zoom-in;
+        }
     }
 
     .download-png-link {
