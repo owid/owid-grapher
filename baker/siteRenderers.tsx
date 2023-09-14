@@ -65,9 +65,6 @@ import {
     getPostBySlug,
     isPostCitable,
     getBlockContent,
-    getPosts,
-    mapGdocsToWordpressPosts,
-    getFullPost,
 } from "../db/wpdb.js"
 import { queryMysql, knexTable } from "../db/db.js"
 import { getPageOverrides, isPageOverridesCitable } from "./pageOverrides.js"
