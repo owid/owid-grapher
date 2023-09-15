@@ -8,7 +8,17 @@ interface BatchTagWithGptArgs {
     limit?: number
 }
 
-const batchTagChartsWithGpt = async ({ debug, limit }: BatchTagWithGptArgs) => {
+export const batchTagWithGpt = async ({
+    debug,
+    limit,
+}: BatchTagWithGptArgs = {}) => {
+    await batchTagChartsWithGpt({ debug, limit })
+}
+
+const batchTagChartsWithGpt = async ({
+    debug,
+    limit,
+}: BatchTagWithGptArgs = {}) => {
     // Get all charts that need tagging. These charts either have no tags, or
     // are tagged with neither a topic nor "Unlisted"
     const chartsToTag = await db.queryMysql(`
