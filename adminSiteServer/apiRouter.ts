@@ -98,7 +98,6 @@ import { In } from "typeorm"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 import { TaggableType } from "../adminSiteClient/EditableTags.js"
-import { Tag as TagReactTagAutocomplete } from "react-tag-autocomplete"
 import { OpenAI } from "openai"
 
 const apiRouter = new FunctionalRouter()
@@ -2621,7 +2620,7 @@ apiRouter.get(
                 404
             )
 
-        const topics: TagReactTagAutocomplete[] = await db.queryMysql(`
+        const topics: Tag[] = await db.queryMysql(`
             SELECT t.id, t.name
             FROM tags t 
             WHERE t.isTopic IS TRUE
@@ -2661,7 +2660,7 @@ apiRouter.get(
         const json = completion.choices[0]?.message?.content
         if (!json) throw new JsonError("No response from GPT", 500)
 
-        const selectedTopics: TagReactTagAutocomplete[] = JSON.parse(json)
+        const selectedTopics: Tag[] = JSON.parse(json)
 
         // We only want to return topics that are in the list of possible
         // topics, in case of hallucinations

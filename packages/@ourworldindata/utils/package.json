@@ -25,7 +25,7 @@
     "parsimmon": "^1.18.1",
     "react": "^16.14.0",
     "react-select": "^5.7.3",
-    "react-tag-autocomplete": "^6.3.0",
+    "react-tag-autocomplete": "^7.1.0",
     "s-expression": "^3.1.1",
     "string-pixel-width": "^1.10.0",
     "striptags": "^3.2.0",

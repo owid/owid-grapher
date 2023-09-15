@@ -2,7 +2,11 @@ import React from "react"
 import { action } from "mobx"
 import { observer } from "mobx-react"
 import { Tag } from "./TagBadge.js"
-import ReactTags from "react-tag-autocomplete"
+import {
+    ReactTags,
+    ReactTagsAPI,
+    Tag as TagAutocomplete,
+} from "react-tag-autocomplete"
 
 @observer
 export class EditTags extends React.Component<{
@@ -13,6 +17,7 @@ export class EditTags extends React.Component<{
     onSave: () => void
 }> {
     dismissable: boolean = true
+    reactTagsApi = React.createRef<ReactTagsAPI>()
 
     @action.bound onClickSomewhere() {
         if (this.dismissable) this.props.onSave()
@@ -23,12 +28,25 @@ export class EditTags extends React.Component<{
         this.dismissable = false
     }
 
+    @action.bound onKeyDown(e: KeyboardEvent) {
+        if (e.key === "Escape") {
+            this.props.onSave()
+        }
+    }
+
+    onAdd = (tag: TagAutocomplete) => {
+        this.props.onAdd(convertAutocompleteTotag(tag))
+    }
+
     componentDidMount() {
         document.addEventListener("click", this.onClickSomewhere)
+        document.addEventListener("keydown", this.onKeyDown)
+        this.reactTagsApi.current?.input?.focus()
     }
 
     componentWillUnmount() {
         document.removeEventListener("click", this.onClickSomewhere)
+        document.removeEventListener("keydown", this.onKeyDown)
     }
 
     render() {
@@ -36,13 +54,20 @@ export class EditTags extends React.Component<{
         return (
             <div className="EditTags" onClick={this.onClick}>
                 <ReactTags
-                    tags={tags}
-                    suggestions={suggestions}
-                    onAddition={this.props.onAdd}
+                    selected={tags.map(convertTagToAutocomplete)}
+                    suggestions={suggestions.map(convertTagToAutocomplete)}
+                    activateFirstOption
+                    onAdd={this.onAdd}
                     onDelete={this.props.onDelete}
-                    minQueryLength={1}
+                    ref={this.reactTagsApi}
                 />
             </div>
         )
     }
 }
+
+const convertTagToAutocomplete = (t: Tag) => ({ value: t.id, label: t.name })
+const convertAutocompleteTotag = (t: TagAutocomplete) => ({
+    id: t.value as number,
+    name: t.label,
+})
