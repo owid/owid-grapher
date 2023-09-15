@@ -13,13 +13,14 @@ import { getDataForMultipleVariables } from "./Variable.js"
 import { User } from "./User.js"
 import { ChartRevision } from "./ChartRevision.js"
 import {
+    KeyChartLevel,
     MultipleOwidVariableDataDimensionsMap,
     Tag,
 } from "@ourworldindata/utils"
 import type { GrapherInterface } from "@ourworldindata/grapher"
 
 // XXX hardcoded filtering to public parent tags
-const PUBLIC_TAG_PARENT_IDS = [
+export const PUBLIC_TAG_PARENT_IDS = [
     1515, 1507, 1513, 1504, 1502, 1509, 1506, 1501, 1514, 1511, 1500, 1503,
     1505, 1508, 1512, 1510,
 ]
@@ -116,12 +117,13 @@ WHERE c.config -> "$.isPublished" = true
             const tagRows = tags.map((tag) => [
                 tag.id,
                 chartId,
-                tag.keyChartLevel,
+                tag.keyChartLevel ?? KeyChartLevel.None,
+                tag.isApproved ? 1 : 0,
             ])
             await t.execute(`DELETE FROM chart_tags WHERE chartId=?`, [chartId])
             if (tagRows.length)
                 await t.execute(
-                    `INSERT INTO chart_tags (tagId, chartId, keyChartLevel) VALUES ?`,
+                    `INSERT INTO chart_tags (tagId, chartId, keyChartLevel, isApproved) VALUES ?`,
                     [tagRows]
                 )
 
@@ -149,7 +151,7 @@ WHERE c.config -> "$.isPublished" = true
         charts: { id: number; tags: any[] }[]
     ): Promise<void> {
         const chartTags = await db.queryMysql(`
-            SELECT ct.chartId, ct.tagId, ct.keyChartLevel, t.name as tagName FROM chart_tags ct
+            SELECT ct.chartId, ct.tagId, ct.keyChartLevel, ct.isApproved, t.name as tagName FROM chart_tags ct
             JOIN charts c ON c.id=ct.chartId
             JOIN tags t ON t.id=ct.tagId
         `)
@@ -167,6 +169,7 @@ WHERE c.config -> "$.isPublished" = true
                     id: ct.tagId,
                     name: ct.tagName,
                     keyChartLevel: ct.keyChartLevel,
+                    isApproved: !!ct.isApproved,
                 })
         }
     }

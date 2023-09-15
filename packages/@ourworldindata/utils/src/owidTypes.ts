@@ -197,6 +197,7 @@ export enum KeyChartLevel {
 
 export interface Tag extends TagReactTagAutocomplete {
     keyChartLevel?: KeyChartLevel
+    isApproved?: boolean
 }
 
 export interface EntryMeta {
