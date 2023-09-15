@@ -2622,11 +2622,13 @@ apiRouter.get(
             )
 
         const topics: TagReactTagAutocomplete[] = await db.queryMysql(`
-        SELECT t.id, t.name
-        FROM tags t 
-        WHERE t.isTopic IS TRUE
-        AND t.parentId IN (${PUBLIC_TAG_PARENT_IDS.join(",")})
-    `)
+            SELECT t.id, t.name
+            FROM tags t 
+            WHERE t.isTopic IS TRUE
+            AND t.parentId IN (${PUBLIC_TAG_PARENT_IDS.join(",")})
+        `)
+
+        if (!topics.length) throw new JsonError("No topics found", 404)
 
         const prompt = `
             You will be provided with the chart metadata (delimited with XML tags),
