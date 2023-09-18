@@ -95,6 +95,9 @@ import {
     RawBlockAlign,
     FaqDictionary,
     EnrichedFaq,
+    RawBlockEntrySummary,
+    EnrichedBlockEntrySummary,
+    EnrichedBlockEntrySummaryItem,
 } from "@ourworldindata/utils"
 import {
     extractUrl,
@@ -173,6 +176,7 @@ export function parseRawBlocksToEnrichedBlocks(
         )
         .with({ type: "expandable-paragraph" }, parseExpandableParagraph)
         .with({ type: "align" }, parseAlign)
+        .with({ type: "entry-summary" }, parseEntrySummary)
         .exhaustive()
 }
 
@@ -1493,6 +1497,38 @@ function parseAlign(b: RawBlockAlign): EnrichedBlockAlign {
         alignment: b.value.alignment as HorizontalAlign,
         content: compact(b.value.content.map(parseRawBlocksToEnrichedBlocks)),
         parseErrors: [],
+    }
+}
+
+function parseEntrySummary(
+    raw: RawBlockEntrySummary
+): EnrichedBlockEntrySummary {
+    const parseErrors: ParseError[] = []
+    const items: EnrichedBlockEntrySummaryItem[] = []
+
+    if (raw.value.items) {
+        raw.value.items.forEach((item, i) => {
+            if (!item.text) {
+                parseErrors.push({
+                    message: `entry-summary item ${i} is missing text`,
+                })
+            } else if (!item.slug) {
+                parseErrors.push({
+                    message: `Entry summary item with text ${item.text} is missing a url`,
+                })
+            } else {
+                items.push({
+                    text: item.text,
+                    slug: item.slug,
+                })
+            }
+        })
+    }
+
+    return {
+        type: "entry-summary",
+        items,
+        parseErrors,
     }
 }
 

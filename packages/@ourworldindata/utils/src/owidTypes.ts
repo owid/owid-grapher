@@ -1050,6 +1050,28 @@ export type EnrichedBlockAlign = {
     content: OwidEnrichedGdocBlock[]
 } & EnrichedBlockWithParseErrors
 
+export type RawBlockEntrySummaryItem = {
+    text?: string
+    slug?: string
+}
+
+export type RawBlockEntrySummary = {
+    type: "entry-summary"
+    value: {
+        items?: RawBlockEntrySummaryItem[]
+    }
+}
+
+export type EnrichedBlockEntrySummaryItem = {
+    text: string
+    slug: string
+}
+
+export type EnrichedBlockEntrySummary = {
+    type: "entry-summary"
+    items: EnrichedBlockEntrySummaryItem[]
+} & EnrichedBlockWithParseErrors
+
 export type Ref = {
     id: string
     // Can be -1
@@ -1094,6 +1116,7 @@ export type OwidRawGdocBlock =
     | RawBlockTopicPageIntro
     | RawBlockKeyInsights
     | RawBlockAlign
+    | RawBlockEntrySummary
 
 export type OwidEnrichedGdocBlock =
     | EnrichedBlockAllCharts
@@ -1127,6 +1150,7 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockKeyInsights
     | EnrichedBlockResearchAndWriting
     | EnrichedBlockAlign
+    | EnrichedBlockEntrySummary
 
 export enum OwidGdocPublicationContext {
     unlisted = "unlisted",

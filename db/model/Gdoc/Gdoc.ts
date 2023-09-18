@@ -605,6 +605,7 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
                         "aside",
                         "callout",
                         "expandable-paragraph",
+                        "entry-summary",
                         "gray-section",
                         "heading",
                         "horizontal-rule",

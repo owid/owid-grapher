@@ -501,6 +501,19 @@ export default function ArticleBlock({
                 />
             ) : null
         })
+        .with({ type: "entry-summary" }, (block) => {
+            return toc ? (
+                <SDGTableOfContents
+                    toc={block.items.map((item) => ({
+                        ...item,
+                        slug: item.slug,
+                        isSubheading: false,
+                        title: item.text,
+                    }))}
+                    className={getLayout("sdg-toc", containerType)}
+                />
+            ) : null
+        })
         .with({ type: "missing-data" }, () => (
             <MissingData className={getLayout("missing-data", containerType)} />
         ))

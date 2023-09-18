@@ -30,6 +30,7 @@ import {
     RawBlockTopicPageIntro,
     RawBlockExpandableParagraph,
     RawBlockAlign,
+    RawBlockEntrySummary,
 } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
 
@@ -522,6 +523,21 @@ function* rawBlockAlignToArchieMLString(
     yield "{}"
 }
 
+function* rawBlockEntrySummaryToArchieMLString(
+    block: RawBlockEntrySummary
+): Generator<string, void, undefined> {
+    yield "{.entry-summary}"
+    yield "[.items]"
+    if (block.value.items) {
+        for (const item of block.value.items) {
+            yield* propertyToArchieMLString("text", item)
+            yield* propertyToArchieMLString("slug", item)
+        }
+    }
+    yield "[]"
+    yield "{}"
+}
+
 export function* OwidRawGdocBlockToArchieMLStringGenerator(
     block: OwidRawGdocBlock
 ): Generator<string, void, undefined> {
@@ -581,6 +597,7 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
             rawResearchAndWritingToArchieMLString
         )
         .with({ type: "align" }, rawBlockAlignToArchieMLString)
+        .with({ type: "entry-summary" }, rawBlockEntrySummaryToArchieMLString)
         .exhaustive()
     yield* content
 }

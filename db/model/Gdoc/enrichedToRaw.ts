@@ -32,6 +32,7 @@ import {
     EnrichedBlockResearchAndWritingLink,
     RawBlockResearchAndWritingLink,
     RawBlockAlign,
+    RawBlockEntrySummary,
 } from "@ourworldindata/utils"
 import { spanToHtmlString } from "./gdocUtils.js"
 import { match, P } from "ts-pattern"
@@ -369,6 +370,14 @@ export function enrichedBlockToRawBlock(
                 value: {
                     alignment: b.alignment as string,
                     content: b.content.map(enrichedBlockToRawBlock),
+                },
+            }
+        })
+        .with({ type: "entry-summary" }, (b): RawBlockEntrySummary => {
+            return {
+                type: b.type,
+                value: {
+                    items: b.items,
                 },
             }
         })

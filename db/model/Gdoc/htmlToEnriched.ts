@@ -26,9 +26,21 @@ import {
     EnrichedBlockProminentLink,
     BlockImageSize,
     detailOnDemandRegex,
+    EnrichedBlockEntrySummary,
+    EnrichedBlockEntrySummaryItem,
+    spansToUnformattedPlainText,
+    checkNodeIsSpanLink,
+    Url,
 } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
-import { compact, flatten, isPlainObject, partition } from "lodash"
+import {
+    compact,
+    flatten,
+    get,
+    isArray,
+    isPlainObject,
+    partition,
+} from "lodash"
 import cheerio from "cheerio"
 import { spansToSimpleString } from "./gdocUtils.js"
 
@@ -223,6 +235,8 @@ type ErrorNames =
     | "unhandled html tag found"
     | "prominent link missing title"
     | "prominent link missing url"
+    | "summary item isn't text"
+    | "summary item doesn't have link"
 
 interface BlockParseError {
     name: ErrorNames
@@ -335,13 +349,14 @@ function isArchieMlComponent(
 }
 
 export function convertAllWpComponentsToArchieMLBlocks(
-    blocksOrComponents: ArchieBlockOrWpComponent[]
+    blocksOrComponentsOrTocs: ArchieBlockOrWpComponent[]
 ): OwidEnrichedGdocBlock[] {
-    return blocksOrComponents.flatMap((blockOrComponent) => {
-        if (isArchieMlComponent(blockOrComponent)) return [blockOrComponent]
+    return blocksOrComponentsOrTocs.flatMap((blockOrComponentOrToc) => {
+        if (isArchieMlComponent(blockOrComponentOrToc))
+            return [blockOrComponentOrToc]
         else {
             return convertAllWpComponentsToArchieMLBlocks(
-                blockOrComponent.childrenResults
+                blockOrComponentOrToc.childrenResults
             )
         }
     })
@@ -595,6 +610,47 @@ function finishWpComponent(
                     ],
                 }
             } else return { ...content, errors }
+        })
+        .with("owid/summary", () => {
+            const listItems: unknown = get(content, ["content", 0, "items"])
+            const items: EnrichedBlockEntrySummaryItem[] = []
+            const errors = content.errors
+            if (isArray(listItems)) {
+                listItems.forEach((item) => {
+                    if (item.type === "text") {
+                        const value = item.value[0]
+                        if (checkNodeIsSpanLink(value)) {
+                            const { hash } = Url.fromURL(value.url)
+                            items.push({
+                                // Remove "#" from the beginning of the slug
+                                slug: hash.slice(1),
+                                text: spansToUnformattedPlainText(
+                                    value.children
+                                ),
+                            })
+                        } else {
+                            errors.push({
+                                name: "summary item doesn't have link",
+                                details: value
+                                    ? `spanType is ${value.spanType}`
+                                    : "No item",
+                            })
+                        }
+                    } else {
+                        errors.push({
+                            name: "summary item isn't text",
+                            details: `item is type: ${item.type}`,
+                        })
+                    }
+                })
+            }
+
+            const toc: EnrichedBlockEntrySummary = {
+                type: "entry-summary",
+                items,
+                parseErrors: [],
+            }
+            return { errors: [], content: [toc] }
         })
         .otherwise(() => {
             return {
