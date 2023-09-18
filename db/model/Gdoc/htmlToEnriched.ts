@@ -352,9 +352,9 @@ function isArchieMlComponent(
 }
 
 export function convertAllWpComponentsToArchieMLBlocks(
-    blocksOrComponentsOrTocs: ArchieBlockOrWpComponent[]
+    blocksOrComponents: ArchieBlockOrWpComponent[]
 ): OwidEnrichedGdocBlock[] {
-    return blocksOrComponentsOrTocs.flatMap((blockOrComponentOrToc) => {
+    return blocksOrComponents.flatMap((blockOrComponentOrToc) => {
         if (isArchieMlComponent(blockOrComponentOrToc))
             return [blockOrComponentOrToc]
         else {
@@ -617,7 +617,7 @@ function finishWpComponent(
         .with("owid/summary", () => {
             // Summaries can either be lists of anchor links, or paragraphs of text
             // If it's a paragraph of text, we want to turn it into a callout block
-            // If it's a list of anchor links, we want to turn it into a summary block
+            // If it's a list of anchor links, we want to turn it into a toc block
             const contentIsAllText =
                 content.content.find(
                     (block) => "type" in block && block.type !== "text"
@@ -688,7 +688,7 @@ function finishWpComponent(
             const error: BlockParseError = {
                 name: "Unknown content type inside summary block",
                 details:
-                    "Unknown summary content:" +
+                    "Unknown summary content: " +
                     content.content
                         .map((block) =>
                             "type" in block ? block.type : block.tagName
