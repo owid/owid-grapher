@@ -375,7 +375,7 @@ export class SettingsMenu extends React.Component<{
                             <AxisScaleToggle axis={xAxis!} subtitle={xLabel} />
                         )}
                         <div className="config-subtitle">
-                            A linear scale uses absolute differences in data
+                            Linear scales use absolute differences in data
                             values to position points. Logarithmic scales use
                             percentage differences to determine the distance
                             between points.
@@ -422,9 +422,7 @@ export class Setting extends React.Component<{
 
         return (
             <section>
-                <div className="config-name">
-                    {title}
-                </div>
+                <div className="config-name">{title}</div>
                 {subtitle && <div className="config-subtitle">{subtitle}</div>}
                 {children}
             </section>
@@ -694,6 +692,7 @@ export class FacetStrategySelector extends React.Component<{
     render(): JSX.Element {
         return (
             <>
+                <div className="config-subtitle">{this.subtitle}</div>
                 <div className="config-list">
                     {this.strategies.map((value: FacetStrategy) => {
                         const label = this.facetStrategyLabels[value],
@@ -720,7 +719,6 @@ export class FacetStrategySelector extends React.Component<{
                         )
                     })}
                 </div>
-                <div className="config-subtitle">{this.subtitle}</div>
             </>
         )
     }
