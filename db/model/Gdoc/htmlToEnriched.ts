@@ -31,6 +31,7 @@ import {
     spansToUnformattedPlainText,
     checkNodeIsSpanLink,
     Url,
+    EnrichedBlockCallout,
 } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
 import {
@@ -237,6 +238,8 @@ type ErrorNames =
     | "prominent link missing url"
     | "summary item isn't text"
     | "summary item doesn't have link"
+    | "summary item has DataValue"
+    | "Unknown content type inside summary block"
 
 interface BlockParseError {
     name: ErrorNames
@@ -612,45 +615,90 @@ function finishWpComponent(
             } else return { ...content, errors }
         })
         .with("owid/summary", () => {
-            const listItems: unknown = get(content, ["content", 0, "items"])
-            const items: EnrichedBlockEntrySummaryItem[] = []
-            const errors = content.errors
-            if (isArray(listItems)) {
-                listItems.forEach((item) => {
-                    if (item.type === "text") {
-                        const value = item.value[0]
-                        if (checkNodeIsSpanLink(value)) {
-                            const { hash } = Url.fromURL(value.url)
-                            items.push({
-                                // Remove "#" from the beginning of the slug
-                                slug: hash.slice(1),
-                                text: spansToUnformattedPlainText(
-                                    value.children
-                                ),
-                            })
-                        } else {
-                            errors.push({
-                                name: "summary item doesn't have link",
-                                details: value
-                                    ? `spanType is ${value.spanType}`
-                                    : "No item",
-                            })
-                        }
-                    } else {
-                        errors.push({
-                            name: "summary item isn't text",
-                            details: `item is type: ${item.type}`,
-                        })
-                    }
-                })
+            // Summaries can either be lists of anchor links, or paragraphs of text
+            // If it's a paragraph of text, we want to turn it into a callout block
+            // If it's a list of anchor links, we want to turn it into a summary block
+            const contentIsAllText =
+                content.content.find(
+                    (block) => "type" in block && block.type !== "text"
+                ) === undefined
+
+            if (contentIsAllText) {
+                const callout: EnrichedBlockCallout = {
+                    type: "callout",
+                    title: "Summary",
+                    text: content.content as EnrichedBlockText[],
+                    parseErrors: [],
+                }
+                return { errors: [], content: [callout] }
             }
 
-            const toc: EnrichedBlockEntrySummary = {
-                type: "entry-summary",
-                items,
-                parseErrors: [],
+            const contentIsList =
+                content.content.length === 1 &&
+                "type" in content.content[0] &&
+                content.content[0].type === "list"
+            if (contentIsList) {
+                const listItems = get(content, ["content", 0])
+                const items: EnrichedBlockEntrySummaryItem[] = []
+                const errors = content.errors
+                if (isArray(listItems)) {
+                    listItems.forEach((item) => {
+                        if (item.type === "text") {
+                            const value = item.value[0]
+                            if (checkNodeIsSpanLink(value)) {
+                                const { hash } = Url.fromURL(value.url)
+                                const text = spansToUnformattedPlainText(
+                                    value.children
+                                )
+                                if (text.includes("DataValue")) {
+                                    errors.push({
+                                        name: "summary item has DataValue",
+                                        details: text,
+                                    })
+                                }
+                                items.push({
+                                    // Remove "#" from the beginning of the slug
+                                    slug: hash.slice(1),
+                                    text: text,
+                                })
+                            } else {
+                                errors.push({
+                                    name: "summary item doesn't have link",
+                                    details: value
+                                        ? `spanType is ${value.spanType}`
+                                        : "No item",
+                                })
+                            }
+                        } else {
+                            errors.push({
+                                name: "summary item isn't text",
+                                details: `item is type: ${item.type}`,
+                            })
+                        }
+                    })
+                }
+                const toc: EnrichedBlockEntrySummary = {
+                    type: "entry-summary",
+                    items,
+                    parseErrors: [],
+                }
+                return { errors: [], content: [toc] }
             }
-            return { errors: [], content: [toc] }
+
+            const error: BlockParseError = {
+                name: "Unknown content type inside summary block",
+                details:
+                    "Unknown summary content:" +
+                    content.content
+                        .map((block) =>
+                            "type" in block ? block.type : block.tagName
+                        )
+                        .join(", "),
+            }
+            return {
+                errors: [error],
+                content: [],
+            }
         })
         .otherwise(() => {
             return {

@@ -163,7 +163,7 @@ const migrate = async (): Promise<void> => {
         "excerpt",
         "created_at_in_wordpress",
         "updated_at"
-    ).from(db.knexTable(Post.postsTable)) // .where("id", "=", "24961"))
+    ).from(db.knexTable(Post.postsTable)) //.where("id", "=", "38189")
 
     for (const post of posts) {
         try {
