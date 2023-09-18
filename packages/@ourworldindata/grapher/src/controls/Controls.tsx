@@ -384,7 +384,7 @@ export class SettingsMenu extends React.Component<{
 
                     <Setting
                         title="Data series"
-                        info="Include all intermediate points or show only the start and end values."
+                        // info="Include all intermediate points or show only the start and end values."
                         active={compareEndPointsOnly}
                     ></Setting>
                 </div>
@@ -413,36 +413,17 @@ export class SettingsMenu extends React.Component<{
 export class Setting extends React.Component<{
     title: string
     subtitle?: string
-    info?: string
     active?: boolean
     children?: React.ReactNode
 }> {
-    @observable.ref showInfo = false
-
-    @action.bound
-    toggleInfo(): void {
-        this.showInfo = !this.showInfo
-    }
-
     render(): JSX.Element | null {
-        const { active, title, subtitle, info, children } = this.props
+        const { active, title, subtitle, children } = this.props
         if (!active) return null
 
         return (
             <section>
                 <div className="config-name">
                     {title}
-                    {info && (
-                        <Tippy
-                            content={info}
-                            theme="settings"
-                            placement="top"
-                            // arrow={false}
-                            maxWidth={338}
-                        >
-                            <FontAwesomeIcon icon={faInfoCircle} />
-                        </Tippy>
-                    )}
                 </div>
                 {subtitle && <div className="config-subtitle">{subtitle}</div>}
                 {children}
@@ -455,10 +436,11 @@ export class Setting extends React.Component<{
 export class LabeledSwitch extends React.Component<{
     value?: boolean
     label?: string
+    tooltip?: string
     onToggle: () => any
 }> {
     render(): JSX.Element {
-        const { label, value } = this.props
+        const { label, value, tooltip } = this.props
 
         return (
             <div className="config-switch">
@@ -472,6 +454,17 @@ export class LabeledSwitch extends React.Component<{
                         <div className="inner"></div>
                     </div>
                     {label}
+                    {tooltip && (
+                        <Tippy
+                            content={tooltip}
+                            theme="settings"
+                            placement="top"
+                            // arrow={false}
+                            maxWidth={338}
+                        >
+                            <FontAwesomeIcon icon={faInfoCircle} />
+                        </Tippy>
+                    )}
                 </label>
             </div>
         )
@@ -537,6 +530,7 @@ export class NoDataAreaToggle extends React.Component<{
             <LabeledSwitch
                 label={"Show \u2018no data\u2019 area"}
                 value={this.manager.showNoDataArea}
+                tooltip="Include entities for which ‘no data’ is available in the chart."
                 onToggle={this.onToggle}
             />
         )
@@ -572,6 +566,7 @@ export class AbsRelToggle extends React.Component<{
             <LabeledSwitch
                 label={label}
                 value={this.isRelativeMode}
+                tooltip="Show proportional changes over time or actual values in their original units."
                 onToggle={this.onToggle}
             />
         )
@@ -604,6 +599,7 @@ export class FacetYDomainToggle extends React.Component<{
         return (
             <LabeledSwitch
                 label="Align axis scales"
+                tooltip="Use the same minimum and maximum values on all charts or scale axes to fit the data in each chart"
                 value={this.isYDomainShared}
                 onToggle={this.onToggle}
             />
@@ -629,6 +625,7 @@ export class ZoomToggle extends React.Component<{
         return (
             <LabeledSwitch
                 label="Zoom to selection"
+                tooltip="Scale axes to show only the currently highlighted data points."
                 value={this.props.manager.zoomToSelection}
                 onToggle={this.onToggle}
             />

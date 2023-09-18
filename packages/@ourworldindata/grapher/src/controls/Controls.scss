@@ -278,6 +278,12 @@ nav.controlsRow .controls {
                         &:hover {
                             cursor: pointer;
                         }
+
+                        svg {
+                            color: $info-icon;
+                            height: 13px;
+                            padding: 0 0.333em;
+                        }
                     }
 
                     input {
