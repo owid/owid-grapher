@@ -257,10 +257,11 @@ nav.controlsRow .controls {
                     label {
                         flex-basis: 100%;
                         color: $dark-text;
-                        margin-bottom: 0.25em;
+                        margin-bottom: 0.5em;
                     }
                     button {
                         width: 130px;
+                        padding: 7px 16px;
                     }
                 }
 
