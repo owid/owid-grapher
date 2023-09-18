@@ -1635,8 +1635,8 @@ export function checkNodeIsSpan(node: NodeWithUrl): node is Span {
     return "spanType" in node
 }
 
-export function checkNodeIsSpanLink(node: NodeWithUrl): node is SpanLink {
-    return "spanType" in node && node.spanType === "span-link"
+export function checkNodeIsSpanLink(node: unknown): node is SpanLink {
+    return isObject(node) && "spanType" in node && node.spanType === "span-link"
 }
 
 export function spansToUnformattedPlainText(spans: Span[]): string {

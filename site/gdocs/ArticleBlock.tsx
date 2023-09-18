@@ -22,7 +22,7 @@ import { BlockErrorBoundary, BlockErrorFallback } from "./BlockErrorBoundary.js"
 import { match } from "ts-pattern"
 import { renderSpans } from "./utils.js"
 import Paragraph from "./Paragraph.js"
-import SDGTableOfContents from "./SDGTableOfContents.js"
+import TableOfContents from "./TableOfContents.js"
 import urlSlug from "url-slug"
 import { MissingData } from "./MissingData.js"
 import { AdditionalCharts } from "./AdditionalCharts.js"
@@ -76,7 +76,7 @@ const layouts: { [key in Container]: Layouts} = {
         ["research-and-writing"]: "col-start-2 span-cols-12",
         ["scroller"]: "grid span-cols-12 col-start-2",
         ["sdg-grid"]: "grid col-start-2 span-cols-12 col-lg-start-3 span-lg-cols-10 span-sm-cols-12 col-sm-start-2",
-        ["sdg-toc"]: "grid grid-cols-8 col-start-4 span-cols-8 grid-md-cols-10 col-md-start-3 span-md-cols-10 grid-sm-cols-12 span-sm-cols-12 col-sm-start-2",
+        ["toc"]: "grid grid-cols-8 col-start-4 span-cols-8 grid-md-cols-10 col-md-start-3 span-md-cols-10 grid-sm-cols-12 span-sm-cols-12 col-sm-start-2",
         ["side-by-side"]: "grid span-cols-12 col-start-2",
         ["sticky-left-left-column"]: "grid grid-cols-7 span-cols-7 span-md-cols-12 grid-md-cols-12",
         ["sticky-left-right-column"]: "grid grid-cols-5 span-cols-5 span-md-cols-12 grid-md-cols-12",
@@ -495,22 +495,23 @@ export default function ArticleBlock({
         ))
         .with({ type: "sdg-toc" }, () => {
             return toc ? (
-                <SDGTableOfContents
+                <TableOfContents
                     toc={toc}
-                    className={getLayout("sdg-toc", containerType)}
+                    title="List of targets and indicators"
+                    className={getLayout("toc", containerType)}
                 />
             ) : null
         })
         .with({ type: "entry-summary" }, (block) => {
             return toc ? (
-                <SDGTableOfContents
+                <TableOfContents
+                    title="Summary"
                     toc={block.items.map((item) => ({
                         ...item,
-                        slug: item.slug,
-                        isSubheading: false,
                         title: item.text,
+                        isSubheading: false,
                     }))}
-                    className={getLayout("sdg-toc", containerType)}
+                    className={getLayout("toc", containerType)}
                 />
             ) : null
         })

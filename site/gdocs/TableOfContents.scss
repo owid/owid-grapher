@@ -1,4 +1,4 @@
-.sdg-toc {
+.toc {
     padding: 40px 0;
     margin: 32px 0;
     background-color: $beige;
@@ -12,7 +12,7 @@
         margin-right: var(--grid-gap);
     }
 
-    .sdg-toc-toggle {
+    .toc-toggle {
         @include h2-bold;
         margin: 0;
         padding: 0;
@@ -25,8 +25,8 @@
     }
 
     // Have to hard-code this because the span-cols-x overrides col-start-x
-    .sdg-toc-toggle,
-    .sdg-toc-content {
+    .toc-toggle,
+    .toc-content {
         grid-column-start: 2;
     }
 
