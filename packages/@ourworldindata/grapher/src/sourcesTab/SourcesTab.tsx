@@ -2,7 +2,6 @@ import {
     Bounds,
     DEFAULT_BOUNDS,
     MarkdownTextWrap,
-    linkify,
     OwidOrigin,
     uniq,
     excludeNullish,
@@ -13,9 +12,6 @@ import { observer } from "mobx-react"
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { CoreColumn, OwidColumnDef } from "@ourworldindata/core-table"
-
-const formatText = (s: string): string =>
-    linkify(s).replace(/(?:\r\n|\r|\n)/g, "<br/>")
 
 export interface SourcesTabManager {
     adminBaseUrl?: string
@@ -110,11 +106,12 @@ export class SourcesTab extends React.Component<{
                             // metadata V2 shortDescription
                             <tr>
                                 <td>Variable description</td>
-                                <td
-                                    dangerouslySetInnerHTML={{
-                                        __html: formatText(column.description),
-                                    }}
-                                />
+                                <td>
+                                    <MarkdownTextWrap
+                                        text={column.description}
+                                        fontSize={12}
+                                    />
+                                </td>
                             </tr>
                         ) : null}
                         {coverage ? (
@@ -162,35 +159,34 @@ export class SourcesTab extends React.Component<{
                         source.dataPublishedBy ? (
                             <tr>
                                 <td>Data published by</td>
-                                <td
-                                    dangerouslySetInnerHTML={{
-                                        __html: formatText(
-                                            source.dataPublishedBy
-                                        ),
-                                    }}
-                                />
+                                <td>
+                                    <MarkdownTextWrap
+                                        text={source.dataPublishedBy}
+                                        fontSize={12}
+                                    />
+                                </td>
                             </tr>
                         ) : null}
                         {source.dataPublisherSource ? (
                             <tr>
                                 <td>Data publisher's source</td>
-                                <td
-                                    dangerouslySetInnerHTML={{
-                                        __html: formatText(
-                                            source.dataPublisherSource
-                                        ),
-                                    }}
-                                />
+                                <td>
+                                    <MarkdownTextWrap
+                                        text={source.dataPublisherSource}
+                                        fontSize={12}
+                                    />
+                                </td>
                             </tr>
                         ) : null}
                         {source.link ? (
                             <tr>
                                 <td>Link</td>
-                                <td
-                                    dangerouslySetInnerHTML={{
-                                        __html: formatText(source.link),
-                                    }}
-                                />
+                                <td>
+                                    <MarkdownTextWrap
+                                        text={source.link}
+                                        fontSize={12}
+                                    />
+                                </td>
                             </tr>
                         ) : null}
                         {retrievedDate ? (
@@ -202,12 +198,12 @@ export class SourcesTab extends React.Component<{
                     </tbody>
                 </table>
                 {source.additionalInfo && (
-                    <p
-                        key={"additionalInfo"}
-                        dangerouslySetInnerHTML={{
-                            __html: formatText(source.additionalInfo),
-                        }}
-                    />
+                    <p key={"additionalInfo"}>
+                        <MarkdownTextWrap
+                            text={source.additionalInfo}
+                            fontSize={12}
+                        />
+                    </p>
                 )}
             </div>
         )
