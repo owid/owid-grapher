@@ -228,8 +228,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     }
 
     private renderControlsRow(): JSX.Element {
-        const { isOnTableTab, isOnMapTab } = this.manager,
-            showControls = !isOnTableTab
+        const showControls = !this.manager.isOnTableTab
         return (
             <nav className="controlsRow">
                 <ContentSwitchers manager={this.manager} />
