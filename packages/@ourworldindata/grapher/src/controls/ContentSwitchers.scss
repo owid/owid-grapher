@@ -41,6 +41,7 @@
 
         &:hover {
             background-color: $hover-fill;
+            cursor: pointer;
         }
 
         .label {
@@ -55,6 +56,10 @@
     li.active > a {
         color: $active-text;
         background-color: $active-fill;
+
+        &:hover {
+            cursor: default;
+        }
 
         svg {
             color: $active-icon;
