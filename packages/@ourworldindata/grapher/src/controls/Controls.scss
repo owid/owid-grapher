@@ -5,6 +5,7 @@ $active-stroke: #a4b6ca;
 $light-fill: #dadada;
 $active-fill: #dbe5f0;
 $hover-fill: #f2f2f2;
+$selected-fill: #c7ced7;
 
 $light-text: #858585;
 $dark-text: #5b5b5b;
@@ -147,6 +148,9 @@ nav.controlsRow .controls {
                 &.active {
                     position: relative;
                     background: $active-fill;
+                    &:hover {
+                        background: $selected-fill;
+                    }
                     &:after {
                         content: " ";
                         background: url($option-checkmark) no-repeat;
