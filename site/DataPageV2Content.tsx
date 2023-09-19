@@ -20,7 +20,6 @@ import cx from "classnames"
 import { DebugProvider } from "./gdocs/DebugContext.js"
 import { CodeSnippet } from "./blocks/CodeSnippet.js"
 import dayjs from "dayjs"
-import { P, match } from "ts-pattern"
 declare global {
     interface Window {
         _OWID_DATAPAGEV2_PROPS: DataPageV2ContentFields

@@ -166,7 +166,7 @@ const convertMarkdownNodeToSpan = (node: EveryMarkdownNode): Span[] => {
     //.otherwise(() => ({ spanType: "span-simple-text" as const, text: "" }))
 }
 
-const convertMarkdownNodesToSpans = (nodes: MarkdownRoot) =>
+const convertMarkdownNodesToSpans = (nodes: MarkdownRoot): Span[] =>
     nodes.children.flatMap(convertMarkdownNodeToSpan)
 
 export const markdownToEnrichedTextBlock = (
