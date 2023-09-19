@@ -35,6 +35,7 @@ import {
     ControlsManager,
     EntitySelectorToggle,
     SettingsMenu,
+    MapProjectionMenu,
 } from "../controls/Controls"
 import { FooterManager } from "../footer/FooterManager"
 import { HeaderManager } from "../header/HeaderManager"
@@ -228,7 +229,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
 
     private renderControlsRow(): JSX.Element {
         const { isOnTableTab, isOnMapTab } = this.manager,
-            showControls = !(isOnTableTab || isOnMapTab)
+            showControls = !isOnTableTab
         return (
             <nav className="controlsRow">
                 <ContentSwitchers manager={this.manager} />
@@ -246,6 +247,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                             }
                             bottom={FRAME_PADDING}
                         />
+                        <MapProjectionMenu manager={this.manager} />
                     </div>
                 )}
             </nav>

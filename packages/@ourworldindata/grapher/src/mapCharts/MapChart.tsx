@@ -30,7 +30,6 @@ import { easeCubic } from "d3-ease"
 import { Quadtree, quadtree } from "d3-quadtree"
 import { MapTooltip } from "./MapTooltip"
 import { TooltipState } from "../tooltip/Tooltip.js"
-import { ProjectionChooser } from "./ProjectionChooser"
 import { isOnTheMap } from "./EntitiesOnTheMap"
 import { EntityName, OwidTable, CoreColumn } from "@ourworldindata/core-table"
 import {
@@ -72,9 +71,6 @@ import {
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { SelectionArray } from "../selection/SelectionArray"
-
-const PROJECTION_CHOOSER_WIDTH = 110
-const PROJECTION_CHOOSER_HEIGHT = 22
 
 const DEFAULT_STROKE_COLOR = "#333"
 const CHOROPLETH_MAP_CLASSNAME = "ChoroplethMap"
@@ -413,16 +409,6 @@ export class MapChart
         exposeInstanceOnWindow(this)
     }
 
-    @computed get projectionChooserBounds(): Bounds {
-        const { bounds } = this
-        return new Bounds(
-            bounds.width - PROJECTION_CHOOSER_WIDTH + 15 - 3,
-            5,
-            PROJECTION_CHOOSER_WIDTH,
-            PROJECTION_CHOOSER_HEIGHT
-        )
-    }
-
     @computed get legendData(): ColorScaleBin[] {
         return this.colorScale.legendBins
     }
@@ -616,8 +602,6 @@ export class MapChart
             )
 
         const {
-            projectionChooserBounds,
-            projection,
             colorScale: { customNumericLabels },
             tooltipState,
         } = this
@@ -630,25 +614,6 @@ export class MapChart
             >
                 <ChoroplethMap manager={this} />
                 {this.renderMapLegend()}
-                {this.manager.isExportingtoSvgOrPng ? null : ( // only use projection chooser if we are not exporting
-                    <foreignObject
-                        id="projection-chooser"
-                        x={projectionChooserBounds.left}
-                        y={projectionChooserBounds.top}
-                        width={projectionChooserBounds.width}
-                        height={projectionChooserBounds.height}
-                        style={{
-                            overflow: "visible",
-                            height: "100%",
-                            pointerEvents: "none",
-                        }}
-                    >
-                        <ProjectionChooser
-                            value={projection}
-                            onChange={this.onProjectionChange}
-                        />
-                    </foreignObject>
-                )}
                 {tooltipState.target && (
                     <MapTooltip
                         tooltipState={tooltipState}

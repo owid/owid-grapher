@@ -1,4 +1,5 @@
 import React from "react"
+import Select from "react-select"
 import { createPortal } from "react-dom"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -22,6 +23,11 @@ import {
     StackMode,
     ScaleType,
 } from "../core/GrapherConstants"
+import { MapConfig } from "../mapCharts/MapConfig"
+import {
+    MapProjectionName,
+    MapProjectionLabels,
+} from "../mapCharts/MapProjections"
 import { AxisConfig } from "../axis/AxisConfig"
 import { Tippy, range } from "@ourworldindata/utils"
 import classnames from "classnames"
@@ -35,7 +41,9 @@ const {
     Marimekko,
 } = ChartTypeName
 
-export type ControlsManager = EntitySelectionManager & SettingsMenuManager
+export type ControlsManager = EntitySelectionManager &
+    MapProjectionMenuManager &
+    SettingsMenuManager
 
 export interface EntitySelectionManager {
     showSelectEntitiesButton?: boolean
@@ -44,6 +52,8 @@ export interface EntitySelectionManager {
     entityType?: string
     entityTypePlural?: string
     isSelectingData?: boolean
+    isOnTableTab?: boolean
+    isOnMapTab?: boolean
 }
 
 @observer
@@ -58,7 +68,11 @@ export class EntitySelectorToggle extends React.Component<{
             entityType,
             entityTypePlural,
             isSelectingData: active,
+            isOnTableTab,
+            isOnMapTab,
         } = this.props.manager
+
+        if (isOnMapTab || isOnTableTab) return null
 
         const [icon, label] = showSelectEntitiesButton
             ? [faEye, `Select ${entityTypePlural}`]
@@ -725,5 +739,64 @@ export class FacetStrategySelector extends React.Component<{
 
     @computed get facetStrategy(): FacetStrategy {
         return this.props.manager.facetStrategy || FacetStrategy.none
+    }
+}
+
+export interface MapProjectionMenuManager {
+    mapConfig?: MapConfig
+    isOnMapTab?: boolean
+}
+
+interface MapProjectionMenuItem {
+    label: string
+    value: MapProjectionName
+}
+
+@observer
+export class MapProjectionMenu extends React.Component<{
+    manager: MapProjectionMenuManager
+}> {
+    @action.bound onChange(selected: MapProjectionMenuItem | null): void {
+        const { mapConfig } = this.props.manager
+        if (selected && mapConfig) mapConfig.projection = selected.value
+    }
+
+    @computed get options(): { value: MapProjectionName; label: string }[] {
+        return Object.values(MapProjectionName).map((projectName) => {
+            return {
+                value: projectName,
+                label: MapProjectionLabels[projectName],
+            }
+        })
+    }
+
+    render(): JSX.Element | null {
+        const { isOnMapTab } = this.props.manager,
+            { projection } = this.props.manager.mapConfig ?? {}
+
+        return isOnMapTab && projection ? (
+            <div className="map-projection-menu">
+                <Select
+                    options={this.options}
+                    onChange={this.onChange}
+                    value={this.options.find((opt) => projection === opt.value)}
+                    menuPlacement="bottom"
+                    components={{
+                        IndicatorSeparator: null,
+                        DropdownIndicator: null,
+                    }}
+                    isSearchable={false}
+                    unstyled={true}
+                    isMulti={false}
+                    classNames={{
+                        control: (state) =>
+                            state.menuIsOpen ? "active control" : "control",
+                        option: (state) =>
+                            state.isSelected ? "active option" : "option",
+                        menu: () => "menu",
+                    }}
+                />
+            </div>
+        ) : null
     }
 }
