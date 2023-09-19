@@ -638,7 +638,7 @@ function finishWpComponent(
                 "type" in content.content[0] &&
                 content.content[0].type === "list"
             if (contentIsList) {
-                const listItems = get(content, ["content", 0])
+                const listItems = get(content, ["content", 0, "items"])
                 const items: EnrichedBlockEntrySummaryItem[] = []
                 const errors = content.errors
                 if (isArray(listItems)) {
