@@ -1,4 +1,3 @@
-import { Tag as TagReactTagAutocomplete } from "react-tag-autocomplete"
 import { ImageMetadata } from "./image.js"
 import { Static, Type } from "@sinclair/typebox"
 import { gdocUrlRegex } from "./GdocsConstants.js"
@@ -195,8 +194,11 @@ export enum KeyChartLevel {
     Top = 3, // chart will show at the top of the all charts block
 }
 
-export interface Tag extends TagReactTagAutocomplete {
+export interface Tag {
+    id: number
+    name: string
     keyChartLevel?: KeyChartLevel
+    isApproved?: boolean
 }
 
 export interface EntryMeta {

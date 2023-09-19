@@ -9,13 +9,8 @@ import { OwidSource } from "@ourworldindata/utils"
 
 import { AdminLayout } from "./AdminLayout.js"
 import { Link } from "./Link.js"
-import {
-    BindString,
-    Toggle,
-    FieldsRow,
-    EditableTags,
-    Timeago,
-} from "./Forms.js"
+import { BindString, Toggle, FieldsRow, Timeago } from "./Forms.js"
+import { EditableTags } from "./EditableTags.js"
 import { ChartList, ChartListItem } from "./ChartList.js"
 import { Tag } from "./TagBadge.js"
 import { VariableList, VariableListItem } from "./VariableList.js"

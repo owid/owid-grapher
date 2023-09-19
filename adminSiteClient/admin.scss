@@ -855,37 +855,52 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
     background-color: #eee;
     margin-right: 5px;
     margin-bottom: 5px;
+}
+.TagBadge--is-pending {
+    background-color: #fff;
+    border-color: #eb8038;
+}
 
-    .TagBadge__name {
-        color: #333;
-    }
+.TagBadge__name {
+    color: #333;
+}
 
-    .TagBadge__sorting,
-    .TagBadge__name {
-        display: inline-block;
-        padding: 6px;
-    }
+.TagBadge__sorting,
+.TagBadge__name,
+.TagBadge__approve {
+    display: inline-block;
+    padding: 6px;
+}
 
-    .TagBadge__sorting {
-        border-top-right-radius: 5px;
-        border-bottom-right-radius: 5px;
-        background-color: #fff;
-        cursor: pointer;
+.TagBadge__sorting,
+.TagBadge__approve {
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+    background-color: #fff;
+    cursor: pointer;
+    transition: 0.1s;
 
-        &:hover {
-            background-color: #eee;
-        }
+    &:hover {
+        background-color: #eee;
     }
 }
 
-.EditableTags {
-    button {
-        opacity: 0.8;
-    }
+.TagBadge__approve {
+    color: #fff;
+    background-color: #eb8038;
 
-    // Tweak to stop suggestions overlapping "Add new tag" in another tag input below
-    .react-tags__suggestions {
-        z-index: 10;
+    &:hover {
+        color: #000;
+    }
+}
+
+.EditableTags__action {
+    padding-left: 6px;
+    &:focus {
+        box-shadow: none;
+    }
+    svg {
+        margin-right: 5px;
     }
 }
 

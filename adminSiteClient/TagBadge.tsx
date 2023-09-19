@@ -5,6 +5,9 @@ import { KeyChartLevel, Tag } from "@ourworldindata/utils"
 import { Link } from "./Link.js"
 import Tippy from "@tippyjs/react"
 import { TagBucketSortingIcon } from "./TagBucketSortingIcon.js"
+import cx from "classnames"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { faClock } from "@fortawesome/free-solid-svg-icons"
 
 export type { Tag }
 
@@ -12,6 +15,7 @@ export type { Tag }
 export class TagBadge extends React.Component<{
     tag: Tag
     onToggleKey?: () => void
+    onApprove?: () => void
     searchHighlight?: (text: string) => string | JSX.Element
 }> {
     levelToDesc(level?: KeyChartLevel) {
@@ -28,20 +32,30 @@ export class TagBadge extends React.Component<{
     }
 
     render() {
-        const { tag, searchHighlight, onToggleKey } = this.props
+        const { tag, searchHighlight, onToggleKey, onApprove } = this.props
+        const isPending = !tag.isApproved && onApprove
         const keyChartLevelDesc =
             tag.keyChartLevel === KeyChartLevel.None
                 ? "Not a key chart, will be hidden in the all charts block of the topic page"
                 : `Chart will show ${this.levelToDesc(
                       tag.keyChartLevel
                   )} of the all charts block on the topic page`
-
         return (
-            <span className="TagBadge">
+            <span
+                className={cx("TagBadge", {
+                    "TagBadge--is-pending": isPending,
+                })}
+            >
                 <Link className="TagBadge__name" to={`/tags/${tag.id}`}>
                     {searchHighlight ? searchHighlight(tag.name) : tag.name}
                 </Link>
-                {onToggleKey ? (
+                {isPending ? (
+                    <Tippy content="Click to approve">
+                        <span className="TagBadge__approve" onClick={onApprove}>
+                            <FontAwesomeIcon icon={faClock} />
+                        </span>
+                    </Tippy>
+                ) : onToggleKey ? (
                     <Tippy content={`${keyChartLevelDesc} "${tag.name}"`}>
                         <span
                             className="TagBadge__sorting"
