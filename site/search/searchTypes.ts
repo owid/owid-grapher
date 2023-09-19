@@ -77,7 +77,7 @@ export type SearchCategoryFilter = SearchIndexName | "all"
 export const searchCategoryFilters: [string, SearchCategoryFilter][] = [
     ["All", "all"],
     ["Research & Writing", SearchIndexName.Pages],
-    ["Explorers", SearchIndexName.Explorers],
+    ["Data Explorers", SearchIndexName.Explorers],
     ["Charts", SearchIndexName.Charts],
 ]
 
