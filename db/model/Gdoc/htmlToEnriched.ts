@@ -32,6 +32,9 @@ import {
     checkNodeIsSpanLink,
     Url,
     EnrichedBlockCallout,
+    EnrichedBlockAllCharts,
+    EnrichedBlockExpandableParagraph,
+    EnrichedBlockGraySection,
 } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
 import {
@@ -698,6 +701,33 @@ function finishWpComponent(
             return {
                 errors: [error],
                 content: [],
+            }
+        })
+        .with("owid/additional-information", () => {
+            const heading: EnrichedBlockHeading = {
+                type: "heading",
+                level: 2,
+                text: [
+                    {
+                        spanType: "span-simple-text",
+                        text: "Additional information",
+                    },
+                ],
+                parseErrors: [],
+            }
+            const expandableParagraph: EnrichedBlockExpandableParagraph = {
+                type: "expandable-paragraph",
+                items: content.content.slice(1) as OwidEnrichedGdocBlock[],
+                parseErrors: [],
+            }
+            const graySection: EnrichedBlockGraySection = {
+                type: "gray-section",
+                parseErrors: [],
+                items: [heading, expandableParagraph],
+            }
+            return {
+                errors: [],
+                content: [graySection],
             }
         })
         .otherwise(() => {
