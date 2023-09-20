@@ -119,6 +119,7 @@ export interface SettingsMenuManager {
     xOverrideTime?: number
     hasTimeline?: boolean
     canToggleRelativeMode: boolean
+    isOnMapTab?: boolean
 
     // linear/log & align-faceted-axes
     yAxis: AxisConfig
@@ -244,6 +245,8 @@ export class SettingsMenu extends React.Component<{
     }
 
     @computed get showSettingsMenuToggle(): boolean {
+        if (this.manager.isOnMapTab) return false
+
         return !!(
             this.showYScaleToggle ||
             this.showXScaleToggle ||
