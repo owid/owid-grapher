@@ -239,7 +239,7 @@ type ErrorNames =
     | "summary item isn't text"
     | "summary item doesn't have link"
     | "summary item has DataValue"
-    | "Unknown content type inside summary block"
+    | "unknown content type inside summary block"
 
 interface BlockParseError {
     name: ErrorNames
@@ -686,7 +686,7 @@ function finishWpComponent(
             }
 
             const error: BlockParseError = {
-                name: "Unknown content type inside summary block",
+                name: "unknown content type inside summary block",
                 details:
                     "Unknown summary content: " +
                     content.content

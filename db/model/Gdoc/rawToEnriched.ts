@@ -1508,13 +1508,9 @@ function parseEntrySummary(
 
     if (raw.value.items) {
         raw.value.items.forEach((item, i) => {
-            if (!item.text) {
+            if (!item.text || !item.slug) {
                 parseErrors.push({
-                    message: `entry-summary item ${i} is missing text`,
-                })
-            } else if (!item.slug) {
-                parseErrors.push({
-                    message: `Entry summary item with text ${item.text} is missing a url`,
+                    message: `entry-summary item ${i} is not valid. It must have a text and a slug property`,
                 })
             } else {
                 items.push({

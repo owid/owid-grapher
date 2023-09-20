@@ -503,7 +503,7 @@ export default function ArticleBlock({
             ) : null
         })
         .with({ type: "entry-summary" }, (block) => {
-            return toc ? (
+            return (
                 <TableOfContents
                     title="Summary"
                     toc={block.items.map((item) => ({
@@ -513,7 +513,7 @@ export default function ArticleBlock({
                     }))}
                     className={getLayout("toc", containerType)}
                 />
-            ) : null
+            )
         })
         .with({ type: "missing-data" }, () => (
             <MissingData className={getLayout("missing-data", containerType)} />
