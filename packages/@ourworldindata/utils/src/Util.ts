@@ -1756,18 +1756,3 @@ export function getAttributionFromVariable(
     const sourceName = variable.source?.name
     return uniq(compact([sourceName, ...originAttributionFragments])).join(", ")
 }
-
-interface ETLPathComponents {
-    channel: string
-    producer: string
-    version: string
-    dataset: string
-    table: string
-    indicator: string
-}
-
-export const getETLPathComponents = (path: string): ETLPathComponents => {
-    const [channel, producer, version, dataset, table, indicator] =
-        path.split("/")
-    return { channel, producer, version, dataset, table, indicator }
-}
