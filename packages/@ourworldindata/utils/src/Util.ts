@@ -161,6 +161,7 @@ import {
     EnrichedScrollerItem,
     EnrichedBlockKeyInsightsSlide,
     UserCountryInformation,
+    SpanLink,
 } from "./owidTypes.js"
 import { OwidVariableWithSource } from "./OwidVariable.js"
 import { PointVector } from "./PointVector.js"
@@ -1621,7 +1622,8 @@ export function traverseEnrichedBlocks(
                     "sdg-grid",
                     "sdg-toc",
                     "topic-page-intro",
-                    "all-charts"
+                    "all-charts",
+                    "entry-summary"
                 ),
             },
             callback
@@ -1631,6 +1633,10 @@ export function traverseEnrichedBlocks(
 
 export function checkNodeIsSpan(node: NodeWithUrl): node is Span {
     return "spanType" in node
+}
+
+export function checkNodeIsSpanLink(node: unknown): node is SpanLink {
+    return isObject(node) && "spanType" in node && node.spanType === "span-link"
 }
 
 export function spansToUnformattedPlainText(spans: Span[]): string {

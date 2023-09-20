@@ -165,7 +165,7 @@ h2.article-block__heading.has-supertitle {
 }
 
 // Don't show the divider directly after the ToC
-.article-block__sdg-toc + .article-block__divider {
+.article-block__toc + .article-block__divider {
     border: none;
     margin: 0;
 }

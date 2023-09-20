@@ -418,4 +418,9 @@ export const enrichedBlockExamples: Record<
         content: [enrichedBlockText],
         parseErrors: [],
     },
+    "entry-summary": {
+        type: "entry-summary",
+        items: [{ text: "Hello", slug: "#link-to-something" }],
+        parseErrors: [],
+    },
 }
