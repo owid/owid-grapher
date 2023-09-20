@@ -65,9 +65,6 @@ import {
     getPostBySlug,
     isPostCitable,
     getBlockContent,
-    getPosts,
-    mapGdocsToWordpressPosts,
-    getFullPost,
 } from "../db/wpdb.js"
 import { queryMysql, knexTable } from "../db/db.js"
 import { getPageOverrides, isPageOverridesCitable } from "./pageOverrides.js"
@@ -226,21 +223,7 @@ export const renderPost = async (
 }
 
 export const renderFrontPage = async () => {
-    const wpPosts = await Promise.all(
-        (await getPosts()).map((post) => getFullPost(post, true))
-    )
-    const gdocPosts = await Gdoc.getPublishedGdocs().then(
-        mapGdocsToWordpressPosts
-    )
-    const gdocSlugs = new Set(gdocPosts.map(({ slug }) => slug))
-    const posts = [...gdocPosts]
-    // Only adding each wpPost if there isn't already a gdoc with the same slug,
-    // to make sure we use the most up-to-date metadata
-    for (const wpPost of wpPosts) {
-        if (!gdocSlugs.has(wpPost.slug)) {
-            posts.push(wpPost)
-        }
-    }
+    const posts = await getBlogIndex()
 
     const NUM_FEATURED_POSTS = 6
 
@@ -290,6 +273,10 @@ export const renderFrontPage = async () => {
                     if (post) {
                         return post
                     }
+                    console.log(
+                        "Featured work error: could not find listed post with slug: ",
+                        manuallySetPost.slug
+                    )
                 }
                 return filteredPosts[missingPosts++]
             })

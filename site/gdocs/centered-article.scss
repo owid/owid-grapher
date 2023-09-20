@@ -30,7 +30,7 @@ $banner-height: 200px;
     left: 0;
     right: 0;
     height: $banner-height;
-    background: $blue-10;
+    background: $amber;
     z-index: -1;
 }
 
@@ -58,6 +58,11 @@ $banner-height: 200px;
     margin: 80px 0 24px;
     min-height: calc($banner-height - 80px);
     padding-top: 48px;
+
+    @include md-down {
+        margin-top: 48px;
+        padding-top: 24px;
+    }
 }
 
 .article-block__text {
@@ -110,6 +115,10 @@ h3.article-block__heading {
 
     img {
         width: 100%;
+
+        &.lightbox-image {
+            cursor: zoom-in;
+        }
     }
 
     .download-png-link {
@@ -131,6 +140,10 @@ h3.article-block__heading {
 .article-block__image-caption {
     @include body-3-medium-italic;
     text-align: center;
+}
+
+.article-block__chart + .article-block__heading {
+    margin-top: 0;
 }
 
 .article-block__heading + .article-block__heading {
@@ -183,11 +196,14 @@ h3.article-block__heading.has-supertitle {
         // take up exactly: (number of lines - 1) * line-height
         // in height, effectively, such that the header is always the same height
         // unless the breadcrumbs are longer than a single line.
-        $header-breadcrumb-margin-top: 40px;
-        margin-top: $header-breadcrumb-margin-top;
-        margin-bottom: calc(-1.6em - $header-breadcrumb-margin-top);
-        // lh is a relatively recent CSS unit, so we use ems as a fallback in the rule above
-        margin-bottom: calc(-1lh - $header-breadcrumb-margin-top);
+        --header-breadcrumb-margin-top: 40px;
+
+        @include md-down {
+            --header-breadcrumb-margin-top: 16px;
+        }
+
+        margin-top: var(--header-breadcrumb-margin-top);
+        margin-bottom: calc(-1.6em - var(--header-breadcrumb-margin-top));
 
         font-size: 1rem;
         a {
@@ -219,6 +235,11 @@ h3.article-block__heading.has-supertitle {
         margin-top: 0;
         margin-bottom: 24px;
         color: $blue-90;
+
+        @include md-down {
+            @include h2-bold;
+            margin-top: 0;
+        }
     }
 }
 
@@ -226,6 +247,10 @@ h3.article-block__heading.has-supertitle {
     @include subtitle-1;
     margin-top: 0;
     color: $blue-50;
+
+    @include md-down {
+        @include body-1-regular;
+    }
 }
 
 .centered-article-header__meta-container {
@@ -256,6 +281,15 @@ h3.article-block__heading.has-supertitle {
     @include sm-up {
         > div:first-child {
             border-right: 1px solid $blue-10;
+        }
+    }
+
+    @include sm-only {
+        padding: 16px 0;
+        > div:first-child {
+            border-bottom: 1px solid $blue-10;
+            padding-bottom: 16px;
+            margin-bottom: 16px;
         }
     }
 }
@@ -451,6 +485,13 @@ h3.article-block__heading.has-supertitle {
     .article-block__explorer {
         margin-top: 0;
     }
+
+    .article-block__chart,
+    .article-block__image {
+        &:last-child {
+            margin-bottom: 0;
+        }
+    }
 }
 
 .article-block__chart,
@@ -643,6 +684,10 @@ h3.article-block__heading.has-supertitle {
 .article-block__sticky-left,
 .article-block__side-by-side {
     margin: 48px 0;
+
+    @include md-down {
+        margin: 0;
+    }
 }
 
 .article-block__prominent-link {
