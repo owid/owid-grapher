@@ -7,6 +7,7 @@
 
     // rows
     $light-fill: #f7f7f7;
+    $hover-fill: #f0f0f0;
     $dark-fill: #e7e7e7;
 
     // sort icon
@@ -177,6 +178,10 @@
 
             td.entity {
                 white-space: normal;
+            }
+
+            tr:not(.title):hover td {
+                background-color: $hover-fill !important;
             }
 
             tr.title td {
