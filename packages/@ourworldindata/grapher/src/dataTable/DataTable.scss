@@ -7,7 +7,7 @@
 
     // rows
     $light-fill: #f7f7f7;
-    $dark-fill: #f2f2f2;
+    $dark-fill: #e7e7e7;
 
     // sort icon
     $sort-icon: #c6c6c6;
@@ -171,8 +171,7 @@
 
         tbody {
             // alternating row colors
-            &.hasTitleRows tr:not(.title):nth-child(2n + 1) td,
-            &:not(.hasTitleRows) tr:nth-child(2n) td {
+            tr:not(.title):nth-child(2n) td {
                 background-color: $light-fill;
             }
 
