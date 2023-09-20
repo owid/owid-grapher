@@ -69,7 +69,6 @@ import {
     BAKED_GRAPHER_EXPORTS_BASE_URL,
 } from "../settings/clientSettings.js"
 import pMap from "p-map"
-import { batchTagWithGpt } from "./batchTagWithGpt.js"
 
 // These aren't all "wordpress" steps
 // But they're only run when you have the full stack available
@@ -92,7 +91,6 @@ const nonWordpressSteps = [
     "gdocPosts",
     "gdriveImages",
     "dods",
-    "gptTags",
 ] as const
 
 const otherSteps = ["removeDeletedPosts"] as const
@@ -632,12 +630,6 @@ export class SiteBaker {
         this.progressBar.tick({ name: "✅ baked redirects" })
     }
 
-    private async bakeTagsWithGpt() {
-        if (!this.bakeSteps.has("gptTags")) return
-        await batchTagWithGpt()
-        this.progressBar.tick({ name: "✅ baked tags with GPT" })
-    }
-
     async bakeWordpressPages() {
         await this.bakeRedirects()
         await this.bakeEmbeds()
@@ -667,7 +659,6 @@ export class SiteBaker {
         await this.validateGrapherDodReferences()
         await this.bakeGDocPosts()
         await this.bakeDriveImages()
-        await this.bakeTagsWithGpt()
     }
 
     async bakeNonWordpressPages() {
