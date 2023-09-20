@@ -18,6 +18,7 @@ import {
 } from "./model/Gdoc/htmlToEnriched.js"
 
 // Hard-coded slugs to avoid WP dependency
+// headerMenu.json - gdoc topic page slugs and wp topic page slugs
 const entries = new Set([
     "population",
     "population-change",
@@ -163,7 +164,7 @@ const migrate = async (): Promise<void> => {
         "excerpt",
         "created_at_in_wordpress",
         "updated_at"
-    ).from(db.knexTable(Post.postsTable)) //.where("id", "=", "38189")
+    ).from(db.knexTable(Post.postsTable).where("id", "=", "1441"))
 
     for (const post of posts) {
         try {
