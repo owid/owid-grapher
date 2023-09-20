@@ -97,7 +97,7 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
                 <div className="grid research-and-writing-row__link-container">
                     {primary.map((link, i) => (
                         <ResearchAndWritingLinkContainer
-                            className="span-cols-6 span-md-cols-6 span-sm-cols-12"
+                            className="span-cols-6 span-sm-cols-12"
                             key={i}
                             {...link}
                         />
