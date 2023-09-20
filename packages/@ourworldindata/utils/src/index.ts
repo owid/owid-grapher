@@ -614,6 +614,7 @@ export {
     getUrlTarget,
     checkIsInternalLink,
     convertHeadingTextToId,
+    markdownToEnrichedTextBlock,
 } from "./GdocsUtils.js"
 
 export {

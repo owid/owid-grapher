@@ -10,13 +10,9 @@ import { ArticleBlocks } from "./gdocs/ArticleBlocks.js"
 import { RelatedCharts } from "./blocks/RelatedCharts.js"
 import {
     DataPageV2ContentFields,
-    mdParser,
-    MarkdownRoot,
-    EveryMarkdownNode,
-    Span,
-    EnrichedBlockText,
     excludeNullish,
     slugify,
+    markdownToEnrichedTextBlock,
 } from "@ourworldindata/utils"
 import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
 import StickyNav from "./blocks/StickyNav.js"
@@ -24,158 +20,12 @@ import cx from "classnames"
 import { DebugProvider } from "./gdocs/DebugContext.js"
 import { CodeSnippet } from "./blocks/CodeSnippet.js"
 import dayjs from "dayjs"
-import { P, match } from "ts-pattern"
 declare global {
     interface Window {
         _OWID_DATAPAGEV2_PROPS: DataPageV2ContentFields
         _OWID_GRAPHER_CONFIG: GrapherInterface
     }
 }
-
-const convertMarkdownNodeToSpan = (node: EveryMarkdownNode): Span[] => {
-    return match(node)
-        .with(
-            {
-                type: "text",
-            },
-            (n) => [
-                {
-                    spanType: "span-simple-text" as const,
-                    text: n.value,
-                } as Span,
-            ]
-        )
-        .with(
-            {
-                type: "textSegments",
-            },
-            (n) => n.children.flatMap(convertMarkdownNodeToSpan) as Span[]
-        )
-        .with(
-            {
-                type: "newline",
-            },
-            () => [
-                {
-                    spanType: "span-simple-text" as const,
-                    text: "\n",
-                } as Span,
-            ]
-        )
-        .with(
-            {
-                type: "whitespace",
-            },
-            () => [
-                {
-                    spanType: "span-simple-text" as const,
-                    text: " ",
-                } as Span,
-            ]
-        )
-        .with(
-            {
-                type: "detailOnDemand",
-            },
-            (n) => [
-                {
-                    spanType: "span-dod" as const,
-                    id: n.term,
-                    children: n.children.flatMap(convertMarkdownNodeToSpan),
-                } as Span,
-            ]
-        )
-        .with(
-            {
-                type: "markdownLink",
-            },
-            (n) => [
-                {
-                    spanType: "span-link" as const,
-                    url: n.href,
-                    children: n.children.flatMap(convertMarkdownNodeToSpan),
-                } as Span,
-            ]
-        )
-        .with(
-            {
-                type: "plainUrl",
-            },
-            (n) => [
-                {
-                    spanType: "span-link" as const,
-                    url: n.href,
-                    children: [
-                        {
-                            spanType: "span-simple-text" as const,
-                            text: n.href,
-                        },
-                    ],
-                } as Span,
-            ]
-        )
-        .with(
-            {
-                type: "bold",
-            },
-            (n) => [
-                {
-                    spanType: "span-bold" as const,
-                    children: n.children.flatMap(convertMarkdownNodeToSpan),
-                } as Span,
-            ]
-        )
-        .with(
-            {
-                type: P.union("italic", "plainItalic", "italicWithoutBold"),
-            },
-            (n) => [
-                {
-                    spanType: "span-italic" as const,
-                    children: n.children.flatMap(convertMarkdownNodeToSpan),
-                } as Span,
-            ]
-        )
-        .with(
-            {
-                type: P.union("bold", "plainBold", "boldWithoutItalic"),
-            },
-            (n) => [
-                {
-                    spanType: "span-bold" as const,
-                    children: n.children.flatMap(convertMarkdownNodeToSpan),
-                } as Span,
-            ]
-        )
-        .exhaustive()
-    //.otherwise(() => ({ spanType: "span-simple-text" as const, text: "" }))
-}
-
-const convertMarkdownNodesToSpans = (nodes: MarkdownRoot) =>
-    nodes.children.flatMap(convertMarkdownNodeToSpan)
-
-const markdownToEnrichedTextBlock = (markdown: string): EnrichedBlockText => {
-    const parsedMarkdown = mdParser.markdown.parse(markdown)
-    if (parsedMarkdown.status) {
-        const spans = convertMarkdownNodesToSpans(parsedMarkdown.value)
-        return {
-            type: "text",
-            value: spans,
-            parseErrors: [],
-        }
-    } else
-        return {
-            type: "text",
-            value: [],
-            parseErrors: [
-                {
-                    message: `Failed to parse markdown - expected ${parsedMarkdown.expected} at ${parsedMarkdown.index}`,
-                    isWarning: false,
-                },
-            ],
-        }
-}
-
 export const OWID_DATAPAGE_CONTENT_ROOT_ID = "owid-datapageJson-root"
 
 export const DataPageV2Content = ({
