@@ -573,6 +573,7 @@ export class Explorer
         grapher.reset()
         this.updateGrapherFromExplorerCommon()
         grapher.updateFromObject(config)
+        grapher.forceDisableIntroAnimation = true
         await grapher.downloadLegacyDataFromOwidVariableIds()
 
         let grapherTable = grapher.inputTable

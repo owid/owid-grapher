@@ -398,6 +398,12 @@ export class Grapher
     @observable sortBy?: SortBy
     @observable sortOrder?: SortOrder
     @observable sortColumnSlug?: string
+    // TODO: this is a crude fix that is used to turn off the intro
+    // animation in maps (fading colors in from gray) because
+    // they end up with the wrong target colors (i.e. the colors
+    // are initially correct but then the animation screws them up).
+    // This flag can be removed once the animation bug is properly fixed.
+    @observable forceDisableIntroAnimation: boolean = false
 
     owidDataset?: MultipleOwidVariableDataDimensionsMap = undefined // This is used for passing data for testing
 
@@ -1608,7 +1614,7 @@ export class Grapher
     }
 
     @computed get disableIntroAnimation(): boolean {
-        return this.isExportingtoSvgOrPng
+        return this.isExportingtoSvgOrPng || this.forceDisableIntroAnimation
     }
 
     @computed get mapConfig(): MapConfig {
