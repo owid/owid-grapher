@@ -19,6 +19,25 @@ export interface SourcesTabManager {
     showAdminControls?: boolean
 }
 
+// TODO: remove this component once all backported indicators
+// etc have switched from HTML to markdown for their sources
+const HtmlOrMarkdownText = (props: {
+    text: string
+    fontSize: number
+}): JSX.Element => {
+    // check the text for closing a, li or p tags. If
+    // one is found, render using dangerouslySetInnerHTML,
+    // othewise use MarkdownTextWrap
+    const { text, fontSize } = props
+    const htmlRegex = /<\/(a|li|p)>/
+    const match = text.match(htmlRegex)
+    if (match) {
+        return <span dangerouslySetInnerHTML={{ __html: text }} />
+    } else {
+        return <MarkdownTextWrap text={text} fontSize={fontSize} />
+    }
+}
+
 @observer
 export class SourcesTab extends React.Component<{
     bounds?: Bounds
@@ -107,7 +126,7 @@ export class SourcesTab extends React.Component<{
                             <tr>
                                 <td>Variable description</td>
                                 <td>
-                                    <MarkdownTextWrap
+                                    <HtmlOrMarkdownText
                                         text={column.description}
                                         fontSize={12}
                                     />
@@ -160,7 +179,7 @@ export class SourcesTab extends React.Component<{
                             <tr>
                                 <td>Data published by</td>
                                 <td>
-                                    <MarkdownTextWrap
+                                    <HtmlOrMarkdownText
                                         text={source.dataPublishedBy}
                                         fontSize={12}
                                     />
@@ -171,7 +190,7 @@ export class SourcesTab extends React.Component<{
                             <tr>
                                 <td>Data publisher's source</td>
                                 <td>
-                                    <MarkdownTextWrap
+                                    <HtmlOrMarkdownText
                                         text={source.dataPublisherSource}
                                         fontSize={12}
                                     />
@@ -182,7 +201,7 @@ export class SourcesTab extends React.Component<{
                             <tr>
                                 <td>Link</td>
                                 <td>
-                                    <MarkdownTextWrap
+                                    <HtmlOrMarkdownText
                                         text={source.link}
                                         fontSize={12}
                                     />
@@ -199,7 +218,7 @@ export class SourcesTab extends React.Component<{
                 </table>
                 {source.additionalInfo && (
                     <p key={"additionalInfo"}>
-                        <MarkdownTextWrap
+                        <HtmlOrMarkdownText
                             text={source.additionalInfo}
                             fontSize={12}
                         />
