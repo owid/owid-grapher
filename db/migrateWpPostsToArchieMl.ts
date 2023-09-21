@@ -9,6 +9,7 @@ import {
     OwidGdocType,
     RelatedChart,
     EnrichedBlockAllCharts,
+    traverseEnrichedBlocks,
 } from "@ourworldindata/utils"
 import * as Post from "./model/Post.js"
 import fs from "fs"
@@ -167,7 +168,7 @@ const migrate = async (): Promise<void> => {
         "excerpt",
         "created_at_in_wordpress",
         "updated_at"
-    ).from(db.knexTable(Post.postsTable).where("id", "=", "1441"))
+    ).from(db.knexTable(Post.postsTable)) //.where("id", "=", "41094"))
 
     for (const post of posts) {
         try {
@@ -202,15 +203,38 @@ const migrate = async (): Promise<void> => {
             adjustHeadingLevels(archieMlBodyElements)
 
             // Insert automatic all-charts block if no manually-set block is specified
-            // TODO: position this correctly
+            // Assume the first heading is after the intro paragraph
             if (relatedCharts.length) {
-                const allChartsBlock: EnrichedBlockAllCharts = {
-                    type: "all-charts",
-                    parseErrors: [],
-                    heading: "All charts",
-                    top: [],
+                let hasManuallySetAllChartsBlock = false
+                let index = 0
+                let indexOfFirstHeading = -1
+                archieMlBodyElements.forEach((node) =>
+                    traverseEnrichedBlocks(node, (block) => {
+                        if (block.type === "all-charts") {
+                            hasManuallySetAllChartsBlock = true
+                        } else if (
+                            block.type === "heading" &&
+                            indexOfFirstHeading === -1
+                        ) {
+                            indexOfFirstHeading = index
+                        }
+                        index++
+                    })
+                )
+                if (!hasManuallySetAllChartsBlock) {
+                    const allChartsBlock: EnrichedBlockAllCharts = {
+                        type: "all-charts",
+                        parseErrors: [],
+                        heading: `Interactive Charts on ${post.title}`,
+                        top: [],
+                    }
+
+                    archieMlBodyElements.splice(
+                        indexOfFirstHeading,
+                        0,
+                        allChartsBlock
+                    )
                 }
-                archieMlBodyElements.splice(1, 0, allChartsBlock)
             }
 
             const errors = parsedResult.errors
