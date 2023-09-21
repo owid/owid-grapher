@@ -275,7 +275,6 @@ export const formatWordpressPost = async (
     const cheerioEl = cheerio.load(html)
 
     // Related charts
-    console.log("post.relatedCharts", post.relatedCharts)
     if (
         !countryProfileSpecs.some(
             (spec) => post.slug === spec.landingPageSlug
