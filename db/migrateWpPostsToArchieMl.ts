@@ -7,6 +7,8 @@ import {
     sortBy,
     OwidArticleBackportingStatistics,
     OwidGdocType,
+    RelatedChart,
+    EnrichedBlockAllCharts,
 } from "@ourworldindata/utils"
 import * as Post from "./model/Post.js"
 import fs from "fs"
@@ -16,6 +18,7 @@ import {
     convertAllWpComponentsToArchieMLBlocks,
     adjustHeadingLevels,
 } from "./model/Gdoc/htmlToEnriched.js"
+import { getRelatedCharts } from "./wpdb.js"
 
 // Hard-coded slugs to avoid WP dependency
 // headerMenu.json - gdoc topic page slugs and wp topic page slugs
@@ -168,7 +171,12 @@ const migrate = async (): Promise<void> => {
 
     for (const post of posts) {
         try {
+            const isEntry = entries.has(post.slug)
             const text = post.content
+            let relatedCharts: RelatedChart[] = []
+            if (isEntry) {
+                relatedCharts = await getRelatedCharts(post.id)
+            }
 
             // We don't get the first and last nodes if they are comments.
             // This can cause issues with the wp:components so here we wrap
@@ -192,6 +200,18 @@ const migrate = async (): Promise<void> => {
             // Heading levels used to start at 2, in the new layout system they start at 1
             // This function iterates all blocks recursively and adjusts the heading levels inline
             adjustHeadingLevels(archieMlBodyElements)
+
+            // Insert automatic all-charts block if no manually-set block is specified
+            // TODO: position this correctly
+            if (relatedCharts.length) {
+                const allChartsBlock: EnrichedBlockAllCharts = {
+                    type: "all-charts",
+                    parseErrors: [],
+                    heading: "All charts",
+                    top: [],
+                }
+                archieMlBodyElements.splice(1, 0, allChartsBlock)
+            }
 
             const errors = parsedResult.errors
 
@@ -224,10 +244,11 @@ const migrate = async (): Promise<void> => {
                     dateline: dateline,
                     // TODO: this discards block level elements - those might be needed?
                     refs: undefined,
-                    type: entries.has(post.slug)
+                    type: isEntry
                         ? OwidGdocType.TopicPage
                         : OwidGdocType.Article,
                 },
+                relatedCharts,
                 published: false,
                 createdAt:
                     post.created_at_in_wordpress ??
