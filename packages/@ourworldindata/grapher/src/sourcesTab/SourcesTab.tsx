@@ -154,7 +154,12 @@ export class SourcesTab extends React.Component<{
                         {citationFull.length === 1 ? (
                             <tr>
                                 <td>Data published by</td>
-                                <td>{citationFull[0]}</td>
+                                <td>
+                                    <MarkdownTextWrap
+                                        text={citationFull[0]}
+                                        fontSize={12}
+                                    />
+                                </td>
                             </tr>
                         ) : null}
                         {citationFull.length > 1 ? (
@@ -164,10 +169,15 @@ export class SourcesTab extends React.Component<{
                                     <ul>
                                         {citationFull.map(
                                             (
-                                                producer: string,
+                                                citation: string,
                                                 index: number
                                             ) => (
-                                                <li key={index}>{producer}</li>
+                                                <li key={index}>
+                                                    <MarkdownTextWrap
+                                                        text={citation}
+                                                        fontSize={12}
+                                                    />
+                                                </li>
                                             )
                                         )}
                                     </ul>
