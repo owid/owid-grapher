@@ -9,10 +9,9 @@ import { AdminLayout } from "./AdminLayout.js"
 import { SearchField, FieldsRow, Timeago } from "./Forms.js"
 import { EditableTags } from "./EditableTags.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
-import { WORDPRESS_URL } from "../settings/clientSettings.js"
+import { ADMIN_BASE_URL, WORDPRESS_URL } from "../settings/clientSettings.js"
 import { Tag } from "./TagBadge.js"
 import { match } from "ts-pattern"
-import { Link } from "./Link.js"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
@@ -134,14 +133,14 @@ class PostRow extends React.Component<PostRowProps> {
             .with(GdocStatus.CONVERTING, () => <span>Converting...</span>)
             .with(GdocStatus.CONVERTED, () => (
                 <>
-                    <Link
-                        to={`gdocs/${post.gdocSuccessorId}/preview`}
+                    <a
+                        href={`${ADMIN_BASE_URL}/admin/gdocs/${post.gdocSuccessorId}/preview`}
                         className="btn btn-primary"
                     >
                         <>
                             <FontAwesomeIcon icon={faEye} /> Preview
                         </>
-                    </Link>
+                    </a>
                     <button
                         onClick={this.onRecreateGdoc}
                         className="btn btn-primary alert-danger"
