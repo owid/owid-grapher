@@ -31,6 +31,7 @@ import {
     RawBlockExpandableParagraph,
     RawBlockAlign,
     RawBlockEntrySummary,
+    isArray,
 } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
 
@@ -471,14 +472,26 @@ function* rawResearchAndWritingToArchieMLString(
     }
     yield "{.research-and-writing}"
     if (primary) {
-        yield "{.primary}"
-        yield* rawLinkToArchie(primary)
-        yield "{}"
+        yield "[.primary]"
+        if (isArray(primary)) {
+            for (const link of primary) {
+                yield* rawLinkToArchie(link)
+            }
+        } else {
+            yield* rawLinkToArchie(primary)
+        }
+        yield "[]"
     }
     if (secondary) {
-        yield "{.secondary}"
-        yield* rawLinkToArchie(secondary)
-        yield "{}"
+        yield "[.secondary]"
+        if (isArray(secondary)) {
+            for (const link of secondary) {
+                yield* rawLinkToArchie(link)
+            }
+        } else {
+            yield* rawLinkToArchie(secondary)
+        }
+        yield "[]"
     }
     if (more) {
         yield "{.more}"

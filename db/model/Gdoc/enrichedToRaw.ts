@@ -348,14 +348,20 @@ export function enrichedBlockToRawBlock(
                 return {
                     type: b.type,
                     value: {
-                        primary: enrichedLinkToRawLink(b.primary),
-                        secondary: enrichedLinkToRawLink(b.secondary),
-                        more: {
-                            heading: b.more.heading,
-                            articles: b.more.articles.map(
-                                enrichedLinkToRawLink
-                            ),
-                        },
+                        primary: b.primary.map((enriched) =>
+                            enrichedLinkToRawLink(enriched)
+                        ),
+                        secondary: b.secondary.map((enriched) =>
+                            enrichedLinkToRawLink(enriched)
+                        ),
+                        more: b.more
+                            ? {
+                                  heading: b.more.heading,
+                                  articles: b.more.articles.map(
+                                      enrichedLinkToRawLink
+                                  ),
+                              }
+                            : undefined,
                         rows: b.rows.map(({ heading, articles }) => ({
                             heading: heading,
                             articles: articles.map(enrichedLinkToRawLink),

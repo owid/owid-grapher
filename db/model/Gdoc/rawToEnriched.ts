@@ -1350,12 +1350,16 @@ function parseResearchAndWritingBlock(
 ): EnrichedBlockResearchAndWriting {
     const createError = (
         error: ParseError,
-        primary = {
-            value: { url: "" },
-        },
-        secondary = {
-            value: { url: "" },
-        },
+        primary = [
+            {
+                value: { url: "" },
+            },
+        ],
+        secondary = [
+            {
+                value: { url: "" },
+            },
+        ],
         more: EnrichedBlockResearchAndWritingRow = {
             heading: "",
             articles: [],
@@ -1421,14 +1425,19 @@ function parseResearchAndWritingBlock(
 
     if (!raw.value.primary)
         return createError({ message: "Missing primary link" })
-    const primary = enrichLink(raw.value.primary)
+    const primary: EnrichedBlockResearchAndWritingLink[] = []
+    if (isArray(raw.value.primary)) {
+        primary.push(...raw.value.primary.map((link) => enrichLink(link)))
+    } else {
+        primary.push(enrichLink(raw.value.primary))
+    }
 
-    if (!raw.value.secondary)
-        return createError({ message: "Missing secondary link" })
-    const secondary = enrichLink(raw.value.secondary)
-
-    if (!raw.value.more)
-        return createError({ message: "No 'more' section defined" })
+    const secondary: EnrichedBlockResearchAndWritingLink[] = []
+    if (isArray(raw.value.secondary)) {
+        secondary.push(...raw.value.secondary.map((link) => enrichLink(link)))
+    } else if (raw.value.secondary) {
+        secondary.push(enrichLink(raw.value.secondary))
+    }
 
     function parseRow(
         rawRow: RawBlockResearchAndWritingRow,
@@ -1454,7 +1463,7 @@ function parseResearchAndWritingBlock(
         return { heading: "", articles: [] }
     }
 
-    const more = parseRow(raw.value.more, true)
+    const more = raw.value.more ? parseRow(raw.value.more, true) : undefined
     const rows = raw.value.rows?.map((row) => parseRow(row)) || []
 
     return {
