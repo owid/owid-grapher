@@ -1754,7 +1754,7 @@ export function getAttributionFromVariable(
         variable.origins
     )
     const sourceName = variable.source?.name
-    return uniq(compact([sourceName, ...originAttributionFragments])).join(", ")
+    return uniq(compact([sourceName, ...originAttributionFragments])).join("; ")
 }
 
 interface ETLPathComponents {
