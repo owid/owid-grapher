@@ -36,6 +36,7 @@ import {
     isInIFrame,
     keyBy,
     keyMap,
+    MarkdownTextWrap,
     omitUndefinedValues,
     PromiseCache,
     PromiseSwitcher,
@@ -746,12 +747,12 @@ export class Explorer
                 <div className="ExplorerTitle">
                     {this.explorerProgram.explorerTitle}
                 </div>
-                <div
-                    className="ExplorerSubtitle"
-                    dangerouslySetInnerHTML={{
-                        __html: this.explorerProgram.explorerSubtitle || "",
-                    }}
-                ></div>
+                <div className="ExplorerSubtitle">
+                    <MarkdownTextWrap
+                        fontSize={12}
+                        text={this.explorerProgram.explorerSubtitle || ""}
+                    />
+                </div>
             </div>
         )
     }
