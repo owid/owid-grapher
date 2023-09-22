@@ -141,13 +141,13 @@ nav.controlsRow .controls {
                     cursor: pointer;
                     background: $hover-fill;
                 }
-                &:active {
+                &:active,
+                &.active {
                     color: $active-text;
                     background: $active-fill;
                 }
                 &.active {
                     position: relative;
-                    background: $active-fill;
                     &:hover {
                         background: $selected-fill;
                     }
