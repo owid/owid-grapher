@@ -1481,7 +1481,7 @@ export class Grapher
 
         if (uniqueAttributions.length > 3) return "Multiple sources"
 
-        return uniqueAttributions.join(", ")
+        return uniqueAttributions.join("; ")
     }
 
     @computed private get axisDimensions(): ChartDimension[] {
