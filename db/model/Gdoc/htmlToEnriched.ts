@@ -987,9 +987,13 @@ function cheerioToArchieML(
                             {
                                 type: "image",
                                 // src is the entire path. we only want the filename
-                                filename: path.basename(
-                                    image?.attribs["src"] ?? ""
-                                ),
+                                filename: path
+                                    .basename(image?.attribs["src"] ?? "")
+                                    .replace(
+                                        // removing size suffixes e.g. some_file-1280x840.png -> some_file.png
+                                        /-\d+x\d+\.(png|jpg|jpeg|gif|svg)$/,
+                                        ".$1"
+                                    ),
                                 alt: image?.attribs["alt"] ?? "",
                                 parseErrors: [],
                                 originalWidth: undefined,
