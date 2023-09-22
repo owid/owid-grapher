@@ -151,8 +151,8 @@ export class SettingsMenu extends React.Component<{
     top: number
     bottom: number
 }> {
-    @observable.ref visible: boolean = false
-    @observable.ref shouldRender: boolean = false
+    @observable.ref active: boolean = false // set to true when the menu's display has been requested
+    @observable.ref visible: boolean = false // true while menu is active and during enter/exit transitions
 
     @computed get showYScaleToggle(): boolean | undefined {
         if (this.manager.hideYScaleToggle) return false
@@ -261,14 +261,14 @@ export class SettingsMenu extends React.Component<{
     }
 
     @action.bound toggleVisibility(e: React.MouseEvent): void {
-        this.visible = !this.visible
-        if (this.visible) this.shouldRender = true
-        this.drawer?.classList.toggle("active", this.visible)
+        this.active = !this.active
+        if (this.active) this.visible = true
+        this.drawer?.classList.toggle("active", this.active)
         e.stopPropagation()
     }
 
     @action.bound onAnimationEnd(): void {
-        if (!this.visible) this.shouldRender = false
+        if (!this.active) this.visible = false
     }
 
     @computed get manager(): SettingsMenuManager {
@@ -294,15 +294,15 @@ export class SettingsMenu extends React.Component<{
     }
 
     private animationFor(selector: string): { animation: string } {
-        const phase = this.visible ? "enter" : "exit",
+        const phase = this.active ? "enter" : "exit",
             timing = this.drawer ? "333ms" : "0"
         return { animation: `${selector}-${phase} ${timing}` }
     }
 
     @computed get menu(): JSX.Element | void {
-        const { shouldRender, drawer } = this
+        const { visible, drawer } = this
 
-        if (shouldRender) {
+        if (visible) {
             return !drawer
                 ? this.menuContents
                 : createPortal(this.menuContents, drawer)
@@ -410,7 +410,7 @@ export class SettingsMenu extends React.Component<{
     }
 
     render(): JSX.Element | null {
-        const { showSettingsMenuToggle, visible: active } = this
+        const { showSettingsMenuToggle, active } = this
         return showSettingsMenuToggle ? (
             <div className="settings-menu">
                 <button
