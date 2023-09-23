@@ -145,7 +145,9 @@ export class EntitySelectorModal extends React.Component<{
         if (this.isMulti) {
             return (
                 <div className="selectedData">
-                    {selectedEntityNames.length > 0 && <h3>Selection</h3>}
+                    {selectedEntityNames.length > 0 && (
+                        <div className="selectedLabel">Selection</div>
+                    )}
                     <ul>
                         {selectedEntityNames.map((name) => {
                             return (
