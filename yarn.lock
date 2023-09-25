@@ -19,16 +19,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@algolia/autocomplete-core@npm:1.10.0":
-  version: 1.10.0
-  resolution: "@algolia/autocomplete-core@npm:1.10.0"
-  dependencies:
-    "@algolia/autocomplete-plugin-algolia-insights": 1.10.0
-    "@algolia/autocomplete-shared": 1.10.0
-  checksum: baf7b691b4089e40cab47cf00cce9fc6aa816335845e39f12e6496597fbc965bdbb94f9624b9c693cae1eeb5b45b48c2da6072727f027a26489018afd8792563
-  languageName: node
-  linkType: hard
-
 "@algolia/autocomplete-core@npm:1.11.0":
   version: 1.11.0
   resolution: "@algolia/autocomplete-core@npm:1.11.0"
@@ -39,7 +29,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@algolia/autocomplete-js@npm:1.11.0":
+"@algolia/autocomplete-js@npm:1.11.0, @algolia/autocomplete-js@npm:^1.10.0":
   version: 1.11.0
   resolution: "@algolia/autocomplete-js@npm:1.11.0"
   dependencies:
@@ -52,33 +42,6 @@ __metadata:
     "@algolia/client-search": ">= 4.5.1 < 6"
     algoliasearch: ">= 4.9.1 < 6"
   checksum: 45f598d73fcc7d57d967eb2e1b1a1f376c83ee241ed11b5497a53e7f16ce20d2dde7fcae7f5e77b95ff9eea7883d48a4480c57835e2906a78d29d8f0c9397008
-  languageName: node
-  linkType: hard
-
-"@algolia/autocomplete-js@npm:^1.10.0":
-  version: 1.10.0
-  resolution: "@algolia/autocomplete-js@npm:1.10.0"
-  dependencies:
-    "@algolia/autocomplete-core": 1.10.0
-    "@algolia/autocomplete-preset-algolia": 1.10.0
-    "@algolia/autocomplete-shared": 1.10.0
-    htm: ^3.1.1
-    preact: ^10.13.2
-  peerDependencies:
-    "@algolia/client-search": ">= 4.5.1 < 6"
-    algoliasearch: ">= 4.9.1 < 6"
-  checksum: a1ea1d904c17ff258b54ccfa22a923835188e50c65315ab41304b522324fdab7b0f05058f6fc0f73773b814005507b884626ce3638653e89db1e6b8f7c180192
-  languageName: node
-  linkType: hard
-
-"@algolia/autocomplete-plugin-algolia-insights@npm:1.10.0":
-  version: 1.10.0
-  resolution: "@algolia/autocomplete-plugin-algolia-insights@npm:1.10.0"
-  dependencies:
-    "@algolia/autocomplete-shared": 1.10.0
-  peerDependencies:
-    search-insights: ">= 1 < 3"
-  checksum: 1008a03a6e8e7ed84644d47e77abfe2fb1b52060911767582a3aa2243e3327fec6e3b5315ff848b3658a051429de26571a7fc4824d9966b017f3be151e44908b
   languageName: node
   linkType: hard
 
@@ -107,18 +70,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@algolia/autocomplete-preset-algolia@npm:1.10.0":
-  version: 1.10.0
-  resolution: "@algolia/autocomplete-preset-algolia@npm:1.10.0"
-  dependencies:
-    "@algolia/autocomplete-shared": 1.10.0
-  peerDependencies:
-    "@algolia/client-search": ">= 4.9.1 < 6"
-    algoliasearch: ">= 4.9.1 < 6"
-  checksum: b9de85fcbcf39b7588dcfa584cd8c2c4fa71fffd73cc356894498724e85e77f9fb02d6a9ab56ffc9a2e568989fee43352be3867cbd53e24c2e3dbaf1ef811e01
-  languageName: node
-  linkType: hard
-
 "@algolia/autocomplete-preset-algolia@npm:1.11.0":
   version: 1.11.0
   resolution: "@algolia/autocomplete-preset-algolia@npm:1.11.0"
@@ -128,16 +79,6 @@ __metadata:
     "@algolia/client-search": ">= 4.9.1 < 6"
     algoliasearch: ">= 4.9.1 < 6"
   checksum: 2fbae29efab40fc1b483529134bf4dc176b3e171e963294fbcc22bfc16252fcb239791043044a220daeef10477469966e4ee2bc285597b445c13eef7f64eeabb
-  languageName: node
-  linkType: hard
-
-"@algolia/autocomplete-shared@npm:1.10.0":
-  version: 1.10.0
-  resolution: "@algolia/autocomplete-shared@npm:1.10.0"
-  peerDependencies:
-    "@algolia/client-search": ">= 4.9.1 < 6"
-    algoliasearch: ">= 4.9.1 < 6"
-  checksum: cf02ca1173c6257dd86eb50ba30296b467aeac56a9e792a5150a73a1a05fe5156cf943f68e225e49dbdd61c7d00209dc9237ebd86e3a8dd7d3e7da3f81092b8b
   languageName: node
   linkType: hard
 
@@ -1871,21 +1812,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/runtime@npm:^7.0.0":
+"@babel/runtime@npm:^7.0.0, @babel/runtime@npm:^7.1.2, @babel/runtime@npm:^7.10.1, @babel/runtime@npm:^7.10.2, @babel/runtime@npm:^7.10.4, @babel/runtime@npm:^7.11.1, @babel/runtime@npm:^7.11.2, @babel/runtime@npm:^7.12.0, @babel/runtime@npm:^7.12.1, @babel/runtime@npm:^7.12.13, @babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.14.5, @babel/runtime@npm:^7.15.4, @babel/runtime@npm:^7.18.0, @babel/runtime@npm:^7.18.3, @babel/runtime@npm:^7.5.5, @babel/runtime@npm:^7.7.2, @babel/runtime@npm:^7.8.7, @babel/runtime@npm:^7.9.2":
   version: 7.22.6
   resolution: "@babel/runtime@npm:7.22.6"
   dependencies:
     regenerator-runtime: ^0.13.11
   checksum: e585338287c4514a713babf4fdb8fc2a67adcebab3e7723a739fc62c79cfda875b314c90fd25f827afb150d781af97bc16c85bfdbfa2889f06053879a1ddb597
-  languageName: node
-  linkType: hard
-
-"@babel/runtime@npm:^7.1.2, @babel/runtime@npm:^7.10.1, @babel/runtime@npm:^7.10.2, @babel/runtime@npm:^7.10.4, @babel/runtime@npm:^7.11.1, @babel/runtime@npm:^7.11.2, @babel/runtime@npm:^7.12.0, @babel/runtime@npm:^7.12.1, @babel/runtime@npm:^7.12.13, @babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.14.5, @babel/runtime@npm:^7.15.4, @babel/runtime@npm:^7.18.0, @babel/runtime@npm:^7.18.3, @babel/runtime@npm:^7.5.5, @babel/runtime@npm:^7.7.2, @babel/runtime@npm:^7.8.7, @babel/runtime@npm:^7.9.2":
-  version: 7.19.4
-  resolution: "@babel/runtime@npm:7.19.4"
-  dependencies:
-    regenerator-runtime: ^0.13.4
-  checksum: 66b7e3c13e9ee1d2c9397ea89144f29a875edee266a0eb2d9971be51b32fdbafc85808c7a45e011e6681899bb804b4e2ee2aed6dc07108dbbd6b11b6cc2afba6
   languageName: node
   linkType: hard
 
@@ -6148,10 +6080,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*":
-  version: 16.11.39
-  resolution: "@types/node@npm:16.11.39"
-  checksum: bc97b9773ac6b3194800f990b349fad7f66c6126dacef59291b10a2c8b6813d6f67f947b7e12a6c9952790f7065d576fe38355b8fe034a6af60f317cfc570f69
+"@types/node@npm:*, @types/node@npm:^18.11.18":
+  version: 18.17.15
+  resolution: "@types/node@npm:18.17.15"
+  checksum: eed11d4398ccdb999a4c65658ee75de621a4ad57aece48ed2fb8803b1e2711fadf58d8aefbdb0a447d69cf3cba602ca32fe0fc92077575950a796e1dc13baa0f
   languageName: node
   linkType: hard
 
@@ -6159,13 +6091,6 @@ __metadata:
   version: 14.17.2
   resolution: "@types/node@npm:14.17.2"
   checksum: 50e9a7302f5a2dc3741c55d37a7747a3eb86f94b9d85a16919e5dab672a7028b66b1d55be8afe77d8197906a6b49e82740925f8c1320911552774c8874aa5e97
-  languageName: node
-  linkType: hard
-
-"@types/node@npm:^18.11.18":
-  version: 18.17.15
-  resolution: "@types/node@npm:18.17.15"
-  checksum: eed11d4398ccdb999a4c65658ee75de621a4ad57aece48ed2fb8803b1e2711fadf58d8aefbdb0a447d69cf3cba602ca32fe0fc92077575950a796e1dc13baa0f
   languageName: node
   linkType: hard
 
@@ -20165,14 +20090,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"preact@npm:^10.10.0":
-  version: 10.16.0
-  resolution: "preact@npm:10.16.0"
-  checksum: 47a91f47d583b68a4afe971a7f992c06547df6d637cadf56eb3b69fee1fb202659b199af37d0e1a90637385144cadd75aa40acdb4e125cc4b3155e2883c24c07
-  languageName: node
-  linkType: hard
-
-"preact@npm:^10.13.2":
+"preact@npm:^10.10.0, preact@npm:^10.13.2":
   version: 10.17.0
   resolution: "preact@npm:10.17.0"
   checksum: a106a5dd4e4e38a24f4ab62a42b4e0d9b14f0a0146819f1f2800b7033b316941987f77913893b78fe4ceb6750ec013f407ad98e2f416978fe8aecc8d7f4d086b
@@ -21909,17 +21827,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"regenerator-runtime@npm:^0.13.11":
+"regenerator-runtime@npm:^0.13.11, regenerator-runtime@npm:^0.13.3":
   version: 0.13.11
   resolution: "regenerator-runtime@npm:0.13.11"
   checksum: 27481628d22a1c4e3ff551096a683b424242a216fee44685467307f14d58020af1e19660bf2e26064de946bad7eff28950eae9f8209d55723e2d9351e632bbb4
-  languageName: node
-  linkType: hard
-
-"regenerator-runtime@npm:^0.13.3, regenerator-runtime@npm:^0.13.4":
-  version: 0.13.9
-  resolution: "regenerator-runtime@npm:0.13.9"
-  checksum: 65ed455fe5afd799e2897baf691ca21c2772e1a969d19bb0c4695757c2d96249eb74ee3553ea34a91062b2a676beedf630b4c1551cc6299afb937be1426ec55e
   languageName: node
   linkType: hard
 
