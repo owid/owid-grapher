@@ -49,6 +49,12 @@ function ResearchAndWritingLinkContainer(
         filename = linkedDocument.content["featured-image"] || filename
     }
 
+    const heading = React.createElement(
+        isSmall ? "h3" : "h2",
+        { className: isSmall ? "h3-bold" : "h2-bold" },
+        title
+    )
+
     return (
         <a
             href={url}
@@ -66,7 +72,7 @@ function ResearchAndWritingLinkContainer(
                         />
                     </figure>
                 ) : null}
-                <h3>{title}</h3>
+                {heading}
                 {subtitle && !shouldHideSubtitle ? (
                     <p className="research-and-writing-link__description body-1-regular">
                         {subtitle}
@@ -135,6 +141,7 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
                             <ResearchAndWritingLinkContainer
                                 shouldHideThumbnail
                                 shouldHideSubtitle
+                                isSmall
                                 className="span-cols-1"
                                 key={i}
                                 {...link}
