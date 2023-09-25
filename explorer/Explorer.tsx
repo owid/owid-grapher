@@ -7,7 +7,6 @@ import {
     extractPotentialDataSlugsFromTransform,
     OwidColumnDef,
     OwidTable,
-    OwidTableSlugs,
     SortOrder,
     TableSlug,
 } from "@ourworldindata/core-table"
