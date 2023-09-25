@@ -89,6 +89,7 @@ import {
     SeriesStrategy,
     getVariableDataRoute,
     getVariableMetadataRoute,
+    GRAPHER_FRAME_PADDING,
 } from "../core/GrapherConstants"
 import Cookies from "js-cookie"
 import {
@@ -1202,7 +1203,8 @@ export class Grapher
             return new MarkdownTextWrap({
                 text,
                 fontSize: 12,
-                maxWidth: this.idealBounds.width,
+                // leave room for padding on the left and right
+                maxWidth: this.idealBounds.width - 2 * GRAPHER_FRAME_PADDING,
                 lineHeight: 1.2,
                 style: {
                     fill: "#5b5b5b",
