@@ -299,10 +299,10 @@ interface ParseContext {
 const wpTagRegex =
     /wp:(?<tag>([\w\/-]+))\s*(?<attributes>{.*})?\s*(?<isVoidElement>\/)?$/
 
-/** Unwraps a CheerioElement in the sense that it applies cheerioelementsToArchieML
-    on the children, returning the result. In effect this "removes" an html element
-    like a div that we don't care about in it's own, and where instead we just want to handle
-    the children. */
+/** Unwraps a CheerioElement in the sense that it applies
+    cheerioElementsToArchieML on the children, returning the result. In effect
+    this "removes" an html element like a div that we don't care about on its
+    own, and where instead we just want to handle the children. */
 function unwrapElement(
     element: CheerioElement,
     context: ParseContext
