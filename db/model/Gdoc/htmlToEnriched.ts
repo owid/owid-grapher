@@ -736,7 +736,7 @@ function cheerioToArchieML(
         // Special handling for a unique span that we use to mark the first published date
         if (
             span.spanType === "span-simple-text" &&
-            span.text.trim().match(/^This (entry|article) was first published/)
+            span.text.trim().match(/published/)
         ) {
             const callout: EnrichedBlockCallout = {
                 type: "callout",
