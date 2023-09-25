@@ -5,6 +5,10 @@
         "node": ">=18.16"
     },
     "packageManager": "yarn@3.3.0",
+    "volta": {
+        "node": "18.16.1",
+        "yarn": "3.3.0"
+    },
     "scripts": {
         "buildAndDeploySite": "node --enable-source-maps ./itsJustJavascript/baker/buildAndDeploySite.js",
         "buildCoverage": "jest --coverage=true --coverageProvider=v8",

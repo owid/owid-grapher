@@ -20,7 +20,7 @@
         content: " ";
         width: $checkbox-size;
         height: $checkbox-size;
-        background: #fff;
+        background: white;
         pointer-events: none;
         border-radius: 2px;
         border: 1px solid $light-stroke;
@@ -36,9 +36,17 @@
         }
     }
 
+    input:active + .custom {
+        background: $active-fill;
+    }
+
     input:checked + .custom {
         background: $active-fill;
         border-color: $active-fill;
+    }
+
+    input:checked:active + .custom {
+        background: white;
     }
 
     .label {

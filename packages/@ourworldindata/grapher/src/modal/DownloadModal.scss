@@ -35,6 +35,11 @@
 
         &:hover {
             cursor: pointer;
+            background-color: $hover-fill;
+        }
+
+        &:active {
+            background-color: $active-fill;
         }
     }
 

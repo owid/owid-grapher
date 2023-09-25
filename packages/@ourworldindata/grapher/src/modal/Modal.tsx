@@ -87,7 +87,7 @@ export class Modal extends React.Component<{
                     >
                         <div className="modalHeader">
                             {this.title && (
-                                <h2 className="modalTitle">{this.title}</h2>
+                                <div className="modalTitle">{this.title}</div>
                             )}
                             <button
                                 className="modalDismiss"

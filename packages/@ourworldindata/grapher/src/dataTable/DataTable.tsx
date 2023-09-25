@@ -410,18 +410,6 @@ export class DataTable extends React.Component<{
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
-    @computed private get titleEntityRow(): JSX.Element | null {
-        if (!this.showTitleRows) return null
-        return (
-            <tr className="title">
-                <td>Country</td>
-                {range(this.numberOfColumnsWithValues).map((i) => (
-                    <td key={i} />
-                ))}
-            </tr>
-        )
-    }
-
     @computed private get titleAggregateRow(): JSX.Element | null {
         if (!this.showTitleRows) return null
         return (
@@ -455,17 +443,13 @@ export class DataTable extends React.Component<{
     }
 
     render(): JSX.Element {
-        const bodyClasses = classnames({
-            hasTitleRows: this.showTitleRows,
-        })
         return (
             <div className="DataTable">
                 {this.tableCaption}
                 <div className="table-wrapper">
                     <table>
                         <thead>{this.headerRow}</thead>
-                        <tbody className={bodyClasses}>
-                            {this.titleEntityRow}
+                        <tbody>
                             {this.valueEntityRows}
                             {this.titleAggregateRow}
                             {this.valueAggregateRows}

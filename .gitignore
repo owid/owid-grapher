@@ -4,6 +4,7 @@ logs/
 .idea/
 db.sqlite3
 .sublime*
+.nova/
 .yarn/*
 !.yarn/patches
 !.yarn/releases

@@ -129,10 +129,7 @@ import { isOnTheMap } from "../mapCharts/EntitiesOnTheMap"
 import { ChartManager } from "../chart/ChartManager"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons"
-import {
-    AbsRelToggleManager,
-    FacetStrategyDropdownManager,
-} from "../controls/Controls"
+import { SettingsMenuManager } from "../controls/Controls"
 import { TooltipContainer } from "../tooltip/Tooltip"
 import {
     EntitySelectorModal,
@@ -305,15 +302,14 @@ export class Grapher
         LegacyDimensionsManager,
         ShareMenuManager,
         EmbedModalManager,
-        AbsRelToggleManager,
         TooltipManager,
         DataTableManager,
         ScatterPlotManager,
         MarimekkoChartManager,
-        FacetStrategyDropdownManager,
         FacetChartManager,
-        MapChartManager,
-        EntitySelectorModalManager
+        EntitySelectorModalManager,
+        SettingsMenuManager,
+        MapChartManager
 {
     @observable.ref $schema = DEFAULT_GRAPHER_CONFIG_SCHEMA
     @observable.ref type = ChartTypeName.LineChart
@@ -1613,9 +1609,9 @@ export class Grapher
     }
 
     @computed get relativeToggleLabel(): string {
-        if (this.isScatter) return "Average annual change"
-        else if (this.isLineChart) return "Relative change"
-        return "Relative"
+        if (this.isScatter) return "Display average annual change"
+        else if (this.isLineChart) return "Display relative change"
+        return "Display relative values"
     }
 
     // NB: The timeline scatterplot in relative mode calculates changes relative
@@ -1986,12 +1982,6 @@ export class Grapher
                 category: "Timeline",
             },
             {
-                combo: "f",
-                fn: (): void => this.toggleFacetControlVisibility(),
-                title: `Toggle Faceting`,
-                category: "Chart",
-            },
-            {
                 combo: "l",
                 fn: (): void => this.toggleYScaleTypeCommand(),
                 title: "Toggle Y log/linear",
@@ -2053,53 +2043,6 @@ export class Grapher
         this.yAxis.scaleType = next(
             [ScaleType.linear, ScaleType.log],
             this.yAxis.scaleType
-        )
-    }
-
-    @action.bound private toggleFacetStrategy(): void {
-        this.facetStrategy = next(
-            this.availableFacetStrategies,
-            this.facetStrategy
-        )
-    }
-
-    @computed get showFacetControl(): boolean {
-        const {
-            hideFacetControl,
-            filledDimensions,
-            availableFacetStrategies,
-            isStackedArea,
-            isStackedBar,
-            isStackedDiscreteBar,
-            isLineChart,
-        } = this
-
-        if (hideFacetControl !== undefined) return !hideFacetControl
-
-        // heuristic: if the chart doesn't make sense unfaceted, then it probably
-        // also makes sense to let the user switch between entity/metric facets
-        if (!availableFacetStrategies.includes(FacetStrategy.none)) return true
-
-        const showFacetControlChartType =
-            isStackedArea || isStackedBar || isStackedDiscreteBar || isLineChart
-
-        const hasProjection = filledDimensions.some(
-            (dim) => dim.display.isProjection
-        )
-
-        return showFacetControlChartType && !hasProjection
-    }
-
-    @action.bound private toggleFacetControlVisibility(): void {
-        this.hideFacetControl = !this.hideFacetControl
-    }
-
-    @computed get showFacetYDomainToggle(): boolean {
-        // don't offer to make the y range relative if the range is discrete
-        return (
-            !this.hideFacetYDomainToggle &&
-            this.facetStrategy !== FacetStrategy.none &&
-            !this.isStackedDiscreteBar
         )
     }
 
@@ -2739,49 +2682,6 @@ export class Grapher
         return isMobile()
             ? timeColumn.formatValueForMobile(value)
             : timeColumn.formatValue(value)
-    }
-
-    @computed get showYScaleToggle(): boolean | undefined {
-        if (this.hideYScaleToggle) return false
-        if (this.isRelativeMode) return false
-        if (this.isStackedArea || this.isStackedBar) return false // We currently do not have these charts with log scale
-        return this.yAxis.canChangeScaleType
-    }
-
-    @computed get showXScaleToggle(): boolean | undefined {
-        if (this.hideXScaleToggle) return false
-        if (this.isRelativeMode) return false
-        return this.xAxis.canChangeScaleType
-    }
-
-    @computed get showZoomToggle(): boolean {
-        return (
-            !this.hideZoomToggle &&
-            this.isScatter &&
-            this.selection.hasSelection
-        )
-    }
-
-    @computed get showAbsRelToggle(): boolean {
-        if (!this.canToggleRelativeMode) return false
-        if (this.isScatter)
-            return this.xOverrideTime === undefined && this.hasTimeline
-        return (
-            this.isStackedArea ||
-            this.isStackedBar ||
-            this.isStackedDiscreteBar ||
-            this.isScatter ||
-            this.isLineChart ||
-            this.isMarimekko
-        )
-    }
-
-    @computed get showNoDataAreaToggle(): boolean {
-        return (
-            !this.hideNoDataAreaToggle &&
-            this.isMarimekko &&
-            this.xColumnSlug !== undefined
-        )
     }
 
     @computed get showChangeEntityButton(): boolean {

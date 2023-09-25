@@ -1,175 +1,514 @@
-$zindex-ControlsFooterMenu: 3;
-$zindex-ControlsFooter: 2;
+$light-stroke: #e7e7e7;
+$dark-stroke: #2d2d2d;
+$active-stroke: #a4b6ca;
 
-.SelectEntitiesButton {
-    color: $controls-color;
+$light-fill: #dadada;
+$active-fill: #dbe5f0;
+$hover-fill: #f2f2f2;
+$selected-fill: #c7ced7;
 
-    svg {
-        margin-right: 3px;
-    }
-}
+$light-text: #858585;
+$dark-text: #5b5b5b;
+$active-text: #1d3d63;
 
-.ChangeEntityButton {
-    color: $controls-color;
-}
+$info-icon: #a1a1a1;
+$active-switch: #6e87a2;
 
-// FACET STRATEGY SELECTOR
+$medium: 400;
+$bold: 700;
+$lato: $sans-serif-font-stack;
 
-// the fake dropdown menu
-.FacetStrategyDropdown {
-    font-family: $sans-serif-font-stack;
-    font-size: 12px;
-    font-weight: bold;
-    border: 1px solid #afb7c1;
-    border-radius: 5px;
-    padding-left: 10px;
-    padding-right: 10px;
-    cursor: pointer;
-}
+$indent: 15px;
+$control-row-height: 32px;
 
-// the chevron
-.FacetStrategyDropdown div {
-    float: right;
-    margin-left: 8px;
-}
+$option-checkmark: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOSIgdmlld0JveD0iMCAwIDEyIDkiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik0xMS4wMTU2IDAuOTg0Mzc1QzExLjMyMDMgMS4yNjU2MiAxMS4zMjAzIDEuNzU3ODEgMTEuMDE1NiAyLjAzOTA2TDUuMDE1NjIgOC4wMzkwNkM0LjczNDM4IDguMzQzNzUgNC4yNDIxOSA4LjM0Mzc1IDMuOTYwOTQgOC4wMzkwNkwwLjk2MDkzOCA1LjAzOTA2QzAuNjU2MjUgNC43NTc4MSAwLjY1NjI1IDQuMjY1NjIgMC45NjA5MzggMy45ODQzOEMxLjI0MjE5IDMuNjc5NjkgMS43MzQzOCAzLjY3OTY5IDIuMDE1NjIgMy45ODQzOEw0LjQ3NjU2IDYuNDQ1MzFMOS45NjA5NCAwLjk4NDM3NUMxMC4yNDIyIDAuNjc5Njg4IDEwLjczNDQgMC42Nzk2ODggMTEuMDE1NiAwLjk4NDM3NVoiIGZpbGw9IiMxRDNENjMiLz4KPC9zdmc+";
 
-// the pop-up list of options
-.FacetStrategyFloat {
+$menu-caret-up: "data:image/svg+xml;base64, PHN2ZyB3aWR0aD0iOCIgaGVpZ2h0PSI1IiB2aWV3Qm94PSIwIDAgOCA1IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cGF0aCBkPSJNMC40NjA5MzggMy43MzQzOEwzLjQzNzUgMC43MzQzNzVDMy42MDE1NiAwLjU5Mzc1IDMuNzg5MDYgMC41IDQgMC41QzQuMTg3NSAwLjUgNC4zNzUgMC41OTM3NSA0LjUxNTYyIDAuNzM0Mzc1TDcuNDkyMTkgMy43MzQzOEM3LjcwMzEyIDMuOTQ1MzEgNy43NzM0NCA0LjI3MzQ0IDcuNjU2MjUgNC41NTQ2OUM3LjUzOTA2IDQuODM1OTQgNy4yODEyNSA1IDYuOTc2NTYgNUgxQzAuNjk1MzEyIDUgMC40MTQwNjIgNC44MzU5NCAwLjI5Njg3NSA0LjU1NDY5QzAuMTc5Njg4IDQuMjczNDQgMC4yNSAzLjk0NTMxIDAuNDYwOTM4IDMuNzM0MzhaIiBmaWxsPSIjNUI1QjVCIi8+Cjwvc3ZnPg==";
+
+$menu-caret-down: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOCIgaGVpZ2h0PSI1IiB2aWV3Qm94PSIwIDAgOCA1IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cGF0aCBkPSJNNy41MTU2MiAxLjI4OTA2TDQuNTM5MDYgNC4yODkwNkM0LjM3NSA0LjQyOTY5IDQuMTg3NSA0LjUgNCA0LjVDMy43ODkwNiA0LjUgMy42MDE1NiA0LjQyOTY5IDMuNDYwOTQgNC4yODkwNkwwLjQ4NDM3NSAxLjI4OTA2QzAuMjUgMS4wNzgxMiAwLjE3OTY4OCAwLjc1IDAuMjk2ODc1IDAuNDY4NzVDMC40MTQwNjIgMC4xODc1IDAuNjk1MzEyIDAgMSAwSDYuOTc2NTZDNy4yODEyNSAwIDcuNTM5MDYgMC4xODc1IDcuNjU2MjUgMC40Njg3NUM3Ljc3MzQ0IDAuNzUgNy43MjY1NiAxLjA3ODEyIDcuNTE1NjIgMS4yODkwNloiIGZpbGw9IiM1QjVCNUIiLz4KPC9zdmc+Cg==";
+
+// Buttons in the main controls row of the grapher view
+nav.controlsRow .controls {
     display: flex;
-}
+    gap: 8px;
 
-// one of those options
-.FacetStrategyOption {
-    padding: 4px;
+    button.menu-toggle {
+        font: $medium 13px/16px $lato;
+        letter-spacing: 0.01em;
+        display: flex;
+        align-items: center;
+        border: 1px solid $light-stroke;
+        border-radius: 4px;
+        padding: 7px;
+        color: $dark-text;
 
-    position: static;
-    width: 96px;
-    left: 4px;
-    top: 4px;
+        &:hover {
+            background: $hover-fill;
+            cursor: pointer;
+        }
 
-    background: #ffffff;
-    margin: 0px 0px;
+        &.active,
+        &:active {
+            color: $active-text;
+            background: $active-fill;
+            border: 1px solid $active-fill;
+        }
 
-    > a {
-        text-decoration: none;
+        svg {
+            height: 12px;
+            margin-right: 5px;
+            vertical-align: bottom;
+        }
+    }
+
+    .settings-menu {
+        // the pop-up version of the settings menu
+        .settings-menu-controls {
+            position: absolute;
+            width: 300px;
+            right: $indent;
+            background: white;
+            border-radius: 4px;
+            box-shadow: 0px 4px 23px 4px #0000000f;
+            z-index: $zindex-controls-drawer;
+            overflow-y: scroll;
+        }
+
+        // transparent mouse-event catcher while popup is visible
+        .settings-menu-backdrop {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            z-index: $zindex-controls-backdrop;
+        }
+    }
+
+    .map-projection-menu {
+        font: $medium 13px/16px $lato;
+
+        .control {
+            min-height: auto;
+            min-width: 180px;
+            font: $medium 13px/16px $lato;
+            letter-spacing: 0.01em;
+            display: flex;
+            align-items: center;
+            border: 1px solid $light-stroke;
+            border-radius: 4px;
+            padding: 7px;
+            color: $dark-text;
+
+            &:hover {
+                background: $hover-fill;
+                cursor: pointer;
+            }
+
+            &:after {
+                content: " ";
+                background: url($menu-caret-down) no-repeat center;
+                width: 16px;
+                height: 16px;
+            }
+
+            &.active {
+                border-color: $active-stroke;
+                &:after {
+                    background: url($menu-caret-up) no-repeat center;
+                }
+            }
+        }
+
+        .menu {
+            margin-top: 3px;
+            border-radius: 4px;
+            background: white;
+            box-shadow: 0px 4px 40px 0px rgba(0, 0, 0, 0.15);
+            z-index: $zindex-controls-drawer;
+
+            &:before {
+                display: inline-block;
+                content: "Zoom to selection";
+                font: 700 12px/16px $lato;
+                color: $light-text;
+                padding: 8px 18px;
+            }
+
+            .option {
+                padding: 8px 18px;
+                &:hover {
+                    cursor: pointer;
+                    background: $hover-fill;
+                }
+                &:active,
+                &.active {
+                    color: $active-text;
+                    background: $active-fill;
+                }
+                &.active {
+                    position: relative;
+                    &:hover {
+                        background: $selected-fill;
+                    }
+                    &:after {
+                        content: " ";
+                        background: url($option-checkmark) no-repeat;
+                        width: 12px;
+                        height: 9px;
+                        position: absolute;
+                        right: 18px;
+                        bottom: 11px;
+                    }
+                }
+            }
+        }
     }
 }
 
-.FacetStrategyLabel {
-    position: static;
-    left: 4.17%;
-    right: 44.79%;
-    top: 5.88%;
-    bottom: 64.71%;
-
-    font-family: $sans-serif-font-stack;
-    font-style: normal;
-    font-weight: bold;
-    font-size: 12px;
-    line-height: 1.2;
-
-    margin-top: 4px;
-}
-
-.selected .FacetStrategyLabel {
-    color: #0073e6;
-}
-.FacetStrategyLabel {
-    color: #7d899c;
-}
-
-.FacetStrategyPreview-none-child {
-    position: absolute;
-    left: 0%;
-    right: 0%;
-    top: 0%;
-    bottom: 0%;
-
-    border-radius: 1px;
-}
-
-.FacetStrategyPreview-parent {
-    position: relative;
-    width: 100%;
-    height: 36px;
-}
-
-.FacetStrategyPreview-split-child {
-    float: left;
-    width: 28px;
-    height: 17px;
-    border-radius: 1px;
-}
-
-// set appropriate margins for our manual 3x2 grid
-.FacetStrategyPreview-split-child:nth-of-type(1),
-.FacetStrategyPreview-split-child:nth-of-type(2),
-.FacetStrategyPreview-split-child:nth-of-type(3) {
-    margin-bottom: 2px;
-}
-
-.FacetStrategyPreview-split-child:nth-of-type(1),
-.FacetStrategyPreview-split-child:nth-of-type(2),
-.FacetStrategyPreview-split-child:nth-of-type(4),
-.FacetStrategyPreview-split-child:nth-of-type(5) {
-    margin-right: 2px;
-}
-
-.selected .FacetStrategyPreview-none-child {
-    background: #d9eafb;
-}
-
-.FacetStrategyPreview-none-child {
-    background: #dde1e7;
-}
-
-.selected .FacetStrategyPreview-split-child {
-    background: #d9eafb;
-}
-
-.FacetStrategyPreview-split-child {
-    background: #dde1e7;
-}
-
-@keyframes bounceIn {
-    from,
-    20%,
-    40%,
-    60%,
-    80%,
-    to {
-        animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
-    }
-
-    0% {
-        transform: scale3d(8, 8, 8);
-        opacity: 0;
-    }
-
-    40% {
-        transform: scale3d(0.8, 0.8, 0.8);
-        opacity: 1;
-    }
-
-    60% {
-        transform: scale3d(1.25, 1.25, 1.25);
-    }
-
-    80% {
-        transform: scale3d(0.97, 0.97, 0.97);
-    }
-
-    to {
-        transform: scale3d(1, 1, 1);
-        opacity: 1;
+@at-root {
+    // collapse the Settings toggle down to just an icon on small screens
+    .GrapherComponentSmall:not(.GrapherComponentMedium)
+        nav.controlsRow
+        .settings-menu
+        button.menu-toggle {
+        min-height: $control-row-height;
+        svg {
+            margin-right: 0;
+        }
+        .label {
+            display: none;
+        }
     }
 }
 
-@keyframes appear {
+@at-root {
+    // the drawer version of the settings menu (see GRAPHER_SETTINGS_DRAWER_ID)
+    nav#grapher-settings-drawer .settings-menu-contents {
+        .settings-menu-controls {
+            position: fixed;
+            right: 0;
+            top: 0;
+            width: 300px;
+            height: 100vh;
+            z-index: $zindex-controls-drawer;
+            overflow-y: scroll;
+            background: white;
+            padding-top: $indent;
+
+            .config-header {
+                position: static;
+            }
+        }
+        .settings-menu-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.2);
+            z-index: $zindex-controls-backdrop;
+        }
+    }
+
+    .settings-menu-contents {
+        .settings-menu-controls {
+            //
+            // shared button coloring & behaviors
+            //
+            button {
+                display: flex;
+                align-items: center;
+                color: $light-text;
+                background: white;
+                border: 1px solid $light-stroke;
+                font: $medium 13px/16px $lato;
+                letter-spacing: 0.01em;
+                border-radius: 4px;
+                padding: 7px;
+                height: 40px;
+
+                &:hover {
+                    background: $hover-fill;
+                    cursor: pointer;
+
+                    &:not(.active) {
+                        color: $dark-text;
+                    }
+                }
+
+                &.active,
+                &:active {
+                    background: $active-fill;
+                    border: 1px solid $active-fill;
+                }
+
+                &.active {
+                    cursor: default;
+                    color: $active-text;
+                }
+            }
+
+            //
+            // chart-type label and close button
+            //
+            .config-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                background: white;
+                padding: 9px $indent 3px $indent;
+                position: sticky;
+                top: 0;
+                z-index: 1;
+
+                .config-title {
+                    text-transform: uppercase;
+                    letter-spacing: 0.1em;
+                    color: $light-text;
+                    font: $bold 12px/16px $lato;
+                }
+
+                button.close {
+                    position: relative;
+                    border-radius: 50%;
+                    height: 32px;
+                    width: 32px;
+                    text-align: center;
+                    justify-content: center;
+                    svg {
+                        height: 14px;
+                        width: 14px;
+                    }
+                }
+            }
+
+            //
+            // each titled block of control widgets (with optional info-circle + tooltip)
+            //
+            section {
+                font: $medium 14px/1.2 $lato;
+                color: $light-text;
+                padding: 1em 0;
+                margin: 0 $indent;
+
+                .config-name {
+                    font: $bold 14px/1.2 $lato;
+                    color: $dark-text;
+                    list-style: none;
+
+                    svg {
+                        color: $info-icon;
+                        height: 13px;
+                        padding: 0 0.333em;
+                    }
+
+                    // the tooltip triggered by hovering the circle-i
+                    @at-root .tippy-box[data-theme="settings"] {
+                        background: white;
+                        color: $dark-text;
+                        font: 400 14px/1.5 $sans-serif-font-stack;
+                        box-shadow: 0px 4px 40px 0px rgba(0, 0, 0, 0.15);
+
+                        .tippy-content {
+                            padding: $indent;
+                        }
+                        .tippy-arrow {
+                            color: white;
+                        }
+                    }
+                }
+
+                .config-subtitle {
+                    font-size: 13px;
+                    margin: 5px 0;
+                }
+
+                .config-toggle {
+                    display: flex;
+                    flex-wrap: wrap;
+                    justify-content: space-between;
+                    padding: 0.5em 0;
+                }
+
+                & + section {
+                    border-top: 1px solid $light-stroke;
+                }
+            }
+
+            //
+            // resuable widgets
+            //
+            section {
+                // left/right pairs of options
+                .config-toggle {
+                    label {
+                        flex-basis: 100%;
+                        color: $dark-text;
+                        margin-bottom: 0.5em;
+                    }
+                    button {
+                        width: 130px;
+                        padding: 7px 16px;
+                    }
+                }
+
+                // on/off switch with label written to the right
+                .config-switch {
+                    position: relative;
+                    margin: 14px 0;
+                    -webkit-user-select: none;
+                    user-select: none;
+
+                    label {
+                        color: $dark-text;
+                        padding-left: 35px;
+                        &:hover {
+                            cursor: pointer;
+                        }
+
+                        svg {
+                            color: $info-icon;
+                            height: 13px;
+                            padding: 0 0.333em;
+                        }
+                    }
+
+                    input {
+                        position: absolute;
+                        opacity: 0;
+                        left: 0;
+                    }
+
+                    .outer {
+                        position: absolute;
+                        left: 0;
+                        top: 0;
+                        content: " ";
+                        width: 29px;
+                        height: 16px;
+                        background: $light-fill;
+                        border-radius: 8px;
+                        pointer-events: none;
+                        .inner {
+                            position: relative;
+                            content: " ";
+                            width: 10px;
+                            height: 10px;
+                            background: $light-text;
+                            border-radius: 5px;
+                            top: 3px;
+                            left: 3px;
+                            pointer-events: none;
+                            transition: transform 333ms;
+                        }
+                    }
+
+                    &:hover {
+                        .outer .inner {
+                            background: $dark-text;
+                        }
+                    }
+
+                    input:checked + .outer {
+                        background: $active-fill;
+                        .inner {
+                            background: $active-switch;
+                            transform: translate(13px, 0);
+                        }
+                    }
+                    &:hover input:checked + .outer .inner {
+                        background: darken($active-switch, 13%);
+                    }
+                }
+
+                // vertical list of options (for selecting faceting mode)
+                .config-list {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 8px;
+                    padding: 7px 0;
+                    button {
+                        width: 100%;
+
+                        .faceting-icon {
+                            display: flex;
+                            flex-wrap: wrap;
+                            width: 34px;
+                            height: 24px;
+                            justify-content: space-between;
+                            margin-right: 8px;
+                            span {
+                                // the round-rects that make up the grid
+                                display: inline-block;
+                                width: 100%;
+                                height: 100%;
+                                border-radius: 2px;
+                                background: $light-stroke;
+                            }
+                        }
+
+                        &.entity span {
+                            width: 10px;
+                            height: 10px;
+                        }
+
+                        &.metric span {
+                            width: 10px;
+                            height: 10px;
+                            border-radius: 5px;
+                        }
+
+                        &.active span {
+                            background: #a4b6ca;
+                        }
+
+                        &:hover:not(.active) span {
+                            background: $light-fill;
+                        }
+
+                        &:active:not(.active) span {
+                            background: $light-text;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@keyframes settings-menu-backdrop-enter {
     0% {
         opacity: 0;
     }
     100% {
         opacity: 1;
+    }
+}
+
+@keyframes settings-menu-backdrop-exit {
+    0% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
+@keyframes settings-menu-controls-enter {
+    0% {
+        transform: translate(301px, 0);
+    }
+    100% {
+        transform: translate(0, 0);
+    }
+}
+
+@keyframes settings-menu-controls-exit {
+    0% {
+        transform: translate(0, 0);
+    }
+    100% {
+        transform: translate(301px, 0);
     }
 }

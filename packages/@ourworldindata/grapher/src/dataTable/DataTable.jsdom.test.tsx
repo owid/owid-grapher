@@ -135,9 +135,8 @@ describe("when the table has aggregates", () => {
 
     it("renders a title row for countries and regions", () => {
         const titleRows = view.find("tbody .title")
-        expect(titleRows).toHaveLength(2)
-        expect(titleRows.at(0).text()).toBe("Country")
-        expect(titleRows.at(1).text()).toBe("Other")
+        expect(titleRows).toHaveLength(1)
+        expect(titleRows.at(0).text()).toBe("Other")
     })
 })
 

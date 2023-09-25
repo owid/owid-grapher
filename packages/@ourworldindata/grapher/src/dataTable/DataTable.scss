@@ -7,7 +7,8 @@
 
     // rows
     $light-fill: #f7f7f7;
-    $dark-fill: #f2f2f2;
+    $hover-fill: #f0f0f0;
+    $dark-fill: #e7e7e7;
 
     // sort icon
     $sort-icon: #c6c6c6;
@@ -128,6 +129,7 @@
 
                     .description {
                         color: #a1a1a1;
+                        text-align: right;
                     }
                 }
             }
@@ -170,13 +172,16 @@
 
         tbody {
             // alternating row colors
-            &.hasTitleRows tr:not(.title):nth-child(2n + 1) td,
-            &:not(.hasTitleRows) tr:nth-child(2n) td {
+            tr:not(.title):nth-child(2n) td {
                 background-color: $light-fill;
             }
 
             td.entity {
                 white-space: normal;
+            }
+
+            tr:not(.title):hover td {
+                background-color: $hover-fill !important;
             }
 
             tr.title td {
@@ -189,6 +194,7 @@
                 cursor: default;
 
                 .icon {
+                    line-height: 12px;
                     font-size: 12px;
                     color: $info-icon;
                 }
