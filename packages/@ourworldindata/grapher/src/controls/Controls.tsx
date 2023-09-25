@@ -143,6 +143,10 @@ export interface SettingsMenuManager {
 
     // show intermediate scatterplot points
     compareEndPointsOnly?: boolean
+
+    // use entity selection from chart to filter table rows
+    isOnTableTab?: boolean
+    showSelectionOnlyInDataTable?: boolean
 }
 
 @observer
@@ -220,6 +224,7 @@ export class SettingsMenu extends React.Component<{
             filledDimensions,
             availableFacetStrategies,
             hideFacetControl,
+            isOnTableTab,
             type,
         } = this.manager
 
@@ -241,11 +246,17 @@ export class SettingsMenu extends React.Component<{
             (dim) => dim.display.isProjection
         )
 
-        return showFacetControlChartType && !hideFacetControl && !hasProjection
+        return (
+            showFacetControlChartType &&
+            !hideFacetControl &&
+            !hasProjection &&
+            !isOnTableTab
+        )
     }
 
     @computed get showSettingsMenuToggle(): boolean {
         if (this.manager.isOnMapTab) return false
+        if (this.manager.isOnTableTab) return true
 
         return !!(
             this.showYScaleToggle ||
@@ -321,7 +332,14 @@ export class SettingsMenu extends React.Component<{
             showAbsRelToggle,
         } = this
 
-        const { yAxis, xAxis, compareEndPointsOnly, filledDimensions } = manager
+        const {
+            yAxis,
+            xAxis,
+            compareEndPointsOnly,
+            filledDimensions,
+            isOnTableTab,
+        } = manager
+
         const yLabel =
                 filledDimensions.find((d: ChartDimension) => d.property === "y")
                     ?.display.name ?? "Y axis",
@@ -330,6 +348,8 @@ export class SettingsMenu extends React.Component<{
                     ?.display.name ?? "X axis",
             omitLoneAxisLabel =
                 showYScaleToggle && !showXScaleToggle && yLabel === "Y axis"
+
+        const menuTitle = `${isOnTableTab ? "Table" : chartType} settings`
 
         return (
             <div className="settings-menu-contents">
@@ -347,7 +367,7 @@ export class SettingsMenu extends React.Component<{
                     }}
                 >
                     <div className="config-header">
-                        <div className="config-title">{chartType} settings</div>
+                        <div className="config-title">{menuTitle}</div>
                         <button
                             className="clickable close"
                             onClick={this.toggleVisibility}
@@ -376,6 +396,10 @@ export class SettingsMenu extends React.Component<{
                             <NoDataAreaToggle manager={manager} />
                         )}
                         {showZoomToggle && <ZoomToggle manager={manager} />}
+                    </Setting>
+
+                    <Setting title="Data rows" active={isOnTableTab}>
+                        <TableFilterToggle manager={manager} />
                     </Setting>
 
                     <Setting
@@ -642,6 +666,37 @@ export class ZoomToggle extends React.Component<{
                 label="Zoom to selection"
                 tooltip="Scale axes to show only the currently highlighted data points."
                 value={this.props.manager.zoomToSelection}
+                onToggle={this.onToggle}
+            />
+        )
+    }
+}
+
+export interface TableFilterToggleManager {
+    showSelectionOnlyInDataTable?: boolean
+    entityTypePlural?: string
+}
+
+@observer
+export class TableFilterToggle extends React.Component<{
+    manager: TableFilterToggleManager
+}> {
+    @action.bound onToggle(): void {
+        const { manager } = this.props
+        manager.showSelectionOnlyInDataTable =
+            manager.showSelectionOnlyInDataTable ? undefined : true
+    }
+
+    render(): JSX.Element {
+        const tooltip = `Only display table rows for ${
+            this.props.manager.entityTypePlural ?? "countries or regions"
+        } selected within the chart`
+
+        return (
+            <LabeledSwitch
+                label="Show selection only"
+                tooltip={tooltip}
+                value={this.props.manager.showSelectionOnlyInDataTable}
                 onToggle={this.onToggle}
             />
         )
