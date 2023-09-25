@@ -1998,12 +1998,6 @@ export class Grapher
                 category: "Chart",
             },
             {
-                combo: "space",
-                fn: (): void => this.toggleFullScreenMode(),
-                title: "Toggle full-screen mode",
-                category: "Chart",
-            },
-            {
                 combo: "esc",
                 fn: (): void => this.clearErrors(),
             },
