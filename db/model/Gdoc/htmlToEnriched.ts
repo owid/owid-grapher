@@ -751,13 +751,29 @@ function cheerioToArchieML(
         unwrapElement(element, context)
 
     const span = cheerioToSpan(element)
-    if (span)
+    if (span) {
+        // Special handling for a unique span that we use to mark the first published date
+        if (
+            span.spanType === "span-simple-text" &&
+            span.text.trim().match(/^This (entry|article) was first published/)
+        ) {
+            const callout: EnrichedBlockCallout = {
+                type: "callout",
+                title: "",
+                text: [{ type: "text", value: [span], parseErrors: [] }],
+                parseErrors: [],
+            }
+            return {
+                errors: [],
+                content: [callout],
+            }
+        }
         return {
             errors: [],
             // TODO: below should be a list of spans and a rich text block
             content: [{ type: "text", value: [span], parseErrors: [] }],
         }
-    else if (element.type === "tag") {
+    } else if (element.type === "tag") {
         context.htmlTagCounts[element.tagName] =
             (context.htmlTagCounts[element.tagName] ?? 0) + 1
         const result: BlockParseResult<ArchieBlockOrWpComponent> = match(
