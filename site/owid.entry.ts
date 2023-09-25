@@ -6,7 +6,7 @@ import "@ourworldindata/grapher/src/core/grapher.scss"
 import "@fortawesome/fontawesome-svg-core/styles.css"
 
 import { runChartsIndexPage } from "./runChartsIndexPage.js"
-import { runSearchPage } from "./search/SearchPageMain.js"
+import { runSearchPage } from "./search/SearchPanel.js"
 import { runNotFoundPage } from "./NotFoundPageMain.js"
 import { runFeedbackPage } from "./Feedback.js"
 import { runDonateForm } from "./stripe/DonateForm.js"
@@ -97,6 +97,8 @@ try {
     ) {
         const adminbar = document.getElementById("wpadminbar")
         if (adminbar) adminbar.style.display = ""
+        const gdocAdminBar = document.getElementById("gdoc-admin-bar")
+        if (gdocAdminBar) gdocAdminBar.style.display = "initial"
     }
 } catch {}
 

@@ -48,8 +48,6 @@ export class GrapherFigureView extends React.Component<{ grapher: Grapher }> {
         }
         return (
             // They key= in here makes it so that the chart is re-loaded when the slug changes.
-            // This is especially important for SearchResults, where the preview chart can change as
-            // the search query changes.
             <figure data-grapher-src ref={this.base}>
                 {this.bounds && (
                     <Grapher

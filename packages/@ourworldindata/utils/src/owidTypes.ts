@@ -1,4 +1,3 @@
-import { Tag as TagReactTagAutocomplete } from "react-tag-autocomplete"
 import { ImageMetadata } from "./image.js"
 import { Static, Type } from "@sinclair/typebox"
 import { gdocUrlRegex } from "./GdocsConstants.js"
@@ -195,8 +194,11 @@ export enum KeyChartLevel {
     Top = 3, // chart will show at the top of the all charts block
 }
 
-export interface Tag extends TagReactTagAutocomplete {
+export interface Tag {
+    id: number
+    name: string
     keyChartLevel?: KeyChartLevel
+    isApproved?: boolean
 }
 
 export interface EntryMeta {
@@ -963,8 +965,13 @@ export type RawBlockResearchAndWritingRow = {
 export type RawBlockResearchAndWriting = {
     type: "research-and-writing"
     value: {
-        primary?: RawBlockResearchAndWritingLink
-        secondary?: RawBlockResearchAndWritingLink
+        // We're migrating these to be arrays, but have to support the old use-case until it's done
+        primary?:
+            | RawBlockResearchAndWritingLink
+            | RawBlockResearchAndWritingLink[]
+        secondary?:
+            | RawBlockResearchAndWritingLink
+            | RawBlockResearchAndWritingLink[]
         more?: RawBlockResearchAndWritingRow
         rows?: RawBlockResearchAndWritingRow[]
     }
@@ -987,9 +994,9 @@ export type EnrichedBlockResearchAndWritingRow = {
 
 export type EnrichedBlockResearchAndWriting = {
     type: "research-and-writing"
-    primary: EnrichedBlockResearchAndWritingLink
-    secondary: EnrichedBlockResearchAndWritingLink
-    more: EnrichedBlockResearchAndWritingRow
+    primary: EnrichedBlockResearchAndWritingLink[]
+    secondary: EnrichedBlockResearchAndWritingLink[]
+    more?: EnrichedBlockResearchAndWritingRow
     rows: EnrichedBlockResearchAndWritingRow[]
 } & EnrichedBlockWithParseErrors
 
@@ -1049,6 +1056,32 @@ export type EnrichedBlockAlign = {
     content: OwidEnrichedGdocBlock[]
 } & EnrichedBlockWithParseErrors
 
+export type RawBlockEntrySummaryItem = {
+    text?: string
+    slug?: string
+}
+
+// This block renders via the TableOfContents component, same as the sdg-toc block.
+// Because the summary headings can differ from the actual headings in the document,
+// we need to serialize the text and slug explicitly, instead of programmatically generating them
+// by analyzing the document (like we do for the sdg-toc block)
+export type RawBlockEntrySummary = {
+    type: "entry-summary"
+    value: {
+        items?: RawBlockEntrySummaryItem[]
+    }
+}
+
+export type EnrichedBlockEntrySummaryItem = {
+    text: string
+    slug: string
+}
+
+export type EnrichedBlockEntrySummary = {
+    type: "entry-summary"
+    items: EnrichedBlockEntrySummaryItem[]
+} & EnrichedBlockWithParseErrors
+
 export type Ref = {
     id: string
     // Can be -1
@@ -1093,6 +1126,7 @@ export type OwidRawGdocBlock =
     | RawBlockTopicPageIntro
     | RawBlockKeyInsights
     | RawBlockAlign
+    | RawBlockEntrySummary
 
 export type OwidEnrichedGdocBlock =
     | EnrichedBlockAllCharts
@@ -1126,6 +1160,7 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockKeyInsights
     | EnrichedBlockResearchAndWriting
     | EnrichedBlockAlign
+    | EnrichedBlockEntrySummary
 
 export enum OwidGdocPublicationContext {
     unlisted = "unlisted",
@@ -1385,7 +1420,7 @@ export interface DataPageDataV2 {
     status: "published" | "draft"
     title: string
     titleVariant?: string
-    producerShort?: string
+    attributionShort?: string
     topicTagsLinks?: string[]
     attribution: string
     descriptionShort?: string

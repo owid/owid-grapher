@@ -139,12 +139,10 @@ export const getAllLinksFromResearchAndWritingBlock = (
 ): EnrichedBlockResearchAndWritingLink[] => {
     const { primary, secondary, more, rows } = block
     const rowArticles = rows.flatMap((row) => row.articles)
-    const allLinks = excludeNullish([
-        primary,
-        secondary,
-        ...more.articles,
-        ...rowArticles,
-    ])
+    const allLinks = excludeNullish([...primary, ...secondary, ...rowArticles])
+    if (more) {
+        allLinks.push(...more.articles)
+    }
     return allLinks
 }
 

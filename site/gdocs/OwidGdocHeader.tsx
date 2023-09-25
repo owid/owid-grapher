@@ -47,7 +47,7 @@ function OwidArticleHeader({
                 </div>
             ) : null}
             {!!breadcrumbs?.length && (
-                <div className="centered-article-header__breadcrumbs-container col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
+                <div className="centered-article-header__breadcrumbs-container col-start-4 span-cols-8 col-md-start-2 span-md-cols-12">
                     <Breadcrumbs
                         items={breadcrumbs}
                         className={`centered-article-header__breadcrumbs breadcrumbs-${breadcrumbColor}`}
@@ -56,10 +56,12 @@ function OwidArticleHeader({
             )}
             <header
                 className={cx(
-                    "centered-article-header align-center grid grid-cols-8 col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12"
+                    "centered-article-header align-center grid",
+                    "grid-cols-8 span-cols-8 col-start-4",
+                    "grid-md-cols-12 span-md-cols-12 col-md-start-2"
                 )}
             >
-                <div className="centered-article-header__title-container col-start-2 span-cols-6">
+                <div className="centered-article-header__title-container col-start-2 span-cols-6 span-md-cols-10 col-md-start-2">
                     {content.supertitle ? (
                         <h3 className="centered-article-header__supertitle span-cols-8">
                             {content.supertitle}
@@ -70,11 +72,11 @@ function OwidArticleHeader({
                     </h1>
                 </div>
                 {content.subtitle ? (
-                    <h2 className="centered-article-header__subtitle col-start-2 span-cols-6">
+                    <h2 className="centered-article-header__subtitle col-start-2 span-cols-6 span-md-cols-10 col-md-start-2">
                         {content.subtitle}
                     </h2>
                 ) : null}
-                <div className="centered-article-header__meta-container col-start-2 span-cols-6 grid grid-cols-2">
+                <div className="centered-article-header__meta-container col-start-2 span-cols-6 span-md-cols-10 col-md-start-2 grid grid-cols-2 ">
                     <div className="span-cols-1 span-sm-cols-2">
                         <div className="centered-article-header__byline">
                             {"By: "}

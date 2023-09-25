@@ -1,11 +1,10 @@
 import {
     MarkdownTextWrap,
-    linkify,
-    Bounds,
-    DEFAULT_BOUNDS,
     OwidOrigin,
     uniq,
     excludeNullish,
+    Bounds,
+    DEFAULT_BOUNDS,
 } from "@ourworldindata/utils"
 import React from "react"
 import { action, computed } from "mobx"
@@ -15,15 +14,31 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { CoreColumn, OwidColumnDef } from "@ourworldindata/core-table"
 import { Modal } from "./Modal"
 
-const formatText = (s: string): string =>
-    linkify(s).replace(/(?:\r\n|\r|\n)/g, "<br/>")
-
 export interface SourcesModalManager {
     adminBaseUrl?: string
     columnsWithSources: CoreColumn[]
     showAdminControls?: boolean
     isSourcesModalOpen?: boolean
     tabBounds?: Bounds
+}
+
+// TODO: remove this component once all backported indicators
+// etc have switched from HTML to markdown for their sources
+const HtmlOrMarkdownText = (props: {
+    text: string
+    fontSize: number
+}): JSX.Element => {
+    // check the text for closing a, li or p tags. If
+    // one is found, render using dangerouslySetInnerHTML,
+    // othewise use MarkdownTextWrap
+    const { text, fontSize } = props
+    const htmlRegex = /<\/(a|li|p)>/
+    const match = text.match(htmlRegex)
+    if (match) {
+        return <span dangerouslySetInnerHTML={{ __html: text }} />
+    } else {
+        return <MarkdownTextWrap text={text} fontSize={fontSize} />
+    }
 }
 
 @observer
@@ -80,12 +95,12 @@ export class SourcesModal extends React.Component<{
                 ? column.def.origins[0].dateAccessed
                 : undefined)
 
-        const citationProducer =
+        const citationFull =
             column.def.origins && column.def.origins.length
                 ? excludeNullish(
                       uniq(
                           column.def.origins.map(
-                              (origin: OwidOrigin) => origin.citationProducer
+                              (origin: OwidOrigin) => origin.citationFull
                           )
                       )
                   )
@@ -118,11 +133,12 @@ export class SourcesModal extends React.Component<{
                             // metadata V2 shortDescription
                             <tr>
                                 <td>Variable description</td>
-                                <td
-                                    dangerouslySetInnerHTML={{
-                                        __html: formatText(column.description),
-                                    }}
-                                />
+                                <td>
+                                    <HtmlOrMarkdownText
+                                        text={column.description}
+                                        fontSize={12}
+                                    />
+                                </td>
                             </tr>
                         ) : null}
                         {coverage ? (
@@ -143,62 +159,71 @@ export class SourcesModal extends React.Component<{
                                 <td>{column.unitConversionFactor}</td>
                             </tr>
                         ) : null}
-                        {citationProducer.length === 1 ? (
+                        {citationFull.length === 1 ? (
                             <tr>
                                 <td>Data published by</td>
-                                <td>{citationProducer[0]}</td>
+                                <td>
+                                    <MarkdownTextWrap
+                                        text={citationFull[0]}
+                                        fontSize={12}
+                                    />
+                                </td>
                             </tr>
                         ) : null}
-                        {citationProducer.length > 1 ? (
+                        {citationFull.length > 1 ? (
                             <tr>
                                 <td>Data published by</td>
                                 <td>
                                     <ul>
-                                        {citationProducer.map(
+                                        {citationFull.map(
                                             (
-                                                producer: string,
+                                                citation: string,
                                                 index: number
                                             ) => (
-                                                <li key={index}>{producer}</li>
+                                                <li key={index}>
+                                                    <MarkdownTextWrap
+                                                        text={citation}
+                                                        fontSize={12}
+                                                    />
+                                                </li>
                                             )
                                         )}
                                     </ul>
                                 </td>
                             </tr>
                         ) : null}
-                        {(!citationProducer || citationProducer.length === 0) &&
+                        {(!citationFull || citationFull.length === 0) &&
                         source.dataPublishedBy ? (
                             <tr>
                                 <td>Data published by</td>
-                                <td
-                                    dangerouslySetInnerHTML={{
-                                        __html: formatText(
-                                            source.dataPublishedBy
-                                        ),
-                                    }}
-                                />
+                                <td>
+                                    <HtmlOrMarkdownText
+                                        text={source.dataPublishedBy}
+                                        fontSize={12}
+                                    />
+                                </td>
                             </tr>
                         ) : null}
                         {source.dataPublisherSource ? (
                             <tr>
                                 <td>Data publisher's source</td>
-                                <td
-                                    dangerouslySetInnerHTML={{
-                                        __html: formatText(
-                                            source.dataPublisherSource
-                                        ),
-                                    }}
-                                />
+                                <td>
+                                    <HtmlOrMarkdownText
+                                        text={source.dataPublisherSource}
+                                        fontSize={12}
+                                    />
+                                </td>
                             </tr>
                         ) : null}
                         {source.link ? (
                             <tr>
                                 <td>Link</td>
-                                <td
-                                    dangerouslySetInnerHTML={{
-                                        __html: formatText(source.link),
-                                    }}
-                                />
+                                <td>
+                                    <HtmlOrMarkdownText
+                                        text={source.link}
+                                        fontSize={12}
+                                    />
+                                </td>
                             </tr>
                         ) : null}
                         {retrievedDate ? (
@@ -210,12 +235,12 @@ export class SourcesModal extends React.Component<{
                     </tbody>
                 </table>
                 {source.additionalInfo && (
-                    <p
-                        className="additionalInfo"
-                        dangerouslySetInnerHTML={{
-                            __html: formatText(source.additionalInfo),
-                        }}
-                    />
+                    <p key={"additionalInfo"}>
+                        <HtmlOrMarkdownText
+                            text={source.additionalInfo}
+                            fontSize={12}
+                        />
+                    </p>
                 )}
             </div>
         )

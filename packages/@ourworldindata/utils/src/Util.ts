@@ -161,6 +161,7 @@ import {
     EnrichedScrollerItem,
     EnrichedBlockKeyInsightsSlide,
     UserCountryInformation,
+    SpanLink,
 } from "./owidTypes.js"
 import { OwidVariableWithSource } from "./OwidVariable.js"
 import { PointVector } from "./PointVector.js"
@@ -613,7 +614,8 @@ export const getIdealGridParams = ({
     // Also Desmos graph: https://www.desmos.com/calculator/tmajzuq5tm
     const ratio = containerAspectRatio / idealAspectRatio
     // Prefer vertical grid for count=2.
-    if (count === 2 && ratio < 2) return { rows: 2, columns: 1 }
+    if (count === 2 && containerAspectRatio < 2.8)
+        return { rows: 2, columns: 1 }
     // Otherwise, optimize for closest to the ideal aspect ratio.
     const initialColumns = Math.min(Math.round(Math.sqrt(count * ratio)), count)
     const rows = Math.ceil(count / initialColumns)
@@ -1620,7 +1622,8 @@ export function traverseEnrichedBlocks(
                     "sdg-grid",
                     "sdg-toc",
                     "topic-page-intro",
-                    "all-charts"
+                    "all-charts",
+                    "entry-summary"
                 ),
             },
             callback
@@ -1630,6 +1633,10 @@ export function traverseEnrichedBlocks(
 
 export function checkNodeIsSpan(node: NodeWithUrl): node is Span {
     return "spanType" in node
+}
+
+export function checkNodeIsSpanLink(node: unknown): node is SpanLink {
+    return isObject(node) && "spanType" in node && node.spanType === "span-link"
 }
 
 export function spansToUnformattedPlainText(spans: Span[]): string {
@@ -1747,5 +1754,20 @@ export function getAttributionFromVariable(
         variable.origins
     )
     const sourceName = variable.source?.name
-    return uniq(compact([sourceName, ...originAttributionFragments])).join(", ")
+    return uniq(compact([sourceName, ...originAttributionFragments])).join("; ")
+}
+
+interface ETLPathComponents {
+    channel: string
+    producer: string
+    version: string
+    dataset: string
+    table: string
+    indicator: string
+}
+
+export const getETLPathComponents = (path: string): ETLPathComponents => {
+    const [channel, producer, version, dataset, table, indicator] =
+        path.split("/")
+    return { channel, producer, version, dataset, table, indicator }
 }

@@ -7,12 +7,14 @@ import AnimateHeight from "react-animate-height"
 
 // See ARIA roles: https://w3c.github.io/aria-practices/examples/menu-button/menu-button-links.html
 
-export default function SDGTableOfContents({
+export default function TableOfContents({
     toc,
     className = "",
+    title,
 }: {
     toc: TocHeadingWithTitleSupertitle[]
     className?: string
+    title: string
 }) {
     const [height, setHeight] = useState<"auto" | 0>(0)
     const [isOpen, setIsOpen] = useState(false)
@@ -23,28 +25,28 @@ export default function SDGTableOfContents({
 
     return (
         <nav
-            className={cx(className, "sdg-toc", { open: isOpen })}
+            className={cx(className, "toc", { open: isOpen })}
             role="button"
             onClick={toggleIsOpen}
             aria-haspopup="true"
-            aria-controls="sdg-toc-menu"
-            data-track-note="sdg_toc_toggle"
+            aria-controls="toc-menu"
+            data-track-note="toc_toggle"
         >
             <button
-                id="sdg-toc-menu-button"
-                className="sdg-toc-toggle span-cols-6 span-md-cols-8 span-sm-cols-10"
+                id="toc-menu-button"
+                className="toc-toggle span-cols-6 span-md-cols-8 span-sm-cols-10"
                 onClick={toggleIsOpen}
                 aria-haspopup="true"
-                aria-controls="sdg-toc-menu"
-                data-track-note="sdg_toc_toggle"
+                aria-controls="toc-menu"
+                data-track-note="toc_toggle"
             >
-                <span>List of targets and indicators</span>
+                <span>{title}</span>
                 <span>
                     <FontAwesomeIcon icon={isOpen ? faMinus : faPlus} />
                 </span>
             </button>
             <AnimateHeight
-                className="sdg-toc-content span-cols-6 span-md-cols-8 span-sm-cols-10"
+                className="toc-content span-cols-6 span-md-cols-8 span-sm-cols-10"
                 height={height}
                 onHeightAnimationStart={(newHeight) => {
                     if (newHeight !== 0) setIsOpen(true)
@@ -54,11 +56,7 @@ export default function SDGTableOfContents({
                 }}
                 animateOpacity
             >
-                <ul
-                    id="sdg-toc-menu"
-                    role="menu"
-                    aria-labelledby="sdg-toc-menu-button"
-                >
+                <ul id="toc-menu" role="menu" aria-labelledby="toc-menu-button">
                     {toc.map(
                         (
                             { title, supertitle, isSubheading, slug },
@@ -73,7 +71,7 @@ export default function SDGTableOfContents({
                             >
                                 <a
                                     href={`#${slug}`}
-                                    data-track-note="sdg_toc_link"
+                                    data-track-note="toc_link"
                                     role="menuitem"
                                     onClick={(e) => e.stopPropagation()}
                                 >

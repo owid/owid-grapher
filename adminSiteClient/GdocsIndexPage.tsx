@@ -1,7 +1,8 @@
 import React from "react"
 import cx from "classnames"
 import { AdminLayout } from "./AdminLayout.js"
-import { EditableTags, Modal, SearchField } from "./Forms.js"
+import { Modal, SearchField } from "./Forms.js"
+import { EditableTags } from "./EditableTags.js"
 import {
     faCirclePlus,
     faLightbulb,

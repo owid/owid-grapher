@@ -65,7 +65,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     }
 
     @imemo get availableEntityNameSet(): Set<string> {
-        return new Set<string>(this.entityNameColumn.uniqValues)
+        return this.entityNameColumn.uniqValuesAsSet
     }
 
     // todo: can we remove at some point?

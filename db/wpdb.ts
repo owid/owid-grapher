@@ -751,24 +751,26 @@ export const getFullPost = async (
 })
 
 export const getBlogIndex = memoize(async (): Promise<IndexPost[]> => {
-    // TODO: do not get post content in the first place
-    const wordpressPosts = await getPosts(
-        [WP_PostType.Post],
-        selectHomepagePosts
-    )
-
-    const wordpressPostsCards = await Promise.all(
-        wordpressPosts.map((post) => getFullPost(post, true))
-    )
-
     await db.getConnection() // side effect: ensure connection is established
-    const listedGdocs = await Gdoc.getListedGdocs()
-
-    return orderBy(
-        [...wordpressPostsCards, ...mapGdocsToWordpressPosts(listedGdocs)],
-        (post) => post.date.getTime(),
-        ["desc"]
+    const gdocPosts = await Gdoc.getListedGdocs()
+    const wpPosts = await Promise.all(
+        await getPosts([WP_PostType.Post], selectHomepagePosts).then((posts) =>
+            posts.map((post) => getFullPost(post, true))
+        )
     )
+
+    const gdocSlugs = new Set(gdocPosts.map(({ slug }) => slug))
+    const posts = [...mapGdocsToWordpressPosts(gdocPosts)]
+
+    // Only adding each wpPost if there isn't already a gdoc with the same slug,
+    // to make sure we use the most up-to-date metadata
+    for (const wpPost of wpPosts) {
+        if (!gdocSlugs.has(wpPost.slug)) {
+            posts.push(wpPost)
+        }
+    }
+
+    return orderBy(posts, (post) => post.date.getTime(), ["desc"])
 })
 
 export const mapGdocsToWordpressPosts = (

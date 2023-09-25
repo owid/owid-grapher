@@ -57,7 +57,6 @@ import {
     getDropIndexes,
     parseDelimited,
     rowsFromMatrix,
-    cartesianProduct,
     sortColumnStore,
     emptyColumnsInFirstRowInDelimited,
     truncate,
@@ -950,7 +949,11 @@ export class CoreTable<
 
     appendRows(rows: ROW_TYPE[], opDescription: string): this {
         return this.concat(
-            [new (this.constructor as any)(rows, this.defs) as CoreTable],
+            [
+                new (this.constructor as typeof CoreTable)(rows, this.defs, {
+                    parent: this,
+                }),
+            ],
             opDescription
         )
     }
@@ -1441,13 +1444,65 @@ export class CoreTable<
      *   ```
      *
      */
-    complete(columnSlugs: ColumnSlug[]): this {
-        const index = this.rowIndex(columnSlugs)
-        const cols = this.getColumns(columnSlugs)
-        const product = cartesianProduct(...cols.map((col) => col.uniqValues))
-        const toAdd = product.filter((row) => !index.has(row.join(" ")))
-        return this.appendRows(
-            rowsFromMatrix([columnSlugs, ...toAdd]),
+    complete(columnSlugs: [ColumnSlug, ColumnSlug]): this {
+        if (columnSlugs.length !== 2)
+            throw new Error("Can only run complete() for exactly 2 columns")
+
+        const [slug1, slug2] = columnSlugs
+        const col1 = this.get(slug1)
+        const col2 = this.get(slug2)
+
+        // The output table will have exactly this many rows, since we assume that [col1, col2] are primary keys
+        // (i.e. there are no two rows with the same key), and every combination that doesn't exist yet we will add.
+        const cartesianProductSize = col1.numUniqs * col2.numUniqs
+        if (this.numRows >= cartesianProductSize) {
+            if (this.numRows > cartesianProductSize)
+                throw new Error("Table has more rows than expected")
+
+            // Table is already complete
+            return this
+        }
+
+        // Map that points from a value in col1 to a set of values in col2.
+        // It's filled with all the values that already exist in the table, so we
+        // can later take the difference.
+        const existingRowValues = new Map<CoreValueType, Set<CoreValueType>>()
+        for (const index of this.indices) {
+            const val1 = col1.values[index]
+            const val2 = col2.values[index]
+            if (!existingRowValues.has(val1))
+                existingRowValues.set(val1, new Set())
+            existingRowValues.get(val1)!.add(val2)
+        }
+
+        // The below code should be as performant as possible, since it's often iterating over hundreds of thousands of rows.
+        // The below implementation has been benchmarked against a few alternatives (using flatMap, map, and Array.from), and
+        // is the fastest.
+        // See https://jsperf.app/zudoye.
+        const rowsToAddCol1 = []
+        const rowsToAddCol2 = []
+        // Add rows for all combinations of values that are not contained in `existingRowValues`.
+        for (const val1 of col1.uniqValuesAsSet) {
+            const existingVals2 = existingRowValues.get(val1)
+            for (const val2 of col2.uniqValuesAsSet) {
+                if (!existingVals2?.has(val2)) {
+                    rowsToAddCol1.push(val1)
+                    rowsToAddCol2.push(val2)
+                }
+            }
+        }
+        const appendColumnStore: CoreColumnStore = {
+            [slug1]: rowsToAddCol1,
+            [slug2]: rowsToAddCol2,
+        }
+        const appendTable = new (this.constructor as typeof CoreTable)(
+            appendColumnStore,
+            this.defs,
+            { parent: this }
+        )
+
+        return this.concat(
+            [appendTable],
             `Append missing combos of ${columnSlugs}`
         )
     }
@@ -1562,10 +1617,20 @@ class FilterMask {
 
     apply(columnStore: CoreColumnStore): CoreColumnStore {
         const columnsObject: CoreColumnStore = {}
+        const keepIndexes: number[] = []
+        for (let i = 0; i < this.numRows; i++) {
+            if (this.mask[i]) keepIndexes.push(i)
+        }
+        if (keepIndexes.length === this.numRows) return columnStore
+
         Object.keys(columnStore).forEach((slug) => {
-            columnsObject[slug] = columnStore[slug].filter(
-                (slug, index) => this.mask[index]
-            )
+            const originalColumn = columnStore[slug]
+            const newColumn: CoreValueType[] = new Array(keepIndexes.length)
+            for (let i = 0; i < keepIndexes.length; i++) {
+                newColumn[i] = originalColumn[keepIndexes[i]]
+            }
+
+            columnsObject[slug] = newColumn
         })
         return columnsObject
     }

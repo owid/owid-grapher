@@ -40,6 +40,7 @@
                 background-color: transparent;
                 cursor: pointer;
                 border: none;
+                white-space: break-spaces;
                 // pseudo elements for ensuring continuity of hover between
                 // bordering items while still having a visual gap between an
                 // active element and its adjacent siblings
@@ -125,6 +126,7 @@
         .SiteNavigationTopic {
             list-style-type: none;
             break-inside: avoid-column;
+            white-space: break-spaces;
             @include body-3-medium;
             > a {
                 display: block;

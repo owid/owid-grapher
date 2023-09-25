@@ -1,9 +1,7 @@
 import { dsvFormat, DSVParsedArray } from "d3-dsv"
-import fastCartesian from "fast-cartesian"
 import {
     findIndexFast,
     first,
-    flatten,
     max,
     range,
     sampleFrom,
@@ -371,20 +369,6 @@ export const makeKeyFn =
             .map((slug) => toString(columnStore[slug][rowIndex]))
             .join(" ")
 
-export const appendRowsToColumnStore = (
-    columnStore: CoreColumnStore,
-    rows: CoreRow[]
-): CoreColumnStore => {
-    const slugs = Object.keys(columnStore)
-    const newColumnStore = columnStore
-    slugs.forEach((slug) => {
-        newColumnStore[slug] = columnStore[slug].concat(
-            rows.map((row) => row[slug])
-        )
-    })
-    return newColumnStore
-}
-
 const getColumnStoreLength = (store: CoreColumnStore): number => {
     return max(Object.values(store).map((v) => v.length)) ?? 0
 }
@@ -399,22 +383,26 @@ export const concatColumnStores = (
     const slugs = slugsToKeep ?? Object.keys(first(stores)!)
 
     const newColumnStore: CoreColumnStore = {}
+
+    // The below code is performance-critical.
+    // That's why it's written using for loops and mutable arrays rather than using map or flatMap:
+    // To this day, that's still faster in JS.
     slugs.forEach((slug) => {
-        newColumnStore[slug] = flatten(
-            stores.map((store, i) => {
-                const values = store[slug] ?? []
-                const toFill = Math.max(0, lengths[i] - values.length)
-                if (toFill === 0) {
-                    return values
-                } else {
-                    return values.concat(
-                        new Array(lengths[i] - values.length).fill(
-                            ErrorValueTypes.MissingValuePlaceholder
-                        )
+        let newColumnValues: CoreValueType[] = []
+        for (const [i, store] of stores.entries()) {
+            const values = store[slug] ?? []
+            const toFill = Math.max(0, lengths[i] - values.length)
+
+            newColumnValues = newColumnValues.concat(values)
+            if (toFill > 0) {
+                newColumnValues = newColumnValues.concat(
+                    new Array(toFill).fill(
+                        ErrorValueTypes.MissingValuePlaceholder
                     )
-                }
-            })
-        )
+                )
+            }
+        }
+        newColumnStore[slug] = newColumnValues
     })
     return newColumnStore
 }
@@ -625,10 +613,6 @@ export const trimArray = (arr: any[]): any[] => {
     return arr.slice(0, rightIndex + 1)
 }
 
-export function cartesianProduct<T>(...allEntries: T[][]): T[][] {
-    return fastCartesian(allEntries)
-}
-
 const applyNewSortOrder = (arr: any[], newOrder: number[]): any[] =>
     newOrder.map((index) => arr[index])
 
@@ -640,9 +624,22 @@ export const sortColumnStore = (
     if (!firstCol) return {}
     const len = firstCol.length
     const newOrder = range(0, len).sort(makeSortByFn(columnStore, slugs))
+
+    // Check if column store is already sorted (which is the case if newOrder is equal to range(0, startLen)).
+    // If it's not sorted, we will detect that within the first few iterations usually.
+    let isSorted = true
+    for (let i = 0; i <= len; i++) {
+        if (newOrder[i] !== i) {
+            isSorted = false
+            break
+        }
+    }
+    // Column store is already sorted; return existing store unchanged
+    if (isSorted) return columnStore
+
     const newStore: CoreColumnStore = {}
-    Object.keys(columnStore).forEach((slug) => {
-        newStore[slug] = applyNewSortOrder(columnStore[slug], newOrder)
+    Object.entries(columnStore).forEach(([slug, colValues]) => {
+        newStore[slug] = applyNewSortOrder(colValues, newOrder)
     })
     return newStore
 }

@@ -10,6 +10,7 @@ import {
     ALGOLIA_SECRET_KEY,
 } from "../../settings/serverSettings.js"
 import { countries } from "@ourworldindata/utils"
+import { SearchIndexName } from "../../site/search/searchTypes.js"
 
 export const CONTENT_GRAPH_ALGOLIA_INDEX = "graph"
 
@@ -55,7 +56,7 @@ export const configureAlgolia = async () => {
         unretrievableAttributes: ["views_7d", "score"],
     }
 
-    const chartsIndex = client.initIndex("charts")
+    const chartsIndex = client.initIndex(SearchIndexName.Charts)
 
     await chartsIndex.setSettings({
         ...baseSettings,
@@ -86,7 +87,7 @@ export const configureAlgolia = async () => {
         optionalWords: ["vs"],
     })
 
-    const pagesIndex = client.initIndex("pages")
+    const pagesIndex = client.initIndex(SearchIndexName.Pages)
 
     await pagesIndex.setSettings({
         ...baseSettings,
@@ -107,6 +108,22 @@ export const configureAlgolia = async () => {
             "afterDistinct(documentType)",
         ],
         disableExactOnAttributes: ["tags"],
+    })
+
+    const explorersIndex = client.initIndex(SearchIndexName.Explorers)
+
+    await explorersIndex.setSettings({
+        ...baseSettings,
+        searchableAttributes: [
+            "unordered(slug)",
+            "unordered(title)",
+            "unordered(subtitle)",
+            "unordered(text)",
+        ],
+        customRanking: ["desc(views_7d)"],
+        attributeForDistinct: "slug",
+        attributesForFaceting: [],
+        disableTypoToleranceOnAttributes: ["text"],
     })
 
     const synonyms = [
@@ -246,6 +263,9 @@ export const configureAlgolia = async () => {
         replaceExistingSynonyms: true,
     })
     await chartsIndex.saveSynonyms(algoliaSynonyms, {
+        replaceExistingSynonyms: true,
+    })
+    await explorersIndex.saveSynonyms(algoliaSynonyms, {
         replaceExistingSynonyms: true,
     })
 

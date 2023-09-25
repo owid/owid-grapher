@@ -78,7 +78,9 @@ export class BuildkiteTrigger {
         if (status === "passed") {
             return
         } else {
-            throw new Error("Build failed! See Buildkite for details.")
+            throw new Error(
+                `Build failed with status "${status}". See Buildkite for details.`
+            )
         }
     }
 

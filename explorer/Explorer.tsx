@@ -38,6 +38,7 @@ import {
     isInIFrame,
     keyBy,
     keyMap,
+    MarkdownTextWrap,
     omitUndefinedValues,
     PromiseCache,
     PromiseSwitcher,
@@ -578,6 +579,7 @@ export class Explorer
         grapher.reset()
         this.updateGrapherFromExplorerCommon()
         grapher.updateFromObject(config)
+        grapher.forceDisableIntroAnimation = true
         await grapher.downloadLegacyDataFromOwidVariableIds()
 
         let grapherTable = grapher.inputTable
@@ -750,12 +752,12 @@ export class Explorer
                 <div className="ExplorerTitle">
                     {this.explorerProgram.explorerTitle}
                 </div>
-                <div
-                    className="ExplorerSubtitle"
-                    dangerouslySetInnerHTML={{
-                        __html: this.explorerProgram.explorerSubtitle || "",
-                    }}
-                ></div>
+                <div className="ExplorerSubtitle">
+                    <MarkdownTextWrap
+                        fontSize={12}
+                        text={this.explorerProgram.explorerSubtitle || ""}
+                    />
+                </div>
             </div>
         )
     }

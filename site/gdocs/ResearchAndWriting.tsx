@@ -93,22 +93,19 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
                 Research & Writing
                 <a className="deep-link" href={`#${RESEARCH_AND_WRITING_ID}`} />
             </h1>
-            <ResearchAndWritingLinkContainer
-                className="span-cols-6 span-md-cols-6 span-sm-cols-12"
-                {...primary}
-            />
-            <ResearchAndWritingLinkContainer
-                className="span-cols-3 span-md-cols-6 span-sm-cols-12"
-                {...secondary}
-            />
-            <div className="span-cols-3 span-md-cols-12">
-                <div className="research-and-writing-more">
-                    <h5 className="overline-black-caps">{more.heading}</h5>
-                    {more.articles.map((link, i) => (
+            <div className="span-cols-12 research-and-writing-row">
+                <div className="grid research-and-writing-row__link-container">
+                    {primary.map((link, i) => (
                         <ResearchAndWritingLinkContainer
-                            shouldHideThumbnail
-                            shouldHideSubtitle
+                            className="span-cols-6 span-sm-cols-12"
                             key={i}
+                            {...link}
+                        />
+                    ))}
+                    {secondary.map((link, i) => (
+                        <ResearchAndWritingLinkContainer
+                            key={i}
+                            className="span-cols-3 span-md-cols-6 span-sm-cols-12"
                             {...link}
                         />
                     ))}
@@ -116,10 +113,8 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
             </div>
             {rows.map((row, i) => (
                 <div key={i} className="span-cols-12 research-and-writing-row">
-                    <h5 className="overline-black-caps">{row.heading}</h5>
-                    <div className="grid grid-cols-4 research-and-writing-row__link-container">
-                        {/* center the two thumbnails with a filler element */}
-                        {row.articles.length === 2 ? <div /> : null}
+                    <h2 className="h2-bold">{row.heading}</h2>
+                    <div className="grid grid-cols-4 grid-lg-cols-3 grid-md-cols-2 research-and-writing-row__link-container">
                         {row.articles.map((link, i) => (
                             <ResearchAndWritingLinkContainer
                                 shouldHideSubtitle
@@ -132,6 +127,22 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
                     </div>
                 </div>
             ))}
+            {more ? (
+                <div className="span-cols-12 research-and-writing-row">
+                    <h2 className="h2-bold">{more.heading}</h2>
+                    <div className="grid grid-cols-4 grid-lg-cols-3 grid-md-cols-2 research-and-writing-row__link-container">
+                        {more.articles.map((link, i) => (
+                            <ResearchAndWritingLinkContainer
+                                shouldHideThumbnail
+                                shouldHideSubtitle
+                                className="span-cols-1"
+                                key={i}
+                                {...link}
+                            />
+                        ))}
+                    </div>
+                </div>
+            ) : null}
         </div>
     )
 }

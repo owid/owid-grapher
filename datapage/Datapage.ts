@@ -19,22 +19,11 @@ import {
     dayjs,
     getAttributionFromVariable,
     gdocIdRegex,
+    getETLPathComponents,
 } from "@ourworldindata/utils"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
 import { GrapherInterface } from "@ourworldindata/grapher"
-
-interface ETLPathComponents {
-    channel: string
-    publisher: string
-    version: string
-    dataset: string
-}
-
-const getETLPathComponents = (path: string): ETLPathComponents => {
-    const [channel, publisher, version, dataset] = path.split("/")
-    return { channel, publisher, version, dataset }
-}
 
 export const getDatapageDataV2 = async (
     variableMetadata: OwidVariableWithSource,
@@ -63,7 +52,7 @@ export const getDatapageDataV2 = async (
                 variableMetadata.descriptionShort ??
                 partialGrapherConfig.subtitle,
             descriptionFromProducer: variableMetadata.descriptionFromProducer,
-            producerShort: variableMetadata.presentation?.producerShort,
+            attributionShort: variableMetadata.presentation?.attributionShort,
             titleVariant: variableMetadata.presentation?.titleVariant,
             topicTagsLinks: variableMetadata.presentation?.topicTagsLinks ?? [],
             attribution: getAttributionFromVariable(variableMetadata),

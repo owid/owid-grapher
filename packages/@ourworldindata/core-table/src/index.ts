@@ -88,7 +88,6 @@ export {
     toleranceInterpolation,
     interpolateRowValuesWithTolerance,
     makeKeyFn,
-    appendRowsToColumnStore,
     concatColumnStores,
     rowsToColumnStore,
     autodetectColumnDefs,
@@ -107,7 +106,6 @@ export {
     isCellEmpty,
     trimEmptyRows,
     trimArray,
-    cartesianProduct,
     sortColumnStore,
     emptyColumnsInFirstRowInDelimited,
 } from "./CoreTableUtils.js"

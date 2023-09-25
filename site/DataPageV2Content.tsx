@@ -10,13 +10,9 @@ import { ArticleBlocks } from "./gdocs/ArticleBlocks.js"
 import { RelatedCharts } from "./blocks/RelatedCharts.js"
 import {
     DataPageV2ContentFields,
-    mdParser,
-    MarkdownRoot,
-    EveryMarkdownNode,
-    Span,
-    EnrichedBlockText,
     excludeNullish,
     slugify,
+    markdownToEnrichedTextBlock,
 } from "@ourworldindata/utils"
 import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
 import StickyNav from "./blocks/StickyNav.js"
@@ -24,158 +20,12 @@ import cx from "classnames"
 import { DebugProvider } from "./gdocs/DebugContext.js"
 import { CodeSnippet } from "./blocks/CodeSnippet.js"
 import dayjs from "dayjs"
-import { P, match } from "ts-pattern"
 declare global {
     interface Window {
         _OWID_DATAPAGEV2_PROPS: DataPageV2ContentFields
         _OWID_GRAPHER_CONFIG: GrapherInterface
     }
 }
-
-const convertMarkdownNodeToSpan = (node: EveryMarkdownNode): Span[] => {
-    return match(node)
-        .with(
-            {
-                type: "text",
-            },
-            (n) => [
-                {
-                    spanType: "span-simple-text" as const,
-                    text: n.value,
-                } as Span,
-            ]
-        )
-        .with(
-            {
-                type: "textSegments",
-            },
-            (n) => n.children.flatMap(convertMarkdownNodeToSpan) as Span[]
-        )
-        .with(
-            {
-                type: "newline",
-            },
-            () => [
-                {
-                    spanType: "span-simple-text" as const,
-                    text: "\n",
-                } as Span,
-            ]
-        )
-        .with(
-            {
-                type: "whitespace",
-            },
-            () => [
-                {
-                    spanType: "span-simple-text" as const,
-                    text: " ",
-                } as Span,
-            ]
-        )
-        .with(
-            {
-                type: "detailOnDemand",
-            },
-            (n) => [
-                {
-                    spanType: "span-dod" as const,
-                    id: n.term,
-                    children: n.children.flatMap(convertMarkdownNodeToSpan),
-                } as Span,
-            ]
-        )
-        .with(
-            {
-                type: "markdownLink",
-            },
-            (n) => [
-                {
-                    spanType: "span-link" as const,
-                    url: n.href,
-                    children: n.children.flatMap(convertMarkdownNodeToSpan),
-                } as Span,
-            ]
-        )
-        .with(
-            {
-                type: "plainUrl",
-            },
-            (n) => [
-                {
-                    spanType: "span-link" as const,
-                    url: n.href,
-                    children: [
-                        {
-                            spanType: "span-simple-text" as const,
-                            text: n.href,
-                        },
-                    ],
-                } as Span,
-            ]
-        )
-        .with(
-            {
-                type: "bold",
-            },
-            (n) => [
-                {
-                    spanType: "span-bold" as const,
-                    children: n.children.flatMap(convertMarkdownNodeToSpan),
-                } as Span,
-            ]
-        )
-        .with(
-            {
-                type: P.union("italic", "plainItalic", "italicWithoutBold"),
-            },
-            (n) => [
-                {
-                    spanType: "span-italic" as const,
-                    children: n.children.flatMap(convertMarkdownNodeToSpan),
-                } as Span,
-            ]
-        )
-        .with(
-            {
-                type: P.union("bold", "plainBold", "boldWithoutItalic"),
-            },
-            (n) => [
-                {
-                    spanType: "span-bold" as const,
-                    children: n.children.flatMap(convertMarkdownNodeToSpan),
-                } as Span,
-            ]
-        )
-        .exhaustive()
-    //.otherwise(() => ({ spanType: "span-simple-text" as const, text: "" }))
-}
-
-const convertMarkdownNodesToSpans = (nodes: MarkdownRoot) =>
-    nodes.children.flatMap(convertMarkdownNodeToSpan)
-
-const markdownToEnrichedTextBlock = (markdown: string): EnrichedBlockText => {
-    const parsedMarkdown = mdParser.markdown.parse(markdown)
-    if (parsedMarkdown.status) {
-        const spans = convertMarkdownNodesToSpans(parsedMarkdown.value)
-        return {
-            type: "text",
-            value: spans,
-            parseErrors: [],
-        }
-    } else
-        return {
-            type: "text",
-            value: [],
-            parseErrors: [
-                {
-                    message: `Failed to parse markdown - expected ${parsedMarkdown.expected} at ${parsedMarkdown.index}`,
-                    isWarning: false,
-                },
-            ],
-        }
-}
-
 export const OWID_DATAPAGE_CONTENT_ROOT_ID = "owid-datapageJson-root"
 
 export const DataPageV2Content = ({
@@ -189,9 +39,9 @@ export const DataPageV2Content = ({
     const [grapher, setGrapher] = React.useState<Grapher | undefined>(undefined)
 
     const sourceShortName =
-        datapageData.producerShort && datapageData.titleVariant
-            ? `${datapageData.producerShort} - ${datapageData.titleVariant}`
-            : datapageData.producerShort || datapageData.titleVariant
+        datapageData.attributionShort && datapageData.titleVariant
+            ? `${datapageData.attributionShort} - ${datapageData.titleVariant}`
+            : datapageData.attributionShort || datapageData.titleVariant
 
     // Initialize the grapher for client-side rendering
     const mergedGrapherConfig = grapherConfig
@@ -244,15 +94,12 @@ export const DataPageV2Content = ({
     ]).year()
     const citationShort = `${producers} — ${processedAdapted} OWID (${yearOfUpdate})`
     const originsLong = datapageData.origins
-        .map(
-            (o) =>
-                `${o.producer}, ${o.datasetTitleProducer ?? o.datasetTitleOwid}`
-        )
+        .map((o) => `${o.producer}, ${o.title ?? o.titleSnapshot}`)
         .join("; ")
     const dateAccessed = datapageData.origins[0].dateAccessed
         ? dayjs(datapageData.origins[0].dateAccessed).format("MMMM D, YYYY")
         : ""
-    const urlAccessed = datapageData.origins[0].datasetUrlDownload
+    const urlAccessed = datapageData.origins[0].urlDownload
     const citationLong = `${citationShort}. ${datapageData.title}. ${originsLong}, ${processedAdapted} by Our World In Data. Retrieved ${dateAccessed} from ${urlAccessed}`
     const processedAdaptedText =
         datapageData.owidProcessingLevel === "minor"
@@ -370,7 +217,7 @@ export const DataPageV2Content = ({
                                 )}
                                 {datapageData.descriptionFromProducer && (
                                     <ExpandableToggle
-                                        label={`How does the producer of this data - ${datapageData.producerShort} - describe this data?`}
+                                        label={`How does the producer of this data - ${datapageData.attributionShort} - describe this data?`}
                                         content={
                                             <ArticleBlocks
                                                 blocks={[
@@ -619,8 +466,8 @@ export const DataPageV2Content = ({
                                                             <ExpandableToggle
                                                                 label={
                                                                     source.producer ??
-                                                                    source.datasetDescriptionOwid ??
-                                                                    source.datasetDescriptionProducer ??
+                                                                    source.descriptionSnapshot ??
+                                                                    source.description ??
                                                                     ""
                                                                 }
                                                                 isStacked={
@@ -631,18 +478,18 @@ export const DataPageV2Content = ({
                                                                 hasTeaser
                                                                 content={
                                                                     <>
-                                                                        {source.datasetDescriptionProducer && (
+                                                                        {source.description && (
                                                                             <ArticleBlocks
                                                                                 blocks={[
                                                                                     markdownToEnrichedTextBlock(
-                                                                                        source.datasetDescriptionProducer
+                                                                                        source.description
                                                                                     ),
                                                                                 ]}
                                                                                 containerType="datapage"
                                                                             />
                                                                         )}
                                                                         {(source.dateAccessed ||
-                                                                            source.datasetUrlDownload) && (
+                                                                            source.urlDownload) && (
                                                                             <div
                                                                                 className="grid source__key-data"
                                                                                 style={{
@@ -663,7 +510,7 @@ export const DataPageV2Content = ({
                                                                                         </div>
                                                                                     </div>
                                                                                 )}
-                                                                                {source.datasetUrlDownload && (
+                                                                                {source.urlDownload && (
                                                                                     <div className="key-data key-data--hide-overflow">
                                                                                         <div className="key-data__title--dark">
                                                                                             Retrieved
@@ -672,19 +519,19 @@ export const DataPageV2Content = ({
                                                                                         <div>
                                                                                             <a
                                                                                                 href={
-                                                                                                    source.datasetUrlDownload
+                                                                                                    source.urlDownload
                                                                                                 }
                                                                                                 target="_blank"
                                                                                                 rel="noreferrer"
                                                                                             >
                                                                                                 {
-                                                                                                    source.datasetUrlDownload
+                                                                                                    source.urlDownload
                                                                                                 }
                                                                                             </a>
                                                                                         </div>
                                                                                     </div>
                                                                                 )}
-                                                                                {source.citationProducer && (
+                                                                                {source.citationFull && (
                                                                                     <div
                                                                                         className="key-data"
                                                                                         style={{
@@ -744,7 +591,7 @@ export const DataPageV2Content = ({
                                                                                         below.
                                                                                         <CodeSnippet
                                                                                             code={
-                                                                                                source.citationProducer
+                                                                                                source.citationFull
                                                                                             }
                                                                                             theme="light"
                                                                                             isTruncated

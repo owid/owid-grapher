@@ -28,6 +28,8 @@
 @import "css/layout.scss";
 @import "css/general.scss";
 @import "./SiteSearchNavigation.scss";
+@import "./site/search/Autocomplete.scss";
+@import "./site/search/Search.scss";
 @import "./SiteLogos.scss";
 @import "./SiteNavigation.scss";
 @import "./SiteNavigationToggle.scss";
@@ -81,7 +83,7 @@
 @import "./gdocs/centered-article.scss";
 @import "./gdocs/topic-page.scss";
 @import "./gdocs/SDGGrid.scss";
-@import "./gdocs/SDGTableOfContents.scss";
+@import "./gdocs/TableOfContents.scss";
 @import "./gdocs/MissingData.scss";
 @import "./gdocs/AllCharts.scss";
 @import "./gdocs/AdditionalCharts.scss";
@@ -1024,7 +1026,6 @@ html:not(.js) {
     border-bottom: 1px solid $blue-20;
 }
 
-.SearchPage > main,
 .NotFoundPage > main {
     > form {
         @include content-wrapper;
@@ -1087,62 +1088,6 @@ html:not(.js) {
         // Hide the header, we need to include it for scripts but don't want to
         // show it because it does not go to the bottom of the page and looks weird
         display: none;
-    }
-}
-
-.SearchPage .searchResults {
-    padding-bottom: 40px;
-}
-
-.SearchResults {
-    @include lg-up {
-        > .container {
-            display: flex;
-            flex-direction: row;
-            column-gap: var(--grid-gap);
-
-            > * {
-                flex: 1; // force width when no results
-            }
-        }
-    }
-
-    .postResults,
-    .chartResults {
-        > h2 {
-            color: #666;
-            font-weight: normal;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid #ccc;
-        }
-
-        > ul li {
-            list-style-type: none;
-            margin-bottom: 1.75rem;
-
-            a {
-                @include owid-link-90;
-            }
-
-            p {
-                margin-top: 0;
-                margin-bottom: 0;
-                font-size: 13px;
-            }
-        }
-    }
-
-    .algoliaCredit {
-        margin-top: 1rem;
-        opacity: 0.9;
-        display: flex;
-        justify-content: end;
-        font-size: 0.8rem;
-
-        a {
-            display: flex;
-            flex-direction: column;
-        }
     }
 }
 

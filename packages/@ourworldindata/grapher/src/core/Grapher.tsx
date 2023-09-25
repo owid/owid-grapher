@@ -396,6 +396,12 @@ export class Grapher
     @observable sortBy?: SortBy
     @observable sortOrder?: SortOrder
     @observable sortColumnSlug?: string
+    // TODO: this is a crude fix that is used to turn off the intro
+    // animation in maps (fading colors in from gray) because
+    // they end up with the wrong target colors (i.e. the colors
+    // are initially correct but then the animation screws them up).
+    // This flag can be removed once the animation bug is properly fixed.
+    @observable forceDisableIntroAnimation: boolean = false
 
     @observable.ref _isInFullScreenMode = false
 
@@ -886,7 +892,7 @@ export class Grapher
     @observable private _baseFontSize = BASE_FONT_SIZE
 
     @computed get baseFontSize(): number {
-        if (this.isExportingtoSvgOrPng) return 18
+        if (this.isExportingtoSvgOrPng) return Math.max(this._baseFontSize, 18)
         return this._baseFontSize
     }
 
@@ -1460,7 +1466,7 @@ export class Grapher
 
         if (uniqueAttributions.length > 3) return "Multiple sources"
 
-        return uniqueAttributions.join(", ")
+        return uniqueAttributions.join("; ")
     }
 
     @computed private get axisDimensions(): ChartDimension[] {
@@ -1578,18 +1584,22 @@ export class Grapher
         return this.dimensions.some((d) => d.property === DimensionProperty.y)
     }
 
-    get staticSVG(): string {
+    generateStaticSvg(bounds: Bounds = this.idealBounds): string {
         const _isExportingtoSvgOrPng = this.isExportingtoSvgOrPng
         this.isExportingtoSvgOrPng = true
         const staticSvg = ReactDOMServer.renderToStaticMarkup(
-            <StaticCaptionedChart manager={this} bounds={this.idealBounds} />
+            <StaticCaptionedChart manager={this} bounds={bounds} />
         )
         this.isExportingtoSvgOrPng = _isExportingtoSvgOrPng
         return staticSvg
     }
 
+    get staticSVG(): string {
+        return this.generateStaticSvg()
+    }
+
     @computed get disableIntroAnimation(): boolean {
-        return this.isExportingtoSvgOrPng
+        return this.isExportingtoSvgOrPng || this.forceDisableIntroAnimation
     }
 
     @computed get mapConfig(): MapConfig {

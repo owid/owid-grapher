@@ -355,16 +355,25 @@ export const enrichedBlockExamples: Record<
     "research-and-writing": {
         type: "research-and-writing",
         parseErrors: [],
-        primary: {
-            value: {
-                url: "https://docs.google.com/document/d/abcd",
+        primary: [
+            {
+                value: {
+                    url: "https://docs.google.com/document/d/abcd",
+                },
             },
-        },
-        secondary: {
-            value: {
-                url: "https://docs.google.com/document/d/abcd",
+        ],
+        secondary: [
+            {
+                value: {
+                    url: "https://docs.google.com/document/d/1234",
+                },
             },
-        },
+            {
+                value: {
+                    url: "https://docs.google.com/document/d/5678",
+                },
+            },
+        ],
         more: {
             heading: "More Key Articles on Poverty",
             articles: [
@@ -416,6 +425,11 @@ export const enrichedBlockExamples: Record<
         type: "align",
         alignment: HorizontalAlign.center,
         content: [enrichedBlockText],
+        parseErrors: [],
+    },
+    "entry-summary": {
+        type: "entry-summary",
+        items: [{ text: "Hello", slug: "#link-to-something" }],
         parseErrors: [],
     },
 }
