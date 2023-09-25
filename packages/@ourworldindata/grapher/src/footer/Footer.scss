@@ -19,7 +19,7 @@
     }
 
     .sources a.learn-more-about-data,
-    .note a {
+    .note a:not(.dod-span) {
         text-decoration: underline;
 
         &:hover {
