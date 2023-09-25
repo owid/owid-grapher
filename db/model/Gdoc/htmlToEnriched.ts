@@ -21,7 +21,6 @@ import {
     EnrichedBlockChart,
     EnrichedBlockHtml,
     EnrichedBlockList,
-    EnrichedBlockStickyRightContainer,
     EnrichedBlockNumberedList,
     EnrichedBlockProminentLink,
     BlockImageSize,
@@ -541,40 +540,16 @@ function finishWpComponent(
                     content: [],
                 }
             }
-            // If one of the children is empty then don't create a two column layout but
-            // just return the non-empty child
-            if (firstChild.childrenResults.length === 0) {
-                return {
-                    errors,
-                    content: convertAllWpComponentsToArchieMLBlocks(
-                        secondChild.childrenResults
-                    ),
-                }
-            }
-            if (secondChild.childrenResults.length === 0) {
-                return {
-                    errors,
-                    content: convertAllWpComponentsToArchieMLBlocks(
-                        firstChild.childrenResults
-                    ),
-                }
-            }
-
-            // if both columns have content, create a sticky-right layout
+            // Originally we had more complex logic here:
+            // - 1 column with content, 1 column empty -> convert to a single column
+            // - 2 columns with content -> keep as is
+            // But now we want to convert everything to be a single column, so we just extract all the blocks and stack them
             return {
                 errors,
-                content: [
-                    {
-                        type: "sticky-right",
-                        left: convertAllWpComponentsToArchieMLBlocks(
-                            firstChild.childrenResults
-                        ),
-                        right: convertAllWpComponentsToArchieMLBlocks(
-                            secondChild.childrenResults
-                        ),
-                        parseErrors: [],
-                    } as EnrichedBlockStickyRightContainer,
-                ],
+                content: convertAllWpComponentsToArchieMLBlocks([
+                    ...firstChild.childrenResults,
+                    ...secondChild.childrenResults,
+                ]),
             }
         })
         .with("owid/prominent-link", () => {
