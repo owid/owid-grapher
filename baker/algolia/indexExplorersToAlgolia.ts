@@ -1,13 +1,18 @@
 import cheerio from "cheerio"
 import { isArray } from "lodash"
 import { match } from "ts-pattern"
-import { checkIsPlainObjectWithGuard } from "@ourworldindata/utils"
+import {
+    checkIsPlainObjectWithGuard,
+    identity,
+    keyBy,
+} from "@ourworldindata/utils"
 import { getAlgoliaClient } from "./configureAlgolia.js"
 import * as db from "../../db/db.js"
 import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
 import { Pageview } from "../../db/model/Pageview.js"
 import { chunkParagraphs } from "../chunk.js"
 import { SearchIndexName } from "../../site/search/searchTypes.js"
+import { Chart } from "../../db/model/Chart.js"
 
 type ExplorerBlockColumns = {
     type: "columns"
@@ -17,8 +22,9 @@ type ExplorerBlockColumns = {
 type ExplorerBlockGraphers = {
     type: "graphers"
     block: {
-        title: string
+        title?: string
         subtitle?: string
+        grapherId?: number
     }[]
 }
 
@@ -38,7 +44,10 @@ type ExplorerRecord = {
     text: string
 }
 
-function extractTextFromExplorer(blocksString: string): string {
+function extractTextFromExplorer(
+    blocksString: string,
+    graphersUsedInExplorers: Record<number, Chart | null>
+): string {
     const blockText = new Set<string>()
     const blocks = JSON.parse(blocksString)
 
@@ -61,9 +70,28 @@ function extractTextFromExplorer(blocksString: string): string {
                         { type: "graphers" },
                         (graphers: ExplorerBlockGraphers) => {
                             graphers.block.forEach(
-                                ({ title = "", subtitle = "" }) => {
+                                ({
+                                    title = "",
+                                    subtitle = "",
+                                    grapherId = undefined,
+                                }) => {
                                     blockText.add(title)
                                     blockText.add(subtitle)
+
+                                    if (grapherId !== undefined) {
+                                        const chartConfig =
+                                            graphersUsedInExplorers[grapherId]
+                                                ?.config
+
+                                        if (chartConfig) {
+                                            blockText.add(
+                                                chartConfig.title ?? ""
+                                            )
+                                            blockText.add(
+                                                chartConfig.subtitle ?? ""
+                                            )
+                                        }
+                                    }
                                 }
                             )
                         }
@@ -76,7 +104,7 @@ function extractTextFromExplorer(blocksString: string): string {
         }
     }
 
-    return [...blockText].join(" ")
+    return [...blockText].filter(identity).join(" ")
 }
 
 function getNullishJSONValueAsPlaintext(value: string): string {
@@ -85,6 +113,20 @@ function getNullishJSONValueAsPlaintext(value: string): string {
 
 const getExplorerRecords = async (): Promise<ExplorerRecord[]> => {
     const pageviews = await Pageview.getViewsByUrlObj()
+
+    // Fetch info about all charts used in explorers, as linked by the explorer_charts table
+    const graphersUsedInExplorers = await db
+        .queryMysql(
+            `
+        SELECT DISTINCT chartId
+        FROM explorer_charts
+        `
+        )
+        .then((results: { chartId: number }[]) =>
+            results.map(({ chartId }) => chartId)
+        )
+        .then((ids) => Promise.all(ids.map((id) => Chart.findOneBy({ id }))))
+        .then((charts) => keyBy(charts, "id"))
 
     const explorerRecords = await db
         .queryMysql(
@@ -99,7 +141,10 @@ const getExplorerRecords = async (): Promise<ExplorerRecord[]> => {
         )
         .then((results: ExplorerEntry[]) =>
             results.flatMap(({ slug, title, subtitle, blocks }) => {
-                const textFromExplorer = extractTextFromExplorer(blocks)
+                const textFromExplorer = extractTextFromExplorer(
+                    blocks,
+                    graphersUsedInExplorers
+                )
                 const uniqueTextTokens = new Set([
                     ...textFromExplorer.split(" "),
                 ])
