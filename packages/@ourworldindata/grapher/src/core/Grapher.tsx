@@ -764,26 +764,32 @@ export class Grapher
     }
 
     @action.bound
-    async downloadLegacyDataFromOwidVariableIds(): Promise<void> {
+    async downloadLegacyDataFromOwidVariableIds(
+        inputTableTransformer?: (table: OwidTable) => OwidTable
+    ): Promise<void> {
         if (this.variableIds.length === 0)
             // No data to download
             return
 
         try {
+            let variablesDataMap: MultipleOwidVariableDataDimensionsMap
             if (this.useAdminAPI) {
                 // TODO grapher model: switch this to downloading multiple data and metadata files
-                const variablesDataMap = await loadVariablesDataAdmin(
+                variablesDataMap = await loadVariablesDataAdmin(
                     this.dataApiUrlForAdmin,
                     this.variableIds
                 )
-                this._receiveOwidDataAndApplySelection(variablesDataMap)
             } else {
-                const variablesDataMap = await loadVariablesDataSite(
+                variablesDataMap = await loadVariablesDataSite(
                     this.variableIds,
                     this.dataApiUrl
                 )
-                this._receiveOwidDataAndApplySelection(variablesDataMap)
             }
+
+            this._receiveOwidDataAndApplySelection(
+                variablesDataMap,
+                inputTableTransformer
+            )
         } catch (err) {
             // eslint-disable-next-line no-console
             console.log(`Error fetching '${err}'`)
@@ -805,7 +811,8 @@ export class Grapher
 
     @action.bound private _setInputTable(
         json: MultipleOwidVariableDataDimensionsMap,
-        legacyConfig: Partial<LegacyGrapherInterface>
+        legacyConfig: Partial<LegacyGrapherInterface>,
+        inputTableTransformer?: (table: OwidTable) => OwidTable
     ): void {
         // TODO grapher model: switch this to downloading multiple data and metadata files
         const { dimensions, table } = legacyToOwidTableAndDimensions(
@@ -813,7 +820,10 @@ export class Grapher
             legacyConfig
         )
 
-        this.inputTable = table
+        if (inputTableTransformer)
+            this.inputTable = inputTableTransformer(table)
+        else this.inputTable = table
+
         // We need to reset the dimensions because some of them may have changed slugs in the legacy
         // transformation (can happen when columns use targetTime)
         this.setDimensionsFromConfigs(dimensions)
@@ -827,12 +837,15 @@ export class Grapher
         } else this.applyOriginalSelectionAsAuthored()
     }
 
-    @action rebuildInputOwidTable(): void {
+    @action rebuildInputOwidTable(
+        inputTableTransformer?: (table: OwidTable) => OwidTable
+    ): void {
         // TODO grapher model: switch this to downloading multiple data and metadata files
         if (!this.legacyVariableDataJson) return
         this._setInputTable(
             this.legacyVariableDataJson,
-            this.legacyConfigAsAuthored
+            this.legacyConfigAsAuthored,
+            inputTableTransformer
         )
     }
 
@@ -840,11 +853,12 @@ export class Grapher
     private legacyVariableDataJson?: MultipleOwidVariableDataDimensionsMap
 
     @action.bound private _receiveOwidDataAndApplySelection(
-        json: MultipleOwidVariableDataDimensionsMap
+        json: MultipleOwidVariableDataDimensionsMap,
+        inputTableTransformer?: (table: OwidTable) => OwidTable
     ): void {
         this.legacyVariableDataJson = json
 
-        this.rebuildInputOwidTable()
+        this.rebuildInputOwidTable(inputTableTransformer)
     }
 
     @action.bound appendNewEntitySelectionOptions(): void {
@@ -1025,7 +1039,7 @@ export class Grapher
         this.disposers.push(
             reaction(
                 () => this.variableIds,
-                this.downloadLegacyDataFromOwidVariableIds
+                () => this.downloadLegacyDataFromOwidVariableIds()
             )
         )
         const disposers = [
