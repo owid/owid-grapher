@@ -1,5 +1,6 @@
 import cheerio from "cheerio"
 import React from "react"
+import * as lodash from "lodash"
 import ReactDOMServer from "react-dom/server.js"
 import {
     FormattedPost,
@@ -43,7 +44,10 @@ export const formatUrls = (html: string) => {
 
     // Replace all occurrences of the wordpress uploads directory (which comes from WP as /app/uploads) with the url to be used
     formatted = formatted.replace(
-        new RegExp(`${BAKED_BASE_URL}(/app)?/uploads`, "g"),
+        new RegExp(
+            `${lodash.escapeRegExp(BAKED_BASE_URL)}(/app)?/uploads`,
+            "g"
+        ),
         BAKED_WORDPRESS_UPLOADS_URL
     )
     return formatted
