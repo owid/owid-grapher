@@ -107,9 +107,14 @@ const getExplorerRecords = async (): Promise<ExplorerRecord[]> => {
                     [...uniqueTextTokens].join(" "),
                     1000
                 )
+
+                // In case we don't have any text for this explorer, we still want to index it
+                const textChunksForIteration = textChunks.length
+                    ? textChunks
+                    : [""]
                 const explorerRecords = []
                 let i = 0
-                for (const chunk of textChunks) {
+                for (const chunk of textChunksForIteration) {
                     explorerRecords.push({
                         slug,
                         title: getNullishJSONValueAsPlaintext(title),
