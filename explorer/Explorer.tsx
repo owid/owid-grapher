@@ -7,6 +7,7 @@ import {
     extractPotentialDataSlugsFromTransform,
     OwidColumnDef,
     OwidTable,
+    OwidTableSlugs,
     SortOrder,
     TableSlug,
 } from "@ourworldindata/core-table"
@@ -1036,7 +1037,9 @@ export class Explorer
             ])
             return allColumnDefs.filter(
                 (def) =>
-                    def.type === undefined || !discardColumnTypes.has(def.type)
+                    (def.type === undefined ||
+                        !discardColumnTypes.has(def.type)) &&
+                    def.slug !== undefined
             )
         }
     }

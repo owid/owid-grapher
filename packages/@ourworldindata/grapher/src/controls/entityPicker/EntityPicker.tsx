@@ -21,6 +21,8 @@ import {
     getUserCountryInformation,
     regions,
     sortBy,
+    upperFirst,
+    compact,
 } from "@ourworldindata/utils"
 import { VerticalScrollContainer } from "../../controls/VerticalScrollContainer"
 import { SortIcon } from "../../controls/SortIcon"
@@ -120,8 +122,16 @@ export class EntityPicker extends React.Component<{
         label: string
         value: string | undefined
     }[] {
-        return [
+        const entityNameColumn = this.grapherTable?.entityNameColumn
+        const entityNameColumnInPickerColumnDefs = !!this.pickerColumnDefs.find(
+            (col) => col.slug === entityNameColumn?.slug
+        )
+        return compact([
             { label: "Relevance", value: undefined },
+            !entityNameColumnInPickerColumnDefs && {
+                label: upperFirst(this.manager.entityType) ?? "Name",
+                value: entityNameColumn?.slug,
+            },
             ...this.pickerColumnDefs.map(
                 (
                     col
@@ -135,11 +145,13 @@ export class EntityPicker extends React.Component<{
                     }
                 }
             ),
-        ]
+        ])
     }
 
     private getColumn(slug: ColumnSlug | undefined): CoreColumn | undefined {
         if (slug === undefined) return undefined
+        if (slug === OwidTableSlugs.entityName)
+            return this.manager.grapherTable?.entityNameColumn
         return this.manager.entityPickerTable?.get(slug)
     }
 
@@ -461,12 +473,7 @@ export class EntityPicker extends React.Component<{
     }
 
     private get pickerMenu(): JSX.Element | null {
-        if (
-            this.isDropdownMenu ||
-            !this.manager.entityPickerColumnDefs ||
-            this.manager.entityPickerColumnDefs.length === 0
-        )
-            return null
+        if (this.isDropdownMenu) return null
         return (
             <div className="MetricSettings">
                 <span className="mainLabel">Sort by</span>
