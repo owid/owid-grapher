@@ -570,7 +570,6 @@ export class Explorer
         config.dimensions = dimensions
         if (config.ySlugs && yVariableIds) config.ySlugs += " " + yVariableIds
 
-        grapher._isReadyOverride = false
         grapher.setAuthoredVersion(config)
         grapher.reset()
         this.updateGrapherFromExplorerCommon()
@@ -616,7 +615,6 @@ export class Explorer
         })
 
         this.setGrapherTable(grapherTable)
-        grapher._isReadyOverride = true
     }
 
     @action.bound private updateGrapherFromExplorerUsingColumnSlugs() {
