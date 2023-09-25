@@ -359,6 +359,7 @@ export class Grapher
     /** Hides the total value label that is normally displayed for stacked bar charts */
     @observable.ref hideTotalValueLabel?: boolean = undefined
     @observable.ref missingDataStrategy?: MissingDataStrategy = undefined
+    @observable.ref showSelectionOnlyInDataTable?: boolean = undefined
 
     @observable.ref xAxis = new AxisConfig(undefined, this)
     @observable.ref yAxis = new AxisConfig(undefined, this)
@@ -1995,12 +1996,6 @@ export class Grapher
                 combo: "l",
                 fn: (): void => this.toggleYScaleTypeCommand(),
                 title: "Toggle Y log/linear",
-                category: "Chart",
-            },
-            {
-                combo: "space",
-                fn: (): void => this.toggleFullScreenMode(),
-                title: "Toggle full-screen mode",
                 category: "Chart",
             },
             {
