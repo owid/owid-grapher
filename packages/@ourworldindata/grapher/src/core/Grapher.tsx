@@ -399,6 +399,8 @@ export class Grapher
     @observable sortOrder?: SortOrder
     @observable sortColumnSlug?: string
 
+    @observable _isReadyOverride: boolean = true
+
     owidDataset?: MultipleOwidVariableDataDimensionsMap = undefined // This is used for passing data for testing
 
     manuallyProvideData? = false // This will be removed.
@@ -874,7 +876,7 @@ export class Grapher
 
     // Ready to go iff we have retrieved data for every variable associated with the chart
     @computed get isReady(): boolean {
-        return this.whatAreWeWaitingFor === ""
+        return this._isReadyOverride && this.whatAreWeWaitingFor === ""
     }
 
     @computed get whatAreWeWaitingFor(): string {
