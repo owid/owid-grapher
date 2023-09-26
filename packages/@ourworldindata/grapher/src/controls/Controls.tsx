@@ -329,6 +329,7 @@ export class SettingsMenu extends React.Component<{
             showZoomToggle,
             showNoDataAreaToggle,
             showFacetControl,
+            showFacetYDomainToggle,
             showAbsRelToggle,
         } = this
 
@@ -382,14 +383,15 @@ export class SettingsMenu extends React.Component<{
                             showAbsRelToggle ||
                             showZoomToggle ||
                             showNoDataAreaToggle ||
-                            showFacetControl
+                            showFacetControl ||
+                            showFacetYDomainToggle
                         }
                     >
                         {showFacetControl && (
-                            <>
-                                <FacetStrategySelector manager={manager} />
-                                <FacetYDomainToggle manager={manager} />
-                            </>
+                            <FacetStrategySelector manager={manager} />
+                        )}
+                        {showFacetYDomainToggle && (
+                            <FacetYDomainToggle manager={manager} />
                         )}
                         {showAbsRelToggle && <AbsRelToggle manager={manager} />}
                         {showNoDataAreaToggle && (
