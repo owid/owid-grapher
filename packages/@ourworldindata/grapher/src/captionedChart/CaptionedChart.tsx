@@ -173,8 +173,20 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         return !this.manager.isOnMapTab && hasStrategy
     }
 
-    @computed get showControlsRow(): boolean {
+    @computed get showContentSwitchers(): boolean {
         return (this.manager.availableTabs?.length ?? 0) > 1
+    }
+
+    @computed get showControls(): boolean {
+        return (
+            SettingsMenu.shouldShow(this.manager) ||
+            EntitySelectorToggle.shouldShow(this.manager) ||
+            MapProjectionMenu.shouldShow(this.manager)
+        )
+    }
+
+    @computed get showControlsRow(): boolean {
+        return this.showContentSwitchers || this.showControls
     }
 
     @computed get chartTypeName(): ChartTypeName {
@@ -228,9 +240,12 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     }
 
     private renderControlsRow(): JSX.Element {
+        const { showContentSwitchers } = this
         return (
             <nav className="controlsRow">
-                <ContentSwitchers manager={this.manager} />
+                {showContentSwitchers && (
+                    <ContentSwitchers manager={this.manager} />
+                )}
                 <div className="controls">
                     <EntitySelectorToggle manager={this.manager} />
                     <SettingsMenu
