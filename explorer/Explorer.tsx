@@ -461,6 +461,7 @@ export class Explorer
             ...this.explorerProgram.grapherConfigOnlyGrapherProps,
             bakedGrapherURL: BAKED_GRAPHER_URL,
             hideEntityControls: this.showExplorerControls,
+            manuallyProvideData: false,
         }
 
         grapher.setAuthoredVersion(config)
@@ -498,6 +499,7 @@ export class Explorer
             ...this.explorerProgram.grapherConfigOnlyGrapherProps,
             bakedGrapherURL: BAKED_GRAPHER_URL,
             hideEntityControls: this.showExplorerControls,
+            manuallyProvideData: false,
         }
 
         // set given variable IDs as dimensions to make Grapher
@@ -952,14 +954,14 @@ export class Explorer
     })
 
     private updateEntityPickerTable(): void {
-        if (this.entityPickerMetric) {
-            this.entityPickerTableIsLoading = true
-            this.futureEntityPickerTable.set(
-                this.tableLoader.get(
-                    this.getTableSlugOfColumnSlug(this.entityPickerMetric)
-                )
-            )
-        }
+        // If we don't currently have a entity picker metric, then set pickerTable to the currently-used table anyways,
+        // so that when we start sorting by entity name we can infer that the column is a string column immediately.
+        const tableSlugToLoad = this.entityPickerMetric
+            ? this.getTableSlugOfColumnSlug(this.entityPickerMetric)
+            : this.explorerProgram.grapherConfig.tableSlug
+
+        this.entityPickerTableIsLoading = true
+        this.futureEntityPickerTable.set(this.tableLoader.get(tableSlugToLoad))
     }
 
     setEntityPicker({
@@ -1036,7 +1038,9 @@ export class Explorer
             ])
             return allColumnDefs.filter(
                 (def) =>
-                    def.type === undefined || !discardColumnTypes.has(def.type)
+                    (def.type === undefined ||
+                        !discardColumnTypes.has(def.type)) &&
+                    def.slug !== undefined
             )
         }
     }

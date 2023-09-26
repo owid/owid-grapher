@@ -97,6 +97,12 @@ export class SourcesTab extends React.Component<{
                       )
                   )
                 : []
+
+        const publishedByArray = [
+            ...(source.dataPublishedBy ? [source.dataPublishedBy] : []),
+            ...citationFull,
+        ]
+
         return (
             <div key={slug} className="datasource-wrapper">
                 <h2>
@@ -151,23 +157,23 @@ export class SourcesTab extends React.Component<{
                                 <td>{column.unitConversionFactor}</td>
                             </tr>
                         ) : null}
-                        {citationFull.length === 1 ? (
+                        {publishedByArray.length === 1 ? (
                             <tr>
                                 <td>Data published by</td>
                                 <td>
                                     <MarkdownTextWrap
-                                        text={citationFull[0]}
+                                        text={publishedByArray[0]}
                                         fontSize={12}
                                     />
                                 </td>
                             </tr>
                         ) : null}
-                        {citationFull.length > 1 ? (
+                        {publishedByArray.length > 1 ? (
                             <tr>
                                 <td>Data published by</td>
                                 <td>
                                     <ul>
-                                        {citationFull.map(
+                                        {publishedByArray.map(
                                             (
                                                 citation: string,
                                                 index: number
@@ -181,18 +187,6 @@ export class SourcesTab extends React.Component<{
                                             )
                                         )}
                                     </ul>
-                                </td>
-                            </tr>
-                        ) : null}
-                        {(!citationFull || citationFull.length === 0) &&
-                        source.dataPublishedBy ? (
-                            <tr>
-                                <td>Data published by</td>
-                                <td>
-                                    <HtmlOrMarkdownText
-                                        text={source.dataPublishedBy}
-                                        fontSize={12}
-                                    />
                                 </td>
                             </tr>
                         ) : null}
