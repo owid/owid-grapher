@@ -157,21 +157,15 @@ const getExplorerRecords = async (): Promise<ExplorerRecord[]> => {
                 const textChunksForIteration = textChunks.length
                     ? textChunks
                     : [""]
-                const explorerRecords = []
-                let i = 0
-                for (const chunk of textChunksForIteration) {
-                    explorerRecords.push({
-                        slug,
-                        title: getNullishJSONValueAsPlaintext(title),
-                        subtitle: getNullishJSONValueAsPlaintext(subtitle),
-                        views_7d:
-                            pageviews[`/explorers/${slug}`]?.views_7d || 0,
-                        text: chunk,
-                        objectID: `${slug}-${i}`,
-                    })
-                    i++
-                }
-                return explorerRecords
+
+                return textChunksForIteration.map((chunk, i) => ({
+                    slug,
+                    title: getNullishJSONValueAsPlaintext(title),
+                    subtitle: getNullishJSONValueAsPlaintext(subtitle),
+                    views_7d: pageviews[`/explorers/${slug}`]?.views_7d ?? 0,
+                    text: chunk,
+                    objectID: `${slug}-${i}`,
+                }))
             })
         )
 
