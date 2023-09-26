@@ -952,14 +952,14 @@ export class Explorer
     })
 
     private updateEntityPickerTable(): void {
-        if (this.entityPickerMetric) {
-            this.entityPickerTableIsLoading = true
-            this.futureEntityPickerTable.set(
-                this.tableLoader.get(
-                    this.getTableSlugOfColumnSlug(this.entityPickerMetric)
-                )
-            )
-        }
+        // If we don't currently have a entity picker metric, then set pickerTable to the currently-used table anyways,
+        // so that when we start sorting by entity name we can infer that the column is a string column immediately.
+        const tableSlugToLoad = this.entityPickerMetric
+            ? this.getTableSlugOfColumnSlug(this.entityPickerMetric)
+            : this.explorerProgram.grapherConfig.tableSlug
+
+        this.entityPickerTableIsLoading = true
+        this.futureEntityPickerTable.set(this.tableLoader.get(tableSlugToLoad))
     }
 
     setEntityPicker({
