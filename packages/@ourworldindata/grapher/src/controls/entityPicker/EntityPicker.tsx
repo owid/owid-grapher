@@ -21,6 +21,8 @@ import {
     getUserCountryInformation,
     regions,
     sortBy,
+    upperFirst,
+    compact,
 } from "@ourworldindata/utils"
 import { VerticalScrollContainer } from "../../controls/VerticalScrollContainer"
 import { SortIcon } from "../../controls/SortIcon"
@@ -120,8 +122,17 @@ export class EntityPicker extends React.Component<{
         label: string
         value: string | undefined
     }[] {
-        return [
+        const entityNameColumn = this.grapherTable?.entityNameColumn
+        const entityNameColumnInPickerColumnDefs = !!this.pickerColumnDefs.find(
+            (col) => col.slug === entityNameColumn?.slug
+        )
+        return compact([
             { label: "Relevance", value: undefined },
+            !entityNameColumnInPickerColumnDefs &&
+                entityNameColumn && {
+                    label: upperFirst(this.manager.entityType) || "Name",
+                    value: entityNameColumn?.slug,
+                },
             ...this.pickerColumnDefs.map(
                 (
                     col
@@ -135,16 +146,24 @@ export class EntityPicker extends React.Component<{
                     }
                 }
             ),
-        ]
+        ])
     }
 
-    private getColumn(slug: ColumnSlug | undefined): CoreColumn | undefined {
-        if (slug === undefined) return undefined
-        return this.manager.entityPickerTable?.get(slug)
+    @computed private get metricTable(): OwidTable | undefined {
+        if (this.metric === undefined) return undefined
+
+        // If the slug is "entityName", then try to get it from grapherTable first, because it might
+        // not be present in pickerTable (for indicator-powered explorers, for example).
+        if (
+            this.metric === OwidTableSlugs.entityName &&
+            this.grapherTable?.has(this.metric)
+        )
+            return this.grapherTable
+        return this.pickerTable
     }
 
     @computed private get activePickerMetricColumn(): CoreColumn | undefined {
-        return this.getColumn(this.metric)
+        return this.metricTable?.get(this.metric)
     }
 
     @computed private get availableEntitiesForCurrentView(): Set<string> {
@@ -178,13 +197,13 @@ export class EntityPicker extends React.Component<{
 
     @computed
     private get entitiesWithMetricValue(): EntityOptionWithMetricValue[] {
-        const { pickerTable, selection, localEntityNames } = this
+        const { metricTable, selection, localEntityNames } = this
         const col = this.activePickerMetricColumn
         const entityNames = selection.availableEntityNames.slice().sort()
         return entityNames.map((entityName) => {
             const plotValue =
-                col && pickerTable
-                    ? (pickerTable.getLatestValueForEntity(
+                col && metricTable?.has(col.slug)
+                    ? (metricTable.getLatestValueForEntity(
                           entityName,
                           col.slug
                       ) as string | number)
@@ -435,7 +454,7 @@ export class EntityPicker extends React.Component<{
     }
 
     @action private updateMetric(columnSlug: ColumnSlug): void {
-        const col = this.getColumn(columnSlug)
+        const col = this.pickerTable?.get(columnSlug)
 
         this.manager.setEntityPicker?.({
             metric: columnSlug,
@@ -453,6 +472,7 @@ export class EntityPicker extends React.Component<{
         return (
             // If columnSlug is undefined, we're sorting by relevance, which is (mostly) by country name.
             columnSlug !== undefined &&
+            columnSlug !== OwidTableSlugs.entityName &&
             // If the column is currently missing (not loaded yet), assume it is numeric.
             (col === undefined ||
                 col.isMissing ||
@@ -461,12 +481,7 @@ export class EntityPicker extends React.Component<{
     }
 
     private get pickerMenu(): JSX.Element | null {
-        if (
-            this.isDropdownMenu ||
-            !this.manager.entityPickerColumnDefs ||
-            this.manager.entityPickerColumnDefs.length === 0
-        )
-            return null
+        if (this.isDropdownMenu) return null
         return (
             <div className="MetricSettings">
                 <span className="mainLabel">Sort by</span>
