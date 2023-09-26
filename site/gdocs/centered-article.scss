@@ -15,11 +15,12 @@
 }
 
 .centered-article-container {
+    // !important because we never want this to be overwritten
     .ref {
-        color: $vermillion;
-        text-decoration: none;
+        color: $vermillion !important;
+        text-decoration: none !important;
         &:visited {
-            color: $vermillion;
+            color: $vermillion !important;
         }
     }
 }
