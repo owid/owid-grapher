@@ -142,21 +142,21 @@
                     border-color: $header-hover;
                 }
 
-                > div {
+                .content {
                     display: flex;
                     align-items: start;
                     justify-content: flex-end;
                     gap: 6px;
                 }
 
-                &.entity > div {
+                &.entity .content {
                     justify-content: flex-start;
                 }
 
                 .sort-icon {
                     color: $sort-icon;
                     font-size: 13px;
-                    width: 19px;
+                    width: 19px; // keeps column widths fixed when sorting
                     text-align: right;
 
                     &.active {
