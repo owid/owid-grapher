@@ -2423,9 +2423,16 @@ apiRouter.put("/deploy", async (req: Request, res: Response) => {
     triggerStaticBuild(res.locals.user, "Manually triggered deploy")
 })
 
-apiRouter.get("/gdocs", async () =>
-    Gdoc.find({ relations: ["tags"], order: { updatedAt: "DESC" } })
-)
+apiRouter.get("/gdocs", async () => {
+    // orderBy was leading to a sort buffer overflow (ER_OUT_OF_SORTMEMORY) with MySQL's default sort_buffer_size
+    // when the posts_gdocs table got larger than 9MB, so we sort in memory
+    return Gdoc.find({ relations: ["tags"] }).then((gdocs) =>
+        gdocs.sort((a, b) => {
+            if (!a.updatedAt || !b.updatedAt) return 0
+            return b.updatedAt.getTime() - a.updatedAt.getTime()
+        })
+    )
+})
 
 apiRouter.get("/gdocs/:id", async (req, res) => {
     const id = req.params.id
