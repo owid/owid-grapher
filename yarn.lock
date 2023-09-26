@@ -4896,6 +4896,44 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@ourworldindata/grapher@file:../packages/@ourworldindata/grapher::locator=owid-thumbnails%40workspace%3Afunctions":
+  version: 0.0.0
+  resolution: "@ourworldindata/grapher@file:../packages/@ourworldindata/grapher#../packages/@ourworldindata/grapher::hash=d5a79d&locator=owid-thumbnails%40workspace%3Afunctions"
+  dependencies:
+    "@bugsnag/core": ^7.19.0
+    "@bugsnag/js": ^7.20.0
+    "@bugsnag/plugin-react": ^7.19.0
+    "@fortawesome/fontawesome-svg-core": ^6.4.2
+    "@fortawesome/free-brands-svg-icons": ^6.4.2
+    "@fortawesome/free-solid-svg-icons": ^6.4.2
+    "@fortawesome/react-fontawesome": ^0.2.0
+    "@ourworldindata/core-table": "workspace:^"
+    "@ourworldindata/utils": "workspace:^"
+    "@tippyjs/react": ^4.2.6
+    classnames: ^2.3.1
+    colorbrewer: ^1.3.0
+    d3: ^6.1.1
+    decko: ^1.2.0
+    expr-eval: ^2.0.2
+    fuzzysort: ^1.1.4
+    js-cookie: ^3.0.1
+    mobx: ^5.15.7
+    mobx-formatters: ^1.0.2
+    mobx-react: 5
+    mousetrap: ^1.6.5
+    react: ^16.14.0
+    react-dom: ^16.14.0
+    react-flip-toolkit: ^7.0.9
+    react-move: ^6.5.0
+    react-select: ^5.7.3
+    simple-statistics: ^7.3.2
+    topojson-client: ^3.1.0
+    ts-pattern: ^4.0.4
+    url-parse: ^1.5.10
+  checksum: 5d9bae0070aa3474dd5a60fc35d8f4bcfcaee8a65a7fb804b16230c46d16b68e5d9dd6b4fb796f09441078d8336c615ababd60730d8b6d4e931cf6074364a61d
+  languageName: node
+  linkType: hard
+
 "@ourworldindata/grapher@workspace:^, @ourworldindata/grapher@workspace:packages/@ourworldindata/grapher":
   version: 0.0.0-use.local
   resolution: "@ourworldindata/grapher@workspace:packages/@ourworldindata/grapher"
@@ -4953,6 +4991,32 @@ __metadata:
     url-parse: ^1.5.10
   languageName: unknown
   linkType: soft
+
+"@ourworldindata/utils@file:../packages/@ourworldindata/utils::locator=owid-thumbnails%40workspace%3Afunctions":
+  version: 0.0.0
+  resolution: "@ourworldindata/utils@file:../packages/@ourworldindata/utils#../packages/@ourworldindata/utils::hash=7c15f4&locator=owid-thumbnails%40workspace%3Afunctions"
+  dependencies:
+    "@tippyjs/react": ^4.2.6
+    d3: ^6.1.1
+    dayjs: ^1.11.5
+    json8-pointer: ^1.0.6
+    linkifyjs: ^2.1.9
+    lodash: ^4.17.20
+    mobx: ^5.15.7
+    mobx-react: 5
+    parsimmon: ^1.18.1
+    react: ^16.14.0
+    react-select: ^5.7.3
+    react-tag-autocomplete: ^7.1.0
+    s-expression: ^3.1.1
+    string-pixel-width: ^1.10.0
+    striptags: ^3.2.0
+    timezone-mock: ^1.0.18
+    ts-pattern: ^4.0.4
+    url-parse: ^1.5.10
+  checksum: 75472aa64fe24c2e3fa160baeab197ae60b61e09d284e97b4fbf9e74c35c7214b3b7fb69e61731abfc6492f37a06e2fa8ccd2e860dd7028a67c03ee061b46d78
+  languageName: node
+  linkType: hard
 
 "@ourworldindata/utils@workspace:^, @ourworldindata/utils@workspace:packages/@ourworldindata/utils":
   version: 0.0.0-use.local
@@ -15638,6 +15702,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"itty-router@npm:^4.0.23":
+  version: 4.0.23
+  resolution: "itty-router@npm:4.0.23"
+  checksum: 1bd5da475e5316fcdd50bb312e98bbc5787edc0695b3a21ea3c6b2a5e178e7c59eb7a68ae7bd97bafa6e3e1131cac3e1993c9a8f8f5ff7e6e637fdaa4a1efa9e
+  languageName: node
+  linkType: hard
+
 "jackspeak@npm:^2.0.3":
   version: 2.2.1
   resolution: "jackspeak@npm:2.2.1"
@@ -19269,6 +19340,17 @@ __metadata:
   checksum: 505f48a4f4f1c557d6c656ec985707726e3714721680139be037613e903aa8c8fa4ddd8d1342006f9b2dc0065e6e20f8b7bea2ee05354f31257044790367b347
   languageName: node
   linkType: hard
+
+"owid-thumbnails@workspace:functions":
+  version: 0.0.0-use.local
+  resolution: "owid-thumbnails@workspace:functions"
+  dependencies:
+    "@ourworldindata/grapher": "file:../packages/@ourworldindata/grapher"
+    "@ourworldindata/utils": "file:../packages/@ourworldindata/utils"
+    itty-router: ^4.0.23
+    svg2png-wasm: ^1.4.0
+  languageName: unknown
+  linkType: soft
 
 "p-cancelable@npm:^3.0.0":
   version: 3.0.0
@@ -23579,6 +23661,13 @@ __metadata:
   version: 1.0.0
   resolution: "supports-preserve-symlinks-flag@npm:1.0.0"
   checksum: 53b1e247e68e05db7b3808b99b892bd36fb096e6fba213a06da7fab22045e97597db425c724f2bbd6c99a3c295e1e73f3e4de78592289f38431049e1277ca0ae
+  languageName: node
+  linkType: hard
+
+"svg2png-wasm@npm:^1.4.0":
+  version: 1.4.0
+  resolution: "svg2png-wasm@npm:1.4.0"
+  checksum: 44fdb5bbef921d6f2d8628cef2a29b4e0be9194f4f56c9f6835f248ddda8d510f75911059fc35242c109c49a46058b8791644500d11acabb865c624144c3f7f9
   languageName: node
   linkType: hard
 

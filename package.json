@@ -259,6 +259,7 @@
     ],
     "name": "grapher",
     "workspaces": [
+        "functions",
         "packages/@ourworldindata/*",
         "."
     ],
