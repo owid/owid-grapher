@@ -40,15 +40,16 @@
 }
 
 .research-and-writing-link {
+    h2,
     h3 {
         @include owid-link-90;
-        @include h2-bold;
         margin-top: 16px;
         margin-bottom: 8px;
         text-decoration: none;
     }
 
     &:hover {
+        h2,
         h3 {
             text-decoration: underline;
         }
