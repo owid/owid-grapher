@@ -60,29 +60,58 @@ export interface EntitySelectionManager {
 export class EntitySelectorToggle extends React.Component<{
     manager: EntitySelectionManager
 }> {
-    render(): JSX.Element | null {
+    static shouldShow(manager: EntitySelectionManager): boolean {
+        const toggle = new EntitySelectorToggle({ manager })
+        return toggle.showToggle
+    }
+
+    @computed get showToggle(): boolean {
+        const { isOnTableTab, isOnMapTab } = this.props.manager,
+            isChart = !(isOnMapTab || isOnTableTab)
+        return !!(isChart && this.icon && this.label)
+    }
+
+    @computed get label(): string | null {
+        const {
+            entityType,
+            entityTypePlural,
+            showSelectEntitiesButton,
+            showChangeEntityButton,
+            showAddEntityButton,
+        } = this.props.manager
+
+        return showSelectEntitiesButton
+            ? `Select ${entityTypePlural}`
+            : showChangeEntityButton
+            ? `Change ${entityType}`
+            : showAddEntityButton
+            ? `Edit ${entityTypePlural}`
+            : null
+    }
+
+    @computed get icon(): JSX.Element | null {
         const {
             showSelectEntitiesButton,
             showChangeEntityButton,
             showAddEntityButton,
-            entityType,
-            entityTypePlural,
-            isSelectingData: active,
-            isOnTableTab,
-            isOnMapTab,
         } = this.props.manager
 
-        if (isOnMapTab || isOnTableTab) return null
-
-        const [icon, label] = showSelectEntitiesButton
-            ? [faEye, `Select ${entityTypePlural}`]
+        const icon = showSelectEntitiesButton
+            ? faEye
             : showChangeEntityButton
-            ? [faRightLeft, `Change ${entityType}`]
+            ? faRightLeft
             : showAddEntityButton
-            ? [faPencilAlt, `Edit ${entityTypePlural}`]
-            : []
+            ? faPencilAlt
+            : null
 
-        return icon && label ? (
+        return icon && <FontAwesomeIcon icon={icon} />
+    }
+
+    render(): JSX.Element | null {
+        const { showToggle, icon, label } = this
+        const { isSelectingData: active } = this.props.manager
+
+        return showToggle && icon && label ? (
             <div className="entity-selection-menu">
                 <button
                     className={classnames("menu-toggle", { active })}
@@ -90,7 +119,7 @@ export class EntitySelectorToggle extends React.Component<{
                         this.props.manager.isSelectingData = !active
                     }}
                 >
-                    <FontAwesomeIcon icon={icon} /> {label}
+                    {icon} {label}
                 </button>
             </div>
         ) : null
@@ -157,6 +186,11 @@ export class SettingsMenu extends React.Component<{
 }> {
     @observable.ref active: boolean = false // set to true when the menu's display has been requested
     @observable.ref visible: boolean = false // true while menu is active and during enter/exit transitions
+
+    static shouldShow(manager: SettingsMenuManager): boolean {
+        const test = new SettingsMenu({ manager, top: 0, bottom: 0 })
+        return test.showSettingsMenuToggle
+    }
 
     @computed get showYScaleToggle(): boolean | undefined {
         if (this.manager.hideYScaleToggle) return false
@@ -816,12 +850,24 @@ interface MapProjectionMenuItem {
 export class MapProjectionMenu extends React.Component<{
     manager: MapProjectionMenuManager
 }> {
+    static shouldShow(manager: MapProjectionMenuManager): boolean {
+        const menu = new MapProjectionMenu({ manager })
+        return menu.showMenu
+    }
+
+    @computed get showMenu(): boolean {
+        // TODO: make hiding the menu configurable from gdocs
+        const { isOnMapTab, mapConfig } = this.props.manager,
+            { projection } = mapConfig ?? {}
+        return !!(isOnMapTab && projection)
+    }
+
     @action.bound onChange(selected: MapProjectionMenuItem | null): void {
         const { mapConfig } = this.props.manager
         if (selected && mapConfig) mapConfig.projection = selected.value
     }
 
-    @computed get options(): { value: MapProjectionName; label: string }[] {
+    @computed get options(): MapProjectionMenuItem[] {
         return Object.values(MapProjectionName).map((projectName) => {
             return {
                 value: projectName,
@@ -830,16 +876,18 @@ export class MapProjectionMenu extends React.Component<{
         })
     }
 
-    render(): JSX.Element | null {
-        const { isOnMapTab } = this.props.manager,
-            { projection } = this.props.manager.mapConfig ?? {}
+    @computed get value(): MapProjectionMenuItem | null {
+        const { projection } = this.props.manager.mapConfig ?? {}
+        return this.options.find((opt) => projection === opt.value) ?? null
+    }
 
-        return isOnMapTab && projection ? (
+    render(): JSX.Element | null {
+        return this.showMenu ? (
             <div className="map-projection-menu">
                 <Select
                     options={this.options}
                     onChange={this.onChange}
-                    value={this.options.find((opt) => projection === opt.value)}
+                    value={this.value}
                     menuPlacement="bottom"
                     components={{
                         IndicatorSeparator: null,
