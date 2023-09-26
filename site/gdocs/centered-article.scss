@@ -329,6 +329,9 @@ h3.article-block__heading.has-supertitle {
     }
     .footnote-list {
         column-count: 2;
+        &.footnote-list--single-column {
+            column-count: 1;
+        }
         column-span: none;
         column-gap: 48px;
         color: $blue-60;
