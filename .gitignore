@@ -37,3 +37,4 @@ packages/@ourworldindata/*/dist/
 packages/@ourworldindata/*/node_modules
 wpmigration
 dist/
+.wrangler/
