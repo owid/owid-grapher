@@ -20,6 +20,8 @@ export interface EntitySelectorModalManager {
     canChangeEntity: boolean
     isSelectingData?: boolean
     tabBounds?: Bounds
+    entityType?: string
+    entityTypePlural?: string
 }
 
 interface SearchableEntity {
@@ -169,11 +171,16 @@ export class EntitySelectorModal extends React.Component<{
     }
 
     render(): JSX.Element {
-        const { selectionArray, searchResults, searchInput } = this
+        const { selectionArray, searchResults, searchInput, isMulti, manager } =
+            this
+
+        const title = isMulti
+            ? `Add/remove ${manager.entityTypePlural || "countries or regions"}`
+            : `Choose ${manager.entityType || "country or region"}`
 
         return (
             <Modal
-                title="Choose data to show"
+                title={title}
                 onDismiss={this.onDismiss}
                 bounds={this.modalBounds}
                 isHeightFixed={true}
