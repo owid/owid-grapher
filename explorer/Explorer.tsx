@@ -466,6 +466,7 @@ export class Explorer
             ...this.explorerProgram.grapherConfigOnlyGrapherProps,
             bakedGrapherURL: BAKED_GRAPHER_URL,
             hideEntityControls: this.showExplorerControls,
+            manuallyProvideData: false,
         }
 
         grapher.setAuthoredVersion(config)
@@ -503,6 +504,7 @@ export class Explorer
             ...this.explorerProgram.grapherConfigOnlyGrapherProps,
             bakedGrapherURL: BAKED_GRAPHER_URL,
             hideEntityControls: this.showExplorerControls,
+            manuallyProvideData: false,
         }
 
         // set given variable IDs as dimensions to make Grapher
