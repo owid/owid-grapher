@@ -28,25 +28,31 @@ export const onRequestGet: PagesFunction = async (context) => {
         search ? "&" + search.slice(1) : ""
     }`
 
+    // Take the origin (e.g. https://ourworldindata.org) from the canonical URL, which should appear before the image elements.
+    // If we fail to capture the origin, we end up with relative image URLs, which should also be okay.
+    let origin = ""
+
     // Rewrite the two meta tags that are used for a social media preview image.
     const rewriter = new HTMLRewriter()
         .on('meta[property="og:url"]', {
             // Replace canonical URL, otherwise the preview image will not include the search parameters.
             element: (element) => {
+                const canonicalUrl = element.getAttribute("content")
                 element.setAttribute(
                     "content",
-                    element.getAttribute("content") + search
+                    canonicalUrl + search
                 )
+                origin = new URL(canonicalUrl).origin
             },
         })
         .on('meta[property="og:image"]', {
             element: (element) => {
-                element.setAttribute("content", openGraphThumbnailUrl)
+                element.setAttribute("content", origin + openGraphThumbnailUrl)
             },
         })
         .on('meta[name="twitter:image"]', {
             element: (element) => {
-                element.setAttribute("content", twitterThumbnailUrl)
+                element.setAttribute("content", origin + twitterThumbnailUrl)
             },
         })
 
