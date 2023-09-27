@@ -2182,6 +2182,9 @@ export class Grapher
             document.documentElement.classList.remove("no-scroll")
         }
 
+        // dismiss the share menu
+        this.isShareMenuActive = false
+
         this._isInFullScreenMode = newValue
     }
 
