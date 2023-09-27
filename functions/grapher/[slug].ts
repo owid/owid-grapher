@@ -38,10 +38,7 @@ export const onRequestGet: PagesFunction = async (context) => {
             // Replace canonical URL, otherwise the preview image will not include the search parameters.
             element: (element) => {
                 const canonicalUrl = element.getAttribute("content")
-                element.setAttribute(
-                    "content",
-                    canonicalUrl + search
-                )
+                element.setAttribute("content", canonicalUrl + search)
                 origin = new URL(canonicalUrl).origin
             },
         })
