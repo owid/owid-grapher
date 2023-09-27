@@ -13,6 +13,7 @@ import PlayfairRegular from "../_common/fonts/PlayfairDisplayLatin-Regular.ttf.b
 import { Env } from "../grapher/thumbnail/[slug].js"
 
 declare global {
+    // eslint-disable-next-line no-var
     var window: any
 }
 
