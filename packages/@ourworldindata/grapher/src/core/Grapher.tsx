@@ -1231,7 +1231,7 @@ export class Grapher
     }
 
     @computed get currentTitle(): string {
-        let text = this.displayTitle
+        let text = this.displayTitle.trim()
         const selectedEntityNames = this.selection.selectedEntityNames
         const showEntityAnnotation = !this.hideAnnotationFieldsInTitle?.entity
         const showTimeAnnotation = !this.hideAnnotationFieldsInTitle?.time
@@ -1241,6 +1241,16 @@ export class Grapher
         const seriesStrategy =
             this.chartInstance.seriesStrategy ||
             autoDetectSeriesStrategy(this, true)
+
+        // helper function to add an annotation fragment to the title
+        // only adds a comma if the text does not end with a question mark
+        const appendAnnotationField = (
+            text: string,
+            annotation: string
+        ): string => {
+            const separator = text.endsWith("?") ? "" : ","
+            return `${text}${separator} ${annotation}`
+        }
 
         if (
             !this.forceHideAnnotationFieldsInTitle?.entity &&
@@ -1252,7 +1262,7 @@ export class Grapher
                 this.canSelectMultipleEntities)
         ) {
             const entityStr = selectedEntityNames[0]
-            if (entityStr?.length) text = `${text}, ${entityStr}`
+            if (entityStr?.length) text = appendAnnotationField(text, entityStr)
         }
 
         if (
@@ -1275,7 +1285,7 @@ export class Grapher
                         this.isMarimekko ||
                         this.isOnMapTab)))
         )
-            text += this.timeTitleSuffix
+            text = appendAnnotationField(text, this.timeTitleSuffix)
 
         return text.trim()
     }
@@ -1385,7 +1395,7 @@ export class Grapher
                   " to " +
                   timeColumn.formatValue(endTime)
 
-        return ", " + time
+        return time
     }
 
     @computed get sourcesLine(): string {
