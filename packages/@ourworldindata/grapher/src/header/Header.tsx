@@ -137,34 +137,55 @@ export class Header extends React.Component<{
         )
     }
 
-    render(): JSX.Element {
+    private renderTitle(): JSX.Element {
         const { manager } = this
 
-        const subtitleStyle = {
+        // on smaller screens, make the whole width of the header clickable
+        if (manager.isMedium) {
+            return (
+                <a
+                    href={manager.canonicalUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    <h1 style={this.title.htmlStyle}>
+                        {this.title.renderHTML()}
+                    </h1>
+                </a>
+            )
+        }
+
+        // on larger screens, only make the title text itself clickable
+        return (
+            <h1 style={this.title.htmlStyle}>
+                <a
+                    href={manager.canonicalUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    {this.title.renderHTML()}
+                </a>
+            </h1>
+        )
+    }
+
+    private renderSubtitle(): JSX.Element {
+        const style = {
             ...this.subtitle.style,
             marginTop: this.subtitleMarginTop,
             // make sure there are no scrollbars on subtitle
             overflowY: "hidden",
         }
+        return <p style={style}>{this.subtitle.renderHTML()}</p>
+    }
 
+    render(): JSX.Element {
         return (
             <div className="HeaderHTML">
                 {this.logo && this.logo.renderHTML()}
                 <div style={{ minHeight: this.height }}>
-                    <a
-                        href={manager.canonicalUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        <h1 style={this.title.htmlStyle}>
-                            {this.title.renderHTML()}
-                        </h1>
-                    </a>
-                    {this.subtitleText && (
-                        <p style={subtitleStyle}>
-                            {this.subtitle.renderHTML()}
-                        </p>
-                    )}
+                    {this.renderTitle()}
+                    {this.subtitleText && this.renderSubtitle()}
                 </div>
             </div>
         )
