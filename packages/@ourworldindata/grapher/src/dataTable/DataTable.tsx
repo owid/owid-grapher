@@ -159,8 +159,9 @@ export class DataTable extends React.Component<{
         )
     }
 
+    // in data tables only, we prefer "Country/area" over "Country or region" as default entity type
     @computed private get entityType(): string {
-        return this.manager.entityType ?? DEFAULT_GRAPHER_ENTITY_TYPE
+        return this.manager.entityType ?? "Country/area"
     }
 
     @computed private get entitiesAreCountryLike(): boolean {
