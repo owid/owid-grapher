@@ -10,6 +10,7 @@ $timelineHeight: 32px;
     $active-knob: #6e87a2;
 
     // start/end year label
+    $light-fill: #f2f2f2;
     $hover-fill: #e7e7e7;
     $active-fill: #dbe5f0;
 
@@ -38,7 +39,7 @@ $timelineHeight: 32px;
         display: grid;
         place-content: center;
         margin-right: 0;
-        border: 1px solid $hover-fill;
+        background-color: $light-fill;
 
         &:hover {
             background: $hover-fill;
