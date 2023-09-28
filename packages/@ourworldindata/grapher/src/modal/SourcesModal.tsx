@@ -1,22 +1,25 @@
 import {
-    Bounds,
-    DEFAULT_BOUNDS,
     MarkdownTextWrap,
     OwidOrigin,
     uniq,
     excludeNullish,
+    Bounds,
+    DEFAULT_BOUNDS,
 } from "@ourworldindata/utils"
 import React from "react"
-import { computed } from "mobx"
+import { action, computed } from "mobx"
 import { observer } from "mobx-react"
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { CoreColumn, OwidColumnDef } from "@ourworldindata/core-table"
+import { Modal } from "./Modal"
 
-export interface SourcesTabManager {
+export interface SourcesModalManager {
     adminBaseUrl?: string
     columnsWithSources: CoreColumn[]
     showAdminControls?: boolean
+    isSourcesModalOpen?: boolean
+    tabBounds?: Bounds
 }
 
 // TODO: remove this component once all backported indicators
@@ -24,31 +27,43 @@ export interface SourcesTabManager {
 const HtmlOrMarkdownText = (props: {
     text: string
     fontSize: number
+    lineHeight?: number
 }): JSX.Element => {
     // check the text for closing a, li or p tags. If
     // one is found, render using dangerouslySetInnerHTML,
     // othewise use MarkdownTextWrap
-    const { text, fontSize } = props
+    const { text, fontSize, lineHeight } = props
     const htmlRegex = /<\/(a|li|p)>/
     const match = text.match(htmlRegex)
     if (match) {
         return <span dangerouslySetInnerHTML={{ __html: text }} />
     } else {
-        return <MarkdownTextWrap text={text} fontSize={fontSize} />
+        return (
+            <MarkdownTextWrap
+                text={text}
+                fontSize={fontSize}
+                lineHeight={lineHeight}
+            />
+        )
     }
 }
 
 @observer
-export class SourcesTab extends React.Component<{
-    bounds?: Bounds
-    manager: SourcesTabManager
+export class SourcesModal extends React.Component<{
+    manager: SourcesModalManager
 }> {
-    @computed private get bounds(): Bounds {
-        return this.props.bounds ?? DEFAULT_BOUNDS
+    @computed private get manager(): SourcesModalManager {
+        return this.props.manager
     }
 
-    @computed private get manager(): SourcesTabManager {
-        return this.props.manager
+    @computed private get tabBounds(): Bounds {
+        return this.manager.tabBounds ?? DEFAULT_BOUNDS
+    }
+
+    @computed private get modalBounds(): Bounds {
+        const maxWidth = 740
+        const padWidth = Math.max(16, (this.tabBounds.width - maxWidth) / 2)
+        return this.tabBounds.padHeight(16).padWidth(padWidth)
     }
 
     private renderSource(column: CoreColumn): JSX.Element {
@@ -58,6 +73,9 @@ export class SourcesTab extends React.Component<{
         // in columnDefFromOwidVariable in packages/@ourworldindata/grapher/src/core/LegacyToOwidTable.ts
         const { slug, source, def } = column
         const { datasetId, coverage } = def as OwidColumnDef
+
+        const fontSize = 13
+        const lineHeight = 1.3846153846
 
         // there will not be a datasetId for explorers that define the FASTT in TSV
         const editUrl =
@@ -97,6 +115,12 @@ export class SourcesTab extends React.Component<{
                       )
                   )
                 : []
+
+        const publishedByArray = [
+            ...(source.dataPublishedBy ? [source.dataPublishedBy] : []),
+            ...citationFull,
+        ]
+
         return (
             <div key={slug} className="datasource-wrapper">
                 <h2>
@@ -114,8 +138,9 @@ export class SourcesTab extends React.Component<{
                                 <td>Variable description</td>
                                 <td>
                                     <MarkdownTextWrap
-                                        text={column.def.descriptionShort}
-                                        fontSize={12}
+                                        text={column.def.descriptionShort.trim()}
+                                        fontSize={fontSize}
+                                        lineHeight={lineHeight}
                                     />
                                 </td>
                             </tr>
@@ -127,8 +152,9 @@ export class SourcesTab extends React.Component<{
                                 <td>Variable description</td>
                                 <td>
                                     <HtmlOrMarkdownText
-                                        text={column.description}
-                                        fontSize={12}
+                                        text={column.description.trim()}
+                                        fontSize={fontSize}
+                                        lineHeight={lineHeight}
                                     />
                                 </td>
                             </tr>
@@ -151,23 +177,24 @@ export class SourcesTab extends React.Component<{
                                 <td>{column.unitConversionFactor}</td>
                             </tr>
                         ) : null}
-                        {citationFull.length === 1 ? (
+                        {publishedByArray.length === 1 ? (
                             <tr>
                                 <td>Data published by</td>
                                 <td>
                                     <MarkdownTextWrap
-                                        text={citationFull[0]}
-                                        fontSize={12}
+                                        text={publishedByArray[0]}
+                                        fontSize={fontSize}
+                                        lineHeight={lineHeight}
                                     />
                                 </td>
                             </tr>
                         ) : null}
-                        {citationFull.length > 1 ? (
+                        {publishedByArray.length > 1 ? (
                             <tr>
                                 <td>Data published by</td>
                                 <td>
                                     <ul>
-                                        {citationFull.map(
+                                        {publishedByArray.map(
                                             (
                                                 citation: string,
                                                 index: number
@@ -175,24 +202,13 @@ export class SourcesTab extends React.Component<{
                                                 <li key={index}>
                                                     <MarkdownTextWrap
                                                         text={citation}
-                                                        fontSize={12}
+                                                        fontSize={fontSize}
+                                                        lineHeight={lineHeight}
                                                     />
                                                 </li>
                                             )
                                         )}
                                     </ul>
-                                </td>
-                            </tr>
-                        ) : null}
-                        {(!citationFull || citationFull.length === 0) &&
-                        source.dataPublishedBy ? (
-                            <tr>
-                                <td>Data published by</td>
-                                <td>
-                                    <HtmlOrMarkdownText
-                                        text={source.dataPublishedBy}
-                                        fontSize={12}
-                                    />
                                 </td>
                             </tr>
                         ) : null}
@@ -202,7 +218,8 @@ export class SourcesTab extends React.Component<{
                                 <td>
                                     <HtmlOrMarkdownText
                                         text={source.dataPublisherSource}
-                                        fontSize={12}
+                                        fontSize={fontSize}
+                                        lineHeight={lineHeight}
                                     />
                                 </td>
                             </tr>
@@ -213,7 +230,8 @@ export class SourcesTab extends React.Component<{
                                 <td>
                                     <HtmlOrMarkdownText
                                         text={source.link}
-                                        fontSize={12}
+                                        fontSize={fontSize}
+                                        lineHeight={lineHeight}
                                     />
                                 </td>
                             </tr>
@@ -230,7 +248,8 @@ export class SourcesTab extends React.Component<{
                     <p key={"additionalInfo"}>
                         <HtmlOrMarkdownText
                             text={source.additionalInfo}
-                            fontSize={12}
+                            fontSize={fontSize}
+                            lineHeight={lineHeight}
                         />
                     </p>
                 )}
@@ -239,19 +258,19 @@ export class SourcesTab extends React.Component<{
     }
 
     render(): JSX.Element {
-        const { bounds } = this
         const cols = this.manager.columnsWithSources
-
         return (
-            <div
-                className="sourcesTab"
-                style={{ ...bounds.toCSS(), position: "absolute" }}
+            <Modal
+                title="Sources"
+                onDismiss={action(
+                    () => (this.manager.isSourcesModalOpen = false)
+                )}
+                bounds={this.modalBounds}
             >
-                <div>
-                    <h2>Sources</h2>
-                    <div>{cols.map((col) => this.renderSource(col))}</div>
+                <div className="SourcesModalContent">
+                    {cols.map((col) => this.renderSource(col))}
                 </div>
-            </div>
+            </Modal>
         )
     }
 }

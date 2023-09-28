@@ -1,0 +1,64 @@
+.SourcesFooterHTML {
+    // keep in sync with constant values in Footer.tsx
+    $horizontalPadding: 8px; // keep in sync with HORIZONTAL_PADDING
+
+    padding: 0 $framePadding;
+    text-align: left;
+    color: $dark-text;
+
+    a {
+        text-underline-offset: auto;
+        color: $dark-text;
+        &:visited {
+            color: $dark-text;
+        }
+    }
+
+    p {
+        margin: 0;
+    }
+
+    .sources a.learn-more-about-data,
+    .note a:not(.dod-span) {
+        text-decoration: underline;
+
+        &:hover {
+            text-decoration: none;
+        }
+    }
+
+    // show "Learn more about this data" link on the same line
+    .sources .markdown-text-wrap__line:last-child {
+        display: inline-block;
+    }
+
+    .license {
+        white-space: nowrap;
+
+        a {
+            text-decoration: none;
+
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+    }
+
+    .SourcesAndLicense {
+        display: flex;
+        justify-content: space-between;
+        gap: $horizontalPadding;
+    }
+
+    .SourcesFooterHTMLBottom {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: $horizontalPadding;
+    }
+
+    // removes margin that is added by default to prevent border-bottom used for dod from clipping
+    .markdown-text-wrap__line:last-child {
+        margin-bottom: 0;
+    }
+}

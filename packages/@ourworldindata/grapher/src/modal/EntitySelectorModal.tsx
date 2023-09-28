@@ -1,11 +1,28 @@
 import React from "react"
 import { observer } from "mobx-react"
 import { computed, action, observable } from "mobx"
-import { isTouchDevice, sortBy } from "@ourworldindata/utils"
-import { FuzzySearch } from "./FuzzySearch"
-import { faTimes } from "@fortawesome/free-solid-svg-icons"
+import classnames from "classnames"
+import {
+    Bounds,
+    DEFAULT_BOUNDS,
+    isTouchDevice,
+    sortBy,
+} from "@ourworldindata/utils"
+import { Checkbox } from "../controls/Checkbox"
+import { FuzzySearch } from "../controls/FuzzySearch"
+import { faMagnifyingGlass, faCheck } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { SelectionArray } from "../selection/SelectionArray"
+import { Modal } from "./Modal"
+
+export interface EntitySelectorModalManager {
+    selection: SelectionArray
+    canChangeEntity: boolean
+    isSelectingData?: boolean
+    tabBounds?: Bounds
+    entityType?: string
+    entityTypePlural?: string
+}
 
 interface SearchableEntity {
     name: string
@@ -25,23 +42,21 @@ class EntitySearchResult extends React.PureComponent<SearchResultProps> {
         if (isMulti) {
             return (
                 <li>
-                    <label className="clickable">
-                        <input
-                            type="checkbox"
-                            checked={isChecked}
-                            onChange={(): void => onSelect(result.name)}
-                        />{" "}
-                        {result.name}
-                    </label>
+                    <Checkbox
+                        label={result.name}
+                        checked={isChecked}
+                        onChange={(): void => onSelect(result.name)}
+                    />
                 </li>
             )
         } else {
             return (
                 <li
-                    className="clickable"
+                    className={"clickable" + (isChecked ? " selected" : "")}
                     onClick={(): void => onSelect(result.name)}
                 >
                     {result.name}
+                    {isChecked && <FontAwesomeIcon icon={faCheck} />}
                 </li>
             )
         }
@@ -50,20 +65,35 @@ class EntitySearchResult extends React.PureComponent<SearchResultProps> {
 
 @observer
 export class EntitySelectorModal extends React.Component<{
-    selectionArray: SelectionArray
-    isMulti: boolean
-    onDismiss: () => void
+    manager: EntitySelectorModalManager
 }> {
     @observable searchInput: string = ""
     searchField!: HTMLInputElement
-    base: React.RefObject<HTMLDivElement> = React.createRef()
+
+    @computed private get manager(): EntitySelectorModalManager {
+        return this.props.manager
+    }
+
+    @computed private get tabBounds(): Bounds {
+        return this.manager.tabBounds ?? DEFAULT_BOUNDS
+    }
+
+    @computed private get modalBounds(): Bounds {
+        const maxWidth = this.isMulti ? 740 : 640
+        const padWidth = Math.max(16, (this.tabBounds.width - maxWidth) / 2)
+        return this.tabBounds.padHeight(16).padWidth(padWidth)
+    }
+
+    @computed private get selectionArray(): SelectionArray {
+        return this.manager.selection
+    }
 
     @computed get sortedAvailableEntities(): string[] {
-        return sortBy(this.props.selectionArray.availableEntityNames)
+        return sortBy(this.selectionArray.availableEntityNames)
     }
 
     @computed get isMulti(): boolean {
-        return this.props.isMulti
+        return !this.manager.canChangeEntity
     }
 
     @computed get fuzzy(): FuzzySearch<SearchableEntity> {
@@ -82,38 +112,21 @@ export class EntitySelectorModal extends React.Component<{
             : this.searchableEntities
     }
 
+    @action.bound onDismiss(): void {
+        this.manager.isSelectingData = false
+    }
+
     @action.bound onSelect(entityName: string): void {
         if (this.isMulti) {
-            this.props.selectionArray.toggleSelection(entityName)
+            this.selectionArray.toggleSelection(entityName)
         } else {
-            this.props.selectionArray.setSelectedEntities([entityName])
-            this.props.onDismiss()
+            this.selectionArray.setSelectedEntities([entityName])
+            this.onDismiss()
         }
     }
 
-    @action.bound onDocumentClick(e: MouseEvent): void {
-        // check if the click was outside of the modal
-        if (
-            this.base?.current &&
-            !this.base.current.contains(e.target as Node) &&
-            // check that the target is still mounted to the document; we also get click events on nodes that have since been removed by React
-            document.contains(e.target as Node)
-        )
-            this.props.onDismiss()
-    }
-
     componentDidMount(): void {
-        document.addEventListener("click", this.onDocumentClick)
-
         if (!isTouchDevice()) this.searchField.focus()
-    }
-
-    componentWillUnmount(): void {
-        document.removeEventListener("click", this.onDocumentClick)
-    }
-
-    @action.bound onOverlayKeyDown(e: React.KeyboardEvent<HTMLElement>): void {
-        if (e.key === "Escape") this.props.onDismiss()
     }
 
     @action.bound onSearchKeyDown(e: React.KeyboardEvent<HTMLElement>): void {
@@ -124,78 +137,64 @@ export class EntitySelectorModal extends React.Component<{
     }
 
     @action.bound onClear(): void {
-        this.props.selectionArray.clearSelection()
+        this.selectionArray.clearSelection()
     }
 
     renderSelectedData(): React.ReactNode {
-        const selectedEntityNames =
-            this.props.selectionArray.selectedEntityNames
+        const selectedEntityNames = this.selectionArray.selectedEntityNames
 
         // only render something in isMulti mode
         if (this.isMulti) {
             return (
                 <div className="selectedData">
+                    {selectedEntityNames.length > 0 && (
+                        <div className="selectedLabel">Selection</div>
+                    )}
                     <ul>
                         {selectedEntityNames.map((name) => {
                             return (
                                 <li key={name}>
-                                    <label className="clickable">
-                                        <input
-                                            type="checkbox"
-                                            checked={true}
-                                            onChange={(): void => {
-                                                this.onSelect(name)
-                                            }}
-                                        />{" "}
-                                        {name}
-                                    </label>
+                                    <Checkbox
+                                        label={name}
+                                        checked={true}
+                                        onChange={(): void => {
+                                            this.onSelect(name)
+                                        }}
+                                    />
                                 </li>
                             )
                         })}
                     </ul>
-                    {selectedEntityNames.length > 1 ? (
-                        <button
-                            className="clearSelection"
-                            onClick={this.onClear}
-                        >
-                            <span className="icon">
-                                <FontAwesomeIcon icon={faTimes} />
-                            </span>{" "}
-                            Unselect all
-                        </button>
-                    ) : undefined}
                 </div>
             )
         } else return undefined
     }
 
     render(): JSX.Element {
-        const { selectionArray } = this.props
-        const { searchResults, searchInput } = this
+        const { selectionArray, searchResults, searchInput, isMulti, manager } =
+            this
+
+        const title = isMulti
+            ? `Add/remove ${manager.entityTypePlural || "countries or regions"}`
+            : `Choose ${manager.entityType || "country or region"}`
 
         return (
-            <div
-                className="entitySelectorOverlay"
-                onKeyDown={this.onOverlayKeyDown}
+            <Modal
+                title={title}
+                onDismiss={this.onDismiss}
+                bounds={this.modalBounds}
+                isHeightFixed={true}
             >
                 <div
-                    ref={this.base}
-                    className={
+                    className={classnames(
+                        "EntitySelector",
                         this.isMulti
                             ? "EntitySelectorMulti"
                             : "EntitySelectorSingle"
-                    }
+                    )}
                 >
-                    <header className="wrapper">
-                        <h2>
-                            Choose data to show{" "}
-                            <button onClick={this.props.onDismiss}>
-                                <FontAwesomeIcon icon={faTimes} />
-                            </button>
-                        </h2>
-                    </header>
-                    <div className="entities wrapper">
-                        <div className="searchResults">
+                    <div className="searchBar">
+                        <div className="searchInput">
                             <input
                                 type="search"
                                 placeholder="Search..."
@@ -208,6 +207,21 @@ export class EntitySelectorModal extends React.Component<{
                                     (this.searchField = e as HTMLInputElement)
                                 }
                             />
+                            <FontAwesomeIcon icon={faMagnifyingGlass} />
+                        </div>
+                        {this.isMulti &&
+                        selectionArray.selectedEntityNames.length > 0 ? (
+                            <button
+                                className="clearSelection"
+                                onClick={this.onClear}
+                            >
+                                Clear selection
+                            </button>
+                        ) : undefined}
+                    </div>
+
+                    <div className="entities">
+                        <div className="searchResults">
                             <ul>
                                 {searchResults.map((result) => (
                                     <EntitySearchResult
@@ -225,7 +239,7 @@ export class EntitySelectorModal extends React.Component<{
                         {this.renderSelectedData()}
                     </div>
                 </div>
-            </div>
+            </Modal>
         )
     }
 }

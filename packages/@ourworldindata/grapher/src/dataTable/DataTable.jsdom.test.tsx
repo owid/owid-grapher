@@ -4,7 +4,12 @@ import React from "react"
 
 import { DataTable } from "./DataTable"
 import { ChartTypeName, GrapherTabOption } from "../core/GrapherConstants"
-import { childMortalityGrapher, IncompleteDataTable } from "./DataTable.sample"
+import {
+    childMortalityGrapher,
+    IncompleteDataTable,
+    DataTableWithAggregates,
+    DataTableWithMultipleVariablesAndMultipleYears,
+} from "./DataTable.sample"
 
 import Enzyme, { ReactWrapper } from "enzyme"
 import Adapter from "enzyme-adapter-react-16"
@@ -18,25 +23,25 @@ describe("when you render a table", () => {
     })
 
     it("renders a table", () => {
-        expect(view.find("table.data-table")).toHaveLength(1)
+        expect(view.find("table")).toHaveLength(1)
     })
 
     it("renders a Country header", () => {
         expect(view.find("thead th.entity").text()).toContain("Country")
     })
 
-    it("renders a variable name in header", () => {
-        const cell = view.find("thead th.dimension .name")
+    it("renders a variable name in the caption", () => {
+        const cell = view.find(".DataTable .caption")
         expect(cell.text()).toContain("Child mortality")
     })
 
-    it("renders a unit name in header", () => {
-        const cell = view.find("thead th.dimension .unit")
+    it("renders a unit name in the caption", () => {
+        const cell = view.find(".DataTable .caption .unit")
         expect(cell.text()).toContain("percent")
     })
 
-    it("renders 'percent' in the column header when unit is '%'", () => {
-        const cell = view.find("thead th.dimension .unit")
+    it("renders 'percent' in the caption when unit is '%'", () => {
+        const cell = view.find(".DataTable .caption .unit")
         expect(cell.text()).toContain("percent")
     })
 
@@ -72,15 +77,6 @@ describe("when you select a range of years", () => {
         view = Enzyme.mount(<DataTable manager={grapher} />)
     })
 
-    it("header is split into two rows", () => {
-        expect(view.find("thead tr")).toHaveLength(2)
-    })
-
-    it("entity header cell spans 2 rows", () => {
-        const cell = view.find("thead .entity").first()
-        expect(cell.prop("rowSpan")).toBe(2)
-    })
-
     it("renders start values", () => {
         const cell = view.find("tbody .dimension-start").first()
         expect(cell.text()).toBe("22.45%")
@@ -111,11 +107,9 @@ describe("when the table doesn't have data for all rows", () => {
         expect(view.find("tbody .dimension").at(0).first().text()).toBe("")
     })
 
-    it("renders a tolerance notice when data is not from targetYear", () => {
+    it("renders an info icon when data is not from targetYear", () => {
         const toleranceNotices = view.find(".closest-time-notice-icon")
         expect(toleranceNotices.length).toBe(2)
-        expect(toleranceNotices.at(0).text()).toContain("2001") // first column
-        expect(toleranceNotices.at(1).text()).toContain("2009") // second column
     })
 
     it("renders a data value for the column with targetTime 2010", () => {
@@ -129,5 +123,31 @@ describe("when the table doesn't have data for all rows", () => {
         expect(timeHeaders.length).toBe(2)
         expect(timeHeaders.at(0).text()).toBe("2000")
         expect(timeHeaders.at(1).text()).toBe("2010")
+    })
+})
+
+describe("when the table has aggregates", () => {
+    let view: ReactWrapper
+    beforeAll(() => {
+        const grapher = DataTableWithAggregates()
+        view = Enzyme.mount(<DataTable manager={grapher} />)
+    })
+
+    it("renders a title row for countries and regions", () => {
+        const titleRows = view.find("tbody .title")
+        expect(titleRows).toHaveLength(1)
+        expect(titleRows.at(0).text()).toBe("Other")
+    })
+})
+
+describe("when the table has multiple variables and multiple years", () => {
+    let view: ReactWrapper
+    beforeAll(() => {
+        const grapher = DataTableWithMultipleVariablesAndMultipleYears()
+        view = Enzyme.mount(<DataTable manager={grapher} />)
+    })
+
+    it("header is split into two rows", () => {
+        expect(view.find("thead tr")).toHaveLength(2)
     })
 })

@@ -19,7 +19,7 @@
 
     // Charts shouldn't be below this height in any circumstance, whether mobile or not.
     // Except in iframes, where we override this.
-    min-height: 480px;
+    min-height: 540px;
 
     // On small viewports always use the full available height.
     // We only leave space for the mobile header and fill the rest.

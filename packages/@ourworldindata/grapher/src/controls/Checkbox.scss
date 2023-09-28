@@ -1,0 +1,64 @@
+.checkbox {
+    $checkbox-size: 16px;
+
+    $light-stroke: #dadada;
+    $hover-stroke: #a4b6ca;
+    $active-fill: #dbe5f0;
+
+    position: relative;
+
+    input {
+        position: absolute;
+        opacity: 0;
+        left: 0;
+    }
+
+    .custom {
+        position: absolute;
+        left: 0;
+        top: 0;
+        content: " ";
+        width: $checkbox-size;
+        height: $checkbox-size;
+        background: white;
+        pointer-events: none;
+        border-radius: 2px;
+        border: 1px solid $light-stroke;
+        color: $dark-text;
+
+        svg {
+            font-size: 10px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: $active-text;
+        }
+    }
+
+    input:active + .custom {
+        background: $active-fill;
+    }
+
+    input:checked + .custom {
+        background: $active-fill;
+        border-color: $active-fill;
+    }
+
+    input:checked:active + .custom {
+        background: white;
+    }
+
+    .label {
+        padding-left: $checkbox-size + 8px;
+        cursor: pointer;
+        font-size: 14px;
+        letter-spacing: 0.01em;
+    }
+
+    &:hover {
+        input:not(:checked) + .custom {
+            border-color: $hover-stroke;
+        }
+    }
+}

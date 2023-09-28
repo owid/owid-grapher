@@ -467,7 +467,9 @@ export function splitIntoLines(
 export const sumTextWrapHeights = (
     elements: MarkdownTextWrap[] | TextWrap[],
     spacer: number = 0
-): number => sum(elements.map((element) => element.height + spacer))
+): number =>
+    sum(elements.map((element) => element.height)) +
+    (elements.length - 1) * spacer
 
 export function parsimmonToTextTokens(
     nodes: EveryMarkdownChildNode[],

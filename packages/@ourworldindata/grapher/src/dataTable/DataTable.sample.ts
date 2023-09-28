@@ -141,3 +141,168 @@ export const IncompleteDataTable = (
             ],
         ]),
     })
+
+export const DataTableWithAggregates = (
+    props: Partial<GrapherInterface> = {}
+): Grapher =>
+    new Grapher({
+        tab: GrapherTabOption.table,
+        dimensions: [
+            {
+                variableId: 104402,
+                property: DimensionProperty.y,
+            },
+        ],
+        ...props,
+        owidDataset: new Map([
+            [
+                104402,
+                {
+                    data: {
+                        years: [
+                            1950, 1950, 1950, 2005, 2005, 2005, 2019, 2019,
+                            2019,
+                        ],
+                        entities: [15, 207, 355, 15, 207, 355, 15, 207, 355],
+                        values: [
+                            224.45, 333.68, 456.33, 295.59, 246.12, 298.87,
+                            215.59, 226.12, 450.87,
+                        ],
+                    },
+                    metadata: {
+                        id: 104402,
+                        display: {
+                            name: "Child mortality",
+                            unit: "%",
+                            shortUnit: "%",
+                            conversionFactor: 0.1,
+                        },
+                        dimensions: {
+                            entities: {
+                                values: [
+                                    {
+                                        name: "Afghanistan",
+                                        id: 15,
+                                        code: "AFG",
+                                    },
+                                    { name: "Iceland", id: 207, code: "ICE" },
+                                    {
+                                        name: "World",
+                                        id: 355,
+                                        code: "OWID_WRL",
+                                    },
+                                ],
+                            },
+                            years: {
+                                values: [
+                                    {
+                                        id: 1950,
+                                    },
+                                    {
+                                        id: 2005,
+                                    },
+                                    {
+                                        id: 2019,
+                                    },
+                                ],
+                            },
+                        },
+                    },
+                },
+            ],
+        ]),
+    })
+
+export const DataTableWithMultipleVariablesAndMultipleYears = (
+    props: Partial<GrapherInterface> = {}
+): Grapher =>
+    new Grapher({
+        tab: GrapherTabOption.table,
+        dimensions: [
+            {
+                variableId: 514050,
+                property: DimensionProperty.y,
+            },
+            {
+                variableId: 472265,
+                property: DimensionProperty.y,
+            },
+        ],
+        ...props,
+        owidDataset: new Map([
+            [
+                514050,
+                {
+                    data: {
+                        years: [1950, 2005, 2019],
+                        entities: [355, 355, 355],
+                        values: [10, 20, 30],
+                    },
+                    metadata: {
+                        id: 514050,
+                        dimensions: {
+                            entities: {
+                                values: [
+                                    {
+                                        name: "World",
+                                        id: 355,
+                                        code: "OWID_WRL",
+                                    },
+                                ],
+                            },
+                            years: {
+                                values: [
+                                    {
+                                        id: 1950,
+                                    },
+                                    {
+                                        id: 2005,
+                                    },
+                                    {
+                                        id: 2019,
+                                    },
+                                ],
+                            },
+                        },
+                    },
+                },
+            ],
+            [
+                472265,
+                {
+                    data: {
+                        years: [1950, 2005, 2019],
+                        entities: [355, 355, 355],
+                        values: [5, 15, 10],
+                    },
+                    metadata: {
+                        id: 472265,
+                        dimensions: {
+                            entities: {
+                                values: [
+                                    {
+                                        name: "World",
+                                        id: 355,
+                                        code: "OWID_WRL",
+                                    },
+                                ],
+                            },
+                            years: {
+                                values: [
+                                    {
+                                        id: 1950,
+                                    },
+                                    {
+                                        id: 2005,
+                                    },
+                                    {
+                                        id: 2019,
+                                    },
+                                ],
+                            },
+                        },
+                    },
+                },
+            ],
+        ]),
+    })

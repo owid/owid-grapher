@@ -18,6 +18,7 @@ export const GRAPHER_EMBEDDED_FIGURE_ATTR = "data-grapher-src"
 export const GRAPHER_EMBEDDED_FIGURE_CONFIG_ATTR = "data-grapher-config"
 
 export const GRAPHER_PAGE_BODY_CLASS = "StandaloneGrapherOrExplorerPage"
+export const GRAPHER_SETTINGS_DRAWER_ID = "grapher-settings-drawer"
 
 export const GRAPHER_IS_IN_IFRAME_CLASS = "IsInIframe"
 
@@ -27,7 +28,8 @@ export const DEFAULT_GRAPHER_CONFIG_SCHEMA =
 export const DEFAULT_GRAPHER_WIDTH = 850
 export const DEFAULT_GRAPHER_HEIGHT = 600
 
-export const STATIC_EXPORT_DETAIL_SPACING = 24
+export const GRAPHER_FRAME_PADDING = 16
+export const STATIC_EXPORT_DETAIL_SPACING = 8
 
 export enum CookieKey {
     isAdmin = "isAdmin",
@@ -80,8 +82,6 @@ export type SeriesColorMap = Map<SeriesName, Color>
 export enum GrapherTabOption {
     chart = "chart",
     map = "map",
-    sources = "sources",
-    download = "download",
     table = "table",
 }
 
@@ -169,6 +169,4 @@ export const grapherInterfaceWithHiddenTabsOnly: GrapherProgrammaticInterface =
         hasChartTab: false,
         hasMapTab: false,
         hasTableTab: false,
-        hasDownloadTab: false,
-        hideShareTabButton: true,
     }

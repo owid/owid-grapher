@@ -6,9 +6,8 @@ import {
 } from "@ourworldindata/utils"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { Logo } from "../captionedChart/Logos"
+import { Logo, LogoOption } from "../captionedChart/Logos"
 import { HeaderManager } from "./HeaderManager"
-import { BASE_FONT_SIZE } from "../core/GrapherConstants"
 
 @observer
 export class Header extends React.Component<{
@@ -19,11 +18,7 @@ export class Header extends React.Component<{
         return this.props.manager
     }
 
-    @computed private get fontSize(): number {
-        return this.manager.fontSize ?? BASE_FONT_SIZE
-    }
-
-    @computed private get maxWidth(): number {
+    @computed protected get maxWidth(): number {
         return this.props.maxWidth ?? DEFAULT_BOUNDS.width
     }
 
@@ -38,62 +33,62 @@ export class Header extends React.Component<{
     @computed get logo(): Logo | undefined {
         const { manager } = this
         if (manager.hideLogo) return undefined
-
+        const isOwidLogo = !manager.logo || manager.logo === LogoOption.owid
         return new Logo({
             logo: manager.logo as any,
             isLink: !!manager.shouldLinkToOwid,
-            fontSize: this.fontSize,
+            heightScale: manager.isSmall && !isOwidLogo ? 0.775 : 1,
+            useSmallVersion: manager.isSmall && isOwidLogo,
         })
     }
 
     @computed private get logoWidth(): number {
         return this.logo ? this.logo.width : 0
     }
+
     @computed private get logoHeight(): number {
         return this.logo ? this.logo.height : 0
     }
 
     @computed get title(): TextWrap {
         const { logoWidth } = this
-        const maxWidth = this.maxWidth - logoWidth - 20
-
-        // Try to fit the title into a single line if possible-- but not if it would make the text super small
-        let title: TextWrap
-        let fontScale = 1.4
-        while (true) {
-            title = new TextWrap({
-                maxWidth,
-                fontSize: fontScale * this.fontSize,
-                text: this.titleText,
-                lineHeight: 1,
-            })
-            if (fontScale <= 1.2 || title.lines.length <= 1) break
-            fontScale -= 0.05
-        }
-
+        const fontSize = this.manager.isSmall
+            ? 18
+            : this.manager.isMedium
+            ? 20
+            : 24
         return new TextWrap({
-            maxWidth,
-            fontSize: fontScale * this.fontSize,
+            maxWidth: this.maxWidth - logoWidth - 24,
+            fontWeight: 500,
+            lineHeight: this.manager.isSmall ? 1.1 : 1.2,
+            fontSize,
             text: this.titleText,
-            lineHeight: 1,
         })
     }
 
-    titleMarginBottom = 4
+    @computed get subtitleMarginTop(): number {
+        return 4
+    }
 
     @computed get subtitleWidth(): number {
         // If the subtitle is entirely below the logo, we can go underneath it
         return this.title.height > this.logoHeight
             ? this.maxWidth
-            : this.maxWidth - this.logoWidth - 10
+            : this.maxWidth - this.logoWidth - 12
     }
 
     @computed get subtitle(): MarkdownTextWrap {
+        const fontSize = this.manager.isSmall
+            ? 12
+            : this.manager.isMedium
+            ? 13
+            : 14
+        const lineHeight = this.manager.isMedium ? 1.2 : 1.28571
         return new MarkdownTextWrap({
             maxWidth: this.subtitleWidth,
-            fontSize: 0.8 * this.fontSize,
+            fontSize,
             text: this.subtitleText,
-            lineHeight: 1.2,
+            lineHeight,
             detailsOrderedByReference: this.manager
                 .shouldIncludeDetailsInStaticExport
                 ? this.manager.detailsOrderedByReference
@@ -102,9 +97,12 @@ export class Header extends React.Component<{
     }
 
     @computed get height(): number {
+        const { title, subtitle, subtitleText, subtitleMarginTop, logoHeight } =
+            this
         return Math.max(
-            this.title.height + this.subtitle.height + this.titleMarginBottom,
-            this.logoHeight
+            title.height +
+                (subtitleText ? subtitle.height + subtitleMarginTop : 0),
+            logoHeight
         )
     }
 
@@ -121,17 +119,18 @@ export class Header extends React.Component<{
                     style={{
                         fontFamily:
                             "'Playfair Display', Georgia, 'Times New Roman', 'Liberation Serif', serif",
+                        fontWeight: 500,
                     }}
                     target="_blank"
                     rel="noopener"
                 >
-                    {title.render(x, y, { fill: "#555" })}
+                    {title.render(x, y, { fill: "#4E4E4E" })}
                 </a>
                 {subtitle.renderSVG(
                     x,
-                    y + title.height + this.titleMarginBottom,
+                    y + title.height + this.subtitleMarginTop,
                     {
-                        fill: "#666",
+                        fill: "#4E4E4E",
                     }
                 )}
             </g>
@@ -141,13 +140,9 @@ export class Header extends React.Component<{
     render(): JSX.Element {
         const { manager } = this
 
-        const titleStyle = {
-            ...this.title.htmlStyle,
-            marginBottom: this.titleMarginBottom,
-        }
-
         const subtitleStyle = {
             ...this.subtitle.style,
+            marginTop: this.subtitleMarginTop,
             // make sure there are no scrollbars on subtitle
             overflowY: "hidden",
         }
@@ -155,14 +150,22 @@ export class Header extends React.Component<{
         return (
             <div className="HeaderHTML">
                 {this.logo && this.logo.renderHTML()}
-                <a
-                    href={manager.canonicalUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    <h1 style={titleStyle}>{this.title.renderHTML()}</h1>
-                </a>
-                <p style={subtitleStyle}>{this.subtitle.renderHTML()}</p>
+                <div style={{ minHeight: this.height }}>
+                    <a
+                        href={manager.canonicalUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        <h1 style={this.title.htmlStyle}>
+                            {this.title.renderHTML()}
+                        </h1>
+                    </a>
+                    {this.subtitleText && (
+                        <p style={subtitleStyle}>
+                            {this.subtitle.renderHTML()}
+                        </p>
+                    )}
+                </div>
             </div>
         )
     }

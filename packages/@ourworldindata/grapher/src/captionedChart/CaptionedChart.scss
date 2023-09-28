@@ -1,3 +1,7 @@
+// keep in sync with constant values in CaptionedChart.tsx
+$framePadding: 16px; // keep in sync with FRAME_PADDING
+$controlRowHeight: 32px; // keep in sync with CONTROLS_ROW_HEIGHT
+
 .HeaderHTML,
 .SourcesFooterHTML {
     font-family: $sans-serif-font-stack;
@@ -6,60 +10,56 @@
     -webkit-font-smoothing: antialiased;
 }
 
-.HeaderHTML {
-    padding: 15px;
-    padding-bottom: 2px;
-    text-align: left;
+.controlsRow {
+    padding: 0 $framePadding;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+
+    button.configure {
+        text-transform: uppercase;
+        color: #777;
+        font-size: 0.8em;
+        height: $controlRowHeight - 1;
+        line-height: $controlRowHeight;
+        padding: 0;
+    }
+}
+
+.relatedQuestion {
+    font-size: 12px;
+    padding: 0 $framePadding;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    border-top: 1px solid $frame-color;
+    position: absolute;
+    width: 100%;
+    bottom: 0;
+    color: $dark-text;
+    font-weight: 700;
 
     a {
-        text-decoration: none;
-        color: inherit;
+        font-weight: normal;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        text-decoration-line: underline;
+        text-underline-offset: auto;
 
         &:hover {
-            text-decoration: underline;
-            text-decoration-color: rgba(0, 0, 0, 0.2);
+            text-decoration-line: none;
         }
     }
 
-    h1 {
-        font-family: $serif-font-stack;
-        font-weight: normal;
-        color: #555;
-        margin: 0;
+    a,
+    svg {
+        color: inherit;
     }
 
-    p {
-        color: #666;
-        margin: 0;
+    svg {
+        margin-left: 4px;
+        font-size: 0.9em;
+        vertical-align: unset;
     }
-
-    .logo {
-        float: right;
-
-        svg {
-            height: 100% !important;
-            width: auto !important;
-        }
-    }
-}
-
-.SourcesFooterHTML {
-    padding: 15px;
-    padding-top: 0;
-    text-align: left;
-
-    a {
-        color: #777;
-        &:visited {
-            color: #777;
-        }
-    }
-
-    p {
-        margin: 0;
-    }
-}
-
-.SourcesFooterHTML.compact .license {
-    float: right;
 }

@@ -1,6 +1,11 @@
 import React from "react"
 import { computed } from "mobx"
-import { OWID_LOGO_SVG, CORE_LOGO_SVG, GV_LOGO_SVG } from "./LogosSVG"
+import {
+    OWID_LOGO_SVG,
+    CORE_LOGO_SVG,
+    GV_LOGO_SVG,
+    SMALL_OWID_LOGO_SVG,
+} from "./LogosSVG"
 
 export enum LogoOption {
     owid = "owid",
@@ -19,16 +24,16 @@ interface LogoAttributes {
 const logos: Record<LogoOption, LogoAttributes> = {
     owid: {
         svg: OWID_LOGO_SVG,
-        width: 210,
-        height: 120,
-        targetHeight: 35,
+        width: 65,
+        height: 36,
+        targetHeight: 36,
         url: "https://ourworldindata.org",
     },
     "core+owid": {
         svg: CORE_LOGO_SVG,
         width: 102,
         height: 37,
-        targetHeight: 35,
+        targetHeight: 36,
     },
     "gv+owid": {
         svg: GV_LOGO_SVG,
@@ -38,10 +43,20 @@ const logos: Record<LogoOption, LogoAttributes> = {
     },
 }
 
+// owid logo optimized for small sizes
+const smallOwidLogo = {
+    svg: SMALL_OWID_LOGO_SVG,
+    width: 51,
+    height: 28,
+    targetHeight: 28,
+    url: "https://ourworldindata.org",
+}
+
 interface LogoProps {
     logo?: LogoOption
     isLink: boolean
-    fontSize: number
+    heightScale?: number
+    useSmallVersion?: boolean
 }
 
 export class Logo {
@@ -50,14 +65,23 @@ export class Logo {
         this.props = props
     }
 
+    @computed private get logo(): LogoOption {
+        return this.props.logo ?? LogoOption.owid
+    }
+
     @computed private get spec(): LogoAttributes {
-        return this.props.logo !== undefined
-            ? logos[this.props.logo]
-            : logos.owid
+        if (this.props.useSmallVersion && this.logo === LogoOption.owid) {
+            return smallOwidLogo
+        }
+        return logos[this.logo]
+    }
+
+    @computed private get targetHeight(): number {
+        return (this.props.heightScale ?? 1) * this.spec.targetHeight
     }
 
     @computed private get scale(): number {
-        return this.spec.targetHeight / this.spec.height
+        return this.targetHeight / this.spec.height
     }
 
     @computed get width(): number {
@@ -86,7 +110,7 @@ export class Logo {
         const props: React.HTMLAttributes<HTMLElement> = {
             className: "logo",
             dangerouslySetInnerHTML: { __html: spec.svg },
-            style: { height: `${spec.targetHeight}px` },
+            style: { height: `${this.targetHeight}px` },
         }
         if (this.props.isLink && spec.url)
             return (

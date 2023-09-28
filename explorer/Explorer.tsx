@@ -11,6 +11,7 @@ import {
     TableSlug,
 } from "@ourworldindata/core-table"
 import {
+    Checkbox,
     EntityPicker,
     EntityPickerManager,
     Grapher,
@@ -18,6 +19,7 @@ import {
     GrapherManager,
     GrapherProgrammaticInterface,
     GrapherQueryParams,
+    GrapherTabOption,
     SelectionArray,
     setSelectedEntityNamesParam,
     SlideShowController,
@@ -336,10 +338,13 @@ export class Explorer
         this.updateGrapherFromExplorer()
 
         // preserve the previous tab if that's still available in the new view;
-        // and use the first tab otherwise
+        // and use the first tab otherwise, ignoring the table
+        const tabsWithoutTable = this.grapher.availableTabs.filter(
+            (tab) => tab !== GrapherTabOption.table
+        )
         newGrapherParams.tab = this.grapher.availableTabs.includes(previousTab)
             ? previousTab
-            : this.grapher.availableTabs[0]
+            : tabsWithoutTable[0] ?? GrapherTabOption.table
 
         this.grapher.populateFromQueryParams(newGrapherParams)
     }
@@ -461,6 +466,7 @@ export class Explorer
             ...this.explorerProgram.grapherConfigOnlyGrapherProps,
             bakedGrapherURL: BAKED_GRAPHER_URL,
             hideEntityControls: this.showExplorerControls,
+            manuallyProvideData: false,
         }
 
         grapher.setAuthoredVersion(config)
@@ -498,6 +504,7 @@ export class Explorer
             ...this.explorerProgram.grapherConfigOnlyGrapherProps,
             bakedGrapherURL: BAKED_GRAPHER_URL,
             hideEntityControls: this.showExplorerControls,
+            manuallyProvideData: false,
         }
 
         // set given variable IDs as dimensions to make Grapher
@@ -918,15 +925,12 @@ export class Explorer
 
     @computed get embedDialogAdditionalElements() {
         return (
-            <div style={{ marginTop: ".5rem" }}>
-                <label>
-                    <input
-                        type="checkbox"
-                        checked={this.embedDialogHideControls}
-                        onChange={this.embedDialogToggleHideControls}
-                    />{" "}
-                    Hide controls
-                </label>
+            <div style={{ marginTop: "1em" }}>
+                <Checkbox
+                    label="Hide controls"
+                    checked={this.embedDialogHideControls}
+                    onChange={this.embedDialogToggleHideControls}
+                />
             </div>
         )
     }
