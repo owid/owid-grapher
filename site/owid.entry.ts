@@ -108,8 +108,8 @@ try {
             if (id) {
                 const gdocLink = `https://docs.google.com/document/d/${id}/edit`
                 const adminLink = `${ADMIN_BASE_URL}/admin/gdocs/${id}/preview`
-                const admin = gdocAdminBar.querySelector("#admin")
-                const gdoc = gdocAdminBar.querySelector("#gdoc")
+                const admin = gdocAdminBar.querySelector("#admin-link")
+                const gdoc = gdocAdminBar.querySelector("#gdoc-link")
                 if (admin && gdoc) {
                     admin.setAttribute("href", adminLink)
                     admin.setAttribute("target", "_blank")
