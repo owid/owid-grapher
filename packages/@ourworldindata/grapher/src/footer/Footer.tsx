@@ -37,7 +37,7 @@ export class Footer extends React.Component<{
 
     @computed private get ccSvg(): string {
         if (this.manager.hasOWIDLogo)
-            return `<a style="fill: #777;" class="cclogo" href="http://creativecommons.org/licenses/by/4.0/deed.en_US" target="_blank">CC BY</a>`
+            return `<a style="fill: #777;" class="cclogo" href="https://creativecommons.org/licenses/by/4.0/" target="_blank">CC BY</a>`
 
         return `<a href="https://ourworldindata.org" target="_blank">Powered by ourworldindata.org</a>`
     }
@@ -218,7 +218,7 @@ export class Footer extends React.Component<{
                 {this.manager.hasOWIDLogo ? (
                     <a
                         className="cclogo"
-                        href="http://creativecommons.org/licenses/by/4.0/deed.en_US"
+                        href="https://creativecommons.org/licenses/by/4.0/"
                         target="_blank"
                         rel="noopener"
                         style={{ textDecoration: "none" }}
