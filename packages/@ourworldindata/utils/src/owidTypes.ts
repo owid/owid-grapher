@@ -537,6 +537,7 @@ export enum ChartControlKeyword {
     alignAxisScalesToggle = "alignAxisScalesToggle",
     xLogLinearSelector = "xLogLinearSelector",
     yLogLinearSelector = "yLogLinearSelector",
+    mapProjectionMenu = "mapProjectionMenu",
 }
 
 export enum ChartTabKeyword {

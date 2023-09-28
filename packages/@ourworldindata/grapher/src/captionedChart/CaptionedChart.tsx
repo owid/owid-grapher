@@ -243,9 +243,11 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         const { showContentSwitchers } = this
         return (
             <nav className="controlsRow">
-                {showContentSwitchers && (
-                    <ContentSwitchers manager={this.manager} />
-                )}
+                <div>
+                    {showContentSwitchers && (
+                        <ContentSwitchers manager={this.manager} />
+                    )}
+                </div>
                 <div className="controls">
                     <EntitySelectorToggle manager={this.manager} />
                     <SettingsMenu

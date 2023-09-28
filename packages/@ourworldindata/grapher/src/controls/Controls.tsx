@@ -842,6 +842,7 @@ export class FacetStrategySelector extends React.Component<{
 export interface MapProjectionMenuManager {
     mapConfig?: MapConfig
     isOnMapTab?: boolean
+    hideMapProjectionMenu?: boolean
 }
 
 interface MapProjectionMenuItem {
@@ -859,10 +860,10 @@ export class MapProjectionMenu extends React.Component<{
     }
 
     @computed get showMenu(): boolean {
-        // TODO: make hiding the menu configurable from gdocs
-        const { isOnMapTab, mapConfig } = this.props.manager,
+        const { hideMapProjectionMenu, isOnMapTab, mapConfig } =
+                this.props.manager,
             { projection } = mapConfig ?? {}
-        return !!(isOnMapTab && projection)
+        return !hideMapProjectionMenu && !!(isOnMapTab && projection)
     }
 
     @action.bound onChange(selected: MapProjectionMenuItem | null): void {
