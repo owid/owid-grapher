@@ -93,11 +93,11 @@ export function OwidGdoc({
         >
             <DocumentContext.Provider value={{ isPreviewing }}>
                 <div id="gdoc-admin-bar">
-                    <a href="#" id="gdoc">
+                    <a href="#" id="gdoc-link">
                         Gdoc
                     </a>
                     <span>/</span>
-                    <a href="#" id="admin">
+                    <a href="#" id="admin-link">
                         Admin
                     </a>
                 </div>
