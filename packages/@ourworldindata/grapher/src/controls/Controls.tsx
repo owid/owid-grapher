@@ -140,6 +140,7 @@ export interface SettingsMenuManager {
     hideFacetYDomainToggle?: boolean
     hideXScaleToggle?: boolean
     hideYScaleToggle?: boolean
+    hideTableFilterToggle?: boolean
 
     // chart state
     type: ChartTypeName
@@ -290,9 +291,13 @@ export class SettingsMenu extends React.Component<{
         )
     }
 
+    @computed get showTableFilterToggle(): boolean {
+        return !this.manager.hideTableFilterToggle
+    }
+
     @computed get showSettingsMenuToggle(): boolean {
         if (this.manager.isOnMapTab) return false
-        if (this.manager.isOnTableTab) return true
+        if (this.manager.isOnTableTab) return this.showTableFilterToggle
 
         return !!(
             this.showYScaleToggle ||
@@ -367,6 +372,7 @@ export class SettingsMenu extends React.Component<{
             showFacetControl,
             showFacetYDomainToggle,
             showAbsRelToggle,
+            showTableFilterToggle,
         } = this
 
         const {
@@ -437,7 +443,9 @@ export class SettingsMenu extends React.Component<{
                     </Setting>
 
                     <Setting title="Data rows" active={isOnTableTab}>
-                        <TableFilterToggle manager={manager} />
+                        {showTableFilterToggle && (
+                            <TableFilterToggle manager={manager} />
+                        )}
                     </Setting>
 
                     <Setting

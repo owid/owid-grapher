@@ -163,6 +163,7 @@ export const grapherInterfaceWithHiddenControlsOnly: GrapherProgrammaticInterfac
         hideXScaleToggle: true,
         hideYScaleToggle: true,
         hideMapProjectionMenu: true,
+        hideTableFilterToggle: true,
         map: {
             hideTimeline: true,
         },

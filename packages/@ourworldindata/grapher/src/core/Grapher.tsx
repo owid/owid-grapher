@@ -268,6 +268,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     hideXScaleToggle?: boolean
     hideYScaleToggle?: boolean
     hideMapProjectionMenu?: boolean
+    hideTableFilterToggle?: boolean
     forceHideAnnotationFieldsInTitle?: AnnotationFieldsInTitle
     hasTableTab?: boolean
     hideShareTabButton?: boolean
@@ -2780,6 +2781,7 @@ export class Grapher
     @observable hideXScaleToggle = false
     @observable hideYScaleToggle = false
     @observable hideMapProjectionMenu = false
+    @observable hideTableFilterToggle = false
     // enforces hiding an annotation, even if that means that a crucial piece of information is missing from the chart title
     @observable forceHideAnnotationFieldsInTitle: AnnotationFieldsInTitle = {
         entity: false,
