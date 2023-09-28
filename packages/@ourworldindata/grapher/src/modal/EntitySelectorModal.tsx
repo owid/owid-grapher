@@ -175,8 +175,8 @@ export class EntitySelectorModal extends React.Component<{
             this
 
         const title = isMulti
-            ? `Add/remove ${manager.entityTypePlural || "countries or regions"}`
-            : `Choose ${manager.entityType || "country or region"}`
+            ? `Add/remove ${manager.entityTypePlural}`
+            : `Choose ${manager.entityType}`
 
         return (
             <Modal

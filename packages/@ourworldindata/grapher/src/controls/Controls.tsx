@@ -22,6 +22,8 @@ import {
     FacetStrategy,
     StackMode,
     ScaleType,
+    DEFAULT_GRAPHER_ENTITY_TYPE,
+    DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL,
 } from "../core/GrapherConstants"
 import { MapConfig } from "../mapCharts/MapConfig"
 import {
@@ -725,7 +727,8 @@ export class TableFilterToggle extends React.Component<{
 
     render(): JSX.Element {
         const tooltip = `Only display table rows for ${
-            this.props.manager.entityTypePlural ?? "countries or regions"
+            this.props.manager.entityTypePlural ??
+            DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL
         } selected within the chart`
 
         return (
@@ -759,7 +762,7 @@ export class FacetStrategySelector extends React.Component<{
     }
 
     @computed get entityName(): string {
-        return this.props.manager.entityType ?? "country or region"
+        return this.props.manager.entityType ?? DEFAULT_GRAPHER_ENTITY_TYPE
     }
 
     @computed get metricName(): string {

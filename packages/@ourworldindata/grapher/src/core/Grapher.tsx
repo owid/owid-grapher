@@ -90,6 +90,8 @@ import {
     getVariableDataRoute,
     getVariableMetadataRoute,
     GRAPHER_FRAME_PADDING,
+    DEFAULT_GRAPHER_ENTITY_TYPE,
+    DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL,
 } from "../core/GrapherConstants"
 import Cookies from "js-cookie"
 import {
@@ -334,8 +336,8 @@ export class Grapher
     @observable.ref logo?: LogoOption = undefined
     @observable.ref hideLogo?: boolean = undefined
     @observable.ref hideRelativeToggle? = true
-    @observable.ref entityType = "country or region"
-    @observable.ref entityTypePlural = "countries or regions"
+    @observable.ref entityType = DEFAULT_GRAPHER_ENTITY_TYPE
+    @observable.ref entityTypePlural = DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL
     @observable.ref facettingLabelByYVariables = "metric"
     @observable.ref hideTimeline?: boolean = undefined
     @observable.ref hideScatterLabels?: boolean = undefined

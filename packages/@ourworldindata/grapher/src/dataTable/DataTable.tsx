@@ -43,6 +43,7 @@ import {
 } from "@ourworldindata/utils"
 import { makeSelectionArray } from "../chart/ChartUtils"
 import { SelectionArray } from "../selection/SelectionArray"
+import { DEFAULT_GRAPHER_ENTITY_TYPE } from "../core/GrapherConstants"
 
 interface DataTableState {
     sort: DataTableSortState
@@ -153,13 +154,13 @@ export class DataTable extends React.Component<{
         return (
             this.props.manager ?? {
                 table: BlankOwidTable(),
-                entityType: "country or region",
+                entityType: DEFAULT_GRAPHER_ENTITY_TYPE,
             }
         )
     }
 
     @computed private get entityType(): string {
-        return this.manager.entityType ?? "country or region"
+        return this.manager.entityType ?? DEFAULT_GRAPHER_ENTITY_TYPE
     }
 
     @computed private get entitiesAreCountryLike(): boolean {
