@@ -14,7 +14,11 @@ import { runCountryProfilePage } from "./runCountryProfilePage.js"
 import { runTableOfContents } from "./TableOfContents.js"
 import { runRelatedCharts } from "./blocks/RelatedCharts.js"
 import { Explorer } from "../explorer/Explorer.js"
-import { ENV, BUGSNAG_API_KEY } from "../settings/clientSettings.js"
+import {
+    ENV,
+    BUGSNAG_API_KEY,
+    ADMIN_BASE_URL,
+} from "../settings/clientSettings.js"
 import { Grapher, CookieKey } from "@ourworldindata/grapher"
 import { MultiEmbedderSingleton } from "../site/multiembedder/MultiEmbedder.js"
 import { CoreTable } from "@ourworldindata/core-table"
@@ -98,7 +102,22 @@ try {
         const adminbar = document.getElementById("wpadminbar")
         if (adminbar) adminbar.style.display = ""
         const gdocAdminBar = document.getElementById("gdoc-admin-bar")
-        if (gdocAdminBar) gdocAdminBar.style.display = "initial"
+        if (gdocAdminBar) {
+            gdocAdminBar.style.display = "initial"
+            const id = window._OWID_GDOC_PROPS?.id
+            if (id) {
+                const gdocLink = `https://docs.google.com/document/d/${id}/edit`
+                const adminLink = `${ADMIN_BASE_URL}/admin/gdocs/${id}/preview`
+                const admin = gdocAdminBar.querySelector("#admin")
+                const gdoc = gdocAdminBar.querySelector("#gdoc")
+                if (admin && gdoc) {
+                    admin.setAttribute("href", adminLink)
+                    admin.setAttribute("target", "_blank")
+                    gdoc.setAttribute("href", gdocLink)
+                    gdoc.setAttribute("target", "_blank")
+                }
+            }
+        }
     }
 } catch {}
 
