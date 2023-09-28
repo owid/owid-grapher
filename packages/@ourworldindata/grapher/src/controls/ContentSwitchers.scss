@@ -50,6 +50,20 @@
 
         svg {
             color: $info-icon;
+
+            &.custom-icon {
+                --size: 13px;
+
+                display: inline-block;
+                height: var(--size);
+                width: var(--size);
+                vertical-align: -1.625px;
+
+                &.scatter,
+                &.marimekko {
+                    --size: 14px;
+                }
+            }
         }
     }
 
