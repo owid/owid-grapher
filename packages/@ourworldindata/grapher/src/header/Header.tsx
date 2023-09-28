@@ -52,14 +52,14 @@ export class Header extends React.Component<{
 
     @computed get title(): TextWrap {
         const { logoWidth } = this
-        const fontSize = this.manager.isSmall
+        const fontSize = this.manager.isNarrow
             ? 18
             : this.manager.isMedium
             ? 20
             : 24
         return new TextWrap({
             maxWidth: this.maxWidth - logoWidth - 24,
-            fontWeight: 500,
+            fontWeight: 600,
             lineHeight: this.manager.isSmall ? 1.1 : 1.2,
             fontSize,
             text: this.titleText,
