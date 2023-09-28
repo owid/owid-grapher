@@ -209,6 +209,16 @@ nav.controlsRow .controls {
             background: rgba(0, 0, 0, 0.2);
             z-index: $zindex-controls-backdrop;
         }
+
+        .config-switch {
+            label > svg {
+                display: none;
+            }
+
+            .config-subtitle {
+                display: block;
+            }
+        }
     }
 
     .settings-menu-contents {
@@ -372,6 +382,10 @@ nav.controlsRow .controls {
                             height: 13px;
                             padding: 0 0.333em;
                         }
+                    }
+
+                    .config-subtitle {
+                        display: none;
                     }
 
                     input {

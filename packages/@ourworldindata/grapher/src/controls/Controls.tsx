@@ -541,6 +541,7 @@ export class LabeledSwitch extends React.Component<{
                         </Tippy>
                     )}
                 </label>
+                {tooltip && <div className="config-subtitle">{tooltip}</div>}
             </div>
         )
     }
