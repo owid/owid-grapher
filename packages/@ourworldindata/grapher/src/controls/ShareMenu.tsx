@@ -2,7 +2,7 @@ import { observer } from "mobx-react"
 import React from "react"
 import { computed, action } from "mobx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faTwitter, faFacebook } from "@fortawesome/free-brands-svg-icons"
+import { faXTwitter, faFacebook } from "@fortawesome/free-brands-svg-icons"
 import {
     faCode,
     faShareAlt,
@@ -157,7 +157,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                     href={twitterHref}
                     rel="noopener"
                 >
-                    <FontAwesomeIcon icon={faTwitter} /> Twitter
+                    <FontAwesomeIcon icon={faXTwitter} /> X
                 </a>
                 <a
                     target="_blank"
