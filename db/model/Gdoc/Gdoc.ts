@@ -852,7 +852,10 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
         // the database dependent on the mapping function, which is more practical
         // but also makes it less of a source of truth when considered in isolation.
         return Gdoc.find({
-            where: { published: true },
+            where: {
+                published: true,
+                publishedAt: LessThanOrEqual(new Date()),
+            },
             relations: ["tags"],
         }).then((gdocs) =>
             gdocs.filter(
