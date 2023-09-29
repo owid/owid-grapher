@@ -112,7 +112,7 @@ $zindex-controls-drawer: 140;
     container-name: grapher;
 
     // use box-shadow instead of border to make sure the border is in the foreground
-    box-shadow: inset 0 0 0 1px $frame-color; // equivalent to `border: 1px solid $frame-color`
+    box-shadow: 0 0 0 1px $frame-color; // equivalent to `border: 1px solid $frame-color`
     z-index: $zindex-chart;
 
     * {

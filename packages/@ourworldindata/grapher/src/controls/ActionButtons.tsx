@@ -78,21 +78,12 @@ export class ActionButtons extends React.Component<{
         return width + (buttonCount - 1) * PADDING_BETWEEN_BUTTONS
     }
 
-    @computed private get showButtonLabels(): boolean {
-        const { maxWidth, widthWithButtonLabels } = this
-        return widthWithButtonLabels <= maxWidth
-    }
-
-    @computed get width(): number {
+    @computed get widthWithIconsOnly(): number {
         const {
             buttonCount,
-            showButtonLabels,
-            widthWithButtonLabels,
             hasExploreTheDataButton,
             exploreTheDataButtonWidth,
         } = this
-
-        if (showButtonLabels) return widthWithButtonLabels
 
         if (hasExploreTheDataButton) {
             // the "Explore the data" label is always shown
@@ -107,6 +98,17 @@ export class ActionButtons extends React.Component<{
                 (buttonCount - 1) * PADDING_BETWEEN_BUTTONS
             )
         }
+    }
+
+    @computed get showButtonLabels(): boolean {
+        const { maxWidth, widthWithButtonLabels } = this
+        return widthWithButtonLabels <= maxWidth
+    }
+
+    @computed get width(): number {
+        const { showButtonLabels, widthWithButtonLabels, widthWithIconsOnly } =
+            this
+        return showButtonLabels ? widthWithButtonLabels : widthWithIconsOnly
     }
 
     private static computeButtonWidth(label: string): number {

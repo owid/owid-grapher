@@ -2015,6 +2015,12 @@ export class Grapher
                 category: "Chart",
             },
             {
+                combo: "w",
+                fn: (): void => this.toggleFullScreenMode(),
+                title: `Toggle full-screen mode`,
+                category: "Chart",
+            },
+            {
                 combo: "esc",
                 fn: (): void => this.clearErrors(),
             },

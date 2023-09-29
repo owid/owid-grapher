@@ -538,7 +538,7 @@ export enum ChartControlKeyword {
     xLogLinearSelector = "xLogLinearSelector",
     yLogLinearSelector = "yLogLinearSelector",
     mapProjectionMenu = "mapProjectionMenu",
-    tableFilterToggle = "​​tableFilterToggle",
+    tableFilterToggle = "tableFilterToggle",
 }
 
 export enum ChartTabKeyword {

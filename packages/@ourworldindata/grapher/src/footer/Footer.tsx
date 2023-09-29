@@ -185,19 +185,37 @@ export class Footer<
         return !!this.noteText
     }
 
+    @computed private get actionButtonsWidthWithIconsOnly(): number {
+        return new ActionButtons({
+            manager: this.manager,
+            maxWidth: this.maxWidth,
+        }).widthWithIconsOnly
+    }
+
     @computed private get useFullWidthSources(): boolean {
-        const { hasNote, sourcesFontSize, maxWidth, sourcesText } = this
+        const {
+            hasNote,
+            sourcesFontSize,
+            maxWidth,
+            sourcesText,
+            actionButtonsWidthWithIconsOnly,
+        } = this
         if (hasNote) return true
         const sourcesWidth = Bounds.forText(sourcesText, {
             fontSize: sourcesFontSize,
         }).width
-        return sourcesWidth > 2 * maxWidth
+        return sourcesWidth > 2 * (maxWidth - actionButtonsWidthWithIconsOnly)
     }
 
     @computed private get useFullWidthNote(): boolean {
-        const { fontSize, maxWidth, noteText } = this
+        const {
+            fontSize,
+            maxWidth,
+            noteText,
+            actionButtonsWidthWithIconsOnly,
+        } = this
         const noteWidth = Bounds.forText(noteText, { fontSize }).width
-        return noteWidth > 2 * maxWidth
+        return noteWidth > 2 * (maxWidth - actionButtonsWidthWithIconsOnly)
     }
 
     @computed protected get sourcesMaxWidth(): number {
