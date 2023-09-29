@@ -5,13 +5,14 @@ import * as lodash from "lodash"
 import { Link } from "./Link.js"
 import { Tag } from "./TagBadge.js"
 import { Timeago } from "./Forms.js"
-import { EditableTags, TaggableType } from "./EditableTags.js"
+import { EditableTags } from "./EditableTags.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import {
     BAKED_GRAPHER_EXPORTS_BASE_URL,
     BAKED_GRAPHER_URL,
 } from "../settings/clientSettings.js"
 import { ChartListItem, showChartType } from "./ChartList.js"
+import { TaggableType } from "@ourworldindata/utils"
 
 @observer
 export class ChartRow extends React.Component<{

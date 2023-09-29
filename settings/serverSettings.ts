@@ -170,3 +170,5 @@ export const DATA_API_URL: string = clientSettings.DATA_API_URL
 
 export const BUILDKITE_API_ACCESS_TOKEN: string =
     serverSettings.BUILDKITE_API_ACCESS_TOKEN ?? ""
+
+export const OPENAI_API_KEY: string = serverSettings.OPENAI_API_KEY ?? ""
