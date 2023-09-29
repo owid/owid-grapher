@@ -8,7 +8,7 @@
     $active-icon: #6e87a2;
 
     $border-radius: 4px;
-    $visual-gap: 1.5px;
+    $visual-gap: 2px;
 
     list-style: none;
     height: $controlRowHeight;
@@ -16,7 +16,7 @@
     padding: $visual-gap;
     // using a box-shadow instead of a border fixes a bug
     // where the tab items weren't centered when zoomed in or out
-    box-shadow: 0 0 0 1px $light-stroke;
+    box-shadow: inset 0 0 0 1px $light-stroke;
     border-radius: $border-radius;
 
     li {
