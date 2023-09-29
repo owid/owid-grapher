@@ -279,12 +279,24 @@ export class Footer<
             hasNote,
             useFullWidthNote,
         } = this
-        const textWidth = !useFullWidthSources
-            ? Bounds.forText(sourcesText, {
-                  fontSize: sourcesFontSize,
-              }).width
+
+        const sourcesWidth = Bounds.forText(sourcesText, {
+            fontSize: sourcesFontSize,
+        }).width
+        const noteWidth = Bounds.forText(noteText, { fontSize }).width
+
+        // text next to the action buttons
+        const leftTextWidth = !useFullWidthSources
+            ? sourcesWidth
             : hasNote && !useFullWidthNote
-            ? Bounds.forText(noteText, { fontSize }).width
+            ? noteWidth
+            : 0
+        // text above the action buttons
+        // (taken into account to ensure the action buttons are not too close to clickable text)
+        const topTextWidth = useFullWidthSources
+            ? useFullWidthNote
+                ? noteWidth
+                : sourcesWidth
             : 0
         const licenseAndOriginUrlWidth = Bounds.forText(
             Footer.constructLicenseAndOriginUrlText(
@@ -293,9 +305,10 @@ export class Footer<
             ),
             { fontSize }
         ).width
+
         return (
             maxWidth -
-            Math.max(textWidth, licenseAndOriginUrlWidth) -
+            Math.max(topTextWidth, leftTextWidth, licenseAndOriginUrlWidth) -
             HORIZONTAL_PADDING
         )
     }
