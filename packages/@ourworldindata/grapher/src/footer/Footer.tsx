@@ -96,7 +96,7 @@ export class Footer<
 
     @computed protected get licenseUrl(): string {
         if (this.manager.hasOWIDLogo)
-            return "http://creativecommons.org/licenses/by/4.0/deed.en_US"
+            return "https://creativecommons.org/licenses/by/4.0/"
         return "https://ourworldindata.org"
     }
 

@@ -10,6 +10,7 @@
         "yarn": "3.3.0"
     },
     "scripts": {
+        "batchTagWithGpt": "node --enable-source-maps ./itsJustJavascript/baker/batchTagWithGpt.js",
         "buildAndDeploySite": "node --enable-source-maps ./itsJustJavascript/baker/buildAndDeploySite.js",
         "buildCoverage": "jest --coverage=true --coverageProvider=v8",
         "buildLocalBake": "node --enable-source-maps ./itsJustJavascript/baker/buildLocalBake.js",
