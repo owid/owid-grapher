@@ -43,6 +43,7 @@ import {
 } from "@ourworldindata/utils"
 import { makeSelectionArray } from "../chart/ChartUtils"
 import { SelectionArray } from "../selection/SelectionArray"
+import { DEFAULT_GRAPHER_ENTITY_TYPE } from "../core/GrapherConstants"
 
 interface DataTableState {
     sort: DataTableSortState
@@ -153,13 +154,14 @@ export class DataTable extends React.Component<{
         return (
             this.props.manager ?? {
                 table: BlankOwidTable(),
-                entityType: "country or region",
+                entityType: DEFAULT_GRAPHER_ENTITY_TYPE,
             }
         )
     }
 
+    // in data tables only, we prefer "Country/area" over "Country or region" as default entity type
     @computed private get entityType(): string {
-        return this.manager.entityType ?? "country or region"
+        return this.manager.entityType ?? "Country/area"
     }
 
     @computed private get entitiesAreCountryLike(): boolean {

@@ -24,6 +24,7 @@ import {
     setSelectedEntityNamesParam,
     SlideShowController,
     SlideShowManager,
+    DEFAULT_GRAPHER_ENTITY_TYPE,
 } from "@ourworldindata/grapher"
 import {
     Bounds,
@@ -186,7 +187,7 @@ export class Explorer
         this.props.selection ??
         new SelectionArray(this.explorerProgram.selection)
 
-    entityType = this.explorerProgram.entityType ?? "country or region"
+    entityType = this.explorerProgram.entityType ?? DEFAULT_GRAPHER_ENTITY_TYPE
 
     @observable.ref grapher?: Grapher
 

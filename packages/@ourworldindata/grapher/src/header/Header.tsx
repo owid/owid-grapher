@@ -52,14 +52,14 @@ export class Header extends React.Component<{
 
     @computed get title(): TextWrap {
         const { logoWidth } = this
-        const fontSize = this.manager.isSmall
+        const fontSize = this.manager.isNarrow
             ? 18
             : this.manager.isMedium
             ? 20
             : 24
         return new TextWrap({
             maxWidth: this.maxWidth - logoWidth - 24,
-            fontWeight: 500,
+            fontWeight: 600,
             lineHeight: this.manager.isSmall ? 1.1 : 1.2,
             fontSize,
             text: this.titleText,
@@ -137,34 +137,55 @@ export class Header extends React.Component<{
         )
     }
 
-    render(): JSX.Element {
+    private renderTitle(): JSX.Element {
         const { manager } = this
 
-        const subtitleStyle = {
+        // on smaller screens, make the whole width of the header clickable
+        if (manager.isMedium) {
+            return (
+                <a
+                    href={manager.canonicalUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    <h1 style={this.title.htmlStyle}>
+                        {this.title.renderHTML()}
+                    </h1>
+                </a>
+            )
+        }
+
+        // on larger screens, only make the title text itself clickable
+        return (
+            <h1 style={this.title.htmlStyle}>
+                <a
+                    href={manager.canonicalUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    {this.title.renderHTML()}
+                </a>
+            </h1>
+        )
+    }
+
+    private renderSubtitle(): JSX.Element {
+        const style = {
             ...this.subtitle.style,
             marginTop: this.subtitleMarginTop,
             // make sure there are no scrollbars on subtitle
             overflowY: "hidden",
         }
+        return <p style={style}>{this.subtitle.renderHTML()}</p>
+    }
 
+    render(): JSX.Element {
         return (
             <div className="HeaderHTML">
                 {this.logo && this.logo.renderHTML()}
                 <div style={{ minHeight: this.height }}>
-                    <a
-                        href={manager.canonicalUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        <h1 style={this.title.htmlStyle}>
-                            {this.title.renderHTML()}
-                        </h1>
-                    </a>
-                    {this.subtitleText && (
-                        <p style={subtitleStyle}>
-                            {this.subtitle.renderHTML()}
-                        </p>
-                    )}
+                    {this.renderTitle()}
+                    {this.subtitleText && this.renderSubtitle()}
                 </div>
             </div>
         )

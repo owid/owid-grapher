@@ -90,6 +90,8 @@ import {
     getVariableDataRoute,
     getVariableMetadataRoute,
     GRAPHER_FRAME_PADDING,
+    DEFAULT_GRAPHER_ENTITY_TYPE,
+    DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL,
 } from "../core/GrapherConstants"
 import Cookies from "js-cookie"
 import {
@@ -265,6 +267,8 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     hideFacetYDomainToggle?: boolean
     hideXScaleToggle?: boolean
     hideYScaleToggle?: boolean
+    hideMapProjectionMenu?: boolean
+    hideTableFilterToggle?: boolean
     forceHideAnnotationFieldsInTitle?: AnnotationFieldsInTitle
     hasTableTab?: boolean
     hideShareTabButton?: boolean
@@ -334,8 +338,8 @@ export class Grapher
     @observable.ref logo?: LogoOption = undefined
     @observable.ref hideLogo?: boolean = undefined
     @observable.ref hideRelativeToggle? = true
-    @observable.ref entityType = "country or region"
-    @observable.ref entityTypePlural = "countries or regions"
+    @observable.ref entityType = DEFAULT_GRAPHER_ENTITY_TYPE
+    @observable.ref entityTypePlural = DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL
     @observable.ref facettingLabelByYVariables = "metric"
     @observable.ref hideTimeline?: boolean = undefined
     @observable.ref hideScatterLabels?: boolean = undefined
@@ -1231,7 +1235,7 @@ export class Grapher
     }
 
     @computed get currentTitle(): string {
-        let text = this.displayTitle
+        let text = this.displayTitle.trim()
         const selectedEntityNames = this.selection.selectedEntityNames
         const showEntityAnnotation = !this.hideAnnotationFieldsInTitle?.entity
         const showTimeAnnotation = !this.hideAnnotationFieldsInTitle?.time
@@ -1241,6 +1245,16 @@ export class Grapher
         const seriesStrategy =
             this.chartInstance.seriesStrategy ||
             autoDetectSeriesStrategy(this, true)
+
+        // helper function to add an annotation fragment to the title
+        // only adds a comma if the text does not end with a question mark
+        const appendAnnotationField = (
+            text: string,
+            annotation: string
+        ): string => {
+            const separator = text.endsWith("?") ? "" : ","
+            return `${text}${separator} ${annotation}`
+        }
 
         if (
             !this.forceHideAnnotationFieldsInTitle?.entity &&
@@ -1252,7 +1266,7 @@ export class Grapher
                 this.canSelectMultipleEntities)
         ) {
             const entityStr = selectedEntityNames[0]
-            if (entityStr?.length) text = `${text}, ${entityStr}`
+            if (entityStr?.length) text = appendAnnotationField(text, entityStr)
         }
 
         if (
@@ -1275,7 +1289,7 @@ export class Grapher
                         this.isMarimekko ||
                         this.isOnMapTab)))
         )
-            text += this.timeTitleSuffix
+            text = appendAnnotationField(text, this.timeTitleSuffix)
 
         return text.trim()
     }
@@ -1385,7 +1399,7 @@ export class Grapher
                   " to " +
                   timeColumn.formatValue(endTime)
 
-        return ", " + time
+        return time
     }
 
     @computed get sourcesLine(): string {
@@ -2182,6 +2196,9 @@ export class Grapher
             document.documentElement.classList.remove("no-scroll")
         }
 
+        // dismiss the share menu
+        this.isShareMenuActive = false
+
         this._isInFullScreenMode = newValue
     }
 
@@ -2763,6 +2780,8 @@ export class Grapher
     @observable hideFacetYDomainToggle = false
     @observable hideXScaleToggle = false
     @observable hideYScaleToggle = false
+    @observable hideMapProjectionMenu = false
+    @observable hideTableFilterToggle = false
     // enforces hiding an annotation, even if that means that a crucial piece of information is missing from the chart title
     @observable forceHideAnnotationFieldsInTitle: AnnotationFieldsInTitle = {
         entity: false,

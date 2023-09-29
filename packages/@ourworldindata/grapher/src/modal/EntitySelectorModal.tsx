@@ -2,6 +2,7 @@ import React from "react"
 import { observer } from "mobx-react"
 import { computed, action, observable } from "mobx"
 import classnames from "classnames"
+import a from "indefinite"
 import {
     Bounds,
     DEFAULT_BOUNDS,
@@ -14,6 +15,7 @@ import { faMagnifyingGlass, faCheck } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { SelectionArray } from "../selection/SelectionArray"
 import { Modal } from "./Modal"
+import { DEFAULT_GRAPHER_ENTITY_TYPE } from "../core/GrapherConstants"
 
 export interface EntitySelectorModalManager {
     selection: SelectionArray
@@ -96,6 +98,10 @@ export class EntitySelectorModal extends React.Component<{
         return !this.manager.canChangeEntity
     }
 
+    @computed private get entityType(): string {
+        return this.manager.entityType ?? DEFAULT_GRAPHER_ENTITY_TYPE
+    }
+
     @computed get fuzzy(): FuzzySearch<SearchableEntity> {
         return new FuzzySearch(this.searchableEntities, "name")
     }
@@ -175,8 +181,8 @@ export class EntitySelectorModal extends React.Component<{
             this
 
         const title = isMulti
-            ? `Add/remove ${manager.entityTypePlural || "countries or regions"}`
-            : `Choose ${manager.entityType || "country or region"}`
+            ? `Add/remove ${manager.entityTypePlural}`
+            : `Choose ${a(this.entityType)}`
 
         return (
             <Modal

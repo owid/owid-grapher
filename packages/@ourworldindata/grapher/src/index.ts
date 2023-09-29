@@ -18,6 +18,7 @@ export {
     DEFAULT_GRAPHER_WIDTH,
     DEFAULT_GRAPHER_HEIGHT,
     STATIC_EXPORT_DETAIL_SPACING,
+    DEFAULT_GRAPHER_ENTITY_TYPE,
     CookieKey,
     EntitySelectionMode,
     StackMode,

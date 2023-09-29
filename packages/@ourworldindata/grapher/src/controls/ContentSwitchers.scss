@@ -7,15 +7,16 @@
     $info-icon: #a1a1a1;
     $active-icon: #6e87a2;
 
-    $border-width: 1px;
     $border-radius: 4px;
-    $visual-gap: 1.5px;
+    $visual-gap: 2px;
 
     list-style: none;
     height: $controlRowHeight;
     margin: 0;
     padding: $visual-gap;
-    border: $border-width solid $light-stroke;
+    // using a box-shadow instead of a border fixes a bug
+    // where the tab items weren't centered when zoomed in or out
+    box-shadow: inset 0 0 0 1px $light-stroke;
     border-radius: $border-radius;
 
     li {
@@ -25,7 +26,7 @@
     }
 
     li > a {
-        $height: $controlRowHeight - 2 * ($border-width + $visual-gap);
+        $height: $controlRowHeight - 2 * $visual-gap;
 
         display: block;
         text-transform: capitalize;
@@ -50,6 +51,20 @@
 
         svg {
             color: $info-icon;
+
+            &.custom-icon {
+                --size: 13px;
+
+                display: inline-block;
+                height: var(--size);
+                width: var(--size);
+                vertical-align: -1.625px;
+
+                &.scatter,
+                &.marimekko {
+                    --size: 14px;
+                }
+            }
         }
     }
 
