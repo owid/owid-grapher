@@ -8,6 +8,16 @@ interface BatchTagWithGptArgs {
     limit?: number
 }
 
+/*
+Add GPT topics to eligible charts (and later posts, explorers).
+
+Usage:
+$ yarn batchTagWithGpt --help
+
+Example: yarn batchTagWithGpt --debug --limit 1
+
+Note: this script is not called automatically yet, and needs to be run manually.
+*/
 export const batchTagWithGpt = async ({
     debug,
     limit,
@@ -19,22 +29,20 @@ const batchTagChartsWithGpt = async ({
     debug,
     limit,
 }: BatchTagWithGptArgs = {}) => {
-    // Get all charts that need tagging. These charts either have no tags, or
-    // are tagged with neither a topic nor "Unlisted"
+    // Identify all charts that need tagging. Get all charts that aren't tagged
+    // with a topic tag or the "Unlisted" tag. This includes charts that have no
+    // tags at all)
     const chartsToTag = await db.queryMysql(`
-    SELECT 
-        charts.id
+    SELECT id
     FROM charts
-    LEFT JOIN chart_tags ON charts.id = chart_tags.chartId
-    LEFT JOIN tags ON chart_tags.tagId = tags.id
-    WHERE charts.id 
+    WHERE id
     NOT IN (
-        SELECT chartId 
-        FROM chart_tags 
-        JOIN tags ON chart_tags.tagId = tags.id 
+        SELECT chartId
+        FROM chart_tags
+        JOIN tags ON chart_tags.tagId = tags.id
         WHERE tags.isTopic = 1 OR tags.name = 'Unlisted'
     )
-    GROUP BY charts.id
+    GROUP BY id
     ${limit ? `LIMIT ${limit}` : ""}
     `)
 
