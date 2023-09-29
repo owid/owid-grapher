@@ -215,9 +215,16 @@ export class Footer<
     }
 
     @computed protected get showLicenseNextToSources(): boolean {
-        const { useFullWidthSources, maxWidth, sources, licenseAndOriginUrl } =
-            this
+        const {
+            useFullWidthSources,
+            maxWidth,
+            sources,
+            licenseAndOriginUrl,
+            note,
+        } = this
         if (!useFullWidthSources) return false
+        // if there's space, keep the license below the note
+        if (this.useFullWidthNote || note.htmlLines.length <= 1) return false
         return (
             sources.width + HORIZONTAL_PADDING + licenseAndOriginUrl.width <=
             maxWidth
