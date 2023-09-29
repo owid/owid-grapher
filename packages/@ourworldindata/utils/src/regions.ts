@@ -69,10 +69,10 @@ const countriesBySlug: Record<string, Country> = Object.fromEntries(
 
 const currentAndHistoricalCountryNames = regions
     .filter(({ regionType }) => regionType === "country")
-    .map(({ name }) => name)
+    .map(({ name }) => name.toLowerCase())
 
 export const isCountryName = (name: string): boolean =>
-    currentAndHistoricalCountryNames.includes(name)
+    currentAndHistoricalCountryNames.includes(name.toLowerCase())
 
 export const getCountryBySlug = (slug: string): Country | undefined =>
     countriesBySlug[slug]

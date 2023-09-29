@@ -83,6 +83,7 @@ export interface DataTableManager {
     startTime?: Time
     dataTableSlugs?: ColumnSlug[]
     showSelectionOnlyInDataTable?: boolean
+    entitiesAreCountryLike?: boolean
     isSmall?: boolean
     isMedium?: boolean
     isNarrow?: boolean
@@ -162,10 +163,6 @@ export class DataTable extends React.Component<{
     // in data tables only, we prefer "Country/area" over "Country or region" as default entity type
     @computed private get entityType(): string {
         return this.manager.entityType ?? "Country/area"
-    }
-
-    @computed private get entitiesAreCountryLike(): boolean {
-        return !!this.entityType.match(/\bcountry\b/i)
     }
 
     @computed private get sortValueMapper(): (
@@ -893,18 +890,18 @@ export class DataTable extends React.Component<{
     }
 
     @computed private get displayEntityRows(): DataTableRow[] {
-        if (!this.entitiesAreCountryLike) return this.displayRows
+        if (!this.manager.entitiesAreCountryLike) return this.displayRows
         return this.displayRows.filter((row) => isCountryName(row.entityName))
     }
 
     @computed private get displayAggregateRows(): DataTableRow[] {
-        if (!this.entitiesAreCountryLike) return []
+        if (!this.manager.entitiesAreCountryLike) return []
         return this.displayRows.filter((row) => !isCountryName(row.entityName))
     }
 
     @computed private get showTitleRows(): boolean {
         return (
-            this.entitiesAreCountryLike &&
+            !!this.manager.entitiesAreCountryLike &&
             this.displayEntityRows.length > 0 &&
             this.displayAggregateRows.length > 0
         )

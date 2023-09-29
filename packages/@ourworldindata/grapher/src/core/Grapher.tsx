@@ -2764,6 +2764,10 @@ export class Grapher
         )
     }
 
+    @computed get entitiesAreCountryLike(): boolean {
+        return !!this.entityType.match(/\bcountry\b/i)
+    }
+
     @computed get startSelectingWhenLineClicked(): boolean {
         return this.showAddEntityButton
     }
