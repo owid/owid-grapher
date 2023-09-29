@@ -15,15 +15,6 @@ $controlRowHeight: 32px; // keep in sync with CONTROLS_ROW_HEIGHT
     width: 100%;
     display: flex;
     justify-content: space-between;
-
-    button.configure {
-        text-transform: uppercase;
-        color: #777;
-        font-size: 0.8em;
-        height: $controlRowHeight - 1;
-        line-height: $controlRowHeight;
-        padding: 0;
-    }
 }
 
 .relatedQuestion {
