@@ -8,6 +8,7 @@ import {
     DEFAULT_BOUNDS,
     isTouchDevice,
     sortBy,
+    isCountryName,
 } from "@ourworldindata/utils"
 import { Checkbox } from "../controls/Checkbox"
 import { FuzzySearch } from "../controls/FuzzySearch"
@@ -24,6 +25,7 @@ export interface EntitySelectorModalManager {
     tabBounds?: Bounds
     entityType?: string
     entityTypePlural?: string
+    entitiesAreCountryLike?: boolean
 }
 
 interface SearchableEntity {
@@ -228,19 +230,28 @@ export class EntitySelectorModal extends React.Component<{
 
                     <div className="entities">
                         <div className="searchResults">
-                            <ul>
-                                {searchResults.map((result) => (
-                                    <EntitySearchResult
-                                        key={result.name}
-                                        result={result}
-                                        isMulti={this.isMulti}
-                                        isChecked={selectionArray.selectedSet.has(
-                                            result.name
-                                        )}
-                                        onSelect={this.onSelect}
-                                    />
-                                ))}
-                            </ul>
+                            {searchResults.length > 0 ? (
+                                <ul>
+                                    {searchResults.map((result) => (
+                                        <EntitySearchResult
+                                            key={result.name}
+                                            result={result}
+                                            isMulti={this.isMulti}
+                                            isChecked={selectionArray.selectedSet.has(
+                                                result.name
+                                            )}
+                                            onSelect={this.onSelect}
+                                        />
+                                    ))}
+                                </ul>
+                            ) : (
+                                <div className="empty">
+                                    {this.manager.entitiesAreCountryLike &&
+                                    isCountryName(this.searchInput)
+                                        ? "There is no data for the country, region or group you are looking for."
+                                        : "Nothing turned up. You may want to try using different keywords or checking for typos."}
+                                </div>
+                            )}
                         </div>
                         {this.renderSelectedData()}
                     </div>
