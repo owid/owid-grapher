@@ -4955,7 +4955,6 @@ __metadata:
     "@types/d3": ^6
     "@types/d3-format": ^2
     "@types/jest": ^29.0.3
-    "@types/linkifyjs": ^2.1.4
     "@types/lodash": ^4.14.185
     "@types/parsimmon": ^1.10.6
     "@types/react": ^16.14.23
@@ -4968,7 +4967,6 @@ __metadata:
     eslint-plugin-react-hooks: ^4.6.0
     jest: ^29.0.3
     json8-pointer: ^1.0.6
-    linkifyjs: ^2.1.9
     lodash: ^4.17.20
     mobx: ^5.15.7
     mobx-react: 5
@@ -5994,15 +5992,6 @@ __metadata:
   dependencies:
     "@types/node": "*"
   checksum: c7791354ba895759524c18ba609ea04efdc576e2b660bd6f80d5b917db8dc4b01acd4d1bc115a62d35406a82e627067973d475c4b36035dabaa27862b141ae49
-  languageName: node
-  linkType: hard
-
-"@types/linkifyjs@npm:^2.1.4":
-  version: 2.1.4
-  resolution: "@types/linkifyjs@npm:2.1.4"
-  dependencies:
-    "@types/react": "*"
-  checksum: 8381e7b9590b4f59fd1d690c827a34f212d1e55e3463b4750ab6ff16f6bf29e2b66d552f2eb95a3f353a1cbf2740be59fbdebb1efb53b8392795728c2e9e6a50
   languageName: node
   linkType: hard
 
@@ -13875,7 +13864,6 @@ __metadata:
     "@types/js-cookie": ^3.0.2
     "@types/js-yaml": ^4.0.5
     "@types/jsonwebtoken": ^9.0.0
-    "@types/linkifyjs": ^2.1.4
     "@types/lodash": ^4.14.185
     "@types/md5": ^2.3.2
     "@types/minimist": ^1.2.2
@@ -13958,7 +13946,6 @@ __metadata:
     jsonwebtoken: ^9.0.0
     knex: ^2.4.2
     lerna: ^6.0.0
-    linkifyjs: ^2.1.9
     lodash: ^4.17.20
     mathjax-full: ^3.1.0
     md5: ^2.3.0
@@ -16789,17 +16776,6 @@ __metadata:
   version: 1.1.6
   resolution: "lines-and-columns@npm:1.1.6"
   checksum: 198a5436b1fa5cf703bae719c01c686b076f0ad7e1aafd95a58d626cabff302dc0414822126f2f80b58a8c3d66cda8a7b6da064f27130f87e1d3506d6dfd0d68
-  languageName: node
-  linkType: hard
-
-"linkifyjs@npm:^2.1.9":
-  version: 2.1.9
-  resolution: "linkifyjs@npm:2.1.9"
-  peerDependencies:
-    jquery: ">= 1.11.0"
-    react: ">= 0.14.0"
-    react-dom: ">= 0.14.0"
-  checksum: 0ddb6eca62464f01075a0c9f9faf916e29ea67b4dd58e79157d34925a1ce647a705ec5a047573fabfbc15df9fa56e0d1c755e641ee425015217e940420a55556
   languageName: node
   linkType: hard
 
