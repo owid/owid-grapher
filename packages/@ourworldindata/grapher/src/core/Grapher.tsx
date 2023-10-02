@@ -281,6 +281,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     bindUrlToWindow?: boolean
     isEmbeddedInAnOwidPage?: boolean
     isEmbeddedInADataPage?: boolean
+    optimizeForHorizontalSpace?: boolean
 
     manager?: GrapherManager
 }
@@ -442,6 +443,10 @@ export class Grapher
 
     isEmbeddedInAnOwidPage?: boolean = this.props.isEmbeddedInAnOwidPage
     isEmbeddedInADataPage?: boolean = this.props.isEmbeddedInADataPage
+
+    @computed private get optimizeForHorizontalSpace(): boolean {
+        return this.isNarrow && !!this.props.optimizeForHorizontalSpace
+    }
 
     /**
      * todo: factor this out and make more RAII.
@@ -2293,7 +2298,7 @@ export class Grapher
             GrapherComponent: true,
             GrapherPortraitClass: this.isPortrait,
             isExportingToSvgOrPng: this.isExportingtoSvgOrPng,
-            isEmbeddedInAnOwidPage: this.isEmbeddedInAnOwidPage,
+            optimizeForHorizontalSpace: this.optimizeForHorizontalSpace,
             GrapherComponentNarrow: this.isNarrow,
             GrapherComponentSmall: this.isSmall,
             GrapherComponentMedium: this.isMedium,
@@ -2386,7 +2391,7 @@ export class Grapher
     // when embedded in an owid page and viewed on a narrow screen,
     // grapher bleeds onto the edges horizontally
     @computed get framePaddingHorizontal(): number {
-        return this.isNarrow && this.isEmbeddedInAnOwidPage
+        return this.optimizeForHorizontalSpace
             ? 0
             : DEFAULT_GRAPHER_FRAME_PADDING
     }

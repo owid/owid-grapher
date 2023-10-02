@@ -170,7 +170,7 @@ $zindex-controls-drawer: 140;
 // when embedded in an owid page and viewed on a narrow screen,
 // grapher bleeds onto the edges horizontally and the left and right borders are hidden.
 // the top and bottom borders are still visible, but should stretch across the entire page.
-.GrapherComponent.GrapherComponentNarrow.isEmbeddedInAnOwidPage {
+.GrapherComponent.optimizeForHorizontalSpace {
     box-shadow: none;
 
     &::before,

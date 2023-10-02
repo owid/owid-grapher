@@ -39,7 +39,14 @@ export default function Chart({
     const isExplorer = url.isExplorer
     const hasControls = url.queryParams.hideControls !== "true"
 
-    let config: GrapherProgrammaticInterface = {}
+    let config: GrapherProgrammaticInterface = {
+        // On mobile, we optimize for horizontal space by having Grapher bleed onto the edges horizontally.
+        // We want to do this for all stand-alone charts and charts in a Key Insights block, but not for charts
+        // listed in an All Charts block. The <Chart /> component is not used to render charts in an All Charts block,
+        // so we can just set this to true here.
+        optimizeForHorizontalSpace: true,
+    }
+
     const isCustomized = d.title || d.subtitle
     if (isCustomized) {
         const controls: ChartControlKeyword[] = d.controls || []
