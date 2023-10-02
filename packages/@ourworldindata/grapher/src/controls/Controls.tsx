@@ -654,6 +654,7 @@ export class NoDataAreaToggle extends React.Component<{
 export interface AbsRelToggleManager {
     stackMode?: StackMode
     relativeToggleLabel?: string
+    type: ChartTypeName
 }
 
 @observer
@@ -674,6 +675,15 @@ export class AbsRelToggle extends React.Component<{
         return this.props.manager
     }
 
+    @computed get tooltip(): string {
+        const { type } = this.manager
+        return type === ScatterPlot
+            ? "Show the percentage change per year over the the selected time range."
+            : type === LineChart
+            ? "Show proportional changes over time or actual values in their original units."
+            : "Show values as their share of the total or as actual values in their original units."
+    }
+
     render(): JSX.Element {
         const label =
             this.manager.relativeToggleLabel ?? "Display relative values"
@@ -681,7 +691,7 @@ export class AbsRelToggle extends React.Component<{
             <LabeledSwitch
                 label={label}
                 value={this.isRelativeMode}
-                tooltip="Show proportional changes over time or actual values in their original units."
+                tooltip={this.tooltip}
                 onToggle={this.onToggle}
             />
         )
