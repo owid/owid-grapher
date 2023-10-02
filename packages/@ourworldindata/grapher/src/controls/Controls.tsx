@@ -458,10 +458,11 @@ export class SettingsMenu extends React.Component<{
                             <AxisScaleToggle axis={xAxis!} subtitle={xLabel} />
                         )}
                         <div className="config-subtitle">
-                            Linear scales use absolute differences in data
-                            values to position points. Logarithmic scales use
-                            percentage differences to determine the distance
-                            between points.
+                            A linear scale evenly spaces values, where each
+                            increment represents a consistent change. A
+                            logarithmic scale uses multiples of the starting
+                            value, with each increment representing the same
+                            percentage increase.
                         </div>
                     </Setting>
 
