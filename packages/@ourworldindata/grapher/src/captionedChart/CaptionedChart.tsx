@@ -23,7 +23,7 @@ import {
     Patterns,
     RelatedQuestionsConfig,
     STATIC_EXPORT_DETAIL_SPACING,
-    GRAPHER_FRAME_PADDING,
+    DEFAULT_GRAPHER_FRAME_PADDING,
 } from "../core/GrapherConstants"
 import { MapChartManager } from "../mapCharts/MapChartConstants"
 import { ChartManager } from "../chart/ChartManager"
@@ -85,6 +85,8 @@ export interface CaptionedChartManager
     relatedQuestions?: RelatedQuestionsConfig[]
     isSmall?: boolean
     isMedium?: boolean
+    framePaddingHorizontal?: number
+    framePaddingVertical?: number
 }
 
 interface CaptionedChartProps {
@@ -94,7 +96,6 @@ interface CaptionedChartProps {
 }
 
 // keep in sync with sass variables in CaptionedChart.scss
-const FRAME_PADDING = GRAPHER_FRAME_PADDING
 const CONTROLS_ROW_HEIGHT = 32
 
 @observer
@@ -108,7 +109,22 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     }
 
     @computed protected get maxWidth(): number {
-        return this.props.maxWidth ?? this.bounds.width - 2 * FRAME_PADDING
+        return (
+            this.props.maxWidth ??
+            this.bounds.width - 2 * this.framePaddingHorizontal
+        )
+    }
+
+    @computed protected get framePaddingVertical(): number {
+        return (
+            this.manager.framePaddingVertical ?? DEFAULT_GRAPHER_FRAME_PADDING
+        )
+    }
+
+    @computed protected get framePaddingHorizontal(): number {
+        return (
+            this.manager.framePaddingHorizontal ?? DEFAULT_GRAPHER_FRAME_PADDING
+        )
     }
 
     @computed protected get verticalPadding(): number {
@@ -162,7 +178,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     @computed protected get boundsForChartArea(): Bounds {
         const { bounds, chartHeight } = this
         return new Bounds(0, 0, bounds.width, chartHeight).padWidth(
-            FRAME_PADDING
+            this.framePaddingHorizontal
         )
     }
 
@@ -242,7 +258,10 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     private renderControlsRow(): JSX.Element {
         const { showContentSwitchers } = this
         return (
-            <nav className="controlsRow">
+            <nav
+                className="controlsRow"
+                style={{ padding: `0 ${this.framePaddingHorizontal}px` }}
+            >
                 <div>
                     {showContentSwitchers && (
                         <ContentSwitchers manager={this.manager} />
@@ -253,13 +272,13 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                     <SettingsMenu
                         manager={this.manager}
                         top={
-                            FRAME_PADDING +
+                            this.framePaddingVertical +
                             this.header.height +
                             this.verticalPadding +
                             CONTROLS_ROW_HEIGHT +
                             4 // margin between button and menu
                         }
-                        bottom={FRAME_PADDING}
+                        bottom={this.framePaddingVertical}
                     />
                     <MapProjectionMenu manager={this.manager} />
                 </div>
@@ -272,7 +291,10 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         return (
             <div
                 className="relatedQuestion"
-                style={{ height: this.relatedQuestionHeight }}
+                style={{
+                    height: this.relatedQuestionHeight,
+                    padding: `0 ${this.framePaddingVertical}px`,
+                }}
             >
                 Related:&nbsp;
                 <a
@@ -341,6 +363,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
             <TimelineComponent
                 timelineController={this.manager.timelineController!}
                 maxWidth={this.maxWidth}
+                framePaddingHorizontal={this.framePaddingHorizontal}
             />
         )
     }
@@ -350,7 +373,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     @computed protected get chartHeight(): number {
         return Math.floor(
             this.bounds.height -
-                2 * FRAME_PADDING -
+                2 * this.framePaddingVertical -
                 // #1 Header
                 this.header.height -
                 this.verticalPadding -
@@ -367,7 +390,8 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                 this.footer.height -
                 // #6 [Related question]
                 (this.showRelatedQuestion
-                    ? this.relatedQuestionHeight - FRAME_PADDING * 0.25
+                    ? this.relatedQuestionHeight -
+                      this.framePaddingVertical * 0.25
                     : 0)
         )
     }
@@ -453,8 +477,18 @@ export class StaticCaptionedChart extends CaptionedChart {
         })
     }
 
+    @computed protected get framePaddingVertical(): number {
+        return DEFAULT_GRAPHER_FRAME_PADDING
+    }
+
+    @computed protected get framePaddingHorizontal(): number {
+        return DEFAULT_GRAPHER_FRAME_PADDING
+    }
+
     @computed private get paddedBounds(): Bounds {
-        return this.bounds.pad(FRAME_PADDING)
+        return this.bounds
+            .padWidth(this.framePaddingHorizontal)
+            .padHeight(this.framePaddingVertical)
     }
 
     @computed protected get boundsForChartArea(): Bounds {
@@ -470,16 +504,19 @@ export class StaticCaptionedChart extends CaptionedChart {
         return (
             <>
                 <line
-                    x1={FRAME_PADDING}
+                    x1={this.framePaddingHorizontal}
                     y1={this.bounds.height}
-                    x2={this.boundsForChartArea.width + FRAME_PADDING}
+                    x2={
+                        this.boundsForChartArea.width +
+                        this.framePaddingHorizontal
+                    }
                     y2={this.bounds.height}
                     stroke="#e7e7e7"
                 ></line>
                 <g
                     transform={`translate(15, ${
                         // + padding below the grey line
-                        this.bounds.height + FRAME_PADDING
+                        this.bounds.height + this.framePaddingVertical
                     })`}
                 >
                     {this.manager.detailRenderers.map((detail, i) => {
@@ -515,7 +552,7 @@ export class StaticCaptionedChart extends CaptionedChart {
 
         if (includeDetailsInStaticExport) {
             height +=
-                2 * FRAME_PADDING +
+                2 * this.framePaddingVertical +
                 sumTextWrapHeights(
                     this.manager.detailRenderers,
                     STATIC_EXPORT_DETAIL_SPACING

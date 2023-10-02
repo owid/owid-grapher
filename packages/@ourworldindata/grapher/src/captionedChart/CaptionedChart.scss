@@ -1,5 +1,4 @@
 // keep in sync with constant values in CaptionedChart.tsx
-$framePadding: 16px; // keep in sync with FRAME_PADDING
 $controlRowHeight: 32px; // keep in sync with CONTROLS_ROW_HEIGHT
 
 .HeaderHTML,
@@ -11,7 +10,6 @@ $controlRowHeight: 32px; // keep in sync with CONTROLS_ROW_HEIGHT
 }
 
 .controlsRow {
-    padding: 0 $framePadding;
     width: 100%;
     display: flex;
     justify-content: space-between;
@@ -19,7 +17,6 @@ $controlRowHeight: 32px; // keep in sync with CONTROLS_ROW_HEIGHT
 
 .relatedQuestion {
     font-size: 12px;
-    padding: 0 $framePadding;
     display: flex;
     justify-content: flex-end;
     align-items: center;

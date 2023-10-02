@@ -89,7 +89,7 @@ import {
     SeriesStrategy,
     getVariableDataRoute,
     getVariableMetadataRoute,
-    GRAPHER_FRAME_PADDING,
+    DEFAULT_GRAPHER_FRAME_PADDING,
     DEFAULT_GRAPHER_ENTITY_TYPE,
     DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL,
 } from "../core/GrapherConstants"
@@ -1209,7 +1209,8 @@ export class Grapher
                 text,
                 fontSize: 12,
                 // leave room for padding on the left and right
-                maxWidth: this.idealBounds.width - 2 * GRAPHER_FRAME_PADDING,
+                maxWidth:
+                    this.idealBounds.width - 2 * this.framePaddingHorizontal,
                 lineHeight: 1.2,
                 style: {
                     fill: "#5b5b5b",
@@ -2381,6 +2382,14 @@ export class Grapher
         if (renderWidth <= 400) this.baseFontSize = 14
         else if (renderWidth < 1080) this.baseFontSize = 16
         else if (renderWidth >= 1080) this.baseFontSize = 18
+    }
+
+    @computed get framePaddingHorizontal(): number {
+        return DEFAULT_GRAPHER_FRAME_PADDING
+    }
+
+    @computed get framePaddingVertical(): number {
+        return DEFAULT_GRAPHER_FRAME_PADDING
     }
 
     @computed get isNarrow(): boolean {

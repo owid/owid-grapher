@@ -19,10 +19,7 @@ import {
     OwidColumnDef,
     CoreColumn,
 } from "@ourworldindata/core-table"
-import {
-    GRAPHER_FRAME_PADDING,
-    STATIC_EXPORT_DETAIL_SPACING,
-} from "../core/GrapherConstants"
+import { STATIC_EXPORT_DETAIL_SPACING } from "../core/GrapherConstants"
 import { Modal } from "./Modal"
 import { Checkbox } from "../controls/Checkbox"
 
@@ -39,6 +36,7 @@ export interface DownloadModalManager {
     isDownloadModalOpen?: boolean
     tabBounds?: Bounds
     isOnChartOrMapTab?: boolean
+    framePaddingVertical?: number
 }
 
 interface DownloadModalProps {
@@ -64,6 +62,7 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
     @computed private get targetWidth(): number {
         return this.idealBounds.width
     }
+
     @computed private get targetHeight(): number {
         if (
             this.manager.shouldIncludeDetailsInStaticExport &&
@@ -71,7 +70,7 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
         ) {
             return (
                 this.idealBounds.height +
-                2 * GRAPHER_FRAME_PADDING +
+                2 * this.manager.framePaddingVertical! +
                 sumTextWrapHeights(
                     this.manager.detailRenderers,
                     STATIC_EXPORT_DETAIL_SPACING

@@ -31,7 +31,7 @@ export const DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL = "countries and regions"
 export const DEFAULT_GRAPHER_WIDTH = 850
 export const DEFAULT_GRAPHER_HEIGHT = 600
 
-export const GRAPHER_FRAME_PADDING = 16
+export const DEFAULT_GRAPHER_FRAME_PADDING = 16
 export const STATIC_EXPORT_DETAIL_SPACING = 8
 
 export enum CookieKey {

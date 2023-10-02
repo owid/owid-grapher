@@ -13,4 +13,5 @@ export interface FooterManager extends TooltipManager, ActionButtonsManager {
     isSourcesModalOpen?: boolean
     isSmall?: boolean
     isMedium?: boolean
+    framePaddingHorizontal?: number
 }

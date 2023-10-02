@@ -14,4 +14,6 @@ export interface HeaderManager {
     isNarrow?: boolean
     isSmall?: boolean
     isMedium?: boolean
+    framePaddingHorizontal?: number
+    framePaddingVertical?: number
 }
