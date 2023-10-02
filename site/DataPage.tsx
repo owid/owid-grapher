@@ -1,6 +1,7 @@
 import {
     getVariableDataRoute,
     getVariableMetadataRoute,
+    GRAPHER_SETTINGS_DRAWER_ID,
     GrapherInterface,
     GrapherProgrammaticInterface,
 } from "@ourworldindata/grapher"
@@ -139,6 +140,7 @@ export const DataPage = (props: {
                 <SiteHeader baseUrl={baseUrl} />
                 <main>
                     <>
+                        <nav id={GRAPHER_SETTINGS_DRAWER_ID}></nav>
                         <script
                             dangerouslySetInnerHTML={{
                                 __html: `window._OWID_DATAPAGE_PROPS = ${JSON.stringify(
