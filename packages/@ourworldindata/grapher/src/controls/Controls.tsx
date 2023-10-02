@@ -54,8 +54,7 @@ export interface EntitySelectionManager {
     entityType?: string
     entityTypePlural?: string
     isSelectingData?: boolean
-    isOnTableTab?: boolean
-    isOnMapTab?: boolean
+    isOnChartTab?: boolean
 }
 
 @observer
@@ -68,9 +67,8 @@ export class EntitySelectorToggle extends React.Component<{
     }
 
     @computed get showToggle(): boolean {
-        const { isOnTableTab, isOnMapTab } = this.props.manager,
-            isChart = !(isOnMapTab || isOnTableTab)
-        return !!(isChart && this.icon && this.label)
+        const { isOnChartTab } = this.props.manager
+        return !!(isOnChartTab && this.icon && this.label)
     }
 
     @computed get label(): string | null {
@@ -153,6 +151,7 @@ export interface SettingsMenuManager {
     canToggleRelativeMode: boolean
     isOnMapTab?: boolean
     isOnChartTab?: boolean
+    isOnTableTab?: boolean
 
     // linear/log & align-faceted-axes
     yAxis: AxisConfig
@@ -178,7 +177,6 @@ export interface SettingsMenuManager {
     compareEndPointsOnly?: boolean
 
     // use entity selection from chart to filter table rows
-    isOnTableTab?: boolean
     showSelectionOnlyInDataTable?: boolean
 }
 
