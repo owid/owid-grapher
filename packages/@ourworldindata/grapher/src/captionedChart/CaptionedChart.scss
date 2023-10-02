@@ -51,3 +51,22 @@ $controlRowHeight: 32px; // keep in sync with CONTROLS_ROW_HEIGHT
         vertical-align: unset;
     }
 }
+
+// when embedded in an owid page and viewed on a narrow screen,
+// grapher bleeds onto the edges horizontally and the top and bottom borders
+// stretch across the entire page. the top border of the related question element
+// should do the same.
+&.GrapherComponent.GrapherComponentNarrow.isEmbeddedInAnOwidPage
+    .relatedQuestion {
+    border-top: 0;
+
+    &::before {
+        content: "";
+        position: absolute;
+        left: -50vw;
+        height: 1px;
+        width: 200vw;
+        background: $frame-color;
+        top: 0;
+    }
+}

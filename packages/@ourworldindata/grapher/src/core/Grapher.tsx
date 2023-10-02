@@ -440,6 +440,7 @@ export class Grapher
         return this.tableSlugs ? this.tableSlugs.split(" ") : this.newSlugs
     }
 
+    isEmbeddedInAnOwidPage?: boolean = this.props.isEmbeddedInAnOwidPage
     isEmbeddedInADataPage?: boolean = this.props.isEmbeddedInADataPage
 
     /**
@@ -1015,7 +1016,7 @@ export class Grapher
 
     @computed get shouldLinkToOwid(): boolean {
         if (
-            this.props.isEmbeddedInAnOwidPage ||
+            this.isEmbeddedInAnOwidPage ||
             this.isExportingtoSvgOrPng ||
             !this.isInIFrame
         )
@@ -1825,8 +1826,8 @@ export class Grapher
 
         // For these, defer to the bounds that are set externally
         if (
-            this.props.isEmbeddedInADataPage ||
-            this.props.isEmbeddedInAnOwidPage ||
+            this.isEmbeddedInADataPage ||
+            this.isEmbeddedInAnOwidPage ||
             this.props.manager ||
             isInIFrame
         )
@@ -2292,6 +2293,7 @@ export class Grapher
             GrapherComponent: true,
             GrapherPortraitClass: this.isPortrait,
             isExportingToSvgOrPng: this.isExportingtoSvgOrPng,
+            isEmbeddedInAnOwidPage: this.isEmbeddedInAnOwidPage,
             GrapherComponentNarrow: this.isNarrow,
             GrapherComponentSmall: this.isSmall,
             GrapherComponentMedium: this.isMedium,
@@ -2381,8 +2383,12 @@ export class Grapher
         else if (renderWidth >= 1080) this.baseFontSize = 18
     }
 
+    // when embedded in an owid page and viewed on a narrow screen,
+    // grapher bleeds onto the edges horizontally
     @computed get framePaddingHorizontal(): number {
-        return DEFAULT_GRAPHER_FRAME_PADDING
+        return this.isNarrow && this.isEmbeddedInAnOwidPage
+            ? 0
+            : DEFAULT_GRAPHER_FRAME_PADDING
     }
 
     @computed get framePaddingVertical(): number {
