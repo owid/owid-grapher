@@ -294,7 +294,13 @@ export class SettingsMenu extends React.Component<{
     }
 
     @computed get showTableFilterToggle(): boolean {
-        return this.hasSelection && !this.manager.hideTableFilterToggle
+        const { hideTableFilterToggle, selection } = this.manager
+        const hasSelection =
+            selection instanceof SelectionArray
+                ? selection.hasSelection
+                : (selection?.length ?? 0) > 0
+
+        return hasSelection && !hideTableFilterToggle
     }
 
     @computed get showSettingsMenuToggle(): boolean {
@@ -358,13 +364,6 @@ export class SettingsMenu extends React.Component<{
         return document.querySelector(`nav#${GRAPHER_SETTINGS_DRAWER_ID}`)
     }
 
-    @computed get hasSelection(): boolean {
-        const { selection } = this.manager
-        return selection instanceof SelectionArray
-            ? selection.hasSelection
-            : (selection?.length ?? 0) > 0
-    }
-
     @computed get layout(): { maxHeight: string; top: number } | void {
         // constrain height only in the pop-up case (drawers are full-height)
         if (!this.drawer) {
@@ -401,14 +400,13 @@ export class SettingsMenu extends React.Component<{
             showFacetControl,
             showFacetYDomainToggle,
             showAbsRelToggle,
-            hasSelection,
             showTableFilterToggle,
         } = this
 
         const {
             yAxis,
             xAxis,
-            compareEndPointsOnly,
+            // compareEndPointsOnly,
             filledDimensions,
             isOnTableTab,
             isOnChartTab,
