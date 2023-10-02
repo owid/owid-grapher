@@ -127,6 +127,7 @@ export class EntitySelectorToggle extends React.Component<{
 }
 
 export interface SettingsMenuManager {
+    base?: React.RefObject<SVGGElement | HTMLDivElement> // the root grapher element
     showConfigurationDrawer?: boolean
 
     // ArchieML directives
@@ -359,7 +360,10 @@ export class SettingsMenu extends React.Component<{
     }
 
     @computed get drawer(): Element | null {
-        return document.querySelector(`nav#${GRAPHER_SETTINGS_DRAWER_ID}`)
+        // use the drawer `<nav>` element if it exists, otherwise render into a drop-down menu
+        return this.manager.base?.current?.closest(".related-charts")
+            ? null // also use a drop-down menu within the Related Charts section
+            : document.querySelector(`nav#${GRAPHER_SETTINGS_DRAWER_ID}`)
     }
 
     @computed get layout(): { maxHeight: string; top: number } | void {
