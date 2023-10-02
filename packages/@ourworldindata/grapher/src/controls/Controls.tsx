@@ -149,6 +149,7 @@ export interface SettingsMenuManager {
     hasTimeline?: boolean
     canToggleRelativeMode: boolean
     isOnMapTab?: boolean
+    isOnChartTab?: boolean
 
     // linear/log & align-faceted-axes
     yAxis: AxisConfig
@@ -373,6 +374,7 @@ export class SettingsMenu extends React.Component<{
             compareEndPointsOnly,
             filledDimensions,
             isOnTableTab,
+            isOnChartTab,
         } = manager
 
         const yLabel =
@@ -414,11 +416,12 @@ export class SettingsMenu extends React.Component<{
                     <Setting
                         title="Chart view"
                         active={
-                            showAbsRelToggle ||
-                            showZoomToggle ||
-                            showNoDataAreaToggle ||
-                            showFacetControl ||
-                            showFacetYDomainToggle
+                            isOnChartTab &&
+                            (showAbsRelToggle ||
+                                showZoomToggle ||
+                                showNoDataAreaToggle ||
+                                showFacetControl ||
+                                showFacetYDomainToggle)
                         }
                     >
                         {showFacetControl && (
@@ -440,7 +443,10 @@ export class SettingsMenu extends React.Component<{
 
                     <Setting
                         title="Axis scale"
-                        active={showYScaleToggle || showXScaleToggle}
+                        active={
+                            isOnChartTab &&
+                            (showYScaleToggle || showXScaleToggle)
+                        }
                     >
                         {showYScaleToggle && (
                             <AxisScaleToggle
