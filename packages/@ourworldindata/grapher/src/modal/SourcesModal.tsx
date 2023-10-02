@@ -27,17 +27,24 @@ export interface SourcesModalManager {
 const HtmlOrMarkdownText = (props: {
     text: string
     fontSize: number
+    lineHeight?: number
 }): JSX.Element => {
     // check the text for closing a, li or p tags. If
     // one is found, render using dangerouslySetInnerHTML,
     // othewise use MarkdownTextWrap
-    const { text, fontSize } = props
+    const { text, fontSize, lineHeight } = props
     const htmlRegex = /<\/(a|li|p)>/
     const match = text.match(htmlRegex)
     if (match) {
         return <span dangerouslySetInnerHTML={{ __html: text }} />
     } else {
-        return <MarkdownTextWrap text={text} fontSize={fontSize} />
+        return (
+            <MarkdownTextWrap
+                text={text}
+                fontSize={fontSize}
+                lineHeight={lineHeight}
+            />
+        )
     }
 }
 
@@ -66,6 +73,9 @@ export class SourcesModal extends React.Component<{
         // in columnDefFromOwidVariable in packages/@ourworldindata/grapher/src/core/LegacyToOwidTable.ts
         const { slug, source, def } = column
         const { datasetId, coverage } = def as OwidColumnDef
+
+        const fontSize = 13
+        const lineHeight = 1.3846153846
 
         // there will not be a datasetId for explorers that define the FASTT in TSV
         const editUrl =
@@ -105,6 +115,12 @@ export class SourcesModal extends React.Component<{
                       )
                   )
                 : []
+
+        const publishedByArray = [
+            ...(source.dataPublishedBy ? [source.dataPublishedBy] : []),
+            ...citationFull,
+        ]
+
         return (
             <div key={slug} className="datasource-wrapper">
                 <h2>
@@ -122,8 +138,9 @@ export class SourcesModal extends React.Component<{
                                 <td>Variable description</td>
                                 <td>
                                     <MarkdownTextWrap
-                                        text={column.def.descriptionShort}
-                                        fontSize={12}
+                                        text={column.def.descriptionShort.trim()}
+                                        fontSize={fontSize}
+                                        lineHeight={lineHeight}
                                     />
                                 </td>
                             </tr>
@@ -135,8 +152,9 @@ export class SourcesModal extends React.Component<{
                                 <td>Variable description</td>
                                 <td>
                                     <HtmlOrMarkdownText
-                                        text={column.description}
-                                        fontSize={12}
+                                        text={column.description.trim()}
+                                        fontSize={fontSize}
+                                        lineHeight={lineHeight}
                                     />
                                 </td>
                             </tr>
@@ -159,23 +177,24 @@ export class SourcesModal extends React.Component<{
                                 <td>{column.unitConversionFactor}</td>
                             </tr>
                         ) : null}
-                        {citationFull.length === 1 ? (
+                        {publishedByArray.length === 1 ? (
                             <tr>
                                 <td>Data published by</td>
                                 <td>
                                     <MarkdownTextWrap
-                                        text={citationFull[0]}
-                                        fontSize={12}
+                                        text={publishedByArray[0]}
+                                        fontSize={fontSize}
+                                        lineHeight={lineHeight}
                                     />
                                 </td>
                             </tr>
                         ) : null}
-                        {citationFull.length > 1 ? (
+                        {publishedByArray.length > 1 ? (
                             <tr>
                                 <td>Data published by</td>
                                 <td>
                                     <ul>
-                                        {citationFull.map(
+                                        {publishedByArray.map(
                                             (
                                                 citation: string,
                                                 index: number
@@ -183,24 +202,13 @@ export class SourcesModal extends React.Component<{
                                                 <li key={index}>
                                                     <MarkdownTextWrap
                                                         text={citation}
-                                                        fontSize={12}
+                                                        fontSize={fontSize}
+                                                        lineHeight={lineHeight}
                                                     />
                                                 </li>
                                             )
                                         )}
                                     </ul>
-                                </td>
-                            </tr>
-                        ) : null}
-                        {(!citationFull || citationFull.length === 0) &&
-                        source.dataPublishedBy ? (
-                            <tr>
-                                <td>Data published by</td>
-                                <td>
-                                    <HtmlOrMarkdownText
-                                        text={source.dataPublishedBy}
-                                        fontSize={12}
-                                    />
                                 </td>
                             </tr>
                         ) : null}
@@ -210,7 +218,8 @@ export class SourcesModal extends React.Component<{
                                 <td>
                                     <HtmlOrMarkdownText
                                         text={source.dataPublisherSource}
-                                        fontSize={12}
+                                        fontSize={fontSize}
+                                        lineHeight={lineHeight}
                                     />
                                 </td>
                             </tr>
@@ -221,7 +230,8 @@ export class SourcesModal extends React.Component<{
                                 <td>
                                     <HtmlOrMarkdownText
                                         text={source.link}
-                                        fontSize={12}
+                                        fontSize={fontSize}
+                                        lineHeight={lineHeight}
                                     />
                                 </td>
                             </tr>
@@ -238,7 +248,8 @@ export class SourcesModal extends React.Component<{
                     <p key={"additionalInfo"}>
                         <HtmlOrMarkdownText
                             text={source.additionalInfo}
-                            fontSize={12}
+                            fontSize={fontSize}
+                            lineHeight={lineHeight}
                         />
                     </p>
                 )}

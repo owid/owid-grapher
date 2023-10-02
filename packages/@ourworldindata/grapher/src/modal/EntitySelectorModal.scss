@@ -79,6 +79,10 @@
         }
     }
 
+    .searchResults .empty {
+        font-size: 0.8125em;
+    }
+
     &.EntitySelectorSingle {
         ul {
             margin-top: 8px;
@@ -108,6 +112,10 @@
                 font-size: 12px;
                 font-weight: 900;
             }
+        }
+
+        .searchResults .empty {
+            margin-top: 1.5em;
         }
     }
 

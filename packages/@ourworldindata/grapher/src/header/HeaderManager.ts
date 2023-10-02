@@ -11,6 +11,7 @@ export interface HeaderManager {
     detailsOrderedByReference?: Set<string>
     shouldIncludeDetailsInStaticExport?: boolean
     isExportingtoSvgOrPng?: boolean
+    isNarrow?: boolean
     isSmall?: boolean
     isMedium?: boolean
 }

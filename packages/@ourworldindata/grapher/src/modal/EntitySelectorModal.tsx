@@ -2,11 +2,13 @@ import React from "react"
 import { observer } from "mobx-react"
 import { computed, action, observable } from "mobx"
 import classnames from "classnames"
+import a from "indefinite"
 import {
     Bounds,
     DEFAULT_BOUNDS,
     isTouchDevice,
     sortBy,
+    isCountryName,
 } from "@ourworldindata/utils"
 import { Checkbox } from "../controls/Checkbox"
 import { FuzzySearch } from "../controls/FuzzySearch"
@@ -14,12 +16,16 @@ import { faMagnifyingGlass, faCheck } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { SelectionArray } from "../selection/SelectionArray"
 import { Modal } from "./Modal"
+import { DEFAULT_GRAPHER_ENTITY_TYPE } from "../core/GrapherConstants"
 
 export interface EntitySelectorModalManager {
     selection: SelectionArray
     canChangeEntity: boolean
     isSelectingData?: boolean
     tabBounds?: Bounds
+    entityType?: string
+    entityTypePlural?: string
+    entitiesAreCountryLike?: boolean
 }
 
 interface SearchableEntity {
@@ -92,6 +98,10 @@ export class EntitySelectorModal extends React.Component<{
 
     @computed get isMulti(): boolean {
         return !this.manager.canChangeEntity
+    }
+
+    @computed private get entityType(): string {
+        return this.manager.entityType ?? DEFAULT_GRAPHER_ENTITY_TYPE
     }
 
     @computed get fuzzy(): FuzzySearch<SearchableEntity> {
@@ -169,11 +179,16 @@ export class EntitySelectorModal extends React.Component<{
     }
 
     render(): JSX.Element {
-        const { selectionArray, searchResults, searchInput } = this
+        const { selectionArray, searchResults, searchInput, isMulti, manager } =
+            this
+
+        const title = isMulti
+            ? `Add/remove ${manager.entityTypePlural}`
+            : `Choose ${a(this.entityType)}`
 
         return (
             <Modal
-                title="Choose data to show"
+                title={title}
                 onDismiss={this.onDismiss}
                 bounds={this.modalBounds}
                 isHeightFixed={true}
@@ -215,19 +230,28 @@ export class EntitySelectorModal extends React.Component<{
 
                     <div className="entities">
                         <div className="searchResults">
-                            <ul>
-                                {searchResults.map((result) => (
-                                    <EntitySearchResult
-                                        key={result.name}
-                                        result={result}
-                                        isMulti={this.isMulti}
-                                        isChecked={selectionArray.selectedSet.has(
-                                            result.name
-                                        )}
-                                        onSelect={this.onSelect}
-                                    />
-                                ))}
-                            </ul>
+                            {searchResults.length > 0 ? (
+                                <ul>
+                                    {searchResults.map((result) => (
+                                        <EntitySearchResult
+                                            key={result.name}
+                                            result={result}
+                                            isMulti={this.isMulti}
+                                            isChecked={selectionArray.selectedSet.has(
+                                                result.name
+                                            )}
+                                            onSelect={this.onSelect}
+                                        />
+                                    ))}
+                                </ul>
+                            ) : (
+                                <div className="empty">
+                                    {this.manager.entitiesAreCountryLike &&
+                                    isCountryName(this.searchInput)
+                                        ? "There is no data for the country, region or group you are looking for."
+                                        : "Nothing turned up. You may want to try using different keywords or checking for typos."}
+                                </div>
+                            )}
                         </div>
                         {this.renderSelectedData()}
                     </div>

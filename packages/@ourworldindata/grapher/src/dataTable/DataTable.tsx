@@ -37,9 +37,13 @@ import {
     Tippy,
     isCountryName,
     range,
+    maxBy,
+    minBy,
+    excludeUndefined,
 } from "@ourworldindata/utils"
 import { makeSelectionArray } from "../chart/ChartUtils"
 import { SelectionArray } from "../selection/SelectionArray"
+import { DEFAULT_GRAPHER_ENTITY_TYPE } from "../core/GrapherConstants"
 
 interface DataTableState {
     sort: DataTableSortState
@@ -79,8 +83,10 @@ export interface DataTableManager {
     startTime?: Time
     dataTableSlugs?: ColumnSlug[]
     showSelectionOnlyInDataTable?: boolean
+    entitiesAreCountryLike?: boolean
     isSmall?: boolean
     isMedium?: boolean
+    isNarrow?: boolean
 }
 
 @observer
@@ -149,17 +155,14 @@ export class DataTable extends React.Component<{
         return (
             this.props.manager ?? {
                 table: BlankOwidTable(),
-                entityType: "country or region",
+                entityType: DEFAULT_GRAPHER_ENTITY_TYPE,
             }
         )
     }
 
+    // in data tables only, we prefer "Country/area" over "Country or region" as default entity type
     @computed private get entityType(): string {
-        return this.manager.entityType ?? "country or region"
-    }
-
-    @computed private get entitiesAreCountryLike(): boolean {
-        return !!this.entityType.match(/\bcountry\b/i)
+        return this.manager.entityType ?? "Country/area"
     }
 
     @computed private get sortValueMapper(): (
@@ -238,6 +241,63 @@ export class DataTable extends React.Component<{
         return this.displayDimensions.length > 1
     }
 
+    // If the table has a single data column, we move the data column
+    // closer to the entity column to make it easier to read the table
+    @computed private get singleDataColumnStyle():
+        | {
+              minWidth: number
+              contentMaxWidth: number
+          }
+        | undefined {
+        // no need to do this on mobile
+        if (this.manager.isNarrow) return
+
+        const hasSingleDataColumn =
+            this.displayDimensions.length === 1 &&
+            this.displayDimensions[0].columns.length === 1
+
+        if (!hasSingleDataColumn) return
+
+        // header text
+        const dimension = this.displayDimensions[0]
+        const column = this.displayDimensions[0].columns[0]
+        const headerText = this.subheaderText(column, dimension)
+
+        // display values
+        const values = excludeUndefined(
+            this.displayRows.map(
+                (row) => (row?.dimensionValues[0] as SingleValue).single
+            )
+        )
+
+        const accessor = (v: Value): number | undefined =>
+            typeof v.value === "string" ? v.value.length : v.value
+        const maxValue = maxBy(values, accessor)
+        const minValue = minBy(values, accessor)
+
+        const measureWidth = (text: string): number =>
+            Bounds.forText(text, { fontSize: 14 }).width
+
+        // in theory, we should be measuring the length of all values
+        // but we might have a lot of values, so we just measure the length
+        // of the min and max values as a proxy
+        const contentMaxWidth = Math.ceil(
+            Math.max(
+                measureWidth(maxValue?.displayValue ?? "") + 20, // 20px accounts for a possible info icon
+                measureWidth(minValue?.displayValue ?? "") + 20, // 20px accounts for a possible info icon
+                measureWidth(headerText) + 26 // 26px accounts for the sort icon
+            )
+        )
+
+        // minimum width of the column
+        const minWidth = 0.66 * this.bounds.width
+
+        // only do this if there is an actual need
+        if (minWidth - contentMaxWidth < 320) return
+
+        return { minWidth, contentMaxWidth }
+    }
+
     private get dimensionHeaders(): JSX.Element[] | null {
         const { sort } = this.tableState
         return this.displayDimensions.map((dim, dimIndex) => {
@@ -279,13 +339,20 @@ export class DataTable extends React.Component<{
         })
     }
 
+    private subheaderText(
+        column: DataTableColumn,
+        dimension: DataTableDimension
+    ): string {
+        return isDeltaColumn(column.key)
+            ? columnNameByType[column.key]
+            : dimension.coreTableColumn.formatTime(column.targetTime!)
+    }
+
     private get dimensionSubheaders(): JSX.Element[][] {
         const { sort } = this.tableState
         return this.displayDimensions.map((dim, dimIndex) =>
             dim.columns.map((column, i) => {
-                const headerText = isDeltaColumn(column.key)
-                    ? columnNameByType[column.key]
-                    : dim.coreTableColumn.formatTime(column.targetTime!)
+                const headerText = this.subheaderText(column, dim)
                 return (
                     <ColumnHeader
                         key={column.key}
@@ -302,6 +369,10 @@ export class DataTable extends React.Component<{
                         colType="subdimension"
                         subdimensionType={column.key}
                         lastSubdimension={i === dim.columns.length - 1}
+                        minWidth={this.singleDataColumnStyle?.minWidth}
+                        contentMaxWidth={
+                            this.singleDataColumnStyle?.contentMaxWidth
+                        }
                     />
                 )
             })
@@ -355,6 +426,8 @@ export class DataTable extends React.Component<{
             column.targetTime !== undefined &&
             column.targetTime !== value.time
 
+        const { contentMaxWidth } = this.singleDataColumnStyle ?? {}
+
         return (
             <td
                 key={key}
@@ -366,12 +439,14 @@ export class DataTable extends React.Component<{
                     },
                 ])}
             >
-                {shouldShowClosestTimeNotice &&
-                    makeClosestTimeNotice(
-                        actualColumn.formatTime(column.targetTime!),
-                        actualColumn.formatTime(value.time!) // todo: add back format: "MMM D",
-                    )}
-                <span>{value.displayValue}</span>
+                <CellContent maxWidth={contentMaxWidth}>
+                    {shouldShowClosestTimeNotice &&
+                        makeClosestTimeNotice(
+                            actualColumn.formatTime(column.targetTime!),
+                            actualColumn.formatTime(value.time!) // todo: add back format: "MMM D",
+                        )}
+                    <span>{value.displayValue}</span>
+                </CellContent>
             </td>
         )
     }
@@ -815,18 +890,18 @@ export class DataTable extends React.Component<{
     }
 
     @computed private get displayEntityRows(): DataTableRow[] {
-        if (!this.entitiesAreCountryLike) return this.displayRows
+        if (!this.manager.entitiesAreCountryLike) return this.displayRows
         return this.displayRows.filter((row) => isCountryName(row.entityName))
     }
 
     @computed private get displayAggregateRows(): DataTableRow[] {
-        if (!this.entitiesAreCountryLike) return []
+        if (!this.manager.entitiesAreCountryLike) return []
         return this.displayRows.filter((row) => !isCountryName(row.entityName))
     }
 
     @computed private get showTitleRows(): boolean {
         return (
-            this.entitiesAreCountryLike &&
+            !!this.manager.entitiesAreCountryLike &&
             this.displayEntityRows.length > 0 &&
             this.displayAggregateRows.length > 0
         )
@@ -844,6 +919,8 @@ function ColumnHeader(props: {
     colType: "entity" | "dimension" | "subdimension"
     subdimensionType?: ColumnKey
     lastSubdimension?: boolean
+    minWidth?: number
+    contentMaxWidth?: number
 }): JSX.Element {
     const { sortable, sortedCol, colType, subdimensionType, lastSubdimension } =
         props
@@ -869,22 +946,30 @@ function ColumnHeader(props: {
                 firstSubdimension: subdimensionType === "start",
                 endSubdimension: subdimensionType === "end",
                 lastSubdimension,
+                deltaColumn: isDeltaColumn(subdimensionType),
             })}
             rowSpan={props.rowSpan ?? 1}
             colSpan={props.colSpan ?? 1}
             onClick={props.onClick}
+            style={{ minWidth: props.minWidth }}
         >
-            <div
-                className={classnames({
-                    deltaColumn: isDeltaColumn(subdimensionType),
-                })}
-            >
-                {!isEntityColumn && sortIcon}
-                <span>{props.headerText}</span>
-                {isEntityColumn && sortIcon}
-            </div>
+            <CellContent maxWidth={props.contentMaxWidth}>
+                <div className="content">
+                    {!isEntityColumn && sortIcon}
+                    <span>{props.headerText}</span>
+                    {isEntityColumn && sortIcon}
+                </div>
+            </CellContent>
         </th>
     )
+}
+
+function CellContent(props: {
+    maxWidth?: number
+    children?: React.ReactNode
+}): JSX.Element {
+    if (!props.maxWidth) return <>{props.children}</>
+    return <div style={{ maxWidth: props.maxWidth }}>{props.children}</div>
 }
 
 function SortIcon(props: {

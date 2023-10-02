@@ -201,6 +201,10 @@ export interface Tag {
     isApproved?: boolean
 }
 
+export enum TaggableType {
+    Charts = "charts",
+}
+
 export interface EntryMeta {
     slug: string
     title: string
@@ -537,6 +541,8 @@ export enum ChartControlKeyword {
     alignAxisScalesToggle = "alignAxisScalesToggle",
     xLogLinearSelector = "xLogLinearSelector",
     yLogLinearSelector = "yLogLinearSelector",
+    mapProjectionMenu = "mapProjectionMenu",
+    tableFilterToggle = "tableFilterToggle",
 }
 
 export enum ChartTabKeyword {

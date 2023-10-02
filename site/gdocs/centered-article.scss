@@ -15,11 +15,12 @@
 }
 
 .centered-article-container {
+    // !important because we never want this to be overwritten
     .ref {
-        color: $vermillion;
-        text-decoration: none;
+        color: $vermillion !important;
+        text-decoration: none !important;
         &:visited {
-            color: $vermillion;
+            color: $vermillion !important;
         }
     }
 }
@@ -328,6 +329,9 @@ h3.article-block__heading.has-supertitle {
     }
     .footnote-list {
         column-count: 2;
+        &.footnote-list--single-column {
+            column-count: 1;
+        }
         column-span: none;
         column-gap: 48px;
         color: $blue-60;
@@ -498,7 +502,7 @@ h3.article-block__heading.has-supertitle {
 .article-block__explorer {
     // width is necessary for containerNode.getBoundingClientRect() in Grapher.renderGrapherIntoContainer
     width: 100%;
-    margin: 24px 0 48px 0;
+    margin: 16px 0 48px 0;
 
     figure {
         margin: 0;

@@ -139,6 +139,12 @@ const mapKeywordToGrapherConfig = (
         case ChartControlKeyword.yLogLinearSelector:
             return { hideYScaleToggle: false }
 
+        case ChartControlKeyword.mapProjectionMenu:
+            return { hideMapProjectionMenu: false }
+
+        case ChartControlKeyword.tableFilterToggle:
+            return { hideTableFilterToggle: false }
+
         // tabs
 
         case ChartTabKeyword.chart:

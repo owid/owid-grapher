@@ -96,7 +96,7 @@ export class Footer<
 
     @computed protected get licenseUrl(): string {
         if (this.manager.hasOWIDLogo)
-            return "http://creativecommons.org/licenses/by/4.0/deed.en_US"
+            return "https://creativecommons.org/licenses/by/4.0/"
         return "https://ourworldindata.org"
     }
 
@@ -185,19 +185,37 @@ export class Footer<
         return !!this.noteText
     }
 
+    @computed private get actionButtonsWidthWithIconsOnly(): number {
+        return new ActionButtons({
+            manager: this.manager,
+            maxWidth: this.maxWidth,
+        }).widthWithIconsOnly
+    }
+
     @computed private get useFullWidthSources(): boolean {
-        const { hasNote, sourcesFontSize, maxWidth, sourcesText } = this
+        const {
+            hasNote,
+            sourcesFontSize,
+            maxWidth,
+            sourcesText,
+            actionButtonsWidthWithIconsOnly,
+        } = this
         if (hasNote) return true
         const sourcesWidth = Bounds.forText(sourcesText, {
             fontSize: sourcesFontSize,
         }).width
-        return sourcesWidth > 2 * maxWidth
+        return sourcesWidth > 2 * (maxWidth - actionButtonsWidthWithIconsOnly)
     }
 
     @computed private get useFullWidthNote(): boolean {
-        const { fontSize, maxWidth, noteText } = this
+        const {
+            fontSize,
+            maxWidth,
+            noteText,
+            actionButtonsWidthWithIconsOnly,
+        } = this
         const noteWidth = Bounds.forText(noteText, { fontSize }).width
-        return noteWidth > 2 * maxWidth
+        return noteWidth > 2 * (maxWidth - actionButtonsWidthWithIconsOnly)
     }
 
     @computed protected get sourcesMaxWidth(): number {
@@ -215,9 +233,16 @@ export class Footer<
     }
 
     @computed protected get showLicenseNextToSources(): boolean {
-        const { useFullWidthSources, maxWidth, sources, licenseAndOriginUrl } =
-            this
+        const {
+            useFullWidthSources,
+            maxWidth,
+            sources,
+            licenseAndOriginUrl,
+            note,
+        } = this
         if (!useFullWidthSources) return false
+        // if there's space, keep the license below the note
+        if (this.useFullWidthNote || note.htmlLines.length <= 1) return false
         return (
             sources.width + HORIZONTAL_PADDING + licenseAndOriginUrl.width <=
             maxWidth
@@ -272,12 +297,24 @@ export class Footer<
             hasNote,
             useFullWidthNote,
         } = this
-        const textWidth = !useFullWidthSources
-            ? Bounds.forText(sourcesText, {
-                  fontSize: sourcesFontSize,
-              }).width
+
+        const sourcesWidth = Bounds.forText(sourcesText, {
+            fontSize: sourcesFontSize,
+        }).width
+        const noteWidth = Bounds.forText(noteText, { fontSize }).width
+
+        // text next to the action buttons
+        const leftTextWidth = !useFullWidthSources
+            ? sourcesWidth
             : hasNote && !useFullWidthNote
-            ? Bounds.forText(noteText, { fontSize }).width
+            ? noteWidth
+            : 0
+        // text above the action buttons
+        // (taken into account to ensure the action buttons are not too close to clickable text)
+        const topTextWidth = useFullWidthSources
+            ? useFullWidthNote
+                ? noteWidth
+                : sourcesWidth
             : 0
         const licenseAndOriginUrlWidth = Bounds.forText(
             Footer.constructLicenseAndOriginUrlText(
@@ -286,9 +323,10 @@ export class Footer<
             ),
             { fontSize }
         ).width
+
         return (
             maxWidth -
-            Math.max(textWidth, licenseAndOriginUrlWidth) -
+            Math.max(topTextWidth, leftTextWidth, licenseAndOriginUrlWidth) -
             HORIZONTAL_PADDING
         )
     }

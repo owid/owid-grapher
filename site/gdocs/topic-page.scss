@@ -173,12 +173,22 @@
     }
 }
 
-.article-block__gray-section {
+// small amount of extra padding to match figma designs which is 40px total for key-insights heading
+.article-block__heading + .wp-block-owid-key-insights {
+    margin-top: 8px;
+}
+
+.centered-article-container--topic-page .article-block__gray-section {
     > h1 {
-        text-align: center;
         // Countering the gray-section padding to make this have 32px 16px
         margin-top: -16px;
         margin-bottom: 16px;
+
+        // Special exception for the "Explore data on Blah" heading (which is a gdoc .article-block__heading)
+        // so that it's left-aligned like the rest of the topic page component headings
+        &[id^="explore"] {
+            grid-column-start: 2;
+        }
     }
 
     .article-block__text,

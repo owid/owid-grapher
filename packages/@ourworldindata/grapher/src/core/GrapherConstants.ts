@@ -25,6 +25,9 @@ export const GRAPHER_IS_IN_IFRAME_CLASS = "IsInIframe"
 export const DEFAULT_GRAPHER_CONFIG_SCHEMA =
     "https://files.ourworldindata.org/schemas/grapher-schema.003.json"
 
+export const DEFAULT_GRAPHER_ENTITY_TYPE = "country or region"
+export const DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL = "countries and regions"
+
 export const DEFAULT_GRAPHER_WIDTH = 850
 export const DEFAULT_GRAPHER_HEIGHT = 600
 
@@ -159,6 +162,8 @@ export const grapherInterfaceWithHiddenControlsOnly: GrapherProgrammaticInterfac
         hideFacetYDomainToggle: true,
         hideXScaleToggle: true,
         hideYScaleToggle: true,
+        hideMapProjectionMenu: true,
+        hideTableFilterToggle: true,
         map: {
             hideTimeline: true,
         },

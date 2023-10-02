@@ -19,7 +19,7 @@
     }
 
     .sources a.learn-more-about-data,
-    .note a {
+    .note a:not(.dod-span) {
         text-decoration: underline;
 
         &:hover {
@@ -32,11 +32,15 @@
         display: inline-block;
     }
 
-    .license a {
-        text-decoration: none;
+    .license {
+        white-space: nowrap;
 
-        &:hover {
-            text-decoration: underline;
+        a {
+            text-decoration: none;
+
+            &:hover {
+                text-decoration: underline;
+            }
         }
     }
 

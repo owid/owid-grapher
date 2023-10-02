@@ -22,6 +22,8 @@ import {
     FacetStrategy,
     StackMode,
     ScaleType,
+    DEFAULT_GRAPHER_ENTITY_TYPE,
+    DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL,
 } from "../core/GrapherConstants"
 import { MapConfig } from "../mapCharts/MapConfig"
 import {
@@ -138,6 +140,7 @@ export interface SettingsMenuManager {
     hideFacetYDomainToggle?: boolean
     hideXScaleToggle?: boolean
     hideYScaleToggle?: boolean
+    hideTableFilterToggle?: boolean
 
     // chart state
     type: ChartTypeName
@@ -290,9 +293,13 @@ export class SettingsMenu extends React.Component<{
         )
     }
 
+    @computed get showTableFilterToggle(): boolean {
+        return this.hasSelection && !this.manager.hideTableFilterToggle
+    }
+
     @computed get showSettingsMenuToggle(): boolean {
         if (this.manager.isOnMapTab) return false
-        if (this.manager.isOnTableTab) return this.hasSelection
+        if (this.manager.isOnTableTab) return this.showTableFilterToggle
 
         return !!(
             this.showYScaleToggle ||
@@ -395,6 +402,7 @@ export class SettingsMenu extends React.Component<{
             showFacetYDomainToggle,
             showAbsRelToggle,
             hasSelection,
+            showTableFilterToggle,
         } = this
 
         const {
@@ -466,11 +474,10 @@ export class SettingsMenu extends React.Component<{
                         {showZoomToggle && <ZoomToggle manager={manager} />}
                     </Setting>
 
-                    <Setting
-                        title="Data rows"
-                        active={isOnTableTab && hasSelection}
-                    >
-                        <TableFilterToggle manager={manager} />
+                    <Setting title="Data rows" active={isOnTableTab}>
+                        {showTableFilterToggle && (
+                            <TableFilterToggle manager={manager} />
+                        )}
                     </Setting>
 
                     <Setting
@@ -769,7 +776,8 @@ export class TableFilterToggle extends React.Component<{
 
     render(): JSX.Element {
         const tooltip = `Only display table rows for ${
-            this.props.manager.entityTypePlural ?? "countries or regions"
+            this.props.manager.entityTypePlural ??
+            DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL
         } selected within the chart`
 
         return (
@@ -803,7 +811,7 @@ export class FacetStrategySelector extends React.Component<{
     }
 
     @computed get entityName(): string {
-        return this.props.manager.entityType ?? "country or region"
+        return this.props.manager.entityType ?? DEFAULT_GRAPHER_ENTITY_TYPE
     }
 
     @computed get metricName(): string {
@@ -883,6 +891,7 @@ export class FacetStrategySelector extends React.Component<{
 export interface MapProjectionMenuManager {
     mapConfig?: MapConfig
     isOnMapTab?: boolean
+    hideMapProjectionMenu?: boolean
 }
 
 interface MapProjectionMenuItem {
@@ -900,10 +909,10 @@ export class MapProjectionMenu extends React.Component<{
     }
 
     @computed get showMenu(): boolean {
-        // TODO: make hiding the menu configurable from gdocs
-        const { isOnMapTab, mapConfig } = this.props.manager,
+        const { hideMapProjectionMenu, isOnMapTab, mapConfig } =
+                this.props.manager,
             { projection } = mapConfig ?? {}
-        return !!(isOnMapTab && projection)
+        return !hideMapProjectionMenu && !!(isOnMapTab && projection)
     }
 
     @action.bound onChange(selected: MapProjectionMenuItem | null): void {

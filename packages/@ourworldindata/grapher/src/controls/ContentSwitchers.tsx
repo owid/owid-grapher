@@ -3,23 +3,15 @@ import { computed } from "mobx"
 import { observer } from "mobx-react"
 import classnames from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import {
-    faTable,
-    faEarthAmericas,
-    faChartLine,
-} from "@fortawesome/free-solid-svg-icons"
-import { GrapherTabOption } from "../core/GrapherConstants"
-
-const icons = {
-    [GrapherTabOption.table]: faTable,
-    [GrapherTabOption.chart]: faChartLine,
-    [GrapherTabOption.map]: faEarthAmericas,
-} as const
+import { faTable, faEarthAmericas } from "@fortawesome/free-solid-svg-icons"
+import { ChartTypeName, GrapherTabOption } from "../core/GrapherConstants"
+import { chartIcons } from "./ChartIcons"
 
 export interface ContentSwitchersManager {
     availableTabs?: GrapherTabOption[]
     tab?: GrapherTabOption
     isNarrow?: boolean
+    type?: ChartTypeName
 }
 
 @observer
@@ -38,6 +30,21 @@ export class ContentSwitchers extends React.Component<{
         return !this.manager.isNarrow
     }
 
+    @computed private get chartType(): ChartTypeName {
+        return this.manager.type ?? ChartTypeName.LineChart
+    }
+
+    private tabIcon(tab: GrapherTabOption): JSX.Element {
+        switch (tab) {
+            case GrapherTabOption.table:
+                return <FontAwesomeIcon icon={faTable} />
+            case GrapherTabOption.map:
+                return <FontAwesomeIcon icon={faEarthAmericas} />
+            case GrapherTabOption.chart:
+                return chartIcons[this.chartType]
+        }
+    }
+
     render(): JSX.Element {
         const { manager } = this
         return (
@@ -51,6 +58,7 @@ export class ContentSwitchers extends React.Component<{
                     <Tab
                         key={tab}
                         tab={tab}
+                        icon={this.tabIcon(tab)}
                         isActive={tab === manager.tab}
                         onClick={(): void => {
                             manager.tab = tab
@@ -65,6 +73,7 @@ export class ContentSwitchers extends React.Component<{
 
 function Tab(props: {
     tab: GrapherTabOption
+    icon: JSX.Element
     isActive?: boolean
     onClick?: React.MouseEventHandler<HTMLAnchorElement>
     showLabel?: boolean
@@ -76,7 +85,7 @@ function Tab(props: {
                 onClick={props.onClick}
                 data-track-note={"chart_click_" + props.tab}
             >
-                <FontAwesomeIcon icon={icons[props.tab]} />
+                {props.icon}
                 {props.showLabel && <span className="label">{props.tab}</span>}
             </a>
         </li>
