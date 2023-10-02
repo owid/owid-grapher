@@ -497,12 +497,6 @@ export class SettingsMenu extends React.Component<{
                             percentage increase.
                         </div>
                     </Setting>
-
-                    <Setting
-                        title="Data series"
-                        // info="Include all intermediate points or show only the start and end values."
-                        active={compareEndPointsOnly}
-                    ></Setting>
                 </div>
             </div>
         )
