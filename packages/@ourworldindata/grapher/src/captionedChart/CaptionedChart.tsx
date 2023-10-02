@@ -432,7 +432,6 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                 backgroundColor: "white",
                 textRendering: "geometricPrecision",
                 WebkitFontSmoothing: "antialiased",
-                overflow: "visible", // in case the chart overflows the bounds
             },
         }
     }
