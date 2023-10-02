@@ -188,7 +188,7 @@ WHERE c.config -> "$.isPublished" = true
 
         const topics: Tag[] = await db.queryMysql(`
             SELECT t.id, t.name
-            FROM tags t 
+            FROM tags t
             WHERE t.isTopic IS TRUE
             AND t.parentId IN (${PUBLIC_TAG_PARENT_IDS.join(",")})
         `)
@@ -209,9 +209,9 @@ WHERE c.config -> "$.isPublished" = true
                     (topic) => `<topic id=${topic.id}>${topic.name}</topic>\n`
                 )}
             </topics>
-            
-            Respond with the two categories you think best describe the chart. 
-            
+
+            Respond with the two categories you think best describe the chart.
+
             Format your response as follows:
             [
                 { "id": 1, "name": "Topic 1" },
@@ -223,7 +223,7 @@ WHERE c.config -> "$.isPublished" = true
         })
         const completion = await openai.chat.completions.create({
             messages: [{ role: "user", content: prompt }],
-            model: "gpt-3.5-turbo",
+            model: "gpt-4",
         })
 
         const json = completion.choices[0]?.message?.content
