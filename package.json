@@ -221,6 +221,7 @@
         "@types/jest": "^29.5.5",
         "@types/js-yaml": "^4.0.5",
         "@types/opener": "^1.4.0",
+        "@types/prettier": "^2.7.3",
         "@types/topojson-server": "^3.0.1",
         "@typescript-eslint/eslint-plugin": "^6.0.0",
         "@typescript-eslint/parser": "^6.0.0",

@@ -6130,6 +6130,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/prettier@npm:^2.7.3":
+  version: 2.7.3
+  resolution: "@types/prettier@npm:2.7.3"
+  checksum: 705384209cea6d1433ff6c187c80dcc0b95d99d5c5ce21a46a9a58060c527973506822e428789d842761e0280d25e3359300f017fbe77b9755bc772ab3dc2f83
+  languageName: node
+  linkType: hard
+
 "@types/progress@npm:^2.0.5":
   version: 2.0.5
   resolution: "@types/progress@npm:2.0.5"
@@ -13880,6 +13887,7 @@ __metadata:
     "@types/opener": ^1.4.0
     "@types/papaparse": ^5.3.5
     "@types/parsimmon": ^1.10.6
+    "@types/prettier": ^2.7.3
     "@types/progress": ^2.0.5
     "@types/prompts": ^2.0.14
     "@types/randomstring": ^1.1.8
