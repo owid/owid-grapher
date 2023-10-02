@@ -1874,7 +1874,6 @@ export class Grapher
     }
 
     // These are the final render dimensions
-    // Todo: add explanation around why isExporting removes 5 px
     @computed private get renderWidth(): number {
         const {
             bounds,
@@ -1882,7 +1881,6 @@ export class Grapher
             useIdealBounds,
             widthForDeviceOrientation,
             scaleToFitIdeal,
-            isExportingtoSvgOrPng,
             windowInnerWidth,
             fullScreenPadding,
         } = this
@@ -1894,7 +1892,7 @@ export class Grapher
         return Math.floor(
             isInFullScreenMode
                 ? windowInnerWidth! - 2 * fullScreenPadding
-                : bounds.width - (isExportingtoSvgOrPng ? 0 : 5)
+                : bounds.width
         )
     }
 
@@ -1905,7 +1903,6 @@ export class Grapher
             useIdealBounds,
             heightForDeviceOrientation,
             scaleToFitIdeal,
-            isExportingtoSvgOrPng,
             windowInnerHeight,
             fullScreenPadding,
         } = this
@@ -1917,7 +1914,7 @@ export class Grapher
         return Math.floor(
             isInFullScreenMode
                 ? windowInnerHeight! - 2 * fullScreenPadding
-                : bounds.height - (isExportingtoSvgOrPng ? 0 : 5)
+                : bounds.height
         )
     }
 
