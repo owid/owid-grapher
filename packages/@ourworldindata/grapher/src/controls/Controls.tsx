@@ -57,6 +57,12 @@ export interface EntitySelectionManager {
     isOnChartTab?: boolean
 }
 
+interface EntitySelectionLabel {
+    icon: JSX.Element
+    action: string
+    entity: string
+}
+
 @observer
 export class EntitySelectorToggle extends React.Component<{
     manager: EntitySelectionManager
@@ -68,50 +74,44 @@ export class EntitySelectorToggle extends React.Component<{
 
     @computed get showToggle(): boolean {
         const { isOnChartTab } = this.props.manager
-        return !!(isOnChartTab && this.icon && this.label)
+        return !!(isOnChartTab && this.label)
     }
 
-    @computed get label(): string | null {
+    @computed get label(): EntitySelectionLabel | null {
         const {
-            entityType,
-            entityTypePlural,
+            entityType = "",
+            entityTypePlural = "",
             showSelectEntitiesButton,
             showChangeEntityButton,
             showAddEntityButton,
         } = this.props.manager
 
         return showSelectEntitiesButton
-            ? `Select ${entityTypePlural}`
+            ? {
+                  action: "Select",
+                  entity: entityTypePlural,
+                  icon: <FontAwesomeIcon icon={faEye} />,
+              }
             : showChangeEntityButton
-            ? `Change ${entityType}`
+            ? {
+                  action: "Change",
+                  entity: entityType,
+                  icon: <FontAwesomeIcon icon={faRightLeft} />,
+              }
             : showAddEntityButton
-            ? `Edit ${entityTypePlural}`
+            ? {
+                  action: "Edit",
+                  entity: entityTypePlural,
+                  icon: <FontAwesomeIcon icon={faPencilAlt} />,
+              }
             : null
-    }
-
-    @computed get icon(): JSX.Element | null {
-        const {
-            showSelectEntitiesButton,
-            showChangeEntityButton,
-            showAddEntityButton,
-        } = this.props.manager
-
-        const icon = showSelectEntitiesButton
-            ? faEye
-            : showChangeEntityButton
-            ? faRightLeft
-            : showAddEntityButton
-            ? faPencilAlt
-            : null
-
-        return icon && <FontAwesomeIcon icon={icon} />
     }
 
     render(): JSX.Element | null {
-        const { showToggle, icon, label } = this
+        const { showToggle, label } = this
         const { isSelectingData: active } = this.props.manager
 
-        return showToggle && icon && label ? (
+        return showToggle && label ? (
             <div className="entity-selection-menu">
                 <button
                     className={classnames("menu-toggle", { active })}
@@ -119,7 +119,10 @@ export class EntitySelectorToggle extends React.Component<{
                         this.props.manager.isSelectingData = !active
                     }}
                 >
-                    {icon} {label}
+                    {label.icon}
+                    <label>
+                        {label.action} <span>{label.entity}</span>
+                    </label>
                 </button>
             </div>
         ) : null

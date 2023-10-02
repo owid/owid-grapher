@@ -43,6 +43,7 @@ nav.controlsRow .controls {
         color: $dark-text;
         white-space: nowrap;
 
+        label:hover,
         &:hover {
             background: $hover-fill;
             cursor: pointer;
@@ -167,17 +168,27 @@ nav.controlsRow .controls {
     }
 }
 
-@at-root {
+//
+// Make buttons narrower by omitting their text labels as the viewport gets narrower
+// TODO: move the logic to js to calculate actual widths for different entity name lengths
+//       and the variable number of buttons present in the content switcher block
+//
+@container grapher (max-width:550px) {
     // collapse the Settings toggle down to just an icon on small screens
-    .GrapherComponentSmall:not(.GrapherComponentMedium)
-        nav.controlsRow
-        .settings-menu
-        button.menu-toggle {
+    nav.controlsRow .settings-menu button.menu-toggle {
         min-height: $control-row-height;
         svg {
             margin-right: 0;
         }
         .label {
+            display: none;
+        }
+    }
+}
+@container grapher (max-width:475px) {
+    // hide the entity name in the Edit/Select/Switch button
+    nav.controlsRow .entity-selection-menu button.menu-toggle {
+        label span {
             display: none;
         }
     }
