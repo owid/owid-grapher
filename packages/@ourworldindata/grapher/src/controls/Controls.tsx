@@ -291,7 +291,7 @@ export class SettingsMenu extends React.Component<{
 
     @computed get showSettingsMenuToggle(): boolean {
         if (this.manager.isOnMapTab) return false
-        if (this.manager.isOnTableTab) return true
+        if (this.manager.isOnTableTab) return this.hasSelection
 
         return !!(
             this.showYScaleToggle ||
@@ -330,6 +330,13 @@ export class SettingsMenu extends React.Component<{
         return document.querySelector(`nav#${GRAPHER_SETTINGS_DRAWER_ID}`)
     }
 
+    @computed get hasSelection(): boolean {
+        const { selection } = this.manager
+        return selection instanceof SelectionArray
+            ? selection.hasSelection
+            : (selection?.length ?? 0) > 0
+    }
+
     @computed get layout(): { maxHeight: string; top: number } | void {
         // constrain height only in the pop-up case (drawers are full-height)
         if (!this.drawer) {
@@ -366,6 +373,7 @@ export class SettingsMenu extends React.Component<{
             showFacetControl,
             showFacetYDomainToggle,
             showAbsRelToggle,
+            hasSelection,
         } = this
 
         const {
@@ -437,7 +445,10 @@ export class SettingsMenu extends React.Component<{
                         {showZoomToggle && <ZoomToggle manager={manager} />}
                     </Setting>
 
-                    <Setting title="Data rows" active={isOnTableTab}>
+                    <Setting
+                        title="Data rows"
+                        active={isOnTableTab && hasSelection}
+                    >
                         <TableFilterToggle manager={manager} />
                     </Setting>
 
