@@ -293,7 +293,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                 className="relatedQuestion"
                 style={{
                     height: this.relatedQuestionHeight,
-                    padding: `0 ${this.framePaddingVertical}px`,
+                    padding: `0 ${this.framePaddingHorizontal}px`,
                 }}
             >
                 Related:&nbsp;
