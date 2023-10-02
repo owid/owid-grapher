@@ -54,8 +54,13 @@ export interface EntitySelectionManager {
     entityType?: string
     entityTypePlural?: string
     isSelectingData?: boolean
-    isOnTableTab?: boolean
-    isOnMapTab?: boolean
+    isOnChartTab?: boolean
+}
+
+interface EntitySelectionLabel {
+    icon: JSX.Element
+    action: string
+    entity: string
 }
 
 @observer
@@ -68,52 +73,45 @@ export class EntitySelectorToggle extends React.Component<{
     }
 
     @computed get showToggle(): boolean {
-        const { isOnTableTab, isOnMapTab } = this.props.manager,
-            isChart = !(isOnMapTab || isOnTableTab)
-        return !!(isChart && this.icon && this.label)
+        const { isOnChartTab } = this.props.manager
+        return !!(isOnChartTab && this.label)
     }
 
-    @computed get label(): string | null {
+    @computed get label(): EntitySelectionLabel | null {
         const {
-            entityType,
-            entityTypePlural,
+            entityType = "",
+            entityTypePlural = "",
             showSelectEntitiesButton,
             showChangeEntityButton,
             showAddEntityButton,
         } = this.props.manager
 
         return showSelectEntitiesButton
-            ? `Select ${entityTypePlural}`
+            ? {
+                  action: "Select",
+                  entity: entityTypePlural,
+                  icon: <FontAwesomeIcon icon={faEye} />,
+              }
             : showChangeEntityButton
-            ? `Change ${entityType}`
+            ? {
+                  action: "Change",
+                  entity: entityType,
+                  icon: <FontAwesomeIcon icon={faRightLeft} />,
+              }
             : showAddEntityButton
-            ? `Edit ${entityTypePlural}`
+            ? {
+                  action: "Edit",
+                  entity: entityTypePlural,
+                  icon: <FontAwesomeIcon icon={faPencilAlt} />,
+              }
             : null
-    }
-
-    @computed get icon(): JSX.Element | null {
-        const {
-            showSelectEntitiesButton,
-            showChangeEntityButton,
-            showAddEntityButton,
-        } = this.props.manager
-
-        const icon = showSelectEntitiesButton
-            ? faEye
-            : showChangeEntityButton
-            ? faRightLeft
-            : showAddEntityButton
-            ? faPencilAlt
-            : null
-
-        return icon && <FontAwesomeIcon icon={icon} />
     }
 
     render(): JSX.Element | null {
-        const { showToggle, icon, label } = this
+        const { showToggle, label } = this
         const { isSelectingData: active } = this.props.manager
 
-        return showToggle && icon && label ? (
+        return showToggle && label ? (
             <div className="entity-selection-menu">
                 <button
                     className={classnames("menu-toggle", { active })}
@@ -121,7 +119,10 @@ export class EntitySelectorToggle extends React.Component<{
                         this.props.manager.isSelectingData = !active
                     }}
                 >
-                    {icon} {label}
+                    {label.icon}
+                    <label>
+                        {label.action} <span>{label.entity}</span>
+                    </label>
                 </button>
             </div>
         ) : null
@@ -129,6 +130,7 @@ export class EntitySelectorToggle extends React.Component<{
 }
 
 export interface SettingsMenuManager {
+    base?: React.RefObject<SVGGElement | HTMLDivElement> // the root grapher element
     showConfigurationDrawer?: boolean
 
     // ArchieML directives
@@ -152,6 +154,8 @@ export interface SettingsMenuManager {
     hasTimeline?: boolean
     canToggleRelativeMode: boolean
     isOnMapTab?: boolean
+    isOnChartTab?: boolean
+    isOnTableTab?: boolean
 
     // linear/log & align-faceted-axes
     yAxis: AxisConfig
@@ -177,7 +181,6 @@ export interface SettingsMenuManager {
     compareEndPointsOnly?: boolean
 
     // use entity selection from chart to filter table rows
-    isOnTableTab?: boolean
     showSelectionOnlyInDataTable?: boolean
 }
 
@@ -189,6 +192,7 @@ export class SettingsMenu extends React.Component<{
 }> {
     @observable.ref active: boolean = false // set to true when the menu's display has been requested
     @observable.ref visible: boolean = false // true while menu is active and during enter/exit transitions
+    contentRef: React.RefObject<HTMLDivElement> = React.createRef() // the menu contents & backdrop
 
     static shouldShow(manager: SettingsMenuManager): boolean {
         const test = new SettingsMenu({ manager, top: 0, bottom: 0 })
@@ -292,7 +296,13 @@ export class SettingsMenu extends React.Component<{
     }
 
     @computed get showTableFilterToggle(): boolean {
-        return !this.manager.hideTableFilterToggle
+        const { hideTableFilterToggle, selection } = this.manager
+        const hasSelection =
+            selection instanceof SelectionArray
+                ? selection.hasSelection
+                : (selection?.length ?? 0) > 0
+
+        return hasSelection && !hideTableFilterToggle
     }
 
     @computed get showSettingsMenuToggle(): boolean {
@@ -312,11 +322,31 @@ export class SettingsMenu extends React.Component<{
         // TODO: add a showCompareEndPointsOnlyTogggle to complement compareEndPointsOnly
     }
 
-    @action.bound toggleVisibility(e: React.MouseEvent): void {
+    componentDidMount(): void {
+        document.addEventListener("click", this.onDocumentClick, {
+            capture: true,
+        })
+    }
+
+    componentWillUnmount(): void {
+        document.removeEventListener("click", this.onDocumentClick)
+    }
+
+    @action.bound onDocumentClick(e: MouseEvent): void {
+        if (
+            this.active &&
+            this.contentRef?.current &&
+            !this.contentRef.current.contains(e.target as Node) &&
+            document.contains(e.target as Node)
+        )
+            this.toggleVisibility()
+    }
+
+    @action.bound toggleVisibility(e?: React.MouseEvent): void {
         this.active = !this.active
         if (this.active) this.visible = true
         this.drawer?.classList.toggle("active", this.active)
-        e.stopPropagation()
+        e?.stopPropagation()
     }
 
     @action.bound onAnimationEnd(): void {
@@ -333,7 +363,10 @@ export class SettingsMenu extends React.Component<{
     }
 
     @computed get drawer(): Element | null {
-        return document.querySelector(`nav#${GRAPHER_SETTINGS_DRAWER_ID}`)
+        // use the drawer `<nav>` element if it exists, otherwise render into a drop-down menu
+        return this.manager.base?.current?.closest(".related-charts")
+            ? null // also use a drop-down menu within the Related Charts section
+            : document.querySelector(`nav#${GRAPHER_SETTINGS_DRAWER_ID}`)
     }
 
     @computed get layout(): { maxHeight: string; top: number } | void {
@@ -378,9 +411,10 @@ export class SettingsMenu extends React.Component<{
         const {
             yAxis,
             xAxis,
-            compareEndPointsOnly,
+            // compareEndPointsOnly,
             filledDimensions,
             isOnTableTab,
+            isOnChartTab,
         } = manager
 
         const yLabel =
@@ -395,7 +429,7 @@ export class SettingsMenu extends React.Component<{
         const menuTitle = `${isOnTableTab ? "Table" : chartType} settings`
 
         return (
-            <div className="settings-menu-contents">
+            <div className="settings-menu-contents" ref={this.contentRef}>
                 <div
                     className="settings-menu-backdrop"
                     onClick={this.toggleVisibility}
@@ -422,11 +456,12 @@ export class SettingsMenu extends React.Component<{
                     <Setting
                         title="Chart view"
                         active={
-                            showAbsRelToggle ||
-                            showZoomToggle ||
-                            showNoDataAreaToggle ||
-                            showFacetControl ||
-                            showFacetYDomainToggle
+                            isOnChartTab &&
+                            (showAbsRelToggle ||
+                                showZoomToggle ||
+                                showNoDataAreaToggle ||
+                                showFacetControl ||
+                                showFacetYDomainToggle)
                         }
                     >
                         {showFacetControl && (
@@ -450,7 +485,10 @@ export class SettingsMenu extends React.Component<{
 
                     <Setting
                         title="Axis scale"
-                        active={showYScaleToggle || showXScaleToggle}
+                        active={
+                            isOnChartTab &&
+                            (showYScaleToggle || showXScaleToggle)
+                        }
                     >
                         {showYScaleToggle && (
                             <AxisScaleToggle
@@ -462,18 +500,13 @@ export class SettingsMenu extends React.Component<{
                             <AxisScaleToggle axis={xAxis!} subtitle={xLabel} />
                         )}
                         <div className="config-subtitle">
-                            Linear scales use absolute differences in data
-                            values to position points. Logarithmic scales use
-                            percentage differences to determine the distance
-                            between points.
+                            A linear scale evenly spaces values, where each
+                            increment represents a consistent change. A
+                            logarithmic scale uses multiples of the starting
+                            value, with each increment representing the same
+                            percentage increase.
                         </div>
                     </Setting>
-
-                    <Setting
-                        title="Data series"
-                        // info="Include all intermediate points or show only the start and end values."
-                        active={compareEndPointsOnly}
-                    ></Setting>
                 </div>
             </div>
         )
@@ -551,6 +584,7 @@ export class LabeledSwitch extends React.Component<{
                         </Tippy>
                     )}
                 </label>
+                {tooltip && <div className="config-subtitle">{tooltip}</div>}
             </div>
         )
     }
@@ -624,6 +658,7 @@ export class NoDataAreaToggle extends React.Component<{
 export interface AbsRelToggleManager {
     stackMode?: StackMode
     relativeToggleLabel?: string
+    type: ChartTypeName
 }
 
 @observer
@@ -644,6 +679,15 @@ export class AbsRelToggle extends React.Component<{
         return this.props.manager
     }
 
+    @computed get tooltip(): string {
+        const { type } = this.manager
+        return type === ScatterPlot
+            ? "Show the percentage change per year over the the selected time range."
+            : type === LineChart
+            ? "Show proportional changes over time or actual values in their original units."
+            : "Show values as their share of the total or as actual values in their original units."
+    }
+
     render(): JSX.Element {
         const label =
             this.manager.relativeToggleLabel ?? "Display relative values"
@@ -651,7 +695,7 @@ export class AbsRelToggle extends React.Component<{
             <LabeledSwitch
                 label={label}
                 value={this.isRelativeMode}
-                tooltip="Show proportional changes over time or actual values in their original units."
+                tooltip={this.tooltip}
                 onToggle={this.onToggle}
             />
         )

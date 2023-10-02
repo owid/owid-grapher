@@ -93,7 +93,7 @@ export class ScatterSizeLegend {
     @computed private get label(): TextWrap {
         const fontSize = Math.max(MIN_FONT_SIZE, 0.625 * this.baseFontSize)
         return new TextWrap({
-            text: "Dots sized by",
+            text: "Circles sized by",
             // Allow text to _slightly_ go outside boundaries.
             // Since we have padding left and right, this doesn't
             // actually visibly overflow.
