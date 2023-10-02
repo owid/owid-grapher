@@ -187,6 +187,7 @@ export class SettingsMenu extends React.Component<{
 }> {
     @observable.ref active: boolean = false // set to true when the menu's display has been requested
     @observable.ref visible: boolean = false // true while menu is active and during enter/exit transitions
+    contentRef: React.RefObject<HTMLDivElement> = React.createRef() // the menu contents & backdrop
 
     static shouldShow(manager: SettingsMenuManager): boolean {
         const test = new SettingsMenu({ manager, top: 0, bottom: 0 })
@@ -306,11 +307,31 @@ export class SettingsMenu extends React.Component<{
         // TODO: add a showCompareEndPointsOnlyTogggle to complement compareEndPointsOnly
     }
 
-    @action.bound toggleVisibility(e: React.MouseEvent): void {
+    componentDidMount(): void {
+        document.addEventListener("click", this.onDocumentClick, {
+            capture: true,
+        })
+    }
+
+    componentWillUnmount(): void {
+        document.removeEventListener("click", this.onDocumentClick)
+    }
+
+    @action.bound onDocumentClick(e: MouseEvent): void {
+        if (
+            this.active &&
+            this.contentRef?.current &&
+            !this.contentRef.current.contains(e.target as Node) &&
+            document.contains(e.target as Node)
+        )
+            this.toggleVisibility()
+    }
+
+    @action.bound toggleVisibility(e?: React.MouseEvent): void {
         this.active = !this.active
         if (this.active) this.visible = true
         this.drawer?.classList.toggle("active", this.active)
-        e.stopPropagation()
+        e?.stopPropagation()
     }
 
     @action.bound onAnimationEnd(): void {
@@ -397,7 +418,7 @@ export class SettingsMenu extends React.Component<{
         const menuTitle = `${isOnTableTab ? "Table" : chartType} settings`
 
         return (
-            <div className="settings-menu-contents">
+            <div className="settings-menu-contents" ref={this.contentRef}>
                 <div
                     className="settings-menu-backdrop"
                     onClick={this.toggleVisibility}
