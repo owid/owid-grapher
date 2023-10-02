@@ -41,6 +41,7 @@ nav.controlsRow .controls {
         border-radius: 4px;
         padding: 7px;
         color: $dark-text;
+        white-space: nowrap;
 
         &:hover {
             background: $hover-fill;

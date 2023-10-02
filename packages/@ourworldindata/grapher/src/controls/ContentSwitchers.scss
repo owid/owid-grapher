@@ -11,6 +11,7 @@
     $border-radius: 4px;
     $visual-gap: 1.5px;
 
+    display: flex;
     list-style: none;
     height: $controlRowHeight;
     margin: 0;
@@ -19,8 +20,6 @@
     border-radius: $border-radius;
 
     li {
-        display: inline-block;
-        height: 100%;
         position: relative;
     }
 
@@ -38,6 +37,7 @@
         padding: 0 16px;
         cursor: default;
         letter-spacing: 0.01em;
+        white-space: nowrap;
 
         &:hover {
             background-color: $hover-fill;
