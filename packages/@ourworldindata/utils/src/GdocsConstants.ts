@@ -8,22 +8,27 @@ export const ENDNOTES_ID = "article-endnotes"
 export const RESEARCH_AND_WRITING_ID = "research-writing"
 
 export const IMAGES_DIRECTORY = "/images/published/"
-// Works for:
-// https://docs.google.com/document/d/abcd1234
-// https://docs.google.com/document/d/abcd1234/
-// https://docs.google.com/document/d/abcd1234/edit
-// https://docs.google.com/document/d/abcd-1234/edit
-// https://docs.google.com/document/u/0/d/abcd-1234/edit
-// https://docs.google.com/document/u/0/d/abcd-1234/edit?usp=sharing
 
+/** Works for:
+ * https://docs.google.com/document/d/abcd1234
+ * https://docs.google.com/document/d/abcd1234/
+ * https://docs.google.com/document/d/abcd1234/edit
+ * https://docs.google.com/document/d/abcd-1234/edit
+ * https://docs.google.com/document/u/0/d/abcd-1234/edit
+ * https://docs.google.com/document/u/0/d/abcd-1234/edit?usp=sharing
+ * Excludes:
+ * https://docs.google.com/spreadsheets/d/abcd1234
+ */
 export const gdocUrlRegex =
-    /https:\/\/docs\.google\.com\/.+?\/d\/([-\w]+)\/?(edit)?#?/
-export const gdocIdRegex = /^[0-9A-Za-z\-_]{44}$/
-// Works for:
-// #dod:text
-// #dod:text-hyphenated
-// #dod:text_underscored
-// #dod:text_underscored-and-hyphenated
-// Duplicated in parser.ts
+    /https:\/\/docs\.google\.com\/document(?:\/u\/\d)?\/d\/([-\w]+)\/?(edit)?#?/
 
+export const gdocIdRegex = /^[0-9A-Za-z\-_]{44}$/
+
+/** Works for:
+ * #dod:text
+ * #dod:text-hyphenated
+ * #dod:text_underscored
+ * #dod:text_underscored-and-hyphenated
+ * Duplicated in parser.ts
+ */
 export const detailOnDemandRegex = /#dod:([\w\-_]+)/
