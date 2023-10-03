@@ -1275,7 +1275,7 @@ export interface OwidGdocContent {
     excerpt?: string
     refs?: { definitions: RefDictionary; errors: OwidGdocErrorMessage[] }
     summary?: EnrichedBlockText[]
-    citation?: EnrichedBlockSimpleText[]
+    "hide-citation"?: boolean
     toc?: TocHeadingWithTitleSupertitle[]
     "cover-image"?: string
     "featured-image"?: string
