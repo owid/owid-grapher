@@ -15,7 +15,7 @@ import { DEFAULT_BOUNDS, Bounds } from "@ourworldindata/utils"
 
 export interface ActionButtonsManager extends ShareMenuManager {
     isShareMenuActive?: boolean
-    hideShareTabButton?: boolean
+    hideShareButton?: boolean
     hideExploreTheDataButton?: boolean
     isInIFrame?: boolean
     canonicalUrl?: string
@@ -193,7 +193,7 @@ export class ActionButtons extends React.Component<{
     }
 
     @computed private get hasShareButton(): boolean {
-        return !this.manager.hideShareTabButton
+        return !this.manager.hideShareButton
     }
 
     @computed private get hasFullScreenButton(): boolean {
