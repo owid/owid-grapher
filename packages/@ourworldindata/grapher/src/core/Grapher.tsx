@@ -281,7 +281,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     bindUrlToWindow?: boolean
     isEmbeddedInAnOwidPage?: boolean
     isEmbeddedInADataPage?: boolean
-    optimizeForHorizontalSpace?: boolean
+    shouldOptimizeForHorizontalSpace?: boolean
 
     manager?: GrapherManager
 }
@@ -444,8 +444,10 @@ export class Grapher
     isEmbeddedInAnOwidPage?: boolean = this.props.isEmbeddedInAnOwidPage
     isEmbeddedInADataPage?: boolean = this.props.isEmbeddedInADataPage
 
+    @observable shouldOptimizeForHorizontalSpace = false
+
     @computed private get optimizeForHorizontalSpace(): boolean {
-        return this.isNarrow && !!this.props.optimizeForHorizontalSpace
+        return this.isNarrow && this.shouldOptimizeForHorizontalSpace
     }
 
     /**
