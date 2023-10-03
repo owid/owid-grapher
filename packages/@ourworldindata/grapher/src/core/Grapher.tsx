@@ -444,6 +444,8 @@ export class Grapher
     isEmbeddedInAnOwidPage?: boolean = this.props.isEmbeddedInAnOwidPage
     isEmbeddedInADataPage?: boolean = this.props.isEmbeddedInADataPage
 
+    // if true, grapher bleeds onto the edges horizontally and the left and right borders
+    // are removed while the top and bottom borders stretch across the entire page
     @observable shouldOptimizeForHorizontalSpace = false
 
     @computed private get optimizeForHorizontalSpace(): boolean {
@@ -2390,8 +2392,7 @@ export class Grapher
         else if (renderWidth >= 1080) this.baseFontSize = 18
     }
 
-    // when embedded in an owid page and viewed on a narrow screen,
-    // grapher bleeds onto the edges horizontally
+    // when optimized for horizontal screen, grapher bleeds onto the edges horizontally
     @computed get framePaddingHorizontal(): number {
         return this.optimizeForHorizontalSpace
             ? 0

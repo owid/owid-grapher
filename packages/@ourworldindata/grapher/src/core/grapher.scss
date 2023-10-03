@@ -167,9 +167,9 @@ $zindex-controls-drawer: 140;
     padding: 0 !important;
 }
 
-// when embedded in an owid page and viewed on a narrow screen,
-// grapher bleeds onto the edges horizontally and the left and right borders are hidden.
-// the top and bottom borders are still visible, but should stretch across the entire page.
+// when optimized for horizontal space, grapher bleeds onto the edges horizontally
+// and the left and right borders are hidden. the top and bottom borders are visible,
+// but stretch across the entire page.
 .GrapherComponent.optimizeForHorizontalSpace {
     box-shadow: none;
 
