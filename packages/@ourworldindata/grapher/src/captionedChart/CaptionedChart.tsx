@@ -32,11 +32,14 @@ import { FacetChart } from "../facetChart/FacetChart"
 import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
-    ControlsManager,
-    EntitySelectorToggle,
-    SettingsMenu,
+    EntitySelectionToggle,
+    EntitySelectionManager,
+} from "../controls/EntitySelectionToggle"
+import {
     MapProjectionMenu,
-} from "../controls/Controls"
+    MapProjectionMenuManager,
+} from "../controls/MapProjectionMenu"
+import { SettingsMenu, SettingsMenuManager } from "../controls/SettingsMenu"
 import { FooterManager } from "../footer/FooterManager"
 import { HeaderManager } from "../header/HeaderManager"
 import { SelectionArray } from "../selection/SelectionArray"
@@ -58,9 +61,11 @@ export interface CaptionedChartManager
         MapChartManager,
         FooterManager,
         HeaderManager,
-        ControlsManager,
         DataTableManager,
-        ContentSwitchersManager {
+        ContentSwitchersManager,
+        EntitySelectionManager,
+        MapProjectionMenuManager,
+        SettingsMenuManager {
     containerElement?: HTMLDivElement
     tabBounds?: Bounds
     fontSize?: number
@@ -196,7 +201,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     @computed get showControls(): boolean {
         return (
             SettingsMenu.shouldShow(this.manager) ||
-            EntitySelectorToggle.shouldShow(this.manager) ||
+            EntitySelectionToggle.shouldShow(this.manager) ||
             MapProjectionMenu.shouldShow(this.manager)
         )
     }
@@ -268,7 +273,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                     )}
                 </div>
                 <div className="controls">
-                    <EntitySelectorToggle manager={this.manager} />
+                    <EntitySelectionToggle manager={this.manager} />
                     <SettingsMenu
                         manager={this.manager}
                         top={
