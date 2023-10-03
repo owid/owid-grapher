@@ -12,6 +12,7 @@ import {
 import { Tooltip } from "../tooltip/Tooltip"
 import { FooterManager } from "./FooterManager"
 import { ActionButtons } from "../controls/ActionButtons"
+import { DEFAULT_GRAPHER_FRAME_PADDING } from "../core/GrapherConstants"
 
 /*
 
@@ -71,6 +72,12 @@ export class Footer<
 
     @computed protected get maxWidth(): number {
         return this.props.maxWidth ?? DEFAULT_BOUNDS.width
+    }
+
+    @computed private get framePaddingHorizontal(): number {
+        return (
+            this.manager.framePaddingHorizontal ?? DEFAULT_GRAPHER_FRAME_PADDING
+        )
     }
 
     @computed protected get sourcesLine(): string {
@@ -546,7 +553,13 @@ export class Footer<
         const { tooltipTarget } = this
 
         return (
-            <footer className="SourcesFooterHTML" ref={this.base}>
+            <footer
+                className="SourcesFooterHTML"
+                style={{
+                    padding: `0 ${this.framePaddingHorizontal}px`,
+                }}
+                ref={this.base}
+            >
                 {this.renderTopContent()}
                 {this.renderBottomContent()}
                 {tooltipTarget && (

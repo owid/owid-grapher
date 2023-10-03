@@ -89,7 +89,7 @@ import {
     SeriesStrategy,
     getVariableDataRoute,
     getVariableMetadataRoute,
-    GRAPHER_FRAME_PADDING,
+    DEFAULT_GRAPHER_FRAME_PADDING,
     DEFAULT_GRAPHER_ENTITY_TYPE,
     DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL,
 } from "../core/GrapherConstants"
@@ -281,6 +281,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     bindUrlToWindow?: boolean
     isEmbeddedInAnOwidPage?: boolean
     isEmbeddedInADataPage?: boolean
+    shouldOptimizeForHorizontalSpace?: boolean
 
     manager?: GrapherManager
 }
@@ -440,7 +441,16 @@ export class Grapher
         return this.tableSlugs ? this.tableSlugs.split(" ") : this.newSlugs
     }
 
+    isEmbeddedInAnOwidPage?: boolean = this.props.isEmbeddedInAnOwidPage
     isEmbeddedInADataPage?: boolean = this.props.isEmbeddedInADataPage
+
+    // if true, grapher bleeds onto the edges horizontally and the left and right borders
+    // are removed while the top and bottom borders stretch across the entire page
+    @observable shouldOptimizeForHorizontalSpace = false
+
+    @computed private get optimizeForHorizontalSpace(): boolean {
+        return this.isNarrow && this.shouldOptimizeForHorizontalSpace
+    }
 
     /**
      * todo: factor this out and make more RAII.
@@ -1015,7 +1025,7 @@ export class Grapher
 
     @computed get shouldLinkToOwid(): boolean {
         if (
-            this.props.isEmbeddedInAnOwidPage ||
+            this.isEmbeddedInAnOwidPage ||
             this.isExportingtoSvgOrPng ||
             !this.isInIFrame
         )
@@ -1209,7 +1219,8 @@ export class Grapher
                 text,
                 fontSize: 12,
                 // leave room for padding on the left and right
-                maxWidth: this.idealBounds.width - 2 * GRAPHER_FRAME_PADDING,
+                maxWidth:
+                    this.idealBounds.width - 2 * this.framePaddingHorizontal,
                 lineHeight: 1.2,
                 style: {
                     fill: "#5b5b5b",
@@ -1824,8 +1835,8 @@ export class Grapher
 
         // For these, defer to the bounds that are set externally
         if (
-            this.props.isEmbeddedInADataPage ||
-            this.props.isEmbeddedInAnOwidPage ||
+            this.isEmbeddedInADataPage ||
+            this.isEmbeddedInAnOwidPage ||
             this.props.manager ||
             isInIFrame
         )
@@ -1873,7 +1884,6 @@ export class Grapher
     }
 
     // These are the final render dimensions
-    // Todo: add explanation around why isExporting removes 5 px
     @computed private get renderWidth(): number {
         const {
             bounds,
@@ -1881,7 +1891,6 @@ export class Grapher
             useIdealBounds,
             widthForDeviceOrientation,
             scaleToFitIdeal,
-            isExportingtoSvgOrPng,
             windowInnerWidth,
             fullScreenPadding,
         } = this
@@ -1893,7 +1902,7 @@ export class Grapher
         return Math.floor(
             isInFullScreenMode
                 ? windowInnerWidth! - 2 * fullScreenPadding
-                : bounds.width - (isExportingtoSvgOrPng ? 0 : 5)
+                : bounds.width
         )
     }
 
@@ -1904,7 +1913,6 @@ export class Grapher
             useIdealBounds,
             heightForDeviceOrientation,
             scaleToFitIdeal,
-            isExportingtoSvgOrPng,
             windowInnerHeight,
             fullScreenPadding,
         } = this
@@ -1916,7 +1924,7 @@ export class Grapher
         return Math.floor(
             isInFullScreenMode
                 ? windowInnerHeight! - 2 * fullScreenPadding
-                : bounds.height - (isExportingtoSvgOrPng ? 0 : 5)
+                : bounds.height
         )
     }
 
@@ -2294,6 +2302,7 @@ export class Grapher
             GrapherComponent: true,
             GrapherPortraitClass: this.isPortrait,
             isExportingToSvgOrPng: this.isExportingtoSvgOrPng,
+            optimizeForHorizontalSpace: this.optimizeForHorizontalSpace,
             GrapherComponentNarrow: this.isNarrow,
             GrapherComponentSmall: this.isSmall,
             GrapherComponentMedium: this.isMedium,
@@ -2381,6 +2390,17 @@ export class Grapher
         if (renderWidth <= 400) this.baseFontSize = 14
         else if (renderWidth < 1080) this.baseFontSize = 16
         else if (renderWidth >= 1080) this.baseFontSize = 18
+    }
+
+    // when optimized for horizontal screen, grapher bleeds onto the edges horizontally
+    @computed get framePaddingHorizontal(): number {
+        return this.optimizeForHorizontalSpace
+            ? 0
+            : DEFAULT_GRAPHER_FRAME_PADDING
+    }
+
+    @computed get framePaddingVertical(): number {
+        return DEFAULT_GRAPHER_FRAME_PADDING
     }
 
     @computed get isNarrow(): boolean {

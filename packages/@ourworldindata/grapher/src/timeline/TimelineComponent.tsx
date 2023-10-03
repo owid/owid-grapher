@@ -14,6 +14,7 @@ import { faPlay, faPause } from "@fortawesome/free-solid-svg-icons"
 import classNames from "classnames"
 import { TimelineController, TimelineManager } from "./TimelineController"
 import { ActionButton } from "../controls/ActionButtons"
+import { DEFAULT_GRAPHER_FRAME_PADDING } from "../core/GrapherConstants.js"
 
 export const TIMELINE_HEIGHT = 32 // keep in sync with $timelineHeight in TimelineComponent.scss
 
@@ -23,6 +24,7 @@ const HANDLE_TOOLTIP_FADE_TIME_MS = 2000
 export class TimelineComponent extends React.Component<{
     timelineController: TimelineController
     maxWidth?: number
+    framePaddingHorizontal?: number
 }> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
 
@@ -30,6 +32,12 @@ export class TimelineComponent extends React.Component<{
 
     @computed protected get maxWidth(): number {
         return this.props.maxWidth ?? DEFAULT_BOUNDS.width
+    }
+
+    @computed private get framePaddingHorizontal(): number {
+        return (
+            this.props.framePaddingHorizontal ?? DEFAULT_GRAPHER_FRAME_PADDING
+        )
     }
 
     @computed private get isDragging(): boolean {
@@ -297,6 +305,9 @@ export class TimelineComponent extends React.Component<{
                     "TimelineComponent" +
                     (this.mouseHoveringOverTimeline ? " hover" : "")
                 }
+                style={{
+                    padding: `0 ${this.framePaddingHorizontal}px`,
+                }}
                 onMouseOver={this.onMouseOver}
                 onMouseLeave={this.onMouseLeave}
             >

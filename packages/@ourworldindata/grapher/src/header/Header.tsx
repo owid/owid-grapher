@@ -8,6 +8,7 @@ import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { Logo, LogoOption } from "../captionedChart/Logos"
 import { HeaderManager } from "./HeaderManager"
+import { DEFAULT_GRAPHER_FRAME_PADDING } from "../core/GrapherConstants"
 
 @observer
 export class Header extends React.Component<{
@@ -20,6 +21,18 @@ export class Header extends React.Component<{
 
     @computed protected get maxWidth(): number {
         return this.props.maxWidth ?? DEFAULT_BOUNDS.width
+    }
+
+    @computed private get framePaddingHorizontal(): number {
+        return (
+            this.manager.framePaddingHorizontal ?? DEFAULT_GRAPHER_FRAME_PADDING
+        )
+    }
+
+    @computed private get framePaddingVertical(): number {
+        return (
+            this.manager.framePaddingVertical ?? DEFAULT_GRAPHER_FRAME_PADDING
+        )
     }
 
     @computed private get titleText(): string {
@@ -181,7 +194,13 @@ export class Header extends React.Component<{
 
     render(): JSX.Element {
         return (
-            <div className="HeaderHTML">
+            <div
+                className="HeaderHTML"
+                style={{
+                    padding: `${this.framePaddingVertical}px ${this.framePaddingHorizontal}px`,
+                    paddingBottom: 0,
+                }}
+            >
                 {this.logo && this.logo.renderHTML()}
                 <div style={{ minHeight: this.height }}>
                     {this.renderTitle()}
