@@ -572,52 +572,55 @@ export class Explorer
         config.dimensions = dimensions
         if (config.ySlugs && yVariableIds) config.ySlugs += " " + yVariableIds
 
+        const inputTableTransformer = (table: OwidTable) => {
+            // add transformed (and intermediate) columns to the grapher table
+            if (uniqueSlugsInGrapherRow.length) {
+                const allColumnSlugs = uniq(
+                    uniqueSlugsInGrapherRow.flatMap((slug) => [
+                        ...this.getBaseColumnsForColumnWithTransform(slug),
+                        slug,
+                    ])
+                )
+                const existingColumnSlugs = table.columnSlugs
+                const outstandingColumnSlugs = allColumnSlugs.filter(
+                    (slug) => !existingColumnSlugs.includes(slug)
+                )
+                const requiredColumnDefs = outstandingColumnSlugs
+                    .map(
+                        (slug) =>
+                            this.columnDefsWithoutTableSlugByIdOrSlug[slug]
+                    )
+                    .filter(identity)
+                table = table.appendColumns(requiredColumnDefs)
+            }
+
+            // update column definitions with manually provided properties
+            table = table.updateDefs((def: OwidColumnDef) => {
+                const manuallyProvidedDef =
+                    this.columnDefsWithoutTableSlugByIdOrSlug[def.slug] ?? {}
+                const mergedDef = { ...def, ...manuallyProvidedDef }
+
+                // update display properties
+                mergedDef.display = mergedDef.display ?? {}
+                if (manuallyProvidedDef.name)
+                    mergedDef.display.name = manuallyProvidedDef.name
+                if (manuallyProvidedDef.unit)
+                    mergedDef.display.unit = manuallyProvidedDef.unit
+                if (manuallyProvidedDef.shortUnit)
+                    mergedDef.display.shortUnit = manuallyProvidedDef.shortUnit
+
+                return mergedDef
+            })
+            return table
+        }
+
         grapher.setAuthoredVersion(config)
         grapher.reset()
         this.updateGrapherFromExplorerCommon()
         grapher.updateFromObject(config)
-        grapher.forceDisableIntroAnimation = true
-        await grapher.downloadLegacyDataFromOwidVariableIds()
-
-        let grapherTable = grapher.inputTable
-
-        // add transformed (and intermediate) columns to the grapher table
-        if (uniqueSlugsInGrapherRow.length) {
-            const allColumnSlugs = uniq(
-                uniqueSlugsInGrapherRow.flatMap((slug) => [
-                    ...this.getBaseColumnsForColumnWithTransform(slug),
-                    slug,
-                ])
-            )
-            const existingColumnSlugs = grapherTable.columnSlugs
-            const outstandingColumnSlugs = allColumnSlugs.filter(
-                (slug) => !existingColumnSlugs.includes(slug)
-            )
-            const requiredColumnDefs = outstandingColumnSlugs
-                .map((slug) => this.columnDefsWithoutTableSlugByIdOrSlug[slug])
-                .filter(identity)
-            grapherTable = grapherTable.appendColumns(requiredColumnDefs)
-        }
-
-        // update column definitions with manually provided properties
-        grapherTable = grapherTable.updateDefs((def: OwidColumnDef) => {
-            const manuallyProvidedDef =
-                this.columnDefsWithoutTableSlugByIdOrSlug[def.slug] ?? {}
-            const mergedDef = { ...def, ...manuallyProvidedDef }
-
-            // update display properties
-            mergedDef.display = mergedDef.display ?? {}
-            if (manuallyProvidedDef.name)
-                mergedDef.display.name = manuallyProvidedDef.name
-            if (manuallyProvidedDef.unit)
-                mergedDef.display.unit = manuallyProvidedDef.unit
-            if (manuallyProvidedDef.shortUnit)
-                mergedDef.display.shortUnit = manuallyProvidedDef.shortUnit
-
-            return mergedDef
-        })
-
-        this.setGrapherTable(grapherTable)
+        await grapher.downloadLegacyDataFromOwidVariableIds(
+            inputTableTransformer
+        )
     }
 
     @action.bound private updateGrapherFromExplorerUsingColumnSlugs() {
