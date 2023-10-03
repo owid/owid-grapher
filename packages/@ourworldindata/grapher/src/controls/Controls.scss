@@ -43,7 +43,6 @@ nav.controlsRow .controls {
         color: $dark-text;
         white-space: nowrap;
 
-        label:hover,
         &:hover {
             background: $hover-fill;
             cursor: pointer;
@@ -60,6 +59,10 @@ nav.controlsRow .controls {
             height: 12px;
             margin-right: 5px;
             vertical-align: bottom;
+        }
+
+        label:hover {
+            cursor: pointer;
         }
     }
 
