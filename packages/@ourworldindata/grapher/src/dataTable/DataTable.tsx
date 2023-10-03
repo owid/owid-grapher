@@ -160,9 +160,8 @@ export class DataTable extends React.Component<{
         )
     }
 
-    // in data tables only, we prefer "Country/area" over "Country or region" as default entity type
     @computed private get entityType(): string {
-        return this.manager.entityType ?? "Country/area"
+        return this.manager.entityType ?? DEFAULT_GRAPHER_ENTITY_TYPE
     }
 
     @computed private get sortValueMapper(): (
@@ -222,6 +221,18 @@ export class DataTable extends React.Component<{
         this.storedState.sort.order = order
     }
 
+    private get entityHeaderText(): string {
+        // if the entities are country-like and we do have aggregate rows,
+        // then we prefer "Country/area" over "Country or region"
+        // (note that we honour the entity type provided by the author if it is given)
+        if (
+            this.entityType !== DEFAULT_GRAPHER_ENTITY_TYPE &&
+            this.showTitleForAggregateRows
+        )
+            return "Country/area"
+        return capitalize(this.entityType)
+    }
+
     private get entityHeader(): JSX.Element {
         const { sort } = this.tableState
         return (
@@ -231,7 +242,7 @@ export class DataTable extends React.Component<{
                 sortedCol={sort.dimIndex === ENTITY_DIM_INDEX}
                 sortOrder={sort.order}
                 onClick={(): void => this.updateSort(ENTITY_DIM_INDEX)}
-                headerText={capitalize(this.entityType)}
+                headerText={this.entityHeaderText}
                 colType="entity"
             />
         )
@@ -501,8 +512,8 @@ export class DataTable extends React.Component<{
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
-    @computed private get titleAggregateRow(): JSX.Element | null {
-        if (!this.showTitleRows) return null
+    @computed private get titleForAggregateRows(): JSX.Element | null {
+        if (!this.showTitleForAggregateRows) return null
         return (
             <tr className="title">
                 <td>Other</td>
@@ -542,7 +553,7 @@ export class DataTable extends React.Component<{
                         <thead>{this.headerRow}</thead>
                         <tbody>
                             {this.valueEntityRows}
-                            {this.titleAggregateRow}
+                            {this.titleForAggregateRows}
                             {this.valueAggregateRows}
                         </tbody>
                     </table>
@@ -899,7 +910,7 @@ export class DataTable extends React.Component<{
         return this.displayRows.filter((row) => !isCountryName(row.entityName))
     }
 
-    @computed private get showTitleRows(): boolean {
+    @computed private get showTitleForAggregateRows(): boolean {
         return (
             !!this.manager.entitiesAreCountryLike &&
             this.displayEntityRows.length > 0 &&

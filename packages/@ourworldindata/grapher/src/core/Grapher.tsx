@@ -271,7 +271,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     hideTableFilterToggle?: boolean
     forceHideAnnotationFieldsInTitle?: AnnotationFieldsInTitle
     hasTableTab?: boolean
-    hideShareTabButton?: boolean
+    hideShareButton?: boolean
     hideExploreTheDataButton?: boolean
     hideRelatedQuestion?: boolean
 
@@ -2799,7 +2799,7 @@ export class Grapher
         changeInPrefix: false,
     }
     @observable hasTableTab = true
-    @observable hideShareTabButton = false
+    @observable hideShareButton = false
     @observable hideExploreTheDataButton = true
     @observable hideRelatedQuestion = false
 }

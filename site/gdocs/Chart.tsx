@@ -57,7 +57,7 @@ export default function Chart({
             ...listOfPartialGrapherConfigs,
             {
                 hideRelatedQuestion: true,
-                hideShareTabButton: true, // always hidden since the original chart would be shared, not the customized one
+                hideShareButton: true, // always hidden since the original chart would be shared, not the customized one
                 hideExploreTheDataButton: false,
             },
             {
