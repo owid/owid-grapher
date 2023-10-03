@@ -20,8 +20,10 @@ interface Variable {
 }
 
 export interface Dataset {
+    id: number
     name: string
     namespace: string
+    version: string | undefined
     variables: Variable[]
     isPrivate: boolean
     nonRedistributable: boolean

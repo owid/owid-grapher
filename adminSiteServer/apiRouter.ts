@@ -646,7 +646,9 @@ apiRouter.get(
             `SELECT
                 v.name,
                 v.id,
+                d.id as datasetId,
                 d.name as datasetName,
+                d.version as datasetVersion,
                 d.namespace,
                 d.isPrivate,
                 d.nonRedistributable
@@ -657,7 +659,9 @@ apiRouter.get(
 
         let dataset:
             | {
+                  id: number
                   name: string
+                  version: string
                   namespace: string
                   isPrivate: boolean
                   nonRedistributable: boolean
@@ -669,7 +673,9 @@ apiRouter.get(
                 if (dataset) datasets.push(dataset)
 
                 dataset = {
+                    id: row.datasetId,
                     name: row.datasetName,
+                    version: row.datasetVersion,
                     namespace: row.namespace,
                     isPrivate: row.isPrivate,
                     nonRedistributable: row.nonRedistributable,
