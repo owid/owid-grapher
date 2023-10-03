@@ -644,7 +644,7 @@ export const DataPageV2Content = ({
                                             </p>
                                         </div>
                                         <a
-                                            href="https://docs.owid.io/projects/etl/en/latest/"
+                                            href="https://docs.owid.io/projects/etl/"
                                             target="_blank"
                                             rel="nopener noreferrer"
                                             className="data-processing__link"
