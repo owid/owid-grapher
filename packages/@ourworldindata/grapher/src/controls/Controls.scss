@@ -71,7 +71,7 @@ nav.controlsRow .controls {
     nav.controlsRow .settings-menu button.menu-toggle {
         min-height: $control-row-height;
         svg {
-            margin-right: 0;
+            margin: 0 2px;
         }
         .label {
             display: none;
