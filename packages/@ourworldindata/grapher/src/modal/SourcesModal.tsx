@@ -62,8 +62,9 @@ export class SourcesModal extends React.Component<{
 
     @computed private get modalBounds(): Bounds {
         const maxWidth = 740
-        const padWidth = Math.max(16, (this.tabBounds.width - maxWidth) / 2)
-        return this.tabBounds.padHeight(16).padWidth(padWidth)
+        // using 15px instead of 16px to make sure the modal fully covers the OWID logo in the header
+        const padWidth = Math.max(15, (this.tabBounds.width - maxWidth) / 2)
+        return this.tabBounds.padHeight(15).padWidth(padWidth)
     }
 
     private renderSource(column: CoreColumn): JSX.Element {
