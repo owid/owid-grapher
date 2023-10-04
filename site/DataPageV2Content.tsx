@@ -142,28 +142,25 @@ export const DataPageV2Content = ({
                                     {sourceShortName}
                                 </div>
                             </div>
-                            {datapageData.topicTagsLinks &&
-                                datapageData.topicTagsLinks.length && (
-                                    <div className="header__right col-start-9 span-cols-4 span-sm-cols-12">
-                                        <div className="topic-tags__label">
-                                            See all data and research on:
-                                        </div>
-                                        <div className="topic-tags">
-                                            {datapageData.topicTagsLinks?.map(
-                                                (topic: any) => (
-                                                    <a
-                                                        href={`/${slugify(
-                                                            topic
-                                                        )}`}
-                                                        key={topic}
-                                                    >
-                                                        {topic}
-                                                    </a>
-                                                )
-                                            )}
-                                        </div>
+                            {!!datapageData.topicTagsLinks?.length && (
+                                <div className="header__right col-start-9 span-cols-4 span-sm-cols-12">
+                                    <div className="topic-tags__label">
+                                        See all data and research on:
                                     </div>
-                                )}
+                                    <div className="topic-tags">
+                                        {datapageData.topicTagsLinks?.map(
+                                            (topic: any) => (
+                                                <a
+                                                    href={`/${slugify(topic)}`}
+                                                    key={topic}
+                                                >
+                                                    {topic}
+                                                </a>
+                                            )
+                                        )}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                     <nav className="sticky-nav sticky-nav--dark">
