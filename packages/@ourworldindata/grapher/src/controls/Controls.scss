@@ -86,3 +86,17 @@ nav.controlsRow .controls {
         }
     }
 }
+
+//
+// correct for style bleeds in admin
+//
+@at-root {
+    .AdminApp {
+        nav.controlsRow .controls button.menu-toggle label {
+            margin: 0;
+        }
+        .settings-menu-contents section {
+            background: none;
+        }
+    }
+}
