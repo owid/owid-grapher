@@ -241,18 +241,6 @@ h6:hover .deep-link {
     opacity: 1;
 }
 
-#un-button.un-bottom.css3 {
-    left: 0 !important;
-    margin-left: 20px !important;
-    font-size: 16px;
-}
-
-/* search */
-.archive-pagination {
-    margin: 40px auto;
-    text-align: center;
-}
-
 .article-footer a {
     @include owid-link-90;
 }
@@ -794,17 +782,6 @@ article.page .authors-byline .citation-note:hover {
     color: #0645ad;
 }
 
-.citation-guideline {
-    display: none;
-    text-align: center;
-    max-width: 900px;
-    margin: auto;
-    border: 1px solid #ccc;
-    padding: 1em;
-    font-size: 18px;
-    margin-top: 1.2rem;
-}
-
 /* Customizations to tooltip */
 
 .tippy-box[data-theme~="owid-footnote"] {
@@ -904,14 +881,6 @@ article.page .authors-byline .citation-note:hover {
 a.ref sup {
     padding-left: 0.5px;
     font-size: 120%; // emphasize footnote markers a bit
-}
-
-/* Hide feedback button on mobile */
-
-@media only screen and (max-width: 1060px) {
-    #un-button {
-        display: none !important;
-    }
 }
 
 /* Printing
