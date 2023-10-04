@@ -153,6 +153,13 @@ export class Header extends React.Component<{
     private renderTitle(): JSX.Element {
         const { manager } = this
 
+        // avoid linking to a grapher/data page when we're already on it
+        if (manager.isOnCanonicalUrl) {
+            return (
+                <h1 style={this.title.htmlStyle}>{this.title.renderHTML()}</h1>
+            )
+        }
+
         // on smaller screens, make the whole width of the header clickable
         if (manager.isMedium) {
             return (

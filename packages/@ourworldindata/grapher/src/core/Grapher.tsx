@@ -2666,6 +2666,13 @@ export class Grapher
         )
     }
 
+    @computed get isOnCanonicalUrl(): boolean {
+        if (!this.canonicalUrl) return false
+        return (
+            getWindowUrl().pathname === Url.fromURL(this.canonicalUrl).pathname
+        )
+    }
+
     @computed get embedUrl(): string | undefined {
         return this.manager?.embedDialogUrl ?? this.canonicalUrl
     }
