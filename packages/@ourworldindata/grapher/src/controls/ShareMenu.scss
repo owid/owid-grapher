@@ -50,9 +50,9 @@ $zindex-ControlsFooter: 2;
             color: $active-text;
         }
 
-        > svg {
+        > .icon {
             margin-right: 6px;
-            position: relative;
+            flex: 0 0 16px;
         }
     }
 }

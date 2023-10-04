@@ -157,7 +157,10 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                     href={twitterHref}
                     rel="noopener"
                 >
-                    <FontAwesomeIcon icon={faXTwitter} /> X
+                    <span className="icon">
+                        <FontAwesomeIcon icon={faXTwitter} />
+                    </span>{" "}
+                    X/Twitter
                 </a>
                 <a
                     target="_blank"
@@ -166,7 +169,10 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                     href={facebookHref}
                     rel="noopener"
                 >
-                    <FontAwesomeIcon icon={faFacebook} /> Facebook
+                    <span className="icon">
+                        <FontAwesomeIcon icon={faFacebook} />
+                    </span>{" "}
+                    Facebook
                 </a>
                 <a
                     className="embed"
@@ -174,7 +180,10 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                     data-track-note="chart_share_embed"
                     onClick={this.onEmbed}
                 >
-                    <FontAwesomeIcon icon={faCode} /> Embed
+                    <span className="icon">
+                        <FontAwesomeIcon icon={faCode} />
+                    </span>{" "}
+                    Embed
                 </a>
                 {"share" in navigator && (
                     <a
@@ -182,16 +191,21 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                         data-track-note="chart_share_navigator"
                         onClick={this.onNavigatorShare}
                     >
-                        <FontAwesomeIcon icon={faShareAlt} /> Share via&hellip;
+                        <span className="icon">
+                            <FontAwesomeIcon icon={faShareAlt} />
+                        </span>{" "}
+                        Share via&hellip;
                     </a>
                 )}
-                {this.state.canWriteToClipboard && (
+                {true && (
                     <a
                         title="Copy link to clipboard"
                         data-track-note="chart_share_copylink"
                         onClick={this.onCopyUrl}
                     >
-                        <FontAwesomeIcon icon={faLink} />
+                        <span className="icon">
+                            <FontAwesomeIcon icon={faLink} />
+                        </span>{" "}
                         {this.state.copied ? "Copied!" : "Copy link"}
                     </a>
                 )}
@@ -202,7 +216,10 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                         href={editUrl}
                         rel="noopener"
                     >
-                        <FontAwesomeIcon icon={faEdit} /> Edit
+                        <span className="icon">
+                            <FontAwesomeIcon icon={faEdit} />
+                        </span>{" "}
+                        Edit
                     </a>
                 )}
             </div>
