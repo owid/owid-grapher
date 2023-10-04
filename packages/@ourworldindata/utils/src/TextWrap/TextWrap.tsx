@@ -1,4 +1,4 @@
-import { isEmpty, max, stripHTML, linkify } from "../Util.js"
+import { isEmpty, max, stripHTML } from "../Util.js"
 import { Bounds, FontFamily } from "../Bounds.js"
 import { computed } from "mobx"
 import React from "react"
@@ -12,8 +12,6 @@ interface TextWrapProps {
     fontSize: FontSize
     fontWeight?: number
     rawHtml?: boolean
-    /** Wrap URL-like text in <a> tag. Only works when rendering HTML. */
-    linkifyText?: boolean
 }
 
 interface WrapLine {
@@ -157,16 +155,10 @@ export class TextWrap {
         return (
             <span>
                 {lines.map((line, index) => {
-                    const content = this.props.rawHtml ? (
+                    const content = props.rawHtml ? (
                         <span
                             dangerouslySetInnerHTML={{
                                 __html: line.text,
-                            }}
-                        />
-                    ) : props.linkifyText ? (
-                        <span
-                            dangerouslySetInnerHTML={{
-                                __html: linkify(line.text),
                             }}
                         />
                     ) : (

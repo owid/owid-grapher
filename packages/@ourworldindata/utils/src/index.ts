@@ -282,7 +282,6 @@ export {
     rollingMap,
     groupMap,
     keyMap,
-    linkify,
     oneOf,
     intersectionOfSets,
     unionOfSets,

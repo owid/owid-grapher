@@ -137,7 +137,6 @@ import dayjs from "./dayjs.js"
 import { formatLocale, FormatLocaleObject } from "d3-format"
 import striptags from "striptags"
 import parseUrl from "url-parse"
-import linkifyHtml from "linkifyjs/html.js"
 import {
     SortOrder,
     Integer,
@@ -887,8 +886,6 @@ export function keyMap<Key, Value>(
     })
     return result
 }
-
-export const linkify = (str: string): string => linkifyHtml(str)
 
 export const oneOf = <T>(value: unknown, options: T[], defaultOption: T): T => {
     for (const option of options) {
