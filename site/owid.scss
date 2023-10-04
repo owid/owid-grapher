@@ -281,22 +281,6 @@ h6:hover .deep-link {
     background-color: #5b011d;
 }
 
-@include lg-up {
-    .owid-data .link-container {
-        display: flex;
-        flex-flow: row wrap;
-        display: -webkit-flex;
-        -webkit-flex-flow: row wrap;
-        display: -ms-flexbox;
-        -ms-flex-flow: row wrap;
-    }
-
-    .owid-data li a {
-        width: 33.3333%;
-        display: inline-block;
-    }
-}
-
 /* Teaching Page
 --------------------------------------------- */
 
@@ -377,86 +361,6 @@ h6:hover .deep-link {
 
 .teaching-hub .button::selection {
     background: transparent;
-}
-
-/* OWID Data Entries Table
---------------------------------------------- */
-
-.owid-data h1 {
-    margin: 0;
-    text-align: center;
-    z-index: 1;
-    position: relative;
-}
-
-.owid-data h1 > span {
-    background: white;
-    text-transform: uppercase;
-    font-size: 24px;
-    color: #002147;
-    padding: 0 15px;
-}
-
-.owid-data .separator {
-    position: relative;
-    opacity: 0.8;
-}
-
-.owid-data hr {
-    position: relative;
-    margin: 0;
-    top: -1.2em;
-
-    background: #002147;
-    border: 0;
-    clear: both;
-    color: #002147;
-    display: block;
-    height: 1px;
-    padding: 0;
-    margin-left: 20px;
-    margin-right: 20px;
-}
-
-.owid-data ul {
-    margin: 0 !important;
-}
-
-.owid-data li {
-    list-style-type: none !important;
-    margin-top: 5px;
-    margin-bottom: 5px;
-}
-
-.owid-data h4 {
-    font-family: $serif-font-stack;
-    font-weight: 400;
-    margin-top: 25px;
-    margin-bottom: 0;
-    font-size: 16px;
-    color: #002147;
-    text-align: center;
-    position: relative;
-}
-
-.owid-data li a {
-    display: block;
-    box-sizing: border-box;
-    border-bottom: 1px solid #ddd !important;
-    border-right: 1px solid #ddd;
-    padding: 5px 10px;
-    background: none !important;
-    font-size: 16px;
-    color: #002147 !important;
-}
-
-.owid-data li a:hover {
-    color: white !important;
-    /*padding-bottom: 2px;*/
-}
-
-.owid-data a.starred:hover:after {
-    color: white;
 }
 
 /* MISPY: Front page mobile-default responsiveness and data entry listing */
