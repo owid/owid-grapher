@@ -255,32 +255,6 @@ h6:hover .deep-link {
     z-index: $zindex-site-header;
 }
 
-/* Homepage
---------------------------------------------- */
-
-.social a {
-    font-size: 24px;
-    background-color: #c0023e;
-    color: white;
-    width: 36px;
-    height: 36px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 4px;
-    margin-right: 5px;
-
-    svg {
-        width: 24px;
-        height: 24px;
-    }
-}
-
-.social a:hover {
-    color: white;
-    background-color: #5b011d;
-}
-
 /* Teaching Page
 --------------------------------------------- */
 
