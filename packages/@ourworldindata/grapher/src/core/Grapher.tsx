@@ -132,7 +132,7 @@ import { isOnTheMap } from "../mapCharts/EntitiesOnTheMap"
 import { ChartManager } from "../chart/ChartManager"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons"
-import { SettingsMenuManager } from "../controls/Controls"
+import { SettingsMenuManager } from "../controls/SettingsMenu"
 import { TooltipContainer } from "../tooltip/Tooltip"
 import {
     EntitySelectorModal,

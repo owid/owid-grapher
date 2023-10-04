@@ -15,7 +15,6 @@ import {
 import { observable, computed } from "mobx"
 import { HorizontalAxis, VerticalAxis } from "./Axis"
 import { AxisConfigInterface, Tickmark } from "./AxisConfigInterface"
-import { ScaleSelectorManager } from "../controls/ScaleSelector"
 
 export interface FontSizeManager {
     fontSize: number
@@ -43,7 +42,7 @@ class AxisConfigDefaults implements AxisConfigInterface {
 
 export class AxisConfig
     extends AxisConfigDefaults
-    implements AxisConfigInterface, Persistable, ScaleSelectorManager
+    implements AxisConfigInterface, Persistable
 {
     constructor(
         props?: AxisConfigInterface,
