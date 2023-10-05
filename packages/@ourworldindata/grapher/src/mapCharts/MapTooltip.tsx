@@ -209,8 +209,12 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
             yColumn = this.sparklineTable.get(this.mapColumnSlug),
             minVal = min([yColumn.min, yAxisConfig?.min]),
             maxVal = max([yColumn.max, yAxisConfig?.max]),
-            minCustom = isNumber(minVal) && customValueLabels[minVal],
-            maxCustom = isNumber(maxVal) && customValueLabels[maxVal],
+            minCustom =
+                isNumber(minVal) &&
+                this.lineColorScale.getBinForValue(minVal)?.label,
+            maxCustom =
+                isNumber(maxVal) &&
+                this.lineColorScale.getBinForValue(maxVal)?.label,
             useCustom = isString(minCustom) && isString(maxCustom),
             minLabel = useCustom
                 ? minCustom
