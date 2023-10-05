@@ -25,7 +25,7 @@ export const GdocsDateline = ({
     const onChangePublishedAt = (publishedAt: Dayjs | null) => {
         setCurrentGdoc({
             ...gdoc,
-            publishedAt: publishedAt?.utc(true).toDate() || null,
+            publishedAt: publishedAt?.toDate() || null,
         })
     }
 
@@ -45,12 +45,16 @@ export const GdocsDateline = ({
                     <label htmlFor="publishedAt">Publication date</label>
                     <DatePicker
                         onChange={onChangePublishedAt}
-                        value={
-                            publishedAt ? dayjs(publishedAt).local() : undefined
-                        }
+                        value={publishedAt ? dayjs(publishedAt) : undefined}
                         format="ddd, MMM D, YYYY"
                         id="publishedAt"
                         status={publishedAtError?.type}
+                        // The "Today" button has been disabled because it sets
+                        // the time to the current time. This time change makes
+                        // it all the way to the atom feed, which is then
+                        // interpreted by MailChimp's RSS-to-Email as a new
+                        // article.
+                        showToday={false}
                     />
                     <GdocsErrorHelp
                         error={publishedAtError}
