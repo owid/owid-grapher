@@ -29,7 +29,6 @@ import { darkenColorForHighContrastText } from "../color/ColorUtils"
 interface MapTooltipProps {
     tooltipState: TooltipState<{ featureId: string; clickable: boolean }>
     manager: MapChartManager
-    customValueLabels: (string | undefined)[]
     colorScaleManager: ColorScaleManager
     formatValue: (d: PrimitiveType) => string
     timeSeriesTable: OwidTable
@@ -188,7 +187,6 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
         const {
             targetTime,
             formatValue,
-            customValueLabels,
             tooltipState: { target, position, fading },
         } = this.props
 
