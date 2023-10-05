@@ -30,7 +30,7 @@ type ReplacerFunction = (
     _match: string,
     _firstPattern: string,
     _offset: number,
-    fullString: string,
+    _fullString: string,
     matches: Record<string, string>
 ) => string
 
@@ -45,12 +45,11 @@ function buildReplacerFunction(
         _match: string,
         _firstPattern: string,
         _offset: number,
-        fullString: string,
+        _fullString: string,
         matches: Record<string, string>
     ) => {
         const block = blocks[matches["id"].toString()]
-        if (block) return block.post_content
-        else return fullString
+        return block ? block.post_content : ""
     }
 }
 
