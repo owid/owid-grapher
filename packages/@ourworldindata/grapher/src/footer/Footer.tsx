@@ -8,6 +8,7 @@ import {
     DEFAULT_BOUNDS,
     getRelativeMouse,
     MarkdownTextWrap,
+    DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
 } from "@ourworldindata/utils"
 import { Tooltip } from "../tooltip/Tooltip"
 import { FooterManager } from "./FooterManager"
@@ -414,7 +415,8 @@ export class Footer<
                     onClick={action(() => {
                         // on data pages, scroll to the "Sources and Processing" section
                         // on grapher pages, open the sources modal
-                        const sourcesIdOnDataPage = "sources-and-processing"
+                        const sourcesIdOnDataPage =
+                            DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID
                         const sourcesElement =
                             document.getElementById(sourcesIdOnDataPage)
                         if (sourcesElement && sourcesElement.scrollIntoView) {
