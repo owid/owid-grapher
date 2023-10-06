@@ -22,7 +22,7 @@ import {
 import { getRelatedCharts } from "./wpdb.js"
 
 // Hard-coded slugs to avoid WP dependency
-// headerMenu.json - gdoc topic page slugs and wp topic page slugs
+// headerMenu.json minus gdoc topic page slugs and wp topic page slugs
 const entries = new Set([
     "population",
     "population-change",
@@ -202,39 +202,15 @@ const migrate = async (): Promise<void> => {
             // This function iterates all blocks recursively and adjusts the heading levels inline
             adjustHeadingLevels(archieMlBodyElements)
 
-            // Insert automatic all-charts block if no manually-set block is specified
-            // Assume the first heading is after the intro paragraph
             if (relatedCharts.length) {
-                let hasManuallySetAllChartsBlock = false
-                let index = 0
-                let indexOfFirstHeading = -1
-                archieMlBodyElements.forEach((node) =>
-                    traverseEnrichedBlocks(node, (block) => {
-                        if (block.type === "all-charts") {
-                            hasManuallySetAllChartsBlock = true
-                        } else if (
-                            block.type === "heading" &&
-                            indexOfFirstHeading === -1
-                        ) {
-                            indexOfFirstHeading = index
-                        }
-                        index++
-                    })
-                )
-                if (!hasManuallySetAllChartsBlock) {
-                    const allChartsBlock: EnrichedBlockAllCharts = {
-                        type: "all-charts",
-                        parseErrors: [],
-                        heading: `Interactive Charts on ${post.title}`,
-                        top: [],
-                    }
-
-                    archieMlBodyElements.splice(
-                        indexOfFirstHeading,
-                        0,
-                        allChartsBlock
-                    )
+                const allChartsBlock: EnrichedBlockAllCharts = {
+                    type: "all-charts",
+                    parseErrors: [],
+                    heading: `Interactive Charts on ${post.title}`,
+                    top: [],
                 }
+
+                archieMlBodyElements.push(allChartsBlock)
             }
 
             const errors = parsedResult.errors

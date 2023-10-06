@@ -74,9 +74,22 @@ export function consolidateSpans(
             if (currentBlock === undefined) {
                 currentBlock = block
             } else {
+                const consolidatedValue: Span[] = [...currentBlock.value]
+                // If there's no space between the two blocks, add one
+                const hasSpace =
+                    spansToSimpleString(currentBlock.value).endsWith(" ") ||
+                    spansToSimpleString(block.value).startsWith(" ")
+                if (!hasSpace) {
+                    consolidatedValue.push({
+                        spanType: "span-simple-text",
+                        text: " ",
+                    })
+                }
+                consolidatedValue.push(...block.value)
+
                 currentBlock = {
                     type: "text",
-                    value: [...currentBlock.value, ...block.value],
+                    value: consolidatedValue,
                     parseErrors: [
                         ...currentBlock.parseErrors,
                         ...block.parseErrors,
@@ -832,6 +845,8 @@ function cheerioToArchieML(
                         content: [callout],
                     }
                 } else if (className.includes("pcrm")) {
+                    // pcrm stands for "preliminary collection of relevant material" which was used to designate entries
+                    // that weren't fully polished, but then became a way to create a general-purpose "warning box".
                     const unwrapped = unwrapElementWithContext(element)
                     const first = unwrapped.content[0] as OwidEnrichedGdocBlock
                     const hasHeading = first.type === "heading"
