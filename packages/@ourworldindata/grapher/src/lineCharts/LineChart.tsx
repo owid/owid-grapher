@@ -1180,7 +1180,9 @@ export class LineChart
                         : this.defaultRightPadding
                 )
                 // top padding leaves room for tick labels
-                .padTop(6),
+                .padTop(6)
+                // bottom padding avoids axis labels to be cut off at some resolutions
+                .padBottom(2),
             verticalAxis: this.verticalAxisPart,
             horizontalAxis: this.horizontalAxisPart,
         })
