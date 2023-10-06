@@ -92,6 +92,7 @@ import {
     DEFAULT_GRAPHER_FRAME_PADDING,
     DEFAULT_GRAPHER_ENTITY_TYPE,
     DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL,
+    GRAPHER_DARK_TEXT,
 } from "../core/GrapherConstants"
 import Cookies from "js-cookie"
 import {
@@ -1223,7 +1224,7 @@ export class Grapher
                     this.idealBounds.width - 2 * this.framePaddingHorizontal,
                 lineHeight: 1.2,
                 style: {
-                    fill: "#5b5b5b",
+                    fill: GRAPHER_DARK_TEXT,
                 },
             })
         })

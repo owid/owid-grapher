@@ -13,7 +13,10 @@ import {
 import { Tooltip } from "../tooltip/Tooltip"
 import { FooterManager } from "./FooterManager"
 import { ActionButtons } from "../controls/ActionButtons"
-import { DEFAULT_GRAPHER_FRAME_PADDING } from "../core/GrapherConstants"
+import {
+    DEFAULT_GRAPHER_FRAME_PADDING,
+    GRAPHER_DARK_TEXT,
+} from "../core/GrapherConstants"
 
 /*
 
@@ -634,7 +637,7 @@ export class StaticFooter extends Footer<StaticFooterProps> {
 
     @computed protected get licenseAndOriginUrlText(): string {
         const { finalUrl, finalUrlText, licenseText, licenseUrl } = this
-        const linkStyle = "fill: #5b5b5b; text-decoration: underline;"
+        const linkStyle = `fill: ${GRAPHER_DARK_TEXT}; text-decoration: underline;`
         const licenseSvg = `<a target="_blank" style="${linkStyle}" href="${licenseUrl}">${licenseText}</a>`
         if (!finalUrlText) return licenseSvg
         const originUrlSvg = `<a target="_blank" style="${linkStyle}" href="${finalUrl}">${finalUrlText}</a>`
@@ -686,7 +689,7 @@ export class StaticFooter extends Footer<StaticFooterProps> {
         const { targetX, targetY } = this.props
 
         return (
-            <g className="SourcesFooter" style={{ fill: "#5b5b5b" }}>
+            <g className="SourcesFooter" style={{ fill: GRAPHER_DARK_TEXT }}>
                 {sources.renderSVG(targetX, targetY)}
                 {note.renderSVG(
                     targetX,
