@@ -550,10 +550,15 @@ abstract class AbstractColumnWithNumberFormatting<
 
     formatValue(value: unknown, options?: TickFormattingOptions): string {
         if (isNumber(value)) {
-            return formatValue(value, {
+            const formattedString = formatValue(value, {
                 numDecimalPlaces: this.numDecimalPlaces,
                 ...options,
             })
+            // hot fix: escape "<" and ">"
+            const escapedString = formattedString
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+            return escapedString
         }
         return ""
     }
