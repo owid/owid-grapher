@@ -1,5 +1,9 @@
 $modal-padding: 1.5em;
 
+// the base font size for modals is 16px and on
+// smaller devices scales down to 14px.
+// it is never scaled up though.
+
 .modalOverlay {
     position: absolute;
     // -1px to hide the frame border
