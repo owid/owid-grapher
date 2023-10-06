@@ -206,5 +206,10 @@ export function formatValue(
         numDecimalPlaces,
     })
 
-    return postprocessedString
+    // escape "<" and ">"
+    const escapedString = postprocessedString
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+
+    return escapedString
 }
