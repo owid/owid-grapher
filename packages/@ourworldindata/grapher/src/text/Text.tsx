@@ -22,11 +22,9 @@ export class Text extends React.Component<TextProps> {
         const y = this.props.y + bounds.height - bounds.height * 0.2
 
         return (
-            <text
-                {...omit(this.props, ["children"])}
-                y={y}
-                dangerouslySetInnerHTML={{ __html: this.props.children }}
-            />
+            <text {...omit(this.props, ["children"])} y={y}>
+                {this.props.children}
+            </text>
         )
     }
 }
