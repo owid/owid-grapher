@@ -9,6 +9,7 @@ set -o errexit
 set -o pipefail
 set -o nounset
 
+
 # Cloudflare Pages project name
 PROJECT_NAME=owid-grapher
 
