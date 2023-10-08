@@ -2312,6 +2312,7 @@ export class Grapher
             isExportingToSvgOrPng: this.isExportingtoSvgOrPng,
             optimizeForHorizontalSpace: this.optimizeForHorizontalSpace,
             GrapherComponentNarrow: this.isNarrow,
+            GrapherComponentSemiNarrow: this.isSemiNarrow,
             GrapherComponentSmall: this.isSmall,
             GrapherComponentMedium: this.isMedium,
         })
@@ -2414,6 +2415,12 @@ export class Grapher
     @computed get isNarrow(): boolean {
         if (this.isExportingtoSvgOrPng) return false
         return this.renderWidth <= 400
+    }
+
+    // SemiNarrow charts shorten their button labels to fit within the controls row
+    @computed get isSemiNarrow(): boolean {
+        if (this.isExportingtoSvgOrPng) return false
+        return this.renderWidth <= 550
     }
 
     // Small charts are rendered into 6 or 7 columns in a 12-column grid layout
