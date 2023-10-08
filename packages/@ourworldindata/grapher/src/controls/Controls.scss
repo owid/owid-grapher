@@ -63,9 +63,33 @@ nav.controlsRow .controls {
 
 //
 // Make buttons narrower by omitting their text labels as the viewport gets narrower
-// TODO: move the logic to js to calculate actual widths for different entity name lengths
-//       and the variable number of buttons present in the content switcher block
+// use the .GrapherComponentSemiNarrow if necessary but allow container queries to
+// collapse labels in two steps on browsers that support them
 //
+// TODO: the measurement and label-hiding logic will have to move to js anyway once the
+//       number of chart buttons becomes variable and the settings button can be replaced
+//       by a single control widget ‘promoted’ from within the drawer
+//
+@at-root {
+    // collapse both the settings and entity selector labels down at the semi-narrow breakpoint
+    .GrapherComponentSemiNarrow {
+        nav.controlsRow .settings-menu button.menu-toggle {
+            min-height: $control-row-height;
+            svg {
+                margin: 0 2px;
+            }
+            .label {
+                display: none;
+            }
+        }
+        nav.controlsRow .entity-selection-menu button.menu-toggle {
+            label span {
+                display: none;
+            }
+        }
+    }
+}
+
 @container grapher (max-width:550px) {
     // collapse the Settings toggle down to just an icon on small screens
     nav.controlsRow .settings-menu button.menu-toggle {
@@ -77,7 +101,15 @@ nav.controlsRow .controls {
             display: none;
         }
     }
+
+    // undo the .GrapherComponentSemiNarrow hiding until next container query
+    nav.controlsRow .entity-selection-menu button.menu-toggle {
+        label span {
+            display: inline;
+        }
+    }
 }
+
 @container grapher (max-width:475px) {
     // hide the entity name in the Edit/Select/Switch button
     nav.controlsRow .entity-selection-menu button.menu-toggle {
