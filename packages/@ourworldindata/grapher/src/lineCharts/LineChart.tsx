@@ -331,7 +331,7 @@ export class LineChart
 
     @action.bound private onCursorLeave(): void {
         this.tooltipState.target = null
-        this.hoveredSeriesName = undefined
+        this.clearHighlightedSeries()
     }
 
     @computed private get allValues(): LinePoint[] {
@@ -375,6 +375,7 @@ export class LineChart
             hoverX = closestValue?.x
         }
 
+        // be sure all lines are un-dimmed if the cursor is above the graph itself
         if (this.dualAxis.innerBounds.contains(mouse)) {
             this.hoveredSeriesName = undefined
         }
@@ -611,13 +612,16 @@ export class LineChart
         this.hoveredSeriesName = seriesName
     }
 
-    @action.bound onLineLegendMouseLeave(): void {
+    @action.bound clearHighlightedSeries(): void {
         clearTimeout(this.hoverTimer)
-
         this.hoverTimer = setTimeout(() => {
             // wait before clearing selection in case the mouse is moving quickly over neighboring labels
             this.hoveredSeriesName = undefined
-        }, 100)
+        }, 200)
+    }
+
+    @action.bound onLineLegendMouseLeave(): void {
+        this.clearHighlightedSeries()
     }
 
     @computed get focusedSeriesNames(): string[] {
