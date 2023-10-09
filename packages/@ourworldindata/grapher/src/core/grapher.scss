@@ -110,8 +110,7 @@ $zindex-controls-drawer: 140;
     container-type: size;
     container-name: grapher;
 
-    // use box-shadow instead of border to make sure the border is in the foreground
-    box-shadow: 0 0 0 1px $frame-color; // equivalent to `border: 1px solid $frame-color`
+    border: 1px solid $frame-color;
     z-index: $zindex-chart;
 
     * {
@@ -170,7 +169,7 @@ $zindex-controls-drawer: 140;
 // and the left and right borders are hidden. the top and bottom borders are visible,
 // but stretch across the entire page.
 .GrapherComponent.optimizeForHorizontalSpace {
-    box-shadow: none;
+    border: none;
 
     // adds top and bottom borders that stretch across the entire page.
     // since we don't know the width of the page, we use a large number (200vw)
