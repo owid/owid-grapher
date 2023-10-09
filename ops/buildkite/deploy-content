@@ -172,4 +172,10 @@ bake_gdoc_posts() {
     )
 }
 
-deploy_content
+# Don't run this in parallel with code building, wait for it to finish
+(
+    echo '==> Acquiring lock'
+    flock -x 200
+
+    deploy_content
+) 200>/var/lock/build-code.lock
