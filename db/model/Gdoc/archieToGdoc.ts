@@ -43,7 +43,7 @@ function* owidArticleToArchieMLStringGenerator(
     yield* propertyToArchieMLString("type", article)
     // TODO: inline refs
     yieldMultiBlockPropertyIfDefined("summary", article, article.summary)
-    yieldMultiBlockPropertyIfDefined("citation", article, article.summary)
+    yield* propertyToArchieMLString("hide-citation", article)
     yield* propertyToArchieMLString("cover-image", article)
     yield* propertyToArchieMLString("cover-color", article)
     yield* propertyToArchieMLString("featured-image", article)

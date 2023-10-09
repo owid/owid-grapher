@@ -92,13 +92,15 @@ function OwidArticleHeader({
                         </div>
                     </div>
                     <div className="span-cols-1 span-sm-cols-2">
-                        <a
-                            href="#article-citation"
-                            className="body-1-regular display-block"
-                        >
-                            <FontAwesomeIcon icon={faBook} />
-                            Cite this article
-                        </a>
+                        {!content["hide-citation"] && (
+                            <a
+                                href="#article-citation"
+                                className="body-1-regular display-block"
+                            >
+                                <FontAwesomeIcon icon={faBook} />
+                                Cite this article
+                            </a>
+                        )}
 
                         <a
                             href="#article-licence"

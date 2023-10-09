@@ -150,22 +150,24 @@ export function OwidGdoc({
                         <Footnotes definitions={content.refs.definitions} />
                     ) : null}
 
-                    <section
-                        id={CITATION_ID}
-                        className="grid grid-cols-12-full-width col-start-1 col-end-limit"
-                    >
-                        <div className="col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
-                            <h3>Cite this work</h3>
-                            <p>{citationDescription}</p>
-                            <div>
-                                <CodeSnippet code={citationText} />
+                    {!content["hide-citation"] && (
+                        <section
+                            id={CITATION_ID}
+                            className="grid grid-cols-12-full-width col-start-1 col-end-limit"
+                        >
+                            <div className="col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
+                                <h3>Cite this work</h3>
+                                <p>{citationDescription}</p>
+                                <div>
+                                    <CodeSnippet code={citationText} />
+                                </div>
+                                <p>BibTeX citation</p>
+                                <div>
+                                    <CodeSnippet code={bibtex} />
+                                </div>
                             </div>
-                            <p>BibTeX citation</p>
-                            <div>
-                                <CodeSnippet code={bibtex} />
-                            </div>
-                        </div>
-                    </section>
+                        </section>
+                    )}
 
                     <section
                         id={LICENSE_ID}
