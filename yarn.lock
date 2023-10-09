@@ -1949,6 +1949,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@cloudflare/workers-types@npm:^4.20230821.0":
+  version: 4.20230821.0
+  resolution: "@cloudflare/workers-types@npm:4.20230821.0"
+  checksum: d2fa03fe17c591dbb5a8711c77eef7c79e9a130221f603c51cc41089187294eb4d6cbb8a5584e21e30c4364dd6b13f16ddac176a819c37b85396a9a756347742
+  languageName: node
+  linkType: hard
+
 "@colors/colors@npm:1.5.0":
   version: 1.5.0
   resolution: "@colors/colors@npm:1.5.0"
@@ -13836,6 +13843,7 @@ __metadata:
     "@bugsnag/js": ^7.20.0
     "@bugsnag/plugin-express": ^7.19.0
     "@bugsnag/plugin-react": ^7.19.0
+    "@cloudflare/workers-types": ^4.20230821.0
     "@fortawesome/fontawesome-svg-core": ^6.4.2
     "@fortawesome/free-brands-svg-icons": ^6.4.2
     "@fortawesome/free-solid-svg-icons": ^6.4.2
@@ -15619,6 +15627,13 @@ __metadata:
     html-escaper: ^2.0.0
     istanbul-lib-report: ^3.0.0
   checksum: 2132983355710c522f6b26808015cab9a0ee8b9f5ae0db0d3edeff40b886dd83cb670fb123cb7b32dbe59473d7c00cdde2ba6136bc0acdb20a865fccea64dfe1
+  languageName: node
+  linkType: hard
+
+"itty-router@npm:^4.0.23":
+  version: 4.0.23
+  resolution: "itty-router@npm:4.0.23"
+  checksum: 1bd5da475e5316fcdd50bb312e98bbc5787edc0695b3a21ea3c6b2a5e178e7c59eb7a68ae7bd97bafa6e3e1131cac3e1993c9a8f8f5ff7e6e637fdaa4a1efa9e
   languageName: node
   linkType: hard
 
@@ -19188,6 +19203,17 @@ __metadata:
   checksum: 505f48a4f4f1c557d6c656ec985707726e3714721680139be037613e903aa8c8fa4ddd8d1342006f9b2dc0065e6e20f8b7bea2ee05354f31257044790367b347
   languageName: node
   linkType: hard
+
+"owid-thumbnails@workspace:functions":
+  version: 0.0.0-use.local
+  resolution: "owid-thumbnails@workspace:functions"
+  dependencies:
+    "@ourworldindata/grapher": "workspace:^"
+    "@ourworldindata/utils": "workspace:^"
+    itty-router: ^4.0.23
+    svg2png-wasm: ^1.4.0
+  languageName: unknown
+  linkType: soft
 
 "p-cancelable@npm:^3.0.0":
   version: 3.0.0
@@ -23484,6 +23510,13 @@ __metadata:
   version: 1.0.0
   resolution: "supports-preserve-symlinks-flag@npm:1.0.0"
   checksum: 53b1e247e68e05db7b3808b99b892bd36fb096e6fba213a06da7fab22045e97597db425c724f2bbd6c99a3c295e1e73f3e4de78592289f38431049e1277ca0ae
+  languageName: node
+  linkType: hard
+
+"svg2png-wasm@npm:^1.4.0":
+  version: 1.4.0
+  resolution: "svg2png-wasm@npm:1.4.0"
+  checksum: 44fdb5bbef921d6f2d8628cef2a29b4e0be9194f4f56c9f6835f248ddda8d510f75911059fc35242c109c49a46058b8791644500d11acabb865c624144c3f7f9
   languageName: node
   linkType: hard
 

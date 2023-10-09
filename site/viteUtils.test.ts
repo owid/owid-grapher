@@ -50,11 +50,13 @@ describe(createTagsForManifestEntry, () => {
             ReactDOMServer.renderToStaticMarkup(asset)
         )
 
-        expect(assetsForHeader.length).toEqual(4)
+        expect(assetsForHeader.length).toEqual(6)
 
         // check equality disregarding order
         expect(assetsForHeader).toEqual(
             expect.arrayContaining([
+                '<link rel="preload" href="BASE/assets/common.css" as="style"/>',
+                '<link rel="preload" href="BASE/assets/owid.css" as="style"/>',
                 '<link rel="stylesheet" href="BASE/assets/owid.css"/>',
                 '<link rel="stylesheet" href="BASE/assets/common.css"/>',
                 '<link rel="modulepreload" href="BASE/assets/owid.mjs"/>',

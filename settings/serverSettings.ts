@@ -33,6 +33,9 @@ export const WORDPRESS_URL: string = clientSettings.WORDPRESS_URL
 export const BAKED_GRAPHER_URL: string =
     serverSettings.BAKED_GRAPHER_URL ?? `${BAKED_BASE_URL}/grapher`
 
+export const BAKED_WORDPRESS_UPLOADS_URL: string =
+    serverSettings.BAKED_WORDPRESS_UPLOADS_URL ?? `${BAKED_BASE_URL}/uploads`
+
 export const OPTIMIZE_SVG_EXPORTS: boolean =
     serverSettings.OPTIMIZE_SVG_EXPORTS === "true" ?? false
 

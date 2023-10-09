@@ -14,11 +14,13 @@ import {
     uniq,
     SiteFooterContext,
     MarkdownTextWrap,
+    Url,
 } from "@ourworldindata/utils"
 import React from "react"
 import urljoin from "url-join"
 import {
     ADMIN_BASE_URL,
+    BAKED_GRAPHER_EXPORTS_BASE_URL,
     BAKED_GRAPHER_URL,
     DATA_API_URL,
 } from "../settings/clientSettings.js"
@@ -41,6 +43,7 @@ export const GrapherPage = (props: {
         props
     const pageTitle = grapher.title
     const canonicalUrl = urljoin(baseGrapherUrl, grapher.slug as string)
+    const dataApiOrigin = Url.fromURL(DATA_API_URL).origin
     let pageDesc: string
     if (grapher.subtitle?.length) {
         // convert subtitle from markdown to plaintext
@@ -90,6 +93,7 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                     figure { display: none !important; }
                 `}</style>
                 </noscript>
+                <link rel="preconnect" href={dataApiOrigin} />
                 {flatten(
                     variableIds.map((variableId) =>
                         [
@@ -115,7 +119,7 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                     </figure>
                     <noscript id="fallback">
                         <img
-                            src={`${baseGrapherUrl}/exports/${grapher.slug}.svg`}
+                            src={`${BAKED_GRAPHER_EXPORTS_BASE_URL}/${grapher.slug}.svg`}
                         />
                         <p>Interactive visualization requires JavaScript</p>
                     </noscript>
