@@ -26,13 +26,14 @@ export const GdocsPublicationContext = ({
         <>
             <Row>
                 <Col>
-                    <label htmlFor="publishedAt" className="mr-3">
+                    <label htmlFor="publicationContext" className="mr-3">
                         Publication context
                     </label>
                     <Radio.Group
                         onChange={onChange}
                         value={publicationContext}
                         optionType="button"
+                        id="publicationContext"
                     >
                         <Radio value={OwidGdocPublicationContext.unlisted}>
                             {OwidGdocPublicationContext.unlisted}

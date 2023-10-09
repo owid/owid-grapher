@@ -366,7 +366,7 @@ ${posts
         const postUrl = `${BAKED_BASE_URL}/${post.slug}`
         const image = post.imageUrl
             ? `<br><br><a href="${postUrl}" target="_blank"><img src="${encodeURI(
-                  post.imageUrl
+                  formatUrls(post.imageUrl)
               )}"/></a>`
             : ""
 

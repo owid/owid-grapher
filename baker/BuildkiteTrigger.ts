@@ -1,8 +1,13 @@
-import { BUILDKITE_API_ACCESS_TOKEN } from "../settings/serverSettings.js"
+import {
+    BUILDKITE_API_ACCESS_TOKEN,
+    BUILDKITE_DEPLOY_CONTENT_PIPELINE_SLUG,
+    BUILDKITE_BRANCH,
+} from "../settings/serverSettings.js"
 
 export class BuildkiteTrigger {
     private organizationSlug = "our-world-in-data"
-    private pipelineSlug = "grapher-cloudflare-pages-deploy-queue"
+    private pipelineSlug = BUILDKITE_DEPLOY_CONTENT_PIPELINE_SLUG
+    private branch = BUILDKITE_BRANCH
 
     async triggerBuild(
         message: string,
@@ -25,7 +30,7 @@ export class BuildkiteTrigger {
 
         const payload = {
             commit: "HEAD",
-            branch: "master",
+            branch: this.branch,
             message: message,
             env: env,
         }

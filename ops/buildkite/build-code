@@ -1,0 +1,93 @@
+#!/bin/bash
+#
+#  build-code
+#
+#  Build grapher code.
+#
+
+set -o errexit
+set -o pipefail
+set -o nounset
+
+############ WARNING ##############
+# TODO before migrating to ourworldindata.org
+# 1. Change `BAKED_BASE_URL` in this script and in `deploy-content`
+
+# URL of Cloudflare page
+# branches would be deployed to https://[branch].$PROJECT_NAME.pages.dev/"
+# BAKED_BASE_URL="https://$PROJECT_NAME.pages.dev"
+BAKED_BASE_URL="https://pages.owid.io"
+
+build_code () {
+    echo "--- Build code from branch master"
+
+    if [[ "$BRANCH" != "master" ]]; then
+        echo "Error: You're not on the master branch. Exiting."
+        exit 1
+    fi
+
+    update_env
+    update_owid_grapher_repo
+    build_grapher
+
+    echo "--- Code built"
+}
+
+
+update_env() {
+    echo '--- Copying live.owid.io:live-data/.env to owid-grapher/.env and updating it'
+
+    # copy .env from live server
+    rsync -av --rsh 'ssh -o StrictHostKeyChecking=no' owid@live.owid.io:live-data/.env owid-grapher/.env.template
+
+    # copy .env.template to .env
+    cp owid-grapher/.env.template owid-grapher/.env
+
+    # change specific variables
+    # NOTE: `BAKED_SITE_DIR` does not actually change
+    sed -i "s|^BAKED_SITE_DIR=.*$|BAKED_SITE_DIR=/home/owid/live-data/bakedSite|" owid-grapher/.env
+    # NOTE: this should be identical once we merge to master
+    sed -i "s|^BAKED_BASE_URL=.*$|BAKED_BASE_URL=$BAKED_BASE_URL|" owid-grapher/.env
+    # replace live-db.owid.io by owid-live-db
+    sed -i "s|^GRAPHER_DB_HOST=.*$|GRAPHER_DB_HOST=owid-live-db|" owid-grapher/.env
+    sed -i "s|^WORDPRESS_DB_HOST=.*$|WORDPRESS_DB_HOST=owid-live-db|" owid-grapher/.env
+    # replace wordpress directory
+    sed -i "s|^WORDPRESS_DIR=.*$|WORDPRESS_DIR=/home/owid/wordpress|" owid-grapher/.env
+}
+
+
+update_owid_grapher_repo() {
+    echo '--- Updating owid-grapher'
+    (
+        cd owid-grapher
+        git fetch --all -q
+        git checkout "$BRANCH" -q
+        git reset --hard origin/"$BRANCH"
+    )
+}
+
+build_grapher() {
+    echo '--- Building owid-grapher'
+
+    # NOTE: buildVite creates dist/ folder and `bakeAssets` then copies it to
+    # the bakedSite folder
+    (
+        cd owid-grapher
+        yarn cleanTsc
+        git rev-parse HEAD > /home/owid/live-data/bakedSite/head.txt
+        yarn install
+        yarn buildLerna
+        yarn buildTsc
+        yarn buildVite
+        yarn runDbMigrations
+        node --enable-source-maps --unhandled-rejections=strict itsJustJavascript/baker/algolia/configureAlgolia.js
+        # yarn buildWordpressPlugin
+    )
+}
+
+(
+    echo '==> Acquiring lock'
+    flock -x 200
+
+    build_code
+) 200>/var/lock/build-code.lock

@@ -1,0 +1,9 @@
+{
+  "name": "owid-thumbnails",
+  "dependencies": {
+    "@ourworldindata/grapher": "workspace:^",
+    "@ourworldindata/utils": "workspace:^",
+    "itty-router": "^4.0.23",
+    "svg2png-wasm": "^1.4.0"
+  }
+}

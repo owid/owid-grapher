@@ -135,7 +135,7 @@ export class SiteBaker {
         this.baseUrl = baseUrl
         this.bakeSteps = bakeSteps
         this.progressBar = new ProgressBar(
-            "BakeAll [:bar] :current/:total :elapseds :name\n",
+            "--- BakeAll [:bar] :current/:total :elapseds :name\n",
             {
                 total: getProgressBarTotal(bakeSteps),
             }
@@ -667,7 +667,7 @@ export class SiteBaker {
             .map((step) => this.bakeSteps.has(step))
             .filter((hasStep) => hasStep).length
         this.progressBar = new ProgressBar(
-            "BakeAll [:bar] :current/:total :elapseds :name\n",
+            "--- BakeAll [:bar] :current/:total :elapseds :name\n",
             {
                 total: progressBarTotal,
             }

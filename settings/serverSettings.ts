@@ -33,6 +33,9 @@ export const WORDPRESS_URL: string = clientSettings.WORDPRESS_URL
 export const BAKED_GRAPHER_URL: string =
     serverSettings.BAKED_GRAPHER_URL ?? `${BAKED_BASE_URL}/grapher`
 
+export const BAKED_WORDPRESS_UPLOADS_URL: string =
+    serverSettings.BAKED_WORDPRESS_UPLOADS_URL ?? `${BAKED_BASE_URL}/uploads`
+
 export const OPTIMIZE_SVG_EXPORTS: boolean =
     serverSettings.OPTIMIZE_SVG_EXPORTS === "true" ?? false
 
@@ -170,5 +173,10 @@ export const DATA_API_URL: string = clientSettings.DATA_API_URL
 
 export const BUILDKITE_API_ACCESS_TOKEN: string =
     serverSettings.BUILDKITE_API_ACCESS_TOKEN ?? ""
+export const BUILDKITE_DEPLOY_CONTENT_PIPELINE_SLUG: string =
+    serverSettings.BUILDKITE_DEPLOY_CONTENT_PIPELINE_SLUG ||
+    "owid-deploy-content-master"
+export const BUILDKITE_BRANCH: string =
+    serverSettings.BUILDKITE_BRANCH || "master"
 
 export const OPENAI_API_KEY: string = serverSettings.OPENAI_API_KEY ?? ""

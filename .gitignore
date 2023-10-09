@@ -1,4 +1,4 @@
-/node_modules
+**/node_modules
 /bakedSite
 logs/
 .idea/
@@ -38,3 +38,4 @@ packages/@ourworldindata/*/dist/
 packages/@ourworldindata/*/node_modules
 wpmigration
 dist/
+.wrangler/
