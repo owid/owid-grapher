@@ -593,9 +593,13 @@ export class StaticCaptionedChart extends CaptionedChart {
     }
 }
 
+// Although a bit unconventional, adding vertical space as a <div />
+// makes margin collapsing impossible and makes it easier to track the
+// space available for the chart area (see the CaptionedChart's `chartHeight` method)
 function VerticalSpace({ height }: { height: number }): JSX.Element {
     return (
         <div
+            className="VerticalSpace"
             style={{
                 height,
                 width: "100%",

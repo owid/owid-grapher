@@ -172,6 +172,10 @@ $zindex-controls-drawer: 140;
 .GrapherComponent.optimizeForHorizontalSpace {
     box-shadow: none;
 
+    // adds top and bottom borders that stretch across the entire page.
+    // since we don't know the width of the page, we use a large number (200vw)
+    // and offset it by another large number (-50vw) to make sure the borders
+    // stretch across the entire page.
     &::before,
     &::after {
         content: "";

@@ -59,6 +59,10 @@ $controlRowHeight: 32px; // keep in sync with CONTROLS_ROW_HEIGHT
 &.GrapherComponent.optimizeForHorizontalSpace .relatedQuestion {
     border-top: 0;
 
+    // adds a top border that stretches across the entire page.
+    // since we don't know the width of the page, we use a large number (200vw)
+    // and offset it by another large number (-50vw) to make sure the border
+    // stretches across the entire page.
     &::before {
         content: "";
         position: absolute;

@@ -16,4 +16,5 @@ export interface HeaderManager {
     isMedium?: boolean
     framePaddingHorizontal?: number
     framePaddingVertical?: number
+    isOnCanonicalUrl?: boolean
 }

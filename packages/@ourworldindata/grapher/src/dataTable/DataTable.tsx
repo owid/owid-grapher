@@ -1002,7 +1002,7 @@ function SortIcon(props: {
                     <FontAwesomeIcon icon={faArrowUpLong} />
                     <FontAwesomeIcon
                         icon={faArrowDownLong}
-                        style={{ marginLeft: "-4px" }}
+                        style={{ marginLeft: "-2px" }}
                     />
                 </span>
             )}

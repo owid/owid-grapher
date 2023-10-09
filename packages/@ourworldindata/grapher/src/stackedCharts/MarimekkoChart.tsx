@@ -523,7 +523,7 @@ export class MarimekkoChart
             Math.max(whiteSpaceOnLeft, this.longestLabelWidth) -
             whiteSpaceOnLeft
         return this.bounds
-            .padBottom(this.longestLabelHeight)
+            .padBottom(this.longestLabelHeight + 2)
             .padBottom(labelLinesHeight)
             .padTop(this.legend.height + this.legendPaddingTop)
             .padLeft(marginToEnsureWidestEntityLabelFitsEvenIfAtX0)

@@ -8,7 +8,10 @@ import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { Logo, LogoOption } from "../captionedChart/Logos"
 import { HeaderManager } from "./HeaderManager"
-import { DEFAULT_GRAPHER_FRAME_PADDING } from "../core/GrapherConstants"
+import {
+    DEFAULT_GRAPHER_FRAME_PADDING,
+    GRAPHER_DARK_TEXT,
+} from "../core/GrapherConstants"
 
 @observer
 export class Header extends React.Component<{
@@ -132,18 +135,20 @@ export class Header extends React.Component<{
                     style={{
                         fontFamily:
                             "'Playfair Display', Georgia, 'Times New Roman', 'Liberation Serif', serif",
-                        fontWeight: 500,
                     }}
                     target="_blank"
                     rel="noopener"
                 >
-                    {title.render(x, y, { fill: "#4E4E4E" })}
+                    {title.render(x, y, {
+                        fill: GRAPHER_DARK_TEXT,
+                        fontWeight: 500,
+                    })}
                 </a>
                 {subtitle.renderSVG(
                     x,
                     y + title.height + this.subtitleMarginTop,
                     {
-                        fill: "#4E4E4E",
+                        fill: GRAPHER_DARK_TEXT,
                     }
                 )}
             </g>
@@ -152,6 +157,13 @@ export class Header extends React.Component<{
 
     private renderTitle(): JSX.Element {
         const { manager } = this
+
+        // avoid linking to a grapher/data page when we're already on it
+        if (manager.isOnCanonicalUrl) {
+            return (
+                <h1 style={this.title.htmlStyle}>{this.title.renderHTML()}</h1>
+            )
+        }
 
         // on smaller screens, make the whole width of the header clickable
         if (manager.isMedium) {

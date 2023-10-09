@@ -629,3 +629,5 @@ export {
     gdocIdRegex,
     detailOnDemandRegex,
 } from "./GdocsConstants.js"
+
+export { DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID } from "./SharedConstants"

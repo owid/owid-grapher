@@ -164,7 +164,8 @@ export class StackedDiscreteBarChart
     }
 
     @computed private get bounds(): Bounds {
-        return (this.props.bounds ?? DEFAULT_BOUNDS).padRight(10)
+        // bottom padding avoids axis labels to be cut off at some resolutions
+        return (this.props.bounds ?? DEFAULT_BOUNDS).padRight(10).padBottom(2)
     }
 
     @computed private get missingDataStrategy(): MissingDataStrategy {
