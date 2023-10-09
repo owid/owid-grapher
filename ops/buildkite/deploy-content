@@ -18,17 +18,13 @@ PROJECT_NAME=owid-grapher
 # BAKED_BASE_URL="https://$PROJECT_NAME.pages.dev"
 BAKED_BASE_URL="https://pages.owid.io"
 
-# NOTE: hostname can contain \r, so we need to remove it
-HOSTNAME=$(hostname | tr -d '\r')
-
 deploy_content () {
     echo "--- Deploying content to Cloudflare"
 
-    # TODO: uncomment this to avoid deploys from non-master branch
-    # if [[ "$BUILDKITE_BRANCH" != "master" ]]; then
-    #     echo "Error: You're not on the master branch. Exiting."
-    #     exit 1
-    # fi
+    if [[ "$BUILDKITE_BRANCH" != "master" ]]; then
+        echo "Error: You're not on the master branch. Exiting."
+        exit 1
+    fi
 
     # NOTE: in theory we could run lightning bake in parallel to regular bake and only lock `deploy_to_cloudflare`
     # right now lightning bake has to wait if there's a regular bake
