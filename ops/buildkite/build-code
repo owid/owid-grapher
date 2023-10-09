@@ -53,6 +53,16 @@ update_env() {
     sed -i "s|^WORDPRESS_DB_HOST=.*$|WORDPRESS_DB_HOST=owid-live-db|" owid-grapher/.env
     # replace wordpress directory
     sed -i "s|^WORDPRESS_DIR=.*$|WORDPRESS_DIR=/home/owid/wordpress|" owid-grapher/.env
+    # redirect assets
+    if ! grep -q "^BAKED_GRAPHER_EXPORTS_BASE_URL=" owid-grapher/.env; then
+        echo "BAKED_GRAPHER_EXPORTS_BASE_URL=https://assets.ourworldindata.org/grapher/exports" >> owid-grapher/.env
+    fi
+    if ! grep -q "^BAKED_SITE_EXPORTS_BASE_URL=" owid-grapher/.env; then
+        echo "BAKED_SITE_EXPORTS_BASE_URL=https://assets.ourworldindata.org/exports" >> owid-grapher/.env
+    fi
+    if ! grep -q "^BAKED_WORDPRESS_UPLOADS_URL=" owid-grapher/.env; then
+        echo "BAKED_WORDPRESS_UPLOADS_URL=https://assets.ourworldindata.org/uploads" >> owid-grapher/.env
+    fi
 }
 
 
