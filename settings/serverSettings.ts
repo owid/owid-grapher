@@ -175,7 +175,7 @@ export const BUILDKITE_API_ACCESS_TOKEN: string =
     serverSettings.BUILDKITE_API_ACCESS_TOKEN ?? ""
 export const BUILDKITE_DEPLOY_CONTENT_PIPELINE_SLUG: string =
     serverSettings.BUILDKITE_DEPLOY_CONTENT_PIPELINE_SLUG ||
-    "grapher-deploy-content-master"
+    "owid-deploy-content-master"
 export const BUILDKITE_BRANCH: string =
     serverSettings.BUILDKITE_BRANCH || "master"
 
