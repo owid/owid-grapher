@@ -21,7 +21,7 @@ export class ZoomToggle extends React.Component<{
         return (
             <LabeledSwitch
                 label="Zoom to selection"
-                tooltip="Scale axes to show only the currently highlighted data points."
+                tooltip="Scale axes to focus on the currently highlighted data points."
                 value={this.props.manager.zoomToSelection}
                 onToggle={this.onToggle}
             />
