@@ -15,19 +15,24 @@ export class FacetYDomainToggle extends React.Component<{
     manager: FacetYDomainToggleManager
 }> {
     @action.bound onToggle(): void {
-        this.props.manager.yAxis!.facetDomain = this.isYDomainShared
-            ? FacetAxisDomain.independent
-            : FacetAxisDomain.shared
+        const { yAxis } = this.props.manager
+        if (yAxis) {
+            yAxis.facetDomain = this.isYDomainShared
+                ? FacetAxisDomain.independent
+                : FacetAxisDomain.shared
+        }
     }
 
     @computed get isYDomainShared(): boolean {
-        const facetDomain =
-            this.props.manager.yAxis!.facetDomain || FacetAxisDomain.shared
+        const { yAxis } = this.props.manager
+        const facetDomain = yAxis?.facetDomain || FacetAxisDomain.shared
         return facetDomain === FacetAxisDomain.shared
     }
 
     render(): JSX.Element | null {
-        if (this.props.manager.facetStrategy === "none") return null
+        const { yAxis, facetStrategy } = this.props.manager
+        if (!yAxis || facetStrategy === "none") return null
+
         return (
             <LabeledSwitch
                 label="Align axis scales"
