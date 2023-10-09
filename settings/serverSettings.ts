@@ -173,5 +173,10 @@ export const DATA_API_URL: string = clientSettings.DATA_API_URL
 
 export const BUILDKITE_API_ACCESS_TOKEN: string =
     serverSettings.BUILDKITE_API_ACCESS_TOKEN ?? ""
+export const BUILDKITE_DEPLOY_CONTENT_PIPELINE_SLUG: string =
+    serverSettings.BUILDKITE_DEPLOY_CONTENT_PIPELINE_SLUG ||
+    "owid-deploy-content-master"
+export const BUILDKITE_BRANCH: string =
+    serverSettings.BUILDKITE_BRANCH || "master"
 
 export const OPENAI_API_KEY: string = serverSettings.OPENAI_API_KEY ?? ""
