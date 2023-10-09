@@ -51,6 +51,8 @@ update_env() {
     # replace live-db.owid.io by owid-live-db
     sed -i "s|^GRAPHER_DB_HOST=.*$|GRAPHER_DB_HOST=owid-live-db|" owid-grapher/.env
     sed -i "s|^WORDPRESS_DB_HOST=.*$|WORDPRESS_DB_HOST=owid-live-db|" owid-grapher/.env
+    # replace wordpress directory
+    sed -i "s|^WORDPRESS_DIR=.*$|WORDPRESS_DIR=/home/owid/wordpress|" owid-grapher/.env
 }
 
 
