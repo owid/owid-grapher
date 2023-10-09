@@ -11,7 +11,7 @@ set -o nounset
 
 
 # Cloudflare Pages project name
-PROJECT_NAME=owid-grapher
+PROJECT_NAME=owid
 
 # URL of Cloudflare page
 # branches would be deployed to https://[branch].$PROJECT_NAME.pages.dev/"
