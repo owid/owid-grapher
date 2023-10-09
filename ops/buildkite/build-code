@@ -39,13 +39,15 @@ build_code () {
 
 
 update_env() {
-    echo '--- Updating owid-grapher/.env'
+    echo '--- Copying live.owid.io:live/.env to owid-grapher/.env and updating it'
 
-    # copy .env.template to .env
-    cp owid-grapher/.env.template owid-grapher/.env
+    # copy .env from live server
+    rsync -av --rsh 'ssh -o StrictHostKeyChecking=no' owid@live.owid.io:live/.env owid-grapher/.env.template
 
-    # fill placeholders
-    sed -i "s/<HOST>/$HOSTNAME/" owid-grapher/.env
+    # change specific variables
+    # NOTE: `BAKED_SITE_DIR` does not actually change
+    sed -i "s|^BAKED_SITE_DIR=.*$|BAKED_SITE_DIR=/home/owid/live-data/bakedSite|" owid-grapher/.env
+    # NOTE: this should be identical once we merge to master
     sed -i "s|^BAKED_BASE_URL=.*$|BAKED_BASE_URL=$BAKED_BASE_URL|" owid-grapher/.env
 }
 
