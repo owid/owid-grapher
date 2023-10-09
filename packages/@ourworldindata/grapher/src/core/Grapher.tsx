@@ -2231,11 +2231,12 @@ export class Grapher
 
     @action.bound dismissFullScreen(): void {
         // if a modal is open, dismiss it instead of exiting full-screen mode
-        if (this.isModalOpen) {
+        if (this.isModalOpen || this.isShareMenuActive) {
             this.isSelectingData = false
             this.isSourcesModalOpen = false
             this.isEmbedModalOpen = false
             this.isDownloadModalOpen = false
+            this.isShareMenuActive = false
         } else {
             this.isInFullScreenMode = false
         }
