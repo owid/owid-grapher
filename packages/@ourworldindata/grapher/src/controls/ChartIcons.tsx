@@ -1,6 +1,7 @@
 import React from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
+    faChartBar,
     faChartLine,
     faChartColumn,
     faEarthAmericas,
@@ -14,9 +15,7 @@ export const chartIcons: Record<ChartTypeName, JSX.Element> = {
     // bar charts
     [ChartTypeName.DiscreteBar]: <FontAwesomeIcon icon={faChartColumn} />,
     [ChartTypeName.StackedBar]: <FontAwesomeIcon icon={faChartColumn} />,
-    [ChartTypeName.StackedDiscreteBar]: (
-        <FontAwesomeIcon icon={faChartColumn} />
-    ),
+    [ChartTypeName.StackedDiscreteBar]: <FontAwesomeIcon icon={faChartBar} />,
 
     // world map
     [ChartTypeName.WorldMap]: <FontAwesomeIcon icon={faEarthAmericas} />,
