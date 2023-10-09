@@ -226,7 +226,7 @@ export class DataTable extends React.Component<{
         // then we prefer "Country/area" over "Country or region"
         // (note that we honour the entity type provided by the author if it is given)
         if (
-            this.entityType !== DEFAULT_GRAPHER_ENTITY_TYPE &&
+            this.entityType === DEFAULT_GRAPHER_ENTITY_TYPE &&
             this.showTitleForAggregateRows
         )
             return "Country/area"
