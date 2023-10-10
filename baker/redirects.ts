@@ -9,6 +9,7 @@ export const getRedirects = async () => {
     const staticRedirects = [
         // RSS feed
         "/feed /atom.xml 302",
+        "/feed/ /atom.xml 302",
 
         // Entries and blog (we should keep these for a while)
         "/entries / 302",
