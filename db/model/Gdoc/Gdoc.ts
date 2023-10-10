@@ -8,7 +8,7 @@ import {
     JoinTable,
 } from "typeorm"
 import {
-    OwidGdocTag,
+    Tag as TagInterface,
     LinkedChart,
     type OwidGdocContent,
     OwidGdocInterface,
@@ -64,7 +64,7 @@ import {
 import { getConnection } from "../../db.js"
 
 @Entity("tags")
-export class Tag extends BaseEntity implements OwidGdocTag {
+export class Tag extends BaseEntity implements TagInterface {
     static table = "tags"
     @PrimaryColumn() id!: number
     @Column() name!: string
@@ -72,6 +72,7 @@ export class Tag extends BaseEntity implements OwidGdocTag {
     @Column({ nullable: true }) updatedAt!: Date
     @Column({ nullable: true }) parentId!: number
     @Column() isBulkImport!: boolean
+    @Column() isTopic!: boolean
     @Column() specialType!: string
     @ManyToMany(() => Gdoc, (gdoc) => gdoc.tags)
     gdocs!: Gdoc[]

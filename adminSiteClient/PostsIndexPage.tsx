@@ -5,12 +5,12 @@ import fuzzysort from "fuzzysort"
 import * as lodash from "lodash"
 
 import { highlight as fuzzyHighlight } from "@ourworldindata/grapher"
+import { ChartTagJoin, Tag } from "@ourworldindata/utils"
 import { AdminLayout } from "./AdminLayout.js"
 import { SearchField, FieldsRow, Timeago } from "./Forms.js"
 import { EditableTags } from "./EditableTags.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { ADMIN_BASE_URL, WORDPRESS_URL } from "../settings/clientSettings.js"
-import { Tag } from "./TagBadge.js"
 import { match } from "ts-pattern"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -27,7 +27,7 @@ interface PostIndexMeta {
     status: string
     authors: string[]
     updatedAtInWordpress: string
-    tags: Tag[]
+    tags: ChartTagJoin[]
     gdocSuccessorId: string | undefined
 }
 
@@ -62,7 +62,7 @@ class PostRow extends React.Component<PostRowProps> {
             : GdocStatus.MISSING
     }
 
-    async saveTags(tags: Tag[]) {
+    async saveTags(tags: ChartTagJoin[]) {
         const { post } = this.props
         const json = await this.context.admin.requestJSON(
             `/api/posts/${post.id}/setTags`,
@@ -74,7 +74,7 @@ class PostRow extends React.Component<PostRowProps> {
         }
     }
 
-    @action.bound onSaveTags(tags: Tag[]) {
+    @action.bound onSaveTags(tags: ChartTagJoin[]) {
         this.saveTags(tags)
     }
 

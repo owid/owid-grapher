@@ -2,7 +2,11 @@ import React from "react"
 import * as lodash from "lodash"
 import { observable, action } from "mobx"
 import { observer } from "mobx-react"
-import { KeyChartLevel, Tag, TaggableType } from "@ourworldindata/utils"
+import {
+    KeyChartLevel,
+    TaggableType,
+    ChartTagJoin,
+} from "@ourworldindata/utils"
 import { TagBadge } from "./TagBadge.js"
 import { EditTags } from "./EditTags.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
@@ -16,9 +20,9 @@ interface TaggableItem {
 
 @observer
 export class EditableTags extends React.Component<{
-    tags: Tag[]
-    suggestions: Tag[]
-    onSave: (tags: Tag[]) => void
+    tags: ChartTagJoin[]
+    suggestions: ChartTagJoin[]
+    onSave: (tags: ChartTagJoin[]) => void
     disabled?: boolean
     hasKeyChartSupport?: boolean
     hasSuggestionsSupport?: boolean
@@ -30,9 +34,9 @@ export class EditableTags extends React.Component<{
     @observable isEditing: boolean = false
     base: React.RefObject<HTMLDivElement> = React.createRef()
 
-    @observable tags: Tag[] = lodash.clone(this.props.tags)
+    @observable tags: ChartTagJoin[] = lodash.clone(this.props.tags)
 
-    @action.bound onAddTag(tag: Tag) {
+    @action.bound onAddTag(tag: ChartTagJoin) {
         this.tags.push(tag)
         this.tags = lodash
             // we only want to keep one occurrence of the same tag, whether
@@ -88,9 +92,10 @@ export class EditableTags extends React.Component<{
         const { taggable } = this.props
         if (!taggable?.id) return
 
-        const json: Record<"topics", Tag[]> = await this.context.admin.getJSON(
-            `/api/gpt/suggest-topics/${taggable.type}/${taggable.id}.json`
-        )
+        const json: Record<"topics", ChartTagJoin[]> =
+            await this.context.admin.getJSON(
+                `/api/gpt/suggest-topics/${taggable.type}/${taggable.id}.json`
+            )
 
         if (!json?.topics?.length) return
 
@@ -182,21 +187,21 @@ export class EditableTags extends React.Component<{
     }
 }
 
-const filterUncategorizedTag = (t: Tag) => t.name !== "Uncategorized"
+const filterUncategorizedTag = (t: ChartTagJoin) => t.name !== "Uncategorized"
 
-const filterUnlistedTag = (t: Tag) => t.name !== "Unlisted"
+const filterUnlistedTag = (t: ChartTagJoin) => t.name !== "Unlisted"
 
-const setDefaultKeyChartLevel = (t: Tag) => {
+const setDefaultKeyChartLevel = (t: ChartTagJoin) => {
     if (t.keyChartLevel === undefined) t.keyChartLevel = KeyChartLevel.None
     return t
 }
 
-const setTagStatusToPending = (t: Tag) => {
+const setTagStatusToPending = (t: ChartTagJoin) => {
     t.isApproved = false
     return t
 }
 
-const setTagStatusToApprovedIfUnset = (t: Tag) => {
+const setTagStatusToApprovedIfUnset = (t: ChartTagJoin) => {
     if (t.isApproved === undefined) t.isApproved = true
     return t
 }

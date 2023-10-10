@@ -9,7 +9,7 @@ import {
     OwidGdocType,
     RelatedChart,
     EnrichedBlockAllCharts,
-    traverseEnrichedBlocks,
+    UnwrapPromise,
 } from "@ourworldindata/utils"
 import * as Post from "./model/Post.js"
 import fs from "fs"
@@ -19,7 +19,7 @@ import {
     convertAllWpComponentsToArchieMLBlocks,
     adjustHeadingLevels,
 } from "./model/Gdoc/htmlToEnriched.js"
-import { getRelatedCharts } from "./wpdb.js"
+import { getPostTags, getRelatedCharts } from "./wpdb.js"
 
 // Hard-coded slugs to avoid WP dependency
 // headerMenu.json minus gdoc topic page slugs and wp topic page slugs
@@ -168,16 +168,20 @@ const migrate = async (): Promise<void> => {
         "excerpt",
         "created_at_in_wordpress",
         "updated_at"
-    ).from(db.knexTable(Post.postsTable)) //.where("id", "=", "41094"))
+    ).from(db.knexTable(Post.postsTable).where("id", "=", "29766"))
 
     for (const post of posts) {
         try {
             const isEntry = entries.has(post.slug)
             const text = post.content
             let relatedCharts: RelatedChart[] = []
+            let tags: UnwrapPromise<typeof getPostTags> = []
             if (isEntry) {
                 relatedCharts = await getRelatedCharts(post.id)
+                tags = await getPostTags(post.id)
             }
+
+            console.log("tags", tags)
 
             // We don't get the first and last nodes if they are comments.
             // This can cause issues with the wp:components so here we wrap

@@ -104,7 +104,7 @@ export {
     OwidGdocErrorMessageType,
     type OwidGdocLinkJSON,
     type OwidGdocInterface,
-    type OwidGdocTag,
+    type Tag,
     OwidGdocType,
     type OwidGdocStickyNavItem,
     type OwidGdocJSON,
@@ -183,7 +183,8 @@ export {
     type SpanUnderline,
     SubNavId,
     SuggestedChartRevisionStatus,
-    type Tag,
+    type ChartTag,
+    type ChartTagJoin,
     TaggableType,
     type Time,
     type TimeBound,
@@ -220,6 +221,7 @@ export {
     type EnrichedBlockAlign,
     type RawBlockAlign,
     type BreadcrumbItem,
+    type UnwrapPromise,
 } from "./owidTypes.js"
 
 export {

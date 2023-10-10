@@ -11,7 +11,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
-    OwidGdocTag,
+    Tag,
     OwidGdocInterface,
     OwidGdocType,
 } from "@ourworldindata/utils"
@@ -116,7 +116,7 @@ export class GdocsIndexPage extends React.Component<GdocsMatchProps> {
     }
 
     @computed
-    get tags(): OwidGdocTag[] {
+    get tags(): Tag[] {
         return this.context?.availableTags || []
     }
 

@@ -10,6 +10,7 @@ import {
     keyBy,
     OwidGdocType,
     type RawPageview,
+    Tag,
 } from "@ourworldindata/utils"
 import { formatPost } from "../formatWordpressPost.js"
 import ReactDOMServer from "react-dom/server.js"
@@ -25,22 +26,9 @@ import { Gdoc } from "../../db/model/Gdoc/Gdoc.js"
 import { ArticleBlocks } from "../../site/gdocs/ArticleBlocks.js"
 import React from "react"
 
-interface Tag {
-    id: number
-    name: string
-}
-
 interface TypeAndImportance {
     type: PageType
     importance: number
-}
-
-const getPostTags = async (postId: number) => {
-    return (await db
-        .knexTable("post_tags")
-        .select("tags.id", "tags.name")
-        .where({ post_id: postId })
-        .join("tags", "tags.id", "=", "post_tags.tag_id")) as Tag[]
 }
 
 const computeScore = (record: Omit<PageRecord, "score">): number => {
@@ -88,7 +76,7 @@ async function generateWordpressRecords(
 ): Promise<PageRecord[]> {
     const getPostTypeAndImportance = (
         post: FormattedPost,
-        tags: Tag[]
+        tags: Pick<Tag, "name">[]
     ): TypeAndImportance => {
         if (post.slug.startsWith("about/") || post.slug === "about")
             return { type: "about", importance: 1 }
@@ -114,7 +102,7 @@ async function generateWordpressRecords(
 
         const post = await formatPost(rawPost, { footnotes: false })
         const chunks = generateChunksFromHtmlText(post.html)
-        const tags = await getPostTags(post.id)
+        const tags = await wpdb.getPostTags(post.id)
         const postTypeAndImportance = getPostTypeAndImportance(post, tags)
 
         let i = 0
