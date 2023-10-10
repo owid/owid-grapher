@@ -16,7 +16,8 @@ PROJECT_NAME=owid
 # URL of Cloudflare page
 # branches would be deployed to https://[branch].$PROJECT_NAME.pages.dev/"
 # BAKED_BASE_URL="https://$PROJECT_NAME.pages.dev"
-BAKED_BASE_URL="https://pages.owid.io"
+# BAKED_BASE_URL="https://pages.owid.io"
+BAKED_BASE_URL="https://ourworldindata.org"
 
 deploy_content () {
     echo "--- Deploying content to Cloudflare"
