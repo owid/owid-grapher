@@ -96,9 +96,4 @@ build_grapher() {
     )
 }
 
-(
-    echo '==> Acquiring lock'
-    flock -x 200
-
-    build_code
-) 200>/var/lock/build-code.lock
+build_code
