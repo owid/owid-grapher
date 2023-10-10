@@ -13,12 +13,16 @@ import {
     GRAPHER_DARK_TEXT,
 } from "../core/GrapherConstants"
 
-@observer
-export class Header extends React.Component<{
+interface HeaderProps {
     manager: HeaderManager
     maxWidth?: number
-}> {
-    @computed private get manager(): HeaderManager {
+}
+
+@observer
+export class Header<
+    Props extends HeaderProps = HeaderProps
+> extends React.Component<Props> {
+    @computed protected get manager(): HeaderManager {
         return this.props.manager
     }
 
@@ -122,39 +126,6 @@ export class Header extends React.Component<{
         )
     }
 
-    renderStatic(x: number, y: number): JSX.Element {
-        const { title, logo, subtitle, manager, maxWidth } = this
-
-        return (
-            <g className="HeaderView">
-                {logo &&
-                    logo.height > 0 &&
-                    logo.renderSVG(x + maxWidth - logo.width, y)}
-                <a
-                    href={manager.canonicalUrl}
-                    style={{
-                        fontFamily:
-                            "'Playfair Display', Georgia, 'Times New Roman', 'Liberation Serif', serif",
-                    }}
-                    target="_blank"
-                    rel="noopener"
-                >
-                    {title.render(x, y, {
-                        fill: GRAPHER_DARK_TEXT,
-                        fontWeight: 500,
-                    })}
-                </a>
-                {subtitle.renderSVG(
-                    x,
-                    y + title.height + this.subtitleMarginTop,
-                    {
-                        fill: GRAPHER_DARK_TEXT,
-                    }
-                )}
-            </g>
-        )
-    }
-
     private renderTitle(): JSX.Element {
         const { manager } = this
 
@@ -219,6 +190,47 @@ export class Header extends React.Component<{
                     {this.subtitleText && this.renderSubtitle()}
                 </div>
             </div>
+        )
+    }
+}
+
+interface StaticHeaderProps extends HeaderProps {
+    targetX: number
+    targetY: number
+}
+
+@observer
+export class StaticHeader extends Header<StaticHeaderProps> {
+    render(): JSX.Element {
+        const { targetX: x, targetY: y } = this.props
+        const { title, logo, subtitle, manager, maxWidth } = this
+        return (
+            <g className="HeaderView">
+                {logo &&
+                    logo.height > 0 &&
+                    logo.renderSVG(x + maxWidth - logo.width, y)}
+                <a
+                    href={manager.canonicalUrl}
+                    style={{
+                        fontFamily:
+                            "'Playfair Display', Georgia, 'Times New Roman', 'Liberation Serif', serif",
+                    }}
+                    target="_blank"
+                    rel="noopener"
+                >
+                    {title.render(x, y, {
+                        fill: GRAPHER_DARK_TEXT,
+                        fontWeight: 500,
+                    })}
+                </a>
+                {subtitle.renderSVG(
+                    x,
+                    y + title.height + this.subtitleMarginTop,
+                    {
+                        fill: GRAPHER_DARK_TEXT,
+                    }
+                )}
+            </g>
         )
     }
 }
