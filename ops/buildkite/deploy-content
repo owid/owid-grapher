@@ -11,12 +11,13 @@ set -o nounset
 
 
 # Cloudflare Pages project name
-PROJECT_NAME=owid-grapher
+PROJECT_NAME=owid
 
 # URL of Cloudflare page
 # branches would be deployed to https://[branch].$PROJECT_NAME.pages.dev/"
 # BAKED_BASE_URL="https://$PROJECT_NAME.pages.dev"
-BAKED_BASE_URL="https://pages.owid.io"
+# BAKED_BASE_URL="https://pages.owid.io"
+BAKED_BASE_URL="https://ourworldindata.org"
 
 deploy_content () {
     echo "--- Deploying content to Cloudflare"
@@ -172,10 +173,4 @@ bake_gdoc_posts() {
     )
 }
 
-# Don't run this in parallel with code building, wait for it to finish
-(
-    echo '==> Acquiring lock'
-    flock -x 200
-
-    deploy_content
-) 200>/var/lock/build-code.lock
+deploy_content
