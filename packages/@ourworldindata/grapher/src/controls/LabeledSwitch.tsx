@@ -16,7 +16,7 @@ export class LabeledSwitch extends React.Component<{
         const { label, value, tooltip, tracking } = this.props
 
         return (
-            <div className="config-switch">
+            <div className="labeled-switch">
                 <label>
                     <input
                         type="checkbox"
@@ -40,7 +40,9 @@ export class LabeledSwitch extends React.Component<{
                         </Tippy>
                     )}
                 </label>
-                {tooltip && <div className="config-subtitle">{tooltip}</div>}
+                {tooltip && (
+                    <div className="labeled-switch-subtitle">{tooltip}</div>
+                )}
             </div>
         )
     }

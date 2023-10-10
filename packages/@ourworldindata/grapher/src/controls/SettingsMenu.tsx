@@ -307,7 +307,6 @@ export class SettingsMenu extends React.Component<{
             showFacetControl,
             showFacetYDomainToggle,
             showAbsRelToggle,
-            showTableFilterToggle,
         } = this
 
         const {
@@ -378,13 +377,6 @@ export class SettingsMenu extends React.Component<{
                         )}
                         {showZoomToggle && <ZoomToggle manager={manager} />}
                     </SettingsGroup>
-
-                    <SettingsGroup title="Data rows" active={isOnTableTab}>
-                        {showTableFilterToggle && (
-                            <TableFilterToggle manager={manager} />
-                        )}
-                    </SettingsGroup>
-
                     <SettingsGroup
                         title="Axis scale"
                         active={
@@ -414,21 +406,42 @@ export class SettingsMenu extends React.Component<{
         )
     }
 
-    render(): JSX.Element | null {
-        const { showSettingsMenuToggle, active } = this
-        return showSettingsMenuToggle ? (
+    renderChartSettings(): JSX.Element {
+        const { active } = this
+        return (
             <div className="settings-menu">
                 <button
                     className={classnames("menu-toggle", { active })}
                     onClick={this.toggleVisibility}
                     data-track-note="chart_settings_menu_toggle"
+                    title="Chart settings"
                 >
                     <FontAwesomeIcon icon={faGear} />
                     <span className="label"> Settings</span>
                 </button>
                 {this.menu}
             </div>
-        ) : null
+        )
+    }
+
+    renderTableControls(): JSX.Element {
+        // Since tables only have a single control, display it inline rather than
+        // placing it in the settings menu
+        return <TableFilterToggle manager={this.manager} />
+    }
+
+    render(): JSX.Element | null {
+        const {
+            manager: { isOnChartTab, isOnTableTab },
+            showSettingsMenuToggle,
+            showTableFilterToggle,
+        } = this
+
+        return isOnTableTab && showTableFilterToggle
+            ? this.renderTableControls()
+            : isOnChartTab && showSettingsMenuToggle
+            ? this.renderChartSettings()
+            : null
     }
 }
 
