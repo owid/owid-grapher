@@ -9,7 +9,6 @@ export const getRedirects = async () => {
     const staticRedirects = [
         // RSS feed
         "/feed /atom.xml 302",
-        "/feed/ /atom.xml 302",
 
         // Entries and blog (we should keep these for a while)
         "/entries / 302",
@@ -22,6 +21,9 @@ export const getRedirects = async () => {
 
     // Dynamic redirects are all redirects that contain an asterisk
     const dynamicRedirects = [
+        // Always remove trailing slash
+        "/*/ /:splat 301",
+
         // TODO: this should only get triggered by external hits (indexed .pdf files for instance)
         // and should be removed when no evidence of these inbound links can be found.
         "/wp-content/uploads/* /uploads/:splat 301",
@@ -55,16 +57,20 @@ export const getRedirects = async () => {
         "/grapher/exports/* https://assets.ourworldindata.org/grapher/exports/:splat 301",
     ]
 
+    const formatWpUrl = (url: string) =>
+        url
+            .replace(/__/g, "/") // replace __: abc__xyz -> abc/xyz
+            .replace(/\/$/, "") // remove trailing slash: /abc/ -> /abc
+
     // Redirects from Wordpress admin UI
     const wpRedirectRows = await wpdb.singleton.query(
         `SELECT url, action_data, action_code FROM wp_redirection_items WHERE status = 'enabled'`
     )
     const wpRedirects = wpRedirectRows.map(
         (row) =>
-            `${row.url.replace(/__/g, "/")} ${row.action_data.replace(
-                /__/g,
-                "/"
-            )} ${row.action_code}`
+            `${formatWpUrl(row.url)} ${formatWpUrl(row.action_data)} ${
+                row.action_code
+            }`
     )
 
     // Redirect old slugs to new slugs
