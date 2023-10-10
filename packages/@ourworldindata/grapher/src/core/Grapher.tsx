@@ -2231,11 +2231,12 @@ export class Grapher
 
     @action.bound dismissFullScreen(): void {
         // if a modal is open, dismiss it instead of exiting full-screen mode
-        if (this.isModalOpen) {
+        if (this.isModalOpen || this.isShareMenuActive) {
             this.isSelectingData = false
             this.isSourcesModalOpen = false
             this.isEmbedModalOpen = false
             this.isDownloadModalOpen = false
+            this.isShareMenuActive = false
         } else {
             this.isInFullScreenMode = false
         }
@@ -2683,7 +2684,7 @@ export class Grapher
     }
 
     @computed get isOnCanonicalUrl(): boolean {
-        if (!this.canonicalUrl) return false
+        if (!this.canonicalUrl || this.isInIFrame) return false
         return (
             getWindowUrl().pathname === Url.fromURL(this.canonicalUrl).pathname
         )

@@ -94,19 +94,6 @@ export class DataTable extends React.Component<{
     manager?: DataTableManager
     bounds?: Bounds
 }> {
-    transformTable(table: OwidTable): OwidTable {
-        if (this.manager.showSelectionOnlyInDataTable) {
-            table = table.filterByEntityNames(
-                this.selectionArray.selectedEntityNames
-            )
-        }
-        return table
-    }
-
-    @computed get transformedTable(): OwidTable {
-        return this.transformTable(this.manager.table)
-    }
-
     @observable private storedState: DataTableState = {
         sort: DEFAULT_SORT_STATE,
     }
@@ -144,11 +131,13 @@ export class DataTable extends React.Component<{
     }
 
     @computed get table(): OwidTable {
-        return this.transformedTable
-    }
-
-    @computed get inputTable(): OwidTable {
-        return this.manager.table
+        let table = this.manager.table
+        if (this.manager.showSelectionOnlyInDataTable) {
+            table = table.filterByEntityNames(
+                this.selectionArray.selectedEntityNames
+            )
+        }
+        return table
     }
 
     @computed get manager(): DataTableManager {
@@ -226,7 +215,7 @@ export class DataTable extends React.Component<{
         // then we prefer "Country/area" over "Country or region"
         // (note that we honour the entity type provided by the author if it is given)
         if (
-            this.entityType !== DEFAULT_GRAPHER_ENTITY_TYPE &&
+            this.entityType === DEFAULT_GRAPHER_ENTITY_TYPE &&
             this.showTitleForAggregateRows
         )
             return "Country/area"

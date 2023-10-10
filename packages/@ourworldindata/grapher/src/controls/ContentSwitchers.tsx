@@ -12,6 +12,7 @@ export interface ContentSwitchersManager {
     tab?: GrapherTabOption
     isNarrow?: boolean
     type?: ChartTypeName
+    isLineChartThatTurnedIntoDiscreteBar?: boolean
 }
 
 @observer
@@ -41,7 +42,9 @@ export class ContentSwitchers extends React.Component<{
             case GrapherTabOption.map:
                 return <FontAwesomeIcon icon={faEarthAmericas} />
             case GrapherTabOption.chart:
-                return chartIcons[this.chartType]
+                return this.manager.isLineChartThatTurnedIntoDiscreteBar
+                    ? chartIcons[ChartTypeName.DiscreteBar]
+                    : chartIcons[this.chartType]
         }
     }
 

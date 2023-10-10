@@ -177,7 +177,12 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     }
 
     @computed protected get bounds(): Bounds {
-        return this.props.bounds ?? this.manager.tabBounds ?? DEFAULT_BOUNDS
+        return (
+            this.props.bounds ??
+            // right padding prevents grapher's frame to be obscured by the chart/map
+            this.manager.tabBounds?.padRight(2) ??
+            DEFAULT_BOUNDS
+        )
     }
 
     @computed protected get boundsForChartArea(): Bounds {
