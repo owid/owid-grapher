@@ -80,6 +80,7 @@ export class EntitySelectionToggle extends React.Component<{
                     onClick={(): void => {
                         this.props.manager.isSelectingData = !active
                     }}
+                    data-track-note="chart_add_entity"
                 >
                     {label.icon}
                     <label>

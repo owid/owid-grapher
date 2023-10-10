@@ -24,6 +24,7 @@ export class ZoomToggle extends React.Component<{
                 tooltip="Scale axes to focus on the currently highlighted data points."
                 value={this.props.manager.zoomToSelection}
                 onToggle={this.onToggle}
+                tracking="chart_zoom_to_selection"
             />
         )
     }

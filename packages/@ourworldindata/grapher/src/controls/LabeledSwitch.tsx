@@ -9,10 +9,11 @@ export class LabeledSwitch extends React.Component<{
     value?: boolean
     label?: string
     tooltip?: string
+    tracking?: string
     onToggle: () => any
 }> {
     render(): JSX.Element {
-        const { label, value, tooltip } = this.props
+        const { label, value, tooltip, tracking } = this.props
 
         return (
             <div className="config-switch">
@@ -21,8 +22,9 @@ export class LabeledSwitch extends React.Component<{
                         type="checkbox"
                         checked={value}
                         onChange={this.props.onToggle}
+                        data-track-note={tracking}
                     />
-                    <div className="outer">
+                    <div data-track-note="" className="outer">
                         <div className="inner"></div>
                     </div>
                     {label}

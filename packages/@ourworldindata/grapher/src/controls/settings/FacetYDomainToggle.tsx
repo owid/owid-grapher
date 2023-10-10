@@ -39,6 +39,7 @@ export class FacetYDomainToggle extends React.Component<{
                 tooltip="Use the same minimum and maximum values on all charts or scale axes to fit the data in each chart"
                 value={this.isYDomainShared}
                 onToggle={this.onToggle}
+                tracking="chart_facet_ydomain_toggle"
             />
         )
     }
