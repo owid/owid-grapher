@@ -154,6 +154,14 @@ export const enrichedBlockExamples: Record<
         size: BlockImageSize.Wide,
         parseErrors: [],
     },
+    video: {
+        type: "video",
+        url: "https://ourworldindata.org/assets/videos/example.mp4",
+        filename: "https://ourworldindata.org/assets/images/example-poster.mp4",
+        caption: boldLinkExampleText,
+        shouldLoop: true,
+        parseErrors: [],
+    },
     list: {
         type: "list",
         items: [enrichedBlockText],

@@ -9,6 +9,7 @@ import {
     RawBlockHorizontalRule,
     RawBlockHtml,
     RawBlockImage,
+    RawBlockVideo,
     RawBlockList,
     RawBlockNumberedList,
     RawBlockPosition,
@@ -161,6 +162,17 @@ function* rawBlockImageToArchieMLString(
         yield* propertyToArchieMLString("filename", block.value)
         yield* propertyToArchieMLString("alt", block.value)
     }
+    yield "{}"
+}
+
+function* rawBlockVideoToArchieMLString(
+    block: RawBlockVideo
+): Generator<string, void, undefined> {
+    yield "{.video}"
+    yield* propertyToArchieMLString("url", block.value)
+    yield* propertyToArchieMLString("filename", block.value)
+    yield* propertyToArchieMLString("shouldLoop", block.value)
+    yield* propertyToArchieMLString("caption", block.value)
     yield "{}"
 }
 
@@ -566,6 +578,7 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
         .with({ type: "callout" }, rawBlockCalloutToArchieMLString)
         .with({ type: "chart-story" }, rawBlockChartStoryToArchieMLString)
         .with({ type: "image" }, rawBlockImageToArchieMLString)
+        .with({ type: "video" }, rawBlockVideoToArchieMLString)
         .with({ type: "list" }, rawBlockListToArchieMLString)
         .with({ type: "numbered-list" }, rawBlockNumberedListToArchieMLString)
         .with({ type: "pull-quote" }, rawBlockPullQuoteToArchieMLString)
