@@ -36,6 +36,7 @@ import {
     orderBy,
     IMAGES_DIRECTORY,
     uniqBy,
+    OwidGdocType,
 } from "@ourworldindata/utils"
 import { Topic } from "@ourworldindata/grapher"
 import {
@@ -663,11 +664,15 @@ export const getRelatedArticles = async (
         "grapher"
     )
     const publishedGdocPostsThatReferenceChart: PostReference[] =
-        publishedLinksToChart.map((link) => ({
-            id: link.source.id,
-            title: link.source.content.title!,
-            slug: link.source.slug,
-        }))
+        publishedLinksToChart
+            .filter(
+                (link) => link.source.content.type !== OwidGdocType.Fragment
+            )
+            .map((link) => ({
+                id: link.source.id,
+                title: link.source.content.title!,
+                slug: link.source.slug,
+            }))
     const relatedArticles: PostReference[] = await Promise.all(
         chart.embeddedIn.map(async (postId: any) => {
             const postRecord = await graph.find(GraphType.Document, postId)
