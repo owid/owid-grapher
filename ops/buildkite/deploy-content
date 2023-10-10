@@ -141,7 +141,6 @@ create_dist() {
     rm dist/images/published/*.etag
 
     # copy over Pages Functions as-is
-    # currently superseded by running `deploy` or `dev` inside the owid-grapher dir
     rsync -havzq --delete owid-grapher/functions dist/
 
     # we need node_modules for Pages Functions
