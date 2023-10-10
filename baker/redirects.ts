@@ -57,10 +57,13 @@ export const getRedirects = async () => {
         "/grapher/exports/* https://assets.ourworldindata.org/grapher/exports/:splat 301",
     ]
 
-    const formatWpUrl = (url: string) =>
-        url
+    const formatWpUrl = (url: string) => {
+        if (url === "/") return url
+
+        return url
             .replace(/__/g, "/") // replace __: abc__xyz -> abc/xyz
             .replace(/\/$/, "") // remove trailing slash: /abc/ -> /abc
+    }
 
     // Redirects from Wordpress admin UI
     const wpRedirectRows = await wpdb.singleton.query(
