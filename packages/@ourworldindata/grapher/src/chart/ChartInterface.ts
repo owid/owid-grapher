@@ -31,6 +31,7 @@ export interface ChartInterface {
     // Todo: should all charts additionally have a placedSeries: ChartPlacedSeries[] getter?
 
     transformTable: ChartTableTransformer
+    transformTableForDisplay?: ChartTableTransformer
 
     yAxis?: HorizontalAxis | VerticalAxis
     xAxis?: HorizontalAxis | VerticalAxis

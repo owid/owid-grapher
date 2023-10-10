@@ -653,6 +653,15 @@ export class Grapher
         return this.xAxis.toObject()
     }
 
+    // table that is used for display in the table tab
+    @computed get tableForDisplay(): OwidTable {
+        const table = this.table
+        if (!this.isReady || !this.isOnTableTab) return table
+        return this.chartInstance.transformTableForDisplay
+            ? this.chartInstance.transformTableForDisplay(table)
+            : table
+    }
+
     @computed get tableForSelection(): OwidTable {
         // This table specifies which entities can be selected in the charts EntitySelectorModal.
         // It should contain all entities that can be selected, and none more.

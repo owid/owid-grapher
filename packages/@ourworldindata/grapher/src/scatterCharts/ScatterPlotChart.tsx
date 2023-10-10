@@ -265,6 +265,22 @@ export class ScatterPlotChart
         return table
     }
 
+    transformTableForDisplay(table: OwidTable): OwidTable {
+        // Drop any rows which have non-number values for X or Y.
+        table = table
+            .columnFilter(
+                this.xColumnSlug,
+                isNumber,
+                "Drop rows with non-number values in X column"
+            )
+            .columnFilter(
+                this.yColumnSlug,
+                isNumber,
+                "Drop rows with non-number values in Y column"
+            )
+        return table
+    }
+
     @computed get inputTable(): OwidTable {
         return this.manager.table
     }

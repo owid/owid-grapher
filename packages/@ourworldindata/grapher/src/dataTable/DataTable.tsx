@@ -77,7 +77,8 @@ const inverseSortOrder = (order: SortOrder): SortOrder =>
     order === SortOrder.asc ? SortOrder.desc : SortOrder.asc
 
 export interface DataTableManager {
-    table: OwidTable
+    table: OwidTable // not used here, but required in type `ChartManager`
+    tableForDisplay: OwidTable
     entityType?: string
     endTime?: Time
     startTime?: Time
@@ -131,7 +132,7 @@ export class DataTable extends React.Component<{
     }
 
     @computed get table(): OwidTable {
-        let table = this.manager.table
+        let table = this.manager.tableForDisplay
         if (this.manager.showSelectionOnlyInDataTable) {
             table = table.filterByEntityNames(
                 this.selectionArray.selectedEntityNames
@@ -144,6 +145,7 @@ export class DataTable extends React.Component<{
         return (
             this.props.manager ?? {
                 table: BlankOwidTable(),
+                tableForDisplay: BlankOwidTable(),
                 entityType: DEFAULT_GRAPHER_ENTITY_TYPE,
             }
         )
