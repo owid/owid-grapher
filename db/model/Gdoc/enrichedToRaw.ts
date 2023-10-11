@@ -33,6 +33,7 @@ import {
     RawBlockResearchAndWritingLink,
     RawBlockAlign,
     RawBlockEntrySummary,
+    RawBlockVideo,
 } from "@ourworldindata/utils"
 import { spanToHtmlString } from "./gdocUtils.js"
 import { match, P } from "ts-pattern"
@@ -145,6 +146,18 @@ export function enrichedBlockToRawBlock(
                 value: {
                     filename: b.filename,
                     alt: b.alt,
+                },
+            })
+        )
+        .with(
+            { type: "video" },
+            (b): RawBlockVideo => ({
+                type: b.type,
+                value: {
+                    url: b.url,
+                    filename: b.filename,
+                    caption: b.caption ? spansToHtmlText(b.caption) : undefined,
+                    shouldLoop: String(b.shouldLoop),
                 },
             })
         )

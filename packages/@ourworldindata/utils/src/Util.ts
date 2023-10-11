@@ -1610,6 +1610,7 @@ export function traverseEnrichedBlocks(
                     "horizontal-rule",
                     "html",
                     "image",
+                    "video",
                     "missing-data",
                     "prominent-link",
                     "pull-quote",

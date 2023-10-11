@@ -651,6 +651,24 @@ export type EnrichedBlockImage = {
     size: BlockImageSize
 } & EnrichedBlockWithParseErrors
 
+export type RawBlockVideo = {
+    type: "video"
+    value: {
+        url?: string
+        caption?: string
+        shouldLoop?: string
+        filename?: string
+    }
+}
+
+export type EnrichedBlockVideo = {
+    type: "video"
+    url: string
+    shouldLoop: boolean
+    filename: string
+    caption?: Span[]
+} & EnrichedBlockWithParseErrors
+
 // TODO: This is what lists staring with * are converted to in archieToEnriched
 // It might also be what is used inside recirc elements but there it's not a simple
 // string IIRC - check this
@@ -1107,6 +1125,7 @@ export type OwidRawGdocBlock =
     | RawBlockScroller
     | RawBlockChartStory
     | RawBlockImage
+    | RawBlockVideo
     | RawBlockList
     | RawBlockPullQuote
     | RawBlockRecirc
@@ -1142,6 +1161,7 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockScroller
     | EnrichedBlockChartStory
     | EnrichedBlockImage
+    | EnrichedBlockVideo
     | EnrichedBlockList
     | EnrichedBlockPullQuote
     | EnrichedBlockRecirc
