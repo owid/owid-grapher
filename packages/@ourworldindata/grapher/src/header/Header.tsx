@@ -3,6 +3,7 @@ import {
     TextWrap,
     DEFAULT_BOUNDS,
     MarkdownTextWrap,
+    range,
 } from "@ourworldindata/utils"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
@@ -42,7 +43,7 @@ export class Header<
         )
     }
 
-    @computed private get titleText(): string {
+    @computed protected get titleText(): string {
         return this.manager.currentTitle ?? ""
     }
 
@@ -62,7 +63,7 @@ export class Header<
         })
     }
 
-    @computed private get logoWidth(): number {
+    @computed protected get logoWidth(): number {
         return this.logo ? this.logo.width : 0
     }
 
@@ -201,6 +202,43 @@ interface StaticHeaderProps extends HeaderProps {
 
 @observer
 export class StaticHeader extends Header<StaticHeaderProps> {
+    @computed get title(): TextWrap {
+        const { logoWidth, titleText } = this
+
+        const makeTitle = (fontSize: number) =>
+            new TextWrap({
+                text: titleText,
+                maxWidth: this.maxWidth - logoWidth - 24,
+                fontSize,
+                fontWeight: 500,
+                lineHeight: 1.2,
+            })
+
+        // try to fit the title into a single line if possible-- but not if it would make the text too small
+        let initialFontSize = 24
+        let title = makeTitle(initialFontSize)
+        const originalLineCount = title.lines.length
+        // decrease the initial font size by no more than 2px using 0.5px steps
+        const potentialFontSizes = range(
+            initialFontSize,
+            initialFontSize - 2.5,
+            -0.5
+        )
+        for (const fontSize of potentialFontSizes) {
+            title = makeTitle(fontSize)
+            const currentLineCount = title.lines.length
+            if (currentLineCount <= 1 || currentLineCount < originalLineCount)
+                break
+        }
+
+        // if decreasing the font size didn't make a difference, use the initial font size
+        if (title.lines.length === originalLineCount) {
+            return makeTitle(initialFontSize)
+        }
+
+        return title
+    }
+
     render(): JSX.Element {
         const { targetX: x, targetY: y } = this.props
         const { title, logo, subtitle, manager, maxWidth } = this
@@ -220,7 +258,6 @@ export class StaticHeader extends Header<StaticHeaderProps> {
                 >
                     {title.render(x, y, {
                         fill: GRAPHER_DARK_TEXT,
-                        fontWeight: 500,
                     })}
                 </a>
                 {subtitle.renderSVG(
