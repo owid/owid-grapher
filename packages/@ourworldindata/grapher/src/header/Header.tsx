@@ -205,7 +205,7 @@ export class StaticHeader extends Header<StaticHeaderProps> {
     @computed get title(): TextWrap {
         const { logoWidth, titleText } = this
 
-        const makeTitle = (fontSize: number) =>
+        const makeTitle = (fontSize: number): TextWrap =>
             new TextWrap({
                 text: titleText,
                 maxWidth: this.maxWidth - logoWidth - 24,
@@ -215,7 +215,7 @@ export class StaticHeader extends Header<StaticHeaderProps> {
             })
 
         // try to fit the title into a single line if possible-- but not if it would make the text too small
-        let initialFontSize = 24
+        const initialFontSize = 24
         let title = makeTitle(initialFontSize)
         const originalLineCount = title.lines.length
         // decrease the initial font size by no more than 2px using 0.5px steps
