@@ -131,7 +131,7 @@ export class Header<
         const { manager } = this
 
         // avoid linking to a grapher/data page when we're already on it
-        if (manager.isOnCanonicalUrl) {
+        if (manager.isOnCanonicalUrl && !this.manager.isInIFrame) {
             return (
                 <h1 style={this.title.htmlStyle}>{this.title.renderHTML()}</h1>
             )
@@ -144,6 +144,7 @@ export class Header<
                     href={manager.canonicalUrl}
                     target="_blank"
                     rel="noopener noreferrer"
+                    data-track-note="chart_click_title"
                 >
                     <h1 style={this.title.htmlStyle}>
                         {this.title.renderHTML()}
@@ -159,6 +160,7 @@ export class Header<
                     href={manager.canonicalUrl}
                     target="_blank"
                     rel="noopener noreferrer"
+                    data-track-note="chart_click_title"
                 >
                     {this.title.renderHTML()}
                 </a>

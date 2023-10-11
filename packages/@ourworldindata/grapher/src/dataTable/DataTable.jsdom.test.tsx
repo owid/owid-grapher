@@ -133,7 +133,7 @@ describe("when the table has aggregates", () => {
         view = Enzyme.mount(<DataTable manager={grapher} />)
     })
 
-    it("renders a title row for countries and regions", () => {
+    it("renders a separating title row for aggregates", () => {
         const titleRows = view.find("tbody .title")
         expect(titleRows).toHaveLength(1)
         expect(titleRows.at(0).text()).toBe("Other")

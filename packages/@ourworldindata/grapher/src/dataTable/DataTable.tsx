@@ -141,12 +141,7 @@ export class DataTable extends React.Component<{
     }
 
     @computed get manager(): DataTableManager {
-        return (
-            this.props.manager ?? {
-                table: BlankOwidTable(),
-                entityType: DEFAULT_GRAPHER_ENTITY_TYPE,
-            }
-        )
+        return this.props.manager ?? { table: BlankOwidTable() }
     }
 
     @computed private get entityType(): string {

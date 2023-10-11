@@ -245,7 +245,6 @@ export class ActionButtons extends React.Component<{
                         <li style={{ width: this.downloadButtonWidth }}>
                             <ActionButton
                                 label="Download"
-                                title="Download as .png or .svg"
                                 dataTrackNote="chart_click_download"
                                 showLabel={this.showButtonLabels}
                                 icon={faDownload}
@@ -295,7 +294,6 @@ export class ActionButtons extends React.Component<{
                                 style={{ width: "100%" }}
                             >
                                 <a
-                                    title="Explore the data"
                                     data-track-note="chart_click_exploredata"
                                     href={manager.canonicalUrl}
                                     target="_blank"
@@ -323,7 +321,6 @@ export function ActionButton(props: {
     onClick?: React.MouseEventHandler<HTMLButtonElement>
     onMouseDown?: React.MouseEventHandler<HTMLButtonElement>
     showLabel?: boolean
-    title?: string
     isActive?: boolean
     style?: React.CSSProperties
 }): JSX.Element {
@@ -336,7 +333,6 @@ export function ActionButton(props: {
                     (props.isActive ? "active" : "") +
                     (props.showLabel ? "" : " icon-only")
                 }
-                title={props.title ?? props.label}
                 data-track-note={props.dataTrackNote}
                 onClick={(e: React.MouseEvent<HTMLButtonElement>): void => {
                     if (props.onClick) props.onClick(e)

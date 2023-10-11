@@ -2689,7 +2689,7 @@ export class Grapher
     }
 
     @computed get isOnCanonicalUrl(): boolean {
-        if (!this.canonicalUrl || this.isInIFrame) return false
+        if (!this.canonicalUrl) return false
         return (
             getWindowUrl().pathname === Url.fromURL(this.canonicalUrl).pathname
         )
