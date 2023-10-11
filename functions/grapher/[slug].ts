@@ -7,6 +7,12 @@ export const onRequestGet: PagesFunction = async (context) => {
 
     const slug = params.slug as string
     const url = new URL(request.url)
+
+    // Redirect to lowercase slug
+    if (url.pathname !== url.pathname.toLowerCase()) {
+        return Response.redirect(url.pathname.toLowerCase() + url.search, 301)
+    }
+
     const { search } = url
 
     const grapherPageResp = await env.ASSETS.fetch(url, { redirect: "manual" })
