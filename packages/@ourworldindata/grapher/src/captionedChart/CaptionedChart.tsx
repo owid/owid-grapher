@@ -9,7 +9,7 @@ import {
     MarkdownTextWrap,
     sumTextWrapHeights,
 } from "@ourworldindata/utils"
-import { Header } from "../header/Header"
+import { Header, StaticHeader } from "../header/Header"
 import { Footer, StaticFooter } from "../footer/Footer"
 import {
     ChartComponentClassMap,
@@ -487,6 +487,16 @@ export class StaticCaptionedChart extends CaptionedChart {
         })
     }
 
+    @computed protected get staticHeader(): Header {
+        const { paddedBounds } = this
+        return new StaticHeader({
+            manager: this.manager,
+            maxWidth: this.maxWidth,
+            targetX: paddedBounds.x,
+            targetY: paddedBounds.y,
+        })
+    }
+
     @computed protected get framePaddingVertical(): number {
         return DEFAULT_GRAPHER_FRAME_PADDING
     }
@@ -503,7 +513,7 @@ export class StaticCaptionedChart extends CaptionedChart {
 
     @computed protected get boundsForChartArea(): Bounds {
         return this.paddedBounds
-            .padTop(this.header.height)
+            .padTop(this.staticHeader.height)
             .padBottom(this.staticFooter.height + this.verticalPadding)
             .padTop(this.manager.isOnMapTab ? 0 : this.verticalPadding)
     }
@@ -584,7 +594,12 @@ export class StaticCaptionedChart extends CaptionedChart {
                     width={width}
                     height={height}
                 />
-                {this.header.renderStatic(paddedBounds.x, paddedBounds.y)}
+                <StaticHeader
+                    manager={manager}
+                    maxWidth={maxWidth}
+                    targetX={paddedBounds.x}
+                    targetY={paddedBounds.y}
+                />
                 {this.renderChart()}
                 <StaticFooter
                     manager={manager}

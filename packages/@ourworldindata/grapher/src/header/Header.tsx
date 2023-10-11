@@ -3,6 +3,7 @@ import {
     TextWrap,
     DEFAULT_BOUNDS,
     MarkdownTextWrap,
+    range,
 } from "@ourworldindata/utils"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
@@ -13,12 +14,16 @@ import {
     GRAPHER_DARK_TEXT,
 } from "../core/GrapherConstants"
 
-@observer
-export class Header extends React.Component<{
+interface HeaderProps {
     manager: HeaderManager
     maxWidth?: number
-}> {
-    @computed private get manager(): HeaderManager {
+}
+
+@observer
+export class Header<
+    Props extends HeaderProps = HeaderProps
+> extends React.Component<Props> {
+    @computed protected get manager(): HeaderManager {
         return this.props.manager
     }
 
@@ -38,7 +43,7 @@ export class Header extends React.Component<{
         )
     }
 
-    @computed private get titleText(): string {
+    @computed protected get titleText(): string {
         return this.manager.currentTitle ?? ""
     }
 
@@ -58,7 +63,7 @@ export class Header extends React.Component<{
         })
     }
 
-    @computed private get logoWidth(): number {
+    @computed protected get logoWidth(): number {
         return this.logo ? this.logo.width : 0
     }
 
@@ -119,39 +124,6 @@ export class Header extends React.Component<{
             title.height +
                 (subtitleText ? subtitle.height + subtitleMarginTop : 0),
             logoHeight
-        )
-    }
-
-    renderStatic(x: number, y: number): JSX.Element {
-        const { title, logo, subtitle, manager, maxWidth } = this
-
-        return (
-            <g className="HeaderView">
-                {logo &&
-                    logo.height > 0 &&
-                    logo.renderSVG(x + maxWidth - logo.width, y)}
-                <a
-                    href={manager.canonicalUrl}
-                    style={{
-                        fontFamily:
-                            "'Playfair Display', Georgia, 'Times New Roman', 'Liberation Serif', serif",
-                    }}
-                    target="_blank"
-                    rel="noopener"
-                >
-                    {title.render(x, y, {
-                        fill: GRAPHER_DARK_TEXT,
-                        fontWeight: 500,
-                    })}
-                </a>
-                {subtitle.renderSVG(
-                    x,
-                    y + title.height + this.subtitleMarginTop,
-                    {
-                        fill: GRAPHER_DARK_TEXT,
-                    }
-                )}
-            </g>
         )
     }
 
@@ -219,6 +191,83 @@ export class Header extends React.Component<{
                     {this.subtitleText && this.renderSubtitle()}
                 </div>
             </div>
+        )
+    }
+}
+
+interface StaticHeaderProps extends HeaderProps {
+    targetX: number
+    targetY: number
+}
+
+@observer
+export class StaticHeader extends Header<StaticHeaderProps> {
+    @computed get title(): TextWrap {
+        const { logoWidth, titleText } = this
+
+        const makeTitle = (fontSize: number): TextWrap =>
+            new TextWrap({
+                text: titleText,
+                maxWidth: this.maxWidth - logoWidth - 24,
+                fontSize,
+                fontWeight: 500,
+                lineHeight: 1.2,
+            })
+
+        // try to fit the title into a single line if possible-- but not if it would make the text too small
+        const initialFontSize = 24
+        let title = makeTitle(initialFontSize)
+        const originalLineCount = title.lines.length
+        // decrease the initial font size by no more than 2px using 0.5px steps
+        const potentialFontSizes = range(
+            initialFontSize,
+            initialFontSize - 2.5,
+            -0.5
+        )
+        for (const fontSize of potentialFontSizes) {
+            title = makeTitle(fontSize)
+            const currentLineCount = title.lines.length
+            if (currentLineCount <= 1 || currentLineCount < originalLineCount)
+                break
+        }
+
+        // if decreasing the font size didn't make a difference, use the initial font size
+        if (title.lines.length === originalLineCount) {
+            return makeTitle(initialFontSize)
+        }
+
+        return title
+    }
+
+    render(): JSX.Element {
+        const { targetX: x, targetY: y } = this.props
+        const { title, logo, subtitle, manager, maxWidth } = this
+        return (
+            <g className="HeaderView">
+                {logo &&
+                    logo.height > 0 &&
+                    logo.renderSVG(x + maxWidth - logo.width, y)}
+                <a
+                    href={manager.canonicalUrl}
+                    style={{
+                        fontFamily:
+                            "'Playfair Display', Georgia, 'Times New Roman', 'Liberation Serif', serif",
+                    }}
+                    target="_blank"
+                    rel="noopener"
+                >
+                    {title.render(x, y, {
+                        fill: GRAPHER_DARK_TEXT,
+                    })}
+                </a>
+                {subtitle.renderSVG(
+                    x,
+                    y + title.height + this.subtitleMarginTop,
+                    {
+                        fill: GRAPHER_DARK_TEXT,
+                    }
+                )}
+            </g>
         )
     }
 }
