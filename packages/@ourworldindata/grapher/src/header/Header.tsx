@@ -144,6 +144,7 @@ export class Header<
                     href={manager.canonicalUrl}
                     target="_blank"
                     rel="noopener noreferrer"
+                    data-track-note="chart_click_title"
                 >
                     <h1 style={this.title.htmlStyle}>
                         {this.title.renderHTML()}
@@ -159,6 +160,7 @@ export class Header<
                     href={manager.canonicalUrl}
                     target="_blank"
                     rel="noopener noreferrer"
+                    data-track-note="chart_click_title"
                 >
                     {this.title.renderHTML()}
                 </a>
