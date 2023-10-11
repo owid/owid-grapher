@@ -131,7 +131,7 @@ export class Header<
         const { manager } = this
 
         // avoid linking to a grapher/data page when we're already on it
-        if (manager.isOnCanonicalUrl) {
+        if (manager.isOnCanonicalUrl && !this.manager.isInIFrame) {
             return (
                 <h1 style={this.title.htmlStyle}>{this.title.renderHTML()}</h1>
             )
