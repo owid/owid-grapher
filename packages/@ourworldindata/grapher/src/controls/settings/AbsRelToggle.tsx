@@ -48,6 +48,7 @@ export class AbsRelToggle extends React.Component<{
                 value={this.isRelativeMode}
                 tooltip={this.tooltip}
                 onToggle={this.onToggle}
+                tracking="chart_abs_rel_toggle"
             />
         )
     }

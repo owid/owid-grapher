@@ -31,6 +31,7 @@ export class TableFilterToggle extends React.Component<{
                 tooltip={tooltip}
                 value={this.props.manager.showSelectionOnlyInDataTable}
                 onToggle={this.onToggle}
+                tracking="chart_filter_table_rows"
             />
         )
     }

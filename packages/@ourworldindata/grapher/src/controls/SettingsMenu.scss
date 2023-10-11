@@ -73,12 +73,12 @@ nav.controlsRow .controls .settings-menu {
             z-index: $zindex-controls-backdrop;
         }
 
-        .config-switch {
+        .labeled-switch {
             label > svg {
                 display: none;
             }
 
-            .config-subtitle {
+            .labeled-switch-subtitle {
                 display: block;
             }
         }
@@ -192,6 +192,7 @@ nav.controlsRow .controls .settings-menu {
                     }
                 }
 
+                .labeled-switch .labeled-switch-subtitle,
                 .config-subtitle {
                     font-size: 13px;
                     margin: 5px 0;
@@ -227,76 +228,9 @@ nav.controlsRow .controls .settings-menu {
                 }
 
                 // on/off switch with label written to the right
-                .config-switch {
-                    position: relative;
+                .labeled-switch {
                     margin: 14px 0;
-                    -webkit-user-select: none;
-                    user-select: none;
-
-                    label {
-                        color: $dark-text;
-                        padding-left: 35px;
-                        &:hover {
-                            cursor: pointer;
-                        }
-
-                        svg {
-                            color: $info-icon;
-                            height: 13px;
-                            padding: 0 0.333em;
-                        }
-                    }
-
-                    .config-subtitle {
-                        display: none;
-                    }
-
-                    input {
-                        position: absolute;
-                        opacity: 0;
-                        left: 0;
-                    }
-
-                    .outer {
-                        position: absolute;
-                        left: 0;
-                        top: 0;
-                        content: " ";
-                        width: 29px;
-                        height: 16px;
-                        background: $light-fill;
-                        border-radius: 8px;
-                        pointer-events: none;
-                        .inner {
-                            position: relative;
-                            content: " ";
-                            width: 10px;
-                            height: 10px;
-                            background: $light-text;
-                            border-radius: 5px;
-                            top: 3px;
-                            left: 3px;
-                            pointer-events: none;
-                            transition: transform 333ms;
-                        }
-                    }
-
-                    &:hover {
-                        .outer .inner {
-                            background: $dark-text;
-                        }
-                    }
-
-                    input:checked + .outer {
-                        background: $active-fill;
-                        .inner {
-                            background: $active-switch;
-                            transform: translate(13px, 0);
-                        }
-                    }
-                    &:hover input:checked + .outer .inner {
-                        background: darken($active-switch, 13%);
-                    }
+                    display: block;
                 }
 
                 // vertical list of options (for selecting faceting mode)

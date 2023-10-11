@@ -26,6 +26,7 @@ export class NoDataAreaToggle extends React.Component<{
                 value={this.manager.showNoDataArea}
                 tooltip="Include entities for which ‘no data’ is available in the chart."
                 onToggle={this.onToggle}
+                tracking="chart_no_data_area_toggle"
             />
         )
     }
