@@ -256,8 +256,7 @@ figure[data-explorer-src] {
 .article-content {
     span.add-country {
         font-size: 0.9rem;
-        font: 400 13px/16px Lato, "Helvetica Neue", Helvetica, Arial,
-            "Liberation Sans", sans-serif;
+        font: 400 13px/16px $sans-serif-font-stack;
         letter-spacing: 0.01em;
         display: inline-flex;
         align-items: center;
