@@ -9,7 +9,10 @@ export const onRequestGet: PagesFunction = async (context) => {
     const url = new URL(request.url)
 
     // Redirect to lowercase slug
-    if (url.pathname !== url.pathname.toLowerCase()) {
+    if (
+        url.pathname !== url.pathname.toLowerCase() &&
+        url.pathname !== "/grapher/embedCharts.js"
+    ) {
         const redirUrl = url.pathname.toLowerCase() + url.search
         return new Response(null, {
             status: 301,
