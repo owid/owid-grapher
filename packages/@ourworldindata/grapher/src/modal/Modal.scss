@@ -59,6 +59,11 @@ $modal-padding: 1.5em;
                 width: 32px;
                 height: 32px;
 
+                // center icon
+                display: flex;
+                align-items: center;
+                justify-content: center;
+
                 &:hover {
                     border-color: $hover-fill;
                     background: $hover-fill;
