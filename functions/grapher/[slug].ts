@@ -10,7 +10,11 @@ export const onRequestGet: PagesFunction = async (context) => {
 
     // Redirect to lowercase slug
     if (url.pathname !== url.pathname.toLowerCase()) {
-        return Response.redirect(url.pathname.toLowerCase() + url.search, 301)
+        const redirUrl = url.pathname.toLowerCase() + url.search
+        return new Response(null, {
+            status: 301,
+            headers: { Location: redirUrl },
+        })
     }
 
     const { search } = url
