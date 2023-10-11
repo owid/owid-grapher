@@ -111,6 +111,13 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                         ))
                     )
                 )}
+                <link
+                    rel="preload"
+                    href="/fonts/PlayfairDisplayLatin-SemiBold.woff2"
+                    as="font"
+                    type="font/woff2"
+                    crossOrigin="anonymous"
+                />
             </Head>
             <body className={GRAPHER_PAGE_BODY_CLASS}>
                 <SiteHeader baseUrl={baseUrl} />
