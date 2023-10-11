@@ -94,7 +94,7 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
         | BreadcrumbItem[]
         | null = null
 
-    @ManyToMany(() => Tag)
+    @ManyToMany(() => Tag, { cascade: true })
     @JoinTable({
         name: "posts_gdocs_x_tags",
         joinColumn: { name: "gdocId", referencedColumnName: "id" },

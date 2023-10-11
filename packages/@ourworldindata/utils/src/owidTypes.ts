@@ -1608,7 +1608,3 @@ export interface UserCountryInformation {
     slug: string
     regions: string[] | null
 }
-
-/** Extract the return type from a function that returns a promise */
-export type UnwrapPromise<T extends (...args: any) => Promise<any>> =
-    ReturnType<T> extends Promise<infer U> ? U : never

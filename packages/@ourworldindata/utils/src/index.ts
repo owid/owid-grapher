@@ -221,7 +221,6 @@ export {
     type EnrichedBlockAlign,
     type RawBlockAlign,
     type BreadcrumbItem,
-    type UnwrapPromise,
 } from "./owidTypes.js"
 
 export {
