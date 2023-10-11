@@ -157,7 +157,7 @@ export const enrichedBlockExamples: Record<
     video: {
         type: "video",
         url: "https://ourworldindata.org/assets/videos/example.mp4",
-        filename: "https://ourworldindata.org/assets/images/example-poster.mp4",
+        filename: "https://ourworldindata.org/assets/images/example-poster.jpg",
         caption: boldLinkExampleText,
         shouldLoop: true,
         parseErrors: [],
