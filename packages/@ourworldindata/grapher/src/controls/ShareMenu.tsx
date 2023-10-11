@@ -197,7 +197,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                         Share via&hellip;
                     </a>
                 )}
-                {true && (
+                {this.state.canWriteToClipboard && (
                     <a
                         title="Copy link to clipboard"
                         data-track-note="chart_share_copylink"
