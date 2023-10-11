@@ -567,7 +567,7 @@ const parseVideo = (raw: RawBlockVideo): EnrichedBlockVideo => {
         parseErrors: [error],
     })
 
-    const url = raw.value.url
+    const url = extractUrl(raw.value.url)
     if (!url) {
         return createError({
             message: "url property is missing or empty",
