@@ -444,7 +444,12 @@ export class Grapher
     @observable shouldOptimizeForHorizontalSpace = false
 
     @computed private get optimizeForHorizontalSpace(): boolean {
-        return this.isNarrow && this.shouldOptimizeForHorizontalSpace
+        return (
+            this.isNarrow &&
+            this.shouldOptimizeForHorizontalSpace &&
+            // in full-screen mode, we prefer padding on the sides
+            !this.isInFullScreenMode
+        )
     }
 
     /**
