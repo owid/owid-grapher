@@ -68,6 +68,7 @@ export interface CoreColumnDef extends ColumnColorScale {
     description?: string
     descriptionShort?: string
     descriptionFromProducer?: string
+    descriptionProcessing?: string
     note?: string // Any internal notes the author wants to record for display in admin interfaces
 
     // Color

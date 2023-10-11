@@ -102,7 +102,7 @@ export class SourcesTab extends React.Component<{
             ...(source.dataPublishedBy ? [source.dataPublishedBy] : []),
             ...citationFull,
         ]
-
+        console.log(column.def)
         return (
             <div key={slug} className="datasource-wrapper">
                 <h2>
