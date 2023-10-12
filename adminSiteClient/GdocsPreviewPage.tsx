@@ -19,7 +19,6 @@ import {
     OwidGdocErrorMessage,
     OwidGdocErrorMessageType,
     slugify,
-    pick,
 } from "@ourworldindata/utils"
 import { Button, Col, Drawer, Row, Space, Tag, Typography } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -40,7 +39,6 @@ import { GdocsEditLink } from "./GdocsEditLink.js"
 import { openSuccessNotification } from "./gdocsNotifications.js"
 import { GdocsDiffButton } from "./GdocsDiffButton.js"
 import { GdocsDiff } from "./GdocsDiff.js"
-import { useInterval } from "../site/hooks.js"
 
 export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     const { id } = match.params
@@ -70,15 +68,6 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     const [errors, setErrors] = React.useState<OwidGdocErrorMessage[]>()
     const { admin } = useContext(AdminAppContext)
     const store = useGdocsStore()
-    const [iframeScrollY, setIframeScrollY] = useState<number | undefined>()
-    // Cancel all other requests in progress (most likely just the automatic fetch)
-    const cancelAllRequests = useMemo(
-        () => () =>
-            admin.currentRequestAbortControllers.forEach((abortController) => {
-                abortController.abort()
-            }),
-        [admin]
-    )
 
     const iframeRef = useRef<HTMLIFrameElement>(null)
 
@@ -124,42 +113,6 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
         }
     }, [originalGdoc, fetchGdoc, handleError, admin])
 
-    // synchronise content every 5 seconds
-    useInterval(async () => {
-        if (currentGdoc) {
-            const latestGdoc = await fetchGdoc(GdocsContentSource.Gdocs)
-
-            // Save the scroll position of the iframe to restore it after the
-            // refresh. The condition is here to prevent firefox from
-            // calculating the scroll position on page load, which somehow results in a
-            // wrong value (likely at the bottom).
-            if (latestGdoc.revisionId !== currentGdoc.revisionId) {
-                setIframeScrollY(iframeRef.current?.contentWindow?.scrollY)
-            }
-
-            setCurrentGdoc((current) => ({
-                ...latestGdoc,
-
-                // keep values that might've been updated in the admin (e.g. slug) as they are locally
-                ...pick(current, [
-                    "slug",
-                    "published",
-                    "publishedAt",
-                    "publicationContext",
-                    "breadcrumbs",
-                ]),
-            }))
-        }
-    }, 5000)
-
-    const onIframeLoad = () => {
-        if (!iframeScrollY) return
-        // scroll the iframe to the position it was at before the refresh
-        iframeRef.current?.contentWindow?.scrollTo({
-            top: iframeScrollY,
-        })
-    }
-
     const isLightningUpdate = useLightningUpdate(
         originalGdoc,
         currentGdoc,
@@ -178,7 +131,6 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
 
     const saveDraft = async () => {
         if (!currentGdoc) return
-        cancelAllRequests()
 
         if (currentGdoc.published)
             throw new Error("Cannot save a published doc as a draft")
@@ -190,7 +142,6 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
 
     const doPublish = async () => {
         if (!currentGdoc) return
-        cancelAllRequests()
         // set to today if not specified
         const publishedAt = currentGdoc.publishedAt ?? new Date()
         const slug = currentGdoc.slug || slugify(`${currentGdoc.content.title}`)
@@ -205,7 +156,6 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
 
     const doUnpublish = async () => {
         if (!currentGdoc) return
-        cancelAllRequests()
         const unpublishedGdoc = await store.unpublish(currentGdoc)
         setGdoc({ original: unpublishedGdoc, current: unpublishedGdoc })
         openSuccessNotification("unpublished")
@@ -389,7 +339,6 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                 */}
                 <iframe
                     ref={iframeRef}
-                    onLoad={onIframeLoad}
                     src={`/gdocs/${currentGdoc.id}/preview#owid-document-root`}
                     style={{ width: "100%", border: "none" }}
                     // use `updatedAt` as a proxy for when database-level settings such as breadcrumbs have changed
