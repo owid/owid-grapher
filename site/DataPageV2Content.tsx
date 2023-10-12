@@ -102,7 +102,10 @@ export const DataPageV2Content = ({
         datapageData.origins[0].dateAccessed
             ? dayjs(datapageData.origins[0].dateAccessed).format("MMMM D, YYYY")
             : ""
-    const urlAccessed = datapageData.origins[0].urlDownload
+    const urlAccessed =
+        datapageData.origins &&
+        datapageData.origins.length &&
+        datapageData.origins[0].urlDownload
     const citationLong = `${citationShort}. ${datapageData.title}. ${originsLong}, ${processedAdapted} by Our World In Data. Retrieved ${dateAccessed} from ${urlAccessed}`
     const processedAdaptedText =
         datapageData.owidProcessingLevel === "minor"
