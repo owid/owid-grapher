@@ -238,7 +238,7 @@ export class ChartEditorPage
     // these may point to non-existent details e.g. ["not_a_real_term", "pvotery"]
     @computed get currentDetailReferences() {
         return {
-            subtitle: extractDetailsFromSyntax(this.grapher.subtitle),
+            subtitle: extractDetailsFromSyntax(this.grapher.currentSubtitle),
             note: extractDetailsFromSyntax(this.grapher.note),
         }
     }

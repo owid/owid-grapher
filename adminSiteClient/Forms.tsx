@@ -192,14 +192,29 @@ export class TextAreaField extends React.Component<TextFieldProps> {
                         )}
                     </label>
                 )}
-                <textarea
-                    className="form-control"
-                    value={props.value}
-                    onChange={this.onChange}
-                    onBlur={this.onBlur}
-                    rows={5}
-                    {...passthroughProps}
-                />
+                <div className="input-group">
+                    <textarea
+                        className="form-control custom-control"
+                        value={props.value}
+                        onChange={this.onChange}
+                        onBlur={this.onBlur}
+                        rows={5}
+                        {...passthroughProps}
+                    />
+                    {props.buttonContent && (
+                        <div className="input-group-append">
+                            <button
+                                className="btn btn-outline-secondary"
+                                type="button"
+                                onClick={() =>
+                                    props.onButtonClick && props.onButtonClick()
+                                }
+                            >
+                                {props.buttonContent}
+                            </button>
+                        </div>
+                    )}
+                </div>
                 {props.helpText && (
                     <small className="form-text text-muted">
                         {props.helpText}
@@ -611,16 +626,11 @@ export class Section extends React.Component<{ name: string }> {
     }
 }
 
-interface AutoTextFieldProps {
-    label?: string
-    value: string | undefined
-    placeholder?: string
+type AutoTextFieldProps = TextFieldProps & {
     isAuto: boolean
-    helpText?: string
-    onValue: (value: string) => void
     onToggleAuto: (value: boolean) => void
-    softCharacterLimit?: number
     onBlur?: () => void
+    textarea?: boolean
 }
 
 const ErrorMessage = ({ message }: { message: string }) => (
@@ -658,29 +668,53 @@ class SoftCharacterLimit extends React.Component<{
 @observer
 export class AutoTextField extends React.Component<AutoTextFieldProps> {
     render() {
-        const { props } = this
+        const props = this.props
+        const { textarea } = props
 
-        return (
-            <TextField
-                {...props}
-                value={props.value}
-                placeholder={props.placeholder}
-                buttonContent={
-                    <div
-                        title={
-                            props.isAuto ? "Automatic default" : "Manual input"
-                        }
-                    >
-                        {props.isAuto ? (
-                            <FontAwesomeIcon icon={faLink} />
-                        ) : (
-                            <FontAwesomeIcon icon={faUnlink} />
-                        )}
-                    </div>
-                }
-                onButtonClick={() => props.onToggleAuto(!props.isAuto)}
-            />
-        )
+        if (textarea)
+            return (
+                <TextAreaField
+                    {...props}
+                    buttonContent={
+                        <div
+                            title={
+                                props.isAuto
+                                    ? "Automatic default"
+                                    : "Manual input"
+                            }
+                        >
+                            {props.isAuto ? (
+                                <FontAwesomeIcon icon={faLink} />
+                            ) : (
+                                <FontAwesomeIcon icon={faUnlink} />
+                            )}
+                        </div>
+                    }
+                    onButtonClick={() => props.onToggleAuto(!props.isAuto)}
+                />
+            )
+        else
+            return (
+                <TextField
+                    {...props}
+                    buttonContent={
+                        <div
+                            title={
+                                props.isAuto
+                                    ? "Automatic default"
+                                    : "Manual input"
+                            }
+                        >
+                            {props.isAuto ? (
+                                <FontAwesomeIcon icon={faLink} />
+                            ) : (
+                                <FontAwesomeIcon icon={faUnlink} />
+                            )}
+                        </div>
+                    }
+                    onButtonClick={() => props.onToggleAuto(!props.isAuto)}
+                />
+            )
     }
 }
 
@@ -780,6 +814,75 @@ export class BindAutoString<
                 onToggleAuto={this.onToggleAuto}
                 {...rest}
                 onBlur={this.onBlur}
+            />
+        )
+    }
+}
+
+/** This text field is for cases where you want to have a text field or text area
+    with a button that be linked/unlinked to either use a default value or override it.
+
+    To use it you need to provide 4 props:
+    - readFn: a function that returns the current value of the field
+    - writeFn: a function that writes a value to the field
+    - store: the object that contains the field
+    - isAuto: a boolean that indicates whether the field is linked or not
+
+    readFn and writeFn can either read and write from the same property or different ones -
+    the latter is useful so that one property can provide the overridden value or the default value.
+    isAuto has to reliably determine if the default value is used or not.
+
+    ```tsx
+    <BindAutoStringExt
+        label={"Subtitle"}
+        readFn={(g) => g.currentSubtitle}
+        writeFn={(g, newVal) => (g.subtitle = newVal)}
+        isAuto={grapher.subtitle === undefined}
+        store={grapher}
+    />
+    ```
+ */
+@observer
+export class BindAutoStringExt<
+    T extends Record<string, any>
+> extends React.Component<
+    {
+        readFn: (x: T) => string
+        writeFn: (x: T, value: string | undefined) => void
+        store: T
+    } & Omit<
+        AutoTextFieldProps,
+        "onValue" | "onToggleAuto" | "value" | "isBlur"
+    >
+> {
+    @action.bound onValue(value: string | undefined = "") {
+        this.props.writeFn(this.props.store, value)
+    }
+
+    @action.bound onBlur() {
+        if (!this.props.isAuto) {
+            const trimmedValue = this.props.readFn(this.props.store).trim()
+            this.props.writeFn(this.props.store, trimmedValue)
+        }
+    }
+
+    @action.bound onToggleAuto(value: boolean) {
+        this.props.writeFn(
+            this.props.store,
+            value ? undefined : this.props.readFn(this.props.store)
+        )
+    }
+
+    render() {
+        const { readFn, store, ...rest } = this.props
+        const currentReadValue = readFn(store)
+        return (
+            <AutoTextField
+                value={currentReadValue || ""}
+                onValue={this.onValue}
+                onBlur={this.onBlur}
+                onToggleAuto={this.onToggleAuto}
+                {...rest}
             />
         )
     }
