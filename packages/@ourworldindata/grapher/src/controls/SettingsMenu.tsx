@@ -226,13 +226,20 @@ export class SettingsMenu extends React.Component<{
     }
 
     componentDidMount(): void {
+        document.addEventListener("keydown", this.onDocumentKeyDown)
         document.addEventListener("click", this.onDocumentClick, {
             capture: true,
         })
     }
 
     componentWillUnmount(): void {
+        document.removeEventListener("keydown", this.onDocumentKeyDown)
         document.removeEventListener("click", this.onDocumentClick)
+    }
+
+    @action.bound onDocumentKeyDown(e: KeyboardEvent): void {
+        // dismiss menu on esc
+        if (this.active && e.key === "Escape") this.toggleVisibility()
     }
 
     @action.bound onDocumentClick(e: MouseEvent): void {
