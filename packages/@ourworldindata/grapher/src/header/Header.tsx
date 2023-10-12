@@ -223,11 +223,15 @@ export class StaticHeader extends Header<StaticHeaderProps> {
             ? (24 / 16) * (manager.fontSize ?? 16) // respect base font size for thumbnails
             : 24
         let title = makeTitle(initialFontSize)
+
+        // if the title is already a single line, no need to decrease font size
+        if (title.lines.length <= 1) return title
+
         const originalLineCount = title.lines.length
-        // decrease the initial font size by no more than 2px using 0.5px steps
+        // decrease the initial font size by no more than 20% using 0.5px steps
         const potentialFontSizes = range(
             initialFontSize,
-            initialFontSize - 2.5,
+            initialFontSize * 0.8,
             -0.5
         )
         for (const fontSize of potentialFontSizes) {
@@ -236,12 +240,8 @@ export class StaticHeader extends Header<StaticHeaderProps> {
             if (currentLineCount <= 1 || currentLineCount < originalLineCount)
                 break
         }
-
-        // if decreasing the font size didn't make a difference, use the initial font size
-        if (title.lines.length === originalLineCount) {
-            return makeTitle(initialFontSize)
-        }
-
+        // return the title at the new font size: either it now fits into a single line, or
+        // its size has been reduced so the multi-line title doesn't take up quite that much space
         return title
     }
 
