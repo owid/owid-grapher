@@ -46,7 +46,7 @@ const TWITTER_OPTIONS: ImageOptions = {
     svgWidth: 800,
     svgHeight: 418,
     details: false,
-    fontSize: 24,
+    fontSize: 21,
 }
 
 const OPEN_GRAPH_OPTIONS: ImageOptions = {
@@ -56,7 +56,7 @@ const OPEN_GRAPH_OPTIONS: ImageOptions = {
     svgWidth: 800,
     svgHeight: 418,
     details: false,
-    fontSize: 24,
+    fontSize: 21,
 }
 
 let initialized = false
@@ -160,6 +160,7 @@ async function fetchAndRenderGrapherToSvg({
         queryStr: "?" + searchParams.toString(),
         bounds,
     })
+    grapher.isGeneratingThumbnail = true
     grapher.shouldIncludeDetailsInStaticExport = options.details
     grapher.baseFontSize = options.fontSize
 

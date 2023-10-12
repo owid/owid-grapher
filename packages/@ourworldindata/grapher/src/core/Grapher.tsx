@@ -760,6 +760,8 @@ export class Grapher
     }
 
     @observable.ref isExportingtoSvgOrPng = false
+    @observable.ref isGeneratingThumbnail = false
+
     tooltips?: TooltipManager["tooltips"] = observable.map({}, { deep: false })
     @observable isPlaying = false
     @observable.ref isSelectingData = false
