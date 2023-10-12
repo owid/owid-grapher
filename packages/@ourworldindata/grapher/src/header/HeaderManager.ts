@@ -18,4 +18,6 @@ export interface HeaderManager {
     framePaddingVertical?: number
     isOnCanonicalUrl?: boolean
     isInIFrame?: boolean
+    isGeneratingThumbnail?: boolean
+    fontSize?: number
 }

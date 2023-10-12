@@ -99,7 +99,9 @@ export class Header<
     }
 
     @computed get subtitle(): MarkdownTextWrap {
-        const fontSize = this.manager.isSmall
+        const fontSize = this.manager.isGeneratingThumbnail
+            ? (14 / 16) * (this.manager.fontSize ?? 16) // respect base font size for thumbnails
+            : this.manager.isSmall
             ? 12
             : this.manager.isMedium
             ? 13
@@ -205,7 +207,7 @@ interface StaticHeaderProps extends HeaderProps {
 @observer
 export class StaticHeader extends Header<StaticHeaderProps> {
     @computed get title(): TextWrap {
-        const { logoWidth, titleText } = this
+        const { logoWidth, titleText, manager } = this
 
         const makeTitle = (fontSize: number): TextWrap =>
             new TextWrap({
@@ -217,7 +219,9 @@ export class StaticHeader extends Header<StaticHeaderProps> {
             })
 
         // try to fit the title into a single line if possible-- but not if it would make the text too small
-        const initialFontSize = 24
+        const initialFontSize = manager.isGeneratingThumbnail
+            ? (24 / 16) * (manager.fontSize ?? 16) // respect base font size for thumbnails
+            : 24
         let title = makeTitle(initialFontSize)
         const originalLineCount = title.lines.length
         // decrease the initial font size by no more than 2px using 0.5px steps

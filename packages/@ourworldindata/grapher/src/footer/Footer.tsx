@@ -649,6 +649,10 @@ export class StaticFooter extends Footer<StaticFooterProps> {
     }
 
     @computed protected get fontSize(): number {
+        // respect base font size for thumbnails
+        if (this.manager.isGeneratingThumbnail) {
+            return (13 / 16) * (this.manager.fontSize ?? 16)
+        }
         return 13
     }
 
