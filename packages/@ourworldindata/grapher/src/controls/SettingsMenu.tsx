@@ -53,6 +53,7 @@ export interface SettingsMenuManager
         FacetStrategySelectionManager {
     base?: React.RefObject<SVGGElement | HTMLDivElement> // the root grapher element
     showConfigurationDrawer?: boolean
+    isInIFrame?: boolean
 
     // ArchieML directives
     hideFacetControl?: boolean
@@ -265,8 +266,11 @@ export class SettingsMenu extends React.Component<{
     }
 
     @computed get drawer(): Element | null {
-        // use the drawer `<nav>` element if it exists, otherwise render into a drop-down menu
-        return this.manager.base?.current?.closest(".related-charts")
+        const { isInIFrame, base } = this.manager,
+            isInRelatedCharts = !!base?.current?.closest(".related-charts")
+        // use the drawer `<nav>` element if it exists unless this is an embed or
+        // a related-charts entry, otherwise render into a drop-down menu
+        return isInIFrame || isInRelatedCharts
             ? null // also use a drop-down menu within the Related Charts section
             : document.querySelector(`nav#${GRAPHER_SETTINGS_DRAWER_ID}`)
     }
