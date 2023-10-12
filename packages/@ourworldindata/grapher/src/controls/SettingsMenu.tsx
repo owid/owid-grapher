@@ -51,8 +51,9 @@ export interface SettingsMenuManager
         ZoomToggleManager,
         TableFilterToggleManager,
         FacetStrategySelectionManager {
-    base?: React.RefObject<SVGGElement | HTMLDivElement> // the root grapher element
     showConfigurationDrawer?: boolean
+    isInIFrame?: boolean
+    isEmbeddedInAnOwidPage?: boolean
 
     // ArchieML directives
     hideFacetControl?: boolean
@@ -225,13 +226,20 @@ export class SettingsMenu extends React.Component<{
     }
 
     componentDidMount(): void {
+        document.addEventListener("keydown", this.onDocumentKeyDown)
         document.addEventListener("click", this.onDocumentClick, {
             capture: true,
         })
     }
 
     componentWillUnmount(): void {
+        document.removeEventListener("keydown", this.onDocumentKeyDown)
         document.removeEventListener("click", this.onDocumentClick)
+    }
+
+    @action.bound onDocumentKeyDown(e: KeyboardEvent): void {
+        // dismiss menu on esc
+        if (this.active && e.key === "Escape") this.toggleVisibility()
     }
 
     @action.bound onDocumentClick(e: MouseEvent): void {
@@ -265,9 +273,12 @@ export class SettingsMenu extends React.Component<{
     }
 
     @computed get drawer(): Element | null {
-        // use the drawer `<nav>` element if it exists, otherwise render into a drop-down menu
-        return this.manager.base?.current?.closest(".related-charts")
-            ? null // also use a drop-down menu within the Related Charts section
+        const { isInIFrame, isEmbeddedInAnOwidPage } = this.manager
+        // Use the drawer `<nav>` element if it exists in the page markup (as it does on grapher and data pages)
+        // unless this is an external embed or an internal one (e.g., in the data page's Related Charts block).
+        // Otherwise, render into a drop-down menu.
+        return isInIFrame || isEmbeddedInAnOwidPage
+            ? null
             : document.querySelector(`nav#${GRAPHER_SETTINGS_DRAWER_ID}`)
     }
 
