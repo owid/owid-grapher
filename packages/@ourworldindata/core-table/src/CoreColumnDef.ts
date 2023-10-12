@@ -67,6 +67,8 @@ export interface CoreColumnDef extends ColumnColorScale {
     attributionShort?: string // The Metadata V2 title disambiguation fragment for the producer
     description?: string
     descriptionShort?: string
+    descriptionProcessing?: string
+    descriptionKey?: string[]
     descriptionFromProducer?: string
     note?: string // Any internal notes the author wants to record for display in admin interfaces
 

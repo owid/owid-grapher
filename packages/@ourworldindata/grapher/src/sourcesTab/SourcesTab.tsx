@@ -139,6 +139,49 @@ export class SourcesTab extends React.Component<{
                                 </td>
                             </tr>
                         ) : null}
+                        {column.def.descriptionKey &&
+                        column.def.descriptionKey.length === 1 ? (
+                            <tr>
+                                <td>Key information</td>
+                                <td>
+                                    <MarkdownTextWrap
+                                        text={column.def.descriptionKey[0]}
+                                        fontSize={12}
+                                    />
+                                </td>
+                            </tr>
+                        ) : null}
+                        {column.def.descriptionKey &&
+                        column.def.descriptionKey.length > 1 ? (
+                            <tr>
+                                <td>Key information</td>
+                                <td>
+                                    <ul>
+                                        {column.def.descriptionKey.map(
+                                            (info: string, index: number) => (
+                                                <li key={index}>
+                                                    <MarkdownTextWrap
+                                                        text={info}
+                                                        fontSize={12}
+                                                    />
+                                                </li>
+                                            )
+                                        )}
+                                    </ul>
+                                </td>
+                            </tr>
+                        ) : null}
+                        {column.def.descriptionProcessing ? (
+                            <tr>
+                                <td>Processing notes</td>
+                                <td>
+                                    <MarkdownTextWrap
+                                        text={column.def.descriptionProcessing}
+                                        fontSize={12}
+                                    />
+                                </td>
+                            </tr>
+                        ) : null}
                         {coverage ? (
                             <tr>
                                 <td>Variable geographic coverage</td>
