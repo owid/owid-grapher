@@ -35,16 +35,30 @@ export class ContentSwitchers extends React.Component<{
         return this.manager.type ?? ChartTypeName.LineChart
     }
 
+    private previousChartIcon: JSX.Element | undefined
+
     private tabIcon(tab: GrapherTabOption): JSX.Element {
+        const { manager } = this
         switch (tab) {
             case GrapherTabOption.table:
                 return <FontAwesomeIcon icon={faTable} />
             case GrapherTabOption.map:
                 return <FontAwesomeIcon icon={faEarthAmericas} />
             case GrapherTabOption.chart:
-                return this.manager.isLineChartThatTurnedIntoDiscreteBar
+                const chartIcon = manager.isLineChartThatTurnedIntoDiscreteBar
                     ? chartIcons[ChartTypeName.DiscreteBar]
                     : chartIcons[this.chartType]
+                // If we're switching from a line chart to the map, then the timeline
+                // is automatically set to a single year, and the underlying chart switches to
+                // a discrete bar chart, which makes the line chart icon change into a bar chart icon.
+                // To prevent that, we hold onto the previous chart icon if we're not currently on the chart tab.
+                const newChartIcon =
+                    this.previousChartIcon &&
+                    manager.tab !== GrapherTabOption.chart
+                        ? this.previousChartIcon
+                        : chartIcon
+                this.previousChartIcon = newChartIcon
+                return newChartIcon
         }
     }
 
