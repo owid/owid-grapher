@@ -32,6 +32,7 @@ export const checkIsLightningUpdate = (
         "imageMetadata",
         "linkedCharts",
         "errors",
+        "revisionId",
     ]
 
     const lightningContentProps: Array<keyof OwidGdocContent> = [
@@ -50,19 +51,26 @@ export const checkIsLightningUpdate = (
         ...lightningContentProps.map((prop) => `content.${prop}`),
     ]
 
+    // When this function is called from server-side code and a Gdoc object
+    // is passed in, the omit() call will surface Gdoc class members. The
+    // comparison will then fail if the other operand in the comparison is
+    // an OwidGdocInterface object. To avoid this, we spread into new objects
+    // in order to compare the same types. Tags are stringified to avoid a similar
+    // issue with Dates and date strings.
+    const prevOmitted = omit(
+        { ...prevGdoc, tags: nextGdoc.tags?.map((tag) => JSON.stringify(tag)) },
+        lightningProps
+    )
+    const nextOmitted = omit(
+        { ...nextGdoc, tags: prevGdoc.tags?.map((tag) => JSON.stringify(tag)) },
+        lightningProps
+    )
+
     return (
         hasChanges &&
         prevGdoc.published &&
         nextGdoc.published &&
-        // When this function is called from server-side code and a Gdoc object
-        // is passed in, the omit() call will surface Gdoc class members. The
-        // comparison will then fail if the other operand in the comparison is
-        // an OwidGdocInterface object. To avoid this, we spread into new objects
-        // in order to compare the same types.
-        isEqual(
-            omit({ ...prevGdoc }, lightningProps),
-            omit({ ...nextGdoc }, lightningProps)
-        )
+        isEqual(prevOmitted, nextOmitted)
     )
 }
 
@@ -71,6 +79,18 @@ export const checkHasChanges = (
     nextGdoc: OwidGdocInterface
 ) =>
     !isEqual(
-        omit(prevGdoc, GDOC_DIFF_OMITTABLE_PROPERTIES),
-        omit(nextGdoc, GDOC_DIFF_OMITTABLE_PROPERTIES)
+        omit(
+            {
+                ...prevGdoc,
+                tags: prevGdoc.tags?.map((tag) => JSON.stringify(tag)),
+            },
+            GDOC_DIFF_OMITTABLE_PROPERTIES
+        ),
+        omit(
+            {
+                ...nextGdoc,
+                tags: nextGdoc.tags?.map((tag) => JSON.stringify(tag)),
+            },
+            GDOC_DIFF_OMITTABLE_PROPERTIES
+        )
     )
