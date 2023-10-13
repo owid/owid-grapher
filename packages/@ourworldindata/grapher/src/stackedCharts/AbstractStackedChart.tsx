@@ -84,6 +84,29 @@ export class AbstractStackedChart
         return table
     }
 
+    transformTableForSelection(table: OwidTable): OwidTable {
+        table = table
+            .replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
+            .dropRowsWithErrorValuesForAllColumns(this.yColumnSlugs)
+
+        if (this.shouldRunLinearInterpolation) {
+            this.yColumnSlugs.forEach((slug) => {
+                table = table.interpolateColumnLinearly(slug)
+            })
+        }
+
+        if (this.missingDataStrategy !== MissingDataStrategy.show) {
+            const groupedByEntity = table
+                .groupBy("entityName")
+                .map((t: OwidTable) =>
+                    t.dropRowsWithErrorValuesForAnyColumn(this.yColumnSlugs)
+                )
+            table = groupedByEntity[0].concat(groupedByEntity.slice(1))
+        }
+
+        return table
+    }
+
     @computed private get missingDataStrategy(): MissingDataStrategy {
         return this.manager.missingDataStrategy || MissingDataStrategy.auto
     }

@@ -300,6 +300,22 @@ export class LineChart
         return table
     }
 
+    transformTableForSelection(table: OwidTable): OwidTable {
+        table = table.replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
+
+        if (this.missingDataStrategy === MissingDataStrategy.hide) {
+            const groupedByEntity = table.groupBy("entityName").map((t) => {
+                if (t.hasAnyColumnNoValidValue(this.yColumnSlugs)) {
+                    t = t.dropAllRows()
+                }
+                return t
+            })
+            table = groupedByEntity[0].concat(groupedByEntity.slice(1))
+        }
+
+        return table
+    }
+
     @computed private get missingDataStrategy(): MissingDataStrategy {
         return this.manager.missingDataStrategy || MissingDataStrategy.auto
     }
