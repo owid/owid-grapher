@@ -44,7 +44,9 @@
 
 .datasource-wrapper ul,
 .datasource-wrapper ol {
-    margin-left: 1.1rem;
+    margin-left: 0;
+    padding-left: 1rem;
+    margin-bottom: 0;
 }
 
 .datasource-wrapper table {
