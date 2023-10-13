@@ -6,6 +6,7 @@ import {
     PrimaryColumn,
     ManyToMany,
     JoinTable,
+    LessThanOrEqual,
 } from "typeorm"
 import {
     OwidGdocTag,
@@ -861,7 +862,10 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
         // the database dependent on the mapping function, which is more practical
         // but also makes it less of a source of truth when considered in isolation.
         return Gdoc.find({
-            where: { published: true },
+            where: {
+                published: true,
+                publishedAt: LessThanOrEqual(new Date()),
+            },
             relations: ["tags"],
         }).then((gdocs) =>
             gdocs.filter(
@@ -870,10 +874,14 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
         ) as Promise<(OwidGdocPublished & Gdoc)[]>
     }
 
+    /**
+     * Excludes published listed Gdocs with a publication date in the future
+     */
     static async getListedGdocs(): Promise<(Gdoc & OwidGdocPublished)[]> {
         return Gdoc.findBy({
             published: true,
             publicationContext: OwidGdocPublicationContext.listed,
+            publishedAt: LessThanOrEqual(new Date()),
         }) as Promise<(Gdoc & OwidGdocPublished)[]>
     }
 
