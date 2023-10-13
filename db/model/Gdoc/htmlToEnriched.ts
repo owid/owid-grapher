@@ -32,6 +32,8 @@ import {
     checkNodeIsSpanLink,
     Url,
     EnrichedBlockCallout,
+    EnrichedBlockExpandableParagraph,
+    EnrichedBlockGraySection,
 } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
 import {
@@ -66,23 +68,48 @@ export function consolidateSpans(
 ): OwidEnrichedGdocBlock[] {
     const newBlocks: OwidEnrichedGdocBlock[] = []
     let currentBlock: EnrichedBlockText | undefined = undefined
+
     for (const block of blocks) {
-        if (block.type === "text")
-            if (currentBlock === undefined) currentBlock = block
-            else
+        if (block.type === "text") {
+            if (currentBlock === undefined) {
+                currentBlock = block
+            } else {
+                const consolidatedValue: Span[] = [...currentBlock.value]
+                // If there's no space between the two blocks, add one
+                const hasSpace =
+                    spansToSimpleString(currentBlock.value).endsWith(" ") ||
+                    spansToSimpleString(block.value).startsWith(" ")
+                if (!hasSpace) {
+                    consolidatedValue.push({
+                        spanType: "span-simple-text",
+                        text: " ",
+                    })
+                }
+                consolidatedValue.push(...block.value)
+
                 currentBlock = {
                     type: "text",
-                    value: [...currentBlock.value, ...block.value],
-                    parseErrors: [],
+                    value: consolidatedValue,
+                    parseErrors: [
+                        ...currentBlock.parseErrors,
+                        ...block.parseErrors,
+                    ],
                 }
-        else {
-            if (currentBlock !== undefined) {
+            }
+        } else {
+            if (currentBlock) {
                 newBlocks.push(currentBlock)
                 currentBlock = undefined
-                newBlocks.push(block)
             }
+            newBlocks.push(block)
         }
     }
+
+    // Push the last consolidated block if it exists
+    if (currentBlock) {
+        newBlocks.push(currentBlock)
+    }
+
     return newBlocks
 }
 
@@ -285,10 +312,10 @@ interface ParseContext {
 const wpTagRegex =
     /wp:(?<tag>([\w\/-]+))\s*(?<attributes>{.*})?\s*(?<isVoidElement>\/)?$/
 
-/** Unwraps a CheerioElement in the sense that it applies cheerioelementsToArchieML
-    on the children, returning the result. In effect this "removes" an html element
-    like a div that we don't care about in it's own, and where instead we just want to handle
-    the children. */
+/** Unwraps a CheerioElement in the sense that it applies
+    cheerioElementsToArchieML on the children, returning the result. In effect
+    this "removes" an html element like a div that we don't care about on its
+    own, and where instead we just want to handle the children. */
 function unwrapElement(
     element: CheerioElement,
     context: ParseContext
@@ -620,7 +647,8 @@ function finishWpComponent(
             // If it's a list of anchor links, we want to turn it into a toc block
             const contentIsAllText =
                 content.content.find(
-                    (block) => "type" in block && block.type !== "text"
+                    (block) =>
+                        isArchieMlComponent(block) && block.type !== "text"
                 ) === undefined
 
             if (contentIsAllText) {
@@ -635,7 +663,7 @@ function finishWpComponent(
 
             const contentIsList =
                 content.content.length === 1 &&
-                "type" in content.content[0] &&
+                isArchieMlComponent(content.content[0]) &&
                 content.content[0].type === "list"
             if (contentIsList) {
                 const listItems = get(content, ["content", 0, "items"])
@@ -691,13 +719,42 @@ function finishWpComponent(
                     "Unknown summary content: " +
                     content.content
                         .map((block) =>
-                            "type" in block ? block.type : block.tagName
+                            isArchieMlComponent(block)
+                                ? block.type
+                                : block.tagName
                         )
                         .join(", "),
             }
             return {
                 errors: [error],
                 content: [],
+            }
+        })
+        .with("owid/additional-information", () => {
+            const heading: EnrichedBlockHeading = {
+                type: "heading",
+                level: 2,
+                text: [
+                    {
+                        spanType: "span-simple-text",
+                        text: "Additional information",
+                    },
+                ],
+                parseErrors: [],
+            }
+            const expandableParagraph: EnrichedBlockExpandableParagraph = {
+                type: "expandable-paragraph",
+                items: content.content.slice(1) as OwidEnrichedGdocBlock[],
+                parseErrors: [],
+            }
+            const graySection: EnrichedBlockGraySection = {
+                type: "gray-section",
+                parseErrors: [],
+                items: [heading, expandableParagraph],
+            }
+            return {
+                errors: [],
+                content: [graySection],
             }
         })
         .otherwise(() => {
@@ -749,7 +806,7 @@ function cheerioToArchieML(
                 { tagName: "blockquote" },
                 (): BlockParseResult<EnrichedBlockPullQuote> => {
                     const spansResult = getSimpleTextSpansFromChildren(
-                        element, //bla
+                        element,
                         context
                     )
 
@@ -770,9 +827,9 @@ function cheerioToArchieML(
             .with({ tagName: "center" }, unwrapElementWithContext) // might want to translate this to a block with a centered style?
             .with({ tagName: "details" }, unwrapElementWithContext)
             .with({ tagName: "div" }, (div) => {
-                const className = div.attribs.class
+                const className = div.attribs.class || ""
                 // Special handling for a div that we use to mark the "First published on..." notice
-                if (className === "blog-info") {
+                if (className.includes("blog-info")) {
                     const children = unwrapElementWithContext(div)
                     const textChildren = children.content.filter(
                         (c) => "type" in c && c.type === "text"
@@ -787,6 +844,33 @@ function cheerioToArchieML(
                         errors: [],
                         content: [callout],
                     }
+                } else if (className.includes("pcrm")) {
+                    // pcrm stands for "preliminary collection of relevant material" which was used to designate entries
+                    // that weren't fully polished, but then became a way to create a general-purpose "warning box".
+                    const unwrapped = unwrapElementWithContext(element)
+                    const first = unwrapped.content[0] as OwidEnrichedGdocBlock
+                    const hasHeading = first.type === "heading"
+                    // Use heading as the callout title if it exists
+                    const title = hasHeading
+                        ? spansToUnformattedPlainText(first.text)
+                        : ""
+                    // If we've put the first block in the callout title, remove it from the text content
+                    const textBlocks = (
+                        hasHeading
+                            ? unwrapped.content.slice(1)
+                            : unwrapped.content
+                    ) as EnrichedBlockText[]
+                    // Compress multiple text blocks into one
+                    const consolidatedBlocks = consolidateSpans(
+                        textBlocks
+                    ) as EnrichedBlockText[]
+                    const callout: EnrichedBlockCallout = {
+                        type: "callout",
+                        parseErrors: [],
+                        title,
+                        text: consolidatedBlocks,
+                    }
+                    return { errors: [], content: [callout] }
                 } else {
                     return unwrapElementWithContext(div)
                 }

@@ -17,6 +17,7 @@ import {
     KeyChartLevel,
     MultipleOwidVariableDataDimensionsMap,
     Tag,
+    ChartTagJoin,
 } from "@ourworldindata/utils"
 import type { GrapherInterface } from "@ourworldindata/grapher"
 import { OpenAI } from "openai"
@@ -115,7 +116,7 @@ WHERE c.config -> "$.isPublished" = true
         return await Chart.findOneBy({ id })
     }
 
-    static async setTags(chartId: number, tags: Tag[]): Promise<void> {
+    static async setTags(chartId: number, tags: ChartTagJoin[]): Promise<void> {
         await db.transaction(async (t) => {
             const tagRows = tags.map((tag) => [
                 tag.id,
@@ -177,7 +178,9 @@ WHERE c.config -> "$.isPublished" = true
         }
     }
 
-    static async getGptTopicSuggestions(chartId: number): Promise<Tag[]> {
+    static async getGptTopicSuggestions(
+        chartId: number
+    ): Promise<Pick<Tag, "id" | "name">[]> {
         if (!OPENAI_API_KEY)
             throw new JsonError("No OPENAI_API_KEY env found", 500)
 
@@ -186,8 +189,8 @@ WHERE c.config -> "$.isPublished" = true
         })
         if (!chart) throw new JsonError(`No chart found for id ${chartId}`, 404)
 
-        const topics: Tag[] = await db.queryMysql(`
-            SELECT t.id, t.name
+        const topics: Pick<Tag, "id" | "name">[] = await db.queryMysql(`
+        SELECT t.id, t.name
             FROM tags t
             WHERE t.isTopic IS TRUE
             AND t.parentId IN (${PUBLIC_TAG_PARENT_IDS.join(",")})
@@ -229,15 +232,20 @@ WHERE c.config -> "$.isPublished" = true
         const json = completion.choices[0]?.message?.content
         if (!json) throw new JsonError("No response from GPT", 500)
 
-        const selectedTopics: Tag[] = JSON.parse(json)
+        const selectedTopics: unknown = JSON.parse(json)
 
-        // We only want to return topics that are in the list of possible
-        // topics, in case of hallucinations
-        const confirmedTopics = selectedTopics.filter((topic) =>
-            topics.map((t) => t.id).includes(topic.id)
-        )
+        if (lodash.isArray(selectedTopics)) {
+            // We only want to return topics that are in the list of possible
+            // topics, in case of hallucinations
+            const confirmedTopics = selectedTopics.filter((topic) =>
+                topics.map((t) => t.id).includes(topic.id)
+            )
 
-        return confirmedTopics
+            return confirmedTopics
+        } else {
+            console.error("GPT returned invalid response", json)
+            return []
+        }
     }
 
     static async all(): Promise<ChartRow[]> {

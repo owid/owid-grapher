@@ -2,7 +2,7 @@ import React from "react"
 import { observer } from "mobx-react"
 import { observable, computed, action, runInAction } from "mobx"
 import { Prompt, Redirect } from "react-router-dom"
-
+import { ChartTagJoin } from "@ourworldindata/utils"
 import { AdminLayout } from "./AdminLayout.js"
 import {
     BindString,
@@ -13,7 +13,7 @@ import {
 } from "./Forms.js"
 import { DatasetList, DatasetListItem } from "./DatasetList.js"
 import { ChartList, ChartListItem } from "./ChartList.js"
-import { TagBadge, Tag } from "./TagBadge.js"
+import { TagBadge } from "./TagBadge.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 
 interface TagPageData {
@@ -24,8 +24,8 @@ interface TagPageData {
     updatedAt: string
     datasets: DatasetListItem[]
     charts: ChartListItem[]
-    children: Tag[]
-    possibleParents: Tag[]
+    children: ChartTagJoin[]
+    possibleParents: ChartTagJoin[]
     isBulkImport: boolean
     isTopic: boolean
 }
@@ -177,7 +177,10 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
                                         <br />
                                         {this.parentTag && (
                                             <TagBadge
-                                                tag={this.parentTag as Tag}
+                                                tag={
+                                                    this
+                                                        .parentTag as ChartTagJoin
+                                                }
                                             />
                                         )}
                                     </div>
@@ -209,7 +212,7 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
                     <section>
                         <h3>Subcategories</h3>
                         {tag.children.map((c) => (
-                            <TagBadge tag={c as Tag} key={c.id} />
+                            <TagBadge tag={c as ChartTagJoin} key={c.id} />
                         ))}
                     </section>
                 )}

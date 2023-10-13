@@ -37,6 +37,7 @@ import {
     IMAGES_DIRECTORY,
     uniqBy,
     OwidGdocType,
+    Tag,
 } from "@ourworldindata/utils"
 import { Topic } from "@ourworldindata/grapher"
 import {
@@ -623,6 +624,16 @@ export const getRelatedCharts = async (
         AND charts.config->>"$.isPublished" = "true"
         ORDER BY title ASC
     `)
+
+export const getPostTags = async (
+    postId: number
+): Promise<Pick<Tag, "id" | "name">[]> => {
+    return await db
+        .knexTable("post_tags")
+        .select("tags.id", "tags.name")
+        .where({ post_id: postId })
+        .join("tags", "tags.id", "=", "post_tags.tag_id")
+}
 
 export const getRelatedChartsForVariable = async (
     variableId: number,

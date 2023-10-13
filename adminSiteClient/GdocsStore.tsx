@@ -4,7 +4,7 @@ import {
     getOwidGdocFromJSON,
     OwidGdocInterface,
     OwidGdocJSON,
-    OwidGdocTag,
+    Tag,
 } from "@ourworldindata/utils"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { Admin } from "./Admin.js"
@@ -18,7 +18,7 @@ import { Admin } from "./Admin.js"
  */
 export class GdocsStore {
     @observable gdocs: OwidGdocInterface[] = []
-    @observable availableTags: OwidGdocTag[] = []
+    @observable availableTags: Tag[] = []
     admin: Admin
 
     constructor(admin: Admin) {
@@ -74,7 +74,7 @@ export class GdocsStore {
     }
 
     @action
-    async updateTags(gdoc: OwidGdocInterface, tags: OwidGdocTag[]) {
+    async updateTags(gdoc: OwidGdocInterface, tags: Tag[]) {
         const json = await this.admin.requestJSON(
             `/api/gdocs/${gdoc.id}/setTags`,
             { tagIds: tags.map((t) => t.id) },

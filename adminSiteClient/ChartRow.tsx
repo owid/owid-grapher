@@ -3,7 +3,6 @@ import { observer } from "mobx-react"
 import { action, runInAction } from "mobx"
 import * as lodash from "lodash"
 import { Link } from "./Link.js"
-import { Tag } from "./TagBadge.js"
 import { Timeago } from "./Forms.js"
 import { EditableTags } from "./EditableTags.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
@@ -12,19 +11,19 @@ import {
     BAKED_GRAPHER_URL,
 } from "../settings/clientSettings.js"
 import { ChartListItem, showChartType } from "./ChartList.js"
-import { TaggableType } from "@ourworldindata/utils"
+import { TaggableType, ChartTagJoin } from "@ourworldindata/utils"
 
 @observer
 export class ChartRow extends React.Component<{
     chart: ChartListItem
     searchHighlight?: (text: string) => string | JSX.Element
-    availableTags: Tag[]
+    availableTags: ChartTagJoin[]
     onDelete: (chart: ChartListItem) => void
 }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    async saveTags(tags: Tag[]) {
+    async saveTags(tags: ChartTagJoin[]) {
         const { chart } = this.props
         const json = await this.context.admin.requestJSON(
             `/api/charts/${chart.id}/setTags`,
@@ -36,7 +35,7 @@ export class ChartRow extends React.Component<{
         }
     }
 
-    @action.bound onSaveTags(tags: Tag[]) {
+    @action.bound onSaveTags(tags: ChartTagJoin[]) {
         this.saveTags(tags)
     }
 
