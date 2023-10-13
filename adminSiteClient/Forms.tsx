@@ -194,7 +194,7 @@ export class TextAreaField extends React.Component<TextFieldProps> {
                 )}
                 <div className="input-group">
                     <textarea
-                        className="form-control custom-control"
+                        className="form-control"
                         value={props.value}
                         onChange={this.onChange}
                         onBlur={this.onBlur}
