@@ -1,7 +1,7 @@
 import {
     Bounds,
     DEFAULT_BOUNDS,
-    MarkdownTextWrap,
+    SimpleMarkdownText,
     OwidOrigin,
     uniq,
     excludeNullish,
@@ -21,20 +21,17 @@ export interface SourcesTabManager {
 
 // TODO: remove this component once all backported indicators
 // etc have switched from HTML to markdown for their sources
-const HtmlOrMarkdownText = (props: {
-    text: string
-    fontSize: number
-}): JSX.Element => {
+const HtmlOrMarkdownText = (props: { text: string }): JSX.Element => {
     // check the text for closing a, li or p tags. If
     // one is found, render using dangerouslySetInnerHTML,
-    // othewise use MarkdownTextWrap
-    const { text, fontSize } = props
+    // othewise use SimpleMarkdownText
+    const { text } = props
     const htmlRegex = /<\/(a|li|p)>/
     const match = text.match(htmlRegex)
     if (match) {
         return <span dangerouslySetInnerHTML={{ __html: text }} />
     } else {
-        return <MarkdownTextWrap text={text} fontSize={fontSize} />
+        return <SimpleMarkdownText text={text} />
     }
 }
 
@@ -119,9 +116,8 @@ export class SourcesTab extends React.Component<{
                             <tr>
                                 <td>Variable description</td>
                                 <td>
-                                    <MarkdownTextWrap
+                                    <SimpleMarkdownText
                                         text={column.def.descriptionShort}
-                                        fontSize={12}
                                     />
                                 </td>
                             </tr>
@@ -132,9 +128,48 @@ export class SourcesTab extends React.Component<{
                             <tr>
                                 <td>Variable description</td>
                                 <td>
-                                    <HtmlOrMarkdownText
+                                    <SimpleMarkdownText
                                         text={column.description}
-                                        fontSize={12}
+                                    />
+                                </td>
+                            </tr>
+                        ) : null}
+                        {column.def.descriptionKey &&
+                        column.def.descriptionKey.length === 1 ? (
+                            <tr>
+                                <td>Key information</td>
+                                <td>
+                                    <SimpleMarkdownText
+                                        text={column.def.descriptionKey[0]}
+                                    />
+                                </td>
+                            </tr>
+                        ) : null}
+                        {column.def.descriptionKey &&
+                        column.def.descriptionKey.length > 1 ? (
+                            <tr>
+                                <td>Key information</td>
+                                <td>
+                                    <ul>
+                                        {column.def.descriptionKey.map(
+                                            (info: string, index: number) => (
+                                                <li key={index}>
+                                                    <SimpleMarkdownText
+                                                        text={info}
+                                                    />
+                                                </li>
+                                            )
+                                        )}
+                                    </ul>
+                                </td>
+                            </tr>
+                        ) : null}
+                        {column.def.descriptionProcessing ? (
+                            <tr>
+                                <td>Processing notes</td>
+                                <td>
+                                    <SimpleMarkdownText
+                                        text={column.def.descriptionProcessing}
                                     />
                                 </td>
                             </tr>
@@ -161,9 +196,8 @@ export class SourcesTab extends React.Component<{
                             <tr>
                                 <td>Data published by</td>
                                 <td>
-                                    <MarkdownTextWrap
+                                    <SimpleMarkdownText
                                         text={publishedByArray[0]}
-                                        fontSize={12}
                                     />
                                 </td>
                             </tr>
@@ -179,9 +213,8 @@ export class SourcesTab extends React.Component<{
                                                 index: number
                                             ) => (
                                                 <li key={index}>
-                                                    <MarkdownTextWrap
+                                                    <SimpleMarkdownText
                                                         text={citation}
-                                                        fontSize={12}
                                                     />
                                                 </li>
                                             )
@@ -196,7 +229,6 @@ export class SourcesTab extends React.Component<{
                                 <td>
                                     <HtmlOrMarkdownText
                                         text={source.dataPublisherSource}
-                                        fontSize={12}
                                     />
                                 </td>
                             </tr>
@@ -205,10 +237,7 @@ export class SourcesTab extends React.Component<{
                             <tr>
                                 <td>Link</td>
                                 <td>
-                                    <HtmlOrMarkdownText
-                                        text={source.link}
-                                        fontSize={12}
-                                    />
+                                    <HtmlOrMarkdownText text={source.link} />
                                 </td>
                             </tr>
                         ) : null}
@@ -222,10 +251,7 @@ export class SourcesTab extends React.Component<{
                 </table>
                 {source.additionalInfo && (
                     <p key={"additionalInfo"}>
-                        <HtmlOrMarkdownText
-                            text={source.additionalInfo}
-                            fontSize={12}
-                        />
+                        <HtmlOrMarkdownText text={source.additionalInfo} />
                     </p>
                 )}
             </div>

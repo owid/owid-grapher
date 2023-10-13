@@ -602,6 +602,8 @@ export {
     sumTextWrapHeights,
 } from "./MarkdownTextWrap/MarkdownTextWrap.js"
 
+export { SimpleMarkdownText } from "./SimpleMarkdownText.js"
+
 export {
     extractDetailsFromSyntax,
     mdParser,
