@@ -8,7 +8,6 @@ import {
 import { MarkdownRoot, mdParser } from "./MarkdownTextWrap/parser.js"
 type SimpleMarkdownTextProps = {
     text: string
-    detailsOrderedByReference?: Set<string>
 }
 
 export class SimpleMarkdownText extends React.Component<SimpleMarkdownTextProps> {
@@ -16,9 +15,6 @@ export class SimpleMarkdownText extends React.Component<SimpleMarkdownTextProps>
         return this.props.text
     }
 
-    @computed get detailsOrderedByReference(): Set<string> {
-        return this.props.detailsOrderedByReference || new Set()
-    }
     @computed get ast(): MarkdownRoot["children"] {
         if (!this.text) return []
         const result = mdParser.markdown.parse(this.props.text)
