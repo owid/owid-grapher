@@ -733,22 +733,6 @@ function cheerioToArchieML(
 
     const span = cheerioToSpan(element)
     if (span) {
-        // Special handling for a unique span that we use to mark the first published date
-        if (
-            span.spanType === "span-simple-text" &&
-            span.text.trim().match(/published/)
-        ) {
-            const callout: EnrichedBlockCallout = {
-                type: "callout",
-                title: "",
-                text: [{ type: "text", value: [span], parseErrors: [] }],
-                parseErrors: [],
-            }
-            return {
-                errors: [],
-                content: [callout],
-            }
-        }
         return {
             errors: [],
             // TODO: below should be a list of spans and a rich text block
@@ -785,7 +769,28 @@ function cheerioToArchieML(
             .with({ tagName: "body" }, unwrapElementWithContext)
             .with({ tagName: "center" }, unwrapElementWithContext) // might want to translate this to a block with a centered style?
             .with({ tagName: "details" }, unwrapElementWithContext)
-            .with({ tagName: "div" }, unwrapElementWithContext)
+            .with({ tagName: "div" }, (div) => {
+                const className = div.attribs.class
+                // Special handling for a div that we use to mark the "First published on..." notice
+                if (className === "blog-info") {
+                    const children = unwrapElementWithContext(div)
+                    const textChildren = children.content.filter(
+                        (c) => "type" in c && c.type === "text"
+                    ) as EnrichedBlockText[]
+                    const callout: EnrichedBlockCallout = {
+                        type: "callout",
+                        title: "",
+                        text: textChildren,
+                        parseErrors: [],
+                    }
+                    return {
+                        errors: [],
+                        content: [callout],
+                    }
+                } else {
+                    return unwrapElementWithContext(div)
+                }
+            })
             .with({ tagName: "figcaption" }, unwrapElementWithContext)
             .with(
                 { tagName: "figure" },
