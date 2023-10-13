@@ -2027,6 +2027,14 @@ export class Grapher
                 category: "Selection",
             },
             {
+                combo: "f",
+                fn: (): void => {
+                    this.hideFacetControl = !this.hideFacetControl
+                },
+                title: `Toggle Faceting`,
+                category: "Chart",
+            },
+            {
                 combo: "p",
                 fn: (): void => this.togglePlayingCommand(),
                 title: this.isPlaying ? `Pause` : `Play`,
