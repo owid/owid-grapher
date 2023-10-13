@@ -732,13 +732,13 @@ function cheerioToArchieML(
         unwrapElement(element, context)
 
     const span = cheerioToSpan(element)
-    if (span)
+    if (span) {
         return {
             errors: [],
             // TODO: below should be a list of spans and a rich text block
             content: [{ type: "text", value: [span], parseErrors: [] }],
         }
-    else if (element.type === "tag") {
+    } else if (element.type === "tag") {
         context.htmlTagCounts[element.tagName] =
             (context.htmlTagCounts[element.tagName] ?? 0) + 1
         const result: BlockParseResult<ArchieBlockOrWpComponent> = match(
@@ -769,7 +769,28 @@ function cheerioToArchieML(
             .with({ tagName: "body" }, unwrapElementWithContext)
             .with({ tagName: "center" }, unwrapElementWithContext) // might want to translate this to a block with a centered style?
             .with({ tagName: "details" }, unwrapElementWithContext)
-            .with({ tagName: "div" }, unwrapElementWithContext)
+            .with({ tagName: "div" }, (div) => {
+                const className = div.attribs.class
+                // Special handling for a div that we use to mark the "First published on..." notice
+                if (className === "blog-info") {
+                    const children = unwrapElementWithContext(div)
+                    const textChildren = children.content.filter(
+                        (c) => "type" in c && c.type === "text"
+                    ) as EnrichedBlockText[]
+                    const callout: EnrichedBlockCallout = {
+                        type: "callout",
+                        title: "",
+                        text: textChildren,
+                        parseErrors: [],
+                    }
+                    return {
+                        errors: [],
+                        content: [callout],
+                    }
+                } else {
+                    return unwrapElementWithContext(div)
+                }
+            })
             .with({ tagName: "figcaption" }, unwrapElementWithContext)
             .with(
                 { tagName: "figure" },
