@@ -21,7 +21,6 @@ import {
     EnrichedBlockChart,
     EnrichedBlockHtml,
     EnrichedBlockList,
-    EnrichedBlockStickyRightContainer,
     EnrichedBlockNumberedList,
     EnrichedBlockProminentLink,
     BlockImageSize,
@@ -34,6 +33,7 @@ import {
     EnrichedBlockCallout,
     EnrichedBlockExpandableParagraph,
     EnrichedBlockGraySection,
+    EnrichedBlockStickyRightContainer,
 } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
 import {
@@ -299,6 +299,7 @@ interface ParseContext {
     shouldParseWpComponents: boolean
     htmlTagCounts: Record<string, number>
     wpTagCounts: Record<string, number>
+    isEntry?: boolean
 }
 
 /** Regular expression to identify wordpress components in html components. These
@@ -449,10 +450,14 @@ export function parseWpComponent(
     // tag that we want to ignore then don't try to find a closing tag
     if (componentDetails.isVoidElement)
         return {
-            result: finishWpComponent(componentDetails, {
-                errors: [],
-                content: [],
-            }),
+            result: finishWpComponent(
+                componentDetails,
+                {
+                    errors: [],
+                    content: [],
+                },
+                context
+            ),
             remainingElements: remainingElements,
         }
     if (wpComponentTagsToIgnore.includes(componentDetails.tagName))
@@ -488,7 +493,8 @@ export function parseWpComponent(
                         componentDetails,
                         withoutEmptyOrWhitespaceOnlyTextBlocks(
                             collectedChildren
-                        )
+                        ),
+                        context
                     ),
                     remainingElements: remainingElements.slice(1),
                 }
@@ -512,7 +518,8 @@ export function parseWpComponent(
     we create that - otherwise we keep the WpComponent around with the children content filled in */
 function finishWpComponent(
     details: WpComponent,
-    content: BlockParseResult<ArchieBlockOrWpComponent>
+    content: BlockParseResult<ArchieBlockOrWpComponent>,
+    context: ParseContext
 ): BlockParseResult<ArchieBlockOrWpComponent> {
     return match(details.tagName)
         .with("column", (): BlockParseResult<ArchieBlockOrWpComponent> => {
@@ -556,6 +563,17 @@ function finishWpComponent(
                     details: `Got ${secondChild} child instead`,
                 })
                 return { ...content, errors }
+            }
+
+            // For linear entries, we always want them to be a single column
+            if (context.isEntry) {
+                return {
+                    errors,
+                    content: convertAllWpComponentsToArchieMLBlocks([
+                        ...firstChild.childrenResults,
+                        ...secondChild.childrenResults,
+                    ]),
+                }
             }
 
             // If both children are empty then we don't want to create a columns block
