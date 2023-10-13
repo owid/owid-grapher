@@ -225,8 +225,8 @@ export interface PostTag {
 }
 
 /**
- * A common minimal union of the tag entity and the chart_tags table.
- * Needed if you're using the TagBagde component.
+ * A common minimal union of the tags and chart_tags entities.
+ * Used anywhere we're using the TagBadge component.
  */
 export type ChartTagJoin = Pick<Tag, "id" | "name"> &
     Pick<ChartTag, "isApproved" | "keyChartLevel">
