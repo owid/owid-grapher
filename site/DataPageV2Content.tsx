@@ -100,10 +100,16 @@ export const DataPageV2Content = ({
     const originsLong = datapageData.origins
         .map((o) => `${o.producer}, ${o.title ?? o.titleSnapshot}`)
         .join("; ")
-    const dateAccessed = datapageData.origins[0].dateAccessed
-        ? dayjs(datapageData.origins[0].dateAccessed).format("MMMM D, YYYY")
-        : ""
-    const urlAccessed = datapageData.origins[0].urlDownload
+    const dateAccessed =
+        datapageData.origins &&
+        datapageData.origins.length &&
+        datapageData.origins[0].dateAccessed
+            ? dayjs(datapageData.origins[0].dateAccessed).format("MMMM D, YYYY")
+            : ""
+    const urlAccessed =
+        datapageData.origins &&
+        datapageData.origins.length &&
+        datapageData.origins[0].urlDownload
     const citationLong = `${citationShort}. ${datapageData.title}. ${originsLong}, ${processedAdapted} by Our World In Data. Retrieved ${dateAccessed} from ${urlAccessed}`
     const processedAdaptedText =
         datapageData.owidProcessingLevel === "minor"

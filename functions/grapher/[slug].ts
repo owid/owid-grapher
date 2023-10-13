@@ -7,6 +7,21 @@ export const onRequestGet: PagesFunction = async (context) => {
 
     const slug = params.slug as string
     const url = new URL(request.url)
+
+    // All our grapher slugs are lowercase by convention.
+    // To allow incoming links that may contain uppercase characters to work, we redirect to the lowercase version.
+    // We do this before we even know that the page exists, so even if we redirect it might still be a 404, or go into another redirect.
+    if (
+        url.pathname !== url.pathname.toLowerCase() &&
+        url.pathname !== "/grapher/embedCharts.js"
+    ) {
+        const redirUrl = url.pathname.toLowerCase() + url.search
+        return new Response(null, {
+            status: 302,
+            headers: { Location: redirUrl },
+        })
+    }
+
     const { search } = url
 
     const grapherPageResp = await env.ASSETS.fetch(url, { redirect: "manual" })

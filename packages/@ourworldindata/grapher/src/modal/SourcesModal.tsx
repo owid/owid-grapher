@@ -1,10 +1,10 @@
 import {
-    MarkdownTextWrap,
+    Bounds,
+    DEFAULT_BOUNDS,
+    SimpleMarkdownText,
     OwidOrigin,
     uniq,
     excludeNullish,
-    Bounds,
-    DEFAULT_BOUNDS,
 } from "@ourworldindata/utils"
 import React from "react"
 import { action, computed } from "mobx"
@@ -24,27 +24,17 @@ export interface SourcesModalManager {
 
 // TODO: remove this component once all backported indicators
 // etc have switched from HTML to markdown for their sources
-const HtmlOrMarkdownText = (props: {
-    text: string
-    fontSize: number
-    lineHeight?: number
-}): JSX.Element => {
+const HtmlOrMarkdownText = (props: { text: string }): JSX.Element => {
     // check the text for closing a, li or p tags. If
     // one is found, render using dangerouslySetInnerHTML,
-    // othewise use MarkdownTextWrap
-    const { text, fontSize, lineHeight } = props
+    // otherwise use SimpleMarkdownText
+    const { text } = props
     const htmlRegex = /<\/(a|li|p)>/
     const match = text.match(htmlRegex)
     if (match) {
         return <span dangerouslySetInnerHTML={{ __html: text }} />
     } else {
-        return (
-            <MarkdownTextWrap
-                text={text}
-                fontSize={fontSize}
-                lineHeight={lineHeight}
-            />
-        )
+        return <SimpleMarkdownText text={text} />
     }
 }
 
@@ -74,9 +64,6 @@ export class SourcesModal extends React.Component<{
         // in columnDefFromOwidVariable in packages/@ourworldindata/grapher/src/core/LegacyToOwidTable.ts
         const { slug, source, def } = column
         const { datasetId, coverage } = def as OwidColumnDef
-
-        const fontSize = 13
-        const lineHeight = 1.3846153846
 
         // there will not be a datasetId for explorers that define the FASTT in TSV
         const editUrl =
@@ -138,10 +125,8 @@ export class SourcesModal extends React.Component<{
                             <tr>
                                 <td>Variable description</td>
                                 <td>
-                                    <MarkdownTextWrap
+                                    <SimpleMarkdownText
                                         text={column.def.descriptionShort.trim()}
-                                        fontSize={fontSize}
-                                        lineHeight={lineHeight}
                                     />
                                 </td>
                             </tr>
@@ -152,10 +137,48 @@ export class SourcesModal extends React.Component<{
                             <tr>
                                 <td>Variable description</td>
                                 <td>
-                                    <HtmlOrMarkdownText
+                                    <SimpleMarkdownText
                                         text={column.description.trim()}
-                                        fontSize={fontSize}
-                                        lineHeight={lineHeight}
+                                    />
+                                </td>
+                            </tr>
+                        ) : null}
+                        {column.def.descriptionKey &&
+                        column.def.descriptionKey.length === 1 ? (
+                            <tr>
+                                <td>Key information</td>
+                                <td>
+                                    <SimpleMarkdownText
+                                        text={column.def.descriptionKey[0]}
+                                    />
+                                </td>
+                            </tr>
+                        ) : null}
+                        {column.def.descriptionKey &&
+                        column.def.descriptionKey.length > 1 ? (
+                            <tr>
+                                <td>Key information</td>
+                                <td>
+                                    <ul>
+                                        {column.def.descriptionKey.map(
+                                            (info: string, index: number) => (
+                                                <li key={index}>
+                                                    <SimpleMarkdownText
+                                                        text={info}
+                                                    />
+                                                </li>
+                                            )
+                                        )}
+                                    </ul>
+                                </td>
+                            </tr>
+                        ) : null}
+                        {column.def.descriptionProcessing ? (
+                            <tr>
+                                <td>Processing notes</td>
+                                <td>
+                                    <SimpleMarkdownText
+                                        text={column.def.descriptionProcessing}
                                     />
                                 </td>
                             </tr>
@@ -182,10 +205,8 @@ export class SourcesModal extends React.Component<{
                             <tr>
                                 <td>Data published by</td>
                                 <td>
-                                    <MarkdownTextWrap
+                                    <SimpleMarkdownText
                                         text={publishedByArray[0]}
-                                        fontSize={fontSize}
-                                        lineHeight={lineHeight}
                                     />
                                 </td>
                             </tr>
@@ -201,10 +222,8 @@ export class SourcesModal extends React.Component<{
                                                 index: number
                                             ) => (
                                                 <li key={index}>
-                                                    <MarkdownTextWrap
+                                                    <SimpleMarkdownText
                                                         text={citation}
-                                                        fontSize={fontSize}
-                                                        lineHeight={lineHeight}
                                                     />
                                                 </li>
                                             )
@@ -219,8 +238,6 @@ export class SourcesModal extends React.Component<{
                                 <td>
                                     <HtmlOrMarkdownText
                                         text={source.dataPublisherSource}
-                                        fontSize={fontSize}
-                                        lineHeight={lineHeight}
                                     />
                                 </td>
                             </tr>
@@ -229,11 +246,7 @@ export class SourcesModal extends React.Component<{
                             <tr>
                                 <td>Link</td>
                                 <td>
-                                    <HtmlOrMarkdownText
-                                        text={source.link}
-                                        fontSize={fontSize}
-                                        lineHeight={lineHeight}
-                                    />
+                                    <HtmlOrMarkdownText text={source.link} />
                                 </td>
                             </tr>
                         ) : null}
@@ -247,11 +260,7 @@ export class SourcesModal extends React.Component<{
                 </table>
                 {source.additionalInfo && (
                     <p key={"additionalInfo"}>
-                        <HtmlOrMarkdownText
-                            text={source.additionalInfo}
-                            fontSize={fontSize}
-                            lineHeight={lineHeight}
-                        />
+                        <HtmlOrMarkdownText text={source.additionalInfo} />
                     </p>
                 )}
             </div>

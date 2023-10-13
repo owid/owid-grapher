@@ -19227,7 +19227,7 @@ __metadata:
     "@ourworldindata/grapher": "workspace:^"
     "@ourworldindata/utils": "workspace:^"
     itty-router: ^4.0.23
-    svg2png-wasm: ^1.4.0
+    svg2png-wasm: ^1.4.1
   languageName: unknown
   linkType: soft
 
@@ -23529,10 +23529,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"svg2png-wasm@npm:^1.4.0":
-  version: 1.4.0
-  resolution: "svg2png-wasm@npm:1.4.0"
-  checksum: 44fdb5bbef921d6f2d8628cef2a29b4e0be9194f4f56c9f6835f248ddda8d510f75911059fc35242c109c49a46058b8791644500d11acabb865c624144c3f7f9
+"svg2png-wasm@npm:^1.4.1":
+  version: 1.4.1
+  resolution: "svg2png-wasm@npm:1.4.1"
+  checksum: 26a699d4042f4a15e7c0436f5388d81f81e09f304552310af0628a4ca585e5d56167ddf7c6d0f2ff54656b3f05c282d69be289ec9c0197983ec61718ba055c30
   languageName: node
   linkType: hard
 

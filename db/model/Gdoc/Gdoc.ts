@@ -595,6 +595,16 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
                     )
                 }
             )
+            .with({ type: "video" }, (video) => {
+                return [
+                    Link.createFromUrl({
+                        url: video.url,
+                        source: this,
+                        componentType: video.type,
+                        text: spansToSimpleString(video.caption || []),
+                    }),
+                ]
+            })
             .with(
                 {
                     // no urls directly on any of these components

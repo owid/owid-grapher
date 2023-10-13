@@ -128,6 +128,16 @@ h3.article-block__heading {
     }
 }
 
+.article-block__video {
+    margin: 24px 0 32px 0;
+    a {
+        @include owid-link-90;
+    }
+    video {
+        width: 100%;
+    }
+}
+
 .article-block__sticky-left,
 .article-block__sticky-right {
     @include md-up {
@@ -418,6 +428,9 @@ h3.article-block__heading.has-supertitle {
 .article-block__aside-right figcaption {
     border-left: 1px solid $blue-20;
     padding-left: 24px;
+    a {
+        @include owid-link-90;
+    }
 
     @include md-down {
         border: 1px solid $blue-20;
@@ -429,6 +442,9 @@ h3.article-block__heading.has-supertitle {
     border-right: 1px solid $blue-20;
     padding-right: 24px;
     text-align: right;
+    a {
+        @include owid-link-90;
+    }
 
     // Same as aside-right when in a single-column mobile view
     @include md-down {

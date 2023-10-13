@@ -13,6 +13,7 @@ import {
     EnrichedBlockHorizontalRule,
     EnrichedBlockHtml,
     EnrichedBlockImage,
+    EnrichedBlockVideo,
     EnrichedBlockKeyInsights,
     EnrichedBlockList,
     EnrichedBlockNumberedList,
@@ -47,6 +48,7 @@ import {
     RawBlockHeading,
     RawBlockHtml,
     RawBlockImage,
+    RawBlockVideo,
     RawBlockKeyInsights,
     RawBlockList,
     RawBlockNumberedList,
@@ -125,6 +127,7 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "scroller" }, parseScroller)
         .with({ type: "chart-story" }, parseChartStory)
         .with({ type: "image" }, parseImage)
+        .with({ type: "video" }, parseVideo)
         .with({ type: "list" }, parseList)
         .with({ type: "numbered-list" }, parseNumberedList)
         .with({ type: "pull-quote" }, parsePullQuote)
@@ -544,6 +547,63 @@ const parseImage = (image: RawBlockImage): EnrichedBlockImage => {
         caption,
         size,
         originalWidth: undefined,
+        parseErrors: [],
+    }
+}
+
+const parseVideo = (raw: RawBlockVideo): EnrichedBlockVideo => {
+    const createError = (
+        error: ParseError,
+        url: string = "",
+        filename: string = "",
+        shouldLoop: boolean = false,
+        caption?: Span[]
+    ): EnrichedBlockVideo => ({
+        type: "video",
+        url,
+        filename,
+        shouldLoop,
+        caption,
+        parseErrors: [error],
+    })
+
+    const url = extractUrl(raw.value.url)
+    if (!url) {
+        return createError({
+            message: "url property is missing or empty",
+        })
+    }
+
+    if (!url.endsWith(".mp4")) {
+        return createError({
+            message: "video must have a .mp4 file extension",
+        })
+    }
+
+    const filename = raw.value.filename
+    if (!filename) {
+        return createError({
+            message: "filename property is missing or empty",
+        })
+    }
+
+    const shouldLoop = raw.value.shouldLoop
+    if (!!shouldLoop && shouldLoop !== "true" && shouldLoop !== "false") {
+        return createError({
+            message: "If specified, shouldLoop property must be true or false",
+        })
+    }
+
+    const caption = raw.value.caption
+        ? htmlToSpans(raw.value.caption)
+        : undefined
+
+    return {
+        type: "video",
+        url,
+        filename,
+        caption,
+        shouldLoop: shouldLoop === "true",
         parseErrors: [],
     }
 }
