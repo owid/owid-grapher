@@ -76,7 +76,7 @@ export class SelectAllHitsCommand extends HotCommand {
                         number,
                         number,
                         number,
-                        number
+                        number,
                     ]
             )
         )

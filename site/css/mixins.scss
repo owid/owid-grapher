@@ -162,7 +162,9 @@
 @mixin popover-box-styles {
     border-radius: 3px;
     width: 411px; // see SiteNavigationToggle__dropdown
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.15), 0 3px 15px rgba(0, 0, 0, 0.25);
+    box-shadow:
+        0 1px 3px 0 rgba(0, 0, 0, 0.15),
+        0 3px 15px rgba(0, 0, 0, 0.25);
     background: hsla(0, 0%, 100%, 0.98);
     color: #333;
 
@@ -269,7 +271,8 @@
 @mixin image-shadow {
     display: block;
     margin: 0 auto 1rem;
-    box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 2px 0px,
+    box-shadow:
+        rgba(0, 0, 0, 0.1) 0px 0px 2px 0px,
         rgba(0, 0, 0, 0.25) 0px 1px 2px 0px;
     padding: 10px;
     background-color: #fff;

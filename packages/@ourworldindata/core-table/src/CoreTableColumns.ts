@@ -544,7 +544,7 @@ class BooleanColumn extends AbstractCoreColumn<boolean> {
 }
 
 abstract class AbstractColumnWithNumberFormatting<
-    T extends PrimitiveType
+    T extends PrimitiveType,
 > extends AbstractCoreColumn<T> {
     jsType = JsTypes.number
 

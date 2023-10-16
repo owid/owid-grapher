@@ -66,7 +66,7 @@ interface FooterProps {
 
 @observer
 export class Footer<
-    Props extends FooterProps = FooterProps
+    Props extends FooterProps = FooterProps,
 > extends React.Component<Props> {
     verticalPadding = 4
 

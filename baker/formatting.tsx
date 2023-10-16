@@ -86,7 +86,7 @@ export const parseKeyValueArgs = (text: string): KeyValueProps => {
             const [, name, value] = option.match(optionRegex) as [
                 any,
                 string,
-                string
+                string,
             ]
             let parsedValue
             if (value === "" || value === "true") parsedValue = true

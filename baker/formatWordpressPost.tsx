@@ -173,9 +173,8 @@ export const formatWordpressPost = async (
         }
     })
 
-    const dataValuesConfigurationsMap = await extractDataValuesConfiguration(
-        html
-    )
+    const dataValuesConfigurationsMap =
+        await extractDataValuesConfiguration(html)
     const dataValues = new Map<string, DataValueProps>()
     for (const [
         dataValueConfigurationString,

@@ -31,7 +31,7 @@ export interface BulkChartEditResponseRow extends BulkGrapherConfigResponseRow {
 }
 
 export interface BulkGrapherConfigResponse<
-    T extends BulkGrapherConfigResponseRow
+    T extends BulkGrapherConfigResponseRow,
 > {
     numTotalRows: number
     rows: T[]

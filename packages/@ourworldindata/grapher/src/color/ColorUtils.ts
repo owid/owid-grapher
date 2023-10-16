@@ -40,7 +40,7 @@ export function getLeastUsedColor(
     )
     const mostUnusedColor = minBy(colorCounts, ([, count]) => count) as [
         string,
-        number
+        number,
     ]
     return mostUnusedColor[0]
 }

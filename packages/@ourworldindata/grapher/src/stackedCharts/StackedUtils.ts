@@ -37,7 +37,7 @@ export function withUniformSpacing(values: number[]): number[] {
 
 // Adds a Y = 0 value for each missing x value (where X is usually Time)
 export const withMissingValuesAsZeroes = <
-    PositionType extends StackedPointPositionType
+    PositionType extends StackedPointPositionType,
 >(
     seriesArr: readonly StackedSeries<PositionType>[],
     { enforceUniformSpacing = false }: { enforceUniformSpacing?: boolean } = {}

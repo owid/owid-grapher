@@ -837,7 +837,9 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
 
 // to override the default annoying blue border from bootstrap on file upload
 .custom-file-input:focus ~ .custom-file-control {
-    box-shadow: 0 0 0 0.075rem #fff, 0 0 0 0.2rem #fff;
+    box-shadow:
+        0 0 0 0.075rem #fff,
+        0 0 0 0.2rem #fff;
 }
 
 .TagsIndexPage {
@@ -1174,7 +1176,9 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
         padding: 1.2em;
         border-radius: 0.4em;
         margin: 0.4em 0;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+        box-shadow:
+            0 1px 3px rgba(0, 0, 0, 0.12),
+            0 1px 2px rgba(0, 0, 0, 0.24);
     }
     .import-form {
         input {
@@ -1210,7 +1214,9 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
         border-radius: 0.4rem;
         opacity: 0.87;
         color: #fff;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+        box-shadow:
+            0 1px 3px rgba(0, 0, 0, 0.12),
+            0 1px 2px rgba(0, 0, 0, 0.24);
     }
 
     .message.bg-warning {
@@ -1224,7 +1230,9 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
         padding: 1.2em;
         border-radius: 0.4em;
         margin: 0.4em 0;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+        box-shadow:
+            0 1px 3px rgba(0, 0, 0, 0.12),
+            0 1px 2px rgba(0, 0, 0, 0.24);
     }
 }
 
@@ -1272,7 +1280,8 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
         position: sticky;
         top: 0;
         z-index: 2;
-        box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 3px,
+        box-shadow:
+            rgba(0, 0, 0, 0.12) 0px 1px 3px,
             rgba(0, 0, 0, 0.24) 0px 1px 2px;
         background: #fff;
         &.draft {

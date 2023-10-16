@@ -47,7 +47,7 @@ interface Entity {
     members?: string[]
 }
 
-function prettifiedJson(obj: any) {
+function prettifiedJson(obj: any): Promise<string> {
     // make sure the json we emit is diff-able even after running prettier on the repo
     return prettier.format(JSON.stringify(obj), {
         parser: "json",
@@ -70,7 +70,7 @@ function csvToJson(val: string, col: string) {
     }
 }
 
-function prettifiedTopology(geoJson: FeatureCollection) {
+function prettifiedTopology(geoJson: FeatureCollection): Promise<string> {
     // make sure the MapTopology.ts file will be diff-able even after running prettier on the repo
     let topoData = topology({ world: geoJson }),
         arcs = _.remove(topoData.arcs),
@@ -95,9 +95,11 @@ function prettifiedTopology(geoJson: FeatureCollection) {
             tabWidth: 4,
             semi: false,
         })
-        .replace(
-            /^(    arcs:\s*\[)\]/m,
-            `\n    // prettier-ignore\n$1\n      ${arcJson}\n    ]`
+        .then((formatted) =>
+            formatted.replace(
+                /^(    arcs:\s*\[)\]/m,
+                `\n    // prettier-ignore\n$1\n      ${arcJson}\n    ]`
+            )
         )
 }
 
@@ -258,13 +260,13 @@ async function main() {
     })
 
     // generate new MapTopology.ts file and compare to old version
-    let newTopology = prettifiedTopology(owidGeoJson)
+    let newTopology = await prettifiedTopology(owidGeoJson)
     if (await didChange(GRAPHER_TOPOLOGY_PATH, newTopology)) {
         await writeFile(GRAPHER_TOPOLOGY_PATH, newTopology)
     }
 
     // generate new regions.json file and compare to old version
-    let regionsJson = prettifiedJson(entities)
+    let regionsJson = await prettifiedJson(entities)
     if (await didChange(GRAPHER_REGIONS_PATH, regionsJson)) {
         await writeFile(GRAPHER_REGIONS_PATH, regionsJson)
         let diff = execFileSync("git", [

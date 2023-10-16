@@ -417,7 +417,7 @@ const fullJoinTables = (
     // not exist in the first table
     const firstTableDuplicateForIndices: [
         OwidTable | undefined,
-        string[] | undefined
+        string[] | undefined,
     ] = [tables[0], sharedColumnNames]
     const defsToAddPerTable = [firstTableDuplicateForIndices]
         .concat(zip(tables, columnsToAddPerTable))

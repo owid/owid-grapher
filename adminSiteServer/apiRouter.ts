@@ -1728,9 +1728,8 @@ apiRouter.get(
 
         await Chart.assignTagsForCharts(charts)
 
-        const grapherConfig = await getMergedGrapherConfigForVariable(
-            variableId
-        )
+        const grapherConfig =
+            await getMergedGrapherConfigForVariable(variableId)
         if (
             grapherConfig &&
             (!grapherConfig.dimensions || grapherConfig.dimensions.length === 0)

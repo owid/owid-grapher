@@ -134,7 +134,9 @@
         }
 
         img {
-            transition: opacity 450ms ease, filter 450ms ease;
+            transition:
+                opacity 450ms ease,
+                filter 450ms ease;
             opacity: 0.7;
             width: 100%;
             max-width: 41rem;
@@ -171,7 +173,9 @@
             color: $blue-90;
             background-color: transparent;
             border: 2px solid $blue-30;
-            transition: color 150ms ease, background-color 150ms ease,
+            transition:
+                color 150ms ease,
+                background-color 150ms ease,
                 border-color 150ms ease;
 
             &:hover {
