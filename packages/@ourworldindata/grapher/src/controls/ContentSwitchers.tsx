@@ -13,6 +13,7 @@ export interface ContentSwitchersManager {
     isNarrow?: boolean
     type?: ChartTypeName
     isLineChartThatTurnedIntoDiscreteBar?: boolean
+    isAuthoredAsLineChartThatTurnedIntoDiscreteBar?: boolean
 }
 
 @observer
@@ -45,20 +46,28 @@ export class ContentSwitchers extends React.Component<{
             case GrapherTabOption.map:
                 return <FontAwesomeIcon icon={faEarthAmericas} />
             case GrapherTabOption.chart:
-                const chartIcon = manager.isLineChartThatTurnedIntoDiscreteBar
+                let chartIcon = manager.isLineChartThatTurnedIntoDiscreteBar
                     ? chartIcons[ChartTypeName.DiscreteBar]
                     : chartIcons[this.chartType]
                 // If we're switching from a line chart to the map, then the timeline
                 // is automatically set to a single year, and the underlying chart switches to
                 // a discrete bar chart, which makes the line chart icon change into a bar chart icon.
                 // To prevent that, we hold onto the previous chart icon if we're not currently on the chart tab.
-                const newChartIcon =
-                    this.previousChartIcon &&
-                    manager.tab !== GrapherTabOption.chart
-                        ? this.previousChartIcon
-                        : chartIcon
-                this.previousChartIcon = newChartIcon
-                return newChartIcon
+                if (manager.tab !== GrapherTabOption.chart) {
+                    // make sure we're showing the line chart icon on first load
+                    // if the chart is configured to be a line chart initially
+                    if (
+                        !this.previousChartIcon &&
+                        this.chartType === ChartTypeName.LineChart &&
+                        !manager.isAuthoredAsLineChartThatTurnedIntoDiscreteBar
+                    ) {
+                        chartIcon = chartIcons[ChartTypeName.LineChart]
+                    } else if (this.previousChartIcon) {
+                        chartIcon = this.previousChartIcon
+                    }
+                }
+                this.previousChartIcon = chartIcon
+                return chartIcon
         }
     }
 

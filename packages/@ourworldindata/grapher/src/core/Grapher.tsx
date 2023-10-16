@@ -2676,6 +2676,16 @@ export class Grapher
         })
     }
 
+    @computed
+    get isAuthoredAsLineChartThatTurnedIntoDiscreteBar(): boolean {
+        const {
+            type = ChartTypeName.LineChart,
+            minTime,
+            maxTime,
+        } = this.legacyConfigAsAuthored
+        return type === ChartTypeName.LineChart && minTime === maxTime
+    }
+
     @computed get queryStr(): string {
         return queryParamsToStr(this.changedParams)
     }
