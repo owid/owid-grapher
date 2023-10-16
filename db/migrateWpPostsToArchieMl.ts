@@ -7,6 +7,8 @@ import {
     sortBy,
     OwidArticleBackportingStatistics,
     OwidGdocType,
+    RelatedChart,
+    EnrichedBlockAllCharts,
 } from "@ourworldindata/utils"
 import * as Post from "./model/Post.js"
 import fs from "fs"
@@ -16,135 +18,61 @@ import {
     convertAllWpComponentsToArchieMLBlocks,
     adjustHeadingLevels,
 } from "./model/Gdoc/htmlToEnriched.js"
+import { getRelatedCharts } from "./wpdb.js"
 
-// Hard-coded slugs to avoid WP dependency
+// slugs from all the linear entries we want to migrate from @edomt
 const entries = new Set([
-    "population",
-    "population-change",
     "age-structure",
-    "gender-ratio",
-    "life-and-death",
-    "life-expectancy",
-    "child-mortality",
-    "fertility-rate",
-    "distribution-of-the-world-population",
-    "urbanization",
-    "health",
-    "health-risks",
     "air-pollution",
-    "outdoor-air-pollution",
-    "indoor-air-pollution",
-    "obesity",
-    "smoking",
     "alcohol-consumption",
-    "infectious-diseases",
-    "monkeypox",
-    "coronavirus",
-    "hiv-aids",
-    "malaria",
-    "eradication-of-diseases",
-    "smallpox",
-    "polio",
-    "pneumonia",
-    "tetanus",
-    "health-institutions-and-interventions",
-    "financing-healthcare",
-    "vaccination",
-    "life-death-health",
-    "maternal-mortality",
-    "health-meta",
-    "causes-of-death",
     "burden-of-disease",
     "cancer",
-    "environment",
-    "nuclear-energy",
-    "energy-access",
-    "renewable-energy",
-    "fossil-fuels",
-    "waste",
-    "plastic-pollution",
-    "air-and-climate",
-    "co2-and-greenhouse-gas-emissions",
-    "climate-change",
-    "water",
-    "clean-water-sanitation",
-    "water-access",
-    "sanitation",
-    "water-use-stress",
-    "land-and-ecosystems",
-    "forests-and-deforestation",
-    "land-use",
-    "natural-disasters",
-    "food",
-    "nutrition",
-    "famines",
-    "food-supply",
-    "human-height",
-    "micronutrient-deficiency",
-    "diet-compositions",
-    "food-production",
-    "meat-production",
-    "agricultural-inputs",
-    "employment-in-agriculture",
-    "growth-inequality",
-    "public-sector",
-    "government-spending",
-    "taxation",
-    "military-personnel-spending",
-    "financing-education",
-    "poverty-and-prosperity",
-    "economic-inequality",
-    "poverty",
-    "economic-growth",
-    "economic-inequality-by-gender",
-    "labor",
     "child-labor",
-    "working-hours",
-    "female-labor-supply",
     "corruption",
-    "trade-migration",
-    "trade-and-globalization",
-    "tourism",
-    "education",
-    "educational-outcomes",
-    "global-education",
-    "literacy",
-    "pre-primary-education",
-    "primary-and-secondary-education",
-    "quality-of-education",
-    "tertiary-education",
-    "inputs-to-education",
-    "teachers-and-professors",
-    "media-education",
-    "technology",
-    "space-exploration-satellites",
-    "transport",
-    "work-life",
-    "culture",
-    "trust",
-    "housing",
-    "homelessness",
-    "time-use",
-    "relationships",
-    "marriages-and-divorces",
-    "social-connections-and-loneliness",
-    "happiness-wellbeing",
+    "economic-inequality-by-gender",
+    "eradication-of-diseases",
+    "famines",
+    "female-labor-supply",
+    "fertility-rate",
+    "financing-healthcare",
+    "fish-and-overfishing",
+    "food-supply",
+    "gender-ratio",
+    "government-spending",
     "happiness-and-life-satisfaction",
-    "human-development-index",
-    "politics",
-    "human-rights",
-    "lgbt-rights",
-    "women-rights",
-    "democracy",
-    "violence-rights",
-    "war-peace",
-    "biological-and-chemical-weapons",
-    "war-and-peace",
-    "terrorism",
+    "health-meta",
+    "hiv-aids",
+    "homelessness",
+    "human-height",
+    "indoor-air-pollution",
+    "land-use",
+    "literacy",
+    "malaria",
+    "marriages-and-divorces",
+    "maternal-mortality",
+    "meat-production",
+    "micronutrient-deficiency",
+    "natural-disasters",
     "nuclear-weapons",
-    "violence",
+    "obesity",
+    "outdoor-air-pollution",
+    "pneumonia",
+    "polio",
+    "sanitation",
+    "smallpox",
+    "smoking",
+    "social-connections-and-loneliness",
+    "taxation",
+    "tetanus",
+    "time-use",
+    "trade-and-globalization",
+    "transport",
+    "urbanization",
+    "vaccination",
     "violence-against-rights-for-children",
-    "homicides",
+    "water-access",
+    "water-use-stress",
+    "working-hours",
 ])
 
 const migrate = async (): Promise<void> => {
@@ -163,11 +91,16 @@ const migrate = async (): Promise<void> => {
         "excerpt",
         "created_at_in_wordpress",
         "updated_at"
-    ).from(db.knexTable(Post.postsTable)) //.where("id", "=", "38189")
+    ).from(db.knexTable(Post.postsTable)) //.where("id", "=", "29766"))
 
     for (const post of posts) {
         try {
+            const isEntry = entries.has(post.slug)
             const text = post.content
+            let relatedCharts: RelatedChart[] = []
+            if (isEntry) {
+                relatedCharts = await getRelatedCharts(post.id)
+            }
 
             // We don't get the first and last nodes if they are comments.
             // This can cause issues with the wp:components so here we wrap
@@ -179,6 +112,7 @@ const migrate = async (): Promise<void> => {
                 shouldParseWpComponents: true,
                 htmlTagCounts: {},
                 wpTagCounts: {},
+                isEntry,
             }
             const parsedResult = cheerioElementsToArchieML(
                 bodyContents,
@@ -191,6 +125,17 @@ const migrate = async (): Promise<void> => {
             // Heading levels used to start at 2, in the new layout system they start at 1
             // This function iterates all blocks recursively and adjusts the heading levels inline
             adjustHeadingLevels(archieMlBodyElements)
+
+            if (relatedCharts.length) {
+                const allChartsBlock: EnrichedBlockAllCharts = {
+                    type: "all-charts",
+                    parseErrors: [],
+                    heading: `Interactive Charts on ${post.title}`,
+                    top: [],
+                }
+
+                archieMlBodyElements.push(allChartsBlock)
+            }
 
             const errors = parsedResult.errors
 
@@ -223,10 +168,11 @@ const migrate = async (): Promise<void> => {
                     dateline: dateline,
                     // TODO: this discards block level elements - those might be needed?
                     refs: undefined,
-                    type: entries.has(post.slug)
+                    type: isEntry
                         ? OwidGdocType.TopicPage
                         : OwidGdocType.Article,
                 },
+                relatedCharts,
                 published: false,
                 createdAt:
                     post.created_at_in_wordpress ??

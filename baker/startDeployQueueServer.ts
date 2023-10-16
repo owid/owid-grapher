@@ -22,6 +22,7 @@ const main = async () => {
         Bugsnag.start({
             apiKey: BUGSNAG_NODE_API_KEY,
             context: "deploy-queue",
+            autoTrackSessions: false,
         })
     }
 

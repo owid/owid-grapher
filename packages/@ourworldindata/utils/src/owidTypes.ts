@@ -194,12 +194,42 @@ export enum KeyChartLevel {
     Top = 3, // chart will show at the top of the all charts block
 }
 
+/** the entity in the `tags` table */
 export interface Tag {
     id: number
     name: string
+    createdAt: Date
+    updatedAt: Date
+    parentId: number
+    isBulkImport: boolean
+    specialType: string
+    isTopic: boolean
+}
+
+/** the entity in the `chart_tags` table */
+export interface ChartTag {
+    id: number
+    tagId: string
     keyChartLevel?: KeyChartLevel
+    createdAt: Date
+    updatedAt: Date | null
     isApproved?: boolean
 }
+
+/** the entity in the `post_tags` table */
+export interface PostTag {
+    post_id: number
+    tag_id: number
+    createdAt: Date
+    updatedAt: Date | null
+}
+
+/**
+ * A common minimal union of the tags and chart_tags entities.
+ * Used anywhere we're using the TagBadge component.
+ */
+export type ChartTagJoin = Pick<Tag, "id" | "name"> &
+    Pick<ChartTag, "isApproved" | "keyChartLevel">
 
 export enum TaggableType {
     Charts = "charts",
@@ -1193,16 +1223,6 @@ export enum OwidGdocPublicationContext {
     listed = "listed",
 }
 
-export interface OwidGdocTag {
-    id: number
-    name: string
-    createdAt: Date
-    updatedAt: Date
-    parentId: number
-    isBulkImport: boolean
-    specialType: string
-}
-
 // A minimal object containing metadata needed for rendering prominent links etc in the client
 export interface LinkedChart {
     originalSlug: string
@@ -1233,7 +1253,7 @@ export interface OwidGdocInterface {
     relatedCharts?: RelatedChart[]
     imageMetadata?: Record<string, ImageMetadata>
     errors?: OwidGdocErrorMessage[]
-    tags?: OwidGdocTag[]
+    tags?: Tag[]
 }
 
 export enum OwidGdocErrorMessageType {

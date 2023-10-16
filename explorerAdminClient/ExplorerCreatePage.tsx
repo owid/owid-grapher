@@ -201,6 +201,10 @@ export class ExplorerCreatePage extends React.Component<{
         return this.programOnDisk.toString() !== this.program.toString()
     }
 
+    @computed get whyIsExplorerProgramInvalid() {
+        return this.program.whyIsExplorerProgramInvalid
+    }
+
     @observable gitCmsBranchName = this.props.gitCmsBranchName
 
     @action.bound private onSave() {
@@ -211,7 +215,7 @@ export class ExplorerCreatePage extends React.Component<{
     render() {
         if (!this.isReady) return <LoadingIndicator />
 
-        const { program, isModified } = this
+        const { program, isModified, whyIsExplorerProgramInvalid } = this
         const { isNewFile, slug } = program
         const previewLink = `/admin/${EXPLORERS_PREVIEW_ROUTE}/${slug}`
 
@@ -288,15 +292,11 @@ export class ExplorerCreatePage extends React.Component<{
                     <a className="PreviewLink" href={previewLink}>
                         Visit preview
                     </a>
-                    {/* Disabled for now since this piece of code causes an issue where
-                    the HotTable's context menu disappears right after opening it.
-                    The reason for that is that program.whyIsExplorerProgramInvalid
-                    refreshes every few seconds, which causes the HotTable to re-render. */}
-                    {/* {program.whyIsExplorerProgramInvalid && (
+                    {whyIsExplorerProgramInvalid && (
                         <div className="WhyIsExplorerProgramInvalid">
-                            {program.whyIsExplorerProgramInvalid}
+                            {whyIsExplorerProgramInvalid}
                         </div>
-                    )} */}
+                    )}
                 </main>
             </>
         )

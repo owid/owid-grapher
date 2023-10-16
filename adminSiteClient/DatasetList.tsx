@@ -5,7 +5,7 @@ import * as lodash from "lodash"
 import { bind } from "decko"
 
 import { Link } from "./Link.js"
-import { Tag } from "./TagBadge.js"
+import { ChartTagJoin } from "@ourworldindata/utils"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { Timeago } from "./Forms.js"
 import { EditableTags } from "./EditableTags.js"
@@ -20,7 +20,7 @@ export interface DatasetListItem {
     dataEditedByUserName: string
     metadataEditedAt: Date
     metadataEditedByUserName: string
-    tags: Tag[]
+    tags: ChartTagJoin[]
     isPrivate: boolean
     nonRedistributable: boolean
     version: string
@@ -30,13 +30,13 @@ export interface DatasetListItem {
 @observer
 class DatasetRow extends React.Component<{
     dataset: DatasetListItem
-    availableTags: Tag[]
+    availableTags: ChartTagJoin[]
     searchHighlight?: (text: string) => string | JSX.Element
 }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    async saveTags(tags: Tag[]) {
+    async saveTags(tags: ChartTagJoin[]) {
         const { dataset } = this.props
         const json = await this.context.admin.requestJSON(
             `/api/datasets/${dataset.id}/setTags`,
@@ -48,7 +48,7 @@ class DatasetRow extends React.Component<{
         }
     }
 
-    @action.bound onSaveTags(tags: Tag[]) {
+    @action.bound onSaveTags(tags: ChartTagJoin[]) {
         this.saveTags(tags)
     }
 
@@ -105,7 +105,7 @@ export class DatasetList extends React.Component<{
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    @observable availableTags: Tag[] = []
+    @observable availableTags: ChartTagJoin[] = []
 
     @bind async getTags() {
         const json = await this.context.admin.getJSON("/api/tags.json")

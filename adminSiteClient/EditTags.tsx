@@ -1,7 +1,7 @@
 import React from "react"
 import { action } from "mobx"
 import { observer } from "mobx-react"
-import { Tag } from "./TagBadge.js"
+import { ChartTagJoin } from "@ourworldindata/utils"
 import {
     ReactTags,
     ReactTagsAPI,
@@ -10,10 +10,10 @@ import {
 
 @observer
 export class EditTags extends React.Component<{
-    tags: Tag[]
-    suggestions: Tag[]
+    tags: ChartTagJoin[]
+    suggestions: ChartTagJoin[]
     onDelete: (index: number) => void
-    onAdd: (tag: Tag) => void
+    onAdd: (tag: ChartTagJoin) => void
     onSave: () => void
 }> {
     dismissable: boolean = true
@@ -66,7 +66,10 @@ export class EditTags extends React.Component<{
     }
 }
 
-const convertTagToAutocomplete = (t: Tag) => ({ value: t.id, label: t.name })
+const convertTagToAutocomplete = (t: ChartTagJoin) => ({
+    value: t.id,
+    label: t.name,
+})
 const convertAutocompleteTotag = (t: TagAutocomplete) => ({
     id: t.value as number,
     name: t.label,

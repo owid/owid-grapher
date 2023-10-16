@@ -23,6 +23,7 @@ it("parses a Wordpress paragraph within the content", () => {
         shouldParseWpComponents: true,
         htmlTagCounts: {},
         wpTagCounts: {},
+        isEntry: false,
     }
 
     const parsedResult = cheerioElementsToArchieML(bodyContents, context)
@@ -60,6 +61,7 @@ it("parses a Wordpress paragraph as the first element", () => {
         shouldParseWpComponents: true,
         wpTagCounts: {},
         htmlTagCounts: {},
+        isEntry: false,
     })
 
     expect(parsedResult.content).toEqual([

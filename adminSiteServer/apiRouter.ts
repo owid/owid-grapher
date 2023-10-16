@@ -46,8 +46,8 @@ import {
     OwidVariableWithSource,
     OwidChartDimensionInterface,
     DimensionProperty,
-    Tag,
     TaggableType,
+    ChartTagJoin,
 } from "@ourworldindata/utils"
 import {
     GrapherInterface,
@@ -2616,7 +2616,7 @@ apiRouter.post(
 
 apiRouter.get(
     `/gpt/suggest-topics/${TaggableType.Charts}/:chartId.json`,
-    async (req: Request, res: Response): Promise<Record<"topics", Tag[]>> => {
+    async (req: Request): Promise<Record<"topics", ChartTagJoin[]>> => {
         const chartId = parseIntOrUndefined(req.params.chartId)
         if (!chartId) throw new JsonError(`Invalid chart ID`, 400)
 

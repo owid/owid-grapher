@@ -31,6 +31,7 @@ export const getTagsByPostId = async (): Promise<
 
     return tagsByPostId
 }
+
 export const setTags = async (
     postId: number,
     tagIds: number[]

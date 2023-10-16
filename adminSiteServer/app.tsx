@@ -79,6 +79,7 @@ export class OwidAdminApp {
                 apiKey: BUGSNAG_NODE_API_KEY,
                 context: "admin-server",
                 plugins: [BugsnagPluginExpress],
+                autoTrackSessions: false,
             })
             bugsnagMiddleware = Bugsnag.getPlugin("express")
             // From the docs: "this must be the first piece of middleware in the

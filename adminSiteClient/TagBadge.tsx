@@ -1,6 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { KeyChartLevel, Tag } from "@ourworldindata/utils"
+import { KeyChartLevel, ChartTagJoin } from "@ourworldindata/utils"
 
 import { Link } from "./Link.js"
 import Tippy from "@tippyjs/react"
@@ -9,11 +9,9 @@ import cx from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faClock } from "@fortawesome/free-solid-svg-icons"
 
-export type { Tag }
-
 @observer
 export class TagBadge extends React.Component<{
-    tag: Tag
+    tag: ChartTagJoin
     onToggleKey?: () => void
     onApprove?: () => void
     searchHighlight?: (text: string) => string | JSX.Element

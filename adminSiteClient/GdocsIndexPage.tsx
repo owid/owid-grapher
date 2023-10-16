@@ -10,11 +10,7 @@ import {
     faPuzzlePiece,
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import {
-    OwidGdocTag,
-    OwidGdocInterface,
-    OwidGdocType,
-} from "@ourworldindata/utils"
+import { Tag, OwidGdocInterface, OwidGdocType } from "@ourworldindata/utils"
 import { Route, RouteComponentProps } from "react-router-dom"
 import { Link } from "./Link.js"
 import { GdocsAdd } from "./GdocsAdd.js"
@@ -116,7 +112,7 @@ export class GdocsIndexPage extends React.Component<GdocsMatchProps> {
     }
 
     @computed
-    get tags(): OwidGdocTag[] {
+    get tags(): Tag[] {
         return this.context?.availableTags || []
     }
 

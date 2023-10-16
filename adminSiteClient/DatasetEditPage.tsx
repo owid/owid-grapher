@@ -5,14 +5,13 @@ import * as lodash from "lodash"
 import { Prompt, Redirect } from "react-router-dom"
 import filenamify from "filenamify"
 
-import { OwidSource } from "@ourworldindata/utils"
+import { OwidSource, ChartTagJoin } from "@ourworldindata/utils"
 
 import { AdminLayout } from "./AdminLayout.js"
 import { Link } from "./Link.js"
 import { BindString, Toggle, FieldsRow, Timeago } from "./Forms.js"
 import { EditableTags } from "./EditableTags.js"
 import { ChartList, ChartListItem } from "./ChartList.js"
-import { Tag } from "./TagBadge.js"
 import { VariableList, VariableListItem } from "./VariableList.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -61,7 +60,7 @@ class DatasetEditable {
         additionalInfo: "",
     }
 
-    @observable tags: Tag[] = []
+    @observable tags: ChartTagJoin[] = []
 
     constructor(json: DatasetPageData) {
         for (const key in this) {
@@ -78,7 +77,7 @@ class DatasetTagEditor extends React.Component<{
     newDataset: DatasetEditable
     availableTags: { id: number; name: string; parentName: string }[]
 }> {
-    @action.bound onSaveTags(tags: Tag[]) {
+    @action.bound onSaveTags(tags: ChartTagJoin[]) {
         this.props.newDataset.tags = tags
     }
 

@@ -80,6 +80,7 @@ export function OwidGdoc({
     year = {${publishedAt?.getFullYear()}},
     note = {${BAKED_BASE_URL}/${slug}}
 }`
+
     const stickyNavLinks = content["sticky-nav"]
 
     return (

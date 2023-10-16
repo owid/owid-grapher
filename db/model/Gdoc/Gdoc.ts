@@ -6,9 +6,10 @@ import {
     PrimaryColumn,
     ManyToMany,
     JoinTable,
+    LessThanOrEqual,
 } from "typeorm"
 import {
-    OwidGdocTag,
+    Tag as TagInterface,
     LinkedChart,
     type OwidGdocContent,
     OwidGdocInterface,
@@ -64,7 +65,7 @@ import {
 import { getConnection } from "../../db.js"
 
 @Entity("tags")
-export class Tag extends BaseEntity implements OwidGdocTag {
+export class Tag extends BaseEntity implements TagInterface {
     static table = "tags"
     @PrimaryColumn() id!: number
     @Column() name!: string
@@ -72,6 +73,7 @@ export class Tag extends BaseEntity implements OwidGdocTag {
     @Column({ nullable: true }) updatedAt!: Date
     @Column({ nullable: true }) parentId!: number
     @Column() isBulkImport!: boolean
+    @Column() isTopic!: boolean
     @Column() specialType!: string
     @ManyToMany(() => Gdoc, (gdoc) => gdoc.tags)
     gdocs!: Gdoc[]
@@ -93,7 +95,7 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
         | BreadcrumbItem[]
         | null = null
 
-    @ManyToMany(() => Tag)
+    @ManyToMany(() => Tag, { cascade: true })
     @JoinTable({
         name: "posts_gdocs_x_tags",
         joinColumn: { name: "gdocId", referencedColumnName: "id" },
@@ -861,7 +863,10 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
         // the database dependent on the mapping function, which is more practical
         // but also makes it less of a source of truth when considered in isolation.
         return Gdoc.find({
-            where: { published: true },
+            where: {
+                published: true,
+                publishedAt: LessThanOrEqual(new Date()),
+            },
             relations: ["tags"],
         }).then((gdocs) =>
             gdocs.filter(
@@ -870,10 +875,14 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
         ) as Promise<(OwidGdocPublished & Gdoc)[]>
     }
 
+    /**
+     * Excludes published listed Gdocs with a publication date in the future
+     */
     static async getListedGdocs(): Promise<(Gdoc & OwidGdocPublished)[]> {
         return Gdoc.findBy({
             published: true,
             publicationContext: OwidGdocPublicationContext.listed,
+            publishedAt: LessThanOrEqual(new Date()),
         }) as Promise<(Gdoc & OwidGdocPublished)[]>
     }
 
