@@ -282,7 +282,7 @@ export class MarimekkoChart
         if (!this.yColumnSlugs.length) return table
 
         if (excludedEntities || includedEntities) {
-            this.filterManuallySelectedEntities(table)
+            table = this.filterManuallySelectedEntities(table)
         }
 
         // TODO: remove this filter once we don't have mixed type columns in datasets
