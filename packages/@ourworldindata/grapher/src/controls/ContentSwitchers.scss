@@ -39,6 +39,7 @@
         cursor: default;
         letter-spacing: 0.01em;
         white-space: nowrap;
+        user-select: none;
 
         &:hover {
             background-color: $hover-fill;

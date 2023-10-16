@@ -39,6 +39,7 @@ $timelineHeight: 32px;
         place-content: center;
         margin-right: 0;
         background-color: $light-fill;
+        user-select: none;
 
         &:hover {
             background: $hover-fill;
