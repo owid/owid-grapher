@@ -512,10 +512,12 @@ export class DiscreteBarChart
 
                     return result
                 })}
-                <HorizontalAxisZeroLine
-                    horizontalAxis={yAxis}
-                    bounds={innerBounds}
-                />
+                {!this.isLogScale && (
+                    <HorizontalAxisZeroLine
+                        horizontalAxis={yAxis}
+                        bounds={innerBounds}
+                    />
+                )}
             </g>
         )
     }
