@@ -120,6 +120,27 @@ export class ScatterPlotChart
         series: ScatterSeries
     }>()
 
+    private filterManuallySelectedEntities(table: OwidTable): OwidTable {
+        const { includedEntities, excludedEntities } = this.manager
+        const excludedEntityIdsSet = new Set(excludedEntities)
+        const includedEntityIdsSet = new Set(includedEntities)
+        const excludeEntitiesFilter = (entityId: any): boolean =>
+            !excludedEntityIdsSet.has(entityId as number)
+        const includedEntitiesFilter = (entityId: any): boolean =>
+            includedEntityIdsSet.size > 0
+                ? includedEntityIdsSet.has(entityId as number)
+                : true
+        const filterFn = (entityId: any): boolean =>
+            excludeEntitiesFilter(entityId) && includedEntitiesFilter(entityId)
+        const excludedList = excludedEntities ? excludedEntities.join(", ") : ""
+        const includedList = includedEntities ? includedEntities.join(", ") : ""
+        return table.columnFilter(
+            OwidTableSlugs.entityId,
+            filterFn,
+            `Excluded entity ids specified by author: ${excludedList} - Included entity ids specified by author: ${includedList}`
+        )
+    }
+
     transformTable(table: OwidTable): OwidTable {
         const {
             backgroundSeriesLimit,
@@ -138,28 +159,7 @@ export class ScatterPlotChart
         }
 
         if (excludedEntities || includedEntities) {
-            const excludedEntityIdsSet = new Set(excludedEntities)
-            const includedEntityIdsSet = new Set(includedEntities)
-            const excludeEntitiesFilter = (entityId: any): boolean =>
-                !excludedEntityIdsSet.has(entityId as number)
-            const includedEntitiesFilter = (entityId: any): boolean =>
-                includedEntityIdsSet.size > 0
-                    ? includedEntityIdsSet.has(entityId as number)
-                    : true
-            const filterFn = (entityId: any): boolean =>
-                excludeEntitiesFilter(entityId) &&
-                includedEntitiesFilter(entityId)
-            const excludedList = excludedEntities
-                ? excludedEntities.join(", ")
-                : ""
-            const includedList = includedEntities
-                ? includedEntities.join(", ")
-                : ""
-            table = table.columnFilter(
-                OwidTableSlugs.entityId,
-                filterFn,
-                `Excluded entity ids specified by author: ${excludedList} - Included entity ids specified by author: ${includedList}`
-            )
+            table = this.filterManuallySelectedEntities(table)
         }
 
         // Allow authors to limit the # of background entities to get better perf and clearer charts.
@@ -266,6 +266,12 @@ export class ScatterPlotChart
     }
 
     transformTableForDisplay(table: OwidTable): OwidTable {
+        const { includedEntities, excludedEntities } = this.manager
+
+        if (excludedEntities || includedEntities) {
+            table = this.filterManuallySelectedEntities(table)
+        }
+
         // Drop any rows which have non-number values for X or Y.
         table = table
             .columnFilter(
