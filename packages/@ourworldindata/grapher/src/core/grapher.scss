@@ -4,6 +4,18 @@ $serif-font-stack: "Playfair Display", Georgia, "Times New Roman",
     "Liberation Serif", serif;
 $default-font-features: "liga", "kern", "calt";
 
+// grapher frame
+$frame-color: #f2f2f2;
+
+// text
+$dark-text: #5b5b5b;
+$light-text: #858585;
+$active-text: #1d3d63;
+
+// tooltip for button label
+$tooltip-fill: #4e4e4e;
+$tooltip-text: #fff;
+
 // Variables duplicated from site CSS
 $blue-10: #ebeef2;
 $blue-100: #002147;
@@ -24,9 +36,14 @@ $xxlg: 1536px;
 // These should be between 0–100 in order to avoid conflicting with
 // site dropdowns, search overlays, etc.
 $zindex-chart: 1;
-$zindex-tab: 1;
+$zindex-table: 1;
 $zindex-global-entity-select: 11;
 $zindex-Tooltip: 20;
+$zindex-modal: 30;
+
+$zindex-full-screen: 120;
+$zindex-controls-backdrop: 130;
+$zindex-controls-drawer: 140;
 
 // needed for .global-entity-control-container
 @mixin xxlg-down {
@@ -42,22 +59,28 @@ $zindex-Tooltip: 20;
 // e.g. &.narrow is equivalent to .GrapherComponent.narrow
 .GrapherComponent {
     @import "../controls/CommandPalette.scss";
-    @import "../controls/ScaleSelector.scss";
+    @import "../controls/LabeledSwitch.scss";
+    @import "../controls/Checkbox.scss";
     @import "../controls/Controls.scss";
-    @import "../timeline/TimelineComponent.scss";
-    @import "../controls/ShareMenu.scss";
+    @import "../controls/SettingsMenu.scss";
+    @import "../controls/MapProjectionMenu.scss";
     @import "../noDataModal/NoDataModal.scss";
-    @import "../controls/CollapsibleList/CollapsibleList.scss";
-    @import "../controls/ControlsRow.scss";
     @import "../captionedChart/CaptionedChart.scss";
-    @import "../controls/EntitySelectorModal.scss";
-    @import "../controls/AddEntityButton.scss";
-    @import "../downloadTab/DownloadTab.scss";
+    @import "../timeline/TimelineComponent.scss";
+    @import "../controls/ContentSwitchers.scss";
+    @import "../controls/ActionButtons.scss";
+    @import "../controls/ShareMenu.scss";
+    @import "../modal/Modal.scss";
+    @import "../modal/EntitySelectorModal.scss";
+    @import "../modal/EmbedModal.scss";
+    @import "../modal/DownloadModal.scss";
     @import "../dataTable/DataTable.scss";
-    @import "../sourcesTab/SourcesTab.scss";
+    @import "../modal/SourcesModal.scss";
     @import "../tooltip/Tooltip.scss";
     @import "../mapCharts/MapTooltip.scss";
     @import "../loadingIndicator/LoadingIndicator.scss";
+    @import "../footer/Footer.scss";
+    @import "../header/Header.scss";
 }
 
 // These rules are currently used elsewhere in the site. e.g. Explorers
@@ -65,8 +88,10 @@ $zindex-Tooltip: 20;
 @import "../controls/entityPicker/EntityPicker.scss";
 @import "../controls/globalEntitySelector/GlobalEntitySelector.scss";
 @import "../sparkBars/SparkBars.scss";
+@import "../fullScreen/FullScreen.scss";
 
 .GrapherComponent,
+.GrapherComponent h2,
 .GrapherComponent p,
 .GrapherComponent ul,
 .GrapherComponent ol {
@@ -75,22 +100,18 @@ $zindex-Tooltip: 20;
 
 .GrapherComponent {
     display: inline-block;
-    border-bottom: none;
-    border-radius: 2px;
     text-align: left;
 
     line-height: 1em;
 
     background: white;
-    color: #333;
+    color: $dark-text;
 
     position: relative;
     container-type: size;
     container-name: grapher;
 
-    border-radius: 2px;
-    box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 2px 0px,
-        rgba(0, 0, 0, 0.25) 0px 2px 2px 0px;
+    border: 1px solid $frame-color;
     z-index: $zindex-chart;
 
     * {
@@ -100,15 +121,6 @@ $zindex-Tooltip: 20;
     button {
         background: none;
         border: none;
-    }
-
-    .btn {
-        font-size: 0.8em;
-        white-space: normal;
-    }
-
-    .flash {
-        margin: 10px;
     }
 
     .clickable {
@@ -121,6 +133,7 @@ $zindex-Tooltip: 20;
             }
         }
     }
+
     input[type="checkbox"] {
         cursor: pointer;
     }
@@ -144,34 +157,42 @@ $zindex-Tooltip: 20;
         stroke-width: 4;
     }
 
-    a {
-        cursor: pointer;
-        color: #0645ad;
-        fill: #0645ad;
-        border-bottom: none;
-    }
-
-    h2 {
-        font-size: 2em;
-        margin-top: 0;
-        margin-bottom: 0.8em;
-        font-weight: 400;
-        line-height: 1.1;
-    }
-
-    .unstroked {
-        display: none;
-    }
-
-    .DownloadTab,
-    .tableTab,
-    .sourcesTab {
-        z-index: $zindex-tab;
+    .DataTableContainer {
+        z-index: $zindex-table;
     }
 }
 
 .GrapherComponent.isExportingToSvgOrPng {
     padding: 0 !important;
+}
+
+// when optimized for horizontal space, grapher bleeds onto the edges horizontally
+// and the left and right borders are hidden. the top and bottom borders are visible,
+// but stretch across the entire page.
+.GrapherComponent.optimizeForHorizontalSpace {
+    border: none;
+
+    // adds top and bottom borders that stretch across the entire page.
+    // since we don't know the width of the page, we use a large number (200vw)
+    // and offset it by another large number (-50vw) to make sure the borders
+    // stretch across the entire page.
+    &::before,
+    &::after {
+        content: "";
+        position: absolute;
+        left: -50vw;
+        height: 1px;
+        width: 200vw;
+        background: $frame-color;
+    }
+
+    &::before {
+        top: 0;
+    }
+
+    &::after {
+        bottom: 0;
+    }
 }
 
 .Tooltip {
@@ -199,6 +220,7 @@ $zindex-Tooltip: 20;
 
     a.dod-span {
         border-bottom: 1px dotted #666;
+        text-decoration: none;
 
         &:hover {
             text-decoration: none;

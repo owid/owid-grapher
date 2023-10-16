@@ -89,6 +89,10 @@ import {
     SeriesStrategy,
     getVariableDataRoute,
     getVariableMetadataRoute,
+    DEFAULT_GRAPHER_FRAME_PADDING,
+    DEFAULT_GRAPHER_ENTITY_TYPE,
+    DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL,
+    GRAPHER_DARK_TEXT,
 } from "../core/GrapherConstants"
 import Cookies from "js-cookie"
 import {
@@ -124,29 +128,29 @@ import {
     ColumnTypeMap,
     CoreColumn,
 } from "@ourworldindata/core-table"
+import { FullScreen } from "../fullScreen/FullScreen"
 import { isOnTheMap } from "../mapCharts/EntitiesOnTheMap"
 import { ChartManager } from "../chart/ChartManager"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons"
-import {
-    AbsRelToggleManager,
-    FacetStrategyDropdownManager,
-    FooterControls,
-    FooterControlsManager,
-} from "../controls/Controls"
+import { SettingsMenuManager } from "../controls/SettingsMenu"
 import { TooltipContainer } from "../tooltip/Tooltip"
-import { EntitySelectorModal } from "../controls/EntitySelectorModal"
-import { DownloadTab, DownloadTabManager } from "../downloadTab/DownloadTab"
+import {
+    EntitySelectorModal,
+    EntitySelectorModalManager,
+} from "../modal/EntitySelectorModal"
+import { DownloadModal, DownloadModalManager } from "../modal/DownloadModal"
 import ReactDOM from "react-dom"
 import { observer } from "mobx-react"
 import "d3-transition"
-import { SourcesTab, SourcesTabManager } from "../sourcesTab/SourcesTab"
-import { DataTable, DataTableManager } from "../dataTable/DataTable"
+import { SourcesModal, SourcesModalManager } from "../modal/SourcesModal"
+import { DataTableManager } from "../dataTable/DataTable"
 import { MapChartManager } from "../mapCharts/MapChartConstants"
 import { MapChart } from "../mapCharts/MapChart"
 import { DiscreteBarChartManager } from "../barCharts/DiscreteBarChartConstants"
 import { Command, CommandPalette } from "../controls/CommandPalette"
 import { ShareMenuManager } from "../controls/ShareMenu"
+import { EmbedModalManager, EmbedModal } from "../modal/EmbedModal"
 import {
     CaptionedChart,
     CaptionedChartManager,
@@ -170,7 +174,7 @@ import {
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
 } from "../chart/ChartUtils"
-import classNames from "classnames"
+import classnames from "classnames"
 import { GrapherAnalytics } from "./GrapherAnalytics"
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations"
 import { ChartInterface } from "../chart/ChartInterface"
@@ -264,11 +268,12 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     hideFacetYDomainToggle?: boolean
     hideXScaleToggle?: boolean
     hideYScaleToggle?: boolean
+    hideMapProjectionMenu?: boolean
+    hideTableFilterToggle?: boolean
     forceHideAnnotationFieldsInTitle?: AnnotationFieldsInTitle
     hasTableTab?: boolean
-    hasSourcesTab?: boolean
-    hasDownloadTab?: boolean
-    hideShareTabButton?: boolean
+    hideShareButton?: boolean
+    hideExploreTheDataButton?: boolean
     hideRelatedQuestion?: boolean
 
     getGrapherInstance?: (instance: Grapher) => void
@@ -277,6 +282,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     bindUrlToWindow?: boolean
     isEmbeddedInAnOwidPage?: boolean
     isEmbeddedInADataPage?: boolean
+    shouldOptimizeForHorizontalSpace?: boolean
 
     manager?: GrapherManager
 }
@@ -297,19 +303,19 @@ export class Grapher
         ChartManager,
         FontSizeManager,
         CaptionedChartManager,
-        SourcesTabManager,
-        DownloadTabManager,
+        SourcesModalManager,
+        DownloadModalManager,
         DiscreteBarChartManager,
         LegacyDimensionsManager,
         ShareMenuManager,
-        AbsRelToggleManager,
+        EmbedModalManager,
         TooltipManager,
-        FooterControlsManager,
         DataTableManager,
         ScatterPlotManager,
         MarimekkoChartManager,
-        FacetStrategyDropdownManager,
         FacetChartManager,
+        EntitySelectorModalManager,
+        SettingsMenuManager,
         MapChartManager
 {
     @observable.ref $schema = DEFAULT_GRAPHER_CONFIG_SCHEMA
@@ -334,8 +340,8 @@ export class Grapher
     @observable.ref logo?: LogoOption = undefined
     @observable.ref hideLogo?: boolean = undefined
     @observable.ref hideRelativeToggle? = true
-    @observable.ref entityType = "country or region"
-    @observable.ref entityTypePlural = "countries or regions"
+    @observable.ref entityType = DEFAULT_GRAPHER_ENTITY_TYPE
+    @observable.ref entityTypePlural = DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL
     @observable.ref facettingLabelByYVariables = "metric"
     @observable.ref hideTimeline?: boolean = undefined
     @observable.ref hideScatterLabels?: boolean = undefined
@@ -344,7 +350,6 @@ export class Grapher
     @observable.ref hasChartTab = true
     @observable.ref hasMapTab = false
     @observable.ref tab = GrapherTabOption.chart
-    @observable.ref overlay?: GrapherTabOption = undefined
     @observable.ref internalNotes = ""
     @observable.ref variantName?: string = undefined
     @observable.ref originUrl = ""
@@ -361,6 +366,7 @@ export class Grapher
     /** Hides the total value label that is normally displayed for stacked bar charts */
     @observable.ref hideTotalValueLabel?: boolean = undefined
     @observable.ref missingDataStrategy?: MissingDataStrategy = undefined
+    @observable.ref showSelectionOnlyInDataTable?: boolean = undefined
 
     @observable.ref xAxis = new AxisConfig(undefined, this)
     @observable.ref yAxis = new AxisConfig(undefined, this)
@@ -399,6 +405,11 @@ export class Grapher
     @observable sortOrder?: SortOrder
     @observable sortColumnSlug?: string
 
+    @observable.ref _isInFullScreenMode = false
+
+    @observable.ref windowInnerWidth?: number
+    @observable.ref windowInnerHeight?: number
+
     owidDataset?: MultipleOwidVariableDataDimensionsMap = undefined // This is used for passing data for testing
 
     manuallyProvideData? = false // This will be removed.
@@ -425,7 +436,21 @@ export class Grapher
         return this.tableSlugs ? this.tableSlugs.split(" ") : this.newSlugs
     }
 
+    isEmbeddedInAnOwidPage?: boolean = this.props.isEmbeddedInAnOwidPage
     isEmbeddedInADataPage?: boolean = this.props.isEmbeddedInADataPage
+
+    // if true, grapher bleeds onto the edges horizontally and the left and right borders
+    // are removed while the top and bottom borders stretch across the entire page
+    @observable shouldOptimizeForHorizontalSpace = false
+
+    @computed private get optimizeForHorizontalSpace(): boolean {
+        return (
+            this.isNarrow &&
+            this.shouldOptimizeForHorizontalSpace &&
+            // in full-screen mode, we prefer padding on the sides
+            !this.isInFullScreenMode
+        )
+    }
 
     /**
      * todo: factor this out and make more RAII.
@@ -533,16 +558,23 @@ export class Grapher
         // Set tab if specified
         const tab = params.tab
         if (tab) {
-            if (!this.availableTabs.includes(tab as GrapherTabOption))
+            if (this.availableTabs.includes(tab as any)) {
+                this.tab = tab as GrapherTabOption
+            } else {
                 console.error("Unexpected tab: " + tab)
-            else this.tab = tab as GrapherTabOption
+            }
         }
 
+        // Set overlay if specified
         const overlay = params.overlay
         if (overlay) {
-            if (!this.availableTabs.includes(overlay as GrapherTabOption))
+            if (overlay === "sources") {
+                this.isSourcesModalOpen = true
+            } else if (overlay === "download") {
+                this.isDownloadModalOpen = true
+            } else {
                 console.error("Unexpected overlay: " + overlay)
-            else this.overlay = overlay as GrapherTabOption
+            }
         }
 
         // Stack mode for bar and stacked area charts
@@ -602,12 +634,20 @@ export class Grapher
         ) as TimeBounds
     }
 
-    @computed private get isChartOrMapTab(): boolean {
-        return this.tab === GrapherTabOption.chart || this.isOnMapTab
+    @computed get isOnChartTab(): boolean {
+        return this.tab === GrapherTabOption.chart
     }
 
-    @computed private get isOnMapTab(): boolean {
+    @computed get isOnMapTab(): boolean {
         return this.tab === GrapherTabOption.map
+    }
+
+    @computed get isOnTableTab(): boolean {
+        return this.tab === GrapherTabOption.table
+    }
+
+    @computed get isOnChartOrMapTab(): boolean {
+        return this.isOnChartTab || this.isOnMapTab
     }
 
     @computed get yAxisConfig(): Readonly<AxisConfigInterface> {
@@ -658,7 +698,7 @@ export class Grapher
     @computed
     get tableAfterAuthorTimelineAndActiveChartTransform(): OwidTable {
         const table = this.tableAfterAuthorTimelineFilter
-        if (!this.isReady || !this.isChartOrMapTab) return table
+        if (!this.isReady || !this.isOnChartOrMapTab) return table
         return this.chartInstance.transformTable(table)
     }
 
@@ -720,9 +760,15 @@ export class Grapher
     }
 
     @observable.ref isExportingtoSvgOrPng = false
+    @observable.ref isGeneratingThumbnail = false
+
     tooltips?: TooltipManager["tooltips"] = observable.map({}, { deep: false })
     @observable isPlaying = false
     @observable.ref isSelectingData = false
+
+    @observable.ref isSourcesModalOpen = false
+    @observable.ref isDownloadModalOpen = false
+    @observable.ref isEmbedModalOpen = false
 
     private get isStaging(): boolean {
         if (typeof location === undefined) return false
@@ -995,7 +1041,7 @@ export class Grapher
 
     @computed get shouldLinkToOwid(): boolean {
         if (
-            this.props.isEmbeddedInAnOwidPage ||
+            this.isEmbeddedInAnOwidPage ||
             this.isExportingtoSvgOrPng ||
             !this.isInIFrame
         )
@@ -1086,31 +1132,6 @@ export class Grapher
         return url
     }
 
-    @computed get overlayTab(): GrapherTabOption | undefined {
-        return this.overlay
-    }
-
-    @computed get currentTab(): GrapherTabOption {
-        return this.overlay ? this.overlay : this.tab
-    }
-
-    set currentTab(desiredTab: GrapherTabOption) {
-        if (
-            desiredTab === GrapherTabOption.chart ||
-            desiredTab === GrapherTabOption.map ||
-            desiredTab === GrapherTabOption.table
-        ) {
-            this.tab = desiredTab
-            this.overlay = undefined
-            return
-        }
-
-        // table tab cannot be downloaded, so revert to default tab
-        if (desiredTab === GrapherTabOption.download && this.isOnTableTab)
-            this.tab = this.authorsVersion.tab ?? GrapherTabOption.chart
-        this.overlay = desiredTab
-    }
-
     @computed get timelineHandleTimeBounds(): TimeBounds {
         if (this.isOnMapTab) {
             const time = maxTimeBoundFromJSONOrPositiveInfinity(this.map.time)
@@ -1197,7 +1218,7 @@ export class Grapher
     }
 
     // Used for static exports. Defined at this level because they need to
-    // be accessed by CaptionedChart and DownloadTab
+    // be accessed by CaptionedChart and DownloadModal
     @computed get detailRenderers(): MarkdownTextWrap[] {
         return [...this.detailsOrderedByReference].map((term, i) => {
             let text = `**${i + 1}.** `
@@ -1213,11 +1234,12 @@ export class Grapher
             return new MarkdownTextWrap({
                 text,
                 fontSize: 12,
-                // 30 is 15 margin on both sides
-                maxWidth: this.idealBounds.width - 30,
+                // leave room for padding on the left and right
+                maxWidth:
+                    this.idealBounds.width - 2 * this.framePaddingHorizontal,
                 lineHeight: 1.2,
                 style: {
-                    fill: "#777",
+                    fill: GRAPHER_DARK_TEXT,
                 },
             })
         })
@@ -1225,11 +1247,9 @@ export class Grapher
 
     @computed get availableTabs(): GrapherTabOption[] {
         return [
-            this.hasChartTab && GrapherTabOption.chart,
-            this.hasMapTab && GrapherTabOption.map,
             this.hasTableTab && GrapherTabOption.table,
-            this.hasSourcesTab && GrapherTabOption.sources,
-            this.hasDownloadTab && GrapherTabOption.download,
+            this.hasMapTab && GrapherTabOption.map,
+            this.hasChartTab && GrapherTabOption.chart,
         ].filter(identity) as GrapherTabOption[]
     }
 
@@ -1242,7 +1262,7 @@ export class Grapher
     }
 
     @computed get currentTitle(): string {
-        let text = this.displayTitle
+        let text = this.displayTitle.trim()
         const selectedEntityNames = this.selection.selectedEntityNames
         const showEntityAnnotation = !this.hideAnnotationFieldsInTitle?.entity
         const showTimeAnnotation = !this.hideAnnotationFieldsInTitle?.time
@@ -1252,6 +1272,16 @@ export class Grapher
         const seriesStrategy =
             this.chartInstance.seriesStrategy ||
             autoDetectSeriesStrategy(this, true)
+
+        // helper function to add an annotation fragment to the title
+        // only adds a comma if the text does not end with a question mark
+        const appendAnnotationField = (
+            text: string,
+            annotation: string
+        ): string => {
+            const separator = text.endsWith("?") ? "" : ","
+            return `${text}${separator} ${annotation}`
+        }
 
         if (
             !this.forceHideAnnotationFieldsInTitle?.entity &&
@@ -1263,7 +1293,7 @@ export class Grapher
                 this.canSelectMultipleEntities)
         ) {
             const entityStr = selectedEntityNames[0]
-            if (entityStr?.length) text = `${text}, ${entityStr}`
+            if (entityStr?.length) text = appendAnnotationField(text, entityStr)
         }
 
         if (
@@ -1286,17 +1316,13 @@ export class Grapher
                         this.isMarimekko ||
                         this.isOnMapTab)))
         )
-            text += this.timeTitleSuffix
+            text = appendAnnotationField(text, this.timeTitleSuffix)
 
         return text.trim()
     }
 
     /**
      * Uses some explicit and implicit information to decide whether a timeline is shown.
-     * Note the difference between `hasTimeline` and `showTimeline`:
-     * - `hasTimeline` indicates whether the current _normal_ (non-overlay) tab has a timeline.
-     * - `showTimeline` takes into account whether we are on an overlay tab, and thus indicates
-     *    whether we should currently show the timeline.
      */
     @computed get hasTimeline(): boolean {
         // we don't have more than one distinct time point in our data, so it doesn't make sense to show a timeline
@@ -1315,11 +1341,6 @@ export class Grapher
             default:
                 return false
         }
-    }
-
-    @computed get showTimeline(): boolean {
-        // don't show the timeline when on an overlay tab
-        return this.hasTimeline && this.overlay === undefined
     }
 
     @computed private get areHandlesOnSameTime(): boolean {
@@ -1405,7 +1426,7 @@ export class Grapher
                   " to " +
                   timeColumn.formatValue(endTime)
 
-        return ", " + time
+        return time
     }
 
     @computed get sourcesLine(): string {
@@ -1642,9 +1663,9 @@ export class Grapher
     }
 
     @computed get relativeToggleLabel(): string {
-        if (this.isScatter) return "Average annual change"
-        else if (this.isLineChart) return "Relative change"
-        return "Relative"
+        if (this.isScatter) return "Display average annual change"
+        else if (this.isLineChart) return "Display relative change"
+        return "Display relative values"
     }
 
     // NB: The timeline scatterplot in relative mode calculates changes relative
@@ -1812,12 +1833,26 @@ export class Grapher
             widthForDeviceOrientation,
             heightForDeviceOrientation,
             isInIFrame,
+            isInFullScreenMode,
+            windowInnerWidth,
+            windowInnerHeight,
         } = this
+
+        // In full-screen mode, we usually use all space available to us
+        // We use the ideal bounds only if the available space is very large
+        if (isInFullScreenMode) {
+            if (
+                windowInnerHeight! > 2 * heightForDeviceOrientation &&
+                windowInnerWidth! > 2 * widthForDeviceOrientation
+            )
+                return true
+            return false
+        }
 
         // For these, defer to the bounds that are set externally
         if (
-            this.props.isEmbeddedInADataPage ||
-            this.props.isEmbeddedInAnOwidPage ||
+            this.isEmbeddedInADataPage ||
+            this.isEmbeddedInAnOwidPage ||
             this.props.manager ||
             isInIFrame
         )
@@ -1841,37 +1876,77 @@ export class Grapher
 
     // If we have a big screen to be in, we can define our own aspect ratio and sit in the center
     @computed private get scaleToFitIdeal(): number {
+        const {
+            bounds,
+            isInFullScreenMode,
+            widthForDeviceOrientation,
+            heightForDeviceOrientation,
+            windowInnerWidth,
+            windowInnerHeight,
+        } = this
+        const givenBounds = isInFullScreenMode
+            ? { width: windowInnerWidth!, height: windowInnerHeight! }
+            : bounds
         return Math.min(
-            (this.bounds.width * 0.95) / this.widthForDeviceOrientation,
-            (this.bounds.height * 0.95) / this.heightForDeviceOrientation
+            (givenBounds.width * 0.95) / widthForDeviceOrientation,
+            (givenBounds.height * 0.95) / heightForDeviceOrientation
         )
     }
 
+    @computed private get fullScreenPadding(): number {
+        const { windowInnerWidth } = this
+        if (!windowInnerWidth) return 0
+        return windowInnerWidth < 940 ? 0 : 40
+    }
+
     // These are the final render dimensions
-    // Todo: add explanation around why isExporting removes 5 px
     @computed private get renderWidth(): number {
+        const {
+            bounds,
+            isInFullScreenMode,
+            useIdealBounds,
+            widthForDeviceOrientation,
+            scaleToFitIdeal,
+            windowInnerWidth,
+            fullScreenPadding,
+        } = this
+
+        if (useIdealBounds) {
+            return Math.floor(widthForDeviceOrientation * scaleToFitIdeal)
+        }
+
         return Math.floor(
-            this.useIdealBounds
-                ? this.widthForDeviceOrientation * this.scaleToFitIdeal
-                : this.bounds.width - (this.isExportingtoSvgOrPng ? 0 : 5)
+            isInFullScreenMode
+                ? windowInnerWidth! - 2 * fullScreenPadding
+                : bounds.width
         )
     }
+
     @computed private get renderHeight(): number {
+        const {
+            bounds,
+            isInFullScreenMode,
+            useIdealBounds,
+            heightForDeviceOrientation,
+            scaleToFitIdeal,
+            windowInnerHeight,
+            fullScreenPadding,
+        } = this
+
+        if (useIdealBounds) {
+            return Math.floor(heightForDeviceOrientation * scaleToFitIdeal)
+        }
+
         return Math.floor(
-            this.useIdealBounds
-                ? this.heightForDeviceOrientation * this.scaleToFitIdeal
-                : this.bounds.height - (this.isExportingtoSvgOrPng ? 0 : 5)
+            isInFullScreenMode
+                ? windowInnerHeight! - 2 * fullScreenPadding
+                : bounds.height
         )
     }
 
     @computed get tabBounds(): Bounds {
-        const bounds = new Bounds(0, 0, this.renderWidth, this.renderHeight)
-        return this.isExportingtoSvgOrPng
-            ? bounds
-            : bounds.padBottom(this.footerControlsHeight)
+        return new Bounds(0, 0, this.renderWidth, this.renderHeight)
     }
-
-    @observable.ref private popups: JSX.Element[] = []
 
     base: React.RefObject<HTMLDivElement> = React.createRef()
 
@@ -1890,50 +1965,6 @@ export class Grapher
         this.uncaughtError = undefined
     }
 
-    // todo: clean up this popup stuff
-    addPopup(vnode: JSX.Element): void {
-        this.popups = this.popups.concat([vnode])
-    }
-
-    removePopup(vnodeType: JSX.Element): void {
-        this.popups = this.popups.filter((d) => !(d.type === vnodeType))
-    }
-
-    @computed private get isOnTableTab(): boolean {
-        return this.tab === GrapherTabOption.table
-    }
-
-    private renderPrimaryTab(): JSX.Element | undefined {
-        if (this.isChartOrMapTab) return <CaptionedChart manager={this} />
-
-        const { tabBounds } = this
-        if (this.isOnTableTab)
-            // todo: should this "Div" and styling just be in DataTable class?
-            return (
-                <div
-                    className="tableTab"
-                    style={{ ...tabBounds.toCSS(), position: "absolute" }}
-                >
-                    <DataTable bounds={tabBounds} manager={this} />
-                </div>
-            )
-
-        return undefined
-    }
-
-    private renderOverlayTab(): JSX.Element | undefined {
-        const bounds = this.tabBounds
-        if (this.overlayTab === GrapherTabOption.sources)
-            return (
-                <SourcesTab key="sourcesTab" bounds={bounds} manager={this} />
-            )
-        if (this.overlayTab === GrapherTabOption.download)
-            return (
-                <DownloadTab key="downloadTab" bounds={bounds} manager={this} />
-            )
-        return undefined
-    }
-
     private get commandPalette(): JSX.Element | null {
         return this.props.enableKeyboardShortcuts ? (
             <CommandPalette commands={this.keyboardShortcuts} display="none" />
@@ -1945,7 +1976,7 @@ export class Grapher
     }
 
     @action.bound private toggleTabCommand(): void {
-        this.currentTab = next(this.availableTabs, this.currentTab)
+        this.tab = next(this.availableTabs, this.tab)
     }
 
     @action.bound private togglePlayingCommand(): void {
@@ -1996,21 +2027,29 @@ export class Grapher
                 category: "Selection",
             },
             {
+                combo: "f",
+                fn: (): void => {
+                    this.hideFacetControl = !this.hideFacetControl
+                },
+                title: `Toggle Faceting`,
+                category: "Chart",
+            },
+            {
                 combo: "p",
                 fn: (): void => this.togglePlayingCommand(),
                 title: this.isPlaying ? `Pause` : `Play`,
                 category: "Timeline",
             },
             {
-                combo: "f",
-                fn: (): void => this.toggleFacetControlVisibility(),
-                title: `Toggle Faceting`,
-                category: "Chart",
-            },
-            {
                 combo: "l",
                 fn: (): void => this.toggleYScaleTypeCommand(),
                 title: "Toggle Y log/linear",
+                category: "Chart",
+            },
+            {
+                combo: "w",
+                fn: (): void => this.toggleFullScreenMode(),
+                title: `Toggle full-screen mode`,
                 category: "Chart",
             },
             {
@@ -2063,53 +2102,6 @@ export class Grapher
         this.yAxis.scaleType = next(
             [ScaleType.linear, ScaleType.log],
             this.yAxis.scaleType
-        )
-    }
-
-    @action.bound private toggleFacetStrategy(): void {
-        this.facetStrategy = next(
-            this.availableFacetStrategies,
-            this.facetStrategy
-        )
-    }
-
-    @computed get showFacetControl(): boolean {
-        const {
-            hideFacetControl,
-            filledDimensions,
-            availableFacetStrategies,
-            isStackedArea,
-            isStackedBar,
-            isStackedDiscreteBar,
-            isLineChart,
-        } = this
-
-        if (hideFacetControl !== undefined) return !hideFacetControl
-
-        // heuristic: if the chart doesn't make sense unfaceted, then it probably
-        // also makes sense to let the user switch between entity/metric facets
-        if (!availableFacetStrategies.includes(FacetStrategy.none)) return true
-
-        const showFacetControlChartType =
-            isStackedArea || isStackedBar || isStackedDiscreteBar || isLineChart
-
-        const hasProjection = filledDimensions.some(
-            (dim) => dim.display.isProjection
-        )
-
-        return showFacetControlChartType && !hasProjection
-    }
-
-    @action.bound private toggleFacetControlVisibility(): void {
-        this.hideFacetControl = !this.hideFacetControl
-    }
-
-    @computed get showFacetYDomainToggle(): boolean {
-        // don't offer to make the y range relative if the range is discrete
-        return (
-            !this.hideFacetYDomainToggle &&
-            this.facetStrategy !== FacetStrategy.none &&
-            !this.isStackedDiscreteBar
         )
     }
 
@@ -2230,6 +2222,50 @@ export class Grapher
         )
     }
 
+    @computed get isInFullScreenMode(): boolean {
+        return this._isInFullScreenMode
+    }
+
+    set isInFullScreenMode(newValue: boolean) {
+        // prevent scrolling when in full-screen mode
+        if (newValue) {
+            document.documentElement.classList.add("no-scroll")
+        } else {
+            document.documentElement.classList.remove("no-scroll")
+        }
+
+        // dismiss the share menu
+        this.isShareMenuActive = false
+
+        this._isInFullScreenMode = newValue
+    }
+
+    @action.bound toggleFullScreenMode(): void {
+        this.isInFullScreenMode = !this.isInFullScreenMode
+    }
+
+    @action.bound dismissFullScreen(): void {
+        // if a modal is open, dismiss it instead of exiting full-screen mode
+        if (this.isModalOpen || this.isShareMenuActive) {
+            this.isSelectingData = false
+            this.isSourcesModalOpen = false
+            this.isEmbedModalOpen = false
+            this.isDownloadModalOpen = false
+            this.isShareMenuActive = false
+        } else {
+            this.isInFullScreenMode = false
+        }
+    }
+
+    @computed private get isModalOpen(): boolean {
+        return (
+            this.isSelectingData ||
+            this.isSourcesModalOpen ||
+            this.isEmbedModalOpen ||
+            this.isDownloadModalOpen
+        )
+    }
+
     private renderError(): JSX.Element {
         return (
             <div
@@ -2286,32 +2322,32 @@ export class Grapher
         this.annotation = annotation
     }
 
-    render(): JSX.Element | undefined {
-        const { isExportingtoSvgOrPng, isPortrait } = this
-        // TODO how to handle errors in exports?
-        // TODO tidy this up
-        if (isExportingtoSvgOrPng) return this.renderPrimaryTab() // todo: remove this? should have a simple toStaticSVG for importing.
+    private renderGrapherComponent(): JSX.Element {
+        const containerClasses = classnames({
+            GrapherComponent: true,
+            GrapherPortraitClass: this.isPortrait,
+            isExportingToSvgOrPng: this.isExportingtoSvgOrPng,
+            optimizeForHorizontalSpace: this.optimizeForHorizontalSpace,
+            GrapherComponentNarrow: this.isNarrow,
+            GrapherComponentSemiNarrow: this.isSemiNarrow,
+            GrapherComponentSmall: this.isSmall,
+            GrapherComponentMedium: this.isMedium,
+        })
 
-        const { renderWidth, renderHeight } = this
-
-        const style = {
-            width: renderWidth,
-            height: renderHeight,
-            fontSize: this.baseFontSize,
+        const containerStyle = {
+            width: this.renderWidth,
+            height: this.renderHeight,
+            fontSize: this.isExportingtoSvgOrPng
+                ? 18
+                : Math.min(16, this.baseFontSize), // cap font size at 16px
         }
-
-        const classes = classNames(
-            "GrapherComponent",
-            isExportingtoSvgOrPng && "isExportingToSvgOrPng",
-            isPortrait && "GrapherPortraitClass"
-        )
 
         return (
             <div
                 ref={this.base}
-                className={classes}
-                style={style}
-                data-grapher-url={this.canonicalUrl} // fully qualified grapher URL, used for analytics context
+                className={containerClasses}
+                style={containerStyle}
+                data-grapher-url={this.canonicalUrl}
             >
                 {this.commandPalette}
                 {this.uncaughtError ? this.renderError() : this.renderReady()}
@@ -2319,25 +2355,39 @@ export class Grapher
         )
     }
 
-    private renderReady(): JSX.Element {
+    render(): JSX.Element | undefined {
+        // TODO how to handle errors in exports?
+        // TODO remove this? should have a simple toStaticSVG for exporting
+        if (this.isExportingtoSvgOrPng) return <CaptionedChart manager={this} />
+
+        if (this.isInFullScreenMode) {
+            return (
+                <FullScreen
+                    onDismiss={this.dismissFullScreen}
+                    overlayColor={this.isModalOpen ? "#999999" : "#fff"}
+                >
+                    {this.renderGrapherComponent()}
+                </FullScreen>
+            )
+        }
+
+        return this.renderGrapherComponent()
+    }
+
+    private renderReady(): JSX.Element | null {
+        if (!this.hasBeenVisible) return null
         return (
             <>
-                {this.hasBeenVisible && this.renderPrimaryTab()}
-                <FooterControls manager={this} />
-                {this.hasBeenVisible && this.renderOverlayTab()}
-                {this.popups}
+                <CaptionedChart manager={this} />
                 <TooltipContainer
                     containerWidth={this.renderWidth}
                     containerHeight={this.renderHeight}
                     tooltipProvider={this}
                 />
-                {this.isSelectingData && (
-                    <EntitySelectorModal
-                        isMulti={!this.canChangeEntity}
-                        selectionArray={this.selection}
-                        onDismiss={action(() => (this.isSelectingData = false))}
-                    />
-                )}
+                {this.isSourcesModalOpen && <SourcesModal manager={this} />}
+                {this.isDownloadModalOpen && <DownloadModal manager={this} />}
+                {this.isEmbedModalOpen && <EmbedModal manager={this} />}
+                {this.isSelectingData && <EntitySelectorModal manager={this} />}
             </>
         )
     }
@@ -2368,6 +2418,42 @@ export class Grapher
         else if (renderWidth >= 1080) this.baseFontSize = 18
     }
 
+    // when optimized for horizontal screen, grapher bleeds onto the edges horizontally
+    @computed get framePaddingHorizontal(): number {
+        return this.optimizeForHorizontalSpace
+            ? 0
+            : DEFAULT_GRAPHER_FRAME_PADDING
+    }
+
+    @computed get framePaddingVertical(): number {
+        return DEFAULT_GRAPHER_FRAME_PADDING
+    }
+
+    @computed get isNarrow(): boolean {
+        if (this.isExportingtoSvgOrPng) return false
+        return this.renderWidth <= 400
+    }
+
+    // SemiNarrow charts shorten their button labels to fit within the controls row
+    @computed get isSemiNarrow(): boolean {
+        if (this.isExportingtoSvgOrPng) return false
+        return this.renderWidth <= 550
+    }
+
+    // Small charts are rendered into 6 or 7 columns in a 12-column grid layout
+    // (e.g. side-by-side charts or charts in the All Charts block)
+    @computed get isSmall(): boolean {
+        if (this.isExportingtoSvgOrPng) return false
+        return this.renderWidth <= 740
+    }
+
+    // Medium charts are rendered into 8 columns in a 12-column grid layout
+    // (e.g. stand-alone charts in the main text of an article)
+    @computed get isMedium(): boolean {
+        if (this.isExportingtoSvgOrPng) return false
+        return this.renderWidth <= 840
+    }
+
     // Binds chart properties to global window title and URL. This should only
     // ever be invoked from top-level JavaScript.
     private bindToWindow(): void {
@@ -2385,9 +2471,28 @@ export class Grapher
         autorun(() => (document.title = this.currentTitle))
     }
 
+    @action.bound private setUpWindowResizeEventHandler(): void {
+        const updateWindowDimensions = (): void => {
+            this.windowInnerWidth = window.innerWidth
+            this.windowInnerHeight = window.innerHeight
+        }
+        const onResize = debounce(updateWindowDimensions, 400, {
+            leading: true,
+        })
+
+        if (typeof window !== "undefined") {
+            updateWindowDimensions()
+            window.addEventListener("resize", onResize)
+            this.disposers.push(() => {
+                window.removeEventListener("resize", onResize)
+            })
+        }
+    }
+
     componentDidMount(): void {
         this.setBaseFontSize()
         this.setUpIntersectionObserver()
+        this.setUpWindowResizeEventHandler()
         exposeInstanceOnWindow(this, "grapher")
         if (this.props.bindUrlToWindow) this.bindToWindow()
         if (this.props.enableKeyboardShortcuts) this.bindKeyboardShortcuts()
@@ -2453,18 +2558,6 @@ export class Grapher
             hasRelatedQuestion &&
             getWindowUrl().pathname !==
                 Url.fromURL(this.relatedQuestions[0]?.url).pathname
-        )
-    }
-
-    @computed private get footerControlsLines(): number {
-        return this.hasTimeline ? 2 : 1
-    }
-
-    @computed get footerControlsHeight(): number {
-        const footerRowHeight = 32 // todo: cleanup. needs to keep in sync with grapher.scss' $footerRowHeight
-        return (
-            this.footerControlsLines * footerRowHeight +
-            (this.hasRelatedQuestion ? 20 : 0)
         )
     }
 
@@ -2605,6 +2698,13 @@ export class Grapher
         )
     }
 
+    @computed get isOnCanonicalUrl(): boolean {
+        if (!this.canonicalUrl) return false
+        return (
+            getWindowUrl().pathname === Url.fromURL(this.canonicalUrl).pathname
+        )
+    }
+
     @computed get embedUrl(): string | undefined {
         return this.manager?.embedDialogUrl ?? this.canonicalUrl
     }
@@ -2673,49 +2773,6 @@ export class Grapher
             : timeColumn.formatValue(value)
     }
 
-    @computed get showYScaleToggle(): boolean | undefined {
-        if (this.hideYScaleToggle) return false
-        if (this.isRelativeMode) return false
-        if (this.isStackedArea || this.isStackedBar) return false // We currently do not have these charts with log scale
-        return this.yAxis.canChangeScaleType
-    }
-
-    @computed get showXScaleToggle(): boolean | undefined {
-        if (this.hideXScaleToggle) return false
-        if (this.isRelativeMode) return false
-        return this.xAxis.canChangeScaleType
-    }
-
-    @computed get showZoomToggle(): boolean {
-        return (
-            !this.hideZoomToggle &&
-            this.isScatter &&
-            this.selection.hasSelection
-        )
-    }
-
-    @computed get showAbsRelToggle(): boolean {
-        if (!this.canToggleRelativeMode) return false
-        if (this.isScatter)
-            return this.xOverrideTime === undefined && this.hasTimeline
-        return (
-            this.isStackedArea ||
-            this.isStackedBar ||
-            this.isStackedDiscreteBar ||
-            this.isScatter ||
-            this.isLineChart ||
-            this.isMarimekko
-        )
-    }
-
-    @computed get showNoDataAreaToggle(): boolean {
-        return (
-            !this.hideNoDataAreaToggle &&
-            this.isMarimekko &&
-            this.xColumnSlug !== undefined
-        )
-    }
-
     @computed get showChangeEntityButton(): boolean {
         return !this.hideEntityControls && this.canChangeEntity
     }
@@ -2772,6 +2829,10 @@ export class Grapher
         )
     }
 
+    @computed get entitiesAreCountryLike(): boolean {
+        return !!this.entityType.match(/\bcountry\b/i)
+    }
+
     @computed get startSelectingWhenLineClicked(): boolean {
         return this.showAddEntityButton
     }
@@ -2788,6 +2849,8 @@ export class Grapher
     @observable hideFacetYDomainToggle = false
     @observable hideXScaleToggle = false
     @observable hideYScaleToggle = false
+    @observable hideMapProjectionMenu = false
+    @observable hideTableFilterToggle = false
     // enforces hiding an annotation, even if that means that a crucial piece of information is missing from the chart title
     @observable forceHideAnnotationFieldsInTitle: AnnotationFieldsInTitle = {
         entity: false,
@@ -2795,9 +2858,8 @@ export class Grapher
         changeInPrefix: false,
     }
     @observable hasTableTab = true
-    @observable hasSourcesTab = true
-    @observable hasDownloadTab = true
-    @observable hideShareTabButton = false
+    @observable hideShareButton = false
+    @observable hideExploreTheDataButton = true
     @observable hideRelatedQuestion = false
 }
 

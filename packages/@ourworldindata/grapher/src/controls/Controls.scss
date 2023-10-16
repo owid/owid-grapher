@@ -1,336 +1,134 @@
-$zindex-ControlsFooterMenu: 3;
-$zindex-ControlsFooter: 2;
+$light-stroke: #e7e7e7;
+$dark-stroke: #2d2d2d;
+$active-stroke: #a4b6ca;
 
-.SelectEntitiesButton {
-    color: $controls-color;
+$light-fill: #dadada;
+$active-fill: #dbe5f0;
+$hover-fill: #f2f2f2;
+$selected-fill: #c7ced7;
 
-    svg {
-        margin-right: 3px;
-    }
-}
+$light-text: #858585;
+$dark-text: #5b5b5b;
+$active-text: #1d3d63;
 
-.ChangeEntityButton {
-    color: $controls-color;
-}
+$info-icon: #a1a1a1;
+$active-switch: #6e87a2;
 
-// FACET STRATEGY SELECTOR
+$medium: 400;
+$bold: 700;
+$lato: $sans-serif-font-stack;
 
-// the fake dropdown menu
-.FacetStrategyDropdown {
-    font-family: $sans-serif-font-stack;
-    font-size: 12px;
-    font-weight: bold;
-    border: 1px solid #afb7c1;
-    border-radius: 5px;
-    padding-left: 10px;
-    padding-right: 10px;
-    cursor: pointer;
-}
+$indent: 15px;
+$control-row-height: 32px;
 
-// the chevron
-.FacetStrategyDropdown div {
-    float: right;
-    margin-left: 8px;
-}
-
-// the pop-up list of options
-.FacetStrategyFloat {
+// Buttons in the main controls row of the grapher view
+nav.controlsRow .controls {
     display: flex;
-}
+    gap: 8px;
 
-// one of those options
-.FacetStrategyOption {
-    padding: 4px;
-
-    position: static;
-    width: 96px;
-    left: 4px;
-    top: 4px;
-
-    background: #ffffff;
-    margin: 0px 0px;
-
-    > a {
-        text-decoration: none;
-    }
-}
-
-.FacetStrategyLabel {
-    position: static;
-    left: 4.17%;
-    right: 44.79%;
-    top: 5.88%;
-    bottom: 64.71%;
-
-    font-family: $sans-serif-font-stack;
-    font-style: normal;
-    font-weight: bold;
-    font-size: 12px;
-    line-height: 1.2;
-
-    margin-top: 4px;
-}
-
-.selected .FacetStrategyLabel {
-    color: #0073e6;
-}
-.FacetStrategyLabel {
-    color: #7d899c;
-}
-
-.FacetStrategyPreview-none-child {
-    position: absolute;
-    left: 0%;
-    right: 0%;
-    top: 0%;
-    bottom: 0%;
-
-    border-radius: 1px;
-}
-
-.FacetStrategyPreview-parent {
-    position: relative;
-    width: 100%;
-    height: 36px;
-}
-
-.FacetStrategyPreview-split-child {
-    float: left;
-    width: 28px;
-    height: 17px;
-    border-radius: 1px;
-}
-
-// set appropriate margins for our manual 3x2 grid
-.FacetStrategyPreview-split-child:nth-of-type(1),
-.FacetStrategyPreview-split-child:nth-of-type(2),
-.FacetStrategyPreview-split-child:nth-of-type(3) {
-    margin-bottom: 2px;
-}
-
-.FacetStrategyPreview-split-child:nth-of-type(1),
-.FacetStrategyPreview-split-child:nth-of-type(2),
-.FacetStrategyPreview-split-child:nth-of-type(4),
-.FacetStrategyPreview-split-child:nth-of-type(5) {
-    margin-right: 2px;
-}
-
-.selected .FacetStrategyPreview-none-child {
-    background: #d9eafb;
-}
-
-.FacetStrategyPreview-none-child {
-    background: #dde1e7;
-}
-
-.selected .FacetStrategyPreview-split-child {
-    background: #d9eafb;
-}
-
-.FacetStrategyPreview-split-child {
-    background: #dde1e7;
-}
-
-@keyframes bounceIn {
-    from,
-    20%,
-    40%,
-    60%,
-    80%,
-    to {
-        animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
-    }
-
-    0% {
-        transform: scale3d(8, 8, 8);
-        opacity: 0;
-    }
-
-    40% {
-        transform: scale3d(0.8, 0.8, 0.8);
-        opacity: 1;
-    }
-
-    60% {
-        transform: scale3d(1.25, 1.25, 1.25);
-    }
-
-    80% {
-        transform: scale3d(0.97, 0.97, 0.97);
-    }
-
-    to {
-        transform: scale3d(1, 1, 1);
-        opacity: 1;
-    }
-}
-
-@keyframes appear {
-    0% {
-        opacity: 0;
-    }
-    100% {
-        opacity: 1;
-    }
-}
-
-.relatedQuestion {
-    font-size: 12px;
-    height: 20px;
-    padding: 0 15px;
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    border-top: 1px solid #e1e1e1;
-
-    a {
+    button.menu-toggle {
+        font: $medium 13px/16px $lato;
+        letter-spacing: 0.01em;
+        display: flex;
+        align-items: center;
+        border: 1px solid $light-stroke;
+        border-radius: 4px;
+        padding: 7px;
+        color: $dark-text;
         white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
 
         &:hover {
-            text-decoration: underline;
+            background: $hover-fill;
+            cursor: pointer;
         }
-    }
 
-    a,
-    svg {
-        color: $controls-color;
-    }
-    svg {
-        margin-left: 0.4rem;
-        font-size: 0.8em;
-        vertical-align: unset;
+        &.active,
+        &:active {
+            color: $active-text;
+            background: $active-fill;
+            border: 1px solid $active-fill;
+        }
+
+        svg {
+            height: 12px;
+            margin-right: 5px;
+            vertical-align: bottom;
+        }
+
+        label:hover {
+            cursor: pointer;
+        }
     }
 }
 
-$footerRowHeight: 32px; // keep in sync with Controls.tsx's footerRowHeight
-
-.ControlsFooter {
-    width: 100%;
-    position: absolute;
-    bottom: 0;
-    z-index: $zindex-ControlsFooter;
-    color: #777;
-    display: flex;
-    flex-direction: column;
-    justify-content: end; // align rows in the footer to the bottom
-
-    .footerRowSingle,
-    .footerRowMulti {
-        box-sizing: content-box;
-        width: 100%;
-        height: $footerRowHeight;
-    }
-
-    .footerRowSingle > * {
-        width: 100%;
-    }
-
-    .footerRowMulti {
-        display: flex;
-
-        .inline-controls {
-            flex-grow: 1;
-        }
-
-        nav.tabs {
-            min-width: 50%;
-        }
-    }
-
-    .extraControls {
-        display: flex;
-        height: 100%;
-        align-items: center;
-        font-size: 0.8em;
-    }
-
-    .footerRowMulti .extraControls {
-        padding-left: 0.5em;
-    }
-
-    .footerRowSingle .extraControls {
-        justify-content: center;
-    }
-
-    .extraControls label {
-        margin: 0;
-        padding-left: 0.5em;
-        padding-right: 0.5em;
-    }
-
-    .extraControls button {
-        margin: 0;
-        font-size: 1em;
-        color: $controls-color;
-    }
-
-    nav.tabs ul {
-        margin: 0;
-        padding: 0;
-        display: flex;
-        width: 100%;
-        text-align: center;
-    }
-
-    nav.tabs li {
-        flex-grow: 1;
-        list-style-type: none;
-        border-left: 1px solid #e1e1e1;
-        height: $footerRowHeight;
-
-        &.download-tab-button {
+//
+// Make buttons narrower by omitting their text labels as the viewport gets narrower
+// use the .GrapherComponentSemiNarrow if necessary but allow container queries to
+// collapse labels in two steps on browsers that support them
+//
+// TODO: the measurement and label-hiding logic will have to move to js anyway once the
+//       number of chart buttons becomes variable and the settings button can be replaced
+//       by a single control widget ‘promoted’ from within the drawer
+//
+@at-root {
+    // collapse both the settings and entity selector labels down at the semi-narrow breakpoint
+    .GrapherComponentSemiNarrow {
+        nav.controlsRow .settings-menu button.menu-toggle {
+            min-height: $control-row-height;
             svg {
-                margin-right: 0.15em;
+                margin: 0 2px;
+            }
+            .label {
+                display: none;
             }
         }
-
-        &.open-in-another-tab-button {
-            svg {
-                margin-left: 0.3em;
+        nav.controlsRow .entity-selection-menu button.menu-toggle {
+            label span {
+                display: none;
             }
         }
+    }
+}
 
-        &.icon-only {
-            max-width: 60px;
+@container grapher (max-width:550px) {
+    // collapse the Settings toggle down to just an icon on small screens
+    nav.controlsRow .settings-menu button.menu-toggle {
+        min-height: $control-row-height;
+        svg {
+            margin: 0 2px;
+        }
+        .label {
+            display: none;
         }
     }
 
-    .footerRowSingle nav.tabs li:first-child {
-        border-left: none;
+    // undo the .GrapherComponentSemiNarrow hiding until next container query
+    nav.controlsRow .entity-selection-menu button.menu-toggle {
+        label span {
+            display: inline;
+        }
     }
+}
 
-    nav.tabs li > a {
-        display: block;
-        text-transform: uppercase;
-        color: #777;
-        font-size: 0.8em;
-        height: $footerRowHeight - 1;
-        line-height: $footerRowHeight;
-        border-bottom: 2px solid rgba(0, 0, 0, 0);
-        background-color: $gray-10;
-        transition: color 0.1s;
-        padding: 0 0.6em;
+@container grapher (max-width:475px) {
+    // hide the entity name in the Edit/Select/Switch button
+    nav.controlsRow .entity-selection-menu button.menu-toggle {
+        label span {
+            display: none;
+        }
     }
+}
 
-    nav.tabs li > a:hover {
-        color: rgba(0, 33, 71, 0.9);
-        text-decoration: none;
-    }
-
-    nav.tabs li.active > a {
-        color: rgba(0, 33, 71, 0.9);
-        border-bottom-color: currentColor;
-        background-color: unset;
-    }
-
-    .inline-controls,
-    nav li {
-        border-top: 1px solid #e1e1e1;
-
-        &.active {
-            border-top-color: transparent;
+//
+// correct for style bleeds in admin
+//
+@at-root {
+    .AdminApp {
+        nav.controlsRow .controls button.menu-toggle label {
+            margin: 0;
+        }
+        .settings-menu-contents section {
+            background: none;
         }
     }
 }

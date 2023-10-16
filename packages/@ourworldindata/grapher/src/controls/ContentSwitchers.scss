@@ -1,0 +1,110 @@
+.ContentSwitchers {
+    $light-stroke: #e7e7e7;
+
+    $hover-fill: #f2f2f2;
+    $active-fill: #dbe5f0;
+
+    $info-icon: #a1a1a1;
+    $active-icon: #6e87a2;
+
+    $border-radius: 4px;
+    $visual-gap: 2px;
+
+    display: flex;
+    list-style: none;
+    height: $controlRowHeight;
+    margin: 0;
+    padding: $visual-gap;
+    // using a box-shadow instead of a border fixes a bug
+    // where the tab items weren't centered when zoomed in or out
+    box-shadow: inset 0 0 0 1px $light-stroke;
+    border-radius: $border-radius;
+
+    li {
+        position: relative;
+    }
+
+    li > a {
+        $height: $controlRowHeight - 2 * $visual-gap;
+
+        display: block;
+        text-transform: capitalize;
+        color: $light-text;
+        font-size: 13px;
+        font-weight: 500;
+        height: $height;
+        line-height: $height;
+        border-radius: $border-radius - $visual-gap;
+        padding: 0 16px;
+        cursor: default;
+        letter-spacing: 0.01em;
+        white-space: nowrap;
+
+        &:hover {
+            background-color: $hover-fill;
+            cursor: pointer;
+        }
+
+        .label {
+            margin-left: 6px;
+        }
+
+        svg {
+            color: $info-icon;
+
+            &.custom-icon {
+                --size: 13px;
+
+                display: inline-block;
+                height: var(--size);
+                width: var(--size);
+                vertical-align: -1.625px;
+
+                &.scatter,
+                &.marimekko {
+                    --size: 14px;
+                }
+            }
+        }
+    }
+
+    li.active > a {
+        color: $active-text;
+        background-color: $active-fill;
+
+        &:hover {
+            cursor: default;
+        }
+
+        svg {
+            color: $active-icon;
+        }
+    }
+
+    // separators between tabs
+    li + li::before {
+        content: "";
+        display: block;
+        width: 1px;
+        height: calc(100% - 12px);
+        position: absolute;
+        top: 6px;
+        background-color: $light-stroke;
+        z-index: -1;
+        left: -0.5px;
+    }
+
+    // hide separators when a tab is hovered over or when a tab is active
+    li.active::before,
+    li:hover::before,
+    li.active + li::before,
+    li:hover + li::before {
+        display: none;
+    }
+}
+
+&.GrapherComponentMedium {
+    .ContentSwitchers:not(.iconOnly) li > a {
+        padding: 0 8px;
+    }
+}

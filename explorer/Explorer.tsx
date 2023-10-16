@@ -11,6 +11,7 @@ import {
     TableSlug,
 } from "@ourworldindata/core-table"
 import {
+    Checkbox,
     EntityPicker,
     EntityPickerManager,
     Grapher,
@@ -18,10 +19,12 @@ import {
     GrapherManager,
     GrapherProgrammaticInterface,
     GrapherQueryParams,
+    GrapherTabOption,
     SelectionArray,
     setSelectedEntityNamesParam,
     SlideShowController,
     SlideShowManager,
+    DEFAULT_GRAPHER_ENTITY_TYPE,
 } from "@ourworldindata/grapher"
 import {
     Bounds,
@@ -84,6 +87,7 @@ export interface ExplorerProps extends SerializedGridProgram {
     isPreview?: boolean
     canonicalUrl?: string
     selection?: SelectionArray
+    shouldOptimizeForHorizontalSpace?: boolean // only relevant for explorers with hidden controls
 }
 
 const renderLivePreviewVersion = (props: ExplorerProps) => {
@@ -184,7 +188,7 @@ export class Explorer
         this.props.selection ??
         new SelectionArray(this.explorerProgram.selection)
 
-    entityType = this.explorerProgram.entityType ?? "country or region"
+    entityType = this.explorerProgram.entityType ?? DEFAULT_GRAPHER_ENTITY_TYPE
 
     @observable.ref grapher?: Grapher
 
@@ -206,6 +210,17 @@ export class Explorer
     componentDidMount() {
         this.setGrapher(this.grapherRef!.current!)
         this.updateGrapherFromExplorer()
+
+        // Optimizing for horizontal space makes only sense if the controls are hidden
+        // and the explorer in fact looks like an ordinary grapher chart.
+        // Since switching between charts is not possible when the controls are hidden,
+        // we only need to run this code once.
+        if (
+            this.queryParams.hideControls &&
+            this.props.shouldOptimizeForHorizontalSpace
+        ) {
+            this.grapher!.shouldOptimizeForHorizontalSpace = true
+        }
 
         let url = Url.fromQueryParams(this.initialQueryParams)
 
@@ -336,10 +351,13 @@ export class Explorer
         this.updateGrapherFromExplorer()
 
         // preserve the previous tab if that's still available in the new view;
-        // and use the first tab otherwise
+        // and use the first tab otherwise, ignoring the table
+        const tabsWithoutTable = this.grapher.availableTabs.filter(
+            (tab) => tab !== GrapherTabOption.table
+        )
         newGrapherParams.tab = this.grapher.availableTabs.includes(previousTab)
             ? previousTab
-            : this.grapher.availableTabs[0]
+            : tabsWithoutTable[0] ?? GrapherTabOption.table
 
         this.grapher.populateFromQueryParams(newGrapherParams)
     }
@@ -923,15 +941,12 @@ export class Explorer
 
     @computed get embedDialogAdditionalElements() {
         return (
-            <div style={{ marginTop: ".5rem" }}>
-                <label>
-                    <input
-                        type="checkbox"
-                        checked={this.embedDialogHideControls}
-                        onChange={this.embedDialogToggleHideControls}
-                    />{" "}
-                    Hide controls
-                </label>
+            <div style={{ marginTop: "1em" }}>
+                <Checkbox
+                    label="Hide controls"
+                    checked={this.embedDialogHideControls}
+                    onChange={this.embedDialogToggleHideControls}
+                />
             </div>
         )
     }

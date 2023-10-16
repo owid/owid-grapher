@@ -223,19 +223,6 @@ describe("hasTimeline", () => {
         grapher.map.hideTimeline = true
         expect(grapher.hasTimeline).toBeFalsy()
     })
-
-    it("source and download tabs do not show a timeline", () => {
-        const grapher = new Grapher(legacyConfig)
-        grapher.type = ChartTypeName.LineChart
-
-        grapher.currentTab = GrapherTabOption.sources
-        expect(grapher.hasTimeline).toBeTruthy()
-        expect(grapher.showTimeline).toBeFalsy()
-
-        grapher.currentTab = GrapherTabOption.download
-        expect(grapher.hasTimeline).toBeTruthy()
-        expect(grapher.showTimeline).toBeFalsy()
-    })
 })
 
 const getGrapher = (): Grapher =>

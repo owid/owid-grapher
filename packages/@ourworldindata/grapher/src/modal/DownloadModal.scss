@@ -1,0 +1,140 @@
+.DownloadModalContent {
+    color: $dark-text;
+    padding-bottom: $modal-padding;
+
+    .grouped-menu-section {
+        h2 {
+            color: $dark-text;
+            font-family: $serif-font-stack;
+            font-size: 1.125em;
+            font-weight: 600;
+            margin: 0;
+            margin-bottom: 16px;
+        }
+    }
+
+    .grouped-menu-section + .grouped-menu-section {
+        margin-top: 1.5em;
+    }
+
+    .grouped-menu-item + .grouped-menu-item {
+        margin-top: 4px;
+    }
+
+    .grouped-menu-item {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        color: $dark-text;
+        background-color: #f7f7f7;
+        position: relative;
+        width: 100%;
+        padding: 1em;
+        overflow: hidden;
+        text-align: left;
+
+        &:hover {
+            cursor: pointer;
+            background-color: $hover-fill;
+        }
+
+        &:active {
+            background-color: $active-fill;
+        }
+    }
+
+    .grouped-menu-icon img {
+        display: block;
+        box-shadow: 0px 0px 0px 0px rgba(49, 37, 2, 0.03),
+            0px 6px 13px 0px rgba(49, 37, 2, 0.03),
+            0px 93px 37px 0px rgba(49, 37, 2, 0.01),
+            0px 145px 41px 0px rgba(49, 37, 2, 0);
+        padding: 0;
+        margin: 0;
+    }
+
+    .grouped-menu-content {
+        flex: 1;
+        padding: 0 1.5em;
+
+        .title {
+            margin: 0;
+            font-weight: 600;
+            font-size: 1em;
+            line-height: 1.5;
+        }
+
+        .description {
+            margin: 0;
+            color: $light-text;
+            font-size: 0.875em;
+            font-weight: 500;
+            line-height: 1.15;
+        }
+    }
+
+    .grouped-menu-section-data .grouped-menu-content {
+        padding-left: 0;
+    }
+
+    .download-icon {
+        padding: 0 0.5em;
+        font-size: 1em;
+    }
+
+    .grouped-menu-item:hover .download-icon {
+        opacity: 1;
+    }
+
+    .grouped-menu-callout {
+        border-radius: 8px;
+        border: 1px solid #dadada;
+        background: #f7f7f7;
+        padding: 1em;
+
+        svg {
+            margin-right: 0.5em;
+            color: $light-text;
+        }
+
+        .title {
+            margin: 0;
+            font-family: $serif-font-stack;
+            font-size: 1em;
+            font-weight: 600;
+            line-height: 1.5;
+        }
+
+        p {
+            font-size: 0.875em;
+            margin: 0.5em 0 0;
+            opacity: 0.9;
+            color: $light-text;
+            font-weight: 500;
+            line-height: 1.15;
+            letter-spacing: 0.14px;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: underline;
+
+            &:hover {
+                text-decoration: none;
+            }
+        }
+    }
+}
+
+.static-exports-options {
+    margin: 1em 0 1.5em;
+    padding-bottom: 1.5em;
+    border-bottom: 1px solid #f2f2f2;
+}
+
+&.GrapherComponentNarrow .DownloadModalContent {
+    .grouped-menu-icon + .grouped-menu-content {
+        padding-left: 1em;
+        padding-right: 0.5em;
+    }
+}

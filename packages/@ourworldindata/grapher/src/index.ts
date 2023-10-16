@@ -13,10 +13,12 @@ export {
     GRAPHER_EMBEDDED_FIGURE_ATTR,
     GRAPHER_EMBEDDED_FIGURE_CONFIG_ATTR,
     GRAPHER_PAGE_BODY_CLASS,
+    GRAPHER_SETTINGS_DRAWER_ID,
     GRAPHER_IS_IN_IFRAME_CLASS,
     DEFAULT_GRAPHER_WIDTH,
     DEFAULT_GRAPHER_HEIGHT,
     STATIC_EXPORT_DETAIL_SPACING,
+    DEFAULT_GRAPHER_ENTITY_TYPE,
     CookieKey,
     EntitySelectionMode,
     StackMode,
@@ -59,6 +61,7 @@ export {
     GLOBAL_ENTITY_SELECTOR_ELEMENT,
     GLOBAL_ENTITY_SELECTOR_DEFAULT_COUNTRY,
 } from "./controls/globalEntitySelector/GlobalEntitySelectorConstants"
+export { Checkbox } from "./controls/Checkbox"
 export { GlobalEntitySelector } from "./controls/globalEntitySelector/GlobalEntitySelector"
 export {
     Grapher,

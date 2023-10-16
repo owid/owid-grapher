@@ -571,6 +571,8 @@ export enum ChartControlKeyword {
     alignAxisScalesToggle = "alignAxisScalesToggle",
     xLogLinearSelector = "xLogLinearSelector",
     yLogLinearSelector = "yLogLinearSelector",
+    mapProjectionMenu = "mapProjectionMenu",
+    tableFilterToggle = "tableFilterToggle",
 }
 
 export enum ChartTabKeyword {
@@ -578,7 +580,6 @@ export enum ChartTabKeyword {
     chart = "chart",
     map = "map",
     table = "table",
-    download = "download",
 }
 
 export type RawBlockChartValue = {

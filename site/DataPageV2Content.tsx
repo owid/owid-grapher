@@ -13,6 +13,7 @@ import {
     excludeNullish,
     slugify,
     markdownToEnrichedTextBlock,
+    DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
 } from "@ourworldindata/utils"
 import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
 import StickyNav from "./blocks/StickyNav.js"
@@ -64,7 +65,10 @@ export const DataPageV2Content = ({
         { text: "Related Data", target: "#related-data" },
         { text: "All Charts", target: "#all-charts" },
         { text: "FAQs", target: "#faqs" },
-        { text: "Sources & Processing", target: "#sources-and-processing" },
+        {
+            text: "Sources & Processing",
+            target: "#" + DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
+        },
         { text: "Reuse This Work", target: REUSE_THIS_WORK_ANCHOR },
     ]
 
@@ -249,7 +253,9 @@ export const DataPageV2Content = ({
                                     <div>{datapageData.attribution}</div>
                                     {datapageData.owidProcessingLevel && (
                                         <div>
-                                            <a href="#sources-and-processing">
+                                            <a
+                                                href={`#${DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}`}
+                                            >
                                                 {processedAdaptedText}
                                             </a>
                                         </div>
@@ -444,7 +450,9 @@ export const DataPageV2Content = ({
                             <div className="section-wrapper grid">
                                 <h2
                                     className="data-sources-processing__title span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
-                                    id="sources-and-processing"
+                                    id={
+                                        DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID
+                                    }
                                 >
                                     Sources and processing
                                 </h2>

@@ -6,24 +6,39 @@ import {
     debounce,
     Bounds,
     timeFromTimebounds,
+    DEFAULT_BOUNDS,
 } from "@ourworldindata/utils"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { faPlay, faPause } from "@fortawesome/free-solid-svg-icons"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import Tippy from "@tippyjs/react"
 import classNames from "classnames"
 import { TimelineController, TimelineManager } from "./TimelineController"
+import { ActionButton } from "../controls/ActionButtons"
+import { DEFAULT_GRAPHER_FRAME_PADDING } from "../core/GrapherConstants.js"
+
+export const TIMELINE_HEIGHT = 32 // keep in sync with $timelineHeight in TimelineComponent.scss
 
 const HANDLE_TOOLTIP_FADE_TIME_MS = 2000
 
 @observer
 export class TimelineComponent extends React.Component<{
     timelineController: TimelineController
+    maxWidth?: number
+    framePaddingHorizontal?: number
 }> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
 
     @observable private dragTarget?: "start" | "end" | "both"
+
+    @computed protected get maxWidth(): number {
+        return this.props.maxWidth ?? DEFAULT_BOUNDS.width
+    }
+
+    @computed private get framePaddingHorizontal(): number {
+        return (
+            this.props.framePaddingHorizontal ?? DEFAULT_GRAPHER_FRAME_PADDING
+        )
+    }
 
     @computed private get isDragging(): boolean {
         return !!this.dragTarget
@@ -181,6 +196,13 @@ export class TimelineComponent extends React.Component<{
         return this.manager.isPlaying || this.isDragging
     }
 
+    @computed private get showPlayLabel(): boolean {
+        const labelWidth = Bounds.forText("Play time-lapse", {
+            fontSize: 13,
+        }).width
+        return labelWidth < 0.1 * this.maxWidth
+    }
+
     componentDidMount(): void {
         const current = this.base.current
 
@@ -279,27 +301,34 @@ export class TimelineComponent extends React.Component<{
         return (
             <div
                 ref={this.base}
-                className="TimelineComponent"
+                className={
+                    "TimelineComponent" +
+                    (this.mouseHoveringOverTimeline ? " hover" : "")
+                }
+                style={{
+                    padding: `0 ${this.framePaddingHorizontal}px`,
+                }}
                 onMouseOver={this.onMouseOver}
                 onMouseLeave={this.onMouseLeave}
             >
                 {!this.manager.disablePlay && (
-                    <div
-                        onMouseDown={(e): void => e.stopPropagation()}
-                        onClick={this.togglePlay}
-                        className="play"
-                        data-track-note={
+                    <ActionButton
+                        dataTrackNote={
                             manager.isPlaying
                                 ? "timeline_pause"
                                 : "timeline_play"
                         }
-                    >
-                        {manager.isPlaying ? (
-                            <FontAwesomeIcon icon={faPause} />
-                        ) : (
-                            <FontAwesomeIcon icon={faPlay} />
-                        )}
-                    </div>
+                        onMouseDown={(e): void => e.stopPropagation()}
+                        onClick={this.togglePlay}
+                        showLabel={this.showPlayLabel}
+                        label={
+                            (manager.isPlaying ? "Pause" : "Play") +
+                            " time-lapse"
+                        }
+                        icon={manager.isPlaying ? faPause : faPlay}
+                        isActive={manager.isPlaying}
+                        style={{ minWidth: TIMELINE_HEIGHT }}
+                    />
                 )}
                 {this.timelineEdgeMarker("start")}
                 <div
@@ -358,13 +387,21 @@ const TimelineHandle = ({
                 left: `${offsetPercent}%`,
             }}
         >
-            <Tippy
-                content={<span>{tooltipContent}</span>}
-                visible={tooltipVisible}
-                zIndex={tooltipZIndex}
-            >
-                <div className="icon" />
-            </Tippy>
+            <div className="icon" />
+            {tooltipVisible && (
+                <>
+                    <div
+                        className="handle-label-arrow"
+                        style={{ zIndex: tooltipZIndex }}
+                    />
+                    <div
+                        className="handle-label"
+                        style={{ zIndex: tooltipZIndex }}
+                    >
+                        {tooltipContent}
+                    </div>
+                </>
+            )}
         </div>
     )
 }

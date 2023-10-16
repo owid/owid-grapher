@@ -331,6 +331,7 @@ export class LineChart
 
     @action.bound private onCursorLeave(): void {
         this.tooltipState.target = null
+        this.clearHighlightedSeries()
     }
 
     @computed private get allValues(): LinePoint[] {
@@ -372,6 +373,11 @@ export class LineChart
                 Math.abs(invertedX - point.x)
             )
             hoverX = closestValue?.x
+        }
+
+        // be sure all lines are un-dimmed if the cursor is above the graph itself
+        if (this.dualAxis.innerBounds.contains(mouse)) {
+            this.hoveredSeriesName = undefined
         }
 
         this.tooltipState.target = hoverX === undefined ? null : { x: hoverX }
@@ -599,12 +605,23 @@ export class LineChart
             this.manager.isSelectingData = true
     }
 
+    @observable private hoverTimer?: NodeJS.Timeout
+
     @action.bound onLineLegendMouseOver(seriesName: SeriesName): void {
+        clearTimeout(this.hoverTimer)
         this.hoveredSeriesName = seriesName
     }
 
+    @action.bound clearHighlightedSeries(): void {
+        clearTimeout(this.hoverTimer)
+        this.hoverTimer = setTimeout(() => {
+            // wait before clearing selection in case the mouse is moving quickly over neighboring labels
+            this.hoveredSeriesName = undefined
+        }, 200)
+    }
+
     @action.bound onLineLegendMouseLeave(): void {
-        this.hoveredSeriesName = undefined
+        this.clearHighlightedSeries()
     }
 
     @computed get focusedSeriesNames(): string[] {
@@ -1160,11 +1177,16 @@ export class LineChart
 
     @computed private get dualAxis(): DualAxis {
         return new DualAxis({
-            bounds: this.boundsWithoutColorLegend.padRight(
-                this.lineLegendDimensions
-                    ? this.lineLegendDimensions.width
-                    : this.defaultRightPadding
-            ),
+            bounds: this.boundsWithoutColorLegend
+                .padRight(
+                    this.lineLegendDimensions
+                        ? this.lineLegendDimensions.width
+                        : this.defaultRightPadding
+                )
+                // top padding leaves room for tick labels
+                .padTop(6)
+                // bottom padding avoids axis labels to be cut off at some resolutions
+                .padBottom(2),
             verticalAxis: this.verticalAxisPart,
             horizontalAxis: this.horizontalAxisPart,
         })

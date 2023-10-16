@@ -15,6 +15,7 @@ import {
 } from "@ourworldindata/utils"
 import { renderSpans, useLinkedChart } from "./utils.js"
 import cx from "classnames"
+import { ExplorerProps } from "../../explorer/Explorer.js"
 
 export default function Chart({
     d,
@@ -38,11 +39,26 @@ export default function Chart({
     const resolvedUrl = linkedChart.resolvedUrl
     const isExplorer = url.isExplorer
     const hasControls = url.queryParams.hideControls !== "true"
-    const height = d.height || (isExplorer && hasControls ? 700 : 575)
 
-    let config: GrapherProgrammaticInterface = {}
+    // applies to both charts and explorers
+    const common = {
+        // On mobile, we optimize for horizontal space by having Grapher bleed onto the edges horizontally.
+        // We want to do this for all stand-alone charts and charts in a Key Insights block, but not for charts
+        // listed in an All Charts block. The <Chart /> component is not used to render charts in an All Charts block,
+        // so we can just set this to true here.
+        shouldOptimizeForHorizontalSpace: true,
+    }
+
+    // props passed to explorers
+    const explorerProps: Pick<
+        ExplorerProps,
+        "shouldOptimizeForHorizontalSpace"
+    > = merge({}, common)
+
+    // config passed to grapher charts
+    let customizedChartConfig: GrapherProgrammaticInterface = {}
     const isCustomized = d.title || d.subtitle
-    if (isCustomized) {
+    if (!isExplorer && isCustomized) {
         const controls: ChartControlKeyword[] = d.controls || []
         const tabs: ChartTabKeyword[] = d.tabs || []
         const showAllControls = controls.includes(ChartControlKeyword.all)
@@ -51,12 +67,16 @@ export default function Chart({
             .map(mapKeywordToGrapherConfig)
             .filter(identity) as GrapherProgrammaticInterface[]
 
-        config = merge(
+        customizedChartConfig = merge(
             {},
             !showAllControls ? grapherInterfaceWithHiddenControlsOnly : {},
             !showAllTabs ? grapherInterfaceWithHiddenTabsOnly : {},
             ...listOfPartialGrapherConfigs,
-            { hideRelatedQuestion: true },
+            {
+                hideRelatedQuestion: true,
+                hideShareButton: true, // always hidden since the original chart would be shared, not the customized one
+                hideExploreTheDataButton: false,
+            },
             {
                 title: d.title,
                 subtitle: d.subtitle,
@@ -64,14 +84,16 @@ export default function Chart({
         )
 
         // make sure the custom title is presented as is
-        if (config.title) {
-            config.forceHideAnnotationFieldsInTitle = {
+        if (customizedChartConfig.title) {
+            customizedChartConfig.forceHideAnnotationFieldsInTitle = {
                 entity: true,
                 time: true,
                 changeInPrefix: true,
             }
         }
     }
+
+    const chartConfig = merge({}, customizedChartConfig, common)
 
     return (
         <div
@@ -82,17 +104,21 @@ export default function Chart({
             <figure
                 // Use unique `key` to force React to re-render tree
                 key={resolvedUrl}
+                className={isExplorer && hasControls ? "explorer" : "chart"}
                 data-grapher-src={isExplorer ? undefined : resolvedUrl}
-                data-explorer-src={isExplorer ? resolvedUrl : undefined}
                 data-grapher-config={
-                    isCustomized && !isExplorer
-                        ? JSON.stringify(config)
+                    isExplorer ? undefined : JSON.stringify(chartConfig)
+                }
+                data-explorer-src={isExplorer ? resolvedUrl : undefined}
+                data-explorer-props={
+                    isExplorer && !hasControls
+                        ? JSON.stringify(explorerProps)
                         : undefined
                 }
                 style={{
                     width: "100%",
                     border: "0px none",
-                    height,
+                    height: d.height,
                 }}
             />
             {d.caption ? (
@@ -135,6 +161,12 @@ const mapKeywordToGrapherConfig = (
         case ChartControlKeyword.yLogLinearSelector:
             return { hideYScaleToggle: false }
 
+        case ChartControlKeyword.mapProjectionMenu:
+            return { hideMapProjectionMenu: false }
+
+        case ChartControlKeyword.tableFilterToggle:
+            return { hideTableFilterToggle: false }
+
         // tabs
 
         case ChartTabKeyword.chart:
@@ -145,9 +177,6 @@ const mapKeywordToGrapherConfig = (
 
         case ChartTabKeyword.table:
             return { hasTableTab: true }
-
-        case ChartTabKeyword.download:
-            return { hasDownloadTab: true }
 
         default:
             return null

@@ -1,0 +1,34 @@
+.HeaderHTML {
+    text-align: left;
+
+    a {
+        text-decoration: none;
+        text-underline-offset: auto;
+        color: inherit;
+
+        &:hover {
+            text-decoration: underline;
+            text-decoration-color: rgba(0, 0, 0, 0.2);
+        }
+    }
+
+    h1 {
+        font-family: $serif-font-stack;
+    }
+
+    // title and subtitle
+    h1,
+    p {
+        color: $dark-text;
+        margin: 0;
+    }
+
+    .logo {
+        float: right;
+
+        svg {
+            height: 100% !important;
+            width: auto !important;
+        }
+    }
+}

@@ -1,242 +1,222 @@
-$cell-border: 1px solid rgba(0, 0, 0, 0.08);
+.DataTableContainer {
+    $cell-border: 1px solid #f2f2f2;
 
-.tableTab {
+    // header
+    $header: #f7f7f7;
+    $header-hover: #e7e7e7;
+
+    // rows
+    $light-fill: #f7f7f7;
+    $hover-fill: #f0f0f0;
+    $dark-fill: #e7e7e7;
+
+    // sort icon
+    $sort-icon: #c6c6c6;
+    $hover-icon: #a1a1a1;
+
+    // closest time notice
+    $info-icon: #dadada;
+
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(255, 255, 255, 0.95);
-    text-align: center;
-}
+    color: $dark-text;
+    font-size: 0.875em;
 
-.tableTab {
-    border-bottom: $cell-border;
-}
+    .DataTable {
+        width: 100%;
+        height: 100%;
+        display: flex; // necessary to make .table-wrapper scrollable
+        flex-direction: column;
 
-.tableTab .data-table {
-    thead {
-        position: sticky;
-        z-index: 20;
-        top: 0;
-    }
-
-    th {
-        white-space: nowrap;
-    }
-
-    .entity {
-        position: sticky;
-        left: 0;
-        z-index: 10;
-    }
-
-    th.entity {
-        top: 0;
-    }
-}
-
-.data-table {
-    font-size: 0.9375rem;
-    line-height: 1.333em;
-    border: none;
-    background: white;
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0px;
-    box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 2px 0px,
-        rgba(0, 0, 0, 0.25) 0px 2px 2px 0px;
-
-    thead tr:last-child th,
-    th.entity {
-        border-bottom: $cell-border;
-    }
-
-    tr th:first-child,
-    tr td:first-child {
-        padding-left: 15px;
-    }
-
-    tr th:last-child,
-    tr td:last-child {
-        padding-right: 15px;
-    }
-
-    thead tr:first-child th {
-        padding-top: 8px;
-        padding-bottom: 8px;
-    }
-
-    th {
-        padding-top: 8px;
-        padding-bottom: 8px;
-        vertical-align: bottom;
-        line-height: 19px;
-    }
-
-    tr:first-child td {
-        padding-top: 8px;
-    }
-
-    tr:last-child td {
-        padding-bottom: 15px;
-    }
-
-    th.sortable {
-        cursor: pointer;
-    }
-
-    th {
-        background-color: white;
-    }
-
-    th.sortable:hover {
-        background-color: rgb(245, 245, 245);
-    }
-
-    th,
-    td {
-        padding-left: 15px;
-        padding-right: 15px;
-
-        &:not(.entity) {
-            vertical-align: bottom;
-        }
-    }
-
-    th.dimension {
-        text-align: center;
-
-        > div {
-            min-height: 35px;
-        }
-    }
-
-    th.subdimension {
-        border-right: $cell-border;
-    }
-
-    .deltaColumn {
-        min-width: 145px;
-    }
-
-    th.entity,
-    td.entity {
-        border-right: $cell-border;
-    }
-
-    tr > .dimension-start ~ .dimension-start,
-    tr > th.dimension ~ th.dimension,
-    tr > th.firstSubdimension ~ th.firstSubdimension {
-        border-left: $cell-border;
-    }
-
-    th.firstSubdimension div,
-    th.endSubdimension div {
-        min-width: 56px;
-    }
-
-    th.lastSubdimension {
-        border-right: none;
-    }
-
-    th:last-child,
-    td:last-child {
-        border-right: none;
-    }
-
-    td {
-        padding-top: 3px;
-        padding-bottom: 3px;
-    }
-
-    tbody tr {
-        padding-top: 20px;
-        padding-bottom: 20px;
-
-        td {
-            background-color: white;
-        }
-    }
-
-    tbody tr:nth-child(2n) td {
-        background-color: rgba(247, 247, 247);
-    }
-
-    tbody tr:hover td {
-        background-color: rgba(241, 241, 241);
-    }
-
-    .entity {
-        text-align: left;
-        font-weight: 700;
-    }
-
-    tr:not(.aggregate) + tr.aggregate > td {
-        border-top: 6px solid #aaa;
-    }
-
-    .aggregate .entity {
-        font-style: italic;
-        font-weight: 400;
-    }
-
-    .dimension {
-        text-align: right;
-
-        .divider {
-            opacity: 0.25;
-        }
-
-        .unit,
-        .time {
+        .caption {
+            flex-shrink: 0;
             font-weight: 700;
-            opacity: 0.5;
-            padding-bottom: 3px;
+            padding-top: 2px;
+            padding-bottom: 14px;
+
+            .unit {
+                color: $light-text;
+                font-weight: 500;
+            }
+        }
+
+        .table-wrapper {
+            overflow: auto;
+            border: $cell-border;
         }
     }
 
-    .closest-time-notice-icon {
-        opacity: 0.5;
-        font-size: 13px;
-        cursor: default;
+    table {
+        line-height: 1.333em;
+        border: none;
+        background: white;
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0px;
 
-        .icon {
-            font-size: 0.75rem;
-            opacity: 0.6;
+        // make header sticky
+        thead {
+            position: sticky;
+            z-index: 20;
+            top: 0;
         }
 
-        & + span {
-            margin-left: 8px;
+        // make entity column and entity header sticky
+        .entity,
+        .above-entity {
+            position: sticky;
+            left: 0;
+            z-index: 10;
+            background-color: #fff;
+        }
+
+        th.entity,
+        th.above-entity {
+            top: 0;
+            background-color: $header;
+        }
+
+        // make title row sticky
+        tr.title td:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 10;
+        }
+
+        // applies to all cells
+        th,
+        td {
+            padding: 8px 16px;
+            white-space: nowrap;
+
+            &:not(.entity) {
+                vertical-align: bottom;
+                text-align: right;
+            }
+        }
+
+        // adds border on the right of the entity column
+        .entity,
+        .above-entity {
+            border-right: $cell-border;
+        }
+
+        // adds a border on the right of each dimension column
+        tr > td.dimension-start ~ td.dimension-start,
+        tr > th.dimension ~ th.dimension,
+        tr > th.firstSubdimension ~ th.firstSubdimension {
+            border-left: $cell-border;
+        }
+
+        thead {
+            th {
+                background-color: $header;
+                line-height: 19px;
+                border-bottom: $cell-border;
+                font-weight: 700;
+                vertical-align: bottom;
+
+                &.dimension,
+                &.entity,
+                &.subdimension {
+                    padding-top: 10px;
+                    padding-bottom: 10px;
+                }
+
+                &.dimension {
+                    text-align: left;
+
+                    .description {
+                        color: #a1a1a1;
+                        text-align: left;
+                    }
+                }
+            }
+
+            th.sortable {
+                cursor: pointer;
+
+                &:hover {
+                    background-color: $header-hover;
+                    border-color: $header-hover;
+                }
+
+                .content {
+                    display: flex;
+                    align-items: start;
+                    justify-content: flex-end;
+                    gap: 6px;
+                }
+
+                &.entity .content {
+                    justify-content: flex-start;
+                }
+
+                .sort-icon {
+                    color: $sort-icon;
+                    font-size: 13px;
+                    width: 19px; // keeps column widths fixed when sorting
+                    text-align: right;
+
+                    &.active {
+                        color: $dark-text !important;
+                    }
+                }
+
+                &:hover .sort-icon {
+                    color: $hover-icon;
+                }
+            }
+        }
+
+        tbody {
+            // alternating row colors
+            tr:not(.title):nth-child(2n) td {
+                background-color: $light-fill;
+            }
+
+            td.entity {
+                white-space: normal;
+            }
+
+            tr:not(.title):hover td {
+                background-color: $hover-fill !important;
+            }
+
+            tr.title td {
+                text-align: left;
+                background-color: $dark-fill;
+                font-weight: 700;
+            }
+
+            .closest-time-notice-icon {
+                cursor: default;
+
+                .icon {
+                    line-height: 12px;
+                    font-size: 12px;
+                    color: $info-icon;
+                }
+
+                & + span {
+                    margin-left: 6px;
+                }
+            }
         }
     }
+}
 
-    .range-time {
-        opacity: 0.5;
-        font-size: 13px;
+&.GrapherComponentMedium {
+    .DataTable .caption {
+        padding-top: 4px;
+        padding-bottom: 8px;
+    }
+}
+
+&.GrapherComponentNarrow {
+    .DataTable .caption {
         padding-bottom: 4px;
-        padding-left: 2px;
-    }
-
-    th.sortable > div {
-        display: flex;
-        align-items: end;
-        justify-content: space-between;
-
-        :first-child {
-            flex-grow: 1;
-        }
-    }
-
-    th .sort-icon {
-        opacity: 0.15;
-        padding-left: 5px;
-
-        &.active {
-            opacity: 1 !important;
-        }
-    }
-
-    th:hover .sort-icon {
-        opacity: 0.6;
     }
 }
 

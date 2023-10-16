@@ -3,6 +3,7 @@ import {
     getVariableMetadataRoute,
     GrapherInterface,
     GRAPHER_PAGE_BODY_CLASS,
+    GRAPHER_SETTINGS_DRAWER_ID,
     LoadingIndicator,
 } from "@ourworldindata/grapher"
 import {
@@ -110,10 +111,18 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                         ))
                     )
                 )}
+                <link
+                    rel="preload"
+                    href="/fonts/PlayfairDisplayLatin-SemiBold.woff2"
+                    as="font"
+                    type="font/woff2"
+                    crossOrigin="anonymous"
+                />
             </Head>
             <body className={GRAPHER_PAGE_BODY_CLASS}>
                 <SiteHeader baseUrl={baseUrl} />
                 <main>
+                    <nav id={GRAPHER_SETTINGS_DRAWER_ID}></nav>
                     <figure data-grapher-src={`/grapher/${grapher.slug}`}>
                         <LoadingIndicator />
                     </figure>

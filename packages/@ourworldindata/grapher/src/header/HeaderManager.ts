@@ -1,7 +1,6 @@
 import { Bounds } from "@ourworldindata/utils"
 
 export interface HeaderManager {
-    fontSize?: number
     currentTitle?: string
     currentSubtitle?: string
     hideLogo?: boolean
@@ -11,4 +10,14 @@ export interface HeaderManager {
     tabBounds?: Bounds
     detailsOrderedByReference?: Set<string>
     shouldIncludeDetailsInStaticExport?: boolean
+    isExportingtoSvgOrPng?: boolean
+    isNarrow?: boolean
+    isSmall?: boolean
+    isMedium?: boolean
+    framePaddingHorizontal?: number
+    framePaddingVertical?: number
+    isOnCanonicalUrl?: boolean
+    isInIFrame?: boolean
+    isGeneratingThumbnail?: boolean
+    fontSize?: number
 }

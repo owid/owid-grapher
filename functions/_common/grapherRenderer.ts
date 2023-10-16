@@ -7,9 +7,10 @@ import { png } from "itty-router"
 import svg2png_wasm from "../../node_modules/svg2png-wasm/svg2png_wasm_bg.wasm"
 
 // these are regular .ttf files, but cloudflare needs the .bin extension to serve them correctly
-import LatoRegular from "../_common/fonts/LatoLatin-Regular.ttf.bin" // https://raw.githubusercontent.com/googlefonts/LatoGFVersion/main/fonts/Lato-Regular.ttf
-import LatoBold from "../_common/fonts/LatoLatin-Bold.ttf.bin" // https://raw.githubusercontent.com/googlefonts/LatoGFVersion/main/fonts/Lato-Bold.ttf
-import PlayfairRegular from "../_common/fonts/PlayfairDisplayLatin-Regular.ttf.bin" // https://raw.githubusercontent.com/clauseggers/Playfair/1.202/fonts/TTF/PlayfairDisplay-Regular.ttf
+import LatoRegular from "../_common/fonts/LatoLatin-Regular.ttf.bin"
+import LatoMedium from "../_common/fonts/LatoLatin-Medium.ttf.bin"
+import LatoBold from "../_common/fonts/LatoLatin-Bold.ttf.bin"
+import PlayfairSemiBold from "../_common/fonts/PlayfairDisplayLatin-SemiBold.ttf.bin"
 import { Env } from "../grapher/thumbnail/[slug].js"
 
 declare global {
@@ -45,7 +46,7 @@ const TWITTER_OPTIONS: ImageOptions = {
     svgWidth: 800,
     svgHeight: 418,
     details: false,
-    fontSize: 24,
+    fontSize: 21,
 }
 
 const OPEN_GRAPH_OPTIONS: ImageOptions = {
@@ -55,7 +56,7 @@ const OPEN_GRAPH_OPTIONS: ImageOptions = {
     svgWidth: 800,
     svgHeight: 418,
     details: false,
-    fontSize: 24,
+    fontSize: 21,
 }
 
 let initialized = false
@@ -159,6 +160,7 @@ async function fetchAndRenderGrapherToSvg({
         queryStr: "?" + searchParams.toString(),
         bounds,
     })
+    grapher.isGeneratingThumbnail = true
     grapher.shouldIncludeDetailsInStaticExport = options.details
     grapher.baseFontSize = options.fontSize
 
@@ -225,7 +227,7 @@ async function renderSvgToPng(svg: string, options: ImageOptions) {
         // if we include details, pngHeight is only the height of the chart, but we also have an "appendix" at the bottom that we want to include
         height: options.details ? undefined : options.pngHeight,
         backgroundColor: "#fff",
-        fonts: [LatoRegular, LatoBold, PlayfairRegular].map(
+        fonts: [LatoRegular, LatoMedium, LatoBold, PlayfairSemiBold].map(
             (f) => new Uint8Array(f)
         ),
     })

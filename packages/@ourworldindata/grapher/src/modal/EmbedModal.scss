@@ -1,0 +1,40 @@
+.embedMenu {
+    text-align: left;
+    color: $dark-text;
+    margin-bottom: $modal-padding;
+
+    p {
+        margin-bottom: 1.15em;
+        margin-top: 0;
+        font-size: 0.875em;
+        font-weight: 500;
+    }
+
+    .embedCode {
+        width: 100%;
+        padding: 1em 1.5em;
+        border: 1px solid #e7e7e7;
+        background: #f7f7f7;
+        display: flex;
+        align-items: flex-start;
+    }
+
+    code {
+        width: 100%;
+        border: none;
+        background: none;
+        color: $light-text;
+        font-size: 0.75em;
+        line-height: 1.33;
+        word-break: break-word;
+    }
+
+    button {
+        flex: 0 0 64px;
+        cursor: pointer;
+        color: $dark-text;
+        padding: 0;
+        text-align: right;
+        font-size: 0.875em;
+    }
+}

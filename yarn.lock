@@ -5911,6 +5911,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/indefinite@npm:^2.3.2":
+  version: 2.3.2
+  resolution: "@types/indefinite@npm:2.3.2"
+  checksum: d111c96da67ce18674ea159ca71d0f731fb0a65ce450ef7bf721709e863f24bd48a0a3510c444e97b2c2780abfd421c204751b2f1f942506b10c995ed1470e61
+  languageName: node
+  linkType: hard
+
 "@types/istanbul-lib-coverage@npm:*, @types/istanbul-lib-coverage@npm:^2.0.0, @types/istanbul-lib-coverage@npm:^2.0.1":
   version: 2.0.3
   resolution: "@types/istanbul-lib-coverage@npm:2.0.3"
@@ -13873,6 +13880,7 @@ __metadata:
     "@types/fuzzyset": ^1.0.2
     "@types/geojson": ^7946.0.10
     "@types/html-to-text": ^8.1.1
+    "@types/indefinite": ^2.3.2
     "@types/jest": ^29.5.5
     "@types/js-cookie": ^3.0.2
     "@types/js-yaml": ^4.0.5
@@ -13950,6 +13958,7 @@ __metadata:
     handsontable: ^12.3.3
     html-to-text: ^8.2.0
     http-server: ^14.1.1
+    indefinite: ^2.4.3
     instantsearch.js: ^4.56.9
     jest: ^29.7.0
     jest-environment-jsdom: ^29.7.0
@@ -14680,6 +14689,13 @@ __metadata:
   version: 0.1.4
   resolution: "imurmurhash@npm:0.1.4"
   checksum: 7cae75c8cd9a50f57dadd77482359f659eaebac0319dd9368bcd1714f55e65badd6929ca58569da2b6494ef13fdd5598cd700b1eba23f8b79c5f19d195a3ecf7
+  languageName: node
+  linkType: hard
+
+"indefinite@npm:^2.4.3":
+  version: 2.4.3
+  resolution: "indefinite@npm:2.4.3"
+  checksum: 6d20533628af72a16e852029bcfdd76bf3c38ebbb55ef140fe9fdbd52af30be5a5734960304bd6cb3efa0b82471814b3c5fa03f48ba6cec427a3dca4a034c0e1
   languageName: node
   linkType: hard
 

@@ -62,7 +62,6 @@ export interface GrapherInterface extends SortConfig {
     hasChartTab?: boolean
     hasMapTab?: boolean
     tab?: GrapherTabOption
-    overlay?: GrapherTabOption
     relatedQuestions?: RelatedQuestionsConfig[]
     details?: DetailDictionary
     internalNotes?: string
