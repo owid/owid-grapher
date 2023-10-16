@@ -44,11 +44,11 @@ export class Header<
     }
 
     @computed protected get titleText(): string {
-        return this.manager.currentTitle ?? ""
+        return this.manager.currentTitle?.trim() ?? ""
     }
 
     @computed private get subtitleText(): string {
-        return this.manager.currentSubtitle ?? ""
+        return this.manager.currentSubtitle?.trim() ?? ""
     }
 
     @computed get logo(): Logo | undefined {
