@@ -557,12 +557,14 @@ const parseVideo = (raw: RawBlockVideo): EnrichedBlockVideo => {
         url: string = "",
         filename: string = "",
         shouldLoop: boolean = false,
+        shouldAutoplay: boolean = false,
         caption?: Span[]
     ): EnrichedBlockVideo => ({
         type: "video",
         url,
         filename,
         shouldLoop,
+        shouldAutoplay,
         caption,
         parseErrors: [error],
     })
@@ -594,6 +596,18 @@ const parseVideo = (raw: RawBlockVideo): EnrichedBlockVideo => {
         })
     }
 
+    const shouldAutoplay = raw.value.shouldAutoplay
+    if (
+        !!shouldAutoplay &&
+        shouldAutoplay !== "true" &&
+        shouldAutoplay !== "false"
+    ) {
+        return createError({
+            message:
+                "If specified, shouldAutoplay property must be true or false",
+        })
+    }
+
     const caption = raw.value.caption
         ? htmlToSpans(raw.value.caption)
         : undefined
@@ -604,6 +618,7 @@ const parseVideo = (raw: RawBlockVideo): EnrichedBlockVideo => {
         filename,
         caption,
         shouldLoop: shouldLoop === "true",
+        shouldAutoplay: shouldAutoplay === "true",
         parseErrors: [],
     }
 }

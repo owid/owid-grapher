@@ -160,6 +160,7 @@ export const enrichedBlockExamples: Record<
         filename: "https://ourworldindata.org/assets/images/example-poster.jpg",
         caption: boldLinkExampleText,
         shouldLoop: true,
+        shouldAutoplay: false,
         parseErrors: [],
     },
     list: {

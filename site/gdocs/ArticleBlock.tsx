@@ -240,6 +240,7 @@ export default function ArticleBlock({
                 className={getLayout("video", containerType)}
                 url={block.url}
                 shouldLoop={block.shouldLoop}
+                shouldAutoplay={block.shouldAutoplay}
                 caption={block.caption}
                 filename={block.filename}
             />

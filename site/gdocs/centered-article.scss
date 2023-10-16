@@ -130,6 +130,9 @@ h3.article-block__heading {
 
 .article-block__video {
     margin: 24px 0 32px 0;
+    @include body-3-medium-italic;
+    color: $blue-60;
+    text-align: center;
     a {
         @include owid-link-90;
     }
@@ -150,6 +153,7 @@ h3.article-block__heading {
 
 .article-block__image-caption {
     @include body-3-medium-italic;
+    color: $blue-60;
     text-align: center;
 }
 
