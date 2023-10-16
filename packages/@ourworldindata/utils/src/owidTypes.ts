@@ -688,6 +688,7 @@ export type RawBlockVideo = {
         url?: string
         caption?: string
         shouldLoop?: string
+        shouldAutoplay?: string
         filename?: string
     }
 }
@@ -696,6 +697,7 @@ export type EnrichedBlockVideo = {
     type: "video"
     url: string
     shouldLoop: boolean
+    shouldAutoplay: boolean
     filename: string
     caption?: Span[]
 } & EnrichedBlockWithParseErrors

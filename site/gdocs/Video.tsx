@@ -13,18 +13,26 @@ interface VideoProps {
     caption?: Span[]
     className?: string
     shouldLoop?: boolean
+    shouldAutoplay?: boolean
     filename: string
 }
 
 export default function Video(props: VideoProps) {
-    const { url, caption, className, shouldLoop, filename } = props
+    const { url, caption, className, shouldLoop, shouldAutoplay, filename } =
+        props
     const { isPreviewing } = useContext(DocumentContext)
     const posterSrc = isPreviewing
         ? `${IMAGE_HOSTING_CDN_URL}/${IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH}/${filename}`
         : `${IMAGES_DIRECTORY}${filename}`
     return (
         <figure className={cx(className)}>
-            <video controls preload="none" loop={shouldLoop} poster={posterSrc}>
+            <video
+                controls
+                autoPlay={shouldAutoplay}
+                preload={shouldAutoplay ? "auto" : "none"}
+                loop={shouldLoop}
+                poster={posterSrc}
+            >
                 <source src={url} type="video/mp4" />
             </video>
             {caption ? <figcaption>{renderSpans(caption)}</figcaption> : null}
