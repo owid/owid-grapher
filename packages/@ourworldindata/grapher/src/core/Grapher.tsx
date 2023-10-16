@@ -2053,6 +2053,14 @@ export class Grapher
                 category: "Chart",
             },
             {
+                combo: "s",
+                fn: (): void => {
+                    this.isSourcesModalOpen = !this.isSourcesModalOpen
+                },
+                title: `Toggle sources modal`,
+                category: "Chart",
+            },
+            {
                 combo: "esc",
                 fn: (): void => this.clearErrors(),
             },
