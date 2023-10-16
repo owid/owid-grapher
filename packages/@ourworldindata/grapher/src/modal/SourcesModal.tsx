@@ -106,6 +106,12 @@ export class SourcesModal extends React.Component<{
             ...citationFull,
         ]
 
+        const sourceLink =
+            source?.link ??
+            (column.def.origins && column.def.origins.length > 0
+                ? column.def.origins[0].urlMain
+                : undefined)
+
         return (
             <div key={slug} className="datasource-wrapper">
                 <h2>
@@ -239,11 +245,11 @@ export class SourcesModal extends React.Component<{
                                 </td>
                             </tr>
                         ) : null}
-                        {source.link ? (
+                        {sourceLink ? (
                             <tr>
                                 <td>Link</td>
                                 <td>
-                                    <HtmlOrMarkdownText text={source.link} />
+                                    <HtmlOrMarkdownText text={sourceLink} />
                                 </td>
                             </tr>
                         ) : null}

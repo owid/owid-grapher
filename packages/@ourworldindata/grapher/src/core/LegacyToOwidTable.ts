@@ -588,15 +588,8 @@ const columnDefFromOwidVariable = (
         datasetName,
         display,
         nonRedistributable,
-        sourceLink:
-            source?.link ??
-            (origins && origins.length > 0 ? origins[0].urlMain : undefined),
-        sourceName: source?.name,
-        dataPublishedBy: source?.dataPublishedBy,
-        dataPublisherSource: source?.dataPublisherSource,
+        source,
         timespanFromMetadata: timespan,
-        retrievedDate: source?.retrievedDate,
-        additionalInfo: source?.additionalInfo,
         origins,
         attribution,
         titlePublic,

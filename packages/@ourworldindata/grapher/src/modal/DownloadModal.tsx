@@ -163,7 +163,13 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
         const def = this.nonRedistributableColumn?.def as
             | OwidColumnDef
             | undefined
-        return def?.sourceLink
+        if (!def) return undefined
+        return (
+            def.source?.link ??
+            (def.origins && def.origins.length > 0
+                ? def.origins[0].urlMain
+                : undefined)
+        )
     }
 
     @action.bound private onPngDownload(): void {
