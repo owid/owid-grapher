@@ -94,10 +94,13 @@ function prettifiedTopology(geoJson: FeatureCollection): Promise<string> {
             parser: "typescript",
             tabWidth: 4,
             semi: false,
-        }).then(formatted => formatted.replace(
-            /^(    arcs:\s*\[)\]/m,
-            `\n    // prettier-ignore\n$1\n      ${arcJson}\n    ]`
-        ))
+        })
+        .then((formatted) =>
+            formatted.replace(
+                /^(    arcs:\s*\[)\]/m,
+                `\n    // prettier-ignore\n$1\n      ${arcJson}\n    ]`
+            )
+        )
 }
 
 function transformGeography(orig: FeatureCollection): FeatureCollection {
