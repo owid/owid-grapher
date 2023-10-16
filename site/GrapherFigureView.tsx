@@ -45,6 +45,7 @@ export class GrapherFigureView extends React.Component<{ grapher: Grapher }> {
             dataApiUrl: DATA_API_URL,
             dataApiUrlForAdmin:
                 this.context?.admin?.settings?.DATA_API_FOR_ADMIN_UI, // passed this way because clientSettings are baked and need a recompile to be updated
+            enableKeyboardShortcuts: true,
         }
         return (
             // They key= in here makes it so that the chart is re-loaded when the slug changes.
