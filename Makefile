@@ -256,7 +256,7 @@ test:
 	yarn lerna run buildTests
 
 	@echo '==> Checking formatting'
-	yarn testPrettierChanged
+	yarn testPrettierAll
 
 	@echo '==> Running tests'
 	yarn run jest
@@ -277,7 +277,7 @@ lint:
 check-formatting:
 	@echo '==> Checking formatting'
 	yarn
-	yarn testPrettierChanged
+	yarn testPrettierAll
 
 format:
 	@echo '==> Fixing formatting'

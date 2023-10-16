@@ -12077,7 +12077,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"execa@npm:4.1.0, execa@npm:^4.0.0":
+"execa@npm:4.1.0":
   version: 4.1.0
   resolution: "execa@npm:4.1.0"
   dependencies:
@@ -13981,7 +13981,6 @@ __metadata:
     papaparse: ^5.3.1
     parsimmon: ^1.18.1
     prettier: ^3.0.3
-    pretty-quick: ^3.0.0
     progress: ^2.0.3
     prompts: ^2.4.0
     prop-types: ^15.7.2
@@ -14627,7 +14626,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ignore@npm:^5.0.4, ignore@npm:^5.1.4, ignore@npm:^5.2.0, ignore@npm:^5.2.4":
+"ignore@npm:^5.0.4, ignore@npm:^5.2.0, ignore@npm:^5.2.4":
   version: 5.2.4
   resolution: "ignore@npm:5.2.4"
   checksum: 3d4c309c6006e2621659311783eaea7ebcd41fe4ca1d78c91c473157ad6666a57a2df790fe0d07a12300d9aac2888204d7be8d59f9aaf665b1c7fcdb432517ef
@@ -17950,13 +17949,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mri@npm:^1.1.5":
-  version: 1.1.6
-  resolution: "mri@npm:1.1.6"
-  checksum: c568269a40e2e95d48f28b88ab8b24bdc7c586edbfbb3e5ce7a4e3cee0665aef673b86bc2b63c98289d29b573a39d0e054924e415286a8dafdabfc68785746c7
-  languageName: node
-  linkType: hard
-
 "ms@npm:2.0.0":
   version: 2.0.0
   resolution: "ms@npm:2.0.0"
@@ -17975,19 +17967,6 @@ __metadata:
   version: 2.1.3
   resolution: "ms@npm:2.1.3"
   checksum: aa92de608021b242401676e35cfa5aa42dd70cbdc082b916da7fb925c542173e36bce97ea3e804923fe92c0ad991434e4a38327e15a1b5b5f945d66df615ae6d
-  languageName: node
-  linkType: hard
-
-"multimatch@npm:^4.0.0":
-  version: 4.0.0
-  resolution: "multimatch@npm:4.0.0"
-  dependencies:
-    "@types/minimatch": ^3.0.3
-    array-differ: ^3.0.0
-    array-union: ^2.1.0
-    arrify: ^2.0.1
-    minimatch: ^3.0.4
-  checksum: bdb6a98dad4e919d9a1a2a0db872f44fa2337315f2fd5827d91ae005cf22f4425782bdfa97c10b80d567f0cb3c226c31f4e85f8f6a4a4be4facf9af0de1bb0c2
   languageName: node
   linkType: hard
 
@@ -20146,24 +20125,6 @@ __metadata:
   dependencies:
     parse-ms: ^3.0.0
   checksum: b7d2a8182887af0e5ab93f9df331f10db9b8eda86855e2de115eb01a6c501bde5631a8813b1b0abdd7d045e79b08ae875369a8fd279a3dacd6d9e572bdd3bfa6
-  languageName: node
-  linkType: hard
-
-"pretty-quick@npm:^3.0.0":
-  version: 3.0.0
-  resolution: "pretty-quick@npm:3.0.0"
-  dependencies:
-    chalk: ^3.0.0
-    execa: ^4.0.0
-    find-up: ^4.1.0
-    ignore: ^5.1.4
-    mri: ^1.1.5
-    multimatch: ^4.0.0
-  peerDependencies:
-    prettier: ">=2.0.0"
-  bin:
-    pretty-quick: bin/pretty-quick.js
-  checksum: fc75a6310b2207d1e8f70c5aed552580f23bc6112ba7d0c79f1639f933b8d70894f25a89db0865511c34279f37c30a0e842693321f1acfa178c42cc0e9a3b7a4
   languageName: node
   linkType: hard
 

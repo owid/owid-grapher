@@ -183,7 +183,6 @@ yarn testPrettierAll`
                 name: "✅ finished checks because we skipped them",
             })
         } else {
-            await this.runAndTick(`yarn testPrettierChanged`)
             await this.runAndTick(`yarn testJest`)
         }
 
