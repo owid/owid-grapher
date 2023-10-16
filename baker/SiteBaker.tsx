@@ -720,23 +720,13 @@ export class SiteBaker {
         authorEmail?: string,
         authorName?: string
     ) {
-        const deployDirectlyToNetlix = fs.existsSync(
-            path.join(this.bakedSiteDir, ".netlify/state.json")
-        )
         const progressBar = new ProgressBar(
             "DeployToNetlify [:bar] :current/:total :elapseds :name\n",
             {
-                total: 3 + (deployDirectlyToNetlix ? 1 : 0),
+                total: 3,
             }
         )
         progressBar.tick({ name: "✅ ready to deploy" })
-        // Deploy directly to Netlify (faster than using the github hook)
-        if (deployDirectlyToNetlix) {
-            await this.execAndLogAnyErrorsToSlack(
-                `cd ${this.bakedSiteDir} && ${BASE_DIR}/node_modules/.bin/netlify deploy -d . --prodIfUnlocked --timeout 6000`
-            )
-            progressBar.tick({ name: "✅ deployed directly to netlify" })
-        }
 
         // Ensure there is a git repo in there
         await this.execAndLogAnyErrorsToSlack(
