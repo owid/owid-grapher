@@ -539,8 +539,11 @@ export class FacetChart
     }
 
     @computed private get isNumericLegend(): boolean {
-        return this.externalLegends.some((legend) =>
-            legend.numericLegendData?.some((bin) => bin instanceof NumericBin)
+        return this.externalLegends.some(
+            (legend) =>
+                legend.numericLegendData?.some(
+                    (bin) => bin instanceof NumericBin
+                )
         )
     }
 
@@ -582,7 +585,7 @@ export class FacetChart
     }
 
     private getExternalLegendProp<
-        Prop extends keyof HorizontalColorLegendManager
+        Prop extends keyof HorizontalColorLegendManager,
     >(prop: Prop): HorizontalColorLegendManager[Prop] | undefined {
         for (const externalLegend of this.externalLegends) {
             if (externalLegend[prop] !== undefined) {

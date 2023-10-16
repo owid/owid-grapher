@@ -160,7 +160,10 @@ export class JsonPointerSymbol implements Operation {
     static isValidJsonPointer(str: string): boolean {
         return JsonPointerSymbol.jsonPointerRegex.test(str)
     }
-    constructor(public value: string, operationContext: OperationContext) {
+    constructor(
+        public value: string,
+        operationContext: OperationContext
+    ) {
         if (!JsonPointerSymbol.isValidJsonPointer(value))
             throw Error(`Invalid Json Pointer: ${value} - did not match regex`)
         this.columnName = operationContext.grapherConfigFieldName
@@ -195,7 +198,10 @@ export class SqlColumnName implements Operation {
     ): boolean {
         return operationContext.whitelistedColumnNamesAndTypes.has(str)
     }
-    constructor(public value: string, operationContext: OperationContext) {
+    constructor(
+        public value: string,
+        operationContext: OperationContext
+    ) {
         if (!SqlColumnName.isValidSqlColumnName(value, operationContext))
             throw Error(
                 `Invalid column name: ${value} - did not match the set of allowed columns`
@@ -270,7 +276,10 @@ export const allNullCheckOperators = [
 ]
 
 export class NullCheckOperation extends BooleanOperation {
-    constructor(public operator: NullCheckOperator, public operand: Operation) {
+    constructor(
+        public operator: NullCheckOperator,
+        public operand: Operation
+    ) {
         super()
     }
 

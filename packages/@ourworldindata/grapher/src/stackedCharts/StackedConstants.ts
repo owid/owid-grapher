@@ -24,13 +24,13 @@ export interface StackedSeries<PositionType extends StackedPointPositionType>
 }
 
 export interface StackedPlacedSeries<
-    PositionType extends StackedPointPositionType
+    PositionType extends StackedPointPositionType,
 > extends StackedSeries<PositionType> {
     placedPoints: Array<StackedPlacedPoint>
 }
 
 export interface StackedRawSeries<
-    PositionType extends StackedPointPositionType
+    PositionType extends StackedPointPositionType,
 > {
     seriesName: SeriesName
     isProjection?: boolean

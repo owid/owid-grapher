@@ -338,7 +338,7 @@ export function toleranceInterpolation(
 export function interpolateRowValuesWithTolerance<
     ValueSlug extends ColumnSlug,
     TimeSlug extends ColumnSlug,
-    Row extends { [key in TimeSlug]?: Time } & { [key in ValueSlug]?: any }
+    Row extends { [key in TimeSlug]?: Time } & { [key in ValueSlug]?: any },
 >(
     rowsSortedByTimeAsc: Row[],
     valueSlug: ValueSlug,

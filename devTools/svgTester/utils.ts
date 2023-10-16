@@ -352,9 +352,8 @@ export async function loadGrapherConfigAndData(
         return { data, metadata }
     })
 
-    const data: OwidVariableDataMetadataDimensions[] = await Promise.all(
-        loadDataPromises
-    )
+    const data: OwidVariableDataMetadataDimensions[] =
+        await Promise.all(loadDataPromises)
 
     const variableData = new Map(data.map((d) => [d.metadata.id, d]))
 

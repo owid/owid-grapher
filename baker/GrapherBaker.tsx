@@ -223,9 +223,8 @@ export async function renderDataPageV2({
     pageGrapher?: GrapherInterface
     publishedExplorersBySlug?: Record<string, ExplorerProgram>
 }) {
-    const grapherConfigForVariable = await getMergedGrapherConfigForVariable(
-        variableId
-    )
+    const grapherConfigForVariable =
+        await getMergedGrapherConfigForVariable(variableId)
     const grapher = mergePartialGrapherConfigs(
         grapherConfigForVariable,
         pageGrapher

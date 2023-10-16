@@ -950,7 +950,10 @@ html:not(.js) {
     .article-content > p,
     .article-content > ol,
     .article-content > ul {
-        font: 12pt "Times New Roman", Times, serif;
+        font:
+            12pt "Times New Roman",
+            Times,
+            serif;
         line-height: 1.3;
     }
     .article-content > h2,

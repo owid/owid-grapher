@@ -29,9 +29,8 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
             rawGrapherIds,
             inDir
         )
-        const csvContentMap = await utils.getReferenceCsvContentMap(
-            referenceDir
-        )
+        const csvContentMap =
+            await utils.getReferenceCsvContentMap(referenceDir)
 
         const verifyJobs = directoriesToProcess.map((dir) => ({
             dir,

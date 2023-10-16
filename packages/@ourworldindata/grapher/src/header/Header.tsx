@@ -21,7 +21,7 @@ interface HeaderProps {
 
 @observer
 export class Header<
-    Props extends HeaderProps = HeaderProps
+    Props extends HeaderProps = HeaderProps,
 > extends React.Component<Props> {
     @computed protected get manager(): HeaderManager {
         return this.props.manager

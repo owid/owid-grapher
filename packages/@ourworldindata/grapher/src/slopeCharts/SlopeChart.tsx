@@ -735,7 +735,7 @@ class LabelledSlopes
             .domain(
                 extent(this.props.seriesArr.map((series) => series.size)) as [
                     number,
-                    number
+                    number,
                 ]
             )
             .range([1, 4])

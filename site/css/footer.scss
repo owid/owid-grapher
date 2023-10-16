@@ -59,7 +59,9 @@
         max-width: 10rem;
         margin-bottom: 0.25rem;
         display: block;
-        transition: opacity 150ms ease, filter 150ms ease;
+        transition:
+            opacity 150ms ease,
+            filter 150ms ease;
         filter: grayscale(1);
         opacity: 0.5;
 

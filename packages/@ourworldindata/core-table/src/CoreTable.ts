@@ -81,7 +81,7 @@ interface AdvancedOptions {
 // narrow interface for the input rows. This is helpful for OwidTable.
 export class CoreTable<
     ROW_TYPE extends CoreRow = CoreRow,
-    COL_DEF_TYPE extends CoreColumnDef = CoreColumnDef
+    COL_DEF_TYPE extends CoreColumnDef = CoreColumnDef,
 > {
     private _columns: Map<ColumnSlug, CoreColumn> = new Map()
     protected parent?: this

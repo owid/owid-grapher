@@ -83,7 +83,9 @@
         background-color: $oxford-blue;
         border-color: $oxford-blue;
         color: #fff;
-        transition: background-color 150ms linear, border-color 150ms linear;
+        transition:
+            background-color 150ms linear,
+            border-color 150ms linear;
         min-width: 196px;
 
         &:hover {

@@ -27,7 +27,10 @@ export interface IRToken {
 }
 
 export class IRText implements IRToken {
-    constructor(public text: string, public fontParams?: IRFontParams) {}
+    constructor(
+        public text: string,
+        public fontParams?: IRFontParams
+    ) {}
     @imemo get width(): number {
         return Bounds.forText(this.text, this.fontParams).width
     }
@@ -90,7 +93,10 @@ export class IRLineBreak implements IRToken {
 }
 
 export abstract class IRElement implements IRToken {
-    constructor(public children: IRToken[], public fontParams?: IRFontParams) {}
+    constructor(
+        public children: IRToken[],
+        public fontParams?: IRFontParams
+    ) {}
 
     @imemo get width(): number {
         return getLineWidth(this.children)
@@ -177,7 +183,10 @@ export class IRSpan extends IRElement {
 }
 
 export class IRSuperscript implements IRToken {
-    constructor(public text: string, public fontParams?: IRFontParams) {}
+    constructor(
+        public text: string,
+        public fontParams?: IRFontParams
+    ) {}
     @imemo get width(): number {
         return Bounds.forText(this.text, { fontSize: this.height / 2 }).width
     }

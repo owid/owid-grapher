@@ -78,11 +78,11 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
                         <div class="chart-id">${id}</div>
                         <div class="side-by-side">
                             <img src="${referenceDir}/${
-                            referenceCsv.get(id)!.svgFilename
-                        }"/>
+                                referenceCsv.get(id)!.svgFilename
+                            }"/>
                             <img src="${outDir}/${
-                            referenceCsv.get(id)!.svgFilename
-                        }"/>
+                                referenceCsv.get(id)!.svgFilename
+                            }"/>
                         </div>
                     </div>
                     `)
