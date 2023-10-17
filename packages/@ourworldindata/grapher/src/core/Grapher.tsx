@@ -1594,7 +1594,19 @@ export class Grapher
     }
 
     @computed get isLineChartThatTurnedIntoDiscreteBar(): boolean {
-        return this.isLineChart && this.areHandlesOnSameTime
+        if (!this.isLineChart) return false
+
+        // This is the easy case: minTime and maxTime are the same, no need to do
+        // more fancy checks
+        if (this.minTime === this.maxTime) return true
+
+        // We can have cases where minTime = Infinity and/or maxTime = -Infinity,
+        // but still only a single year is selected.
+        // To check for that we need to look at the times array.
+        const times = this.tableAfterAuthorTimelineFilter.timeColumn.uniqValues
+        const minTime = findClosestTime(times, this.minTime ?? -Infinity)
+        const maxTime = findClosestTime(times, this.maxTime ?? Infinity)
+        return minTime !== undefined && minTime === maxTime
     }
 
     @computed get supportsMultipleYColumns(): boolean {
