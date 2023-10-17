@@ -133,15 +133,17 @@ export class StackedDiscreteBarChart
     }
 
     transformTableForSelection(table: OwidTable): OwidTable {
-        table = table
-            .replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
-            .dropRowsWithErrorValuesForAllColumns(this.yColumnSlugs)
-
-        this.yColumnSlugs.forEach((slug) => {
-            table = table.interpolateColumnWithTolerance(slug)
-        })
-
+        // if entities with partial data are not plotted,
+        // make sure they don't show up in the entity selector
         if (this.missingDataStrategy === MissingDataStrategy.hide) {
+            table = table
+                .replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
+                .dropRowsWithErrorValuesForAllColumns(this.yColumnSlugs)
+
+            this.yColumnSlugs.forEach((slug) => {
+                table = table.interpolateColumnWithTolerance(slug)
+            })
+
             const groupedByEntity = table.groupBy("entityName").map((t) => {
                 if (t.hasAnyColumnNoValidValue(this.yColumnSlugs)) {
                     t = t.dropAllRows()

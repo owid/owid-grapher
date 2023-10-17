@@ -129,11 +129,13 @@ export class DiscreteBarChart
     }
 
     transformTableForSelection(table: OwidTable): OwidTable {
-        table = table
-            .replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
-            .dropRowsWithErrorValuesForAllColumns(this.yColumnSlugs)
-
+        // if entities with partial data are not plotted,
+        // make sure they don't show up in the entity selector
         if (this.missingDataStrategy === MissingDataStrategy.hide) {
+            table = table
+                .replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
+                .dropRowsWithErrorValuesForAllColumns(this.yColumnSlugs)
+
             const groupedByEntity = table.groupBy("entityName").map((t) => {
                 if (t.hasAnyColumnNoValidValue(this.yColumnSlugs)) {
                     t = t.dropAllRows()

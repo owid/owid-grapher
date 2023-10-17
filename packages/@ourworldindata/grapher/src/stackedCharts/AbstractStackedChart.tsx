@@ -85,17 +85,19 @@ export class AbstractStackedChart
     }
 
     transformTableForSelection(table: OwidTable): OwidTable {
-        table = table
-            .replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
-            .dropRowsWithErrorValuesForAllColumns(this.yColumnSlugs)
-
-        if (this.shouldRunLinearInterpolation) {
-            this.yColumnSlugs.forEach((slug) => {
-                table = table.interpolateColumnLinearly(slug)
-            })
-        }
-
+        // if entities with partial data are not plotted,
+        // make sure they don't show up in the entity selector
         if (this.missingDataStrategy !== MissingDataStrategy.show) {
+            table = table
+                .replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
+                .dropRowsWithErrorValuesForAllColumns(this.yColumnSlugs)
+
+            if (this.shouldRunLinearInterpolation) {
+                this.yColumnSlugs.forEach((slug) => {
+                    table = table.interpolateColumnLinearly(slug)
+                })
+            }
+
             const groupedByEntity = table
                 .groupBy("entityName")
                 .map((t: OwidTable) =>
