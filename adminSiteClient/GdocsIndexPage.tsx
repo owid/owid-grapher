@@ -8,6 +8,7 @@ import {
     faLightbulb,
     faNewspaper,
     faPuzzlePiece,
+    faQuestion,
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
@@ -196,6 +197,15 @@ export class GdocsIndexPage extends React.Component<GdocsMatchProps> {
                             search={this.search}
                         />
                         <div>
+                            <a
+                                className="btn btn-secondary gdoc-index__help-link"
+                                target="_blank"
+                                href="https://docs.google.com/document/d/1OLoTWloy4VecOjKTjB1wLV6tEphHJIMXfexrf1ZYJzU/edit"
+                                rel="noopener"
+                            >
+                                <FontAwesomeIcon icon={faQuestion} /> Open
+                                documentation
+                            </a>
                             <button
                                 className="btn btn-primary"
                                 onClick={() =>
