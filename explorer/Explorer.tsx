@@ -518,6 +518,7 @@ export class Explorer
             ...partialGrapherConfig,
             ...this.explorerProgram.grapherConfigOnlyGrapherProps,
             bakedGrapherURL: BAKED_GRAPHER_URL,
+            dataApiUrl: DATA_API_URL,
             hideEntityControls: this.showExplorerControls,
             manuallyProvideData: false,
         }
@@ -651,6 +652,7 @@ export class Explorer
         const config: GrapherProgrammaticInterface = {
             ...this.explorerProgram.grapherConfigOnlyGrapherProps,
             bakedGrapherURL: BAKED_GRAPHER_URL,
+            dataApiUrl: DATA_API_URL,
             hideEntityControls: this.showExplorerControls,
             manuallyProvideData: true,
         }
