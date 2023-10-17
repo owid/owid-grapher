@@ -10,7 +10,15 @@ import {
     faPuzzlePiece,
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { Tag, OwidGdocInterface, OwidGdocType } from "@ourworldindata/utils"
+import {
+    Tag,
+    OwidGdocInterface,
+    OwidGdocType,
+    SearchWord,
+    buildSearchWordsFromSearchString,
+    filterFunctionForSearchWords,
+    spansToUnformattedPlainText,
+} from "@ourworldindata/utils"
 import { Route, RouteComponentProps } from "react-router-dom"
 import { Link } from "./Link.js"
 import { GdocsAdd } from "./GdocsAdd.js"
@@ -18,7 +26,6 @@ import { observer } from "mobx-react"
 import { GdocsStoreContext } from "./GdocsStore.js"
 import { computed, observable } from "mobx"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
-import fuzzysort from "fuzzysort"
 import { GdocsEditLink } from "./GdocsEditLink.js"
 
 const iconGdocTypeMap = {
@@ -106,6 +113,11 @@ export class GdocsIndexPage extends React.Component<GdocsMatchProps> {
 
     @observable search = { value: "" }
 
+    @computed get searchWords(): SearchWord[] {
+        const { search } = this
+        return buildSearchWordsFromSearchString(search.value)
+    }
+
     async componentDidMount(): Promise<void> {
         await this.context?.fetchTags()
         await this.context?.fetchGdocs()
@@ -116,27 +128,10 @@ export class GdocsIndexPage extends React.Component<GdocsMatchProps> {
         return this.context?.availableTags || []
     }
 
-    @computed get searchIndex(): Searchable[] {
-        if (!this.context) return []
-        const searchIndex: Searchable[] = []
-        for (const gdoc of this.context.gdocs) {
-            searchIndex.push({
-                gdoc,
-                term: fuzzysort.prepare(
-                    `${gdoc.content.title} ${gdoc.content.authors?.join(
-                        " "
-                    )} ${gdoc.tags?.map(({ name }) => name).join(" ")}`
-                ),
-            })
-        }
-
-        return searchIndex
-    }
-
-    @computed
-    get visibleGdocs(): OwidGdocInterface[] {
-        const { context, search, searchIndex } = this
+    @computed get allGdocsToShow(): OwidGdocInterface[] {
+        const { searchWords, context } = this
         if (!context) return []
+
         // Don't filter unless at least one filter is active
         const shouldUseFilters = !!Object.values(this.filters).find(
             (isFilterActive) => isFilterActive
@@ -149,32 +144,47 @@ export class GdocsIndexPage extends React.Component<GdocsMatchProps> {
                       !gdoc.content.type || !!this.filters[gdoc.content.type]
               )
             : context.gdocs
-        if (!search.value) return filteredByType
 
-        const fuzzysorted = fuzzysort.go(search.value, searchIndex, {
-            limit: 50,
-            key: "term",
-        })
-
-        const uniqueFiltered = fuzzysorted.reduce(
-            (acc: Set<OwidGdocInterface>, { obj: { gdoc } }) => {
-                const shouldInclude =
-                    // Don't filter unless at least one filter is active
-                    !shouldUseFilters ||
-                    !gdoc.content.type ||
-                    this.filters[gdoc.content.type]
-
-                if (shouldInclude) {
-                    acc.add(gdoc)
-                }
-
-                return acc
-            },
-            new Set<OwidGdocInterface>()
-        )
-
-        return [...uniqueFiltered]
+        if (searchWords.length > 0) {
+            const filterFn = filterFunctionForSearchWords(
+                searchWords,
+                (gdoc: OwidGdocInterface) => [
+                    gdoc.content.title,
+                    gdoc.content.subtitle,
+                    gdoc.content.summary
+                        ? spansToUnformattedPlainText(
+                              gdoc.content.summary.flatMap(
+                                  (block) => block.value
+                              )
+                          )
+                        : undefined,
+                    gdoc.slug,
+                    gdoc.content.authors?.join(" "),
+                    gdoc.tags?.map(({ name }) => name).join(" "),
+                ]
+            )
+            return filteredByType.filter(filterFn)
+        } else {
+            return filteredByType
+        }
     }
+
+    // @computed get searchIndex(): Searchable[] {
+    //     if (!this.context) return []
+    //     const searchIndex: Searchable[] = []
+    //     for (const gdoc of this.context.gdocs) {
+    //         searchIndex.push({
+    //             gdoc,
+    //             term: fuzzysort.prepare(
+    //                 `${gdoc.content.title} ${gdoc.content.authors?.join(
+    //                     " "
+    //                 )} ${gdoc.tags?.map(({ name }) => name).join(" ")}`
+    //             ),
+    //         })
+    //     }
+
+    //     return searchIndex
+    // }
 
     render() {
         return (
@@ -200,7 +210,7 @@ export class GdocsIndexPage extends React.Component<GdocsMatchProps> {
                         </div>
                     </div>
 
-                    {this.visibleGdocs.map((gdoc) => (
+                    {this.allGdocsToShow.map((gdoc) => (
                         <div
                             key={gdoc.id}
                             className={cx(`gdoc-index-item`, {
