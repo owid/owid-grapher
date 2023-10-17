@@ -27,6 +27,7 @@ export default function Video(props: VideoProps) {
     return (
         <figure className={cx(className)}>
             <video
+                muted
                 controls
                 autoPlay={shouldAutoplay}
                 preload={shouldAutoplay ? "auto" : "none"}
