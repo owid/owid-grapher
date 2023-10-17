@@ -1,13 +1,8 @@
 import fs from "fs-extra"
-import { BakeStepConfig, SiteBaker } from "../baker/SiteBaker.js"
 import { BuildkiteTrigger } from "../baker/BuildkiteTrigger.js"
 import { logErrorAndMaybeSendToBugsnag, warn } from "../serverUtils/errorLog.js"
 import { DeployQueueServer } from "./DeployQueueServer.js"
-import {
-    BAKED_SITE_DIR,
-    BAKED_BASE_URL,
-    BUILDKITE_API_ACCESS_TOKEN,
-} from "../settings/serverSettings.js"
+import { BUILDKITE_API_ACCESS_TOKEN } from "../settings/serverSettings.js"
 import { DeployChange } from "@ourworldindata/utils"
 
 const deployQueueServer = new DeployQueueServer()
@@ -51,19 +46,6 @@ const triggerBakeAndDeploy = async (
             // once we fully switch to baking on buildkite, we should await this
             buildkite.runFullBuild(message).catch(logErrorAndMaybeSendToBugsnag)
         }
-    }
-}
-
-export const bake = async (bakeSteps?: BakeStepConfig) => {
-    const baker = new SiteBaker(BAKED_SITE_DIR, BAKED_BASE_URL, bakeSteps)
-    try {
-        await baker.bakeAll()
-    } catch (err) {
-        baker.endDbConnections()
-        logErrorAndMaybeSendToBugsnag(err)
-        throw err
-    } finally {
-        baker.endDbConnections()
     }
 }
 
