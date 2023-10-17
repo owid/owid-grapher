@@ -1490,14 +1490,15 @@ export class Grapher
 
     @computed private get defaultSourcesLine(): string {
         const attributions = this.columnsWithSources.flatMap((column) => {
+            const { presentation = {} } = column.def
             // if the variable metadata specifies an attribution on the
             // variable level then this is preferred over assembling it from
             // the source and origins
             if (
-                column.def.attribution !== undefined &&
-                column.def.attribution !== ""
+                presentation.attribution !== undefined &&
+                presentation.attribution !== ""
             )
-                return [column.def.attribution]
+                return [presentation.attribution]
             else {
                 const originFragments = getOriginAttributionFragments(
                     column.def.origins
