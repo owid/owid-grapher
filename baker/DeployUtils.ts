@@ -1,15 +1,9 @@
 import fs from "fs-extra"
-import { BakeStepConfig, SiteBaker } from "../baker/SiteBaker.js"
 import { BuildkiteTrigger } from "../baker/BuildkiteTrigger.js"
 import { logErrorAndMaybeSendToBugsnag, warn } from "../serverUtils/errorLog.js"
 import { DeployQueueServer } from "./DeployQueueServer.js"
-import {
-    BAKED_SITE_DIR,
-    BAKED_BASE_URL,
-    BUILDKITE_API_ACCESS_TOKEN,
-} from "../settings/serverSettings.js"
-import { DeployChange, OwidGdocPublished } from "@ourworldindata/utils"
-import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
+import { BUILDKITE_API_ACCESS_TOKEN } from "../settings/serverSettings.js"
+import { DeployChange } from "@ourworldindata/utils"
 
 const deployQueueServer = new DeployQueueServer()
 
@@ -31,7 +25,7 @@ const defaultCommitMessage = async (): Promise<string> => {
 /**
  * Initiate a deploy, without any checks. Throws error on failure.
  */
-const bakeAndDeploy = async (
+const triggerBakeAndDeploy = async (
     message?: string,
     lightningQueue?: DeployChange[]
 ) => {
@@ -52,59 +46,6 @@ const bakeAndDeploy = async (
             // once we fully switch to baking on buildkite, we should await this
             buildkite.runFullBuild(message).catch(logErrorAndMaybeSendToBugsnag)
         }
-    }
-
-    const baker = new SiteBaker(BAKED_SITE_DIR, BAKED_BASE_URL)
-    try {
-        if (lightningQueue?.length) {
-            for (const change of lightningQueue) {
-                const gdoc = (await Gdoc.findOneByOrFail({
-                    published: true,
-                    slug: change.slug,
-                })) as OwidGdocPublished
-                await baker.bakeGDocPost(gdoc)
-            }
-        } else {
-            await baker.bakeAll()
-        }
-        await baker.deployToNetlifyAndPushToGitPush(message)
-    } catch (err) {
-        logErrorAndMaybeSendToBugsnag(err)
-        throw err
-    }
-}
-
-export const bake = async (bakeSteps?: BakeStepConfig) => {
-    const baker = new SiteBaker(BAKED_SITE_DIR, BAKED_BASE_URL, bakeSteps)
-    try {
-        await baker.bakeAll()
-    } catch (err) {
-        baker.endDbConnections()
-        logErrorAndMaybeSendToBugsnag(err)
-        throw err
-    } finally {
-        baker.endDbConnections()
-    }
-}
-
-/**
- * Try to initiate a deploy and then terminate the baker, allowing a clean exit.
- * Used in CLI.
- */
-export const tryDeploy = async (
-    message?: string,
-    email?: string,
-    name?: string
-) => {
-    message = message ?? (await defaultCommitMessage())
-    const baker = new SiteBaker(BAKED_SITE_DIR, BAKED_BASE_URL)
-
-    try {
-        await baker.deployToNetlifyAndPushToGitPush(message, email, name)
-    } catch (err) {
-        logErrorAndMaybeSendToBugsnag(err)
-    } finally {
-        baker.endDbConnections()
     }
 }
 
@@ -160,7 +101,7 @@ export const deployIfQueueIsNotEmpty = async () => {
         const message = generateCommitMsg(parsedQueue)
         console.log(`Deploying site...\n---\n${message}\n---`)
         try {
-            await bakeAndDeploy(
+            await triggerBakeAndDeploy(
                 message,
                 // If every DeployChange is a lightning change, then we can do a
                 // lightning deploy. In the future, we might want to separate

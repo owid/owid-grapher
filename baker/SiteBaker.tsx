@@ -705,63 +705,6 @@ export class SiteBaker {
         console.log(msg || outPath)
     }
 
-    private async execAndLogAnyErrorsToSlack(cmd: string) {
-        console.log(cmd)
-        try {
-            return await execWrapper(cmd)
-        } catch (error) {
-            // Log error to Bugsnag, but do not throw error
-            return logErrorAndMaybeSendToBugsnag(error)
-        }
-    }
-
-    async deployToNetlifyAndPushToGitPush(
-        commitMsg: string,
-        authorEmail?: string,
-        authorName?: string
-    ) {
-        const deployDirectlyToNetlix = fs.existsSync(
-            path.join(this.bakedSiteDir, ".netlify/state.json")
-        )
-        const progressBar = new ProgressBar(
-            "DeployToNetlify [:bar] :current/:total :elapseds :name\n",
-            {
-                total: 3 + (deployDirectlyToNetlix ? 1 : 0),
-            }
-        )
-        progressBar.tick({ name: "✅ ready to deploy" })
-        // Deploy directly to Netlify (faster than using the github hook)
-        if (deployDirectlyToNetlix) {
-            await this.execAndLogAnyErrorsToSlack(
-                `cd ${this.bakedSiteDir} && ${BASE_DIR}/node_modules/.bin/netlify deploy -d . --prodIfUnlocked --timeout 6000`
-            )
-            progressBar.tick({ name: "✅ deployed directly to netlify" })
-        }
-
-        // Ensure there is a git repo in there
-        await this.execAndLogAnyErrorsToSlack(
-            `cd ${this.bakedSiteDir} && git init`
-        )
-
-        progressBar.tick({ name: "✅ ensured git repo" })
-
-        // Prettify HTML source for easier debugging
-        // Target root level HTML files only (entries and posts) for performance
-        // reasons.
-        // TODO: check again --only-changed
-        // await this.execWrapper(`cd ${BAKED_SITE_DIR} && ${BASE_DIR}/node_modules/.bin/prettier --write "./*.html"`)
-
-        if (authorEmail && authorName && commitMsg)
-            await this.execAndLogAnyErrorsToSlack(
-                `cd ${this.bakedSiteDir} && git add -A . && git commit --allow-empty --author='${authorName} <${authorEmail}>' -a -m '${commitMsg}' && git push origin master`
-            )
-        else
-            await this.execAndLogAnyErrorsToSlack(
-                `cd ${this.bakedSiteDir} && git add -A . && git commit --allow-empty -a -m '${commitMsg}' && git push origin master`
-            )
-        progressBar.tick({ name: "✅ committed and pushed to github" })
-    }
-
     endDbConnections() {
         wpdb.singleton.end()
         db.closeTypeOrmAndKnexConnections()
