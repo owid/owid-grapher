@@ -170,23 +170,6 @@ export class GdocsIndexPage extends React.Component<GdocsMatchProps> {
         }
     }
 
-    // @computed get searchIndex(): Searchable[] {
-    //     if (!this.context) return []
-    //     const searchIndex: Searchable[] = []
-    //     for (const gdoc of this.context.gdocs) {
-    //         searchIndex.push({
-    //             gdoc,
-    //             term: fuzzysort.prepare(
-    //                 `${gdoc.content.title} ${gdoc.content.authors?.join(
-    //                     " "
-    //                 )} ${gdoc.tags?.map(({ name }) => name).join(" ")}`
-    //             ),
-    //         })
-    //     }
-
-    //     return searchIndex
-    // }
-
     render() {
         return (
             <AdminLayout title="Google Docs">
