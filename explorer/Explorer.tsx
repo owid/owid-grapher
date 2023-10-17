@@ -60,6 +60,7 @@ import {
     ADMIN_BASE_URL,
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
+    DATA_API_URL,
 } from "../settings/clientSettings.js"
 import {
     ExplorerChartCreationMode,
@@ -478,6 +479,7 @@ export class Explorer
             ...grapherConfig,
             ...this.explorerProgram.grapherConfigOnlyGrapherProps,
             bakedGrapherURL: BAKED_GRAPHER_URL,
+            dataApiUrl: DATA_API_URL,
             hideEntityControls: this.showExplorerControls,
             manuallyProvideData: false,
         }
