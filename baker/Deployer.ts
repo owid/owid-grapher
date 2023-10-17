@@ -239,7 +239,6 @@ yarn testPrettierAll`
             restartAdminServer: `pm2 restart ${target}`,
             stopDeployQueueServer: `pm2 stop ${target}-deploy-queue`,
             bakeSiteOnStagingServer: `cd ${finalTargetDir} && node --enable-source-maps --unhandled-rejections=strict itsJustJavascript/baker/bakeSiteOnStagingServer.js ${cliBakeSteps}`,
-            deployToNetlify: `cd ${finalTargetDir} && node --enable-source-maps --unhandled-rejections=strict itsJustJavascript/baker/deploySiteFromStagingServer.js "${gitEmail}" "${gitName}"`,
             restartQueue: `pm2 start ${target}-deploy-queue`,
         }
 
