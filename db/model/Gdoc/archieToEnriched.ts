@@ -39,6 +39,8 @@ function generateStickyNav(
 ): OwidGdocStickyNavItem[] | undefined {
     if (content.type !== OwidGdocType.TopicPage) return
     // If a sticky nav has been explicitly defined, use that.
+    // We are using this for linear topic pages, as a way to have a document using the topic page template
+    // but without a sticky nav
     if (content["sticky-nav"]) return content["sticky-nav"]
     // These are the default headings that we'll try to find and create sticky nav headings for
     // Even if the id for the heading is "key-insights-on-poverty", we can just do substring matches

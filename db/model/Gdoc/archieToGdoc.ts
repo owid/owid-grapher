@@ -41,6 +41,14 @@ function* owidArticleToArchieMLStringGenerator(
     yield* propertyToArchieMLString("dateline", article)
     yield* propertyToArchieMLString("excerpt", article)
     yield* propertyToArchieMLString("type", article)
+    if (article["sticky-nav"]) {
+        yield "[.sticky-nav]"
+        for (const item of article["sticky-nav"]) {
+            yield* propertyToArchieMLString("target", item)
+            yield* propertyToArchieMLString("text", item)
+        }
+        yield "[]"
+    }
     // TODO: inline refs
     yieldMultiBlockPropertyIfDefined("summary", article, article.summary)
     yield* propertyToArchieMLString("hide-citation", article)

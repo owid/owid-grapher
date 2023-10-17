@@ -171,6 +171,9 @@ const migrate = async (): Promise<void> => {
                     type: isEntry
                         ? OwidGdocType.TopicPage
                         : OwidGdocType.Article,
+                    // Provide an empty array to prevent the sticky nav from rendering at all
+                    // Because if it isn't defined, it tries to automatically populate itself
+                    "sticky-nav": isEntry ? [] : undefined,
                 },
                 relatedCharts,
                 published: false,
