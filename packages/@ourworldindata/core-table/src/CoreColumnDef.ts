@@ -4,6 +4,7 @@ import {
     ToleranceStrategy,
     OwidOrigin,
     OwidSource,
+    OwidVariablePresentation,
 } from "@ourworldindata/utils"
 import { CoreValueType, Color } from "./CoreTableConstants.js"
 
@@ -63,9 +64,6 @@ export interface CoreColumnDef extends ColumnColorScale {
 
     // Column information used for display only
     name?: string // The display name for the column
-    titlePublic?: string // The Metadata V2 display title for the variable
-    titleVariant?: string // The Metadata V2 title disambiguation fragment for the variant (e.g. "projected")
-    attributionShort?: string // The Metadata V2 title disambiguation fragment for the producer
     description?: string
     descriptionShort?: string
     descriptionProcessing?: string
@@ -78,11 +76,11 @@ export interface CoreColumnDef extends ColumnColorScale {
 
     // Source information used for display only
     source?: OwidSource
-    attribution?: string
     timespanFromMetadata?: string
 
-    // Origins
+    // Metadata v2
     origins?: OwidOrigin[]
+    presentation?: Omit<OwidVariablePresentation, "topicTagsLinks">
 
     // Dataset information
     datasetId?: number
