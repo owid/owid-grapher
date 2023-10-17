@@ -9,9 +9,11 @@ export default {
 
 export const WithSources = (): JSX.Element => (
     <SourcesModal
-        manager={{ columnsWithSources: SynthesizeGDPTable().columnsAsArray }}
+        manager={{
+            columnsWithSourcesExtensive: SynthesizeGDPTable().columnsAsArray,
+        }}
     />
 )
 export const NoSources = (): JSX.Element => (
-    <SourcesModal manager={{ columnsWithSources: [] }} />
+    <SourcesModal manager={{ columnsWithSourcesExtensive: [] }} />
 )

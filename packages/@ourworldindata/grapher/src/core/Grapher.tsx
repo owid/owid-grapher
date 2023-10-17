@@ -1446,12 +1446,38 @@ export class Grapher
         ])
     }
 
-    @computed get columnsWithSources(): CoreColumn[] {
+    @computed get columnsWithSourcesExtensive(): CoreColumn[] {
         const { yColumnSlugs, xColumnSlug, sizeColumnSlug, colorColumnSlug } =
             this
 
+        const columnSlugs = excludeUndefined( [
+            ...yColumnSlugs,
+            xColumnSlug,
+            sizeColumnSlug,
+            colorColumnSlug,
+        ])
+
+        return this.inputTable
+            .getColumns(uniq(columnSlugs))
+            .filter(
+                (column) => !!column.source.name || !isEmpty(column.def.origins)
+            )
+    }
+
+    getColumnSlugsForCondensedSources(): string[] {
+        const { xColumnSlug, sizeColumnSlug, colorColumnSlug, isMarimekko } =
+            this
+        const columnSlugs: string[] = []
+
         // "Countries Continent"
         const isContinentsVariableId = (id: string): boolean => id === "123"
+
+        // exclude "Countries Continent" if it's used as the color dimension in a scatter plot, slope chart etc.
+        if (
+            colorColumnSlug !== undefined &&
+            !isContinentsVariableId(colorColumnSlug)
+        )
+            columnSlugs.push(colorColumnSlug)
 
         const isPopulationVariableId = (id: string): boolean =>
             id === "525709" || // "Population (historical + projections), Gapminder, HYDE & UN"
@@ -1459,11 +1485,9 @@ export class Grapher
             id === "597929" || // "Population (various sources, 2023.1)"
             id === "597930" // "Population (various sources, 2023.1)"
 
-        const columnSlugs = [...yColumnSlugs]
-
         if (xColumnSlug !== undefined) {
             // exclude population variable if it's used as the x dimension in a marimekko
-            if (!isPopulationVariableId(xColumnSlug) || !this.isMarimekko)
+            if (!isMarimekko || !isPopulationVariableId(xColumnSlug))
                 columnSlugs.push(xColumnSlug)
         }
 
@@ -1473,13 +1497,14 @@ export class Grapher
             !isPopulationVariableId(sizeColumnSlug)
         )
             columnSlugs.push(sizeColumnSlug)
+        return columnSlugs
+    }
 
-        // exclude "Countries Continent" if it's used as the color dimension in a scatter plot, slope chart etc.
-        if (
-            colorColumnSlug !== undefined &&
-            !isContinentsVariableId(colorColumnSlug)
-        )
-            columnSlugs.push(colorColumnSlug)
+    @computed get columnsWithSourcesCondensed(): CoreColumn[] {
+        const { yColumnSlugs } = this
+
+        const columnSlugs = [...yColumnSlugs]
+        columnSlugs.push(...this.getColumnSlugsForCondensedSources())
 
         return this.inputTable
             .getColumns(uniq(columnSlugs))
@@ -1489,22 +1514,24 @@ export class Grapher
     }
 
     @computed private get defaultSourcesLine(): string {
-        const attributions = this.columnsWithSources.flatMap((column) => {
-            // if the variable metadata specifies an attribution on the
-            // variable level then this is preferred over assembling it from
-            // the source and origins
-            if (
-                column.def.attribution !== undefined &&
-                column.def.attribution !== ""
-            )
-                return [column.def.attribution]
-            else {
-                const originFragments = getOriginAttributionFragments(
-                    column.def.origins
+        const attributions = this.columnsWithSourcesCondensed.flatMap(
+            (column) => {
+                // if the variable metadata specifies an attribution on the
+                // variable level then this is preferred over assembling it from
+                // the source and origins
+                if (
+                    column.def.attribution !== undefined &&
+                    column.def.attribution !== ""
                 )
-                return [column.source.name, ...originFragments]
+                    return [column.def.attribution]
+                else {
+                    const originFragments = getOriginAttributionFragments(
+                        column.def.origins
+                    )
+                    return [column.source.name, ...originFragments]
+                }
             }
-        })
+        )
 
         const uniqueAttributions = uniq(compact(attributions))
 

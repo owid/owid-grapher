@@ -16,7 +16,7 @@ import { Modal } from "./Modal"
 
 export interface SourcesModalManager {
     adminBaseUrl?: string
-    columnsWithSources: CoreColumn[]
+    columnsWithSourcesExtensive: CoreColumn[]
     showAdminControls?: boolean
     isSourcesModalOpen?: boolean
     tabBounds?: Bounds
@@ -268,7 +268,7 @@ export class SourcesModal extends React.Component<{
     }
 
     render(): JSX.Element {
-        const cols = this.manager.columnsWithSources
+        const cols = this.manager.columnsWithSourcesExtensive
         return (
             <Modal
                 title="Sources"
