@@ -177,7 +177,7 @@ import {
 import classnames from "classnames"
 import { GrapherAnalytics } from "./GrapherAnalytics"
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations"
-import { ChartInterface } from "../chart/ChartInterface"
+import { ChartInterface, ChartTableTransformer } from "../chart/ChartInterface"
 import { MarimekkoChartManager } from "../stackedCharts/MarimekkoChartConstants"
 import { AxisConfigInterface } from "../axis/AxisConfigInterface"
 import Bugsnag from "@bugsnag/js"
@@ -811,7 +811,7 @@ export class Grapher
 
     @action.bound
     async downloadLegacyDataFromOwidVariableIds(
-        inputTableTransformer?: (table: OwidTable) => OwidTable
+        inputTableTransformer?: ChartTableTransformer
     ): Promise<void> {
         if (this.variableIds.length === 0)
             // No data to download
@@ -858,7 +858,7 @@ export class Grapher
     @action.bound private _setInputTable(
         json: MultipleOwidVariableDataDimensionsMap,
         legacyConfig: Partial<LegacyGrapherInterface>,
-        inputTableTransformer?: (table: OwidTable) => OwidTable
+        inputTableTransformer?: ChartTableTransformer
     ): void {
         // TODO grapher model: switch this to downloading multiple data and metadata files
         const { dimensions, table } = legacyToOwidTableAndDimensions(
@@ -884,7 +884,7 @@ export class Grapher
     }
 
     @action rebuildInputOwidTable(
-        inputTableTransformer?: (table: OwidTable) => OwidTable
+        inputTableTransformer?: ChartTableTransformer
     ): void {
         // TODO grapher model: switch this to downloading multiple data and metadata files
         if (!this.legacyVariableDataJson) return
@@ -900,7 +900,7 @@ export class Grapher
 
     @action.bound private _receiveOwidDataAndApplySelection(
         json: MultipleOwidVariableDataDimensionsMap,
-        inputTableTransformer?: (table: OwidTable) => OwidTable
+        inputTableTransformer?: ChartTableTransformer
     ): void {
         this.legacyVariableDataJson = json
 
