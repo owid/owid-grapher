@@ -193,7 +193,9 @@ export const DataPageV2Content = ({
                                     datapageData.descriptionShort) && (
                                     <div className="key-info__curated">
                                         <h2 className="key-info__title">
-                                            {datapageData?.descriptionKey
+                                            {datapageData?.descriptionKey &&
+                                            datapageData?.descriptionKey
+                                                .length > 0
                                                 ? "What you should know about this indicator"
                                                 : "About this data"}
                                         </h2>
@@ -224,7 +226,11 @@ export const DataPageV2Content = ({
                                 )}
                                 {datapageData.descriptionFromProducer && (
                                     <ExpandableToggle
-                                        label={`How does the producer of this data - ${datapageData.attributionShort} - describe this data?`}
+                                        label={
+                                            datapageData.attributionShort
+                                                ? `How does the producer of this data - ${datapageData.attributionShort} - describe this data?`
+                                                : "How does the producer of this data describe this data?"
+                                        }
                                         content={
                                             <ArticleBlocks
                                                 blocks={[
