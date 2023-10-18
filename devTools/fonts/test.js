@@ -31,6 +31,8 @@ const FAMILIES = {
 }
 
 const SAMPLE_TEXT =
+    // `x<sup>0</sup>x<sup>1</sup>x<sup>2</sup>x<sup>3</sup>x<sup>4</sup>x<sup>5</sup>x<sup>6</sup>x<sup>7</sup>x<sup>8</sup>x<sup>9</sup>x<sub>0</sub>x<sub>1</sub>x<sub>2</sub>x<sub>3</sub>x<sub>4</sub>x<sub>5</sub>x<sub>6</sub>x<sub>7</sub>x<sub>8</sub>x<sub>9</sub>`
+    // `x⁰x¹x²x³x⁴x⁵x⁶x⁷x⁸x⁹x₀x₁x₂x₃x₄x₅x₆x₇x₈x₉`
     "hamburgefonstiv 0123<sub>456</sub><sup>789</sup> ←↑→↓↔↕↖↗↘↙"
 
 function pangram(family, postscriptNames = false) {
