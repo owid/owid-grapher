@@ -43,6 +43,8 @@ export class ChartIndexPage extends React.Component {
                     chart.lastEditedBy,
                     `${chart.id}`,
                     chart.slug,
+                    chart.hasChartTab !== false ? chart.type : undefined,
+                    chart.hasMapTab ? "Map" : undefined,
                     ...chart.tags.map((tag) => tag.name),
                 ]
             )
