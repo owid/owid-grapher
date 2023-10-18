@@ -2,6 +2,7 @@ import React, { useContext, createContext, useState } from "react"
 import { action, observable } from "mobx"
 import {
     getOwidGdocFromJSON,
+    omit,
     OwidGdocInterface,
     OwidGdocJSON,
     Tag,
@@ -33,7 +34,14 @@ export class GdocsStore {
     @action
     async update(gdoc: OwidGdocInterface): Promise<OwidGdocInterface> {
         return this.admin
-            .requestJSON<OwidGdocJSON>(`/api/gdocs/${gdoc.id}`, gdoc, "PUT")
+            .requestJSON<OwidGdocJSON>(
+                `/api/gdocs/${gdoc.id}`,
+                // omitting tags because they get saved via the /api/gdocs/:id/setTags route, not this /api/gdocs/:id route
+                // If we were to save them here, it could lead to updates from this request
+                // overwriting tags that had been set by someone else after the preview page was loaded
+                omit(gdoc, "tags"),
+                "PUT"
+            )
             .then(getOwidGdocFromJSON)
     }
 

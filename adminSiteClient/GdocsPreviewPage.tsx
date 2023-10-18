@@ -21,12 +21,7 @@ import {
 } from "@ourworldindata/utils"
 import { Button, Col, Drawer, Row, Space, Tag, Typography } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import {
-    faGear,
-    faArrowsRotate,
-    faExclamationTriangle,
-    faAngleLeft,
-} from "@fortawesome/free-solid-svg-icons"
+import { faGear, faAngleLeft } from "@fortawesome/free-solid-svg-icons"
 
 import { getErrors } from "./gdocsValidation.js"
 import { GdocsSaveButtons } from "./GdocsSaveButtons.js"
@@ -59,7 +54,6 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     }
     const hasChanges = useGdocsChanged(originalGdoc, currentGdoc)
     const [isSettingsOpen, setSettingsOpen] = useState(false)
-    const [hasSyncingError, setHasSyncingError] = useState(false)
     const [criticalErrorMessage, setCriticalErrorMessage] = useState<
         undefined | string
     >()
@@ -87,9 +81,6 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
         if (checkIsPlainObjectWithGuard(error) && error.status === 500) {
             console.log("Critical error", error)
             setCriticalErrorMessage(error.message as string)
-        } else {
-            console.log("Syncing error", error)
-            setHasSyncingError(true)
         }
     }, [])
 
@@ -229,29 +220,6 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                             <div>
                                 {!currentGdoc.published && (
                                     <Tag color="default">Draft</Tag>
-                                )}
-                                {hasSyncingError ? (
-                                    <Tag
-                                        icon={
-                                            <FontAwesomeIcon
-                                                icon={faExclamationTriangle}
-                                            />
-                                        }
-                                        color="warning"
-                                    >
-                                        Syncing error, retrying...
-                                    </Tag>
-                                ) : (
-                                    <Tag
-                                        icon={
-                                            <FontAwesomeIcon
-                                                icon={faArrowsRotate}
-                                            />
-                                        }
-                                        color="success"
-                                    >
-                                        preview
-                                    </Tag>
                                 )}
                             </div>
                         </Space>

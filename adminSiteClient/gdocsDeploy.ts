@@ -40,6 +40,9 @@ export const checkIsLightningUpdate = (
         linkedDocuments: true,
         relatedCharts: true,
         revisionId: true,
+        // "tags" is not actually a lightning prop, as it requires rebaking other parts of the site,
+        // but they're set via the /setTags route and so should be ignored here
+        tags: true,
         updatedAt: true,
         createdAt: false,
         id: false, // weird case - can't be updated
@@ -47,7 +50,6 @@ export const checkIsLightningUpdate = (
         published: false, // requires an update of the blog roll
         publishedAt: false, // could require an update of the blog roll
         slug: false, // requires updating any articles that link to it
-        tags: false, // requires updating related articles on grapher pages
     }
 
     const lightningPropContentConfigMap: Record<
@@ -96,16 +98,9 @@ export const checkIsLightningUpdate = (
     // is passed in, the omit() call will surface Gdoc class members. The
     // comparison will then fail if the other operand in the comparison is
     // an OwidGdocInterface object. To avoid this, we spread into new objects
-    // in order to compare the same types. Tags are stringified to avoid a similar
-    // issue with Dates and date strings.
-    const prevOmitted = omit(
-        { ...prevGdoc, tags: nextGdoc.tags?.map((tag) => JSON.stringify(tag)) },
-        keysToOmit
-    )
-    const nextOmitted = omit(
-        { ...nextGdoc, tags: prevGdoc.tags?.map((tag) => JSON.stringify(tag)) },
-        keysToOmit
-    )
+    // in order to compare the same types.
+    const prevOmitted = omit({ ...prevGdoc }, keysToOmit)
+    const nextOmitted = omit({ ...nextGdoc }, keysToOmit)
 
     return (
         hasChanges &&
