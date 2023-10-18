@@ -136,7 +136,7 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                     {((relatedArticles && relatedArticles.length !== 0) ||
                         (relatedCharts && relatedCharts.length !== 0)) && (
                         <div className="related-research-data">
-                            <h2>All our related research and data</h2>
+                            <h2>Related research and data</h2>
                             {relatedArticles &&
                                 relatedArticles.length !== 0 && (
                                     <RelatedArticles
