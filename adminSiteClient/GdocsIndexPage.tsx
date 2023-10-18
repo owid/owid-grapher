@@ -35,11 +35,6 @@ const iconGdocTypeMap = {
     [OwidGdocType.TopicPage]: <FontAwesomeIcon icon={faLightbulb} />,
 }
 
-interface Searchable {
-    gdoc: OwidGdocInterface
-    term?: Fuzzysort.Prepared
-}
-
 @observer
 class GdocsIndexPageSearch extends React.Component<{
     filters: Record<OwidGdocType, boolean>
