@@ -2,7 +2,7 @@ VENV := .env
 PYTHON := $(VENV)/bin/python3
 PIP := $(VENV)/bin/pip3
 SUBSET := $(VENV)/bin/pyftsubset
-PRETTIER := node ../../node_modules/prettier/bin-prettier.js
+PRETTIER := node ../../node_modules/.bin/prettier
 .PHONY: all install report test clean
 
 default: all
@@ -41,7 +41,9 @@ $(PLAYFAIR).tsv:
 $(PLAYFAIR): $(PLAYFAIR).tsv
 	mkdir -p $@
 	@cat $< | while IFS=$$'\t' read -r url filename; do \
-		curl "$$url" -o "$@/$$(basename $$filename)"; \
+		FONT="$@/$$(basename $$filename)"; \
+		curl -# "$$url" -o "$$FONT"; \
+		$(PYTHON) fix-numerals.py "$$FONT"; \
 	done
 PlayfairDisplay-%.woff2: PlayfairDisplay-%.ttf
 	$(SUBSET) $< --unicodes="*" --flavor=woff2 --layout-features+=$(OT_FEATURES) --name-IDs="*" --output-file="$@"
