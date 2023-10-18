@@ -18,14 +18,11 @@ const sendFeedback = async (feedback: Feedback) => {
         environment: `Current URL: ${window.location.href}\nUser Agent: ${navigator.userAgent}\nViewport: ${window.innerWidth}x${window.innerHeight}`,
     }
 
-    return await fetch(
-        "https://owid-feedback.netlify.app/.netlify/functions/hello",
-        {
-            method: "POST",
-            headers: { "Content-Type": "application/json;charset=UTF-8" },
-            body: JSON.stringify(json),
-        }
-    ).then((res) => {
+    return await fetch("https://feedback.owid.io", {
+        method: "POST",
+        headers: { "Content-Type": "application/json;charset=UTF-8" },
+        body: JSON.stringify(json),
+    }).then((res) => {
         if (!res.ok)
             throw new Error(
                 `Sending feedback failed: ${res.status} ${res.statusText}`
