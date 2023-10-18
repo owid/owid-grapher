@@ -30,6 +30,49 @@ declare global {
 }
 export const OWID_DATAPAGE_CONTENT_ROOT_ID = "owid-datapageJson-root"
 
+const getDateRange = (dateRange: string): string | null => {
+    // This regex matches:
+    //   Beginning of string
+    //   Ignore whitespace
+    //   a named group called start that matches:
+    //     hyphen aka minus
+    //     1 or more digits
+    //   Ignore whitespace
+    //   hyphen aka minus OR en dash
+    //   Ignore whitespace
+    //   a named group called end that matches:
+    //     hyphen aka minus
+    //     1 or more digits
+    //   Ignore whitespace
+    //   End of string
+    const dateRangeRegex = /^\s*(?<start>(-)?\d+)\s*(-|–)\s*(?<end>(-)?\d+)\s*$/
+    const match = dateRange.match(dateRangeRegex)
+    if (match) {
+        const firstYearString = match.groups?.start
+        const lastYearString = match.groups?.end
+        if (!firstYearString || !lastYearString) return null
+
+        const firstYear = parseInt(firstYearString, 10)
+        const lastYear = parseInt(lastYearString, 10)
+        let formattedFirstYear
+
+        // if start year is before year 0, add BCE to the end
+        if (firstYear < 0) formattedFirstYear = `${Math.abs(firstYear)} BCE`
+        else formattedFirstYear = firstYear
+
+        // if end year is before year 0, add BCE to the end or, if start year is after year 0, add CE to the end
+        let formattedLastYear
+        if (lastYear < 0) formattedLastYear = `${Math.abs(lastYear)} BCE`
+        else if (firstYear < 0) formattedLastYear = `${lastYear} CE`
+        else formattedLastYear = lastYear
+
+        if (lastYear < 0 || firstYear < 0)
+            return `${formattedFirstYear} – ${formattedLastYear}`
+        else return `${formattedFirstYear}–${formattedLastYear}`
+    }
+    return null
+}
+
 export const DataPageV2Content = ({
     datapageData,
     grapherConfig,
@@ -90,14 +133,10 @@ export const DataPageV2Content = ({
     // by Joe. Also, we need the dataset title.
     const producers = datapageData.origins.map((o) => o.producer).join("; ")
     const processedAdapted =
-        datapageData.owidProcessingLevel === "minor"
-            ? `Processed by`
-            : `Adapted by`
-    const yearOfUpdate = dayjs(datapageData.lastUpdated, [
-        "YYYY",
-        "YYYY-MM-DD",
-    ]).year()
-    const citationShort = `${producers} — ${processedAdapted} OWID (${yearOfUpdate})`
+        datapageData.owidProcessingLevel === "minor" ? `minor` : `major`
+    const lastUpdated = dayjs(datapageData.lastUpdated, ["YYYY", "YYYY-MM-DD"])
+    const yearOfUpdate = lastUpdated.year()
+    const citationShort = `${producers} — with ${processedAdapted} processing by Our World In Data (${yearOfUpdate})`
     const originsLong = datapageData.origins
         .map((o) => `${o.producer}, ${o.title ?? o.titleSnapshot}`)
         .join("; ")
@@ -112,10 +151,6 @@ export const DataPageV2Content = ({
         datapageData.origins.length &&
         datapageData.origins[0].urlDownload
     const citationLong = `${citationShort}. ${datapageData.title}. ${originsLong}, ${processedAdapted} by Our World In Data. Retrieved ${dateAccessed} from ${urlAccessed}`
-    const processedAdaptedText =
-        datapageData.owidProcessingLevel === "minor"
-            ? `Processed by Our World In Data`
-            : `Adapted by Our World In Data`
 
     const {
         linkedDocuments = {},
@@ -152,6 +187,8 @@ export const DataPageV2Content = ({
             containerType="datapage"
         />
     ) : null
+
+    const dateRange = getDateRange(datapageData.dateRange)
 
     const citationDatapage = `Our World In Data (${yearOfUpdate}). Data Page: ${datapageData.title} – ${producers}. Retrieved from {url} [online resource]`
     return (
@@ -292,11 +329,14 @@ export const DataPageV2Content = ({
                                     <div>{datapageData.attribution}</div>
                                     {datapageData.owidProcessingLevel && (
                                         <div>
+                                            with{" "}
                                             <a
                                                 href={`#${DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}`}
                                             >
-                                                {processedAdaptedText}
-                                            </a>
+                                                {processedAdapted}
+                                                {" processing"}
+                                            </a>{" "}
+                                            by Our World In Data
                                         </div>
                                     )}
                                 </div>
@@ -304,13 +344,15 @@ export const DataPageV2Content = ({
                                     <div className="key-data__title">
                                         Date range
                                     </div>
-                                    <div>{datapageData.dateRange}</div>
+                                    <div>{dateRange}</div>
                                 </div>
                                 <div className="key-data span-cols-3 span-lg-cols-4 span-sm-cols-6">
                                     <div className="key-data__title">
                                         Last updated
                                     </div>
-                                    <div>{datapageData.lastUpdated}</div>
+                                    <div>
+                                        {lastUpdated.format("MMMM D, YYYY")}
+                                    </div>
                                 </div>
                                 {datapageData.nextUpdate && (
                                     <div className="key-data span-cols-3 span-lg-cols-4 span-sm-cols-6">
@@ -790,8 +832,9 @@ export const DataPageV2Content = ({
                                                                 limited space
                                                                 (e.g. in data
                                                                 visualizations,
-                                                                on Twitter), you
-                                                                can use this
+                                                                on social
+                                                                media), you can
+                                                                use this
                                                                 abbreviated
                                                                 in-line
                                                                 citation:

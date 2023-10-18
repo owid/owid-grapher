@@ -36,9 +36,14 @@ export const getDatapageDataV2 = async (
         let nextUpdate = undefined
         if (variableMetadata.updatePeriodDays) {
             const date = dayjs(version)
-            nextUpdate = date
-                .add(variableMetadata.updatePeriodDays, "day")
-                .format("MMMM YYYY")
+            const nextUpdateDate = date.add(
+                variableMetadata.updatePeriodDays,
+                "day"
+            )
+            // If the next update date is in the past, we set it to the next month
+            if (nextUpdateDate.isBefore(dayjs()))
+                nextUpdate = dayjs().add(1, "month").format("MMMM YYYY")
+            else nextUpdate = nextUpdateDate.format("MMMM YYYY")
         }
         const datapageJson: DataPageDataV2 = {
             status: "draft",
