@@ -6,9 +6,11 @@ import {
     DEFAULT_BOUNDS,
     exposeInstanceOnWindow,
     isEmpty,
+} from "@ourworldindata/utils"
+import {
     MarkdownTextWrap,
     sumTextWrapHeights,
-} from "@ourworldindata/utils"
+} from "@ourworldindata/ui-components"
 import { Header, StaticHeader } from "../header/Header"
 import { Footer, StaticFooter } from "../footer/Footer"
 import {

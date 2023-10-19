@@ -14,9 +14,9 @@ import {
     serializeJSONForHTML,
     uniq,
     SiteFooterContext,
-    MarkdownTextWrap,
     Url,
 } from "@ourworldindata/utils"
+import { MarkdownTextWrap } from "@ourworldindata/ui-components"
 import React from "react"
 import urljoin from "url-join"
 import {

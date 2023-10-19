@@ -35,7 +35,6 @@ import {
     Bounds,
     DEFAULT_BOUNDS,
     detailOnDemandRegex,
-    MarkdownTextWrap,
     minTimeBoundFromJSONOrNegativeInfinity,
     maxTimeBoundFromJSONOrPositiveInfinity,
     TimeBounds,
@@ -67,6 +66,7 @@ import {
     compact,
     getOriginAttributionFragments,
 } from "@ourworldindata/utils"
+import { MarkdownTextWrap } from "@ourworldindata/ui-components"
 import {
     ChartTypeName,
     GrapherTabOption,

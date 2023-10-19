@@ -4111,6 +4111,7 @@ __metadata:
     "@fortawesome/free-solid-svg-icons": ^6.4.2
     "@fortawesome/react-fontawesome": ^0.2.0
     "@ourworldindata/core-table": "workspace:^"
+    "@ourworldindata/ui-components": "workspace:^"
     "@ourworldindata/utils": "workspace:^"
     "@tippyjs/react": ^4.2.6
     "@types/colorbrewer": ^1.0.29
@@ -4154,6 +4155,30 @@ __metadata:
     tsup: ^6.2.3
     typescript: ~5.2.2
     url-parse: ^1.5.10
+  languageName: unknown
+  linkType: soft
+
+"@ourworldindata/ui-components@workspace:^, @ourworldindata/ui-components@workspace:packages/@ourworldindata/ui-components":
+  version: 0.0.0-use.local
+  resolution: "@ourworldindata/ui-components@workspace:packages/@ourworldindata/ui-components"
+  dependencies:
+    "@fortawesome/fontawesome-svg-core": ^6.4.2
+    "@fortawesome/free-brands-svg-icons": ^6.4.2
+    "@fortawesome/free-solid-svg-icons": ^6.4.2
+    "@fortawesome/react-fontawesome": ^0.2.0
+    "@ourworldindata/utils": "workspace:^"
+    "@types/react": ^16.14.23
+    "@types/react-dom": ^17.0.11
+    esbuild-sass-plugin: ^2.3.3
+    eslint: ^8.32.0
+    eslint-plugin-react-hooks: ^4.6.0
+    mobx: ^5.15.7
+    mobx-formatters: ^1.0.2
+    mobx-react: 5
+    react: ^16.14.0
+    react-dom: ^16.14.0
+    ts-pattern: ^4.0.4
+    typescript: ~5.2.2
   languageName: unknown
   linkType: soft
 
@@ -11427,6 +11452,7 @@ __metadata:
     "@handsontable/react": ^12.3.3
     "@ourworldindata/core-table": "workspace:^"
     "@ourworldindata/grapher": "workspace:^"
+    "@ourworldindata/ui-components": "workspace:^"
     "@ourworldindata/utils": "workspace:^"
     "@react-awesome-query-builder/antd": ^6.1.1
     "@sinclair/typebox": ^0.28.5

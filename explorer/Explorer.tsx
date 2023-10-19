@@ -39,7 +39,6 @@ import {
     isInIFrame,
     keyBy,
     keyMap,
-    MarkdownTextWrap,
     omitUndefinedValues,
     PromiseCache,
     PromiseSwitcher,
@@ -49,6 +48,7 @@ import {
     uniqBy,
     Url,
 } from "@ourworldindata/utils"
+import { MarkdownTextWrap } from "@ourworldindata/ui-components"
 import classNames from "classnames"
 import { action, computed, observable, reaction } from "mobx"
 import { observer } from "mobx-react"

@@ -8,6 +8,7 @@ import {
     JoinTable,
     LessThanOrEqual,
 } from "typeorm"
+import { getUrlTarget } from "@ourworldindata/ui-components"
 import {
     Tag as TagInterface,
     LinkedChart,
@@ -17,7 +18,6 @@ import {
     OwidGdocPublicationContext,
     GdocsContentSource,
     JsonError,
-    getUrlTarget,
     keyBy,
     excludeNull,
     ImageMetadata,
