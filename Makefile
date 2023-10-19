@@ -7,6 +7,10 @@
 # https://unix.stackexchange.com/questions/352316/finding-out-the-default-shell-of-a-user-within-a-shell-script
 LOGIN_SHELL = $(shell finger $(USER) | grep 'Shell:*' | cut -f3 -d ":")
 
+# Check for the environment variable OWID_SCRIPT_SHELL and fall back to LOGIN_SHELL if not set
+SCRIPT_SHELL ?= $(shell echo $$OWID_SCRIPT_SHELL)
+SCRIPT_SHELL ?= $(LOGIN_SHELL)
+
 # setting .env variables as Make variables for validate.env targets
 # https://lithic.tech/blog/2020-05/makefile-dot-env/
 ifneq (,$(wildcard ./.env))
@@ -53,7 +57,7 @@ up: require create-if-missing.env tmp-downloads/owid_metadata.sql.gz
 	tmux new-session -s grapher \
 		-n docker 'docker-compose -f docker-compose.grapher.yml up' \; \
 			set remain-on-exit on \; \
-		set-option -g default-shell $(LOGIN_SHELL) \; \
+		set-option -g default-shell $(SCRIPT_SHELL) \; \
 		new-window -n admin \
 			'devTools/docker/wait-for-mysql.sh && yarn run tsc-watch -b --onSuccess "yarn startAdminServer"' \; \
 			set remain-on-exit on \; \
@@ -106,7 +110,7 @@ up.full: require create-if-missing.env.full wordpress/.env tmp-downloads/owid_me
 	tmux new-session -s grapher \
 		-n docker 'docker-compose -f docker-compose.full.yml up' \; \
 			set remain-on-exit on \; \
-		set-option -g default-shell $(LOGIN_SHELL) \; \
+		set-option -g default-shell $(SCRIPT_SHELL) \; \
 		new-window -n admin \
 			'devTools/docker/wait-for-mysql.sh && yarn run tsc-watch -b --onSuccess "yarn startAdminServer"' \; \
 			set remain-on-exit on \; \
