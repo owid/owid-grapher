@@ -64,16 +64,14 @@ export class SourcesModal extends React.Component<{
         return `${this.props.manager.adminBaseUrl}/admin/datasets`
     }
 
-    @action private onDismiss(): void {
-        this.manager.isSourcesModalOpen = false
-    }
-
     render(): JSX.Element {
         const columns = this.manager.columnsWithSources
         return (
             <Modal
                 title="Sources"
-                onDismiss={this.onDismiss}
+                onDismiss={action(
+                    () => (this.manager.isSourcesModalOpen = false)
+                )}
                 bounds={this.modalBounds}
             >
                 <div className="SourcesModalContent">
