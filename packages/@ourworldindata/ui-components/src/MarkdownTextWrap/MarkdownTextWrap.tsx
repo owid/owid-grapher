@@ -8,8 +8,9 @@ import {
     sumBy,
     imemo,
     max,
-} from "@ourworldindata/utils/src/Util.js"
-import { Bounds, FontFamily } from "@ourworldindata/utils/src/Bounds.js"
+    Bounds,
+    FontFamily,
+} from "@ourworldindata/utils"
 import { TextWrap } from "../TextWrap/TextWrap.js"
 
 export interface IRFontParams {

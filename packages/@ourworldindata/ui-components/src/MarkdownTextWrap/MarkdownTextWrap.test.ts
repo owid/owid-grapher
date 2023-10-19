@@ -1,6 +1,6 @@
 #! /usr/bin/env jest
 
-import { FontFamily } from "@ourworldindata/utils/src/Bounds.js"
+import { FontFamily } from "@ourworldindata/utils"
 import {
     IRText,
     MarkdownTextWrap,
