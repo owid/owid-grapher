@@ -19,12 +19,12 @@
 @import "tippy.js/dist/tippy.css";
 @import "tippy.js/themes/light.css";
 
-@import "css/variables.scss";
+@import "../packages/@ourworldindata/ui-components/src/styles/variables.scss";
 @import "css/colors.scss";
 @import "css/mixins.scss";
 @import "css/grid.scss";
 @import "css/typography.scss";
-@import "css/util.scss";
+@import "../packages/@ourworldindata/ui-components/src/styles/util.scss";
 @import "css/layout.scss";
 @import "css/general.scss";
 @import "./SiteSearchNavigation.scss";
