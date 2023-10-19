@@ -211,7 +211,7 @@ export class Sources extends React.Component<{
                 {/* ---- Key information ---- */}
 
                 {this.hasKeyInformation && (
-                    <section className="key-info">
+                    <div className="key-info">
                         {this.def.presentation?.attributionWithFallback && (
                             <div className="key-data">
                                 <div className="key-data__title">Source</div>
@@ -258,7 +258,7 @@ export class Sources extends React.Component<{
                                 <div>{this.def.nextUpdate}</div>
                             </div>
                         )}
-                    </section>
+                    </div>
                 )}
 
                 {/* ---- Description ---- */}
@@ -310,7 +310,7 @@ export class Sources extends React.Component<{
                                         />
                                     </p>
                                     {(retrievedOn || retrievedFrom) && (
-                                        <div className="origin__key-information">
+                                        <div className="origin__key-info">
                                             {retrievedOn && (
                                                 <div className="origin__key-data">
                                                     <div className="origin__key-data__title">
