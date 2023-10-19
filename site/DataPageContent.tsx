@@ -11,6 +11,7 @@ import { RelatedCharts } from "./blocks/RelatedCharts.js"
 import {
     DataPageContentFields,
     DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
+    DATAPAGE_FAQS_SECTION_ID,
 } from "@ourworldindata/utils"
 import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
 import StickyNav from "./blocks/StickyNav.js"
@@ -69,7 +70,7 @@ export const DataPageContent = ({
         },
         { text: "Related Data", target: "#related-data" },
         { text: "All Charts", target: "#all-charts" },
-        { text: "FAQs", target: "#faqs" },
+        { text: "FAQs", target: "#" + DATAPAGE_FAQS_SECTION_ID },
         {
             text: "Sources & Processing",
             target: "#" + DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
@@ -170,7 +171,7 @@ export const DataPageContent = ({
                                         {datapageGdocContent?.faqs && (
                                             <a
                                                 className="key-info__learn-more"
-                                                href="#faqs"
+                                                href={`#${DATAPAGE_FAQS_SECTION_ID}`}
                                             >
                                                 Learn more in the FAQs
                                                 <FontAwesomeIcon
@@ -392,7 +393,7 @@ export const DataPageContent = ({
                                 <div className="section-wrapper section-wrapper__faqs grid">
                                     <h2
                                         className="faqs__title span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
-                                        id="faqs"
+                                        id={DATAPAGE_FAQS_SECTION_ID}
                                     >
                                         Frequently Asked Questions
                                     </h2>

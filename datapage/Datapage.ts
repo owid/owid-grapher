@@ -16,10 +16,10 @@ import {
     AllowedDataPageGdocFields,
     DataPageDataV2,
     OwidVariableWithSource,
-    dayjs,
     getAttributionFromVariable,
     gdocIdRegex,
-    getETLPathComponents,
+    getLastUpdatedFromVariable,
+    getNextUpdateFromVariable,
 } from "@ourworldindata/utils"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
@@ -31,16 +31,8 @@ export const getDatapageDataV2 = async (
 ): Promise<DataPageDataV2> => {
     {
         const processingLevel = variableMetadata.processingLevel ?? "major"
-        const version =
-            getETLPathComponents(variableMetadata.catalogPath ?? "")?.version ??
-            ""
-        let nextUpdate = undefined
-        if (variableMetadata.updatePeriodDays) {
-            const date = dayjs(version)
-            nextUpdate = date
-                .add(variableMetadata.updatePeriodDays, "day")
-                .format("MMMM YYYY")
-        }
+        const version = getLastUpdatedFromVariable(variableMetadata) ?? ""
+        const nextUpdate = getNextUpdateFromVariable(variableMetadata)
         const datapageJson: DataPageDataV2 = {
             status: "draft",
             title:

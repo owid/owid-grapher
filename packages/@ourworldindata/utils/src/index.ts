@@ -338,10 +338,7 @@ export {
     filterValidStringValues,
     traverseEnrichedSpan,
     mergePartialGrapherConfigs,
-    getOriginAttributionFragments,
-    getAttributionFromVariable,
     copyToClipboard,
-    getETLPathComponents,
 } from "./Util.js"
 
 export {
@@ -635,4 +632,15 @@ export {
     detailOnDemandRegex,
 } from "./GdocsConstants.js"
 
-export { DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID } from "./SharedConstants"
+export {
+    DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
+    DATAPAGE_FAQS_SECTION_ID,
+} from "./SharedConstants"
+
+export {
+    getOriginAttributionFragments,
+    getAttributionFromVariable,
+    getETLPathComponents,
+    getLastUpdatedFromVariable,
+    getNextUpdateFromVariable,
+} from "./MetadataHelpers.js"

@@ -1,76 +1,133 @@
 .SourcesModalContent {
     padding-bottom: $modal-padding;
 
-    .datasource-wrapper {
-        font-size: 0.8125rem;
+    $dark-text: #3d3d3d;
+    $light-text: #8c8c8c;
+    $link: #2162e6;
+
+    .sources {
         color: $dark-text;
-        line-height: 1.38461538;
+        font-size: 0.875em;
+        font-weight: 500;
+        line-height: 1.5;
+        letter-spacing: 0.01em;
 
-        & + .datasource-wrapper {
-            margin-top: 24px;
+        & + .sources {
+            margin-top: 4em;
         }
 
-        > h2 {
-            color: $dark-text;
-            font-family: $serif-font-stack !important;
-            font-size: 1.4em;
+        h2 {
+            font-family: $serif-font-stack;
+            font-size: 1.25rem;
+            line-height: 1.33;
+            font-weight: 700;
+            margin-bottom: 24px;
+            margin-top: 0;
+        }
+
+        h3 {
+            font-family: $serif-font-stack;
+            line-height: 1.33;
+            font-weight: 700;
+            font-size: 1.125rem;
+            margin-top: 2em;
+            margin-bottom: 1em;
+        }
+
+        h4 {
+            font-family: $serif-font-stack;
+            line-height: 1.5;
             font-weight: 600;
-            margin: 0;
-            margin-bottom: 0.4em;
+            display: block;
+            font-size: 1rem;
+            margin-top: 1em;
+            margin-bottom: 0.5em;
         }
 
-        h2,
-        h3,
-        h4 {
-            margin-left: 0px;
-            font-family: inherit;
+        ul {
+            margin: 1em 0 1em 1em;
+
+            li + li {
+                margin-top: 0.5em;
+            }
         }
 
-        h3,
-        h4 {
-            margin-top: 2px;
-            margin-bottom: 1px;
-            font-size: 0.9em;
-            font-weight: bold;
-        }
-
-        ul,
-        ol {
-            margin-left: 1.1rem;
-        }
-
-        table {
-            width: 100%;
-            border-spacing: 0;
-        }
-
-        td {
-            padding: 16px 0;
-            vertical-align: top;
-            border-top: 1px solid #ddd;
-            font-size: 13px;
-            line-height: 1.3846153846;
-        }
-
-        td:first-child {
-            padding-right: 24px;
+        p {
             color: $light-text;
-            min-width: 100px;
-        }
-
-        tr:first-child td {
-            border: 0;
         }
 
         a {
-            text-decoration: underline;
-            color: inherit;
-            word-break: break-word;
+            color: currentColor;
+
+            &:hover {
+                text-decoration: underline;
+            }
         }
 
-        p.additionalInfo {
-            margin: 0;
-            margin-top: 1em;
+        .link__learn-more {
+            color: $link;
+
+            svg {
+                margin-left: 6px;
+            }
+        }
+
+        .key-info {
+            display: flex;
+            flex-wrap: wrap;
+            row-gap: 1em;
+            column-gap: 1.5em;
+        }
+
+        .key-data {
+            &:first-of-type {
+                flex-basis: 45%;
+            }
+
+            &__title {
+                color: $light-text;
+                margin-bottom: 4px;
+            }
+        }
+
+        .origin {
+            margin: 1.5em 0;
+
+            + .origin {
+                border-top: 1px solid #e7e7e7;
+            }
+
+            &__key-information {
+                display: flex;
+                flex-wrap: wrap;
+                row-gap: 1em;
+                column-gap: 1.5em;
+            }
+
+            &__key-data__content {
+                color: $light-text;
+            }
+        }
+
+        .call-out {
+            background-color: #f7f7f7;
+            padding: 1.5em;
+            margin-top: 1.5em;
+
+            h5 {
+                font-size: 0.8571em;
+                font-weight: 900;
+                line-height: 1.3333;
+                letter-spacing: 0.1em;
+                text-transform: uppercase;
+                margin-top: 0;
+                margin-bottom: 0.5em;
+                color: #5e5e5e;
+            }
+
+            p {
+                margin-bottom: 0;
+            }
         }
     }
 }

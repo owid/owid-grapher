@@ -69,6 +69,8 @@ export interface CoreColumnDef extends ColumnColorScale {
     descriptionProcessing?: string
     descriptionKey?: string[]
     descriptionFromProducer?: string
+    lastUpdated?: string
+    nextUpdate?: string
     note?: string // Any internal notes the author wants to record for display in admin interfaces
 
     // Color
@@ -76,11 +78,15 @@ export interface CoreColumnDef extends ColumnColorScale {
 
     // Source information used for display only
     source?: OwidSource
-    timespanFromMetadata?: string
+    timespan?: string
 
     // Metadata v2
     origins?: OwidOrigin[]
-    presentation?: Omit<OwidVariablePresentation, "topicTagsLinks">
+    presentation?: Omit<OwidVariablePresentation, "topicTagsLinks"> & {
+        attributionWithFallback?: string
+    }
+    owidProcessingLevel?: "minor" | "major"
+    owidSchemaVersion?: number
 
     // Dataset information
     datasetId?: number

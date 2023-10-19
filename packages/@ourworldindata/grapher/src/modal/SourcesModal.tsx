@@ -2,16 +2,16 @@ import {
     Bounds,
     DEFAULT_BOUNDS,
     SimpleMarkdownText,
-    OwidOrigin,
-    uniq,
-    excludeNullish,
+    DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
+    DATAPAGE_FAQS_SECTION_ID,
+    dayjs,
 } from "@ourworldindata/utils"
 import React from "react"
 import { action, computed } from "mobx"
 import { observer } from "mobx-react"
-import { faPencilAlt } from "@fortawesome/free-solid-svg-icons"
+import { faArrowRight, faPencilAlt } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { CoreColumn, OwidColumnDef } from "@ourworldindata/core-table"
+import { CoreColumn, CoreColumnDef } from "@ourworldindata/core-table"
 import { Modal } from "./Modal"
 
 export interface SourcesModalManager {
@@ -20,6 +20,8 @@ export interface SourcesModalManager {
     showAdminControls?: boolean
     isSourcesModalOpen?: boolean
     tabBounds?: Bounds
+    canonicalUrl?: string
+    isEmbeddedInADataPage?: boolean
 }
 
 // TODO: remove this component once all backported indicators
@@ -57,238 +59,345 @@ export class SourcesModal extends React.Component<{
         return this.tabBounds.padHeight(15).padWidth(padWidth)
     }
 
-    private renderSource(column: CoreColumn): JSX.Element {
-        // NOTE: Some decisions about which texts are shown (e.g. descriptionShort is
-        // preferred over the long description if it exists) are
-        // made when the CoreColumn is filled from the Variable metadata
-        // in columnDefFromOwidVariable in packages/@ourworldindata/grapher/src/core/LegacyToOwidTable.ts
-        const { slug, source, def } = column
-        const { datasetId, coverage, presentation } = def as OwidColumnDef
+    @computed private get editBaseUrl(): string | undefined {
+        if (!this.manager.showAdminControls) return undefined
+        return `${this.props.manager.adminBaseUrl}/admin/datasets`
+    }
 
-        // there will not be a datasetId for explorers that define the FASTT in TSV
-        const editUrl =
-            this.manager.showAdminControls && datasetId
-                ? `${this.props.manager.adminBaseUrl}/admin/datasets/${datasetId}`
-                : undefined
+    @action private onDismiss(): void {
+        this.manager.isSourcesModalOpen = false
+    }
 
-        const { minTime, maxTime } = column
-        let timespan = column.def.timespanFromMetadata
-        if (
-            (timespan === undefined || timespan === "") &&
-            minTime !== undefined &&
-            maxTime !== undefined
-        )
-            timespan = `${column.formatTime(minTime)} – ${column.formatTime(
-                maxTime
-            )}`
-
-        const title =
-            presentation &&
-            presentation.titlePublic &&
-            presentation.titlePublic !== ""
-                ? presentation.titlePublic
-                : column.name
-
-        const retrievedDate =
-            source.retrievedDate ??
-            (column.def.origins && column.def.origins.length
-                ? column.def.origins[0].dateAccessed
-                : undefined)
-
-        const citationFull =
-            column.def.origins && column.def.origins.length
-                ? excludeNullish(
-                      uniq(
-                          column.def.origins.map(
-                              (origin: OwidOrigin) => origin.citationFull
-                          )
-                      )
-                  )
-                : []
-
-        const publishedByArray = [
-            ...(source.dataPublishedBy ? [source.dataPublishedBy] : []),
-            ...citationFull,
-        ]
-
-        const sourceLink =
-            source?.link ??
-            (column.def.origins && column.def.origins.length > 0
-                ? column.def.origins[0].urlMain
-                : undefined)
-
+    render(): JSX.Element {
+        const columns = this.manager.columnsWithSources
         return (
-            <div key={slug} className="datasource-wrapper">
+            <Modal
+                title="Sources"
+                onDismiss={this.onDismiss}
+                bounds={this.modalBounds}
+            >
+                <div className="SourcesModalContent">
+                    {columns.map((column) => (
+                        <Sources
+                            key={column.slug}
+                            column={column}
+                            canonicalUrl={this.manager.canonicalUrl}
+                            editBaseUrl={this.editBaseUrl}
+                        />
+                    ))}
+                </div>
+            </Modal>
+        )
+    }
+}
+
+interface DisplayOrigin {
+    title: string
+    description: string
+    retrievedOn?: string
+    retrievedFrom?: string
+}
+
+@observer
+export class Sources extends React.Component<{
+    column: CoreColumn
+    canonicalUrl?: string
+    editBaseUrl?: string
+    isEmbeddedInADataPage?: boolean
+}> {
+    // NOTE: Some decisions about which texts are shown (e.g. descriptionShort is
+    // preferred over the long description if it exists) are
+    // made when the CoreColumn is filled from the Variable metadata
+    // in columnDefFromOwidVariable in packages/@ourworldindata/grapher/src/core/LegacyToOwidTable.ts
+
+    @computed private get def(): CoreColumnDef {
+        return this.props.column.def
+    }
+
+    @computed private get title(): string {
+        return (
+            this.def.presentation?.titlePublic ||
+            this.def.display?.name ||
+            this.def.name ||
+            ""
+        )
+    }
+
+    @computed private get editUrl(): string | undefined {
+        // there will not be a datasetId for explorers that define the FASTT in TSV
+        if (!this.props.editBaseUrl || !this.def.datasetId) return undefined
+        return `${this.props.editBaseUrl}/${this.def.datasetId}`
+    }
+
+    @computed private get description(): string[] | undefined {
+        if (this.def.descriptionKey && this.def.descriptionKey.length > 0)
+            return this.def.descriptionKey
+        return undefined
+    }
+
+    @computed private get sourceProcessedText(): string | undefined {
+        if (!this.def.owidProcessingLevel) return undefined
+        return this.def.owidProcessingLevel === "minor"
+            ? `Processed by Our World In Data`
+            : `Adapted by Our World In Data`
+    }
+
+    @computed private get hasDatapage(): boolean {
+        return (
+            this.props.isEmbeddedInADataPage ||
+            (this.def.owidSchemaVersion !== undefined &&
+                this.def.owidSchemaVersion > 1)
+        )
+    }
+
+    @computed private get datapageHasFAQSection(): boolean {
+        return (
+            this.hasDatapage && (this.def.presentation?.faqs?.length ?? 0) > 0
+        )
+    }
+
+    @computed private get hasKeyInformation(): boolean {
+        return (
+            !!this.def.presentation?.attributionWithFallback ||
+            !!this.def.timespan ||
+            !!this.def.lastUpdated ||
+            !!this.def.nextUpdate
+        )
+    }
+
+    @computed private get displayOrigins(): DisplayOrigin[] {
+        const origins: DisplayOrigin[] = []
+        if (this.def.origins) {
+            for (const origin of this.def.origins) {
+                const title =
+                    origin.producer ??
+                    origin.descriptionSnapshot ??
+                    origin.description
+                if (title && origin.description) {
+                    origins.push({
+                        title,
+                        description: origin.description,
+                        retrievedOn: dayjs(origin.dateAccessed).format(
+                            "MMMM D, YYYY"
+                        ),
+                        retrievedFrom: origin.urlDownload,
+                    })
+                }
+            }
+        }
+        if (this.def.source?.name && this.def.source?.additionalInfo) {
+            origins.push({
+                title: this.def.source.name,
+                description: this.def.source.additionalInfo,
+                retrievedOn: this.def.source.retrievedDate,
+                retrievedFrom: this.def.source.link,
+            })
+        }
+        return origins
+    }
+
+    render(): JSX.Element {
+        return (
+            <div className="sources">
                 <h2>
-                    {title}{" "}
-                    {editUrl && (
-                        <a href={editUrl} target="_blank" rel="noopener">
+                    {this.title}{" "}
+                    {this.editUrl && (
+                        <a href={this.editUrl} target="_blank" rel="noopener">
                             <FontAwesomeIcon icon={faPencilAlt} />
                         </a>
                     )}
                 </h2>
-                <table className="variable-desc">
-                    <tbody>
-                        {column.def.descriptionShort ? (
-                            <tr>
-                                <td>Variable description</td>
-                                <td>
-                                    <SimpleMarkdownText
-                                        text={column.def.descriptionShort.trim()}
-                                    />
-                                </td>
-                            </tr>
-                        ) : null}
-                        {!column.def.descriptionShort && column.description ? (
-                            // Show the description field only if we don't have a
-                            // metadata V2 shortDescription
-                            <tr>
-                                <td>Variable description</td>
-                                <td>
-                                    <SimpleMarkdownText
-                                        text={column.description.trim()}
-                                    />
-                                </td>
-                            </tr>
-                        ) : null}
-                        {column.def.descriptionKey &&
-                        column.def.descriptionKey.length === 1 ? (
-                            <tr>
-                                <td>Key information</td>
-                                <td>
-                                    <SimpleMarkdownText
-                                        text={column.def.descriptionKey[0]}
-                                    />
-                                </td>
-                            </tr>
-                        ) : null}
-                        {column.def.descriptionKey &&
-                        column.def.descriptionKey.length > 1 ? (
-                            <tr>
-                                <td>Key information</td>
-                                <td>
-                                    <ul>
-                                        {column.def.descriptionKey.map(
-                                            (info: string, index: number) => (
-                                                <li key={index}>
-                                                    <SimpleMarkdownText
-                                                        text={info}
-                                                    />
-                                                </li>
-                                            )
+
+                {/* ---- Key information ---- */}
+
+                {this.hasKeyInformation && (
+                    <section className="key-info">
+                        {this.def.presentation?.attributionWithFallback && (
+                            <div className="key-data">
+                                <div className="key-data__title">Source</div>
+                                <div>
+                                    {
+                                        this.def.presentation
+                                            .attributionWithFallback
+                                    }
+                                    {this.sourceProcessedText &&
+                                        this.hasDatapage && (
+                                            <div>
+                                                <a
+                                                    className="link__learn-more"
+                                                    href={`${this.props.canonicalUrl}#${DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}`}
+                                                >
+                                                    {this.sourceProcessedText}
+                                                </a>
+                                            </div>
                                         )}
-                                    </ul>
-                                </td>
-                            </tr>
-                        ) : null}
-                        {column.def.descriptionProcessing ? (
-                            <tr>
-                                <td>Processing notes</td>
-                                <td>
-                                    <SimpleMarkdownText
-                                        text={column.def.descriptionProcessing}
-                                    />
-                                </td>
-                            </tr>
-                        ) : null}
-                        {coverage ? (
-                            <tr>
-                                <td>Variable geographic coverage</td>
-                                <td>{coverage}</td>
-                            </tr>
-                        ) : null}
-                        {timespan ? (
-                            <tr>
-                                <td>Variable time span</td>
-                                <td>{timespan}</td>
-                            </tr>
-                        ) : null}
-                        {column.unitConversionFactor !== 1 ? (
-                            <tr>
-                                <td>Unit conversion factor for chart</td>
-                                <td>{column.unitConversionFactor}</td>
-                            </tr>
-                        ) : null}
-                        {publishedByArray.length === 1 ? (
-                            <tr>
-                                <td>Data published by</td>
-                                <td>
-                                    <SimpleMarkdownText
-                                        text={publishedByArray[0]}
-                                    />
-                                </td>
-                            </tr>
-                        ) : null}
-                        {publishedByArray.length > 1 ? (
-                            <tr>
-                                <td>Data published by</td>
-                                <td>
-                                    <ul>
-                                        {publishedByArray.map(
-                                            (
-                                                citation: string,
-                                                index: number
-                                            ) => (
-                                                <li key={index}>
-                                                    <SimpleMarkdownText
-                                                        text={citation}
-                                                    />
-                                                </li>
-                                            )
-                                        )}
-                                    </ul>
-                                </td>
-                            </tr>
-                        ) : null}
-                        {source.dataPublisherSource ? (
-                            <tr>
-                                <td>Data publisher's source</td>
-                                <td>
-                                    <HtmlOrMarkdownText
-                                        text={source.dataPublisherSource}
-                                    />
-                                </td>
-                            </tr>
-                        ) : null}
-                        {sourceLink ? (
-                            <tr>
-                                <td>Link</td>
-                                <td>
-                                    <HtmlOrMarkdownText text={sourceLink} />
-                                </td>
-                            </tr>
-                        ) : null}
-                        {retrievedDate ? (
-                            <tr>
-                                <td>Retrieved</td>
-                                <td>{retrievedDate}</td>
-                            </tr>
-                        ) : null}
-                    </tbody>
-                </table>
-                {source.additionalInfo && (
-                    <p key={"additionalInfo"}>
-                        <HtmlOrMarkdownText text={source.additionalInfo} />
-                    </p>
+                                </div>
+                            </div>
+                        )}
+                        {this.def.timespan && (
+                            <div className="key-data">
+                                <div className="key-data__title">
+                                    Date range
+                                </div>
+                                <div>{this.def.timespan}</div>
+                            </div>
+                        )}
+                        {this.def.lastUpdated && (
+                            <div className="key-data">
+                                <div className="key-data__title">
+                                    Last updated
+                                </div>
+                                <div>{this.def.lastUpdated}</div>
+                            </div>
+                        )}
+                        {this.def.nextUpdate && (
+                            <div className="key-data">
+                                <div className="key-data__title">
+                                    Next expected update
+                                </div>
+                                <div>{this.def.nextUpdate}</div>
+                            </div>
+                        )}
+                    </section>
+                )}
+
+                {/* ---- Description ---- */}
+
+                {this.description && this.description.length > 0 && (
+                    <>
+                        <h3>What you should know about this indicator:</h3>
+
+                        <ul>
+                            {this.description.map(
+                                (text: string, index: number) => (
+                                    <li key={index}>
+                                        <HtmlOrMarkdownText text={text} />
+                                    </li>
+                                )
+                            )}
+                        </ul>
+
+                        {this.datapageHasFAQSection && (
+                            <a
+                                href={`${this.props.canonicalUrl}#${DATAPAGE_FAQS_SECTION_ID}`}
+                                className="link__learn-more"
+                            >
+                                Learn more in the FAQs
+                                <FontAwesomeIcon icon={faArrowRight} />
+                            </a>
+                        )}
+                    </>
+                )}
+
+                {/* ---- Origins ---- */}
+
+                {this.displayOrigins && this.displayOrigins.length > 0 && (
+                    <>
+                        <h3>This data is based on the following sources:</h3>
+
+                        {this.displayOrigins.map(
+                            ({
+                                title,
+                                description,
+                                retrievedOn,
+                                retrievedFrom,
+                            }) => (
+                                <div key={title} className="origin">
+                                    <h4>{title}</h4>
+                                    <p className="origin__description">
+                                        <HtmlOrMarkdownText
+                                            text={description}
+                                        />
+                                    </p>
+                                    {(retrievedOn || retrievedFrom) && (
+                                        <div className="origin__key-information">
+                                            {retrievedOn && (
+                                                <div className="origin__key-data">
+                                                    <div className="origin__key-data__title">
+                                                        Retrieved on
+                                                    </div>
+                                                    <div className="origin__key-data__content">
+                                                        {retrievedOn}
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {retrievedFrom && (
+                                                <div className="origin__key-data">
+                                                    <div className="origin__key-data__title">
+                                                        Retrieved from
+                                                    </div>
+                                                    <div className="origin__key-data__content">
+                                                        {/* rendered as markdown since it can contain multiple links */}
+                                                        <SimpleMarkdownText
+                                                            text={retrievedFrom}
+                                                        />{" "}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            )
+                        )}
+
+                        {this.hasDatapage && (
+                            <a
+                                href={`${this.props.canonicalUrl}#${DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}`}
+                                className="link__learn-more"
+                            >
+                                More about the sources
+                                <FontAwesomeIcon icon={faArrowRight} />
+                            </a>
+                        )}
+                    </>
+                )}
+
+                {/* ---- Processing ---- */}
+
+                <h4 style={{ marginTop: "2em" }}>
+                    How we process data at Our World in Data:
+                </h4>
+
+                <p>
+                    All data and visualizations on Our World in Data rely on
+                    data sourced from one or several original data providers.
+                    Preparing this original data involves several processing
+                    steps. Depending on the data, this can include standardizing
+                    country names and world region definitions, converting
+                    units, calculating derived indicators such as per capita
+                    measures, as well as adding or adapting metadata such as the
+                    name or the description given to an indicator.
+                </p>
+
+                <p>
+                    At the link below you can find a detailed description of the
+                    structure of our data pipeline, including links to all the
+                    code used to prepare data across Our World in Data.
+                </p>
+
+                <a
+                    href="https://docs.owid.io/projects/etl/"
+                    target="_blank"
+                    rel="nopener noreferrer"
+                    className="link__learn-more"
+                >
+                    Read about our data pipeline
+                    <FontAwesomeIcon icon={faArrowRight} />
+                </a>
+
+                {this.def.descriptionProcessing && (
+                    <div className="call-out">
+                        <h5>
+                            Notes on our processing steps for this indicator
+                        </h5>
+                        <p>
+                            <HtmlOrMarkdownText
+                                text={this.def.descriptionProcessing}
+                            />
+                        </p>
+                    </div>
                 )}
             </div>
-        )
-    }
-
-    render(): JSX.Element {
-        const cols = this.manager.columnsWithSources
-        return (
-            <Modal
-                title="Sources"
-                onDismiss={action(
-                    () => (this.manager.isSourcesModalOpen = false)
-                )}
-                bounds={this.modalBounds}
-            >
-                <div className="SourcesModalContent">
-                    {cols.map((col) => this.renderSource(col))}
-                </div>
-            </Modal>
         )
     }
 }

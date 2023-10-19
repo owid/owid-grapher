@@ -31,6 +31,9 @@ import {
     ColumnSlug,
     EPOCH_DATE,
     OwidChartDimensionInterface,
+    getAttributionFromVariable,
+    getLastUpdatedFromVariable,
+    getNextUpdateFromVariable,
 } from "@ourworldindata/utils"
 
 export const legacyToOwidTableAndDimensions = (
@@ -563,12 +566,17 @@ const columnDefFromOwidVariable = (
         display,
         timespan,
         nonRedistributable,
-        presentation,
+        presentation = {},
+        processingLevel,
+        schemaVersion,
     } = variable
 
     // Without this the much used var 123 appears as "Countries Continent". We could rename in Grapher but not sure the effects of that.
     const isContinent = variable.id === 123
     const name = isContinent ? "Continent" : variable.name
+
+    const lastUpdated = getLastUpdatedFromVariable(variable)
+    const nextUpdate = getNextUpdateFromVariable(variable)
 
     return {
         name,
@@ -581,15 +589,22 @@ const columnDefFromOwidVariable = (
         descriptionProcessing,
         descriptionKey,
         descriptionFromProducer,
+        owidProcessingLevel: processingLevel,
+        owidSchemaVersion: schemaVersion,
         coverage,
         datasetId,
         datasetName,
         display,
         nonRedistributable,
         source,
-        timespanFromMetadata: timespan,
+        timespan,
         origins,
-        presentation,
+        presentation: {
+            ...presentation,
+            attributionWithFallback: getAttributionFromVariable(variable),
+        },
+        lastUpdated,
+        nextUpdate,
         owidVariableId: variable.id,
         type: isContinent
             ? ColumnTypeNames.Continent
