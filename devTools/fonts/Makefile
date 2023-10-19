@@ -10,6 +10,7 @@ BUILD_DIR := $(VENV)/build
 FONTS_DIR := ../../public/fonts
 FONTS_CSS := ../../public/fonts.css
 FACES = $(BUILD_DIR)/fonts.css
+EMBEDS = $(BUILD_DIR)/embedded.css
 
 LATO_WOFFS = $(wildcard $(LATO)/Lato-*.woff2)
 LATO_LATIN_WOFFS = $(subst Lato-,LatoLatin-,$(LATO_WOFFS))
@@ -35,7 +36,7 @@ LatoLatin-%: Lato-%
 PLAYFAIR := $(BUILD_DIR)/playfair
 PLAYFAIR_URL := https://fonts.google.com/download/list?family=Playfair%20Display
 $(PLAYFAIR).tsv:
-	curl -sL $(PLAYFAIR_URL) |  tail -n +2 | \
+	curl -sL $(PLAYFAIR_URL) | tail -n +2 | \
 	jq -r '.manifest.fileRefs[] | select(.filename | contains("Variable") | not) | [.url, .filename] | @tsv' \
 	> $@
 $(PLAYFAIR): $(PLAYFAIR).tsv
@@ -58,9 +59,13 @@ $(VENV):
 $(FACES): $(VENV) $(FONTS)
 	@$(PYTHON) make-faces.py $(FONTS) | $(PRETTIER) --parser css > $@
 
+$(EMBEDS): $(VENV) $(FONTS)
+	@$(PYTHON) make-faces.py --embed $(FONTS) | $(PRETTIER) --parser css > $@
+
 all: $(VENV) $(LATO) $(PLAYFAIR)
-	rm -f $(FACES)
+	rm -f $(FACES) $(EMBEDS)
 	$(MAKE) -j8 $(FACES)
+	$(MAKE) -j8 $(EMBEDS)
 	@for font in $(LATO)/*.woff2 $(PLAYFAIR)/*.woff2; do \
 	    diff -q "$$font" $(FONTS_DIR)/`basename "$$font"` || true; \
 	done
@@ -84,6 +89,7 @@ test:
 install: $(FONTS) $(FACES)
 	mkdir -p $(FONTS_DIR)
 	cp $(FONTS) $(FONTS_DIR)
+	cp $(EMBEDS) $(FONTS_DIR)
 	cp $(FACES) $(FONTS_CSS)
 
 clean:
