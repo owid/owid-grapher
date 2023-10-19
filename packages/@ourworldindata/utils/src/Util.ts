@@ -1602,6 +1602,15 @@ export function traverseEnrichedBlocks(
                 traverseEnrichedBlocks(node, callback, spanCallback)
             })
         })
+        .with({ type: "table" }, (table) => {
+            table.rows.forEach((row) => {
+                row.cells.forEach((cell) => {
+                    cell.content.forEach((node) => {
+                        traverseEnrichedBlocks(node, callback, spanCallback)
+                    })
+                })
+            })
+        })
         .with(
             {
                 type: P.union(

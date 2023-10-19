@@ -575,6 +575,11 @@ export default function ArticleBlock({
                 ))}
             </div>
         ))
+        .with({ type: "table" }, (block) => (
+            <div className={cx(getLayout("table", containerType))}>
+                I'm a {block.type}
+            </div>
+        ))
         .exhaustive()
 
     return (

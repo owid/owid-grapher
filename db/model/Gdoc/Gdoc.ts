@@ -633,6 +633,7 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
                         "simple-text",
                         "sticky-left",
                         "sticky-right",
+                        "table",
                         "text"
                     ),
                 },
