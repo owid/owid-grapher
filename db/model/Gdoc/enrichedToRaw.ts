@@ -34,6 +34,7 @@ import {
     RawBlockAlign,
     RawBlockEntrySummary,
     RawBlockVideo,
+    RawBlockTable,
 } from "@ourworldindata/utils"
 import { spanToHtmlString } from "./gdocUtils.js"
 import { match, P } from "ts-pattern"
@@ -397,6 +398,25 @@ export function enrichedBlockToRawBlock(
                 type: b.type,
                 value: {
                     items: b.items,
+                },
+            }
+        })
+        .with({ type: "table" }, (b): RawBlockTable => {
+            return {
+                type: b.type,
+                value: {
+                    template: b.template,
+                    rows: b.rows.map((row) => ({
+                        type: row.type,
+                        value: {
+                            cells: row.cells.map((cell) => ({
+                                type: cell.type,
+                                value: cell.content.map(
+                                    enrichedBlockToRawBlock
+                                ),
+                            })),
+                        },
+                    })),
                 },
             }
         })

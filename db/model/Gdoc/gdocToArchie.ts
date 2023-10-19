@@ -6,95 +6,145 @@ import {
     RawBlockHorizontalRule,
     RawBlockHeading,
     isNil,
+    RawBlockTable,
+    RawBlockTableRow,
+    OwidRawGdocBlock,
+    RawBlockTableCell,
+    RawBlockText,
 } from "@ourworldindata/utils"
 import { spanToHtmlString } from "./gdocUtils.js"
 import { OwidRawGdocBlockToArchieMLString } from "./rawToArchie.js"
 import { match, P } from "ts-pattern"
+
+function paragraphToString(paragraph: docs_v1.Schema$Paragraph): string {
+    let text = ""
+    let isInList = false
+
+    // this is a list
+    const needsBullet = !isNil(paragraph.bullet)
+    if (needsBullet && !isInList) {
+        isInList = true
+        text += `\n[.list]\n`
+    } else if (!needsBullet && isInList) {
+        isInList = false
+        text += `[]\n`
+    }
+
+    if (paragraph.elements) {
+        // all values in the element
+        const values: docs_v1.Schema$ParagraphElement[] = paragraph.elements
+
+        let idx = 0
+
+        const taggedText = function (text: string): string {
+            if (paragraph.paragraphStyle?.namedStyleType?.includes("HEADING")) {
+                const headingLevel =
+                    paragraph.paragraphStyle.namedStyleType.replace(
+                        "HEADING_",
+                        ""
+                    )
+
+                const heading: RawBlockHeading = {
+                    type: "heading",
+                    value: {
+                        text: text.trim(),
+                        level: headingLevel,
+                    },
+                }
+                return `\n${OwidRawGdocBlockToArchieMLString(heading)}`
+            }
+            return text
+        }
+        let elementText = ""
+        for (const value of values) {
+            // we only need to add a bullet to the first value, so we check
+            const isFirstValue = idx === 0
+
+            // prepend an asterisk if this is a list item
+            const prefix = needsBullet && isFirstValue ? "* " : ""
+
+            // concat the text
+            const parsedParagraph = parseParagraph(value)
+            const fragmentText = match(parsedParagraph)
+                .with(
+                    { type: P.union("horizontal-rule") },
+                    OwidRawGdocBlockToArchieMLString
+                )
+                .with({ spanType: P.any }, (s) => spanToHtmlString(s))
+                .with(P.nullish, () => "")
+                .exhaustive()
+            elementText += `${prefix}${fragmentText}`
+            idx++
+        }
+        text += taggedText(elementText)
+    }
+    return text
+}
+
+function tableToString(
+    table: docs_v1.Schema$StructuralElement["table"]
+): string {
+    if (!table) return ""
+    let text = ""
+    const { tableRows = [] } = table
+
+    const rows: RawBlockTableRow[] = []
+
+    for (const tableRow of tableRows) {
+        const rawRow: RawBlockTableRow = {
+            type: "table-row",
+            value: {
+                cells: [],
+            },
+        }
+        const { tableCells = [] } = tableRow
+        for (const tableCell of tableCells) {
+            const rawCell: RawBlockTableCell = {
+                type: "table-cell",
+                value: [],
+            }
+            const { content = [] } = tableCell
+            for (const item of content) {
+                if (item.paragraph) {
+                    const text = paragraphToString(item.paragraph)
+                    const rawTextBlock: RawBlockText = {
+                        type: "text",
+                        value: text,
+                    }
+                    rawCell.value!.push(rawTextBlock)
+                }
+            }
+            rawRow.value!.cells!.push(rawCell)
+        }
+        rows.push(rawRow)
+    }
+    text += "\n[.+rows]"
+    for (const row of rows) {
+        text += `\n${OwidRawGdocBlockToArchieMLString(row)}`
+    }
+    text += "\n[]"
+    return text
+}
 
 export async function gdocToArchie(
     document: docs_v1.Schema$Document
 ): Promise<{ text: string }> {
     // prepare the text holder
     let text = ""
-    let isInList = false
 
     // check if the body key and content key exists, and give up if not
     if (!document.body) return { text }
     if (!document.body.content) return { text }
 
     // loop through each content element in the body
-
     for (const element of document.body.content) {
         if (element.paragraph) {
-            // get the paragraph within the element
-            const paragraph: docs_v1.Schema$Paragraph = element.paragraph
-
-            // this is a list
-            const needsBullet = !isNil(paragraph.bullet)
-            if (needsBullet && !isInList) {
-                isInList = true
-                text += `\n[.list]\n`
-            } else if (!needsBullet && isInList) {
-                isInList = false
-                text += `[]\n`
-            }
-
-            if (paragraph.elements) {
-                // all values in the element
-                const values: docs_v1.Schema$ParagraphElement[] =
-                    paragraph.elements
-
-                let idx = 0
-
-                const taggedText = function (text: string): string {
-                    if (
-                        paragraph.paragraphStyle?.namedStyleType?.includes(
-                            "HEADING"
-                        )
-                    ) {
-                        const headingLevel =
-                            paragraph.paragraphStyle.namedStyleType.replace(
-                                "HEADING_",
-                                ""
-                            )
-
-                        const heading: RawBlockHeading = {
-                            type: "heading",
-                            value: {
-                                text: text.trim(),
-                                level: headingLevel,
-                            },
-                        }
-                        return `\n${OwidRawGdocBlockToArchieMLString(heading)}`
-                    }
-                    return text
-                }
-                let elementText = ""
-                for (const value of values) {
-                    // we only need to add a bullet to the first value, so we check
-                    const isFirstValue = idx === 0
-
-                    // prepend an asterisk if this is a list item
-                    const prefix = needsBullet && isFirstValue ? "* " : ""
-
-                    // concat the text
-                    const parsedParagraph = parseParagraph(value)
-                    const fragmentText = match(parsedParagraph)
-                        .with(
-                            { type: P.union("horizontal-rule") },
-                            OwidRawGdocBlockToArchieMLString
-                        )
-                        .with({ spanType: P.any }, (s) => spanToHtmlString(s))
-                        .with(P.nullish, () => "")
-                        .exhaustive()
-                    elementText += `${prefix}${fragmentText}`
-                    idx++
-                }
-                text += taggedText(elementText)
-            }
+            text += paragraphToString(element.paragraph)
+        } else if (element.table) {
+            text += tableToString(element.table)
         }
     }
-
+    console.log("text", text)
     return { text }
 }
 
