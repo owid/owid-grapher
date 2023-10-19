@@ -86,6 +86,7 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
         return this.props.manager
     }
 
+    @observable private svgContent?: string
     @observable private svgBlob?: Blob
     @observable private svgPreviewUrl?: string
 
@@ -96,17 +97,38 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
 
     @action.bound private export(): void {
         this.createSvg()
+
         const reader = new FileReader()
         reader.onload = (ev: any): void => {
             this.svgPreviewUrl = ev.target.result as string
             this.tryCreatePng(this.svgPreviewUrl)
         }
-        reader.readAsDataURL(this.svgBlob as Blob)
+
+        // merge the embedded font data into the svg before rendering to png
+        fetch("/fonts/embedded.css")
+            .then((data) => data.text())
+            .then((css) => {
+                const svgWithFonts = this.svgContent?.replace(
+                    /(<svg[^>]*?>)/,
+                    `$1<defs><style>${css}</style></defs>`
+                )
+                if (svgWithFonts)
+                    reader.readAsDataURL(
+                        new Blob([svgWithFonts], {
+                            type: "image/svg+xml;charset=utf-8",
+                        })
+                    )
+                else throw new Error()
+            })
+            .catch(() => {
+                // fall back to the font-free version if something goes wrong
+                reader.readAsDataURL(this.svgBlob as Blob)
+            })
     }
 
     @action.bound private createSvg(): void {
-        const staticSVG = this.manager.staticSVG
-        this.svgBlob = new Blob([staticSVG], {
+        this.svgContent = this.manager.staticSVG
+        this.svgBlob = new Blob([this.svgContent], {
             type: "image/svg+xml;charset=utf-8",
         })
     }
