@@ -65,7 +65,7 @@ $(EMBEDS): $(VENV) $(FONTS)
 all: $(VENV) $(LATO) $(PLAYFAIR)
 	rm -f $(FACES) $(EMBEDS)
 	$(MAKE) -j8 $(FACES)
-	$(MAKE) -j8 $(EMBEDS)
+	$(MAKE) $(EMBEDS)
 	@for font in $(LATO)/*.woff2 $(PLAYFAIR)/*.woff2; do \
 	    diff -q "$$font" $(FONTS_DIR)/`basename "$$font"` || true; \
 	done
