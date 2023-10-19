@@ -1602,6 +1602,7 @@ export interface DataPageV2ContentFields {
     faqEntries: FaqEntryData | undefined
     // TODO: add gdocs for FAQs
     isPreviewing?: boolean
+    canonicalUrl: string
 }
 
 export interface UserCountryInformation {
