@@ -1,7 +1,6 @@
 import dayjs from "./dayjs.js"
 import { OwidVariableWithSource } from "./OwidVariable.js"
 import { OwidOrigin } from "./OwidOrigin.js"
-import { CoreColumnDef } from "@ourworldindata/core-table"
 import { compact, uniq } from "./Util"
 
 export function getOriginAttributionFragments(
@@ -24,7 +23,7 @@ export function getOriginAttributionFragments(
 }
 
 export function getAttributionFromVariable(
-    variable: OwidVariableWithSource | CoreColumnDef
+    variable: OwidVariableWithSource
 ): string {
     if (
         variable.presentation?.attribution &&
