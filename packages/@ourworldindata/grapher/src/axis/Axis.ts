@@ -16,9 +16,9 @@ import {
     ScaleType,
     VerticalAlign,
     TickFormattingOptions,
-    TextWrap,
 } from "@ourworldindata/utils"
 import { AxisConfig } from "./AxisConfig"
+import { TextWrap } from "@ourworldindata/ui-components"
 import {
     ColumnTypeMap,
     CoreColumn,

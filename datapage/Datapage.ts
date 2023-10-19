@@ -2,12 +2,11 @@ import fs from "fs-extra"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import { Value } from "@sinclair/typebox/value"
 import "dayjs"
+import { getLinkType, getUrlTarget } from "@ourworldindata/ui-components"
 import {
     OwidEnrichedGdocBlock,
     OwidGdocInterface,
     pick,
-    getLinkType,
-    getUrlTarget,
     GdocsContentSource,
     DataPageGdocContent,
     DataPageJson,

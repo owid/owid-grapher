@@ -10,7 +10,6 @@ import {
     OwidGdocStickyNavItem,
     OwidGdocType,
     checkNodeIsSpan,
-    convertHeadingTextToId,
     EnrichedBlockSimpleText,
     lowercaseObjectKeys,
     OwidEnrichedGdocBlock,
@@ -23,6 +22,7 @@ import {
     RESEARCH_AND_WRITING_ID,
     checkIsPlainObjectWithGuard,
 } from "@ourworldindata/utils"
+import { convertHeadingTextToId } from "@ourworldindata/ui-components"
 import { parseRawBlocksToEnrichedBlocks, parseRefs } from "./rawToEnriched.js"
 import urlSlug from "url-slug"
 import { parseAuthors, spansToSimpleString } from "./gdocUtils.js"

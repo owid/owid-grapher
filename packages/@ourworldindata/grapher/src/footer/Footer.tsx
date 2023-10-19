@@ -3,13 +3,12 @@ import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import parseUrl from "url-parse"
 import {
-    TextWrap,
     Bounds,
     DEFAULT_BOUNDS,
     getRelativeMouse,
-    MarkdownTextWrap,
     DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
 } from "@ourworldindata/utils"
+import { MarkdownTextWrap, TextWrap } from "@ourworldindata/ui-components"
 import { Tooltip } from "../tooltip/Tooltip"
 import { FooterManager } from "./FooterManager"
 import { ActionButtons } from "../controls/ActionButtons"

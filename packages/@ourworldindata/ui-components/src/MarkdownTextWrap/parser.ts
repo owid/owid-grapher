@@ -1,5 +1,5 @@
 import P from "parsimmon"
-import { detailOnDemandRegex } from "../GdocsConstants.js"
+import { detailOnDemandRegex } from "@ourworldindata/utils/src/GdocsConstants.js"
 // An AST inspired by MDAST
 // Deviates because we want to track individual words, whitespace, and newlines to use with MarkdownTextWrap and our SVG exporter
 
