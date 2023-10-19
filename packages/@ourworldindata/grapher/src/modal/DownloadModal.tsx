@@ -96,41 +96,31 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
     @observable private isReady: boolean = false
 
     @action.bound private export(): void {
-        this.createSvg()
+        // render the graphic and cache a blob for svg downloads
+        const svgContent = this.manager.staticSVG,
+            type = "image/svg+xml;charset=utf-8"
+        this.svgBlob = new Blob([svgContent], { type })
 
         const reader = new FileReader()
-        reader.onload = (ev: any): void => {
-            this.svgPreviewUrl = ev.target.result as string
-            this.tryCreatePng(this.svgPreviewUrl)
-        }
-
-        // merge the embedded font data into the svg before rendering to png
         fetch("/fonts/embedded.css")
             .then((data) => data.text())
             .then((css) => {
-                const svgWithFonts = this.svgContent?.replace(
-                    /(<svg[^>]*?>)/,
-                    `$1<defs><style>${css}</style></defs>`
-                )
-                if (svgWithFonts)
-                    reader.readAsDataURL(
-                        new Blob([svgWithFonts], {
-                            type: "image/svg+xml;charset=utf-8",
-                        })
-                    )
-                else throw new Error()
+                // merge the embedded font data into the svg before rendering to png
+                const defs = `<defs><style>${css}</style></defs>`,
+                    embedded = svgContent.replace(/(<svg[^>]*?>)/, `$1${defs}`),
+                    blob = new Blob([embedded], { type })
+                reader.readAsDataURL(blob)
             })
             .catch(() => {
                 // fall back to the font-free version if something goes wrong
                 reader.readAsDataURL(this.svgBlob as Blob)
             })
-    }
 
-    @action.bound private createSvg(): void {
-        this.svgContent = this.manager.staticSVG
-        this.svgBlob = new Blob([this.svgContent], {
-            type: "image/svg+xml;charset=utf-8",
-        })
+        // use either the embedded-fonts svg or the fallback to render a png
+        reader.onload = (ev: any): void => {
+            this.svgPreviewUrl = ev.target.result as string
+            this.tryCreatePng(this.svgPreviewUrl)
+        }
     }
 
     @action.bound private tryCreatePng(svgPreviewUrl: string): void {
