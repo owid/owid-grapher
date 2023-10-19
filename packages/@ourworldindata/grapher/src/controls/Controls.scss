@@ -18,7 +18,7 @@ $indent: 15px;
 $control-row-height: 32px;
 
 // Buttons in the main controls row of the grapher view
-nav.controlsRow .controls {
+nav.controlsRow .chart-controls {
     display: flex;
     gap: 8px;
 
@@ -120,7 +120,7 @@ nav.controlsRow .controls {
 //
 @at-root {
     .AdminApp {
-        nav.controlsRow .controls button.menu-toggle label {
+        nav.controlsRow .chart-controls button.menu-toggle label {
             margin: 0;
         }
         .settings-menu-contents section {

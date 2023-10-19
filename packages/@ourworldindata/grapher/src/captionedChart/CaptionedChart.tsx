@@ -279,7 +279,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                         <ContentSwitchers manager={this.manager} />
                     )}
                 </div>
-                <div className="controls">
+                <div className="chart-controls">
                     <EntitySelectionToggle manager={this.manager} />
                     <SettingsMenu
                         manager={this.manager}

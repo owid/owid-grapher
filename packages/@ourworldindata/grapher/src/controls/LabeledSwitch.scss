@@ -9,7 +9,7 @@ $lato: $sans-serif-font-stack;
 
 @at-root {
     // placed either directly in controls row or in settings menu
-    .controlsRow .controls,
+    .controlsRow .chart-controls,
     .settings-menu-contents {
         // on/off switch with label written to the right
         .labeled-switch {
