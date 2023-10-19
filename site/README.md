@@ -59,4 +59,11 @@ This means that any other documents that reference the image will use the update
 
 If you are refreshing your environment's database by importing a database dump from prod, the prod `images` table may make claims about the existence of files in your environment's S3 folder that aren't true, which will lead to 403 errors when trying to bake.
 
-In this project's root Makefile, we have a make command (`make sync-images`) that runs `s3cmd sync` from prod to your environment to solve this problem. Make sure your [s3cmd is configured correctly](https://docs.digitalocean.com/products/spaces/reference/s3cmd/) before running it.
+In this project's root Makefile, we have a make command (`make sync-images`) that runs `aws s3 sync` from prod to your environment to solve this problem. Make sure your `~/.aws/config` is configured correctly and contains
+
+```
+[owid]
+aws_access_key_id = xxx
+aws_secret_access_key = xxx
+region = nyc3
+```
