@@ -8,8 +8,8 @@
 LOGIN_SHELL = $(shell finger $(USER) | grep 'Shell:*' | cut -f3 -d ":")
 
 # Check for the environment variable OWID_SCRIPT_SHELL and fall back to LOGIN_SHELL if not set
-SCRIPT_SHELL ?= $(shell echo $$OWID_SCRIPT_SHELL)
-SCRIPT_SHELL ?= $(LOGIN_SHELL)
+SCRIPT_SHELL ?= $(or $(shell echo $$OWID_SCRIPT_SHELL),$(LOGIN_SHELL))
+
 
 # setting .env variables as Make variables for validate.env targets
 # https://lithic.tech/blog/2020-05/makefile-dot-env/
