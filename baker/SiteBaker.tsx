@@ -611,6 +611,7 @@ export class SiteBaker {
             `rsync -hav --delete ${BASE_DIR}/public/* ${this.bakedSiteDir}/ ${excludes}`
         )
 
+        await fs.ensureDir(`${this.bakedSiteDir}/grapher`)
         await fs.writeFile(
             `${this.bakedSiteDir}/grapher/embedCharts.js`,
             generateEmbedSnippet()
