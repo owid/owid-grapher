@@ -208,23 +208,10 @@ export class IRSuperscript implements IRToken {
         return <sup key={key}>{this.text}</sup>
     }
     toSVG(key?: React.Key): JSX.Element {
+        const style = { fontFeatureSettings: '"sups"' }
         return (
             <React.Fragment key={key}>
-                <tspan
-                    style={{
-                        fontSize: this.height / 2,
-                    }}
-                    dy={-this.height / 3}
-                >
-                    {this.text}
-                </tspan>
-                {/*
-                    can't use baseline-shift as it's not supported in firefox
-                    can't use transform translations on tspans
-                    so we use dy translations but they apply to all subsequent elements
-                    so we need a "reset" element to counteract each time
-                 */}
-                <tspan dy={this.height / 3}> </tspan>
+                <tspan style={style}>{this.text}</tspan>
             </React.Fragment>
         )
     }
