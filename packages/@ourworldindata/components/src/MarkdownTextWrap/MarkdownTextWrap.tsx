@@ -8,10 +8,24 @@ import {
     sumBy,
     imemo,
     max,
+    get,
     Bounds,
     FontFamily,
 } from "@ourworldindata/utils"
 import { TextWrap } from "../TextWrap/TextWrap.js"
+
+const SUPERSCRIPT_NUMERALS = {
+    "0": "\u2070",
+    "1": "\u00b9",
+    "2": "\u00b2",
+    "3": "\u00b3",
+    "4": "\u2074",
+    "5": "\u2075",
+    "6": "\u2076",
+    "7": "\u2077",
+    "8": "\u2078",
+    "9": "\u2079",
+}
 
 export interface IRFontParams {
     fontSize?: number
@@ -208,10 +222,14 @@ export class IRSuperscript implements IRToken {
         return <sup key={key}>{this.text}</sup>
     }
     toSVG(key?: React.Key): JSX.Element {
+        // replace numerals with literals, for everything else let the font-feature handle it
         const style = { fontFeatureSettings: '"sups"' }
+        const text = this.text.replace(/./g, (c) =>
+            get(SUPERSCRIPT_NUMERALS, c, c)
+        )
         return (
             <React.Fragment key={key}>
-                <tspan style={style}>{this.text}</tspan>
+                <tspan style={style}>{text}</tspan>
             </React.Fragment>
         )
     }
