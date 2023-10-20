@@ -86,23 +86,32 @@ class DimensionSlotView extends React.Component<{
         const { availableEntityNames, availableEntityNameSet } = selection
 
         if (grapher.isScatter || grapher.isSlopeChart || grapher.isMarimekko) {
+            // chart types that display all entities by default shouldn't select any by default
             selection.clearSelection()
         } else if (
             grapher.yColumnsFromDimensions.length > 1 &&
             !grapher.isStackedArea &&
             !grapher.isStackedBar
         ) {
-            const entity = availableEntityNameSet.has(WorldEntityName)
-                ? WorldEntityName
-                : sample(availableEntityNames)
-            if (entity) selection.setSelectedEntities([entity])
+            // non-stacked charts with multiple y-dimensions should select a single entity by default.
+            // if possible, the currently selected entity is persisted, otherwise "World" is preferred
+            if (selection.numSelectedEntities !== 1) {
+                const entity = availableEntityNameSet.has(WorldEntityName)
+                    ? WorldEntityName
+                    : sample(availableEntityNames)
+                if (entity) selection.setSelectedEntities([entity])
+            }
             grapher.addCountryMode = EntitySelectionMode.SingleEntity
         } else {
-            selection.setSelectedEntities(
-                availableEntityNames.length > 10
-                    ? sampleSize(availableEntityNames, 4)
-                    : availableEntityNames
-            )
+            // stacked charts or charts with a single y-dimension should select multiple entities by default.
+            // if possible, the currently selected entities are persisted, otherwise a random sample is selected
+            if (selection.numSelectedEntities <= 1) {
+                selection.setSelectedEntities(
+                    availableEntityNames.length > 10
+                        ? sampleSize(availableEntityNames, 4)
+                        : availableEntityNames
+                )
+            }
             grapher.addCountryMode = EntitySelectionMode.MultipleEntities
         }
     }

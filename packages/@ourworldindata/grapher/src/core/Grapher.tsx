@@ -2846,7 +2846,7 @@ export class Grapher
     }
 
     @computed get startSelectingWhenLineClicked(): boolean {
-        return this.showAddEntityButton
+        return this.showAddEntityButton && !this.isMobile
     }
 
     // For now I am only exposing this programmatically for the dashboard builder. Setting this to true
