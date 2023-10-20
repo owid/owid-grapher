@@ -86,7 +86,7 @@ class DimensionSlotView extends React.Component<{
         const { availableEntityNames, availableEntityNameSet } = selection
 
         if (grapher.isScatter || grapher.isSlopeChart || grapher.isMarimekko) {
-            // chart types that display all entities by default shouldn't specifically select any
+            // chart types that display all entities by default shouldn't select any by default
             selection.clearSelection()
         } else if (
             grapher.yColumnsFromDimensions.length > 1 &&
@@ -105,7 +105,7 @@ class DimensionSlotView extends React.Component<{
         } else {
             // stacked charts or charts with a single y-dimension should select multiple entities by default.
             // if possible, the currently selected entities are persisted, otherwise a random sample is selected
-            if (selection.numSelectedEntities === 0) {
+            if (selection.numSelectedEntities <= 1) {
                 selection.setSelectedEntities(
                     availableEntityNames.length > 10
                         ? sampleSize(availableEntityNames, 4)
