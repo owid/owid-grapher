@@ -149,7 +149,7 @@
         "json8-pointer": "^1.0.6",
         "jsonwebtoken": "^9.0.0",
         "knex": "^2.4.2",
-        "lerna": "^6.0.0",
+        "lerna": "<6.1.0",
         "lodash": "^4.17.20",
         "mathjax-full": "^3.1.0",
         "md5": "^2.3.0",
