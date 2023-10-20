@@ -1,6 +1,6 @@
 import React from "react"
 import { sum, max } from "@ourworldindata/utils"
-import { TextWrap } from "@ourworldindata/ui-components"
+import { TextWrap } from "@ourworldindata/components"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants"

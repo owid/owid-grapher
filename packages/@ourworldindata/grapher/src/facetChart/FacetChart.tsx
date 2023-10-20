@@ -19,7 +19,7 @@ import {
     HorizontalAlign,
     Color,
 } from "@ourworldindata/utils"
-import { shortenForTargetWidth } from "@ourworldindata/ui-components"
+import { shortenForTargetWidth } from "@ourworldindata/components"
 import { action, computed, observable } from "mobx"
 import {
     BASE_FONT_SIZE,

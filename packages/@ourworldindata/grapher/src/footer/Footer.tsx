@@ -8,7 +8,7 @@ import {
     getRelativeMouse,
     DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
 } from "@ourworldindata/utils"
-import { MarkdownTextWrap, TextWrap } from "@ourworldindata/ui-components"
+import { MarkdownTextWrap, TextWrap } from "@ourworldindata/components"
 import { Tooltip } from "../tooltip/Tooltip"
 import { FooterManager } from "./FooterManager"
 import { ActionButtons } from "../controls/ActionButtons"

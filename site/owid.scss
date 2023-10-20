@@ -19,10 +19,10 @@
 @import "tippy.js/dist/tippy.css";
 @import "tippy.js/themes/light.css";
 
-@import "../packages/@ourworldindata/ui-components/src/styles/variables.scss";
-@import "../packages/@ourworldindata/ui-components/src/styles/colors.scss";
-@import "../packages/@ourworldindata/ui-components/src/styles/typography.scss";
-@import "../packages/@ourworldindata/ui-components/src/styles/util.scss";
+@import "../packages/@ourworldindata/components/src/styles/variables.scss";
+@import "../packages/@ourworldindata/components/src/styles/colors.scss";
+@import "../packages/@ourworldindata/components/src/styles/typography.scss";
+@import "../packages/@ourworldindata/components/src/styles/util.scss";
 
 @import "css/mixins.scss";
 @import "css/grid.scss";

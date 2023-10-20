@@ -1,6 +1,6 @@
 import React, { useContext } from "react"
 
-import { getLinkType, getUrlTarget } from "@ourworldindata/ui-components"
+import { getLinkType, getUrlTarget } from "@ourworldindata/components"
 import {
     Span,
     SpanLink,

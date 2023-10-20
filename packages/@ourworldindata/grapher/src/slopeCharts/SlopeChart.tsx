@@ -16,7 +16,7 @@ import {
     maxBy,
     exposeInstanceOnWindow,
 } from "@ourworldindata/utils"
-import { TextWrap } from "@ourworldindata/ui-components"
+import { TextWrap } from "@ourworldindata/components"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { NoDataModal } from "../noDataModal/NoDataModal"

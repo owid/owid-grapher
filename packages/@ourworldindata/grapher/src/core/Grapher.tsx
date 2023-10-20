@@ -66,7 +66,7 @@ import {
     compact,
     getOriginAttributionFragments,
 } from "@ourworldindata/utils"
-import { MarkdownTextWrap } from "@ourworldindata/ui-components"
+import { MarkdownTextWrap } from "@ourworldindata/components"
 import {
     ChartTypeName,
     GrapherTabOption,

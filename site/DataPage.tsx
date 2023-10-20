@@ -13,7 +13,7 @@ import {
     OwidGdocInterface,
     serializeJSONForHTML,
 } from "@ourworldindata/utils"
-import { MarkdownTextWrap } from "@ourworldindata/ui-components"
+import { MarkdownTextWrap } from "@ourworldindata/components"
 import React from "react"
 import urljoin from "url-join"
 import {

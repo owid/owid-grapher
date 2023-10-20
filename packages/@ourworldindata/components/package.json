@@ -1,5 +1,5 @@
 {
-    "name": "@ourworldindata/ui-components",
+    "name": "@ourworldindata/components",
     "version": "0.0.0",
     "description": "This package contains shared UI components and styles for the Our World in Data site and the Grapher tool.",
     "main": "dist/index.js",

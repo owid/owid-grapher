@@ -11,7 +11,7 @@ import {
 import {
     MarkdownTextWrap,
     sumTextWrapHeights,
-} from "@ourworldindata/ui-components"
+} from "@ourworldindata/components"
 import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faDownload, faInfoCircle } from "@fortawesome/free-solid-svg-icons"

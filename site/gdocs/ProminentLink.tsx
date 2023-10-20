@@ -1,6 +1,6 @@
 import React, { useContext } from "react"
 import cx from "classnames"
-import { getLinkType } from "@ourworldindata/ui-components"
+import { getLinkType } from "@ourworldindata/components"
 
 import Image from "./Image.js"
 import { useLinkedChart, useLinkedDocument } from "./utils.js"

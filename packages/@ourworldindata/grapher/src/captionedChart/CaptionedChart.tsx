@@ -10,7 +10,7 @@ import {
 import {
     MarkdownTextWrap,
     sumTextWrapHeights,
-} from "@ourworldindata/ui-components"
+} from "@ourworldindata/components"
 import { Header, StaticHeader } from "../header/Header"
 import { Footer, StaticFooter } from "../footer/Footer"
 import {

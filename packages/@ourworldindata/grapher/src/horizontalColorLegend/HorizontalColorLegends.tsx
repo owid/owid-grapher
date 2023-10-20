@@ -16,7 +16,7 @@ import {
     HorizontalAlign,
     VerticalAlign,
 } from "@ourworldindata/utils"
-import { TextWrap } from "@ourworldindata/ui-components"
+import { TextWrap } from "@ourworldindata/components"
 import {
     ColorScaleBin,
     NumericBin,

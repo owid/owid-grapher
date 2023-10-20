@@ -1,4 +1,4 @@
-import { mdParser } from "@ourworldindata/ui-components"
+import { mdParser } from "@ourworldindata/components"
 
 import parseArgs from "minimist"
 async function main(parsedArgs: parseArgs.ParsedArgs) {

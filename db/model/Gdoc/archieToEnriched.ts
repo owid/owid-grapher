@@ -22,7 +22,7 @@ import {
     RESEARCH_AND_WRITING_ID,
     checkIsPlainObjectWithGuard,
 } from "@ourworldindata/utils"
-import { convertHeadingTextToId } from "@ourworldindata/ui-components"
+import { convertHeadingTextToId } from "@ourworldindata/components"
 import { parseRawBlocksToEnrichedBlocks, parseRefs } from "./rawToEnriched.js"
 import urlSlug from "url-slug"
 import { parseAuthors, spansToSimpleString } from "./gdocUtils.js"

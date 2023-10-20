@@ -16,7 +16,7 @@ import {
     TocHeadingWithTitleSupertitle,
     Url,
 } from "@ourworldindata/utils"
-import { convertHeadingTextToId } from "@ourworldindata/ui-components"
+import { convertHeadingTextToId } from "@ourworldindata/components"
 import SDGGrid from "./SDGGrid.js"
 import { BlockErrorBoundary, BlockErrorFallback } from "./BlockErrorBoundary.js"
 import { match } from "ts-pattern"

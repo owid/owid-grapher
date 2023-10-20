@@ -5,7 +5,7 @@ import { getAlgoliaClient } from "./configureAlgolia.js"
 import { isPathRedirectedToExplorer } from "../../explorerAdminServer/ExplorerRedirects.js"
 import { ChartRecord, SearchIndexName } from "../../site/search/searchTypes.js"
 import { KeyChartLevel } from "@ourworldindata/utils"
-import { MarkdownTextWrap } from "@ourworldindata/ui-components"
+import { MarkdownTextWrap } from "@ourworldindata/components"
 import { Pageview } from "../../db/model/Pageview.js"
 import { Link } from "../../db/model/Link.js"
 

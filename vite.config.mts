@@ -23,8 +23,8 @@ export default defineConfig({
             "@ourworldindata/utils": "@ourworldindata/utils/src/index.ts",
             "@ourworldindata/core-table":
                 "@ourworldindata/core-table/src/index.ts",
-            "@ourworldindata/ui-components":
-                "@ourworldindata/ui-components/src/index.ts",
+            "@ourworldindata/components":
+                "@ourworldindata/components/src/index.ts",
         },
     },
     css: {

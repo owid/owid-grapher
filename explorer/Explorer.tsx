@@ -48,7 +48,7 @@ import {
     uniqBy,
     Url,
 } from "@ourworldindata/utils"
-import { MarkdownTextWrap } from "@ourworldindata/ui-components"
+import { MarkdownTextWrap } from "@ourworldindata/components"
 import classNames from "classnames"
 import { action, computed, observable, reaction } from "mobx"
 import { observer } from "mobx-react"

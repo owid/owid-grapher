@@ -100,7 +100,7 @@ import {
     EnrichedBlockEntrySummary,
     EnrichedBlockEntrySummaryItem,
 } from "@ourworldindata/utils"
-import { checkIsInternalLink } from "@ourworldindata/ui-components"
+import { checkIsInternalLink } from "@ourworldindata/components"
 import {
     extractUrl,
     getTitleSupertitleFromHeadingText,

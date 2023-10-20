@@ -8,7 +8,7 @@ import {
     JoinTable,
     LessThanOrEqual,
 } from "typeorm"
-import { getUrlTarget } from "@ourworldindata/ui-components"
+import { getUrlTarget } from "@ourworldindata/components"
 import {
     Tag as TagInterface,
     LinkedChart,

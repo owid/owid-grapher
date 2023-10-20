@@ -10,7 +10,7 @@ import {
     sumBy,
     flatten,
 } from "@ourworldindata/utils"
-import { TextWrap } from "@ourworldindata/ui-components"
+import { TextWrap } from "@ourworldindata/components"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { VerticalAxis } from "../axis/Axis"
