@@ -33,10 +33,14 @@ export class Modal extends React.Component<{
     }
 
     @action.bound onDocumentClick(e: MouseEvent): void {
-        // check if the click was outside of the modal
+        const tagName = (e.target as HTMLElement).tagName
+        const isTargetInteractive = ["A", "BUTTON", "INPUT"].includes(tagName)
         if (
             this.contentRef?.current &&
             !this.contentRef.current.contains(e.target as Node) &&
+            // clicking on an interactive element should not dismiss the modal
+            // (this is especially important for the suggested chart review tool)
+            !isTargetInteractive &&
             // check that the target is still mounted to the document; we also get click events on nodes that have since been removed by React
             document.contains(e.target as Node)
         )
