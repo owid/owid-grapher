@@ -30,7 +30,14 @@ export const BlogIndexPage = (props: {
 
                 <main className="wrapper">
                     <div className="site-content">
-                        <h2>{pageTitle}</h2>
+                        <h2 className="heading-latest">
+                            {pageTitle}
+                            <span className="sr-only">:</span>
+                            <span className="heading-latest__subtitle">
+                                Our latest articles, updates and announcements
+                            </span>
+                        </h2>
+
                         <ul className="posts">
                             {posts.map((post) => (
                                 <li key={post.slug} className="post">

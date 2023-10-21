@@ -152,10 +152,6 @@ header.blog-header h1 > a {
     color: white;
 }
 
-body.blog h2 {
-    @include posts-heading;
-}
-
 body.blog ul.posts {
     @include posts-list;
 }
