@@ -47,11 +47,8 @@ export const BlogIndexPage = (props: {
                         </ul>
                         <nav
                             className="navigation pagination"
-                            role="navigation"
+                            aria-label="Posts"
                         >
-                            <h2 className="screen-reader-text">
-                                Posts navigation
-                            </h2>
                             <div className="nav-link">
                                 {pageNums.map((num) => (
                                     <a
