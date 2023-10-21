@@ -159,10 +159,6 @@
 .homepage-posts {
     background-color: $blue-10;
 
-    h2 {
-        @include posts-heading;
-    }
-
     .see-all {
         display: flex;
         justify-content: center;

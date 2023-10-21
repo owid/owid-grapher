@@ -134,9 +134,7 @@ export const FrontPage = (props: {
                         <div className="owid-row">
                             <div className="owid-col flex-row">
                                 <div className="homepage-posts--explainers">
-                                    <div className="header">
-                                        <h2>Featured work</h2>
-                                    </div>
+                                    <h2 className="heading-latest">Featured</h2>
                                     <ul>
                                         {featuredWork.map((post) => (
                                             <li key={post.slug}>
