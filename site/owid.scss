@@ -138,10 +138,8 @@ body.blog ul.posts {
     @include posts-list;
 }
 
-@include md-up {
-    body.blog main {
-        margin-top: 40px;
-    }
+body.blog main {
+    margin-top: 40px;
 }
 
 h1.entry-title > a {
