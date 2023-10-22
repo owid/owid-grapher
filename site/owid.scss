@@ -134,24 +134,6 @@
 /* Blog posts and blog index page (on /blog)
 --------------------------------------------- */
 
-header.blog-header h1 {
-    text-align: center;
-    font-family: $serif-font-stack;
-    font-weight: 400;
-    background: $oxford-blue;
-    color: white;
-    margin: auto;
-    margin-bottom: 1rem;
-    font-size: 1.8rem;
-    line-height: 1;
-    padding: 1.25rem 0;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-}
-
-header.blog-header h1 > a {
-    color: white;
-}
-
 body.blog ul.posts {
     @include posts-list;
 }
