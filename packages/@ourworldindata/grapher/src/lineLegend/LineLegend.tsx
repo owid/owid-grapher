@@ -23,8 +23,6 @@ import { darkenColorForText } from "../color/ColorUtils"
 const LEGEND_ITEM_MIN_SPACING = 2
 // Horizontal distance from the end of the chart to the start of the marker
 const MARKER_MARGIN = 4
-// Need a constant button height which we can use in positioning calculations
-const ADD_BUTTON_HEIGHT = 30
 
 const DEFAULT_FONT_WEIGHT = 400
 
@@ -372,21 +370,9 @@ export class LineLegend extends React.Component<{
         const nonOverlappingMinHeight =
             sumBy(this.initialSeries, (series) => series.bounds.height) +
             this.initialSeries.length * LEGEND_ITEM_MIN_SPACING
-        const availableHeight = this.manager.canAddData
-            ? this.manager.yAxis.rangeSize - ADD_BUTTON_HEIGHT
-            : this.manager.yAxis.rangeSize
-
-        // Need to be careful here – the controls overlay will automatically add padding if
-        // needed to fit the floating 'Add country' button, therefore decreasing the space
-        // available to render the legend.
-        // At a certain height, this ends up infinitely toggling between the two placement
-        // modes. The overlapping placement allows the button to float without additional
-        // padding, which then frees up space, causing the legend to render with
-        // standardPlacement.
-        // This is why we need to take into account the height of the 'Add country' button.
+        const availableHeight = this.manager.yAxis.rangeSize
         if (nonOverlappingMinHeight > availableHeight)
             return this.overlappingPlacement
-
         return this.standardPlacement
     }
 
