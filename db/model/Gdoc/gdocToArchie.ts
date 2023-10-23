@@ -144,7 +144,6 @@ export async function gdocToArchie(
             text += tableToString(element.table)
         }
     }
-    console.log("text", text)
     return { text }
 }
 

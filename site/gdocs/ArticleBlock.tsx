@@ -33,6 +33,7 @@ import { KeyInsights } from "./KeyInsights.js"
 import { ResearchAndWriting } from "./ResearchAndWriting.js"
 import { AllCharts } from "./AllCharts.js"
 import Video from "./Video.js"
+import { Table } from "./Table.js"
 
 export type Container =
     | "default"
@@ -84,6 +85,7 @@ const layouts: { [key in Container]: Layouts} = {
         ["sticky-right-left-column"]: "grid span-cols-5 grid grid-cols-5 span-md-cols-10 grid-md-cols-10 col-md-start-2 span-sm-cols-12 grid-sm-cols-12 col-sm-start-1",
         ["sticky-right-right-column"]: "span-cols-7 grid-cols-7 span-md-cols-10 grid-md-cols-10 col-md-start-2 span-sm-cols-12 grid-sm-cols-12 col-sm-start-1",
         ["sticky-right"]: "grid span-cols-12 col-start-2",
+        ["table"]: "col-start-4 span-cols-8 col-md-start-2 span-md-cols-12",
         ["text"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["toc"]: "grid grid-cols-8 col-start-4 span-cols-8 grid-md-cols-10 col-md-start-3 span-md-cols-10 grid-sm-cols-12 span-sm-cols-12 col-sm-start-2",
         ["topic-page-intro"]: "grid col-start-2 span-cols-12",
@@ -576,9 +578,13 @@ export default function ArticleBlock({
             </div>
         ))
         .with({ type: "table" }, (block) => (
-            <div className={cx(getLayout("table", containerType))}>
-                I'm a {block.type}
-            </div>
+            <Table
+                className={cx(
+                    getLayout("table", containerType),
+                    `article-block__table--${block.template}`
+                )}
+                {...block}
+            />
         ))
         .exhaustive()
 
