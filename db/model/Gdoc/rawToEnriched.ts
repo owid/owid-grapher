@@ -848,8 +848,9 @@ export const parseTable = (raw: RawBlockTable): EnrichedBlockTable => {
                 const enrichedCellContent: OwidEnrichedGdocBlock[] = []
                 const content = cell.value
                 if (!content || !content.length) {
-                    parseErrors.push({
-                        message: `Cell (${rowIndex}, ${cellIndex}) is missing content`,
+                    enrichedCells.push({
+                        type: "table-cell",
+                        content: [],
                     })
                 } else {
                     for (const [

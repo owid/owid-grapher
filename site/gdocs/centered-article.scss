@@ -458,6 +458,33 @@ h3.article-block__heading.has-supertitle {
     }
 }
 
+.article-block__table {
+    border-collapse: collapse;
+    margin-bottom: 32px;
+
+    th[scope="col"],
+    th[scope="row"] {
+        background-color: $blue-10;
+        p {
+            font-weight: 700;
+            margin-bottom: 0;
+        }
+    }
+
+    .table-cell {
+        border: 1px solid $blue-20;
+        padding: 8px;
+    }
+
+    .article-block__text,
+    .article-block__list {
+        @include body-3-medium;
+        &:last-child {
+            margin-bottom: 0;
+        }
+    }
+}
+
 .article-block__pull-quote {
     @include h1-bold-italic;
     border-bottom: 1px solid #dbe5f0;
