@@ -1,8 +1,7 @@
 import React, { useContext } from "react"
 
+import { getLinkType, getUrlTarget } from "@ourworldindata/components"
 import {
-    getLinkType,
-    getUrlTarget,
     Span,
     SpanLink,
     OwidGdocInterface,

@@ -44,9 +44,9 @@ import {
     FullPost,
     OwidGdocPublished,
     clone,
-    extractDetailsFromSyntax,
     LinkedChart,
 } from "@ourworldindata/utils"
+import { extractDetailsFromSyntax } from "@ourworldindata/components"
 import { execWrapper } from "../db/execWrapper.js"
 import { countryProfileSpecs } from "../site/countryProfileProjects.js"
 import { getRedirects, flushCache as redirectsFlushCache } from "./redirects.js"

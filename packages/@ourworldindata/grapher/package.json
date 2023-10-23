@@ -26,6 +26,7 @@
     "@fortawesome/free-brands-svg-icons": "^6.4.2",
     "@fortawesome/free-solid-svg-icons": "^6.4.2",
     "@fortawesome/react-fontawesome": "^0.2.0",
+    "@ourworldindata/components": "workspace:^",
     "@ourworldindata/core-table": "workspace:^",
     "@ourworldindata/utils": "workspace:^",
     "@tippyjs/react": "^4.2.6",

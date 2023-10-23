@@ -1,7 +1,7 @@
 import React from "react"
 import { computed } from "mobx"
 import { Triangle } from "./Triangle"
-import { TextWrap } from "@ourworldindata/utils"
+import { TextWrap } from "@ourworldindata/components"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants"
 
 export interface ConnectedScatterLegendManager {

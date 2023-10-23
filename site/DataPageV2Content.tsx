@@ -12,9 +12,9 @@ import {
     DataPageV2ContentFields,
     excludeNullish,
     slugify,
-    markdownToEnrichedTextBlock,
     DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
 } from "@ourworldindata/utils"
+import { markdownToEnrichedTextBlock } from "@ourworldindata/components"
 import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
 import StickyNav from "./blocks/StickyNav.js"
 import cx from "classnames"

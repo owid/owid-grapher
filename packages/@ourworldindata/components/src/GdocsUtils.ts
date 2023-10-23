@@ -1,7 +1,11 @@
-import { spansToUnformattedPlainText } from "./Util.js"
-import { gdocUrlRegex } from "./GdocsConstants.js"
-import { EnrichedBlockText, OwidGdocLinkJSON, Span } from "./owidTypes.js"
-import { Url } from "./urls/Url.js"
+import {
+    spansToUnformattedPlainText,
+    gdocUrlRegex,
+    EnrichedBlockText,
+    OwidGdocLinkJSON,
+    Span,
+    Url,
+} from "@ourworldindata/utils"
 import urlSlug from "url-slug"
 import {
     EveryMarkdownNode,

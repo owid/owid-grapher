@@ -15,8 +15,8 @@ import {
     spansToUnformattedPlainText,
     TocHeadingWithTitleSupertitle,
     Url,
-    convertHeadingTextToId,
 } from "@ourworldindata/utils"
+import { convertHeadingTextToId } from "@ourworldindata/components"
 import SDGGrid from "./SDGGrid.js"
 import { BlockErrorBoundary, BlockErrorFallback } from "./BlockErrorBoundary.js"
 import { match } from "ts-pattern"

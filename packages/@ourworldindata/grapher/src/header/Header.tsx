@@ -1,10 +1,6 @@
 import React from "react"
-import {
-    TextWrap,
-    DEFAULT_BOUNDS,
-    MarkdownTextWrap,
-    range,
-} from "@ourworldindata/utils"
+import { DEFAULT_BOUNDS, range } from "@ourworldindata/utils"
+import { MarkdownTextWrap, TextWrap } from "@ourworldindata/components"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { Logo, LogoOption } from "../captionedChart/Logos"

@@ -18,8 +18,8 @@ import {
     PositionMap,
     HorizontalAlign,
     Color,
-    shortenForTargetWidth,
 } from "@ourworldindata/utils"
+import { shortenForTargetWidth } from "@ourworldindata/components"
 import { action, computed, observable } from "mobx"
 import {
     BASE_FONT_SIZE,

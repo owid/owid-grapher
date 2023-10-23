@@ -1,0 +1,43 @@
+{
+    "name": "@ourworldindata/components",
+    "version": "0.0.0",
+    "description": "This package contains shared UI components and styles for the Our World in Data site and the Grapher tool.",
+    "main": "dist/index.js",
+    "directories": {
+        "lib": "src"
+    },
+    "types": "dist",
+    "scripts": {
+        "build": "rm -rf ./dist && tsc --build",
+        "watch": "tsc --watch"
+    },
+    "keywords": [],
+    "author": "",
+    "dependencies": {
+        "@fortawesome/fontawesome-svg-core": "^6.4.2",
+        "@fortawesome/free-brands-svg-icons": "^6.4.2",
+        "@fortawesome/free-solid-svg-icons": "^6.4.2",
+        "@fortawesome/react-fontawesome": "^0.2.0",
+        "@ourworldindata/utils": "workspace:^",
+        "mobx": "^5.15.7",
+        "mobx-formatters": "^1.0.2",
+        "mobx-react": "5",
+        "react": "^16.14.0",
+        "react-dom": "^16.14.0",
+        "ts-pattern": "^4.0.4"
+    },
+    "devDependencies": {
+        "@types/react": "^16.14.23",
+        "@types/react-dom": "^17.0.11",
+        "esbuild-sass-plugin": "^2.3.3",
+        "eslint": "^8.32.0",
+        "eslint-plugin-react-hooks": "^4.6.0",
+        "typescript": "~5.2.2"
+    },
+    "license": "MIT",
+    "nx": {
+        "implicitDependencies": [
+            "@ourworldindata/utils"
+        ]
+    }
+}

@@ -10,12 +10,12 @@ import {
     IReactionDisposer,
 } from "mobx"
 import { Prompt, Redirect } from "react-router-dom"
+import { extractDetailsFromSyntax } from "@ourworldindata/components"
 import {
     Bounds,
     capitalize,
     RawPageview,
     DetailDictionary,
-    extractDetailsFromSyntax,
     get,
     set,
     groupBy,

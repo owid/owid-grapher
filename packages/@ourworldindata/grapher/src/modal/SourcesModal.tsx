@@ -1,11 +1,11 @@
 import {
     Bounds,
     DEFAULT_BOUNDS,
-    SimpleMarkdownText,
     OwidOrigin,
     uniq,
     excludeNullish,
 } from "@ourworldindata/utils"
+import { SimpleMarkdownText } from "@ourworldindata/components"
 import React from "react"
 import { action, computed } from "mobx"
 import { observer } from "mobx-react"

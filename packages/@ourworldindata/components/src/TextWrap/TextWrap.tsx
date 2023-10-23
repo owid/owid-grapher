@@ -1,5 +1,10 @@
-import { isEmpty, max, stripHTML } from "../Util.js"
-import { Bounds, FontFamily } from "../Bounds.js"
+import {
+    isEmpty,
+    max,
+    stripHTML,
+    Bounds,
+    FontFamily,
+} from "@ourworldindata/utils"
 import { computed } from "mobx"
 import React from "react"
 

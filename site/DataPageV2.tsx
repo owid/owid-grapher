@@ -8,13 +8,13 @@ import {
 import {
     uniq,
     SiteFooterContext,
-    MarkdownTextWrap,
     DataPageDataV2,
     serializeJSONForHTML,
     mergePartialGrapherConfigs,
     compact,
     FaqEntryData,
 } from "@ourworldindata/utils"
+import { MarkdownTextWrap } from "@ourworldindata/components"
 import React from "react"
 import urljoin from "url-join"
 import {

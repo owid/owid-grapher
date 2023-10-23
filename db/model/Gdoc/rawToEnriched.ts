@@ -65,7 +65,6 @@ import {
     SpanSimpleText,
     omitUndefinedValues,
     EnrichedBlockSimpleText,
-    checkIsInternalLink,
     BlockImageSize,
     checkIsBlockImageSize,
     RawBlockTopicPageIntro,
@@ -101,6 +100,7 @@ import {
     EnrichedBlockEntrySummary,
     EnrichedBlockEntrySummaryItem,
 } from "@ourworldindata/utils"
+import { checkIsInternalLink } from "@ourworldindata/components"
 import {
     extractUrl,
     getTitleSupertitleFromHeadingText,

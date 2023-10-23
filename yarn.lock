@@ -4194,6 +4194,30 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@ourworldindata/components@workspace:^, @ourworldindata/components@workspace:packages/@ourworldindata/components":
+  version: 0.0.0-use.local
+  resolution: "@ourworldindata/components@workspace:packages/@ourworldindata/components"
+  dependencies:
+    "@fortawesome/fontawesome-svg-core": ^6.4.2
+    "@fortawesome/free-brands-svg-icons": ^6.4.2
+    "@fortawesome/free-solid-svg-icons": ^6.4.2
+    "@fortawesome/react-fontawesome": ^0.2.0
+    "@ourworldindata/utils": "workspace:^"
+    "@types/react": ^16.14.23
+    "@types/react-dom": ^17.0.11
+    esbuild-sass-plugin: ^2.3.3
+    eslint: ^8.32.0
+    eslint-plugin-react-hooks: ^4.6.0
+    mobx: ^5.15.7
+    mobx-formatters: ^1.0.2
+    mobx-react: 5
+    react: ^16.14.0
+    react-dom: ^16.14.0
+    ts-pattern: ^4.0.4
+    typescript: ~5.2.2
+  languageName: unknown
+  linkType: soft
+
 "@ourworldindata/core-table@workspace:^, @ourworldindata/core-table@workspace:packages/@ourworldindata/core-table":
   version: 0.0.0-use.local
   resolution: "@ourworldindata/core-table@workspace:packages/@ourworldindata/core-table"
@@ -4218,6 +4242,7 @@ __metadata:
     "@fortawesome/free-brands-svg-icons": ^6.4.2
     "@fortawesome/free-solid-svg-icons": ^6.4.2
     "@fortawesome/react-fontawesome": ^0.2.0
+    "@ourworldindata/components": "workspace:^"
     "@ourworldindata/core-table": "workspace:^"
     "@ourworldindata/utils": "workspace:^"
     "@tippyjs/react": ^4.2.6
@@ -11532,6 +11557,7 @@ __metadata:
     "@fortawesome/free-solid-svg-icons": ^6.4.2
     "@fortawesome/react-fontawesome": ^0.2.0
     "@handsontable/react": ^12.3.3
+    "@ourworldindata/components": "workspace:^"
     "@ourworldindata/core-table": "workspace:^"
     "@ourworldindata/grapher": "workspace:^"
     "@ourworldindata/utils": "workspace:^"

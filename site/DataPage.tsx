@@ -8,12 +8,12 @@ import {
 import {
     uniq,
     SiteFooterContext,
-    MarkdownTextWrap,
     DataPageGdocContent,
     DataPageJson,
     OwidGdocInterface,
     serializeJSONForHTML,
 } from "@ourworldindata/utils"
+import { MarkdownTextWrap } from "@ourworldindata/components"
 import React from "react"
 import urljoin from "url-join"
 import {

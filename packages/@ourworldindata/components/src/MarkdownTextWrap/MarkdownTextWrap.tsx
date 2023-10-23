@@ -1,8 +1,16 @@
 import React, { CSSProperties } from "react"
 import { computed } from "mobx"
 import { EveryMarkdownChildNode, MarkdownRoot, mdParser } from "./parser.js"
-import { excludeUndefined, last, sum, sumBy, imemo, max } from "../Util.js"
-import { Bounds, FontFamily } from "../Bounds.js"
+import {
+    excludeUndefined,
+    last,
+    sum,
+    sumBy,
+    imemo,
+    max,
+    Bounds,
+    FontFamily,
+} from "@ourworldindata/utils"
 import { TextWrap } from "../TextWrap/TextWrap.js"
 
 export interface IRFontParams {

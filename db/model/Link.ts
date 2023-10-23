@@ -7,12 +7,8 @@ import {
     type Relation,
     In,
 } from "typeorm"
-import {
-    OwidGdocLinkJSON,
-    getLinkType,
-    Url,
-    getUrlTarget,
-} from "@ourworldindata/utils"
+import { getLinkType, getUrlTarget } from "@ourworldindata/components"
+import { OwidGdocLinkJSON, Url } from "@ourworldindata/utils"
 import { Gdoc } from "./Gdoc/Gdoc.js"
 import { formatUrls } from "../../site/formatting.js"
 
