@@ -202,8 +202,13 @@
 
 .heading-latest__subtitle {
     display: block;
-    @include body-1-regular;
+    margin-top: 8px;
+    @include body-2-regular;
     color: $blue-60;
+
+    @include md-up {
+        @include body-1-regular;
+    }
 }
 
 .homepage-posts--explainers {
