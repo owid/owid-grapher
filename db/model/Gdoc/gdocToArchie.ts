@@ -6,9 +6,7 @@ import {
     RawBlockHorizontalRule,
     RawBlockHeading,
     isNil,
-    RawBlockTable,
     RawBlockTableRow,
-    OwidRawGdocBlock,
     RawBlockTableCell,
     RawBlockText,
 } from "@ourworldindata/utils"
