@@ -1450,7 +1450,7 @@ export class Grapher
         const { yColumnSlugs, xColumnSlug, sizeColumnSlug, colorColumnSlug } =
             this
 
-        const columnSlugs = excludeUndefined( [
+        const columnSlugs = excludeUndefined([
             ...yColumnSlugs,
             xColumnSlug,
             sizeColumnSlug,
