@@ -568,13 +568,13 @@ function* rawBlockEntrySummaryToArchieMLString(
 function* rawBlockRowToArchieMLString(
     row: RawBlockTableRow
 ): Generator<string, void, undefined> {
-    yield "{.row}"
+    yield "{.table-row}"
     const cells = row.value.cells
     if (cells) {
         yield "[.+cells]"
         for (const cell of cells) {
             const content = cell.value
-            yield "[.+cell]"
+            yield "[.+table-cell]"
             if (content) {
                 for (const rawBlock of content)
                     yield* OwidRawGdocBlockToArchieMLStringGenerator(rawBlock)
