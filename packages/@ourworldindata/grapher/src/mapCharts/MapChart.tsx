@@ -601,10 +601,7 @@ export class MapChart
                 />
             )
 
-        const {
-            colorScale: { customNumericLabels },
-            tooltipState,
-        } = this
+        const { tooltipState } = this
 
         return (
             <g
@@ -620,7 +617,6 @@ export class MapChart
                         timeSeriesTable={this.inputTable}
                         formatValue={this.formatTooltipValue}
                         manager={this.manager}
-                        customValueLabels={customNumericLabels}
                         colorScaleManager={this}
                         targetTime={this.targetTime}
                     />

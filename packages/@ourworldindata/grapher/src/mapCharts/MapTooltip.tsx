@@ -29,7 +29,6 @@ import { darkenColorForHighContrastText } from "../color/ColorUtils"
 interface MapTooltipProps {
     tooltipState: TooltipState<{ featureId: string; clickable: boolean }>
     manager: MapChartManager
-    customValueLabels: (string | undefined)[]
     colorScaleManager: ColorScaleManager
     formatValue: (d: PrimitiveType) => string
     timeSeriesTable: OwidTable
@@ -188,7 +187,6 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
         const {
             targetTime,
             formatValue,
-            customValueLabels,
             tooltipState: { target, position, fading },
         } = this.props
 
@@ -209,8 +207,12 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
             yColumn = this.sparklineTable.get(this.mapColumnSlug),
             minVal = min([yColumn.min, yAxisConfig?.min]),
             maxVal = max([yColumn.max, yAxisConfig?.max]),
-            minCustom = isNumber(minVal) && customValueLabels[minVal],
-            maxCustom = isNumber(maxVal) && customValueLabels[maxVal],
+            minCustom =
+                isNumber(minVal) &&
+                this.lineColorScale.getBinForValue(minVal)?.label,
+            maxCustom =
+                isNumber(maxVal) &&
+                this.lineColorScale.getBinForValue(maxVal)?.label,
             useCustom = isString(minCustom) && isString(maxCustom),
             minLabel = useCustom
                 ? minCustom
