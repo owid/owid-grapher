@@ -24,6 +24,7 @@ import {
 import { STATIC_EXPORT_DETAIL_SPACING } from "../core/GrapherConstants"
 import { Modal } from "./Modal"
 import { Checkbox } from "../controls/Checkbox"
+import { StaticChartRasterizer } from "../captionedChart/StaticChartRasterizer"
 
 export interface DownloadModalManager {
     idealBounds?: Bounds
@@ -96,64 +97,26 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
     @observable private isReady: boolean = false
 
     @action.bound private export(): void {
-        // render the graphic and cache a blob for svg downloads
-        const svgContent = this.manager.staticSVG,
-            type = "image/svg+xml;charset=utf-8"
-        this.svgBlob = new Blob([svgContent], { type })
+        const {
+            targetWidth: width,
+            targetHeight: height,
+            manager: { staticSVG },
+        } = this
 
-        const reader = new FileReader()
-        fetch("/fonts/embedded.css")
-            .then((data) => data.text())
-            .then((css) => {
-                // merge the embedded font data into the svg before rendering to png
-                const defs = `<defs><style>${css}</style></defs>`,
-                    embedded = svgContent.replace(/(<svg[^>]*?>)/, `$1${defs}`),
-                    blob = new Blob([embedded], { type })
-                reader.readAsDataURL(blob)
-            })
-            .catch(() => {
-                // fall back to the font-free version if something goes wrong
-                reader.readAsDataURL(this.svgBlob as Blob)
-            })
-
-        // use either the embedded-fonts svg or the fallback to render a png
-        reader.onload = (ev: any): void => {
-            this.svgPreviewUrl = ev.target.result as string
-            this.tryCreatePng(this.svgPreviewUrl)
-        }
-    }
-
-    @action.bound private tryCreatePng(svgPreviewUrl: string): void {
-        const { targetWidth, targetHeight } = this
-        // Client-side SVG => PNG export. Somewhat experimental, so there's a lot of cross-browser fiddling and fallbacks here.
-        const img = new Image()
-        img.onload = (): void => {
-            try {
-                const canvas = document.createElement("canvas")
-                // We draw the chart at 4x res then scale it down again -- much better text quality
-                canvas.width = targetWidth * 4
-                canvas.height = targetHeight * 4
-                const ctx = canvas.getContext("2d", {
-                    alpha: false,
-                }) as CanvasRenderingContext2D
-                ctx.imageSmoothingEnabled = false
-                ctx.setTransform(4, 0, 0, 4, 0, 0)
-                ctx.drawImage(img, 0, 0)
-                this.pngPreviewUrl = canvas.toDataURL("image/png")
-                canvas.toBlob((blob) => {
-                    this.pngBlob = blob ?? undefined
-                    this.markAsReady()
-                })
-            } catch (e) {
-                console.error(e)
+        // render the graphic then cache data-urls for display & blobs for downloads
+        new StaticChartRasterizer(staticSVG, width, height)
+            .render()
+            .then(({ url, blob, svgUrl, svgBlob }) => {
+                this.pngPreviewUrl = url
+                this.pngBlob = blob
+                this.svgPreviewUrl = svgUrl
+                this.svgBlob = svgBlob
                 this.markAsReady()
-            }
-        }
-        img.onerror = (err): void => {
-            console.error(JSON.stringify(err))
-            this.markAsReady()
-        }
-        img.src = svgPreviewUrl
+            })
+            .catch((err) => {
+                console.error(JSON.stringify(err))
+                this.markAsReady()
+            })
     }
 
     @computed private get csvBlob(): Blob {
