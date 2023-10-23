@@ -14,17 +14,19 @@ import { spanToHtmlString } from "./gdocUtils.js"
 import { OwidRawGdocBlockToArchieMLString } from "./rawToArchie.js"
 import { match, P } from "ts-pattern"
 
-function paragraphToString(paragraph: docs_v1.Schema$Paragraph): string {
+function paragraphToString(
+    paragraph: docs_v1.Schema$Paragraph,
+    context: { isInList: boolean }
+): string {
     let text = ""
-    let isInList = false
 
     // this is a list
     const needsBullet = !isNil(paragraph.bullet)
-    if (needsBullet && !isInList) {
-        isInList = true
+    if (needsBullet && !context.isInList) {
+        context.isInList = true
         text += `\n[.list]\n`
-    } else if (!needsBullet && isInList) {
-        isInList = false
+    } else if (!needsBullet && context.isInList) {
+        context.isInList = false
         text += `[]\n`
     }
 
@@ -84,6 +86,7 @@ function tableToString(
 ): string {
     if (!table) return ""
     let text = ""
+    const context = { isInList: false }
     const { tableRows = [] } = table
 
     const rows: RawBlockTableRow[] = []
@@ -104,7 +107,7 @@ function tableToString(
             const { content = [] } = tableCell
             for (const item of content) {
                 if (item.paragraph) {
-                    const text = paragraphToString(item.paragraph)
+                    const text = paragraphToString(item.paragraph, context)
                     const rawTextBlock: RawBlockText = {
                         type: "text",
                         value: text,
@@ -129,6 +132,7 @@ export async function gdocToArchie(
 ): Promise<{ text: string }> {
     // prepare the text holder
     let text = ""
+    const context = { isInList: false }
 
     // check if the body key and content key exists, and give up if not
     if (!document.body) return { text }
@@ -137,7 +141,7 @@ export async function gdocToArchie(
     // loop through each content element in the body
     for (const element of document.body.content) {
         if (element.paragraph) {
-            text += paragraphToString(element.paragraph)
+            text += paragraphToString(element.paragraph, context)
         } else if (element.table) {
             text += tableToString(element.table)
         }
@@ -149,7 +153,6 @@ function parseParagraph(
     element: docs_v1.Schema$ParagraphElement
 ): Span | RawBlockHorizontalRule | null {
     // pull out the text
-
     const textRun = element.textRun
 
     // sometimes it's not there, skip this all if so
