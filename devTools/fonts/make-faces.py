@@ -122,6 +122,7 @@ def make_embedded_face(font):
 
     css = [
         '@font-face {',
+        'font-display: block;',
         f'font-family: "{family}";',
         f'font-weight: {weight};',
         f'font-style: {style};',
