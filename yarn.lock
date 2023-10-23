@@ -5794,6 +5794,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@yarnpkg/types@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "@yarnpkg/types@npm:4.0.0"
+  dependencies:
+    tslib: "npm:^2.4.0"
+  checksum: f9670e120761a4d17461df2f01aa4b92213fbdd063501a36145d11ea01bd87ba01d44615cba3d6bc8f9bfc39a03a9a6452bf0436c7fb0c9c5311352b975349e6
+  languageName: node
+  linkType: hard
+
 "@zkochan/js-yaml@npm:0.0.6":
   version: 0.0.6
   resolution: "@zkochan/js-yaml@npm:0.0.6"
@@ -11551,6 +11560,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:^6.0.0"
     "@typescript-eslint/parser": "npm:^6.0.0"
     "@vitejs/plugin-react": "npm:^4.1.0"
+    "@yarnpkg/types": "npm:^4.0.0"
     algoliasearch: "npm:^4.19.1"
     antd: "npm:^4.23.1"
     archieml: "npm:^0.5.0"
