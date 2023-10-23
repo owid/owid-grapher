@@ -3890,15 +3890,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nrwl/cli@npm:15.3.0":
-  version: 15.3.0
-  resolution: "@nrwl/cli@npm:15.3.0"
-  dependencies:
-    nx: 15.3.0
-  checksum: 36b4d734b926ef595666a3f1545112a65129514480c8aa04a1f31e8150a71f0fd93a74be8042adae056eb3af4aca13f3cd337a8f1371d621de4c35f0625763f0
-  languageName: node
-  linkType: hard
-
 "@nrwl/cli@npm:15.9.7":
   version: 15.9.7
   resolution: "@nrwl/cli@npm:15.9.7"
@@ -3983,17 +3974,6 @@ __metadata:
   version: 15.9.7
   resolution: "@nrwl/nx-win32-x64-msvc@npm:15.9.7"
   conditions: os=win32 & cpu=x64
-  languageName: node
-  linkType: hard
-
-"@nrwl/tao@npm:15.3.0":
-  version: 15.3.0
-  resolution: "@nrwl/tao@npm:15.3.0"
-  dependencies:
-    nx: 15.3.0
-  bin:
-    tao: index.js
-  checksum: de5f288bc262332767fdbd9df4f2c74522c1bc0d31f8166f05caa39b3cca1dd6854c1ac2ed49e94bf59c457e20b2d268af075cc145cde34db80ff399c87a3928
   languageName: node
   linkType: hard
 
@@ -5804,7 +5784,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@yarnpkg/parsers@npm:3.0.0-rc.46, @yarnpkg/parsers@npm:^3.0.0-rc.18":
+"@yarnpkg/parsers@npm:3.0.0-rc.46":
   version: 3.0.0-rc.46
   resolution: "@yarnpkg/parsers@npm:3.0.0-rc.46"
   dependencies:
@@ -7115,16 +7095,6 @@ __metadata:
   version: 0.12.0
   resolution: "caseless@npm:0.12.0"
   checksum: b43bd4c440aa1e8ee6baefee8063b4850fd0d7b378f6aabc796c9ec8cb26d27fb30b46885350777d9bd079c5256c0e1329ad0dc7c2817e0bb466810ebb353751
-  languageName: node
-  linkType: hard
-
-"chalk@npm:4.1.0":
-  version: 4.1.0
-  resolution: "chalk@npm:4.1.0"
-  dependencies:
-    ansi-styles: ^4.1.0
-    supports-color: ^7.1.0
-  checksum: 5561c7b4c063badee3e16d04bce50bd033e1be1bf4c6948639275683ffa7a1993c44639b43c22b1c505f0f813a24b1889037eb182546b48946f9fe7cdd0e7d13
   languageName: node
   linkType: hard
 
@@ -10883,17 +10853,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fs-extra@npm:^10.1.0":
-  version: 10.1.0
-  resolution: "fs-extra@npm:10.1.0"
-  dependencies:
-    graceful-fs: ^4.2.0
-    jsonfile: ^6.0.1
-    universalify: ^2.0.0
-  checksum: dc94ab37096f813cc3ca12f0f1b5ad6744dfed9ed21e953d72530d103cea193c2f81584a39e9dee1bea36de5ee66805678c0dddc048e8af1427ac19c00fffc50
-  languageName: node
-  linkType: hard
-
 "fs-extra@npm:^11.1.0, fs-extra@npm:^11.1.1":
   version: 11.1.1
   resolution: "fs-extra@npm:11.1.1"
@@ -11656,7 +11615,7 @@ __metadata:
     mysql: ^2.18.1
     nodejs-polars: ^0.7.2
     normalize.css: ^8.0.1
-    nx: 15.3.0
+    nx: ^15.9.7
     openai: ^4.6.0
     opener: ^1.5.2
     p-map: ^4.0.0
@@ -15471,60 +15430,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nx@npm:15.3.0":
-  version: 15.3.0
-  resolution: "nx@npm:15.3.0"
-  dependencies:
-    "@nrwl/cli": 15.3.0
-    "@nrwl/tao": 15.3.0
-    "@parcel/watcher": 2.0.4
-    "@yarnpkg/lockfile": ^1.1.0
-    "@yarnpkg/parsers": ^3.0.0-rc.18
-    "@zkochan/js-yaml": 0.0.6
-    axios: ^1.0.0
-    chalk: 4.1.0
-    chokidar: ^3.5.1
-    cli-cursor: 3.1.0
-    cli-spinners: 2.6.1
-    cliui: ^7.0.2
-    dotenv: ~10.0.0
-    enquirer: ~2.3.6
-    fast-glob: 3.2.7
-    figures: 3.2.0
-    flat: ^5.0.2
-    fs-extra: ^10.1.0
-    glob: 7.1.4
-    ignore: ^5.0.4
-    js-yaml: 4.1.0
-    jsonc-parser: 3.2.0
-    minimatch: 3.0.5
-    npm-run-path: ^4.0.1
-    open: ^8.4.0
-    semver: 7.3.4
-    string-width: ^4.2.3
-    strong-log-transformer: ^2.1.0
-    tar-stream: ~2.2.0
-    tmp: ~0.2.1
-    tsconfig-paths: ^3.9.0
-    tslib: ^2.3.0
-    v8-compile-cache: 2.3.0
-    yargs: ^17.6.2
-    yargs-parser: 21.1.1
-  peerDependencies:
-    "@swc-node/register": ^1.4.2
-    "@swc/core": ^1.2.173
-  peerDependenciesMeta:
-    "@swc-node/register":
-      optional: true
-    "@swc/core":
-      optional: true
-  bin:
-    nx: bin/nx.js
-  checksum: f6b1bcc0216b7ca44e6abe24959ecce0e18a6402a465bfd8b7ebb11465ac1a9728ef722c8debcb9a7098595a7ca83eb2807be05c87c33f3ad354ff11c32460f8
-  languageName: node
-  linkType: hard
-
-"nx@npm:15.9.7, nx@npm:>=14.8.6 < 16":
+"nx@npm:15.9.7, nx@npm:>=14.8.6 < 16, nx@npm:^15.9.7":
   version: 15.9.7
   resolution: "nx@npm:15.9.7"
   dependencies:
@@ -18390,17 +18296,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"semver@npm:7.3.4":
-  version: 7.3.4
-  resolution: "semver@npm:7.3.4"
-  dependencies:
-    lru-cache: ^6.0.0
-  bin:
-    semver: bin/semver.js
-  checksum: 96451bfd7cba9b60ee87571959dc47e87c95b2fe58a9312a926340fee9907fc7bc062c352efdaf5bb24b2dff59c145e14faf7eb9d718a84b4751312531b39f43
-  languageName: node
-  linkType: hard
-
 "semver@npm:7.5.4, semver@npm:^7.0.0, semver@npm:^7.1.1, semver@npm:^7.3.4, semver@npm:^7.3.5, semver@npm:^7.3.7, semver@npm:^7.3.8, semver@npm:^7.5.0, semver@npm:^7.5.3, semver@npm:^7.5.4":
   version: 7.5.4
   resolution: "semver@npm:7.5.4"
@@ -19819,7 +19714,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tsconfig-paths@npm:^3.14.1, tsconfig-paths@npm:^3.9.0":
+"tsconfig-paths@npm:^3.14.1":
   version: 3.14.2
   resolution: "tsconfig-paths@npm:3.14.2"
   dependencies:

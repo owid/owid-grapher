@@ -163,7 +163,7 @@
         "mysql": "^2.18.1",
         "nodejs-polars": "^0.7.2",
         "normalize.css": "^8.0.1",
-        "nx": "15.3.0",
+        "nx": "^15.9.7",
         "openai": "^4.6.0",
         "p-map": "^4.0.0",
         "papaparse": "^5.3.1",
