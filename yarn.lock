@@ -4170,7 +4170,7 @@ __metadata:
     "@types/react": "npm:^16.14.23"
     "@types/react-dom": "npm:^17.0.11"
     esbuild-sass-plugin: "npm:^2.3.3"
-    eslint: "npm:^8.32.0"
+    eslint: "npm:^8.44.0"
     eslint-plugin-react-hooks: "npm:^4.6.0"
     mobx: "npm:^5.15.7"
     mobx-formatters: "npm:^1.0.2"
@@ -4190,7 +4190,7 @@ __metadata:
     "@types/d3": "npm:^6"
     d3: "npm:^6.1.1"
     dayjs: "npm:^1.11.5"
-    eslint: "npm:^8.32.0"
+    eslint: "npm:^8.44.0"
     typescript: "npm:~5.2.2"
   languageName: unknown
   linkType: soft
@@ -4229,7 +4229,7 @@ __metadata:
     enzyme: "npm:^3.11.0"
     enzyme-adapter-react-16: "npm:^1.15.6"
     esbuild-sass-plugin: "npm:^2.3.3"
-    eslint: "npm:^8.32.0"
+    eslint: "npm:^8.44.0"
     eslint-plugin-react-hooks: "npm:^4.6.0"
     expr-eval: "npm:^2.0.2"
     fuzzysort: "npm:^1.1.4"
@@ -4270,7 +4270,7 @@ __metadata:
     "@types/url-parse": "npm:^1.4.8"
     d3: "npm:^6.1.1"
     dayjs: "npm:^1.11.5"
-    eslint: "npm:^8.32.0"
+    eslint: "npm:^8.44.0"
     eslint-plugin-react-hooks: "npm:^4.6.0"
     jest: "npm:^29.7.0"
     json8-pointer: "npm:^1.0.6"
@@ -10033,7 +10033,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint@npm:^8.32.0, eslint@npm:^8.44.0":
+"eslint@npm:^8.44.0":
   version: 8.44.0
   resolution: "eslint@npm:8.44.0"
   dependencies:

@@ -30,7 +30,7 @@
         "@types/react": "^16.14.23",
         "@types/react-dom": "^17.0.11",
         "esbuild-sass-plugin": "^2.3.3",
-        "eslint": "^8.32.0",
+        "eslint": "^8.44.0",
         "eslint-plugin-react-hooks": "^4.6.0",
         "typescript": "~5.2.2"
     },
