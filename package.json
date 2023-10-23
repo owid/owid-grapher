@@ -4,7 +4,7 @@
     "engines": {
         "node": ">=18.16"
     },
-    "packageManager": "yarn@3.3.0",
+    "packageManager": "yarn@4.0.0",
     "volta": {
         "node": "18.16.1",
         "yarn": "3.3.0"
@@ -230,6 +230,7 @@
         "@typescript-eslint/eslint-plugin": "^6.0.0",
         "@typescript-eslint/parser": "^6.0.0",
         "@vitejs/plugin-react": "^4.1.0",
+        "@yarnpkg/types": "^4.0.0",
         "chokidar": "^3.5.3",
         "cypress": "9.3.1",
         "eslint-config-prettier": "^8.8.0",
