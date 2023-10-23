@@ -124,7 +124,6 @@ export const DataPageV2Content = ({
         relatedCharts = [],
     } = faqEntries ?? {}
 
-    // TODO: convert the key info points to a gdoc like list; show descriptionShort if no key info
     const keyInfoBlocks = datapageData?.descriptionKey
         ? excludeNullish(
               datapageData.descriptionKey.flatMap(markdownToEnrichedTextBlock)
