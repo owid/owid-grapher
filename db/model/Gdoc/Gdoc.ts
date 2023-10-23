@@ -182,7 +182,6 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
 
         // Convert the doc to ArchieML syntax
         const { text } = await gdocToArchie(data)
-        console.log("text", text)
 
         // Convert the ArchieML to our enriched JSON structure
         this.content = archieToEnriched(text)
