@@ -464,15 +464,10 @@ h3.article-block__heading.has-supertitle {
     border-collapse: collapse;
     margin-bottom: 32px;
 
-    &.article-block__table--header-column {
-        th {
-            text-align: left;
-        }
-    }
-
-    &.article-block__table--header-column-row {
-        th:not([scope="row"]):not([scope="col"]) {
-            text-align: left;
+    th {
+        text-align: left;
+        &[scope="col"] {
+            text-align: right;
         }
     }
 
