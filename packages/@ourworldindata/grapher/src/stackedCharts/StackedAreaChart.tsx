@@ -547,6 +547,8 @@ export class StackedAreaChart
     }
 
     @computed get lineLegendX(): number {
+        if (this.manager.isTimelineAnimationActive && this.manager.endTime)
+            return this.xAxis.place(this.manager.endTime)
         return this.legendDimensions
             ? this.bounds.right - this.legendDimensions.width
             : 0

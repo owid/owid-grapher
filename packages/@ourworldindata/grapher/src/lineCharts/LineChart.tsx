@@ -674,7 +674,9 @@ export class LineChart
     }
 
     @computed get lineLegendX(): number {
-        return this.bounds.right - (this.lineLegendDimensions?.width || 0)
+        return this.manager.isTimelineAnimationActive && this.manager.endTime
+            ? this.xAxis.place(this.manager.endTime)
+            : this.bounds.right - (this.lineLegendDimensions?.width || 0)
     }
 
     @computed get clipPathBounds(): Bounds {
@@ -1135,9 +1137,20 @@ export class LineChart
 
     @computed private get horizontalAxisPart(): HorizontalAxis {
         const axis = this.xAxisConfig.toHorizontalAxis()
-        axis.updateDomainPreservingUserSettings(
-            this.transformedTable.timeDomainFor(this.yColumnSlugs)
-        )
+        if (
+            this.manager.isTimelineAnimationActive &&
+            this.manager.animationStartTime !== undefined &&
+            this.manager.animationEndTime !== undefined
+        ) {
+            axis.domain = [
+                this.manager.animationStartTime,
+                this.manager.animationEndTime,
+            ]
+        } else {
+            axis.updateDomainPreservingUserSettings(
+                this.transformedTable.timeDomainFor(this.yColumnSlugs)
+            )
+        }
         axis.scaleType = ScaleType.linear
         axis.formatColumn = this.inputTable.timeColumn
         axis.hideFractionalTicks = true

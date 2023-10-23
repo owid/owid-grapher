@@ -2,7 +2,7 @@ import { DualAxis } from "../axis/Axis"
 import { ChartManager } from "../chart/ChartManager"
 import { SeriesName } from "../core/GrapherConstants"
 import { ChartSeries } from "../chart/ChartInterface"
-import { CoreValueType } from "@ourworldindata/core-table"
+import { CoreValueType, Time } from "@ourworldindata/core-table"
 import { Color } from "@ourworldindata/utils"
 
 export interface LinePoint {
@@ -39,4 +39,8 @@ export interface LinesProps {
 export interface LineChartManager extends ChartManager {
     lineStrokeWidth?: number
     canSelectMultipleEntities?: boolean
+    isTimelineAnimationActive?: boolean
+    animationStartTime?: Time
+    animationEndTime?: Time
+    endTime?: Time
 }

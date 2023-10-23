@@ -182,6 +182,7 @@ import { MarimekkoChartManager } from "../stackedCharts/MarimekkoChartConstants"
 import { AxisConfigInterface } from "../axis/AxisConfigInterface"
 import Bugsnag from "@bugsnag/js"
 import { FacetChartManager } from "../facetChart/FacetChartConstants"
+import { AbtractStackedChartManager } from "../stackedCharts/AbstractStackedChart"
 
 declare const window: any
 
@@ -316,7 +317,8 @@ export class Grapher
         FacetChartManager,
         EntitySelectorModalManager,
         SettingsMenuManager,
-        MapChartManager
+        MapChartManager,
+        AbtractStackedChartManager
 {
     @observable.ref $schema = DEFAULT_GRAPHER_CONFIG_SCHEMA
     @observable.ref type = ChartTypeName.LineChart
@@ -763,7 +765,11 @@ export class Grapher
     @observable.ref isGeneratingThumbnail = false
 
     tooltips?: TooltipManager["tooltips"] = observable.map({}, { deep: false })
-    @observable isPlaying = false
+
+    @observable.ref isPlaying = false
+    @observable.ref isTimelineAnimationActive = false // true if the timeline animation is either playing or paused but not finished
+    @observable.ref animationStartTime: Time | undefined = undefined
+
     @observable.ref isSelectingData = false
 
     @observable.ref isSourcesModalOpen = false
@@ -2776,6 +2782,17 @@ export class Grapher
 
     @computed get disablePlay(): boolean {
         return this.isSlopeChart
+    }
+
+    @computed get animationEndTime(): Time {
+        const { timeColumn } = this.tableAfterAuthorTimelineFilter
+        if (this.timelineMaxTime) {
+            return (
+                findClosestTime(timeColumn.uniqValues, this.timelineMaxTime) ??
+                timeColumn.maxTime
+            )
+        }
+        return timeColumn.maxTime
     }
 
     formatTime(value: Time): string {

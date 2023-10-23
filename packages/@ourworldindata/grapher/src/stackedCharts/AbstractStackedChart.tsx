@@ -24,7 +24,7 @@ import {
     StackedRawSeries,
     StackedSeries,
 } from "./StackedConstants"
-import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
+import { OwidTable, CoreColumn, Time } from "@ourworldindata/core-table"
 import {
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
@@ -38,9 +38,16 @@ import { CategoricalBin } from "../color/ColorScaleBin"
 import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends"
 import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner.js"
 
+export interface AbtractStackedChartManager extends ChartManager {
+    isTimelineAnimationActive?: boolean
+    animationStartTime?: Time
+    animationEndTime?: Time
+    endTime?: Time
+}
+
 export interface AbstractStackedChartProps {
     bounds?: Bounds
-    manager: ChartManager
+    manager: AbtractStackedChartManager
     enableLinearInterpolation?: boolean // defaults to true
 }
 
@@ -104,9 +111,10 @@ export class AbstractStackedChart
         )
     }
 
-    @computed get manager(): ChartManager {
+    @computed get manager(): AbtractStackedChartManager {
         return this.props.manager
     }
+
     @computed get bounds(): Bounds {
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
@@ -203,9 +211,20 @@ export class AbstractStackedChart
 
     @computed private get horizontalAxisPart(): HorizontalAxis {
         const axis = this.xAxisConfig.toHorizontalAxis()
-        axis.updateDomainPreservingUserSettings(
-            this.transformedTable.timeDomainFor(this.yColumnSlugs)
-        )
+        if (
+            this.manager.isTimelineAnimationActive &&
+            this.manager.animationStartTime !== undefined &&
+            this.manager.animationEndTime !== undefined
+        ) {
+            axis.domain = [
+                this.manager.animationStartTime,
+                this.manager.animationEndTime,
+            ]
+        } else {
+            axis.updateDomainPreservingUserSettings(
+                this.transformedTable.timeDomainFor(this.yColumnSlugs)
+            )
+        }
         axis.formatColumn = this.inputTable.timeColumn
         axis.hideFractionalTicks = true
         return axis

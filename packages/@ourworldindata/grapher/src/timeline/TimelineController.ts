@@ -10,12 +10,13 @@ export interface TimelineManager {
     disablePlay?: boolean
     formatTimeFn?: (time: Time) => string
     isPlaying?: boolean
-    userHasSetTimeline?: boolean
     times: Time[]
     startHandleTimeBound: TimeBound
     endHandleTimeBound: TimeBound
     msPerTick?: number
     onPlay?: () => void
+    isTimelineAnimationActive?: boolean
+    animationStartTime?: Time
 }
 
 const delay = (ms: number): Promise<void> =>
@@ -89,6 +90,8 @@ export class TimelineController {
     async play(numberOfTicks?: number): Promise<number> {
         const { manager } = this
         manager.isPlaying = true
+        manager.isTimelineAnimationActive = true
+        manager.animationStartTime = this.startTime
 
         if (this.isAtEnd()) this.resetToBeginning()
 
@@ -113,10 +116,16 @@ export class TimelineController {
 
     private stop(): void {
         this.manager.isPlaying = false
+        this.manager.isTimelineAnimationActive = false
+        this.manager.animationStartTime = undefined
     }
 
     private pause(): void {
         this.manager.isPlaying = false
+    }
+
+    onDrag(): void {
+        this.stop()
     }
 
     async togglePlay(): Promise<void> {
