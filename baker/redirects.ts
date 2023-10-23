@@ -57,14 +57,6 @@ export const getRedirects = async () => {
         "/grapher/exports/* https://assets.ourworldindata.org/grapher/exports/:splat 301",
     ]
 
-    const formatWpUrl = (url: string) => {
-        if (url === "/") return url
-
-        return url
-            .replace(/__/g, "/") // replace __: abc__xyz -> abc/xyz
-            .replace(/\/$/, "") // remove trailing slash: /abc/ -> /abc
-    }
-
     // Redirects from Wordpress admin UI
     const wpRedirectRows = await wpdb.singleton.query(
         `SELECT url, action_data, action_code FROM wp_redirection_items WHERE status = 'enabled'`
@@ -77,18 +69,10 @@ export const getRedirects = async () => {
     )
 
     // Redirect old slugs to new slugs
-    const chartRedirectRows: Array<{
-        slug: string
-        chart_id: number
-        trueSlug: string
-    }> = await db.queryMysql(`
-    SELECT chart_slug_redirects.slug, chart_id, charts.config ->> "$.slug" as trueSlug
-    FROM chart_slug_redirects INNER JOIN charts ON charts.id=chart_id
-`)
-
-    const grapherRedirects = chartRedirectRows
-        .filter((row) => row.slug !== row.trueSlug)
-        .map((row) => `/grapher/${row.slug} /grapher/${row.trueSlug} 302`)
+    const grapherRedirectsMap = await getGrapherRedirectsMap()
+    const grapherRedirects = Array.from(grapherRedirectsMap).map(
+        ([oldSlug, newSlug]) => `${oldSlug} ${newSlug} 302`
+    )
 
     // Add newlines in between so we get some more overview
     return [
@@ -102,38 +86,57 @@ export const getRedirects = async () => {
     ]
 }
 
+export const getGrapherRedirectsMap = async (
+    urlPrefix: string = "/grapher/"
+) => {
+    const chartRedirectRows = (await db.queryMysql(`-- sql
+        SELECT chart_slug_redirects.slug as oldSlug, charts.config ->> "$.slug" as newSlug
+        FROM chart_slug_redirects INNER JOIN charts ON charts.id=chart_id
+    `)) as Array<{ oldSlug: string; newSlug: string }>
+
+    return new Map(
+        chartRedirectRows
+            .filter((row) => row.oldSlug !== row.newSlug)
+            .map((row) => [
+                `${urlPrefix}${row.oldSlug}`,
+                `${urlPrefix}${row.newSlug}`,
+            ])
+    )
+}
+
+const formatWpUrl = (url: string) => {
+    if (url === "/") return url
+
+    return url
+        .replace(/__/g, "/") // replace __: abc__xyz -> abc/xyz
+        .replace(/\/$/, "") // remove trailing slash: /abc/ -> /abc
+}
+
+export const getWordpressRedirectsMap = async () => {
+    const wordpressRedirectRows = (await wpdb.singleton.query(
+        `SELECT url, action_data FROM wp_redirection_items WHERE status = 'enabled'`
+    )) as Array<{ url: string; action_data: string }>
+
+    return new Map(
+        wordpressRedirectRows.map((row) => [
+            formatWpUrl(row.url),
+            formatWpUrl(row.action_data),
+        ])
+    )
+}
+
 export const getGrapherAndWordpressRedirectsMap = memoize(
     async (): Promise<Map<string, string>> => {
         // source: pathnames only (e.g. /transport)
         // target: pathnames with or without origins (e.g. /transport-new or https://ourworldindata.org/transport-new)
-        const redirects = new Map()
 
-        // todo(refactor): export as function to reuse in getRedirects?
-        const chartRedirectRows = await db.queryMysql(`
-        SELECT chart_slug_redirects.slug, JSON_EXTRACT(charts.config, "$.slug") as trueSlug
-        FROM chart_slug_redirects INNER JOIN charts ON charts.id=chart_id
-    `)
-
-        // todo(refactor) : export as function to reuse in getRedirects?
-        const wordpressRedirectRows = await wpdb.singleton.query(
-            `SELECT url, action_data FROM wp_redirection_items WHERE status = 'enabled'`
-        )
+        const grapherRedirects = await getGrapherRedirectsMap()
+        const wordpressRedirects = await getWordpressRedirectsMap()
 
         // The order the redirects are added to the map is important. Adding the
         // Wordpress redirects last means that Wordpress redirects can overwrite
         // grapher redirects.
-        for (const row of chartRedirectRows) {
-            const trueSlug = JSON.parse(row.trueSlug)
-            if (row.slug !== trueSlug) {
-                redirects.set(`/grapher/${row.slug}`, `/grapher/${trueSlug}`)
-            }
-        }
-
-        for (const row of wordpressRedirectRows) {
-            redirects.set(row.url, row.action_data)
-        }
-
-        return redirects
+        return new Map([...grapherRedirects, ...wordpressRedirects])
     }
 )
 
