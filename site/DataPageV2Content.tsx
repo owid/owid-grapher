@@ -17,7 +17,6 @@ import {
     uniq,
     pick,
     capitalize,
-    getWindowUrl,
 } from "@ourworldindata/utils"
 import { markdownToEnrichedTextBlock } from "@ourworldindata/components"
 import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
@@ -724,7 +723,6 @@ export const DataPageV2Content = ({
                                                                                                 source.citationFull
                                                                                             }
                                                                                             theme="light"
-                                                                                            isTruncated
                                                                                         />
                                                                                     </div>
                                                                                 )}
