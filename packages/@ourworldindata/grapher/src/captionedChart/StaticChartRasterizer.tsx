@@ -47,18 +47,18 @@ export class StaticChartRasterizer {
         // text drawn in non-loaded fonts will simply be invisible). This method will block rendering
         // for up to {retries × delay} seconds or until it verifies that all the fonts in the `faces`
         // array are ready for use
-        const MAX_RETRIES = 5,
+        const MAX_RETRIES = 10,
             RETRY_DELAY_MS = 100
 
         const faces = [
             { font: "40px Lato", offset: 17 },
             { font: "bold 40px Lato", offset: 17 },
-            { font: "500 75px 'Playfair Display'", offset: 27 },
+            { font: "75px 'Playfair Display'", offset: 27 },
         ]
 
         for (let retry = 0; retry < MAX_RETRIES; retry++) {
             const ctx = canvas.getContext("2d", { alpha: false })!
-            const outcomes = []
+            const outcomes: boolean[] = []
 
             for (const { font, offset } of faces) {
                 // draw a bullet character that's big enough to fill the entire 10×10 canvas
@@ -79,13 +79,25 @@ export class StaticChartRasterizer {
                 // nothing will be drawn and the pixels will all be transparent black
                 const pixels = ctx.getImageData(0, 0, 10, 10)?.data ?? [],
                     didDraw = pixels.length && pixels.every((ch) => ch === 255)
-                outcomes.push(didDraw)
+                outcomes.push(!!didDraw)
             }
 
-            // check that all the fonts rendered correctly
-            if (outcomes.every((result) => result)) break
-            else await new Promise((res) => setTimeout(res, RETRY_DELAY_MS))
+            // check that all the fonts rendered correctly and exit if so
+            if (outcomes.every((result) => result)) return
+
+            // otherwise, keep retrying until we reach the time limit
+            console.warn(
+                "preloading fonts...",
+                faces.filter((f, i) => !outcomes[i]).map((f) => f.font)
+            )
+            await new Promise((res) =>
+                setTimeout(res, RETRY_DELAY_MS + (retry * RETRY_DELAY_MS) / 2)
+            )
         }
+
+        // if the function didn't return from within the loop, the embedded fonts aren't usable
+        // so don't try to insert them when rendering the chart
+        this.embeddedFonts = ""
     }
 
     async render(): Promise<{
