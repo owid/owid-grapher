@@ -5,17 +5,30 @@ export const onRequestGet: PagesFunction = async (context) => {
 
     const { request, env, params } = context
 
-    const slug = params.slug as string
+    const originalSlug = params.slug as string
     const url = new URL(request.url)
 
     // All our grapher slugs are lowercase by convention.
     // To allow incoming links that may contain uppercase characters to work, we redirect to the lowercase version.
+    // We also then resolve redirects using the /grapher/_grapherRedirects.json file.
     // We do this before we even know that the page exists, so even if we redirect it might still be a 404, or go into another redirect.
-    if (
-        url.pathname !== url.pathname.toLowerCase() &&
-        url.pathname !== "/grapher/embedCharts.js"
-    ) {
-        const redirUrl = url.pathname.toLowerCase() + url.search
+    let currentSlug = originalSlug.toLowerCase()
+    const redirects = await env.ASSETS.fetch(
+        new URL("/grapher/_grapherRedirects.json", url),
+        { cf: { cacheTtl: 2 * 60 } }
+    )
+        .then((r): Promise<Record<string, string>> => r.json())
+        .catch((e) => {
+            console.error("Error fetching redirects", e)
+            return {}
+        })
+
+    if (redirects[currentSlug]) {
+        currentSlug = redirects[currentSlug]
+    }
+
+    if (currentSlug !== originalSlug) {
+        const redirUrl = `/grapher/${currentSlug}` + url.search
         return new Response(null, {
             status: 302,
             headers: { Location: redirUrl },
@@ -28,7 +41,7 @@ export const onRequestGet: PagesFunction = async (context) => {
 
     // For local testing
     // const grapherPageResp = await fetch(
-    //     `https://ourworldindata.org/grapher/${slug}`,
+    //     `https://ourworldindata.org/grapher/${currentSlug}`,
     //     { redirect: "manual" }
     // )
 
@@ -36,10 +49,10 @@ export const onRequestGet: PagesFunction = async (context) => {
     // In the case of the redirect, the browser will then request the new URL which will again be handled by this worker.
     if (grapherPageResp.status !== 200) return grapherPageResp
 
-    const openGraphThumbnailUrl = `/grapher/thumbnail/${slug}.png?imType=og${
+    const openGraphThumbnailUrl = `/grapher/thumbnail/${currentSlug}.png?imType=og${
         search ? "&" + search.slice(1) : ""
     }`
-    const twitterThumbnailUrl = `/grapher/thumbnail/${slug}.png?imType=twitter${
+    const twitterThumbnailUrl = `/grapher/thumbnail/${currentSlug}.png?imType=twitter${
         search ? "&" + search.slice(1) : ""
     }`
 
