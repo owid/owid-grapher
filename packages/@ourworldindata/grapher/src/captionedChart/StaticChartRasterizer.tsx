@@ -61,6 +61,7 @@ export class StaticChartRasterizer {
             const outcomes = []
 
             for (const { font, offset } of faces) {
+                // draw a bullet character that's big enough to fill the entire 10×10 canvas
                 const testBlob = blobFromSVG(
                         `<svg xmlns="http://www.w3.org/2000/svg" version="1.1" style="font:${font};" width="10" height="10" viewBox="0 0 10 10">
                          <defs><style>${this.embeddedFonts}</style></defs>
@@ -72,7 +73,6 @@ export class StaticChartRasterizer {
 
                 canvas.width = 10
                 canvas.height = 10
-                ctx.imageSmoothingEnabled = false
                 ctx.drawImage(testImage, 0, 0)
 
                 // ensure that all the pixels have been painted opaque white; if the font hasn't loaded yet,
@@ -94,8 +94,7 @@ export class StaticChartRasterizer {
         svgUrl: string
         svgBlob: Blob
     }> {
-        // make sure .valdate() has completed and fonts have been retrieved before proceeding
-        // by blocking on the canvas promise
+        // await the canvas first before anything else to make sure .preloadFonts() has completed
         const canvas = await this.canvas
 
         // create an Image object using the chart's svg, but with embedded fonts swapped in for
