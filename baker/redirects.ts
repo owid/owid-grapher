@@ -68,19 +68,11 @@ export const getRedirects = async () => {
             }`
     )
 
-    // Redirect old slugs to new slugs
-    const grapherRedirectsMap = await getGrapherRedirectsMap()
-    const grapherRedirects = Array.from(grapherRedirectsMap).map(
-        ([oldSlug, newSlug]) => `${oldSlug} ${newSlug} 302`
-    )
-
     // Add newlines in between so we get some more overview
     return [
         ...staticRedirects,
         "",
         ...wpRedirects,
-        "",
-        ...grapherRedirects,
         "",
         ...dynamicRedirects, // Cloudflare requires all dynamic redirects to be at the very end of the _redirects file
     ]

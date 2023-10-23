@@ -636,7 +636,7 @@ export class SiteBaker {
         const grapherRedirects = await getGrapherRedirectsMap("")
         await this.stageWrite(
             path.join(this.bakedSiteDir, `grapher/_grapherRedirects.json`),
-            JSON.stringify(Object.fromEntries(grapherRedirects))
+            JSON.stringify(Object.fromEntries(grapherRedirects), null, 2)
         )
 
         this.progressBar.tick({ name: "✅ baked redirects" })
