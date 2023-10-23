@@ -759,13 +759,16 @@ export class ScatterPlotChart
                 <VerticalColorLegend manager={this} />
                 {sizeLegend && (
                     <>
-                        <line
-                            x1={bounds.right - sidebarWidth}
-                            y1={sizeLegendY - 14}
-                            x2={bounds.right - 5}
-                            y2={sizeLegendY - 14}
-                            stroke="#ccc"
-                        />
+                    {(this.activeColors.length > 1) && (
+                            <line
+                                x1={bounds.right - sidebarWidth}
+                                y1={sizeLegendY - 14}
+                                x2={bounds.right - 5}
+                                y2={sizeLegendY - 14}
+                                stroke="#ccc"
+                            />
+                            )
+                    }
                         {sizeLegend.render(this.legendX, sizeLegendY)}
                     </>
                 )}
