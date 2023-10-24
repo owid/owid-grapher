@@ -159,10 +159,6 @@
 .homepage-posts {
     background-color: $blue-10;
 
-    h2 {
-        @include posts-heading;
-    }
-
     .see-all {
         display: flex;
         justify-content: center;
@@ -193,6 +189,25 @@
         .icon {
             margin-left: 0.5rem;
         }
+    }
+}
+
+.heading-latest {
+    font-family: $serif-font-stack;
+    font-size: 1.75rem;
+    font-weight: bold;
+    line-height: 1.2;
+    margin: 0 0 2 * $vertical-spacing;
+}
+
+.heading-latest__subtitle {
+    display: block;
+    margin-top: 8px;
+    @include body-2-regular;
+    color: $blue-60;
+
+    @include md-up {
+        @include body-1-regular;
     }
 }
 

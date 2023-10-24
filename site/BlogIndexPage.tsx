@@ -13,7 +13,7 @@ export const BlogIndexPage = (props: {
 }) => {
     const { posts, pageNum, numPages, baseUrl } = props
     const pageNums = range(1, numPages + 1)
-    const pageTitle = "Our latest work"
+    const pageTitle = "Latest"
 
     return (
         <html>
@@ -30,7 +30,14 @@ export const BlogIndexPage = (props: {
 
                 <main className="wrapper">
                     <div className="site-content">
-                        <h2>{pageTitle}</h2>
+                        <h2 className="heading-latest">
+                            {pageTitle}
+                            <span className="sr-only">:</span>
+                            <span className="heading-latest__subtitle">
+                                Our latest articles, updates and announcements
+                            </span>
+                        </h2>
+
                         <ul className="posts">
                             {posts.map((post) => (
                                 <li key={post.slug} className="post">
@@ -40,11 +47,8 @@ export const BlogIndexPage = (props: {
                         </ul>
                         <nav
                             className="navigation pagination"
-                            role="navigation"
+                            aria-label="Posts"
                         >
-                            <h2 className="screen-reader-text">
-                                Posts navigation
-                            </h2>
                             <div className="nav-link">
                                 {pageNums.map((num) => (
                                     <a
