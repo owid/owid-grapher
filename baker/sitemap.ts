@@ -6,6 +6,7 @@ import {
 } from "../settings/serverSettings.js"
 import { dayjs, countries, queryParamsToStr } from "@ourworldindata/utils"
 import * as db from "../db/db.js"
+import * as wpdb from "../db/wpdb.js"
 import urljoin from "url-join"
 import { countryProfileSpecs } from "../site/countryProfileProjects.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
@@ -57,20 +58,17 @@ const explorerToSitemapUrl = (program: ExplorerProgram): SitemapUrl[] => {
 }
 
 export const makeSitemap = async (explorerAdminServer: ExplorerAdminServer) => {
-    const posts = (await db
-        .knexTable("posts_with_gdoc_publish_status")
-        .where({ status: "publish", isGdocPublished: false })
-        .select("slug", "updated_at_in_wordpress")) as {
-        slug: string
-        updated_at_in_wordpress: Date
-    }[]
-    const gdocPosts = (await db
-        .knexTable(Gdoc.table)
-        .where({ published: true })
-        .select("slug", "updatedAt")) as {
-        slug: string
-        updatedAt: Date
-    }[]
+    const alreadyPublishedViaGdocsSlugs = await db.knexRaw(`-- sql
+            select slug from posts_with_gdoc_publish_status
+            where isGdocPublished = TRUE`)
+    const alreadyPublishedViaGdocsSlugsSet = new Set(
+        alreadyPublishedViaGdocsSlugs.map((row: any) => row.slug)
+    )
+    const postsApi = await wpdb.getPosts(
+        undefined,
+        (postrow) => !alreadyPublishedViaGdocsSlugsSet.has(postrow.slug)
+    )
+    const gdocPosts = await Gdoc.getPublishedGdocs()
     const charts = (await db
         .knexTable(Chart.table)
         .select(db.knexRaw(`updatedAt, config->>"$.slug" AS slug`))
@@ -94,9 +92,9 @@ export const makeSitemap = async (explorerAdminServer: ExplorerAdminServer) => {
             })
         )
         .concat(
-            posts.map((p) => ({
+            postsApi.map((p) => ({
                 loc: urljoin(BAKED_BASE_URL, p.slug),
-                lastmod: dayjs(p.updated_at_in_wordpress).format("YYYY-MM-DD"),
+                lastmod: dayjs(p.modified_gmt).format("YYYY-MM-DD"),
             }))
         )
         .concat(
