@@ -1,24 +1,23 @@
 import React, { useEffect } from "react"
-import { faArrowDown } from "@fortawesome/free-solid-svg-icons/faArrowDown"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { Grapher, GrapherInterface } from "@ourworldindata/grapher"
-import { ExpandableToggle } from "./ExpandableToggle.js"
+import {
+    ExpandableToggle,
+    markdownToEnrichedTextBlock,
+    IndicatorBrief,
+} from "@ourworldindata/components"
 import ReactDOM from "react-dom"
 import { GrapherWithFallback } from "./GrapherWithFallback.js"
 import { ArticleBlocks } from "./gdocs/ArticleBlocks.js"
 import { RelatedCharts } from "./blocks/RelatedCharts.js"
 import {
     DataPageV2ContentFields,
-    excludeNullish,
     slugify,
     DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
-    EnrichedBlockList,
     uniq,
     pick,
     OwidOrigin,
     formatAuthors,
 } from "@ourworldindata/utils"
-import { markdownToEnrichedTextBlock } from "@ourworldindata/components"
 import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
 import StickyNav from "./blocks/StickyNav.js"
 import cx from "classnames"
@@ -171,6 +170,7 @@ export const DataPageV2Content = ({
         attributionFragments.length > 3
             ? `${attributionFragments[0]} and other sources`
             : attributionFragments.join(", ")
+    const attributionUnshortened = attributionFragments.join(", ")
     const processedAdapted =
         datapageData.owidProcessingLevel === "minor"
             ? `minor processing`
@@ -194,35 +194,6 @@ export const DataPageV2Content = ({
         linkedCharts = {},
         relatedCharts = [],
     } = faqEntries ?? {}
-
-    const keyInfoBlocks = datapageData?.descriptionKey
-        ? excludeNullish(
-              datapageData.descriptionKey.flatMap(markdownToEnrichedTextBlock)
-          )
-        : undefined
-    const keyInfoBlocksAsList = keyInfoBlocks
-        ? ({
-              type: "list",
-              items: keyInfoBlocks,
-              parseErrors: [],
-          } satisfies EnrichedBlockList)
-        : undefined
-
-    const keyInfo = keyInfoBlocksAsList ? (
-        <ArticleBlocks
-            blocks={[keyInfoBlocksAsList]}
-            containerType="datapage"
-        />
-    ) : null
-
-    const aboutThisData = datapageData?.descriptionShort ? (
-        <ArticleBlocks
-            blocks={[
-                markdownToEnrichedTextBlock(datapageData.descriptionShort),
-            ]}
-            containerType="datapage"
-        />
-    ) : null
 
     const citationFullBlockFn = (source: OriginSubset) => {
         source.citationFull && (
@@ -314,112 +285,20 @@ export const DataPageV2Content = ({
                             className="wrapper"
                             id="explore-the-data"
                         />
-                        <div className="key-info__wrapper wrapper grid grid-cols-12">
-                            <div className="key-info__left col-start-2 span-cols-7 span-lg-cols-8 span-sm-cols-12">
-                                {(datapageData?.descriptionKey ||
-                                    datapageData.descriptionShort) && (
-                                    <div className="key-info__curated">
-                                        {aboutThisData ? (
-                                            <>
-                                                <h2 className="key-info__title">
-                                                    About this data
-                                                </h2>
-                                                <div className="key-info__content">
-                                                    {aboutThisData}
-                                                </div>
-                                            </>
-                                        ) : null}
-                                        {keyInfo ? (
-                                            <>
-                                                <h2 className="key-info__title">
-                                                    What you should know about
-                                                    this indicator
-                                                </h2>
-                                                <div className="key-info__content">
-                                                    {keyInfo}
-                                                </div>
-                                            </>
-                                        ) : null}
-
-                                        {!!faqEntries?.faqs.length && (
-                                            <a
-                                                className="key-info__learn-more"
-                                                href="#faqs"
-                                            >
-                                                Learn more in the FAQs
-                                                <FontAwesomeIcon
-                                                    icon={faArrowDown}
-                                                />
-                                            </a>
-                                        )}
-                                    </div>
-                                )}
-                                {datapageData.descriptionFromProducer && (
-                                    <ExpandableToggle
-                                        label={
-                                            datapageData.attributionShort
-                                                ? `How does the producer of this data - ${datapageData.attributionShort} - describe this data?`
-                                                : "How does the producer of this data describe this data?"
-                                        }
-                                        content={
-                                            <ArticleBlocks
-                                                blocks={[
-                                                    markdownToEnrichedTextBlock(
-                                                        datapageData.descriptionFromProducer ??
-                                                            ""
-                                                    ),
-                                                ]}
-                                                containerType="datapage"
-                                            />
-                                        }
-                                        isExpandedDefault={
-                                            !(
-                                                datapageData.descriptionShort ||
-                                                datapageData.descriptionKey
-                                            )
-                                        }
-                                    />
-                                )}
-                            </div>
-                            <div className="key-info__right grid grid-cols-3 grid-lg-cols-4 grid-sm-cols-12 span-cols-3 span-lg-cols-4 span-sm-cols-12">
-                                <div className="key-data span-cols-3 span-lg-cols-4 span-sm-cols-12">
-                                    <div className="key-data__title">
-                                        Source
-                                    </div>
-                                    <div>
-                                        {datapageData.attributions} – with{" "}
-                                        <a
-                                            href={`#${DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}`}
-                                        >
-                                            {processedAdapted}
-                                        </a>{" "}
-                                        by Our World In Data
-                                    </div>
-                                </div>
-                                <div className="key-data span-cols-3 span-lg-cols-4 span-sm-cols-6">
-                                    <div className="key-data__title">
-                                        Date range
-                                    </div>
-                                    <div>{dateRange}</div>
-                                </div>
-                                <div className="key-data span-cols-3 span-lg-cols-4 span-sm-cols-6">
-                                    <div className="key-data__title">
-                                        Last updated
-                                    </div>
-                                    <div>
-                                        {lastUpdated.format("MMMM D, YYYY")}
-                                    </div>
-                                </div>
-                                {datapageData.nextUpdate && (
-                                    <div className="key-data span-cols-3 span-lg-cols-4 span-sm-cols-6">
-                                        <div className="key-data__title">
-                                            Next expected update
-                                        </div>
-                                        <div>{datapageData.nextUpdate}</div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
+                        <IndicatorBrief
+                            descriptionShort={datapageData.descriptionShort}
+                            descriptionKey={datapageData.descriptionKey}
+                            hasFaqEntries={!!faqEntries?.faqs.length}
+                            descriptionFromProducer={
+                                datapageData.descriptionFromProducer
+                            }
+                            attributionShort={datapageData.attributionShort}
+                            attribution={attributionUnshortened}
+                            processedAdapted={processedAdapted}
+                            dateRange={dateRange ?? undefined}
+                            lastUpdated={datapageData.lastUpdated}
+                            nextUpdate={datapageData.nextUpdate}
+                        />
                     </div>
                     <div className="wrapper">
                         {datapageData.relatedResearch &&
