@@ -49,7 +49,11 @@ import {
 import { extractDetailsFromSyntax } from "@ourworldindata/components"
 import { execWrapper } from "../db/execWrapper.js"
 import { countryProfileSpecs } from "../site/countryProfileProjects.js"
-import { getRedirects, flushCache as redirectsFlushCache } from "./redirects.js"
+import {
+    getGrapherRedirectsMap,
+    getRedirects,
+    flushCache as redirectsFlushCache,
+} from "./redirects.js"
 import { bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers } from "./GrapherBaker.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants.js"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
@@ -628,6 +632,13 @@ export class SiteBaker {
             path.join(this.bakedSiteDir, `_redirects`),
             redirects.join("\n")
         )
+
+        const grapherRedirects = await getGrapherRedirectsMap("")
+        await this.stageWrite(
+            path.join(this.bakedSiteDir, `grapher/_grapherRedirects.json`),
+            JSON.stringify(Object.fromEntries(grapherRedirects), null, 2)
+        )
+
         this.progressBar.tick({ name: "✅ baked redirects" })
     }
 
