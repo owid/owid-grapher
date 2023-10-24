@@ -146,6 +146,7 @@ export const DataPageV2 = (props: {
                                     grapherConfig={grapherConfig}
                                     isPreviewing={isPreviewing}
                                     faqEntries={faqEntries}
+                                    canonicalUrl={canonicalUrl}
                                 />
                             </DebugProvider>
                         </div>

@@ -45,7 +45,7 @@ import {
 import * as db from "../db/db.js"
 import { glob } from "glob"
 import { isPathRedirectedToExplorer } from "../explorerAdminServer/ExplorerRedirects.js"
-import { getPostBySlug } from "../db/model/Post.js"
+import { bySlug, getPostBySlug, parsePostAuthors } from "../db/model/Post.js"
 import { GrapherInterface } from "@ourworldindata/grapher"
 import workerpool from "workerpool"
 import ProgressBar from "progress"
@@ -60,11 +60,14 @@ import {
     getDatapageJson,
     parseGdocContentFromAllowedLevelOneHeadings,
 } from "../datapage/Datapage.js"
+import { slugify_topic } from "../site/DataPageV2Content.js"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { Image } from "../db/model/Image.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 
 import { parseFaqs } from "../db/model/Gdoc/rawToEnriched.js"
+import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
+import { getShortPageCitation } from "../site/gdocs/utils.js"
 
 /**
  *
@@ -321,6 +324,42 @@ export async function renderDataPageV2({
         variableMetadata,
         grapherConfigForVariable ?? {}
     )
+
+    const firstTopicTag = datapageData.topicTagsLinks?.[0]
+
+    if (firstTopicTag) {
+        const gdoc = await Gdoc.findOne({
+            where: {
+                slug: slugify_topic(firstTopicTag),
+            },
+            relations: ["tags"],
+        })
+        if (gdoc) {
+            const citation = getShortPageCitation(
+                gdoc.content.authors,
+                gdoc.content.title ?? "",
+                gdoc?.publishedAt
+            )
+            datapageData.primaryTopic = {
+                topicTag: firstTopicTag,
+                citation,
+            }
+        } else {
+            const post = await bySlug(slugify_topic(firstTopicTag))
+            if (post) {
+                const authors = parsePostAuthors(post.authors)
+                const citation = getShortPageCitation(
+                    authors,
+                    post.title,
+                    post.published_at
+                )
+                datapageData.primaryTopic = {
+                    topicTag: firstTopicTag,
+                    citation,
+                }
+            }
+        }
+    }
 
     // Get the charts this variable is being used in (aka "related charts")
     // and exclude the current chart to avoid duplicates

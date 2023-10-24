@@ -13,14 +13,14 @@ import {
     LICENSE_ID,
     isEmpty,
     OwidGdocType,
+    formatAuthors,
 } from "@ourworldindata/utils"
 import { CodeSnippet } from "../blocks/CodeSnippet.js"
 import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
-import { formatAuthors } from "../clientFormatting.js"
 import { DebugProvider } from "./DebugContext.js"
 import { OwidGdocHeader } from "./OwidGdocHeader.js"
 import StickyNav from "../blocks/StickyNav.js"
-
+import { getShortPageCitation } from "./utils.js"
 export const AttachmentsContext = createContext<{
     linkedCharts: Record<string, LinkedChart>
     linkedDocuments: Record<string, OwidGdocInterface>
@@ -64,11 +64,12 @@ export function OwidGdoc({
 }: OwidGdocProps) {
     const citationDescription =
         citationDescriptionsByArticleType[content.type ?? OwidGdocType.Article]
-    const citationText = `${formatAuthors({
-        authors: content.authors,
-    })} (${publishedAt?.getFullYear()}) - "${
-        content.title
-    }". Published online at OurWorldInData.org. Retrieved from: '${`${BAKED_BASE_URL}/${slug}`}' [Online Resource]`
+    const shortPageCitation = getShortPageCitation(
+        content.authors,
+        content.title ?? "",
+        publishedAt
+    )
+    const citationText = `${shortPageCitation} Published online at OurWorldInData.org. Retrieved from: '${`${BAKED_BASE_URL}/${slug}`}' [Online Resource]`
 
     const bibtex = `@article{owid-${slug.replace(/\//g, "-")},
     author = {${formatAuthors({

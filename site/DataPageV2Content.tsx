@@ -5,7 +5,6 @@ import { Grapher, GrapherInterface } from "@ourworldindata/grapher"
 import { ExpandableToggle } from "./ExpandableToggle.js"
 import ReactDOM from "react-dom"
 import { GrapherWithFallback } from "./GrapherWithFallback.js"
-import { formatAuthors } from "./clientFormatting.js"
 import { ArticleBlocks } from "./gdocs/ArticleBlocks.js"
 import { RelatedCharts } from "./blocks/RelatedCharts.js"
 import {
@@ -14,6 +13,10 @@ import {
     slugify,
     DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
     EnrichedBlockList,
+    uniq,
+    pick,
+    OwidOrigin,
+    formatAuthors,
 } from "@ourworldindata/utils"
 import { markdownToEnrichedTextBlock } from "@ourworldindata/components"
 import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
@@ -73,24 +76,32 @@ const getDateRange = (dateRange: string): string | null => {
     return null
 }
 
-const slugify_topic = (topic: string) => {
+export const slugify_topic = (topic: string) => {
     // This is a heuristic to map from free form tag texts to topic page URLs. We'll
     // have to switch to explicitly stored URLs or explicit links between tags and topic pages
     // soon but for the time being this makes sure that "CO2 & Greenhouse Gas Emissions" can be automatically
     // linked to /co2-and-greenhouse-gas-emissions
     // Note that the heuristic fails for a few cases like "HIV/AIDS" or "Mpox (Monkeypox)"
-    const replaced = topic
-        .replace("&", "-and-")
-        .replace("'", "")
-        .replace("+", "")
+    const replaced = topic.replace("&", "and").replace("'", "").replace("+", "")
     return slugify(replaced)
 }
+
+type OriginSubset = Pick<
+    OwidOrigin,
+    | "producer"
+    | "descriptionSnapshot"
+    | "dateAccessed"
+    | "urlMain"
+    | "description"
+    | "citationFull"
+>
 
 export const DataPageV2Content = ({
     datapageData,
     grapherConfig,
     isPreviewing = false,
     faqEntries,
+    canonicalUrl = "{URL}", // when we bake pages to their proper url this will be set correctly but on preview pages we leave this undefined
 }: DataPageV2ContentFields & {
     grapherConfig: GrapherInterface
 }) => {
@@ -141,29 +152,41 @@ export const DataPageV2Content = ({
             : "related-data__category--columns span-cols-8 span-lg-cols-12"
     } `
 
-    // TODO: this is missing the attribution field ATM and
-    // so assembles something only roughly similar to the citation described
-    // by Joe. Also, we need the dataset title.
-    const producers = datapageData.origins.map((o) => o.producer).join("; ")
+    const origins: OriginSubset[] = uniq(
+        datapageData.origins.map((item) =>
+            pick(item, [
+                "producer",
+                "descriptionSnapshot",
+                "dateAccessed",
+                "urlMain",
+                "description",
+                "citationFull",
+            ])
+        )
+    )
+    const producers = uniq(datapageData.origins.map((o) => o.producer))
+
+    const attributionFragments = datapageData.attributions ?? producers
+    const attributionPotentiallyShortened =
+        attributionFragments.length > 3
+            ? `${attributionFragments[0]} and other sources`
+            : attributionFragments.join(", ")
     const processedAdapted =
-        datapageData.owidProcessingLevel === "minor" ? `minor` : `major`
+        datapageData.owidProcessingLevel === "minor"
+            ? `minor processing`
+            : `major adaptations`
     const lastUpdated = dayjs(datapageData.lastUpdated, ["YYYY", "YYYY-MM-DD"])
     const yearOfUpdate = lastUpdated.year()
-    const citationShort = `${producers} — with ${processedAdapted} processing by Our World In Data (${yearOfUpdate})`
-    const originsLong = datapageData.origins
-        .map((o) => `${o.producer}, ${o.title ?? o.titleSnapshot}`)
-        .join("; ")
-    const dateAccessed =
-        datapageData.origins &&
-        datapageData.origins.length &&
-        datapageData.origins[0].dateAccessed
-            ? dayjs(datapageData.origins[0].dateAccessed).format("MMMM D, YYYY")
-            : ""
-    const urlAccessed =
-        datapageData.origins &&
-        datapageData.origins.length &&
-        datapageData.origins[0].urlDownload
-    const citationLong = `${citationShort}. ${datapageData.title}. ${originsLong}, ${processedAdapted} by Our World In Data. Retrieved ${dateAccessed} from ${urlAccessed}`
+    const citationShort = `${attributionPotentiallyShortened} – with ${processedAdapted} by Our World In Data (${yearOfUpdate})`
+    const citationLonger = `${attributionPotentiallyShortened} – with ${processedAdapted} by Our World In Data (${yearOfUpdate})`
+    const originsLong = uniq(
+        datapageData.origins.map(
+            (o) => `${o.producer}, ${o.title ?? o.titleSnapshot}`
+        )
+    ).join("; ")
+    const today = dayjs().format("MMMM D, YYYY")
+    const currentYear = dayjs().year()
+    const citationLong = `${citationLonger}. ${datapageData.title}. ${originsLong}. Retrieved ${today} from ${canonicalUrl}`
 
     const {
         linkedDocuments = {},
@@ -201,9 +224,31 @@ export const DataPageV2Content = ({
         />
     ) : null
 
+    const citationFullBlockFn = (source: OriginSubset) => {
+        source.citationFull && (
+            <div
+                className="key-data"
+                style={{
+                    gridColumn: "span 2",
+                }}
+            >
+                <div className="key-data__title--dark">Citation</div>
+                This is the citation of the original data obtained from the
+                source, prior to any processing or adaptation by Our World in
+                Data. To cite data downloaded from this page, please use the
+                suggested citation given in{" "}
+                <a href={REUSE_THIS_WORK_ANCHOR}>Reuse This Work</a> below.
+                <CodeSnippet code={source.citationFull} theme="light" />
+            </div>
+        )
+    }
+
     const dateRange = getDateRange(datapageData.dateRange)
 
-    const citationDatapage = `Our World In Data (${yearOfUpdate}). Data Page: ${datapageData.title} – ${producers}. Retrieved from {url} [online resource]`
+    const citationDatapage = datapageData.primaryTopic
+        ? `“Data Page: ${datapageData.title}”, part of the following publication: ${datapageData.primaryTopic.citation}. Data adapted from ${producers}. Retrieved from ${canonicalUrl} [online resource]`
+        : `“Data Page: ${datapageData.title}”. Our World in Data (${currentYear}). Data adapted from ${producers}. Retrieved from ${canonicalUrl} [online resource]`
+
     return (
         <AttachmentsContext.Provider
             value={{
@@ -341,19 +386,15 @@ export const DataPageV2Content = ({
                                     <div className="key-data__title">
                                         Source
                                     </div>
-                                    <div>{datapageData.attribution}</div>
-                                    {datapageData.owidProcessingLevel && (
-                                        <div>
-                                            with{" "}
-                                            <a
-                                                href={`#${DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}`}
-                                            >
-                                                {processedAdapted}
-                                                {" processing"}
-                                            </a>{" "}
-                                            by Our World In Data
-                                        </div>
-                                    )}
+                                    <div>
+                                        {datapageData.attributions} – with{" "}
+                                        <a
+                                            href={`#${DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}`}
+                                        >
+                                            {processedAdapted}
+                                        </a>{" "}
+                                        by Our World In Data
+                                    </div>
                                 </div>
                                 <div className="key-data span-cols-3 span-lg-cols-4 span-sm-cols-6">
                                     <div className="key-data__title">
@@ -552,14 +593,14 @@ export const DataPageV2Content = ({
                                 >
                                     Sources and processing
                                 </h2>
-                                {datapageData.origins.length > 0 && (
+                                {origins.length > 0 && (
                                     <div className="data-sources grid span-cols-12">
                                         <h3 className="data-sources__heading span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
                                             This data is based on the following
                                             sources
                                         </h3>
                                         <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                                            {datapageData.origins.map(
+                                            {origins.map(
                                                 (
                                                     source,
                                                     idx: number,
@@ -596,7 +637,7 @@ export const DataPageV2Content = ({
                                                                             />
                                                                         )}
                                                                         {(source.dateAccessed ||
-                                                                            source.urlDownload) && (
+                                                                            source.urlMain) && (
                                                                             <div
                                                                                 className="grid source__key-data"
                                                                                 style={{
@@ -617,7 +658,7 @@ export const DataPageV2Content = ({
                                                                                         </div>
                                                                                     </div>
                                                                                 )}
-                                                                                {source.urlDownload && (
+                                                                                {source.urlMain && (
                                                                                     <div className="key-data key-data--hide-overflow">
                                                                                         <div className="key-data__title--dark">
                                                                                             Retrieved
@@ -626,84 +667,20 @@ export const DataPageV2Content = ({
                                                                                         <div>
                                                                                             <a
                                                                                                 href={
-                                                                                                    source.urlDownload
+                                                                                                    source.urlMain
                                                                                                 }
                                                                                                 target="_blank"
                                                                                                 rel="noreferrer"
                                                                                             >
                                                                                                 {
-                                                                                                    source.urlDownload
+                                                                                                    source.urlMain
                                                                                                 }
                                                                                             </a>
                                                                                         </div>
                                                                                     </div>
                                                                                 )}
-                                                                                {source.citationFull && (
-                                                                                    <div
-                                                                                        className="key-data"
-                                                                                        style={{
-                                                                                            gridColumn:
-                                                                                                "span 2",
-                                                                                        }}
-                                                                                    >
-                                                                                        <div className="key-data__title--dark">
-                                                                                            Citation
-                                                                                        </div>
-                                                                                        This
-                                                                                        is
-                                                                                        the
-                                                                                        citation
-                                                                                        of
-                                                                                        the
-                                                                                        original
-                                                                                        data
-                                                                                        obtained
-                                                                                        from
-                                                                                        the
-                                                                                        source,
-                                                                                        prior
-                                                                                        to
-                                                                                        any
-                                                                                        processing
-                                                                                        or
-                                                                                        adaptation
-                                                                                        by
-                                                                                        Our
-                                                                                        World
-                                                                                        in
-                                                                                        Data.
-                                                                                        To
-                                                                                        cite
-                                                                                        data
-                                                                                        downloaded
-                                                                                        from
-                                                                                        this
-                                                                                        page,
-                                                                                        please
-                                                                                        use
-                                                                                        the
-                                                                                        suggested
-                                                                                        citation
-                                                                                        given
-                                                                                        in{" "}
-                                                                                        <a
-                                                                                            href={
-                                                                                                REUSE_THIS_WORK_ANCHOR
-                                                                                            }
-                                                                                        >
-                                                                                            Reuse
-                                                                                            This
-                                                                                            Work
-                                                                                        </a>{" "}
-                                                                                        below.
-                                                                                        <CodeSnippet
-                                                                                            code={
-                                                                                                source.citationFull
-                                                                                            }
-                                                                                            theme="light"
-                                                                                            isTruncated
-                                                                                        />
-                                                                                    </div>
+                                                                                {citationFullBlockFn(
+                                                                                    source
                                                                                 )}
                                                                             </div>
                                                                         )}
@@ -888,7 +865,8 @@ export const DataPageV2Content = ({
                                                     <p className="citation__paragraph">
                                                         To cite this page
                                                         overall, including any
-                                                        descriptions of the data
+                                                        descriptions, FAQs or
+                                                        explanations of the data
                                                         authored by Our World in
                                                         Data, please use the
                                                         following citation:

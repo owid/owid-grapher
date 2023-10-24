@@ -16,9 +16,9 @@ import {
     DataPageDataV2,
     OwidVariableWithSource,
     dayjs,
-    getAttributionFromVariable,
     gdocIdRegex,
     getETLPathComponents,
+    getAttributionFragmentsFromVariable,
 } from "@ourworldindata/utils"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
@@ -29,7 +29,7 @@ export const getDatapageDataV2 = async (
     partialGrapherConfig: GrapherInterface
 ): Promise<DataPageDataV2> => {
     {
-        const processingLevel = variableMetadata.processingLevel ?? "major"
+        const processingLevel = variableMetadata.processingLevel ?? "minor"
         const version =
             getETLPathComponents(variableMetadata.catalogPath ?? "")?.version ??
             ""
@@ -59,7 +59,7 @@ export const getDatapageDataV2 = async (
             attributionShort: variableMetadata.presentation?.attributionShort,
             titleVariant: variableMetadata.presentation?.titleVariant,
             topicTagsLinks: variableMetadata.presentation?.topicTagsLinks ?? [],
-            attribution: getAttributionFromVariable(variableMetadata),
+            attributions: getAttributionFragmentsFromVariable(variableMetadata),
             faqs: [],
             descriptionKey: variableMetadata.descriptionKey ?? [],
             descriptionProcessing: variableMetadata.descriptionProcessing,

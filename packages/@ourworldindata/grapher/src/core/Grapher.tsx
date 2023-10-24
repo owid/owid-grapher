@@ -1535,7 +1535,8 @@ export class Grapher
 
         const uniqueAttributions = uniq(compact(attributions))
 
-        if (uniqueAttributions.length > 3) return "Multiple sources"
+        if (uniqueAttributions.length > 3)
+            return `${attributions[0]} and other sources`
 
         return uniqueAttributions.join("; ")
     }

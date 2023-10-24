@@ -1464,13 +1464,19 @@ export interface FaqLink {
     fragmentId: string
 }
 
+export interface PrimaryTopic {
+    topicTag: string
+    citation: string
+}
+
 export interface DataPageDataV2 {
     status: "published" | "draft"
     title: string
     titleVariant?: string
     attributionShort?: string
     topicTagsLinks?: string[]
-    attribution: string
+    primaryTopic?: PrimaryTopic
+    attributions: string[]
     descriptionShort?: string
     descriptionFromProducer?: string
     faqs: FaqLink[] // Todo: resolve these at this level to the point where we can preview them
@@ -1602,6 +1608,7 @@ export interface DataPageV2ContentFields {
     faqEntries: FaqEntryData | undefined
     // TODO: add gdocs for FAQs
     isPreviewing?: boolean
+    canonicalUrl: string
 }
 
 export interface UserCountryInformation {

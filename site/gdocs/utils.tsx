@@ -7,8 +7,9 @@ import {
     OwidGdocInterface,
     ImageMetadata,
     LinkedChart,
-    OwidGdocContent,
     Url,
+    OwidGdocContent,
+    formatAuthors,
 } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
 import { AttachmentsContext } from "./OwidGdoc.js"
@@ -197,4 +198,14 @@ export function renderSpan(
 
 export function renderSpans(spans: Span[]): JSX.Element[] {
     return spans.map(renderSpan)
+}
+
+export function getShortPageCitation(
+    authors: string[],
+    title: string,
+    publishedAt: Date | null
+) {
+    return `${formatAuthors({
+        authors: authors,
+    })} (${publishedAt?.getFullYear()}) - “${title}”`
 }
