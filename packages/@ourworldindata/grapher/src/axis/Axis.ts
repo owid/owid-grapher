@@ -526,14 +526,6 @@ export class HorizontalAxis extends AbstractAxis {
         let xAlign = HorizontalAlign.center
         const left = x - width / 2
         const right = x + width / 2
-        if (left < this.rangeMin) {
-            x = this.rangeMin
-            xAlign = HorizontalAlign.left
-        }
-        if (right > this.rangeMax) {
-            x = this.rangeMax
-            xAlign = HorizontalAlign.right
-        }
         return {
             value,
             formattedValue,
