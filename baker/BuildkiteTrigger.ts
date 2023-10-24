@@ -4,6 +4,19 @@ import {
     BUILDKITE_BRANCH,
 } from "../settings/serverSettings.js"
 
+type BuildState =
+    | "running"
+    | "scheduled"
+    | "passed"
+    | "failing"
+    | "failed"
+    | "blocked"
+    | "canceled"
+    | "canceling"
+    | "skipped"
+    | "not_run"
+    | "finished"
+
 export class BuildkiteTrigger {
     private organizationSlug = "our-world-in-data"
     private pipelineSlug = BUILDKITE_DEPLOY_CONTENT_PIPELINE_SLUG
@@ -59,10 +72,14 @@ export class BuildkiteTrigger {
             Authorization: `Bearer ${BUILDKITE_API_ACCESS_TOKEN}`,
         }
 
-        let status = ""
+        let state: BuildState = "scheduled"
 
-        // Poll the status every 10 seconds (or your preferred interval)
-        while (status !== "passed" && status !== "failed") {
+        while (
+            ["running", "scheduled", "canceling", "failing"].includes(state)
+        ) {
+            // Wait for 10 seconds
+            await new Promise((res) => setTimeout(res, 10000))
+
             const response = await fetch(url, {
                 method: "GET",
                 headers: headers,
@@ -73,18 +90,14 @@ export class BuildkiteTrigger {
             }
 
             const buildData = await response.json()
-            status = buildData.state
-
-            if (status !== "passed" && status !== "failed") {
-                await new Promise((res) => setTimeout(res, 10000)) // Wait for 10 seconds
-            }
+            state = buildData.state
         }
 
-        if (status === "passed") {
+        if (["passed", "skipped", "canceled", "finished"].includes(state)) {
             return
         } else {
             throw new Error(
-                `Build failed with status "${status}". See Buildkite for details.`
+                `Build ${buildNumber} failed with state "${state}". See Buildkite for details.`
             )
         }
     }
