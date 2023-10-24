@@ -405,7 +405,15 @@ export class DataTable extends React.Component<{
         actualColumn: CoreColumn
     ): JSX.Element {
         if (dv === undefined || !(column.key in dv))
-            return <td key={key} className="dimension" />
+            return (
+                <td
+                    key={key}
+                    className={classnames([
+                        "dimension",
+                        `dimension-${column.key}`,
+                    ])}
+                />
+            )
 
         let value: Value | undefined
 
