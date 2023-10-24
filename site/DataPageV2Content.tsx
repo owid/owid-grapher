@@ -101,7 +101,7 @@ export const DataPageV2Content = ({
     grapherConfig,
     isPreviewing = false,
     faqEntries,
-    canonicalUrl,
+    canonicalUrl = "{URL}", // when we bake pages to their proper url this will be set correctly but on preview pages we leave this undefined
 }: DataPageV2ContentFields & {
     grapherConfig: GrapherInterface
 }) => {
