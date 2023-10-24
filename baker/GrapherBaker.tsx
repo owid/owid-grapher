@@ -1,7 +1,6 @@
 import React from "react"
 import { GrapherPage } from "../site/GrapherPage.js"
 import { DataPageV2 } from "../site/DataPageV2.js"
-import { DataPage } from "../site/DataPage.js"
 import { renderToHtmlPage } from "../baker/siteRenderers.js"
 import {
     excludeUndefined,
@@ -12,7 +11,6 @@ import {
     uniq,
     JsonError,
     keyBy,
-    OwidGdocType,
     DimensionProperty,
     OwidVariableWithSource,
     mergePartialGrapherConfigs,
@@ -24,6 +22,7 @@ import {
     FaqEntryData,
     FaqDictionary,
     partition,
+    ImageMetadata,
 } from "@ourworldindata/utils"
 import {
     getRelatedArticles,
@@ -82,123 +81,32 @@ export const renderDataPageOrGrapherPage = async (
     publishedExplorersBySlug?: Record<string, ExplorerProgram>,
     imageMetadataDictionary?: Record<string, Image>
 ) => {
-    const variableIds = uniq(grapher.dimensions!.map((d) => d.variableId))
-    // this shows that multi-metric charts are not really supported, and will
-    // render a datapage corresponding to the first variable found.
-    const id = variableIds[0]
+    // If we have a single Y variable and that one has a schema version >= 2,
+    // meaning it has the metadata to render a datapage, then we show the datapage
+    // based on this information. Otherwise we see if there is a legacy datapage.json
+    // available and if all else fails we render a classic Grapher page.
+    const yVariableIds = grapher
+        .dimensions!.filter((d) => d.property === DimensionProperty.y)
+        .map((d) => d.variableId)
+    if (yVariableIds.length === 1) {
+        const variableId = yVariableIds[0]
+        const variableMetadata = await getVariableMetadata(variableId)
 
-    // Get the datapage JSON file from the owid-content git repo that has
-    // been updated and pulled separately by an author.
-    const { datapageJson, parseErrors } = await getDatapageJson(id)
-
-    // When baking, a single error by datapage will be sent to slack
-    if (parseErrors.length > 0) {
-        logErrorAndMaybeSendToBugsnag(
-            new JsonError(
-                `Data page error in ${id}.json: please check ${ADMIN_BASE_URL}/admin/grapher/${grapher.slug}`
-            )
-        )
+        if (
+            variableMetadata.schemaVersion !== undefined &&
+            variableMetadata.schemaVersion >= 2
+        ) {
+            return await renderDataPageV2({
+                variableId,
+                variableMetadata,
+                isPreviewing: true,
+                pageGrapher: grapher,
+                publishedExplorersBySlug,
+                imageMetadataDictionary,
+            })
+        }
     }
-
-    // Fallback to rendering a regular grapher page whether the datapage JSON
-    // wasn't found or failed to parse or if the datapage is not fully
-    // configured for publishing yet
-    if (
-        // This could be folded into the showDataPageOnChartIds check below, but
-        // is kept separate to reiterate that that abscence of a datapageJson leads to
-        // rendering a grapher page
-        !datapageJson ||
-        parseErrors.length > 0 ||
-        // We only want to render datapages on selected charts, even if the
-        // variable found on the chart has a datapage configuration.
-        !grapher.id ||
-        !datapageJson.showDataPageOnChartIds.includes(grapher.id) ||
-        // Fall back to rendering a regular grapher page if the datapage is not
-        // published
-        datapageJson.status !== "published"
-    )
-        return renderGrapherPage(grapher)
-
-    if (!datapageJson.googleDocEditLink)
-        return renderToHtmlPage(
-            <DataPage
-                grapher={grapher}
-                variableId={id}
-                datapageJson={datapageJson}
-                baseUrl={BAKED_BASE_URL}
-                baseGrapherUrl={BAKED_GRAPHER_URL}
-                isPreviewing={false}
-            />
-        )
-
-    // Enrich the datapage JSON with all the published charts this variable is
-    // being used in (aka "related charts") if none have been defined manually.
-    // We also want to exclude from the list the chart that is displayed at the
-    // top of the page to avoid the unnecessary redundancy.
-    datapageJson.allCharts =
-        datapageJson.allCharts ??
-        (await getRelatedChartsForVariable(id, [grapher.id]))
-
-    // Compliment the text-only content from the JSON with rich text from the
-    // companion gdoc, if any
-    const datapageGdoc = await getDatapageGdoc(
-        datapageJson.googleDocEditLink,
-        false,
-        publishedExplorersBySlug
-    )
-
-    // A datapage gdoc is optional. However, if a gdoc is referenced in the
-    // JSON, we assume the gdoc is expected to be used. Additionally, we need
-    // the datapage gdoc to be published so that images in the gdoc content are
-    // baked in bakeGdriveImages() (see also apiRouter.put("/gdocs/:id")). We
-    // also check that the datapage gdoc is of type "fragment" so that it
-    // doesn't get a URL when baked. If any of these conditions is not met, we
-    // log an error and fall back to a grapher page.
-    const dataPageNotPublishedError = `The data page for variable ${datapageJson.title} (${id}) has not been published.`
-    if (!datapageGdoc) {
-        logErrorAndMaybeSendToBugsnag(
-            new JsonError(
-                `${dataPageNotPublishedError} Please check that the googleDocEditLink ${datapageJson.googleDocEditLink} is correct.`
-            )
-        )
-        return renderGrapherPage(grapher)
-    }
-
-    if (
-        !datapageGdoc?.published ||
-        datapageGdoc.content.type !== OwidGdocType.Fragment
-    ) {
-        logErrorAndMaybeSendToBugsnag(
-            new JsonError(
-                `${dataPageNotPublishedError} Please check that ${ADMIN_BASE_URL}/admin/gdocs/${datapageGdoc.id}/preview has been published as a fragment.`
-            )
-        )
-        return renderGrapherPage(grapher)
-    }
-
-    // When baking, we get the imageMetadata once for all datapages in
-    // bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers()
-    // rather than for each individual data page. We then attach it to the
-    // current datapageGdoc.
-    datapageGdoc.imageMetadata = imageMetadataDictionary
-
-    const datapageGdocContent =
-        parseGdocContentFromAllowedLevelOneHeadings(datapageGdoc)
-
-    // Passing `datapageGdocContent` as a separate prop rather than weaving it
-    // into datapageGdoc to keep the concept of "Gdoc" clearer
-    return renderToHtmlPage(
-        <DataPage
-            grapher={grapher}
-            variableId={id}
-            datapageJson={datapageJson}
-            datapageGdoc={datapageGdoc}
-            datapageGdocContent={datapageGdocContent}
-            baseUrl={BAKED_BASE_URL}
-            baseGrapherUrl={BAKED_GRAPHER_URL}
-            isPreviewing={false}
-        />
-    )
+    return renderGrapherPage(grapher)
 }
 
 type EnrichedFaqLookupError = {
@@ -219,12 +127,14 @@ export async function renderDataPageV2({
     isPreviewing,
     pageGrapher,
     publishedExplorersBySlug,
+    imageMetadataDictionary = {},
 }: {
     variableId: number
     variableMetadata: OwidVariableWithSource
     isPreviewing: boolean
     pageGrapher?: GrapherInterface
     publishedExplorersBySlug?: Record<string, ExplorerProgram>
+    imageMetadataDictionary?: Record<string, ImageMetadata>
 }) {
     const grapherConfigForVariable =
         await getMergedGrapherConfigForVariable(variableId)
@@ -257,6 +167,7 @@ export async function renderDataPageV2({
     )
     const imageMetadata: OwidGdocInterface["imageMetadata"] = merge(
         {},
+        imageMetadataDictionary,
         ...compact(gdocs.map((gdoc) => gdoc?.imageMetadata))
     )
     const relatedCharts: OwidGdocInterface["relatedCharts"] = gdocs.flatMap(
@@ -411,81 +322,8 @@ export const renderPreviewDataPageOrGrapherPage = async (
             })
         }
     }
-    const variableIds = uniq(grapher.dimensions!.map((d) => d.variableId))
-    // this shows that multi-metric charts are not really supported, and will
-    // render a datapage corresponding to the first variable found.
-    const id = variableIds[0]
 
-    // Get the datapage JSON file from the owid-content git repo that has
-    // been updated and pulled separately by an author.
-    const { datapageJson, parseErrors } = await getDatapageJson(id)
-
-    // When previewing a datapage we want to show all discrepancies with the
-    // expected JSON schema in the browser.
-    if (parseErrors.length > 0)
-        return renderToHtmlPage(
-            <pre>{JSON.stringify(parseErrors, null, 2)}</pre>
-        )
-
-    // Fallback to rendering a regular grapher page whether the datapage JSON
-    // wasn't found or if it is not set to override the current grapher page
-    if (
-        // This could be folded into the showDataPageOnChartIds check below, but
-        // is kept separate to reiterate that that abscence of a datapageJson leads to
-        // rendering a grapher page
-        !datapageJson ||
-        // We only want to render datapages on selected charts, even if the
-        // variable found on the chart has a datapage configuration.
-        !grapher.id ||
-        !datapageJson.showDataPageOnChartIds.includes(grapher.id)
-    )
-        return renderGrapherPage(grapher)
-
-    // Enrich the datapage JSON with all the published charts this variable is
-    // being used in (aka "related charts") if none have been defined manually.
-    // We also want to exclude from the list the chart that is displayed at the
-    // top of the page to avoid the unnecessary redundancy.
-    datapageJson.allCharts =
-        datapageJson.allCharts ??
-        (await getRelatedChartsForVariable(id, [grapher.id]))
-
-    if (!datapageJson.googleDocEditLink)
-        return renderToHtmlPage(
-            <DataPage
-                grapher={grapher}
-                variableId={id}
-                datapageJson={datapageJson}
-                baseUrl={BAKED_BASE_URL}
-                baseGrapherUrl={BAKED_GRAPHER_URL}
-                isPreviewing={false}
-            />
-        )
-
-    // Compliment the text-only content from the JSON with rich text from the
-    // companion gdoc
-    const datapageGdoc = await getDatapageGdoc(
-        datapageJson.googleDocEditLink,
-        true,
-        publishedExplorersBySlug
-    )
-
-    const datapageGdocContent =
-        parseGdocContentFromAllowedLevelOneHeadings(datapageGdoc)
-
-    // Passing `datapageGdocContent` as a separate prop rather than weaving it
-    // into datapageGdoc to keep the concept of "Gdoc" clearer
-    return renderToHtmlPage(
-        <DataPage
-            grapher={grapher}
-            variableId={id}
-            datapageJson={datapageJson}
-            datapageGdoc={datapageGdoc}
-            datapageGdocContent={datapageGdocContent}
-            baseUrl={BAKED_BASE_URL}
-            baseGrapherUrl={BAKED_GRAPHER_URL}
-            isPreviewing={true}
-        />
-    )
+    return renderGrapherPage(grapher)
 }
 
 const renderGrapherPage = async (grapher: GrapherInterface) => {
