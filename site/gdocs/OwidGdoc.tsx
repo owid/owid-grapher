@@ -15,7 +15,7 @@ import {
     OwidGdocType,
     formatAuthors,
 } from "@ourworldindata/utils"
-import { CodeSnippet } from "../blocks/CodeSnippet.js"
+import { CodeSnippet } from "@ourworldindata/components"
 import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
 import { DebugProvider } from "./DebugContext.js"
 import { OwidGdocHeader } from "./OwidGdocHeader.js"

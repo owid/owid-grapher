@@ -2,21 +2,21 @@ import React, { useEffect } from "react"
 import { faArrowDown } from "@fortawesome/free-solid-svg-icons/faArrowDown"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { Grapher, GrapherInterface } from "@ourworldindata/grapher"
-import { ExpandableToggle } from "@ourworldindata/components"
+import {
+    ExpandableToggle,
+    CodeSnippet,
+    DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
+} from "@ourworldindata/components"
 import ReactDOM from "react-dom"
 import { GrapherWithFallback } from "./GrapherWithFallback.js"
 import { formatAuthors } from "./clientFormatting.js"
 import { ArticleBlocks } from "./gdocs/ArticleBlocks.js"
 import { RelatedCharts } from "./blocks/RelatedCharts.js"
-import {
-    DataPageContentFields,
-    DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
-} from "@ourworldindata/utils"
+import { DataPageContentFields } from "@ourworldindata/utils"
 import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
 import StickyNav from "./blocks/StickyNav.js"
 import cx from "classnames"
 import { DebugProvider } from "./gdocs/DebugContext.js"
-import { CodeSnippet } from "./blocks/CodeSnippet.js"
 import { DATA_API_URL } from "../settings/clientSettings.js"
 
 declare global {

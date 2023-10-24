@@ -1,9 +1,13 @@
 import React, { useEffect } from "react"
 import { Grapher, GrapherInterface } from "@ourworldindata/grapher"
 import {
-    ExpandableToggle,
     markdownToEnrichedTextBlock,
     IndicatorBrief,
+    CodeSnippet,
+    REUSE_THIS_WORK_SECTION_ID,
+    OriginSubset,
+    IndicatorSources,
+    DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
 } from "@ourworldindata/components"
 import ReactDOM from "react-dom"
 import { GrapherWithFallback } from "./GrapherWithFallback.js"
@@ -12,17 +16,14 @@ import { RelatedCharts } from "./blocks/RelatedCharts.js"
 import {
     DataPageV2ContentFields,
     slugify,
-    DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
     uniq,
     pick,
-    OwidOrigin,
     formatAuthors,
 } from "@ourworldindata/utils"
 import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
 import StickyNav from "./blocks/StickyNav.js"
 import cx from "classnames"
 import { DebugProvider } from "./gdocs/DebugContext.js"
-import { CodeSnippet } from "./blocks/CodeSnippet.js"
 import dayjs from "dayjs"
 declare global {
     interface Window {
@@ -85,16 +86,6 @@ export const slugify_topic = (topic: string) => {
     return slugify(replaced)
 }
 
-type OriginSubset = Pick<
-    OwidOrigin,
-    | "producer"
-    | "descriptionSnapshot"
-    | "dateAccessed"
-    | "urlMain"
-    | "description"
-    | "citationFull"
->
-
 export const DataPageV2Content = ({
     datapageData,
     grapherConfig,
@@ -118,8 +109,6 @@ export const DataPageV2Content = ({
         setGrapher(new Grapher(mergedGrapherConfig))
     }, [mergedGrapherConfig])
 
-    const REUSE_THIS_WORK_ANCHOR = "#reuse-this-work"
-
     const stickyNavLinks = [
         {
             text: "Explore the Data",
@@ -136,7 +125,7 @@ export const DataPageV2Content = ({
             text: "Sources & Processing",
             target: "#" + DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
         },
-        { text: "Reuse This Work", target: REUSE_THIS_WORK_ANCHOR },
+        { text: "Reuse This Work", target: "#" + REUSE_THIS_WORK_SECTION_ID },
     ]
 
     const hasRelatedDataFeatured = datapageData.relatedData?.some(
@@ -194,25 +183,6 @@ export const DataPageV2Content = ({
         linkedCharts = {},
         relatedCharts = [],
     } = faqEntries ?? {}
-
-    const citationFullBlockFn = (source: OriginSubset) => {
-        source.citationFull && (
-            <div
-                className="key-data"
-                style={{
-                    gridColumn: "span 2",
-                }}
-            >
-                <div className="key-data__title--dark">Citation</div>
-                This is the citation of the original data obtained from the
-                source, prior to any processing or adaptation by Our World in
-                Data. To cite data downloaded from this page, please use the
-                suggested citation given in{" "}
-                <a href={REUSE_THIS_WORK_ANCHOR}>Reuse This Work</a> below.
-                <CodeSnippet code={source.citationFull} theme="light" />
-            </div>
-        )
-    }
 
     const dateRange = getDateRange(datapageData.dateRange)
 
@@ -472,107 +442,7 @@ export const DataPageV2Content = ({
                                 >
                                     Sources and processing
                                 </h2>
-                                {origins.length > 0 && (
-                                    <div className="data-sources grid span-cols-12">
-                                        <h3 className="data-sources__heading span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                                            This data is based on the following
-                                            sources
-                                        </h3>
-                                        <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                                            {origins.map(
-                                                (
-                                                    source,
-                                                    idx: number,
-                                                    sources
-                                                ) => {
-                                                    return (
-                                                        <div
-                                                            className="data-sources__source-item"
-                                                            key={idx}
-                                                        >
-                                                            <ExpandableToggle
-                                                                label={
-                                                                    source.producer ??
-                                                                    source.descriptionSnapshot ??
-                                                                    source.description ??
-                                                                    ""
-                                                                }
-                                                                isStacked={
-                                                                    idx !==
-                                                                    sources.length -
-                                                                        1
-                                                                }
-                                                                hasTeaser
-                                                                content={
-                                                                    <>
-                                                                        {source.description && (
-                                                                            <ArticleBlocks
-                                                                                blocks={[
-                                                                                    markdownToEnrichedTextBlock(
-                                                                                        source.description
-                                                                                    ),
-                                                                                ]}
-                                                                                containerType="datapage"
-                                                                            />
-                                                                        )}
-                                                                        {(source.dateAccessed ||
-                                                                            source.urlMain) && (
-                                                                            <div
-                                                                                className="grid source__key-data"
-                                                                                style={{
-                                                                                    gridTemplateColumns:
-                                                                                        "minmax(0,1fr) minmax(0,2fr)",
-                                                                                }}
-                                                                            >
-                                                                                {source.dateAccessed && (
-                                                                                    <div className="key-data">
-                                                                                        <div className="key-data__title--dark">
-                                                                                            Retrieved
-                                                                                            on
-                                                                                        </div>
-                                                                                        <div>
-                                                                                            {
-                                                                                                source.dateAccessed
-                                                                                            }
-                                                                                        </div>
-                                                                                    </div>
-                                                                                )}
-                                                                                {source.urlMain && (
-                                                                                    <div className="key-data key-data--hide-overflow">
-                                                                                        <div className="key-data__title--dark">
-                                                                                            Retrieved
-                                                                                            from
-                                                                                        </div>
-                                                                                        <div>
-                                                                                            <a
-                                                                                                href={
-                                                                                                    source.urlMain
-                                                                                                }
-                                                                                                target="_blank"
-                                                                                                rel="noreferrer"
-                                                                                            >
-                                                                                                {
-                                                                                                    source.urlMain
-                                                                                                }
-                                                                                            </a>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                )}
-                                                                                {citationFullBlockFn(
-                                                                                    source
-                                                                                )}
-                                                                            </div>
-                                                                        )}
-                                                                    </>
-                                                                }
-                                                            />
-                                                        </div>
-                                                    )
-                                                }
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
+                                <IndicatorSources origins={origins} />
                                 <div className="data-processing grid span-cols-12">
                                     <h3 className="data-processing__heading span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
                                         How we process data at Our World in Data

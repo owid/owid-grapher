@@ -21,7 +21,7 @@ import { Byline } from "./Byline.js"
 import { PageInfo } from "./PageInfo.js"
 import { BackToTopic } from "./BackToTopic.js"
 import StickyNav from "./blocks/StickyNav.js"
-import { CodeSnippet } from "./blocks/CodeSnippet.js"
+import { CodeSnippet } from "@ourworldindata/components"
 import { formatAuthors } from "./clientFormatting.js"
 
 export interface PageOverrides {

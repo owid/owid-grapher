@@ -49,7 +49,7 @@ import {
     renderAdditionalInformation,
 } from "../site/blocks/AdditionalInformation.js"
 import { renderHelp } from "../site/blocks/Help.js"
-import { renderCodeSnippets } from "../site/blocks/CodeSnippet.js"
+import { renderCodeSnippets } from "@ourworldindata/components"
 import { renderExpandableParagraphs } from "../site/blocks/ExpandableParagraph.js"
 import {
     formatUrls,
