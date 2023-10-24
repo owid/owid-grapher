@@ -82,10 +82,7 @@ export class SourcesModal extends React.Component<{
                 maxTime
             )}`
 
-        const title =
-            column.def.titlePublic && column.def.titlePublic !== ""
-                ? column.def.titlePublic
-                : column.name
+        const title = column.displayName
 
         const retrievedDate =
             source.retrievedDate ??
