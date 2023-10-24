@@ -844,7 +844,7 @@ export class BindAutoString<
  */
 @observer
 export class BindAutoStringExt<
-    T extends Record<string, any>
+    T extends Record<string, any>,
 > extends React.Component<
     {
         readFn: (x: T) => string
