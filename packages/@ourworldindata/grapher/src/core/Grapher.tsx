@@ -324,7 +324,7 @@ export class Grapher
     @observable.ref version = 1
     @observable.ref slug?: string = undefined
     @observable.ref title?: string = undefined
-    @observable.ref subtitle = ""
+    @observable.ref subtitle: string | undefined = undefined
     @observable.ref sourceDesc?: string = undefined
     @observable.ref note = ""
     @observable hideAnnotationFieldsInTitle?: AnnotationFieldsInTitle =
@@ -1206,7 +1206,7 @@ export class Grapher
 
     // Used for superscript numbers in static exports
     @computed get detailsOrderedByReference(): Set<string> {
-        const textInOrderOfAppearance = this.subtitle + this.note
+        const textInOrderOfAppearance = this.currentSubtitle + this.note
         const details = textInOrderOfAppearance.matchAll(
             new RegExp(detailOnDemandRegex, "g")
         )
@@ -1255,7 +1255,7 @@ export class Grapher
 
     @computed get currentSubtitle(): string {
         const subtitle = this.subtitle
-        if (subtitle) return subtitle
+        if (subtitle !== undefined) return subtitle
         const yColumns = this.yColumnsFromDimensions
         if (yColumns.length === 1) return yColumns[0].def.descriptionShort ?? ""
         return ""

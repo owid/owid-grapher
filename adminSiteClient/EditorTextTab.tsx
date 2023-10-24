@@ -17,6 +17,7 @@ import { ChartEditor } from "./ChartEditor.js"
 import {
     AutoTextField,
     BindAutoString,
+    BindAutoStringExt,
     BindString,
     Button,
     RadioGroup,
@@ -155,8 +156,11 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                         }
                         helpText="Human-friendly URL for this chart"
                     />
-                    <BindString
-                        field="subtitle"
+                    <BindAutoStringExt
+                        label={"Subtitle"}
+                        readFn={(g) => g.currentSubtitle}
+                        writeFn={(g, newVal) => (g.subtitle = newVal)}
+                        isAuto={grapher.subtitle === undefined}
                         store={grapher}
                         placeholder="Briefly describe the context of the data. It's best to avoid duplicating any information which can be easily inferred from other visual elements of the chart."
                         textarea
