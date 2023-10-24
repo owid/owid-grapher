@@ -108,13 +108,9 @@ export class EditorFeatures {
             return true
         }
 
-        // for line charts and discrete bar charts, specifying a missing
-        // data strategy only makes sense if there are multiple entities
-        if (
-            this.grapher.isLineChart ||
-            this.grapher.isDiscreteBar ||
-            this.grapher.isStackedDiscreteBar
-        ) {
+        // for line charts, specifying a missing data strategy only makes sense
+        // if there are multiple entities
+        if (this.grapher.isLineChart) {
             return (
                 this.grapher.canChangeEntity ||
                 this.grapher.canSelectMultipleEntities
