@@ -46,12 +46,6 @@ export class Admin {
     }
 
     @observable currentRequests: Promise<Response>[] = []
-    // A way to cancel fetch requests
-    // e.g. currentRequestAbortControllers.get(request).abort()
-    @observable currentRequestAbortControllers: Map<
-        Promise<Response>,
-        AbortController
-    > = new Map()
 
     @computed get showLoadingIndicator(): boolean {
         return this.loadingIndicatorSetting === "default"
@@ -132,7 +126,6 @@ export class Admin {
                 abortController
             )
             this.addRequest(request)
-            this.currentRequestAbortControllers.set(request, abortController)
 
             response = await request
             text = await response.text()
@@ -154,7 +147,6 @@ export class Admin {
         } finally {
             if (request) {
                 this.removeRequest(request)
-                this.currentRequestAbortControllers.delete(request)
             }
         }
 

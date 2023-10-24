@@ -2490,7 +2490,12 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
         return updated
     }
 
-    const prevGdoc = await Gdoc.findOneBy({ id })
+    const prevGdoc = await Gdoc.findOne({
+        where: {
+            id: id,
+        },
+        relations: ["tags"],
+    })
     if (!prevGdoc) throw new JsonError(`No Google Doc with id ${id} found`)
 
     const nextGdoc = dataSource
