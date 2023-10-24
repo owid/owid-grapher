@@ -92,7 +92,7 @@
 @import "./gdocs/Chart.scss";
 @import "./DataPage.scss";
 @import "./DataPageContent.scss";
-@import "./ExpandableToggle.scss";
+@import "../packages/@ourworldindata/components/src/ExpandableToggle/ExpandableToggle.scss";
 @import "./detailsOnDemand.scss";
 
 /* HACK (Mispy): Fix search autozooming on iPhone Safari.
