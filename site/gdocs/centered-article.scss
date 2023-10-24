@@ -286,6 +286,8 @@ h3.article-block__heading.has-supertitle {
 
     .centered-article-header__byline,
     .centered-article-header__dateline {
+        // A small bit of padding to encourage line-wrapping on long bylines
+        padding-right: 8px;
         margin-bottom: 8px;
     }
 
