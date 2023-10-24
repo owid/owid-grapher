@@ -93,9 +93,7 @@ export class BuildkiteTrigger {
             state = buildData.state
         }
 
-        if (["passed", "skipped", "canceled", "finished"].includes(state)) {
-            return
-        } else {
+        if (!["passed", "skipped", "canceled", "finished"].includes(state)) {
             throw new Error(
                 `Build ${buildNumber} failed with state "${state}". See Buildkite for details.`
             )
