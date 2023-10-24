@@ -1,6 +1,6 @@
 import React from "react"
 import { ExpandableToggle } from "../ExpandableToggle/ExpandableToggle.js"
-import { OwidOrigin } from "@ourworldindata/utils"
+import { OwidOrigin, dayjs } from "@ourworldindata/utils"
 import { SimpleMarkdownText } from "../SimpleMarkdownText.js"
 import { CodeSnippet } from "../CodeSnippet/CodeSnippet.js"
 import { REUSE_THIS_WORK_SECTION_ID } from "../SharedDataPageConstants.js"
@@ -48,6 +48,9 @@ export const IndicatorSources = (props: IndicatorSourcesProps) => {
             </h3>
             <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
                 {props.origins.map((source, idx: number, sources) => {
+                    const dateAccessed = source.dateAccessed
+                        ? dayjs(source.dateAccessed).format("MMMM D, YYYY")
+                        : undefined
                     return (
                         <div className="data-sources__source-item" key={idx}>
                             <ExpandableToggle
@@ -68,8 +71,7 @@ export const IndicatorSources = (props: IndicatorSourcesProps) => {
                                                 />
                                             </p>
                                         )}
-                                        {(source.dateAccessed ||
-                                            source.urlMain) && (
+                                        {(dateAccessed || source.urlMain) && (
                                             <div
                                                 className="grid source__key-data"
                                                 style={{
@@ -77,15 +79,13 @@ export const IndicatorSources = (props: IndicatorSourcesProps) => {
                                                         "minmax(0,1fr) minmax(0,2fr)",
                                                 }}
                                             >
-                                                {source.dateAccessed && (
+                                                {dateAccessed && (
                                                     <div className="key-data">
                                                         <div className="key-data__title--dark">
                                                             Retrieved on
                                                         </div>
                                                         <div>
-                                                            {
-                                                                source.dateAccessed
-                                                            }
+                                                            {dateAccessed}
                                                         </div>
                                                     </div>
                                                 )}

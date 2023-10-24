@@ -82,9 +82,11 @@ export const IndicatorBrief = (props: IndicatorBriefProps) => {
                                 : "How does the producer of this data describe this data?"
                         }
                         content={
-                            <SimpleMarkdownText
-                                text={props.descriptionFromProducer}
-                            />
+                            <div className="article-block__text">
+                                <SimpleMarkdownText
+                                    text={props.descriptionFromProducer}
+                                />
+                            </div>
                         }
                         isExpandedDefault={
                             !(props.descriptionShort || props.descriptionKey)
