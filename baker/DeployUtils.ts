@@ -2,8 +2,14 @@ import fs from "fs-extra"
 import { BuildkiteTrigger } from "../baker/BuildkiteTrigger.js"
 import { logErrorAndMaybeSendToBugsnag, warn } from "../serverUtils/errorLog.js"
 import { DeployQueueServer } from "./DeployQueueServer.js"
-import { BUILDKITE_API_ACCESS_TOKEN } from "../settings/serverSettings.js"
-import { DeployChange } from "@ourworldindata/utils"
+import {
+    BAKED_SITE_DIR,
+    BAKED_BASE_URL,
+    BUILDKITE_API_ACCESS_TOKEN,
+} from "../settings/serverSettings.js"
+import { DeployChange, OwidGdocPublished } from "@ourworldindata/utils"
+import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
+import { SiteBaker } from "../baker/SiteBaker.js"
 
 const deployQueueServer = new DeployQueueServer()
 
@@ -31,20 +37,34 @@ const triggerBakeAndDeploy = async (
 ) => {
     message = message ?? (await defaultCommitMessage())
 
-    // co-deploy to Buildkite
+    // deploy to Buildkite if we're on master and BUILDKITE_API_ACCESS_TOKEN is set
     if (BUILDKITE_API_ACCESS_TOKEN) {
         const buildkite = new BuildkiteTrigger()
-        // once we fully switch to baking on buildkite, we should await this
         if (lightningQueue?.length) {
-            buildkite
+            await buildkite
                 .runLightningBuild(
                     message!,
                     lightningQueue.map((change) => change.slug!)
                 )
                 .catch(logErrorAndMaybeSendToBugsnag)
         } else {
-            // once we fully switch to baking on buildkite, we should await this
-            buildkite.runFullBuild(message).catch(logErrorAndMaybeSendToBugsnag)
+            await buildkite
+                .runFullBuild(message)
+                .catch(logErrorAndMaybeSendToBugsnag)
+        }
+    } else {
+        // otherwise, bake locally. This is used for local development or staging servers
+        const baker = new SiteBaker(BAKED_SITE_DIR, BAKED_BASE_URL)
+        if (lightningQueue?.length) {
+            for (const change of lightningQueue) {
+                const gdoc = (await Gdoc.findOneByOrFail({
+                    published: true,
+                    slug: change.slug,
+                })) as OwidGdocPublished
+                await baker.bakeGDocPost(gdoc)
+            }
+        } else {
+            await baker.bakeAll()
         }
     }
 }
