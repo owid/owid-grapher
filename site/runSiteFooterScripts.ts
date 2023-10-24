@@ -2,7 +2,6 @@ import { SiteFooterContext } from "@ourworldindata/utils"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import { hydrateProminentLink } from "./blocks/ProminentLink.js"
 import { runCookiePreferencesManager } from "./CookiePreferencesManager.js"
-import { hydrateDataPageContent } from "./DataPageContent.js"
 import { hydrateDataPageV2Content } from "./DataPageV2Content.js"
 import { runFootnotes } from "./Footnote.js"
 import { hydrateOwidGdoc } from "./gdocs/OwidGdoc.js"
@@ -36,13 +35,6 @@ export const runSiteFooterScripts = (
     const { debug, context, isPreviewing, hideDonationFlag } = args || {}
 
     switch (context) {
-        case SiteFooterContext.dataPage:
-            hydrateDataPageContent(isPreviewing)
-            runSiteNavigation(BAKED_BASE_URL, hideDonationFlag)
-            runSiteTools()
-            runCookiePreferencesManager()
-            runDetailsOnDemand()
-            break
         case SiteFooterContext.dataPageV2:
             hydrateDataPageV2Content(isPreviewing)
             runLightbox()
