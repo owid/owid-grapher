@@ -28,6 +28,8 @@ export { ExpandableToggle } from "./ExpandableToggle/ExpandableToggle.js"
 
 export { IndicatorBrief } from "./IndicatorBrief/IndicatorBrief.js"
 
+export { IndicatorProcessing } from "./IndicatorProcessing/IndicatorProcessing.js"
+
 export {
     IndicatorSources,
     type OriginSubset,
