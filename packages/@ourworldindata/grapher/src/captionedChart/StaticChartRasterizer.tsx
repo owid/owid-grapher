@@ -1,7 +1,5 @@
 export const EMBEDDED_FONTS_CSS = "/fonts/embedded.css"
-export const IMPORT_FONTS_REGEX = new RegExp(
-    "@import url\\([^\\)]*?fonts\\.css\\)"
-)
+export const IMPORT_FONTS_REGEX = /@import url\([^\)]*?fonts\.css\)/
 
 export class StaticChartRasterizer {
     svg: string
@@ -44,8 +42,8 @@ export class StaticChartRasterizer {
         // Even though the font data is inlined in the font-face definitions, the browser may not
         // have fully loaded the fonts by the time it tries to render to canvas (in which case any
         // text drawn in non-loaded fonts will simply be invisible). This method will block rendering
-        // for up to {retries × delay} seconds or until it verifies that all the fonts in the `faces`
-        // array are ready for use
+        // for up to ~3.25s (with decelerating polling) or until it verifies that all the fonts in
+        // the `faces` array are ready for use, whichever comes first.
         const MAX_RETRIES = 10,
             RETRY_DELAY_MS = 100
 
