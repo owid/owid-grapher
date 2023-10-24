@@ -119,7 +119,7 @@ export function OwidGdoc({
                         publishedAt={publishedAt}
                         breadcrumbs={breadcrumbs ?? undefined}
                     />
-                    {content.type === "topic-page" && stickyNavLinks ? (
+                    {content.type === "topic-page" && stickyNavLinks?.length ? (
                         <nav className="sticky-nav sticky-nav--dark span-cols-14 grid grid-cols-12-full-width">
                             <StickyNav
                                 links={stickyNavLinks}

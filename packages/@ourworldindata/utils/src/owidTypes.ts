@@ -1343,7 +1343,7 @@ export interface OwidGdocContent {
         | "sdg-color-16"
         | "sdg-color-17"
         | "amber"
-    "sticky-nav"?: []
+    "sticky-nav"?: OwidGdocStickyNavItem[]
     details?: DetailDictionary
     // TODO: having both the unparsed and parsed variant on the same type is pretty crude
     // Consider moving faqs into body or splitting the types and creating
