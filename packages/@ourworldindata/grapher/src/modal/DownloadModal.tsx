@@ -87,7 +87,6 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
         return this.props.manager
     }
 
-    @observable private svgContent?: string
     @observable private svgBlob?: Blob
     @observable private svgPreviewUrl?: string
 
