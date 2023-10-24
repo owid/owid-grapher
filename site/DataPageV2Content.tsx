@@ -152,9 +152,6 @@ export const DataPageV2Content = ({
             : "related-data__category--columns span-cols-8 span-lg-cols-12"
     } `
 
-    // TODO: this is missing the attribution field ATM and
-    // so assembles something only roughly similar to the citation described
-    // by Joe. Also, we need the dataset title.
     const origins: OriginSubset[] = uniq(
         datapageData.origins.map((item) =>
             pick(item, [
@@ -174,11 +171,6 @@ export const DataPageV2Content = ({
         attributionFragments.length > 3
             ? `${attributionFragments[0]} and other sources`
             : attributionFragments.join(", ")
-    // const attributionShort =
-    //     datapageData.attributionShort ??
-    //     uniq(
-    //         datapageData.origins.map((o) => o.attributionShort ?? o.producer)
-    //     ).join("; ")
     const processedAdapted =
         datapageData.owidProcessingLevel === "minor"
             ? `minor processing`
