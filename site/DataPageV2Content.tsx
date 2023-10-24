@@ -13,6 +13,7 @@ import {
     excludeNullish,
     slugify,
     DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
+    EnrichedBlockList,
 } from "@ourworldindata/utils"
 import { markdownToEnrichedTextBlock } from "@ourworldindata/components"
 import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
@@ -123,6 +124,35 @@ export const DataPageV2Content = ({
         relatedCharts = [],
     } = faqEntries ?? {}
 
+    const keyInfoBlocks = datapageData?.descriptionKey
+        ? excludeNullish(
+              datapageData.descriptionKey.flatMap(markdownToEnrichedTextBlock)
+          )
+        : undefined
+    const keyInfoBlocksAsList = keyInfoBlocks
+        ? ({
+              type: "list",
+              items: keyInfoBlocks,
+              parseErrors: [],
+          } satisfies EnrichedBlockList)
+        : undefined
+
+    const keyInfo = keyInfoBlocksAsList ? (
+        <ArticleBlocks
+            blocks={[keyInfoBlocksAsList]}
+            containerType="datapage"
+        />
+    ) : null
+
+    const aboutThisData = datapageData?.descriptionShort ? (
+        <ArticleBlocks
+            blocks={[
+                markdownToEnrichedTextBlock(datapageData.descriptionShort),
+            ]}
+            containerType="datapage"
+        />
+    ) : null
+
     const citationDatapage = `Our World In Data (${yearOfUpdate}). Data Page: ${datapageData.title} – ${producers}. Retrieved from {url} [online resource]`
     return (
         <AttachmentsContext.Provider
@@ -192,26 +222,29 @@ export const DataPageV2Content = ({
                                 {(datapageData?.descriptionKey ||
                                     datapageData.descriptionShort) && (
                                     <div className="key-info__curated">
-                                        <h2 className="key-info__title">
-                                            {datapageData?.descriptionKey &&
-                                            datapageData?.descriptionKey
-                                                .length > 0
-                                                ? "What you should know about this indicator"
-                                                : "About this data"}
-                                        </h2>
-                                        <div className="key-info__content">
-                                            {datapageData?.descriptionKey ? (
-                                                <ArticleBlocks
-                                                    blocks={excludeNullish(
-                                                        datapageData.descriptionKey.flatMap(
-                                                            markdownToEnrichedTextBlock
-                                                        )
-                                                    )}
-                                                    containerType="datapage"
-                                                />
-                                            ) : null}
-                                        </div>
-                                        {datapageData?.faqs.length > 0 && (
+                                        {aboutThisData ? (
+                                            <>
+                                                <h2 className="key-info__title">
+                                                    About this data
+                                                </h2>
+                                                <div className="key-info__content">
+                                                    {aboutThisData}
+                                                </div>
+                                            </>
+                                        ) : null}
+                                        {keyInfo ? (
+                                            <>
+                                                <h2 className="key-info__title">
+                                                    What you should know about
+                                                    this indicator
+                                                </h2>
+                                                <div className="key-info__content">
+                                                    {keyInfo}
+                                                </div>
+                                            </>
+                                        ) : null}
+
+                                        {!!faqEntries?.faqs.length && (
                                             <a
                                                 className="key-info__learn-more"
                                                 href="#faqs"
