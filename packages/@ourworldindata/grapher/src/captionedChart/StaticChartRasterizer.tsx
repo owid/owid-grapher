@@ -28,12 +28,11 @@ export class StaticChartRasterizer {
         const canvasElt = document.createElement("canvas")
         this.canvas = new Promise((resolve) => {
             fetch(EMBEDDED_FONTS_CSS)
-                .then((data) => data.text())
-                .then((css) => {
-                    this.embeddedFonts = css
+                .then(async (data) => {
+                    this.embeddedFonts = await data.text()
+                    await this.preloadFonts(canvasElt)
+                    resolve(canvasElt)
                 })
-                .then(() => this.preloadFonts(canvasElt))
-                .then(() => resolve(canvasElt))
                 .catch((err) => {
                     console.error(JSON.stringify(err))
                     resolve(canvasElt)
