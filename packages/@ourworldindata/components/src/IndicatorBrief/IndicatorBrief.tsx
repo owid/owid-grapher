@@ -50,7 +50,7 @@ export const IndicatorBrief = (props: IndicatorBriefProps) => {
                                 <h2 className="key-info__title">
                                     About this data
                                 </h2>
-                                <div className="key-info__content">
+                                <div className="key-info__content article_block__text">
                                     <SimpleMarkdownText
                                         text={props.descriptionShort}
                                     />
