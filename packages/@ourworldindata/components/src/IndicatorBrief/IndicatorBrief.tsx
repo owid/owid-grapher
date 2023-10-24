@@ -3,10 +3,8 @@ import { faArrowDown } from "@fortawesome/free-solid-svg-icons/faArrowDown"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { ExpandableToggle } from "../ExpandableToggle/ExpandableToggle.js"
 import { SimpleMarkdownText } from "../SimpleMarkdownText.js"
-import {
-    DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
-    dayjs,
-} from "@ourworldindata/utils"
+import { dayjs } from "@ourworldindata/utils"
+import { DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID } from "../SharedDataPageConstants.js"
 
 interface IndicatorBriefProps {
     descriptionShort: string | undefined

@@ -16,7 +16,7 @@ import { runSearchCountry } from "./SearchCountry.js"
 import { hydrate as hydrateAdditionalInformation } from "./blocks/AdditionalInformation.js"
 import { hydrateKeyInsights } from "./blocks/KeyInsights.js"
 import { hydrateExpandableParagraphs } from "./blocks/ExpandableParagraph.js"
-import { hydrateCodeSnippets } from "./blocks/CodeSnippet.js"
+import { hydrateCodeSnippets } from "@ourworldindata/components"
 import { hydrateStickyNav } from "./blocks/StickyNav.js"
 
 export const runSiteFooterScripts = (
