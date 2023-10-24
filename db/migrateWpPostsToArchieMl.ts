@@ -149,10 +149,6 @@ const migrate = async (): Promise<void> => {
                 ? post.published_at.toLocaleDateString("en-US", options)
                 : ""
 
-            const authors: { author: string; order: number }[] = JSON.parse(
-                post.authors
-            )
-
             const archieMlFieldContent: OwidGdocInterface = {
                 id: `wp-${post.id}`,
                 slug: post.slug,
