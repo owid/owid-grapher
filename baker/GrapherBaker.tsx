@@ -24,8 +24,6 @@ import {
     FaqEntryData,
     FaqDictionary,
     partition,
-    PrimaryTopic,
-    sortBy,
 } from "@ourworldindata/utils"
 import {
     getRelatedArticles,
