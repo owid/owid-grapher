@@ -103,8 +103,9 @@ export class StaticChartRasterizer {
         svgUrl: string
         svgBlob: Blob
     }> {
-        // await the canvas first before anything else to make sure .preloadFonts() has completed
-        const canvas = await this.canvas
+        // await the canvas before doing anything else to make sure .preloadFonts() has completed
+        const canvas = await this.canvas,
+            ctx = canvas.getContext("2d", { alpha: false })!
 
         // create an Image object using the chart's svg, but with embedded fonts swapped in for
         // its external `fonts.css` stylesheet
@@ -120,9 +121,6 @@ export class StaticChartRasterizer {
         const { width, height, density, format } = this
         canvas.width = width * density
         canvas.height = height * density
-        const ctx = canvas.getContext("2d", {
-            alpha: false,
-        }) as CanvasRenderingContext2D
         ctx.imageSmoothingEnabled = false
         ctx.setTransform(density, 0, 0, density, 0, 0)
         ctx.drawImage(svgImage, 0, 0)
