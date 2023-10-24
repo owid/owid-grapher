@@ -1,6 +1,6 @@
 import * as db from "../db.js"
 import { Knex } from "knex"
-import { PostRow } from "@ourworldindata/utils"
+import { PostRow, sortBy } from "@ourworldindata/utils"
 
 export const postsTable = "posts"
 
@@ -48,6 +48,14 @@ export const setTags = async (
 
 export const bySlug = async (slug: string): Promise<PostRow | undefined> =>
     (await db.knexTable("posts").where({ slug: slug }))[0]
+
+/** The authors field in the posts table is a json column that contains an array of
+    { order: 1, authors: "Max Mustermann" } like records. This function parses the
+    string and returns a simple string array of author names in the correct order  */
+export const parsePostAuthors = (authorsJson: string): string[] => {
+    const authors = JSON.parse(authorsJson)
+    return sortBy(authors, ["order"]).map((author) => author.author)
+}
 
 export const setTagsForPost = async (
     postId: number,

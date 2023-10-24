@@ -215,6 +215,7 @@ export {
     type DataPageDataV2,
     type DataPageRelatedData,
     type DataPageRelatedResearch,
+    type PrimaryTopic,
     type FaqLink,
     type FaqDictionary,
     type RawBlockResearchAndWritingRow,
@@ -340,8 +341,10 @@ export {
     mergePartialGrapherConfigs,
     getOriginAttributionFragments,
     getAttributionFromVariable,
+    getAttributionFragmentsFromVariable,
     copyToClipboard,
     getETLPathComponents,
+    formatAuthors,
 } from "./Util.js"
 
 export {

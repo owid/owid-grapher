@@ -1743,16 +1743,22 @@ export function getOriginAttributionFragments(
 export function getAttributionFromVariable(
     variable: OwidVariableWithSource
 ): string {
+    return getAttributionFragmentsFromVariable(variable).join("; ")
+}
+
+export function getAttributionFragmentsFromVariable(
+    variable: OwidVariableWithSource
+): string[] {
     if (
         variable.presentation?.attribution &&
         variable.presentation?.attribution !== ""
     )
-        return variable.presentation?.attribution
+        return [variable.presentation?.attribution]
     const originAttributionFragments = getOriginAttributionFragments(
         variable.origins
     )
     const sourceName = variable.source?.name
-    return uniq(compact([sourceName, ...originAttributionFragments])).join("; ")
+    return uniq(compact([sourceName, ...originAttributionFragments]))
 }
 
 interface ETLPathComponents {
@@ -1768,4 +1774,23 @@ export const getETLPathComponents = (path: string): ETLPathComponents => {
     const [channel, producer, version, dataset, table, indicator] =
         path.split("/")
     return { channel, producer, version, dataset, table, indicator }
+}
+
+export const formatAuthors = ({
+    authors,
+    requireMax,
+    forBibtex,
+}: {
+    authors: string[]
+    requireMax?: boolean
+    forBibtex?: boolean
+}): string => {
+    if (requireMax && !authors.includes("Max Roser"))
+        authors = [...authors, "Max Roser"]
+
+    let authorsText = authors.slice(0, -1).join(forBibtex ? " and " : ", ")
+    if (authorsText.length === 0) authorsText = authors[0]
+    else authorsText += ` and ${last(authors)}`
+
+    return authorsText
 }

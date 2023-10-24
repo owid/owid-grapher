@@ -4,7 +4,6 @@ import cheerio from "cheerio"
 import {
     OwidGdocPublicationContext,
     OwidGdocInterface,
-    sortBy,
     OwidArticleBackportingStatistics,
     OwidGdocType,
     RelatedChart,
@@ -19,6 +18,7 @@ import {
     adjustHeadingLevels,
 } from "./model/Gdoc/htmlToEnriched.js"
 import { getRelatedCharts } from "./wpdb.js"
+import { parsePostAuthors } from "./model/Post.js"
 
 // slugs from all the linear entries we want to migrate from @edomt
 const entries = new Set([
@@ -162,9 +162,7 @@ const migrate = async (): Promise<void> => {
                     title: post.title,
                     subtitle: post.excerpt,
                     excerpt: post.excerpt,
-                    authors: sortBy(authors, ["order"]).map(
-                        (author) => author.author
-                    ),
+                    authors: parsePostAuthors(post.authors),
                     dateline: dateline,
                     // TODO: this discards block level elements - those might be needed?
                     refs: undefined,
