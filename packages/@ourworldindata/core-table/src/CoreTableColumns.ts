@@ -679,18 +679,27 @@ class CurrencyColumn extends NumericColumn {
     formatValue(value: unknown, options?: TickFormattingOptions): string {
         return super.formatValue(value, {
             numDecimalPlaces: 0,
-            unit: "$",
+            unit: this.shortUnit,
             ...options,
         })
     }
+
+    @imemo get shortUnit(): string {
+        return "$"
+    }
 }
+
 // Expects 50% to be 50
 class PercentageColumn extends NumericColumn {
     formatValue(value: number, options?: TickFormattingOptions): string {
         return super.formatValue(value, {
-            unit: "%",
+            unit: this.shortUnit,
             ...options,
         })
+    }
+
+    @imemo get shortUnit(): string {
+        return "%"
     }
 }
 

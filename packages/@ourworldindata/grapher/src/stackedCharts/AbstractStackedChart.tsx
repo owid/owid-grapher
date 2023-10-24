@@ -15,6 +15,7 @@ import {
     flatten,
     guid,
     max,
+    isAggregateEntity,
 } from "@ourworldindata/utils"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
@@ -310,25 +311,37 @@ export class AbstractStackedChart
     @computed get availableFacetStrategies(): FacetStrategy[] {
         const strategies: FacetStrategy[] = []
 
-        const hasMultipleEntities =
-            this.selectionArray.selectedEntityNames.length > 1
-        const hasMultipleYColumns = this.yColumns.length > 1
-        const uniqueUnits = new Set(
-            this.yColumns.map((column) => column.shortUnit)
+        const { selectedEntityNames } = this.selectionArray
+        const areMultipleEntitiesSelected = selectedEntityNames.length > 1
+        const isAggregateEntitySelected = selectedEntityNames.some(
+            (entityName: string) => isAggregateEntity(entityName)
         )
+        const hasMultipleYColumns = this.yColumns.length > 1
+        const shortUnits = this.yColumns.map((column) => column.shortUnit)
+        const uniqueUnits = new Set(shortUnits)
         const hasMultipleUnits = uniqueUnits.size > 1
+        const hasPercentageUnit = shortUnits.some(
+            (shortUnit) => shortUnit === "%"
+        )
 
         // Normally StackedArea/StackedBar charts are always single-entity or single-column, but if we are ever in a mode where we
         // have multiple entities selected (e.g. through GlobalEntitySelector) and multiple columns, it only makes sense when faceted.
-        if (!this.isEntitySeries && !hasMultipleEntities)
+        if (!this.isEntitySeries && !areMultipleEntitiesSelected)
             strategies.push(FacetStrategy.none)
         else if (this.isEntitySeries && !hasMultipleYColumns)
             strategies.push(FacetStrategy.none)
 
-        if (hasMultipleEntities && !hasMultipleUnits)
+        if (areMultipleEntitiesSelected && !hasMultipleUnits)
             strategies.push(FacetStrategy.entity)
 
-        if (hasMultipleYColumns) strategies.push(FacetStrategy.metric)
+        if (
+            hasMultipleYColumns &&
+            // Stacking percentages doesn't make sense
+            !hasPercentageUnit &&
+            // Stacking countries/regions doesn't make sense if aggregates are present
+            (!isAggregateEntitySelected || !areMultipleEntitiesSelected)
+        )
+            strategies.push(FacetStrategy.metric)
 
         return strategies
     }

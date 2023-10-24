@@ -74,5 +74,12 @@ const currentAndHistoricalCountryNames = regions
 export const isCountryName = (name: string): boolean =>
     currentAndHistoricalCountryNames.includes(name.toLowerCase())
 
+export const isAggregateEntity = (name: string): boolean => {
+    const lowerCaseName = name.toLowerCase()
+    return aggregates.some(
+        (aggregate) => aggregate.name.toLowerCase() === lowerCaseName
+    )
+}
+
 export const getCountryBySlug = (slug: string): Country | undefined =>
     countriesBySlug[slug]
