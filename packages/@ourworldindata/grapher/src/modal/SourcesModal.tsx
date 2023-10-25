@@ -63,7 +63,7 @@ export class SourcesModal extends React.Component<{
         // made when the CoreColumn is filled from the Variable metadata
         // in columnDefFromOwidVariable in packages/@ourworldindata/grapher/src/core/LegacyToOwidTable.ts
         const { slug, source, def } = column
-        const { datasetId, coverage, presentation } = def as OwidColumnDef
+        const { datasetId, coverage } = def as OwidColumnDef
 
         // there will not be a datasetId for explorers that define the FASTT in TSV
         const editUrl =
