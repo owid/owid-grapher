@@ -179,6 +179,10 @@ abstract class AbstractAxis {
         return Math.min(this.range[1], this.range[0])
     }
 
+    @computed get rangeCenter(): number {
+        return this.rangeMin + this.rangeSize / 2
+    }
+
     /** The number of ticks we should _aim_ to show, not necessarily a strict target. */
     @computed private get totalTicksTarget(): number {
         // Chose 1.8 here by trying a bunch of different faceted charts and figuring out what
