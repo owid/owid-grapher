@@ -308,7 +308,7 @@ const syncPostsToGrapher = async (): Promise<void> => {
         }
     }) as PostRow[]
     const postLinks = await dataSource.getRepository(PostLink).find()
-    const postLinksById = groupBy(postLinks, (link) => link.id)
+    const postLinksById = groupBy(postLinks, (link) => link.sourceId)
 
     const linksToAdd: PostLink[] = []
     const linksToDelete: PostLink[] = []
