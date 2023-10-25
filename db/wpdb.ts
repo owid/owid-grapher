@@ -660,6 +660,80 @@ export const getRelatedChartsForVariable = async (
             `)
 }
 
+export const getRelatedResearchAndWritingForVariable = async (
+    variableId: number
+): Promise<RelatedChart[]> => {
+    const wp_posts = await db.queryMysql(
+        `-- sql
+            select
+                distinct
+                pl.target as linkTargetSlug,
+                c.slug as chartSlug,
+                p.title as title,
+                p.slug as postSlug,
+                coalesce(csr.chart_id, c.id) as chartId,
+                p.authors as authors,
+                '' as thumbnail, -- TODO: add thumbnail once we have it
+                pv.views_365d as pageviews,
+                'wordpress' as post_source
+            from
+                posts_links pl
+            join posts p on
+                pl.sourceId = p.id
+            left join charts c on
+                pl.target = c.slug
+            left join chart_slug_redirects csr on
+                pl.target = csr.slug
+            left join chart_dimensions cd on
+                cd.chartId = c.id
+            left join pageviews pv on
+                pv.url = concat('https://ourworldindata.org/', p.slug )
+            where
+                pl.linkType = 'grapher'
+                and cd.variableId = ?
+                and p.status = 'publish'
+            `,
+        [variableId]
+    )
+
+    const gdocs_posts = await db.queryMysql(
+        `-- sql
+            select
+                distinct
+                pl.target as linkTargetSlug,
+                c.slug as chartSlug,
+                p.content ->> '$.title' as title,
+                p.slug as postSlug,
+                coalesce(csr.chart_id, c.id) as chartId,
+                p.content ->> '$.authors' as authors,
+                p.content ->> '$."featured-image"' as thumbnail,
+                pv.views_365d as pageviews,
+                'gdocs' as post_source
+            from
+                posts_gdocs_links pl
+            join posts_gdocs p on
+                pl.sourceId = p.id
+            left join charts c on
+                pl.target = c.slug
+            left join chart_slug_redirects csr on
+                pl.target = csr.slug
+            join chart_dimensions cd on
+                cd.chartId = c.id
+            left join pageviews pv on
+                pv.url = concat('https://ourworldindata.org/', p.slug )
+            where
+                pl.linkType = 'grapher'
+                and cd.variableId = ?
+                and p.published = 1
+            order by
+                pageviews desc`,
+        [variableId]
+    )
+
+    // TODO: combine results, discarding wp posts where gdocs are available
+    return [...wp_posts, ...gdocs_posts]
+}
+
 export const getRelatedArticles = async (
     chartId: number
 ): Promise<PostReference[] | undefined> => {
