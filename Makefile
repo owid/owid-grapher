@@ -24,23 +24,24 @@ help:
 	@echo 'Available commands:'
 	@echo
 	@echo '  GRAPHER ONLY'
-	@echo '  make up            start dev environment via docker-compose and tmux'
-	@echo '  make down          stop any services still running'
-	@echo '  make refresh       (while up) download a new grapher snapshot and update MySQL'
-	@echo '  make migrate       (while up) run any outstanding db migrations'
-	@echo '  make test          run full suite (except db tests) of CI checks including unit tests'
-	@echo '  make dbtest        run db test suite that needs a running mysql db'
-	@echo '  make svgtest       compare current rendering against reference SVGs'
+	@echo '  make up                start dev environment via docker-compose and tmux'
+	@echo '  make down              stop any services still running'
+	@echo '  make refresh           (while up) download a new grapher snapshot and update MySQL'
+	@echo '  make refresh.pageviews (while up) download and load pageviews from the private datasette instance'
+	@echo '  make migrate           (while up) run any outstanding db migrations'
+	@echo '  make test              run full suite (except db tests) of CI checks including unit tests'
+	@echo '  make dbtest            run db test suite that needs a running mysql db'
+	@echo '  make svgtest           compare current rendering against reference SVGs'
 	@echo
 	@echo '  GRAPHER + WORDPRESS (staff-only)'
-	@echo '  make up.full       start dev environment via docker-compose and tmux'
-	@echo '  make down.full     stop any services still running'
-	@echo '  make refresh.wp    download a new wordpress snapshot and update MySQL'
-	@echo '  make refresh.full  do a full MySQL update of both wordpress and grapher'
+	@echo '  make up.full           start dev environment via docker-compose and tmux'
+	@echo '  make down.full         stop any services still running'
+	@echo '  make refresh.wp        download a new wordpress snapshot and update MySQL'
+	@echo '  make refresh.full      do a full MySQL update of both wordpress and grapher'
 	@echo
 	@echo '  OPS (staff-only)'
-	@echo '  make deploy        Deploy your local site to production'
-	@echo '  make stage         Deploy your local site to staging'
+	@echo '  make deploy            Deploy your local site to production'
+	@echo '  make stage             Deploy your local site to staging'
 	@echo
 
 up: export DEBUG = 'knex:query'
@@ -135,6 +136,10 @@ refresh:
 
 	@echo '==> Updating grapher database'
 	@. ./.env && DATA_FOLDER=tmp-downloads ./devTools/docker/refresh-grapher-data.sh
+
+refresh.pageviews:
+	@echo '==> Refreshing pageviews'
+	yarn && yarn buildTsc && yarn refreshPageviews
 
 refresh.wp:
 	@echo '==> Downloading wordpress data'

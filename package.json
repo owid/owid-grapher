@@ -26,6 +26,7 @@
         "fixPrettierAll": "yarn prettier --write \"**/*.{tsx,ts,jsx,js,json,md,html,css,scss,yml}\"",
         "runRegionsUpdater": "node --enable-source-maps ./itsJustJavascript/devTools/regionsUpdater/update.js",
         "runDbMigrations": "yarn typeorm migration:run -d itsJustJavascript/db/dataSource.js",
+        "refreshPageviews": "node --enable-source-maps ./itsJustJavascript/db/refreshPageviewsFromDatasette.js",
         "revertLastDbMigration": "yarn typeorm migration:revert -d itsJustJavascript/db/dataSource.js",
         "runPostUpdateHook": "node --enable-source-maps ./itsJustJavascript/baker/postUpdatedHook.js",
         "startAdminServer": "node --enable-source-maps ./itsJustJavascript/adminSiteServer/app.js",
