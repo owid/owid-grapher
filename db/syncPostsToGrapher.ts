@@ -3,12 +3,21 @@
 
 import * as wpdb from "./wpdb.js"
 import * as db from "./db.js"
-import { keyBy, PostRow } from "@ourworldindata/utils"
+import {
+    differenceOfSets,
+    groupBy,
+    keyBy,
+    PostRow,
+} from "@ourworldindata/utils"
 import { postsTable, select } from "./model/Post.js"
+import { PostLink } from "./model/PostLink.js"
 
 const zeroDateString = "0000-00-00 00:00:00"
 
 const blockRefRegex = /<!-- wp:block \{"ref":(?<id>\d+)\} \/-->/g
+const prominentLinkRegex = /"linkUrl":"(?<url>[^"]+)"/g
+const anyHrefRegex = /href="(?<url>[^"]+)"/g
+const anySrcRegex = /href="(?<url>[^"]+)"/g
 
 interface ReusableBlock {
     ID: number
@@ -197,8 +206,36 @@ const syncPostsToGrapher = async (): Promise<void> => {
         .filter((p) => !doesExistInWordpress[p.id])
         .map((p) => p.id)
 
+    const postLinks = await PostLink.find()
+
+    const postLinksById = groupBy(postLinks, (link) => link.id)
+
     const toInsert = rows.map((post: any) => {
         const content = post.post_content as string
+
+        // TODO: move this into a separate iteration, add
+        // code to delete/add rows, extract link fragment and query string
+
+        const existingLinks = new Set(
+            postLinksById[post.id].map((link) => link.target)
+        )
+        const allHrefs = [...content.matchAll(anyHrefRegex)].map(
+            (x) => x.groups?.["url"] ?? ""
+        )
+        const allSrcs = [...content.matchAll(anySrcRegex)].map(
+            (x) => x.groups?.["url"] ?? ""
+        )
+        const allProminentLinks = [...content.matchAll(prominentLinkRegex)].map(
+            (x) => x.groups?.["url"] ?? ""
+        )
+        const allLinks = new Set([
+            ...allHrefs,
+            ...allSrcs,
+            ...allProminentLinks,
+        ])
+
+        const linksToAdd = differenceOfSets([allLinks, existingLinks])
+        const linksToDelete = differenceOfSets([existingLinks, allLinks])
 
         return {
             id: post.ID,
