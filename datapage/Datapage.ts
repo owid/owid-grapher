@@ -50,11 +50,10 @@ export const getDatapageDataV2 = async (
             title:
                 variableMetadata.presentation?.titlePublic ??
                 partialGrapherConfig.title ??
+                variableMetadata.display?.name ??
                 variableMetadata.name ??
                 "",
-            descriptionShort:
-                variableMetadata.descriptionShort ??
-                partialGrapherConfig.subtitle,
+            descriptionShort: variableMetadata.descriptionShort,
             descriptionFromProducer: variableMetadata.descriptionFromProducer,
             attributionShort: variableMetadata.presentation?.attributionShort,
             titleVariant: variableMetadata.presentation?.titleVariant,
