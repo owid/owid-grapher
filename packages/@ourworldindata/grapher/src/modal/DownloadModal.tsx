@@ -24,6 +24,7 @@ import {
 import { STATIC_EXPORT_DETAIL_SPACING } from "../core/GrapherConstants"
 import { Modal } from "./Modal"
 import { Checkbox } from "../controls/Checkbox"
+import { StaticChartRasterizer } from "../captionedChart/StaticChartRasterizer"
 
 export interface DownloadModalManager {
     idealBounds?: Bounds
@@ -95,53 +96,26 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
     @observable private isReady: boolean = false
 
     @action.bound private export(): void {
-        this.createSvg()
-        const reader = new FileReader()
-        reader.onload = (ev: any): void => {
-            this.svgPreviewUrl = ev.target.result as string
-            this.tryCreatePng(this.svgPreviewUrl)
-        }
-        reader.readAsDataURL(this.svgBlob as Blob)
-    }
+        const {
+            targetWidth: width,
+            targetHeight: height,
+            manager: { staticSVG },
+        } = this
 
-    @action.bound private createSvg(): void {
-        const staticSVG = this.manager.staticSVG
-        this.svgBlob = new Blob([staticSVG], {
-            type: "image/svg+xml;charset=utf-8",
-        })
-    }
-
-    @action.bound private tryCreatePng(svgPreviewUrl: string): void {
-        const { targetWidth, targetHeight } = this
-        // Client-side SVG => PNG export. Somewhat experimental, so there's a lot of cross-browser fiddling and fallbacks here.
-        const img = new Image()
-        img.onload = (): void => {
-            try {
-                const canvas = document.createElement("canvas")
-                // We draw the chart at 4x res then scale it down again -- much better text quality
-                canvas.width = targetWidth * 4
-                canvas.height = targetHeight * 4
-                const ctx = canvas.getContext("2d", {
-                    alpha: false,
-                }) as CanvasRenderingContext2D
-                ctx.imageSmoothingEnabled = false
-                ctx.setTransform(4, 0, 0, 4, 0, 0)
-                ctx.drawImage(img, 0, 0)
-                this.pngPreviewUrl = canvas.toDataURL("image/png")
-                canvas.toBlob((blob) => {
-                    this.pngBlob = blob ?? undefined
-                    this.markAsReady()
-                })
-            } catch (e) {
-                console.error(e)
+        // render the graphic then cache data-urls for display & blobs for downloads
+        new StaticChartRasterizer(staticSVG, width, height)
+            .render()
+            .then(({ url, blob, svgUrl, svgBlob }) => {
+                this.pngPreviewUrl = url
+                this.pngBlob = blob
+                this.svgPreviewUrl = svgUrl
+                this.svgBlob = svgBlob
                 this.markAsReady()
-            }
-        }
-        img.onerror = (err): void => {
-            console.error(JSON.stringify(err))
-            this.markAsReady()
-        }
-        img.src = svgPreviewUrl
+            })
+            .catch((err) => {
+                console.error(JSON.stringify(err))
+                this.markAsReady()
+            })
     }
 
     @computed private get csvBlob(): Blob {

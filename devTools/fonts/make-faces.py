@@ -16,6 +16,7 @@ from fontTools.ttLib import TTFont
 from more_itertools import consecutive_groups
 from operator import itemgetter
 from os.path import basename, splitext
+from base64 import b64encode
 import sys
 import re
 
@@ -52,7 +53,8 @@ def inspect_font(path):
         italic = italic,
         style = "italic" if italic else "normal",
         codepoints = codepoints,
-        url = f'/fonts/{basename(path)}'
+        url = f'/fonts/{basename(path)}',
+        path = path,
     )
 
 def find_ranges(iterable):
@@ -90,7 +92,7 @@ def make_face(font, subset=None, singleton=False):
 
     return "\n".join(css)
 
-def main(woff_files):
+def main_stylesheet(woff_files):
     fonts = sorted([inspect_font(f) for f in woff_files], key=itemgetter('weight', 'italic'))
     lato = [f for f in fonts if f['family']=='Lato' and not f['subset']]
     lato_latin = [f for f in fonts if f['family']=='Lato' and f['subset']]
@@ -111,6 +113,45 @@ def main(woff_files):
     ]
     print("\n\n".join(faces))
 
+def make_embedded_face(font):
+    font_data = open(font['path'], 'rb').read()
+    font_uri = 'data:font/woff2;base64,' + b64encode(font_data).decode('utf-8')
+    family = font['family']
+    weight = font['weight']
+    style = font['style']
+
+    css = [
+        '@font-face {',
+        'font-display: block;',
+        f'font-family: "{family}";',
+        f'font-weight: {weight};',
+        f'font-style: {style};',
+        f'src: url({font_uri}) format("woff2");',
+        "}",
+    ]
+    return " ".join(css)
+
+def embedded_stylesheet(woff_files):
+    font_info = [inspect_font(f) for f in woff_files]
+
+    # include just the fonts known to be used in static chart exports
+    embeddable_fonts =[
+        'Lato-Regular',
+        'Lato-Italic',
+        'Lato-Bold',
+        'PlayfairDisplay-Medium',
+    ]
+
+    # use the latin subsets to keep the size down
+    faces = [make_embedded_face(f) for f in font_info if f['subset'] and f['ps_name'] in embeddable_fonts]
+    print("\n".join(faces))
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    args = sys.argv[1:]
+    if '--embed' in args[:1]:
+        embedded_stylesheet(args[1:])
+    elif args:
+        main_stylesheet(args)
+    else:
+        print("Usage: make-faces.py [--embed] woff2-files...")
+
