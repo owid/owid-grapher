@@ -421,7 +421,16 @@ export class DataTable extends React.Component<{
         else if (isRangeValue(dv))
             value = dv[column.key as RangeValueKey] as Value
 
-        if (value === undefined) return <td key={key} className="dimension" />
+        if (value === undefined)
+            return (
+                <td
+                    key={key}
+                    className={classnames([
+                        "dimension",
+                        `dimension-${column.key}`,
+                    ])}
+                />
+            )
 
         const shouldShowClosestTimeNotice =
             value.time !== undefined &&
