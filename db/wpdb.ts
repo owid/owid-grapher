@@ -690,7 +690,7 @@ export const getRelatedResearchAndWritingForVariable = async (
                 coalesce(csr.chart_id, c.id) as chartId,
                 p.authors as authors,
                 '' as thumbnail, -- TODO: add thumbnail once we have it
-                pv.views_365d as pageviews,
+                coalesce(pv.views_365d, 0) as pageviews,
                 'wordpress' as post_source
             from
                 posts_links pl
@@ -729,7 +729,7 @@ export const getRelatedResearchAndWritingForVariable = async (
                 coalesce(csr.chart_id, c.id) as chartId,
                 p.content ->> '$.authors' as authors,
                 p.content ->> '$."featured-image"' as thumbnail,
-                pv.views_365d as pageviews,
+                coalesce(pv.views_365d, 0) as pageviews,
                 'gdocs' as post_source
             from
                 posts_gdocs_links pl
