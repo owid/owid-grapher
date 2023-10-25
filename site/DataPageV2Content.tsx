@@ -24,7 +24,12 @@ import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
 import StickyNav from "./blocks/StickyNav.js"
 import cx from "classnames"
 import { DebugProvider } from "./gdocs/DebugContext.js"
+import Image from "./gdocs/Image.js"
 import dayjs from "dayjs"
+import {
+    IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH,
+    IMAGE_HOSTING_CDN_URL,
+} from "../settings/clientSettings.js"
 declare global {
     interface Window {
         _OWID_DATAPAGEV2_PROPS: DataPageV2ContentFields
@@ -288,8 +293,24 @@ export const DataPageV2Content = ({
                                                     key={research.url}
                                                     className="related-research__item grid grid-cols-4 grid-lg-cols-6 grid-sm-cols-12 span-cols-4 span-lg-cols-6 span-sm-cols-12"
                                                 >
+                                                    {/* <figure>
+                                                        <Image
+                                                            filename={
+                                                                research.imageUrl
+                                                            }
+                                                            shouldLightbox={
+                                                                false
+                                                            }
+                                                            containerType={
+                                                                "thumbnail"
+                                                            }
+                                                        />
+                                                    </figure> */}
+                                                    {/* // TODO: switch this to use the Image component and put the required information for the thumbnails into hte attachment context or similar */}
                                                     <img
-                                                        src={research.imageUrl}
+                                                        src={encodeURI(
+                                                            `${IMAGE_HOSTING_CDN_URL}/production/${research.imageUrl}`
+                                                        )}
                                                         alt=""
                                                         className="span-lg-cols-2 span-sm-cols-3"
                                                     />
