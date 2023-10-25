@@ -1,0 +1,30 @@
+.source__key-data {
+    row-gap: 32px;
+
+    .wp-code-snippet {
+        margin-top: 8px;
+        margin-bottom: 0;
+    }
+}
+
+.key-data {
+    @include body-3-medium;
+    a {
+        @include owid-link-90;
+        color: inherit;
+    }
+}
+
+.key-data--hide-overflow div:last-child {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.key-data__title {
+    color: $blue-50;
+}
+
+.key-data__title--dark {
+    color: $blue-90;
+}

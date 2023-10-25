@@ -1,0 +1,60 @@
+.key-info__curated {
+    margin-bottom: 32px;
+}
+
+.key-info__title {
+    @include h2-bold;
+    margin: 0 0 16px;
+    @include sm-up {
+        margin: 0 0 24px;
+    }
+}
+
+.key-info__content {
+    margin-bottom: 24px;
+
+    li {
+        @include body-2-regular;
+    }
+}
+
+.key-info__learn-more {
+    @include expandable-paragraph__expand-button--full;
+    svg {
+        font-size: 0.75em;
+        margin-left: 12px;
+    }
+}
+
+.key-info__right {
+    @include sm-only {
+        margin-top: 32px;
+    }
+    @include sm-up {
+        padding-left: 24px;
+        border-left: 1px solid $blue-20;
+    }
+    row-gap: 24px;
+}
+
+.key-data {
+    @include body-3-medium;
+    a {
+        @include owid-link-90;
+        color: inherit;
+    }
+}
+
+.key-data--hide-overflow div:last-child {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.key-data__title {
+    color: $blue-50;
+}
+
+.key-data__title--dark {
+    color: $blue-90;
+}

@@ -139,68 +139,6 @@
         }
     }
 
-    .key-info__content {
-        li {
-            @include body-2-regular;
-        }
-    }
-
-    .key-info__curated {
-        margin-bottom: 32px;
-    }
-
-    .key-info__content {
-        margin-bottom: 24px;
-    }
-    .key-info__title {
-        @include h2-bold;
-        margin: 0 0 16px;
-        @include sm-up {
-            margin: 0 0 24px;
-        }
-    }
-
-    .key-info__learn-more {
-        @include expandable-paragraph__expand-button--full;
-        svg {
-            font-size: 0.75em;
-            margin-left: 12px;
-        }
-    }
-
-    .key-info__right {
-        @include sm-only {
-            margin-top: 32px;
-        }
-        @include sm-up {
-            padding-left: 24px;
-            border-left: 1px solid $blue-20;
-        }
-        row-gap: 24px;
-    }
-
-    .key-data {
-        @include body-3-medium;
-        a {
-            @include owid-link-90;
-            color: inherit;
-        }
-    }
-
-    .key-data--hide-overflow div:last-child {
-        white-space: nowrap;
-        text-overflow: ellipsis;
-        overflow: hidden;
-    }
-
-    .key-data__title {
-        color: $blue-50;
-    }
-
-    .key-data__title--dark {
-        color: $blue-90;
-    }
-
     .bg-gray-10 {
         background-color: $gray-10;
     }
@@ -370,11 +308,6 @@
             margin: 24px 0 16px;
         }
     }
-
-    .data-sources-processing__title {
-        @include datapage-section-title;
-    }
-
     .data-sources {
         .article-block__text,
         .article-block__list,
@@ -391,20 +324,10 @@
         margin: 0 0 24px;
     }
 
-    .source__key-data {
-        row-gap: 32px;
-
-        .wp-code-snippet {
-            margin-top: 8px;
-            margin-bottom: 0;
-        }
-    }
-
     .data-processing {
         margin-top: 32px;
     }
 
-    .data-processing__content,
     .reuse__content {
         margin-bottom: 24px;
     }
@@ -413,45 +336,16 @@
         margin-left: 16px;
     }
 
-    .data-processing__paragraph,
     .reuse__list-item,
     .citation__paragraph {
         @include body-3-medium;
         margin: 0 0 16px;
     }
 
-    .data-processing__link {
-        @include expandable-paragraph__expand-button--full;
-    }
-
-    .variable-processing-info {
-        display: flex;
-        flex-direction: column;
-        background-color: $white;
-        margin: 32px -24px 0;
-        padding: 24px;
-    }
-
-    .variable-processing-info__header,
     .citation__how-to-header {
         @include overline-black-caps;
         text-transform: uppercase;
         margin: 0 0 8px;
-    }
-
-    .variable-processing-info__description {
-        color: $blue-60;
-
-        .article-block__text,
-        .article-block__list,
-        .article-block__html,
-        .article-block__numbered-list {
-            @include body-3-medium;
-        }
-
-        > *:last-child {
-            margin-bottom: 0;
-        }
     }
 
     .reuse__title {

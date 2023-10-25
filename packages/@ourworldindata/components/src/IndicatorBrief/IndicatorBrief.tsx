@@ -39,8 +39,8 @@ export const IndicatorBrief = (props: IndicatorBriefProps) => {
             )
 
     return (
-        <div className="key-info__wrapper wrapper grid grid-cols-12">
-            <div className="key-info__left col-start-2 span-cols-7 span-lg-cols-8 span-sm-cols-12">
+        <>
+            <div className="key-info__left">
                 {(props.descriptionShort || props.descriptionKey) && (
                     <div className="key-info__curated">
                         {props.descriptionShort ? (
@@ -94,8 +94,8 @@ export const IndicatorBrief = (props: IndicatorBriefProps) => {
                     />
                 )}
             </div>
-            <div className="key-info__right grid grid-cols-3 grid-lg-cols-4 grid-sm-cols-12 span-cols-3 span-lg-cols-4 span-sm-cols-12">
-                <div className="key-data span-cols-3 span-lg-cols-4 span-sm-cols-12">
+            <div className="key-info__right">
+                <div className="key-data">
                     <div className="key-data__title">Source</div>
                     <div>
                         {props.attribution} – with{" "}
@@ -107,16 +107,16 @@ export const IndicatorBrief = (props: IndicatorBriefProps) => {
                         by Our World In Data
                     </div>
                 </div>
-                <div className="key-data span-cols-3 span-lg-cols-4 span-sm-cols-6">
+                <div className="key-data">
                     <div className="key-data__title">Date range</div>
                     <div>{props.dateRange}</div>
                 </div>
-                <div className="key-data span-cols-3 span-lg-cols-4 span-sm-cols-6">
+                <div className="key-data">
                     <div className="key-data__title">Last updated</div>
                     <div>{lastUpdated.format("MMMM D, YYYY")}</div>
                 </div>
                 {props.nextUpdate && (
-                    <div className="key-data span-cols-3 span-lg-cols-4 span-sm-cols-6">
+                    <div className="key-data">
                         <div className="key-data__title">
                             Next expected update
                         </div>
@@ -124,6 +124,6 @@ export const IndicatorBrief = (props: IndicatorBriefProps) => {
                     </div>
                 )}
             </div>
-        </div>
+        </>
     )
 }

@@ -282,20 +282,28 @@ export const DataPageV2Content = ({
                             className="wrapper"
                             id="explore-the-data"
                         />
-                        <IndicatorBrief
-                            descriptionShort={datapageData.descriptionShort}
-                            descriptionKey={datapageData.descriptionKey}
-                            hasFaqEntries={!!faqEntries?.faqs.length}
-                            descriptionFromProducer={
-                                datapageData.descriptionFromProducer
-                            }
-                            attributionShort={datapageData.attributionShort}
-                            attribution={attributionUnshortened}
-                            processedAdapted={processedAdapted}
-                            dateRange={dateRange ?? undefined}
-                            lastUpdated={datapageData.lastUpdated}
-                            nextUpdate={datapageData.nextUpdate}
-                        />
+                        <div className="wrapper grid grid-cols-12">
+                            <div className="span-cols-12">
+                                <IndicatorBrief
+                                    descriptionShort={
+                                        datapageData.descriptionShort
+                                    }
+                                    descriptionKey={datapageData.descriptionKey}
+                                    hasFaqEntries={!!faqEntries?.faqs.length}
+                                    descriptionFromProducer={
+                                        datapageData.descriptionFromProducer
+                                    }
+                                    attributionShort={
+                                        datapageData.attributionShort
+                                    }
+                                    attribution={attributionUnshortened}
+                                    processedAdapted={processedAdapted}
+                                    dateRange={dateRange ?? undefined}
+                                    lastUpdated={datapageData.lastUpdated}
+                                    nextUpdate={datapageData.nextUpdate}
+                                />
+                            </div>
+                        </div>
                     </div>
                     <div className="wrapper">
                         {relatedResearch && relatedResearch.length > 0 && (
@@ -492,12 +500,27 @@ export const DataPageV2Content = ({
                                 >
                                     Sources and processing
                                 </h2>
-                                <IndicatorSources origins={origins} />
-                                <IndicatorProcessing
-                                    descriptionProcessing={
-                                        datapageData.descriptionProcessing
-                                    }
-                                />
+                                <div className="data-sources grid span-cols-12">
+                                    <h3 className="data-sources__heading span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+                                        This data is based on the following
+                                        sources
+                                    </h3>
+                                    <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+                                        <IndicatorSources origins={origins} />
+                                    </div>
+                                </div>
+                                <div className="data-processing grid span-cols-12">
+                                    <h3 className="data-processing__heading span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+                                        How we process data at Our World in Data
+                                    </h3>
+                                    <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+                                        <IndicatorProcessing
+                                            descriptionProcessing={
+                                                datapageData.descriptionProcessing
+                                            }
+                                        />
+                                    </div>
+                                </div>
                             </div>
                             <div className="section-wrapper grid">
                                 <h2
