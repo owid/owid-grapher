@@ -665,6 +665,7 @@ export const getRelatedChartsForVariable = async (
 
 interface RelatedResearchQueryResult {
     linkTargetSlug: string
+    componentType: string
     chartSlug: string
     title: string
     postSlug: string
@@ -682,6 +683,7 @@ export const getRelatedResearchAndWritingForVariable = async (
             select
                 distinct
                 pl.target as linkTargetSlug,
+                pl.componentType as componentType,
                 c.slug as chartSlug,
                 p.title as title,
                 p.slug as postSlug,
@@ -706,6 +708,7 @@ export const getRelatedResearchAndWritingForVariable = async (
             	pg.id = p.gdocSuccessorId
             where
                 pl.linkType = 'grapher'
+                and componentType = 'src' -- this filters out links in tags and keeps only embedded charts
                 and cd.variableId = ?
                 and cd.property in ('x', 'y') -- ignore cases where the indicator is size, color etc
                 and p.status = 'publish' -- only use published wp charts
@@ -719,6 +722,7 @@ export const getRelatedResearchAndWritingForVariable = async (
             select
                 distinct
                 pl.target as linkTargetSlug,
+                pl.componentType as componentType,
                 c.slug as chartSlug,
                 p.content ->> '$.title' as title,
                 p.slug as postSlug,
@@ -741,6 +745,7 @@ export const getRelatedResearchAndWritingForVariable = async (
                 pv.url = concat('https://ourworldindata.org/', p.slug )
             where
                 pl.linkType = 'grapher'
+                and componentType = 'chart' -- this filters out links in tags and keeps only embedded charts
                 and cd.variableId = ?
                 and cd.property in ('x', 'y') -- ignore cases where the indicator is size, color etc
                 and p.published = 1`,
@@ -753,14 +758,17 @@ export const getRelatedResearchAndWritingForVariable = async (
     // but it seemed easier to understand if we do the sort here
     const sorted = sortBy(combined, (post) => -post.pageviews)
 
-    return sorted.map((post) => {
+    const allSortedRelatedResearch = sorted.map((post) => {
         const parsedAuthors = JSON.parse(post.authors)
         // The authors in the gdocs table are just a list of strings, but in the wp_posts table
         // they are a list of objects with an "author" key and an "order" key. We want to normalize this so that
         // we can just use the same code to display the authors in both cases.
-        const authors = parsedAuthors.map((author: any) =>
-            !isString(author) ? author.author : author
-        )
+        let authors
+        if (parsedAuthors.length > 0 && !isString(parsedAuthors[0])) {
+            authors = sortBy(parsedAuthors, (author) => author.order).map(
+                (author: any) => author.author
+            )
+        } else authors = parsedAuthors
         return {
             title: post.title,
             url: `/${post.postSlug}`,
@@ -769,6 +777,10 @@ export const getRelatedResearchAndWritingForVariable = async (
             imageUrl: post.thumbnail,
         }
     })
+    // the queries above use distinct but because of the information we pull in if the same piece of research
+    // uses different charts that all use a single indicator we would get duplicates for the post to link to so
+    // here we deduplicate by url. The first item is retained by uniqBy, latter ones are discarded.
+    return uniqBy(allSortedRelatedResearch, "url")
 }
 
 export const getRelatedArticles = async (
