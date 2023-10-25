@@ -6,7 +6,7 @@ export const onRequestGet: PagesFunction = async (context) => {
     // Redirects handling is performed by the worker, and is done by fetching the (baked) _grapherRedirects.json file.
     // That file is a mapping from old slug to new slug.
     const getOptionalRedirectForSlug = async (slug: string, baseUrl: URL) => {
-        const redirects = env.ASSETS.fetch(
+        const redirects: Record<string, string> = await env.ASSETS.fetch(
             new URL("/grapher/_grapherRedirects.json", baseUrl),
             { cf: { cacheTtl: 2 * 60 } }
         )
