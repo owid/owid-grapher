@@ -38,6 +38,7 @@ import {
     uniqBy,
     sortBy,
     DataPageRelatedResearch,
+    isString,
     OwidGdocType,
     Tag,
 } from "@ourworldindata/utils"
@@ -662,10 +663,21 @@ export const getRelatedChartsForVariable = async (
             `)
 }
 
+interface RelatedResearchQueryResult {
+    linkTargetSlug: string
+    chartSlug: string
+    title: string
+    postSlug: string
+    chartId: number
+    authors: string
+    thumbnail: string
+    pageviews: number
+    post_source: string
+}
 export const getRelatedResearchAndWritingForVariable = async (
     variableId: number
 ): Promise<DataPageRelatedResearch[]> => {
-    const wp_posts = await db.queryMysql(
+    const wp_posts: RelatedResearchQueryResult[] = await db.queryMysql(
         `-- sql
             select
                 distinct
@@ -702,7 +714,7 @@ export const getRelatedResearchAndWritingForVariable = async (
         [variableId]
     )
 
-    const gdocs_posts = await db.queryMysql(
+    const gdocs_posts: RelatedResearchQueryResult[] = await db.queryMysql(
         `-- sql
             select
                 distinct
@@ -736,17 +748,27 @@ export const getRelatedResearchAndWritingForVariable = async (
     )
 
     const combined = [...wp_posts, ...gdocs_posts]
+
     // we could do the sorting in the SQL query if we'd union the two queries
     // but it seemed easier to understand if we do the sort here
     const sorted = sortBy(combined, (post) => -post.pageviews)
 
-    return sorted.map((post) => ({
-        title: post.title,
-        url: `/${post.postSlug}`,
-        variantName: "",
-        authors: JSON.parse(post.authors),
-        imageUrl: post.thumbnail,
-    }))
+    return sorted.map((post) => {
+        const parsedAuthors = JSON.parse(post.authors)
+        // The authors in the gdocs table are just a list of strings, but in the wp_posts table
+        // they are a list of objects with an "author" key and an "order" key. We want to normalize this so that
+        // we can just use the same code to display the authors in both cases.
+        const authors = parsedAuthors.map((author: any) =>
+            !isString(author) ? author.author : author
+        )
+        return {
+            title: post.title,
+            url: `/${post.postSlug}`,
+            variantName: "",
+            authors,
+            imageUrl: post.thumbnail,
+        }
+    })
 }
 
 export const getRelatedArticles = async (
