@@ -39,7 +39,6 @@ import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
     MAX_NUM_BAKE_PROCESSES,
-    ADMIN_BASE_URL,
 } from "../settings/serverSettings.js"
 import * as db from "../db/db.js"
 import { glob } from "glob"
@@ -53,12 +52,7 @@ import {
     getVariableMetadata,
     getMergedGrapherConfigForVariable,
 } from "../db/model/Variable.js"
-import {
-    getDatapageDataV2,
-    getDatapageGdoc,
-    getDatapageJson,
-    parseGdocContentFromAllowedLevelOneHeadings,
-} from "../datapage/Datapage.js"
+import { getDatapageDataV2, getDatapageGdoc } from "../datapage/Datapage.js"
 import { slugify_topic } from "../site/DataPageV2Content.js"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { Image } from "../db/model/Image.js"
