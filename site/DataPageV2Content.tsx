@@ -24,12 +24,8 @@ import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
 import StickyNav from "./blocks/StickyNav.js"
 import cx from "classnames"
 import { DebugProvider } from "./gdocs/DebugContext.js"
-import Image from "./gdocs/Image.js"
 import dayjs from "dayjs"
-import {
-    IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH,
-    IMAGE_HOSTING_CDN_URL,
-} from "../settings/clientSettings.js"
+import { IMAGE_HOSTING_CDN_URL } from "../settings/clientSettings.js"
 declare global {
     interface Window {
         _OWID_DATAPAGEV2_PROPS: DataPageV2ContentFields

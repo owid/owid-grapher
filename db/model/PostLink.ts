@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm"
 import { formatUrls } from "../../site/formatting.js"
-import { getLinkType, Url, getUrlTarget } from "@ourworldindata/utils"
+import { Url } from "@ourworldindata/utils"
+import { getLinkType, getUrlTarget } from "@ourworldindata/components"
 
 @Entity("posts_links")
 export class PostLink extends BaseEntity {

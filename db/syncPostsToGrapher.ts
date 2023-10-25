@@ -3,15 +3,7 @@
 
 import * as wpdb from "./wpdb.js"
 import * as db from "./db.js"
-import {
-    chunk,
-    differenceOfSets,
-    excludeNullish,
-    groupBy,
-    keyBy,
-    maxBy,
-    PostRow,
-} from "@ourworldindata/utils"
+import { excludeNullish, groupBy, keyBy, PostRow } from "@ourworldindata/utils"
 import { postsTable, select } from "./model/Post.js"
 import { PostLink } from "./model/PostLink.js"
 import { dataSource } from "./dataSource.js"
@@ -112,7 +104,7 @@ export async function buildReusableBlocksResolver(): Promise<BlockResolveFunctio
         replaceReusableBlocksRecursive(content, replacerFunction)
 }
 
-export const postLinkCompareStringGenerator = (item: PostLink) =>
+export const postLinkCompareStringGenerator = (item: PostLink): string =>
     `${item.linkType} - ${item.target} - ${item.hash} - ${item.queryString}`
 
 export function getLinksToAddAndRemoveForPost(
