@@ -739,7 +739,10 @@ export class ScatterPlotChart
             legendDimensions,
         } = this
 
-        const sizeLegendY = bounds.top + legendDimensions.height + 16
+        let sizeLegendY = bounds.top 
+        if (this.legendItems.length > 0) {
+            sizeLegendY = bounds.top + legendDimensions.height + 16
+        }
         const arrowLegendY = sizeLegend
             ? sizeLegendY + sizeLegend.height + 15
             : sizeLegendY
@@ -759,13 +762,16 @@ export class ScatterPlotChart
                 <VerticalColorLegend manager={this} />
                 {sizeLegend && (
                     <>
-                        <line
-                            x1={bounds.right - sidebarWidth}
-                            y1={sizeLegendY - 14}
-                            x2={bounds.right - 5}
-                            y2={sizeLegendY - 14}
-                            stroke="#ccc"
-                        />
+                    {(this.legendItems.length > 0) && (
+                            <line
+                                x1={bounds.right - sidebarWidth}
+                                y1={sizeLegendY - 14}
+                                x2={bounds.right - 5}
+                                y2={sizeLegendY - 14}
+                                stroke="#ccc"
+                            />
+                            )
+                    }
                         {sizeLegend.render(this.legendX, sizeLegendY)}
                     </>
                 )}
