@@ -739,7 +739,7 @@ export class ScatterPlotChart
             legendDimensions,
         } = this
 
-        let sizeLegendY = bounds.top 
+        let sizeLegendY = bounds.top
         if (this.legendItems.length > 0) {
             sizeLegendY = bounds.top + legendDimensions.height + 16
         }
@@ -762,7 +762,7 @@ export class ScatterPlotChart
                 <VerticalColorLegend manager={this} />
                 {sizeLegend && (
                     <>
-                    {(this.legendItems.length > 0) && (
+                        {this.legendItems.length > 0 && (
                             <line
                                 x1={bounds.right - sidebarWidth}
                                 y1={sizeLegendY - 14}
@@ -770,8 +770,7 @@ export class ScatterPlotChart
                                 y2={sizeLegendY - 14}
                                 stroke="#ccc"
                             />
-                            )
-                    }
+                        )}
                         {sizeLegend.render(this.legendX, sizeLegendY)}
                     </>
                 )}
