@@ -7,7 +7,7 @@ export class AddPostsLinks1692042923850 implements MigrationInterface {
                 id int NOT NULL AUTO_INCREMENT,
                 sourceId int NOT NULL,
                 target varchar(2047) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_as_cs NOT NULL,
-                linkType enum('url','grapher','explorer') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_as_cs DEFAULT NULL,
+                linkType enum('url','grapher','explorer', 'gdoc') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_as_cs DEFAULT NULL,
                 componentType varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_as_cs NOT NULL,
                 text varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_as_cs NOT NULL,
                 queryString varchar(2047) COLLATE utf8mb4_0900_as_cs NOT NULL,

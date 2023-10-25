@@ -4,20 +4,24 @@
 import * as wpdb from "./wpdb.js"
 import * as db from "./db.js"
 import {
+    chunk,
     differenceOfSets,
+    excludeNullish,
     groupBy,
     keyBy,
+    maxBy,
     PostRow,
 } from "@ourworldindata/utils"
 import { postsTable, select } from "./model/Post.js"
 import { PostLink } from "./model/PostLink.js"
+import { dataSource } from "./dataSource.js"
 
 const zeroDateString = "0000-00-00 00:00:00"
 
 const blockRefRegex = /<!-- wp:block \{"ref":(?<id>\d+)\} \/-->/g
 const prominentLinkRegex = /"linkUrl":"(?<url>[^"]+)"/g
 const anyHrefRegex = /href="(?<url>[^"]+)"/g
-const anySrcRegex = /href="(?<url>[^"]+)"/g
+const anySrcRegex = /src="(?<url>[^"]+)"/g
 
 interface ReusableBlock {
     ID: number
@@ -206,36 +210,8 @@ const syncPostsToGrapher = async (): Promise<void> => {
         .filter((p) => !doesExistInWordpress[p.id])
         .map((p) => p.id)
 
-    const postLinks = await PostLink.find()
-
-    const postLinksById = groupBy(postLinks, (link) => link.id)
-
     const toInsert = rows.map((post: any) => {
         const content = post.post_content as string
-
-        // TODO: move this into a separate iteration, add
-        // code to delete/add rows, extract link fragment and query string
-
-        const existingLinks = new Set(
-            postLinksById[post.id].map((link) => link.target)
-        )
-        const allHrefs = [...content.matchAll(anyHrefRegex)].map(
-            (x) => x.groups?.["url"] ?? ""
-        )
-        const allSrcs = [...content.matchAll(anySrcRegex)].map(
-            (x) => x.groups?.["url"] ?? ""
-        )
-        const allProminentLinks = [...content.matchAll(prominentLinkRegex)].map(
-            (x) => x.groups?.["url"] ?? ""
-        )
-        const allLinks = new Set([
-            ...allHrefs,
-            ...allSrcs,
-            ...allProminentLinks,
-        ])
-
-        const linksToAdd = differenceOfSets([allLinks, existingLinks])
-        const linksToDelete = differenceOfSets([existingLinks, allLinks])
 
         return {
             id: post.ID,
@@ -259,6 +235,79 @@ const syncPostsToGrapher = async (): Promise<void> => {
             featured_image: post.featured_image || "",
         }
     }) as PostRow[]
+    const postLinks = await dataSource.getRepository(PostLink).find()
+    const postLinksById = groupBy(postLinks, (link) => link.id)
+
+    const linksToAdd: PostLink[] = []
+    const linksToDelete: PostLink[] = []
+
+    const postLinkCompareStringGenerator = (item: PostLink) =>
+        `${item.linkType} - ${item.target} - ${item.hash} - ${item.queryString}`
+
+    for (const post of rows) {
+        const content = post.post_content as string
+
+        const linksInDb = groupBy(
+            postLinksById[post.ID],
+            postLinkCompareStringGenerator
+        )
+
+        const allHrefs = excludeNullish(
+            [...content.matchAll(anyHrefRegex)].map((x) =>
+                x.groups?.["url"]
+                    ? {
+                          url: x.groups?.["url"].substring(0, 2046),
+                          sourceId: post.ID,
+                          componentType: "href",
+                      }
+                    : undefined
+            )
+        )
+        const allSrcs = excludeNullish(
+            [...content.matchAll(anySrcRegex)].map((x) =>
+                x.groups?.["url"]
+                    ? {
+                          url: x.groups?.["url"].substring(0, 2046),
+                          sourceId: post.ID,
+                          componentType: "src",
+                      }
+                    : undefined
+            )
+        )
+        const allProminentLinks = excludeNullish(
+            [...content.matchAll(prominentLinkRegex)].map((x) =>
+                x.groups?.["url"]
+                    ? {
+                          url: x.groups?.["url"].substring(0, 2046),
+                          sourceId: post.ID,
+                          componentType: "prominent-link",
+                      }
+                    : undefined
+            )
+        )
+        const linksInDocument = groupBy(
+            [
+                ...allHrefs.map((link) => PostLink.createFromUrl(link)),
+                ...allSrcs.map((link) => PostLink.createFromUrl(link)),
+                ...allProminentLinks.map((link) =>
+                    PostLink.createFromUrl(link)
+                ),
+            ],
+            postLinkCompareStringGenerator
+        )
+
+        // This is doing a set difference, but we want to do the set operation on a subset
+        // of fields (the ones we stringify into the compare key) while retaining the full
+        // object so that we can e.g. delete efficiently by id later on
+        for (const [linkInDocCompareKey, linkInDoc] of Object.entries(
+            linksInDocument
+        ))
+            if (!(linkInDocCompareKey in linksInDb))
+                linksToAdd.push(...linkInDoc)
+        for (const [linkInDbCompareKey, linkInDb] of Object.entries(linksInDb))
+            if (!(linkInDbCompareKey in linksInDocument))
+                linksToDelete.push(...linkInDb)
+    }
 
     await db.knexInstance().transaction(async (t) => {
         if (toDelete.length)
@@ -270,10 +319,30 @@ const syncPostsToGrapher = async (): Promise<void> => {
             else await t.insert(row).into(postsTable)
         }
     })
+
+    // const linksToAddAsObjects = linksToAdd.map((item) => {
+    //     const { ...asObject } = item
+    //     return asObject
+    // })
+    console.log("linksToAdd", linksToAdd.length)
+    await PostLink.createQueryBuilder()
+        .insert()
+        .into(PostLink)
+        .values(linksToAdd)
+        .execute()
+
+    if (linksToDelete.length) {
+        console.log("linksToDelete", linksToDelete.length)
+        await PostLink.createQueryBuilder()
+            .where("id in (:ids)", { ids: linksToDelete.map((x) => x.id) })
+            .delete()
+            .execute()
+    }
 }
 
 const main = async (): Promise<void> => {
     try {
+        await db.getConnection()
         await syncPostsToGrapher()
     } finally {
         await wpdb.singleton.end()
