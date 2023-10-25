@@ -283,8 +283,9 @@ export const DataPageV2Content = ({
                             id="explore-the-data"
                         />
                         <div className="wrapper grid grid-cols-12">
-                            <div className="span-cols-12">
+                            <div className="col-start-3 span-cols-8 span-lg-cols-12">
                                 <IndicatorBrief
+                                    title={datapageData.title}
                                     descriptionShort={
                                         datapageData.descriptionShort
                                     }
@@ -301,6 +302,10 @@ export const DataPageV2Content = ({
                                     dateRange={dateRange ?? undefined}
                                     lastUpdated={datapageData.lastUpdated}
                                     nextUpdate={datapageData.nextUpdate}
+                                    additionalInfo={
+                                        datapageData.source?.additionalInfo
+                                    }
+                                    unit={datapageData.unit}
                                 />
                             </div>
                         </div>

@@ -1599,6 +1599,7 @@ export interface DataPageDataV2 {
     source: OwidSource | undefined
     origins: OwidOrigin[]
     chartConfig: Record<string, unknown>
+    unit?: string
 }
 
 export interface DataPageRelatedResearch {
