@@ -36,6 +36,8 @@ import {
     orderBy,
     IMAGES_DIRECTORY,
     uniqBy,
+    sortBy,
+    DataPageRelatedResearch,
     OwidGdocType,
     Tag,
 } from "@ourworldindata/utils"
@@ -662,7 +664,7 @@ export const getRelatedChartsForVariable = async (
 
 export const getRelatedResearchAndWritingForVariable = async (
     variableId: number
-): Promise<RelatedChart[]> => {
+): Promise<DataPageRelatedResearch[]> => {
     const wp_posts = await db.queryMysql(
         `-- sql
             select
@@ -688,10 +690,14 @@ export const getRelatedResearchAndWritingForVariable = async (
                 cd.chartId = c.id
             left join pageviews pv on
                 pv.url = concat('https://ourworldindata.org/', p.slug )
+            left join posts_gdocs pg on
+            	pg.id = p.gdocSuccessorId
             where
                 pl.linkType = 'grapher'
                 and cd.variableId = ?
-                and p.status = 'publish'
+                and cd.property in ('x', 'y') -- ignore cases where the indicator is size, color etc
+                and p.status = 'publish' -- only use published wp charts
+                and coalesce(pg.published, 0) = 0 -- if the wp post has a published gdoc successor then ignore it
             `,
         [variableId]
     )
@@ -724,14 +730,23 @@ export const getRelatedResearchAndWritingForVariable = async (
             where
                 pl.linkType = 'grapher'
                 and cd.variableId = ?
-                and p.published = 1
-            order by
-                pageviews desc`,
+                and cd.property in ('x', 'y') -- ignore cases where the indicator is size, color etc
+                and p.published = 1`,
         [variableId]
     )
 
-    // TODO: combine results, discarding wp posts where gdocs are available
-    return [...wp_posts, ...gdocs_posts]
+    const combined = [...wp_posts, ...gdocs_posts]
+    // we could do the sorting in the SQL query if we'd union the two queries
+    // but it seemed easier to understand if we do the sort here
+    const sorted = sortBy(combined, (post) => -post.pageviews)
+
+    return sorted.map((post) => ({
+        title: post.title,
+        url: `/${post.postSlug}`,
+        variantName: "",
+        authors: JSON.parse(post.authors),
+        imageUrl: post.thumbnail,
+    }))
 }
 
 export const getRelatedArticles = async (

@@ -28,6 +28,7 @@ import {
     getRelatedArticles,
     getRelatedCharts,
     getRelatedChartsForVariable,
+    getRelatedResearchAndWritingForVariable,
     isWordpressAPIEnabled,
     isWordpressDBEnabled,
 } from "../db/wpdb.js"
@@ -272,6 +273,10 @@ export async function renderDataPageV2({
         variableId,
         grapher && "id" in grapher ? [grapher.id as number] : []
     )
+
+    datapageData.relatedResearch =
+        await getRelatedResearchAndWritingForVariable(variableId)
+
     return renderToHtmlPage(
         <DataPageV2
             grapher={grapher}

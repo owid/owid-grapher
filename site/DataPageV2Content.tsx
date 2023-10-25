@@ -282,7 +282,7 @@ export const DataPageV2Content = ({
                                     </h2>
                                     <div className="related-research__items grid grid-cols-9 grid-lg-cols-12 span-cols-9 span-lg-cols-12">
                                         {datapageData.relatedResearch.map(
-                                            (research: any) => (
+                                            (research) => (
                                                 <a
                                                     href={research.url}
                                                     key={research.url}
@@ -298,10 +298,13 @@ export const DataPageV2Content = ({
                                                             {research.title}
                                                         </h3>
                                                         <div className="related-article__authors body-3-medium-italic">
-                                                            {formatAuthors({
-                                                                authors:
-                                                                    research.authors,
-                                                            })}
+                                                            {research.authors &&
+                                                                research.authors
+                                                                    .length &&
+                                                                formatAuthors({
+                                                                    authors:
+                                                                        research.authors,
+                                                                })}
                                                         </div>
                                                     </div>
                                                 </a>
