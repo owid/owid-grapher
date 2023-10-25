@@ -210,9 +210,11 @@ export class VerticalAxisComponent extends React.Component<{
             <g className="VerticalAxis">
                 {labelTextWrap &&
                     labelTextWrap.render(
-                        -bounds.centerY - labelTextWrap.width / 2,
+                        -verticalAxis.rangeCenter - labelTextWrap.width / 2,
                         bounds.left,
-                        { transform: "rotate(-90)" }
+                        {
+                            transform: "rotate(-90)",
+                        }
                     )}
                 {tickLabels.map((label, i) => {
                     const { y, xAlign, yAlign, formattedValue } = label
@@ -294,7 +296,7 @@ export class HorizontalAxisComponent extends React.Component<{
             <g className="HorizontalAxis">
                 {label &&
                     label.render(
-                        bounds.centerX - label.width / 2,
+                        axis.rangeCenter - label.width / 2,
                         labelYPosition
                     )}
                 {tickMarks}
