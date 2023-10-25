@@ -1067,6 +1067,8 @@ export class Grapher
     }
 
     @computed private get onlySingleTimeSelectionPossible(): boolean {
+        // scatter plots should not be animated as time scatter
+        if (this.isPlaying && this.isScatter) return true
         return (
             this.isDiscreteBar ||
             this.isStackedDiscreteBar ||
