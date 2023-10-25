@@ -210,7 +210,7 @@ export class VerticalAxisComponent extends React.Component<{
             <g className="VerticalAxis">
                 {labelTextWrap &&
                     labelTextWrap.render(
-                        -bounds.centerY - labelTextWrap.width / 2,
+                        -bounds.centerY + labelTextWrap.width / 1.5,
                         bounds.left,
                         { transform: "rotate(-90)" }
                     )}
