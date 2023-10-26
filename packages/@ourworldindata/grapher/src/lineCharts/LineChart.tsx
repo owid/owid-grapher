@@ -66,6 +66,7 @@ import {
     CoreValueType,
     isNotErrorValue,
     EntityName,
+    BlankOwidTable,
 } from "@ourworldindata/core-table"
 import {
     autoDetectSeriesStrategy,
@@ -311,6 +312,9 @@ export class LineChart
             const groupedByEntity = table
                 .groupBy("entityName")
                 .filter((t) => !t.hasAnyColumnNoValidValue(this.yColumnSlugs))
+
+            if (groupedByEntity.length === 0) return BlankOwidTable()
+
             table = groupedByEntity[0].concat(groupedByEntity.slice(1))
         }
 
