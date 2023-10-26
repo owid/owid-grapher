@@ -23,8 +23,6 @@ import {
     upperFirst,
     valuesByEntityAtTimes,
     es6mapValues,
-    valuesByEntityWithinTimes,
-    getStartEndValues,
     sortBy,
     countBy,
     union,
@@ -675,7 +673,6 @@ export class DataTable extends React.Component<{
                     : TargetTimeMode.range
 
             const prelimValuesByEntity = this.preliminaryDimensionValues(
-                targetTimeMode,
                 sourceColumn,
                 targetTimes
             )
@@ -728,27 +725,14 @@ export class DataTable extends React.Component<{
     }
 
     private preliminaryDimensionValues(
-        targetTimeMode: TargetTimeMode,
         sourceColumn: CoreColumn,
         targetTimes: number[]
     ): Map<string, (DataValue | undefined)[]> {
-        return targetTimeMode === TargetTimeMode.range
-            ? // In the "range" mode, we receive all data values within the range. But we
-
-              // only want to plot the start & end values in the table.
-              // getStartEndValues() extracts these two values.
-              es6mapValues(
-                  valuesByEntityWithinTimes(
-                      sourceColumn.valueByEntityNameAndOriginalTime,
-                      targetTimes
-                  ),
-                  getStartEndValues
-              )
-            : valuesByEntityAtTimes(
-                  sourceColumn.valueByEntityNameAndOriginalTime,
-                  targetTimes,
-                  sourceColumn.tolerance
-              )
+        return valuesByEntityAtTimes(
+            sourceColumn.valueByEntityNameAndOriginalTime,
+            targetTimes,
+            sourceColumn.tolerance
+        )
     }
 
     private dataValuesFromPreliminaryValues(
@@ -784,7 +768,11 @@ export class DataTable extends React.Component<{
                     start !== undefined &&
                     end !== undefined &&
                     typeof start.value === "number" &&
-                    typeof end.value === "number"
+                    typeof end.value === "number" &&
+                    // sanity check: start time should always be <= end time
+                    start.time !== undefined &&
+                    end.time !== undefined &&
+                    start.time <= end.time
                 ) {
                     const deltaValue = end.value - start.value
                     const deltaRatioValue = deltaValue / Math.abs(start.value)
