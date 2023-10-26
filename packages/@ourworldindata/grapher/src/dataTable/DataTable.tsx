@@ -23,8 +23,6 @@ import {
     upperFirst,
     valuesByEntityAtTimes,
     es6mapValues,
-    valuesByEntityWithinTimes,
-    getStartEndValues,
     sortBy,
     countBy,
     union,
