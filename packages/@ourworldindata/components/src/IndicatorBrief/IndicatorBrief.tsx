@@ -28,7 +28,7 @@ export const IndicatorBrief = (props: IndicatorBriefProps) => {
     const keyDataCount = 3 + (props.nextUpdate ? 1 : 0) + (props.unit ? 1 : 0)
     return (
         <>
-            <div>
+            <div className="indicator-brief">
                 <div className="about-this-data">
                     <h2 className="about-this-data__heading">
                         About this data

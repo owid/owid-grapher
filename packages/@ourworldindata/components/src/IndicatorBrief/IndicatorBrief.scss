@@ -1,86 +1,88 @@
-.about-this-data {
-    margin-bottom: 32px;
+.indicator-brief {
+    .about-this-data {
+        margin-bottom: 32px;
 
-    &__heading {
-        @include h2-bold;
-        margin: 0 0 16px;
+        &__heading {
+            @include h2-bold;
+            margin: 0 0 16px;
+        }
+
+        &__indicator-title {
+            @include h5-black-caps;
+            color: $blue-50;
+            margin: 0 0 8px;
+        }
+
+        &__indicator-description {
+            @include body-2-regular;
+            margin: 0 0 16px;
+        }
     }
 
-    &__indicator-title {
-        @include h5-black-caps;
-        color: $blue-50;
-        margin: 0 0 8px;
-    }
+    .key-data {
+        @include body-3-medium;
+        border-bottom: 1px solid $blue-20;
 
-    &__indicator-description {
-        @include body-2-regular;
-        margin: 0 0 16px;
-    }
-}
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
 
-.about-this-data .key-data {
-    @include body-3-medium;
-    border-bottom: 1px solid $blue-20;
+        @include sm-only {
+            grid-template-columns: max-content 1fr;
+        }
 
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
+        &__title,
+        &__content {
+            padding: 16px 0;
+            border-top: 1px solid $blue-20;
 
-    @include sm-only {
-        grid-template-columns: max-content 1fr;
-    }
-
-    &__title,
-    &__content {
-        padding: 16px 0;
-        border-top: 1px solid $blue-20;
-
-        &.empty {
-            @include sm-only {
-                display: none;
+            &.empty {
+                @include sm-only {
+                    display: none;
+                }
             }
         }
-    }
 
-    &__title {
-        color: $blue-50;
-        padding-right: 24px;
-    }
+        &__title {
+            color: $blue-50;
+            padding-right: 24px;
+        }
 
-    &__content-source {
-        grid-column: 2 / -1;
-    }
+        &__content-source {
+            grid-column: 2 / -1;
+        }
 
-    a {
-        @include owid-link-90;
-        color: inherit;
-    }
-}
-
-.key-info {
-    background-color: $gray-10;
-    border-left: 4px solid $blue-10;
-    padding: 40px;
-    margin: 0 -40px 32px -40px;
-
-    &__title {
-        @include h5-black-caps;
-        color: $blue-50;
-        margin-top: 0;
-        margin-bottom: 16px;
-    }
-
-    &__content {
-        @include body-2-regular;
-        li {
-            @include body-2-regular;
+        a {
+            @include owid-link-90;
+            color: inherit;
         }
     }
 
-    &__learn-more {
-        @include expandable-paragraph__expand-button--full;
-        svg {
-            font-size: 0.75em;
-            margin-left: 12px;
+    .key-info {
+        background-color: $gray-10;
+        border-left: 4px solid $blue-10;
+        padding: 40px;
+        margin: 0 -40px 32px -40px;
+
+        &__title {
+            @include h5-black-caps;
+            color: $blue-50;
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+
+        &__content {
+            @include body-2-regular;
+            li {
+                @include body-2-regular;
+            }
+        }
+
+        &__learn-more {
+            @include expandable-paragraph__expand-button--full;
+            svg {
+                font-size: 0.75em;
+                margin-left: 12px;
+            }
         }
     }
 }
