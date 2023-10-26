@@ -7,7 +7,7 @@ export interface IndicatorProcessingProps {
 
 export const IndicatorProcessing = (props: IndicatorProcessingProps) => {
     return (
-        <>
+        <div className="indicator-processing">
             <div className="data-processing__content">
                 <p className="data-processing__paragraph">
                     All data and visualizations on Our World in Data rely on
@@ -45,6 +45,6 @@ export const IndicatorProcessing = (props: IndicatorProcessingProps) => {
                     </div>
                 </div>
             )}
-        </>
+        </div>
     )
 }

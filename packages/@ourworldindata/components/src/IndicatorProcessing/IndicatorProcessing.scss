@@ -1,50 +1,50 @@
-.variable-processing-info .article-block__text a {
-    @include owid-link-60;
-    color: inherit;
-}
+.indicator-processing {
+    .data-processing {
+        &__content {
+            margin-bottom: 24px;
+        }
 
-.data-sources-processing__title {
-    @include datapage-section-title;
-}
+        &__paragraph {
+            @include body-3-medium;
+            margin: 0 0 16px;
+        }
 
-.data-processing__content {
-    margin-bottom: 24px;
-}
-
-.data-processing__paragraph {
-    @include body-3-medium;
-    margin: 0 0 16px;
-}
-
-.data-processing__link {
-    @include expandable-paragraph__expand-button--full;
-}
-
-.variable-processing-info {
-    display: flex;
-    flex-direction: column;
-    background-color: $white;
-    margin: 32px -24px 0;
-    padding: 24px;
-}
-
-.variable-processing-info__header {
-    @include overline-black-caps;
-    text-transform: uppercase;
-    margin: 0 0 8px;
-}
-
-.variable-processing-info__description {
-    color: $blue-60;
-
-    .article-block__text,
-    .article-block__list,
-    .article-block__html,
-    .article-block__numbered-list {
-        @include body-3-medium;
+        &__link {
+            @include expandable-paragraph__expand-button--full;
+        }
     }
 
-    > *:last-child {
-        margin-bottom: 0;
+    .variable-processing-info {
+        display: flex;
+        flex-direction: column;
+        background-color: $white;
+        margin: 32px -24px 0;
+        padding: 24px;
+
+        &__header {
+            @include overline-black-caps;
+            text-transform: uppercase;
+            margin: 0 0 8px;
+        }
+
+        &__description {
+            color: $blue-60;
+
+            .article-block__text,
+            .article-block__list,
+            .article-block__html,
+            .article-block__numbered-list {
+                @include body-3-medium;
+            }
+
+            > *:last-child {
+                margin-bottom: 0;
+            }
+        }
+
+        .article-block__text a {
+            @include owid-link-60;
+            color: inherit;
+        }
     }
 }
