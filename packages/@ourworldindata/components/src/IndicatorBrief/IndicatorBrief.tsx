@@ -23,7 +23,6 @@ interface IndicatorBriefProps {
 }
 
 export const IndicatorBrief = (props: IndicatorBriefProps) => {
-    props = { ...props, unit: undefined }
     const lastUpdated = dayjs(props.lastUpdated, ["YYYY", "YYYY-MM-DD"])
     const keyDataCount = 3 + (props.nextUpdate ? 1 : 0) + (props.unit ? 1 : 0)
     return (
