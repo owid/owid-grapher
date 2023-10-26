@@ -58,12 +58,8 @@ const explorerToSitemapUrl = (program: ExplorerProgram): SitemapUrl[] => {
 }
 
 export const makeSitemap = async (explorerAdminServer: ExplorerAdminServer) => {
-    const alreadyPublishedViaGdocsSlugs = await db.knexRaw(`-- sql
-            select slug from posts_with_gdoc_publish_status
-            where isGdocPublished = TRUE`)
-    const alreadyPublishedViaGdocsSlugsSet = new Set(
-        alreadyPublishedViaGdocsSlugs.map((row: any) => row.slug)
-    )
+    const alreadyPublishedViaGdocsSlugsSet =
+        await db.getSlugsWithPublishedGdocsSuccessors()
     const postsApi = await wpdb.getPosts(
         undefined,
         (postrow) => !alreadyPublishedViaGdocsSlugsSet.has(postrow.slug)
