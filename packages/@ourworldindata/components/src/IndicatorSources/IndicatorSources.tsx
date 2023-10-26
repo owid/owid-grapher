@@ -51,7 +51,7 @@ const SourceContent = (props: { source: OriginSubset }) => {
     return (
         <div className="source-content">
             {source.description && (
-                <p className="description">
+                <p className="description simple-markdown-text">
                     <SimpleMarkdownText text={source.description} />
                 </p>
             )}

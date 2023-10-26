@@ -38,7 +38,7 @@ export const IndicatorBrief = (props: IndicatorBriefProps) => {
                             <div className="about-this-data__indicator-title">
                                 {props.title}
                             </div>
-                            <p className="about-this-data__indicator-description">
+                            <p className="about-this-data__indicator-description simple-markdown-text">
                                 <SimpleMarkdownText
                                     text={props.descriptionShort}
                                 />
@@ -96,16 +96,16 @@ export const IndicatorBrief = (props: IndicatorBriefProps) => {
                         <h3 className="key-info__title">
                             What you should know about this indicator
                         </h3>
-                        <div className="key-info__content">
+                        <div className="key-info__content simple-markdown-text">
                             {props.descriptionKey.length === 1 ? (
                                 <SimpleMarkdownText
                                     text={props.descriptionKey[0]}
                                 />
                             ) : (
-                                <ul className="article-block__list">
+                                <ul>
                                     {props.descriptionKey.map((item, i) => (
                                         <li key={i}>
-                                            <SimpleMarkdownText text={item} />
+                                            <SimpleMarkdownText text={item} />{" "}
                                         </li>
                                     ))}
                                 </ul>
@@ -127,7 +127,7 @@ export const IndicatorBrief = (props: IndicatorBriefProps) => {
                                 : "How does the producer of this data describe this data?"
                         }
                         content={
-                            <div className="article-block__text">
+                            <div className="simple-markdown-text">
                                 <SimpleMarkdownText
                                     text={props.descriptionFromProducer}
                                 />
@@ -143,7 +143,11 @@ export const IndicatorBrief = (props: IndicatorBriefProps) => {
                     <ExpandableToggle
                         label="Additional information about this data"
                         content={
-                            <SimpleMarkdownText text={props.additionalInfo} />
+                            <div className="simple-markdown-text">
+                                <SimpleMarkdownText
+                                    text={props.additionalInfo}
+                                />
+                            </div>
                         }
                     />
                 )}

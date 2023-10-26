@@ -387,4 +387,13 @@
     .wp-code-snippet {
         margin-bottom: 16px;
     }
+
+    .simple-markdown-text {
+        @include body-3-medium;
+
+        a {
+            @include owid-link-60;
+            color: inherit;
+        }
+    }
 }

@@ -39,9 +39,11 @@ export const IndicatorProcessing = (props: IndicatorProcessingProps) => {
                         Notes on our processing step for this indicator
                     </h5>
                     <div className="variable-processing-info__description">
-                        <SimpleMarkdownText
-                            text={props.descriptionProcessing}
-                        />
+                        <p className="simple-markdown-text">
+                            <SimpleMarkdownText
+                                text={props.descriptionProcessing}
+                            />
+                        </p>
                     </div>
                 </div>
             )}
