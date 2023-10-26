@@ -770,7 +770,8 @@ export class DataTable extends React.Component<{
                     start !== undefined &&
                     end !== undefined &&
                     typeof start.value === "number" &&
-                    typeof end.value === "number"
+                    typeof end.value === "number" &&
+                    start.time <= end.time
                 ) {
                     const deltaValue = end.value - start.value
                     const deltaRatioValue = deltaValue / Math.abs(start.value)
