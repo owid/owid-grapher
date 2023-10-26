@@ -156,16 +156,32 @@ const syncPostsToGrapher = async (): Promise<void> => {
             from wp_posts p
 			left join posts_authors pa on p.ID = pa.id
             group by p.ID
-        )
+        ),
+        post_featured_image AS (
+        SELECT
+            p.ID,
+            (
+            SELECT
+                meta_value
+            FROM
+                wp_postmeta
+            WHERE
+                post_id = p.ID
+                AND meta_key = '_thumbnail_id') AS featured_image_id
+        FROM
+            wp_posts p
+            )
         -- Finally collect all the fields we want to keep - this is everything from wp_posts, the authors from the
         -- posts_with_authors CTE and the created_at from the first_revision CTE
         select
             p.*,
             pwa.authors as authors,
-            fr.created_at as created_at
+            fr.created_at as created_at,
+            (SELECT guid FROM wp_posts WHERE ID = fi.featured_image_id) AS featured_image
         from wp_posts p
 		left join post_ids_with_authors pwa   on p.ID = pwa.ID
         left join first_revision fr on fr.post_id = pwa.ID
+        left join post_featured_image fi on fi.ID = p.id
         where p.post_type in ('post', 'page') AND post_status != 'trash'
         `
     )
@@ -202,6 +218,7 @@ const syncPostsToGrapher = async (): Promise<void> => {
             excerpt: post.post_excerpt,
             created_at_in_wordpress:
                 post.created_at === zeroDateString ? null : post.created_at,
+            featured_image: post.featured_image || "",
         }
     }) as PostRow[]
 
