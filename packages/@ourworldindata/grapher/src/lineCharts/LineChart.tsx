@@ -308,12 +308,9 @@ export class LineChart
                 this.yColumnSlugs
             )
 
-            const groupedByEntity = table.groupBy("entityName").map((t) => {
-                if (t.hasAnyColumnNoValidValue(this.yColumnSlugs)) {
-                    t = t.dropAllRows()
-                }
-                return t
-            })
+            const groupedByEntity = table.groupBy("entityName").filter((t) => 
+                !t.hasAnyColumnNoValidValue(this.yColumnSlugs)
+            )
             table = groupedByEntity[0].concat(groupedByEntity.slice(1))
         }
 
