@@ -33,6 +33,12 @@
     &__content {
         padding: 16px 0;
         border-top: 1px solid $blue-20;
+
+        &.empty {
+            @include sm-only {
+                display: none;
+            }
+        }
     }
 
     &__title {

@@ -23,6 +23,7 @@ interface IndicatorBriefProps {
 }
 
 export const IndicatorBrief = (props: IndicatorBriefProps) => {
+    props = { ...props, unit: undefined }
     const lastUpdated = dayjs(props.lastUpdated, ["YYYY", "YYYY-MM-DD"])
     const keyDataCount = 3 + (props.nextUpdate ? 1 : 0) + (props.unit ? 1 : 0)
     return (
@@ -84,8 +85,8 @@ export const IndicatorBrief = (props: IndicatorBriefProps) => {
                         {/* needed for its top-border */}
                         {keyDataCount % 2 === 0 && (
                             <>
-                                <div className="key-data__title" />
-                                <div className="key-data__content" />
+                                <div className="key-data__title empty" />
+                                <div className="key-data__content empty" />
                             </>
                         )}
                     </div>
