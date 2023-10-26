@@ -156,6 +156,26 @@
         }
     }
 
+    .about-this-data {
+        margin-bottom: 32px;
+    }
+
+    .about-this-data__heading {
+        @include h2-bold;
+        margin: 0 0 16px;
+    }
+
+    .about-this-data__indicator-title {
+        @include h5-black-caps;
+        color: $blue-50;
+        margin: 0 0 8px;
+    }
+
+    .about-this-data__indicator-description {
+        @include body-2-regular;
+        margin: 0 0 16px;
+    }
+
     .related-research__title {
         @include datapage-section-title;
         @include lg-up {

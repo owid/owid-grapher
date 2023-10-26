@@ -1,0 +1,81 @@
+import React from "react"
+import { faArrowDown } from "@fortawesome/free-solid-svg-icons/faArrowDown"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { ExpandableToggle } from "../ExpandableToggle/ExpandableToggle.js"
+import { SimpleMarkdownText } from "../SimpleMarkdownText.js"
+
+interface IndicatorKeyDescriptionProps {
+    descriptionShort?: string
+    descriptionKey?: string[]
+    descriptionFromProducer?: string
+    attributionShort?: string
+    additionalInfo?: string
+    hasFaqEntries: boolean
+}
+
+export const IndicatorKeyDescription = (
+    props: IndicatorKeyDescriptionProps
+) => {
+    return (
+        <div className="indicator-key-description">
+            {props.descriptionKey && (
+                <div className="key-info">
+                    <h3 className="key-info__title">
+                        What you should know about this indicator
+                    </h3>
+                    <div className="key-info__content simple-markdown-text">
+                        {props.descriptionKey.length === 1 ? (
+                            <SimpleMarkdownText
+                                text={props.descriptionKey[0]}
+                            />
+                        ) : (
+                            <ul>
+                                {props.descriptionKey.map((item, i) => (
+                                    <li key={i}>
+                                        <SimpleMarkdownText text={item} />{" "}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+                    {props.hasFaqEntries && (
+                        <a className="key-info__learn-more" href="#faqs">
+                            Learn more in the FAQs
+                            <FontAwesomeIcon icon={faArrowDown} />
+                        </a>
+                    )}
+                </div>
+            )}
+            {props.descriptionFromProducer && (
+                <ExpandableToggle
+                    label={
+                        props.attributionShort
+                            ? `How does the producer of this data - ${props.attributionShort} - describe this data?`
+                            : "How does the producer of this data describe this data?"
+                    }
+                    content={
+                        <div className="simple-markdown-text">
+                            <SimpleMarkdownText
+                                text={props.descriptionFromProducer}
+                            />
+                        </div>
+                    }
+                    isExpandedDefault={
+                        !(props.descriptionShort || props.descriptionKey)
+                    }
+                    isStacked={!!props.additionalInfo}
+                />
+            )}
+            {props.additionalInfo && (
+                <ExpandableToggle
+                    label="Additional information about this data"
+                    content={
+                        <div className="simple-markdown-text">
+                            <SimpleMarkdownText text={props.additionalInfo} />
+                        </div>
+                    }
+                />
+            )}
+        </div>
+    )
+}

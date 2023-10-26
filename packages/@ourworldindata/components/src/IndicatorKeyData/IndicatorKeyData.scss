@@ -1,0 +1,37 @@
+.indicator-key-data {
+    @include body-3-medium;
+    border-bottom: 1px solid $blue-20;
+
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+
+    @include sm-only {
+        grid-template-columns: max-content 1fr;
+    }
+
+    &__title,
+    &__content {
+        padding: 16px 0;
+        border-top: 1px solid $blue-20;
+
+        &.empty {
+            @include sm-only {
+                display: none;
+            }
+        }
+    }
+
+    &__title {
+        color: $blue-50;
+        padding-right: 24px;
+    }
+
+    &__content-source {
+        grid-column: 2 / -1;
+    }
+
+    a {
+        @include owid-link-90;
+        color: inherit;
+    }
+}

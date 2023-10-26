@@ -15,12 +15,11 @@ export {
 
 export { ExpandableToggle } from "./ExpandableToggle/ExpandableToggle.js"
 
-export { IndicatorBrief } from "./IndicatorBrief/IndicatorBrief.js"
-
+export { IndicatorKeyData } from "./IndicatorKeyData/IndicatorKeyData.js"
+export { IndicatorKeyDescription } from "./IndicatorKeyDescription/IndicatorKeyDescription.js"
 export { IndicatorProcessing } from "./IndicatorProcessing/IndicatorProcessing.js"
 
 export { Checkbox } from "./Checkbox.js"
-
 export {
     IndicatorSources,
     type OriginSubset,

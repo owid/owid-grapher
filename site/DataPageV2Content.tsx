@@ -1,13 +1,15 @@
 import React, { useEffect } from "react"
 import { Grapher, GrapherInterface } from "@ourworldindata/grapher"
 import {
-    IndicatorBrief,
+    IndicatorKeyData,
+    IndicatorKeyDescription,
     CodeSnippet,
     REUSE_THIS_WORK_SECTION_ID,
     OriginSubset,
     IndicatorSources,
     DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
     IndicatorProcessing,
+    SimpleMarkdownText,
 } from "@ourworldindata/components"
 import ReactDOM from "react-dom"
 import { GrapherWithFallback } from "./GrapherWithFallback.js"
@@ -284,8 +286,34 @@ export const DataPageV2Content = ({
                         />
                         <div className="wrapper grid grid-cols-12">
                             <div className="col-start-3 span-cols-8 span-lg-cols-12">
-                                <IndicatorBrief
-                                    title={datapageData.title}
+                                <div className="about-this-data">
+                                    <h2 className="about-this-data__heading">
+                                        About this data
+                                    </h2>
+                                    {datapageData.descriptionShort && (
+                                        <>
+                                            <div className="about-this-data__indicator-title">
+                                                {datapageData.title}
+                                            </div>
+                                            <p className="about-this-data__indicator-description simple-markdown-text">
+                                                <SimpleMarkdownText
+                                                    text={
+                                                        datapageData.descriptionShort
+                                                    }
+                                                />
+                                            </p>
+                                        </>
+                                    )}
+                                    <IndicatorKeyData
+                                        attribution={attributionUnshortened}
+                                        processedAdapted={processedAdapted}
+                                        dateRange={dateRange ?? undefined}
+                                        lastUpdated={datapageData.lastUpdated}
+                                        nextUpdate={datapageData.nextUpdate}
+                                        unit={datapageData.unit}
+                                    />
+                                </div>
+                                <IndicatorKeyDescription
                                     descriptionShort={
                                         datapageData.descriptionShort
                                     }
@@ -297,15 +325,9 @@ export const DataPageV2Content = ({
                                     attributionShort={
                                         datapageData.attributionShort
                                     }
-                                    attribution={attributionUnshortened}
-                                    processedAdapted={processedAdapted}
-                                    dateRange={dateRange ?? undefined}
-                                    lastUpdated={datapageData.lastUpdated}
-                                    nextUpdate={datapageData.nextUpdate}
                                     additionalInfo={
                                         datapageData.source?.additionalInfo
                                     }
-                                    unit={datapageData.unit}
                                 />
                             </div>
                         </div>
