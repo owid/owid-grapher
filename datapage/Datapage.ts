@@ -5,10 +5,10 @@ import {
     GdocsContentSource,
     DataPageDataV2,
     OwidVariableWithSource,
-    dayjs,
     gdocIdRegex,
-    getETLPathComponents,
     getAttributionFragmentsFromVariable,
+    getLastUpdatedFromVariable,
+    getNextUpdateFromVariable,
 } from "@ourworldindata/utils"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
@@ -20,21 +20,8 @@ export const getDatapageDataV2 = async (
 ): Promise<DataPageDataV2> => {
     {
         const processingLevel = variableMetadata.processingLevel ?? "minor"
-        const version =
-            getETLPathComponents(variableMetadata.catalogPath ?? "")?.version ??
-            ""
-        let nextUpdate = undefined
-        if (variableMetadata.updatePeriodDays) {
-            const date = dayjs(version)
-            const nextUpdateDate = date.add(
-                variableMetadata.updatePeriodDays,
-                "day"
-            )
-            // If the next update date is in the past, we set it to the next month
-            if (nextUpdateDate.isBefore(dayjs()))
-                nextUpdate = dayjs().add(1, "month").format("MMMM YYYY")
-            else nextUpdate = nextUpdateDate.format("MMMM YYYY")
-        }
+        const lastUpdated = getLastUpdatedFromVariable(variableMetadata) ?? ""
+        const nextUpdate = getNextUpdateFromVariable(variableMetadata)
         const datapageJson: DataPageDataV2 = {
             status: "draft",
             title:
@@ -54,7 +41,7 @@ export const getDatapageDataV2 = async (
             descriptionProcessing: variableMetadata.descriptionProcessing,
             owidProcessingLevel: processingLevel,
             dateRange: variableMetadata.timespan ?? "",
-            lastUpdated: version,
+            lastUpdated: lastUpdated,
             nextUpdate: nextUpdate,
             relatedData: [],
             allCharts: [],

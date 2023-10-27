@@ -411,11 +411,6 @@
     .simple-markdown-text {
         @include body-3-medium;
 
-        br + span {
-            margin-top: 8px;
-            display: inline-block;
-        }
-
         a {
             @include owid-link-60;
             color: inherit;
