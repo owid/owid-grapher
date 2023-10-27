@@ -14,9 +14,7 @@ interface IndicatorDescriptionsProps {
     hasFaqEntries: boolean
 }
 
-export const IndicatorDescriptions = (
-    props: IndicatorDescriptionsProps
-) => {
+export const IndicatorDescriptions = (props: IndicatorDescriptionsProps) => {
     return (
         <div className="indicator-key-description">
             {props.descriptionKey && props.descriptionKey.length > 0 && (

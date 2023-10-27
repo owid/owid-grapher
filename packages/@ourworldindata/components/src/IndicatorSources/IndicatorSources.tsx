@@ -26,10 +26,7 @@ export const IndicatorSources = (props: IndicatorSourcesProps) => {
         ...origin,
         label: makeLabel(origin),
     }))
-    const uniqueOrigins = uniqBy(
-        origins,
-        (origin) => origin.label + origin.description
-    )
+    const uniqueOrigins = uniqBy(origins, "label")
 
     return (
         <>
