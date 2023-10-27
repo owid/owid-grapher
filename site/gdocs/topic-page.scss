@@ -22,10 +22,17 @@
     p.topic-page-header__byline,
     .topic-page-header__byline a {
         color: $blue-60;
+        margin-bottom: 0;
+        @include sm-only {
+            font-size: 0.875rem;
+        }
+    }
+
+    // Applies to either .topic-page-header__byline or .topic-page-header__dateline, if specified
+    p:last-child {
         margin-bottom: 34px;
         @include sm-only {
             margin-bottom: 16px;
-            font-size: 0.875rem;
         }
     }
 
