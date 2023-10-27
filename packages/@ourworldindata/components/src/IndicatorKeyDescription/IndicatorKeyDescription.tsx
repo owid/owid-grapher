@@ -19,7 +19,7 @@ export const IndicatorKeyDescription = (
 ) => {
     return (
         <div className="indicator-key-description">
-            {props.descriptionKey && (
+            {props.descriptionKey && props.descriptionKey.length > 0 && (
                 <div className="key-info">
                     <h3 className="key-info__title">
                         What you should know about this data
@@ -50,36 +50,40 @@ export const IndicatorKeyDescription = (
                     )}
                 </div>
             )}
-            {props.descriptionFromProducer && (
-                <ExpandableToggle
-                    label={
-                        props.attributionShort
-                            ? `How does the producer of this data - ${props.attributionShort} - describe this data?`
-                            : "How does the producer of this data describe this data?"
-                    }
-                    content={
-                        <div className="simple-markdown-text">
-                            <SimpleMarkdownText
-                                text={props.descriptionFromProducer}
-                            />
-                        </div>
-                    }
-                    isExpandedDefault={
-                        !(props.descriptionShort || props.descriptionKey)
-                    }
-                    isStacked={!!props.additionalInfo}
-                />
-            )}
-            {props.additionalInfo && (
-                <ExpandableToggle
-                    label="Additional information about this data"
-                    content={
-                        <div className="simple-markdown-text">
-                            <SimpleMarkdownText text={props.additionalInfo} />
-                        </div>
-                    }
-                />
-            )}
+            <div className="expandable-info-blocks">
+                {props.descriptionFromProducer && (
+                    <ExpandableToggle
+                        label={
+                            props.attributionShort
+                                ? `How does the producer of this data - ${props.attributionShort} - describe this data?`
+                                : "How does the producer of this data describe this data?"
+                        }
+                        content={
+                            <div className="simple-markdown-text">
+                                <SimpleMarkdownText
+                                    text={props.descriptionFromProducer}
+                                />
+                            </div>
+                        }
+                        isExpandedDefault={
+                            !(props.descriptionShort || props.descriptionKey)
+                        }
+                        isStacked={!!props.additionalInfo}
+                    />
+                )}
+                {props.additionalInfo && (
+                    <ExpandableToggle
+                        label="Additional information about this data"
+                        content={
+                            <div className="simple-markdown-text">
+                                <SimpleMarkdownText
+                                    text={props.additionalInfo}
+                                />
+                            </div>
+                        }
+                    />
+                )}
+            </div>
         </div>
     )
 }
