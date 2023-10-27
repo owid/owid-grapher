@@ -563,10 +563,8 @@ const columnDefFromOwidVariable = (
         display,
         timespan,
         nonRedistributable,
+        presentation,
     } = variable
-
-    const { attribution, titlePublic, titleVariant, attributionShort } =
-        variable.presentation || {}
 
     // Without this the much used var 123 appears as "Countries Continent". We could rename in Grapher but not sure the effects of that.
     const isContinent = variable.id === 123
@@ -588,20 +586,10 @@ const columnDefFromOwidVariable = (
         datasetName,
         display,
         nonRedistributable,
-        sourceLink:
-            source?.link ??
-            (origins && origins.length > 0 ? origins[0].urlMain : undefined),
-        sourceName: source?.name,
-        dataPublishedBy: source?.dataPublishedBy,
-        dataPublisherSource: source?.dataPublisherSource,
+        source,
         timespanFromMetadata: timespan,
-        retrievedDate: source?.retrievedDate,
-        additionalInfo: source?.additionalInfo,
         origins,
-        attribution,
-        titlePublic,
-        titleVariant,
-        attributionShort,
+        presentation,
         owidVariableId: variable.id,
         type: isContinent
             ? ColumnTypeNames.Continent
