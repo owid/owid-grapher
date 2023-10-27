@@ -3,7 +3,7 @@
         background-color: $gray-10;
         border-left: 4px solid $blue-10;
         padding: 40px;
-        margin: 0 -40px 32px -40px;
+        margin: 0 -40px;
 
         &__title {
             @include h5-black-caps;
@@ -37,5 +37,9 @@
                 margin-left: 12px;
             }
         }
+    }
+
+    .expandable-info-blocks {
+        margin-top: 32px;
     }
 }
