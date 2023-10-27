@@ -1,6 +1,6 @@
 import React from "react"
 import { ExpandableToggle } from "../ExpandableToggle/ExpandableToggle.js"
-import { OwidOrigin, dayjs } from "@ourworldindata/utils"
+import { OwidOrigin, dayjs, uniqBy } from "@ourworldindata/utils"
 import { SimpleMarkdownText } from "../SimpleMarkdownText.js"
 import { CodeSnippet } from "../CodeSnippet/CodeSnippet.js"
 import { REUSE_THIS_WORK_SECTION_ID } from "../SharedDataPageConstants.js"
@@ -21,29 +21,35 @@ export interface IndicatorSourcesProps {
 }
 
 export const IndicatorSources = (props: IndicatorSourcesProps) => {
+    const origins = props.origins.map((origin) => ({
+        ...origin,
+        label:
+            origin.producer ??
+            origin.descriptionSnapshot ??
+            origin.description ??
+            "",
+    }))
+    const uniqueOrigins = uniqBy(
+        origins,
+        (origin) => origin.label + origin.description
+    )
+
     return (
         <>
-            {props.origins.map((source, idx: number, sources) => {
-                const label =
-                    source.producer ??
-                    source.descriptionSnapshot ??
-                    source.description ??
-                    ""
-                return (
-                    <ExpandableToggle
-                        key={label}
-                        label={label}
-                        content={
-                            <SourceContent
-                                source={source}
-                                canonicalUrl={props.canonicalUrl}
-                            />
-                        }
-                        isStacked={idx !== sources.length - 1}
-                        hasTeaser
-                    />
-                )
-            })}
+            {uniqueOrigins.map((source, idx: number, sources) => (
+                <ExpandableToggle
+                    key={source.label}
+                    label={source.label}
+                    content={
+                        <SourceContent
+                            source={source}
+                            canonicalUrl={props.canonicalUrl}
+                        />
+                    }
+                    isStacked={idx !== sources.length - 1}
+                    hasTeaser
+                />
+            ))}
         </>
     )
 }
