@@ -6,22 +6,11 @@ export {
 } from "./MarkdownTextWrap/MarkdownTextWrap.js"
 
 export { SimpleMarkdownText } from "./SimpleMarkdownText.js"
-
-export {
-    extractDetailsFromSyntax,
-    mdParser,
-    type MarkdownRoot,
-    type EveryMarkdownChildNode,
-    type EveryMarkdownNode,
-    type EveryMarkdownRootNode,
-} from "./MarkdownTextWrap/parser.js"
-
 export {
     getLinkType,
     getUrlTarget,
     checkIsInternalLink,
     convertHeadingTextToId,
-    markdownToEnrichedTextBlock,
 } from "./GdocsUtils.js"
 
 export { ExpandableToggle } from "./ExpandableToggle/ExpandableToggle.js"
