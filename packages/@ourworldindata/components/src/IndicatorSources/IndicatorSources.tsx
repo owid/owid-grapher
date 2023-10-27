@@ -65,11 +65,9 @@ export const IndicatorSources = (props: IndicatorSourcesProps) => {
                                 content={
                                     <>
                                         {source.description && (
-                                            <p className="article-block__text">
-                                                <SimpleMarkdownText
-                                                    text={source.description}
-                                                />
-                                            </p>
+                                            <SimpleMarkdownText
+                                                text={source.description}
+                                            />
                                         )}
                                         {(dateAccessed || source.urlMain) && (
                                             <div
