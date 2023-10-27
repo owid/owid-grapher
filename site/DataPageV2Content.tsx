@@ -104,6 +104,7 @@ export const DataPageV2Content = ({
     const origins: OriginSubset[] = uniq(
         datapageData.origins.map((item) =>
             pick(item, [
+                "title",
                 "producer",
                 "descriptionSnapshot",
                 "dateAccessed",

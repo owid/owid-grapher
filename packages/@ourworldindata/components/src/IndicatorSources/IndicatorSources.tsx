@@ -7,6 +7,7 @@ import { REUSE_THIS_WORK_SECTION_ID } from "../SharedDataPageConstants.js"
 
 export type OriginSubset = Pick<
     OwidOrigin,
+    | "title"
     | "producer"
     | "descriptionSnapshot"
     | "dateAccessed"
@@ -23,11 +24,7 @@ export interface IndicatorSourcesProps {
 export const IndicatorSources = (props: IndicatorSourcesProps) => {
     const origins = props.origins.map((origin) => ({
         ...origin,
-        label:
-            origin.producer ??
-            origin.descriptionSnapshot ??
-            origin.description ??
-            "",
+        label: makeLabel(origin),
     }))
     const uniqueOrigins = uniqBy(
         origins,
@@ -118,4 +115,16 @@ const SourceContent = (props: {
             )}
         </div>
     )
+}
+
+const makeLabel = (origin: OriginSubset) => {
+    let label =
+        origin.producer ??
+        origin.descriptionSnapshot ??
+        origin.description ??
+        ""
+    if (origin.title && origin.title !== label) {
+        label += " - " + origin.title
+    }
+    return label
 }
