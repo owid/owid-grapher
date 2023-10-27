@@ -121,11 +121,13 @@ function generateStickyNav(
 }
 
 function generateToc(
-    body: OwidEnrichedGdocBlock[]
+    body: OwidEnrichedGdocBlock[],
+    // For linear topic pages, we record h1s & h2s
+    // For the sdg-toc, we record h2s & h3s (as it was developed before we decided to use h1s as our top level heading)
+    { primary, secondary }: { primary: number; secondary: number }
 ): TocHeadingWithTitleSupertitle[] {
     const toc: TocHeadingWithTitleSupertitle[] = []
 
-    // track h2s and h3s for the SDG table of contents
     body.forEach((block) =>
         traverseEnrichedBlocks(block, (child) => {
             if (child.type === "heading") {
@@ -134,13 +136,13 @@ function generateToc(
                 const supertitleString = supertitle
                     ? spansToSimpleString(supertitle)
                     : ""
-                if (titleString && (level === 2 || level === 3)) {
+                if (titleString && (level === primary || level === secondary)) {
                     toc.push({
                         title: titleString,
                         supertitle: supertitleString,
                         text: titleString,
                         slug: urlSlug(`${supertitleString} ${titleString}`),
-                        isSubheading: level === 3,
+                        isSubheading: level === secondary,
                     })
                 }
             }
@@ -256,7 +258,13 @@ export const archieToEnriched = (text: string): OwidGdocContent => {
     // Parse elements of the ArchieML into enrichedBlocks
     parsed.body = compact(parsed.body.map(parseRawBlocksToEnrichedBlocks))
 
-    parsed.toc = generateToc(parsed.body)
+    // the sdg-toc was based on h2s and h3s, but linear topic pages are using h1s and h2s
+    // It would be nice to standardise this but it would require a migration, updating CSS, updating Gdocs, etc.
+    const isTocForSidebar = parsed["sidebar-toc"] === "true"
+    const headingLevels = isTocForSidebar
+        ? { primary: 1, secondary: 2 }
+        : { primary: 2, secondary: 3 }
+    parsed.toc = generateToc(parsed.body, headingLevels)
 
     const parsedRefs = parseRefs({
         refs: [...(parsed.refs ?? []), ...rawInlineRefs],
