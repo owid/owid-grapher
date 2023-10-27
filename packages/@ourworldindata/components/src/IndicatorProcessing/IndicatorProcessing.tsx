@@ -1,5 +1,7 @@
 import React from "react"
 import { SimpleMarkdownText } from "../SimpleMarkdownText.js"
+import { faArrowDown } from "@fortawesome/free-solid-svg-icons/faArrowDown"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
 export interface IndicatorProcessingProps {
     descriptionProcessing: string | undefined
@@ -32,6 +34,7 @@ export const IndicatorProcessing = (props: IndicatorProcessingProps) => {
                 className="data-processing__link"
             >
                 Read about our data pipeline
+                <FontAwesomeIcon icon={faArrowDown} />
             </a>
             {props.descriptionProcessing && (
                 <div className="variable-processing-info">

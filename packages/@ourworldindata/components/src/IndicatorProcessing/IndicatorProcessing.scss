@@ -11,6 +11,12 @@
 
         &__link {
             @include expandable-paragraph__expand-button--full;
+
+            svg {
+                display: none; // used in Grapher's sources modal
+                font-size: 0.75em;
+                margin-left: 12px;
+            }
         }
     }
 
@@ -35,6 +41,10 @@
             .article-block__html,
             .article-block__numbered-list {
                 @include body-3-medium;
+            }
+
+            > *:first-child {
+                margin-top: 0;
             }
 
             > *:last-child {
