@@ -21,6 +21,7 @@ import { DebugProvider } from "./DebugContext.js"
 import { OwidGdocHeader } from "./OwidGdocHeader.js"
 import StickyNav from "../blocks/StickyNav.js"
 import { getShortPageCitation } from "./utils.js"
+import { TableOfContents } from "../TableOfContents.js"
 export const AttachmentsContext = createContext<{
     linkedCharts: Record<string, LinkedChart>
     linkedDocuments: Record<string, OwidGdocInterface>
@@ -70,6 +71,7 @@ export function OwidGdoc({
         publishedAt
     )
     const citationText = `${shortPageCitation} Published online at OurWorldInData.org. Retrieved from: '${`${BAKED_BASE_URL}/${slug}`}' [Online Resource]`
+    const hasSidebarToc = content["sidebar-toc"]
 
     const bibtex = `@article{owid-${slug.replace(/\//g, "-")},
     author = {${formatAuthors({
@@ -119,6 +121,12 @@ export function OwidGdoc({
                         publishedAt={publishedAt}
                         breadcrumbs={breadcrumbs ?? undefined}
                     />
+                    {hasSidebarToc && content.toc ? (
+                        <TableOfContents
+                            headings={content.toc}
+                            pageTitle={content.title || ""}
+                        />
+                    ) : null}
                     {content.type === "topic-page" && stickyNavLinks?.length ? (
                         <nav className="sticky-nav sticky-nav--dark span-cols-14 grid grid-cols-12-full-width">
                             <StickyNav
