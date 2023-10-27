@@ -17,6 +17,7 @@ export type OriginSubset = Pick<
 
 export interface IndicatorSourcesProps {
     origins: OriginSubset[]
+    canonicalUrl?: string
 }
 
 export const IndicatorSources = (props: IndicatorSourcesProps) => {
@@ -32,7 +33,12 @@ export const IndicatorSources = (props: IndicatorSourcesProps) => {
                     <ExpandableToggle
                         key={label}
                         label={label}
-                        content={<SourceContent source={source} />}
+                        content={
+                            <SourceContent
+                                source={source}
+                                canonicalUrl={props.canonicalUrl}
+                            />
+                        }
                         isStacked={idx !== sources.length - 1}
                         hasTeaser
                     />
@@ -42,8 +48,11 @@ export const IndicatorSources = (props: IndicatorSourcesProps) => {
     )
 }
 
-const SourceContent = (props: { source: OriginSubset }) => {
-    const { source } = props
+const SourceContent = (props: {
+    source: OriginSubset
+    canonicalUrl?: string
+}) => {
+    const { source, canonicalUrl = "" } = props
     const dateAccessed = source.dateAccessed
         ? dayjs(source.dateAccessed).format("MMMM D, YYYY")
         : undefined
@@ -87,7 +96,9 @@ const SourceContent = (props: { source: OriginSubset }) => {
                             adaptation by Our World in Data. To cite data
                             downloaded from this page, please use the suggested
                             citation given in{" "}
-                            <a href={"#" + REUSE_THIS_WORK_SECTION_ID}>
+                            <a
+                                href={`${canonicalUrl}#${REUSE_THIS_WORK_SECTION_ID}`}
+                            >
                                 Reuse This Work
                             </a>{" "}
                             below.

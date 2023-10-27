@@ -10,6 +10,7 @@ interface IndicatorKeyDescriptionProps {
     descriptionFromProducer?: string
     attributionShort?: string
     additionalInfo?: string
+    canonicalUrl?: string
     hasFaqEntries: boolean
 }
 
@@ -21,7 +22,7 @@ export const IndicatorKeyDescription = (
             {props.descriptionKey && (
                 <div className="key-info">
                     <h3 className="key-info__title">
-                        What you should know about this indicator
+                        What you should know about this data
                     </h3>
                     <div className="key-info__content simple-markdown-text">
                         {props.descriptionKey.length === 1 ? (
@@ -39,7 +40,10 @@ export const IndicatorKeyDescription = (
                         )}
                     </div>
                     {props.hasFaqEntries && (
-                        <a className="key-info__learn-more" href="#faqs">
+                        <a
+                            className="key-info__learn-more"
+                            href={(props.canonicalUrl ?? "") + "#faqs"}
+                        >
                             Learn more in the FAQs
                             <FontAwesomeIcon icon={faArrowDown} />
                         </a>

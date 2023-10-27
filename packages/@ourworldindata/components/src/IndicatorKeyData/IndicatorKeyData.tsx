@@ -9,9 +9,11 @@ interface IndicatorKeyDataProps {
     nextUpdate?: string
     unit?: string
     owidProcessingLevel?: "minor" | "major"
+    canonicalUrl?: string
 }
 
 export const IndicatorKeyData = (props: IndicatorKeyDataProps) => {
+    const canonicalUrl = props.canonicalUrl ?? ""
     const processedAdapted =
         props.owidProcessingLevel === "minor"
             ? `minor processing`
@@ -24,7 +26,9 @@ export const IndicatorKeyData = (props: IndicatorKeyDataProps) => {
             <div className="indicator-key-data__title">Source</div>
             <div className="indicator-key-data__content indicator-key-data__content-source">
                 {props.attribution} – with{" "}
-                <a href={`#${DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}`}>
+                <a
+                    href={`${canonicalUrl}#${DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}`}
+                >
                     {processedAdapted}
                 </a>{" "}
                 by Our World In Data
