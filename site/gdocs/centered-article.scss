@@ -35,6 +35,10 @@
             transition: margin 300ms ease;
             width: 400px;
             margin-left: -400px;
+            @include sm-only {
+                width: 100vw;
+                margin-left: -100vw;
+            }
             .toggle-toc {
                 margin-left: 0;
                 transform: translateX(calc(100% + 16px));
