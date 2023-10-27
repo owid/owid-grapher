@@ -1414,6 +1414,7 @@ export interface OwidGdocContent {
     "featured-image"?: string
     "atom-title"?: string
     "atom-excerpt"?: string
+    "sidebar-toc"?: boolean
     "cover-color"?:
         | "sdg-color-1"
         | "sdg-color-2"

@@ -131,8 +131,9 @@ function generateToc(
             if (child.type === "heading") {
                 const { level, text, supertitle } = child
                 const titleString = spansToSimpleString(text)
-                const supertitleString =
-                    supertitle && spansToSimpleString(supertitle)
+                const supertitleString = supertitle
+                    ? spansToSimpleString(supertitle)
+                    : ""
                 if (titleString && (level === 2 || level === 3)) {
                     toc.push({
                         title: titleString,

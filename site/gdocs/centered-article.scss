@@ -23,6 +23,46 @@
             color: $vermillion !important;
         }
     }
+
+    .toc-wrapper {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        margin-top: -48px;
+        .entry-sidebar {
+            height: 100vh;
+            position: absolute;
+            transition: margin 300ms ease;
+            width: calc(50vw - 330px);
+            margin-left: calc(-50vw + 330px);
+            .toggle-toc {
+                margin-left: 0;
+                transform: translateX(calc(100% + 16px));
+                position: absolute;
+                top: 0;
+                bottom: 0;
+                right: 0;
+                padding: 16px 0;
+                pointer-events: none;
+                display: unset;
+                transition: transform 300ms ease;
+                button {
+                    @include popover-box-button;
+                    z-index: 20;
+                    position: sticky;
+                    top: 16px;
+                    pointer-events: auto;
+                    white-space: nowrap;
+                }
+            }
+            &.entry-sidebar--is-open {
+                margin-left: 0;
+                .toggle-toc {
+                    transform: translateX(-16px);
+                }
+            }
+        }
+    }
 }
 
 $banner-height: 200px;
