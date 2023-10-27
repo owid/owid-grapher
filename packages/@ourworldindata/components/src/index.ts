@@ -16,7 +16,7 @@ export {
 export { ExpandableToggle } from "./ExpandableToggle/ExpandableToggle.js"
 
 export { IndicatorKeyData } from "./IndicatorKeyData/IndicatorKeyData.js"
-export { IndicatorKeyDescription } from "./IndicatorKeyDescription/IndicatorKeyDescription.js"
+export { IndicatorDescriptions } from "./IndicatorDescriptions/IndicatorDescriptions.js"
 export { IndicatorProcessing } from "./IndicatorProcessing/IndicatorProcessing.js"
 
 export { Checkbox } from "./Checkbox.js"

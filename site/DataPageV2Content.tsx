@@ -2,7 +2,7 @@ import React, { useEffect } from "react"
 import { Grapher, GrapherInterface } from "@ourworldindata/grapher"
 import {
     IndicatorKeyData,
-    IndicatorKeyDescription,
+    IndicatorDescriptions,
     CodeSnippet,
     REUSE_THIS_WORK_SECTION_ID,
     OriginSubset,
@@ -271,7 +271,7 @@ export const DataPageV2Content = ({
                                         unit={datapageData.unit}
                                     />
                                 </div>
-                                <IndicatorKeyDescription
+                                <IndicatorDescriptions
                                     descriptionShort={
                                         datapageData.descriptionShort
                                     }

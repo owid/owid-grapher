@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { ExpandableToggle } from "../ExpandableToggle/ExpandableToggle.js"
 import { SimpleMarkdownText } from "../SimpleMarkdownText.js"
 
-interface IndicatorKeyDescriptionProps {
+interface IndicatorDescriptionsProps {
     descriptionShort?: string
     descriptionKey?: string[]
     descriptionFromProducer?: string
@@ -14,8 +14,8 @@ interface IndicatorKeyDescriptionProps {
     hasFaqEntries: boolean
 }
 
-export const IndicatorKeyDescription = (
-    props: IndicatorKeyDescriptionProps
+export const IndicatorDescriptions = (
+    props: IndicatorDescriptionsProps
 ) => {
     return (
         <div className="indicator-key-description">
