@@ -1,8 +1,33 @@
 import React from "react"
 import { computed } from "mobx"
 import { Remark } from "react-remark"
+import { visit } from "unist-util-visit"
+
 type SimpleMarkdownTextProps = {
     text: string
+}
+
+function transformDodLinks() {
+    return function (tree: any) {
+        visit(tree, "element", function (node) {
+            if (
+                node.tagName === "a" &&
+                typeof node.properties.href === "string" &&
+                node.properties.href.startsWith("#dod:")
+            ) {
+                // use a regex to split the #dod: part from the term of the href. Use a named capture group
+                // to capture the term
+                const match = node.properties.href.match(/#dod:(?<term>.+)/)
+                if (match) {
+                    node.properties.class = "dod-span"
+                    node.properties["data-id"] = match.groups?.term
+                    node.properties["aria-expanded"] = "false"
+                    delete node.properties.href
+                }
+                //node.children.push(
+            }
+        })
+    }
 }
 
 export class SimpleMarkdownText extends React.Component<SimpleMarkdownTextProps> {
@@ -10,22 +35,21 @@ export class SimpleMarkdownText extends React.Component<SimpleMarkdownTextProps>
         return this.props.text
     }
 
-    // @computed get ast(): MarkdownRoot["children"] {
-    //     if (!this.text) return []
-    //     const result = mdParser.markdown.parse(this.props.text)
-    //     if (result.status) {
-    //         return result.value.children
-    //     }
-    //     return []
-    // }
+    @computed get ast(): MarkdownRoot["children"] {
+        if (!this.text) return []
+        const result = mdParser.markdown.parse(this.props.text)
+        if (result.status) {
+            return result.value.children
+        }
+        return []
+    }
 
-    // @computed get tokens(): IRToken[] {
-    //     const tokens = parsimmonToTextTokens(this.ast, {})
-    //     return recursiveMergeTextTokens(tokens)
-    // }
+    @computed get tokens(): IRToken[] {
+        const tokens = parsimmonToTextTokens(this.ast, {})
+        return recursiveMergeTextTokens(tokens)
+    }
 
     render(): JSX.Element | null {
-        // const { tokens } = this
-        return <Remark>{this.text}</Remark>
+        return <Remark rehypePlugins={[transformDodLinks]}>{this.text}</Remark>
     }
 }
