@@ -80,7 +80,7 @@ export interface CoreColumnDef extends ColumnColorScale {
 
     // Metadata v2
     origins?: OwidOrigin[]
-    presentation?: Omit<OwidVariablePresentation, "topicTagsLinks">
+    presentation?: OwidVariablePresentation
 
     // Dataset information
     datasetId?: number
