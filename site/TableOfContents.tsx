@@ -115,7 +115,10 @@ export const TableOfContents = ({
             contentHeadings.forEach((contentHeading) => {
                 observer.observe(contentHeading)
             })
+
+            return () => observer.disconnect()
         }
+        return
     }, [headings, hideSubheadings])
 
     return (
