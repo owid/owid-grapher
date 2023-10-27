@@ -1,6 +1,5 @@
 import React, { CSSProperties } from "react"
 import { computed } from "mobx"
-import { EveryMarkdownChildNode, MarkdownRoot, mdParser } from "./parser.js"
 import {
     excludeUndefined,
     last,
@@ -13,6 +12,9 @@ import {
     FontFamily,
 } from "@ourworldindata/utils"
 import { TextWrap } from "../TextWrap/TextWrap.js"
+import { fromMarkdown } from "mdast-util-from-markdown"
+import { Root, Node, RootContentMap } from "mdast"
+import { match } from "ts-pattern"
 
 const SUPERSCRIPT_NUMERALS = {
     "0": "\u2070",
@@ -493,62 +495,62 @@ export const sumTextWrapHeights = (
     sum(elements.map((element) => element.height)) +
     (elements.length - 1) * spacer
 
-export function parsimmonToTextTokens(
-    nodes: EveryMarkdownChildNode[],
-    fontParams?: IRFontParams
-): IRToken[] {
-    return nodes.map((node): IRToken => {
-        if (node.type === "text") {
-            return new IRText(node.value, fontParams)
-        } else if (node.type === "newline") {
-            return new IRLineBreak()
-        } else if (node.type === "whitespace") {
-            return new IRWhitespace(fontParams)
-        } else if (
-            node.type === "bold" ||
-            node.type === "plainBold" ||
-            node.type === "boldWithoutItalic"
-        ) {
-            return new IRBold(
-                parsimmonToTextTokens(node.children, {
-                    ...fontParams,
-                    fontWeight: 700,
-                })
-            )
-        } else if (
-            node.type === "italic" ||
-            node.type === "plainItalic" ||
-            node.type === "italicWithoutBold"
-        ) {
-            return new IRItalic(
-                parsimmonToTextTokens(node.children, {
-                    ...fontParams,
-                    isItalic: true,
-                })
-            )
-        } else if (node.type === "plainUrl") {
-            return new IRLink(
-                node.href,
-                parsimmonToTextTokens(
-                    [{ type: "text", value: node.href }],
-                    fontParams
-                )
-            )
-        } else if (node.type === "markdownLink") {
-            return new IRLink(
-                node.href,
-                parsimmonToTextTokens(node.children, fontParams)
-            )
-        } else if (node.type === "detailOnDemand") {
-            return new IRDetailOnDemand(
-                node.term,
-                parsimmonToTextTokens(node.children, fontParams)
-            )
-        } else {
-            throw new Error(`Unknown node type: ${(node as any).type}`)
-        }
-    })
-}
+// export function parsimmonToTextTokens(
+//     nodes: EveryMarkdownChildNode[],
+//     fontParams?: IRFontParams
+// ): IRToken[] {
+//     return nodes.map((node): IRToken => {
+//         if (node.type === "text") {
+//             return new IRText(node.value, fontParams)
+//         } else if (node.type === "newline") {
+//             return new IRLineBreak()
+//         } else if (node.type === "whitespace") {
+//             return new IRWhitespace(fontParams)
+//         } else if (
+//             node.type === "bold" ||
+//             node.type === "plainBold" ||
+//             node.type === "boldWithoutItalic"
+//         ) {
+//             return new IRBold(
+//                 parsimmonToTextTokens(node.children, {
+//                     ...fontParams,
+//                     fontWeight: 700,
+//                 })
+//             )
+//         } else if (
+//             node.type === "italic" ||
+//             node.type === "plainItalic" ||
+//             node.type === "italicWithoutBold"
+//         ) {
+//             return new IRItalic(
+//                 parsimmonToTextTokens(node.children, {
+//                     ...fontParams,
+//                     isItalic: true,
+//                 })
+//             )
+//         } else if (node.type === "plainUrl") {
+//             return new IRLink(
+//                 node.href,
+//                 parsimmonToTextTokens(
+//                     [{ type: "text", value: node.href }],
+//                     fontParams
+//                 )
+//             )
+//         } else if (node.type === "markdownLink") {
+//             return new IRLink(
+//                 node.href,
+//                 parsimmonToTextTokens(node.children, fontParams)
+//             )
+//         } else if (node.type === "detailOnDemand") {
+//             return new IRDetailOnDemand(
+//                 node.term,
+//                 parsimmonToTextTokens(node.children, fontParams)
+//             )
+//         } else {
+//             throw new Error(`Unknown node type: ${(node as any).type}`)
+//         }
+//     })
+// }
 
 type MarkdownTextWrapProps = {
     text: string
@@ -584,21 +586,18 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
     @computed get detailsOrderedByReference(): Set<string> {
         return this.props.detailsOrderedByReference || new Set()
     }
-    @computed get ast(): MarkdownRoot["children"] {
-        if (!this.text) return []
-        const result = mdParser.markdown.parse(this.props.text)
-        if (result.status) {
-            return result.value.children
-        }
-        return []
-    }
 
     @computed get plaintext(): string {
         return this.htmlLines.map(lineToPlaintext).join("\n")
     }
 
+    @computed get tokensFromMarkdown(): IRToken[] {
+        const tokens = convertMarkdownToIRTokens(this.text)
+        return tokens
+    }
+
     @computed get htmlLines(): IRToken[][] {
-        const tokens = parsimmonToTextTokens(this.ast, this.fontParams)
+        const tokens = this.tokensFromMarkdown
         const lines = splitIntoLines(tokens, this.maxWidth)
         return lines.map(recursiveMergeTextTokens)
     }
@@ -640,7 +639,7 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
             return appendedTokens
         }
 
-        const tokens = parsimmonToTextTokens(this.ast, this.fontParams)
+        const tokens = this.tokensFromMarkdown
         const tokensWithReferenceNumbers = appendReferenceNumbers(tokens)
         return splitIntoLines(tokensWithReferenceNumbers, this.maxWidth)
     }
@@ -739,4 +738,238 @@ function MarkdownTextWrapLine({ line }: { line: IRToken[] }): JSX.Element {
             {line.length ? line.map((token, i) => token.toHTML(i)) : <br />}
         </span>
     )
+}
+
+export function convertMarkdownToIRTokens(markdown: string): IRToken[] {
+    const ast = fromMarkdown(markdown)
+    return convertMarkdownRootToIRTokens(ast)
+}
+
+function convertMarkdownRootToIRTokens(node: Root): IRToken[] {
+    return node.children.flatMap(convertMarkdownNodeToIRTokens)
+}
+
+function convertMarkdownNodeToIRTokens(
+    node: RootContentMap[keyof RootContentMap]
+): IRToken[] {
+    const converted = match(node)
+        .with(
+            {
+                type: "blockquote",
+            },
+            (item) => {
+                return item.children.flatMap((child) =>
+                    convertMarkdownNodeToIRTokens(child)
+                )
+            }
+        )
+        .with(
+            {
+                type: "break",
+            },
+            (item) => {
+                return [new IRLineBreak()]
+            }
+        )
+        .with(
+            {
+                type: "code",
+            },
+            (item) => {
+                return [new IRText(item.value)]
+            }
+        )
+        .with(
+            {
+                type: "emphasis",
+            },
+            (item) => {
+                return [
+                    new IRItalic(
+                        item.children.flatMap(convertMarkdownNodeToIRTokens)
+                    ),
+                ]
+            }
+        )
+        .with(
+            {
+                type: "heading",
+            },
+            (item) => {
+                return item.children.flatMap(convertMarkdownNodeToIRTokens)
+            }
+        )
+        .with(
+            {
+                type: "html",
+            },
+            (item) => {
+                return [new IRText(item.value)]
+            }
+        )
+        .with(
+            {
+                type: "image",
+            },
+            (item) => {
+                return [new IRText(item.alt ?? "")]
+            }
+        )
+        .with(
+            {
+                type: "inlineCode",
+            },
+            (item) => {
+                return [new IRText(item.value)]
+            }
+        )
+        .with(
+            {
+                type: "link",
+            },
+            (item) => {
+                return [
+                    new IRLink(
+                        item.url,
+                        item.children.flatMap(convertMarkdownNodeToIRTokens)
+                    ),
+                ]
+            }
+        )
+        .with(
+            {
+                type: "list",
+            },
+            (item) => {
+                return item.children.flatMap(convertMarkdownNodeToIRTokens)
+            }
+        )
+        .with(
+            {
+                type: "listItem",
+            },
+            (item) => {
+                return item.children.flatMap(convertMarkdownNodeToIRTokens)
+            }
+        )
+        .with(
+            {
+                type: "paragraph",
+            },
+            (item) => {
+                return item.children.flatMap(convertMarkdownNodeToIRTokens)
+            }
+        )
+        .with(
+            {
+                type: "strong",
+            },
+            (item) => {
+                return [
+                    new IRBold(
+                        item.children.flatMap(convertMarkdownNodeToIRTokens)
+                    ),
+                ]
+            }
+        )
+        .with(
+            {
+                type: "text",
+            },
+            (item) => {
+                return [new IRText(item.value)]
+            }
+        )
+        .with(
+            {
+                type: "thematicBreak",
+            },
+            (item) => {
+                return [new IRText("---")]
+            }
+        )
+        .with(
+            {
+                type: "delete",
+            },
+            (item) => {
+                return item.children.flatMap(convertMarkdownNodeToIRTokens)
+            }
+        )
+        // Now lets finish this with blocks for FootnoteDefinition, Definition, ImageReference, LinkReference, FootnoteReference, and Table
+        .with(
+            {
+                type: "footnoteDefinition",
+            },
+            (item) => {
+                return item.children.flatMap(convertMarkdownNodeToIRTokens)
+            }
+        )
+        .with(
+            {
+                type: "definition",
+            },
+            (item) => {
+                return [new IRText(`${item.identifier}: ${item.label}`)]
+            }
+        )
+        .with(
+            {
+                type: "imageReference",
+            },
+            (item) => {
+                return [new IRText(`${item.identifier}: ${item.label}`)]
+            }
+        )
+        .with(
+            {
+                type: "linkReference",
+            },
+            (item) => {
+                return [new IRText(`${item.identifier}: ${item.label}`)]
+            }
+        )
+        .with(
+            {
+                type: "footnoteReference",
+            },
+            (item) => {
+                return [new IRText(`${item.identifier}: ${item.label}`)]
+            }
+        )
+        .with(
+            {
+                type: "table",
+            },
+            (item) => {
+                return item.children.flatMap(convertMarkdownNodeToIRTokens)
+            }
+        )
+        .with(
+            {
+                type: "tableCell",
+            },
+            (item) => {
+                return item.children.flatMap(convertMarkdownNodeToIRTokens)
+            }
+        )
+        // and now TableRow and Yaml
+        .with(
+            {
+                type: "tableRow",
+            },
+            (item) => {
+                return item.children.flatMap(convertMarkdownNodeToIRTokens)
+            }
+        )
+        .with(
+            {
+                type: "yaml",
+            },
+            (item) => {
+                return [new IRText(item.value)]
+            }
+        )
+        .exhaustive()
+    return converted
 }

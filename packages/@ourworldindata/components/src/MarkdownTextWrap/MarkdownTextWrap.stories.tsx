@@ -3,10 +3,9 @@ import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
 import {
     MarkdownTextWrap,
-    parsimmonToTextTokens,
     IRToken,
+    convertMarkdownToIRTokens,
 } from "./MarkdownTextWrap"
-import { mdParser } from "./parser.js"
 import { TextWrap } from "../TextWrap/TextWrap.js"
 
 export default {
@@ -54,11 +53,8 @@ _THE END_
     }
 
     @computed get tokens(): IRToken[] {
-        const result = mdParser.markdown.parse(this.markdown)
-        if (result.status) {
-            return parsimmonToTextTokens(result.value.children)
-        }
-        return []
+        const result = convertMarkdownToIRTokens(this.markdown)
+        return result
     }
 
     render(): JSX.Element {
