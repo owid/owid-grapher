@@ -213,6 +213,8 @@
         "typeorm": "^0.3.14",
         "typescript": "~5.2.2",
         "unidecode": "^0.1.8",
+        "unified": "^11.0.4",
+        "unist-util-visit": "^5.0.0",
         "url-join": "^4.0.0",
         "url-parse": "^1.5.10",
         "url-slug": "^3.0.2",
