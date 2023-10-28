@@ -146,6 +146,14 @@ function generateToc(
                     })
                 }
             }
+            if (child.type === "all-charts") {
+                toc.push({
+                    title: child.heading,
+                    text: child.heading,
+                    slug: ALL_CHARTS_ID,
+                    isSubheading: false,
+                })
+            }
         })
     )
 
