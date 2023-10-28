@@ -124,6 +124,7 @@ export function OwidGdoc({
                     {hasSidebarToc && content.toc ? (
                         <TableOfContents
                             headings={content.toc}
+                            headingLevels={{ primary: 1, secondary: 2 }}
                             pageTitle={content.title || ""}
                         />
                     ) : null}
