@@ -35,9 +35,46 @@
             transition: margin 300ms ease;
             width: 400px;
             margin-left: -400px;
+            box-shadow: none;
             @include sm-only {
                 width: 100vw;
                 margin-left: -100vw;
+            }
+            @include sm-up {
+                ul {
+                    margin-left: 32px;
+                }
+            }
+
+            li {
+                &.section {
+                    margin-top: 24px;
+                }
+                a {
+                    padding-left: 16px;
+                }
+            }
+            li.section a,
+            li.subsection a {
+                border-width: 6px;
+                padding-right: 32px;
+                margin-left: 0;
+                color: $blue-90;
+
+                &:hover {
+                    background: none;
+                    text-decoration: underline;
+                }
+            }
+
+            li.subsection a {
+                color: $blue-60;
+                margin-left: 16px;
+            }
+
+            li.active a {
+                border-left-color: $vermillion;
+                background: unset;
             }
             .toggle-toc {
                 margin-left: 0;
@@ -57,12 +94,43 @@
                     top: 16px;
                     pointer-events: auto;
                     white-space: nowrap;
+                    box-shadow: none;
+                    background: #fff;
+                    border: 1px solid $blue-20;
+                    line-height: 1.25;
+                    padding: 6px;
+                    border-radius: 4px;
+
+                    &:hover {
+                        background: #fff;
+                        svg {
+                            color: $blue-100;
+                        }
+                    }
+                    svg {
+                        margin-right: 0;
+                        color: $blue-90;
+                        height: 12px;
+                    }
+
+                    span {
+                        color: $blue-90;
+                        margin-left: 5px;
+                        position: relative;
+                        top: 1px;
+                    }
                 }
             }
             &.entry-sidebar--is-open {
                 margin-left: 0;
                 .toggle-toc {
                     transform: translateX(-16px);
+                    button {
+                        border: none;
+                        span {
+                            display: none;
+                        }
+                    }
                 }
             }
         }
