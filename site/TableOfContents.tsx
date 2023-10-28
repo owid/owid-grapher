@@ -12,6 +12,10 @@ interface TableOfContentsData {
     headings: TocHeading[]
     pageTitle: string
     hideSubheadings?: boolean
+    headingLevels?: {
+        primary: number
+        secondary: number
+    }
 }
 
 const isRecordTopViewport = (record: IntersectionObserverEntry) => {
@@ -34,9 +38,16 @@ export const TableOfContents = ({
     headings,
     pageTitle,
     hideSubheadings,
+    // Original WP articles used a hierarchy of h2 and h3 headings
+    // New Gdoc articles use a hierarchy of h1 and h2 headings
+    headingLevels = {
+        primary: 2,
+        secondary: 3,
+    },
 }: TableOfContentsData) => {
     const [isOpen, setIsOpen] = useState(false)
     const [activeHeading, setActiveHeading] = useState("")
+    const { primary, secondary } = headingLevels
     const tocRef = useRef<HTMLElement>(null)
 
     const toggleIsOpen = () => {
@@ -108,9 +119,11 @@ export const TableOfContents = ({
 
             let contentHeadings = null
             if (hideSubheadings) {
-                contentHeadings = document.querySelectorAll("h2")
+                contentHeadings = document.querySelectorAll(`h${secondary}`)
             } else {
-                contentHeadings = document.querySelectorAll("h2, h3")
+                contentHeadings = document.querySelectorAll(
+                    `h${primary}, h${secondary}`
+                )
             }
             contentHeadings.forEach((contentHeading) => {
                 observer.observe(contentHeading)
@@ -119,7 +132,7 @@ export const TableOfContents = ({
             return () => observer.disconnect()
         }
         return
-    }, [headings, hideSubheadings])
+    }, [headings, hideSubheadings, primary, secondary])
 
     return (
         <div className={TOC_WRAPPER_CLASSNAME}>
