@@ -441,4 +441,91 @@ export const enrichedBlockExamples: Record<
         items: [{ text: "Hello", slug: "#link-to-something" }],
         parseErrors: [],
     },
+    table: {
+        type: "table",
+        template: "header-row",
+        rows: [
+            {
+                type: "table-row",
+                cells: [
+                    {
+                        type: "table-cell",
+                        content: [
+                            {
+                                type: "text",
+                                value: [
+                                    {
+                                        spanType: "span-simple-text",
+                                        text: "City",
+                                    },
+                                ],
+                                parseErrors: [],
+                            },
+                            {
+                                type: "text",
+                                value: [
+                                    {
+                                        spanType: "span-simple-text",
+                                        text: "Continent",
+                                    },
+                                ],
+                                parseErrors: [],
+                            },
+                        ],
+                    },
+                    {
+                        type: "table-cell",
+                        content: [
+                            {
+                                type: "text",
+                                value: [
+                                    {
+                                        spanType: "span-simple-text",
+                                        text: "Wellington",
+                                    },
+                                ],
+                                parseErrors: [],
+                            },
+                            {
+                                type: "text",
+                                value: [
+                                    {
+                                        spanType: "span-simple-text",
+                                        text: "Zealandia",
+                                    },
+                                ],
+                                parseErrors: [],
+                            },
+                        ],
+                    },
+                    {
+                        type: "table-cell",
+                        content: [
+                            {
+                                type: "text",
+                                value: [
+                                    {
+                                        spanType: "span-simple-text",
+                                        text: "Addis Ababa",
+                                    },
+                                ],
+                                parseErrors: [],
+                            },
+                            {
+                                type: "text",
+                                value: [
+                                    {
+                                        spanType: "span-simple-text",
+                                        text: "Africa",
+                                    },
+                                ],
+                                parseErrors: [],
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
+        parseErrors: [],
+    },
 }

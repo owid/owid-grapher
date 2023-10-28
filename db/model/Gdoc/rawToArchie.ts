@@ -33,6 +33,8 @@ import {
     RawBlockAlign,
     RawBlockEntrySummary,
     isArray,
+    RawBlockTable,
+    RawBlockTableRow,
 } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
 
@@ -564,8 +566,45 @@ function* rawBlockEntrySummaryToArchieMLString(
     yield "{}"
 }
 
+function* rawBlockRowToArchieMLString(
+    row: RawBlockTableRow
+): Generator<string, void, undefined> {
+    yield "{.table-row}"
+    const cells = row.value.cells
+    if (cells) {
+        yield "[.+cells]"
+        for (const cell of cells) {
+            const content = cell.value
+            yield "[.+table-cell]"
+            if (content) {
+                for (const rawBlock of content)
+                    yield* OwidRawGdocBlockToArchieMLStringGenerator(rawBlock)
+            }
+            yield "[]"
+        }
+        yield "[]"
+    }
+    yield "{}"
+}
+
+function* rawBlockTableToArchieMLString(
+    block: RawBlockTable
+): Generator<string, void, undefined> {
+    yield "{.table}"
+    yield* propertyToArchieMLString("template", block.value)
+    const rows = block?.value?.rows
+    if (rows) {
+        yield "[.+rows]"
+        for (const row of rows) {
+            yield* rawBlockRowToArchieMLString(row)
+        }
+        yield "[]"
+    }
+    yield "{}"
+}
+
 export function* OwidRawGdocBlockToArchieMLStringGenerator(
-    block: OwidRawGdocBlock
+    block: OwidRawGdocBlock | RawBlockTableRow
 ): Generator<string, void, undefined> {
     const content = match(block)
         .with(
@@ -625,12 +664,14 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
         )
         .with({ type: "align" }, rawBlockAlignToArchieMLString)
         .with({ type: "entry-summary" }, rawBlockEntrySummaryToArchieMLString)
+        .with({ type: "table" }, rawBlockTableToArchieMLString)
+        .with({ type: "table-row" }, rawBlockRowToArchieMLString)
         .exhaustive()
     yield* content
 }
 
 export function OwidRawGdocBlockToArchieMLString(
-    block: OwidRawGdocBlock
+    block: OwidRawGdocBlock | RawBlockTableRow
 ): string {
     const lines = [...OwidRawGdocBlockToArchieMLStringGenerator(block)]
     return [...lines, ""].join("\n")
