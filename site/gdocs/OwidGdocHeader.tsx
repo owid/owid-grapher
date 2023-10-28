@@ -139,6 +139,9 @@ function OwidTopicPageHeader({
                     })}
                 </a>
             </p>
+            <p className="topic-page-header__dateline body-3-medium-italic col-start-2 span-cols-8">
+                {content.dateline}
+            </p>
         </header>
     )
 }

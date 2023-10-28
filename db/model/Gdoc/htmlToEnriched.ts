@@ -846,23 +846,7 @@ function cheerioToArchieML(
             .with({ tagName: "details" }, unwrapElementWithContext)
             .with({ tagName: "div" }, (div) => {
                 const className = div.attribs.class || ""
-                // Special handling for a div that we use to mark the "First published on..." notice
-                if (className.includes("blog-info")) {
-                    const children = unwrapElementWithContext(div)
-                    const textChildren = children.content.filter(
-                        (c) => "type" in c && c.type === "text"
-                    ) as EnrichedBlockText[]
-                    const callout: EnrichedBlockCallout = {
-                        type: "callout",
-                        title: "",
-                        text: textChildren,
-                        parseErrors: [],
-                    }
-                    return {
-                        errors: [],
-                        content: [callout],
-                    }
-                } else if (className.includes("pcrm")) {
+                if (className.includes("pcrm")) {
                     // pcrm stands for "preliminary collection of relevant material" which was used to designate entries
                     // that weren't fully polished, but then became a way to create a general-purpose "warning box".
                     const unwrapped = unwrapElementWithContext(element)
