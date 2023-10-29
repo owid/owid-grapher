@@ -308,6 +308,7 @@ export class SiteBaker {
 
     // Bake all GDoc posts
     async bakeGDocPosts() {
+        await db.getConnection()
         if (!this.bakeSteps.has("gdocPosts")) return
         const publishedGdocs = await Gdoc.getPublishedGdocs()
 
