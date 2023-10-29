@@ -27,7 +27,8 @@
     .toc-wrapper {
         position: sticky;
         top: 0;
-        z-index: 2;
+        // Above explorer chrome
+        z-index: 3;
         margin-top: -48px;
         .entry-sidebar {
             height: 100vh;
