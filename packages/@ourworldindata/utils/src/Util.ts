@@ -1603,6 +1603,7 @@ export function traverseEnrichedBlocks(
             })
         })
         .with({ type: "table" }, (table) => {
+            callback(table)
             table.rows.forEach((row) => {
                 row.cells.forEach((cell) => {
                     cell.content.forEach((node) => {
