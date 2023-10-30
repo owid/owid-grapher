@@ -74,17 +74,13 @@ export interface CoreColumnDef extends ColumnColorScale {
     color?: Color // A column can have a fixed color for use in charts where the columns are series
 
     // Source information used for display only
-    sourceName?: string
-    sourceLink?: string
-    dataPublishedBy?: string
-    dataPublisherSource?: string
-    retrievedDate?: string
-    additionalInfo?: string
-    timespanFromMetadata?: string
+    source?: OwidSource
+    timespan?: string
 
     // Metadata v2
     origins?: OwidOrigin[]
     presentation?: OwidVariablePresentation
+    updatePeriodDays?: number
 
     // Dataset information
     datasetId?: number

@@ -1,6 +1,13 @@
 .ExpandableToggle {
-    border-top: 1px solid #d0dae3;
-    border-bottom: 1px solid #d0dae3;
+    --title: var(--expandable-toggle-title, currentColor);
+    --content: var(--expandable-toggle-content, #{$blue-60});
+    --border: var(--expandable-toggle-border, #d0dae3);
+
+    --button: var(--expandable-toggle-button, #{$blue-90});
+    --button-hover: var(--expandable-toggle-button-hover, #{$blue-60});
+
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
 }
 
 .ExpandableToggle--stacked {
@@ -13,14 +20,14 @@
     align-items: center;
     width: 100%;
     padding: 16px 0;
-    color: $blue-90;
+    color: var(--button);
     background-color: transparent;
     border: none;
     cursor: pointer;
     text-align: left;
 
     &:hover {
-        color: $blue-60;
+        color: var(--button-hover);
     }
 }
 
@@ -37,7 +44,7 @@
 .ExpandableToggle__content {
     height: 0;
     overflow: hidden;
-    color: $blue-60;
+    color: var(--content);
 
     .article-block__text,
     .article-block__list,

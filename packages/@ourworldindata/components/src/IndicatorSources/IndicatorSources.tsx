@@ -18,10 +18,11 @@ export type OriginSubset = Pick<
 
 export interface IndicatorSourcesProps {
     origins: OriginSubset[]
-    canonicalUrl?: string
+    isEmbeddedInADataPage?: boolean // true by default
 }
 
 export const IndicatorSources = (props: IndicatorSourcesProps) => {
+    const isEmbeddedInADataPage = props.isEmbeddedInADataPage ?? true
     const origins = props.origins.map((origin) => ({
         ...origin,
         label: makeLabel(origin),
@@ -37,7 +38,7 @@ export const IndicatorSources = (props: IndicatorSourcesProps) => {
                     content={
                         <SourceContent
                             source={source}
-                            canonicalUrl={props.canonicalUrl}
+                            isEmbeddedInADataPage={isEmbeddedInADataPage}
                         />
                     }
                     isStacked={idx !== sources.length - 1}
@@ -50,31 +51,33 @@ export const IndicatorSources = (props: IndicatorSourcesProps) => {
 
 const SourceContent = (props: {
     source: OriginSubset
-    canonicalUrl?: string
+    isEmbeddedInADataPage: boolean
 }) => {
-    const { source, canonicalUrl = "" } = props
+    const { source } = props
     const dateAccessed = source.dateAccessed
         ? dayjs(source.dateAccessed).format("MMMM D, YYYY")
         : undefined
     const showKeyInfo = dateAccessed || source.urlMain || source.citationFull
     return (
-        <div className="source-content">
+        <div className="indicator-source">
             {source.description && (
                 <p className="description simple-markdown-text">
                     <SimpleMarkdownText text={source.description.trim()} />
                 </p>
             )}
             {showKeyInfo && (
-                <div className="key-info">
+                <div className="source-key-data-blocks">
                     {dateAccessed && (
-                        <div className="key-data">
-                            <div className="key-data__title">Retrieved on</div>
+                        <div className="source-key-data">
+                            <div className="source-key-data__title">
+                                Retrieved on
+                            </div>
                             <div>{dateAccessed}</div>
                         </div>
                     )}
                     {source.urlMain && (
-                        <div className="key-data key-data--hide-overflow">
-                            <div className="key-data__title">
+                        <div className="source-key-data source-key-data--hide-overflow">
+                            <div className="source-key-data__title">
                                 Retrieved from
                             </div>
                             <div>
@@ -89,19 +92,23 @@ const SourceContent = (props: {
                         </div>
                     )}
                     {source.citationFull && (
-                        <div className="key-data key-data--span-2">
-                            <div className="key-data__title">Citation</div>
+                        <div className="source-key-data source-key-data--span-2">
+                            <div className="source-key-data__title">
+                                Citation
+                            </div>
                             This is the citation of the original data obtained
                             from the source, prior to any processing or
-                            adaptation by Our World in Data. To cite data
-                            downloaded from this page, please use the suggested
-                            citation given in{" "}
-                            <a
-                                href={`${canonicalUrl}#${REUSE_THIS_WORK_SECTION_ID}`}
-                            >
-                                Reuse This Work
-                            </a>{" "}
-                            below.
+                            adaptation by Our World in Data.{" "}
+                            {props.isEmbeddedInADataPage && (
+                                <>
+                                    To cite data downloaded from this page,
+                                    please use the suggested citation given in{" "}
+                                    <a href={`#${REUSE_THIS_WORK_SECTION_ID}`}>
+                                        Reuse This Work
+                                    </a>{" "}
+                                    below.
+                                </>
+                            )}
                             <CodeSnippet
                                 code={source.citationFull.trim()}
                                 theme="light"

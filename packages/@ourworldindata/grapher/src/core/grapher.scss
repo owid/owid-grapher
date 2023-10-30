@@ -1,6 +1,15 @@
 @import "../../../components/src/styles/colors.scss";
 @import "../../../components/src/styles/variables.scss";
 @import "../../../components/src/styles/typography.scss";
+@import "../../../components/src/styles/util.scss";
+@import "../../../components/src/styles/mixins.scss";
+
+@import "../../../components/src/CodeSnippet/code-snippet.scss";
+@import "../../../components/src/ExpandableToggle/ExpandableToggle.scss";
+@import "../../../components/src/IndicatorKeyData/IndicatorKeyData.scss";
+@import "../../../components/src/IndicatorDescriptions/IndicatorDescriptions.scss";
+@import "../../../components/src/IndicatorSources/IndicatorSources.scss";
+@import "../../../components/src/IndicatorProcessing/IndicatorProcessing.scss";
 
 // grapher frame
 $frame-color: #f2f2f2;

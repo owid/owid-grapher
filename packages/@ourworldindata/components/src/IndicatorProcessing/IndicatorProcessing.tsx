@@ -37,11 +37,11 @@ export const IndicatorProcessing = (props: IndicatorProcessingProps) => {
                 <FontAwesomeIcon icon={faArrowDown} />
             </a>
             {props.descriptionProcessing && (
-                <div className="variable-processing-info">
-                    <h5 className="variable-processing-info__header">
+                <div className="indicator-processing">
+                    <h5 className="indicator-processing__title">
                         Notes on our processing step for this indicator
                     </h5>
-                    <div className="variable-processing-info__description">
+                    <div className="indicator-processing__content">
                         <p className="simple-markdown-text">
                             <SimpleMarkdownText
                                 text={props.descriptionProcessing.trim()}

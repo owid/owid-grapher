@@ -1,11 +1,18 @@
 import {
     Bounds,
     DEFAULT_BOUNDS,
-    OwidOrigin,
     uniq,
-    excludeNullish,
+    getAttributionFragmentsFromVariable,
+    getLastUpdatedFromVariable,
+    getNextUpdateFromVariable,
+    excludeUndefined,
 } from "@ourworldindata/utils"
-import { SimpleMarkdownText } from "@ourworldindata/components"
+import {
+    IndicatorKeyData,
+    IndicatorDescriptions,
+    IndicatorSources,
+    IndicatorProcessing,
+} from "@ourworldindata/components"
 import React from "react"
 import { action, computed } from "mobx"
 import { observer } from "mobx-react"
@@ -20,22 +27,7 @@ export interface SourcesModalManager {
     showAdminControls?: boolean
     isSourcesModalOpen?: boolean
     tabBounds?: Bounds
-}
-
-// TODO: remove this component once all backported indicators
-// etc have switched from HTML to markdown for their sources
-const HtmlOrMarkdownText = (props: { text: string }): JSX.Element => {
-    // check the text for closing a, li or p tags. If
-    // one is found, render using dangerouslySetInnerHTML,
-    // otherwise use SimpleMarkdownText
-    const { text } = props
-    const htmlRegex = /<\/(a|li|p)>/
-    const match = text.match(htmlRegex)
-    if (match) {
-        return <span dangerouslySetInnerHTML={{ __html: text }} />
-    } else {
-        return <SimpleMarkdownText text={text} />
-    }
+    isEmbeddedInADataPage?: boolean
 }
 
 @observer
@@ -51,239 +43,158 @@ export class SourcesModal extends React.Component<{
     }
 
     @computed private get modalBounds(): Bounds {
-        const maxWidth = 740
         // using 15px instead of 16px to make sure the modal fully covers the OWID logo in the header
-        const padWidth = Math.max(15, (this.tabBounds.width - maxWidth) / 2)
-        return this.tabBounds.padHeight(15).padWidth(padWidth)
+        return this.tabBounds.pad(15)
     }
 
-    private renderSource(column: CoreColumn): JSX.Element {
-        // NOTE: Some decisions about which texts are shown (e.g. descriptionShort is
-        // preferred over the long description if it exists) are
-        // made when the CoreColumn is filled from the Variable metadata
-        // in columnDefFromOwidVariable in packages/@ourworldindata/grapher/src/core/LegacyToOwidTable.ts
-        const { slug, source, def } = column
-        const { datasetId, coverage } = def as OwidColumnDef
-
-        // there will not be a datasetId for explorers that define the FASTT in TSV
-        const editUrl =
-            this.manager.showAdminControls && datasetId
-                ? `${this.props.manager.adminBaseUrl}/admin/datasets/${datasetId}`
-                : undefined
-
-        const { minTime, maxTime } = column
-        let timespan = column.def.timespanFromMetadata
-        if (
-            (timespan === undefined || timespan === "") &&
-            minTime !== undefined &&
-            maxTime !== undefined
-        )
-            timespan = `${column.formatTime(minTime)} – ${column.formatTime(
-                maxTime
-            )}`
-
-        const title = column.displayName
-
-        const retrievedDate =
-            source.retrievedDate ??
-            (column.def.origins && column.def.origins.length
-                ? column.def.origins[0].dateAccessed
-                : undefined)
-
-        const citationFull =
-            column.def.origins && column.def.origins.length
-                ? excludeNullish(
-                      uniq(
-                          column.def.origins.map(
-                              (origin: OwidOrigin) => origin.citationFull
-                          )
-                      )
-                  )
-                : []
-
-        const publishedByArray = [
-            ...(source.dataPublishedBy ? [source.dataPublishedBy] : []),
-            ...citationFull,
-        ]
-
-        const sourceLink =
-            source?.link ??
-            (column.def.origins && column.def.origins.length > 0
-                ? column.def.origins[0].urlMain
-                : undefined)
-
-        return (
-            <div key={slug} className="datasource-wrapper">
-                <h2>
-                    {title}{" "}
-                    {editUrl && (
-                        <a href={editUrl} target="_blank" rel="noopener">
-                            <FontAwesomeIcon icon={faPencilAlt} />
-                        </a>
-                    )}
-                </h2>
-                <table className="variable-desc">
-                    <tbody>
-                        {column.def.descriptionShort ? (
-                            <tr>
-                                <td>Variable description</td>
-                                <td>
-                                    <SimpleMarkdownText
-                                        text={column.def.descriptionShort.trim()}
-                                    />
-                                </td>
-                            </tr>
-                        ) : null}
-                        {!column.def.descriptionShort && column.description ? (
-                            // Show the description field only if we don't have a
-                            // metadata V2 shortDescription
-                            <tr>
-                                <td>Variable description</td>
-                                <td>
-                                    <SimpleMarkdownText
-                                        text={column.description.trim()}
-                                    />
-                                </td>
-                            </tr>
-                        ) : null}
-                        {column.def.descriptionKey &&
-                        column.def.descriptionKey.length === 1 ? (
-                            <tr>
-                                <td>Key information</td>
-                                <td>
-                                    <SimpleMarkdownText
-                                        text={column.def.descriptionKey[0]}
-                                    />
-                                </td>
-                            </tr>
-                        ) : null}
-                        {column.def.descriptionKey &&
-                        column.def.descriptionKey.length > 1 ? (
-                            <tr>
-                                <td>Key information</td>
-                                <td>
-                                    <ul>
-                                        {column.def.descriptionKey.map(
-                                            (info: string, index: number) => (
-                                                <li key={index}>
-                                                    <SimpleMarkdownText
-                                                        text={info}
-                                                    />
-                                                </li>
-                                            )
-                                        )}
-                                    </ul>
-                                </td>
-                            </tr>
-                        ) : null}
-                        {column.def.descriptionProcessing ? (
-                            <tr>
-                                <td>Processing notes</td>
-                                <td>
-                                    <SimpleMarkdownText
-                                        text={column.def.descriptionProcessing}
-                                    />
-                                </td>
-                            </tr>
-                        ) : null}
-                        {coverage ? (
-                            <tr>
-                                <td>Variable geographic coverage</td>
-                                <td>{coverage}</td>
-                            </tr>
-                        ) : null}
-                        {timespan ? (
-                            <tr>
-                                <td>Variable time span</td>
-                                <td>{timespan}</td>
-                            </tr>
-                        ) : null}
-                        {column.unitConversionFactor !== 1 ? (
-                            <tr>
-                                <td>Unit conversion factor for chart</td>
-                                <td>{column.unitConversionFactor}</td>
-                            </tr>
-                        ) : null}
-                        {publishedByArray.length === 1 ? (
-                            <tr>
-                                <td>Data published by</td>
-                                <td>
-                                    <SimpleMarkdownText
-                                        text={publishedByArray[0]}
-                                    />
-                                </td>
-                            </tr>
-                        ) : null}
-                        {publishedByArray.length > 1 ? (
-                            <tr>
-                                <td>Data published by</td>
-                                <td>
-                                    <ul>
-                                        {publishedByArray.map(
-                                            (
-                                                citation: string,
-                                                index: number
-                                            ) => (
-                                                <li key={index}>
-                                                    <SimpleMarkdownText
-                                                        text={citation}
-                                                    />
-                                                </li>
-                                            )
-                                        )}
-                                    </ul>
-                                </td>
-                            </tr>
-                        ) : null}
-                        {source.dataPublisherSource ? (
-                            <tr>
-                                <td>Data publisher's source</td>
-                                <td>
-                                    <HtmlOrMarkdownText
-                                        text={source.dataPublisherSource}
-                                    />
-                                </td>
-                            </tr>
-                        ) : null}
-                        {sourceLink ? (
-                            <tr>
-                                <td>Link</td>
-                                <td>
-                                    <HtmlOrMarkdownText text={sourceLink} />
-                                </td>
-                            </tr>
-                        ) : null}
-                        {retrievedDate ? (
-                            <tr>
-                                <td>Retrieved</td>
-                                <td>{retrievedDate}</td>
-                            </tr>
-                        ) : null}
-                    </tbody>
-                </table>
-                {source.additionalInfo && (
-                    <p key={"additionalInfo"}>
-                        <HtmlOrMarkdownText text={source.additionalInfo} />
-                    </p>
-                )}
-            </div>
-        )
+    @computed private get editBaseUrl(): string | undefined {
+        if (!this.manager.showAdminControls) return undefined
+        return `${this.props.manager.adminBaseUrl}/admin/datasets`
     }
 
     render(): JSX.Element {
-        const cols = this.manager.columnsWithSourcesExtensive
+        const { columnsWithSourcesExtensive } = this.manager
         return (
             <Modal
-                title="Sources"
                 onDismiss={action(
                     () => (this.manager.isSourcesModalOpen = false)
                 )}
                 bounds={this.modalBounds}
             >
                 <div className="SourcesModalContent">
-                    {cols.map((col) => this.renderSource(col))}
+                    {columnsWithSourcesExtensive.map((column) => (
+                        <Source
+                            key={column.slug}
+                            column={column}
+                            editBaseUrl={this.editBaseUrl}
+                            isEmbeddedInADataPage={
+                                this.manager.isEmbeddedInADataPage
+                            }
+                        />
+                    ))}
                 </div>
             </Modal>
+        )
+    }
+}
+
+@observer
+export class Source extends React.Component<{
+    column: CoreColumn
+    editBaseUrl?: string
+    isEmbeddedInADataPage?: boolean
+}> {
+    @computed private get def(): OwidColumnDef {
+        return this.props.column.def
+    }
+
+    @computed private get title(): string {
+        return this.def.display?.name || this.def.name || ""
+    }
+
+    @computed private get editUrl(): string | undefined {
+        // there will not be a datasetId for explorers that define the FASTT in TSV
+        if (!this.props.editBaseUrl || !this.def.datasetId) return undefined
+        return `${this.props.editBaseUrl}/${this.def.datasetId}`
+    }
+
+    @computed private get producers(): string[] {
+        if (!this.def.origins) return []
+        return uniq(excludeUndefined(this.def.origins.map((o) => o.producer)))
+    }
+
+    @computed private get attributions(): string | undefined {
+        const attributionFragments =
+            getAttributionFragmentsFromVariable(this.def) ?? this.producers
+        if (attributionFragments.length === 0) return undefined
+        return attributionFragments.join(", ")
+    }
+
+    @computed private get lastUpdated(): string | undefined {
+        return getLastUpdatedFromVariable(this.def)
+    }
+
+    @computed private get nextUpdate(): string | undefined {
+        return getNextUpdateFromVariable(this.def)
+    }
+
+    @computed private get unit(): string | undefined {
+        return this.def.display?.unit ?? this.def.unit
+    }
+
+    @computed private get datapageHasFAQSection(): boolean {
+        const faqCount = this.def.presentation?.faqs?.length ?? 0
+        return !!this.props.isEmbeddedInADataPage && faqCount > 0
+    }
+
+    @computed private get showDescriptions(): boolean {
+        return (
+            (this.def.descriptionKey && this.def.descriptionKey.length > 0) ||
+            !!this.def.descriptionFromProducer ||
+            !!this.def.source?.additionalInfo
+        )
+    }
+
+    render(): JSX.Element {
+        return (
+            <div className="source">
+                <h2>
+                    {this.title}{" "}
+                    {this.editUrl && (
+                        <a href={this.editUrl} target="_blank" rel="noopener">
+                            <FontAwesomeIcon icon={faPencilAlt} />
+                        </a>
+                    )}
+                </h2>
+                {this.def.descriptionShort && (
+                    <p>{this.def.descriptionShort}</p>
+                )}
+                {this.attributions && this.def.timespan && this.lastUpdated && (
+                    <IndicatorKeyData
+                        attribution={this.attributions}
+                        owidProcessingLevel={this.def.owidProcessingLevel}
+                        dateRange={this.def.timespan}
+                        lastUpdated={this.lastUpdated}
+                        nextUpdate={this.nextUpdate}
+                        unit={this.unit}
+                        isEmbeddedInADataPage={this.props.isEmbeddedInADataPage}
+                    />
+                )}
+                {this.showDescriptions && (
+                    <IndicatorDescriptions
+                        descriptionShort={this.def.descriptionShort}
+                        descriptionKey={this.def.descriptionKey ?? []}
+                        hasFaqEntries={this.datapageHasFAQSection}
+                        descriptionFromProducer={
+                            this.def.descriptionFromProducer
+                        }
+                        attributionShort={
+                            this.def.presentation?.attributionShort
+                        }
+                        additionalInfo={this.def.source?.additionalInfo}
+                        isEmbeddedInADataPage={this.props.isEmbeddedInADataPage}
+                    />
+                )}
+                {this.def.origins && this.def.origins.length > 0 && (
+                    <>
+                        <h3 className="heading">
+                            This data is based on the following sources:
+                        </h3>
+                        <IndicatorSources
+                            origins={this.def.origins}
+                            isEmbeddedInADataPage={
+                                this.props.isEmbeddedInADataPage
+                            }
+                        />
+                    </>
+                )}
+                <h3 className="heading">
+                    How we process data at Our World in Data:
+                </h3>
+                <IndicatorProcessing
+                    descriptionProcessing={this.def.descriptionProcessing}
+                />
+            </div>
         )
     }
 }

@@ -1,19 +1,25 @@
-.indicator-key-description {
+.indicator-descriptions {
     .key-info {
-        background-color: $gray-10;
-        border-left: 4px solid $blue-10;
+        --background: var(--indicator-key-info-background, #{$gray-10});
+        --border-left: var(--indicator-key-info-border-left, #{$blue-10});
+        --title: var(--indicator-key-info-title, #{$blue-50});
+        --content: var(--indicator-key-info-content, currentColor);
+
+        background-color: var(--background);
+        border-left: 4px solid var(--border-left);
         padding: 40px;
         margin: 0 -40px;
 
         &__title {
             @include h5-black-caps;
-            color: $blue-50;
+            color: var(--title);
             margin-top: 0;
             margin-bottom: 16px;
         }
 
         &__content {
             @include body-2-regular;
+            color: var(--content);
             ul {
                 @include body-2-regular;
                 margin-left: 16px;

@@ -1,76 +1,110 @@
 .SourcesModalContent {
     padding-bottom: $modal-padding;
 
-    .datasource-wrapper {
-        font-size: 0.8125rem;
+    max-width: 840px;
+    margin: 0 auto;
+
+    .source {
         color: $dark-text;
-        line-height: 1.38461538;
 
-        & + .datasource-wrapper {
-            margin-top: 24px;
+        + .source {
+            margin-top: 48px;
         }
 
-        > h2 {
-            color: $dark-text;
-            font-family: $serif-font-stack !important;
-            font-size: 1.4em;
-            font-weight: 600;
-            margin: 0;
-            margin-bottom: 0.4em;
+        h2 {
+            @include h1-semibold;
+            margin-top: 0;
+            margin-bottom: 8px;
+
+            @include sm-up {
+                font-size: 1.5rem;
+            }
         }
 
-        h2,
-        h3,
-        h4 {
-            margin-left: 0px;
-            font-family: inherit;
-        }
-
-        h3,
-        h4 {
-            margin-top: 2px;
-            margin-bottom: 1px;
-            font-size: 0.9em;
-            font-weight: bold;
-        }
-
-        ul,
-        ol {
-            margin-left: 1.1rem;
-        }
-
-        table {
-            width: 100%;
-            border-spacing: 0;
-        }
-
-        td {
-            padding: 16px 0;
-            vertical-align: top;
-            border-top: 1px solid #ddd;
-            font-size: 13px;
-            line-height: 1.3846153846;
-        }
-
-        td:first-child {
-            padding-right: 24px;
-            color: $light-text;
-            min-width: 100px;
-        }
-
-        tr:first-child td {
-            border: 0;
+        h2 + p {
+            @include body-3-medium;
+            margin-top: 8px;
+            margin-bottom: 16px;
         }
 
         a {
-            text-decoration: underline;
             color: inherit;
-            word-break: break-word;
+            text-decoration: underline;
+            &:hover {
+                text-decoration: none;
+            }
         }
 
-        p.additionalInfo {
-            margin: 0;
-            margin-top: 1em;
+        .heading {
+            @include h2-semibold;
+            margin-bottom: 16px;
+            margin-top: 32px;
+        }
+
+        .indicator-key-data {
+            --indicator-key-data-title: #{$light-text};
+            --indicator-key-data-border: #e7e7e7;
+
+            margin-top: 16px;
+        }
+
+        .indicator-descriptions .key-info {
+            --indicator-key-info-title: #a1a1a1;
+
+            margin: 24px 0;
+            padding: 32px;
+        }
+
+        .source-key-data {
+            --source-key-data-title: #{$dark-text};
+        }
+
+        .indicator-processing {
+            --indicator-processing-background: #{$gray-10};
+            --indicator-processing-title: #a1a1a1;
+            --indicator-processing-content: #{$dark-text};
+
+            margin-left: 0;
+            margin-right: 0;
+        }
+
+        .ExpandableToggle {
+            --expandable-toggle-border: #e7e7e7;
+            --expandable-toggle-title: #{$dark-text};
+            --expandable-toggle-button: #{$dark-text};
+            --expandable-toggle-button-hover: #{$light-text};
+            --expandable-toggle-content: #{$light-text};
+        }
+
+        .wp-code-snippet {
+            --code-snippet-border: #e7e7e7;
+            --code-snippet-background-light: #f7f7f7;
+            --code-snippet-text: #{$light-text};
+            --code-snippet-button: #{$dark-text};
+            --code-snippet-button-hover: #{$light-text};
+            --code-snippet-button-active: #{$light-text};
+        }
+
+        .indicator-descriptions .key-info__learn-more,
+        .data-processing__link {
+            @include body-3-medium;
+            display: inline-block;
+            height: auto;
+            padding: 0;
+            text-align: left;
+            color: inherit;
+            background-color: transparent;
+            text-decoration: underline;
+            text-underline-offset: 4px;
+
+            &:hover {
+                text-decoration: none;
+            }
+
+            svg {
+                display: inline-block;
+                transform: rotate(-90deg);
+            }
         }
     }
 }

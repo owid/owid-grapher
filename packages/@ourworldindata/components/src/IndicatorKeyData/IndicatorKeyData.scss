@@ -1,8 +1,12 @@
 .indicator-key-data {
+    --title: var(--indicator-key-data-title, #{$blue-50});
+    --content: var(--indicator-key-data-content, currentColor);
+    --border: var(--indicator-key-data-border, #{$blue-20});
+
     @include body-3-medium;
 
-    border-top: 1px solid $blue-20;
-    border-bottom: 1px solid $blue-20;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
 
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -16,17 +20,21 @@
         }
 
         + .indicator-key-data-item {
-            border-top: 1px solid $blue-20;
+            border-top: 1px solid var(--border);
         }
 
         &__title {
             flex: 0 0 140px; // using a fixed width here to make sure the content is aligned
             margin-right: 24px;
-            color: $blue-50;
+            color: var(--title);
 
             @include sm-only {
                 margin-right: 0;
             }
+        }
+
+        &__content {
+            color: var(--content);
         }
 
         &--span {

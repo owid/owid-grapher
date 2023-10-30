@@ -81,6 +81,12 @@ export class Modal extends React.Component<{
             contentStyle.transform = "translateY(-50%)"
         }
 
+        const dismissButton = (
+            <button className="modalDismiss" onClick={this.props.onDismiss}>
+                <FontAwesomeIcon icon={faTimes} />
+            </button>
+        )
+
         return (
             <div className="modalOverlay">
                 <div className="modalWrapper">
@@ -89,17 +95,14 @@ export class Modal extends React.Component<{
                         style={contentStyle}
                         ref={this.contentRef}
                     >
-                        <div className="modalHeader">
-                            {this.title && (
+                        {this.title ? (
+                            <div className="modalHeader">
                                 <div className="modalTitle">{this.title}</div>
-                            )}
-                            <button
-                                className="modalDismiss"
-                                onClick={this.props.onDismiss}
-                            >
-                                <FontAwesomeIcon icon={faTimes} />
-                            </button>
-                        </div>
+                                {dismissButton}
+                            </div>
+                        ) : (
+                            dismissButton
+                        )}
                         <div className="modalScrollable">
                             {this.props.children}
                         </div>

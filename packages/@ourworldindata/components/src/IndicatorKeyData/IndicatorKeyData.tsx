@@ -14,11 +14,11 @@ interface IndicatorKeyDataProps {
     nextUpdate?: string
     unit?: string
     owidProcessingLevel?: OwidProcessingLevel
-    canonicalUrl?: string
+    isEmbeddedInADataPage?: boolean // true by default
 }
 
 export const IndicatorKeyData = (props: IndicatorKeyDataProps) => {
-    const canonicalUrl = props.canonicalUrl ?? ""
+    const isEmbeddedInADataPage = props.isEmbeddedInADataPage ?? true
     const processedAdapted = getPhraseForProcessingLevel(
         props.owidProcessingLevel ?? "minor"
     )
@@ -26,15 +26,19 @@ export const IndicatorKeyData = (props: IndicatorKeyDataProps) => {
     const lastUpdated = dayjs(props.lastUpdated, ["YYYY", "YYYY-MM-DD"])
     return (
         <div className="indicator-key-data">
-            <div className="indicator-key-data-item indicator-key-data-item--span">
+            <div className="indicator-key-data-item">
                 <div className="indicator-key-data-item__title">Source</div>
-                <div className="indicator-key-data-item__content">
+                <div className="indicator-key-data-item__content indicator-key-data__content--span">
                     {props.attribution} – with{" "}
-                    <a
-                        href={`${canonicalUrl}#${DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}`}
-                    >
-                        {processedAdapted}
-                    </a>{" "}
+                    {isEmbeddedInADataPage ? (
+                        <a
+                            href={`#${DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}`}
+                        >
+                            {processedAdapted}
+                        </a>
+                    ) : (
+                        processedAdapted
+                    )}{" "}
                     by Our World In Data
                 </div>
             </div>
