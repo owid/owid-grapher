@@ -591,6 +591,7 @@ function* rawBlockTableToArchieMLString(
 ): Generator<string, void, undefined> {
     yield "{.table}"
     yield* propertyToArchieMLString("template", block.value)
+    yield* propertyToArchieMLString("size", block.value)
     const rows = block?.value?.rows
     if (rows) {
         yield "[.+rows]"

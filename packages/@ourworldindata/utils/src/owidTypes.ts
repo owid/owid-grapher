@@ -1140,10 +1140,13 @@ export type EnrichedBlockEntrySummary = {
 
 export type TableTemplate = "header-column" | "header-row" | "header-column-row"
 
+export type TableSize = "narrow" | "wide"
+
 export type RawBlockTable = {
     type: "table"
     value?: {
         template?: TableTemplate
+        size?: TableSize
         rows?: RawBlockTableRow[]
     }
 }
@@ -1163,6 +1166,7 @@ export interface RawBlockTableCell {
 export type EnrichedBlockTable = {
     type: "table"
     template: TableTemplate
+    size: TableSize
     rows: EnrichedBlockTableRow[]
 } & EnrichedBlockWithParseErrors
 

@@ -157,6 +157,7 @@ export {
     type RawBlockTopicPageIntro,
     type RawBlockUrl,
     type TableTemplate,
+    type TableSize,
     type RawBlockTable,
     type RawBlockTableRow,
     type RawBlockTableCell,

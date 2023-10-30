@@ -444,6 +444,7 @@ export const enrichedBlockExamples: Record<
     table: {
         type: "table",
         template: "header-row",
+        size: "narrow",
         rows: [
             {
                 type: "table-row",

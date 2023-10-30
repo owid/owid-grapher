@@ -103,6 +103,7 @@ import {
     EnrichedBlockTable,
     EnrichedBlockTableRow,
     TableTemplate,
+    TableSize,
     EnrichedBlockTableCell,
 } from "@ourworldindata/utils"
 import { checkIsInternalLink } from "@ourworldindata/components"
@@ -800,11 +801,13 @@ export const parseTable = (raw: RawBlockTable): EnrichedBlockTable => {
     const createError = (
         error: ParseError,
         template: TableTemplate = "header-row",
+        size: TableSize = "narrow",
         rows: EnrichedBlockTableRow[] = []
     ): EnrichedBlockTable => ({
         type: "table",
         template,
         rows,
+        size,
         parseErrors: [error],
     })
 
@@ -825,6 +828,18 @@ export const parseTable = (raw: RawBlockTable): EnrichedBlockTable => {
     if (!validateTableTemplate(template))
         return createError({
             message: `Invalid table template "${template}". Must be one of ${validTemplates.join(
+                ", "
+            )}`,
+        })
+
+    const validSizes: TableSize[] = ["narrow", "wide"]
+    function validateTableSize(size: unknown): size is TableSize {
+        return validSizes.includes(size as TableSize)
+    }
+    const size = raw.value?.size || "narrow"
+    if (!validateTableSize(size))
+        return createError({
+            message: `Invalid table size "${size}". Must be one of ${validSizes.join(
                 ", "
             )}`,
         })
@@ -890,6 +905,7 @@ export const parseTable = (raw: RawBlockTable): EnrichedBlockTable => {
         type: "table",
         rows: enrichedRows,
         template,
+        size,
         parseErrors,
     }
 }

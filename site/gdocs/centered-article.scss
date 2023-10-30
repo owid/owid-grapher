@@ -460,36 +460,41 @@ h3.article-block__heading.has-supertitle {
     }
 }
 
-.article-block__table {
-    border-collapse: collapse;
-    margin-bottom: 32px;
+div.article-block__table--narrow,
+div.article-block__table--wide {
+    overflow-x: auto;
+    table {
+        border-collapse: collapse;
+        margin-bottom: 32px;
 
-    th {
-        text-align: left;
-        &[scope="col"] {
-            text-align: right;
+        th {
+            text-align: left;
+            &[scope="col"] {
+                text-align: right;
+            }
         }
-    }
 
-    th[scope="col"],
-    th[scope="row"] {
-        background-color: $blue-10;
-        p {
-            font-weight: 700;
-            margin-bottom: 0;
+        th[scope="col"],
+        th[scope="row"] {
+            background-color: $blue-10;
+            p {
+                font-weight: 700;
+                margin-bottom: 0;
+            }
         }
-    }
 
-    .table-cell {
-        border: 1px solid $blue-20;
-        padding: 16px;
-    }
+        td,
+        th {
+            border: 1px solid $blue-20;
+            padding: 16px;
+        }
 
-    .article-block__text,
-    .article-block__list {
-        @include body-3-medium;
-        &:last-child {
-            margin-bottom: 0;
+        .article-block__text,
+        .article-block__list {
+            @include body-3-medium;
+            &:last-child {
+                margin-bottom: 0;
+            }
         }
     }
 }

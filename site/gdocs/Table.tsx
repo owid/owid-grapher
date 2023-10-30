@@ -1,6 +1,15 @@
 import React from "react"
 import { EnrichedBlockTable } from "@ourworldindata/utils"
-import ArticleBlock from "./ArticleBlock.js"
+import { ArticleBlocks } from "./ArticleBlocks.js"
+
+function TableCell(props: {
+    tag: "td" | "th"
+    scope?: "row" | "col"
+    children: React.ReactNode
+}) {
+    const { tag, scope, children } = props
+    return React.createElement(tag, { scope }, children)
+}
 
 export type TableProps = {
     className?: string
@@ -14,42 +23,32 @@ export function Table(props: TableProps) {
         template === "header-column-row" || template === "header-row"
 
     return (
-        <table className={className}>
-            {rows.map((row, i) => (
-                <tr key={i} className="table-row">
-                    {row.cells.map((cell, j) => {
-                        if (isFirstColumnHeader && j === 0) {
+        <div className={className}>
+            <table>
+                {rows.map((row, rowIndex) => (
+                    <tr key={rowIndex}>
+                        {row.cells.map((cell, columnIndex) => {
+                            const scope =
+                                isFirstColumnHeader && columnIndex === 0
+                                    ? "col"
+                                    : isFirstRowHeader && rowIndex === 0
+                                    ? "row"
+                                    : undefined
+                            const tag = scope ? "th" : "td"
+
                             return (
-                                <th scope="col" className="table-cell" key={j}>
-                                    {cell.content.map((block, k) => {
-                                        return (
-                                            <ArticleBlock key={k} b={block} />
-                                        )
-                                    })}
-                                </th>
+                                <TableCell
+                                    key={columnIndex}
+                                    scope={scope}
+                                    tag={tag}
+                                >
+                                    <ArticleBlocks blocks={cell.content} />
+                                </TableCell>
                             )
-                        }
-                        if (isFirstRowHeader && i === 0) {
-                            return (
-                                <th scope="row" className="table-cell" key={j}>
-                                    {cell.content.map((block, k) => {
-                                        return (
-                                            <ArticleBlock key={k} b={block} />
-                                        )
-                                    })}
-                                </th>
-                            )
-                        }
-                        return (
-                            <th className="table-cell" key={j}>
-                                {cell.content.map((block, k) => {
-                                    return <ArticleBlock key={k} b={block} />
-                                })}
-                            </th>
-                        )
-                    })}
-                </tr>
-            ))}
-        </table>
+                        })}
+                    </tr>
+                ))}
+            </table>
+        </div>
     )
 }
