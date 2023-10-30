@@ -24,7 +24,11 @@ import {
     StackedRawSeries,
     StackedSeries,
 } from "./StackedConstants"
-import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
+import {
+    OwidTable,
+    CoreColumn,
+    BlankOwidTable,
+} from "@ourworldindata/core-table"
 import {
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
@@ -103,6 +107,9 @@ export class AbstractStackedChart
                 .map((t: OwidTable) =>
                     t.dropRowsWithErrorValuesForAnyColumn(this.yColumnSlugs)
                 )
+
+            if (groupedByEntity.length === 0) return BlankOwidTable()
+
             table = groupedByEntity[0].concat(groupedByEntity.slice(1))
         }
 
