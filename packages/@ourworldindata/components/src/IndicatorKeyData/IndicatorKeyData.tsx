@@ -1,5 +1,9 @@
 import React from "react"
-import { dayjs } from "@ourworldindata/utils"
+import {
+    dayjs,
+    OwidProcessingLevel,
+    getPhraseForProcessingLevel,
+} from "@ourworldindata/utils"
 import { DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID } from "../SharedDataPageConstants.js"
 
 interface IndicatorKeyDataProps {
@@ -8,16 +12,15 @@ interface IndicatorKeyDataProps {
     lastUpdated: string
     nextUpdate?: string
     unit?: string
-    owidProcessingLevel?: "minor" | "major"
+    owidProcessingLevel?: OwidProcessingLevel
     canonicalUrl?: string
 }
 
 export const IndicatorKeyData = (props: IndicatorKeyDataProps) => {
     const canonicalUrl = props.canonicalUrl ?? ""
-    const processedAdapted =
-        props.owidProcessingLevel === "minor"
-            ? `minor processing`
-            : `major adaptations`
+    const processedAdapted = getPhraseForProcessingLevel(
+        props.owidProcessingLevel ?? OwidProcessingLevel.minor
+    )
     const dateRange = getDateRange(props.dateRange)
     const lastUpdated = dayjs(props.lastUpdated, ["YYYY", "YYYY-MM-DD"])
     const keyDataCount = 3 + (props.nextUpdate ? 1 : 0) + (props.unit ? 1 : 0)

@@ -69,7 +69,7 @@ export interface OwidVariableWithSource {
     source?: OwidSource
     origins?: OwidOrigin[]
     schemaVersion?: number
-    processingLevel?: "minor" | "major"
+    processingLevel?: OwidProcessingLevel
     presentation?: OwidVariablePresentation
     shortName?: string
     timespan?: string
@@ -98,6 +98,11 @@ export interface OwidVariablePresentation {
     attribution?: string
     topicTagsLinks?: string[]
     faqs?: FaqLink[]
+}
+
+export enum OwidProcessingLevel {
+    minor = "minor",
+    major = "major",
 }
 
 export interface FaqLink {

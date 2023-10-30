@@ -1,5 +1,5 @@
 import { OwidOrigin } from "./OwidOrigin"
-import { OwidVariableWithSource } from "./OwidVariable"
+import { OwidProcessingLevel, OwidVariableWithSource } from "./OwidVariable"
 import { compact, uniq, last } from "./Util"
 import dayjs from "./dayjs.js"
 
@@ -101,3 +101,7 @@ export const getNextUpdateFromVariable = (
     }
     return nextUpdate
 }
+
+export const getPhraseForProcessingLevel = (
+    processingLevel: OwidProcessingLevel
+) => (processingLevel === "major" ? "major adaptations" : "minor processing")

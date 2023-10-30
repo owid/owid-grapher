@@ -362,6 +362,7 @@ export {
     formatAuthors,
     getLastUpdatedFromVariable,
     getNextUpdateFromVariable,
+    getPhraseForProcessingLevel,
 } from "./metadataHelpers.js"
 
 export {
@@ -512,6 +513,7 @@ export {
     type OwidVariablePresentation,
     type OwidEntityKey,
     type OwidLicense,
+    OwidProcessingLevel,
 } from "./OwidVariable.js"
 
 export {

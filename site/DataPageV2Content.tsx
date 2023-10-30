@@ -22,6 +22,7 @@ import {
     pick,
     formatAuthors,
     intersection,
+    getPhraseForProcessingLevel,
 } from "@ourworldindata/utils"
 import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
 import StickyNav from "./blocks/StickyNav.js"
@@ -122,10 +123,9 @@ export const DataPageV2Content = ({
             ? `${attributionFragments[0]} and other sources`
             : attributionFragments.join(", ")
     const attributionUnshortened = attributionFragments.join(", ")
-    const processedAdapted =
-        datapageData.owidProcessingLevel === "minor"
-            ? `minor processing`
-            : `major adaptations`
+    const processedAdapted = getPhraseForProcessingLevel(
+        datapageData.owidProcessingLevel
+    )
     const lastUpdated = dayjs(datapageData.lastUpdated, ["YYYY", "YYYY-MM-DD"])
     const yearOfUpdate = lastUpdated.year()
     const citationShort = `${attributionPotentiallyShortened} – with ${processedAdapted} by Our World In Data (${yearOfUpdate})`

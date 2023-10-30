@@ -13,6 +13,7 @@ import {
     OwidVariableId,
     retryPromise,
     OwidLicense,
+    OwidProcessingLevel,
 } from "@ourworldindata/utils"
 import {
     GrapherInterface,
@@ -41,7 +42,7 @@ export interface VariableRow {
     catalogPath?: string
     dimensions?: Dimensions
     schemaVersion?: number
-    processingLevel?: "minor" | "major"
+    processingLevel?: OwidProcessingLevel
     titlePublic?: string
     titleVariant?: string
     attributionShort?: string
