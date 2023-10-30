@@ -105,6 +105,8 @@ import {
     TableTemplate,
     TableSize,
     EnrichedBlockTableCell,
+    tableSizes,
+    tableTemplates,
 } from "@ourworldindata/utils"
 import { checkIsInternalLink } from "@ourworldindata/components"
 import {
@@ -797,6 +799,13 @@ const parseRecirc = (raw: RawBlockRecirc): EnrichedBlockRecirc => {
     }
 }
 
+function validateRawEnum<T extends string>(
+    validValues: ReadonlyArray<T>,
+    value: unknown
+): value is T {
+    return typeof value === "string" && validValues.includes(value as T)
+}
+
 export const parseTable = (raw: RawBlockTable): EnrichedBlockTable => {
     const createError = (
         error: ParseError,
@@ -813,33 +822,18 @@ export const parseTable = (raw: RawBlockTable): EnrichedBlockTable => {
 
     const parseErrors: ParseError[] = []
 
-    const validTemplates: TableTemplate[] = [
-        "header-row",
-        "header-column",
-        "header-column-row",
-    ]
-    function validateTableTemplate(
-        template: unknown
-    ): template is TableTemplate {
-        return validTemplates.includes(template as TableTemplate)
-    }
-
-    const template = raw.value?.template
-    if (!validateTableTemplate(template))
+    const template = raw.value?.template || "header-row"
+    if (!validateRawEnum(tableTemplates, template))
         return createError({
-            message: `Invalid table template "${template}". Must be one of ${validTemplates.join(
+            message: `Invalid table template "${template}". Must be one of ${tableTemplates.join(
                 ", "
             )}`,
         })
 
-    const validSizes: TableSize[] = ["narrow", "wide"]
-    function validateTableSize(size: unknown): size is TableSize {
-        return validSizes.includes(size as TableSize)
-    }
     const size = raw.value?.size || "narrow"
-    if (!validateTableSize(size))
+    if (!validateRawEnum(tableSizes, size))
         return createError({
-            message: `Invalid table size "${size}". Must be one of ${validSizes.join(
+            message: `Invalid table size "${size}". Must be one of ${tableSizes.join(
                 ", "
             )}`,
         })

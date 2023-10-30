@@ -1138,9 +1138,17 @@ export type EnrichedBlockEntrySummary = {
     items: EnrichedBlockEntrySummaryItem[]
 } & EnrichedBlockWithParseErrors
 
-export type TableTemplate = "header-column" | "header-row" | "header-column-row"
+export const tableTemplates = [
+    "header-column",
+    "header-row",
+    "header-column-row",
+] as const
 
-export type TableSize = "narrow" | "wide"
+export type TableTemplate = (typeof tableTemplates)[number]
+
+export const tableSizes = ["narrow", "wide"] as const
+
+export type TableSize = (typeof tableSizes)[number]
 
 export type RawBlockTable = {
     type: "table"
