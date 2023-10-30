@@ -100,10 +100,7 @@ export interface OwidVariablePresentation {
     faqs?: FaqLink[]
 }
 
-export enum OwidProcessingLevel {
-    minor = "minor",
-    major = "major",
-}
+export type OwidProcessingLevel = 'minor' | 'major'
 
 export interface FaqLink {
     gdocId: string

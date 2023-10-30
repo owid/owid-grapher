@@ -19,7 +19,7 @@ interface IndicatorKeyDataProps {
 export const IndicatorKeyData = (props: IndicatorKeyDataProps) => {
     const canonicalUrl = props.canonicalUrl ?? ""
     const processedAdapted = getPhraseForProcessingLevel(
-        props.owidProcessingLevel ?? OwidProcessingLevel.minor
+        props.owidProcessingLevel ?? "minor"
     )
     const dateRange = getDateRange(props.dateRange)
     const lastUpdated = dayjs(props.lastUpdated, ["YYYY", "YYYY-MM-DD"])

@@ -21,7 +21,7 @@ export const getDatapageDataV2 = async (
 ): Promise<DataPageDataV2> => {
     {
         const processingLevel =
-            variableMetadata.processingLevel ?? OwidProcessingLevel.minor
+            variableMetadata.processingLevel ?? "minor"
         const lastUpdated = getLastUpdatedFromVariable(variableMetadata) ?? ""
         const nextUpdate = getNextUpdateFromVariable(variableMetadata)
         const datapageJson: DataPageDataV2 = {

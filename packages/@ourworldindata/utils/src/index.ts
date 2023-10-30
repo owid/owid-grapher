@@ -513,7 +513,7 @@ export {
     type OwidVariablePresentation,
     type OwidEntityKey,
     type OwidLicense,
-    OwidProcessingLevel,
+    type OwidProcessingLevel,
 } from "./OwidVariable.js"
 
 export {
