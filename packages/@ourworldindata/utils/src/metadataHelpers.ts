@@ -104,4 +104,5 @@ export const getNextUpdateFromVariable = (
 
 export const getPhraseForProcessingLevel = (
     processingLevel: OwidProcessingLevel
-) => (processingLevel === "major" ? "major adaptations" : "minor processing")
+): string =>
+    processingLevel === "major" ? "major adaptations" : "minor processing"
