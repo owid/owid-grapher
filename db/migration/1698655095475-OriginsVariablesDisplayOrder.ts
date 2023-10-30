@@ -1,16 +1,18 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class TopicTagsDisplayOrder1698301390787 implements MigrationInterface {
+export class OriginsVariablesDisplayOrder1698655095475
+    implements MigrationInterface
+{
     public async up(queryRunner: QueryRunner): Promise<void> {
         queryRunner.query(
-            `ALTER TABLE tags_variables_topic_tags
+            `ALTER TABLE origins_variables
             ADD COLUMN displayOrder SMALLINT NOT NULL DEFAULT 0;`
         )
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
         queryRunner.query(
-            `ALTER TABLE tags_variables_topic_tags
+            `ALTER TABLE origins_variables
             DROP COLUMN displayOrder;`
         )
     }
