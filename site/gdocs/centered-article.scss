@@ -464,6 +464,7 @@ div.article-block__table--narrow,
 div.article-block__table--wide {
     overflow-x: auto;
     table {
+        min-width: 100%;
         border-collapse: collapse;
         margin-bottom: 32px;
 
