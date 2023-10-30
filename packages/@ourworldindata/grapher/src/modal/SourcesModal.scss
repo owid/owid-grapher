@@ -4,6 +4,9 @@
     max-width: 840px;
     margin: 0 auto;
 
+    $border: #e7e7e7;
+    $box-title: #a1a1a1;
+
     .source {
         color: $dark-text;
 
@@ -43,13 +46,13 @@
 
         .indicator-key-data {
             --indicator-key-data-title: #{$light-text};
-            --indicator-key-data-border: #e7e7e7;
+            --indicator-key-data-border: #{$border};
 
             margin-top: 16px;
         }
 
         .indicator-descriptions .key-info {
-            --indicator-key-info-title: #a1a1a1;
+            --indicator-key-info-title: #{$box-title};
 
             margin: 24px 0;
             padding: 32px;
@@ -61,7 +64,7 @@
 
         .indicator-processing {
             --indicator-processing-background: #{$gray-10};
-            --indicator-processing-title: #a1a1a1;
+            --indicator-processing-title: #{$box-title};
             --indicator-processing-content: #{$dark-text};
 
             margin-left: 0;
@@ -69,7 +72,7 @@
         }
 
         .ExpandableToggle {
-            --expandable-toggle-border: #e7e7e7;
+            --expandable-toggle-border: #{$border};
             --expandable-toggle-title: #{$dark-text};
             --expandable-toggle-button: #{$dark-text};
             --expandable-toggle-button-hover: #{$light-text};
@@ -77,7 +80,7 @@
         }
 
         .wp-code-snippet {
-            --code-snippet-border: #e7e7e7;
+            --code-snippet-border: #{$border};
             --code-snippet-background-light: #f7f7f7;
             --code-snippet-text: #{$light-text};
             --code-snippet-button: #{$dark-text};
