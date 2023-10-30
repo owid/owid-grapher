@@ -5639,13 +5639,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/unist@npm:^3.0.0":
-  version: 3.0.1
-  resolution: "@types/unist@npm:3.0.1"
-  checksum: 5692b9b271724d4ab6434f125350436bb35eb8ffdaeb5b762c7282870be9562f364bc49016e4b25afb442b68ad9ee042a262c093af07738af6b8a9b858335e37
-  languageName: node
-  linkType: hard
-
 "@types/url-join@npm:^4.0.1":
   version: 4.0.1
   resolution: "@types/url-join@npm:4.0.1"
