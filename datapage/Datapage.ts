@@ -9,7 +9,6 @@ import {
     getAttributionFragmentsFromVariable,
     getLastUpdatedFromVariable,
     getNextUpdateFromVariable,
-    OwidProcessingLevel,
 } from "@ourworldindata/utils"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
@@ -20,8 +19,7 @@ export const getDatapageDataV2 = async (
     partialGrapherConfig: GrapherInterface
 ): Promise<DataPageDataV2> => {
     {
-        const processingLevel =
-            variableMetadata.processingLevel ?? "minor"
+        const processingLevel = variableMetadata.processingLevel ?? "minor"
         const lastUpdated = getLastUpdatedFromVariable(variableMetadata) ?? ""
         const nextUpdate = getNextUpdateFromVariable(variableMetadata)
         const datapageJson: DataPageDataV2 = {
