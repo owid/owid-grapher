@@ -45,8 +45,9 @@ import {
     OwidGdocPublished,
     clone,
     LinkedChart,
+    extractDetailsFromSyntax,
 } from "@ourworldindata/utils"
-import { extractDetailsFromSyntax } from "@ourworldindata/components"
+
 import { execWrapper } from "../db/execWrapper.js"
 import { countryProfileSpecs } from "../site/countryProfileProjects.js"
 import {

@@ -12,8 +12,8 @@ import {
     FontFamily,
 } from "@ourworldindata/utils"
 import { TextWrap } from "../TextWrap/TextWrap.js"
-import { fromMarkdown } from "mdast-util-from-markdown"
-import { Root, Node, RootContentMap } from "mdast"
+import fromMarkdown from "mdast-util-from-markdown"
+import { Root, Content } from "mdast"
 import { match } from "ts-pattern"
 
 const SUPERSCRIPT_NUMERALS = {
@@ -749,9 +749,9 @@ function convertMarkdownRootToIRTokens(node: Root): IRToken[] {
     return node.children.flatMap(convertMarkdownNodeToIRTokens)
 }
 
-function convertMarkdownNodeToIRTokens(
-    node: RootContentMap[keyof RootContentMap]
-): IRToken[] {
+// When using mdast types version 4 this should be typed as:
+// node: RootContentMap[keyof RootContentMap]
+function convertMarkdownNodeToIRTokens(node: Content): IRToken[] {
     const converted = match(node)
         .with(
             {
@@ -968,6 +968,14 @@ function convertMarkdownNodeToIRTokens(
             },
             (item) => {
                 return [new IRText(item.value)]
+            }
+        )
+        .with(
+            {
+                type: "footnote",
+            },
+            (item) => {
+                return item.children.flatMap(convertMarkdownNodeToIRTokens)
             }
         )
         .exhaustive()

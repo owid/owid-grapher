@@ -1810,3 +1810,18 @@ export const formatAuthors = ({
 
     return authorsText
 }
+
+/** Works for:
+ * #dod:text
+ * #dod:text-hyphenated
+ * #dod:text_underscored
+ * #dod:text_underscored-and-hyphenated
+ * Duplicated in parser.ts
+ */
+export const detailOnDemandRegex = /#dod:([\w\-_]+)/
+
+export function extractDetailsFromSyntax(str: string): string[] {
+    return [...str.matchAll(new RegExp(detailOnDemandRegex, "g"))].map(
+        ([_, term]) => term
+    )
+}
