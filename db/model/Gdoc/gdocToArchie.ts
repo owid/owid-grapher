@@ -86,7 +86,6 @@ function tableToString(
 ): string {
     if (!table) return ""
     let text = ""
-    const context = { isInList: false }
     const { tableRows = [] } = table
 
     const rows: RawBlockTableRow[] = []
@@ -105,6 +104,7 @@ function tableToString(
                 value: [],
             }
             const { content = [] } = tableCell
+            const context = { isInList: false }
             for (const item of content) {
                 if (item.paragraph) {
                     const text = paragraphToString(item.paragraph, context)
@@ -114,6 +114,10 @@ function tableToString(
                     }
                     rawCell.value!.push(rawTextBlock)
                 }
+            }
+            // Close the list if paragraphToString didn't close it itself (because the last item was still in a list)
+            if (context.isInList) {
+                rawCell.value!.push({ type: "text", value: "[]" })
             }
             rawRow.value!.cells!.push(rawCell)
         }
