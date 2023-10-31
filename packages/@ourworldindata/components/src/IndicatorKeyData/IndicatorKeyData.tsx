@@ -6,6 +6,7 @@ import {
     getPhraseForProcessingLevel,
 } from "@ourworldindata/utils"
 import { DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID } from "../SharedDataPageConstants.js"
+import { SimpleMarkdownText } from "../SimpleMarkdownText.js"
 
 interface IndicatorKeyDataProps {
     attribution: string
@@ -14,6 +15,7 @@ interface IndicatorKeyDataProps {
     nextUpdate?: string
     unit?: string
     owidProcessingLevel?: OwidProcessingLevel
+    links?: string[]
     isEmbeddedInADataPage?: boolean // true by default
 }
 
@@ -29,7 +31,7 @@ export const IndicatorKeyData = (props: IndicatorKeyDataProps) => {
             <div className="indicator-key-data-item">
                 <div className="indicator-key-data-item__title">Source</div>
                 <div className="indicator-key-data-item__content indicator-key-data__content--span">
-                    {props.attribution} – with{" "}
+                    <SimpleMarkdownText text={props.attribution} /> – with{" "}
                     {isEmbeddedInADataPage ? (
                         <a
                             href={`#${DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}`}
@@ -80,6 +82,27 @@ export const IndicatorKeyData = (props: IndicatorKeyDataProps) => {
                     <div className="indicator-key-data-item__title">Unit</div>
                     <div className="indicator-key-data-item__content">
                         {props.unit}
+                    </div>
+                </div>
+            )}
+            {props.links && props.links.length > 0 && (
+                <div className="indicator-key-data-item indicator-key-data-item--span">
+                    <div className="indicator-key-data-item__title">
+                        {props.links.length > 1 ? "Links" : "Link"}
+                    </div>
+                    <div className="indicator-key-data-item__content">
+                        {props.links.map((link, index, links) => (
+                            <>
+                                <a
+                                    href={link}
+                                    target="_blank"
+                                    rel="nopener noreferrer"
+                                >
+                                    {link}
+                                </a>
+                                {index < links.length - 1 && <br />}
+                            </>
+                        ))}
                     </div>
                 </div>
             )}

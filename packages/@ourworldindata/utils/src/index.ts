@@ -356,13 +356,13 @@ export {
 
 export {
     getOriginAttributionFragments,
-    getAttributionFromVariable,
     getAttributionFragmentsFromVariable,
     getETLPathComponents,
     formatAuthors,
     getLastUpdatedFromVariable,
     getNextUpdateFromVariable,
     getPhraseForProcessingLevel,
+    splitSourceTextIntoFragments,
 } from "./metadataHelpers.js"
 
 export {

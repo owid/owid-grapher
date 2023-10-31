@@ -1,6 +1,8 @@
+import { link } from "fs-extra"
 import { OwidOrigin } from "./OwidOrigin"
+import { OwidSource } from "./OwidSource"
 import { OwidProcessingLevel, OwidVariableWithSource } from "./OwidVariable"
-import { compact, uniq, last } from "./Util"
+import { compact, uniq, last, zip } from "./Util"
 import dayjs from "./dayjs.js"
 
 export function getOriginAttributionFragments(
@@ -22,28 +24,61 @@ export function getOriginAttributionFragments(
         : []
 }
 
-export function getAttributionFromVariable(
-    variable: OwidVariableWithSource
-): string {
-    return getAttributionFragmentsFromVariable(variable).join("; ")
+export const splitSourceTextIntoFragments = (
+    text: string | undefined
+): string[] => {
+    return text ? text.split(";").map((fragment) => fragment.trim()) : []
+}
+
+const getAttributionFragmentsFromSource = (
+    source: OwidSource | undefined,
+    { linkify } = { linkify: false }
+): string[] => {
+    if (!source || !source.dataPublishedBy) return []
+
+    const fragments = splitSourceTextIntoFragments(source.dataPublishedBy)
+
+    if (!linkify) return fragments
+
+    const links = splitSourceTextIntoFragments(source.link)
+
+    // if the number of fragments and links isn't the same,
+    // we can't safely match them up
+    if (fragments.length !== links.length) return fragments
+
+    const linkifiedFragments = zip(fragments, links).map(
+        ([fragment, link]) => `[${fragment}](${link})`
+    )
+
+    return linkifiedFragments
 }
 
 export function getAttributionFragmentsFromVariable(
     variable: Pick<
         OwidVariableWithSource,
         "presentation" | "origins" | "source"
-    >
+    >,
+    { linkify } = { linkify: false }
 ): string[] {
     if (
         variable.presentation?.attribution &&
         variable.presentation?.attribution !== ""
     )
         return [variable.presentation?.attribution]
+
     const originAttributionFragments = getOriginAttributionFragments(
         variable.origins
     )
-    const dataPublishedBy = variable.source?.dataPublishedBy
-    return uniq(compact([dataPublishedBy, ...originAttributionFragments]))
+    const sourceAttributionFragments = getAttributionFragmentsFromSource(
+        variable.source,
+        { linkify }
+    )
+
+    const attributionFragments = uniq(
+        compact([...sourceAttributionFragments, ...originAttributionFragments])
+    )
+
+    return attributionFragments
 }
 
 interface ETLPathComponents {

@@ -6,6 +6,7 @@ import {
     getLastUpdatedFromVariable,
     getNextUpdateFromVariable,
     excludeUndefined,
+    splitSourceTextIntoFragments,
 } from "@ourworldindata/utils"
 import {
     IndicatorKeyData,
@@ -105,7 +106,8 @@ export class Source extends React.Component<{
 
     @computed private get attributions(): string | undefined {
         const attributionFragments =
-            getAttributionFragmentsFromVariable(this.def) ?? this.producers
+            getAttributionFragmentsFromVariable(this.def, { linkify: true }) ??
+            this.producers
         if (attributionFragments.length === 0) return undefined
         return attributionFragments.join(", ")
     }
@@ -135,6 +137,17 @@ export class Source extends React.Component<{
         )
     }
 
+    @computed private get sourceLinks(): string[] {
+        const { source = {} } = this.def
+        const sourceLinks = splitSourceTextIntoFragments(source.link)
+        const dataPublishedBy = splitSourceTextIntoFragments(
+            source.dataPublishedBy
+        )
+        // if we have a link for each source, then the attribution is linkified
+        // and we don't need to show the links in a separate field
+        return sourceLinks.length === dataPublishedBy.length ? [] : sourceLinks
+    }
+
     render(): JSX.Element {
         return (
             <div className="source">
@@ -157,6 +170,7 @@ export class Source extends React.Component<{
                         lastUpdated={this.lastUpdated}
                         nextUpdate={this.nextUpdate}
                         unit={this.unit}
+                        links={this.sourceLinks}
                         isEmbeddedInADataPage={this.props.isEmbeddedInADataPage}
                     />
                 )}
