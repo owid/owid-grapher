@@ -1,0 +1,60 @@
+.indicator-processing {
+    .data-processing {
+        &__content {
+            margin-bottom: 24px;
+        }
+
+        &__paragraph {
+            @include body-3-medium;
+            margin: 0 0 16px;
+        }
+
+        &__link {
+            @include expandable-paragraph__expand-button--full;
+
+            svg {
+                display: none; // used in Grapher's sources modal
+                font-size: 0.75em;
+                margin-left: 12px;
+            }
+        }
+    }
+
+    .variable-processing-info {
+        display: flex;
+        flex-direction: column;
+        background-color: $white;
+        margin: 32px -24px 0;
+        padding: 24px;
+
+        &__header {
+            @include overline-black-caps;
+            text-transform: uppercase;
+            margin: 0 0 8px;
+        }
+
+        &__description {
+            color: $blue-60;
+
+            .article-block__text,
+            .article-block__list,
+            .article-block__html,
+            .article-block__numbered-list {
+                @include body-3-medium;
+            }
+
+            > *:first-child {
+                margin-top: 0;
+            }
+
+            > *:last-child {
+                margin-bottom: 0;
+            }
+        }
+
+        .article-block__text a {
+            @include owid-link-60;
+            color: inherit;
+        }
+    }
+}

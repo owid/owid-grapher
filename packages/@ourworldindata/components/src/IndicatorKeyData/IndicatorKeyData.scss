@@ -1,0 +1,41 @@
+.indicator-key-data {
+    @include body-3-medium;
+
+    border-top: 1px solid $blue-20;
+    border-bottom: 1px solid $blue-20;
+
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+
+    .indicator-key-data-item {
+        display: flex;
+        padding: 16px 24px 16px 0;
+
+        @include sm-only {
+            display: block;
+        }
+
+        + .indicator-key-data-item {
+            border-top: 1px solid $blue-20;
+        }
+
+        &__title {
+            flex: 0 0 140px; // using a fixed width here to make sure the content is aligned
+            margin-right: 24px;
+            color: $blue-50;
+
+            @include sm-only {
+                margin-right: 0;
+            }
+        }
+
+        &--span {
+            grid-column: 1 / -1;
+        }
+    }
+
+    a {
+        @include owid-link-90;
+        color: inherit;
+    }
+}

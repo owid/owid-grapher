@@ -339,13 +339,19 @@ export {
     filterValidStringValues,
     traverseEnrichedSpan,
     mergePartialGrapherConfigs,
+    copyToClipboard,
+} from "./Util.js"
+
+export {
     getOriginAttributionFragments,
     getAttributionFromVariable,
     getAttributionFragmentsFromVariable,
-    copyToClipboard,
     getETLPathComponents,
     formatAuthors,
-} from "./Util.js"
+    getLastUpdatedFromVariable,
+    getNextUpdateFromVariable,
+    getPhraseForProcessingLevel,
+} from "./metadataHelpers.js"
 
 export {
     capitalize,
@@ -491,6 +497,7 @@ export {
     type OwidVariablePresentation,
     type OwidEntityKey,
     type OwidLicense,
+    type OwidProcessingLevel,
 } from "./OwidVariable.js"
 
 export {

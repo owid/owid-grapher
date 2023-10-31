@@ -176,6 +176,19 @@ body {
     @include h4-semibold;
 }
 
+@mixin h5-black-caps {
+    font-family: $sans-serif-font-stack;
+    font-size: 0.75rem;
+    font-weight: 900;
+    line-height: 1.33;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.h5-black-caps {
+    @include h5-black-caps;
+}
+
 @mixin subtitle-1 {
     font-family: $sans-serif-font-stack;
     font-size: 1.5rem;
