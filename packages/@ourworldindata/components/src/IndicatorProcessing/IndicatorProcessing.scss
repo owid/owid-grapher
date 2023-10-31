@@ -43,6 +43,10 @@
 
         &__content {
             color: var(--content);
+
+            > p {
+                margin: 0;
+            }
         }
 
         .article-block__text a {
