@@ -61,7 +61,7 @@ const SourceContent = (props: {
     return (
         <div className="indicator-source">
             {source.description && (
-                <p className="description simple-markdown-text">
+                <p className="description">
                     <SimpleMarkdownText text={source.description.trim()} />
                 </p>
             )}

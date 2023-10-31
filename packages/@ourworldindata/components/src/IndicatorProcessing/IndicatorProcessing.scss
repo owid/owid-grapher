@@ -23,7 +23,7 @@
         }
     }
 
-    .indicator-processing {
+    .indicator-processing-box {
         --background: var(--indicator-processing-background, #{$white});
         --title: var(--indicator-processing-title, currentColor);
         --content: var(--indicator-processing-content, #{$blue-60});
@@ -42,14 +42,12 @@
         }
 
         &__content {
+            @include body-3-medium;
             color: var(--content);
-
-            > p {
-                margin: 0;
-            }
+            margin: 0;
         }
 
-        .article-block__text a {
+        a {
             @include owid-link-60;
             color: inherit;
         }
