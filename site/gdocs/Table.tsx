@@ -30,9 +30,9 @@ export function Table(props: TableProps) {
                         {row.cells.map((cell, columnIndex) => {
                             const scope =
                                 isFirstColumnHeader && columnIndex === 0
-                                    ? "col"
-                                    : isFirstRowHeader && rowIndex === 0
                                     ? "row"
+                                    : isFirstRowHeader && rowIndex === 0
+                                    ? "col"
                                     : undefined
                             const tag = scope ? "th" : "td"
 

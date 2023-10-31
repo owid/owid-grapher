@@ -470,7 +470,7 @@ div.article-block__table--wide {
 
         th {
             text-align: left;
-            &[scope="col"] {
+            &[scope="row"] {
                 text-align: right;
             }
         }
