@@ -1,4 +1,5 @@
 import React from "react"
+import cx from "classnames"
 import {
     dayjs,
     OwidProcessingLevel,
@@ -23,7 +24,6 @@ export const IndicatorKeyData = (props: IndicatorKeyDataProps) => {
     )
     const dateRange = getDateRange(props.dateRange)
     const lastUpdated = dayjs(props.lastUpdated, ["YYYY", "YYYY-MM-DD"])
-    const keyDataCount = 3 + (props.nextUpdate ? 1 : 0) + (props.unit ? 1 : 0)
     return (
         <div className="indicator-key-data">
             <div className="indicator-key-data-item indicator-key-data-item--span">
@@ -56,25 +56,27 @@ export const IndicatorKeyData = (props: IndicatorKeyDataProps) => {
                     </div>
                 </div>
             )}
-            <div className="indicator-key-data-item">
+            <div
+                className={cx("indicator-key-data-item", {
+                    "indicator-key-data-item--span":
+                        !props.unit && props.nextUpdate,
+                })}
+            >
                 <div className="indicator-key-data-item__title">Date range</div>
                 <div className="indicator-key-data-item__content">
                     {dateRange}
                 </div>
             </div>
             {props.unit && (
-                <div className="indicator-key-data-item">
+                <div
+                    className={cx("indicator-key-data-item", {
+                        "indicator-key-data-item--span": !props.nextUpdate,
+                    })}
+                >
                     <div className="indicator-key-data-item__title">Unit</div>
                     <div className="indicator-key-data-item__content">
                         {props.unit}
                     </div>
-                </div>
-            )}
-            {/* needed for its top-border */}
-            {keyDataCount % 2 === 0 && (
-                <div className="indicator-key-data-item">
-                    <div className="indicator-key-data-item__title" />
-                    <div className="indicator-key-data-item__content" />
                 </div>
             )}
         </div>
