@@ -177,7 +177,8 @@ const syncPostsToGrapher = async (): Promise<void> => {
             p.*,
             pwa.authors as authors,
             fr.created_at as created_at,
-            (SELECT guid FROM wp_posts WHERE ID = fi.featured_image_id) AS featured_image
+            -- select the featured image url and normalize the to point to our full domain at the wp-content folder
+            regexp_replace((SELECT guid FROM wp_posts WHERE ID = fi.featured_image_id), '^https://owid.cloud/(app|wp-content)/', 'https://ourworldindata.org/wp-content/') AS featured_image
         from wp_posts p
 		left join post_ids_with_authors pwa   on p.ID = pwa.ID
         left join first_revision fr on fr.post_id = pwa.ID

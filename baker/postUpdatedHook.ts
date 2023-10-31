@@ -76,7 +76,7 @@ const syncPostToGrapher = async (
             p.*,
             pwa.authors,
             fr.created_at as created_at,
-            (SELECT guid FROM wp_posts WHERE ID = fi.featured_image_id) AS featured_image
+            regexp_replace((SELECT guid FROM wp_posts WHERE ID = fi.featured_image_id), '^https://owid.cloud/(app|wp-content)/', 'https://ourworldindata.org/wp-content/') AS featured_image
         from wp_posts p
         left join post_ids_with_authors pwa on pwa.id = p.id
         left join first_revision fr on fr.post_id = p.id
