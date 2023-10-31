@@ -26,46 +26,56 @@ export const IndicatorKeyData = (props: IndicatorKeyDataProps) => {
     const keyDataCount = 3 + (props.nextUpdate ? 1 : 0) + (props.unit ? 1 : 0)
     return (
         <div className="indicator-key-data">
-            <div className="indicator-key-data__title">Source</div>
-            <div className="indicator-key-data__content indicator-key-data__content-source">
-                {props.attribution} – with{" "}
-                <a
-                    href={`${canonicalUrl}#${DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}`}
-                >
-                    {processedAdapted}
-                </a>{" "}
-                by Our World In Data
+            <div className="indicator-key-data-item indicator-key-data-item--span">
+                <div className="indicator-key-data-item__title">Source</div>
+                <div className="indicator-key-data-item__content">
+                    {props.attribution} – with{" "}
+                    <a
+                        href={`${canonicalUrl}#${DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}`}
+                    >
+                        {processedAdapted}
+                    </a>{" "}
+                    by Our World In Data
+                </div>
             </div>
-            <div className="indicator-key-data__title">Last updated</div>
-            <div className="indicator-key-data__content">
-                {lastUpdated.format("MMMM D, YYYY")}
+            <div className="indicator-key-data-item">
+                <div className="indicator-key-data-item__title">
+                    Last updated
+                </div>
+                <div className="indicator-key-data-item__content">
+                    {lastUpdated.format("MMMM D, YYYY")}
+                </div>
             </div>
             {props.nextUpdate && (
-                <>
-                    <div className="indicator-key-data__title">
+                <div className="indicator-key-data-item">
+                    <div className="indicator-key-data-item__title">
                         Next expected update
                     </div>
-                    <div className="indicator-key-data__content">
+                    <div className="indicator-key-data-item__content">
                         {props.nextUpdate}
                     </div>
-                </>
+                </div>
             )}
-            <div className="indicator-key-data__title">Date range</div>
-            <div className="indicator-key-data__content">{dateRange}</div>
+            <div className="indicator-key-data-item">
+                <div className="indicator-key-data-item__title">Date range</div>
+                <div className="indicator-key-data-item__content">
+                    {dateRange}
+                </div>
+            </div>
             {props.unit && (
-                <>
-                    <div className="indicator-key-data__title">Unit</div>
-                    <div className="indicator-key-data__content">
+                <div className="indicator-key-data-item">
+                    <div className="indicator-key-data-item__title">Unit</div>
+                    <div className="indicator-key-data-item__content">
                         {props.unit}
                     </div>
-                </>
+                </div>
             )}
             {/* needed for its top-border */}
             {keyDataCount % 2 === 0 && (
-                <>
-                    <div className="indicator-key-data__title empty" />
-                    <div className="indicator-key-data__content empty" />
-                </>
+                <div className="indicator-key-data-item">
+                    <div className="indicator-key-data-item__title" />
+                    <div className="indicator-key-data-item__content" />
+                </div>
             )}
         </div>
     )

@@ -1,33 +1,37 @@
 .indicator-key-data {
     @include body-3-medium;
+
+    border-top: 1px solid $blue-20;
     border-bottom: 1px solid $blue-20;
 
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(2, 1fr);
 
-    @include sm-only {
-        grid-template-columns: max-content 1fr;
-    }
+    .indicator-key-data-item {
+        display: flex;
+        padding: 16px 24px 16px 0;
 
-    &__title,
-    &__content {
-        padding: 16px 0;
-        border-top: 1px solid $blue-20;
+        @include sm-only {
+            display: block;
+        }
 
-        &.empty {
+        + .indicator-key-data-item {
+            border-top: 1px solid $blue-20;
+        }
+
+        &__title {
+            flex: 0 0 140px; // using a fixed width here to make sure the content is aligned
+            margin-right: 24px;
+            color: $blue-50;
+
             @include sm-only {
-                display: none;
+                margin-right: 0;
             }
         }
-    }
 
-    &__title {
-        color: $blue-50;
-        padding-right: 24px;
-    }
-
-    &__content-source {
-        grid-column: 2 / -1;
+        &--span {
+            grid-column: 1 / -1;
+        }
     }
 
     a {
