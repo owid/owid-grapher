@@ -123,13 +123,13 @@ export const DataPageV2Content = ({
             ? `${attributionFragments[0]} and other sources`
             : attributionFragments.join(", ")
     const attributionUnshortened = attributionFragments.join(", ")
-    const processedAdapted = getPhraseForProcessingLevel(
+    const processingLevelPhrase = getPhraseForProcessingLevel(
         datapageData.owidProcessingLevel
     )
     const lastUpdated = dayjs(datapageData.lastUpdated, ["YYYY", "YYYY-MM-DD"])
     const yearOfUpdate = lastUpdated.year()
-    const citationShort = `${attributionPotentiallyShortened} – with ${processedAdapted} by Our World In Data (${yearOfUpdate})`
-    const citationLonger = `${attributionUnshortened} – with ${processedAdapted} by Our World In Data (${yearOfUpdate})`
+    const citationShort = `${attributionPotentiallyShortened} – ${processingLevelPhrase} (${yearOfUpdate})`
+    const citationLonger = `${attributionUnshortened} – ${processingLevelPhrase} (${yearOfUpdate})`
     const originsLong = uniq(
         datapageData.origins.map(
             (o) => `${o.producer}, ${o.title ?? o.titleSnapshot}`

@@ -1,4 +1,3 @@
-import { link } from "fs-extra"
 import { OwidOrigin } from "./OwidOrigin"
 import { OwidSource } from "./OwidSource"
 import { OwidProcessingLevel, OwidVariableWithSource } from "./OwidVariable"
@@ -138,6 +137,14 @@ export const getNextUpdateFromVariable = (
 }
 
 export const getPhraseForProcessingLevel = (
-    processingLevel: OwidProcessingLevel
-): string =>
-    processingLevel === "major" ? "major adaptations" : "minor processing"
+    processingLevel: OwidProcessingLevel | undefined
+): string => {
+    switch (processingLevel) {
+        case "major":
+            return "with major adaptations by Our World In Data"
+        case "minor":
+            return "with minor processing by Our World In Data"
+        default:
+            return "processed by Our World In Data"
+    }
+}

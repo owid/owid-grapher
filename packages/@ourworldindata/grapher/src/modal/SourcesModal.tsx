@@ -69,7 +69,7 @@ export class SourcesModal extends React.Component<{
                             column={column}
                             editBaseUrl={this.editBaseUrl}
                             isEmbeddedInADataPage={
-                                this.manager.isEmbeddedInADataPage
+                                this.manager.isEmbeddedInADataPage ?? false
                             }
                         />
                     ))}

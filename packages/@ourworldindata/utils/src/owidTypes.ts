@@ -1590,7 +1590,7 @@ export interface DataPageDataV2 {
     faqs: FaqLink[] // Todo: resolve these at this level to the point where we can preview them
     descriptionKey: string[]
     descriptionProcessing?: string
-    owidProcessingLevel: OwidProcessingLevel
+    owidProcessingLevel?: OwidProcessingLevel
     dateRange: string
     lastUpdated: string
     nextUpdate?: string
