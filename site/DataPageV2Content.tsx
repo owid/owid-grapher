@@ -304,9 +304,16 @@ export const DataPageV2Content = ({
                                                     </figure> */}
                                                     {/* // TODO: switch this to use the Image component and put the required information for the thumbnails into hte attachment context or similar */}
                                                     <img
-                                                        src={encodeURI(
-                                                            `${IMAGE_HOSTING_CDN_URL}/production/${research.imageUrl}`
-                                                        )}
+                                                        src={
+                                                            research.imageUrl &&
+                                                            research.imageUrl.startsWith(
+                                                                "http"
+                                                            )
+                                                                ? research.imageUrl
+                                                                : encodeURI(
+                                                                      `${IMAGE_HOSTING_CDN_URL}/production/${research.imageUrl}`
+                                                                  )
+                                                        }
                                                         alt=""
                                                         className="span-lg-cols-2 span-sm-cols-3"
                                                     />

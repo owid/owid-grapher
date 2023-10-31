@@ -689,7 +689,7 @@ export const getRelatedResearchAndWritingForVariable = async (
                 p.slug as postSlug,
                 coalesce(csr.chart_id, c.id) as chartId,
                 p.authors as authors,
-                '' as thumbnail, -- TODO: add thumbnail once we have it
+                p.featured_image as thumbnail,
                 coalesce(pv.views_365d, 0) as pageviews,
                 'wordpress' as post_source
             from
