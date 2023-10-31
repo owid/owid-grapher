@@ -42,8 +42,8 @@ export function getAttributionFragmentsFromVariable(
     const originAttributionFragments = getOriginAttributionFragments(
         variable.origins
     )
-    const sourceName = variable.source?.name
-    return uniq(compact([sourceName, ...originAttributionFragments]))
+    const dataPublishedBy = variable.source?.dataPublishedBy
+    return uniq(compact([dataPublishedBy, ...originAttributionFragments]))
 }
 
 interface ETLPathComponents {
