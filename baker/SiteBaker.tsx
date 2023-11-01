@@ -288,16 +288,8 @@ export class SiteBaker {
 
     private async bakePosts() {
         if (!this.bakeSteps.has("wordpressPosts")) return
-        // In the backporting workflow, the users create gdoc posts for posts. As long as these are not yet published,
-        // we still want to bake them from the WP posts. Once the users presses publish there though, we want to stop
-        // baking them from the wordpress post. Here we fetch all the slugs of posts that have been published via gdocs
-        // and exclude them from the baking process.
-        const alreadyPublishedViaGdocsSlugs = await db.knexRaw(`-- sql
-            select slug from posts_with_gdoc_publish_status
-            where isGdocPublished = TRUE`)
-        const alreadyPublishedViaGdocsSlugsSet = new Set(
-            alreadyPublishedViaGdocsSlugs.map((row: any) => row.slug)
-        )
+        const alreadyPublishedViaGdocsSlugsSet =
+            await db.getSlugsWithPublishedGdocsSuccessors()
 
         const postsApi = await wpdb.getPosts(
             undefined,

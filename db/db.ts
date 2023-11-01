@@ -109,3 +109,21 @@ export const knexTable = (table: string): Knex.QueryBuilder =>
     knexInstance().table(table)
 
 export const knexRaw = (str: string): Knex.Raw => knexInstance().raw(str)
+
+/**
+ *  In the backporting workflow, the users create gdoc posts for posts. As long as these are not yet published,
+ *  we still want to bake them from the WP posts. Once the users presses publish there though, we want to stop
+ *  baking them from the wordpress post. This funciton fetches all the slugs of posts that have been published via gdocs,
+ *  to help us exclude them from the baking process.
+ */
+export const getSlugsWithPublishedGdocsSuccessors = async (): Promise<
+    Set<string>
+> => {
+    return knexRaw(
+        `-- sql
+            select slug from posts_with_gdoc_publish_status
+            where isGdocPublished = TRUE`
+    )
+        .then((res) => res[0])
+        .then((rows) => new Set(rows.map((row: any) => row.slug)))
+}

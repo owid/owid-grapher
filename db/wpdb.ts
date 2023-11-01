@@ -476,7 +476,7 @@ export const getPosts = async (
     postTypes: string[] = [WP_PostType.Post, WP_PostType.Page],
     filterFunc?: FilterFnPostRestApi,
     limit?: number
-): Promise<any[]> => {
+): Promise<PostRestApi[]> => {
     if (!isWordpressAPIEnabled) return []
 
     const perPage = 20
@@ -720,27 +720,9 @@ export const getBlockContent = async (
 
     return post.data?.wpBlock?.content ?? undefined
 }
-export interface PostAPI {
-    id: number
-    type: WP_PostType
-    slug: string
-    title: {
-        rendered: string
-    }
-    date_gmt: string
-    modified_gmt: string
-    authors_name?: string[]
-    content: { rendered: string }
-    excerpt: { rendered: string }
-    featured_media_paths: {
-        medium_large: string
-        thumbnail: string
-    }
-    featured_media: number
-}
 
 export const getFullPost = async (
-    postApi: PostAPI,
+    postApi: PostRestApi,
     excludeContent?: boolean
 ): Promise<FullPost> => ({
     id: postApi.id,

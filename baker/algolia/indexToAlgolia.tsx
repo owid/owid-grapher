@@ -11,6 +11,7 @@ import {
     OwidGdocType,
     type RawPageview,
     Tag,
+    PostRestApi,
 } from "@ourworldindata/utils"
 import { formatPost } from "../formatWordpressPost.js"
 import ReactDOMServer from "react-dom/server.js"
@@ -71,7 +72,7 @@ function generateChunksFromHtmlText(htmlString: string) {
 }
 
 async function generateWordpressRecords(
-    postsApi: wpdb.PostAPI[],
+    postsApi: PostRestApi[],
     pageviews: Record<string, RawPageview>
 ): Promise<PageRecord[]> {
     const getPostTypeAndImportance = (
@@ -187,11 +188,18 @@ const getPagesRecords = async () => {
     const pageviews = await Pageview.getViewsByUrlObj()
     const gdocs = await Gdoc.getPublishedGdocs()
     const publishedGdocsBySlug = keyBy(gdocs, "slug")
-    const postsApi = await wpdb
-        .getPosts()
-        .then((posts) =>
-            posts.filter((post) => !publishedGdocsBySlug[`/${post.slug}`])
+    const slugsWithPublishedGdocsSuccessors =
+        await db.getSlugsWithPublishedGdocsSuccessors()
+    const postsApi = await wpdb.getPosts(undefined, (post) => {
+        // Two things can happen here:
+        // 1. There's a published Gdoc with the same slug
+        // 2. This post has a Gdoc successor (which might have a different slug)
+        // In either case, we don't want to index this WP post
+        return !(
+            publishedGdocsBySlug[post.slug] ||
+            slugsWithPublishedGdocsSuccessors.has(post.slug)
         )
+    })
 
     const countryRecords = generateCountryRecords(countries, pageviews)
     const wordpressRecords = await generateWordpressRecords(postsApi, pageviews)

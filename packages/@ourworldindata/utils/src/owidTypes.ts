@@ -325,6 +325,43 @@ export interface PostRestApi {
             latest?: boolean
         }
     }
+    id: number
+    date: string
+    date_gmt: string
+    guid: {
+        rendered: string
+    }
+    modified: string
+    modified_gmt: string
+
+    status: string
+    type: WP_PostType
+    link: string
+    title: {
+        rendered: string
+    }
+    content: {
+        rendered: string
+        protected: boolean
+    }
+    excerpt: {
+        rendered: string
+        protected: boolean
+    }
+    author: number
+    featured_media: number
+    comment_status: string
+    ping_status: string
+    sticky: boolean
+    template: string
+    format: string
+    categories: number[]
+    tags: any[]
+    authors_name: string[]
+    featured_media_paths: {
+        thumbnail: string
+        medium_large: string
+    }
 }
 
 export interface KeyInsight {
