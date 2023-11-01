@@ -1,8 +1,10 @@
 import { OwidOrigin } from "./OwidOrigin"
 import { OwidSource } from "./OwidSource"
 import { OwidProcessingLevel, OwidVariableWithSource } from "./OwidVariable"
-import { compact, uniq, last, zip } from "./Util"
+import { DisplaySource } from "./owidTypes"
+import { compact, uniq, last, zip, joinWithAmpersand } from "./Util"
 import dayjs from "./dayjs.js"
+import { CoreColumnDef } from "@ourworldindata/core-table"
 
 export function getOriginAttributionFragments(
     origins: OwidOrigin[] | undefined
@@ -146,5 +148,40 @@ export const getPhraseForProcessingLevel = (
             return "with minor processing by Our World In Data"
         default:
             return "processed by Our World In Data"
+    }
+}
+
+export const prepareOriginForDisplay = (origin: OwidOrigin): DisplaySource => {
+    let label =
+        origin.producer ??
+        origin.descriptionSnapshot ??
+        origin.description ??
+        ""
+    if (origin.title && origin.title !== label) {
+        label += " - " + origin.title
+    }
+
+    return {
+        label,
+        description: origin.description,
+        retrievedOn: origin.dateAccessed,
+        retrievedFrom: origin.urlMain ? [origin.urlMain] : undefined,
+        citation: origin.citationFull,
+    }
+}
+
+export const prepareSourceForDisplay = (
+    columnDef: CoreColumnDef
+): DisplaySource => {
+    const sourceFragments = splitSourceTextIntoFragments(
+        columnDef.source?.dataPublishedBy
+    )
+    return {
+        label: sourceFragments ? joinWithAmpersand(sourceFragments) : "",
+        description: columnDef.description,
+        retrievedOn: columnDef.source?.retrievedDate
+            ? new Date(columnDef.source?.retrievedDate)
+            : undefined,
+        retrievedFrom: splitSourceTextIntoFragments(columnDef.source?.link),
     }
 }

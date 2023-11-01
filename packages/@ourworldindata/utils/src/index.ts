@@ -234,6 +234,7 @@ export {
     type EnrichedBlockAlign,
     type RawBlockAlign,
     type BreadcrumbItem,
+    type DisplaySource,
 } from "./owidTypes.js"
 
 export {
@@ -363,6 +364,8 @@ export {
     getNextUpdateFromVariable,
     getPhraseForProcessingLevel,
     splitSourceTextIntoFragments,
+    prepareOriginForDisplay,
+    prepareSourceForDisplay,
 } from "./metadataHelpers.js"
 
 export {

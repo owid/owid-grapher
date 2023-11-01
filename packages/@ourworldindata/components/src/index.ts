@@ -20,10 +20,7 @@ export { IndicatorDescriptions } from "./IndicatorDescriptions/IndicatorDescript
 export { IndicatorProcessing } from "./IndicatorProcessing/IndicatorProcessing.js"
 
 export { Checkbox } from "./Checkbox.js"
-export {
-    IndicatorSources,
-    type OriginSubset,
-} from "./IndicatorSources/IndicatorSources.js"
+export { IndicatorSources } from "./IndicatorSources/IndicatorSources.js"
 
 export {
     CodeSnippet,

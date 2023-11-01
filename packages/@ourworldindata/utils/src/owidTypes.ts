@@ -1728,3 +1728,12 @@ export interface UserCountryInformation {
     slug: string
     regions: string[] | null
 }
+
+// consumed by <IndicatorSources />
+export interface DisplaySource {
+    label: string
+    description?: string
+    retrievedOn?: Date
+    retrievedFrom?: string[]
+    citation?: string
+}

@@ -1,37 +1,22 @@
 import React from "react"
 import { ExpandableToggle } from "../ExpandableToggle/ExpandableToggle.js"
-import { OwidOrigin, dayjs, uniqBy } from "@ourworldindata/utils"
+import { DisplaySource, dayjs, uniqBy } from "@ourworldindata/utils"
 import { SimpleMarkdownText } from "../SimpleMarkdownText.js"
 import { CodeSnippet } from "../CodeSnippet/CodeSnippet.js"
 import { REUSE_THIS_WORK_SECTION_ID } from "../SharedDataPageConstants.js"
 
-export type OriginSubset = Pick<
-    OwidOrigin,
-    | "title"
-    | "producer"
-    | "descriptionSnapshot"
-    | "dateAccessed"
-    | "urlMain"
-    | "description"
-    | "citationFull"
->
-
 export interface IndicatorSourcesProps {
-    origins: OriginSubset[]
+    sources: DisplaySource[]
     isEmbeddedInADataPage?: boolean // true by default
 }
 
 export const IndicatorSources = (props: IndicatorSourcesProps) => {
     const isEmbeddedInADataPage = props.isEmbeddedInADataPage ?? true
-    const origins = props.origins.map((origin) => ({
-        ...origin,
-        label: makeLabel(origin),
-    }))
-    const uniqueOrigins = uniqBy(origins, "label")
+    const uniqueSources = uniqBy(props.sources, "label")
 
     return (
         <>
-            {uniqueOrigins.map((source, idx: number, sources) => (
+            {uniqueSources.map((source: DisplaySource, idx: number) => (
                 <ExpandableToggle
                     key={source.label}
                     label={source.label}
@@ -41,7 +26,7 @@ export const IndicatorSources = (props: IndicatorSourcesProps) => {
                             isEmbeddedInADataPage={isEmbeddedInADataPage}
                         />
                     }
-                    isStacked={idx !== sources.length - 1}
+                    isStacked={idx !== uniqueSources.length - 1}
                     hasTeaser
                 />
             ))}
@@ -50,14 +35,17 @@ export const IndicatorSources = (props: IndicatorSourcesProps) => {
 }
 
 const SourceContent = (props: {
-    source: OriginSubset
+    source: DisplaySource
     isEmbeddedInADataPage: boolean
 }) => {
     const { source } = props
-    const dateAccessed = source.dateAccessed
-        ? dayjs(source.dateAccessed).format("MMMM D, YYYY")
+    const retrievedOn = source.retrievedOn
+        ? dayjs(source.retrievedOn).format("MMMM D, YYYY")
         : undefined
-    const showKeyInfo = dateAccessed || source.urlMain || source.citationFull
+    const showKeyInfo =
+        retrievedOn ||
+        (source.retrievedFrom && source.retrievedFrom.length > 0) ||
+        source.citation
     return (
         <div className="indicator-source">
             {source.description && (
@@ -67,31 +55,37 @@ const SourceContent = (props: {
             )}
             {showKeyInfo && (
                 <div className="source-key-data-blocks">
-                    {dateAccessed && (
+                    {retrievedOn && (
                         <div className="source-key-data">
                             <div className="source-key-data__title">
                                 Retrieved on
                             </div>
-                            <div>{dateAccessed}</div>
+                            <div>{retrievedOn}</div>
                         </div>
                     )}
-                    {source.urlMain && (
-                        <div className="source-key-data source-key-data--hide-overflow">
-                            <div className="source-key-data__title">
-                                Retrieved from
+                    {source.retrievedFrom &&
+                        source.retrievedFrom.length > 0 && (
+                            <div className="source-key-data">
+                                <div className="source-key-data__title">
+                                    Retrieved from
+                                </div>
+                                {source.retrievedFrom.map((url: string) => (
+                                    <div
+                                        key={url}
+                                        className="source-key-data__content--hide-overflow"
+                                    >
+                                        <a
+                                            href={url}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                        >
+                                            {url}
+                                        </a>
+                                    </div>
+                                ))}
                             </div>
-                            <div>
-                                <a
-                                    href={source.urlMain}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                >
-                                    {source.urlMain}
-                                </a>
-                            </div>
-                        </div>
-                    )}
-                    {source.citationFull && (
+                        )}
+                    {source.citation && (
                         <div className="source-key-data source-key-data--span-2">
                             <div className="source-key-data__title">
                                 Citation
@@ -110,7 +104,7 @@ const SourceContent = (props: {
                                 </>
                             )}
                             <CodeSnippet
-                                code={source.citationFull.trim()}
+                                code={source.citation.trim()}
                                 theme="light"
                             />
                         </div>
@@ -119,16 +113,4 @@ const SourceContent = (props: {
             )}
         </div>
     )
-}
-
-const makeLabel = (origin: OriginSubset) => {
-    let label =
-        origin.producer ??
-        origin.descriptionSnapshot ??
-        origin.description ??
-        ""
-    if (origin.title && origin.title !== label) {
-        label += " - " + origin.title
-    }
-    return label
 }

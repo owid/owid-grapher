@@ -34,7 +34,7 @@
         color: var(--title);
     }
 
-    .source-key-data--hide-overflow div:last-child {
+    .source-key-data__content--hide-overflow {
         white-space: nowrap;
         text-overflow: ellipsis;
         overflow: hidden;

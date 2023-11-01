@@ -5,7 +5,6 @@ import {
     IndicatorDescriptions,
     CodeSnippet,
     REUSE_THIS_WORK_SECTION_ID,
-    OriginSubset,
     IndicatorSources,
     DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
     IndicatorProcessing,
@@ -17,12 +16,13 @@ import { ArticleBlocks } from "./gdocs/ArticleBlocks.js"
 import { RelatedCharts } from "./blocks/RelatedCharts.js"
 import {
     DataPageV2ContentFields,
+    OwidOrigin,
     slugify,
     uniq,
-    pick,
     formatAuthors,
     intersection,
     getPhraseForProcessingLevel,
+    prepareOriginForDisplay,
 } from "@ourworldindata/utils"
 import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
 import StickyNav from "./blocks/StickyNav.js"
@@ -102,18 +102,8 @@ export const DataPageV2Content = ({
             : "related-data__category--columns span-cols-8 span-lg-cols-12"
     } `
 
-    const origins: OriginSubset[] = uniq(
-        datapageData.origins.map((item) =>
-            pick(item, [
-                "title",
-                "producer",
-                "descriptionSnapshot",
-                "dateAccessed",
-                "urlMain",
-                "description",
-                "citationFull",
-            ])
-        )
+    const originsForDisplay = datapageData.origins.map((origin: OwidOrigin) =>
+        prepareOriginForDisplay(origin)
     )
     const producers = uniq(datapageData.origins.map((o) => o.producer))
 
@@ -489,7 +479,7 @@ export const DataPageV2Content = ({
                                         sources
                                     </h3>
                                     <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                                        <IndicatorSources origins={origins} />
+                                        <IndicatorSources sources={originsForDisplay} />
                                     </div>
                                 </div>
                                 <div className="data-processing grid span-cols-12">

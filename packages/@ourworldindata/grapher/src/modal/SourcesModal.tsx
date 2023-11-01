@@ -7,6 +7,10 @@ import {
     getNextUpdateFromVariable,
     excludeUndefined,
     splitSourceTextIntoFragments,
+    prepareOriginForDisplay,
+    prepareSourceForDisplay,
+    DisplaySource,
+    OwidOrigin,
 } from "@ourworldindata/utils"
 import {
     IndicatorKeyData,
@@ -152,6 +156,17 @@ export class Source extends React.Component<{
         return splitSourceTextIntoFragments(this.def.source?.link)
     }
 
+    @computed private get sourcesForDisplay(): DisplaySource[] {
+        const originsForDisplay =
+            this.def.origins?.map((origin: OwidOrigin) =>
+                prepareOriginForDisplay(origin)
+            ) ?? []
+        const sourceForDisplay = this.def.source?.dataPublishedBy
+            ? prepareSourceForDisplay(this.def)
+            : undefined
+        return excludeUndefined([sourceForDisplay, ...originsForDisplay])
+    }
+
     render(): JSX.Element {
         return (
             <div className="source">
@@ -193,19 +208,20 @@ export class Source extends React.Component<{
                         isEmbeddedInADataPage={this.props.isEmbeddedInADataPage}
                     />
                 )}
-                {this.def.origins && this.def.origins.length > 0 && (
-                    <>
-                        <h3 className="heading">
-                            This data is based on the following sources:
-                        </h3>
-                        <IndicatorSources
-                            origins={this.def.origins}
-                            isEmbeddedInADataPage={
-                                this.props.isEmbeddedInADataPage
-                            }
-                        />
-                    </>
-                )}
+                {this.sourcesForDisplay &&
+                    this.sourcesForDisplay.length > 0 && (
+                        <>
+                            <h3 className="heading">
+                                This data is based on the following sources:
+                            </h3>
+                            <IndicatorSources
+                                sources={this.sourcesForDisplay}
+                                isEmbeddedInADataPage={
+                                    this.props.isEmbeddedInADataPage
+                                }
+                            />
+                        </>
+                    )}
                 <h3 className="heading">
                     How we process data at Our World in Data:
                 </h3>
