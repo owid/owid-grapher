@@ -118,11 +118,16 @@ export const TableOfContents = ({
             )
 
             let contentHeadings = null
+            // In Gdocs articles, these sections are ID'd via unique elements
+            const appendixDivs =
+                ", h3#article-endnotes, section#article-citation, section#article-licence"
             if (hideSubheadings) {
-                contentHeadings = document.querySelectorAll(`h${secondary}`)
+                contentHeadings = document.querySelectorAll(
+                    `h${secondary} ${appendixDivs}`
+                )
             } else {
                 contentHeadings = document.querySelectorAll(
-                    `h${primary}, h${secondary}`
+                    `h${primary}, h${secondary} ${appendixDivs}`
                 )
             }
             contentHeadings.forEach((contentHeading) => {

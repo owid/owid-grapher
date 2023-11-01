@@ -122,10 +122,12 @@ function generateStickyNav(
 
 function generateToc(
     body: OwidEnrichedGdocBlock[],
+    isTocForSidebar: boolean = false
+): TocHeadingWithTitleSupertitle[] {
     // For linear topic pages, we record h1s & h2s
     // For the sdg-toc, we record h2s & h3s (as it was developed before we decided to use h1s as our top level heading)
-    { primary, secondary }: { primary: number; secondary: number }
-): TocHeadingWithTitleSupertitle[] {
+    // It would be nice to standardise this but it would require a migration, updating CSS, updating Gdocs, etc.
+    const [primary, secondary] = isTocForSidebar ? [1, 2] : [2, 3]
     const toc: TocHeadingWithTitleSupertitle[] = []
 
     body.forEach((block) =>
@@ -146,7 +148,7 @@ function generateToc(
                     })
                 }
             }
-            if (child.type === "all-charts") {
+            if (isTocForSidebar && child.type === "all-charts") {
                 toc.push({
                     title: child.heading,
                     text: child.heading,
@@ -156,6 +158,29 @@ function generateToc(
             }
         })
     )
+
+    if (isTocForSidebar) {
+        toc.push(
+            {
+                title: "Endnotes",
+                text: "Endnotes",
+                slug: "article-endnotes",
+                isSubheading: false,
+            },
+            {
+                title: "Citation",
+                text: "Citation",
+                slug: "article-citation",
+                isSubheading: false,
+            },
+            {
+                title: "Licence",
+                text: "Licence",
+                slug: "article-licence",
+                isSubheading: false,
+            }
+        )
+    }
 
     return toc
 }
@@ -266,13 +291,8 @@ export const archieToEnriched = (text: string): OwidGdocContent => {
     // Parse elements of the ArchieML into enrichedBlocks
     parsed.body = compact(parsed.body.map(parseRawBlocksToEnrichedBlocks))
 
-    // the sdg-toc was based on h2s and h3s, but linear topic pages are using h1s and h2s
-    // It would be nice to standardise this but it would require a migration, updating CSS, updating Gdocs, etc.
     const isTocForSidebar = parsed["sidebar-toc"] === "true"
-    const headingLevels = isTocForSidebar
-        ? { primary: 1, secondary: 2 }
-        : { primary: 2, secondary: 3 }
-    parsed.toc = generateToc(parsed.body, headingLevels)
+    parsed.toc = generateToc(parsed.body, isTocForSidebar)
 
     const parsedRefs = parseRefs({
         refs: [...(parsed.refs ?? []), ...rawInlineRefs],

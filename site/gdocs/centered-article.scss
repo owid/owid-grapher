@@ -27,6 +27,7 @@
     .toc-wrapper {
         position: sticky;
         top: 0;
+        height: 0;
         // Above explorer chrome
         z-index: 3;
         margin-top: -48px;
@@ -58,7 +59,7 @@
             }
             li.section a,
             li.subsection a {
-                border-width: 6px;
+                border-width: 4px;
                 padding-right: 32px;
                 margin-left: 0;
 
