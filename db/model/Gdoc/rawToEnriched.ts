@@ -316,13 +316,16 @@ const parseBlockquote = (raw: RawBlockBlockquote): EnrichedBlockBlockquote => {
         parseErrors: [error],
     })
 
-    const citation = raw.value.citation || ""
-    if (typeof citation !== "string") {
+    if (typeof raw.value.citation !== "string") {
         return createError({
             message: "Citation is not a string",
         })
     }
-    if (citation.includes("www.") && !citation.includes("http")) {
+    // citation might not be a URL, in which case this is a no-op
+    // but if it is a URL, Gdocs may have wrapped it in an <a> tag which we want to remove
+    const citation = extractUrl(raw.value.citation)
+    // Enforcing http prefix for URLs so that the UI component can easily decide whether to use it in a cite attribute or <cite> tag
+    if (citation.includes("www.") && !citation.startsWith("http")) {
         return createError({
             message:
                 "Citation is a URL but is missing the http:// or https:// prefix",
