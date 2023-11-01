@@ -44,7 +44,7 @@ export const IndicatorProcessing = (props: IndicatorProcessingProps) => {
                     <div className="variable-processing-info__description">
                         <p className="simple-markdown-text">
                             <SimpleMarkdownText
-                                text={props.descriptionProcessing}
+                                text={props.descriptionProcessing.trim()}
                             />
                         </p>
                     </div>

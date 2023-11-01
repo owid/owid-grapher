@@ -253,9 +253,7 @@ export const DataPageV2Content = ({
                                             </div>
                                             <p className="about-this-data__indicator-description simple-markdown-text">
                                                 <SimpleMarkdownText
-                                                    text={
-                                                        datapageData.descriptionShort
-                                                    }
+                                                    text={datapageData.descriptionShort.trim()}
                                                 />
                                             </p>
                                         </>

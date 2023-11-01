@@ -61,7 +61,7 @@ const SourceContent = (props: {
         <div className="source-content">
             {source.description && (
                 <p className="description simple-markdown-text">
-                    <SimpleMarkdownText text={source.description} />
+                    <SimpleMarkdownText text={source.description.trim()} />
                 </p>
             )}
             {showKeyInfo && (
@@ -103,7 +103,7 @@ const SourceContent = (props: {
                             </a>{" "}
                             below.
                             <CodeSnippet
-                                code={source.citationFull}
+                                code={source.citationFull.trim()}
                                 theme="light"
                             />
                         </div>

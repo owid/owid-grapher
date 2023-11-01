@@ -25,13 +25,15 @@ export const IndicatorDescriptions = (props: IndicatorDescriptionsProps) => {
                     <div className="key-info__content simple-markdown-text">
                         {props.descriptionKey.length === 1 ? (
                             <SimpleMarkdownText
-                                text={props.descriptionKey[0]}
+                                text={props.descriptionKey[0].trim()}
                             />
                         ) : (
                             <ul>
-                                {props.descriptionKey.map((item, i) => (
+                                {props.descriptionKey.map((text, i) => (
                                     <li key={i}>
-                                        <SimpleMarkdownText text={item} />{" "}
+                                        <SimpleMarkdownText
+                                            text={text.trim()}
+                                        />{" "}
                                     </li>
                                 ))}
                             </ul>
@@ -59,7 +61,7 @@ export const IndicatorDescriptions = (props: IndicatorDescriptionsProps) => {
                         content={
                             <div className="simple-markdown-text">
                                 <SimpleMarkdownText
-                                    text={props.descriptionFromProducer}
+                                    text={props.descriptionFromProducer.trim()}
                                 />
                             </div>
                         }
@@ -75,7 +77,7 @@ export const IndicatorDescriptions = (props: IndicatorDescriptionsProps) => {
                         content={
                             <div className="simple-markdown-text">
                                 <SimpleMarkdownText
-                                    text={props.additionalInfo}
+                                    text={props.additionalInfo.trim()}
                                 />
                             </div>
                         }
