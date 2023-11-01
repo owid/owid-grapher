@@ -78,3 +78,6 @@ export const IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH: string =
 // Fast-track settings, by default points to staging version. You need Tailscale to access it.
 export const FASTTRACK_URL: string =
     process.env.FASTTRACK_URL ?? "http://owid-analytics:8083/"
+
+export const GDOCS_DETAILS_ON_DEMAND_ID: string =
+    process.env.GDOCS_DETAILS_ON_DEMAND_ID ?? ""

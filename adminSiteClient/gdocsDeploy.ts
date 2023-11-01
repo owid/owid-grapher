@@ -5,6 +5,7 @@ import {
     omit,
 } from "@ourworldindata/utils"
 import { GDOC_DIFF_OMITTABLE_PROPERTIES } from "./GdocsDiff.js"
+import { GDOCS_DETAILS_ON_DEMAND_ID } from "../settings/clientSettings.js"
 
 export const checkFullDeployFallback = (
     prevGdoc: OwidGdocInterface,
@@ -103,6 +104,7 @@ export const checkIsLightningUpdate = (
     const nextOmitted = omit({ ...nextGdoc }, keysToOmit)
 
     return (
+        prevGdoc.id !== GDOCS_DETAILS_ON_DEMAND_ID &&
         hasChanges &&
         prevGdoc.published &&
         nextGdoc.published &&
