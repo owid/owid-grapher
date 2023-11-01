@@ -674,6 +674,7 @@ interface RelatedResearchQueryResult {
     thumbnail: string
     pageviews: number
     post_source: string
+    tags: string
 }
 export const getRelatedResearchAndWritingForVariable = async (
     variableId: number
@@ -691,7 +692,12 @@ export const getRelatedResearchAndWritingForVariable = async (
                 p.authors as authors,
                 p.featured_image as thumbnail,
                 coalesce(pv.views_365d, 0) as pageviews,
-                'wordpress' as post_source
+                'wordpress' as post_source,
+                (select JSON_ARRAYAGG(t.name)
+                    from post_tags pt
+                    join tags t on pt.tag_id = t.id
+                    where pt.post_id = p.id
+                ) as tags
             from
                 posts_links pl
             join posts p on
@@ -706,6 +712,8 @@ export const getRelatedResearchAndWritingForVariable = async (
                 pv.url = concat('https://ourworldindata.org/', p.slug )
             left join posts_gdocs pg on
             	pg.id = p.gdocSuccessorId
+            left join post_tags pt on
+                pt.post_id = p.id
             where
                 pl.linkType = 'grapher'
                 and componentType = 'src' -- this filters out links in tags and keeps only embedded charts
@@ -730,7 +738,12 @@ export const getRelatedResearchAndWritingForVariable = async (
                 p.content ->> '$.authors' as authors,
                 p.content ->> '$."featured-image"' as thumbnail,
                 coalesce(pv.views_365d, 0) as pageviews,
-                'gdocs' as post_source
+                'gdocs' as post_source,
+                (select JSON_ARRAYAGG(t.name)
+                    from posts_gdocs_x_tags pt
+                    join tags t on pt.tagId = t.id
+                    where pt.gdocId = p.id
+                ) as tags
             from
                 posts_gdocs_links pl
             join posts_gdocs p on
@@ -743,12 +756,15 @@ export const getRelatedResearchAndWritingForVariable = async (
                 cd.chartId = c.id
             left join pageviews pv on
                 pv.url = concat('https://ourworldindata.org/', p.slug )
+            left join posts_gdocs_x_tags pt on
+                pt.gdocId = p.id
             where
                 pl.linkType = 'grapher'
                 and componentType = 'chart' -- this filters out links in tags and keeps only embedded charts
                 and cd.variableId = ?
                 and cd.property in ('x', 'y') -- ignore cases where the indicator is size, color etc
-                and p.published = 1`,
+                and p.published = 1
+                and p.content ->> '$.type' != 'fragment'`,
         [variableId]
     )
 
@@ -769,12 +785,15 @@ export const getRelatedResearchAndWritingForVariable = async (
                 (author: any) => author.author
             )
         } else authors = parsedAuthors
+        const parsedTags = post.tags !== "" ? JSON.parse(post.tags) : []
+
         return {
             title: post.title,
             url: `/${post.postSlug}`,
             variantName: "",
             authors,
             imageUrl: post.thumbnail,
+            tags: parsedTags,
         }
     })
     // the queries above use distinct but because of the information we pull in if the same piece of research

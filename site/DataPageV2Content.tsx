@@ -191,6 +191,19 @@ export const DataPageV2Content = ({
         ? `“Data Page: ${datapageData.title}”, part of the following publication: ${datapageData.primaryTopic.citation}. Data adapted from ${producers}. Retrieved from ${canonicalUrl} [online resource]`
         : `“Data Page: ${datapageData.title}”. Our World in Data (${currentYear}). Data adapted from ${producers}. Retrieved from ${canonicalUrl} [online resource]`
 
+    const relatedResearchCandidates = datapageData.relatedResearch
+    const relatedResearch =
+        relatedResearchCandidates.length > 10 //&&
+            ? //datapageData.primaryTopic?.topicTag
+              relatedResearchCandidates.filter((research) =>
+                  research.tags.includes(
+                      datapageData.primaryTopic?.topicTag ?? "Economic Growth"
+                  )
+              )
+            : relatedResearchCandidates
+    // TODO: if there are more than 10 pages and the data page has topic tags, only show then ones that have overlap
+    // TODO: mark topic pages
+
     return (
         <AttachmentsContext.Provider
             value={{
@@ -272,24 +285,22 @@ export const DataPageV2Content = ({
                         />
                     </div>
                     <div className="wrapper">
-                        {datapageData.relatedResearch &&
-                            datapageData.relatedResearch.length > 0 && (
-                                <div className="section-wrapper grid">
-                                    <h2
-                                        className="related-research__title span-cols-3 span-lg-cols-12"
-                                        id="research-and-writing"
-                                    >
-                                        Related research and writing
-                                    </h2>
-                                    <div className="related-research__items grid grid-cols-9 grid-lg-cols-12 span-cols-9 span-lg-cols-12">
-                                        {datapageData.relatedResearch.map(
-                                            (research) => (
-                                                <a
-                                                    href={research.url}
-                                                    key={research.url}
-                                                    className="related-research__item grid grid-cols-4 grid-lg-cols-6 grid-sm-cols-12 span-cols-4 span-lg-cols-6 span-sm-cols-12"
-                                                >
-                                                    {/* <figure>
+                        {relatedResearch && relatedResearch.length > 0 && (
+                            <div className="section-wrapper grid">
+                                <h2
+                                    className="related-research__title span-cols-3 span-lg-cols-12"
+                                    id="research-and-writing"
+                                >
+                                    Related research and writing
+                                </h2>
+                                <div className="related-research__items grid grid-cols-9 grid-lg-cols-12 span-cols-9 span-lg-cols-12">
+                                    {relatedResearch.map((research) => (
+                                        <a
+                                            href={research.url}
+                                            key={research.url}
+                                            className="related-research__item grid grid-cols-4 grid-lg-cols-6 grid-sm-cols-12 span-cols-4 span-lg-cols-6 span-sm-cols-12"
+                                        >
+                                            {/* <figure>
                                                         <Image
                                                             filename={
                                                                 research.imageUrl
@@ -302,41 +313,40 @@ export const DataPageV2Content = ({
                                                             }
                                                         />
                                                     </figure> */}
-                                                    {/* // TODO: switch this to use the Image component and put the required information for the thumbnails into hte attachment context or similar */}
-                                                    <img
-                                                        src={
-                                                            research.imageUrl &&
-                                                            research.imageUrl.startsWith(
-                                                                "http"
-                                                            )
-                                                                ? research.imageUrl
-                                                                : encodeURI(
-                                                                      `${IMAGE_HOSTING_CDN_URL}/production/${research.imageUrl}`
-                                                                  )
-                                                        }
-                                                        alt=""
-                                                        className="span-lg-cols-2 span-sm-cols-3"
-                                                    />
-                                                    <div className="span-cols-3 span-lg-cols-4 span-sm-cols-9">
-                                                        <h3 className="related-article__title">
-                                                            {research.title}
-                                                        </h3>
-                                                        <div className="related-article__authors body-3-medium-italic">
-                                                            {research.authors &&
-                                                                research.authors
-                                                                    .length &&
-                                                                formatAuthors({
-                                                                    authors:
-                                                                        research.authors,
-                                                                })}
-                                                        </div>
-                                                    </div>
-                                                </a>
-                                            )
-                                        )}
-                                    </div>
+                                            {/* // TODO: switch this to use the Image component and put the required information for the thumbnails into hte attachment context or similar */}
+                                            <img
+                                                src={
+                                                    research.imageUrl &&
+                                                    research.imageUrl.startsWith(
+                                                        "http"
+                                                    )
+                                                        ? research.imageUrl
+                                                        : encodeURI(
+                                                              `${IMAGE_HOSTING_CDN_URL}/production/${research.imageUrl}`
+                                                          )
+                                                }
+                                                alt=""
+                                                className="span-lg-cols-2 span-sm-cols-3"
+                                            />
+                                            <div className="span-cols-3 span-lg-cols-4 span-sm-cols-9">
+                                                <h3 className="related-article__title">
+                                                    {research.title}
+                                                </h3>
+                                                <div className="related-article__authors body-3-medium-italic">
+                                                    {research.authors &&
+                                                        research.authors
+                                                            .length &&
+                                                        formatAuthors({
+                                                            authors:
+                                                                research.authors,
+                                                        })}
+                                                </div>
+                                            </div>
+                                        </a>
+                                    ))}
                                 </div>
-                            )}
+                            </div>
+                        )}
                         {!!datapageData.relatedData?.length && (
                             <div className="section-wrapper grid">
                                 <h2

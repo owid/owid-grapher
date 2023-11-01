@@ -1606,6 +1606,7 @@ export interface DataPageRelatedResearch {
     url: string
     authors: string[]
     imageUrl: string
+    tags: string[]
 }
 
 export interface DataPageRelatedData {
