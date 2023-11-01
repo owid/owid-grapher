@@ -63,7 +63,7 @@ describe("MarkdownTextWrap", () => {
 
     it("should calculate height correctly", () => {
         const element = new MarkdownTextWrap({
-            text: "a\nb\nc",
+            text: "a  \nb  \nc",
             fontSize: 10,
             lineHeight: 1.5,
         })
@@ -83,7 +83,7 @@ describe("MarkdownTextWrap", () => {
 
     it("should split on newline", () => {
         const element = new MarkdownTextWrap({
-            text: "_test\n**\nnewline\n**_test",
+            text: "_test  \n**  \nnewline  \n**_test",
             fontSize: 10,
             lineHeight: 1,
         })

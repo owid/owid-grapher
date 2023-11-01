@@ -5,12 +5,16 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "args": [],
+            "args": [
+                "Markdown"
+            ],
             "internalConsoleOptions": "openOnSessionStart",
             "name": "Jest Tests",
             "program": "${workspaceFolder}/node_modules/jest/bin/jest.js",
             "request": "launch",
-            "skipFiles": ["<node_internals>/**"],
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
             "type": "node"
         },
         {
@@ -19,7 +23,10 @@
             "request": "launch",
             "name": "Jest Test current file",
             "program": "${workspaceFolder}/node_modules/.bin/jest",
-            "args": ["${fileBasenameNoExtension}.js", "--watch"],
+            "args": [
+                "${fileBasenameNoExtension}.js",
+                "--watch"
+            ],
             "console": "integratedTerminal"
             // "internalConsoleOptions": "neverOpen"
         },
@@ -53,23 +60,32 @@
             "name": "Run migrate WP to ArchieML",
             "program": "${workspaceFolder}/itsJustJavascript/db/migrateWpPostsToArchieMl.js",
             "request": "launch",
-            "skipFiles": ["<node_internals>/**"],
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
             "type": "node"
         },
         {
             "name": "Sync WP posts to grapher",
             "program": "${workspaceFolder}/itsJustJavascript/db/syncPostsToGrapher.js",
             "request": "launch",
-            "skipFiles": ["<node_internals>/**"],
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
             "type": "node"
         },
         {
             "name": "Run SVGTester",
             "program": "${workspaceFolder}/itsJustJavascript/devTools/svgTester/verify-graphs.js",
             "request": "launch",
-            "skipFiles": ["<node_internals>/**"],
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
             "type": "node",
-            "args": ["-g", "367"]
+            "args": [
+                "-g",
+                "367"
+            ]
         },
         {
             "name": "Launch admin server",

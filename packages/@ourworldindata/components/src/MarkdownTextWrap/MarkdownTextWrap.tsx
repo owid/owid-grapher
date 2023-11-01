@@ -535,7 +535,7 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
     }
 
     @computed get tokensFromMarkdown(): IRToken[] {
-        const tokens = convertMarkdownToIRTokens(this.text)
+        const tokens = convertMarkdownToIRTokens(this.text, this.fontParams)
         return tokens
     }
 
@@ -683,18 +683,29 @@ function MarkdownTextWrapLine({ line }: { line: IRToken[] }): JSX.Element {
     )
 }
 
-export function convertMarkdownToIRTokens(markdown: string): IRToken[] {
+export function convertMarkdownToIRTokens(
+    markdown: string,
+    fontParams?: IRFontParams
+): IRToken[] {
     const ast = fromMarkdown(markdown)
-    return convertMarkdownRootToIRTokens(ast)
+    return convertMarkdownRootToIRTokens(ast, fontParams)
 }
 
-function convertMarkdownRootToIRTokens(node: Root): IRToken[] {
-    return node.children.flatMap(convertMarkdownNodeToIRTokens)
+function convertMarkdownRootToIRTokens(
+    node: Root,
+    fontParams?: IRFontParams
+): IRToken[] {
+    return node.children.flatMap((item) =>
+        convertMarkdownNodeToIRTokens(item, fontParams)
+    )
 }
 
 // When using mdast types version 4 this should be typed as:
 // node: RootContentMap[keyof RootContentMap]
-function convertMarkdownNodeToIRTokens(node: Content): IRToken[] {
+function convertMarkdownNodeToIRTokens(
+    node: Content,
+    fontParams: IRFontParams = {}
+): IRToken[] {
     const converted = match(node)
         .with(
             {
@@ -702,7 +713,7 @@ function convertMarkdownNodeToIRTokens(node: Content): IRToken[] {
             },
             (item) => {
                 return item.children.flatMap((child) =>
-                    convertMarkdownNodeToIRTokens(child)
+                    convertMarkdownNodeToIRTokens(child, fontParams)
                 )
             }
         )
@@ -710,7 +721,7 @@ function convertMarkdownNodeToIRTokens(node: Content): IRToken[] {
             {
                 type: "break",
             },
-            (item) => {
+            (_) => {
                 return [new IRLineBreak()]
             }
         )
@@ -719,7 +730,7 @@ function convertMarkdownNodeToIRTokens(node: Content): IRToken[] {
                 type: "code",
             },
             (item) => {
-                return [new IRText(item.value)]
+                return [new IRText(item.value, fontParams)]
             }
         )
         .with(
@@ -729,7 +740,12 @@ function convertMarkdownNodeToIRTokens(node: Content): IRToken[] {
             (item) => {
                 return [
                     new IRItalic(
-                        item.children.flatMap(convertMarkdownNodeToIRTokens)
+                        item.children.flatMap((child) =>
+                            convertMarkdownNodeToIRTokens(child, {
+                                ...fontParams,
+                                isItalic: true,
+                            })
+                        )
                     ),
                 ]
             }
@@ -739,7 +755,9 @@ function convertMarkdownNodeToIRTokens(node: Content): IRToken[] {
                 type: "heading",
             },
             (item) => {
-                return item.children.flatMap(convertMarkdownNodeToIRTokens)
+                return item.children.flatMap((child) =>
+                    convertMarkdownNodeToIRTokens(child, fontParams)
+                )
             }
         )
         .with(
@@ -747,7 +765,7 @@ function convertMarkdownNodeToIRTokens(node: Content): IRToken[] {
                 type: "html",
             },
             (item) => {
-                return [new IRText(item.value)]
+                return [new IRText(item.value, fontParams)]
             }
         )
         .with(
@@ -755,7 +773,7 @@ function convertMarkdownNodeToIRTokens(node: Content): IRToken[] {
                 type: "image",
             },
             (item) => {
-                return [new IRText(item.alt ?? "")]
+                return [new IRText(item.alt ?? "", fontParams)]
             }
         )
         .with(
@@ -763,7 +781,7 @@ function convertMarkdownNodeToIRTokens(node: Content): IRToken[] {
                 type: "inlineCode",
             },
             (item) => {
-                return [new IRText(item.value)]
+                return [new IRText(item.value, fontParams)]
             }
         )
         .with(
@@ -774,7 +792,9 @@ function convertMarkdownNodeToIRTokens(node: Content): IRToken[] {
                 return [
                     new IRLink(
                         item.url,
-                        item.children.flatMap(convertMarkdownNodeToIRTokens)
+                        item.children.flatMap((child) =>
+                            convertMarkdownNodeToIRTokens(child, fontParams)
+                        )
                     ),
                 ]
             }
@@ -784,7 +804,9 @@ function convertMarkdownNodeToIRTokens(node: Content): IRToken[] {
                 type: "list",
             },
             (item) => {
-                return item.children.flatMap(convertMarkdownNodeToIRTokens)
+                return item.children.flatMap((child) =>
+                    convertMarkdownNodeToIRTokens(child, fontParams)
+                )
             }
         )
         .with(
@@ -792,7 +814,9 @@ function convertMarkdownNodeToIRTokens(node: Content): IRToken[] {
                 type: "listItem",
             },
             (item) => {
-                return item.children.flatMap(convertMarkdownNodeToIRTokens)
+                return item.children.flatMap((child) =>
+                    convertMarkdownNodeToIRTokens(child, fontParams)
+                )
             }
         )
         .with(
@@ -800,7 +824,9 @@ function convertMarkdownNodeToIRTokens(node: Content): IRToken[] {
                 type: "paragraph",
             },
             (item) => {
-                return item.children.flatMap(convertMarkdownNodeToIRTokens)
+                return item.children.flatMap((child) =>
+                    convertMarkdownNodeToIRTokens(child, fontParams)
+                )
             }
         )
         .with(
@@ -810,7 +836,12 @@ function convertMarkdownNodeToIRTokens(node: Content): IRToken[] {
             (item) => {
                 return [
                     new IRBold(
-                        item.children.flatMap(convertMarkdownNodeToIRTokens)
+                        item.children.flatMap((child) =>
+                            convertMarkdownNodeToIRTokens(child, {
+                                ...fontParams,
+                                fontWeight: 700,
+                            })
+                        )
                     ),
                 ]
             }
@@ -820,15 +851,15 @@ function convertMarkdownNodeToIRTokens(node: Content): IRToken[] {
                 type: "text",
             },
             (item) => {
-                return [new IRText(item.value)]
+                return [new IRText(item.value, fontParams)]
             }
         )
         .with(
             {
                 type: "thematicBreak",
             },
-            (item) => {
-                return [new IRText("---")]
+            (_) => {
+                return [new IRText("---", fontParams)]
             }
         )
         .with(
@@ -836,7 +867,9 @@ function convertMarkdownNodeToIRTokens(node: Content): IRToken[] {
                 type: "delete",
             },
             (item) => {
-                return item.children.flatMap(convertMarkdownNodeToIRTokens)
+                return item.children.flatMap((child) =>
+                    convertMarkdownNodeToIRTokens(child, fontParams)
+                )
             }
         )
         // Now lets finish this with blocks for FootnoteDefinition, Definition, ImageReference, LinkReference, FootnoteReference, and Table
@@ -845,7 +878,9 @@ function convertMarkdownNodeToIRTokens(node: Content): IRToken[] {
                 type: "footnoteDefinition",
             },
             (item) => {
-                return item.children.flatMap(convertMarkdownNodeToIRTokens)
+                return item.children.flatMap((child) =>
+                    convertMarkdownNodeToIRTokens(child, fontParams)
+                )
             }
         )
         .with(
@@ -853,7 +888,9 @@ function convertMarkdownNodeToIRTokens(node: Content): IRToken[] {
                 type: "definition",
             },
             (item) => {
-                return [new IRText(`${item.identifier}: ${item.label}`)]
+                return [
+                    new IRText(`${item.identifier}: ${item.label}`, fontParams),
+                ]
             }
         )
         .with(
@@ -861,7 +898,9 @@ function convertMarkdownNodeToIRTokens(node: Content): IRToken[] {
                 type: "imageReference",
             },
             (item) => {
-                return [new IRText(`${item.identifier}: ${item.label}`)]
+                return [
+                    new IRText(`${item.identifier}: ${item.label}`, fontParams),
+                ]
             }
         )
         .with(
@@ -869,7 +908,9 @@ function convertMarkdownNodeToIRTokens(node: Content): IRToken[] {
                 type: "linkReference",
             },
             (item) => {
-                return [new IRText(`${item.identifier}: ${item.label}`)]
+                return [
+                    new IRText(`${item.identifier}: ${item.label}`, fontParams),
+                ]
             }
         )
         .with(
@@ -877,7 +918,9 @@ function convertMarkdownNodeToIRTokens(node: Content): IRToken[] {
                 type: "footnoteReference",
             },
             (item) => {
-                return [new IRText(`${item.identifier}: ${item.label}`)]
+                return [
+                    new IRText(`${item.identifier}: ${item.label}`, fontParams),
+                ]
             }
         )
         .with(
@@ -885,7 +928,9 @@ function convertMarkdownNodeToIRTokens(node: Content): IRToken[] {
                 type: "table",
             },
             (item) => {
-                return item.children.flatMap(convertMarkdownNodeToIRTokens)
+                return item.children.flatMap((child) =>
+                    convertMarkdownNodeToIRTokens(child, fontParams)
+                )
             }
         )
         .with(
@@ -893,7 +938,9 @@ function convertMarkdownNodeToIRTokens(node: Content): IRToken[] {
                 type: "tableCell",
             },
             (item) => {
-                return item.children.flatMap(convertMarkdownNodeToIRTokens)
+                return item.children.flatMap((child) =>
+                    convertMarkdownNodeToIRTokens(child, fontParams)
+                )
             }
         )
         // and now TableRow and Yaml
@@ -902,7 +949,9 @@ function convertMarkdownNodeToIRTokens(node: Content): IRToken[] {
                 type: "tableRow",
             },
             (item) => {
-                return item.children.flatMap(convertMarkdownNodeToIRTokens)
+                return item.children.flatMap((child) =>
+                    convertMarkdownNodeToIRTokens(child, fontParams)
+                )
             }
         )
         .with(
@@ -910,7 +959,7 @@ function convertMarkdownNodeToIRTokens(node: Content): IRToken[] {
                 type: "yaml",
             },
             (item) => {
-                return [new IRText(item.value)]
+                return [new IRText(item.value, fontParams)]
             }
         )
         .with(
@@ -918,7 +967,9 @@ function convertMarkdownNodeToIRTokens(node: Content): IRToken[] {
                 type: "footnote",
             },
             (item) => {
-                return item.children.flatMap(convertMarkdownNodeToIRTokens)
+                return item.children.flatMap((child) =>
+                    convertMarkdownNodeToIRTokens(child, fontParams)
+                )
             }
         )
         .exhaustive()
