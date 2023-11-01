@@ -2,6 +2,7 @@
 * Topic Page
 **/
 
+// These styles are used both for topic page and linear topic page headers
 .topic-page-header {
     background-color: $blue-10;
     color: $blue-90;
@@ -219,4 +220,26 @@
 
 .centered-article-container--topic-page #article-citation h3 {
     text-align: left;
+}
+
+// Linear topic page customizations
+.centered-article-container--linear-topic-page {
+    h1.article-block__heading.h1-semibold {
+        font-size: 2.5rem;
+        @include sm-up {
+            font-size: 3rem;
+        }
+    }
+    h2.article-block__heading.h2-bold {
+        font-size: 1.5rem;
+        @include sm-up {
+            font-size: 2rem;
+        }
+    }
+    h3.article-block__heading.h3-bold {
+        font-size: 1.25rem;
+        @include sm-up {
+            font-size: 1.5rem;
+        }
+    }
 }
