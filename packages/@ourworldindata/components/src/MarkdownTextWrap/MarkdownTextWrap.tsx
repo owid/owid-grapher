@@ -17,6 +17,7 @@ import { TextWrap } from "../TextWrap/TextWrap.js"
 import fromMarkdown from "mdast-util-from-markdown"
 import type { Root, Content } from "mdast"
 import { match } from "ts-pattern"
+import { urlRegex } from "../markdown/remarkPlainLinks.js"
 
 const SUPERSCRIPT_NUMERALS = {
     "0": "\u2070",
@@ -895,12 +896,13 @@ function convertMarkdownNodeToIRTokens(
             (item) => {
                 const splitted = item.value.split(/\s+/)
                 const tokens = splitted.flatMap((text, i) => {
+                    const textNode = new IRText(text, fontParams)
+                    const node = text.match(urlRegex)
+                        ? new IRLink(text, [textNode], fontParams)
+                        : textNode
                     if (i < splitted.length - 1) {
-                        return [
-                            new IRText(text, fontParams),
-                            new IRWhitespace(fontParams),
-                        ]
-                    } else return [new IRText(text, fontParams)]
+                        return [node, new IRWhitespace(fontParams)]
+                    } else return [node]
                 })
                 return tokens
             }
