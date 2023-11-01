@@ -1,6 +1,8 @@
 import React from "react"
 import { computed } from "mobx"
 import { Remark } from "react-remark"
+import visit from "unist-util-visit"
+
 type SimpleMarkdownTextProps = {
     text: string
 }
