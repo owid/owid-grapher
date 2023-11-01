@@ -79,6 +79,12 @@
             --expandable-toggle-content: #{$light-text};
         }
 
+        .NonExpandable {
+            --non-expandable-title: #{$dark-text};
+            --non-expandable-content: #{$light-text};
+            --non-expandable-border: #{$border};
+        }
+
         .wp-code-snippet {
             --code-snippet-border: #{$border};
             --code-snippet-background-light: #f7f7f7;

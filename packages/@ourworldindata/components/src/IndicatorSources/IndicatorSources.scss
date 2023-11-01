@@ -40,3 +40,29 @@
         overflow: hidden;
     }
 }
+
+.NonExpandable {
+    --title: var(--non-expandable-title, currentColor);
+    --content: var(--non-expandable-content, #{$blue-60});
+    --border: var(--non-expandable-border, #d0dae3);
+
+    padding: 16px 0;
+
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+
+    &--stacked {
+        border-bottom: none;
+    }
+
+    &__title {
+        @include h4-semibold;
+        margin: 0;
+        margin-bottom: 8px;
+        color: var(--title);
+    }
+
+    &__content {
+        color: var(--content);
+    }
+}

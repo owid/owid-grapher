@@ -19,7 +19,7 @@
     justify-content: space-between;
     align-items: center;
     width: 100%;
-    padding: 16px 0;
+    padding: 16px 0 8px 0;
     color: var(--button);
     background-color: transparent;
     border: none;
@@ -34,6 +34,7 @@
 .ExpandableToggle__title {
     @include h4-semibold;
     margin: 0;
+    color: var(--title);
 }
 
 .ExpandableToggle__icon {

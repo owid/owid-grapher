@@ -479,7 +479,9 @@ export const DataPageV2Content = ({
                                         sources
                                     </h3>
                                     <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                                        <IndicatorSources sources={originsForDisplay} />
+                                        <IndicatorSources
+                                            sources={originsForDisplay}
+                                        />
                                     </div>
                                 </div>
                                 <div className="data-processing grid span-cols-12">

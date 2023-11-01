@@ -1,4 +1,5 @@
 import React from "react"
+import cx from "classnames"
 import { ExpandableToggle } from "../ExpandableToggle/ExpandableToggle.js"
 import { DisplaySource, dayjs, uniqBy } from "@ourworldindata/utils"
 import { SimpleMarkdownText } from "../SimpleMarkdownText.js"
@@ -16,21 +17,49 @@ export const IndicatorSources = (props: IndicatorSourcesProps) => {
 
     return (
         <>
-            {uniqueSources.map((source: DisplaySource, idx: number) => (
-                <ExpandableToggle
-                    key={source.label}
-                    label={source.label}
-                    content={
-                        <SourceContent
-                            source={source}
-                            isEmbeddedInADataPage={isEmbeddedInADataPage}
-                        />
-                    }
-                    isStacked={idx !== uniqueSources.length - 1}
-                    hasTeaser
-                />
-            ))}
+            {uniqueSources.map((source: DisplaySource, idx: number) => {
+                const isStacked = idx !== uniqueSources.length - 1
+                const content = (
+                    <SourceContent
+                        source={source}
+                        isEmbeddedInADataPage={isEmbeddedInADataPage}
+                    />
+                )
+                return source.description && source.citation ? (
+                    <ExpandableToggle
+                        key={source.label}
+                        label={source.label}
+                        content={content}
+                        isStacked={isStacked}
+                        hasTeaser
+                    />
+                ) : (
+                    <NonExpandable
+                        key={source.label}
+                        label={source.label}
+                        isStacked={isStacked}
+                        content={content}
+                    />
+                )
+            })}
         </>
+    )
+}
+
+const NonExpandable = (props: {
+    label: string
+    content: React.ReactNode
+    isStacked?: boolean
+}) => {
+    return (
+        <div
+            className={cx("NonExpandable", {
+                "NonExpandable--stacked": props.isStacked,
+            })}
+        >
+            <h4 className="NonExpandable__title">{props.label}</h4>
+            <div className="NonExpandable__content">{props.content}</div>
+        </div>
     )
 }
 
