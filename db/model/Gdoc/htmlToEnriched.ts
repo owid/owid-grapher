@@ -1387,38 +1387,6 @@ function findCheerioElementRecursive(
     return undefined
 }
 
-function getSimpleSpans(spans: Span[]): [SpanSimpleText[], Span[]] {
-    return partition(
-        spans,
-        (span: Span): span is SpanSimpleText =>
-            span.spanType === "span-simple-text"
-    )
-}
-
-function getSimpleTextSpansFromChildren(
-    element: CheerioElement,
-    context: ParseContext
-): BlockParseResult<SpanSimpleText> {
-    const spansResult = getSpansFromChildren(element, context)
-    const [simpleSpans, otherSpans] = getSimpleSpans(spansResult.content)
-    const errors =
-        otherSpans.length === 0
-            ? spansResult.errors
-            : [
-                  ...spansResult.errors,
-                  {
-                      name: "expected only plain text" as const,
-                      details: `suppressed tags: ${otherSpans
-                          .map((s) => s.spanType)
-                          .join(", ")}`,
-                  },
-              ]
-    return {
-        errors,
-        content: simpleSpans,
-    }
-}
-
 function getSpansFromChildren(
     element: CheerioElement,
     context: ParseContext
