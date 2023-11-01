@@ -107,6 +107,8 @@ import {
     EnrichedBlockTableCell,
     tableSizes,
     tableTemplates,
+    RawBlockBlockquote,
+    EnrichedBlockBlockquote,
 } from "@ourworldindata/utils"
 import { checkIsInternalLink } from "@ourworldindata/components"
 import {
@@ -130,6 +132,7 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "all-charts" }, parseAllCharts)
         .with({ type: "additional-charts" }, parseAdditionalCharts)
         .with({ type: "aside" }, parseAside)
+        .with({ type: "blockquote" }, parseBlockquote)
         .with({ type: "callout" }, parseCallout)
         .with({ type: "chart" }, parseChart)
         .with({ type: "scroller" }, parseScroller)
@@ -303,6 +306,44 @@ const parseAside = (raw: RawBlockAside): EnrichedBlockAside => {
         caption,
         position,
         parseErrors: [],
+    }
+}
+
+const parseBlockquote = (raw: RawBlockBlockquote): EnrichedBlockBlockquote => {
+    const createError = (error: ParseError): EnrichedBlockBlockquote => ({
+        type: "blockquote",
+        text: [],
+        parseErrors: [error],
+    })
+
+    const citation = raw.value.citation || ""
+    if (typeof citation !== "string") {
+        return createError({
+            message: "Citation is not a string",
+        })
+    }
+    if (citation.includes("www.") && !citation.includes("http")) {
+        return createError({
+            message:
+                "Citation is a URL but is missing the http:// or https:// prefix",
+        })
+    }
+
+    if (!isArray(raw.value.text))
+        return createError({
+            message:
+                "Text is not a freeform array. Make sure you've written [.+text]",
+        })
+
+    const parsedText = raw.value.text.map(parseText)
+
+    const parsedTextErrors = parsedText.flatMap((block) => block.parseErrors)
+
+    return {
+        type: "blockquote",
+        text: parsedText,
+        citation,
+        parseErrors: parsedTextErrors,
     }
 }
 

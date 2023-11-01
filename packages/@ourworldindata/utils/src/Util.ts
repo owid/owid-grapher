@@ -1612,6 +1612,12 @@ export function traverseEnrichedBlocks(
                 })
             })
         })
+        .with({ type: "blockquote" }, (blockquote) => {
+            callback(blockquote)
+            blockquote.text.forEach((node) => {
+                traverseEnrichedBlocks(node, callback, spanCallback)
+            })
+        })
         .with(
             {
                 type: P.union(

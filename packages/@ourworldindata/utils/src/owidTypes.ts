@@ -1226,6 +1226,20 @@ export interface EnrichedBlockTableCell {
     content: OwidEnrichedGdocBlock[]
 }
 
+export type RawBlockBlockquote = {
+    type: "blockquote"
+    value: {
+        text?: RawBlockText[]
+        citation?: string
+    }
+}
+
+export type EnrichedBlockBlockquote = {
+    type: "blockquote"
+    text: EnrichedBlockText[]
+    citation?: string
+} & EnrichedBlockWithParseErrors
+
 export type Ref = {
     id: string
     // Can be -1
@@ -1273,6 +1287,7 @@ export type OwidRawGdocBlock =
     | RawBlockAlign
     | RawBlockEntrySummary
     | RawBlockTable
+    | RawBlockBlockquote
 
 export type OwidEnrichedGdocBlock =
     | EnrichedBlockAllCharts
@@ -1309,6 +1324,7 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockAlign
     | EnrichedBlockEntrySummary
     | EnrichedBlockTable
+    | EnrichedBlockBlockquote
 
 export enum OwidGdocPublicationContext {
     unlisted = "unlisted",

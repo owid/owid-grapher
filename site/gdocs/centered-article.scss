@@ -70,6 +70,15 @@ $banner-height: 200px;
     margin-top: 0;
 }
 
+.article-block__blockquote {
+    p {
+        font-style: italic;
+    }
+    cite {
+        font-style: normal;
+    }
+}
+
 .article-block__heading {
     a.deep-link {
         position: absolute;

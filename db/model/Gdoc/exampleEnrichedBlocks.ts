@@ -529,4 +529,10 @@ export const enrichedBlockExamples: Record<
         ],
         parseErrors: [],
     },
+    blockquote: {
+        type: "blockquote",
+        text: [enrichedBlockText],
+        citation: "Max Roser",
+        parseErrors: [],
+    },
 }

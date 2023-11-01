@@ -587,6 +587,34 @@ export default function ArticleBlock({
                 {...block}
             />
         ))
+        .with({ type: "blockquote" }, (block) => {
+            const isCitationUrl = Boolean(
+                block.citation && Url.fromURL(block.citation).origin
+            )
+            const blockquoteProps = isCitationUrl
+                ? { cite: block.citation }
+                : {}
+            return (
+                <blockquote
+                    className={cx(getLayout("blockquote", containerType))}
+                    {...blockquoteProps}
+                >
+                    {block.text.map((textBlock, i) => (
+                        <Paragraph
+                            className="article-block__text"
+                            d={textBlock}
+                            key={i}
+                        />
+                    ))}
+
+                    {isCitationUrl ? null : (
+                        <footer>
+                            <cite>{block.citation}</cite>
+                        </footer>
+                    )}
+                </blockquote>
+            )
+        })
         .exhaustive()
 
     return (
