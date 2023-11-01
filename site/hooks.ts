@@ -9,6 +9,8 @@ export const useTriggerWhenClickOutside = (
 ) => {
     useEffect(() => {
         if (!active) return
+        // Don't toggle if viewport width is xxlg or larger
+        if (window.innerWidth >= 1536) return
         const handleClick = (e: MouseEvent) => {
             if (container && !container.current?.contains(e.target as Node)) {
                 trigger(false)

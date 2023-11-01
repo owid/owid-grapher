@@ -53,8 +53,20 @@ export const TableOfContents = ({
     const toggleIsOpen = () => {
         setIsOpen(!isOpen)
     }
+    // The Gdocs sidebar can't rely on the same CSS logic that old-style entries use, so we need to
+    // explicitly trigger these toggles based on screen width
+    const toggleIsOpenOnMobile = () => {
+        if (window.innerWidth < 1536) {
+            toggleIsOpen()
+        }
+    }
 
     useTriggerWhenClickOutside(tocRef, isOpen, setIsOpen)
+
+    // Open the sidebar on desktop by default when mounting
+    useEffect(() => {
+        setIsOpen(window.innerWidth >= 1536)
+    }, [])
 
     useEffect(() => {
         if ("IntersectionObserver" in window) {
@@ -152,7 +164,7 @@ export const TableOfContents = ({
                         <li>
                             <a
                                 onClick={() => {
-                                    toggleIsOpen()
+                                    toggleIsOpenOnMobile()
                                     setActiveHeading("")
                                 }}
                                 href="#"
@@ -180,7 +192,7 @@ export const TableOfContents = ({
                                     }
                                 >
                                     <a
-                                        onClick={toggleIsOpen}
+                                        onClick={toggleIsOpenOnMobile}
                                         href={`#${heading.slug}`}
                                         data-track-note="toc_link"
                                     >
