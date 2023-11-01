@@ -49,35 +49,38 @@
             }
 
             li {
+                &:first-child {
+                    margin-top: 36px;
+                }
+
                 &.section {
-                    margin-top: 24px;
+                    margin-top: 20px;
+                }
+                &.subsection a {
+                    color: $blue-60;
+                    margin-left: 16px;
+                    line-height: 1.125em;
+                }
+                &.active a {
+                    border-left-color: $vermillion;
+                    background: unset;
+                    font-weight: bold;
                 }
                 a {
                     padding-left: 16px;
                     color: $blue-90;
+                    border-width: 4px;
+                    padding-right: 32px;
+                    margin-left: 0;
+                    font-weight: 400;
+
+                    &:hover {
+                        background: none;
+                        text-decoration: underline;
+                    }
                 }
             }
-            li.section a,
-            li.subsection a {
-                border-width: 4px;
-                padding-right: 32px;
-                margin-left: 0;
 
-                &:hover {
-                    background: none;
-                    text-decoration: underline;
-                }
-            }
-
-            li.subsection a {
-                color: $blue-60;
-                margin-left: 16px;
-            }
-
-            li.active a {
-                border-left-color: $vermillion;
-                background: unset;
-            }
             .toggle-toc {
                 margin-left: 0;
                 transform: translateX(calc(100% + 16px));
