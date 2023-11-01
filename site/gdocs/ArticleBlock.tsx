@@ -588,10 +588,10 @@ export default function ArticleBlock({
             />
         ))
         .with({ type: "blockquote" }, (block) => {
-            const isCitationUrl = Boolean(
-                block.citation && Url.fromURL(block.citation).origin
+            const isCitationAUrl = Boolean(
+                block.citation && block.citation.startsWith("http")
             )
-            const blockquoteProps = isCitationUrl
+            const blockquoteProps = isCitationAUrl
                 ? { cite: block.citation }
                 : {}
             return (
@@ -607,7 +607,7 @@ export default function ArticleBlock({
                         />
                     ))}
 
-                    {isCitationUrl ? null : (
+                    {isCitationAUrl ? null : (
                         <footer>
                             <cite>{block.citation}</cite>
                         </footer>
