@@ -73,9 +73,9 @@ $banner-height: 200px;
 .article-block__blockquote {
     p {
         font-style: italic;
-    }
-    footer {
-        margin-top: -8px;
+        &:last-of-type {
+            margin-bottom: 4px;
+        }
     }
     cite {
         font-style: normal;
