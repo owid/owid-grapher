@@ -78,7 +78,7 @@ export const IndicatorDescriptions = (props: IndicatorDescriptionsProps) => {
                         content={
                             <div className="simple-markdown-text">
                                 <HtmlOrSimpleMarkdownText
-                                    text={props.additionalInfo}
+                                    text={props.additionalInfo.trim()}
                                 />
                             </div>
                         }
