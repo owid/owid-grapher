@@ -104,10 +104,19 @@ export class Source extends React.Component<{
         return uniq(excludeUndefined(this.def.origins.map((o) => o.producer)))
     }
 
+    @computed private get linkifyAttributions(): boolean {
+        const sources = splitSourceTextIntoFragments(
+            this.def.source?.dataPublishedBy
+        )
+        const links = splitSourceTextIntoFragments(this.def.source?.link)
+        return sources.length > 1 && sources.length === links.length
+    }
+
     @computed private get attributions(): string | undefined {
         const attributionFragments =
-            getAttributionFragmentsFromVariable(this.def, { linkify: true }) ??
-            this.producers
+            getAttributionFragmentsFromVariable(this.def, {
+                linkify: this.linkifyAttributions,
+            }) ?? this.producers
         if (attributionFragments.length === 0) return undefined
         return attributionFragments.join(", ")
     }
@@ -138,14 +147,9 @@ export class Source extends React.Component<{
     }
 
     @computed private get sourceLinks(): string[] {
-        const { source = {} } = this.def
-        const sourceLinks = splitSourceTextIntoFragments(source.link)
-        const dataPublishedBy = splitSourceTextIntoFragments(
-            source.dataPublishedBy
-        )
-        // if we have a link for each source, then the attribution is linkified
-        // and we don't need to show the links in a separate field
-        return sourceLinks.length === dataPublishedBy.length ? [] : sourceLinks
+        // if the attributions are linkified, we don't need to show the links in a separate field
+        if (this.linkifyAttributions) return []
+        return splitSourceTextIntoFragments(this.def.source?.link)
     }
 
     render(): JSX.Element {
