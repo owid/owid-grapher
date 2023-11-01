@@ -59,7 +59,7 @@ export class IRText implements IRToken {
         return Bounds.forText(this.text, this.fontParams).width
     }
     @imemo get height(): number {
-        return this.fontParams?.fontSize || 16
+        return this.fontParams?.fontSize || 13
     }
     getBreakpointBefore(): undefined {
         return undefined
@@ -789,14 +789,26 @@ function convertMarkdownNodeToIRTokens(
                 type: "link",
             },
             (item) => {
-                return [
-                    new IRLink(
-                        item.url,
-                        item.children.flatMap((child) =>
-                            convertMarkdownNodeToIRTokens(child, fontParams)
-                        )
-                    ),
-                ]
+                if (item.url.startsWith("#dod:")) {
+                    const term = item.url.replace("#dod:", "")
+                    return [
+                        new IRDetailOnDemand(
+                            term,
+                            item.children.flatMap((child) =>
+                                convertMarkdownNodeToIRTokens(child, fontParams)
+                            ),
+                            fontParams
+                        ),
+                    ]
+                } else
+                    return [
+                        new IRLink(
+                            item.url,
+                            item.children.flatMap((child) =>
+                                convertMarkdownNodeToIRTokens(child, fontParams)
+                            )
+                        ),
+                    ]
             }
         )
         .with(
