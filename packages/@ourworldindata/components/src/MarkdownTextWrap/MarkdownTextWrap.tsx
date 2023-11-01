@@ -863,10 +863,15 @@ function convertMarkdownNodeToIRTokens(
                 type: "text",
             },
             (item) => {
-                const splitted = item.value.split(/(\s+)/)
-                const tokens = splitted.map(
-                    (text, i) => new IRText(text, fontParams)
-                )
+                const splitted = item.value.split(/\s+/)
+                const tokens = splitted.flatMap((text, i) => {
+                    if (i < splitted.length - 1) {
+                        return [
+                            new IRText(text, fontParams),
+                            new IRWhitespace(fontParams),
+                        ]
+                    } else return [new IRText(text, fontParams)]
+                })
                 return tokens
             }
         )
