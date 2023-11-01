@@ -44,6 +44,8 @@ type OwidGdocProps = OwidGdocInterface & {
 const citationDescriptionsByArticleType: Record<OwidGdocType, string> = {
     [OwidGdocType.TopicPage]:
         "Our articles and data visualizations rely on work from many different people and organizations. When citing this topic page, please also cite the underlying data sources. This topic page can be cited as:",
+    [OwidGdocType.LinearTopicPage]:
+        "Our articles and data visualizations rely on work from many different people and organizations. When citing this topic page, please also cite the underlying data sources. This topic page can be cited as:",
     [OwidGdocType.Article]:
         "Our articles and data visualizations rely on work from many different people and organizations. When citing this article, please also cite the underlying data sources. This article can be cited as:",
     // This case should never occur as Fragments aren't baked and can't be viewed by themselves.

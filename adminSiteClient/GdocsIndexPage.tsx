@@ -33,6 +33,7 @@ const iconGdocTypeMap = {
     [OwidGdocType.Fragment]: <FontAwesomeIcon icon={faPuzzlePiece} />,
     [OwidGdocType.Article]: <FontAwesomeIcon icon={faNewspaper} />,
     [OwidGdocType.TopicPage]: <FontAwesomeIcon icon={faLightbulb} />,
+    [OwidGdocType.LinearTopicPage]: <FontAwesomeIcon icon={faLightbulb} />,
 }
 
 @observer
@@ -49,6 +50,7 @@ class GdocsIndexPageSearch extends React.Component<{
             OwidGdocType.Fragment,
             OwidGdocType.Article,
             OwidGdocType.TopicPage,
+            OwidGdocType.LinearTopicPage,
         ]
         return (
             <div className="d-flex flex-grow-1 flex-wrap">
@@ -105,6 +107,7 @@ export class GdocsIndexPage extends React.Component<GdocsMatchProps> {
         [OwidGdocType.Fragment]: false,
         [OwidGdocType.Article]: false,
         [OwidGdocType.TopicPage]: false,
+        [OwidGdocType.LinearTopicPage]: false,
     }
 
     @observable search = { value: "" }

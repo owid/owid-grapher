@@ -138,6 +138,8 @@ function generateGdocRecords(
         switch (gdoc.content.type) {
             case OwidGdocType.TopicPage:
                 return { type: "topic", importance: 3 }
+            case OwidGdocType.LinearTopicPage:
+                return { type: "topic", importance: 3 }
             case OwidGdocType.Fragment:
                 // this should not happen because we filter out fragments; but we want to have an exhaustive switch/case so we include it
                 return { type: "other", importance: 0 }
