@@ -99,6 +99,14 @@ import {
     RawBlockEntrySummary,
     EnrichedBlockEntrySummary,
     EnrichedBlockEntrySummaryItem,
+    RawBlockTable,
+    EnrichedBlockTable,
+    EnrichedBlockTableRow,
+    TableTemplate,
+    TableSize,
+    EnrichedBlockTableCell,
+    tableSizes,
+    tableTemplates,
 } from "@ourworldindata/utils"
 import { checkIsInternalLink } from "@ourworldindata/components"
 import {
@@ -180,6 +188,7 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "expandable-paragraph" }, parseExpandableParagraph)
         .with({ type: "align" }, parseAlign)
         .with({ type: "entry-summary" }, parseEntrySummary)
+        .with({ type: "table" }, parseTable)
         .exhaustive()
 }
 
@@ -787,6 +796,111 @@ const parseRecirc = (raw: RawBlockRecirc): EnrichedBlockRecirc => {
             url: link.url!,
         })),
         parseErrors: [...linkErrors],
+    }
+}
+
+function validateRawEnum<T extends string>(
+    validValues: ReadonlyArray<T>,
+    value: unknown
+): value is T {
+    return typeof value === "string" && validValues.includes(value as T)
+}
+
+export const parseTable = (raw: RawBlockTable): EnrichedBlockTable => {
+    const createError = (
+        error: ParseError,
+        template: TableTemplate = "header-row",
+        size: TableSize = "narrow",
+        rows: EnrichedBlockTableRow[] = []
+    ): EnrichedBlockTable => ({
+        type: "table",
+        template,
+        rows,
+        size,
+        parseErrors: [error],
+    })
+
+    const parseErrors: ParseError[] = []
+
+    const template = raw.value?.template || "header-row"
+    if (!validateRawEnum(tableTemplates, template))
+        return createError({
+            message: `Invalid table template "${template}". Must be one of ${tableTemplates.join(
+                ", "
+            )}`,
+        })
+
+    const size = raw.value?.size || "narrow"
+    if (!validateRawEnum(tableSizes, size))
+        return createError({
+            message: `Invalid table size "${size}". Must be one of ${tableSizes.join(
+                ", "
+            )}`,
+        })
+
+    const rows = raw.value?.rows
+    const enrichedRows: EnrichedBlockTableRow[] = []
+    if (!rows)
+        return createError({
+            message: "Table must have at least one row",
+        })
+
+    for (const [rowIndex, row] of rows.entries()) {
+        const enrichedCells: EnrichedBlockTableCell[] = []
+        const cells = row.value.cells
+        if (!cells) {
+            parseErrors.push({
+                message: `Row ${rowIndex} is missing cells`,
+            })
+        } else {
+            for (const [cellIndex, cell] of cells.entries()) {
+                const enrichedCellContent: OwidEnrichedGdocBlock[] = []
+                const content = cell.value
+                if (!content || !content.length) {
+                    enrichedCells.push({
+                        type: "table-cell",
+                        content: [],
+                    })
+                } else {
+                    for (const [
+                        contentIndex,
+                        contentItem,
+                    ] of content.entries()) {
+                        const enrichedContent =
+                            parseRawBlocksToEnrichedBlocks(contentItem)
+                        if (!enrichedContent) {
+                            parseErrors.push({
+                                message: `Cell (${rowIndex}, ${cellIndex}) content item ${contentIndex} is invalid`,
+                            })
+                        } else if (enrichedContent.parseErrors.length) {
+                            parseErrors.push(
+                                ...enrichedContent.parseErrors.map((error) => ({
+                                    message: `Cell (${rowIndex}, ${cellIndex}) content item ${contentIndex} has error: ${error.message}`,
+                                }))
+                            )
+                        } else {
+                            enrichedCellContent.push(enrichedContent)
+                        }
+                    }
+                    enrichedCells.push({
+                        type: "table-cell",
+                        content: enrichedCellContent,
+                    })
+                }
+            }
+            enrichedRows.push({
+                type: "table-row",
+                cells: enrichedCells,
+            })
+        }
+    }
+
+    return {
+        type: "table",
+        rows: enrichedRows,
+        template,
+        size,
+        parseErrors,
     }
 }
 

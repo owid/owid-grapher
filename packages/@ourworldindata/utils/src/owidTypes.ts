@@ -1139,6 +1139,56 @@ export type EnrichedBlockEntrySummary = {
     items: EnrichedBlockEntrySummaryItem[]
 } & EnrichedBlockWithParseErrors
 
+export const tableTemplates = [
+    "header-column",
+    "header-row",
+    "header-column-row",
+] as const
+
+export type TableTemplate = (typeof tableTemplates)[number]
+
+export const tableSizes = ["narrow", "wide"] as const
+
+export type TableSize = (typeof tableSizes)[number]
+
+export type RawBlockTable = {
+    type: "table"
+    value?: {
+        template?: TableTemplate
+        size?: TableSize
+        rows?: RawBlockTableRow[]
+    }
+}
+
+export interface RawBlockTableRow {
+    type: "table-row"
+    value: {
+        cells?: RawBlockTableCell[]
+    }
+}
+
+export interface RawBlockTableCell {
+    type: "table-cell"
+    value?: OwidRawGdocBlock[]
+}
+
+export type EnrichedBlockTable = {
+    type: "table"
+    template: TableTemplate
+    size: TableSize
+    rows: EnrichedBlockTableRow[]
+} & EnrichedBlockWithParseErrors
+
+export interface EnrichedBlockTableRow {
+    type: "table-row"
+    cells: EnrichedBlockTableCell[]
+}
+
+export interface EnrichedBlockTableCell {
+    type: "table-cell"
+    content: OwidEnrichedGdocBlock[]
+}
+
 export type Ref = {
     id: string
     // Can be -1
@@ -1185,6 +1235,7 @@ export type OwidRawGdocBlock =
     | RawBlockKeyInsights
     | RawBlockAlign
     | RawBlockEntrySummary
+    | RawBlockTable
 
 export type OwidEnrichedGdocBlock =
     | EnrichedBlockAllCharts
@@ -1220,6 +1271,7 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockResearchAndWriting
     | EnrichedBlockAlign
     | EnrichedBlockEntrySummary
+    | EnrichedBlockTable
 
 export enum OwidGdocPublicationContext {
     unlisted = "unlisted",
