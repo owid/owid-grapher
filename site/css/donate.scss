@@ -118,6 +118,12 @@
         color: $blue-90;
     }
 
+    .donation-public-checkbox__label {
+        a {
+            @include owid-link-90;
+        }
+    }
+
     button[type="submit"] {
         padding: 12px 24px;
         background-color: $vermillion;

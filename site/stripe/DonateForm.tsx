@@ -304,12 +304,12 @@ export class DonateForm extends React.Component {
                 <fieldset>
                     <Checkbox
                         label={
-                            <>
+                            <span className="donation-public-checkbox__label">
                                 Include me on the{" "}
                                 <a href="/funding" target="_blank">
                                     public list of donors
                                 </a>
-                            </>
+                            </span>
                         }
                         checked={this.showOnList}
                         onChange={() => this.toggleShowOnList()}
