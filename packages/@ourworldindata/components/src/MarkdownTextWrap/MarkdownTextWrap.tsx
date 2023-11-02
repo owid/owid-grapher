@@ -541,13 +541,12 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
         // return baseText.replaceAll(/[^\n \\]\n[^\n]/g, (match) =>
         //     match.replace("\n", "\\\n")
         // )
-        let text = baseText
-        text = text.replaceAll("\n\n", "@@PARAGRAPH@@")
+        let text = baseText.trim()
+        text = text.replaceAll("\n\n", "@@LINEBREAK@@")
         text = text.replaceAll("\\\n", "@@LINEBREAK@@")
         text = text.replaceAll("  \n", "@@LINEBREAK@@")
         text = text.replaceAll("\n", "\\\n")
         text = text.replaceAll("@@LINEBREAK@@", "\\\n")
-        text = text.replaceAll("@@PARAGRAPH@@", "\n\n")
         return text
     }
     @computed get detailsOrderedByReference(): Set<string> {
@@ -864,7 +863,6 @@ function convertMarkdownNodeToIRTokens(
                     ...item.children.flatMap((child) =>
                         convertMarkdownNodeToIRTokens(child, fontParams)
                     ),
-                    new IRLineBreak(),
                 ]
             }
         )
