@@ -181,18 +181,16 @@ export class Source extends React.Component<{
                 {this.def.descriptionShort && (
                     <p>{this.def.descriptionShort}</p>
                 )}
-                {this.attributions && this.def.timespan && this.lastUpdated && (
-                    <IndicatorKeyData
-                        attribution={this.attributions}
-                        owidProcessingLevel={this.def.owidProcessingLevel}
-                        dateRange={this.def.timespan}
-                        lastUpdated={this.lastUpdated}
-                        nextUpdate={this.nextUpdate}
-                        unit={this.unit}
-                        links={this.sourceLinks}
-                        isEmbeddedInADataPage={this.props.isEmbeddedInADataPage}
-                    />
-                )}
+                <IndicatorKeyData
+                    attribution={this.attributions}
+                    owidProcessingLevel={this.def.owidProcessingLevel}
+                    dateRange={this.def.timespan}
+                    lastUpdated={this.lastUpdated}
+                    nextUpdate={this.nextUpdate}
+                    unit={this.unit}
+                    links={this.sourceLinks}
+                    isEmbeddedInADataPage={this.props.isEmbeddedInADataPage}
+                />
                 {this.showDescriptions && (
                     <IndicatorDescriptions
                         descriptionShort={this.def.descriptionShort}
