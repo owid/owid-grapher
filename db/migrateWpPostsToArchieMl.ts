@@ -73,6 +73,8 @@ const entries = new Set([
     "water-access",
     "water-use-stress",
     "working-hours",
+    // TODO: don't forget to remove this
+    "headings-test",
 ])
 
 const migrate = async (): Promise<void> => {
@@ -92,11 +94,12 @@ const migrate = async (): Promise<void> => {
         "created_at_in_wordpress",
         "updated_at",
         "featured_image"
-    ).from(db.knexTable(Post.postsTable)) //.where("id", "=", "29766"))
+    ).from(db.knexTable(Post.postsTable).where("id", "=", "58149"))
 
     for (const post of posts) {
         try {
             const isEntry = entries.has(post.slug)
+            console.log("isEntry", isEntry)
             const text = post.content
             let relatedCharts: RelatedChart[] = []
             if (isEntry) {
@@ -125,7 +128,8 @@ const migrate = async (): Promise<void> => {
 
             // Heading levels used to start at 2, in the new layout system they start at 1
             // This function iterates all blocks recursively and adjusts the heading levels inline
-            adjustHeadingLevels(archieMlBodyElements)
+            // If the article is an entry, we also put an <hr /> above and below h1's
+            adjustHeadingLevels(archieMlBodyElements, isEntry)
 
             if (relatedCharts.length) {
                 const indexOfFirstHeading = archieMlBodyElements.findIndex(
@@ -189,7 +193,7 @@ const migrate = async (): Promise<void> => {
                     // TODO: this discards block level elements - those might be needed?
                     refs: undefined,
                     type: isEntry
-                        ? OwidGdocType.TopicPage
+                        ? OwidGdocType.LinearTopicPage
                         : OwidGdocType.Article,
                     // Provide an empty array to prevent the sticky nav from rendering at all
                     // Because if it isn't defined, it tries to automatically populate itself

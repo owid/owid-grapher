@@ -34,6 +34,7 @@ import {
     EnrichedBlockGraySection,
     EnrichedBlockStickyRightContainer,
     EnrichedBlockBlockquote,
+    EnrichedBlockHorizontalRule,
 } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
 import {
@@ -393,13 +394,28 @@ export function convertAllWpComponentsToArchieMLBlocks(
     })
 }
 
-export function adjustHeadingLevels(blocks: OwidEnrichedGdocBlock[]): void {
-    for (const block of blocks) {
+export function adjustHeadingLevels(
+    blocks: OwidEnrichedGdocBlock[],
+    isEntry: boolean
+): void {
+    for (let i = 0; i < blocks.length; i++) {
+        const block = blocks[i]
         if (block.type === "heading") {
-            block.level = Math.max(block.level - 1, 1)
-        }
-        if ("children" in block) {
-            adjustHeadingLevels(block.children as OwidEnrichedGdocBlock[])
+            if (isEntry && block.level === 1) {
+                const hr: EnrichedBlockHorizontalRule = {
+                    type: "horizontal-rule",
+                    parseErrors: [],
+                }
+                blocks.splice(i, 0, { ...hr })
+                blocks.splice(i + 2, 0, { ...hr })
+                i += 2
+            }
+            block.level = Math.max(1, block.level - 1)
+        } else if ("children" in block) {
+            adjustHeadingLevels(
+                block.children as OwidEnrichedGdocBlock[],
+                isEntry
+            )
         }
     }
 }
