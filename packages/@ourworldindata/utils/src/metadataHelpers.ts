@@ -4,7 +4,6 @@ import { OwidProcessingLevel, OwidVariableWithSource } from "./OwidVariable"
 import { DisplaySource } from "./owidTypes"
 import { compact, uniq, last, zip, joinWithAmpersand } from "./Util"
 import dayjs from "./dayjs.js"
-import { CoreColumnDef } from "@ourworldindata/core-table"
 
 export function getOriginAttributionFragments(
     origins: OwidOrigin[] | undefined
@@ -171,17 +170,16 @@ export const prepareOriginForDisplay = (origin: OwidOrigin): DisplaySource => {
 }
 
 export const prepareSourceForDisplay = (
-    columnDef: CoreColumnDef
+    source: OwidSource,
+    description?: string
 ): DisplaySource => {
-    const sourceFragments = splitSourceTextIntoFragments(
-        columnDef.source?.dataPublishedBy
-    )
+    const sourceFragments = splitSourceTextIntoFragments(source.dataPublishedBy)
     return {
         label: sourceFragments ? joinWithAmpersand(sourceFragments) : "",
-        description: columnDef.description,
-        retrievedOn: columnDef.source?.retrievedDate
-            ? new Date(columnDef.source?.retrievedDate)
+        description,
+        retrievedOn: source.retrievedDate
+            ? new Date(source.retrievedDate)
             : undefined,
-        retrievedFrom: splitSourceTextIntoFragments(columnDef.source?.link),
+        retrievedFrom: splitSourceTextIntoFragments(source.link),
     }
 }

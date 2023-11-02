@@ -162,7 +162,7 @@ export class Source extends React.Component<{
                 prepareOriginForDisplay(origin)
             ) ?? []
         const sourceForDisplay = this.def.source?.dataPublishedBy
-            ? prepareSourceForDisplay(this.def)
+            ? prepareSourceForDisplay(this.def.source, this.def.description)
             : undefined
         return excludeUndefined([sourceForDisplay, ...originsForDisplay])
     }
