@@ -228,7 +228,7 @@ export async function renderDataPageV2({
     }
     const datapageData = await getDatapageDataV2(
         variableMetadata,
-        grapherConfigForVariable ?? {}
+        grapher ?? {}
     )
 
     const firstTopicTag = datapageData.topicTagsLinks?.[0]
