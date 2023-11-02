@@ -1,6 +1,6 @@
 import React from "react"
 import ReactDOM from "react-dom"
-import classnames from "classnames"
+import cx from "classnames"
 import { observable, action, computed, runInAction } from "mobx"
 import { observer } from "mobx-react"
 import { bind } from "decko"
@@ -10,7 +10,6 @@ import {
     BAKED_BASE_URL,
     RECAPTCHA_SITE_KEY,
 } from "../../settings/clientSettings.js"
-
 import stripe from "./stripe.js"
 import { stringifyUnknownError } from "@ourworldindata/utils"
 
@@ -49,7 +48,6 @@ export class DonateForm extends React.Component {
     @observable presetAmount?: number =
         ONETIME_DONATION_AMOUNTS[ONETIME_DEFAULT_INDEX]
     @observable customAmount: string = ""
-    @observable isCustom: boolean = false
     @observable name: string = ""
     @observable showOnList: boolean = true
     @observable errorMessage?: string
@@ -75,16 +73,12 @@ export class DonateForm extends React.Component {
 
     @action.bound setPresetAmount(amount?: number) {
         this.presetAmount = amount
-        this.isCustom = false
+        this.customAmount = ""
     }
 
     @action.bound setCustomAmount(amount: string) {
         this.customAmount = amount
-        this.isCustom = true
-    }
-
-    @action.bound setIsCustom(isCustom: boolean) {
-        this.isCustom = isCustom
+        this.presetAmount = undefined
     }
 
     @action.bound setName(name: string) {
@@ -104,8 +98,8 @@ export class DonateForm extends React.Component {
     }
 
     @computed get amount(): number | undefined {
-        return this.isCustom
-            ? parseFloat(this.customAmount || "")
+        return this.customAmount
+            ? parseFloat(this.customAmount)
             : this.presetAmount
     }
 
@@ -209,148 +203,118 @@ export class DonateForm extends React.Component {
     render() {
         return (
             <form className="donate-form" onSubmit={this.onSubmit}>
-                <fieldset className="donate-form-interval">
-                    <legend>
-                        <h3>Donation type</h3>
-                    </legend>
-                    <div className="owid-radios">
-                        <div className="owid-radio">
-                            <input
-                                type="radio"
-                                id="once"
-                                value="once"
-                                name="interval"
-                                onChange={() => this.setInterval("once")}
-                                checked={this.interval === "once"}
-                            />
-                            <label htmlFor="once">One time</label>
-                        </div>
-                        <div className="owid-radio">
-                            <input
-                                type="radio"
-                                id="monthly"
-                                value="monthly"
-                                name="interval"
-                                onChange={() => this.setInterval("monthly")}
-                                checked={this.interval === "monthly"}
-                            />
-                            <label htmlFor="monthly">Monthly</label>
-                        </div>
-                    </div>
-                </fieldset>
-
-                <fieldset className="donate-form-currency">
-                    <legend>
-                        <h3>Currency</h3>
-                    </legend>
-                    <div className="owid-radios">
-                        {SUPPORTED_CURRENCY_CODES.map((code) => (
-                            <div key={code} className="owid-radio">
-                                <input
-                                    type="radio"
-                                    id={code}
-                                    value={code}
-                                    name="currency"
-                                    onChange={() => this.setCurrency(code)}
-                                    checked={this.currencyCode === code}
-                                />
-                                <label htmlFor={code}>{code}</label>
-                            </div>
-                        ))}
-                    </div>
-                </fieldset>
-
-                <fieldset className="donate-form-amount">
-                    <legend>
-                        <h3>Amount</h3>
-                    </legend>
-                    <div className="radios">
-                        {this.intervalAmounts.map((amount) => (
-                            <div key={amount} className="owid-radio">
-                                <input
-                                    type="radio"
-                                    id={`amount-${amount}`}
-                                    value={amount}
-                                    name="amount"
-                                    onChange={() =>
-                                        this.setPresetAmount(amount)
-                                    }
-                                    checked={
-                                        amount === this.presetAmount &&
-                                        !this.isCustom
-                                    }
-                                />
-                                <label htmlFor={`amount-${amount}`}>
-                                    {this.currencySymbol}
-                                    {amount}
-                                </label>
-                            </div>
-                        ))}
-                        <div className="owid-radio custom-radio">
-                            <input
-                                type="radio"
-                                id="custom"
-                                name="amount"
-                                checked={this.isCustom}
-                                onChange={(event) =>
-                                    this.setIsCustom(event.target.checked)
-                                }
-                            />
-                            <label htmlFor="custom">
-                                {this.currencySymbol}
-                                <input
-                                    type="text"
-                                    placeholder="Other"
-                                    name="custom-amount"
-                                    className="custom-amount-input"
-                                    onChange={(event) =>
-                                        this.setCustomAmount(event.target.value)
-                                    }
-                                    value={this.customAmount}
-                                />
-                            </label>
-                        </div>
-                    </div>
-                </fieldset>
-
                 <fieldset>
-                    <div className="owid-block-field">
-                        <label htmlFor="name">
-                            <h3>Your name (optional)</h3>
-                        </label>
+                    <legend className="overline-black-caps">
+                        Donation type
+                    </legend>
+                    <div className="donation-options">
                         <input
-                            id="name"
-                            type="text"
-                            className="owid-input"
-                            value={this.name}
-                            onChange={(event) =>
-                                this.setName(event.target.value)
-                            }
+                            type="button"
+                            value="Once"
+                            onClick={() => this.setInterval("once")}
+                            className={cx("donation-options__button", {
+                                active: this.interval === "once",
+                            })}
+                        />
+                        <input
+                            type="button"
+                            value="Monthly"
+                            onClick={() => this.setInterval("monthly")}
+                            className={cx("donation-options__button", {
+                                active: this.interval === "monthly",
+                            })}
                         />
                     </div>
                 </fieldset>
 
                 <fieldset>
-                    <div className="owid-checkboxes">
-                        <div className="owid-checkbox-inline">
+                    <legend>Currency</legend>
+                    <div className="donation-options">
+                        {SUPPORTED_CURRENCY_CODES.map((code) => (
                             <input
-                                type="checkbox"
-                                id="showOnList"
-                                value="showOnList"
-                                name="type"
-                                checked={this.showOnList}
-                                onChange={(event) =>
-                                    this.setShowOnList(event.target.checked)
-                                }
+                                type="button"
+                                value={`${code} (${currencySymbolByCode[code]})`}
+                                onClick={() => this.setCurrency(code)}
+                                className={cx("donation-options__button", {
+                                    active: this.currencyCode === code,
+                                })}
+                                key={code}
                             />
-                            <label htmlFor="showOnList">
-                                Include me on the public{" "}
-                                <a href="/funding" target="_blank">
-                                    list of donors
-                                </a>
+                        ))}
+                    </div>
+                </fieldset>
+
+                <fieldset>
+                    <legend>Amount</legend>
+                    <div className="donation-options">
+                        {this.intervalAmounts.map((amount) => (
+                            <input
+                                type="button"
+                                value={`${this.currencySymbol}${amount}`}
+                                onClick={() => this.setPresetAmount(amount)}
+                                className={cx("donation-options__button", {
+                                    active:
+                                        amount === this.presetAmount &&
+                                        !this.customAmount,
+                                })}
+                                key={amount}
+                            />
+                        ))}
+                        <div
+                            className={cx("donation-custom-amount", {
+                                active: !!this.customAmount,
+                            })}
+                        >
+                            <label htmlFor="donation-custom-amount__input">
+                                {this.currencySymbol}
                             </label>
+                            <input
+                                type="text"
+                                placeholder="Other"
+                                id="donation-custom-amount__input"
+                                className="donation-custom-amount__input"
+                                onChange={(event) =>
+                                    this.setCustomAmount(event.target.value)
+                                }
+                                value={this.customAmount}
+                            />
                         </div>
                     </div>
+                </fieldset>
+
+                <fieldset className="donation-name">
+                    <label
+                        className="donation-name__label"
+                        htmlFor="donation-name__input"
+                    >
+                        Your name (optional)
+                    </label>
+                    <input
+                        id="donation-name__input"
+                        type="text"
+                        className="donation-name__input"
+                        value={this.name}
+                        onChange={(event) => this.setName(event.target.value)}
+                    />
+                </fieldset>
+
+                <fieldset>
+                    <input
+                        type="checkbox"
+                        id="showOnList"
+                        value="showOnList"
+                        name="type"
+                        checked={this.showOnList}
+                        onChange={(event) =>
+                            this.setShowOnList(event.target.checked)
+                        }
+                    />
+                    <label htmlFor="showOnList">
+                        Include me on the public{" "}
+                        <a href="/funding" target="_blank">
+                            list of donors
+                        </a>
+                    </label>
                 </fieldset>
 
                 {this.errorMessage && (
@@ -369,7 +333,7 @@ export class DonateForm extends React.Component {
 
                 <button
                     type="submit"
-                    className={classnames("owid-button", {
+                    className={cx("owid-button", {
                         disabled: this.isSubmitting,
                     })}
                     disabled={this.isLoading}

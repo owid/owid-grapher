@@ -32,29 +32,88 @@
     font-size: 1.125rem;
 
     fieldset {
-        margin: 0 0 1rem;
+        margin: 0 0 24px;
     }
 
-    h3 {
-        font-family: $sans-serif-font-stack;
-        font-size: 1rem;
-        text-transform: uppercase;
-        font-weight: 700;
-        letter-spacing: 0.03rem;
-        margin: 0 0 0.5rem;
+    legend,
+    .donation-name__label {
+        margin-bottom: 8px;
+        @include overline-black-caps;
+        color: $blue-50;
     }
 
-    label {
-        font-weight: 700;
+    .donation-options {
+        display: flex;
+        & > * {
+            margin-right: 8px;
+            &:last-child {
+                margin-right: 0;
+            }
+        }
     }
 
-    .owid-checkboxes label {
-        font-size: 1rem;
-        font-weight: 400;
+    .donation-options__button {
+        padding: 8px 16px;
+        @include body-3-medium;
+        color: $blue-50;
+        border: 1px solid $blue-20;
+        background-color: $white;
+        transition: background-color 0.1s;
+        &:hover {
+            cursor: pointer;
+            background-color: $gray-10;
+            border: 1px solid $gray-10;
+        }
+        &.active {
+            color: $blue-90;
+            background-color: $accent-pale-blue;
+            border: 1px solid $accent-pale-blue;
+        }
     }
 
-    input[type="radio"] {
-        margin-right: 0.25rem;
+    .donation-custom-amount {
+        padding: 8px 16px;
+        border: 1px solid $blue-20;
+        @include body-3-medium;
+        color: $blue-50;
+        &.active {
+            color: $blue-90;
+            background-color: $accent-pale-blue;
+            border: 1px solid $accent-pale-blue;
+        }
+    }
+
+    .donation-custom-amount__input {
+        @include body-3-medium;
+        color: inherit;
+        border: none;
+        background: transparent;
+        width: 48px;
+        outline: none;
+
+        &::placeholder {
+            color: $blue-40;
+            transition: color 150ms linear;
+        }
+
+        &:focus::placeholder {
+            color: $blue-20;
+        }
+    }
+
+    .donation-name {
+        margin-bottom: 16px;
+    }
+
+    .donation-name__label {
+        display: block;
+    }
+
+    .donation-name__input {
+        padding: 8px 16px;
+        border: 1px solid $blue-20;
+        @include body-3-medium;
+        color: $blue-90;
     }
 
     button[type="submit"] {
@@ -74,27 +133,6 @@
     .error {
         font-size: 0.875rem;
         color: $error-text-color;
-    }
-
-    .custom-amount-input {
-        background-color: transparent;
-        border: none;
-        border-bottom: 1px dotted $oxford-blue;
-        width: 4.25rem;
-        outline: none;
-        color: inherit;
-        font-family: inherit;
-        font-size: inherit;
-        font-weight: 700;
-
-        &::placeholder {
-            color: $blue-40;
-            transition: color 150ms linear;
-        }
-
-        &:focus::placeholder {
-            color: $blue-20;
-        }
     }
 }
 
