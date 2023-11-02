@@ -524,7 +524,31 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
         }
     }
     @computed get text(): string {
-        return this.props.text
+        // NOTE: ❗Here we deviate from the normal markdown spec. We replace \n with \\\n to make sure that single \n are treated as
+        // actual line breaks but only if none of the other markdown line break rules apply.
+        // This is a bit different to how markdown usually works but we have a substantial
+        // amount of legacy charts that use newlines in this way and it seems that it is
+        // better to support this simple case than to do a data migration of many chart subtitles.
+        const baseText = this.props.text
+        // This replace is a bit funky - we want to make sure that single \n are treated as
+        // actual line breaks but only if none of the other markdown line break rules apply.
+        // These are:
+        // - \n\n is always a new paragrah
+        // - Two spaces before \n is a line break (this rule is not entirely checked as we only check for a single space)
+        // - A backslash before \n is a line break
+        // The regex tries to find \n that do not belong to any of the three cases above and if none of those apply we
+        // replace the \n in the mached 3 characters with a backslash preceding \n to make sure it will be a line break.
+        // return baseText.replaceAll(/[^\n \\]\n[^\n]/g, (match) =>
+        //     match.replace("\n", "\\\n")
+        // )
+        let text = baseText
+        text = text.replaceAll("\n\n", "@@PARAGRAPH@@")
+        text = text.replaceAll("\\\n", "@@LINEBREAK@@")
+        text = text.replaceAll("  \n", "@@LINEBREAK@@")
+        text = text.replaceAll("\n", "\\\n")
+        text = text.replaceAll("@@LINEBREAK@@", "\\\n")
+        text = text.replaceAll("@@PARAGRAPH@@", "\n\n")
+        return text
     }
     @computed get detailsOrderedByReference(): Set<string> {
         return this.props.detailsOrderedByReference || new Set()
@@ -836,9 +860,12 @@ function convertMarkdownNodeToIRTokens(
                 type: "paragraph",
             },
             (item) => {
-                return item.children.flatMap((child) =>
-                    convertMarkdownNodeToIRTokens(child, fontParams)
-                )
+                return [
+                    ...item.children.flatMap((child) =>
+                        convertMarkdownNodeToIRTokens(child, fontParams)
+                    ),
+                    new IRLineBreak(),
+                ]
             }
         )
         .with(
