@@ -13,6 +13,8 @@ import {
 import stripe from "./stripe.js"
 import { stringifyUnknownError } from "@ourworldindata/utils"
 import { Checkbox } from "@ourworldindata/components"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
 
 type Interval = "once" | "monthly"
 
@@ -330,14 +332,16 @@ export class DonateForm extends React.Component {
 
                 <button
                     type="submit"
-                    className={cx("owid-button", {
-                        disabled: this.isSubmitting,
-                    })}
-                    disabled={this.isLoading}
+                    className="donation-submit"
+                    disabled={this.isLoading || this.isSubmitting}
                 >
                     Donate{" "}
                     {this.amount ? `${this.currencySymbol}${this.amount}` : ""}{" "}
                     {this.interval === "monthly" ? "per month" : ""}
+                    <FontAwesomeIcon
+                        icon={faArrowRight}
+                        className="donation-submit__icon"
+                    />
                 </button>
 
                 <p className="note">

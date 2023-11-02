@@ -119,11 +119,31 @@
     }
 
     button[type="submit"] {
-        background-color: $oxford-blue;
-        font-weight: 700;
+        padding: 12px 24px;
+        background-color: $vermillion;
         color: white;
         border: none;
-        padding: 0.8rem 1rem;
+        @include body-2-semibold;
+        cursor: pointer;
+
+        &:hover {
+            opacity: 0.85;
+
+            .donation-submit__icon {
+                transform: translateX(2px);
+            }
+        }
+
+        &[disabled] {
+            opacity: 0.5;
+            cursor: default;
+        }
+    }
+
+    .donation-submit__icon {
+        margin-left: 8px;
+        font-size: 14px;
+        transition: transform 150ms;
     }
 
     .note {
@@ -133,7 +153,7 @@
     }
 
     .error {
-        font-size: 0.875rem;
+        @include body-3-medium;
         color: $error-text-color;
     }
 }
