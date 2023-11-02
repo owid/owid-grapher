@@ -588,12 +588,17 @@ export default function ArticleBlock({
             />
         ))
         .with({ type: "blockquote" }, (block) => {
+            // If the citation exists and is a URL, it uses the cite attribute
+            // If the citation exists and is not a URL, it uses the footer
+            // Otherwise, we show nothing for cases where the citation is written in the surrounding text
             const isCitationAUrl = Boolean(
                 block.citation && block.citation.startsWith("http")
             )
+            const shouldShowCitationInFooter = block.citation && !isCitationAUrl
             const blockquoteProps = isCitationAUrl
                 ? { cite: block.citation }
                 : {}
+
             return (
                 <blockquote
                     className={cx(getLayout("blockquote", containerType))}
@@ -607,11 +612,11 @@ export default function ArticleBlock({
                         />
                     ))}
 
-                    {isCitationAUrl ? null : (
+                    {shouldShowCitationInFooter ? (
                         <footer>
-                            <cite>{block.citation}</cite>
+                            – <cite>{block.citation}</cite>
                         </footer>
-                    )}
+                    ) : null}
                 </blockquote>
             )
         })

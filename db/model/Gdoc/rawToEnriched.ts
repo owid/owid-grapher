@@ -316,7 +316,10 @@ const parseBlockquote = (raw: RawBlockBlockquote): EnrichedBlockBlockquote => {
         parseErrors: [error],
     })
 
-    if (typeof raw.value.citation !== "string") {
+    if (
+        typeof raw.value.citation !== "undefined" &&
+        typeof raw.value.citation !== "string"
+    ) {
         return createError({
             message: "Citation is not a string",
         })
