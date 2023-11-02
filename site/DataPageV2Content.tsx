@@ -196,9 +196,13 @@ export const DataPageV2Content = ({
     const relatedResearch =
         relatedResearchCandidates.length > 10 &&
         datapageData.topicTagsLinks?.length
-            ? relatedResearchCandidates.filter((research) =>
-                  intersection([research.tags, datapageData.topicTagsLinks])
-              )
+            ? relatedResearchCandidates.filter((research) => {
+                  const shared = intersection(
+                      research.tags,
+                      datapageData.topicTagsLinks ?? []
+                  )
+                  return shared.length > 0
+              })
             : relatedResearchCandidates
     // TODO: mark topic pages
 
