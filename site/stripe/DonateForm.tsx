@@ -12,6 +12,7 @@ import {
 } from "../../settings/clientSettings.js"
 import stripe from "./stripe.js"
 import { stringifyUnknownError } from "@ourworldindata/utils"
+import { Checkbox } from "@ourworldindata/components"
 
 type Interval = "once" | "monthly"
 
@@ -85,8 +86,8 @@ export class DonateForm extends React.Component {
         this.name = name
     }
 
-    @action.bound setShowOnList(showOnList: boolean) {
-        this.showOnList = showOnList
+    @action.bound toggleShowOnList() {
+        this.showOnList = !this.showOnList
     }
 
     @action.bound setErrorMessage(message?: string) {
@@ -299,22 +300,18 @@ export class DonateForm extends React.Component {
                 </fieldset>
 
                 <fieldset>
-                    <input
-                        type="checkbox"
-                        id="showOnList"
-                        value="showOnList"
-                        name="type"
-                        checked={this.showOnList}
-                        onChange={(event) =>
-                            this.setShowOnList(event.target.checked)
+                    <Checkbox
+                        label={
+                            <>
+                                Include me on the{" "}
+                                <a href="/funding" target="_blank">
+                                    public list of donors
+                                </a>
+                            </>
                         }
+                        checked={this.showOnList}
+                        onChange={() => this.toggleShowOnList()}
                     />
-                    <label htmlFor="showOnList">
-                        Include me on the public{" "}
-                        <a href="/funding" target="_blank">
-                            list of donors
-                        </a>
-                    </label>
                 </fieldset>
 
                 {this.errorMessage && (
