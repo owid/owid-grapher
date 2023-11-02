@@ -128,6 +128,30 @@ const migrate = async (): Promise<void> => {
             adjustHeadingLevels(archieMlBodyElements)
 
             if (relatedCharts.length) {
+                const indexOfFirstHeading = archieMlBodyElements.findIndex(
+                    (block) => block.type === "heading"
+                )
+                archieMlBodyElements.splice(indexOfFirstHeading, 0, {
+                    type: "text",
+                    value: [
+                        {
+                            spanType: "span-bold",
+                            children: [
+                                {
+                                    spanType: "span-link",
+                                    url: `#all-charts`,
+                                    children: [
+                                        {
+                                            spanType: "span-simple-text",
+                                            text: `See all interactive charts on ${post.title} ↓`,
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
+                    ],
+                    parseErrors: [],
+                })
                 const allChartsBlock: EnrichedBlockAllCharts = {
                     type: "all-charts",
                     parseErrors: [],
