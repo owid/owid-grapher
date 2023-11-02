@@ -12,6 +12,7 @@ import {
     OwidSource,
 } from "@ourworldindata/utils"
 import {
+    Tabs,
     IndicatorKeyData,
     IndicatorDescriptions,
     IndicatorSources,
@@ -34,10 +35,26 @@ export interface SourcesModalManager {
     isEmbeddedInADataPage?: boolean
 }
 
-@observer
-export class SourcesModal extends React.Component<{
+interface SourcesModalProps {
     manager: SourcesModalManager
-}> {
+}
+
+interface SourcesModalState {
+    activeTabIndex: number
+}
+
+@observer
+export class SourcesModal extends React.Component<
+    SourcesModalProps,
+    SourcesModalState
+> {
+    constructor(props: SourcesModalProps) {
+        super(props)
+        this.state = {
+            activeTabIndex: 0,
+        }
+    }
+
     @computed private get manager(): SourcesModalManager {
         return this.props.manager
     }
@@ -56,8 +73,30 @@ export class SourcesModal extends React.Component<{
         return `${this.props.manager.adminBaseUrl}/admin/datasets`
     }
 
+    @computed private get columns(): CoreColumn[] {
+        return this.manager.columnsWithSourcesExtensive
+    }
+
+    @computed private get tabLabels(): string[] {
+        return this.columns.map(
+            (column) => column.def.display?.name || column.def.name || ""
+        )
+    }
+
+    private renderSource(column: CoreColumn | undefined): JSX.Element | null {
+        if (!column) return null
+        return (
+            <Source
+                column={column}
+                editBaseUrl={this.editBaseUrl}
+                isEmbeddedInADataPage={
+                    this.manager.isEmbeddedInADataPage ?? false
+                }
+            />
+        )
+    }
+
     render(): JSX.Element {
-        const { columnsWithSourcesExtensive } = this.manager
         return (
             <Modal
                 onDismiss={action(
@@ -66,16 +105,29 @@ export class SourcesModal extends React.Component<{
                 bounds={this.modalBounds}
             >
                 <div className="SourcesModalContent">
-                    {columnsWithSourcesExtensive.map((column) => (
-                        <Source
-                            key={column.slug}
-                            column={column}
-                            editBaseUrl={this.editBaseUrl}
-                            isEmbeddedInADataPage={
-                                this.manager.isEmbeddedInADataPage ?? false
-                            }
-                        />
-                    ))}
+                    {this.columns.length === 1 ? (
+                        this.renderSource(this.columns[0])
+                    ) : (
+                        <>
+                            <p className="note-multiple-indicators">
+                                This data includes several indicators. Select an
+                                indicator for more information.
+                            </p>
+                            <Tabs
+                                labels={this.tabLabels}
+                                activeIndex={this.state.activeTabIndex}
+                                setActiveIndex={(index: number) =>
+                                    this.setState({
+                                        activeTabIndex: index,
+                                    })
+                                }
+                                horizontalScroll={true}
+                            />
+                            {this.renderSource(
+                                this.columns[this.state.activeTabIndex]
+                            )}
+                        </>
+                    )}
                 </div>
             </Modal>
         )

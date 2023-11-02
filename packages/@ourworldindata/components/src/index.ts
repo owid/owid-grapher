@@ -14,6 +14,7 @@ export {
 } from "./GdocsUtils.js"
 
 export { ExpandableToggle } from "./ExpandableToggle/ExpandableToggle.js"
+export { Tabs } from "./Tabs/Tabs.js"
 
 export { IndicatorKeyData } from "./IndicatorKeyData/IndicatorKeyData.js"
 export { IndicatorDescriptions } from "./IndicatorDescriptions/IndicatorDescriptions.js"

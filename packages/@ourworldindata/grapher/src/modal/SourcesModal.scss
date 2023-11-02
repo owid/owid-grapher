@@ -7,12 +7,15 @@
     $border: #e7e7e7;
     $box-title: #a1a1a1;
 
+    .note-multiple-indicators {
+        color: $light-text;
+        font-size: 0.875rem;
+        font-style: italic;
+        font-weight: 500;
+    }
+
     .source {
         color: $dark-text;
-
-        + .source {
-            margin-top: 48px;
-        }
 
         h2 {
             @include h1-semibold;
