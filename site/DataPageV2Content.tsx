@@ -19,6 +19,7 @@ import {
     uniq,
     pick,
     formatAuthors,
+    intersection,
 } from "@ourworldindata/utils"
 import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
 import StickyNav from "./blocks/StickyNav.js"
@@ -193,15 +194,12 @@ export const DataPageV2Content = ({
 
     const relatedResearchCandidates = datapageData.relatedResearch
     const relatedResearch =
-        relatedResearchCandidates.length > 10 //&&
-            ? //datapageData.primaryTopic?.topicTag
-              relatedResearchCandidates.filter((research) =>
-                  research.tags.includes(
-                      datapageData.primaryTopic?.topicTag ?? "Economic Growth"
-                  )
+        relatedResearchCandidates.length > 10 &&
+        datapageData.topicTagsLinks?.length
+            ? relatedResearchCandidates.filter((research) =>
+                  intersection([research.tags, datapageData.topicTagsLinks])
               )
             : relatedResearchCandidates
-    // TODO: if there are more than 10 pages and the data page has topic tags, only show then ones that have overlap
     // TODO: mark topic pages
 
     return (

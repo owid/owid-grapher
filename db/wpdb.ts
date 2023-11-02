@@ -693,7 +693,7 @@ export const getRelatedResearchAndWritingForVariable = async (
                 p.featured_image as thumbnail,
                 coalesce(pv.views_365d, 0) as pageviews,
                 'wordpress' as post_source,
-                (select JSON_ARRAYAGG(t.name)
+                (select coalesce(JSON_ARRAYAGG(t.name), JSON_ARRAY())
                     from post_tags pt
                     join tags t on pt.tag_id = t.id
                     where pt.post_id = p.id
@@ -739,7 +739,7 @@ export const getRelatedResearchAndWritingForVariable = async (
                 p.content ->> '$."featured-image"' as thumbnail,
                 coalesce(pv.views_365d, 0) as pageviews,
                 'gdocs' as post_source,
-                (select JSON_ARRAYAGG(t.name)
+                (select coalesce(JSON_ARRAYAGG(t.name), JSON_ARRAY())
                     from posts_gdocs_x_tags pt
                     join tags t on pt.tagId = t.id
                     where pt.gdocId = p.id
