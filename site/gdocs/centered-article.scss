@@ -70,6 +70,26 @@ $banner-height: 200px;
     margin-top: 0;
 }
 
+.article-block__blockquote {
+    margin-top: 0;
+    color: $blue-60;
+    p {
+        font-style: italic;
+        &:last-of-type {
+            margin-bottom: 0px;
+        }
+    }
+    a {
+        color: $blue-60;
+    }
+    footer {
+        margin-top: 8px;
+    }
+    cite {
+        font-style: normal;
+    }
+}
+
 .article-block__heading {
     a.deep-link {
         position: absolute;

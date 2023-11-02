@@ -35,6 +35,7 @@ import {
     isArray,
     RawBlockTable,
     RawBlockTableRow,
+    RawBlockBlockquote,
 } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
 
@@ -586,6 +587,21 @@ function* rawBlockRowToArchieMLString(
     yield "{}"
 }
 
+function* rawBlockBlockquoteToArchieMLString(
+    blockquote: RawBlockBlockquote
+): Generator<string, void, undefined> {
+    yield "{.blockquote}"
+    yield* propertyToArchieMLString("citation", blockquote.value)
+    if (blockquote.value.text) {
+        yield "[.+text]"
+        for (const textBlock of blockquote.value.text) {
+            yield* OwidRawGdocBlockToArchieMLStringGenerator(textBlock)
+        }
+        yield "[]"
+    }
+    yield "{}"
+}
+
 function* rawBlockTableToArchieMLString(
     block: RawBlockTable
 ): Generator<string, void, undefined> {
@@ -666,6 +682,7 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
         .with({ type: "entry-summary" }, rawBlockEntrySummaryToArchieMLString)
         .with({ type: "table" }, rawBlockTableToArchieMLString)
         .with({ type: "table-row" }, rawBlockRowToArchieMLString)
+        .with({ type: "blockquote" }, rawBlockBlockquoteToArchieMLString)
         .exhaustive()
     yield* content
 }

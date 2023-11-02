@@ -35,6 +35,7 @@ import {
     RawBlockEntrySummary,
     RawBlockVideo,
     RawBlockTable,
+    RawBlockBlockquote,
 } from "@ourworldindata/utils"
 import { spanToHtmlString } from "./gdocUtils.js"
 import { match, P } from "ts-pattern"
@@ -417,6 +418,18 @@ export function enrichedBlockToRawBlock(
                             })),
                         },
                     })),
+                },
+            }
+        })
+        .with({ type: "blockquote" }, (b): RawBlockBlockquote => {
+            return {
+                type: "blockquote",
+                value: {
+                    text: b.text.map((enriched) => ({
+                        type: "text",
+                        value: spansToHtmlText(enriched.value),
+                    })),
+                    citation: b.citation,
                 },
             }
         })

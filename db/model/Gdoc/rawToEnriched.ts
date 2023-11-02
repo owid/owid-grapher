@@ -107,6 +107,8 @@ import {
     EnrichedBlockTableCell,
     tableSizes,
     tableTemplates,
+    RawBlockBlockquote,
+    EnrichedBlockBlockquote,
 } from "@ourworldindata/utils"
 import { checkIsInternalLink } from "@ourworldindata/components"
 import {
@@ -130,6 +132,7 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "all-charts" }, parseAllCharts)
         .with({ type: "additional-charts" }, parseAdditionalCharts)
         .with({ type: "aside" }, parseAside)
+        .with({ type: "blockquote" }, parseBlockquote)
         .with({ type: "callout" }, parseCallout)
         .with({ type: "chart" }, parseChart)
         .with({ type: "scroller" }, parseScroller)
@@ -303,6 +306,50 @@ const parseAside = (raw: RawBlockAside): EnrichedBlockAside => {
         caption,
         position,
         parseErrors: [],
+    }
+}
+
+const parseBlockquote = (raw: RawBlockBlockquote): EnrichedBlockBlockquote => {
+    const createError = (error: ParseError): EnrichedBlockBlockquote => ({
+        type: "blockquote",
+        text: [],
+        parseErrors: [error],
+    })
+
+    if (
+        typeof raw.value.citation !== "undefined" &&
+        typeof raw.value.citation !== "string"
+    ) {
+        return createError({
+            message: "Citation is not a string",
+        })
+    }
+    // citation might not be a URL, in which case this is a no-op
+    // but if it is a URL, Gdocs may have wrapped it in an <a> tag which we want to remove
+    const citation = extractUrl(raw.value.citation)
+    // Enforcing http prefix for URLs so that the UI component can easily decide whether to use it in a cite attribute or <cite> tag
+    if (citation.includes("www.") && !citation.startsWith("http")) {
+        return createError({
+            message:
+                "Citation is a URL but is missing the http:// or https:// prefix",
+        })
+    }
+
+    if (!isArray(raw.value.text))
+        return createError({
+            message:
+                "Text is not a freeform array. Make sure you've written [.+text]",
+        })
+
+    const parsedText = raw.value.text.map(parseText)
+
+    const parsedTextErrors = parsedText.flatMap((block) => block.parseErrors)
+
+    return {
+        type: "blockquote",
+        text: parsedText,
+        citation,
+        parseErrors: parsedTextErrors,
     }
 }
 

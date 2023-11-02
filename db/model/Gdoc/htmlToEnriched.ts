@@ -16,7 +16,6 @@ import {
     SpanSimpleText,
     OwidEnrichedGdocBlock,
     EnrichedBlockImage,
-    EnrichedBlockPullQuote,
     EnrichedBlockHeading,
     EnrichedBlockChart,
     EnrichedBlockHtml,
@@ -34,6 +33,7 @@ import {
     EnrichedBlockExpandableParagraph,
     EnrichedBlockGraySection,
     EnrichedBlockStickyRightContainer,
+    EnrichedBlockBlockquote,
 } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
 import {
@@ -822,19 +822,21 @@ function cheerioToArchieML(
             .with({ tagName: "address" }, unwrapElementWithContext)
             .with(
                 { tagName: "blockquote" },
-                (): BlockParseResult<EnrichedBlockPullQuote> => {
-                    const spansResult = getSimpleTextSpansFromChildren(
-                        element,
-                        context
-                    )
+                (): BlockParseResult<EnrichedBlockBlockquote> => {
+                    const spansResult = getSpansFromChildren(element, context)
 
                     return {
                         errors: spansResult.errors,
                         content: [
                             {
-                                type: "pull-quote",
-                                // TODO: this is incomplete - needs to match to all text-ish elements like StructuredText
-                                text: spansResult.content,
+                                type: "blockquote",
+                                text: [
+                                    {
+                                        type: "text",
+                                        value: spansResult.content,
+                                        parseErrors: [],
+                                    },
+                                ],
                                 parseErrors: [],
                             },
                         ],
@@ -1383,38 +1385,6 @@ function findCheerioElementRecursive(
         }
     }
     return undefined
-}
-
-function getSimpleSpans(spans: Span[]): [SpanSimpleText[], Span[]] {
-    return partition(
-        spans,
-        (span: Span): span is SpanSimpleText =>
-            span.spanType === "span-simple-text"
-    )
-}
-
-function getSimpleTextSpansFromChildren(
-    element: CheerioElement,
-    context: ParseContext
-): BlockParseResult<SpanSimpleText> {
-    const spansResult = getSpansFromChildren(element, context)
-    const [simpleSpans, otherSpans] = getSimpleSpans(spansResult.content)
-    const errors =
-        otherSpans.length === 0
-            ? spansResult.errors
-            : [
-                  ...spansResult.errors,
-                  {
-                      name: "expected only plain text" as const,
-                      details: `suppressed tags: ${otherSpans
-                          .map((s) => s.spanType)
-                          .join(", ")}`,
-                  },
-              ]
-    return {
-        errors,
-        content: simpleSpans,
-    }
 }
 
 function getSpansFromChildren(
