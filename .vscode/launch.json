@@ -13,6 +13,9 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
             "type": "node"
         },
         {
@@ -21,6 +24,10 @@
             "request": "launch",
             "name": "Jest Test current file",
             "program": "${workspaceFolder}/node_modules/.bin/jest",
+            "args": [
+                "${fileBasenameNoExtension}.js",
+                "--watch"
+            ],
             "args": [
                 "${fileBasenameNoExtension}.js",
                 "--watch"
@@ -70,7 +77,7 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "type": "node"
+            "type": "node",
         },
         {
             "name": "Run SVGTester",
@@ -79,7 +86,14 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
             "type": "node",
+            "args": [
+                "-g",
+                "367"
+            ]
             "args": [
                 "-g",
                 "367"
@@ -90,7 +104,6 @@
             "program": "${workspaceFolder}/itsJustJavascript/adminSiteServer/app.js",
             "request": "launch",
             "type": "node",
-            "runtimeExecutable": "/home/daniel/.local/share/fnm/node-versions/v18.16.0/installation/bin/node"
         },
         {
             "name": "Attach to node",
