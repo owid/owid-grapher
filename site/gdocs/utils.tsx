@@ -118,13 +118,12 @@ const LinkedA = ({ span }: { span: SpanLink }): JSX.Element => {
     const { linkedChart } = useLinkedChart(span.url)
 
     if (linkType === "url") {
+        // Don't open in new tab if it's an anchor link
+        const linkProps = !span.url.startsWith("#")
+            ? { target: "_blank", rel: "noopener noreferrer" }
+            : {}
         return (
-            <a
-                href={span.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="span-link"
-            >
+            <a href={span.url} className="span-link" {...linkProps}>
                 {renderSpans(span.children)}
             </a>
         )
