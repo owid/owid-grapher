@@ -73,8 +73,6 @@ const entries = new Set([
     "water-access",
     "water-use-stress",
     "working-hours",
-    // TODO: don't forget to remove this
-    "headings-test",
 ])
 
 const migrate = async (): Promise<void> => {
@@ -94,7 +92,7 @@ const migrate = async (): Promise<void> => {
         "created_at_in_wordpress",
         "updated_at",
         "featured_image"
-    ).from(db.knexTable(Post.postsTable).where("id", "=", "58149"))
+    ).from(db.knexTable(Post.postsTable)) // .where("id", "=", "58149"))
 
     for (const post of posts) {
         try {
