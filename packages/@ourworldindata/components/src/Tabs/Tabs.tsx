@@ -6,11 +6,13 @@ export const Tabs = ({
     activeIndex,
     setActiveIndex,
     horizontalScroll = false,
+    slot,
 }: {
     labels: string[]
     activeIndex: number
     setActiveIndex: (label: number) => void
     horizontalScroll?: boolean
+    slot?: JSX.Element
 }) => {
     const container = useRef<HTMLDivElement>(null)
 
@@ -72,6 +74,7 @@ export const Tabs = ({
                     </button>
                 )
             })}
+            {slot}
         </div>
     )
 }

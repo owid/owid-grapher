@@ -1,7 +1,9 @@
 .SourcesModalContent {
-    padding-bottom: $modal-padding;
+    // keep in sync with variables in SourcesModal.tsx
+    $max-width: 840px;
 
-    max-width: 840px;
+    padding-bottom: $modal-padding;
+    max-width: $max-width;
     margin: 0 auto;
 
     $border: #e7e7e7;
@@ -106,6 +108,13 @@
             --code-snippet-button: #{$dark-text};
             --code-snippet-button-hover: #{$light-text};
             --code-snippet-button-active: #{$light-text};
+        }
+
+        // keep in sync with measureTabWidth() in SourcesModal.tsx
+        .Tabs__tab {
+            font-size: 13px;
+            padding: 8px 16px;
+            margin-right: 8px;
         }
 
         .indicator-descriptions .key-info__learn-more,

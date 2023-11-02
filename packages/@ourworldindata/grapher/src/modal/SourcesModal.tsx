@@ -2,6 +2,7 @@ import {
     Bounds,
     DEFAULT_BOUNDS,
     uniq,
+    sortBy,
     getAttributionFragmentsFromVariable,
     getLastUpdatedFromVariable,
     getNextUpdateFromVariable,
@@ -13,6 +14,7 @@ import {
 } from "@ourworldindata/utils"
 import {
     Tabs,
+    ExpandableTabs,
     IndicatorKeyData,
     IndicatorDescriptions,
     IndicatorSources,
@@ -26,6 +28,9 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { CoreColumn, OwidColumnDef } from "@ourworldindata/core-table"
 import { Modal } from "./Modal"
 
+// keep in sync with variables in SourcesModal.scss
+const MAX_WIDTH = 840
+
 export interface SourcesModalManager {
     adminBaseUrl?: string
     columnsWithSourcesExtensive: CoreColumn[]
@@ -33,6 +38,7 @@ export interface SourcesModalManager {
     isSourcesModalOpen?: boolean
     tabBounds?: Bounds
     isEmbeddedInADataPage?: boolean
+    isNarrow?: boolean
 }
 
 interface SourcesModalProps {
@@ -78,8 +84,10 @@ export class SourcesModal extends React.Component<
     }
 
     @computed private get tabLabels(): string[] {
-        return this.columns.map(
-            (column) => column.def.display?.name || column.def.name || ""
+        return sortBy(
+            this.columns.map(
+                (column) => column.def.display?.name || column.def.name || ""
+            )
         )
     }
 
@@ -92,6 +100,59 @@ export class SourcesModal extends React.Component<
                 isEmbeddedInADataPage={
                     this.manager.isEmbeddedInADataPage ?? false
                 }
+            />
+        )
+    }
+
+    private renderTabs(): JSX.Element {
+        const activeIndex = this.state.activeTabIndex
+        const setActiveIndex = (index: number) =>
+            this.setState({
+                activeTabIndex: index,
+            })
+
+        if (this.manager.isNarrow)
+            return (
+                <Tabs
+                    labels={this.tabLabels}
+                    activeIndex={activeIndex}
+                    setActiveIndex={setActiveIndex}
+                    horizontalScroll={true}
+                />
+            )
+
+        // visible tabs should fit into a single line
+        const getVisibleLabels = (labels: string[]) => {
+            const maxWidth = Math.min(
+                MAX_WIDTH,
+                this.modalBounds.width -
+                    2 * 24 - // horizontal padding
+                    10 // wiggle room
+            )
+
+            const visibleLabels: string[] = []
+
+            // take width of the "Show more" button into account
+            let width =
+                measureTabWidth("Show more") +
+                13 + // icon width
+                6 // icon padding
+
+            for (const label of labels) {
+                width += measureTabWidth(label) + 8 // right margin
+                if (width > maxWidth) break
+                visibleLabels.push(label)
+            }
+
+            return visibleLabels
+        }
+
+        return (
+            <ExpandableTabs
+                labels={this.tabLabels}
+                activeIndex={activeIndex}
+                setActiveIndex={setActiveIndex}
+                getVisibleLabels={getVisibleLabels}
             />
         )
     }
@@ -113,16 +174,7 @@ export class SourcesModal extends React.Component<
                                 This data includes several indicators. Select an
                                 indicator for more information.
                             </p>
-                            <Tabs
-                                labels={this.tabLabels}
-                                activeIndex={this.state.activeTabIndex}
-                                setActiveIndex={(index: number) =>
-                                    this.setState({
-                                        activeTabIndex: index,
-                                    })
-                                }
-                                horizontalScroll={true}
-                            />
+                            {this.renderTabs()}
                             {this.renderSource(
                                 this.columns[this.state.activeTabIndex]
                             )}
@@ -266,3 +318,9 @@ export class Source extends React.Component<{
         )
     }
 }
+
+// keep in sync with .Tabs__tab styles in SourcesModal.scss
+const measureTabWidth = (label: string): number =>
+    2 * 16 + // padding
+    Bounds.forText(label, { fontSize: 13 }).width +
+    2 // border

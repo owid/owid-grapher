@@ -31,6 +31,7 @@
         max-width: 240px;
         text-overflow: ellipsis;
         overflow: hidden;
+        cursor: pointer;
     }
 
     &__tab--active {
