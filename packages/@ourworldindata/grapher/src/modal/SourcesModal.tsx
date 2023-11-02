@@ -79,16 +79,14 @@ export class SourcesModal extends React.Component<
         return `${this.props.manager.adminBaseUrl}/admin/datasets`
     }
 
-    @computed private get columns(): CoreColumn[] {
-        return this.manager.columnsWithSourcesExtensive
+    @computed private get sortedColumns(): CoreColumn[] {
+        return sortBy(this.manager.columnsWithSourcesExtensive, (column) =>
+            getColumnName(column)
+        )
     }
 
     @computed private get tabLabels(): string[] {
-        return sortBy(
-            this.columns.map(
-                (column) => column.def.display?.name || column.def.name || ""
-            )
-        )
+        return this.sortedColumns.map((column) => getColumnName(column))
     }
 
     private renderSource(column: CoreColumn | undefined): JSX.Element | null {
@@ -166,8 +164,8 @@ export class SourcesModal extends React.Component<
                 bounds={this.modalBounds}
             >
                 <div className="SourcesModalContent">
-                    {this.columns.length === 1 ? (
-                        this.renderSource(this.columns[0])
+                    {this.sortedColumns.length === 1 ? (
+                        this.renderSource(this.sortedColumns[0])
                     ) : (
                         <>
                             <p className="note-multiple-indicators">
@@ -176,7 +174,7 @@ export class SourcesModal extends React.Component<
                             </p>
                             {this.renderTabs()}
                             {this.renderSource(
-                                this.columns[this.state.activeTabIndex]
+                                this.sortedColumns[this.state.activeTabIndex]
                             )}
                         </>
                     )}
@@ -201,7 +199,7 @@ export class Source extends React.Component<{
     }
 
     @computed private get title(): string {
-        return this.def.display?.name || this.def.name || ""
+        return getColumnName(this.props.column)
     }
 
     @computed private get editUrl(): string | undefined {
@@ -317,6 +315,10 @@ export class Source extends React.Component<{
             </div>
         )
     }
+}
+
+const getColumnName = (column: CoreColumn): string => {
+    return column.def.display?.name || column.def.name || ""
 }
 
 // keep in sync with .Tabs__tab styles in SourcesModal.scss
