@@ -8,81 +8,12 @@ legend {
     border: 0;
 }
 
-/* Radio buttons
-   ========================================================================== */
-
-$radio-icon-size: 18px;
-$radio-bullet-size: 8px;
-
-.owid-radios {
-    display: block;
-}
-
-.owid-radio {
-    display: inline-block;
-    position: relative;
-    padding-left: $radio-icon-size;
-    margin-right: 0.5rem;
-    margin-bottom: 0.75rem;
-
-    input[type="radio"] {
-        position: absolute;
-        z-index: $zindex-input;
-        top: 0;
-        left: 0;
-        width: $radio-icon-size;
-        height: $radio-icon-size;
-        cursor: pointer;
-        margin: 0;
-        opacity: 0;
-    }
-
-    input[type="radio"] + label::before {
-        content: "";
-        position: absolute;
-        top: 50%;
-        left: 0;
-        width: $radio-icon-size;
-        height: $radio-icon-size;
-        margin-top: -$radio-icon-size * 0.5;
-        border: 2px solid currentColor;
-        border-radius: 50%;
-        background: transparent;
-    }
-
-    input[type="radio"]:focus + label::before {
-        box-shadow: 0 0 0 4px $highlight-color;
-    }
-
-    input[type="radio"]:checked + label::after {
-        content: "";
-        position: absolute;
-        top: 50%;
-        left: ($radio-icon-size - $radio-bullet-size) * 0.5;
-        width: $radio-bullet-size;
-        height: $radio-bullet-size;
-        margin-top: -$radio-bullet-size * 0.5;
-        border: 2px solid transparent;
-        border-radius: 50%;
-        background: currentColor;
-    }
-
-    label {
-        padding: 0 0.5rem;
-        cursor: pointer;
-    }
-}
-
 /* Checkboxes
    ========================================================================== */
 
 $checkbox-icon-size: 16px;
 $checkbox-check-width: 8px;
 $checkbox-check-height: 4px;
-
-.owid-checkboxes {
-    display: block;
-}
 
 %owid-checkbox {
     display: inline-block;
@@ -143,8 +74,7 @@ $checkbox-check-height: 4px;
     }
 }
 
-.owid-checkbox,
-.owid-checkbox-inline {
+.owid-checkbox {
     display: inline-block;
     margin-right: 0.5rem;
 
@@ -173,43 +103,6 @@ $checkbox-check-height: 4px;
 
 /* Text fields
    ========================================================================== */
-
-%owid-input {
-    font-family: $sans-serif-font-stack;
-    font-size: 1.125rem;
-    color: $blue-100;
-    background-color: white;
-    padding: 0.625rem 0.75rem;
-    border: 2px solid $oxford-blue;
-    border-radius: 0;
-    outline: none;
-
-    &:focus {
-        border-color: $oxford-blue;
-    }
-
-    &::placeholder {
-        color: $blue-40;
-        transition: opacity 150ms ease;
-    }
-
-    &:focus::placeholder {
-        opacity: 0.5;
-    }
-}
-
-.owid-text-field {
-    font-weight: 700;
-
-    @extend %owid-input;
-}
-
-.owid-block-input {
-    display: block;
-    width: 100%;
-
-    @extend %owid-input;
-}
 
 %owid-button-visual {
     font-family: $sans-serif-font-stack;
@@ -243,24 +136,4 @@ $checkbox-check-height: 4px;
 .owid-button.disabled {
     opacity: 0.5;
     cursor: default;
-}
-
-.owid-block-field {
-    display: block;
-
-    label {
-        display: block;
-    }
-}
-
-.owid-input {
-    @extend %owid-input;
-    width: 100%;
-}
-
-.owid-inline-field {
-    display: flex;
-    @include sm-only {
-        flex-direction: column;
-    }
 }
