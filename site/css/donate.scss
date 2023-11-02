@@ -53,6 +53,7 @@
     }
 
     .donation-options__button {
+        flex: 1;
         padding: 8px 16px;
         @include body-3-medium;
         color: $blue-50;
@@ -110,6 +111,7 @@
     }
 
     .donation-name__input {
+        width: 100%;
         padding: 8px 16px;
         border: 1px solid $blue-20;
         @include body-3-medium;
