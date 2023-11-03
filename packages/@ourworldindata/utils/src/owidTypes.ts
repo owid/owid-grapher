@@ -1733,7 +1733,7 @@ export interface UserCountryInformation {
 export interface DisplaySource {
     label: string
     description?: string
-    retrievedOn?: Date
+    retrievedOn?: string
     retrievedFrom?: string[]
     citation?: string
 }

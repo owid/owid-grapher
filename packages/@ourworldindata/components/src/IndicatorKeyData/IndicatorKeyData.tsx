@@ -24,7 +24,13 @@ export const IndicatorKeyData = (props: IndicatorKeyDataProps) => {
     const processingLevelPhrase = getPhraseForProcessingLevel(
         props.owidProcessingLevel
     )
-    const lastUpdated = dayjs(props.lastUpdated, ["YYYY", "YYYY-MM-DD"])
+
+    const lastUpdated = dayjs(props.lastUpdated ?? "", ["YYYY", "YYYY-MM-DD"])
+    const showLastUpdated = lastUpdated.isValid()
+
+    const nextUpdate = dayjs(props.nextUpdate ?? "", ["YYYY", "YYYY-MM-DD"])
+    const showNextUpdate = nextUpdate.isValid()
+
     return (
         <div className="indicator-key-data">
             {props.attribution && (
@@ -45,13 +51,11 @@ export const IndicatorKeyData = (props: IndicatorKeyDataProps) => {
                     </div>
                 </div>
             )}
-            {props.lastUpdated && (
+            {showLastUpdated && (
                 <div
                     className={cx("indicator-key-data-item", {
                         "indicator-key-data-item--span":
-                            !props.nextUpdate &&
-                            !props.dateRange &&
-                            !props.unit,
+                            !showNextUpdate && !props.dateRange && !props.unit,
                     })}
                 >
                     <div className="indicator-key-data-item__title">
@@ -62,20 +66,18 @@ export const IndicatorKeyData = (props: IndicatorKeyDataProps) => {
                     </div>
                 </div>
             )}
-            {props.nextUpdate && (
+            {showNextUpdate && (
                 <div
                     className={cx("indicator-key-data-item", {
                         "indicator-key-data-item--span":
-                            !props.dateRange &&
-                            !props.unit &&
-                            !props.lastUpdated,
+                            !props.dateRange && !props.unit && !showLastUpdated,
                     })}
                 >
                     <div className="indicator-key-data-item__title">
                         Next expected update
                     </div>
                     <div className="indicator-key-data-item__content">
-                        {props.nextUpdate}
+                        {nextUpdate.format("MMMM YYYY")}
                     </div>
                 </div>
             )}
@@ -84,7 +86,7 @@ export const IndicatorKeyData = (props: IndicatorKeyDataProps) => {
                     className={cx("indicator-key-data-item", {
                         "indicator-key-data-item--span":
                             !props.unit &&
-                            isEven(count(props.lastUpdated, props.nextUpdate)),
+                            isEven(count(showLastUpdated, showNextUpdate)),
                     })}
                 >
                     <div className="indicator-key-data-item__title">

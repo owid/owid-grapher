@@ -2,7 +2,14 @@ import { OwidOrigin } from "./OwidOrigin"
 import { OwidSource } from "./OwidSource"
 import { OwidProcessingLevel, OwidVariableWithSource } from "./OwidVariable"
 import { DisplaySource } from "./owidTypes"
-import { compact, uniq, last, zip, joinWithAmpersand } from "./Util"
+import {
+    compact,
+    uniq,
+    last,
+    zip,
+    joinWithAmpersand,
+    excludeUndefined,
+} from "./Util"
 import dayjs from "./dayjs.js"
 
 export function getOriginAttributionFragments(
@@ -115,10 +122,30 @@ export const formatAuthors = ({
     return authorsText
 }
 
+const isDate = (date: string): boolean => {
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/
+    return !!date.match(dateRegex)
+}
+
 export const getLastUpdatedFromVariable = (
-    variable: Pick<OwidVariableWithSource, "catalogPath">
+    variable: Pick<OwidVariableWithSource, "catalogPath" | "origins">
 ): string | undefined => {
-    return getETLPathComponents(variable.catalogPath ?? "")?.version
+    // if possible, extract date from the catalog path
+    const version = getETLPathComponents(variable.catalogPath ?? "")?.version
+    if (version && isDate(version)) return version
+
+    const { origins = [] } = variable
+    const originDates = excludeUndefined(
+        origins.map((origin) => origin.dateAccessed)
+    )
+
+    if (originDates.length === 0) return undefined
+
+    // alternatively, pick the latest dateAccessed from the origins
+    const latestDate = new Date(
+        Math.max(...originDates.map((date) => new Date(date).getTime()))
+    )
+    return dayjs(latestDate).format("YYYY-MM-DD")
 }
 
 export const getNextUpdateFromVariable = (
@@ -131,10 +158,10 @@ export const getNextUpdateFromVariable = (
         const nextUpdateDate = date.add(variable.updatePeriodDays, "day")
         // If the next update date is in the past, we set it to the next month
         if (nextUpdateDate.isBefore(dayjs()))
-            nextUpdate = dayjs().add(1, "month").format("MMMM YYYY")
-        else nextUpdate = nextUpdateDate.format("MMMM YYYY")
+            nextUpdate = dayjs().add(1, "month")
+        else nextUpdate = nextUpdateDate
     }
-    return nextUpdate
+    return nextUpdate?.format("YYYY-MM-DD")
 }
 
 export const getPhraseForProcessingLevel = (
@@ -177,9 +204,7 @@ export const prepareSourceForDisplay = (
     return {
         label: sourceFragments ? joinWithAmpersand(sourceFragments) : "",
         description,
-        retrievedOn: source.retrievedDate
-            ? new Date(source.retrievedDate)
-            : undefined,
+        retrievedOn: source.retrievedDate,
         retrievedFrom: splitSourceTextIntoFragments(source.link),
     }
 }
