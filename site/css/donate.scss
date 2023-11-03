@@ -124,7 +124,13 @@
         }
     }
 
-    button[type="submit"] {
+    .donation-payment {
+        border-bottom: 1px solid $blue-20;
+        margin-bottom: 32px;
+        padding-bottom: 32px;
+    }
+
+    .donation-submit {
         padding: 12px 24px;
         background-color: $vermillion;
         color: white;
@@ -144,6 +150,13 @@
             opacity: 0.5;
             cursor: default;
         }
+
+        &--light {
+            display: inline-block;
+            border: 1px solid $vermillion;
+            background-color: $white;
+            color: $vermillion;
+        }
     }
 
     .donation-submit__icon {
@@ -152,10 +165,30 @@
         transition: transform 150ms;
     }
 
-    .note {
-        font-size: 0.875rem;
-        color: $secondary-text-color;
-        margin-bottom: 0;
+    .donation-payment-benefits {
+        list-style-position: inside;
+        list-style-type: none;
+    }
+
+    .donation-payment-benefits__item {
+        margin-top: 16px;
+        @include body-3-medium;
+    }
+
+    .donation-payment__or {
+        @include body-2-semibold;
+        color: $blue-60;
+        margin-bottom: 8px;
+    }
+
+    .donation-note {
+        @include body-3-medium;
+        color: $blue-60;
+        margin: 16px 0 0;
+
+        a {
+            @include owid-link-60;
+        }
     }
 
     .error {

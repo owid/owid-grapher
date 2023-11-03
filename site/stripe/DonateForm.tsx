@@ -329,28 +329,65 @@ export class DonateForm extends React.Component {
                     onloadCallback={this.onCaptchaLoad}
                     verifyCallback={this.onCaptchaVerify}
                 />
+                <div className="donation-payment">
+                    <button
+                        type="submit"
+                        className="donation-submit"
+                        disabled={this.isLoading || this.isSubmitting}
+                    >
+                        Donate{" "}
+                        {this.amount
+                            ? `${this.currencySymbol}${this.amount}`
+                            : ""}{" "}
+                        {this.interval === "monthly" ? "per month" : ""}
+                        <FontAwesomeIcon
+                            icon={faArrowRight}
+                            className="donation-submit__icon"
+                        />
+                    </button>
 
-                <button
-                    type="submit"
-                    className="donation-submit"
-                    disabled={this.isLoading || this.isSubmitting}
-                >
-                    Donate{" "}
-                    {this.amount ? `${this.currencySymbol}${this.amount}` : ""}{" "}
-                    {this.interval === "monthly" ? "per month" : ""}
-                    <FontAwesomeIcon
-                        icon={faArrowRight}
-                        className="donation-submit__icon"
-                    />
-                </button>
+                    <ul className="donation-payment-benefits">
+                        <li className="donation-payment-benefits__item">
+                            ✓ Tax free if you have a UK tax number 🇬🇧
+                        </li>
+                        <li className="donation-payment-benefits__item">
+                            ✓ Donate with Link or by card, SEPA, iDEAL, SOFORT,
+                            Bancontact, giropay, EPS
+                        </li>
+                    </ul>
+                </div>
+                <div className="donation-payment">
+                    <p className="donation-payment__or">Or</p>
+                    <a
+                        href="https://www.every.org/ourworldindata?donateTo=ourworldindata#/donate/card"
+                        className="donation-submit donation-submit--light"
+                    >
+                        Donate via every.org
+                        <FontAwesomeIcon
+                            icon={faArrowRight}
+                            className="donation-submit__icon"
+                        />
+                    </a>
 
-                <p className="note">
+                    <ul className="donation-payment-benefits">
+                        <li className="donation-payment-benefits__item">
+                            ✓ 100% of your donation is tax-deductible to the
+                            extent allowed by US law 🇺🇸
+                        </li>
+                        <li className="donation-payment-benefits__item">
+                            ✓ Donate by card, bank transfer, PayPal, Venmo,
+                            crypto, stocks, or DAF
+                        </li>
+                    </ul>
+                </div>
+
+                <p className="donation-note">
                     You will be redirected to a secure page to enter your
                     payment details. We will not share any details you enter
                     with any third parties.
                 </p>
 
-                <p className="note">
+                <p className="donation-note">
                     This site is protected by reCAPTCHA and the Google{" "}
                     <a href="https://policies.google.com/privacy">
                         Privacy Policy
