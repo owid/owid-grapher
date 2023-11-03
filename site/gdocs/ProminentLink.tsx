@@ -6,6 +6,7 @@ import Image from "./Image.js"
 import { useLinkedChart, useLinkedDocument } from "./utils.js"
 import { DocumentContext } from "./OwidGdoc.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
+import { GRAPHER_PREVIEW_URL } from "../../settings/clientSettings.js"
 
 export const ProminentLink = (props: {
     url: string
@@ -61,6 +62,17 @@ export const ProminentLink = (props: {
                 : ""
     }
 
+    const Thumbnail = ({ thumbnail }: { thumbnail: string }) => {
+        if (
+            thumbnail.startsWith(GRAPHER_PREVIEW_URL) ||
+            thumbnail.endsWith("default-thumbnail.jpg")
+        ) {
+            return <img src={thumbnail} />
+        } else {
+            return <Image filename={thumbnail} containerType="thumbnail" />
+        }
+    }
+
     const anchorTagProps =
         linkType === "url"
             ? { target: "_blank", rel: "noopener noreferrer" }
@@ -78,7 +90,7 @@ export const ProminentLink = (props: {
         >
             {thumbnail ? (
                 <div className="prominent-link__image span-sm-cols-3 span-md-cols-2">
-                    <Image filename={thumbnail} containerType="thumbnail" />
+                    <Thumbnail thumbnail={thumbnail} />
                 </div>
             ) : null}
             <div className={textContainerClassName}>
