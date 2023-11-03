@@ -42,6 +42,10 @@
             @include h2-semibold;
             margin-bottom: 16px;
             margin-top: 32px;
+
+            &--tight {
+                margin-bottom: 8px;
+            }
         }
 
         .indicator-key-data {
@@ -62,7 +66,13 @@
             --source-key-data-title: #{$dark-text};
         }
 
-        .indicator-processing-box {
+        .data-processing {
+            --data-processing-content: #{$light-text};
+
+            margin-bottom: 16px;
+        }
+
+        .indicator-processing-callout {
             --indicator-processing-background: #{$gray-10};
             --indicator-processing-title: #{$box-title};
             --indicator-processing-content: #{$dark-text};
@@ -95,7 +105,7 @@
         }
 
         .indicator-descriptions .key-info__learn-more,
-        .data-processing__link {
+        .indicator-processing .indicator-processing__link {
             @include body-3-medium;
             display: inline-block;
             height: auto;

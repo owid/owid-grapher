@@ -2,28 +2,27 @@
     .data-processing {
         --content: var(--data-processing-content, currentColor);
 
-        &__content {
-            margin-bottom: 24px;
-            color: var(--content);
-        }
+        margin-top: 0;
+        margin-bottom: 24px;
 
-        &__paragraph {
+        > p {
             @include body-3-medium;
             margin: 0 0 16px;
-        }
-
-        &__link {
-            @include expandable-paragraph__expand-button--full;
-
-            svg {
-                display: none; // used in Grapher's sources modal
-                font-size: 0.75em;
-                margin-left: 12px;
-            }
+            color: var(--content);
         }
     }
 
-    .indicator-processing-box {
+    .indicator-processing__link {
+        @include expandable-paragraph__expand-button--full;
+
+        svg {
+            display: none; // used in Grapher's sources modal
+            font-size: 0.75em;
+            margin-left: 12px;
+        }
+    }
+
+    .indicator-processing-callout {
         --background: var(--indicator-processing-background, #{$white});
         --title: var(--indicator-processing-title, currentColor);
         --content: var(--indicator-processing-content, #{$blue-60});
