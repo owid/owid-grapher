@@ -227,7 +227,7 @@ export const DataPageV2Content = ({
                             className="wrapper"
                             id="explore-the-data"
                         />
-                        <div className="wrapper grid grid-cols-12">
+                        <div className="about-this-data-wrapper wrapper grid grid-cols-12">
                             <div className="col-start-3 span-cols-8 span-lg-cols-12">
                                 <div className="about-this-data">
                                     <h2 className="about-this-data__heading">
