@@ -55,7 +55,7 @@ export function spanToHtmlString(s: Span): string {
                     span.children
                 )}</a></span>`
         )
-        .with({ spanType: "span-newline" }, () => "</br>")
+        .with({ spanType: "span-newline" }, () => "<br/>")
         .with(
             { spanType: "span-italic" },
             (span) => `<i>${spansToHtmlString(span.children)}</i>`
