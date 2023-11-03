@@ -5,7 +5,7 @@ import { faCheck } from "@fortawesome/free-solid-svg-icons"
 export class Checkbox extends React.Component<{
     checked: boolean
     onChange: () => any
-    label: string | (() => React.ReactNode)
+    label: string | React.ReactNode
 }> {
     render(): JSX.Element {
         const { checked, onChange, label } = this.props
@@ -21,9 +21,7 @@ export class Checkbox extends React.Component<{
                     <div className="custom">
                         {checked && <FontAwesomeIcon icon={faCheck} />}
                     </div>
-                    <div className="label">
-                        {typeof label === "string" ? label : label()}
-                    </div>
+                    <div className="label">{label}</div>
                 </label>
             </div>
         )
