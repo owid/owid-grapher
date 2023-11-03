@@ -127,6 +127,12 @@ export class DonateForm extends React.Component {
             )
         }
 
+        if (this.showOnList && !this.name) {
+            throw new Error(
+                "Please enter your full name if you would like to be included on the public list of donors."
+            )
+        }
+
         const captchaToken = await this.getCaptchaToken()
         const response = await fetch(DONATE_API_URL, {
             method: "POST",
@@ -285,23 +291,7 @@ export class DonateForm extends React.Component {
                     </div>
                 </fieldset>
 
-                <fieldset className="donation-name">
-                    <label
-                        className="donation-name__label"
-                        htmlFor="donation-name__input"
-                    >
-                        Your name (optional)
-                    </label>
-                    <input
-                        id="donation-name__input"
-                        type="text"
-                        className="donation-name__input"
-                        value={this.name}
-                        onChange={(event) => this.setName(event.target.value)}
-                    />
-                </fieldset>
-
-                <fieldset>
+                <fieldset className="donation-public-checkbox">
                     <Checkbox
                         label={
                             <span className="donation-public-checkbox__label">
@@ -315,6 +305,26 @@ export class DonateForm extends React.Component {
                         onChange={() => this.toggleShowOnList()}
                     />
                 </fieldset>
+
+                {this.showOnList && (
+                    <fieldset>
+                        <label
+                            className="donation-name__label"
+                            htmlFor="donation-name__input"
+                        >
+                            Full name
+                        </label>
+                        <input
+                            id="donation-name__input"
+                            type="text"
+                            className="donation-name__input"
+                            value={this.name}
+                            onChange={(event) =>
+                                this.setName(event.target.value)
+                            }
+                        />
+                    </fieldset>
+                )}
 
                 {this.errorMessage && (
                     <p className="error">{this.errorMessage}</p>
