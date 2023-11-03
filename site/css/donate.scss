@@ -1,13 +1,22 @@
-.donate-page {
-    padding: 48px 0;
-    background-color: $gray-10;
-}
 .donate-page__title {
-    @include display-1-semibold;
+    @include display-2-semibold;
     margin-top: 0;
+    @include md-up {
+        @include display-1-semibold;
+        margin-top: 0;
+    }
 }
 
-.donate-page__intro {
+.donate-page-intro {
+    padding-top: 48px;
+    padding-bottom: 48px;
+    background-color: $gray-10;
+}
+
+.donate-page-intro__content {
+    @include sm-only {
+        margin-bottom: 40px;
+    }
     .article-block__text {
         @include body-2-regular;
     }
@@ -46,6 +55,17 @@
         }
     }
 
+    .donation-options--grid {
+        @include lg-down {
+            display: grid;
+            grid-gap: 8px;
+            grid-template-columns: repeat(3, 1fr);
+            & > * {
+                margin-right: 0;
+            }
+        }
+    }
+
     .donation-options__button {
         flex: 1;
         padding: 8px 16px;
@@ -67,6 +87,7 @@
     }
 
     .donation-custom-amount {
+        display: flex;
         padding: 8px 16px;
         border: 1px solid $blue-20;
         @include body-3-medium;
@@ -79,11 +100,11 @@
     }
 
     .donation-custom-amount__input {
+        width: 100%;
         @include body-3-medium;
         color: inherit;
         border: none;
         background: transparent;
-        width: 48px;
         outline: none;
 
         &::placeholder {

@@ -21,9 +21,9 @@ export const DonatePage = (props: {
         <body>
             <SiteHeader baseUrl={props.baseUrl} />
             <main className="donate-page">
-                <div className="wrapper">
-                    <div className="columns">
-                        <div className="column donate-page__intro">
+                <div className="donate-page-intro">
+                    <div className="wrapper grid grid-cols-12">
+                        <div className="donate-page-intro__content span-cols-5 span-sm-cols-12">
                             <h1 className="donate-page__title">
                                 Help us do more
                             </h1>
@@ -74,7 +74,7 @@ export const DonatePage = (props: {
                                 </ul>
                             </aside>
                         </div>
-                        <div className="column">
+                        <div className="col-start-7 span-cols-6 col-lg-start-7 span-lg-cols-6 col-md-start-6 span-md-cols-7 span-sm-cols-12">
                             <div className="donate-form-container">
                                 {/* temporary message, client-side generated form */}
                                 Loading donate form&hellip;

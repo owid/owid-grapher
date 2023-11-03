@@ -249,7 +249,7 @@ export class DonateForm extends React.Component {
 
                 <fieldset>
                     <legend>Amount</legend>
-                    <div className="donation-options">
+                    <div className="donation-options donation-options--grid">
                         {this.intervalAmounts.map((amount) => (
                             <input
                                 type="button"
