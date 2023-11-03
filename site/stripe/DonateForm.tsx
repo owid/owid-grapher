@@ -213,7 +213,7 @@ export class DonateForm extends React.Component {
                     <div className="donation-options">
                         <input
                             type="button"
-                            value="Once"
+                            value="One-time"
                             onClick={() => this.setInterval("once")}
                             className={cx("donation-options__button", {
                                 active: this.interval === "once",
