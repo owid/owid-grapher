@@ -75,6 +75,7 @@ export const GRAPHER_TEST_DB_HOST: string =
 // The OWID stack uses 3307, but incase it's unset, assume user is running a local setup
 export const GRAPHER_TEST_DB_PORT: number =
     parseIntOrUndefined(serverSettings.GRAPHER_TEST_DB_PORT) ?? 3306
+export const GRAPHER_PREVIEW_URL: string = process.env.GRAPHER_PREVIEW_URL ?? ""
 
 export const BAKED_SITE_DIR: string =
     serverSettings.BAKED_SITE_DIR ?? path.resolve(BASE_DIR, "bakedSite") // Where the static build output goes
