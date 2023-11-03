@@ -35,6 +35,10 @@
     @include h4-semibold;
     margin: 0;
     color: var(--title);
+
+    &:hover {
+        color: var(--button-hover);
+    }
 }
 
 .ExpandableToggle__icon {
