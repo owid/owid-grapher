@@ -20,70 +20,68 @@ export const DonatePage = (props: {
         </Head>
         <body>
             <SiteHeader baseUrl={props.baseUrl} />
-            <main>
-                <article className="donate-page">
-                    <div className="page-header">
-                        <div className="wrapper">
-                            <h1 className="page-heading">Help us do more</h1>
+            <main className="donate-page">
+                <div className="wrapper">
+                    <div className="columns">
+                        <div className="column donate-page__intro">
+                            <h1 className="donate-page__title">
+                                Help us do more
+                            </h1>
+                            <p className="article-block__text">
+                                To bring about a better future, we need data and
+                                research to understand the big problems the
+                                world is facing and how to make progress against
+                                them. That’s why we make all our work free and
+                                accessible for everyone.
+                            </p>
+                            <p className="article-block__text">
+                                We are a nonprofit. This means we rely on
+                                donations and grants to keep us going. Reader
+                                donations are essential to our work, providing
+                                us with the stability and independence we need,
+                                so we can focus on showing the data and evidence
+                                we think everyone needs to know.
+                            </p>
+                            <p className="article-block__text">
+                                Donating is also one way to show us that you
+                                find our work helpful and valuable. Knowing this
+                                is a huge source of inspiration for our team.
+                            </p>
+                            <p className="article-block__text">
+                                If you want to help us do more, please donate
+                                today – it will make a real difference.
+                            </p>
+                            <p className="article-block__text">
+                                Thank you, <br />
+                                <em>Global Change Data Lab</em> and the{" "}
+                                <em>Our World in Data</em> team
+                            </p>
+                            <hr className="article-block__horizontal-rule" />
+                            <aside className="donate-page__related-topics">
+                                <h4 className="overline-black-caps">Related</h4>
+                                <ul>
+                                    <li>
+                                        <a href="/about">About us</a>
+                                    </li>
+                                    <li>
+                                        <a href="https://ourworldindata.org/uploads/2019/02/Donations-Policy-Global-Change-Data-Lab.pdf">
+                                            Donations Policy
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="/donate/faq">Donations FAQ</a>
+                                    </li>
+                                </ul>
+                            </aside>
+                        </div>
+                        <div className="column">
+                            <div className="donate-form-container">
+                                {/* temporary message, client-side generated form */}
+                                Loading donate form&hellip;
+                            </div>
                         </div>
                     </div>
-                    <div className="wrapper">
-                        <div className="columns">
-                            <div className="column">
-                                <p>
-                                    To bring about a better future, we need data
-                                    and research to understand the big problems
-                                    the world is facing and how to make progress
-                                    against them. That’s why we make all our
-                                    work free and accessible for everyone.
-                                </p>
-                                <p>
-                                    We are a nonprofit. This means we rely on
-                                    donations and grants to keep us going.
-                                    Reader donations are essential to our work,
-                                    providing us with the stability and
-                                    independence we need, so we can focus on
-                                    showing the data and evidence we think
-                                    everyone needs to know.
-                                </p>
-                                <p>
-                                    Donating is also one way to show us that you
-                                    find our work helpful and valuable. Knowing
-                                    this is a huge source of inspiration for our
-                                    team.
-                                </p>
-                                <p>
-                                    If you want to help us do more, please
-                                    donate today – it will make a real
-                                    difference.
-                                </p>
-                                <p>
-                                    Thank you, <br />
-                                    Global Change Data Lab and the Our World in
-                                    Data team
-                                </p>
-                                <hr />
-                                <p>
-                                    <a href="/about">About us</a> &ndash;{" "}
-                                    <a href="https://ourworldindata.org/uploads/2019/02/Donations-Policy-Global-Change-Data-Lab.pdf">
-                                        Donations Policy
-                                    </a>{" "}
-                                    &ndash;{" "}
-                                    <a href="/donate/faq">Donations FAQ</a>
-                                </p>
-                            </div>
-                            <div className="column">
-                                <div className="donate-form-container shaded-box">
-                                    {/* temporary message, client-side generated form */}
-                                    Loading donate form&hellip;
-                                </div>
-                            </div>
-                        </div>
-                        <div className="columns">
-                            <div className="column"></div>
-                        </div>
-                    </div>
-                </article>
+                </div>
             </main>
 
             <SiteFooter hideDonate={true} baseUrl={props.baseUrl} />

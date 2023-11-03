@@ -1,35 +1,29 @@
 .donate-page {
-    padding-bottom: 3rem;
+    padding: 48px 0;
+    background-color: $gray-10;
+}
+.donate-page__title {
+    @include display-1-semibold;
+    margin-top: 0;
+}
 
-    .page-header {
-        margin: 3rem 0 1.5rem;
-
-        h1 {
-            font-family: $serif-font-stack;
-            font-weight: 400;
-            font-size: 2.5rem;
-            color: $text-color;
-            margin: 0 0 2rem;
-
-            @include sm-only {
-                font-size: 2rem;
-                margin: 0 0 1.5rem;
-            }
-        }
+.donate-page__intro {
+    .article-block__text {
+        @include body-2-regular;
     }
 
-    .shaded-box {
-        border: 2px solid $oxford-blue;
-        padding: 2rem;
-
-        @include sm-only {
-            padding: 1.5rem;
-        }
+    .article-block__horizontal-rule {
+        margin-bottom: 32px;
     }
 }
 
+.donate-page__related-topics {
+    @include related-topics;
+}
+
 .donate-form {
-    font-size: 1.125rem;
+    padding: 32px 40px;
+    background-color: $white;
 
     fieldset {
         margin: 0 0 24px;
