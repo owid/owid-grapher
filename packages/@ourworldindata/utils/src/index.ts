@@ -365,7 +365,6 @@ export {
     getPhraseForProcessingLevel,
     splitSourceTextIntoFragments,
     prepareOriginForDisplay,
-    prepareSourceForDisplay,
 } from "./metadataHelpers.js"
 
 export {

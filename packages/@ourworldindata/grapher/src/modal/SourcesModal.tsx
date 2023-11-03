@@ -8,7 +8,6 @@ import {
     excludeUndefined,
     splitSourceTextIntoFragments,
     prepareOriginForDisplay,
-    prepareSourceForDisplay,
     DisplaySource,
     OwidOrigin,
 } from "@ourworldindata/utils"
@@ -157,14 +156,30 @@ export class Source extends React.Component<{
     }
 
     @computed private get sourcesForDisplay(): DisplaySource[] {
-        const originsForDisplay =
-            this.def.origins?.map((origin: OwidOrigin) =>
+        const { origins, source } = this.def
+
+        const sourcesForDisplay =
+            origins?.map((origin: OwidOrigin) =>
                 prepareOriginForDisplay(origin)
             ) ?? []
-        const sourceForDisplay = this.def.source?.dataPublishedBy
-            ? prepareSourceForDisplay(this.def.source, this.def.description)
-            : undefined
-        return excludeUndefined([sourceForDisplay, ...originsForDisplay])
+
+        // only show old metadata along with new metadata
+        if (sourcesForDisplay.length > 0 && source?.dataPublishedBy) {
+            // add dataPublishedBy to the description
+            let description = source?.dataPublishedBy
+                ? source?.dataPublishedBy + "\n\n"
+                : ""
+            description += this.def.description ?? ""
+
+            sourcesForDisplay.push({
+                label: "Other sources",
+                description,
+                retrievedOn: source?.retrievedDate,
+                retrievedFrom: splitSourceTextIntoFragments(source?.link),
+            })
+        }
+
+        return sourcesForDisplay
     }
 
     render(): JSX.Element {

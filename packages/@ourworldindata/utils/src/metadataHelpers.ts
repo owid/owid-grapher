@@ -2,14 +2,7 @@ import { OwidOrigin } from "./OwidOrigin"
 import { OwidSource } from "./OwidSource"
 import { OwidProcessingLevel, OwidVariableWithSource } from "./OwidVariable"
 import { DisplaySource } from "./owidTypes"
-import {
-    compact,
-    uniq,
-    last,
-    zip,
-    joinWithAmpersand,
-    excludeUndefined,
-} from "./Util"
+import { compact, uniq, last, zip, excludeUndefined } from "./Util"
 import dayjs from "./dayjs.js"
 
 export function getOriginAttributionFragments(
@@ -82,7 +75,7 @@ export function getAttributionFragmentsFromVariable(
     )
 
     const attributionFragments = uniq(
-        compact([...sourceAttributionFragments, ...originAttributionFragments])
+        compact([...originAttributionFragments, ...sourceAttributionFragments])
     )
 
     return attributionFragments
@@ -193,18 +186,5 @@ export const prepareOriginForDisplay = (origin: OwidOrigin): DisplaySource => {
         retrievedOn: origin.dateAccessed,
         retrievedFrom: origin.urlMain ? [origin.urlMain] : undefined,
         citation: origin.citationFull,
-    }
-}
-
-export const prepareSourceForDisplay = (
-    source: OwidSource,
-    description?: string
-): DisplaySource => {
-    const sourceFragments = splitSourceTextIntoFragments(source.dataPublishedBy)
-    return {
-        label: sourceFragments ? joinWithAmpersand(sourceFragments) : "",
-        description,
-        retrievedOn: source.retrievedDate,
-        retrievedFrom: splitSourceTextIntoFragments(source.link),
     }
 }
