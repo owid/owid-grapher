@@ -1,8 +1,7 @@
 import { OwidOrigin } from "./OwidOrigin"
-import { OwidSource } from "./OwidSource"
 import { OwidProcessingLevel, OwidVariableWithSource } from "./OwidVariable"
 import { DisplaySource } from "./owidTypes"
-import { compact, uniq, last, zip, excludeUndefined } from "./Util"
+import { compact, uniq, last, excludeUndefined } from "./Util"
 import dayjs from "./dayjs.js"
 
 export function getOriginAttributionFragments(
@@ -28,29 +27,6 @@ export const splitSourceTextIntoFragments = (
     text: string | undefined
 ): string[] => {
     return text ? text.split(";").map((fragment) => fragment.trim()) : []
-}
-
-const getAttributionFragmentsFromSource = (
-    source: OwidSource | undefined,
-    { linkify } = { linkify: false }
-): string[] => {
-    if (!source || !source.dataPublishedBy) return []
-
-    const fragments = splitSourceTextIntoFragments(source.dataPublishedBy)
-
-    if (!linkify) return fragments
-
-    const links = splitSourceTextIntoFragments(source.link)
-
-    // if the number of fragments and links isn't the same,
-    // we can't safely match them up
-    if (fragments.length !== links.length) return fragments
-
-    const linkifiedFragments = zip(fragments, links).map(
-        ([fragment, link]) => `[${fragment}](${link})`
-    )
-
-    return linkifiedFragments
 }
 
 export function getAttributionFragmentsFromVariable(
@@ -161,7 +137,7 @@ export const getPhraseForProcessingLevel = (
     }
 }
 
-export const prepareOriginForDisplay = (origin: OwidOrigin): DisplaySource => {
+const prepareOriginForDisplay = (origin: OwidOrigin): DisplaySource => {
     let label =
         origin.producer ??
         origin.descriptionSnapshot ??
@@ -178,4 +154,32 @@ export const prepareOriginForDisplay = (origin: OwidOrigin): DisplaySource => {
         retrievedFrom: origin.urlMain ? [origin.urlMain] : undefined,
         citation: origin.citationFull,
     }
+}
+
+export const prepareSourcesForDisplay = (
+    variable: Pick<OwidVariableWithSource, "origins" | "source" | "description">
+): DisplaySource[] => {
+    const { origins, source, description } = variable
+
+    const sourcesForDisplay =
+        origins?.map((origin: OwidOrigin) => prepareOriginForDisplay(origin)) ??
+        []
+
+    if (
+        source?.name &&
+        (description ||
+            source?.dataPublishedBy ||
+            source?.retrievedDate ||
+            source?.link)
+    ) {
+        sourcesForDisplay.push({
+            label: source?.name,
+            description,
+            dataPublishedBy: source?.dataPublishedBy,
+            retrievedOn: source?.retrievedDate,
+            retrievedFrom: splitSourceTextIntoFragments(source?.link),
+        })
+    }
+
+    return sourcesForDisplay
 }

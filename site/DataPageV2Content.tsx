@@ -16,13 +16,12 @@ import { ArticleBlocks } from "./gdocs/ArticleBlocks.js"
 import { RelatedCharts } from "./blocks/RelatedCharts.js"
 import {
     DataPageV2ContentFields,
-    OwidOrigin,
     slugify,
     uniq,
     formatAuthors,
     intersection,
     getPhraseForProcessingLevel,
-    prepareOriginForDisplay,
+    prepareSourcesForDisplay,
 } from "@ourworldindata/utils"
 import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
 import StickyNav from "./blocks/StickyNav.js"
@@ -102,9 +101,7 @@ export const DataPageV2Content = ({
             : "related-data__category--columns span-cols-8 span-lg-cols-12"
     } `
 
-    const originsForDisplay = datapageData.origins.map((origin: OwidOrigin) =>
-        prepareOriginForDisplay(origin)
-    )
+    const sourcesForDisplay = prepareSourcesForDisplay(datapageData)
     const producers = uniq(datapageData.origins.map((o) => o.producer))
 
     const attributionFragments = datapageData.attributions ?? producers
@@ -480,7 +477,7 @@ export const DataPageV2Content = ({
                                     </h3>
                                     <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
                                         <IndicatorSources
-                                            sources={originsForDisplay}
+                                            sources={sourcesForDisplay}
                                         />
                                     </div>
                                 </div>

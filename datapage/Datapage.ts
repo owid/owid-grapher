@@ -29,6 +29,7 @@ export const getDatapageDataV2 = async (
                 variableMetadata.display?.name ??
                 variableMetadata.name ??
                 "",
+            description: variableMetadata.description,
             descriptionShort: variableMetadata.descriptionShort,
             descriptionFromProducer: variableMetadata.descriptionFromProducer,
             attributionShort: variableMetadata.presentation?.attributionShort,

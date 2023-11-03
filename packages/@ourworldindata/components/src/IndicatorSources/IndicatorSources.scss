@@ -20,10 +20,6 @@
         --title: var(--source-key-data-title, #{$blue-90});
 
         @include body-3-medium;
-        a {
-            @include owid-link-90;
-            color: inherit;
-        }
     }
 
     .source-key-data--span-2 {
@@ -38,6 +34,11 @@
         white-space: nowrap;
         text-overflow: ellipsis;
         overflow: hidden;
+    }
+
+    a {
+        @include owid-link-90;
+        color: inherit;
     }
 }
 

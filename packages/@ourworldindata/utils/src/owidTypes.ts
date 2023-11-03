@@ -1585,6 +1585,7 @@ export interface DataPageDataV2 {
     topicTagsLinks?: string[]
     primaryTopic?: PrimaryTopic
     attributions: string[]
+    description?: string
     descriptionShort?: string
     descriptionFromProducer?: string
     faqs: FaqLink[] // Todo: resolve these at this level to the point where we can preview them

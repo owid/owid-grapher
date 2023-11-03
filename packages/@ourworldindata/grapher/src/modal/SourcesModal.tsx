@@ -7,9 +7,8 @@ import {
     getNextUpdateFromVariable,
     excludeUndefined,
     splitSourceTextIntoFragments,
-    prepareOriginForDisplay,
     DisplaySource,
-    OwidOrigin,
+    prepareSourcesForDisplay,
 } from "@ourworldindata/utils"
 import {
     IndicatorKeyData,
@@ -144,30 +143,7 @@ export class Source extends React.Component<{
     }
 
     @computed private get sourcesForDisplay(): DisplaySource[] {
-        const { origins, source } = this.def
-
-        const sourcesForDisplay =
-            origins?.map((origin: OwidOrigin) =>
-                prepareOriginForDisplay(origin)
-            ) ?? []
-
-        if (
-            source?.name &&
-            (this.def.description ||
-                source?.dataPublishedBy ||
-                source?.retrievedDate ||
-                source?.link)
-        ) {
-            sourcesForDisplay.push({
-                label: source?.name,
-                description: this.def.description,
-                dataPublishedBy: source?.dataPublishedBy,
-                retrievedOn: source?.retrievedDate,
-                retrievedFrom: splitSourceTextIntoFragments(source?.link),
-            })
-        }
-
-        return sourcesForDisplay
+        return prepareSourcesForDisplay(this.def)
     }
 
     render(): JSX.Element {
