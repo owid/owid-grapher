@@ -140,7 +140,7 @@ export class DonateForm extends React.Component {
                 currency: this.currencyCode,
                 amount: Math.floor(this.amount * 100),
                 interval: this.interval,
-                successUrl: `${BAKED_BASE_URL}/donate/thank-you`,
+                successUrl: `${BAKED_BASE_URL}/thank-you`,
                 cancelUrl: `${BAKED_BASE_URL}/donate`,
                 captchaToken: captchaToken,
             }),
