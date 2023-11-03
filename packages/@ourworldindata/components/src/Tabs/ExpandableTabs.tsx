@@ -24,20 +24,19 @@ export const ExpandableTabs = ({
 
     const visibleLabels = isExpanded ? labels : getVisibleLabels(labels)
 
+    const moreButton = (
+        <button className="Tabs__tab ExpandableTabs__button" onClick={toggle}>
+            <FontAwesomeIcon icon={isExpanded ? faMinus : faPlus} />
+            <span>{isExpanded ? "Show less" : "Show more"}</span>
+        </button>
+    )
+
     return (
         <Tabs
             labels={visibleLabels}
             activeIndex={activeIndex}
             setActiveIndex={setActiveIndex}
-            slot={
-                <button
-                    className="Tabs__tab ExpandableTabs__button"
-                    onClick={toggle}
-                >
-                    <FontAwesomeIcon icon={isExpanded ? faMinus : faPlus} />
-                    <span>{isExpanded ? "Show less" : "Show more"}</span>
-                </button>
-            }
+            slot={moreButton}
         />
     )
 }

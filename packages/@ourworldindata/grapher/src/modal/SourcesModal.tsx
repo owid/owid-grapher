@@ -3,6 +3,8 @@ import {
     DEFAULT_BOUNDS,
     uniq,
     sortBy,
+    sum,
+    zip,
     getAttributionFragmentsFromVariable,
     getLastUpdatedFromVariable,
     getNextUpdateFromVariable,
@@ -29,7 +31,7 @@ import { CoreColumn, OwidColumnDef } from "@ourworldindata/core-table"
 import { Modal } from "./Modal"
 
 // keep in sync with variables in SourcesModal.scss
-const MAX_WIDTH = 840
+const MAX_WIDTH = 832
 
 export interface SourcesModalManager {
     adminBaseUrl?: string
@@ -39,6 +41,7 @@ export interface SourcesModalManager {
     tabBounds?: Bounds
     isEmbeddedInADataPage?: boolean
     isNarrow?: boolean
+    fontSize?: number
 }
 
 interface SourcesModalProps {
@@ -119,31 +122,56 @@ export class SourcesModal extends React.Component<
                 />
             )
 
-        // visible tabs should fit into a single line
-        const getVisibleLabels = (labels: string[]) => {
-            const maxWidth = Math.min(
-                MAX_WIDTH,
-                this.modalBounds.width -
-                    2 * 24 - // horizontal padding
-                    10 // wiggle room
+        // width available for tabs
+        const modalPadding = 1.5 * (this.manager.fontSize ?? 16)
+        const maxWidth = Math.min(
+            MAX_WIDTH,
+            this.modalBounds.width - 2 * modalPadding - 10 // wiggle room
+        )
+
+        const labelWidths = this.tabLabels.map(
+            (label) => measureTabWidth(label) + 8 // right padding
+        )
+
+        // check if all tabs fit into a single line
+        if (sum(labelWidths) <= maxWidth)
+            return (
+                <Tabs
+                    labels={this.tabLabels}
+                    activeIndex={activeIndex}
+                    setActiveIndex={setActiveIndex}
+                />
             )
 
-            const visibleLabels: string[] = []
-
+        // get a subset of tabs that fit into a single line
+        const getVisibleLabels = (labels: string[]) => {
             // take width of the "Show more" button into account
             let width =
                 measureTabWidth("Show more") +
                 13 + // icon width
                 6 // icon padding
 
-            for (const label of labels) {
-                width += measureTabWidth(label) + 8 // right margin
+            const visibleLabels: string[] = []
+            for (const [label, labelWidth] of zip(labels, labelWidths)) {
+                width += labelWidth as number
                 if (width > maxWidth) break
-                visibleLabels.push(label)
+                visibleLabels.push(label as string)
             }
 
             return visibleLabels
         }
+
+        // if only a single label would be visible, we prefer tabs with horizontal scrolling
+        const visibleLabels = getVisibleLabels(this.tabLabels)
+        if (visibleLabels.length <= 1)
+            return (
+                <Tabs
+                    labels={this.tabLabels}
+                    activeIndex={activeIndex}
+                    setActiveIndex={setActiveIndex}
+                    horizontalScroll={true}
+                />
+            )
 
         return (
             <ExpandableTabs
@@ -322,7 +350,11 @@ const getColumnName = (column: CoreColumn): string => {
 }
 
 // keep in sync with .Tabs__tab styles in SourcesModal.scss
-const measureTabWidth = (label: string): number =>
-    2 * 16 + // padding
-    Bounds.forText(label, { fontSize: 13 }).width +
-    2 // border
+const measureTabWidth = (label: string): number => {
+    const maxWidth = 240
+    const computedWidth =
+        2 * 16 + // padding
+        Bounds.forText(label, { fontSize: 13 }).width +
+        2 // border
+    return Math.min(maxWidth, computedWidth)
+}
