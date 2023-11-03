@@ -25,7 +25,9 @@ export const IndicatorSources = (props: IndicatorSourcesProps) => {
                         isEmbeddedInADataPage={isEmbeddedInADataPage}
                     />
                 )
-                return source.description || source.citation ? (
+                return source.description ||
+                    source.citation ||
+                    source.dataPublishedBy ? (
                     <ExpandableToggle
                         key={source.label}
                         label={source.label}
@@ -72,6 +74,7 @@ const SourceContent = (props: {
         ? dayjs(source.retrievedOn).format("MMMM D, YYYY")
         : undefined
     const showKeyInfo =
+        source.dataPublishedBy ||
         retrievedOn ||
         (source.retrievedFrom && source.retrievedFrom.length > 0) ||
         source.citation
@@ -84,6 +87,14 @@ const SourceContent = (props: {
             )}
             {showKeyInfo && (
                 <div className="source-key-data-blocks">
+                    {source.dataPublishedBy && (
+                        <div className="source-key-data source-key-data--span-2">
+                            <div className="source-key-data__title">
+                                Data published by
+                            </div>
+                            <div>{source.dataPublishedBy}</div>
+                        </div>
+                    )}
                     {retrievedOn && (
                         <div className="source-key-data">
                             <div className="source-key-data__title">

@@ -57,8 +57,7 @@ export function getAttributionFragmentsFromVariable(
     variable: Pick<
         OwidVariableWithSource,
         "presentation" | "origins" | "source"
-    >,
-    { linkify } = { linkify: false }
+    >
 ): string[] {
     if (
         variable.presentation?.attribution &&
@@ -69,16 +68,8 @@ export function getAttributionFragmentsFromVariable(
     const originAttributionFragments = getOriginAttributionFragments(
         variable.origins
     )
-    const sourceAttributionFragments = getAttributionFragmentsFromSource(
-        variable.source,
-        { linkify }
-    )
-
-    const attributionFragments = uniq(
-        compact([...originAttributionFragments, ...sourceAttributionFragments])
-    )
-
-    return attributionFragments
+    const name = variable.source?.name
+    return uniq(compact([name, ...originAttributionFragments]))
 }
 
 interface ETLPathComponents {
