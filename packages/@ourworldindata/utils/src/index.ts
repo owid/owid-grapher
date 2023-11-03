@@ -596,6 +596,7 @@ export {
     findUrlsInText,
     camelCaseProperties,
     includesCaseInsensitive,
+    titleCase,
 } from "./string.js"
 
 export { serializeJSONForHTML, deserializeJSONFromHTML } from "./serializers.js"

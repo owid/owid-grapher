@@ -11,7 +11,7 @@ import {
     RECAPTCHA_SITE_KEY,
 } from "../../settings/clientSettings.js"
 import stripe from "./stripe.js"
-import { stringifyUnknownError } from "@ourworldindata/utils"
+import { stringifyUnknownError, titleCase } from "@ourworldindata/utils"
 import { Checkbox } from "@ourworldindata/components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
@@ -85,7 +85,9 @@ export class DonateForm extends React.Component {
     }
 
     @action.bound setName(name: string) {
-        this.name = name
+        // capitalize first letter of each word. Words can be separated by
+        // spaces or hyphens.
+        this.name = titleCase(name)
     }
 
     @action.bound toggleShowOnList() {
