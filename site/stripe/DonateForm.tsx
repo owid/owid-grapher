@@ -215,13 +215,11 @@ export class DonateForm extends React.Component {
         return (
             <form className="donate-form" onSubmit={this.onSubmit}>
                 <fieldset>
-                    <legend className="overline-black-caps">
-                        Donation type
-                    </legend>
+                    <legend className="overline-black-caps">Frequency</legend>
                     <div className="donation-options">
                         <input
                             type="button"
-                            value="One-time"
+                            value="Give once"
                             onClick={() => this.setInterval("once")}
                             className={cx("donation-options__button", {
                                 active: this.interval === "once",
@@ -297,7 +295,7 @@ export class DonateForm extends React.Component {
                     <Checkbox
                         label={
                             <span className="donation-public-checkbox__label">
-                                Include me on the{" "}
+                                Include my name on the{" "}
                                 <a href="/funding" target="_blank">
                                     public list of donors
                                 </a>
@@ -347,11 +345,7 @@ export class DonateForm extends React.Component {
                         className="donation-submit"
                         disabled={this.isLoading || this.isSubmitting}
                     >
-                        Donate{" "}
-                        {this.amount
-                            ? `${this.currencySymbol}${this.amount}`
-                            : ""}{" "}
-                        {this.interval === "monthly" ? "per month" : ""}
+                        Donate now
                         <FontAwesomeIcon
                             icon={faArrowRight}
                             className="donation-submit__icon"
@@ -360,16 +354,16 @@ export class DonateForm extends React.Component {
 
                     <ul className="donation-payment-benefits">
                         <li className="donation-payment-benefits__item">
-                            ✓ Tax free if you have a UK tax number 🇬🇧
+                            ✓ Your donation qualifies for Gift Aid in the UK 🇬🇧
                         </li>
                         <li className="donation-payment-benefits__item">
-                            ✓ Donate with Link or by card, SEPA, iDEAL, SOFORT,
-                            Bancontact, giropay, EPS
+                            ✓ Donate using credit/debit card, SEPA, iDEAL and
+                            more
                         </li>
                     </ul>
                 </div>
                 <div className="donation-payment">
-                    <p className="donation-payment__or">Or</p>
+                    <p className="donation-payment__or">Alternatively</p>
                     <a
                         href="https://www.every.org/ourworldindata?donateTo=ourworldindata#/donate/card"
                         className="donation-submit donation-submit--light"
@@ -387,8 +381,12 @@ export class DonateForm extends React.Component {
                             extent allowed by US law 🇺🇸
                         </li>
                         <li className="donation-payment-benefits__item">
-                            ✓ Donate by card, bank transfer, PayPal, Venmo,
-                            crypto, stocks, or DAF
+                            ✓ Donate in US dollars using PayPal, Venmo, direct
+                            US bank transfer (ACH), credit card and more
+                        </li>
+                        <li className="donation-payment-benefits__item">
+                            ✓ Use this option for donor-advised fund (DAF)
+                            grants
                         </li>
                     </ul>
                 </div>
