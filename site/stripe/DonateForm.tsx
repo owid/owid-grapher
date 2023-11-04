@@ -11,10 +11,13 @@ import {
     RECAPTCHA_SITE_KEY,
 } from "../../settings/clientSettings.js"
 import stripe from "./stripe.js"
-import { stringifyUnknownError, titleCase } from "@ourworldindata/utils"
+import { Tippy, stringifyUnknownError, titleCase } from "@ourworldindata/utils"
 import { Checkbox } from "@ourworldindata/components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
+import {
+    faArrowRight,
+    faQuestionCircle,
+} from "@fortawesome/free-solid-svg-icons"
 
 type Interval = "once" | "monthly"
 
@@ -354,7 +357,30 @@ export class DonateForm extends React.Component {
 
                     <ul className="donation-payment-benefits">
                         <li className="donation-payment-benefits__item">
-                            ✓ Your donation qualifies for Gift Aid in the UK 🇬🇧
+                            🇬🇧 Your donation qualifies for Gift Aid in the UK{" "}
+                            <Tippy
+                                appendTo={() => document.body}
+                                content={
+                                    <div>
+                                        <p>
+                                            Your donation qualifies for Gift Aid
+                                            if you pay tax in the UK, and have
+                                            signed the Gift Aid declaration.
+                                        </p>
+                                        <p>
+                                            Every £1 that you donate with Gift
+                                            Aid is worth £1.25 to us, at no
+                                            extra cost to you.
+                                        </p>
+                                    </div>
+                                }
+                                interactive
+                                placement="bottom"
+                                theme="owid-footnote"
+                                trigger="mouseenter focus click"
+                            >
+                                <FontAwesomeIcon icon={faQuestionCircle} />
+                            </Tippy>
                         </li>
                         <li className="donation-payment-benefits__item">
                             ✓ Donate using credit/debit card, SEPA, iDEAL and
@@ -377,8 +403,35 @@ export class DonateForm extends React.Component {
 
                     <ul className="donation-payment-benefits">
                         <li className="donation-payment-benefits__item">
-                            ✓ 100% of your donation is tax-deductible to the
-                            extent allowed by US law 🇺🇸
+                            🇺🇸 100% of your donation is tax-deductible{" "}
+                            <Tippy
+                                appendTo={() => document.body}
+                                content={
+                                    <div>
+                                        <p>
+                                            After your donation payment is
+                                            confirmed, you will immediately get
+                                            a tax-deductible receipt emailed to
+                                            you.
+                                        </p>
+                                        <p>
+                                            100% of your donation is
+                                            tax-deductible to the extent allowed
+                                            by US law. Your donation is made to
+                                            Every.org, a tax-exempt US 501(c)(3)
+                                            charity that grants unrestricted
+                                            funds to Our World in Data on your
+                                            behalf.
+                                        </p>
+                                    </div>
+                                }
+                                interactive
+                                placement="bottom"
+                                theme="owid-footnote"
+                                trigger="mouseenter focus click"
+                            >
+                                <FontAwesomeIcon icon={faQuestionCircle} />
+                            </Tippy>
                         </li>
                         <li className="donation-payment-benefits__item">
                             ✓ Donate in US dollars using PayPal, Venmo, direct
