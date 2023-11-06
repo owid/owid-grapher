@@ -154,7 +154,7 @@
         cursor: pointer;
 
         &:hover {
-            opacity: 0.85;
+            background-color: $accent-vermillion;
 
             .donation-submit__icon {
                 transform: translateX(2px);
@@ -165,12 +165,17 @@
             opacity: 0.5;
             cursor: default;
         }
+    }
 
-        &--light {
-            display: inline-block;
-            border: 1px solid $vermillion;
+    .donation-submit--light {
+        display: inline-block;
+        border: 1px solid $vermillion;
+        background-color: $white;
+        color: $vermillion;
+
+        &:hover {
             background-color: $white;
-            color: $vermillion;
+            color: $accent-vermillion;
         }
     }
 
