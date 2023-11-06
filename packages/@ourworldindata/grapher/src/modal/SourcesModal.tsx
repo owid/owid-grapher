@@ -2,7 +2,6 @@ import {
     Bounds,
     DEFAULT_BOUNDS,
     uniq,
-    sortBy,
     sum,
     zip,
     getAttributionFragmentsFromVariable,

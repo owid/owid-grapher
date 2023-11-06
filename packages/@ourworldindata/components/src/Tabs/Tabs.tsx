@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useRef } from "react"
+import React, { useRef } from "react"
 import cx from "classnames"
 
 export const Tabs = ({
@@ -36,16 +36,14 @@ export const Tabs = ({
     function handleKeyDown(event: React.KeyboardEvent<HTMLButtonElement>) {
         const nextIndex = getNextIndex(event.key)
         setActiveIndex(nextIndex)
-    }
 
-    // programmatically focus the active tab
-    useLayoutEffect(() => {
+        // programmatically focus the next active tab
         if (!container.current) return
         const activeTabElement = container.current.children[
-            activeIndex
+            nextIndex
         ] as HTMLButtonElement
         if (activeTabElement) activeTabElement.focus()
-    }, [activeIndex])
+    }
 
     return (
         <div
