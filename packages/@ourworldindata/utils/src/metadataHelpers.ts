@@ -138,11 +138,7 @@ export const getPhraseForProcessingLevel = (
 }
 
 const prepareOriginForDisplay = (origin: OwidOrigin): DisplaySource => {
-    let label =
-        origin.producer ??
-        origin.descriptionSnapshot ??
-        origin.description ??
-        ""
+    let label = origin.producer ?? ""
     if (origin.title && origin.title !== label) {
         label += " - " + origin.title
     }
