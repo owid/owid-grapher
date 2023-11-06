@@ -269,7 +269,7 @@ export class DonateForm extends React.Component {
                                         amount === this.presetAmount &&
                                         !this.customAmount,
                                 })}
-                                key={amount}
+                                key={`${amount}-${this.interval}`}
                             />
                         ))}
                         <div
