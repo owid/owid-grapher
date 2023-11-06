@@ -24,7 +24,7 @@
         "mobx-react": "5",
         "react": "^16.14.0",
         "react-dom": "^16.14.0",
-        "ts-pattern": "^4.0.4"
+        "ts-pattern": "^5.0.5"
     },
     "devDependencies": {
         "@types/react": "^16.14.23",

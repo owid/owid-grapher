@@ -4177,7 +4177,7 @@ __metadata:
     mobx-react: "npm:5"
     react: "npm:^16.14.0"
     react-dom: "npm:^16.14.0"
-    ts-pattern: "npm:^4.0.4"
+    ts-pattern: "npm:^5.0.5"
     typescript: "npm:~5.2.2"
   languageName: unknown
   linkType: soft
@@ -4247,7 +4247,7 @@ __metadata:
     react-select: "npm:^5.7.3"
     simple-statistics: "npm:^7.3.2"
     topojson-client: "npm:^3.1.0"
-    ts-pattern: "npm:^4.0.4"
+    ts-pattern: "npm:^5.0.5"
     tsup: "npm:^6.2.3"
     typescript: "npm:~5.2.2"
     url-parse: "npm:^1.5.10"
@@ -4285,7 +4285,7 @@ __metadata:
     string-pixel-width: "npm:^1.10.0"
     striptags: "npm:^3.2.0"
     timezone-mock: "npm:^1.0.18"
-    ts-pattern: "npm:^4.0.4"
+    ts-pattern: "npm:^5.0.5"
     typescript: "npm:~5.2.2"
     url-parse: "npm:^1.5.10"
   languageName: unknown
@@ -11673,7 +11673,7 @@ __metadata:
     tmex: "npm:^1.0.8"
     topojson-client: "npm:^3.1.0"
     topojson-server: "npm:^3.0.1"
-    ts-pattern: "npm:^4.0.4"
+    ts-pattern: "npm:^5.0.5"
     tsc-watch: "npm:^6.0.4"
     typeorm: "npm:^0.3.14"
     typescript: "npm:~5.2.2"
@@ -19701,10 +19701,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ts-pattern@npm:^4.0.4":
-  version: 4.0.6
-  resolution: "ts-pattern@npm:4.0.6"
-  checksum: ee86813e0c0cf90d66460204a816e08a260352c819e88c5125b17b0537463737c133cebc7982e5d3b4a31b18bf501bd8a226b2dde476f7938c4c84626200e0bd
+"ts-pattern@npm:^5.0.5":
+  version: 5.0.5
+  resolution: "ts-pattern@npm:5.0.5"
+  checksum: 63b1f652beb1066650db80d41806f16f8b804d577a36091640371cd4bfe5c3a6ee330e02470487d9eac56d6dc2acf969df8bf1081f615672c7ea8e645f8008b5
   languageName: node
   linkType: hard
 
