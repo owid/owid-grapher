@@ -16,7 +16,7 @@ import { match, P } from "ts-pattern"
 
 function paragraphToString(
     paragraph: docs_v1.Schema$Paragraph,
-    context: { isInList: boolean }
+    context: { isInList: boolean; isInTable: boolean }
 ): string {
     let text = ""
 
@@ -76,7 +76,13 @@ function paragraphToString(
             elementText += `${prefix}${fragmentText}`
             idx++
         }
-        text += taggedText(elementText)
+        const nextText = taggedText(elementText)
+        if (nextText === "{.table}\n") {
+            context.isInTable = true
+        } else if (context.isInTable && nextText === "{}\n") {
+            context.isInTable = false
+        }
+        text += nextText
     }
     return text
 }
@@ -104,7 +110,9 @@ function tableToString(
                 value: [],
             }
             const { content = [] } = tableCell
-            const context = { isInList: false }
+            // Yes, we're in a table" here, but this boolean is to track whether we should parse Gdocs tables
+            // in the "top level" of the document, not once we're inside a table already
+            const context = { isInList: false, isInTable: false }
             for (const item of content) {
                 if (item.paragraph) {
                     const text = paragraphToString(item.paragraph, context)
@@ -127,7 +135,7 @@ function tableToString(
     for (const row of rows) {
         text += `\n${OwidRawGdocBlockToArchieMLString(row)}`
     }
-    text += "\n[]"
+    text += "\n[]\n"
     return text
 }
 
@@ -136,7 +144,7 @@ export async function gdocToArchie(
 ): Promise<{ text: string }> {
     // prepare the text holder
     let text = ""
-    const context = { isInList: false }
+    const context = { isInList: false, isInTable: false }
 
     // check if the body key and content key exists, and give up if not
     if (!document.body) return { text }
@@ -147,7 +155,10 @@ export async function gdocToArchie(
         if (element.paragraph) {
             text += paragraphToString(element.paragraph, context)
         } else if (element.table) {
-            text += tableToString(element.table)
+            // Skip parsing the Gdoc table if it's not enclosed in a {.table} tag
+            if (context.isInTable) {
+                text += tableToString(element.table)
+            }
         }
     }
     return { text }

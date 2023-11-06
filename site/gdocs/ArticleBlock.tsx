@@ -61,7 +61,7 @@ const layouts: { [key in Container]: Layouts} = {
         ["chart"]: "col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["default"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["divider"]: "col-start-2 span-cols-12",
-        ["explorer"]: "col-start-2 span-cols-12 span-md-cols-12 col-md-start-2",
+        ["explorer"]: "col-start-2 span-cols-12",
         ["gray-section"]: "span-cols-14 grid grid-cols-12-full-width",
         ["heading"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["horizontal-rule"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
@@ -186,8 +186,10 @@ export default function ArticleBlock({
             />
         ))
         .with({ type: "chart" }, (block) => {
-            const { isExplorer } = Url.fromURL(block.url)
-            const layoutSubtype = isExplorer ? "explorer" : "chart"
+            const { isExplorer, queryStr } = Url.fromURL(block.url)
+            const areControlsHidden = queryStr.includes("hideControls=true")
+            const layoutSubtype =
+                isExplorer && !areControlsHidden ? "explorer" : "chart"
             return (
                 <Chart
                     className={getLayout(layoutSubtype, containerType)}
