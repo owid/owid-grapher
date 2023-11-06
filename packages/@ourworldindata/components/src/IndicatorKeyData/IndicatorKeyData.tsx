@@ -29,7 +29,7 @@ export const IndicatorKeyData = (props: IndicatorKeyDataProps) => {
     const lastUpdated = dayjs(props.lastUpdated ?? "", ["YYYY", "YYYY-MM-DD"])
     const showLastUpdated = lastUpdated.isValid()
 
-    const nextUpdate = dayjs(props.nextUpdate ?? "", ["YYYY", "YYYY-MM-DD"])
+    const nextUpdate = dayjs(props.nextUpdate ?? "", ["YYYY-MM-DD"])
     const showNextUpdate = nextUpdate.isValid()
 
     const showUnitConversionFactor =
