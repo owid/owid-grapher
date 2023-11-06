@@ -258,11 +258,11 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     @imemo get name(): string {
-        return this.def.name ?? this.def.slug
+        return this.def.name || this.def.slug
     }
 
     @imemo get displayName(): string {
-        return this.display?.name ?? this.name ?? ""
+        return this.display?.name || this.name || ""
     }
 
     @imemo get datasetId(): number | undefined {
