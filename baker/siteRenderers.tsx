@@ -27,6 +27,7 @@ import cheerio from "cheerio"
 import {
     BAKED_BASE_URL,
     BLOG_POSTS_PER_PAGE,
+    GDOCS_DONATE_FAQS_DOCUMENT_ID,
     GDOCS_HOMEPAGE_CONFIG_DOCUMENT_ID,
 } from "../settings/serverSettings.js"
 import {
@@ -304,13 +305,20 @@ export const renderFrontPage = async () => {
     )
 }
 
-export const renderDonatePage = () =>
-    renderToHtmlPage(
+export const renderDonatePage = async () => {
+    const faqsGdoc = await Gdoc.getGdocFromContentSource(
+        GDOCS_DONATE_FAQS_DOCUMENT_ID,
+        {}
+    )
+
+    return renderToHtmlPage(
         <DonatePage
             baseUrl={BAKED_BASE_URL}
+            faqsGdoc={faqsGdoc}
             recaptchaKey={RECAPTCHA_SITE_KEY}
         />
     )
+}
 
 export const renderBlogByPageNum = async (pageNum: number) => {
     const allPosts = await getBlogIndex()
