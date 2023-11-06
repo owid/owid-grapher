@@ -165,7 +165,7 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
             | undefined
         if (!def) return undefined
         return (
-            def.source?.link ??
+            def.sourceLink ??
             (def.origins && def.origins.length > 0
                 ? def.origins[0].urlMain
                 : undefined)
