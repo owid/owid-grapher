@@ -135,17 +135,6 @@ const convertMarkdownNodeToSpan = (node: EveryMarkdownNode): Span[] => {
         )
         .with(
             {
-                type: "bold",
-            },
-            (n) => [
-                {
-                    spanType: "span-bold" as const,
-                    children: n.children.flatMap(convertMarkdownNodeToSpan),
-                } as Span,
-            ]
-        )
-        .with(
-            {
                 type: P.union("italic", "plainItalic", "italicWithoutBold"),
             },
             (n) => [
