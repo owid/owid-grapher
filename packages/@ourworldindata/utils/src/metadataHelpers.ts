@@ -157,9 +157,7 @@ export const prepareSourcesForDisplay = (
 ): DisplaySource[] => {
     const { origins, source, description } = variable
 
-    const sourcesForDisplay =
-        origins?.map((origin: OwidOrigin) => prepareOriginForDisplay(origin)) ??
-        []
+    const sourcesForDisplay: DisplaySource[] = []
 
     if (
         source?.name &&
@@ -175,6 +173,12 @@ export const prepareSourcesForDisplay = (
             retrievedOn: source?.retrievedDate,
             retrievedFrom: splitSourceTextIntoFragments(source?.link),
         })
+    }
+
+    if (origins && origins.length > 0) {
+        sourcesForDisplay.push(
+            ...origins.map((origin) => prepareOriginForDisplay(origin))
+        )
     }
 
     return sourcesForDisplay
