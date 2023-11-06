@@ -113,7 +113,7 @@ export const DataPageV2Content = ({
     const processingLevelPhrase = getPhraseForProcessingLevel(
         datapageData.owidProcessingLevel
     )
-    const lastUpdated = dayjs(datapageData.lastUpdated, ["YYYY", "YYYY-MM-DD"])
+    const lastUpdated = dayjs(datapageData.lastUpdated, ["YYYY-MM-DD", "YYYY"])
     const yearOfUpdate = lastUpdated.year()
     const citationShort = `${attributionPotentiallyShortened} – ${processingLevelPhrase} by Our World in Data (${yearOfUpdate})`
     const citationLonger = `${attributionUnshortened} – ${processingLevelPhrase} by Our World in Data (${yearOfUpdate})`

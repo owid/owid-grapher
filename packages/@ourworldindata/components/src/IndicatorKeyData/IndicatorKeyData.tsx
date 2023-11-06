@@ -26,7 +26,7 @@ export const IndicatorKeyData = (props: IndicatorKeyDataProps) => {
         props.owidProcessingLevel
     )
 
-    const lastUpdated = dayjs(props.lastUpdated ?? "", ["YYYY", "YYYY-MM-DD"])
+    const lastUpdated = dayjs(props.lastUpdated ?? "", ["YYYY-MM-DD", "YYYY"])
     const showLastUpdated = lastUpdated.isValid()
 
     const nextUpdate = dayjs(props.nextUpdate ?? "", ["YYYY-MM-DD"])
