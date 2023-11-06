@@ -176,7 +176,7 @@
         "react": "^16.14.0",
         "react-animate-height": "^3.1.1",
         "react-beautiful-dnd": "^13.1.0",
-        "react-codemirror2": "^7.2.1",
+        "react-codemirror2": "^7.3.0",
         "react-color": "^2.18.1",
         "react-diff-viewer": "^3.1.1",
         "react-dom": "^16.14.0",
@@ -247,9 +247,6 @@
         "vite": "^4.4.10",
         "vite-plugin-checker": "^0.6.2",
         "vite-plugin-warmup": "^0.1.0"
-    },
-    "resolutions": {
-        "react-codemirror2@^7.2.1": "patch:react-codemirror2@npm%3A7.2.1#./.yarn/patches/react-codemirror2-npm-7.2.1-dcadbb9383.patch"
     },
     "prettier": {
         "trailingComma": "es5",

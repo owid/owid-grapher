@@ -11639,7 +11639,7 @@ __metadata:
     react: "npm:^16.14.0"
     react-animate-height: "npm:^3.1.1"
     react-beautiful-dnd: "npm:^13.1.0"
-    react-codemirror2: "npm:^7.2.1"
+    react-codemirror2: "npm:^7.3.0"
     react-color: "npm:^2.18.1"
     react-diff-viewer: "npm:^3.1.1"
     react-dom: "npm:^16.14.0"
@@ -17331,23 +17331,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-codemirror2@npm:7.2.1":
-  version: 7.2.1
-  resolution: "react-codemirror2@npm:7.2.1"
+"react-codemirror2@npm:^7.3.0":
+  version: 7.3.0
+  resolution: "react-codemirror2@npm:7.3.0"
   peerDependencies:
     codemirror: 5.x
-    react: ">=15.5 <=16.x"
-  checksum: 8e11805ea8dca0f08e34ccce112c10b325deeaed81f8c453828e5119b444e4b835890c9cfa9e4e48f51dd1214e819bccdb3848161d11618b97ccf1fae431a8fe
-  languageName: node
-  linkType: hard
-
-"react-codemirror2@patch:react-codemirror2@npm%3A7.2.1#./.yarn/patches/react-codemirror2-npm-7.2.1-dcadbb9383.patch::locator=grapher%40workspace%3A.":
-  version: 7.2.1
-  resolution: "react-codemirror2@patch:react-codemirror2@npm%3A7.2.1#./.yarn/patches/react-codemirror2-npm-7.2.1-dcadbb9383.patch::version=7.2.1&hash=b75cae&locator=grapher%40workspace%3A."
-  peerDependencies:
-    codemirror: 5.x
-    react: ">=15.5 <=16.x"
-  checksum: 3a4b300731473fa036298f06c6943dd629168d36ad3fe332c6cd691f07d543d6b1d85619b51dc197b37cbf47e323923243c62c48c4f96fce3e4cca381f8217af
+    react: ">=15.5 <=17.x"
+  checksum: 52c5cf25b39d13403ea2b21d7412a345efe8840ac5fce846705f1aaacd7ad3edceb2da1c338e36e1b4758601daedb066ebe89335874873b740128de9fb229927
   languageName: node
   linkType: hard
 
