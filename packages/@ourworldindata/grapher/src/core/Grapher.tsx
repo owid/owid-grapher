@@ -65,6 +65,7 @@ import {
     isEmpty,
     compact,
     getOriginAttributionFragments,
+    sortBy,
 } from "@ourworldindata/utils"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import {
@@ -1459,8 +1460,14 @@ export class Grapher
         const { yColumnSlugs, xColumnSlug, sizeColumnSlug, colorColumnSlug } =
             this
 
+        // sort y-columns by their display name
+        const sortedYColumnSlugs = sortBy(
+            yColumnSlugs,
+            (slug) => this.inputTable.get(slug).displayName
+        )
+
         const columnSlugs = excludeUndefined([
-            ...yColumnSlugs,
+            ...sortedYColumnSlugs,
             xColumnSlug,
             sizeColumnSlug,
             colorColumnSlug,
