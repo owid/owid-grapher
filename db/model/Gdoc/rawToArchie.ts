@@ -40,8 +40,9 @@ import {
 import { match } from "ts-pattern"
 
 export function appendDotEndIfMultiline(
-    line: string | null | undefined
+    line: string | boolean | null | undefined
 ): string {
+    if (typeof line === "boolean") return line ? "true" : "false"
     if (line && line.includes("\n")) return line + "\n:end"
     return line ?? ""
 }

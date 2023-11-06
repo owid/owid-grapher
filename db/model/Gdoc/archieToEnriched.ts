@@ -121,30 +121,66 @@ function generateStickyNav(
 }
 
 function generateToc(
-    body: OwidEnrichedGdocBlock[]
+    body: OwidEnrichedGdocBlock[],
+    isTocForSidebar: boolean = false
 ): TocHeadingWithTitleSupertitle[] {
+    // For linear topic pages, we record h1s & h2s
+    // For the sdg-toc, we record h2s & h3s (as it was developed before we decided to use h1s as our top level heading)
+    // It would be nice to standardise this but it would require a migration, updating CSS, updating Gdocs, etc.
+    const [primary, secondary] = isTocForSidebar ? [1, 2] : [2, 3]
     const toc: TocHeadingWithTitleSupertitle[] = []
 
-    // track h2s and h3s for the SDG table of contents
     body.forEach((block) =>
         traverseEnrichedBlocks(block, (child) => {
             if (child.type === "heading") {
                 const { level, text, supertitle } = child
                 const titleString = spansToSimpleString(text)
-                const supertitleString =
-                    supertitle && spansToSimpleString(supertitle)
-                if (titleString && (level === 2 || level === 3)) {
+                const supertitleString = supertitle
+                    ? spansToSimpleString(supertitle)
+                    : ""
+                if (titleString && (level === primary || level === secondary)) {
                     toc.push({
                         title: titleString,
                         supertitle: supertitleString,
                         text: titleString,
                         slug: urlSlug(`${supertitleString} ${titleString}`),
-                        isSubheading: level === 3,
+                        isSubheading: level === secondary,
                     })
                 }
             }
+            if (isTocForSidebar && child.type === "all-charts") {
+                toc.push({
+                    title: child.heading,
+                    text: child.heading,
+                    slug: ALL_CHARTS_ID,
+                    isSubheading: false,
+                })
+            }
         })
     )
+
+    if (isTocForSidebar) {
+        toc.push(
+            {
+                title: "Endnotes",
+                text: "Endnotes",
+                slug: "article-endnotes",
+                isSubheading: false,
+            },
+            {
+                title: "Citation",
+                text: "Citation",
+                slug: "article-citation",
+                isSubheading: false,
+            },
+            {
+                title: "Licence",
+                text: "Licence",
+                slug: "article-licence",
+                isSubheading: false,
+            }
+        )
+    }
 
     return toc
 }
@@ -255,7 +291,8 @@ export const archieToEnriched = (text: string): OwidGdocContent => {
     // Parse elements of the ArchieML into enrichedBlocks
     parsed.body = compact(parsed.body.map(parseRawBlocksToEnrichedBlocks))
 
-    parsed.toc = generateToc(parsed.body)
+    const isTocForSidebar = parsed["sidebar-toc"] === "true"
+    parsed.toc = generateToc(parsed.body, isTocForSidebar)
 
     const parsedRefs = parseRefs({
         refs: [...(parsed.refs ?? []), ...rawInlineRefs],
