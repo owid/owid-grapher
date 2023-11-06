@@ -16,6 +16,7 @@ interface IndicatorKeyDataProps {
     unit?: string
     owidProcessingLevel?: OwidProcessingLevel
     links?: string[]
+    unitConversionFactor?: number
     isEmbeddedInADataPage?: boolean // true by default
 }
 
@@ -30,6 +31,9 @@ export const IndicatorKeyData = (props: IndicatorKeyDataProps) => {
 
     const nextUpdate = dayjs(props.nextUpdate ?? "", ["YYYY", "YYYY-MM-DD"])
     const showNextUpdate = nextUpdate.isValid()
+
+    const showUnitConversionFactor =
+        props.unitConversionFactor && props.unitConversionFactor !== 1
 
     return (
         <div className="indicator-key-data">
@@ -56,7 +60,10 @@ export const IndicatorKeyData = (props: IndicatorKeyDataProps) => {
                 <div
                     className={cx("indicator-key-data-item", {
                         "indicator-key-data-item--span":
-                            !showNextUpdate && !props.dateRange && !props.unit,
+                            !showNextUpdate &&
+                            !props.dateRange &&
+                            !props.unit &&
+                            !showUnitConversionFactor,
                     })}
                 >
                     <div className="indicator-key-data-item__title">
@@ -71,7 +78,10 @@ export const IndicatorKeyData = (props: IndicatorKeyDataProps) => {
                 <div
                     className={cx("indicator-key-data-item", {
                         "indicator-key-data-item--span":
-                            !props.dateRange && !props.unit && !showLastUpdated,
+                            !props.dateRange &&
+                            !showLastUpdated &&
+                            !props.unit &&
+                            !showUnitConversionFactor,
                     })}
                 >
                     <div className="indicator-key-data-item__title">
@@ -87,6 +97,7 @@ export const IndicatorKeyData = (props: IndicatorKeyDataProps) => {
                     className={cx("indicator-key-data-item", {
                         "indicator-key-data-item--span":
                             !props.unit &&
+                            !showUnitConversionFactor &&
                             isEven(count(showLastUpdated, showNextUpdate)),
                     })}
                 >
@@ -101,18 +112,41 @@ export const IndicatorKeyData = (props: IndicatorKeyDataProps) => {
             {props.unit && (
                 <div
                     className={cx("indicator-key-data-item", {
-                        "indicator-key-data-item--span": isEven(
-                            count(
-                                props.lastUpdated,
-                                props.nextUpdate,
-                                props.dateRange
-                            )
-                        ),
+                        "indicator-key-data-item--span":
+                            !showUnitConversionFactor &&
+                            isEven(
+                                count(
+                                    props.lastUpdated,
+                                    props.nextUpdate,
+                                    props.dateRange
+                                )
+                            ),
                     })}
                 >
                     <div className="indicator-key-data-item__title">Unit</div>
                     <div className="indicator-key-data-item__content">
                         {props.unit}
+                    </div>
+                </div>
+            )}
+            {showUnitConversionFactor && (
+                <div
+                    className={cx("indicator-key-data-item", {
+                        "indicator-key-data-item--span": isEven(
+                            count(
+                                props.lastUpdated,
+                                props.nextUpdate,
+                                props.dateRange,
+                                props.unit
+                            )
+                        ),
+                    })}
+                >
+                    <div className="indicator-key-data-item__title">
+                        Unit conversion factor
+                    </div>
+                    <div className="indicator-key-data-item__content">
+                        {props.unitConversionFactor}
                     </div>
                 </div>
             )}

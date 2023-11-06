@@ -254,6 +254,9 @@ export const DataPageV2Content = ({
                                         lastUpdated={datapageData.lastUpdated}
                                         nextUpdate={datapageData.nextUpdate}
                                         unit={datapageData.unit}
+                                        unitConversionFactor={
+                                            datapageData.unitConversionFactor
+                                        }
                                     />
                                 </div>
                                 <IndicatorDescriptions

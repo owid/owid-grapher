@@ -300,6 +300,9 @@ export class Source extends React.Component<{
                     nextUpdate={this.nextUpdate}
                     unit={this.unit}
                     links={this.sourceLinks}
+                    unitConversionFactor={
+                        this.props.column.unitConversionFactor
+                    }
                     isEmbeddedInADataPage={this.props.isEmbeddedInADataPage}
                 />
                 {this.showDescriptions && (

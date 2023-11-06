@@ -50,6 +50,7 @@ export const getDatapageDataV2 = async (
             origins: variableMetadata.origins ?? [],
             chartConfig: partialGrapherConfig as Record<string, unknown>,
             unit: variableMetadata.display?.unit ?? variableMetadata.unit,
+            unitConversionFactor: variableMetadata.display?.conversionFactor,
         }
         return datapageJson
     }
