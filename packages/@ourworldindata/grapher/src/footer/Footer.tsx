@@ -424,8 +424,10 @@ export class Footer<
                             sourcesElement.scrollIntoView({
                                 behavior: "smooth",
                             })
+                            this.manager.isInFullScreenMode = false
                         } else if (sourcesElement) {
                             window.location.hash = "#" + sourcesIdOnDataPage
+                            this.manager.isInFullScreenMode = false
                         } else {
                             this.manager.isSourcesModalOpen = true
                         }
