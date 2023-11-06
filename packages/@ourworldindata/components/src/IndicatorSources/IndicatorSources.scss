@@ -9,6 +9,7 @@
         display: grid;
         grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
         row-gap: 8px;
+        column-gap: 16px;
 
         .wp-code-snippet {
             margin-top: 8px;
@@ -28,6 +29,7 @@
 
     .source-key-data__title {
         color: var(--title);
+        white-space: nowrap;
     }
 
     .source-key-data__content--hide-overflow {

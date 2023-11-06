@@ -66,6 +66,12 @@
 
             margin: 24px 0;
             padding: 32px;
+
+            &__content,
+            &__content ul {
+                font-size: 0.875rem;
+                font-weight: 500;
+            }
         }
 
         .source-key-data {
