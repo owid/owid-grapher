@@ -115,8 +115,8 @@ export const DataPageV2Content = ({
     )
     const lastUpdated = dayjs(datapageData.lastUpdated, ["YYYY", "YYYY-MM-DD"])
     const yearOfUpdate = lastUpdated.year()
-    const citationShort = `${attributionPotentiallyShortened} – ${processingLevelPhrase} (${yearOfUpdate})`
-    const citationLonger = `${attributionUnshortened} – ${processingLevelPhrase} (${yearOfUpdate})`
+    const citationShort = `${attributionPotentiallyShortened} – ${processingLevelPhrase} by Our World in Data (${yearOfUpdate})`
+    const citationLonger = `${attributionUnshortened} – ${processingLevelPhrase} by Our World in Data (${yearOfUpdate})`
     const originsLong = uniq(
         datapageData.origins.map(
             (o) => `${o.producer}, ${o.title ?? o.titleSnapshot}`

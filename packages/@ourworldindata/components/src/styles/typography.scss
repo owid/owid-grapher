@@ -339,3 +339,14 @@ body {
 .body-3-medium-italic-underlined {
     @include body-3-medium-italic-underlined;
 }
+
+@mixin label-2-medium {
+    font-family: $sans-serif-font-stack;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+}
+
+.label-2-medium {
+    @include label-2-medium;
+}

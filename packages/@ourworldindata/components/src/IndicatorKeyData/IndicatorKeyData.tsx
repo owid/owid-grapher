@@ -47,7 +47,8 @@ export const IndicatorKeyData = (props: IndicatorKeyDataProps) => {
                             </a>
                         ) : (
                             processingLevelPhrase
-                        )}
+                        )}{" "}
+                        by Our World in Data
                     </div>
                 </div>
             )}

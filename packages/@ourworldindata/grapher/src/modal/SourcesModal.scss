@@ -52,6 +52,7 @@
             --indicator-key-data-title: #{$light-text};
             --indicator-key-data-border: #{$border};
 
+            @include label-2-medium;
             margin-top: 16px;
         }
 

@@ -129,11 +129,11 @@ export const getPhraseForProcessingLevel = (
 ): string => {
     switch (processingLevel) {
         case "major":
-            return "with major adaptations by Our World In Data"
+            return "with major adaptations"
         case "minor":
-            return "with minor processing by Our World In Data"
+            return "with minor processing"
         default:
-            return "processed by Our World In Data"
+            return "processed"
     }
 }
 
