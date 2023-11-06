@@ -43,7 +43,6 @@ import {
     GDOCS_CLIENT_ID,
     GDOCS_DETAILS_ON_DEMAND_ID,
     GDOCS_PRIVATE_KEY,
-    GRAPHER_PREVIEW_URL,
 } from "../../../settings/serverSettings.js"
 import { google, Auth, docs_v1 } from "googleapis"
 import { gdocToArchie } from "./gdocToArchie.js"
@@ -54,6 +53,7 @@ import { Chart } from "../Chart.js"
 import {
     ADMIN_BASE_URL,
     BAKED_BASE_URL,
+    BAKED_GRAPHER_EXPORTS_BASE_URL,
 } from "../../../settings/clientSettings.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../../../explorer/ExplorerConstants.js"
 import { parseDetails, parseFaqs } from "./rawToEnriched.js"
@@ -346,7 +346,7 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
                         originalSlug,
                         title: resolvedTitle,
                         resolvedUrl: `${BAKED_GRAPHER_URL}/${resolvedSlug}`,
-                        thumbnail: `${GRAPHER_PREVIEW_URL}/${resolvedSlug}.png`,
+                        thumbnail: `${BAKED_GRAPHER_EXPORTS_BASE_URL}/${resolvedSlug}.svg`,
                     }
                     return linkedChart
                 }

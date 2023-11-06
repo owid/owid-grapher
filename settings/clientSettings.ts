@@ -31,7 +31,6 @@ export const BAKED_GRAPHER_URL: string =
     process.env.BAKED_GRAPHER_URL ?? `${BAKED_BASE_URL}/grapher`
 export const BAKED_GRAPHER_EXPORTS_BASE_URL: string =
     process.env.BAKED_GRAPHER_EXPORTS_BASE_URL ?? `${BAKED_GRAPHER_URL}/exports`
-export const GRAPHER_PREVIEW_URL: string = process.env.GRAPHER_PREVIEW_URL ?? ""
 export const BAKED_SITE_EXPORTS_BASE_URL: string =
     process.env.BAKED_SITE_EXPORTS_BASE_URL ?? `${BAKED_BASE_URL}/exports`
 

@@ -6,7 +6,7 @@ import Image from "./Image.js"
 import { useLinkedChart, useLinkedDocument } from "./utils.js"
 import { DocumentContext } from "./OwidGdoc.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
-import { GRAPHER_PREVIEW_URL } from "../../settings/clientSettings.js"
+import { BAKED_GRAPHER_EXPORTS_BASE_URL } from "../../settings/clientSettings.js"
 
 export const ProminentLink = (props: {
     url: string
@@ -64,7 +64,7 @@ export const ProminentLink = (props: {
 
     const Thumbnail = ({ thumbnail }: { thumbnail: string }) => {
         if (
-            thumbnail.startsWith(GRAPHER_PREVIEW_URL) ||
+            thumbnail.startsWith(BAKED_GRAPHER_EXPORTS_BASE_URL) ||
             thumbnail.endsWith("default-thumbnail.jpg")
         ) {
             return <img src={thumbnail} />
