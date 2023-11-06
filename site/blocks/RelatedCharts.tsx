@@ -42,7 +42,24 @@ export const RelatedCharts = ({
 
     useEmbedChart(activeChartIdx, refChartContainer)
 
-    return (
+    const singleChartView = (
+        <div className={RELATED_CHARTS_CLASS_NAME}>
+            <div className="grid grid-cols-12">
+                <div
+                    className="related-charts__chart span-cols-7 span-md-cols-12"
+                    ref={refChartContainer}
+                >
+                    <figure
+                        // Use unique `key` to force React to re-render tree
+                        key={activeChartSlug}
+                        data-grapher-src={`${BAKED_BASE_URL}/grapher/${activeChartSlug}`}
+                    />
+                </div>
+            </div>
+        </div>
+    )
+
+    const multipleChartsView = (
         <div className={RELATED_CHARTS_CLASS_NAME}>
             <div className="grid grid-cols-12">
                 <div className="related-charts__thumbnails span-cols-5 span-md-cols-12">
@@ -91,6 +108,8 @@ export const RelatedCharts = ({
             </div>
         </div>
     )
+
+    return charts.length === 1 ? singleChartView : multipleChartsView
 }
 
 export const runRelatedCharts = (charts: RelatedChart[]) => {
