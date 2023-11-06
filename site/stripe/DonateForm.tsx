@@ -315,7 +315,7 @@ export class DonateForm extends React.Component {
                             className="donation-name__label"
                             htmlFor="donation-name__input"
                         >
-                            Full name
+                            Full name (required)
                         </label>
                         <input
                             id="donation-name__input"
