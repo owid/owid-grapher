@@ -2,6 +2,7 @@
 * Topic Page
 **/
 
+// These styles are used both for topic page and linear topic page headers
 .topic-page-header {
     background-color: $blue-10;
     color: $blue-90;
@@ -22,10 +23,17 @@
     p.topic-page-header__byline,
     .topic-page-header__byline a {
         color: $blue-60;
+        margin-bottom: 0;
+        @include sm-only {
+            font-size: 0.875rem;
+        }
+    }
+
+    // Applies to either .topic-page-header__byline or .topic-page-header__dateline, if specified
+    p:last-child {
         margin-bottom: 34px;
         @include sm-only {
             margin-bottom: 16px;
-            font-size: 0.875rem;
         }
     }
 
@@ -212,4 +220,52 @@
 
 .centered-article-container--topic-page #article-citation h3 {
     text-align: left;
+}
+
+// Linear topic page customizations
+.centered-article-container--linear-topic-page {
+    .article-block__horizontal-rule
+        + h1.article-block__heading.h1-semibold
+        + .article-block__horizontal-rule {
+        // h1's have a bottom margin of 24px, which stacked atop the hr's 48px, is too large.
+        // this shrinks the second hr's margin-top so that it's 48px total, without affecting the
+        // margins of any h1 that might come directly after it.
+        margin-top: 24px;
+    }
+    h1.article-block__heading.h1-semibold {
+        font-size: 2.25rem;
+        a.deep-link {
+            margin-top: 19px;
+        }
+        @include sm-up {
+            font-size: 2.625rem;
+            a.deep-link {
+                margin-top: 23px;
+            }
+        }
+    }
+    h2.article-block__heading.h2-bold {
+        font-size: 1.5rem;
+        a.deep-link {
+            margin-top: 13px;
+        }
+        @include sm-up {
+            font-size: 2rem;
+            a.deep-link {
+                margin-top: 19px;
+            }
+        }
+    }
+    h3.article-block__heading.h3-bold {
+        font-size: 1.25rem;
+        a.deep-link {
+            margin-top: 10px;
+        }
+        @include sm-up {
+            font-size: 1.5rem;
+            a.deep-link {
+                margin-top: 12px;
+            }
+        }
+    }
 }

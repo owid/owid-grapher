@@ -34,6 +34,7 @@ import {
     EnrichedBlockGraySection,
     EnrichedBlockStickyRightContainer,
     EnrichedBlockBlockquote,
+    EnrichedBlockHorizontalRule,
 } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
 import {
@@ -393,13 +394,28 @@ export function convertAllWpComponentsToArchieMLBlocks(
     })
 }
 
-export function adjustHeadingLevels(blocks: OwidEnrichedGdocBlock[]): void {
-    for (const block of blocks) {
+export function adjustHeadingLevels(
+    blocks: OwidEnrichedGdocBlock[],
+    isEntry: boolean
+): void {
+    for (let i = 0; i < blocks.length; i++) {
+        const block = blocks[i]
         if (block.type === "heading") {
-            block.level = Math.max(block.level - 1, 1)
-        }
-        if ("children" in block) {
-            adjustHeadingLevels(block.children as OwidEnrichedGdocBlock[])
+            if (isEntry && block.level === 1) {
+                const hr: EnrichedBlockHorizontalRule = {
+                    type: "horizontal-rule",
+                    parseErrors: [],
+                }
+                blocks.splice(i, 0, { ...hr })
+                blocks.splice(i + 2, 0, { ...hr })
+                i += 2
+            }
+            block.level = Math.max(1, block.level - 1)
+        } else if ("children" in block) {
+            adjustHeadingLevels(
+                block.children as OwidEnrichedGdocBlock[],
+                isEntry
+            )
         }
     }
 }
@@ -848,23 +864,7 @@ function cheerioToArchieML(
             .with({ tagName: "details" }, unwrapElementWithContext)
             .with({ tagName: "div" }, (div) => {
                 const className = div.attribs.class || ""
-                // Special handling for a div that we use to mark the "First published on..." notice
-                if (className.includes("blog-info")) {
-                    const children = unwrapElementWithContext(div)
-                    const textChildren = children.content.filter(
-                        (c) => "type" in c && c.type === "text"
-                    ) as EnrichedBlockText[]
-                    const callout: EnrichedBlockCallout = {
-                        type: "callout",
-                        title: "",
-                        text: textChildren,
-                        parseErrors: [],
-                    }
-                    return {
-                        errors: [],
-                        content: [callout],
-                    }
-                } else if (className.includes("pcrm")) {
+                if (className.includes("pcrm")) {
                     // pcrm stands for "preliminary collection of relevant material" which was used to designate entries
                     // that weren't fully polished, but then became a way to create a general-purpose "warning box".
                     const unwrapped = unwrapElementWithContext(element)

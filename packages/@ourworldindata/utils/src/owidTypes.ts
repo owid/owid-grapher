@@ -1343,6 +1343,7 @@ export enum OwidGdocType {
     Article = "article",
     TopicPage = "topic-page",
     Fragment = "fragment",
+    LinearTopicPage = "linear-topic-page",
 }
 
 export interface OwidGdocInterface {

@@ -143,6 +143,36 @@ function OwidTopicPageHeader({
     )
 }
 
+function OwidLinearTopicPageHeader({
+    content,
+    authors,
+}: {
+    content: OwidGdocContent
+    authors: string[]
+}) {
+    return (
+        <header className="topic-page-header grid span-cols-14 grid-cols-12-full-width">
+            <h1 className="display-1-semibold col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2">
+                {content.title}
+            </h1>
+            <p className="topic-page-header__subtitle body-1-regular col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2">
+                {content.subtitle}
+            </p>
+            <p className="topic-page-header__byline col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2">
+                {"By "}
+                <a href="/team">
+                    {formatAuthors({
+                        authors,
+                    })}
+                </a>
+            </p>
+            <p className="topic-page-header__dateline body-3-medium-italic col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2">
+                {content.dateline}
+            </p>
+        </header>
+    )
+}
+
 export function OwidGdocHeader(props: {
     content: OwidGdocContent
     authors: string[]
@@ -153,6 +183,8 @@ export function OwidGdocHeader(props: {
         return <OwidArticleHeader {...props} />
     if (props.content.type === OwidGdocType.TopicPage)
         return <OwidTopicPageHeader {...props} />
+    if (props.content.type === OwidGdocType.LinearTopicPage)
+        return <OwidLinearTopicPageHeader {...props} />
     // Defaulting to ArticleHeader, but will require the value to be set for all docs going forward
     return <OwidArticleHeader {...props} />
 }
