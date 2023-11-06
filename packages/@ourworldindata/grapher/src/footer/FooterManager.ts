@@ -16,4 +16,5 @@ export interface FooterManager extends TooltipManager, ActionButtonsManager {
     framePaddingHorizontal?: number
     isGeneratingThumbnail?: boolean
     fontSize?: number
+    isInFullScreenMode?: boolean
 }
