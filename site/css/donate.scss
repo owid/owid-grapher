@@ -131,6 +131,9 @@
         border: 1px solid $blue-20;
         @include body-3-medium;
         color: $blue-90;
+        &:focus {
+            outline-color: $blue-50;
+        }
     }
 
     .donation-public-checkbox__label {
