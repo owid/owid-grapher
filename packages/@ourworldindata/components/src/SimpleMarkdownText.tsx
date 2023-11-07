@@ -1,6 +1,7 @@
 import React from "react"
 import { computed } from "mobx"
 import { Remark } from "react-remark"
+import { remarkPlainLinks } from "./markdown/remarkPlainLinks.js"
 
 type SimpleMarkdownTextProps = {
     text: string
@@ -12,6 +13,6 @@ export class SimpleMarkdownText extends React.Component<SimpleMarkdownTextProps>
     }
 
     render(): JSX.Element | null {
-        return <Remark>{this.text}</Remark>
+        return <Remark remarkPlugins={[remarkPlainLinks]}>{this.text}</Remark>
     }
 }
