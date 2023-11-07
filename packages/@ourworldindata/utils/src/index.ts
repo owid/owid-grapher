@@ -369,6 +369,8 @@ export {
     debounce,
     difference,
     drop,
+    dropRightWhile,
+    dropWhile,
     extend,
     findLastIndex,
     flatten,

@@ -10,12 +10,13 @@ import {
     get,
     Bounds,
     FontFamily,
+    dropWhile,
+    dropRightWhile,
 } from "@ourworldindata/utils"
 import { TextWrap } from "../TextWrap/TextWrap.js"
 import fromMarkdown from "mdast-util-from-markdown"
 import type { Root, Content } from "mdast"
 import { match } from "ts-pattern"
-import { dropRightWhile, dropWhile } from "lodash"
 
 const SUPERSCRIPT_NUMERALS = {
     "0": "\u2070",
