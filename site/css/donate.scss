@@ -221,6 +221,18 @@
         @include body-2-regular;
         color: $blue-60;
     }
+
+    h2.article-block__heading {
+        margin-bottom: 16px;
+    }
+
+    p.article-block__text + h2.article-block__heading {
+        margin-top: 24px; /* 40px - 16px (p's bottom margin) */
+    }
+
+    h1.article-block__heading + h2.article-block__heading {
+        margin-top: 16px; /* 40px - 24px (h1's bottom margin) */
+    }
 }
 
 .donate-success-page {
