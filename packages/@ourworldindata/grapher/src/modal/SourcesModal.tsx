@@ -8,7 +8,6 @@ import {
     getLastUpdatedFromVariable,
     getNextUpdateFromVariable,
     excludeUndefined,
-    splitSourceTextIntoFragments,
     DisplaySource,
     prepareSourcesForDisplay,
     OwidSource,
