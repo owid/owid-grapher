@@ -4,7 +4,7 @@ import React from "react"
 import { RelatedCharts } from "./RelatedCharts.js"
 
 import Enzyme from "enzyme"
-import Adapter from "enzyme-adapter-react-16"
+import Adapter from "@wojtekmaj/enzyme-adapter-react-17"
 import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_EXPORTS_BASE_URL,
