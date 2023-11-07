@@ -125,7 +125,16 @@ export const DataPageV2Content = ({
     ).join("; ")
     const today = dayjs().format("MMMM D, YYYY")
     const currentYear = dayjs().year()
-    const citationLong = `${citationLonger}. ${datapageData.title}. ${originsLong}. Retrieved ${today} from ${canonicalUrl}`
+    const citationLong = excludeUndefined([
+        `${citationLonger}.`,
+        `${datapageData.title}.`,
+        originsLong
+            ? `${originsLong}.`
+            : datapageData.source?.name
+            ? `${datapageData.source?.name}.`
+            : undefined,
+        `Retrieved ${today} from ${canonicalUrl}`,
+    ]).join(" ")
 
     const {
         linkedDocuments = {},
