@@ -402,7 +402,7 @@ export function adjustHeadingLevels(
     for (let i = 0; i < blocks.length; i++) {
         const block = blocks[i]
         if (block.type === "heading") {
-            if (isEntry && block.level === 1) {
+            if (isEntry && block.level === 2) {
                 const hr: EnrichedBlockHorizontalRule = {
                     type: "horizontal-rule",
                     parseErrors: [],
