@@ -188,14 +188,14 @@
         transition: transform 150ms;
     }
 
-    .donation-payment-benefits {
-        list-style-position: inside;
-        list-style-type: none;
-    }
-
     .donation-payment-benefits__item {
-        margin-top: 16px;
+        list-style-position: outside;
+        list-style-type: "✓ ";
+        margin: 16px 0 0 16px;
         @include body-3-medium;
+        svg {
+            color: $blue-50;
+        }
     }
 
     .donation-payment__or {

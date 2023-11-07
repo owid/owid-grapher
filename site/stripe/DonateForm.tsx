@@ -14,10 +14,7 @@ import stripe from "./stripe.js"
 import { Tippy, stringifyUnknownError, titleCase } from "@ourworldindata/utils"
 import { Checkbox } from "@ourworldindata/components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import {
-    faArrowRight,
-    faQuestionCircle,
-} from "@fortawesome/free-solid-svg-icons"
+import { faArrowRight, faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 
 type Interval = "once" | "monthly"
 
@@ -357,7 +354,7 @@ export class DonateForm extends React.Component {
 
                     <ul className="donation-payment-benefits">
                         <li className="donation-payment-benefits__item">
-                            ✓ 🇬🇧 Your donation qualifies for Gift Aid in the UK{" "}
+                            🇬🇧 Your donation qualifies for Gift Aid in the UK{" "}
                             <Tippy
                                 appendTo={() => document.body}
                                 content={
@@ -379,12 +376,11 @@ export class DonateForm extends React.Component {
                                 theme="owid-footnote"
                                 trigger="mouseenter focus click"
                             >
-                                <FontAwesomeIcon icon={faQuestionCircle} />
+                                <FontAwesomeIcon icon={faInfoCircle} />
                             </Tippy>
                         </li>
                         <li className="donation-payment-benefits__item">
-                            ✓ Donate using credit/debit card, SEPA, iDEAL and
-                            more
+                            Donate using credit/debit card, SEPA, iDEAL and more
                         </li>
                     </ul>
                 </div>
@@ -403,7 +399,7 @@ export class DonateForm extends React.Component {
 
                     <ul className="donation-payment-benefits">
                         <li className="donation-payment-benefits__item">
-                            ✓ 🇺🇸 100% of your donation is tax-deductible{" "}
+                            🇺🇸 100% of your donation is tax-deductible{" "}
                             <Tippy
                                 appendTo={() => document.body}
                                 content={
@@ -430,16 +426,15 @@ export class DonateForm extends React.Component {
                                 theme="owid-footnote"
                                 trigger="mouseenter focus click"
                             >
-                                <FontAwesomeIcon icon={faQuestionCircle} />
+                                <FontAwesomeIcon icon={faInfoCircle} />
                             </Tippy>
                         </li>
                         <li className="donation-payment-benefits__item">
-                            ✓ Donate in US dollars using PayPal, Venmo, direct
-                            US bank transfer (ACH), credit card and more
+                            Donate in US dollars using PayPal, Venmo, direct US
+                            bank transfer (ACH), credit card and more
                         </li>
                         <li className="donation-payment-benefits__item">
-                            ✓ Use this option for donor-advised fund (DAF)
-                            grants
+                            Use this option for donor-advised fund (DAF) grants
                         </li>
                     </ul>
                 </div>
