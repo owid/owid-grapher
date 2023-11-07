@@ -533,11 +533,11 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
         // This replace is a bit funky - we want to make sure that single \n are treated as
         // actual line breaks but only if none of the other markdown line break rules apply.
         // These are:
-        // - \n\n is always a new paragrah
+        // - \n\n is always a new paragraph
         // - Two spaces before \n is a line break (this rule is not entirely checked as we only check for a single space)
         // - A backslash before \n is a line break
         // The regex tries to find \n that do not belong to any of the three cases above and if none of those apply we
-        // replace the \n in the mached 3 characters with a backslash preceding \n to make sure it will be a line break.
+        // replace the \n in the matched 3 characters with a backslash preceding \n to make sure it will be a line break.
         // return baseText.replaceAll(/[^\n \\]\n[^\n]/g, (match) =>
         //     match.replace("\n", "\\\n")
         // )
