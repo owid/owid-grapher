@@ -18,6 +18,10 @@ interface IndicatorKeyDataProps {
     links?: string[]
     unitConversionFactor?: number
     isEmbeddedInADataPage?: boolean // true by default
+
+    // styling
+    hideTopBorder?: boolean
+    hideBottomBorder?: boolean
 }
 
 export const IndicatorKeyData = (props: IndicatorKeyDataProps) => {
@@ -36,7 +40,12 @@ export const IndicatorKeyData = (props: IndicatorKeyDataProps) => {
         props.unitConversionFactor && props.unitConversionFactor !== 1
 
     return (
-        <div className="indicator-key-data">
+        <div
+            className={cx("indicator-key-data", {
+                "indicator-key-data--top-border": !props.hideTopBorder,
+                "indicator-key-data--bottom-border": !props.hideBottomBorder,
+            })}
+        >
             {props.attribution && (
                 <div className="indicator-key-data-item indicator-key-data-item--span">
                     <div className="indicator-key-data-item__title">Source</div>

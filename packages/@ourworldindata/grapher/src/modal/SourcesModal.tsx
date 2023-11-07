@@ -304,6 +304,12 @@ export class Source extends React.Component<{
                         this.props.column.unitConversionFactor
                     }
                     isEmbeddedInADataPage={this.props.isEmbeddedInADataPage}
+                    hideTopBorder={!this.def.descriptionShort}
+                    hideBottomBorder={
+                        this.showDescriptions &&
+                        (!this.def.descriptionKey ||
+                            this.def.descriptionKey.length === 0)
+                    }
                 />
                 {this.showDescriptions && (
                     <IndicatorDescriptions
