@@ -248,7 +248,7 @@ export class ActionButtons extends React.Component<{
                                 dataTrackNote="chart_click_download"
                                 showLabel={this.showButtonLabels}
                                 icon={faDownload}
-                                onClick={(e) => {
+                                onClick={(e): void => {
                                     this.manager.isDownloadModalOpen = true
                                     e.stopPropagation()
                                 }}
@@ -263,7 +263,7 @@ export class ActionButtons extends React.Component<{
                                 dataTrackNote="chart_click_share"
                                 showLabel={this.showButtonLabels}
                                 icon={faShareNodes}
-                                onClick={(e) => {
+                                onClick={(e): void => {
                                     this.toggleShareMenu()
                                     e.stopPropagation()
                                 }}
