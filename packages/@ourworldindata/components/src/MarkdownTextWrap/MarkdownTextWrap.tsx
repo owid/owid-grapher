@@ -1,6 +1,5 @@
 import React, { CSSProperties } from "react"
 import { computed } from "mobx"
-import { EveryMarkdownChildNode, MarkdownRoot, mdParser } from "./parser.js"
 import {
     excludeUndefined,
     last,
@@ -11,8 +10,13 @@ import {
     get,
     Bounds,
     FontFamily,
+    dropWhile,
+    dropRightWhile,
 } from "@ourworldindata/utils"
 import { TextWrap } from "../TextWrap/TextWrap.js"
+import fromMarkdown from "mdast-util-from-markdown"
+import type { Root, Content } from "mdast"
+import { match } from "ts-pattern"
 
 const SUPERSCRIPT_NUMERALS = {
     "0": "\u2070",
@@ -57,7 +61,7 @@ export class IRText implements IRToken {
         return Bounds.forText(this.text, this.fontParams).width
     }
     @imemo get height(): number {
-        return this.fontParams?.fontSize || 16
+        return this.fontParams?.fontSize || 13
     }
     getBreakpointBefore(): undefined {
         return undefined
@@ -493,63 +497,6 @@ export const sumTextWrapHeights = (
     sum(elements.map((element) => element.height)) +
     (elements.length - 1) * spacer
 
-export function parsimmonToTextTokens(
-    nodes: EveryMarkdownChildNode[],
-    fontParams?: IRFontParams
-): IRToken[] {
-    return nodes.map((node): IRToken => {
-        if (node.type === "text") {
-            return new IRText(node.value, fontParams)
-        } else if (node.type === "newline") {
-            return new IRLineBreak()
-        } else if (node.type === "whitespace") {
-            return new IRWhitespace(fontParams)
-        } else if (
-            node.type === "bold" ||
-            node.type === "plainBold" ||
-            node.type === "boldWithoutItalic"
-        ) {
-            return new IRBold(
-                parsimmonToTextTokens(node.children, {
-                    ...fontParams,
-                    fontWeight: 700,
-                })
-            )
-        } else if (
-            node.type === "italic" ||
-            node.type === "plainItalic" ||
-            node.type === "italicWithoutBold"
-        ) {
-            return new IRItalic(
-                parsimmonToTextTokens(node.children, {
-                    ...fontParams,
-                    isItalic: true,
-                })
-            )
-        } else if (node.type === "plainUrl") {
-            return new IRLink(
-                node.href,
-                parsimmonToTextTokens(
-                    [{ type: "text", value: node.href }],
-                    fontParams
-                )
-            )
-        } else if (node.type === "markdownLink") {
-            return new IRLink(
-                node.href,
-                parsimmonToTextTokens(node.children, fontParams)
-            )
-        } else if (node.type === "detailOnDemand") {
-            return new IRDetailOnDemand(
-                node.term,
-                parsimmonToTextTokens(node.children, fontParams)
-            )
-        } else {
-            throw new Error(`Unknown node type: ${(node as any).type}`)
-        }
-    })
-}
-
 type MarkdownTextWrapProps = {
     text: string
     fontSize: number
@@ -579,26 +526,42 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
         }
     }
     @computed get text(): string {
-        return this.props.text
+        // NOTE: ❗Here we deviate from the normal markdown spec. We replace \n with <SPACE><SPACE>\n to make sure that single \n are treated as
+        // actual line breaks but only if none of the other markdown line break rules apply.
+        // This is a bit different to how markdown usually works but we have a substantial
+        // amount of legacy charts that use newlines in this way and it seems that it is
+        // better to support this simple case than to do a data migration of many chart subtitles.
+        const baseText = this.props.text
+        // This replace is a bit funky - we want to make sure that single \n are treated as
+        // actual line breaks but only if none of the other markdown line break rules apply.
+        // These are:
+        // - \n\n is always a new paragraph
+        // - Two spaces before \n is a line break (this rule is not entirely checked as we only check for a single space)
+        // - A backslash before \n is a line break
+        // The code below normalizes all cases to <SPACE><SPACE>\n which will lead to them surviving the markdown parsing
+        let text = baseText.trim()
+        text = text.replaceAll("\n\n", "@@LINEBREAK@@")
+        text = text.replaceAll("\\\n", "@@LINEBREAK@@")
+        text = text.replaceAll("  \n", "@@LINEBREAK@@")
+        text = text.replaceAll("\n", "  \n")
+        text = text.replaceAll("@@LINEBREAK@@", "  \n")
+        return text
     }
     @computed get detailsOrderedByReference(): Set<string> {
         return this.props.detailsOrderedByReference || new Set()
-    }
-    @computed get ast(): MarkdownRoot["children"] {
-        if (!this.text) return []
-        const result = mdParser.markdown.parse(this.props.text)
-        if (result.status) {
-            return result.value.children
-        }
-        return []
     }
 
     @computed get plaintext(): string {
         return this.htmlLines.map(lineToPlaintext).join("\n")
     }
 
+    @computed get tokensFromMarkdown(): IRToken[] {
+        const tokens = convertMarkdownToIRTokens(this.text, this.fontParams)
+        return tokens
+    }
+
     @computed get htmlLines(): IRToken[][] {
-        const tokens = parsimmonToTextTokens(this.ast, this.fontParams)
+        const tokens = this.tokensFromMarkdown
         const lines = splitIntoLines(tokens, this.maxWidth)
         return lines.map(recursiveMergeTextTokens)
     }
@@ -640,7 +603,7 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
             return appendedTokens
         }
 
-        const tokens = parsimmonToTextTokens(this.ast, this.fontParams)
+        const tokens = this.tokensFromMarkdown
         const tokensWithReferenceNumbers = appendReferenceNumbers(tokens)
         return splitIntoLines(tokensWithReferenceNumbers, this.maxWidth)
     }
@@ -739,4 +702,327 @@ function MarkdownTextWrapLine({ line }: { line: IRToken[] }): JSX.Element {
             {line.length ? line.map((token, i) => token.toHTML(i)) : <br />}
         </span>
     )
+}
+
+export function convertMarkdownToIRTokens(
+    markdown: string,
+    fontParams?: IRFontParams
+): IRToken[] {
+    const ast: Root = fromMarkdown(markdown)
+    const children = ast.children.flatMap((item: Content) =>
+        convertMarkdownNodeToIRTokens(item, fontParams)
+    )
+    // ensure that there are no leading or trailing line breaks
+    return dropRightWhile(
+        dropWhile(children, (token) => token instanceof IRLineBreak),
+        (token) => token instanceof IRLineBreak
+    )
+}
+
+// When using mdast types version 4 this should be typed as:
+// node: RootContentMap[keyof RootContentMap]
+function convertMarkdownNodeToIRTokens(
+    node: Content,
+    fontParams: IRFontParams = {}
+): IRToken[] {
+    const converted = match(node)
+        .with(
+            {
+                type: "blockquote",
+            },
+            (item) => {
+                return item.children.flatMap((child) =>
+                    convertMarkdownNodeToIRTokens(child, fontParams)
+                )
+            }
+        )
+        .with(
+            {
+                type: "break",
+            },
+            (_) => {
+                return [new IRLineBreak()]
+            }
+        )
+        .with(
+            {
+                type: "code",
+            },
+            (item) => {
+                return [new IRText(item.value, fontParams)]
+            }
+        )
+        .with(
+            {
+                type: "emphasis",
+            },
+            (item) => {
+                return [
+                    new IRItalic(
+                        item.children.flatMap((child) =>
+                            convertMarkdownNodeToIRTokens(child, {
+                                ...fontParams,
+                                isItalic: true,
+                            })
+                        )
+                    ),
+                ]
+            }
+        )
+        .with(
+            {
+                type: "heading",
+            },
+            (item) => {
+                return item.children.flatMap((child) =>
+                    convertMarkdownNodeToIRTokens(child, fontParams)
+                )
+            }
+        )
+        .with(
+            {
+                type: "html",
+            },
+            (item) => {
+                return [new IRText(item.value, fontParams)]
+            }
+        )
+        .with(
+            {
+                type: "image",
+            },
+            (item) => {
+                return [new IRText(item.alt ?? "", fontParams)]
+            }
+        )
+        .with(
+            {
+                type: "inlineCode",
+            },
+            (item) => {
+                return [new IRText(item.value, fontParams)]
+            }
+        )
+        .with(
+            {
+                type: "link",
+            },
+            (item) => {
+                if (item.url.startsWith("#dod:")) {
+                    const term = item.url.replace("#dod:", "")
+                    return [
+                        new IRDetailOnDemand(
+                            term,
+                            item.children.flatMap((child) =>
+                                convertMarkdownNodeToIRTokens(child, fontParams)
+                            ),
+                            fontParams
+                        ),
+                    ]
+                } else
+                    return [
+                        new IRLink(
+                            item.url,
+                            item.children.flatMap((child) =>
+                                convertMarkdownNodeToIRTokens(child, fontParams)
+                            )
+                        ),
+                    ]
+            }
+        )
+        .with(
+            {
+                type: "list",
+            },
+            (item) => {
+                if (item.ordered)
+                    return item.children.flatMap((child, index) => [
+                        new IRLineBreak(),
+                        new IRText(`${index + 1}) `, fontParams),
+                        ...convertMarkdownNodeToIRTokens(child, fontParams),
+                    ])
+                else
+                    return item.children.flatMap((child) => [
+                        new IRLineBreak(),
+                        new IRText(`• `, fontParams),
+                        ...convertMarkdownNodeToIRTokens(child, fontParams),
+                    ])
+            }
+        )
+        .with(
+            {
+                type: "listItem",
+            },
+            (item) => {
+                return item.children.flatMap((child) =>
+                    convertMarkdownNodeToIRTokens(child, fontParams)
+                )
+            }
+        )
+        .with(
+            {
+                type: "paragraph",
+            },
+            (item) => {
+                return [
+                    ...item.children.flatMap((child) =>
+                        convertMarkdownNodeToIRTokens(child, fontParams)
+                    ),
+                ]
+            }
+        )
+        .with(
+            {
+                type: "strong",
+            },
+            (item) => {
+                return [
+                    new IRBold(
+                        item.children.flatMap((child) =>
+                            convertMarkdownNodeToIRTokens(child, {
+                                ...fontParams,
+                                fontWeight: 700,
+                            })
+                        )
+                    ),
+                ]
+            }
+        )
+        .with(
+            {
+                type: "text",
+            },
+            (item) => {
+                const splitted = item.value.split(/\s+/)
+                const tokens = splitted.flatMap((text, i) => {
+                    if (i < splitted.length - 1) {
+                        return [
+                            new IRText(text, fontParams),
+                            new IRWhitespace(fontParams),
+                        ]
+                    } else return [new IRText(text, fontParams)]
+                })
+                return tokens
+            }
+        )
+        .with(
+            {
+                type: "thematicBreak",
+            },
+            (_) => {
+                return [new IRText("---", fontParams)]
+            }
+        )
+        .with(
+            {
+                type: "delete",
+            },
+            (item) => {
+                return item.children.flatMap((child) =>
+                    convertMarkdownNodeToIRTokens(child, fontParams)
+                )
+            }
+        )
+        // Now lets finish this with blocks for FootnoteDefinition, Definition, ImageReference, LinkReference, FootnoteReference, and Table
+        .with(
+            {
+                type: "footnoteDefinition",
+            },
+            (item) => {
+                return item.children.flatMap((child) =>
+                    convertMarkdownNodeToIRTokens(child, fontParams)
+                )
+            }
+        )
+        .with(
+            {
+                type: "definition",
+            },
+            (item) => {
+                return [
+                    new IRText(`${item.identifier}: ${item.label}`, fontParams),
+                ]
+            }
+        )
+        .with(
+            {
+                type: "imageReference",
+            },
+            (item) => {
+                return [
+                    new IRText(`${item.identifier}: ${item.label}`, fontParams),
+                ]
+            }
+        )
+        .with(
+            {
+                type: "linkReference",
+            },
+            (item) => {
+                return [
+                    new IRText(`${item.identifier}: ${item.label}`, fontParams),
+                ]
+            }
+        )
+        .with(
+            {
+                type: "footnoteReference",
+            },
+            (item) => {
+                return [
+                    new IRText(`${item.identifier}: ${item.label}`, fontParams),
+                ]
+            }
+        )
+        .with(
+            {
+                type: "table",
+            },
+            (item) => {
+                return item.children.flatMap((child) =>
+                    convertMarkdownNodeToIRTokens(child, fontParams)
+                )
+            }
+        )
+        .with(
+            {
+                type: "tableCell",
+            },
+            (item) => {
+                return item.children.flatMap((child) =>
+                    convertMarkdownNodeToIRTokens(child, fontParams)
+                )
+            }
+        )
+        // and now TableRow and Yaml
+        .with(
+            {
+                type: "tableRow",
+            },
+            (item) => {
+                return item.children.flatMap((child) =>
+                    convertMarkdownNodeToIRTokens(child, fontParams)
+                )
+            }
+        )
+        .with(
+            {
+                type: "yaml",
+            },
+            (item) => {
+                return [new IRText(item.value, fontParams)]
+            }
+        )
+        .with(
+            {
+                type: "footnote",
+            },
+            (item) => {
+                return item.children.flatMap((child) =>
+                    convertMarkdownNodeToIRTokens(child, fontParams)
+                )
+            }
+        )
+        .exhaustive()
+    return converted
 }

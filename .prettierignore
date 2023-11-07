@@ -14,3 +14,4 @@ coverage
 packages/@ourworldindata/*/dist/
 dist/
 grapherData/
+.vscode/

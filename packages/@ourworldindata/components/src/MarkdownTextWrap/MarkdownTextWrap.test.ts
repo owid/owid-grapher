@@ -83,7 +83,7 @@ describe("MarkdownTextWrap", () => {
 
     it("should split on newline", () => {
         const element = new MarkdownTextWrap({
-            text: "_test\n**\nnewline\n**_test",
+            text: "_test\n**\nnewlineyarn \n**_test",
             fontSize: 10,
             lineHeight: 1,
         })

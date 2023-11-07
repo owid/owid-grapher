@@ -369,6 +369,8 @@ export {
     debounce,
     difference,
     drop,
+    dropRightWhile,
+    dropWhile,
     extend,
     findLastIndex,
     flatten,
@@ -422,6 +424,8 @@ export {
     without,
     zip,
     lowercaseObjectKeys,
+    detailOnDemandRegex,
+    extractDetailsFromSyntax,
 } from "./Util.js"
 
 export { isPresent } from "./isPresent.js"
@@ -621,5 +625,4 @@ export {
     IMAGES_DIRECTORY,
     gdocUrlRegex,
     gdocIdRegex,
-    detailOnDemandRegex,
 } from "./GdocsConstants.js"

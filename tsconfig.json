@@ -7,20 +7,47 @@
     },
     "files": [],
     "references": [
-        { "path": "./gridLang" },
-        { "path": "./gitCms" },
-        { "path": "./explorer" },
-        { "path": "./datapage" },
-        { "path": "./site" },
-        { "path": "./settings" },
-        { "path": "./adminSiteClient" },
-        { "path": "./adminSiteServer" },
-        { "path": "./devTools/svgTester" },
-        { "path": "./devTools/schema" },
-        { "path": "./devTools/schemaProcessor" },
-        { "path": "./devTools/dodParserTestGenerator" },
-        { "path": "./devTools/uploadWordpressImagesToObjStorage" },
-        { "path": "./devTools/explorerTools" },
-        { "path": "./devTools/regionsUpdater" }
+        {
+            "path": "./gridLang"
+        },
+        {
+            "path": "./gitCms"
+        },
+        {
+            "path": "./explorer"
+        },
+        {
+            "path": "./datapage"
+        },
+        {
+            "path": "./site"
+        },
+        {
+            "path": "./settings"
+        },
+        {
+            "path": "./adminSiteClient"
+        },
+        {
+            "path": "./adminSiteServer"
+        },
+        {
+            "path": "./devTools/svgTester"
+        },
+        {
+            "path": "./devTools/schema"
+        },
+        {
+            "path": "./devTools/schemaProcessor"
+        },
+        {
+            "path": "./devTools/uploadWordpressImagesToObjStorage"
+        },
+        {
+            "path": "./devTools/explorerTools"
+        },
+        {
+            "path": "./devTools/regionsUpdater"
+        }
     ]
 }

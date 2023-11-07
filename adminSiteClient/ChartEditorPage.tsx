@@ -10,7 +10,6 @@ import {
     IReactionDisposer,
 } from "mobx"
 import { Prompt, Redirect } from "react-router-dom"
-import { extractDetailsFromSyntax } from "@ourworldindata/components"
 import {
     Bounds,
     capitalize,
@@ -19,6 +18,7 @@ import {
     get,
     set,
     groupBy,
+    extractDetailsFromSyntax,
 } from "@ourworldindata/utils"
 import { Grapher, Topic, GrapherInterface } from "@ourworldindata/grapher"
 import { Admin } from "./Admin.js"

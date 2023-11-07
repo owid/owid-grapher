@@ -1,6 +1,7 @@
 import React from "react"
 import { computed } from "mobx"
 import { Remark } from "react-remark"
+
 type SimpleMarkdownTextProps = {
     text: string
 }
