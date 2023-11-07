@@ -407,25 +407,26 @@ export class DonateForm extends React.Component {
 
                     <ul className="donation-payment-benefits">
                         <li className="donation-payment-benefits__item">
-                            🇺🇸 100% of your donation is tax-deductible{" "}
+                            🇺🇸 100% of your donation is tax-deductible in the US{" "}
                             <Tippy
                                 appendTo={() => document.body}
                                 content={
                                     <div>
                                         <p>
-                                            After your donation payment is
-                                            confirmed, you will immediately get
-                                            a tax-deductible receipt emailed to
-                                            you.
+                                            Your donation is made to Every.org,
+                                            a tax-exempt US 501(c)(3) charity
+                                            that grants unrestricted funds to
+                                            Our World in Data on your behalf.
+                                            This means that if you are a US
+                                            taxpayer, 100% of your donation is
+                                            tax-deductible to the extent allowed
+                                            by US law.
                                         </p>
                                         <p>
-                                            100% of your donation is
-                                            tax-deductible to the extent allowed
-                                            by US law. Your donation is made to
-                                            Every.org, a tax-exempt US 501(c)(3)
-                                            charity that grants unrestricted
-                                            funds to Our World in Data on your
-                                            behalf.
+                                            After your donation payment is
+                                            confirmed by Every.org, you will
+                                            immediately get a tax-deductible
+                                            receipt emailed to you.
                                         </p>
                                     </div>
                                 }
