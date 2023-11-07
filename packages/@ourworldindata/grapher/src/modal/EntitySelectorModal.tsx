@@ -10,7 +10,7 @@ import {
     sortBy,
     isCountryName,
 } from "@ourworldindata/utils"
-import { Checkbox } from "../controls/Checkbox"
+import { Checkbox } from "@ourworldindata/components"
 import { FuzzySearch } from "../controls/FuzzySearch"
 import { faMagnifyingGlass, faCheck } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"

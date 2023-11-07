@@ -19,6 +19,8 @@ export { IndicatorBrief } from "./IndicatorBrief/IndicatorBrief.js"
 
 export { IndicatorProcessing } from "./IndicatorProcessing/IndicatorProcessing.js"
 
+export { Checkbox } from "./Checkbox.js"
+
 export {
     IndicatorSources,
     type OriginSubset,

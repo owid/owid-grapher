@@ -11,7 +11,6 @@ import {
     TableSlug,
 } from "@ourworldindata/core-table"
 import {
-    Checkbox,
     EntityPicker,
     EntityPickerManager,
     Grapher,
@@ -48,7 +47,7 @@ import {
     uniqBy,
     Url,
 } from "@ourworldindata/utils"
-import { MarkdownTextWrap } from "@ourworldindata/components"
+import { MarkdownTextWrap, Checkbox } from "@ourworldindata/components"
 import classNames from "classnames"
 import { action, computed, observable, reaction } from "mobx"
 import { observer } from "mobx-react"

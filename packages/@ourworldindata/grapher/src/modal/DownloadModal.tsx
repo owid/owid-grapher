@@ -11,6 +11,7 @@ import {
 import {
     MarkdownTextWrap,
     sumTextWrapHeights,
+    Checkbox,
 } from "@ourworldindata/components"
 import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -23,7 +24,6 @@ import {
 } from "@ourworldindata/core-table"
 import { STATIC_EXPORT_DETAIL_SPACING } from "../core/GrapherConstants"
 import { Modal } from "./Modal"
-import { Checkbox } from "../controls/Checkbox"
 import { StaticChartRasterizer } from "../captionedChart/StaticChartRasterizer"
 
 export interface DownloadModalManager {
