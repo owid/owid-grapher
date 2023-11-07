@@ -340,7 +340,7 @@ export class Source extends React.Component<{
                             />
                         </>
                     )}
-                <h3 className="heading heading--tight">
+                <h3 className="heading">
                     How we process data at Our World in Data:
                 </h3>
                 <IndicatorProcessing

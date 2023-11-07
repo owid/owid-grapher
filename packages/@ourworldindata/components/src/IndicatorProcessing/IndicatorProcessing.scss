@@ -1,6 +1,7 @@
 .indicator-processing {
     .data-processing {
         --content: var(--data-processing-content, currentColor);
+        --content-size: var(--data-processing-content-size, 0.875rem);
 
         margin-top: 0;
         margin-bottom: 24px;
@@ -9,6 +10,7 @@
             @include body-3-medium;
             margin: 0 0 16px;
             color: var(--content);
+            font-size: var(--content-size);
         }
     }
 
@@ -26,6 +28,7 @@
         --background: var(--indicator-processing-background, #{$white});
         --title: var(--indicator-processing-title, currentColor);
         --content: var(--indicator-processing-content, #{$blue-60});
+        --content-size: var(--indicator-processing-content-size, 0.875rem);
 
         display: flex;
         flex-direction: column;
@@ -44,6 +47,7 @@
             @include body-3-medium;
             color: var(--content);
             margin: 0;
+            font-size: var(--content-size);
         }
 
         a {

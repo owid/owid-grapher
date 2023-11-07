@@ -6,6 +6,9 @@
     --button: var(--expandable-toggle-button, #{$blue-90});
     --button-hover: var(--expandable-toggle-button-hover, #{$blue-60});
 
+    --title-size: var(--expandable-toggle-title-size, 1rem);
+    --content-size: var(--expandable-toggle-content-size, 0.875rem);
+
     border-top: 1px solid var(--border);
     border-bottom: 1px solid var(--border);
 }
@@ -35,6 +38,7 @@
     @include h4-semibold;
     margin: 0;
     color: var(--title);
+    font-size: var(--title-size);
 
     &:hover {
         color: var(--button-hover);
@@ -51,11 +55,15 @@
     overflow: hidden;
     color: var(--content);
 
+    @include body-3-medium;
+    font-size: var(--content-size);
+
     .article-block__text,
     .article-block__list,
     .article-block__html,
     .article-block__numbered-list {
         @include body-3-medium;
+        font-size: var(--content-size);
     }
 
     > *:last-child {

@@ -1,6 +1,5 @@
 .indicator-source {
     .description {
-        @include body-3-medium;
         margin: 0;
         margin-bottom: 16px;
     }
@@ -19,8 +18,6 @@
 
     .source-key-data {
         --title: var(--source-key-data-title, #{$blue-90});
-
-        @include body-3-medium;
     }
 
     .source-key-data--span-2 {
@@ -49,6 +46,9 @@
     --content: var(--non-expandable-content, #{$blue-60});
     --border: var(--non-expandable-border, #d0dae3);
 
+    --title-size: var(--non-expandable-title-size, 1rem);
+    --content-size: var(--non-expandable-content-size, 0.875rem);
+
     padding: 16px 0;
 
     border-top: 1px solid var(--border);
@@ -63,9 +63,12 @@
         margin: 0;
         margin-bottom: 8px;
         color: var(--title);
+        font-size: var(--title-size);
     }
 
     &__content {
+        @include body-3-medium;
         color: var(--content);
+        font-size: var(--content-size);
     }
 }
