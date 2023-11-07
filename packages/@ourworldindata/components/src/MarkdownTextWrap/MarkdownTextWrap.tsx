@@ -15,6 +15,7 @@ import { TextWrap } from "../TextWrap/TextWrap.js"
 import fromMarkdown from "mdast-util-from-markdown"
 import type { Root, Content } from "mdast"
 import { match } from "ts-pattern"
+import { dropRightWhile, dropWhile } from "lodash"
 
 const SUPERSCRIPT_NUMERALS = {
     "0": "\u2070",
@@ -707,8 +708,13 @@ export function convertMarkdownToIRTokens(
     fontParams?: IRFontParams
 ): IRToken[] {
     const ast: Root = fromMarkdown(markdown)
-    return ast.children.flatMap((item: Content) =>
+    const children = ast.children.flatMap((item: Content) =>
         convertMarkdownNodeToIRTokens(item, fontParams)
+    )
+    // ensure that there are no leading or trailing line breaks
+    return dropRightWhile(
+        dropWhile(children, (token) => token instanceof IRLineBreak),
+        (token) => token instanceof IRLineBreak
     )
 }
 
