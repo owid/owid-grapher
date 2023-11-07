@@ -4,6 +4,7 @@ import {
     dayjs,
     OwidProcessingLevel,
     getPhraseForProcessingLevel,
+    splitSourceTextIntoFragments,
 } from "@ourworldindata/utils"
 import { DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID } from "../SharedDataPageConstants.js"
 import { SimpleMarkdownText } from "../SimpleMarkdownText.js"
@@ -15,7 +16,7 @@ interface IndicatorKeyDataProps {
     nextUpdate?: string
     unit?: string
     owidProcessingLevel?: OwidProcessingLevel
-    links?: string[]
+    link?: string
     unitConversionFactor?: number
     isEmbeddedInADataPage?: boolean // true by default
 
@@ -38,7 +39,9 @@ export const IndicatorKeyData = (props: IndicatorKeyDataProps) => {
 
     const showUnitConversionFactor =
         props.unitConversionFactor && props.unitConversionFactor !== 1
-    const showLinks = props.links && props.links.length > 0
+
+    const linkFragments = splitSourceTextIntoFragments(props.link)
+    const link = linkFragments.join("\n")
 
     const keyDataCount = count(
         props.attribution,
@@ -47,11 +50,11 @@ export const IndicatorKeyData = (props: IndicatorKeyDataProps) => {
         props.dateRange,
         props.unit,
         showUnitConversionFactor,
-        showLinks
+        link
     )
     const hasSingleRow =
         keyDataCount === 1 ||
-        (keyDataCount === 2 && !props.attribution && !showLinks)
+        (keyDataCount === 2 && !props.attribution && !link)
 
     return (
         <div
@@ -175,24 +178,13 @@ export const IndicatorKeyData = (props: IndicatorKeyDataProps) => {
                     </div>
                 </div>
             )}
-            {props.links && showLinks && (
+            {link && (
                 <div className="indicator-key-data-item indicator-key-data-item--span">
                     <div className="indicator-key-data-item__title">
-                        {props.links.length > 1 ? "Links" : "Link"}
+                        {linkFragments.length > 1 ? "Links" : "Link"}
                     </div>
                     <div className="indicator-key-data-item__content">
-                        {props.links.map((link, index, links) => (
-                            <>
-                                <a
-                                    href={link}
-                                    target="_blank"
-                                    rel="nopener noreferrer"
-                                >
-                                    {link}
-                                </a>
-                                {index < links.length - 1 && <br />}
-                            </>
-                        ))}
+                        <SimpleMarkdownText text={link} />
                     </div>
                 </div>
             )}

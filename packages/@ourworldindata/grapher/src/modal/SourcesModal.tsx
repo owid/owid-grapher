@@ -270,10 +270,6 @@ export class Source extends React.Component<{
         )
     }
 
-    @computed private get sourceLinks(): string[] {
-        return splitSourceTextIntoFragments(this.source.link)
-    }
-
     @computed private get sourcesForDisplay(): DisplaySource[] {
         return prepareSourcesForDisplay(this.def)
     }
@@ -299,7 +295,7 @@ export class Source extends React.Component<{
                     lastUpdated={this.lastUpdated}
                     nextUpdate={this.nextUpdate}
                     unit={this.unit}
-                    links={this.sourceLinks}
+                    link={this.source.link}
                     unitConversionFactor={
                         this.props.column.unitConversionFactor
                     }

@@ -273,6 +273,7 @@ export const DataPageV2Content = ({
                                         unitConversionFactor={
                                             datapageData.unitConversionFactor
                                         }
+                                        link={datapageData.source?.link}
                                     />
                                 </div>
                                 <IndicatorDescriptions
