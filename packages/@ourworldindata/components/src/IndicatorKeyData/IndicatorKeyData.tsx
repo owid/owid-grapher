@@ -38,12 +38,28 @@ export const IndicatorKeyData = (props: IndicatorKeyDataProps) => {
 
     const showUnitConversionFactor =
         props.unitConversionFactor && props.unitConversionFactor !== 1
+    const showLinks = props.links && props.links.length > 0
+
+    const keyDataCount = count(
+        props.attribution,
+        showLastUpdated,
+        showNextUpdate,
+        props.dateRange,
+        props.unit,
+        showUnitConversionFactor,
+        showLinks
+    )
+    const hasSingleRow =
+        keyDataCount === 1 ||
+        (keyDataCount === 2 && !props.attribution && !showLinks)
 
     return (
         <div
             className={cx("indicator-key-data", {
-                "indicator-key-data--top-border": !props.hideTopBorder,
-                "indicator-key-data--bottom-border": !props.hideBottomBorder,
+                "indicator-key-data--top-border":
+                    !hasSingleRow && !props.hideTopBorder,
+                "indicator-key-data--bottom-border":
+                    !hasSingleRow && !props.hideBottomBorder,
             })}
         >
             {props.attribution && (
@@ -159,7 +175,7 @@ export const IndicatorKeyData = (props: IndicatorKeyDataProps) => {
                     </div>
                 </div>
             )}
-            {props.links && props.links.length > 0 && (
+            {showLinks && (
                 <div className="indicator-key-data-item indicator-key-data-item--span">
                     <div className="indicator-key-data-item__title">
                         {props.links.length > 1 ? "Links" : "Link"}
