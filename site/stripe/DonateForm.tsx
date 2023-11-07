@@ -202,12 +202,20 @@ export class DonateForm extends React.Component {
             await this.submitDonation()
         } catch (error) {
             this.isSubmitting = false
-            runInAction(
-                () =>
-                    (this.errorMessage =
-                        stringifyUnknownError(error) ||
-                        "Something went wrong. Please get in touch with us at donate@ourworldindata.org")
-            )
+
+            runInAction(() => {
+                const prefixedErrorMessage = stringifyUnknownError(error)
+                if (!prefixedErrorMessage) {
+                    this.errorMessage =
+                        "Something went wrong. Please get in touch with us at donate@ourworldindata.org"
+                    return
+                }
+
+                const rawErrorMessage =
+                    prefixedErrorMessage.match(/^Error: (.*)$/)
+
+                this.errorMessage = rawErrorMessage?.[1] || prefixedErrorMessage
+            })
         }
     }
 
