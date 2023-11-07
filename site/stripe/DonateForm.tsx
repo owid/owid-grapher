@@ -357,7 +357,7 @@ export class DonateForm extends React.Component {
 
                     <ul className="donation-payment-benefits">
                         <li className="donation-payment-benefits__item">
-                            🇬🇧 Your donation qualifies for Gift Aid in the UK{" "}
+                            ✓ 🇬🇧 Your donation qualifies for Gift Aid in the UK{" "}
                             <Tippy
                                 appendTo={() => document.body}
                                 content={
@@ -403,7 +403,7 @@ export class DonateForm extends React.Component {
 
                     <ul className="donation-payment-benefits">
                         <li className="donation-payment-benefits__item">
-                            🇺🇸 100% of your donation is tax-deductible{" "}
+                            ✓ 🇺🇸 100% of your donation is tax-deductible{" "}
                             <Tippy
                                 appendTo={() => document.body}
                                 content={
