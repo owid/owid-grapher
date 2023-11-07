@@ -56,23 +56,6 @@ export const DonatePage = (props: {
                                 <em>Global Change Data Lab</em> and the{" "}
                                 <em>Our World in Data</em> team
                             </p>
-                            <hr className="article-block__horizontal-rule" />
-                            <aside className="donate-page__related-topics">
-                                <h4 className="overline-black-caps">Related</h4>
-                                <ul>
-                                    <li>
-                                        <a href="/about">About us</a>
-                                    </li>
-                                    <li>
-                                        <a href="https://ourworldindata.org/uploads/2019/02/Donations-Policy-Global-Change-Data-Lab.pdf">
-                                            Donations Policy
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a href="/donate/faq">Donations FAQ</a>
-                                    </li>
-                                </ul>
-                            </aside>
                         </div>
                         <div className="col-start-7 span-cols-6 col-lg-start-7 span-lg-cols-6 col-md-start-6 span-md-cols-7 span-sm-cols-12">
                             <div className="donate-form-container">

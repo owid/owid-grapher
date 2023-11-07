@@ -20,14 +20,6 @@
     .article-block__text {
         @include body-2-regular;
     }
-
-    .article-block__horizontal-rule {
-        margin-bottom: 32px;
-    }
-}
-
-.donate-page__related-topics {
-    @include related-topics;
 }
 
 .donate-form {
