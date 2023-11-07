@@ -6490,7 +6490,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chokidar@npm:>=3.0.0 <4.0.0, chokidar@npm:^3.5.1, chokidar@npm:^3.5.3":
+"chokidar@npm:>=3.0.0 <4.0.0, chokidar@npm:^3.5.1":
   version: 3.5.3
   resolution: "chokidar@npm:3.5.3"
   dependencies:
@@ -10378,7 +10378,6 @@ __metadata:
     bootstrap: "npm:^4.6.1"
     bundlewatch: "npm:^0.3.3"
     cheerio: "npm:^1.0.0-rc.10"
-    chokidar: "npm:^3.5.3"
     chunk-text: "npm:^2.0.1"
     classnames: "npm:^2.3.1"
     codemirror: "npm:5"
