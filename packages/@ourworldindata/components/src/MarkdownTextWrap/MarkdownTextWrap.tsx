@@ -524,7 +524,7 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
         }
     }
     @computed get text(): string {
-        // NOTE: ❗Here we deviate from the normal markdown spec. We replace \n with \\\n to make sure that single \n are treated as
+        // NOTE: ❗Here we deviate from the normal markdown spec. We replace \n with <SPACE><SPACE>\n to make sure that single \n are treated as
         // actual line breaks but only if none of the other markdown line break rules apply.
         // This is a bit different to how markdown usually works but we have a substantial
         // amount of legacy charts that use newlines in this way and it seems that it is
@@ -536,17 +536,13 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
         // - \n\n is always a new paragraph
         // - Two spaces before \n is a line break (this rule is not entirely checked as we only check for a single space)
         // - A backslash before \n is a line break
-        // The regex tries to find \n that do not belong to any of the three cases above and if none of those apply we
-        // replace the \n in the matched 3 characters with a backslash preceding \n to make sure it will be a line break.
-        // return baseText.replaceAll(/[^\n \\]\n[^\n]/g, (match) =>
-        //     match.replace("\n", "\\\n")
-        // )
+        // The code below normalizes all cases to <SPACE><SPACE>\n which will lead to them surviving the markdown parsing
         let text = baseText.trim()
         text = text.replaceAll("\n\n", "@@LINEBREAK@@")
         text = text.replaceAll("\\\n", "@@LINEBREAK@@")
         text = text.replaceAll("  \n", "@@LINEBREAK@@")
-        text = text.replaceAll("\n", "\\\n")
-        text = text.replaceAll("@@LINEBREAK@@", "\\\n")
+        text = text.replaceAll("\n", "  \n")
+        text = text.replaceAll("@@LINEBREAK@@", "  \n")
         return text
     }
     @computed get detailsOrderedByReference(): Set<string> {
@@ -710,15 +706,8 @@ export function convertMarkdownToIRTokens(
     markdown: string,
     fontParams?: IRFontParams
 ): IRToken[] {
-    const ast = fromMarkdown(markdown)
-    return convertMarkdownRootToIRTokens(ast, fontParams)
-}
-
-function convertMarkdownRootToIRTokens(
-    node: Root,
-    fontParams?: IRFontParams
-): IRToken[] {
-    return node.children.flatMap((item) =>
+    const ast: Root = fromMarkdown(markdown)
+    return ast.children.flatMap((item: Content) =>
         convertMarkdownNodeToIRTokens(item, fontParams)
     )
 }
@@ -839,9 +828,18 @@ function convertMarkdownNodeToIRTokens(
                 type: "list",
             },
             (item) => {
-                return item.children.flatMap((child) =>
-                    convertMarkdownNodeToIRTokens(child, fontParams)
-                )
+                if (item.ordered)
+                    return item.children.flatMap((child, index) => [
+                        new IRLineBreak(),
+                        new IRText(`${index + 1}) `, fontParams),
+                        ...convertMarkdownNodeToIRTokens(child, fontParams),
+                    ])
+                else
+                    return item.children.flatMap((child, index) => [
+                        new IRLineBreak(),
+                        new IRText(`• `, fontParams),
+                        ...convertMarkdownNodeToIRTokens(child, fontParams),
+                    ])
             }
         )
         .with(
