@@ -39,3 +39,4 @@ packages/@ourworldindata/*/node_modules
 wpmigration
 dist/
 .wrangler/
+.nx/cache
