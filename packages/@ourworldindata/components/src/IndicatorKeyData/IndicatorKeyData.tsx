@@ -175,7 +175,7 @@ export const IndicatorKeyData = (props: IndicatorKeyDataProps) => {
                     </div>
                 </div>
             )}
-            {showLinks && (
+            {props.links && showLinks && (
                 <div className="indicator-key-data-item indicator-key-data-item--span">
                     <div className="indicator-key-data-item__title">
                         {props.links.length > 1 ? "Links" : "Link"}
