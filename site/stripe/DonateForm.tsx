@@ -320,7 +320,7 @@ export class DonateForm extends React.Component {
                             className="donation-name__label"
                             htmlFor="donation-name__input"
                         >
-                            Full name (required)
+                            Full name (required if ticked)
                         </label>
                         <input
                             id="donation-name__input"
