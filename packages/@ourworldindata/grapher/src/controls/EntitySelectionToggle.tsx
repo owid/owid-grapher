@@ -77,8 +77,9 @@ export class EntitySelectionToggle extends React.Component<{
             <div className="entity-selection-menu">
                 <button
                     className={classnames("menu-toggle", { active })}
-                    onClick={(): void => {
+                    onClick={(e): void => {
                         this.props.manager.isSelectingData = !active
+                        e.stopPropagation()
                     }}
                     data-track-note="chart_add_entity"
                 >

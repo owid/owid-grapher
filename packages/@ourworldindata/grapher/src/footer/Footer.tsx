@@ -413,7 +413,8 @@ export class Footer<
                 <a
                     className="learn-more-about-data"
                     data-track-note="chart_click_sources"
-                    onClick={action(() => {
+                    onClick={action((e) => {
+                        e.stopPropagation()
                         // if embbedded, open the sources modal
                         if (this.manager.isEmbeddedInAnOwidPage) {
                             this.manager.isSourcesModalOpen = true

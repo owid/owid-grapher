@@ -173,7 +173,10 @@ export class EditableTags extends React.Component<{
                                 )}
                                 <button
                                     className="btn btn-link EditableTags__action"
-                                    onClick={this.onToggleEdit}
+                                    onClick={(e) => {
+                                        this.onToggleEdit()
+                                        e.stopPropagation()
+                                    }}
                                 >
                                     <FontAwesomeIcon icon={faEdit} />
                                     Edit

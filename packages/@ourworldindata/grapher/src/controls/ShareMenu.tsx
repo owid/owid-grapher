@@ -79,11 +79,12 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
         document.removeEventListener("click", this.onClickSomewhere)
     }
 
-    @action.bound onEmbed(): void {
+    @action.bound onEmbed(e: React.MouseEvent): void {
         const { canonicalUrl, manager } = this
         if (!canonicalUrl) return
         manager.isEmbedModalOpen = true
         this.dismiss()
+        e.stopPropagation()
     }
 
     @action.bound async onNavigatorShare(): Promise<void> {
