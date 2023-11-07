@@ -23,12 +23,3 @@ export const gdocUrlRegex =
     /https:\/\/docs\.google\.com\/document(?:\/u\/\d)?\/d\/([-\w]+)\/?(edit)?#?/
 
 export const gdocIdRegex = /^[0-9A-Za-z\-_]{44}$/
-
-/** Works for:
- * #dod:text
- * #dod:text-hyphenated
- * #dod:text_underscored
- * #dod:text_underscored-and-hyphenated
- * Duplicated in parser.ts
- */
-export const detailOnDemandRegex = /#dod:([\w\-_]+)/
