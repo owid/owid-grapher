@@ -841,7 +841,7 @@ function convertMarkdownNodeToIRTokens(
                         ...convertMarkdownNodeToIRTokens(child, fontParams),
                     ])
                 else
-                    return item.children.flatMap((child, index) => [
+                    return item.children.flatMap((child) => [
                         new IRLineBreak(),
                         new IRText(`• `, fontParams),
                         ...convertMarkdownNodeToIRTokens(child, fontParams),
