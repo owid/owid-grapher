@@ -74,11 +74,5 @@
     "tsup": "^7.2.0",
     "typescript": "~5.2.2"
   },
-  "license": "MIT",
-  "nx": {
-    "implicitDependencies": [
-      "@ourworldindata/utils",
-      "@ourworldindata/core-table"
-    ]
-  }
+  "license": "MIT"
 }

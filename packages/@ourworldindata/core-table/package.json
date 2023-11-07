@@ -23,10 +23,5 @@
     "eslint": "^8.53.0",
     "typescript": "~5.2.2"
   },
-  "license": "MIT",
-  "nx": {
-    "implicitDependencies": [
-      "@ourworldindata/utils"
-    ]
-  }
+  "license": "MIT"
 }

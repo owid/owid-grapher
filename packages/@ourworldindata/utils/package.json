@@ -47,8 +47,5 @@
     "jest": "^29.7.0",
     "typescript": "~5.2.2"
   },
-  "license": "MIT",
-  "nx": {
-    "implicitDependencies": []
-  }
+  "license": "MIT"
 }
