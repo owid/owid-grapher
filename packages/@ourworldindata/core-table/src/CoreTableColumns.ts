@@ -734,16 +734,35 @@ class YearColumn extends TimeColumn {
 class DayColumn extends TimeColumn {
     preposition = "on"
 
+    // We cache these values because running `formatDay` thousands of times takes some time.
+    static formatValueCache = new Map<number, string>()
     formatValue(value: number): string {
-        return formatDay(value)
+        if (!DayColumn.formatValueCache.has(value)) {
+            const formatted = formatDay(value)
+            DayColumn.formatValueCache.set(value, formatted)
+            return formatted
+        }
+        return DayColumn.formatValueCache.get(value)!
     }
 
+    static formatValueForMobileCache = new Map<number, string>()
     formatValueForMobile(value: number): string {
-        return formatDay(value, { format: "MMM D, 'YY" })
+        if (!DayColumn.formatValueForMobileCache.has(value)) {
+            const formatted = formatDay(value, { format: "MMM D, 'YY" })
+            DayColumn.formatValueForMobileCache.set(value, formatted)
+            return formatted
+        }
+        return DayColumn.formatValueForMobileCache.get(value)!
     }
 
+    static formatForCsvCache = new Map<number, string>()
     formatForCsv(value: number): string {
-        return formatDay(value, { format: "YYYY-MM-DD" })
+        if (!DayColumn.formatForCsvCache.has(value)) {
+            const formatted = formatDay(value, { format: "YYYY-MM-DD" })
+            DayColumn.formatForCsvCache.set(value, formatted)
+            return formatted
+        }
+        return DayColumn.formatForCsvCache.get(value)!
     }
 }
 
