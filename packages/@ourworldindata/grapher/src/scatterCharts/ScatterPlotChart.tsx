@@ -1193,16 +1193,22 @@ export class ScatterPlotChart
         return axis
     }
 
-    getPointLabel(row: OwidRow): string | undefined {
+    getPointLabel(rowIndex: number): string | undefined {
         const strat = this.manager.scatterPointLabelStrategy
+        const { xColumn, yColumn } = this
+        const { timeColumn } = this.transformedTable
         let label
         if (strat === ScatterPointLabelStrategy.y) {
-            label = this.yColumn?.formatValue(row[this.yColumnSlug])
+            label = yColumn?.formatValue(
+                yColumn.valuesIncludingErrorValues[rowIndex]
+            )
         } else if (strat === ScatterPointLabelStrategy.x) {
-            label = this.xColumn?.formatValue(row[this.xColumnSlug])
+            label = xColumn?.formatValue(
+                xColumn.valuesIncludingErrorValues[rowIndex]
+            )
         } else {
-            label = this.transformedTable.timeColumn.formatTime(
-                row[this.transformedTable.timeColumn.slug]
+            label = timeColumn.formatTime(
+                timeColumn.valuesIncludingErrorValues[rowIndex] as number
             )
         }
         return label
@@ -1225,28 +1231,36 @@ export class ScatterPlotChart
     }
 
     @computed private get allPointsBeforeEndpointsFilter(): SeriesPoint[] {
-        const { entityNameSlug, timeColumn } = this.transformedTable
+        const { entityNameColumn, timeColumn } = this.transformedTable
+        const { xColumn, yColumn, sizeColumn, colorColumn } = this
+
         // We are running this filter first because it only depends on author-specified config, not
         // on any user interaction.
         return this.removePointsOutsidePlane(
-            this.transformedTable.rows.map((row) => {
+            this.transformedTable.indices.map((rowIndex) => {
                 return {
-                    x: row[this.xColumnSlug],
-                    y: row[this.yColumnSlug],
+                    x: xColumn.valuesIncludingErrorValues[rowIndex] as number,
+                    y: yColumn.valuesIncludingErrorValues[rowIndex] as number,
                     size: defaultIfErrorValue(
-                        row[this.sizeColumn.slug],
+                        sizeColumn.valuesIncludingErrorValues[rowIndex],
                         undefined
-                    ),
+                    ) as number | undefined,
                     color: defaultIfErrorValue(
-                        row[this.colorColumn.slug],
+                        colorColumn.valuesIncludingErrorValues[rowIndex],
                         undefined
-                    ),
-                    entityName: row[entityNameSlug],
-                    label: this.getPointLabel(row) ?? "",
-                    timeValue: row[timeColumn.slug],
+                    ) as string | number | undefined,
+                    entityName: entityNameColumn.valuesIncludingErrorValues[
+                        rowIndex
+                    ] as EntityName,
+                    label: this.getPointLabel(rowIndex) ?? "",
+                    timeValue: timeColumn.valuesIncludingErrorValues[
+                        rowIndex
+                    ] as number,
                     time: {
-                        x: row[this.xColumn!.originalTimeColumnSlug!],
-                        y: row[this.yColumn!.originalTimeColumnSlug!],
+                        x: xColumn.originalTimeColumn
+                            .valuesIncludingErrorValues[rowIndex] as number,
+                        y: yColumn.originalTimeColumn
+                            .valuesIncludingErrorValues[rowIndex] as number,
                     },
                 }
             })
