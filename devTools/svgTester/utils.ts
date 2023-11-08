@@ -1,12 +1,11 @@
-import { ChartTypeName } from "@ourworldindata/grapher"
+import { ChartTypeName, GrapherTabOption } from "@ourworldindata/grapher"
 import {
     MultipleOwidVariableDataDimensionsMap,
-    OwidVariableDataMetadataDimensions,
     OwidVariableMixedData,
     OwidVariableWithSourceAndDimension,
     TESTING_ONLY_reset_guid,
 } from "@ourworldindata/utils"
-import fs from "fs-extra"
+import fs, { stat } from "fs-extra"
 import md5 from "md5"
 import path from "path"
 import stream from "stream"
@@ -23,6 +22,7 @@ import {
     BAKED_GRAPHER_URL,
     BAKED_BASE_URL,
 } from "../../settings/serverSettings.js"
+import { getHeapStatistics } from "v8"
 
 export const CONFIG_FILENAME: string = "config.json"
 const RESULTS_FILENAME = "results.csv"
@@ -65,12 +65,20 @@ const resultDifference = (difference: SvgDifference): VerifyResult => ({
     difference: difference,
 })
 
+export type SvgRenderPerformance = {
+    durationReceiveData: number
+    durationTotal: number
+    heapUsed: number
+    totalDataFileSize: number
+}
+
 export type SvgRecord = {
     chartId: number
     slug: string
-    chartType: ChartTypeName | undefined
+    chartType: ChartTypeName | GrapherTabOption | undefined
     md5: string
     svgFilename: string
+    performance?: SvgRenderPerformance
 }
 
 export interface SvgDifference {
@@ -88,6 +96,7 @@ export interface JobDirectory {
 export interface JobConfigAndData {
     config: GrapherInterface
     variableData: MultipleOwidVariableDataDimensionsMap
+    totalDataFileSize: number
 }
 
 export function logIfVerbose(verbose: boolean, message: string, param?: any) {
@@ -250,6 +259,9 @@ export async function renderSvg(dir: string): Promise<[string, SvgRecord]> {
     // they keep a stateful variable in clientutils. To minimize differences
     // between consecutive runs we reset this id here before every export
     TESTING_ONLY_reset_guid()
+
+    const timeStart = Date.now()
+
     const grapher = initGrapherForSvgExport({
         ...configAndData.config,
         adminBaseUrl: BAKED_BASE_URL,
@@ -264,13 +276,23 @@ export async function renderSvg(dir: string): Promise<[string, SvgRecord]> {
     )
 
     grapher.receiveOwidData(configAndData.variableData)
+    const durationReceiveData = Date.now() - timeStart
+
     const svg = grapher.staticSVG
+    const durationTotal = Date.now() - timeStart
+
     const svgRecord = {
         chartId: configAndData.config.id!,
         slug: configAndData.config.slug!,
-        chartType: configAndData.config.type,
+        chartType: grapher.tab === "chart" ? grapher.type : grapher.tab,
         md5: processSvgAndCalculateHash(svg),
         svgFilename: outFilename,
+        performance: {
+            durationReceiveData,
+            durationTotal,
+            heapUsed: getHeapStatistics().used_heap_size,
+            totalDataFileSize: configAndData.totalDataFileSize,
+        },
     }
     return Promise.resolve([svg, svgRecord])
 }
@@ -345,19 +367,20 @@ export async function loadGrapherConfigAndData(
     const loadDataPromises = variableIds.map(async (variableId) => {
         const dataPath = path.join(inputDir, `${variableId}.data.json`)
         const metadataPath = path.join(inputDir, `${variableId}.metadata.json`)
+        const dataFileSize = await stat(dataPath).then((stats) => stats.size)
         const data = (await readJsonFile(dataPath)) as OwidVariableMixedData
         const metadata = (await readJsonFile(
             metadataPath
         )) as OwidVariableWithSourceAndDimension
-        return { data, metadata }
+        return { data, metadata, dataFileSize }
     })
 
-    const data: OwidVariableDataMetadataDimensions[] =
-        await Promise.all(loadDataPromises)
+    const data = await Promise.all(loadDataPromises)
 
     const variableData = new Map(data.map((d) => [d.metadata.id, d]))
+    const totalDataFileSize = _.sum(data.map((d) => d.dataFileSize))
 
-    return { config, variableData }
+    return { config, variableData, totalDataFileSize }
 }
 
 export function logDifferencesToConsole(
