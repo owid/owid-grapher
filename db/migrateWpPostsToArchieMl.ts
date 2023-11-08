@@ -93,7 +93,7 @@ const migrate = async (): Promise<void> => {
         "created_at_in_wordpress",
         "updated_at",
         "featured_image"
-    ).from(db.knexTable(Post.postsTable).where("id", "=", "23144"))
+    ).from(db.knexTable(Post.postsTable)) //.where("id", "=", "24808"))
 
     for (const post of posts) {
         try {
@@ -146,7 +146,8 @@ const migrate = async (): Promise<void> => {
                 const indexOfFirstHeading = archieMlBodyElements.findIndex(
                     (block) => block.type === "heading"
                 )
-                archieMlBodyElements.splice(indexOfFirstHeading, 0, {
+                // - 1 because there is an <hr /> before the heading
+                archieMlBodyElements.splice(indexOfFirstHeading - 1, 0, {
                     type: "text",
                     value: [
                         {
