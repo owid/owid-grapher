@@ -36,7 +36,6 @@ export const checkIsLightningUpdate = (
     > = {
         breadcrumbs: true,
         errors: true,
-        imageMetadata: true,
         linkedCharts: true,
         linkedDocuments: true,
         relatedCharts: true,
@@ -47,6 +46,7 @@ export const checkIsLightningUpdate = (
         updatedAt: true,
         createdAt: false,
         id: false, // weird case - can't be updated
+        imageMetadata: false, // could require baking new images
         publicationContext: false, // requires an update of the blog roll
         published: false, // requires an update of the blog roll
         publishedAt: false, // could require an update of the blog roll

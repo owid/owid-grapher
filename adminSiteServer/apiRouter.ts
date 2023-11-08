@@ -2502,6 +2502,10 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
         .getRepository(Gdoc)
         .create(getOwidGdocFromJSON(nextGdocJSON))
 
+    // Need to load these to compare them for lightning update candidacy
+    await prevGdoc.loadImageMetadata()
+    await nextGdoc.loadImageMetadata()
+
     // Deleting and recreating these is simpler than tracking orphans over the next code block
     await GdocXImage.delete({ gdocId: id })
     const filenames = nextGdoc.filenames
