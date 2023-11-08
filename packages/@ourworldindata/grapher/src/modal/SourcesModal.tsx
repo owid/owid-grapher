@@ -15,7 +15,6 @@ import {
 import {
     Tabs,
     ExpandableTabs,
-    IndicatorKeyData,
     IndicatorDescriptions,
     IndicatorSources,
     IndicatorProcessing,
@@ -27,6 +26,7 @@ import { faPencilAlt } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { CoreColumn, OwidColumnDef } from "@ourworldindata/core-table"
 import { Modal } from "./Modal"
+import { KeyDataTable } from "../keyDataTable/KeyDataTable"
 
 // keep in sync with variables in SourcesModal.scss
 const MAX_WIDTH = 832
@@ -287,7 +287,7 @@ export class Source extends React.Component<{
                 {this.def.descriptionShort && (
                     <p>{this.def.descriptionShort}</p>
                 )}
-                <IndicatorKeyData
+                <KeyDataTable
                     attribution={this.attributions}
                     owidProcessingLevel={this.def.owidProcessingLevel}
                     dateRange={this.def.timespan}

@@ -1,22 +1,21 @@
-.indicator-key-data {
-    --title: var(--indicator-key-data-title, #{$blue-50});
-    --content: var(--indicator-key-data-content, currentColor);
-    --border: var(--indicator-key-data-border, #{$blue-20});
+.key-data-table {
+    $border: #e7e7e7;
 
-    @include body-3-medium;
+    @include label-2-medium;
+    margin-top: 16px;
 
     &--top-border {
-        border-top: 1px solid var(--border);
+        border-top: 1px solid $border;
     }
 
     &--bottom-border {
-        border-bottom: 1px solid var(--border);
+        border-bottom: 1px solid $border;
     }
 
     display: grid;
     grid-template-columns: repeat(2, 1fr);
 
-    .indicator-key-data-item {
+    .key-data-table-item {
         display: flex;
         padding: 16px 24px 16px 0;
 
@@ -24,14 +23,14 @@
             display: block;
         }
 
-        + .indicator-key-data-item {
-            border-top: 1px solid var(--border);
+        &:not(.key-data-table-source) {
+            border-top: 1px solid $border;
         }
 
         &__title {
-            flex: 0 0 140px; // using a fixed width here to make sure the content is aligned
+            flex: 0 0 130px; // using a fixed width here to make sure the content is aligned
             margin-right: 24px;
-            color: var(--title);
+            color: $light-text;
 
             @include sm-only {
                 margin-right: 0;
@@ -50,5 +49,11 @@
     a {
         @include owid-link-90;
         color: inherit;
+    }
+}
+
+&.GrapherComponentNarrow .key-data-table {
+    .indicator-key-data-item {
+        display: block;
     }
 }

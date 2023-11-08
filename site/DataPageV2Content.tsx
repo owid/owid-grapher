@@ -10,13 +10,13 @@ import {
     IndicatorProcessing,
     SimpleMarkdownText,
     ExpandableToggle,
-    makeKeyDataSource,
-    makeKeyDataDateRange,
-    makeKeyDataLastUpdated,
-    makeKeyDataNextUpdate,
-    makeKeyDataUnit,
-    makeKeyDataUnitConversionFactor,
-    makeKeyDataLinks,
+    makeSource,
+    makeDateRange,
+    makeLastUpdated,
+    makeNextUpdate,
+    makeUnit,
+    makeUnitConversionFactor,
+    makeLinks,
 } from "@ourworldindata/components"
 import ReactDOM from "react-dom"
 import { GrapherWithFallback } from "./GrapherWithFallback.js"
@@ -732,16 +732,17 @@ const KeyDataTable = (props: {
     attribution: string
 }) => {
     const { datapageData } = props
-    const source = makeKeyDataSource({
+    const source = makeSource({
         attribution: props.attribution,
         owidProcessingLevel: datapageData.owidProcessingLevel,
     })
-    const lastUpdated = makeKeyDataLastUpdated(datapageData)
-    const nextUpdate = makeKeyDataNextUpdate(datapageData)
-    const dateRange = makeKeyDataDateRange(datapageData)
-    const unit = makeKeyDataUnit(datapageData)
-    const unitConversionFactor = makeKeyDataUnitConversionFactor(datapageData)
-    const links = makeKeyDataLinks({ link: datapageData.source?.link })
+    const lastUpdated = makeLastUpdated(datapageData)
+    const nextUpdate = makeNextUpdate(datapageData)
+    const dateRange = makeDateRange(datapageData)
+    const unit = makeUnit(datapageData)
+    const unitConversionFactor = makeUnitConversionFactor(datapageData)
+    const links = makeLinks({ link: datapageData.source?.link })
+
     return (
         <div className="key-data-block grid grid-cols-4 grid-sm-cols-12 ">
             {datapageData.descriptionShort && (

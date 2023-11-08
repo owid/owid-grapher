@@ -18,14 +18,13 @@ export { Tabs } from "./Tabs/Tabs.js"
 export { ExpandableTabs } from "./Tabs/ExpandableTabs.js"
 
 export {
-    IndicatorKeyData,
-    makeKeyDataSource,
-    makeKeyDataDateRange,
-    makeKeyDataLastUpdated,
-    makeKeyDataNextUpdate,
-    makeKeyDataUnit,
-    makeKeyDataUnitConversionFactor,
-    makeKeyDataLinks,
+    makeSource,
+    makeDateRange,
+    makeLastUpdated,
+    makeNextUpdate,
+    makeUnit,
+    makeUnitConversionFactor,
+    makeLinks,
 } from "./IndicatorKeyData/IndicatorKeyData.js"
 export { IndicatorDescriptions } from "./IndicatorDescriptions/IndicatorDescriptions.js"
 export { IndicatorProcessing } from "./IndicatorProcessing/IndicatorProcessing.js"
