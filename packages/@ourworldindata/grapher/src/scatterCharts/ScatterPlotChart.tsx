@@ -45,7 +45,6 @@ import {
 import {
     Color,
     EntityName,
-    OwidRow,
     OwidTableSlugs,
     OwidTable,
     defaultIfErrorValue,
