@@ -214,6 +214,9 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                             </a>
                         </div>
                     </div>
+                    <a href="/donate" className="site-navigation__giving">
+                        Giving season
+                    </a>
                 </div>
             </div>
         </>
