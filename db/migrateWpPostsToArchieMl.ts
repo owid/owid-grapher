@@ -159,7 +159,7 @@ const migrate = async (): Promise<void> => {
                                     children: [
                                         {
                                             spanType: "span-simple-text",
-                                            text: `See all interactive charts on ${post.title} ↓`,
+                                            text: `See all interactive charts on ${post.title.toLowerCase()} ↓`,
                                         },
                                     ],
                                 },
@@ -171,7 +171,7 @@ const migrate = async (): Promise<void> => {
                 const allChartsBlock: EnrichedBlockAllCharts = {
                     type: "all-charts",
                     parseErrors: [],
-                    heading: `Interactive Charts on ${post.title}`,
+                    heading: `Interactive charts on ${post.title.toLowerCase()}`,
                     top: [],
                 }
 
@@ -200,7 +200,7 @@ const migrate = async (): Promise<void> => {
                     subtitle: post.excerpt,
                     excerpt: post.excerpt,
                     authors: parsePostAuthors(post.authors),
-                    "featured-image": post.featured_image,
+                    "featured-image": post.featured_image.split("/").at(-1),
                     dateline: dateline,
                     // TODO: this discards block level elements - those might be needed?
                     refs: undefined,
