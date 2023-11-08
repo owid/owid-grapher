@@ -198,6 +198,7 @@
 .site-navigation__giving {
     position: absolute;
     padding: 5px 10px;
+    margin-left: -10px;
     color: $white;
     @include body-3-medium;
     background-color: $vermillion;
