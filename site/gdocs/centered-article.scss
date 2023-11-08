@@ -65,6 +65,8 @@
                     border-left-color: $vermillion;
                     background: unset;
                     font-weight: bold;
+                    // Counteract the font-weight so that the text doesn't wrap when active
+                    letter-spacing: -0.09px;
                 }
                 a {
                     padding-left: 16px;
