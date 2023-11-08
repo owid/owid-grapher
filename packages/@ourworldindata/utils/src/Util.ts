@@ -166,8 +166,6 @@ import {
     UserCountryInformation,
     SpanLink,
 } from "./owidTypes.js"
-import { OwidOrigin } from "./OwidOrigin.js"
-import { OwidVariableWithSource } from "./OwidVariable.js"
 import { PointVector } from "./PointVector.js"
 import React from "react"
 import { match, P } from "ts-pattern"

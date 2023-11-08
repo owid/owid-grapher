@@ -3,7 +3,6 @@ import {
     OwidVariableDisplayConfigInterface,
     ToleranceStrategy,
     OwidOrigin,
-    OwidSource,
     OwidVariablePresentation,
 } from "@ourworldindata/utils"
 import { CoreValueType, Color } from "./CoreTableConstants.js"
