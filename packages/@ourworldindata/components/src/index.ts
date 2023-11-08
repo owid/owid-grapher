@@ -17,7 +17,16 @@ export { ExpandableToggle } from "./ExpandableToggle/ExpandableToggle.js"
 export { Tabs } from "./Tabs/Tabs.js"
 export { ExpandableTabs } from "./Tabs/ExpandableTabs.js"
 
-export { IndicatorKeyData } from "./IndicatorKeyData/IndicatorKeyData.js"
+export {
+    IndicatorKeyData,
+    makeKeyDataSource,
+    makeKeyDataDateRange,
+    makeKeyDataLastUpdated,
+    makeKeyDataNextUpdate,
+    makeKeyDataUnit,
+    makeKeyDataUnitConversionFactor,
+    makeKeyDataLinks,
+} from "./IndicatorKeyData/IndicatorKeyData.js"
 export { IndicatorDescriptions } from "./IndicatorDescriptions/IndicatorDescriptions.js"
 export { IndicatorProcessing } from "./IndicatorProcessing/IndicatorProcessing.js"
 

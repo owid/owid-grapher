@@ -156,28 +156,88 @@
         }
     }
 
-    .about-this-data-wrapper {
-        width: 100%;
-    }
-
-    .about-this-data {
-        margin-bottom: 32px;
-    }
-
-    .about-this-data__heading {
+    .key-info__title {
         @include h2-bold;
         margin: 0 0 16px;
+        @include sm-up {
+            margin: 0 0 24px;
+        }
     }
 
-    .about-this-data__indicator-title {
-        @include h5-black-caps;
+    .key-info__content {
+        p {
+            margin: 0;
+        }
+
+        ul {
+            padding-left: 1em;
+        }
+
+        li {
+            @include body-2-regular;
+            margin-bottom: 1em;
+
+            &:last-child {
+                margin-bottom: 0;
+            }
+        }
+    }
+
+    .key-info__learn-more {
+        @include expandable-paragraph__expand-button--full;
+        margin-top: 24px;
+        svg {
+            font-size: 0.75em;
+            margin-left: 12px;
+        }
+    }
+
+    .key-info__learn-more + .key-info__description-from-producer {
+        margin-top: 24px;
+    }
+
+    .key-info__right {
+        @include sm-only {
+            margin-top: 48px;
+        }
+        @include sm-up {
+            padding-left: 24px;
+            border-left: 1px solid $blue-20;
+        }
+    }
+
+    .key-data-block {
+        row-gap: 24px;
+    }
+
+    .key-data {
+        @include body-3-medium;
+        a {
+            @include owid-link-90;
+            color: inherit;
+        }
+    }
+
+    .key-data__title {
         color: $blue-50;
-        margin: 0 0 8px;
     }
 
-    .about-this-data__indicator-description {
-        @include body-2-regular;
-        margin: 0 0 16px;
+    .key-data__content--hide-overflow {
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+    }
+
+    .key-data-description-short__title {
+        @include h5-black-caps;
+        margin-bottom: 8px;
+    }
+
+    .about-this-data__title {
+        @include datapage-section-title;
+        @include md-up {
+            margin-bottom: 0px;
+        }
     }
 
     .related-research__title {

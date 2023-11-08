@@ -26,35 +26,25 @@ interface IndicatorKeyDataProps {
 }
 
 export const IndicatorKeyData = (props: IndicatorKeyDataProps) => {
-    const isEmbeddedInADataPage = props.isEmbeddedInADataPage ?? true
-    const processingLevelPhrase = getPhraseForProcessingLevel(
-        props.owidProcessingLevel
-    )
-
-    const lastUpdated = dayjs(props.lastUpdated ?? "", ["YYYY-MM-DD", "YYYY"])
-    const showLastUpdated = lastUpdated.isValid()
-
-    const nextUpdate = dayjs(props.nextUpdate ?? "", ["YYYY-MM-DD"])
-    const showNextUpdate = nextUpdate.isValid()
-
-    const showUnitConversionFactor =
-        props.unitConversionFactor && props.unitConversionFactor !== 1
-
-    const linkFragments = splitSourceTextIntoFragments(props.link)
-    const link = linkFragments.join("\n")
+    const source = makeKeyDataSource(props)
+    const lastUpdated = makeKeyDataLastUpdated(props)
+    const nextUpdate = makeKeyDataNextUpdate(props)
+    const dateRange = makeKeyDataDateRange(props)
+    const unit = makeKeyDataUnit(props)
+    const unitConversionFactor = makeKeyDataUnitConversionFactor(props)
+    const links = makeKeyDataLinks(props)
 
     const keyDataCount = count(
-        props.attribution,
-        showLastUpdated,
-        showNextUpdate,
-        props.dateRange,
-        props.unit,
-        showUnitConversionFactor,
-        link
+        source,
+        lastUpdated,
+        nextUpdate,
+        dateRange,
+        unit,
+        unitConversionFactor,
+        links
     )
     const hasSingleRow =
-        keyDataCount === 1 ||
-        (keyDataCount === 2 && !props.attribution && !link)
+        keyDataCount === 1 || (keyDataCount === 2 && !source && !links)
 
     return (
         <div
@@ -65,108 +55,86 @@ export const IndicatorKeyData = (props: IndicatorKeyDataProps) => {
                     !hasSingleRow && !props.hideBottomBorder,
             })}
         >
-            {props.attribution && (
+            {source && (
                 <div className="indicator-key-data-item indicator-key-data-item--span">
                     <div className="indicator-key-data-item__title">Source</div>
                     <div className="indicator-key-data-item__content">
-                        <SimpleMarkdownText text={props.attribution} />
-                        {" - "}
-                        {isEmbeddedInADataPage ? (
-                            <a
-                                href={`#${DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}`}
-                            >
-                                {processingLevelPhrase}
-                            </a>
-                        ) : (
-                            processingLevelPhrase
-                        )}{" "}
-                        by Our World in Data
+                        {source}
                     </div>
                 </div>
             )}
-            {showLastUpdated && (
+            {lastUpdated && (
                 <div
                     className={cx("indicator-key-data-item", {
                         "indicator-key-data-item--span":
-                            !showNextUpdate &&
-                            !props.dateRange &&
-                            !props.unit &&
-                            !showUnitConversionFactor,
+                            !nextUpdate &&
+                            !dateRange &&
+                            !unit &&
+                            !unitConversionFactor,
                     })}
                 >
                     <div className="indicator-key-data-item__title">
                         Last updated
                     </div>
                     <div className="indicator-key-data-item__content">
-                        {lastUpdated.format("MMMM D, YYYY")}
+                        {lastUpdated}
                     </div>
                 </div>
             )}
-            {showNextUpdate && (
+            {nextUpdate && (
                 <div
                     className={cx("indicator-key-data-item", {
                         "indicator-key-data-item--span":
-                            !props.dateRange &&
-                            !showLastUpdated &&
-                            !props.unit &&
-                            !showUnitConversionFactor,
+                            !dateRange &&
+                            !lastUpdated &&
+                            !unit &&
+                            !unitConversionFactor,
                     })}
                 >
                     <div className="indicator-key-data-item__title">
                         Next expected update
                     </div>
                     <div className="indicator-key-data-item__content">
-                        {nextUpdate.format("MMMM YYYY")}
+                        {nextUpdate}
                     </div>
                 </div>
             )}
-            {props.dateRange && (
+            {dateRange && (
                 <div
                     className={cx("indicator-key-data-item", {
                         "indicator-key-data-item--span":
-                            !props.unit &&
-                            !showUnitConversionFactor &&
-                            isEven(count(showLastUpdated, showNextUpdate)),
+                            !unit &&
+                            !unitConversionFactor &&
+                            isEven(count(lastUpdated, nextUpdate)),
                     })}
                 >
                     <div className="indicator-key-data-item__title">
                         Date range
                     </div>
                     <div className="indicator-key-data-item__content">
-                        {getDateRange(props.dateRange)}
+                        {dateRange}
                     </div>
                 </div>
             )}
-            {props.unit && (
+            {unit && (
                 <div
                     className={cx("indicator-key-data-item", {
                         "indicator-key-data-item--span":
-                            !showUnitConversionFactor &&
-                            isEven(
-                                count(
-                                    props.lastUpdated,
-                                    props.nextUpdate,
-                                    props.dateRange
-                                )
-                            ),
+                            !unitConversionFactor &&
+                            isEven(count(lastUpdated, nextUpdate, dateRange)),
                     })}
                 >
                     <div className="indicator-key-data-item__title">Unit</div>
                     <div className="indicator-key-data-item__content">
-                        {props.unit}
+                        {unit}
                     </div>
                 </div>
             )}
-            {showUnitConversionFactor && (
+            {unitConversionFactor && (
                 <div
                     className={cx("indicator-key-data-item", {
                         "indicator-key-data-item--span": isEven(
-                            count(
-                                props.lastUpdated,
-                                props.nextUpdate,
-                                props.dateRange,
-                                props.unit
-                            )
+                            count(lastUpdated, nextUpdate, dateRange, unit)
                         ),
                     })}
                 >
@@ -174,21 +142,103 @@ export const IndicatorKeyData = (props: IndicatorKeyDataProps) => {
                         Unit conversion factor
                     </div>
                     <div className="indicator-key-data-item__content">
-                        {props.unitConversionFactor}
+                        {unitConversionFactor}
                     </div>
                 </div>
             )}
-            {link && (
+            {links && (
                 <div className="indicator-key-data-item indicator-key-data-item--span">
-                    <div className="indicator-key-data-item__title">
-                        {linkFragments.length > 1 ? "Links" : "Link"}
-                    </div>
+                    <div className="indicator-key-data-item__title">Links</div>
                     <div className="indicator-key-data-item__content">
-                        <SimpleMarkdownText text={link} />
+                        {links}
                     </div>
                 </div>
             )}
         </div>
+    )
+}
+
+export const makeKeyDataSource = ({
+    attribution,
+    owidProcessingLevel,
+    isEmbeddedInADataPage,
+}: Pick<
+    IndicatorKeyDataProps,
+    "attribution" | "owidProcessingLevel" | "isEmbeddedInADataPage"
+>): React.ReactNode => {
+    if (!attribution) return null
+    const isEmbedded = isEmbeddedInADataPage ?? true
+    const processingLevelPhrase =
+        getPhraseForProcessingLevel(owidProcessingLevel)
+    return (
+        <>
+            <SimpleMarkdownText text={attribution} useParagraphs={false} />
+            {" - "}
+            {isEmbedded ? (
+                <a href={`#${DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}`}>
+                    {processingLevelPhrase}
+                </a>
+            ) : (
+                processingLevelPhrase
+            )}{" "}
+            by Our World in Data
+        </>
+    )
+}
+
+export const makeKeyDataLastUpdated = ({
+    lastUpdated,
+}: Pick<IndicatorKeyDataProps, "lastUpdated">): React.ReactNode => {
+    const date = dayjs(lastUpdated ?? "", ["YYYY-MM-DD", "YYYY"])
+    if (!date.isValid()) return null
+    return date.format("MMMM D, YYYY")
+}
+
+export const makeKeyDataNextUpdate = ({
+    nextUpdate,
+}: Pick<IndicatorKeyDataProps, "nextUpdate">): React.ReactNode => {
+    const date = dayjs(nextUpdate ?? "", ["YYYY-MM-DD"])
+    if (!date.isValid()) return null
+    return date.format("MMMM YYYY")
+}
+
+export const makeKeyDataDateRange = ({
+    dateRange,
+}: Pick<IndicatorKeyDataProps, "dateRange">): React.ReactNode => {
+    if (!dateRange) return null
+    return getDateRange(dateRange)
+}
+
+export const makeKeyDataUnit = ({
+    unit,
+}: Pick<IndicatorKeyDataProps, "unit">): React.ReactNode => {
+    if (!unit) return null
+    return unit
+}
+
+export const makeKeyDataUnitConversionFactor = ({
+    unitConversionFactor,
+}: Pick<IndicatorKeyDataProps, "unitConversionFactor">): React.ReactNode => {
+    if (!unitConversionFactor || unitConversionFactor === 1) return null
+    return unitConversionFactor
+}
+
+export const makeKeyDataLinks = ({
+    link,
+}: Pick<IndicatorKeyDataProps, "link">): React.ReactNode => {
+    if (!link) return null
+    const linkFragments = splitSourceTextIntoFragments(link)
+    return (
+        <>
+            {linkFragments.map((text, index) => (
+                <>
+                    <span>
+                        <SimpleMarkdownText text={text} useParagraphs={false} />
+                    </span>
+                    {index < linkFragments.length - 1 && <br />}
+                </>
+            ))}
+        </>
     )
 }
 
