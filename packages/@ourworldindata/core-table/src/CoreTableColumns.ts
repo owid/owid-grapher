@@ -409,7 +409,15 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     get source(): OwidSource {
-        return this.def.source ?? {}
+        const { def } = this
+        return {
+            name: def.sourceName,
+            link: def.sourceLink,
+            dataPublishedBy: def.dataPublishedBy,
+            dataPublisherSource: def.dataPublisherSource,
+            retrievedDate: def.retrievedDate,
+            additionalInfo: def.additionalInfo,
+        }
     }
 
     // todo: remove. should not be on coretable
