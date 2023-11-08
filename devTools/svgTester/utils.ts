@@ -26,7 +26,7 @@ import { getHeapStatistics } from "v8"
 
 export const CONFIG_FILENAME: string = "config.json"
 const RESULTS_FILENAME = "results.csv"
-export const SVG_CSV_HEADER = `grapherId,slug,chartType,md5,svgFilename`
+export const SVG_CSV_HEADER = `grapherId,slug,chartType,md5,svgFilename,durationReceiveData,durationTotal,heapUsed,totalDataFileSize`
 
 export const finished = util.promisify(stream.finished) // (A)
 
@@ -290,6 +290,8 @@ export async function renderSvg(dir: string): Promise<[string, SvgRecord]> {
         performance: {
             durationReceiveData,
             durationTotal,
+            // The heap size measurement is only accurate if the parent process is run with `--isolate`, otherwise the same
+            // process is used for multiple graphs and the heap size accumulates
             heapUsed: getHeapStatistics().used_heap_size,
             totalDataFileSize: configAndData.totalDataFileSize,
         },
@@ -430,7 +432,22 @@ export async function writeResultsCsvFile(
     const csvFileStream = fs.createWriteStream(resultsPath)
     csvFileStream.write(SVG_CSV_HEADER + "\n")
     for (const row of svgRecords) {
-        const line = `${row.chartId},${row.slug},${row.chartType},${row.md5},${row.svgFilename}`
+        const line = [
+            row.chartId,
+            row.slug,
+            row.chartType,
+            row.md5,
+            row.svgFilename,
+
+            // Perf
+            row.performance?.durationReceiveData,
+            row.performance?.durationTotal,
+            row.performance?.heapUsed,
+            row.performance?.totalDataFileSize,
+        ]
+            .map((item) => item ?? "")
+            .join(",")
+
         csvFileStream.write(line + "\n")
     }
     csvFileStream.end()
