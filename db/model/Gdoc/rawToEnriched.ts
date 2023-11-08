@@ -1034,7 +1034,7 @@ const parseHeading = (raw: RawBlockHeading): EnrichedBlockHeading => {
 
     if (!raw.value.level)
         return createError({
-            message: "Header level property is missing",
+            message: `Header with text "${headingText}" is missing a level property`,
         })
     const level = parseInt(raw.value.level, 10)
     if (level < 1 || level > 5)
