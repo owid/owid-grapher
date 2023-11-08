@@ -9,6 +9,7 @@ import {
     splitSourceTextIntoFragments,
     DisplaySource,
     prepareSourcesForDisplay,
+    OwidSource,
 } from "@ourworldindata/utils"
 import {
     IndicatorKeyData,
@@ -91,6 +92,10 @@ export class Source extends React.Component<{
         return this.props.column.def
     }
 
+    @computed private get source(): OwidSource {
+        return this.props.column.source ?? {}
+    }
+
     @computed private get title(): string {
         return this.def.display?.name || this.def.name || ""
     }
@@ -134,12 +139,12 @@ export class Source extends React.Component<{
         return (
             (this.def.descriptionKey && this.def.descriptionKey.length > 0) ||
             !!this.def.descriptionFromProducer ||
-            !!this.def.source?.additionalInfo
+            !!this.source.additionalInfo
         )
     }
 
     @computed private get sourceLinks(): string[] {
-        return splitSourceTextIntoFragments(this.def.source?.link)
+        return splitSourceTextIntoFragments(this.source.link)
     }
 
     @computed private get sourcesForDisplay(): DisplaySource[] {
@@ -181,7 +186,7 @@ export class Source extends React.Component<{
                         attributionShort={
                             this.def.presentation?.attributionShort
                         }
-                        additionalInfo={this.def.source?.additionalInfo}
+                        additionalInfo={this.source.additionalInfo}
                         isEmbeddedInADataPage={this.props.isEmbeddedInADataPage}
                     />
                 )}
