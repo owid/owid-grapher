@@ -8,7 +8,6 @@ import {
     OwidGdocType,
     RelatedChart,
     EnrichedBlockAllCharts,
-    FullPost,
 } from "@ourworldindata/utils"
 import * as Post from "./model/Post.js"
 import fs from "fs"
