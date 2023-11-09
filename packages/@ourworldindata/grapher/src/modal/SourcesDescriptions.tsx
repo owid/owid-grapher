@@ -22,11 +22,11 @@ export const SourcesDescriptions = (props: SourcesDescriptionsProps) => {
     return (
         <div className="sources-descriptions">
             {props.descriptionKey && props.descriptionKey.length > 0 && (
-                <div className="key-info">
-                    <h3 className="key-info__title">
+                <div className="sources-description-key">
+                    <h3 className="sources-description-key__title">
                         What you should know about this data
                     </h3>
-                    <div className="key-info__content">
+                    <div className="sources-description-key__content">
                         {props.descriptionKey.length === 1 ? (
                             <SimpleMarkdownText
                                 text={props.descriptionKey[0].trim()}
@@ -44,7 +44,10 @@ export const SourcesDescriptions = (props: SourcesDescriptionsProps) => {
                         )}
                     </div>
                     {isEmbeddedInADataPage && props.hasFaqEntries && (
-                        <a className="key-info__learn-more" href="#faqs">
+                        <a
+                            className="sources-description-key__learn-more"
+                            href="#faqs"
+                        >
                             Learn more in the FAQs
                             <FontAwesomeIcon icon={faArrowDown} />
                         </a>
@@ -60,11 +63,9 @@ export const SourcesDescriptions = (props: SourcesDescriptionsProps) => {
                                 : "How does the producer of this data describe this data?"
                         }
                         content={
-                            <div className="expandable-info-blocks__content">
-                                <SimpleMarkdownText
-                                    text={props.descriptionFromProducer.trim()}
-                                />
-                            </div>
+                            <SimpleMarkdownText
+                                text={props.descriptionFromProducer.trim()}
+                            />
                         }
                         isExpandedDefault={
                             !(props.descriptionShort || props.descriptionKey)
@@ -76,11 +77,9 @@ export const SourcesDescriptions = (props: SourcesDescriptionsProps) => {
                     <ExpandableToggle
                         label="Additional information about this data"
                         content={
-                            <div className="expandable-info-blocks__content">
-                                <HtmlOrSimpleMarkdownText
-                                    text={props.additionalInfo.trim()}
-                                />
-                            </div>
+                            <HtmlOrSimpleMarkdownText
+                                text={props.additionalInfo.trim()}
+                            />
                         }
                     />
                 )}

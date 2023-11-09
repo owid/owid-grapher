@@ -24,6 +24,10 @@
                 color: $light-text;
             }
 
+            &__content {
+                color: $dark-text;
+            }
+
             &--span {
                 grid-column: 1 / -1;
             }

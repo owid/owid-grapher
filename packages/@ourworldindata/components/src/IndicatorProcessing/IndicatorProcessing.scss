@@ -1,6 +1,5 @@
 .indicator-processing {
     .data-processing {
-        --content: var(--data-processing-content, currentColor);
         --content-size: var(--data-processing-content-size, 0.875rem);
 
         margin-top: 0;
@@ -9,7 +8,6 @@
         > p {
             @include body-3-medium;
             margin: 0 0 16px;
-            color: var(--content);
             font-size: var(--content-size);
         }
     }
@@ -48,6 +46,14 @@
             color: var(--content);
             margin: 0;
             font-size: var(--content-size);
+
+            > *:first-child {
+                margin-top: 0;
+            }
+
+            > *:last-child {
+                margin-bottom: 0;
+            }
         }
 
         a {

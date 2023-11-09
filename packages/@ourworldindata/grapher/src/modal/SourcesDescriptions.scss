@@ -1,13 +1,12 @@
 .sources-descriptions {
-    .key-info {
+    .sources-description-key {
         background-color: $gray-10;
-        border-left: 4px solid $blue-10;
         margin: 24px 0;
-        padding: 32px;
+        padding: 24px;
 
         &__title {
-            @include h5-black-caps;
-            color: #a1a1a1;
+            @include h2-semibold;
+            color: $dark-text;
             margin-top: 0;
             margin-bottom: 16px;
         }
@@ -17,9 +16,12 @@
             @include body-2-regular;
             font-size: 0.875rem;
             font-weight: 500;
+            color: $dark-text;
+            margin: 16px 0;
         }
 
         &__content ul {
+            margin-left: 1em;
             li {
                 margin-bottom: 1em;
 
@@ -34,9 +36,14 @@
             margin-top: 24px;
             text-decoration: underline;
             text-underline-offset: 4px;
+            color: $dark-text;
 
             &:hover {
                 text-decoration: none;
+            }
+
+            &:visited {
+                color: $dark-text;
             }
 
             svg {

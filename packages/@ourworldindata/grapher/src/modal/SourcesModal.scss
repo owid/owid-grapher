@@ -7,7 +7,6 @@
     margin: 0 auto;
 
     $border: #e7e7e7;
-    $box-title: #a1a1a1;
 
     .note-multiple-indicators {
         margin-top: 0;
@@ -18,12 +17,13 @@
     }
 
     .source {
-        color: $dark-text;
+        color: $light-text;
 
         h2 {
             @include h1-semibold;
             margin-top: 0;
             margin-bottom: 8px;
+            color: $dark-text;
 
             @include sm-up {
                 font-size: 1.5rem;
@@ -34,6 +34,7 @@
             @include body-3-medium;
             margin-top: 8px;
             margin-bottom: 16px;
+            color: $dark-text;
         }
 
         a {
@@ -48,29 +49,27 @@
             @include h2-semibold;
             margin-top: 32px;
             margin-bottom: 8px;
+            color: $dark-text;
         }
 
         .indicator-sources {
+            --indicator-sources-description-heading: #{$dark-text};
+            --indicator-sources-key-data-title: #{$dark-text};
+
             .ExpandableToggle:first-of-type {
                 border-top: none;
-            }
-
-            .source-key-data {
-                --source-key-data-title: #{$dark-text};
             }
         }
 
         .data-processing {
-            --data-processing-content: #{$light-text};
-
             margin-top: 0;
             margin-bottom: 16px;
         }
 
         .indicator-processing-callout {
             --indicator-processing-background: #{$gray-10};
-            --indicator-processing-title: #{$box-title};
-            --indicator-processing-content: #{$dark-text};
+            --indicator-processing-title: #{$dark-text};
+            --indicator-processing-content: #{$light-text};
 
             margin-left: 0;
             margin-right: 0;
@@ -81,12 +80,10 @@
             --expandable-toggle-title: #{$dark-text};
             --expandable-toggle-button: #{$dark-text};
             --expandable-toggle-button-hover: #{$light-text};
-            --expandable-toggle-content: #{$light-text};
         }
 
         .NonExpandable {
             --non-expandable-title: #{$dark-text};
-            --non-expandable-content: #{$light-text};
             --non-expandable-border: #{$border};
         }
 
@@ -113,7 +110,7 @@
             height: auto;
             padding: 0;
             text-align: left;
-            color: inherit;
+            color: $dark-text;
             background-color: transparent;
             text-decoration: underline;
             text-underline-offset: 4px;

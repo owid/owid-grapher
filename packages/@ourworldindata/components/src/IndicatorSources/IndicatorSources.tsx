@@ -25,9 +25,7 @@ export const IndicatorSources = (props: IndicatorSourcesProps) => {
                         isEmbeddedInADataPage={isEmbeddedInADataPage}
                     />
                 )
-                return source.description ||
-                    source.citation ||
-                    source.dataPublishedBy ? (
+                return source.description || source.citation ? (
                     <ExpandableToggle
                         key={source.label}
                         label={source.label}
@@ -79,11 +77,11 @@ const SourceContent = (props: {
         (source.retrievedFrom && source.retrievedFrom.length > 0) ||
         source.citation
     return (
-        <div className="indicator-source">
+        <div className="source">
             {source.description && (
-                <p className="description">
+                <div className="description">
                     <SimpleMarkdownText text={source.description.trim()} />
-                </p>
+                </div>
             )}
             {showKeyInfo && (
                 <div className="source-key-data-blocks">
