@@ -2,7 +2,7 @@ import React from "react"
 import { Head } from "./Head.js"
 import { SiteHeader } from "./SiteHeader.js"
 import { SiteFooter } from "./SiteFooter.js"
-import { OwidGdocInterface } from "@ourworldindata/utils"
+import { IMAGES_DIRECTORY, OwidGdocInterface } from "@ourworldindata/utils"
 import { ArticleBlocks } from "./gdocs/ArticleBlocks.js"
 
 export const DonatePage = (props: {
@@ -16,6 +16,7 @@ export const DonatePage = (props: {
             pageTitle="Donate"
             baseUrl={props.baseUrl}
             pageDesc="Support open data and research to make progress against the world's largest problems"
+            imageUrl={`${props.baseUrl}${IMAGES_DIRECTORY}donate-thumbnail.png`}
         >
             <script src="https://js.stripe.com/v3/" />
             <script
