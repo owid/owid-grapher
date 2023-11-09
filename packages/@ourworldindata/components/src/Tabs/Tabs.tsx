@@ -58,9 +58,7 @@ export const Tabs = ({
                 return (
                     <button
                         key={label}
-                        className={cx("Tabs__tab", {
-                            "Tabs__tab--active": isActive,
-                        })}
+                        className="Tabs__tab"
                         type="button"
                         role="tab"
                         tabIndex={isActive ? 0 : -1}

@@ -31,12 +31,17 @@
         max-width: 240px;
         text-overflow: ellipsis;
         overflow: hidden;
-        cursor: pointer;
-    }
 
-    &__tab--active {
-        background: var(--background-active) !important;
-        border-color: var(--background-active) !important;
-        color: var(--text-active);
+        &:hover {
+            cursor: pointer;
+            background-color: $gray-10 !important;
+            border-color: $gray-10 !important;
+        }
+
+        &[aria-selected="true"] {
+            background: var(--background-active) !important;
+            border-color: var(--background-active) !important;
+            color: var(--text-active);
+        }
     }
 }
