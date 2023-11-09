@@ -409,7 +409,7 @@ export class Footer<
         return (
             <p className="sources" style={sources.style}>
                 {sources.renderHTML()}
-                {" - "}
+                {" – "}
                 <a
                     className="learn-more-about-data"
                     data-track-note="chart_click_sources"

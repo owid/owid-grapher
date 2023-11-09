@@ -24,7 +24,7 @@ export const makeSource = ({
     return (
         <>
             <SimpleMarkdownText text={attribution} useParagraphs={false} />
-            {" - "}
+            {" – "}
             {isEmbedded ? (
                 <a href={`#${DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}`}>
                     {processingLevelPhrase}
