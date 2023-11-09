@@ -4,11 +4,11 @@ import { faCheck } from "@fortawesome/free-solid-svg-icons"
 
 export class Checkbox extends React.Component<{
     checked: boolean
-    label: string
     onChange: () => any
+    label: string | React.ReactNode
 }> {
     render(): JSX.Element {
-        const { label, checked } = this.props
+        const { checked, onChange, label } = this.props
 
         return (
             <div className="checkbox">
@@ -16,7 +16,7 @@ export class Checkbox extends React.Component<{
                     <input
                         type="checkbox"
                         checked={checked}
-                        onChange={this.props.onChange}
+                        onChange={onChange}
                     />
                     <div className="custom">
                         {checked && <FontAwesomeIcon icon={faCheck} />}

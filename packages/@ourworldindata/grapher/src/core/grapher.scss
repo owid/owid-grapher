@@ -41,7 +41,6 @@ $zindex-controls-drawer: 140;
 .GrapherComponent {
     @import "../controls/CommandPalette.scss";
     @import "../controls/LabeledSwitch.scss";
-    @import "../controls/Checkbox.scss";
     @import "../controls/Controls.scss";
     @import "../controls/SettingsMenu.scss";
     @import "../controls/MapProjectionMenu.scss";
@@ -70,6 +69,7 @@ $zindex-controls-drawer: 140;
 @import "../controls/globalEntitySelector/GlobalEntitySelector.scss";
 @import "../sparkBars/SparkBars.scss";
 @import "../fullScreen/FullScreen.scss";
+@import "../../../components/src/Checkbox.scss";
 
 .GrapherComponent,
 .GrapherComponent h2,

@@ -61,7 +61,6 @@ export {
     GLOBAL_ENTITY_SELECTOR_ELEMENT,
     GLOBAL_ENTITY_SELECTOR_DEFAULT_COUNTRY,
 } from "./controls/globalEntitySelector/GlobalEntitySelectorConstants"
-export { Checkbox } from "./controls/Checkbox"
 export { GlobalEntitySelector } from "./controls/globalEntitySelector/GlobalEntitySelector"
 export {
     Grapher,
