@@ -98,7 +98,11 @@ const SourceContent = (props: {
                             <div className="source-key-data__title">
                                 Data published by
                             </div>
-                            <div>{source.dataPublishedBy}</div>
+                            <div className="source-key-data__content">
+                                <SimpleMarkdownText
+                                    text={source.dataPublishedBy.trim()}
+                                />
+                            </div>
                         </div>
                     )}
                     {retrievedOn && (
@@ -106,7 +110,9 @@ const SourceContent = (props: {
                             <div className="source-key-data__title">
                                 Retrieved on
                             </div>
-                            <div>{retrievedOn}</div>
+                            <div className="source-key-data__content">
+                                {retrievedOn}
+                            </div>
                         </div>
                     )}
                     {source.retrievedFrom &&
@@ -115,7 +121,7 @@ const SourceContent = (props: {
                                 <div className="source-key-data__title">
                                     Retrieved from
                                 </div>
-                                <div>
+                                <div className="source-key-data__content">
                                     <SimpleMarkdownText
                                         text={source.retrievedFrom}
                                         useParagraphs={false}
@@ -128,24 +134,29 @@ const SourceContent = (props: {
                             <div className="source-key-data__title">
                                 Citation
                             </div>
-                            This is the citation of the original data obtained
-                            from the source, prior to any processing or
-                            adaptation by Our World in Data.{" "}
-                            {props.isEmbeddedInADataPage && (
-                                <>
-                                    To cite data downloaded from this page,
-                                    please use the suggested citation given in{" "}
-                                    <a href={`#${REUSE_THIS_WORK_SECTION_ID}`}>
-                                        Reuse This Work
-                                    </a>{" "}
-                                    below.
-                                </>
-                            )}
-                            <CodeSnippet
-                                code={source.citation.trim()}
-                                theme="light"
-                                useMarkdown={true}
-                            />
+                            <div className="source-key-data__content">
+                                This is the citation of the original data
+                                obtained from the source, prior to any
+                                processing or adaptation by Our World in Data.{" "}
+                                {props.isEmbeddedInADataPage && (
+                                    <>
+                                        To cite data downloaded from this page,
+                                        please use the suggested citation given
+                                        in{" "}
+                                        <a
+                                            href={`#${REUSE_THIS_WORK_SECTION_ID}`}
+                                        >
+                                            Reuse This Work
+                                        </a>{" "}
+                                        below.
+                                    </>
+                                )}
+                                <CodeSnippet
+                                    code={source.citation.trim()}
+                                    theme="light"
+                                    useMarkdown={true}
+                                />
+                            </div>
                         </div>
                     )}
                 </div>
