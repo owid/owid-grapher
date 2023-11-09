@@ -186,6 +186,7 @@ export class SourcesModal extends React.Component<
                     () => (this.manager.isSourcesModalOpen = false)
                 )}
                 bounds={this.modalBounds}
+                isHeightFixed={true}
             >
                 <div className="SourcesModalContent">
                     {this.columns.length === 1 ? (
