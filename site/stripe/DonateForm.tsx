@@ -131,7 +131,7 @@ export class DonateForm extends React.Component {
 
         if (this.showOnList && !this.name) {
             throw new Error(
-                "Please enter your full name if you would like to be included on the public list of donors."
+                "Please enter your full name if you would like to be included on our public list of donors."
             )
         }
 
@@ -303,7 +303,7 @@ export class DonateForm extends React.Component {
                     <Checkbox
                         label={
                             <span className="donation-public-checkbox__label">
-                                Include my name on the{" "}
+                                Include my name on our{" "}
                                 <a href="/funding" target="_blank">
                                     public list of donors
                                 </a>
@@ -388,7 +388,8 @@ export class DonateForm extends React.Component {
                             </Tippy>
                         </li>
                         <li className="donation-payment-benefits__item">
-                            Donate using credit/debit card, SEPA, iDEAL and more
+                            Donate using credit card, debit card, SEPA, iDEAL
+                            and more
                         </li>
                     </ul>
                 </div>
@@ -407,7 +408,7 @@ export class DonateForm extends React.Component {
 
                     <ul className="donation-payment-benefits">
                         <li className="donation-payment-benefits__item">
-                            🇺🇸 100% of your donation is tax-deductible in the US{" "}
+                            🇺🇸 Your donation is tax-deductible in the US{" "}
                             <Tippy
                                 appendTo={() => document.body}
                                 content={
@@ -439,20 +440,15 @@ export class DonateForm extends React.Component {
                             </Tippy>
                         </li>
                         <li className="donation-payment-benefits__item">
-                            Donate in US dollars using PayPal, Venmo, direct US
-                            bank transfer (ACH), credit card and more
+                            You can donate in US dollars using PayPal, Venmo,
+                            direct US bank transfer (ACH), credit card and more
                         </li>
                         <li className="donation-payment-benefits__item">
-                            Use this option for donor-advised fund (DAF) grants
+                            You can use this option for donor-advised fund (DAF)
+                            grants
                         </li>
                     </ul>
                 </div>
-
-                <p className="donation-note">
-                    You will be redirected to a secure page to enter your
-                    payment details. We will not share any details you enter
-                    with any third parties.
-                </p>
 
                 <p className="donation-note">
                     This site is protected by reCAPTCHA and the Google{" "}
