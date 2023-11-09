@@ -35,6 +35,7 @@ import {
     EnrichedBlockStickyRightContainer,
     EnrichedBlockBlockquote,
     EnrichedBlockHorizontalRule,
+    traverseEnrichedSpan,
 } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
 import {
@@ -401,7 +402,7 @@ export function adjustHeadingLevels(
     for (let i = 0; i < blocks.length; i++) {
         const block = blocks[i]
         if (block.type === "heading") {
-            if (isEntry && block.level === 1) {
+            if (isEntry && block.level === 2) {
                 const hr: EnrichedBlockHorizontalRule = {
                     type: "horizontal-rule",
                     parseErrors: [],
@@ -805,6 +806,39 @@ function finishWpComponent(
         })
 }
 
+function extractProminentLinkFromBlockQuote(
+    spans: Span[]
+): EnrichedBlockProminentLink | undefined {
+    const spansContainRelatedChart = spansToSimpleString(spans)
+        .toLowerCase()
+        .includes("related chart")
+
+    if (!spansContainRelatedChart) return undefined
+
+    let isRelatedChart = false
+    let url = ""
+
+    spans.forEach((span) =>
+        traverseEnrichedSpan(span, (span) => {
+            if (
+                span.spanType === "span-link" &&
+                span.url.includes("/grapher/")
+            ) {
+                url = span.url
+                isRelatedChart = true
+            }
+        })
+    )
+
+    if (isRelatedChart)
+        return {
+            type: "prominent-link",
+            url,
+            parseErrors: [],
+        }
+    return
+}
+
 function isEnrichedTextBlock(
     item: ArchieBlockOrWpComponent
 ): item is EnrichedBlockText {
@@ -838,9 +872,20 @@ function cheerioToArchieML(
             .with({ tagName: "address" }, unwrapElementWithContext)
             .with(
                 { tagName: "blockquote" },
-                (): BlockParseResult<EnrichedBlockBlockquote> => {
+                (): BlockParseResult<
+                    EnrichedBlockBlockquote | EnrichedBlockProminentLink
+                > => {
                     const spansResult = getSpansFromChildren(element, context)
-
+                    // Sometimes blockquotes were used for prominent links before we had a bespoke
+                    // component for them. Using some simple heuristics we try to convert these if possible
+                    const prominentLink = extractProminentLinkFromBlockQuote(
+                        spansResult.content
+                    )
+                    if (prominentLink)
+                        return {
+                            errors: [],
+                            content: [prominentLink],
+                        }
                     return {
                         errors: spansResult.errors,
                         content: [

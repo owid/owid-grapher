@@ -17,7 +17,7 @@ import {
     convertAllWpComponentsToArchieMLBlocks,
     adjustHeadingLevels,
 } from "./model/Gdoc/htmlToEnriched.js"
-import { getRelatedCharts } from "./wpdb.js"
+import { getRelatedCharts, isPostCitable } from "./wpdb.js"
 import { parsePostAuthors } from "./model/Post.js"
 
 // slugs from all the linear entries we want to migrate from @edomt
@@ -92,16 +92,28 @@ const migrate = async (): Promise<void> => {
         "created_at_in_wordpress",
         "updated_at",
         "featured_image"
-    ).from(db.knexTable(Post.postsTable)) // .where("id", "=", "58149"))
+    ).from(db.knexTable(Post.postsTable)) //.where("id", "=", "24808"))
 
     for (const post of posts) {
         try {
             const isEntry = entries.has(post.slug)
-            console.log("isEntry", isEntry)
             const text = post.content
             let relatedCharts: RelatedChart[] = []
             if (isEntry) {
                 relatedCharts = await getRelatedCharts(post.id)
+            }
+
+            const shouldIncludeMaxAsAuthor = await isPostCitable(
+                // Only needs post.slug
+                post as any
+            )
+            if (
+                shouldIncludeMaxAsAuthor &&
+                !post.authors.includes("Max Roser")
+            ) {
+                const authorsJson = JSON.parse(post.authors)
+                authorsJson.push({ author: "Max Roser", order: Infinity })
+                post.authors = JSON.stringify(authorsJson)
             }
 
             // We don't get the first and last nodes if they are comments.
@@ -133,7 +145,8 @@ const migrate = async (): Promise<void> => {
                 const indexOfFirstHeading = archieMlBodyElements.findIndex(
                     (block) => block.type === "heading"
                 )
-                archieMlBodyElements.splice(indexOfFirstHeading, 0, {
+                // - 1 because there is an <hr /> before the heading
+                archieMlBodyElements.splice(indexOfFirstHeading - 1, 0, {
                     type: "text",
                     value: [
                         {
@@ -145,7 +158,7 @@ const migrate = async (): Promise<void> => {
                                     children: [
                                         {
                                             spanType: "span-simple-text",
-                                            text: `See all interactive charts on ${post.title} ↓`,
+                                            text: `See all interactive charts on ${post.title.toLowerCase()} ↓`,
                                         },
                                     ],
                                 },
@@ -157,7 +170,7 @@ const migrate = async (): Promise<void> => {
                 const allChartsBlock: EnrichedBlockAllCharts = {
                     type: "all-charts",
                     parseErrors: [],
-                    heading: `Interactive Charts on ${post.title}`,
+                    heading: `Interactive charts on ${post.title.toLowerCase()}`,
                     top: [],
                 }
 
@@ -186,7 +199,7 @@ const migrate = async (): Promise<void> => {
                     subtitle: post.excerpt,
                     excerpt: post.excerpt,
                     authors: parsePostAuthors(post.authors),
-                    "featured-image": post.featured_image,
+                    "featured-image": post.featured_image.split("/").at(-1),
                     dateline: dateline,
                     // TODO: this discards block level elements - those might be needed?
                     refs: undefined,

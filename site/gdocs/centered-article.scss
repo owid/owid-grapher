@@ -65,6 +65,8 @@
                     border-left-color: $vermillion;
                     background: unset;
                     font-weight: bold;
+                    // Counteract the font-weight so that the text doesn't wrap when active
+                    letter-spacing: -0.09px;
                 }
                 a {
                     padding-left: 16px;
@@ -560,7 +562,7 @@ h3.article-block__heading.has-supertitle {
     margin-left: 16px;
 
     li {
-        margin-bottom: 1em;
+        margin-bottom: 0.5em;
 
         &:last-child {
             margin-bottom: 0;
