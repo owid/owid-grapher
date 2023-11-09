@@ -15,7 +15,6 @@ import {
 import {
     Tabs,
     ExpandableTabs,
-    IndicatorDescriptions,
     IndicatorSources,
     IndicatorProcessing,
 } from "@ourworldindata/components"
@@ -27,6 +26,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { CoreColumn, OwidColumnDef } from "@ourworldindata/core-table"
 import { Modal } from "./Modal"
 import { SourcesKeyDataTable } from "./SourcesKeyDataTable"
+import { SourcesDescriptions } from "./SourcesDescriptions.js"
 
 // keep in sync with variables in SourcesModal.scss
 const MAX_WIDTH = 832
@@ -307,7 +307,7 @@ export class Source extends React.Component<{
                     }
                 />
                 {this.showDescriptions && (
-                    <IndicatorDescriptions
+                    <SourcesDescriptions
                         descriptionShort={this.def.descriptionShort}
                         descriptionKey={this.def.descriptionKey ?? []}
                         hasFaqEntries={this.datapageHasFAQSection}

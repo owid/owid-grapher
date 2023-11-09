@@ -1,0 +1,55 @@
+.sources-descriptions {
+    .key-info {
+        background-color: $gray-10;
+        border-left: 4px solid $blue-10;
+        margin: 24px 0;
+        padding: 32px;
+
+        &__title {
+            @include h5-black-caps;
+            color: #a1a1a1;
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+
+        &__content,
+        &__content ul {
+            @include body-2-regular;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        &__content ul {
+            li {
+                margin-bottom: 1em;
+
+                &:last-child {
+                    margin-bottom: 0;
+                }
+            }
+        }
+
+        &__learn-more {
+            @include body-3-medium;
+            margin-top: 24px;
+            text-decoration: underline;
+            text-underline-offset: 4px;
+
+            &:hover {
+                text-decoration: none;
+            }
+
+            svg {
+                font-size: 0.75em;
+                margin-left: 12px;
+                display: inline-block;
+                transform: rotate(-90deg);
+            }
+        }
+    }
+
+    a {
+        @include owid-link-60;
+        color: inherit;
+    }
+}

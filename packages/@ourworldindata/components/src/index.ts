@@ -29,7 +29,6 @@ export {
     makeUnitConversionFactor,
     makeLinks,
 } from "./IndicatorKeyData/IndicatorKeyData.js"
-export { IndicatorDescriptions } from "./IndicatorDescriptions/IndicatorDescriptions.js"
 export { IndicatorProcessing } from "./IndicatorProcessing/IndicatorProcessing.js"
 
 export { Checkbox } from "./Checkbox.js"
