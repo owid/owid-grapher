@@ -388,8 +388,8 @@ export class DonateForm extends React.Component {
                             </Tippy>
                         </li>
                         <li className="donation-payment-benefits__item">
-                            Donate using credit card, debit card, SEPA, iDEAL
-                            and more
+                            You can donate using credit card, debit card, SEPA,
+                            iDEAL and more
                         </li>
                     </ul>
                 </div>
