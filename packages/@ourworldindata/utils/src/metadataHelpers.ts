@@ -45,7 +45,6 @@ export function getAttributionFragmentsFromVariable(
         variable.origins
     )
     const name = variable.source?.name
-    console.log(name)
     return uniq(compact([name, ...originAttributionFragments]))
 }
 

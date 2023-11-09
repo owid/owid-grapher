@@ -1,6 +1,6 @@
 import React from "react"
 import cx from "classnames"
-import { OwidProcessingLevel } from "@ourworldindata/utils"
+import { OwidProcessingLevel, excludeNull, range } from "@ourworldindata/utils"
 import {
     makeSource,
     makeLastUpdated,
@@ -36,98 +36,77 @@ export const SourcesKeyDataTable = (props: SourcesKeyDataTableProps) => {
     const unitConversionFactor = makeUnitConversionFactor(props)
     const links = makeLinks(props)
 
+    const keyData = excludeNull([
+        lastUpdated ? { label: "Last updated", content: lastUpdated } : null,
+        nextUpdate
+            ? { label: "Next expected update", content: nextUpdate }
+            : null,
+        dateRange ? { label: "Date range", content: dateRange } : null,
+        unit ? { label: "Unit", content: unit } : null,
+        unitConversionFactor
+            ? {
+                  label: "Unit conversion factor",
+                  content: unitConversionFactor,
+              }
+            : null,
+    ])
+
+    const rows = range(0, keyData.length, 2).map((index: number) => [
+        keyData[index],
+        keyData[index + 1],
+    ])
+
+    const hasSingleRow =
+        ((source || links) && rows.length === 0) ||
+        (!source && !links && rows.length === 1)
+
     return (
         <div
             className={cx("sources-key-data-table", {
-                "sources-key-data-table--top-border": !props.hideTopBorder,
-                "sources-key-data-table--bottom-border":
-                    !props.hideBottomBorder,
+                "sources-key-data-table--hide-top-border":
+                    hasSingleRow || props.hideTopBorder,
+                "sources-key-data-table--hide-bottom-border":
+                    hasSingleRow || props.hideBottomBorder,
             })}
         >
             {source && (
-                <div className="key-data key-data-source key-data--span">
-                    <div className="key-data__title">Source</div>
-                    <div className="key-data__content">{source}</div>
-                </div>
-            )}
-            {lastUpdated && (
-                <div
-                    className={cx("key-data", {
-                        "key-data--span":
-                            !nextUpdate &&
-                            !dateRange &&
-                            !unit &&
-                            !unitConversionFactor,
-                    })}
-                >
-                    <div className="key-data__title">Last updated</div>
-                    <div className="key-data__content">{lastUpdated}</div>
-                </div>
-            )}
-            {nextUpdate && (
-                <div
-                    className={cx("key-data", {
-                        "key-data--span":
-                            !dateRange &&
-                            !lastUpdated &&
-                            !unit &&
-                            !unitConversionFactor,
-                    })}
-                >
-                    <div className="key-data__title">Next expected update</div>
-                    <div className="key-data__content">{nextUpdate}</div>
-                </div>
-            )}
-            {dateRange && (
-                <div
-                    className={cx("key-data", {
-                        "key-data--span":
-                            !unit &&
-                            !unitConversionFactor &&
-                            isEven(count(lastUpdated, nextUpdate)),
-                    })}
-                >
-                    <div className="key-data__title">Date range</div>
-                    <div className="key-data__content">{dateRange}</div>
-                </div>
-            )}
-            {unit && (
-                <div
-                    className={cx("key-data", {
-                        "key-data--span":
-                            !unitConversionFactor &&
-                            isEven(count(lastUpdated, nextUpdate, dateRange)),
-                    })}
-                >
-                    <div className="key-data__title">Unit</div>
-                    <div className="key-data__content">{unit}</div>
-                </div>
-            )}
-            {unitConversionFactor && (
-                <div
-                    className={cx("key-data", {
-                        "key-data--span": isEven(
-                            count(lastUpdated, nextUpdate, dateRange, unit)
-                        ),
-                    })}
-                >
-                    <div className="key-data__title">
-                        Unit conversion factor
-                    </div>
-                    <div className="key-data__content">
-                        {unitConversionFactor}
+                <div className="row">
+                    <div className="key-data key-data--span">
+                        <div className="key-data__title">Source</div>
+                        <div className="key-data__content">{source}</div>
                     </div>
                 </div>
             )}
+            {rows.map(([first, second]) => (
+                <div key={first.label} className="row">
+                    <div
+                        className={cx("key-data", {
+                            "key-data--span": !second,
+                        })}
+                    >
+                        <div className="key-data__title">{first.label}</div>
+                        <div className="key-data__content">{first.content}</div>
+                    </div>
+                    {second && (
+                        <div className="key-data">
+                            <div className="key-data__title">
+                                {second.label}
+                            </div>
+                            <div className="key-data__content">
+                                {second.content}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            ))}
             {links && (
-                <div className="key-data key-data--span">
-                    <div className="key-data__title">Links</div>
-                    <div className="key-data__content">{links}</div>
+                <div className="row">
+                    <div className="key-data key-data--span">
+                        <div className="key-data__title">Links</div>
+                        <div className="key-data__content">{links}</div>
+                    </div>
                 </div>
             )}
         </div>
     )
 }
-
-const count = (...args: any[]) => args.filter((arg) => arg).length
-const isEven = (n: number) => n % 2 === 0
