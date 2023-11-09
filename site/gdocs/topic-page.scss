@@ -1,4 +1,4 @@
-/* 
+/*
 * Topic Page
 **/
 
@@ -93,41 +93,7 @@
             display: none;
         }
 
-        h4 {
-            color: $blue-40;
-        }
-
-        ul {
-            list-style-type: none;
-
-            li {
-                margin-top: 16px;
-
-                a {
-                    @include body-3-medium;
-                    color: $blue-90;
-                    position: relative;
-
-                    &:hover {
-                        text-decoration: underline;
-                    }
-
-                    &:after {
-                        content: "";
-                        background-color: $blue-90;
-                        mask: url($right-arrow) no-repeat;
-                        -webkit-mask: url($right-arrow) no-repeat;
-                        position: absolute;
-                        width: 9px;
-                        top: 0;
-                        height: 12px;
-                        background-repeat: no-repeat;
-                        margin-top: 4px;
-                        margin-left: 6px;
-                    }
-                }
-            }
-        }
+        @include related-topics;
     }
 }
 

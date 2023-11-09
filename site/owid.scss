@@ -46,7 +46,6 @@
 
 @import "css/homepage.scss";
 @import "css/topic-page.scss";
-@import "css/donate.scss";
 @import "css/faq.scss";
 @import "css/covid.scss";
 @import "css/chart.scss";
@@ -95,8 +94,10 @@
 @import "../packages/@ourworldindata/components/src/ExpandableToggle/ExpandableToggle.scss";
 @import "./detailsOnDemand.scss";
 
+@import "css/donate.scss";
+
 /* HACK (Mispy): Fix search autozooming on iPhone Safari.
-   http://stackoverflow.com/questions/2989263/disable-auto-zoom-in-input-text-tag-safari-on-iphone */
+http://stackoverflow.com/questions/2989263/disable-auto-zoom-in-input-text-tag-safari-on-iphone */
 @media screen and (-webkit-min-device-pixel-ratio: 0) {
     select,
     textarea,

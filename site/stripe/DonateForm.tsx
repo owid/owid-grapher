@@ -1,6 +1,6 @@
 import React from "react"
 import ReactDOM from "react-dom"
-import classnames from "classnames"
+import cx from "classnames"
 import { observable, action, computed, runInAction } from "mobx"
 import { observer } from "mobx-react"
 import { bind } from "decko"
@@ -10,22 +10,24 @@ import {
     BAKED_BASE_URL,
     RECAPTCHA_SITE_KEY,
 } from "../../settings/clientSettings.js"
-
 import stripe from "./stripe.js"
-import { stringifyUnknownError } from "@ourworldindata/utils"
+import { Tippy, stringifyUnknownError, titleCase } from "@ourworldindata/utils"
+import { Checkbox } from "@ourworldindata/components"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { faArrowRight, faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 
 type Interval = "once" | "monthly"
 
 enum CurrencyCode {
-    USD = "USD",
     GBP = "GBP",
     EUR = "EUR",
+    USD = "USD",
 }
 
 const currencySymbolByCode: Record<CurrencyCode, string> = {
-    [CurrencyCode.USD]: "$",
     [CurrencyCode.GBP]: "£",
     [CurrencyCode.EUR]: "€",
+    [CurrencyCode.USD]: "$",
 }
 
 const ONETIME_DONATION_AMOUNTS = [10, 50, 100, 500, 1000]
@@ -35,12 +37,12 @@ const ONETIME_DEFAULT_INDEX = 1
 const MONTHLY_DEFAULT_INDEX = 1
 
 const MIN_DONATION = 1
-const MAX_DONATION = 10_000
+const MAX_DONATION: number = 10_000
 
 const SUPPORTED_CURRENCY_CODES = [
-    CurrencyCode.USD,
     CurrencyCode.GBP,
     CurrencyCode.EUR,
+    CurrencyCode.USD,
 ]
 
 @observer
@@ -49,13 +51,12 @@ export class DonateForm extends React.Component {
     @observable presetAmount?: number =
         ONETIME_DONATION_AMOUNTS[ONETIME_DEFAULT_INDEX]
     @observable customAmount: string = ""
-    @observable isCustom: boolean = false
     @observable name: string = ""
     @observable showOnList: boolean = true
     @observable errorMessage?: string
     @observable isSubmitting: boolean = false
     @observable isLoading: boolean = true
-    @observable currencyCode: CurrencyCode = CurrencyCode.USD
+    @observable currencyCode: CurrencyCode = CurrencyCode.GBP
 
     captchaInstance?: Recaptcha | null
     @observable.ref captchaPromiseHandlers?: {
@@ -75,24 +76,22 @@ export class DonateForm extends React.Component {
 
     @action.bound setPresetAmount(amount?: number) {
         this.presetAmount = amount
-        this.isCustom = false
+        this.customAmount = ""
     }
 
     @action.bound setCustomAmount(amount: string) {
         this.customAmount = amount
-        this.isCustom = true
-    }
-
-    @action.bound setIsCustom(isCustom: boolean) {
-        this.isCustom = isCustom
+        this.presetAmount = undefined
     }
 
     @action.bound setName(name: string) {
-        this.name = name
+        // capitalize first letter of each word. Words can be separated by
+        // spaces or hyphens.
+        this.name = titleCase(name)
     }
 
-    @action.bound setShowOnList(showOnList: boolean) {
-        this.showOnList = showOnList
+    @action.bound toggleShowOnList() {
+        this.showOnList = !this.showOnList
     }
 
     @action.bound setErrorMessage(message?: string) {
@@ -104,8 +103,8 @@ export class DonateForm extends React.Component {
     }
 
     @computed get amount(): number | undefined {
-        return this.isCustom
-            ? parseFloat(this.customAmount || "")
+        return this.customAmount
+            ? parseFloat(this.customAmount)
             : this.presetAmount
     }
 
@@ -126,7 +125,13 @@ export class DonateForm extends React.Component {
             this.amount < MIN_DONATION
         ) {
             throw new Error(
-                "You can only donate between $1 and $10,000 USD. For other amounts, please get in touch with us at donate@ourworldindata.org."
+                `You can only donate between ${this.currencySymbol}1 and ${this.currencySymbol}10,000. For other amounts, please get in touch with us at donate@ourworldindata.org.`
+            )
+        }
+
+        if (this.showOnList && !this.name) {
+            throw new Error(
+                "Please enter your full name if you would like to be included on our public list of donors."
             )
         }
 
@@ -143,7 +148,7 @@ export class DonateForm extends React.Component {
                 currency: this.currencyCode,
                 amount: Math.floor(this.amount * 100),
                 interval: this.interval,
-                successUrl: `${BAKED_BASE_URL}/donate/thank-you`,
+                successUrl: `${BAKED_BASE_URL}/thank-you`,
                 cancelUrl: `${BAKED_BASE_URL}/donate`,
                 captchaToken: captchaToken,
             }),
@@ -197,161 +202,137 @@ export class DonateForm extends React.Component {
             await this.submitDonation()
         } catch (error) {
             this.isSubmitting = false
-            runInAction(
-                () =>
-                    (this.errorMessage =
-                        stringifyUnknownError(error) ||
-                        "Something went wrong. Please get in touch with us at donate@ourworldindata.org")
-            )
+
+            runInAction(() => {
+                const prefixedErrorMessage = stringifyUnknownError(error)
+                if (!prefixedErrorMessage) {
+                    this.errorMessage =
+                        "Something went wrong. Please get in touch with us at donate@ourworldindata.org"
+                    return
+                }
+
+                const rawErrorMessage =
+                    prefixedErrorMessage.match(/^Error: (.*)$/)
+
+                this.errorMessage = rawErrorMessage?.[1] || prefixedErrorMessage
+            })
         }
     }
 
     render() {
         return (
             <form className="donate-form" onSubmit={this.onSubmit}>
-                <fieldset className="donate-form-interval">
-                    <legend>
-                        <h3>Donation type</h3>
-                    </legend>
-                    <div className="owid-radios">
-                        <div className="owid-radio">
-                            <input
-                                type="radio"
-                                id="once"
-                                value="once"
-                                name="interval"
-                                onChange={() => this.setInterval("once")}
-                                checked={this.interval === "once"}
-                            />
-                            <label htmlFor="once">One time</label>
-                        </div>
-                        <div className="owid-radio">
-                            <input
-                                type="radio"
-                                id="monthly"
-                                value="monthly"
-                                name="interval"
-                                onChange={() => this.setInterval("monthly")}
-                                checked={this.interval === "monthly"}
-                            />
-                            <label htmlFor="monthly">Monthly</label>
-                        </div>
-                    </div>
-                </fieldset>
-
-                <fieldset className="donate-form-currency">
-                    <legend>
-                        <h3>Currency</h3>
-                    </legend>
-                    <div className="owid-radios">
-                        {SUPPORTED_CURRENCY_CODES.map((code) => (
-                            <div key={code} className="owid-radio">
-                                <input
-                                    type="radio"
-                                    id={code}
-                                    value={code}
-                                    name="currency"
-                                    onChange={() => this.setCurrency(code)}
-                                    checked={this.currencyCode === code}
-                                />
-                                <label htmlFor={code}>{code}</label>
-                            </div>
-                        ))}
-                    </div>
-                </fieldset>
-
-                <fieldset className="donate-form-amount">
-                    <legend>
-                        <h3>Amount</h3>
-                    </legend>
-                    <div className="radios">
-                        {this.intervalAmounts.map((amount) => (
-                            <div key={amount} className="owid-radio">
-                                <input
-                                    type="radio"
-                                    id={`amount-${amount}`}
-                                    value={amount}
-                                    name="amount"
-                                    onChange={() =>
-                                        this.setPresetAmount(amount)
-                                    }
-                                    checked={
-                                        amount === this.presetAmount &&
-                                        !this.isCustom
-                                    }
-                                />
-                                <label htmlFor={`amount-${amount}`}>
-                                    {this.currencySymbol}
-                                    {amount}
-                                </label>
-                            </div>
-                        ))}
-                        <div className="owid-radio custom-radio">
-                            <input
-                                type="radio"
-                                id="custom"
-                                name="amount"
-                                checked={this.isCustom}
-                                onChange={(event) =>
-                                    this.setIsCustom(event.target.checked)
-                                }
-                            />
-                            <label htmlFor="custom">
-                                {this.currencySymbol}
-                                <input
-                                    type="text"
-                                    placeholder="Other"
-                                    name="custom-amount"
-                                    className="custom-amount-input"
-                                    onChange={(event) =>
-                                        this.setCustomAmount(event.target.value)
-                                    }
-                                    value={this.customAmount}
-                                />
-                            </label>
-                        </div>
-                    </div>
-                </fieldset>
-
                 <fieldset>
-                    <div className="owid-block-field">
-                        <label htmlFor="name">
-                            <h3>Your name (optional)</h3>
-                        </label>
+                    <legend className="overline-black-caps">Frequency</legend>
+                    <div className="donation-options">
                         <input
-                            id="name"
-                            type="text"
-                            className="owid-input"
-                            value={this.name}
-                            onChange={(event) =>
-                                this.setName(event.target.value)
-                            }
+                            type="button"
+                            value="Give once"
+                            onClick={() => this.setInterval("once")}
+                            className={cx("donation-options__button", {
+                                active: this.interval === "once",
+                            })}
+                        />
+                        <input
+                            type="button"
+                            value="Monthly"
+                            onClick={() => this.setInterval("monthly")}
+                            className={cx("donation-options__button", {
+                                active: this.interval === "monthly",
+                            })}
                         />
                     </div>
                 </fieldset>
 
                 <fieldset>
-                    <div className="owid-checkboxes">
-                        <div className="owid-checkbox-inline">
+                    <legend>Currency</legend>
+                    <div className="donation-options">
+                        {SUPPORTED_CURRENCY_CODES.map((code) => (
                             <input
-                                type="checkbox"
-                                id="showOnList"
-                                value="showOnList"
-                                name="type"
-                                checked={this.showOnList}
-                                onChange={(event) =>
-                                    this.setShowOnList(event.target.checked)
-                                }
+                                type="button"
+                                value={`${code} (${currencySymbolByCode[code]})`}
+                                onClick={() => this.setCurrency(code)}
+                                className={cx("donation-options__button", {
+                                    active: this.currencyCode === code,
+                                })}
+                                key={code}
                             />
-                            <label htmlFor="showOnList">
-                                Include me on the public{" "}
-                                <a href="/funding" target="_blank">
-                                    list of donors
-                                </a>
+                        ))}
+                    </div>
+                </fieldset>
+
+                <fieldset>
+                    <legend>Amount</legend>
+                    <div className="donation-options donation-options--grid">
+                        {this.intervalAmounts.map((amount) => (
+                            <input
+                                type="button"
+                                value={`${this.currencySymbol}${amount}`}
+                                onClick={() => this.setPresetAmount(amount)}
+                                className={cx("donation-options__button", {
+                                    active:
+                                        amount === this.presetAmount &&
+                                        !this.customAmount,
+                                })}
+                                key={`${amount}-${this.interval}`}
+                            />
+                        ))}
+                        <div
+                            className={cx("donation-custom-amount", {
+                                active: !!this.customAmount,
+                            })}
+                        >
+                            <label htmlFor="donation-custom-amount__input">
+                                {this.currencySymbol}
                             </label>
+                            <input
+                                type="text"
+                                placeholder="Other"
+                                id="donation-custom-amount__input"
+                                className="donation-custom-amount__input"
+                                onChange={(event) =>
+                                    this.setCustomAmount(event.target.value)
+                                }
+                                value={this.customAmount}
+                            />
                         </div>
                     </div>
                 </fieldset>
+
+                <fieldset className="donation-public-checkbox">
+                    <Checkbox
+                        label={
+                            <span className="donation-public-checkbox__label">
+                                Include my name on our{" "}
+                                <a href="/funding" target="_blank">
+                                    public list of donors
+                                </a>
+                            </span>
+                        }
+                        checked={this.showOnList}
+                        onChange={() => this.toggleShowOnList()}
+                    />
+                </fieldset>
+
+                {this.showOnList && (
+                    <fieldset>
+                        <label
+                            className="donation-name__label"
+                            htmlFor="donation-name__input"
+                        >
+                            Full name (required if ticked)
+                        </label>
+                        <input
+                            id="donation-name__input"
+                            type="text"
+                            className="donation-name__input"
+                            value={this.name}
+                            onChange={(event) =>
+                                this.setName(event.target.value)
+                            }
+                        />
+                    </fieldset>
+                )}
 
                 {this.errorMessage && (
                     <p className="error">{this.errorMessage}</p>
@@ -366,26 +347,110 @@ export class DonateForm extends React.Component {
                     onloadCallback={this.onCaptchaLoad}
                     verifyCallback={this.onCaptchaVerify}
                 />
+                <div className="donation-payment">
+                    <button
+                        type="submit"
+                        className="donation-submit"
+                        disabled={this.isLoading || this.isSubmitting}
+                    >
+                        Donate now
+                        <FontAwesomeIcon
+                            icon={faArrowRight}
+                            className="donation-submit__icon"
+                        />
+                    </button>
 
-                <button
-                    type="submit"
-                    className={classnames("owid-button", {
-                        disabled: this.isSubmitting,
-                    })}
-                    disabled={this.isLoading}
-                >
-                    Donate{" "}
-                    {this.amount ? `${this.currencySymbol}${this.amount}` : ""}{" "}
-                    {this.interval === "monthly" ? "per month" : ""}
-                </button>
+                    <ul className="donation-payment-benefits">
+                        <li className="donation-payment-benefits__item">
+                            🇬🇧 Your donation qualifies for Gift Aid in the UK{" "}
+                            <Tippy
+                                appendTo={() => document.body}
+                                content={
+                                    <div>
+                                        <p>
+                                            Your donation qualifies for Gift Aid
+                                            if you pay tax in the UK, and have
+                                            signed the Gift Aid declaration.
+                                        </p>
+                                        <p>
+                                            Every £1 that you donate with Gift
+                                            Aid is worth £1.25 to us, at no
+                                            extra cost to you.
+                                        </p>
+                                    </div>
+                                }
+                                interactive
+                                placement="bottom"
+                                theme="owid-footnote"
+                                trigger="mouseenter focus click"
+                            >
+                                <FontAwesomeIcon icon={faInfoCircle} />
+                            </Tippy>
+                        </li>
+                        <li className="donation-payment-benefits__item">
+                            Donate using credit card, debit card, SEPA, iDEAL
+                            and more
+                        </li>
+                    </ul>
+                </div>
+                <div className="donation-payment">
+                    <p className="donation-payment__or">Alternatively</p>
+                    <a
+                        href="https://www.every.org/ourworldindata?donateTo=ourworldindata#/donate/card"
+                        className="donation-submit donation-submit--light"
+                    >
+                        Donate via every.org
+                        <FontAwesomeIcon
+                            icon={faArrowRight}
+                            className="donation-submit__icon"
+                        />
+                    </a>
 
-                <p className="note">
-                    You will be redirected to a secure page to enter your
-                    payment details. We will not share any details you enter
-                    with any third parties.
-                </p>
+                    <ul className="donation-payment-benefits">
+                        <li className="donation-payment-benefits__item">
+                            🇺🇸 Your donation is tax-deductible in the US{" "}
+                            <Tippy
+                                appendTo={() => document.body}
+                                content={
+                                    <div>
+                                        <p>
+                                            Your donation is made to Every.org,
+                                            a tax-exempt US 501(c)(3) charity
+                                            that grants unrestricted funds to
+                                            Our World in Data on your behalf.
+                                            This means that if you are a US
+                                            taxpayer, 100% of your donation is
+                                            tax-deductible to the extent allowed
+                                            by US law.
+                                        </p>
+                                        <p>
+                                            After your donation payment is
+                                            confirmed by Every.org, you will
+                                            immediately get a tax-deductible
+                                            receipt emailed to you.
+                                        </p>
+                                    </div>
+                                }
+                                interactive
+                                placement="bottom"
+                                theme="owid-footnote"
+                                trigger="mouseenter focus click"
+                            >
+                                <FontAwesomeIcon icon={faInfoCircle} />
+                            </Tippy>
+                        </li>
+                        <li className="donation-payment-benefits__item">
+                            You can donate in US dollars using PayPal, Venmo,
+                            direct US bank transfer (ACH), credit card and more
+                        </li>
+                        <li className="donation-payment-benefits__item">
+                            You can use this option for donor-advised fund (DAF)
+                            grants
+                        </li>
+                    </ul>
+                </div>
 
-                <p className="note">
+                <p className="donation-note">
                     This site is protected by reCAPTCHA and the Google{" "}
                     <a href="https://policies.google.com/privacy">
                         Privacy Policy

@@ -1,91 +1,106 @@
-.donate-page {
-    padding-bottom: 3rem;
-
-    .page-header {
-        margin: 3rem 0 1.5rem;
-
-        h1 {
-            font-family: $serif-font-stack;
-            font-weight: 400;
-            font-size: 2.5rem;
-            color: $text-color;
-            margin: 0 0 2rem;
-
-            @include sm-only {
-                font-size: 2rem;
-                margin: 0 0 1.5rem;
-            }
-        }
+.donate-page__title {
+    @include display-2-semibold;
+    margin-top: 0;
+    @include md-up {
+        @include display-1-semibold;
+        margin-top: 0;
     }
+}
 
-    .shaded-box {
-        border: 2px solid $oxford-blue;
-        padding: 2rem;
+.donate-page-intro {
+    padding-top: 48px;
+    padding-bottom: 48px;
+    background-color: $gray-10;
+}
 
-        @include sm-only {
-            padding: 1.5rem;
-        }
+.donate-page-intro__content {
+    @include sm-only {
+        margin-bottom: 40px;
+    }
+    .article-block__text {
+        @include body-2-regular;
     }
 }
 
 .donate-form {
-    font-size: 1.125rem;
+    padding: 32px 40px;
+    background-color: $white;
 
     fieldset {
-        margin: 0 0 1rem;
+        margin: 0 0 24px;
     }
 
-    h3 {
-        font-family: $sans-serif-font-stack;
-        font-size: 1rem;
-        text-transform: uppercase;
-        font-weight: 700;
-        letter-spacing: 0.03rem;
-        margin: 0 0 0.5rem;
+    legend,
+    .donation-name__label {
+        margin-bottom: 8px;
+        @include overline-black-caps;
+        color: $blue-50;
     }
 
-    label {
-        font-weight: 700;
+    .donation-options {
+        display: flex;
+        & > * {
+            margin-right: 8px;
+            &:last-child {
+                margin-right: 0;
+            }
+        }
     }
 
-    .owid-checkboxes label {
-        font-size: 1rem;
-        font-weight: 400;
+    .donation-options--grid {
+        @include lg-down {
+            display: grid;
+            grid-gap: 8px;
+            grid-template-columns: repeat(3, 1fr);
+            & > * {
+                margin-right: 0;
+            }
+        }
+        @media (max-width: 480px) {
+            grid-template-columns: repeat(2, 1fr);
+        }
     }
 
-    input[type="radio"] {
-        margin-right: 0.25rem;
+    .donation-options__button {
+        flex: 1;
+        padding: 8px 16px;
+        @include body-3-medium;
+        color: $blue-50;
+        border: 1px solid $blue-20;
+        background-color: $white;
+        transition: background-color 0.1s;
+        &:hover {
+            cursor: pointer;
+            background-color: $gray-10;
+            border: 1px solid $gray-10;
+        }
+        &.active {
+            color: $blue-90;
+            background-color: $accent-pale-blue;
+            border: 1px solid $accent-pale-blue;
+        }
     }
 
-    button[type="submit"] {
-        background-color: $oxford-blue;
-        font-weight: 700;
-        color: white;
-        border: none;
-        padding: 0.8rem 1rem;
+    .donation-custom-amount {
+        display: flex;
+        padding: 8px 16px;
+        border: 1px solid $blue-20;
+        @include body-3-medium;
+        color: $blue-50;
+        &.active {
+            color: $blue-90;
+            background-color: $accent-pale-blue;
+            border: 1px solid $accent-pale-blue;
+        }
     }
 
-    .note {
-        font-size: 0.875rem;
-        color: $secondary-text-color;
-        margin-bottom: 0;
-    }
-
-    .error {
-        font-size: 0.875rem;
-        color: $error-text-color;
-    }
-
-    .custom-amount-input {
-        background-color: transparent;
-        border: none;
-        border-bottom: 1px dotted $oxford-blue;
-        width: 4.25rem;
-        outline: none;
+    .donation-custom-amount__input {
+        width: 100%;
+        @include body-3-medium;
         color: inherit;
-        font-family: inherit;
-        font-size: inherit;
-        font-weight: 700;
+        border: none;
+        background: transparent;
+        outline: none;
 
         &::placeholder {
             color: $blue-40;
@@ -95,6 +110,108 @@
         &:focus::placeholder {
             color: $blue-20;
         }
+    }
+
+    .donation-public-checkbox {
+        margin-bottom: 16px;
+    }
+
+    .donation-name__label {
+        display: block;
+    }
+
+    .donation-name__input {
+        width: 100%;
+        padding: 8px 16px;
+        border: 1px solid $blue-20;
+        @include body-3-medium;
+        color: $blue-90;
+        &:focus {
+            outline-color: $blue-50;
+        }
+    }
+
+    .donation-public-checkbox__label {
+        a {
+            @include owid-link-90;
+        }
+    }
+
+    .donation-payment {
+        border-bottom: 1px solid $blue-20;
+        margin-bottom: 32px;
+        padding-bottom: 32px;
+    }
+
+    .donation-submit {
+        padding: 12px 24px;
+        background-color: $vermillion;
+        color: white;
+        border: none;
+        @include body-2-semibold;
+        cursor: pointer;
+
+        &:hover {
+            background-color: $accent-vermillion;
+
+            .donation-submit__icon {
+                transform: translateX(2px);
+            }
+        }
+
+        &[disabled] {
+            opacity: 0.5;
+            cursor: default;
+        }
+    }
+
+    .donation-submit--light {
+        display: inline-block;
+        border: 1px solid $vermillion;
+        background-color: $white;
+        color: $vermillion;
+
+        &:hover {
+            background-color: $white;
+            color: $accent-vermillion;
+        }
+    }
+
+    .donation-submit__icon {
+        margin-left: 8px;
+        font-size: 14px;
+        transition: transform 150ms;
+    }
+
+    .donation-payment-benefits__item {
+        list-style-position: outside;
+        list-style-type: "✓ ";
+        margin: 16px 0 0 16px;
+        @include body-3-medium;
+        svg {
+            color: $blue-50;
+        }
+    }
+
+    .donation-payment__or {
+        @include body-2-semibold;
+        color: $blue-60;
+        margin-bottom: 8px;
+    }
+
+    .donation-note {
+        @include body-3-medium;
+        color: $blue-60;
+        margin: 16px 0 0;
+
+        a {
+            @include owid-link-60;
+        }
+    }
+
+    .error {
+        @include body-3-medium;
+        color: $error-text-color;
     }
 }
 
