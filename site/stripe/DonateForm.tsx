@@ -19,15 +19,15 @@ import { faArrowRight, faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 type Interval = "once" | "monthly"
 
 enum CurrencyCode {
-    USD = "USD",
     GBP = "GBP",
     EUR = "EUR",
+    USD = "USD",
 }
 
 const currencySymbolByCode: Record<CurrencyCode, string> = {
-    [CurrencyCode.USD]: "$",
     [CurrencyCode.GBP]: "£",
     [CurrencyCode.EUR]: "€",
+    [CurrencyCode.USD]: "$",
 }
 
 const ONETIME_DONATION_AMOUNTS = [10, 50, 100, 500, 1000]
@@ -37,12 +37,12 @@ const ONETIME_DEFAULT_INDEX = 1
 const MONTHLY_DEFAULT_INDEX = 1
 
 const MIN_DONATION = 1
-const MAX_DONATION = 10_000
+const MAX_DONATION: number = 10_000
 
 const SUPPORTED_CURRENCY_CODES = [
-    CurrencyCode.USD,
     CurrencyCode.GBP,
     CurrencyCode.EUR,
+    CurrencyCode.USD,
 ]
 
 @observer
@@ -56,7 +56,7 @@ export class DonateForm extends React.Component {
     @observable errorMessage?: string
     @observable isSubmitting: boolean = false
     @observable isLoading: boolean = true
-    @observable currencyCode: CurrencyCode = CurrencyCode.USD
+    @observable currencyCode: CurrencyCode = CurrencyCode.GBP
 
     captchaInstance?: Recaptcha | null
     @observable.ref captchaPromiseHandlers?: {
@@ -125,7 +125,7 @@ export class DonateForm extends React.Component {
             this.amount < MIN_DONATION
         ) {
             throw new Error(
-                "You can only donate between $1 and $10,000 USD. For other amounts, please get in touch with us at donate@ourworldindata.org."
+                `You can only donate between ${this.currencySymbol}1 and ${this.currencySymbol}10,000. For other amounts, please get in touch with us at donate@ourworldindata.org.`
             )
         }
 
