@@ -35,6 +35,7 @@ import {
     DataPageRelatedResearch,
     isEmpty,
     excludeUndefined,
+    OwidOrigin,
     DataPageDataV2,
 } from "@ourworldindata/utils"
 import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
@@ -77,7 +78,7 @@ export const DataPageV2Content = ({
 
     const sourceShortName =
         datapageData.attributionShort && datapageData.titleVariant
-            ? `${datapageData.attributionShort} - ${datapageData.titleVariant}`
+            ? `${datapageData.attributionShort} – ${datapageData.titleVariant}`
             : datapageData.attributionShort || datapageData.titleVariant
 
     // Initialize the grapher for client-side rendering
@@ -122,38 +123,54 @@ export const DataPageV2Content = ({
         datapageData.descriptionKey && datapageData.descriptionKey.length > 0
 
     const sourcesForDisplay = prepareSourcesForDisplay(datapageData)
-    const producers = uniq(datapageData.origins.map((o) => o.producer))
+    const getYearSuffixFromOrigin = (o: OwidOrigin) => {
+        const year = o.dateAccessed
+            ? dayjs(o.dateAccessed, ["YYYY-MM-DD", "YYYY"]).year()
+            : o.datePublished
+            ? dayjs(o.datePublished, ["YYYY-MM-DD", "YYYY"]).year()
+            : undefined
+        if (year) return ` (${year})`
+        else return ""
+    }
+    const producers = uniq(datapageData.origins.map((o) => `${o.producer}`))
+    const producersWithYear = uniq(
+        datapageData.origins.map(
+            (o) => `${o.producer}${getYearSuffixFromOrigin(o)}`
+        )
+    )
 
-    const attributionFragments = datapageData.attributions ?? producers
+    const attributionFragments = datapageData.attributions ?? producersWithYear
     const attributionPotentiallyShortened =
         attributionFragments.length > 3
             ? `${attributionFragments[0]} and other sources`
-            : attributionFragments.join(", ")
-    const attributionUnshortened = attributionFragments.join(", ")
+            : attributionFragments.join("; ")
+    const attributionUnshortened = attributionFragments.join("; ")
     const processingLevelPhrase = getPhraseForProcessingLevel(
         datapageData.owidProcessingLevel
     )
-    const lastUpdated = dayjs(datapageData.lastUpdated ?? "", [
-        "YYYY-MM-DD",
-        "YYYY",
-    ])
-    const yearOfUpdate = lastUpdated.year()
-    const citationShort = `${attributionPotentiallyShortened} – ${processingLevelPhrase} by Our World in Data (${yearOfUpdate})`
-    const citationLonger = `${attributionUnshortened} – ${processingLevelPhrase} by Our World in Data (${yearOfUpdate})`
+    const citationShort = `${attributionPotentiallyShortened} – ${processingLevelPhrase} by Our World in Data`
+    const citationLonger = `${attributionUnshortened} – ${processingLevelPhrase} by Our World in Data`
     const originsLong = uniq(
         datapageData.origins.map(
-            (o) => `${o.producer}, ${o.title ?? o.titleSnapshot}`
+            (o) =>
+                `${o.producer}, ${o.title ?? o.titleSnapshot}${
+                    o.versionProducer ? " " + o.versionProducer : ""
+                }`
         )
     ).join("; ")
     const today = dayjs().format("MMMM D, YYYY")
     const currentYear = dayjs().year()
+    const titleWithOptionalFragments = excludeUndefined([
+        datapageData.title,
+        sourceShortName,
+    ]).join(" – ")
     const citationLong = excludeUndefined([
         `${citationLonger}.`,
-        `${datapageData.title}.`,
+        `${titleWithOptionalFragments} [dataset].`,
         originsLong
-            ? `${originsLong}.`
+            ? `${originsLong} [original data].`
             : datapageData.source?.name
-            ? `${datapageData.source?.name}.`
+            ? `${datapageData.source?.name} [original data].`
             : undefined,
         `Retrieved ${today} from ${canonicalUrl}`,
     ]).join(" ")
@@ -167,9 +184,18 @@ export const DataPageV2Content = ({
 
     const adaptedFrom =
         producers.length > 0 ? producers.join(", ") : datapageData.source?.name
+
+    const maybeAddPeriod = (s: string) =>
+        s.endsWith("?") || s.endsWith(".") ? s : `${s}.`
+
+    // For the citation of the data page add a period it doesn't have that or a question mark
+    const primaryTopicCitation = maybeAddPeriod(
+        datapageData.primaryTopic?.citation ?? ""
+    )
+
     const citationDatapage = excludeUndefined([
         datapageData.primaryTopic
-            ? `“Data Page: ${datapageData.title}”, part of the following publication: ${datapageData.primaryTopic.citation}.`
+            ? `“Data Page: ${datapageData.title}”, part of the following publication: ${primaryTopicCitation}`
             : `“Data Page: ${datapageData.title}”. Our World in Data (${currentYear}).`,
         adaptedFrom ? `Data adapted from ${adaptedFrom}.` : undefined,
         `Retrieved from ${canonicalUrl} [online resource]`,
