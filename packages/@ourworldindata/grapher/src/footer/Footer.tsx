@@ -4,7 +4,7 @@ import { observer } from "mobx-react"
 import parseUrl from "url-parse"
 import { Bounds, DEFAULT_BOUNDS, getRelativeMouse } from "@ourworldindata/utils"
 import {
-    DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
+    DATAPAGE_ABOUT_THIS_DATA_SECTION_ID,
     MarkdownTextWrap,
     TextWrap,
 } from "@ourworldindata/components"
@@ -426,21 +426,18 @@ export class Footer<
                         }
 
                         // on data pages, scroll to the "Sources and Processing" section
-                        const sourcesIdOnDataPage =
-                            DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID
+                        // on grapher pages, open the sources modal
+                        const datapageSectionId =
+                            DATAPAGE_ABOUT_THIS_DATA_SECTION_ID
                         const sourcesElement =
-                            document.getElementById(sourcesIdOnDataPage)
-                        if (
-                            this.manager.isEmbeddedInADataPage &&
-                            sourcesElement
-                        ) {
-                            if (sourcesElement.scrollIntoView) {
-                                sourcesElement.scrollIntoView({
-                                    behavior: "smooth",
-                                })
-                            } else {
-                                window.location.hash = "#" + sourcesIdOnDataPage
-                            }
+                            document.getElementById(datapageSectionId)
+                        if (sourcesElement && sourcesElement.scrollIntoView) {
+                            sourcesElement.scrollIntoView({
+                                behavior: "smooth",
+                            })
+                            this.manager.isInFullScreenMode = false
+                        } else if (sourcesElement) {
+                            window.location.hash = "#" + datapageSectionId
                             this.manager.isInFullScreenMode = false
                         } else {
                             // on grapher pages, open the sources modal
