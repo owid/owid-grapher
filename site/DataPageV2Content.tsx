@@ -678,6 +678,9 @@ export const DataPageV2Content = ({
                                                                     citationShort
                                                                 }
                                                                 theme="light"
+                                                                useMarkdown={
+                                                                    true
+                                                                }
                                                             />
                                                         </>
                                                     )}
@@ -694,6 +697,9 @@ export const DataPageV2Content = ({
                                                                     citationLong
                                                                 }
                                                                 theme="light"
+                                                                useMarkdown={
+                                                                    true
+                                                                }
                                                             />
                                                         </>
                                                     )}
@@ -716,6 +722,7 @@ export const DataPageV2Content = ({
                                                     <CodeSnippet
                                                         code={citationDatapage}
                                                         theme="light"
+                                                        useMarkdown={true}
                                                     />
                                                 </div>
                                             )}

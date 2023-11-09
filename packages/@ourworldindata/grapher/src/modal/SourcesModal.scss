@@ -48,20 +48,38 @@
         .heading {
             @include h2-semibold;
             margin-top: 32px;
-            margin-bottom: 8px;
+            margin-bottom: 16px;
             color: $dark-text;
+
+            &--tight {
+                margin-bottom: 8px;
+            }
         }
 
         .indicator-sources {
             --indicator-sources-description-heading: #{$dark-text};
             --indicator-sources-key-data-title: #{$dark-text};
+            --indicator-sources-content: #{$light-text};
 
-            .ExpandableToggle:first-of-type {
+            .ExpandableToggle:first-of-type,
+            .NonExpandable:first-of-type {
                 border-top: none;
+                padding-top: 0;
+
+                .ExpandableToggle__button {
+                    padding-top: 0;
+                }
+            }
+
+            &--single .NonExpandable {
+                border: none;
+                padding: 0;
             }
         }
 
         .data-processing {
+            --data-processing-content: #{$light-text};
+
             margin-top: 0;
             margin-bottom: 16px;
         }
@@ -120,8 +138,8 @@
             }
 
             svg {
-                display: inline-block;
-                transform: rotate(-90deg);
+                //display: inline-block;
+                //transform: rotate(-90deg);
             }
         }
     }

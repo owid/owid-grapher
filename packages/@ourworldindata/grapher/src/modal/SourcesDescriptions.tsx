@@ -37,6 +37,7 @@ export const SourcesDescriptions = (props: SourcesDescriptionsProps) => {
                                     <li key={i}>
                                         <SimpleMarkdownText
                                             text={text.trim()}
+                                            useParagraphs={false}
                                         />{" "}
                                     </li>
                                 ))}

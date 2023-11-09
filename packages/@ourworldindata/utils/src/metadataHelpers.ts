@@ -140,14 +140,14 @@ export const getPhraseForProcessingLevel = (
 const prepareOriginForDisplay = (origin: OwidOrigin): DisplaySource => {
     let label = origin.producer ?? ""
     if (origin.title && origin.title !== label) {
-        label += " - " + origin.title
+        label += " – " + origin.title
     }
 
     return {
         label,
         description: origin.description,
         retrievedOn: origin.dateAccessed,
-        retrievedFrom: origin.urlMain ? [origin.urlMain] : undefined,
+        retrievedFrom: origin.urlMain,
         citation: origin.citationFull,
     }
 }
@@ -171,7 +171,7 @@ export const prepareSourcesForDisplay = (
             description,
             dataPublishedBy: source?.dataPublishedBy,
             retrievedOn: source?.retrievedDate,
-            retrievedFrom: splitSourceTextIntoFragments(source?.link),
+            retrievedFrom: source?.link,
         })
     }
 

@@ -16,7 +16,11 @@ export const IndicatorSources = (props: IndicatorSourcesProps) => {
     const uniqueSources = uniqBy(props.sources, "label")
 
     return (
-        <div className="indicator-sources">
+        <div
+            className={cx("indicator-sources", {
+                "indicator-sources--single": uniqueSources.length === 1,
+            })}
+        >
             {uniqueSources.map((source: DisplaySource, idx: number) => {
                 const isStacked = idx !== uniqueSources.length - 1
                 const content = (
@@ -25,7 +29,9 @@ export const IndicatorSources = (props: IndicatorSourcesProps) => {
                         isEmbeddedInADataPage={isEmbeddedInADataPage}
                     />
                 )
-                return source.description || source.citation ? (
+                return source.description ||
+                    source.citation ||
+                    source.dataPublishedBy ? (
                     <ExpandableToggle
                         key={source.label}
                         label={source.label}
@@ -69,7 +75,9 @@ const SourceContent = (props: {
 }) => {
     const { source } = props
     const retrievedOn = source.retrievedOn
-        ? dayjs(source.retrievedOn).format("MMMM D, YYYY")
+        ? dayjs(source.retrievedOn, ["YYYY-MM-DD", "DD/MM/YYYY"]).format(
+              "MMMM D, YYYY"
+          )
         : undefined
     const showKeyInfo =
         source.dataPublishedBy ||
@@ -107,24 +115,16 @@ const SourceContent = (props: {
                                 <div className="source-key-data__title">
                                     Retrieved from
                                 </div>
-                                {source.retrievedFrom.map((url: string) => (
-                                    <div
-                                        key={url}
-                                        className="source-key-data__content--hide-overflow"
-                                    >
-                                        <a
-                                            href={url}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                        >
-                                            {url}
-                                        </a>
-                                    </div>
-                                ))}
+                                <div>
+                                    <SimpleMarkdownText
+                                        text={source.retrievedFrom}
+                                        useParagraphs={false}
+                                    />
+                                </div>
                             </div>
                         )}
                     {source.citation && (
-                        <div className="source-key-data source-key-data--span-2">
+                        <div className="source-key-data source-key-data-citation source-key-data--span-2">
                             <div className="source-key-data__title">
                                 Citation
                             </div>
@@ -144,6 +144,7 @@ const SourceContent = (props: {
                             <CodeSnippet
                                 code={source.citation.trim()}
                                 theme="light"
+                                useMarkdown={true}
                             />
                         </div>
                     )}

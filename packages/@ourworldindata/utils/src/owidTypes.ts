@@ -1737,6 +1737,6 @@ export interface DisplaySource {
     description?: string
     dataPublishedBy?: string
     retrievedOn?: string
-    retrievedFrom?: string[]
+    retrievedFrom?: string
     citation?: string
 }

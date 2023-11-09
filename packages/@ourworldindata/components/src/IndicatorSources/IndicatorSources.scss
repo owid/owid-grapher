@@ -4,8 +4,11 @@
         #{$blue-90}
     );
     --key-data-title: var(--indicator-sources-key-data-title, #{$blue-90});
+    --content: var(--indicator-sources-content, #{$blue-60});
 
     .source {
+        color: var(--content);
+
         .description {
             margin-bottom: 16px;
 
@@ -43,13 +46,14 @@
         }
 
         .source-key-data-blocks {
+            --code-snippet-text: #{$blue-50};
+
             display: grid;
             grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
-            row-gap: 8px;
-            column-gap: 16px;
+            gap: 16px;
 
             .wp-code-snippet {
-                margin-top: 8px;
+                margin-top: 16px;
                 margin-bottom: 0;
             }
         }
@@ -61,12 +65,6 @@
         .source-key-data__title {
             color: var(--key-data-title);
             white-space: nowrap;
-        }
-
-        .source-key-data__content--hide-overflow {
-            white-space: nowrap;
-            text-overflow: ellipsis;
-            overflow: hidden;
         }
 
         a {

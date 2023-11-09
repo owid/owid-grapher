@@ -171,14 +171,14 @@
 
         ul {
             padding-left: 1em;
-        }
 
-        li {
-            @include body-2-regular;
-            margin-bottom: 1em;
+            li {
+                @include body-2-regular;
+                margin-bottom: 1em;
 
-            &:last-child {
-                margin-bottom: 0;
+                &:last-child {
+                    margin-bottom: 0;
+                }
             }
         }
     }
@@ -424,7 +424,7 @@
     .reuse__list-item,
     .citation__paragraph {
         @include body-3-medium;
-        margin: 0 0 16px;
+        margin: 0 0 8px;
     }
 
     .citation__how-to-header {
