@@ -11,7 +11,7 @@ import {
     makeLinks,
 } from "@ourworldindata/components"
 
-interface KeyDataTableProps {
+interface SourcesKeyDataTableProps {
     attribution?: string
     dateRange?: string
     lastUpdated?: string
@@ -27,7 +27,7 @@ interface KeyDataTableProps {
     hideBottomBorder?: boolean
 }
 
-export const KeyDataTable = (props: KeyDataTableProps) => {
+export const SourcesKeyDataTable = (props: SourcesKeyDataTableProps) => {
     const source = makeSource(props)
     const lastUpdated = makeLastUpdated(props)
     const nextUpdate = makeNextUpdate(props)
@@ -38,100 +38,91 @@ export const KeyDataTable = (props: KeyDataTableProps) => {
 
     return (
         <div
-            className={cx("key-data-table", {
-                "key-data-table--top-border": !props.hideTopBorder,
-                "key-data-table--bottom-border": !props.hideBottomBorder,
+            className={cx("sources-key-data-table", {
+                "sources-key-data-table--top-border": !props.hideTopBorder,
+                "sources-key-data-table--bottom-border":
+                    !props.hideBottomBorder,
             })}
         >
             {source && (
-                <div className="key-data-table-item key-data-table-source key-data-table-item--span">
-                    <div className="key-data-table-item__title">Source</div>
-                    <div className="key-data-table-item__content">{source}</div>
+                <div className="key-data key-data-source key-data--span">
+                    <div className="key-data__title">Source</div>
+                    <div className="key-data__content">{source}</div>
                 </div>
             )}
             {lastUpdated && (
                 <div
-                    className={cx("key-data-table-item", {
-                        "key-data-table-item--span":
+                    className={cx("key-data", {
+                        "key-data--span":
                             !nextUpdate &&
                             !dateRange &&
                             !unit &&
                             !unitConversionFactor,
                     })}
                 >
-                    <div className="key-data-table-item__title">
-                        Last updated
-                    </div>
-                    <div className="key-data-table-item__content">
-                        {lastUpdated}
-                    </div>
+                    <div className="key-data__title">Last updated</div>
+                    <div className="key-data__content">{lastUpdated}</div>
                 </div>
             )}
             {nextUpdate && (
                 <div
-                    className={cx("key-data-table-item", {
-                        "key-data-table-item--span":
+                    className={cx("key-data", {
+                        "key-data--span":
                             !dateRange &&
                             !lastUpdated &&
                             !unit &&
                             !unitConversionFactor,
                     })}
                 >
-                    <div className="key-data-table-item__title">
-                        Next expected update
-                    </div>
-                    <div className="key-data-table-item__content">
-                        {nextUpdate}
-                    </div>
+                    <div className="key-data__title">Next expected update</div>
+                    <div className="key-data__content">{nextUpdate}</div>
                 </div>
             )}
             {dateRange && (
                 <div
-                    className={cx("key-data-table-item", {
-                        "key-data-table-item--span":
+                    className={cx("key-data", {
+                        "key-data--span":
                             !unit &&
                             !unitConversionFactor &&
                             isEven(count(lastUpdated, nextUpdate)),
                     })}
                 >
-                    <div className="key-data-table-item__title">Date range</div>
-                    <div className="key-data-table-item__content">
-                        {dateRange}
-                    </div>
+                    <div className="key-data__title">Date range</div>
+                    <div className="key-data__content">{dateRange}</div>
                 </div>
             )}
             {unit && (
                 <div
-                    className={cx("key-data-table-item", {
-                        "key-data-table-item--span":
+                    className={cx("key-data", {
+                        "key-data--span":
                             !unitConversionFactor &&
                             isEven(count(lastUpdated, nextUpdate, dateRange)),
                     })}
                 >
-                    <div className="key-data-table-item__title">Unit</div>
-                    <div className="key-data-table-item__content">{unit}</div>
+                    <div className="key-data__title">Unit</div>
+                    <div className="key-data__content">{unit}</div>
                 </div>
             )}
             {unitConversionFactor && (
                 <div
-                    className={cx("key-data-table-item", {
-                        "key-data-table-item--span": isEven(
+                    className={cx("key-data", {
+                        "key-data--span": isEven(
                             count(lastUpdated, nextUpdate, dateRange, unit)
                         ),
                     })}
                 >
-                    <div className="key-data-table-item__title">
+                    <div className="key-data__title">
                         Unit conversion factor
                     </div>
-                    <div className="key-data-table-item__content">
+                    <div className="key-data__content">
                         {unitConversionFactor}
                     </div>
                 </div>
             )}
             {links && (
-                <div className="key-data-table-item key-data-table-item--span">
-                    <div className="key-data-table-item__title">Links</div>
-                    <div className="key-data-table-item__content">{links}</div>
+                <div className="key-data key-data--span">
+                    <div className="key-data__title">Links</div>
+                    <div className="key-data__content">{links}</div>
                 </div>
             )}
         </div>

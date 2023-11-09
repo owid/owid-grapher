@@ -1,4 +1,4 @@
-.key-data-table {
+.sources-key-data-table {
     $border: #e7e7e7;
 
     @include label-2-medium;
@@ -15,7 +15,7 @@
     display: grid;
     grid-template-columns: repeat(2, 1fr);
 
-    .key-data-table-item {
+    .key-data {
         display: flex;
         padding: 16px 24px 16px 0;
 
@@ -23,12 +23,12 @@
             display: block;
         }
 
-        &:not(.key-data-table-source) {
+        &:not(.key-data-source) {
             border-top: 1px solid $border;
         }
 
         &__title {
-            flex: 0 0 130px; // using a fixed width here to make sure the content is aligned
+            flex: 0 0 140px; // using a fixed width here to make sure the content is aligned
             margin-right: 24px;
             color: $light-text;
 
@@ -52,8 +52,8 @@
     }
 }
 
-&.GrapherComponentNarrow .key-data-table {
-    .indicator-key-data-item {
+&.GrapherComponentNarrow .sources-key-data-table {
+    .key-data {
         display: block;
     }
 }
