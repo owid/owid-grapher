@@ -17,6 +17,7 @@ import {
     makeUnit,
     makeUnitConversionFactor,
     makeLinks,
+    HtmlOrSimpleMarkdownText,
 } from "@ourworldindata/components"
 import ReactDOM from "react-dom"
 import { GrapherWithFallback } from "./GrapherWithFallback.js"
@@ -260,7 +261,8 @@ export const DataPageV2Content = ({
                         />
                         <div className="wrapper grid grid-cols-12">
                             {hasDescriptionKey ||
-                            datapageData.descriptionFromProducer ? (
+                            datapageData.descriptionFromProducer ||
+                            datapageData.source?.additionalInfo ? (
                                 <>
                                     <h2
                                         id="about-this-data"
@@ -272,7 +274,7 @@ export const DataPageV2Content = ({
                                     <div className="col-start-1 span-cols-8 span-lg-cols-7 span-sm-cols-12">
                                         <div className="key-info__content">
                                             {hasDescriptionKey && (
-                                                <>
+                                                <div className="key-info__key-description">
                                                     {datapageData.descriptionKey
                                                         .length === 1 ? (
                                                         <SimpleMarkdownText
@@ -309,10 +311,11 @@ export const DataPageV2Content = ({
                                                             />
                                                         </a>
                                                     )}
-                                                </>
+                                                </div>
                                             )}
-                                            {datapageData.descriptionFromProducer && (
-                                                <div className="key-info__description-from-producer">
+
+                                            <div className="key-info__expandable-descriptions">
+                                                {datapageData.descriptionFromProducer && (
                                                     <ExpandableToggle
                                                         label={
                                                             datapageData.attributionShort
@@ -328,9 +331,27 @@ export const DataPageV2Content = ({
                                                                 />
                                                             </div>
                                                         }
+                                                        isStacked={
+                                                            !!datapageData
+                                                                .source
+                                                                ?.additionalInfo
+                                                        }
                                                     />
-                                                </div>
-                                            )}
+                                                )}
+                                                {datapageData.source
+                                                    ?.additionalInfo && (
+                                                    <ExpandableToggle
+                                                        label="Additional information about this data"
+                                                        content={
+                                                            <div className="expandable-info-blocks__content">
+                                                                <HtmlOrSimpleMarkdownText
+                                                                    text={datapageData.source?.additionalInfo.trim()}
+                                                                />
+                                                            </div>
+                                                        }
+                                                    />
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                     <div className="key-info__right span-cols-4 span-lg-cols-5 span-sm-cols-12">

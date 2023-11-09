@@ -5,7 +5,10 @@ export {
     sumTextWrapHeights,
 } from "./MarkdownTextWrap/MarkdownTextWrap.js"
 
-export { SimpleMarkdownText } from "./SimpleMarkdownText.js"
+export {
+    SimpleMarkdownText,
+    HtmlOrSimpleMarkdownText,
+} from "./SimpleMarkdownText.js"
 export {
     getLinkType,
     getUrlTarget,
