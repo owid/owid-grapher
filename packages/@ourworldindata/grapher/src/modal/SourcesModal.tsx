@@ -215,12 +215,12 @@ export class Source extends React.Component<{
     editBaseUrl?: string
     isEmbeddedInADataPage?: boolean
 }> {
-    @computed private get def(): OwidColumnDef {
-        return this.props.column.def
+    @computed private get def(): OwidColumnDef & { source?: OwidSource } {
+        return { ...this.props.column.def, source: this.props.column.source }
     }
 
     @computed private get source(): OwidSource {
-        return this.props.column.source ?? {}
+        return this.def.source ?? {}
     }
 
     @computed private get title(): string {
