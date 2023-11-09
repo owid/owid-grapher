@@ -13,8 +13,6 @@ import {
     OwidSource,
 } from "@ourworldindata/utils"
 import {
-    Tabs,
-    ExpandableTabs,
     IndicatorSources,
     IndicatorProcessing,
 } from "@ourworldindata/components"
@@ -26,7 +24,9 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { CoreColumn, OwidColumnDef } from "@ourworldindata/core-table"
 import { Modal } from "./Modal"
 import { SourcesKeyDataTable } from "./SourcesKeyDataTable"
-import { SourcesDescriptions } from "./SourcesDescriptions.js"
+import { SourcesDescriptions } from "./SourcesDescriptions"
+import { Tabs } from "../tabs/Tabs"
+import { ExpandableTabs } from "../tabs/ExpandableTabs"
 
 // keep in sync with variables in SourcesModal.scss
 const MAX_WIDTH = 832
