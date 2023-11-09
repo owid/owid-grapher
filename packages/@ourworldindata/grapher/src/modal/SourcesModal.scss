@@ -1,6 +1,6 @@
 .SourcesModalContent {
     // keep in sync with variables in SourcesModal.tsx
-    $max-width: 832px;
+    $max-width: 640px;
 
     padding-bottom: $modal-padding;
     max-width: $max-width;
@@ -96,6 +96,7 @@
         .ExpandableToggle {
             --expandable-toggle-border: #{$border};
             --expandable-toggle-title: #{$dark-text};
+            --expandable-toggle-content: #{$light-text};
             --expandable-toggle-button: #{$dark-text};
             --expandable-toggle-button-hover: #{$light-text};
         }

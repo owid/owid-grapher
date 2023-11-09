@@ -1,36 +1,28 @@
 .sources-key-data-table {
-    $border: #e7e7e7;
-
     margin-top: 16px;
 
-    .row {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        padding: 16px 0;
-        border-top: 1px solid $border;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
 
-        &:last-of-type {
-            border-bottom: 1px solid $border;
+    .key-data {
+        @include label-2-medium;
+
+        &__title {
+            margin-bottom: 4px;
+            color: $light-text;
         }
 
-        .key-data {
-            @include label-2-medium;
-            display: flex;
-            padding-right: 24px;
+        &__content {
+            color: $dark-text;
+        }
 
-            &__title {
-                flex: 0 0 140px; // using a fixed width here to make sure the content is aligned
-                margin-right: 24px;
-                color: $light-text;
-            }
+        &--span {
+            grid-column: 1 / -1;
+        }
 
-            &__content {
-                color: $dark-text;
-            }
-
-            &--span {
-                grid-column: 1 / -1;
-            }
+        a {
+            text-underline-offset: 2px;
         }
     }
 
@@ -42,28 +34,10 @@
             text-decoration: none;
         }
     }
-
-    &--hide-top-border {
-        .row:first-of-type {
-            border-top: none;
-            padding-top: 0;
-        }
-    }
-
-    &--hide-bottom-border {
-        .row:last-of-type {
-            border-bottom: none;
-        }
-    }
 }
 
-&.GrapherComponentSmall .sources-key-data-table {
+&.GrapherComponentSemiNarrow .sources-key-data-table {
     .key-data {
-        display: block;
-    }
-
-    .key-data__title {
-        margin-right: 0;
-        margin-bottom: 4px;
+        grid-column: 1 / -1;
     }
 }

@@ -21,10 +21,6 @@ interface SourcesKeyDataTableProps {
     link?: string
     unitConversionFactor?: number
     isEmbeddedInADataPage?: boolean // true by default
-
-    // styling
-    hideTopBorder?: boolean
-    hideBottomBorder?: boolean
 }
 
 export const SourcesKeyDataTable = (props: SourcesKeyDataTableProps) => {
@@ -36,7 +32,7 @@ export const SourcesKeyDataTable = (props: SourcesKeyDataTableProps) => {
     const unitConversionFactor = makeUnitConversionFactor(props)
     const links = makeLinks(props)
 
-    const keyData = excludeNull([
+    const keyDataWithoutSource = excludeNull([
         lastUpdated ? { label: "Last updated", content: lastUpdated } : null,
         nextUpdate
             ? { label: "Next expected update", content: nextUpdate }
@@ -49,36 +45,26 @@ export const SourcesKeyDataTable = (props: SourcesKeyDataTableProps) => {
                   content: unitConversionFactor,
               }
             : null,
+        links ? { label: "Links", content: links } : null,
     ])
 
-    const rows = range(0, keyData.length, 2).map((index: number) => [
-        keyData[index],
-        keyData[index + 1],
-    ])
-
-    const hasSingleRow =
-        ((source || links) && rows.length === 0) ||
-        (!source && !links && rows.length === 1)
+    const rows = range(0, keyDataWithoutSource.length, 2).map(
+        (index: number) => [
+            keyDataWithoutSource[index],
+            keyDataWithoutSource[index + 1],
+        ]
+    )
 
     return (
-        <div
-            className={cx("sources-key-data-table", {
-                "sources-key-data-table--hide-top-border":
-                    hasSingleRow || props.hideTopBorder,
-                "sources-key-data-table--hide-bottom-border":
-                    hasSingleRow || props.hideBottomBorder,
-            })}
-        >
+        <div className="sources-key-data-table">
             {source && (
-                <div className="row">
-                    <div className="key-data key-data--span">
-                        <div className="key-data__title">Source</div>
-                        <div className="key-data__content">{source}</div>
-                    </div>
+                <div className="key-data key-data--span">
+                    <div className="key-data__title">Source</div>
+                    <div className="key-data__content">{source}</div>
                 </div>
             )}
             {rows.map(([first, second]) => (
-                <div key={first.label} className="row">
+                <React.Fragment key={first.label}>
                     <div
                         className={cx("key-data", {
                             "key-data--span": !second,
@@ -97,16 +83,8 @@ export const SourcesKeyDataTable = (props: SourcesKeyDataTableProps) => {
                             </div>
                         </div>
                     )}
-                </div>
+                </React.Fragment>
             ))}
-            {links && (
-                <div className="row">
-                    <div className="key-data key-data--span">
-                        <div className="key-data__title">Links</div>
-                        <div className="key-data__content">{links}</div>
-                    </div>
-                </div>
-            )}
         </div>
     )
 }

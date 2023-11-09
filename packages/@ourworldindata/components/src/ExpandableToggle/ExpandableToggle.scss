@@ -1,6 +1,7 @@
 .ExpandableToggle {
     --title: var(--expandable-toggle-title, currentColor);
     --border: var(--expandable-toggle-border, #d0dae3);
+    --content: var(--expandable-toggle-content, #{$blue-60});
 
     --button: var(--expandable-toggle-button, #{$blue-90});
     --button-hover: var(--expandable-toggle-button-hover, #{$blue-60});
@@ -52,6 +53,7 @@
 .ExpandableToggle__content {
     height: 0;
     overflow: hidden;
+    color: var(--content);
 
     @include body-3-medium;
     font-size: var(--content-size);

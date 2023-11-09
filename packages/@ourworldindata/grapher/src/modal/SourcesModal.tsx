@@ -29,7 +29,7 @@ import { Tabs } from "../tabs/Tabs"
 import { ExpandableTabs } from "../tabs/ExpandableTabs"
 
 // keep in sync with variables in SourcesModal.scss
-const MAX_WIDTH = 832
+const MAX_WIDTH = 640
 
 export interface SourcesModalManager {
     adminBaseUrl?: string
@@ -300,12 +300,6 @@ export class Source extends React.Component<{
                         this.props.column.unitConversionFactor
                     }
                     isEmbeddedInADataPage={this.props.isEmbeddedInADataPage}
-                    hideTopBorder={!this.def.descriptionShort}
-                    hideBottomBorder={
-                        this.showDescriptions &&
-                        (!this.def.descriptionKey ||
-                            this.def.descriptionKey.length === 0)
-                    }
                 />
                 {this.showDescriptions && (
                     <SourcesDescriptions
