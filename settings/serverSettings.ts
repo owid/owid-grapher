@@ -148,6 +148,9 @@ export const GDOCS_IMAGES_BACKPORTING_TARGET_FOLDER: string =
 export const GDOCS_HOMEPAGE_CONFIG_DOCUMENT_ID: string =
     serverSettings.GDOCS_HOMEPAGE_CONFIG_DOCUMENT_ID ??
     "1LpZ5LFDTA6buEb_uL-IOWQC1YLAEbpj7odup-zgg1II"
+export const GDOCS_DONATE_FAQS_DOCUMENT_ID: string =
+    serverSettings.GDOCS_DONATE_FAQS_DOCUMENT_ID ??
+    "194PNSFjgSlt9Zm5xYuDOF0l_GLKZbVxH2co3zCok_cE"
 
 export const GDOCS_SHARED_DRIVE_ID = serverSettings.GDOCS_SHARED_DRIVE_ID ?? ""
 

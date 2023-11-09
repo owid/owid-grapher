@@ -2,9 +2,12 @@ import React from "react"
 import { Head } from "./Head.js"
 import { SiteHeader } from "./SiteHeader.js"
 import { SiteFooter } from "./SiteFooter.js"
+import { OwidGdocInterface } from "@ourworldindata/utils"
+import { ArticleBlocks } from "./gdocs/ArticleBlocks.js"
 
 export const DonatePage = (props: {
     baseUrl: string
+    faqsGdoc: OwidGdocInterface
     recaptchaKey: string
 }) => (
     <html>
@@ -66,6 +69,11 @@ export const DonatePage = (props: {
                         </div>
                     </div>
                 </div>
+                {props.faqsGdoc.content.body ? (
+                    <div className="donate-page-faqs grid grid-cols-12-full-width">
+                        <ArticleBlocks blocks={props.faqsGdoc.content.body} />
+                    </div>
+                ) : null}
             </main>
 
             <SiteFooter hideDonate={true} baseUrl={props.baseUrl} />
