@@ -50,7 +50,7 @@ export interface ChartRecord {
     chartId: number
     slug: string
     title: string
-    subtitle: string
+    subtitle: string | undefined
     variantName: string
     keyChartForTags: string[]
     tags: string[]

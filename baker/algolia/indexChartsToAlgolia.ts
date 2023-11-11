@@ -4,7 +4,7 @@ import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
 import { getAlgoliaClient } from "./configureAlgolia.js"
 import { isPathRedirectedToExplorer } from "../../explorerAdminServer/ExplorerRedirects.js"
 import { ChartRecord, SearchIndexName } from "../../site/search/searchTypes.js"
-import { KeyChartLevel } from "@ourworldindata/utils"
+import { KeyChartLevel, isNil } from "@ourworldindata/utils"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import { Pageview } from "../../db/model/Pageview.js"
 import { Link } from "../../db/model/Link.js"
@@ -67,10 +67,12 @@ const getChartsRecords = async (): Promise<ChartRecord[]> => {
         const relatedArticles = (await getRelatedArticles(c.id)) ?? []
         const linksFromGdocs = await Link.getPublishedLinksTo(c.slug, "grapher")
 
-        const plaintextSubtitle = new MarkdownTextWrap({
-            text: c.subtitle,
-            fontSize: 10, // doesn't matter, but is a mandatory field
-        }).plaintext
+        const plaintextSubtitle = isNil(c.subtitle)
+            ? undefined
+            : new MarkdownTextWrap({
+                  text: c.subtitle,
+                  fontSize: 10, // doesn't matter, but is a mandatory field
+              }).plaintext
 
         const record = {
             objectID: c.id,
