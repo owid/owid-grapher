@@ -45,7 +45,7 @@ import * as db from "../db/db.js"
 import { glob } from "glob"
 import { isPathRedirectedToExplorer } from "../explorerAdminServer/ExplorerRedirects.js"
 import { bySlug, getPostBySlug, parsePostAuthors } from "../db/model/Post.js"
-import { GrapherInterface } from "@ourworldindata/grapher"
+import { ChartTypeName, GrapherInterface } from "@ourworldindata/grapher"
 import workerpool from "workerpool"
 import ProgressBar from "progress"
 import {
@@ -62,6 +62,7 @@ import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 import { parseFaqs } from "../db/model/Gdoc/rawToEnriched.js"
 import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
 import { getShortPageCitation } from "../site/gdocs/utils.js"
+import { isEmpty } from "lodash"
 
 /**
  *
@@ -83,13 +84,21 @@ export const renderDataPageOrGrapherPage = async (
     const yVariableIds = grapher
         .dimensions!.filter((d) => d.property === DimensionProperty.y)
         .map((d) => d.variableId)
-    if (yVariableIds.length === 1) {
+    if (
+        yVariableIds.length === 1 &&
+        grapher.type !== ChartTypeName.ScatterPlot
+    ) {
         const variableId = yVariableIds[0]
         const variableMetadata = await getVariableMetadata(variableId)
 
         if (
             variableMetadata.schemaVersion !== undefined &&
-            variableMetadata.schemaVersion >= 2
+            variableMetadata.schemaVersion >= 2 &&
+            (!isEmpty(variableMetadata.descriptionShort) ||
+                !isEmpty(variableMetadata.descriptionProcessing) ||
+                !isEmpty(variableMetadata.descriptionKey) ||
+                !isEmpty(variableMetadata.descriptionFromProducer) ||
+                !isEmpty(variableMetadata.presentation?.titlePublic))
         ) {
             return await renderDataPageV2({
                 variableId,
