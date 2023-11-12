@@ -55,11 +55,10 @@ const triggerBakeAndDeploy = async (
         // otherwise, bake locally. This is used for local development or staging servers
         const baker = new SiteBaker(BAKED_SITE_DIR, BAKED_BASE_URL)
         if (lightningQueue?.length) {
-            for (const change of lightningQueue) {
-                if (!change.slug)
-                    throw new Error("Lightning deploy has missing slug")
-                await baker.bakeGDocPosts(lightningQueue.map((c) => c.slug!))
-            }
+            if (!lightningQueue.every((change) => change.slug))
+                throw new Error("Lightning deploy is missing a slug")
+
+            await baker.bakeGDocPosts(lightningQueue.map((c) => c.slug!))
         } else {
             await baker.bakeAll()
         }
