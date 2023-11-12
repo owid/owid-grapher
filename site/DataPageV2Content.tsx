@@ -1,7 +1,11 @@
-import React, { useEffect } from "react"
+import React, { useEffect, useMemo } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowDown } from "@fortawesome/free-solid-svg-icons"
-import { Grapher, GrapherInterface } from "@ourworldindata/grapher"
+import {
+    Grapher,
+    GrapherInterface,
+    GrapherProgrammaticInterface,
+} from "@ourworldindata/grapher"
 import {
     CodeSnippet,
     REUSE_THIS_WORK_SECTION_ID,
@@ -82,7 +86,14 @@ export const DataPageV2Content = ({
             : datapageData.attributionShort || datapageData.titleVariant
 
     // Initialize the grapher for client-side rendering
-    const mergedGrapherConfig = grapherConfig
+    const mergedGrapherConfig: GrapherProgrammaticInterface = useMemo(
+        () => ({
+            ...grapherConfig,
+            isEmbeddedInADataPage: true,
+            bindUrlToWindow: true,
+        }),
+        [grapherConfig]
+    )
 
     useEffect(() => {
         setGrapher(new Grapher(mergedGrapherConfig))
