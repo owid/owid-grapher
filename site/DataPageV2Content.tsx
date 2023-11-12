@@ -32,6 +32,8 @@ import {
     intersection,
     getPhraseForProcessingLevel,
     prepareSourcesForDisplay,
+    DataPageRelatedResearch,
+    isEmpty,
     excludeUndefined,
     DataPageDataV2,
 } from "@ourworldindata/utils"
@@ -40,7 +42,10 @@ import StickyNav from "./blocks/StickyNav.js"
 import cx from "classnames"
 import { DebugProvider } from "./gdocs/DebugContext.js"
 import dayjs from "dayjs"
-import { IMAGE_HOSTING_CDN_URL } from "../settings/clientSettings.js"
+import {
+    BAKED_BASE_URL,
+    IMAGE_HOSTING_CDN_URL,
+} from "../settings/clientSettings.js"
 declare global {
     interface Window {
         _OWID_DATAPAGEV2_PROPS: DataPageV2ContentFields
@@ -169,6 +174,17 @@ export const DataPageV2Content = ({
         adaptedFrom ? `Data adapted from ${adaptedFrom}.` : undefined,
         `Retrieved from ${canonicalUrl} [online resource]`,
     ]).join(" ")
+
+    const getImageUrl = (research: DataPageRelatedResearch) => {
+        let url = `${BAKED_BASE_URL}/default-thumbnail.jpg`
+        if (research.imageUrl && research.imageUrl.startsWith("http"))
+            url = research.imageUrl
+        else if (!isEmpty(research.imageUrl))
+            url = encodeURI(
+                `${IMAGE_HOSTING_CDN_URL}/production/${research.imageUrl}`
+            )
+        return url
+    }
 
     const relatedResearchCandidates = datapageData.relatedResearch
     const relatedResearch =
@@ -411,16 +427,7 @@ export const DataPageV2Content = ({
                                                     </figure> */}
                                             {/* // TODO: switch this to use the Image component and put the required information for the thumbnails into hte attachment context or similar */}
                                             <img
-                                                src={
-                                                    research.imageUrl &&
-                                                    research.imageUrl.startsWith(
-                                                        "http"
-                                                    )
-                                                        ? research.imageUrl
-                                                        : encodeURI(
-                                                              `${IMAGE_HOSTING_CDN_URL}/production/${research.imageUrl}`
-                                                          )
-                                                }
+                                                src={getImageUrl(research)}
                                                 alt=""
                                                 className="span-lg-cols-2 span-sm-cols-3"
                                             />
