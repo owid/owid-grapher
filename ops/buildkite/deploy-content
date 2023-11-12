@@ -27,20 +27,16 @@ deploy_content () {
         exit 1
     fi
 
-    # Lightning deploys ARE CURRENTLY DISABLED because they're screwing up the site
     # NOTE: in theory we could run lightning bake in parallel to regular bake and only lock `deploy_to_cloudflare`
     # right now lightning bake has to wait if there's a regular bake
-    # if [ -n "${LIGHTNING_GDOC_SLUGS:-}" ]; then
-    #     # TODO: do we need to trigger `yarn buildLocalBake --steps gdriveImages` to get up to date images for the lightning post?
-    #     bake_gdoc_posts "$LIGHTNING_GDOC_SLUGS"
-    # else
-
-    update_owid_content_repo
-    sync_wordpress_uploads
-    bake_site
-    sync_baked_data_to_r2
-
-    # fi
+    if [ -n "${LIGHTNING_GDOC_SLUGS:-}" ]; then
+        bake_gdoc_posts "$LIGHTNING_GDOC_SLUGS"
+    else
+        update_owid_content_repo
+        sync_wordpress_uploads
+        bake_site
+        sync_baked_data_to_r2
+    fi
 
     create_dist
     deploy_to_cloudflare

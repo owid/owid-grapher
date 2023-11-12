@@ -208,7 +208,7 @@ export class SiteBaker {
     }
 
     // Bake an individual post/page
-    async bakeGDocPost(post: OwidGdocPublished) {
+    private async bakeGDocPost(post: OwidGdocPublished) {
         const html = renderGdoc(post)
         const outPath = path.join(this.bakedSiteDir, `${post.slug}.html`)
         await fs.mkdirp(path.dirname(outPath))
@@ -307,11 +307,26 @@ export class SiteBaker {
         this.progressBar.tick({ name: "✅ baked posts" })
     }
 
-    // Bake all GDoc posts
-    async bakeGDocPosts() {
+    // Bake all GDoc posts, or a subset of them if slugs are provided
+    async bakeGDocPosts(slugs?: string[]) {
         await db.getConnection()
         if (!this.bakeSteps.has("gdocPosts")) return
         const publishedGdocs = await Gdoc.getPublishedGdocs()
+
+        const gdocsToBake =
+            slugs !== undefined
+                ? publishedGdocs.filter((gdoc) => slugs.includes(gdoc.slug))
+                : publishedGdocs
+
+        // Ensure we have a published gdoc for each slug given
+        if (slugs !== undefined && slugs.length !== gdocsToBake.length) {
+            const slugsNotFound = slugs.filter(
+                (slug) => !gdocsToBake.find((gdoc) => gdoc.slug === slug)
+            )
+            throw new Error(
+                `Some of the gdoc slugs were not found or are not published: ${slugsNotFound}`
+            )
+        }
 
         // Prefetch publishedGdocs, imageMetadata, and linkedCharts instead of each instance fetching
         const publishedGdocsDictionary = keyBy(publishedGdocs.map(clone), "id")
@@ -349,7 +364,7 @@ export class SiteBaker {
                 )
         )
 
-        for (const publishedGdoc of publishedGdocs) {
+        for (const publishedGdoc of gdocsToBake) {
             // Pick the necessary metadata from the dictionaries we prefetched
             publishedGdoc.linkedDocuments = pick(
                 publishedGdocsDictionary,

@@ -7,8 +7,7 @@ import {
     BAKED_BASE_URL,
     BUILDKITE_API_ACCESS_TOKEN,
 } from "../settings/serverSettings.js"
-import { DeployChange, OwidGdocPublished } from "@ourworldindata/utils"
-import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
+import { DeployChange } from "@ourworldindata/utils"
 import { SiteBaker } from "../baker/SiteBaker.js"
 
 const deployQueueServer = new DeployQueueServer()
@@ -56,13 +55,10 @@ const triggerBakeAndDeploy = async (
         // otherwise, bake locally. This is used for local development or staging servers
         const baker = new SiteBaker(BAKED_SITE_DIR, BAKED_BASE_URL)
         if (lightningQueue?.length) {
-            for (const change of lightningQueue) {
-                const gdoc = (await Gdoc.findOneByOrFail({
-                    published: true,
-                    slug: change.slug,
-                })) as OwidGdocPublished
-                await baker.bakeGDocPost(gdoc)
-            }
+            if (!lightningQueue.every((change) => change.slug))
+                throw new Error("Lightning deploy is missing a slug")
+
+            await baker.bakeGDocPosts(lightningQueue.map((c) => c.slug!))
         } else {
             await baker.bakeAll()
         }
