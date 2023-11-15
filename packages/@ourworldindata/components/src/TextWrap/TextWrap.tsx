@@ -25,6 +25,9 @@ interface WrapLine {
     height: number
 }
 
+const HTML_OPENING_TAG_REGEX = /<(\w+)[^>]*>/
+const HTML_CLOSING_TAG_REGEX = /<\/(\w)+>/
+
 function startsWithNewline(text: string): boolean {
     return /^\n/.test(text)
 }
@@ -106,12 +109,14 @@ export class TextWrap {
                 startsWithNewline(word) ||
                 (nextBounds.width + 10 > maxWidth && line.length >= 1)
             ) {
-                const wordWithoutNewline = word.replace(/^\n/, "")
+                // Introduce a newline _before_ this word
                 lines.push({
                     text: line.join(" "),
                     width: lineBounds.width,
                     height: lineBounds.height,
                 })
+                // ... and start a new line with this word (with a potential leading newline stripped)
+                const wordWithoutNewline = word.replace(/^\n/, "")
                 line = [wordWithoutNewline]
                 lineBounds = Bounds.forText(wordWithoutNewline, {
                     fontSize,
@@ -122,6 +127,8 @@ export class TextWrap {
                 lineBounds = nextBounds
             }
         })
+
+        // Push the last line
         if (line.length > 0)
             lines.push({
                 text: line.join(" "),
