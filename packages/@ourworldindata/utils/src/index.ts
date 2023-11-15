@@ -177,6 +177,7 @@ export {
     type RefDictionary,
     ScaleType,
     type SerializedGridProgram,
+    COLLECTIONS_PAGE_CONTAINER_ID,
     SiteFooterContext,
     SortBy,
     type SortConfig,

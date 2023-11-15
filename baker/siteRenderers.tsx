@@ -6,6 +6,7 @@ import {
 import { BlogIndexPage } from "../site/BlogIndexPage.js"
 import { FrontPage } from "../site/FrontPage.js"
 import { ChartsIndexPage, ChartIndexItem } from "../site/ChartsIndexPage.js"
+import { SharedCollectionPage } from "../site/collections/CollectionsPage.js"
 import { SearchPage } from "../site/search/SearchPage.js"
 import { NotFoundPage } from "../site/NotFoundPage.js"
 import { DonatePage } from "../site/DonatePage.js"
@@ -137,6 +138,10 @@ export const renderChartsPage = async (
             baseUrl={BAKED_BASE_URL}
         />
     )
+}
+
+export function renderSharedCollectionPage() {
+    return renderToHtmlPage(<SharedCollectionPage baseUrl={BAKED_BASE_URL} />)
 }
 
 export const renderGdocsPageBySlug = async (

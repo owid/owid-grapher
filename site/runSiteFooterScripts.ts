@@ -17,6 +17,7 @@ import { hydrateKeyInsights } from "./blocks/KeyInsights.js"
 import { hydrateExpandableParagraphs } from "./blocks/ExpandableParagraph.js"
 import { hydrateCodeSnippets } from "@ourworldindata/components"
 import { hydrateStickyNav } from "./blocks/StickyNav.js"
+import { hydrateSharedCollectionsPage } from "./collections/SharedCollection.js"
 
 export const runSiteFooterScripts = (
     args:
@@ -50,6 +51,11 @@ export const runSiteFooterScripts = (
             runCookiePreferencesManager()
             runDetailsOnDemand()
             break
+        case SiteFooterContext.collectionsPage:
+            runSiteTools()
+            runCookiePreferencesManager()
+            hydrateSharedCollectionsPage()
+            runDetailsOnDemand()
         case SiteFooterContext.gdocsDocument:
             hydrateOwidGdoc(debug, isPreviewing)
             runSiteNavigation(BAKED_BASE_URL, hideDonationFlag)

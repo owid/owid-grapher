@@ -16,6 +16,7 @@ import {
     countryProfileCountryPage,
     renderExplorerPage,
     makeAtomFeedNoTopicPages,
+    renderSharedCollectionPage,
 } from "../baker/siteRenderers.js"
 import {
     BAKED_BASE_URL,
@@ -132,6 +133,10 @@ mockSiteRouter.get("/*", async (req, res, next) => {
             baseQueryStr,
         })
     )
+})
+
+mockSiteRouter.get("/shared-collection", async (req, res) => {
+    return res.send(await renderSharedCollectionPage())
 })
 
 mockSiteRouter.get("/grapher/:slug", async (req, res) => {
