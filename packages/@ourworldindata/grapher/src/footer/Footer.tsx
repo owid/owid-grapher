@@ -415,27 +415,25 @@ export class Footer<
                     data-track-note="chart_click_sources"
                     onClick={action((e) => {
                         e.stopPropagation()
-                        // if embbedded, open the sources modal
-                        if (this.manager.isEmbeddedInAnOwidPage) {
-                            this.manager.isSourcesModalOpen = true
-                            return
-                        }
-
                         // on data pages, scroll to the "Sources and Processing" section
-                        // on grapher pages, open the sources modal
                         const sourcesIdOnDataPage =
                             DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID
                         const sourcesElement =
                             document.getElementById(sourcesIdOnDataPage)
-                        if (sourcesElement && sourcesElement.scrollIntoView) {
-                            sourcesElement.scrollIntoView({
-                                behavior: "smooth",
-                            })
-                            this.manager.isInFullScreenMode = false
-                        } else if (sourcesElement) {
-                            window.location.hash = "#" + sourcesIdOnDataPage
+                        if (
+                            this.manager.isEmbeddedInADataPage &&
+                            sourcesElement
+                        ) {
+                            if (sourcesElement.scrollIntoView) {
+                                sourcesElement.scrollIntoView({
+                                    behavior: "smooth",
+                                })
+                            } else {
+                                window.location.hash = "#" + sourcesIdOnDataPage
+                            }
                             this.manager.isInFullScreenMode = false
                         } else {
+                            // on grapher pages, open the sources modal
                             this.manager.isSourcesModalOpen = true
                         }
                     })}
