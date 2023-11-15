@@ -125,4 +125,23 @@ describe("lines()", () => {
             "an <strong>important</strong> <a href='https://youtu.be/dQw4w9WgXcQ'>line</a>",
         ])
     })
+
+    it("should properly close and re-open HTML tags that span multiple lines", () => {
+        // the HTML version of this string won't fit into a width of 150, but it will once the HTML tags are stripped
+        // - that's what the rawHtml mode is for.
+        const text = "a <strong><i>very important</i> message</strong> here"
+        const wrap = new TextWrap({
+            text,
+            maxWidth: 10,
+            fontSize: FONT_SIZE,
+            rawHtml: true,
+        })
+        expect(wrap.lines.map((l) => l.text)).toEqual([
+            "a",
+            "<strong><i>very</i></strong>",
+            "<strong><i>important</i></strong>",
+            "<strong>message</strong>",
+            "here",
+        ])
+    })
 })
