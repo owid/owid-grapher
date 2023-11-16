@@ -415,6 +415,16 @@ export class Footer<
                     data-track-note="chart_click_sources"
                     onClick={action((e) => {
                         e.stopPropagation()
+
+                        // if embbedded, open the sources modal
+                        if (
+                            this.manager.isEmbeddedInAnOwidPage ||
+                            this.manager.isInIFrame
+                        ) {
+                            this.manager.isSourcesModalOpen = true
+                            return
+                        }
+
                         // on data pages, scroll to the "Sources and Processing" section
                         const sourcesIdOnDataPage =
                             DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID
