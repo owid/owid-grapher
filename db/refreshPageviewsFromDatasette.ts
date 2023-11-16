@@ -8,7 +8,9 @@ async function downloadAndInsertCSV(): Promise<void> {
     const response = await fetch(csvUrl)
 
     if (!response.ok) {
-        throw new Error(`Failed to fetch CSV: ${response.statusText}`)
+        throw new Error(
+            `Failed to fetch CSV: ${response.statusText} from ${csvUrl}`
+        )
     }
 
     const csvText = await response.text()

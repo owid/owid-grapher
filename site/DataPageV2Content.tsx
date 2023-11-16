@@ -194,7 +194,7 @@ export const DataPageV2Content = ({
 
     const relatedResearchCandidates = datapageData.relatedResearch
     const relatedResearch =
-        relatedResearchCandidates.length > 10 &&
+        relatedResearchCandidates.length > 3 &&
         datapageData.topicTagsLinks?.length
             ? relatedResearchCandidates.filter((research) => {
                   const shared = intersection(

@@ -681,11 +681,16 @@ export const getRelatedResearchAndWritingForVariable = async (
 ): Promise<DataPageRelatedResearch[]> => {
     const wp_posts: RelatedResearchQueryResult[] = await db.queryMysql(
         `-- sql
+            -- What we want here is to get from the variable to the charts
+            -- to the posts and collect different pieces of information along the way
+            -- One important complication is that the slugs that are used in posts to
+            -- embed charts can either be the current slugs or old slugs that are redirected
+            -- now.
             select
                 distinct
                 pl.target as linkTargetSlug,
                 pl.componentType as componentType,
-                c.slug as chartSlug,
+                coalesce(charts_via_redirects.slug, c.slug) as chartSlug,
                 p.title as title,
                 p.slug as postSlug,
                 coalesce(csr.chart_id, c.id) as chartId,
@@ -706,21 +711,35 @@ export const getRelatedResearchAndWritingForVariable = async (
                 pl.target = c.slug
             left join chart_slug_redirects csr on
                 pl.target = csr.slug
+            left join charts charts_via_redirects on
+                charts_via_redirects.id = csr.chart_id
             left join chart_dimensions cd on
-                cd.chartId = c.id
+                cd.chartId = coalesce(csr.chart_id, c.id)
             left join pageviews pv on
                 pv.url = concat('https://ourworldindata.org/', p.slug )
             left join posts_gdocs pg on
             	pg.id = p.gdocSuccessorId
+            left join posts_gdocs pgs on
+                pgs.slug = p.slug
             left join post_tags pt on
                 pt.post_id = p.id
             where
+                -- we want only urls that point to grapher charts
                 pl.linkType = 'grapher'
-                and componentType = 'src' -- this filters out links in tags and keeps only embedded charts
+                -- componentType src is for those links that matched the anySrcregex (not anyHrefRegex or prominentLinkRegex)
+                -- this means that only the links that are of the iframe kind will be kept - normal a href style links will
+                -- be disregarded
+                and componentType = 'src'
                 and cd.variableId = ?
                 and cd.property in ('x', 'y') -- ignore cases where the indicator is size, color etc
-                and p.status = 'publish' -- only use published wp charts
-                and coalesce(pg.published, 0) = 0 -- if the wp post has a published gdoc successor then ignore it
+                and p.status = 'publish' -- only use published wp posts
+                and coalesce(pg.published, 0) = 0 -- ignore posts if the wp post has a published gdoc successor. The
+                                                  -- coalesce makes sure that if there is no gdoc successor then
+                                                  -- the filter keeps the post
+                and coalesce(pgs.published, 0) = 0 -- ignore posts if there is a gdoc post with the same slug that is published
+                      -- this case happens for example for topic pages that are newly created (successorId is null)
+                      -- but that replace an old wordpress page
+
             `,
         [variableId]
     )

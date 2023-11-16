@@ -151,7 +151,7 @@ export function getLinksToAddAndRemoveForPost(
                 : undefined
         )
     )
-    const linksInDocument = groupBy(
+    const linksInDocument = keyBy(
         [
             ...allHrefs.map((link) => PostLink.createFromUrl(link)),
             ...allSrcs.map((link) => PostLink.createFromUrl(link)),
@@ -165,11 +165,11 @@ export function getLinksToAddAndRemoveForPost(
 
     // This is doing a set difference, but we want to do the set operation on a subset
     // of fields (the ones we stringify into the compare key) while retaining the full
-    // object so that we can e.g. delete efficiently by id later on
+    // object so that we can e.g. delete efficiently by id later on.
     for (const [linkInDocCompareKey, linkInDoc] of Object.entries(
         linksInDocument
     ))
-        if (!(linkInDocCompareKey in linksInDb)) linksToAdd.push(...linkInDoc)
+        if (!(linkInDocCompareKey in linksInDb)) linksToAdd.push(linkInDoc)
     for (const [linkInDbCompareKey, linkInDb] of Object.entries(linksInDb))
         if (!(linkInDbCompareKey in linksInDocument))
             linksToDelete.push(...linkInDb)
