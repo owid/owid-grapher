@@ -299,7 +299,7 @@ const syncPostsToGrapher = async (): Promise<void> => {
             featured_image: post.featured_image || "",
         }
     }) as PostRow[]
-    const postLinks = await dataSource.getRepository(PostLink).find()
+    const postLinks = await PostLink.find()
     const postLinksById = groupBy(postLinks, (link) => link.sourceId)
 
     const linksToAdd: PostLink[] = []
