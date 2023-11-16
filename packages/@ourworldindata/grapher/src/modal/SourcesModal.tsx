@@ -75,7 +75,9 @@ export class SourcesModal extends React.Component<
 
     @computed private get modalBounds(): Bounds {
         // using 15px instead of 16px to make sure the modal fully covers the OWID logo in the header
-        return this.tabBounds.pad(15)
+        const maxWidth = MAX_WIDTH + 220
+        const padWidth = Math.max(15, (this.tabBounds.width - maxWidth) / 2)
+        return this.tabBounds.padHeight(15).padWidth(padWidth)
     }
 
     @computed private get editBaseUrl(): string | undefined {
