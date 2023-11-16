@@ -1,6 +1,9 @@
 .SourcesModalContent {
     // keep in sync with variables in SourcesModal.tsx
     $max-width: 640px;
+    $tab-padding: 16px;
+    $tab-font-size: 13px;
+    $tab-gap: 8px;
 
     padding-bottom: $modal-padding;
     max-width: $max-width;
@@ -115,12 +118,10 @@
             --code-snippet-button-active: #{$light-text};
         }
 
-        // keep in sync with measureTabWidth() in SourcesModal.tsx
         .Tabs__tab {
-            font-size: 13px;
-            padding: 8px 16px;
-            margin-right: 8px;
-            max-width: 240px;
+            font-size: $tab-font-size;
+            padding: 8px $tab-padding;
+            margin-right: $tab-gap;
         }
 
         .indicator-processing .indicator-processing__link {

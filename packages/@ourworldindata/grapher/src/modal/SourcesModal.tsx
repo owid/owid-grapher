@@ -30,6 +30,9 @@ import { ExpandableTabs } from "../tabs/ExpandableTabs"
 
 // keep in sync with variables in SourcesModal.scss
 const MAX_WIDTH = 640
+const TAB_PADDING = 16
+const TAB_FONT_SIZE = 13
+const TAB_GAP = 8
 
 export interface SourcesModalManager {
     adminBaseUrl?: string
@@ -108,17 +111,23 @@ export class SourcesModal extends React.Component<
                 activeTabIndex: index,
             })
 
-        if (this.manager.isNarrow)
+        // tabs are clipped to this width
+        const maxTabWidth = 240
+
+        // on mobile, we show a horizontally scrolling tabs
+        if (this.manager.isNarrow) {
             return (
                 <Tabs
                     labels={this.tabLabels}
                     activeIndex={activeIndex}
                     setActiveIndex={setActiveIndex}
                     horizontalScroll={true}
+                    maxTabWidth={maxTabWidth}
                 />
             )
+        }
 
-        // width available for tabs
+        // maximum width available for tabs
         const modalPadding = 1.5 * (this.manager.fontSize ?? 16)
         const maxWidth = Math.min(
             MAX_WIDTH,
@@ -126,20 +135,38 @@ export class SourcesModal extends React.Component<
         )
 
         const labelWidths = this.tabLabels.map(
-            (label) => measureTabWidth(label) + 8 // right padding
+            (label) => measureTabWidth(label) + TAB_GAP
         )
 
-        // check if all tabs fit into a single line
-        if (sum(labelWidths) <= maxWidth)
+        // check if all tab labels fit into a single line
+        if (sum(labelWidths) <= maxWidth) {
             return (
                 <Tabs
                     labels={this.tabLabels}
                     activeIndex={activeIndex}
                     setActiveIndex={setActiveIndex}
+                    maxTabWidth={null}
                 />
             )
+        }
 
-        // get a subset of tabs that fit into a single line
+        const clippedLabelWidths = this.tabLabels.map(
+            (label) => Math.min(measureTabWidth(label), maxTabWidth) + TAB_GAP
+        )
+
+        // check if all tab labels fit into a single line when they are clipped
+        if (sum(clippedLabelWidths) <= maxWidth) {
+            return (
+                <Tabs
+                    labels={this.tabLabels}
+                    activeIndex={activeIndex}
+                    setActiveIndex={setActiveIndex}
+                    maxTabWidth={maxTabWidth}
+                />
+            )
+        }
+
+        // compute the subset of tabs that fit into a single line
         const getVisibleLabels = (labels: string[]) => {
             // take width of the "Show more" button into account
             let width =
@@ -148,7 +175,7 @@ export class SourcesModal extends React.Component<
                 6 // icon padding
 
             const visibleLabels: string[] = []
-            for (const [label, labelWidth] of zip(labels, labelWidths)) {
+            for (const [label, labelWidth] of zip(labels, clippedLabelWidths)) {
                 width += labelWidth as number
                 if (width > maxWidth) break
                 visibleLabels.push(label as string)
@@ -159,15 +186,17 @@ export class SourcesModal extends React.Component<
 
         // if only a single label would be visible, we prefer tabs with horizontal scrolling
         const visibleLabels = getVisibleLabels(this.tabLabels)
-        if (visibleLabels.length <= 1)
+        if (visibleLabels.length <= 1) {
             return (
                 <Tabs
                     labels={this.tabLabels}
                     activeIndex={activeIndex}
                     setActiveIndex={setActiveIndex}
                     horizontalScroll={true}
+                    maxTabWidth={maxTabWidth}
                 />
             )
+        }
 
         return (
             <ExpandableTabs
@@ -175,6 +204,7 @@ export class SourcesModal extends React.Component<
                 activeIndex={activeIndex}
                 setActiveIndex={setActiveIndex}
                 getVisibleLabels={getVisibleLabels}
+                maxTabWidth={maxTabWidth}
             />
         )
     }
@@ -341,12 +371,10 @@ export class Source extends React.Component<{
     }
 }
 
-// keep in sync with .Tabs__tab styles in SourcesModal.scss
 const measureTabWidth = (label: string): number => {
-    const maxWidth = 240
-    const computedWidth =
-        2 * 16 + // padding
-        Bounds.forText(label, { fontSize: 13 }).width +
+    return (
+        2 * TAB_PADDING +
+        Bounds.forText(label, { fontSize: TAB_FONT_SIZE }).width +
         2 // border
-    return Math.min(maxWidth, computedWidth)
+    )
 }

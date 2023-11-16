@@ -9,12 +9,14 @@ export const ExpandableTabs = ({
     setActiveIndex,
     isExpandedDefault = false,
     getVisibleLabels = (labels: string[]) => labels.slice(0, 3),
+    maxTabWidth = 240,
 }: {
     labels: string[]
     activeIndex: number
     setActiveIndex: (index: number) => void
     isExpandedDefault?: boolean
     getVisibleLabels?: (tabLabels: string[]) => string[]
+    maxTabWidth?: number | null // if null, don't clip labels
 }) => {
     const [isExpanded, setExpanded] = useState(isExpandedDefault)
 
@@ -37,6 +39,7 @@ export const ExpandableTabs = ({
             activeIndex={activeIndex}
             setActiveIndex={setActiveIndex}
             slot={moreButton}
+            maxTabWidth={maxTabWidth}
         />
     )
 }
