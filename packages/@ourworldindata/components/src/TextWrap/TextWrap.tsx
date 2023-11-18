@@ -25,6 +25,13 @@ interface WrapLine {
     height: number
 }
 
+interface OpenHtmlTag {
+    tag: string // e.g. "a" for an <a> tag, or "span" for a <span> tag
+    fullTag: string // e.g. "<a href='https://ourworldindata.org'>"
+}
+
+const HTML_OPENING_CLOSING_TAG_REGEX = /<(\/?)([A-Za-z]+)( [^<>]*)?>/g
+
 function startsWithNewline(text: string): boolean {
     return /^\n/.test(text)
 }
@@ -75,6 +82,50 @@ export class TextWrap {
         return this.props.text
     }
 
+    // We need to take care that HTML tags are not split across lines.
+    // Instead, we want every line to have opening and closing tags for all tags that appear.
+    // This is so we don't produce invalid HTML.
+    processHtmlTags(lines: WrapLine[]): WrapLine[] {
+        const currentlyOpenTags: OpenHtmlTag[] = []
+        for (const line of lines) {
+            // Prepend any still-open tags to the start of the line
+            const prependOpenTags = currentlyOpenTags
+                .map((t) => t.fullTag)
+                .join("")
+
+            const tagMatches = line.text.matchAll(
+                HTML_OPENING_CLOSING_TAG_REGEX
+            )
+            for (const tag of tagMatches) {
+                const isOpeningTag = tag[1] !== "/"
+                if (isOpeningTag) {
+                    currentlyOpenTags.push({
+                        tag: tag[2],
+                        fullTag: tag[0],
+                    })
+                } else {
+                    if (
+                        !currentlyOpenTags.length ||
+                        currentlyOpenTags.at(-1)?.tag !== tag[2]
+                    ) {
+                        throw new Error(
+                            "TextWrap: Opening and closing HTML tags do not match"
+                        )
+                    }
+                    currentlyOpenTags.pop()
+                }
+            }
+
+            // Append any unclosed tags to the end of the line
+            const appendCloseTags = [...currentlyOpenTags]
+                .reverse()
+                .map((t) => `</${t.tag}>`)
+                .join("")
+            line.text = prependOpenTags + line.text + appendCloseTags
+        }
+        return lines
+    }
+
     @computed get lines(): WrapLine[] {
         const { text, maxWidth, fontSize, fontWeight } = this
 
@@ -106,12 +157,14 @@ export class TextWrap {
                 startsWithNewline(word) ||
                 (nextBounds.width + 10 > maxWidth && line.length >= 1)
             ) {
-                const wordWithoutNewline = word.replace(/^\n/, "")
+                // Introduce a newline _before_ this word
                 lines.push({
                     text: line.join(" "),
                     width: lineBounds.width,
                     height: lineBounds.height,
                 })
+                // ... and start a new line with this word (with a potential leading newline stripped)
+                const wordWithoutNewline = word.replace(/^\n/, "")
                 line = [wordWithoutNewline]
                 lineBounds = Bounds.forText(wordWithoutNewline, {
                     fontSize,
@@ -122,6 +175,8 @@ export class TextWrap {
                 lineBounds = nextBounds
             }
         })
+
+        // Push the last line
         if (line.length > 0)
             lines.push({
                 text: line.join(" "),
@@ -129,7 +184,9 @@ export class TextWrap {
                 height: lineBounds.height,
             })
 
-        return lines
+        // Process HTML to ensure that each opening tag has a matching closing tag _in each line_
+        if (this.props.rawHtml) return this.processHtmlTags(lines)
+        else return lines
     }
 
     @computed get height(): number {
