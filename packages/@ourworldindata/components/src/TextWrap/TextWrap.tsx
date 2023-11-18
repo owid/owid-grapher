@@ -30,7 +30,7 @@ interface OpenHtmlTag {
     fullTag: string // e.g. "<a href='https://ourworldindata.org'>"
 }
 
-const HTML_OPENING_CLOSING_TAG_REGEX = /<(\/?)([A-Za-z]+)[^>]*>/g
+const HTML_OPENING_CLOSING_TAG_REGEX = /<(\/?)([A-Za-z]+)( [^<>]*)?>/g
 
 function startsWithNewline(text: string): boolean {
     return /^\n/.test(text)
