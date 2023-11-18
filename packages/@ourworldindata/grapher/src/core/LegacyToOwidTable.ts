@@ -500,7 +500,7 @@ const fullJoinTables = (
                         fallbackMergeIndices &&
                         mergeFallbackLookupValuesPerTable &&
                         indexHits === undefined &&
-                        fallbackIndex < fallbackMergeIndices!.length;
+                        fallbackIndex < fallbackMergeIndices.length;
                         fallbackIndex++
                     ) {
                         indexHits = mergeFallbackLookupValuesPerTable[

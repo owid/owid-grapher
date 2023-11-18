@@ -361,13 +361,25 @@ export function interpolateRowValuesWithTolerance<
 }
 
 // A dumb function for making a function that makes a key for a row given certain columns.
-export const makeKeyFn =
-    (columnStore: CoreColumnStore, columnSlugs: ColumnSlug[]) =>
-    (rowIndex: number): string =>
-        // toString() handles `undefined` and `null` values, which can be in the table.
-        columnSlugs
-            .map((slug) => toString(columnStore[slug][rowIndex]))
-            .join(" ")
+// Perf-optimized because we run this function a lot.
+export const makeKeyFn = (
+    columnStore: CoreColumnStore,
+    columnSlugs: ColumnSlug[]
+): ((rowIndex: number) => string) => {
+    const columns = columnSlugs.map((slug) => columnStore[slug])
+    return (rowIndex: number): string => {
+        let keyString = ""
+        for (let i = 0; i < columns.length; i++) {
+            const value = columns[i][rowIndex]
+            if (typeof value === "number" || typeof value === "string")
+                keyString += value
+            // toString() handles `undefined` and `null` values, which can be in the table.
+            else keyString += toString(value)
+            if (i < columns.length - 1) keyString += " "
+        }
+        return keyString
+    }
+}
 
 const getColumnStoreLength = (store: CoreColumnStore): number => {
     return max(Object.values(store).map((v) => v.length)) ?? 0
