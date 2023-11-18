@@ -18,4 +18,5 @@ export interface FooterManager extends TooltipManager, ActionButtonsManager {
     fontSize?: number
     isInFullScreenMode?: boolean
     isEmbeddedInAnOwidPage?: boolean
+    isEmbeddedInADataPage?: boolean
 }
