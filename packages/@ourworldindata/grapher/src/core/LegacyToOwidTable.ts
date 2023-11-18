@@ -10,6 +10,7 @@ import {
     OwidTable,
     ErrorValueTypes,
     makeKeyFn,
+    CoreValueType,
 } from "@ourworldindata/core-table"
 import { LegacyGrapherInterface } from "../core/GrapherInterface"
 import {
@@ -410,7 +411,7 @@ const fullJoinTables = (
     )
     // Prepare a special entry for the Table + column names tuple that we will zip and
     // map in the next step. This special entry is the first table and contains only the
-    // unique columns (index + other tables that are shared among all tables).
+    // unique columns (index + other columns that are shared among all tables).
     // We will preferentially get the unique values from the first table but because
     // the first table is not guaranteed to contain all index values we'll later on
     // try other tables for these shared columns if the given row index does
@@ -421,15 +422,11 @@ const fullJoinTables = (
     ] = [tables[0], sharedColumnNames]
     const defsToAddPerTable = [firstTableDuplicateForIndices]
         .concat(zip(tables, columnsToAddPerTable))
-        .map(
-            (tableAndColumns) =>
-                tableAndColumns[0]!
-                    .getColumns(tableAndColumns[1]!)
-                    .map((col) => {
-                        const def = { ...col.def }
-                        def.values = []
-                        return def
-                    }) as OwidColumnDef[]
+        .map(([table, columnSlugs]) =>
+            table!.getColumns(columnSlugs!).map((col) => ({
+                ...col.def,
+                values: [] as CoreValueType[],
+            }))
         )
     // Now loop over all unique index values and for each assemble as full a row as we can manage by looking
     // up the values in the different source tables
@@ -473,8 +470,8 @@ const fullJoinTables = (
 
         // note that defsToAddPerTable has one more element than tables (the one duplicate of the
         // first table that we added in the beginning that we use as the primary source for the shared columns)
-        for (let i = 0; i < tables.length; i++) {
-            let indexHits = indexValuesPerTable[i].get(index)
+        for (let tableIndex = 0; tableIndex < tables.length; tableIndex++) {
+            let indexHits = indexValuesPerTable[tableIndex].get(index)
 
             if (indexHits !== undefined && indexHits.length > 1)
                 // This case should be rare but it can come up. The old algorithm ran into this often because it
@@ -484,13 +481,13 @@ const fullJoinTables = (
                 // first we should usually be able to find a unique match. The error output is here so that when
                 // something is weird in an edge case then this shows up as a debugging hint in the console.
                 console.error(
-                    `Found more than one matching row in table ${tables[i].tableSlug}`
+                    `Found more than one matching row in table ${tables[tableIndex].tableSlug}`
                 )
-            for (const def of defsToAddPerTable[i + 1]) {
+            for (const def of defsToAddPerTable[tableIndex + 1]) {
                 // If the main index led to a hit then we just copy the value into the new row from the source table
                 if (indexHits !== undefined)
                     def.values?.push(
-                        tables[i].columnStore[def.slug][indexHits[0]]
+                        tables[tableIndex].columnStore[def.slug][indexHits[0]]
                     )
                 else {
                     // If the main index did not lead to a hit then we try the fallback indices in turn
@@ -505,7 +502,7 @@ const fullJoinTables = (
                     ) {
                         indexHits = mergeFallbackLookupValuesPerTable[
                             fallbackIndex
-                        ][i].get(fallbackMergeIndices[fallbackIndex])
+                        ][tableIndex].get(fallbackMergeIndices[fallbackIndex])
                     }
                     if (indexHits !== undefined)
                         // If any of the fallbacks led to a hit then we use this hit
@@ -524,7 +521,7 @@ const fullJoinTables = (
                         // The proper solution as mentioned above would be to never fall back to entity matches only and move
                         // the tolerance matching into this function as well instead.
                         def.values?.push(
-                            tables[i].columnStore[def.slug][
+                            tables[tableIndex].columnStore[def.slug][
                                 indexHits[indexHits.length - 1]
                             ]
                         )
