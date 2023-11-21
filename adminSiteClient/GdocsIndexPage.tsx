@@ -158,6 +158,7 @@ export class GdocsIndexPage extends React.Component<GdocsMatchProps> {
                           )
                         : undefined,
                     gdoc.slug,
+                    gdoc.id,
                     gdoc.content.authors?.join(" "),
                     gdoc.tags?.map(({ name }) => name).join(" "),
                 ]
