@@ -8,6 +8,31 @@ import {
 } from "@ourworldindata/utils"
 
 import { SharedCollection } from "./SharedCollection.js"
+import { ObservableMap } from "mobx"
+import { Grapher } from "@ourworldindata/grapher"
+
+type OriginalSlug = string
+
+/**
+ * `index` is the original index of the Grapher when the page was loaded.
+ * This is needed so that when we reserialize the map to query strings, we can put them back in the same order.
+ * We can't use an Array or Set because Grapher mounting happens in an arbitrary order,
+ * so we need some way to keep track of the original order via their original slugs.
+ *
+ * `grapher` is the Grapher object itself.
+ */
+export interface WindowGrapherRecord {
+    index: number
+    grapher: Grapher | undefined
+}
+
+export type WindowGraphers = ObservableMap<OriginalSlug, WindowGrapherRecord>
+
+declare global {
+    interface Window {
+        graphers: WindowGraphers
+    }
+}
 
 export const COLLECTIONS_LOCAL_STORAGE_KEY = "collections"
 

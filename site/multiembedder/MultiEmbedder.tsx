@@ -22,7 +22,7 @@ import {
     Url,
     merge,
 } from "@ourworldindata/utils"
-import { action } from "mobx"
+import { ObservableMap, ObservableSet, action } from "mobx"
 import React from "react"
 import ReactDOM from "react-dom"
 import { Explorer, ExplorerProps } from "../../explorer/Explorer.js"
@@ -128,6 +128,8 @@ class MultiEmbedder {
 
     @action.bound
     async renderInteractiveFigure(figure: Element, annotation?: Annotation) {
+        console.log("renderInteractiveFigure")
+        console.log("window.location.href", window.location.href)
         const isExplorer = figure.hasAttribute(
             EXPLORER_EMBEDDED_FIGURE_SELECTOR
         )
@@ -244,12 +246,34 @@ class MultiEmbedder {
             if (config.manager?.selection)
                 this.graphersAndExplorersToUpdate.add(config.manager.selection)
 
-            const grapherInstance = Grapher.renderGrapherIntoContainer(
+            const grapherRef = Grapher.renderGrapherIntoContainer(
                 config,
                 figure
             )
-            if (!grapherInstance) return
-            hydrateAnnotatingDataValue(grapherInstance, figure)
+
+            if (window.location.pathname.startsWith("/shared-collection")) {
+                const interval = setInterval(() => {
+                    if (grapherRef.current) {
+                        const originalSlug =
+                            grapherRef.current.slug +
+                            grapherRef.current.queryStr
+
+                        const index = figure.getAttribute("data-grapher-index")
+
+                        const windowGrapher = window.graphers.get(
+                            `${originalSlug}-${index}`
+                        )
+
+                        if (windowGrapher) {
+                            windowGrapher.grapher = grapherRef.current
+                        }
+                        clearInterval(interval)
+                    }
+                }, 1000)
+            }
+
+            if (!grapherRef.current) return
+            hydrateAnnotatingDataValue(grapherRef.current, figure)
         }
     }
 

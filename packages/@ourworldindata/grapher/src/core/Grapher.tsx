@@ -286,6 +286,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     shouldOptimizeForHorizontalSpace?: boolean
 
     manager?: GrapherManager
+    instanceRef?: React.RefObject<Grapher>
 }
 
 export interface GrapherManager {
@@ -1780,7 +1781,7 @@ export class Grapher
     static renderGrapherIntoContainer(
         config: GrapherProgrammaticInterface,
         containerNode: Element
-    ): Grapher | null {
+    ): React.RefObject<Grapher> {
         const grapherInstanceRef = React.createRef<Grapher>()
 
         let ErrorBoundary = React.Fragment as React.ComponentType // use React.Fragment as a sort of default error boundary if Bugsnag is not available
@@ -1835,12 +1836,13 @@ export class Grapher
             Bugsnag?.notify("ResizeObserver not available")
         }
 
-        return grapherInstanceRef.current
+        return grapherInstanceRef
     }
 
     static renderSingleGrapherOnGrapherPage(
         jsonConfig: GrapherInterface
     ): void {
+        console.log("renderSingleGrapherOnGrapherPage")
         const container = document.getElementsByTagName("figure")[0]
         try {
             Grapher.renderGrapherIntoContainer(

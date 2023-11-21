@@ -5,5 +5,16 @@
     .collection-explanation {
         color: $blue-60;
         margin-bottom: 32px;
+
+        &:not(:last-of-type) {
+            margin-bottom: 0;
+        }
+    }
+
+    figure {
+        width: 100%;
+        height: 650px;
+        margin: 0;
+        margin-bottom: 48px;
     }
 }

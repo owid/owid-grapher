@@ -51,11 +51,6 @@ export const runSiteFooterScripts = (
             runCookiePreferencesManager()
             runDetailsOnDemand()
             break
-        case SiteFooterContext.collectionsPage:
-            runSiteTools()
-            runCookiePreferencesManager()
-            hydrateSharedCollectionsPage()
-            runDetailsOnDemand()
         case SiteFooterContext.gdocsDocument:
             hydrateOwidGdoc(debug, isPreviewing)
             runSiteNavigation(BAKED_BASE_URL, hideDonationFlag)
@@ -80,6 +75,7 @@ export const runSiteFooterScripts = (
             hydrateExpandableParagraphs()
             hydrateCodeSnippets()
             hydrateStickyNav()
+            hydrateSharedCollectionsPage()
             MultiEmbedderSingleton.setUpGlobalEntitySelectorForEmbeds()
             MultiEmbedderSingleton.embedAll()
             runLightbox()
