@@ -67,6 +67,10 @@ export const GdocsAdd = ({ onAdd }: { onAdd: (id: string) => void }) => {
                         placeholder="https://docs.google.com/document/d/****/edit"
                         pattern={gdocUrlRegex.toString().slice(1, -1)}
                     />
+                    <span className="validation-notice">
+                        Invalid URL - it should look like this:{" "}
+                        <pre>https://docs.google.com/document/d/****/edit</pre>
+                    </span>
                 </div>
             </div>
             <div className="modal-footer">
