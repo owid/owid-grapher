@@ -20,6 +20,17 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         let outDir = parsedArgs["o"] ?? "../owid-grapher-svgs/svg"
         const targetConfigs: string[] = parseArgAsList(parsedArgs["c"])
         const targetChartTypes: string[] = parseArgAsList(parsedArgs["t"])
+        const isolate = parsedArgs["isolate"] ?? false
+
+        if (isolate) {
+            console.info(
+                "Running in 'isolate' mode. This will be slower, but heap usage readouts will be accurate."
+            )
+        } else {
+            console.info(
+                "Not running in 'isolate'. Reported heap usage readouts will be inaccurate. Run in --isolate mode (way slower!) for accurate heap usage readouts."
+            )
+        }
 
         // create a directory that contains the old and new svgs for easy comparing
         const enableComparisons =
@@ -67,14 +78,30 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         const jobDescriptions: utils.RenderSvgAndSaveJobDescription[] =
             directories.map((dir) => ({ dir: path.join(inDir, dir), outDir }))
 
-        const pool = workerpool.pool(__dirname + "/worker.js", {
-            minWorkers: 2,
-        })
+        let svgRecords: utils.SvgRecord[] = []
+        if (!isolate) {
+            const pool = workerpool.pool(__dirname + "/worker.js", {
+                minWorkers: 2,
+            })
 
-        // Parallelize the CPU heavy rendering jobs
-        const svgRecords: utils.SvgRecord[] = await Promise.all(
-            jobDescriptions.map((job) => pool.exec("renderSvgAndSave", [job]))
-        )
+            // Parallelize the CPU heavy rendering jobs
+            svgRecords = await Promise.all(
+                jobDescriptions.map((job) =>
+                    pool.exec("renderSvgAndSave", [job])
+                )
+            )
+        } else {
+            let i = 1
+            for (const job of jobDescriptions) {
+                const pool = workerpool.pool(__dirname + "/worker.js", {
+                    maxWorkers: 1,
+                })
+                const svgRecord = await pool.exec("renderSvgAndSave", [job])
+                pool.terminate()
+                svgRecords.push(svgRecord)
+                console.log(i++, "/", n)
+            }
+        }
 
         // Copy over copies from master for easy comparing
         if (enableComparisons) {
@@ -125,6 +152,7 @@ Options:
     -o DIR         Output directory that will contain the csv file and one svg file per grapher [default: ../owid-grapher-svgs/svg]
     -c ID          A comma-separated list of config IDs that you want to run instead of generating SVGs from all configs [default: undefined]
     -t TYPE        A comma-separated list of chart types that you want to run instead of generating SVGs from all configs [default: undefined]
+    --isolate      Run each export in a separate process. This yields accurate heap usage measurements, but is slower. [default: false]
     `)
     process.exit(0)
 } else {
