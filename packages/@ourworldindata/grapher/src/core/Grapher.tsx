@@ -1842,7 +1842,6 @@ export class Grapher
     static renderSingleGrapherOnGrapherPage(
         jsonConfig: GrapherInterface
     ): void {
-        console.log("renderSingleGrapherOnGrapherPage")
         const container = document.getElementsByTagName("figure")[0]
         try {
             Grapher.renderGrapherIntoContainer(
