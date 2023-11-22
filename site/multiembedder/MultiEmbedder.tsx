@@ -40,6 +40,7 @@ import {
 } from "../../settings/clientSettings.js"
 import { hydrateAnnotatingDataValue } from "../AnnotatingDataValue.js"
 import Bugsnag from "@bugsnag/js"
+import { embedSharedCollectionGrapher } from "../collections/SharedCollection.js"
 
 const figuresFromDOM = (
     container: HTMLElement | Document = document,
@@ -251,25 +252,9 @@ class MultiEmbedder {
                 figure
             )
 
+            // Special handling for shared collections
             if (window.location.pathname.startsWith("/shared-collection")) {
-                const interval = setInterval(() => {
-                    if (grapherRef.current) {
-                        const originalSlug =
-                            grapherRef.current.slug +
-                            grapherRef.current.queryStr
-
-                        const index = figure.getAttribute("data-grapher-index")
-
-                        const windowGrapher = window.graphers.get(
-                            `${originalSlug}-${index}`
-                        )
-
-                        if (windowGrapher) {
-                            windowGrapher.grapher = grapherRef.current
-                        }
-                        clearInterval(interval)
-                    }
-                }, 1000)
+                embedSharedCollectionGrapher(grapherRef, figure)
             }
 
             if (!grapherRef.current) return

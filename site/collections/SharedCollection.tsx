@@ -11,10 +11,40 @@ import {
 } from "mobx"
 import { observer } from "mobx-react"
 import { WindowGraphers } from "./CollectionsPage.js"
+import { Grapher } from "@ourworldindata/grapher"
 
 interface SharedCollectionProps {
     baseUrl: string
     initialSharedCollection?: string
+}
+
+/**
+ * After the MultiEmbedder has mounted a Grapher, we poll grapherRef until grapherRef.current is defined,
+ * and then update the window.graphers Map with it.
+ *
+ * This is what allows us to use a reaction in the SharedCollection component to update the URL whenever a Grapher is updated.
+ */
+export function embedSharedCollectionGrapher(
+    grapherRef: React.RefObject<Grapher>,
+    figure: Element
+) {
+    const interval = setInterval(() => {
+        if (grapherRef.current) {
+            const originalSlug =
+                grapherRef.current.slug + grapherRef.current.queryStr
+
+            const index = figure.getAttribute("data-grapher-index")
+
+            const windowGrapher = window.graphers.get(
+                `${originalSlug}-${index}`
+            )
+
+            if (windowGrapher) {
+                windowGrapher.grapher = grapherRef.current
+            }
+            clearInterval(interval)
+        }
+    }, 1000)
 }
 
 @observer
@@ -34,7 +64,9 @@ export class SharedCollection extends React.Component<SharedCollectionProps> {
 
         for (const [originalSlugAndUrl, { index, grapher }] of this.graphers) {
             if (!grapher) {
-                slugsAndQueryStrings[index] = originalSlugAndUrl
+                // Strip index suffix from originalSlugAndUrl
+                const withoutIndex = originalSlugAndUrl.replace(/-\d+$/, "")
+                slugsAndQueryStrings[index] = encodeURIComponent(withoutIndex)
             } else {
                 slugsAndQueryStrings[index] = encodeURIComponent(
                     `${grapher.slug}${grapher.queryStr}`
@@ -77,12 +109,8 @@ export class SharedCollection extends React.Component<SharedCollectionProps> {
         if (!this.initialSharedCollection)
             return (
                 <p className="span-cols-12">
-                    No charts were added to this collection. Did you mean to
-                    view{" "}
-                    <a href={`${this.props.baseUrl}/shared-collection`}>
-                        your own collection
-                    </a>
-                    ?
+                    No charts were added to this collection.
+                    {/* TODO: Algolia search? */}
                 </p>
             )
         return (
