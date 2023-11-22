@@ -1795,7 +1795,6 @@ export class Grapher
             entries: ResizeObserverEntry[]
         ): void => {
             const entry = entries?.[0] // We always observe exactly one element
-            console.log("entry", entry)
             if (!entry)
                 throw new Error(
                     "Couldn't resize grapher, expected exactly one ResizeObserverEntry"
@@ -1867,7 +1866,6 @@ export class Grapher
     }
 
     @computed private get bounds(): Bounds {
-        console.log("this.props.bounds", this.props.bounds)
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
