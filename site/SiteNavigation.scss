@@ -196,6 +196,9 @@
     }
 }
 .site-navigation__giving {
+    @include sm-only {
+        display: none;
+    }
     position: absolute;
     padding: 5px 10px;
     margin-left: -10px;
