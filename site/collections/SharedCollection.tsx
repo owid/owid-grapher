@@ -122,7 +122,7 @@ export class SharedCollection extends React.Component<SharedCollectionProps> {
                             key={chartSlug}
                             data-grapher-src={`${this.props.baseUrl}/grapher/${chartSlug}`}
                             data-grapher-index={index}
-                            className="span-cols-6"
+                            className="span-cols-6 span-md-cols-12"
                         />
                     ))}
             </div>
@@ -132,17 +132,6 @@ export class SharedCollection extends React.Component<SharedCollectionProps> {
     render() {
         return (
             <>
-                <h1 className="display-1-semibold span-cols-12 collection-title">
-                    Shared Collection
-                </h1>
-                <p className="span-cols-8 collection-explanation">
-                    This page is displaying a selection of charts that has been
-                    configured via the URL.{" "}
-                </p>
-                <p className="span-cols-8 collection-explanation">
-                    Any changes that you make to the charts will update the URL
-                    so that you can easily share it again.
-                </p>
                 {/* TODO: Add Algolia search to add new charts? */}
                 {this.renderInterior()}
             </>

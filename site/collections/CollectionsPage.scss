@@ -1,4 +1,10 @@
 .collections-page {
+    background-color: $gray-10;
+
+    .collections-page__header {
+        background-color: #fff;
+        margin-bottom: 24px;
+    }
     .collection-title {
         margin-bottom: 0;
     }
