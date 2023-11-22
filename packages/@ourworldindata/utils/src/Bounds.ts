@@ -47,6 +47,7 @@ export class Bounds {
     }
 
     static fromRect(rect: ClientRect): Bounds {
+        console.log("rect", rect)
         return new Bounds(rect.left, rect.top, rect.width, rect.height)
     }
 

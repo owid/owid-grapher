@@ -22,6 +22,9 @@
         height: 650px;
         margin: 0;
         margin-bottom: 16px;
+        .GrapherComponent {
+            width: 100%;
+        }
     }
 
     .remove-from-collection-button {
