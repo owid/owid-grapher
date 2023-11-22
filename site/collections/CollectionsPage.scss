@@ -21,6 +21,30 @@
         width: 100%;
         height: 650px;
         margin: 0;
-        margin-bottom: 48px;
+        margin-bottom: 16px;
+    }
+
+    .remove-from-collection-button {
+        border: 1px solid $vermillion;
+        color: $vermillion;
+        background-color: transparent;
+        border-radius: 0;
+        padding: 8px;
+        line-height: 16px;
+        margin: auto;
+        display: block;
+        margin-bottom: 24px;
+        cursor: pointer;
+        svg {
+            margin-right: 8px;
+            height: 10px;
+            position: relative;
+            top: -2px;
+        }
+
+        &:hover {
+            border-color: $accent-vermillion;
+            color: $accent-vermillion;
+        }
     }
 }

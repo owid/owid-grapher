@@ -12,6 +12,8 @@ import {
 import { observer } from "mobx-react"
 import { WindowGraphers } from "./CollectionsPage.js"
 import { Grapher } from "@ourworldindata/grapher"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faX } from "@fortawesome/free-solid-svg-icons"
 
 interface SharedCollectionProps {
     baseUrl: string
@@ -89,6 +91,10 @@ export class SharedCollection extends React.Component<SharedCollectionProps> {
         }
     }
 
+    removeGrapherFromCollection(slug: string, index: number) {
+        // TODO
+    }
+
     setupReaction = () => {
         this.disposers.push(
             reaction(
@@ -118,12 +124,27 @@ export class SharedCollection extends React.Component<SharedCollectionProps> {
                 {this.initialSharedCollection
                     .split(" ")
                     .map((chartSlug, index) => (
-                        <figure
+                        <div
                             key={chartSlug}
-                            data-grapher-src={`${this.props.baseUrl}/grapher/${chartSlug}`}
-                            data-grapher-index={index}
                             className="span-cols-6 span-md-cols-12"
-                        />
+                        >
+                            <figure
+                                data-grapher-src={`${this.props.baseUrl}/grapher/${chartSlug}`}
+                                data-grapher-index={index}
+                            />
+                            <button
+                                className="remove-from-collection-button"
+                                onClick={() =>
+                                    this.removeGrapherFromCollection(
+                                        chartSlug,
+                                        index
+                                    )
+                                }
+                            >
+                                <FontAwesomeIcon icon={faX} />
+                                Remove from collection
+                            </button>
+                        </div>
                     ))}
             </div>
         )

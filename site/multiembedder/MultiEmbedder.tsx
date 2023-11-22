@@ -129,8 +129,6 @@ class MultiEmbedder {
 
     @action.bound
     async renderInteractiveFigure(figure: Element, annotation?: Annotation) {
-        console.log("renderInteractiveFigure")
-        console.log("window.location.href", window.location.href)
         const isExplorer = figure.hasAttribute(
             EXPLORER_EMBEDDED_FIGURE_SELECTOR
         )
