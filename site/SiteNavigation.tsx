@@ -31,7 +31,13 @@ export enum Menu {
     Search = "search",
 }
 
-export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
+export const SiteNavigation = ({
+    baseUrl,
+    hideDonationFlag,
+}: {
+    baseUrl: string
+    hideDonationFlag?: boolean
+}) => {
     const [menu, setActiveMenu] = React.useState<Menu | null>(null)
     const [categorizedTopics, setCategorizedTopics] = useState<
         CategoryWithEntries[]
@@ -214,18 +220,26 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                             </a>
                         </div>
                     </div>
-                    <a href="/donate" className="site-navigation__giving">
-                        Giving season
-                    </a>
+                    {!hideDonationFlag && (
+                        <a href="/donate" className="site-navigation__giving">
+                            Giving season
+                        </a>
+                    )}
                 </div>
             </div>
         </>
     )
 }
 
-export const runSiteNavigation = (baseUrl: string) => {
+export const runSiteNavigation = (
+    baseUrl: string,
+    hideDonationFlag?: boolean
+) => {
     ReactDOM.render(
-        <SiteNavigation baseUrl={baseUrl} />,
+        <SiteNavigation
+            baseUrl={baseUrl}
+            hideDonationFlag={hideDonationFlag}
+        />,
         document.querySelector(".site-navigation-root")
     )
 }

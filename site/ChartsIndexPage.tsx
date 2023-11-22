@@ -89,7 +89,7 @@ export const ChartsIndexPage = (props: {
                 baseUrl={baseUrl}
             />
             <body className="ChartsIndexPage">
-                <SiteHeader baseUrl={baseUrl} />
+                <SiteHeader baseUrl={baseUrl} hideDonationFlag />
                 <main>
                     <div className="page with-sidebar">
                         <div className="content-wrapper">
@@ -150,7 +150,7 @@ export const ChartsIndexPage = (props: {
                         </div>
                     </div>
                 </main>
-                <SiteFooter baseUrl={baseUrl} />
+                <SiteFooter baseUrl={baseUrl} hideDonationFlag />
                 <script
                     type="module"
                     dangerouslySetInnerHTML={{

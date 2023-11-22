@@ -6,6 +6,7 @@ import { VITE_ASSET_SITE_ENTRY, viteAssets } from "./viteUtils.js"
 
 interface SiteFooterProps {
     hideDonate?: boolean
+    hideDonationFlag?: boolean
     baseUrl: string
     context?: SiteFooterContext
     debug?: boolean
@@ -299,6 +300,7 @@ export const SiteFooter = (props: SiteFooterProps) => (
                         context: props.context,
                         debug: props.debug,
                         isPreviewing: props.isPreviewing,
+                        hideDonationFlag: props.hideDonationFlag,
                     })})`, // todo: gotta be a better way.
                 }}
             />
