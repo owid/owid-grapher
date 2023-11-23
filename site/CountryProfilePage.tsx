@@ -46,7 +46,7 @@ export const CountryProfilePage = (props: CountryProfilePageProps) => {
                 baseUrl={baseUrl}
             />
             <body className="CountryProfilePage">
-                <SiteHeader baseUrl={baseUrl} />
+                <SiteHeader baseUrl={baseUrl} hideDonationFlag />
                 <main>
                     <header>
                         <img
@@ -98,7 +98,7 @@ export const CountryProfilePage = (props: CountryProfilePageProps) => {
                         </ul>
                     </section>
                 </main>
-                <SiteFooter baseUrl={baseUrl} />
+                <SiteFooter baseUrl={baseUrl} hideDonationFlag />
                 <script
                     type="module"
                     dangerouslySetInnerHTML={{ __html: script }}
