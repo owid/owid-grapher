@@ -174,7 +174,7 @@
             padding: 0 24px;
             background-color: $vermillion;
             &:hover {
-                background-color: #b40000;
+                background-color: $accent-vermillion;
             }
         }
     }
@@ -193,5 +193,19 @@
                 flex: 1 1 100%;
             }
         }
+    }
+}
+.site-navigation__giving {
+    @include sm-only {
+        display: none;
+    }
+    position: absolute;
+    padding: 5px 10px;
+    margin-left: -10px;
+    color: $white;
+    @include body-3-medium;
+    background-color: $vermillion;
+    &:hover {
+        background-color: $accent-vermillion;
     }
 }

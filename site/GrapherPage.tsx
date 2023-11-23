@@ -120,7 +120,7 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                 />
             </Head>
             <body className={GRAPHER_PAGE_BODY_CLASS}>
-                <SiteHeader baseUrl={baseUrl} />
+                <SiteHeader baseUrl={baseUrl} hideDonationFlag />
                 <main>
                     <nav id={GRAPHER_SETTINGS_DRAWER_ID}></nav>
                     <figure data-grapher-src={`/grapher/${grapher.slug}`}>
@@ -168,6 +168,7 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                 <SiteFooter
                     baseUrl={baseUrl}
                     context={SiteFooterContext.grapherPage}
+                    hideDonationFlag
                 />
                 <script
                     type="module"

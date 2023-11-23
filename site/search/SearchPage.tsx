@@ -14,9 +14,13 @@ export const SearchPage = (props: { baseUrl: string }) => {
                 baseUrl={baseUrl}
             />
             <body>
-                <SiteHeader baseUrl={baseUrl} />
+                <SiteHeader baseUrl={baseUrl} hideDonationFlag />
                 <main className="search-page-container" />
-                <SiteFooter hideDonate={true} baseUrl={baseUrl} />
+                <SiteFooter
+                    hideDonate={true}
+                    hideDonationFlag
+                    baseUrl={baseUrl}
+                />
                 <script type="module">{`window.runSearchPage()`}</script>
             </body>
         </html>
