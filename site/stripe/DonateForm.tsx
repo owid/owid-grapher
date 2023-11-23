@@ -395,8 +395,8 @@ export class DonateForm extends React.Component {
                 </div>
                 <div className="donation-payment">
                     <p className="donation-payment__or">
-                        Alternatively, every.org is a trusted partner that
-                        facilitates tax-deductible giving for US donors.
+                        For US donors, our partner every.org facilitates
+                        tax-deductible giving and offers more payment options.
                     </p>
                     <a
                         href="https://www.every.org/ourworldindata?donateTo=ourworldindata#/donate/card"
