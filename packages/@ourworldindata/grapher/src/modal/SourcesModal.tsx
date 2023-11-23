@@ -28,6 +28,7 @@ import { SourcesKeyDataTable } from "./SourcesKeyDataTable"
 import { SourcesDescriptions } from "./SourcesDescriptions"
 import { Tabs } from "../tabs/Tabs"
 import { ExpandableTabs } from "../tabs/ExpandableTabs"
+import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
 
 // keep in sync with variables in SourcesModal.scss
 const MAX_WIDTH = 640
@@ -36,6 +37,7 @@ const TAB_FONT_SIZE = 13
 const TAB_GAP = 8
 
 export interface SourcesModalManager {
+    isReady?: boolean
     adminBaseUrl?: string
     columnsWithSourcesExtensive: CoreColumn[]
     showAdminControls?: boolean
@@ -231,6 +233,29 @@ export class SourcesModal extends React.Component<
         )
     }
 
+    private renderMultipleSources(): JSX.Element {
+        return (
+            <>
+                <p className="note-multiple-indicators">
+                    This chart is composed of multiple indicators. Select an
+                    indicator for more information.
+                </p>
+                {this.renderTabs()}
+                {this.renderSource(this.columns[this.state.activeTabIndex])}
+            </>
+        )
+    }
+
+    private renderModalContent(): JSX.Element | null {
+        if (this.deduplicatedColumn) {
+            return this.renderDeduplicatedSource()
+        }
+
+        return this.columns.length === 1
+            ? this.renderSource(this.columns[0])
+            : this.renderMultipleSources()
+    }
+
     render(): JSX.Element {
         return (
             <Modal
@@ -241,21 +266,10 @@ export class SourcesModal extends React.Component<
                 isHeightFixed={true}
             >
                 <div className="SourcesModalContent">
-                    {this.deduplicatedColumn ? (
-                        this.renderDeduplicatedSource()
-                    ) : this.columns.length === 1 ? (
-                        this.renderSource(this.columns[0])
+                    {this.manager.isReady ? (
+                        this.renderModalContent()
                     ) : (
-                        <>
-                            <p className="note-multiple-indicators">
-                                This chart is composed of multiple indicators.
-                                Select an indicator for more information.
-                            </p>
-                            {this.renderTabs()}
-                            {this.renderSource(
-                                this.columns[this.state.activeTabIndex]
-                            )}
-                        </>
+                        <LoadingIndicator />
                     )}
                 </div>
             </Modal>
