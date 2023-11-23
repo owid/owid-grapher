@@ -226,8 +226,8 @@ export class SourcesModal extends React.Component<
                     ) : (
                         <>
                             <p className="note-multiple-indicators">
-                                This data includes several indicators. Select an
-                                indicator for more information.
+                                This chart is composed of multiple indicators.
+                                Select an indicator for more information.
                             </p>
                             {this.renderTabs()}
                             {this.renderSource(
@@ -352,7 +352,8 @@ export class Source extends React.Component<{
                     this.sourcesForDisplay.length > 0 && (
                         <>
                             <h3 className="heading">
-                                This data is based on the following sources:
+                                The data of this indicator is based on the
+                                following sources:
                             </h3>
                             <IndicatorSources
                                 sources={this.sourcesForDisplay}
