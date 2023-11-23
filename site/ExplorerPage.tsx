@@ -107,7 +107,6 @@ window.Explorer.renderSingleExplorerOnExplorerPage(explorerProgram, grapherConfi
                 <SiteHeader
                     baseUrl={baseUrl}
                     hideAlertBanner={hideAlertBanner || false}
-                    hideDonationFlag
                 />
                 {subNav}
                 <nav id={GRAPHER_SETTINGS_DRAWER_ID}></nav>
@@ -118,7 +117,6 @@ window.Explorer.renderSingleExplorerOnExplorerPage(explorerProgram, grapherConfi
                 <SiteFooter
                     baseUrl={baseUrl}
                     context={SiteFooterContext.explorerPage}
-                    hideDonationFlag
                 />
                 <script
                     type="module"
