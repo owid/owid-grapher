@@ -79,17 +79,73 @@ export class Tag extends BaseEntity implements TagInterface {
     gdocs!: Gdoc[]
 }
 
-@Entity("posts_gdocs")
-export class Gdoc extends BaseEntity implements OwidGdocInterface {
+export class OwidGoogleAuth {
+    static cachedGoogleReadonlyAuth?: Auth.GoogleAuth
+    static cachedGoogleReadWriteAuth?: Auth.GoogleAuth
+    static cachedGoogleClient?: docs_v1.Docs
+
+    static areGdocAuthKeysSet(): boolean {
+        return !!(GDOCS_PRIVATE_KEY && GDOCS_CLIENT_EMAIL && GDOCS_CLIENT_ID)
+    }
+
+    static getGoogleReadWriteAuth(): Auth.GoogleAuth {
+        if (!OwidGoogleAuth.cachedGoogleReadWriteAuth) {
+            OwidGoogleAuth.cachedGoogleReadWriteAuth =
+                new google.auth.GoogleAuth({
+                    credentials: {
+                        type: "service_account",
+                        private_key: GDOCS_PRIVATE_KEY.split("\\n").join("\n"),
+                        client_email: GDOCS_CLIENT_EMAIL,
+                        client_id: GDOCS_CLIENT_ID,
+                    },
+                    scopes: [
+                        "https://www.googleapis.com/auth/documents",
+                        "https://www.googleapis.com/auth/drive.file",
+                    ],
+                })
+        }
+        return OwidGoogleAuth.cachedGoogleReadWriteAuth
+    }
+
+    static getGoogleReadonlyAuth(): Auth.GoogleAuth {
+        if (!OwidGoogleAuth.cachedGoogleReadonlyAuth) {
+            OwidGoogleAuth.cachedGoogleReadonlyAuth =
+                new google.auth.GoogleAuth({
+                    credentials: {
+                        type: "service_account",
+                        private_key: GDOCS_PRIVATE_KEY.split("\\n").join("\n"),
+                        client_email: GDOCS_CLIENT_EMAIL,
+                        client_id: GDOCS_CLIENT_ID,
+                    },
+                    // Scopes can be specified either as an array or as a single, space-delimited string.
+                    scopes: [
+                        "https://www.googleapis.com/auth/documents.readonly",
+                        "https://www.googleapis.com/auth/drive.readonly",
+                    ],
+                })
+        }
+        return OwidGoogleAuth.cachedGoogleReadonlyAuth
+    }
+}
+
+// The base Gdoc class without any article specific fields
+@Entity()
+class GdocBase extends BaseEntity {
     @PrimaryColumn() id!: string
     @Column() slug: string = ""
-    @Column({ default: "{}", type: "json" }) content!: OwidGdocContent
+    @Column({ default: "{}", type: "json" }) content!: Record<string, any>
     @Column() published: boolean = false
-    @Column() publicationContext: OwidGdocPublicationContext =
-        OwidGdocPublicationContext.unlisted
     @Column() createdAt: Date = new Date()
     @Column({ type: Date, nullable: true }) publishedAt: Date | null = null
     @UpdateDateColumn({ nullable: true }) updatedAt: Date | null = null
+    @Column({ type: String, nullable: true }) revisionId: string | null = null
+}
+
+@Entity("posts_gdocs")
+export class Gdoc extends GdocBase implements OwidGdocInterface {
+    @Column({ default: "{}", type: "json" }) content!: OwidGdocContent
+    @Column() publicationContext: OwidGdocPublicationContext =
+        OwidGdocPublicationContext.unlisted
     @Column({ type: String, nullable: true }) revisionId: string | null = null
     @Column({ type: "json", nullable: true }) breadcrumbs:
         | BreadcrumbItem[]
@@ -111,8 +167,6 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
 
     constructor(id?: string) {
         super()
-        // TODO: the class is re-initializing every single auto-reload
-        // Implement Page Visibility API ?
         if (id) {
             this.id = id
         }
@@ -121,55 +175,11 @@ export class Gdoc extends BaseEntity implements OwidGdocInterface {
         }
     }
     static table = "posts_gdocs"
-    static cachedGoogleReadonlyAuth?: Auth.GoogleAuth
-    static cachedGoogleReadWriteAuth?: Auth.GoogleAuth
-    static cachedGoogleClient?: docs_v1.Docs
-
-    static areGdocAuthKeysSet(): boolean {
-        return !!(GDOCS_PRIVATE_KEY && GDOCS_CLIENT_EMAIL && GDOCS_CLIENT_ID)
-    }
-
-    static getGoogleReadWriteAuth(): Auth.GoogleAuth {
-        if (!Gdoc.cachedGoogleReadWriteAuth) {
-            Gdoc.cachedGoogleReadWriteAuth = new google.auth.GoogleAuth({
-                credentials: {
-                    type: "service_account",
-                    private_key: GDOCS_PRIVATE_KEY.split("\\n").join("\n"),
-                    client_email: GDOCS_CLIENT_EMAIL,
-                    client_id: GDOCS_CLIENT_ID,
-                },
-                scopes: [
-                    "https://www.googleapis.com/auth/documents",
-                    "https://www.googleapis.com/auth/drive.file",
-                ],
-            })
-        }
-        return Gdoc.cachedGoogleReadWriteAuth
-    }
-
-    static getGoogleReadonlyAuth(): Auth.GoogleAuth {
-        if (!Gdoc.cachedGoogleReadonlyAuth) {
-            Gdoc.cachedGoogleReadonlyAuth = new google.auth.GoogleAuth({
-                credentials: {
-                    type: "service_account",
-                    private_key: GDOCS_PRIVATE_KEY.split("\\n").join("\n"),
-                    client_email: GDOCS_CLIENT_EMAIL,
-                    client_id: GDOCS_CLIENT_ID,
-                },
-                // Scopes can be specified either as an array or as a single, space-delimited string.
-                scopes: [
-                    "https://www.googleapis.com/auth/documents.readonly",
-                    "https://www.googleapis.com/auth/drive.readonly",
-                ],
-            })
-        }
-        return Gdoc.cachedGoogleReadonlyAuth
-    }
 
     async fetchAndEnrichArticle(): Promise<void> {
         const docsClient = google.docs({
             version: "v1",
-            auth: Gdoc.getGoogleReadonlyAuth(),
+            auth: OwidGoogleAuth.getGoogleReadonlyAuth(),
         })
 
         // Retrieve raw data from Google

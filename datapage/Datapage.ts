@@ -21,7 +21,7 @@ import {
     getAttributionFragmentsFromVariable,
 } from "@ourworldindata/utils"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
-import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
+import { Gdoc, OwidGoogleAuth } from "../db/model/Gdoc/Gdoc.js"
 import { GrapherInterface } from "@ourworldindata/grapher"
 
 export const getDatapageDataV2 = async (
@@ -158,7 +158,9 @@ export const getDatapageGdoc = async (
     // support images (imageMetadata won't be set).
 
     const datapageGdoc =
-        isPreviewing && publishedExplorersBySlug && Gdoc.areGdocAuthKeysSet()
+        isPreviewing &&
+        publishedExplorersBySlug &&
+        OwidGoogleAuth.areGdocAuthKeysSet()
             ? await Gdoc.getGdocFromContentSource(
                   googleDocId,
                   publishedExplorersBySlug,
