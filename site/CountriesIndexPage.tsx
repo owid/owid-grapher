@@ -24,7 +24,7 @@ export const CountriesIndexPage = (props: {
                 baseUrl={baseUrl}
             />
             <body className="CountriesIndexPage">
-                <SiteHeader baseUrl={baseUrl} hideDonationFlag />
+                <SiteHeader baseUrl={baseUrl} />
                 <main>
                     <h1>Data by country</h1>
                     <ul>
@@ -41,7 +41,7 @@ export const CountriesIndexPage = (props: {
                         ))}
                     </ul>
                 </main>
-                <SiteFooter baseUrl={baseUrl} hideDonationFlag />
+                <SiteFooter baseUrl={baseUrl} />
                 {/* <script>{`window.runChartsIndexPage()`}</script> */}
             </body>
         </html>
