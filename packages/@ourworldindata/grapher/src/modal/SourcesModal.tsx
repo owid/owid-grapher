@@ -2,6 +2,7 @@ import {
     Bounds,
     DEFAULT_BOUNDS,
     uniq,
+    uniqBy,
     sum,
     zip,
     getAttributionFragmentsFromVariable,
@@ -89,6 +90,12 @@ export class SourcesModal extends React.Component<
         return this.manager.columnsWithSourcesExtensive
     }
 
+    @computed private get deduplicatedColumn(): CoreColumn | undefined {
+        const sources = this.columns.map((column) => new Source({ column }))
+        const uniqueSources = uniqBy(sources, (source) => source.attributions)
+        return uniqueSources.length === 1 ? this.columns[0] : undefined
+    }
+
     @computed private get tabLabels(): string[] {
         return this.columns.map((column) => column.nonEmptyDisplayName)
     }
@@ -98,6 +105,19 @@ export class SourcesModal extends React.Component<
         return (
             <Source
                 column={column}
+                editBaseUrl={this.editBaseUrl}
+                isEmbeddedInADataPage={
+                    this.manager.isEmbeddedInADataPage ?? false
+                }
+            />
+        )
+    }
+
+    private renderDeduplicatedSource(): JSX.Element | null {
+        if (!this.deduplicatedColumn) return null
+        return (
+            <DeduplicatedSource
+                column={this.deduplicatedColumn}
                 editBaseUrl={this.editBaseUrl}
                 isEmbeddedInADataPage={
                     this.manager.isEmbeddedInADataPage ?? false
@@ -221,7 +241,9 @@ export class SourcesModal extends React.Component<
                 isHeightFixed={true}
             >
                 <div className="SourcesModalContent">
-                    {this.columns.length === 1 ? (
+                    {this.deduplicatedColumn ? (
+                        this.renderDeduplicatedSource()
+                    ) : this.columns.length === 1 ? (
                         this.renderSource(this.columns[0])
                     ) : (
                         <>
@@ -270,7 +292,7 @@ export class Source extends React.Component<{
         return uniq(excludeUndefined(this.def.origins.map((o) => o.producer)))
     }
 
-    @computed private get attributions(): string | undefined {
+    @computed get attributions(): string | undefined {
         const attributionFragments =
             getAttributionFragmentsFromVariable(this.def) ?? this.producers
         if (attributionFragments.length === 0) return undefined
@@ -286,7 +308,7 @@ export class Source extends React.Component<{
     }
 
     @computed private get unit(): string | undefined {
-        return this.def.display?.unit ?? this.def.unit
+        return this.props.column.unit
     }
 
     @computed private get datapageHasFAQSection(): boolean {
@@ -306,17 +328,27 @@ export class Source extends React.Component<{
         return prepareSourcesForDisplay(this.def)
     }
 
+    @computed protected get sourcesSectionHeading(): string {
+        return "The data of this indicator is based on the following sources:"
+    }
+
+    protected renderTitle(): JSX.Element {
+        return (
+            <h2>
+                {this.title}{" "}
+                {this.editUrl && (
+                    <a href={this.editUrl} target="_blank" rel="noopener">
+                        <FontAwesomeIcon icon={faPencilAlt} />
+                    </a>
+                )}
+            </h2>
+        )
+    }
+
     render(): JSX.Element {
         return (
             <div className="source">
-                <h2>
-                    {this.title}{" "}
-                    {this.editUrl && (
-                        <a href={this.editUrl} target="_blank" rel="noopener">
-                            <FontAwesomeIcon icon={faPencilAlt} />
-                        </a>
-                    )}
-                </h2>
+                {this.renderTitle()}
                 {this.def.descriptionShort && (
                     <p>{this.def.descriptionShort}</p>
                 )}
@@ -352,8 +384,7 @@ export class Source extends React.Component<{
                     this.sourcesForDisplay.length > 0 && (
                         <>
                             <h3 className="heading">
-                                The data of this indicator is based on the
-                                following sources:
+                                {this.sourcesSectionHeading}
                             </h3>
                             <IndicatorSources
                                 sources={this.sourcesForDisplay}
@@ -371,6 +402,17 @@ export class Source extends React.Component<{
                 />
             </div>
         )
+    }
+}
+
+@observer
+export class DeduplicatedSource extends Source {
+    renderTitle(): JSX.Element {
+        return <h2>About this data</h2>
+    }
+
+    @computed get sourcesSectionHeading(): string {
+        return "This data is based on the following sources"
     }
 }
 
