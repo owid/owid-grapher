@@ -30,6 +30,7 @@ import {
     renderPost,
     renderGdoc,
     makeAtomFeedNoTopicPages,
+    renderSharedCollectionPage,
 } from "../baker/siteRenderers.js"
 import {
     bakeGrapherUrls,
@@ -423,6 +424,10 @@ export class SiteBaker {
         await this.stageWrite(
             `${this.bakedSiteDir}/search.html`,
             await renderSearchPage()
+        )
+        await this.stageWrite(
+            `${this.bakedSiteDir}/shared-collection.html`,
+            await renderSharedCollectionPage()
         )
         await this.stageWrite(
             `${this.bakedSiteDir}/404.html`,
