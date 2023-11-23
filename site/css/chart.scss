@@ -1,6 +1,7 @@
 @use "sass:math";
 
 .StandaloneGrapherOrExplorerPage main figure[data-grapher-src],
+.DataPage main figure[data-grapher-src],
 #fallback {
     display: flex;
     align-items: center;
@@ -9,12 +10,12 @@
     margin: 0 auto;
     width: 100%;
 
-    // The landscape values)
+    // The landscape values
     $orientation-width: 680px;
     $orientation-height: 480px;
     $ideal-ratio: math.div($orientation-width, $orientation-height);
 
-    $max-width: 1250px; // The rough max-width across all pages on the site
+    $max-width: 1260px; // The rough max-width across all pages on the site
     $max-height: math.div($max-width, $ideal-ratio);
 
     // Charts shouldn't be below this height in any circumstance, whether mobile or not.
