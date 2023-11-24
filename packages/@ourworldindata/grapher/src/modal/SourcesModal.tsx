@@ -85,7 +85,7 @@ export class SourcesModal extends React.Component<
     }
 
     @computed private get tabLabels(): string[] {
-        return this.columns.map((column) => column.displayName)
+        return this.columns.map((column) => column.nonEmptyDisplayName)
     }
 
     private renderSource(column: CoreColumn | undefined): JSX.Element | null {
@@ -223,7 +223,7 @@ export class Source extends React.Component<{
     }
 
     @computed private get title(): string {
-        return this.props.column.displayName
+        return this.props.column.nonEmptyDisplayName
     }
 
     @computed private get editUrl(): string | undefined {
