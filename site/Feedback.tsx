@@ -257,9 +257,14 @@ export class FeedbackForm extends React.Component<{
                             id="feedback.email"
                             onChange={this.onEmail}
                             type="email"
-                            required
                             disabled={loading}
                         />
+                        <small className="form-text text-muted">
+                            Your name and email will only be used to reply to
+                            you and not for any other purpose. If you do not
+                            give a valid email, we will not be able to reply to
+                            you.
+                        </small>
                     </div>
                     {this.error ? (
                         <div style={{ color: "red" }}>{this.error}</div>
