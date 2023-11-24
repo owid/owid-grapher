@@ -70,12 +70,6 @@ export const DataPageV2Content = ({
 }) => {
     const [grapher, setGrapher] = React.useState<Grapher | undefined>(undefined)
 
-    datapageData = {
-        ...datapageData,
-        descriptionFromProducer:
-            "descriptionFromProducer\ndescriptionFromProducer\n\ndescriptionFromProducer [hello](www.google.com)",
-    }
-
     const sourceShortName =
         datapageData.attributionShort && datapageData.titleVariant
             ? `${datapageData.attributionShort} - ${datapageData.titleVariant}`
