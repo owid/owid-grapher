@@ -84,9 +84,18 @@ export const renderDataPageOrGrapherPage = async (
     const yVariableIds = grapher
         .dimensions!.filter((d) => d.property === DimensionProperty.y)
         .map((d) => d.variableId)
+    const xVariableIds = grapher
+        .dimensions!.filter((d) => d.property === DimensionProperty.x)
+        .map((d) => d.variableId)
+    // Make a data page for single indicator indicator charts.
+    // For scatter plots we want to only show a data page if it has no X variable mapped, which
+    // is a special case where time is the X axis. Marimekko charts are the other chart that uses
+    // the X dimension but there we usually map population on X which should not prevent us from
+    // showing a data page.
     if (
         yVariableIds.length === 1 &&
-        grapher.type !== ChartTypeName.ScatterPlot
+        (grapher.type !== ChartTypeName.ScatterPlot ||
+            xVariableIds.length === 0)
     ) {
         const variableId = yVariableIds[0]
         const variableMetadata = await getVariableMetadata(variableId)
