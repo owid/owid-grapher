@@ -192,6 +192,25 @@
         }
     }
 
+    .key-info__expandable-descriptions {
+        p {
+            margin: 8px 0;
+
+            &:first-of-type {
+                margin-top: 0;
+            }
+
+            &:last-of-type {
+                margin-bottom: 0;
+            }
+        }
+
+        a {
+            @include owid-link-60;
+            color: inherit;
+        }
+    }
+
     .key-info__key-description + .key-info__expandable-descriptions {
         margin-top: 24px;
     }
