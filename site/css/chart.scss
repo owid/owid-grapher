@@ -36,6 +36,7 @@
     @media (min-width: $orientation-width) {
         // We no longer use the full height
         max-height: #{math.div(1, $ideal-ratio) * 100}vw;
+        min-height: $orientation-height; // overwrite the min-height set above
     }
 
     @media (min-width: $max-width) {
