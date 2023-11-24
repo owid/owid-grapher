@@ -346,6 +346,14 @@ export class Source extends React.Component<{
         return "The data of this indicator is based on the following sources:"
     }
 
+    @computed private get hideSourcesForDisplay(): boolean {
+        // the indictaor with id = 123 is the "Continent" variable curated by OWID.
+        // it's used in many charts but doesn't come with useful source information.
+        // that's why we hide the sources section for this indicator for now,
+        // but we might decide to show it in the future
+        return this.def.owidVariableId === 123
+    }
+
     protected renderTitle(): JSX.Element {
         return (
             <h2>
@@ -394,7 +402,8 @@ export class Source extends React.Component<{
                         isEmbeddedInADataPage={this.props.isEmbeddedInADataPage}
                     />
                 )}
-                {this.sourcesForDisplay &&
+                {!this.hideSourcesForDisplay &&
+                    this.sourcesForDisplay &&
                     this.sourcesForDisplay.length > 0 && (
                         <>
                             <h3 className="heading">
