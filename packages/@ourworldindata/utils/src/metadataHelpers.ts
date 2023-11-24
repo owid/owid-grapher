@@ -183,3 +183,12 @@ export const prepareSourcesForDisplay = (
 
     return sourcesForDisplay
 }
+
+export const formatSourceDate = (
+    date: string | undefined,
+    format: string
+): string | null => {
+    const parsedDate = dayjs(date ?? "", ["YYYY-MM-DD", "DD/MM/YYYY"])
+    if (!parsedDate.isValid()) return date || null
+    return parsedDate.format(format)
+}

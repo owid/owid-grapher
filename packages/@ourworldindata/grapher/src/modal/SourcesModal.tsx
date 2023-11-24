@@ -31,7 +31,7 @@ import { ExpandableTabs } from "../tabs/ExpandableTabs"
 import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
 
 // keep in sync with variables in SourcesModal.scss
-const MAX_WIDTH = 640
+const MAX_CONTENT_WIDTH = 640
 const TAB_PADDING = 16
 const TAB_FONT_SIZE = 13
 const TAB_GAP = 8
@@ -77,10 +77,20 @@ export class SourcesModal extends React.Component<
     }
 
     @computed private get modalBounds(): Bounds {
+        const maxWidth = MAX_CONTENT_WIDTH + 220
         // using 15px instead of 16px to make sure the modal fully covers the OWID logo in the header
-        const maxWidth = MAX_WIDTH + 220
         const padWidth = Math.max(15, (this.tabBounds.width - maxWidth) / 2)
         return this.tabBounds.padHeight(15).padWidth(padWidth)
+    }
+
+    @computed private get showStickyModalHeader(): boolean {
+        const modalWidth = this.modalBounds.width - 2 * this.modalPadding
+        const dismissButtonWidth = 32
+        return (modalWidth - MAX_CONTENT_WIDTH) / 2 < dismissButtonWidth
+    }
+
+    @computed private get modalPadding(): number {
+        return 1.5 * (this.manager.fontSize ?? 16)
     }
 
     @computed private get editBaseUrl(): string | undefined {
@@ -94,7 +104,14 @@ export class SourcesModal extends React.Component<
 
     @computed private get deduplicatedColumn(): CoreColumn | undefined {
         const sources = this.columns.map((column) => new Source({ column }))
-        const uniqueSources = uniqBy(sources, (source) => source.attributions)
+
+        // no need to deduplicate if there is only one source
+        if (sources.length <= 1) return undefined
+
+        // deduplicate on all visible information
+        const uniqueSources = uniqBy(sources, (source) =>
+            visibleSourceInformation(source)
+        )
         return uniqueSources.length === 1 ? this.columns[0] : undefined
     }
 
@@ -152,10 +169,9 @@ export class SourcesModal extends React.Component<
         }
 
         // maximum width available for tabs
-        const modalPadding = 1.5 * (this.manager.fontSize ?? 16)
         const maxWidth = Math.min(
-            MAX_WIDTH,
-            this.modalBounds.width - 2 * modalPadding - 10 // wiggle room
+            MAX_CONTENT_WIDTH,
+            this.modalBounds.width - 2 * this.modalPadding - 10 // wiggle room
         )
 
         const labelWidths = this.tabLabels.map(
@@ -264,6 +280,7 @@ export class SourcesModal extends React.Component<
                 )}
                 bounds={this.modalBounds}
                 isHeightFixed={true}
+                showStickyHeader={this.showStickyModalHeader}
             >
                 <div className="SourcesModalContent">
                     {this.manager.isReady ? (
@@ -283,8 +300,12 @@ export class Source extends React.Component<{
     editBaseUrl?: string
     isEmbeddedInADataPage?: boolean
 }> {
-    @computed private get def(): OwidColumnDef & { source?: OwidSource } {
-        return { ...this.props.column.def, source: this.props.column.source }
+    @computed get column(): CoreColumn {
+        return this.props.column
+    }
+
+    @computed get def(): OwidColumnDef & { source?: OwidSource } {
+        return { ...this.column.def, source: this.column.source }
     }
 
     @computed private get source(): OwidSource {
@@ -292,7 +313,7 @@ export class Source extends React.Component<{
     }
 
     @computed private get title(): string {
-        return this.props.column.nonEmptyDisplayName
+        return this.column.nonEmptyDisplayName
     }
 
     @computed private get editUrl(): string | undefined {
@@ -313,16 +334,16 @@ export class Source extends React.Component<{
         return attributionFragments.join(", ")
     }
 
-    @computed private get lastUpdated(): string | undefined {
+    @computed get lastUpdated(): string | undefined {
         return getLastUpdatedFromVariable(this.def)
     }
 
-    @computed private get nextUpdate(): string | undefined {
+    @computed get nextUpdate(): string | undefined {
         return getNextUpdateFromVariable(this.def)
     }
 
-    @computed private get unit(): string | undefined {
-        return this.props.column.unit
+    @computed get unit(): string | undefined {
+        return this.column.unit
     }
 
     @computed private get datapageHasFAQSection(): boolean {
@@ -382,9 +403,7 @@ export class Source extends React.Component<{
                     nextUpdate={this.nextUpdate}
                     unit={this.unit}
                     link={this.source.link}
-                    unitConversionFactor={
-                        this.props.column.unitConversionFactor
-                    }
+                    unitConversionFactor={this.column.unitConversionFactor}
                     isEmbeddedInADataPage={this.props.isEmbeddedInADataPage}
                 />
                 {this.showDescriptions && (
@@ -437,6 +456,43 @@ export class DeduplicatedSource extends Source {
     @computed get sourcesSectionHeading(): string {
         return "This data is based on the following sources"
     }
+}
+
+const visibleSourceInformation = (source: Source): string => {
+    return [
+        // used in key data table
+        source.attributions,
+        source.def.timespan,
+        source.lastUpdated,
+        source.nextUpdate,
+        source.unit,
+        source.def.sourceLink,
+        source.column.unitConversionFactor,
+
+        // descriptions
+        source.def.descriptionShort,
+        source.def.descriptionKey,
+        source.def.descriptionFromProducer,
+        source.def.additionalInfo,
+
+        // old source information
+        source.def.sourceName,
+        source.def.dataPublishedBy,
+        source.def.retrievedDate,
+        source.def.description,
+
+        // origins
+        source.def.origins
+            ?.map((origin) => [
+                origin.producer,
+                origin.title,
+                origin.description,
+                origin.dateAccessed,
+                origin.urlMain,
+                origin.citationFull,
+            ])
+            .join("-"),
+    ].join("-")
 }
 
 const measureTabWidth = (label: string): number => {

@@ -58,6 +58,16 @@
 
             ul {
                 margin-left: 1em;
+
+                li {
+                    margin: 1em 0;
+                    &:first-child {
+                        margin-top: 0;
+                    }
+                    &:last-child {
+                        margin-bottom: 0;
+                    }
+                }
             }
 
             > *:first-child {
@@ -66,6 +76,10 @@
 
             > *:last-child {
                 margin-bottom: 0;
+            }
+
+            ul li p {
+                margin: 0;
             }
         }
 

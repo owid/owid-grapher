@@ -1,6 +1,7 @@
 import React, { useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faPlus, faMinus } from "@fortawesome/free-solid-svg-icons"
+import cx from "classnames"
 import { Tabs } from "./Tabs"
 
 export const ExpandableTabs = ({
@@ -34,12 +35,18 @@ export const ExpandableTabs = ({
     )
 
     return (
-        <Tabs
-            labels={visibleLabels}
-            activeIndex={activeIndex}
-            setActiveIndex={setActiveIndex}
-            slot={moreButton}
-            maxTabWidth={maxTabWidth}
-        />
+        <div
+            className={cx("ExpandableTabs", {
+                "ExpandableTabs--expanded": isExpanded,
+            })}
+        >
+            <Tabs
+                labels={visibleLabels}
+                activeIndex={activeIndex}
+                setActiveIndex={setActiveIndex}
+                slot={moreButton}
+                maxTabWidth={maxTabWidth}
+            />
+        </div>
     )
 }

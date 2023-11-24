@@ -71,6 +71,10 @@ $modal-padding: 1.5em;
             align-items: center;
             margin-bottom: 1em;
 
+            &__empty {
+                margin-bottom: 4px;
+            }
+
             .modalTitle {
                 text-transform: uppercase;
                 color: $light-text;

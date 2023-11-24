@@ -1,12 +1,12 @@
 .SourcesModalContent {
     // keep in sync with variables in SourcesModal.tsx
-    $max-width: 640px;
+    $max-content-width: 640px;
     $tab-padding: 16px;
     $tab-font-size: 13px;
     $tab-gap: 8px;
 
     padding-bottom: $modal-padding;
-    max-width: $max-width;
+    max-width: $max-content-width;
     margin: 0 auto;
 
     $border: #e7e7e7;

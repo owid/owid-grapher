@@ -1,3 +1,7 @@
+.ExpandableTabs:not(.ExpandableTabs--expanded) {
+    white-space: nowrap;
+}
+
 .ExpandableTabs__button {
     color: $dark-text;
     border-color: #f2f2f2;

@@ -35,7 +35,8 @@
 
         &__learn-more {
             @include body-3-medium;
-            margin-top: 24px;
+            display: inline-block;
+            margin-top: 16px;
             text-decoration: underline;
             text-underline-offset: 4px;
             color: $dark-text;
@@ -53,6 +54,16 @@
                 margin-left: 12px;
                 display: inline-block;
                 transform: rotate(-90deg);
+            }
+        }
+    }
+
+    .expandable-info-blocks {
+        p {
+            margin: 0;
+
+            + p {
+                margin-top: 8px;
             }
         }
     }

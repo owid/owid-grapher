@@ -1,9 +1,9 @@
 import React from "react"
 import {
-    dayjs,
     OwidProcessingLevel,
     getPhraseForProcessingLevel,
     splitSourceTextIntoFragments,
+    formatSourceDate
 } from "@ourworldindata/utils"
 import { DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID } from "../SharedDataPageConstants.js"
 import { SimpleMarkdownText } from "../SimpleMarkdownText.js"
@@ -50,9 +50,7 @@ export const makeLastUpdated = ({
 }: {
     lastUpdated?: string
 }): React.ReactNode => {
-    const date = dayjs(lastUpdated ?? "", ["YYYY-MM-DD", "YYYY"])
-    if (!date.isValid()) return null
-    return date.format("MMMM D, YYYY")
+    return formatSourceDate(lastUpdated, "MMMM D, YYYY")
 }
 
 export const makeNextUpdate = ({
@@ -60,9 +58,7 @@ export const makeNextUpdate = ({
 }: {
     nextUpdate?: string
 }): React.ReactNode => {
-    const date = dayjs(nextUpdate ?? "", ["YYYY-MM-DD"])
-    if (!date.isValid()) return null
-    return date.format("MMMM YYYY")
+    return formatSourceDate(nextUpdate, "MMMM YYYY")
 }
 
 export const makeDateRange = ({

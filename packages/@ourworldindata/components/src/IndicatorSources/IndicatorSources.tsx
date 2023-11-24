@@ -1,7 +1,7 @@
 import React from "react"
 import cx from "classnames"
 import { ExpandableToggle } from "../ExpandableToggle/ExpandableToggle.js"
-import { DisplaySource, dayjs, uniqBy } from "@ourworldindata/utils"
+import { DisplaySource, uniqBy, formatSourceDate } from "@ourworldindata/utils"
 import { SimpleMarkdownText } from "../SimpleMarkdownText.js"
 import { CodeSnippet } from "../CodeSnippet/CodeSnippet.js"
 import { REUSE_THIS_WORK_SECTION_ID } from "../SharedDataPageConstants.js"
@@ -74,11 +74,7 @@ const SourceContent = (props: {
     isEmbeddedInADataPage: boolean
 }) => {
     const { source } = props
-    const retrievedOn = source.retrievedOn
-        ? dayjs(source.retrievedOn, ["YYYY-MM-DD", "DD/MM/YYYY"]).format(
-              "MMMM D, YYYY"
-          )
-        : undefined
+    const retrievedOn = formatSourceDate(source.retrievedOn, "MMMM D, YYYY")
     const showKeyInfo =
         source.dataPublishedBy ||
         retrievedOn ||
@@ -106,7 +102,13 @@ const SourceContent = (props: {
                         </div>
                     )}
                     {retrievedOn && (
-                        <div className="source-key-data">
+                        <div
+                            className={cx("source-key-data", {
+                                "source-key-data--span-2":
+                                    !source.retrievedFrom ||
+                                    source.retrievedFrom.length === 0,
+                            })}
+                        >
                             <div className="source-key-data__title">
                                 Retrieved on
                             </div>
@@ -117,7 +119,11 @@ const SourceContent = (props: {
                     )}
                     {source.retrievedFrom &&
                         source.retrievedFrom.length > 0 && (
-                            <div className="source-key-data">
+                            <div
+                                className={cx("source-key-data", {
+                                    "source-key-data--span-2": !retrievedOn,
+                                })}
+                            >
                                 <div className="source-key-data__title">
                                     Retrieved from
                                 </div>
