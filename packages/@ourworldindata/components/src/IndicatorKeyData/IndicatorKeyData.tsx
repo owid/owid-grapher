@@ -21,18 +21,26 @@ export const makeSource = ({
     const isEmbedded = isEmbeddedInADataPage ?? true
     const processingLevelPhrase =
         getPhraseForProcessingLevel(owidProcessingLevel)
+    const hideProcessingPhase =
+        attribution.toLowerCase() === "our world in data"
     return (
         <>
             <SimpleMarkdownText text={attribution} useParagraphs={false} />
-            {" – "}
-            {isEmbedded ? (
-                <a href={`#${DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}`}>
-                    {processingLevelPhrase}
-                </a>
-            ) : (
-                processingLevelPhrase
-            )}{" "}
-            by Our World in Data
+            {!hideProcessingPhase && (
+                <>
+                    {" – "}
+                    {isEmbedded ? (
+                        <a
+                            href={`#${DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}`}
+                        >
+                            {processingLevelPhrase}
+                        </a>
+                    ) : (
+                        processingLevelPhrase
+                    )}{" "}
+                    by Our World in Data
+                </>
+            )}
         </>
     )
 }
