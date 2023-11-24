@@ -29,9 +29,9 @@ export const IndicatorSources = (props: IndicatorSourcesProps) => {
                         isEmbeddedInADataPage={isEmbeddedInADataPage}
                     />
                 )
-                return source.description ||
-                    source.citation ||
-                    source.dataPublishedBy ? (
+                const useExpandableToggle =
+                    source.description || source.citation
+                return useExpandableToggle ? (
                     <ExpandableToggle
                         key={source.label}
                         label={source.label}
