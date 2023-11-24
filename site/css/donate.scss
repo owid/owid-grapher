@@ -22,21 +22,15 @@
     }
 }
 
-.donate-page__faq-button {
-    display: inline-block;
-    margin-top: 8px;
-    padding: 8px 24px;
+.donate-page__faq-link {
     @include body-3-medium;
-    color: $blue-90;
-    background-color: $blue-20;
-    transition: background-color 0.1s;
-    &:hover {
-        cursor: pointer;
-        background-color: $blue-10;
-    }
+    @include owid-link-90;
+    margin-top: 8px;
+    display: inline-block;
 
     svg {
-        margin-left: 4px;
+        margin-left: 6px;
+        font-size: 10px;
     }
 }
 

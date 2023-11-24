@@ -66,9 +66,9 @@ export const DonatePage = (props: {
                             <p className="article-block__text">
                                 <a
                                     href="#fa-qs-about-donations"
-                                    className="donate-page__faq-button"
+                                    className="donate-page__faq-link"
                                 >
-                                    Learn more in FAQs{" "}
+                                    Learn more about donations in the FAQs
                                     <FontAwesomeIcon icon={faArrowDown} />
                                 </a>
                             </p>
