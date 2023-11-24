@@ -176,14 +176,14 @@ export const DataPageV2Content = ({
     ]).join(" ")
 
     const getImageUrl = (research: DataPageRelatedResearch) => {
-        let url = `${BAKED_BASE_URL}/default-thumbnail.jpg`
+
         if (research.imageUrl && research.imageUrl.startsWith("http"))
-            url = research.imageUrl
+            return research.imageUrl
         else if (!isEmpty(research.imageUrl))
-            url = encodeURI(
+            return encodeURI(
                 `${IMAGE_HOSTING_CDN_URL}/production/${research.imageUrl}`
             )
-        return url
+        return `${BAKED_BASE_URL}/default-thumbnail.jpg`
     }
 
     const relatedResearchCandidates = datapageData.relatedResearch
