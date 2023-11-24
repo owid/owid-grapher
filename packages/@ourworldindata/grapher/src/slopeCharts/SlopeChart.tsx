@@ -423,6 +423,9 @@ export class SlopeChart
                     })
                 })
 
+                // sort values by time
+                const sortedValues = sortBy(values, (v) => v.x)
+
                 const color =
                     table.getColorForEntityName(seriesName) ??
                     colorBySeriesName.get(seriesName) ??
@@ -432,7 +435,7 @@ export class SlopeChart
                     seriesName,
                     color,
                     size: sizeByEntity.get(seriesName) || 1,
-                    values,
+                    values: sortedValues,
                 } as SlopeChartSeries
             })
             .filter((series) => series.values.length >= 2)
