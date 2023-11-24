@@ -1,7 +1,7 @@
 import React from "react"
 import ReactDOM from "react-dom"
 import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
-import { COLLECTIONS_PAGE_CONTAINER_ID } from "@ourworldindata/utils"
+import { DYNAMIC_COLLECTION_PAGE_CONTAINER_ID } from "@ourworldindata/utils"
 import {
     IReactionDisposer,
     ObservableMap,
@@ -10,21 +10,21 @@ import {
     reaction,
 } from "mobx"
 import { observer } from "mobx-react"
-import { WindowGraphers } from "./CollectionsPage.js"
+import { WindowGraphers } from "./DynamicCollectionPage.js"
 import { Grapher } from "@ourworldindata/grapher"
 
-interface SharedCollectionProps {
+interface DynamicCollectionProps {
     baseUrl: string
-    initialSharedCollection?: string
+    initialDynamicCollection?: string
 }
 
 /**
  * After the MultiEmbedder has mounted a Grapher, we poll grapherRef until grapherRef.current is defined,
  * and then update the window.graphers Map with it.
  *
- * This is what allows us to use a reaction in the SharedCollection component to update the URL whenever a Grapher is updated.
+ * This is what allows us to use a reaction in the DynamicCollection component to update the URL whenever a Grapher is updated.
  */
-export function embedSharedCollectionGrapher(
+export function embedDynamicCollectionGrapher(
     grapherRef: React.RefObject<Grapher>,
     figure: Element
 ) {
@@ -48,8 +48,8 @@ export function embedSharedCollectionGrapher(
 }
 
 @observer
-export class SharedCollection extends React.Component<SharedCollectionProps> {
-    @observable initialSharedCollection? = this.props.initialSharedCollection
+export class DynamicCollection extends React.Component<DynamicCollectionProps> {
+    @observable initialDynamicCollection? = this.props.initialDynamicCollection
     @observable graphers: undefined | WindowGraphers = undefined
     pollInterval: null | ReturnType<typeof setInterval> = null
     disposers: IReactionDisposer[] = []
@@ -96,7 +96,7 @@ export class SharedCollection extends React.Component<SharedCollectionProps> {
                 (allGrapherSlugsAndQueryStrings: string[]) => {
                     const newUrl = `${
                         this.props.baseUrl
-                    }/shared-collection?charts=${allGrapherSlugsAndQueryStrings.join(
+                    }/collection/custom?charts=${allGrapherSlugsAndQueryStrings.join(
                         "+"
                     )}`
                     history.replaceState({}, "", newUrl)
@@ -106,7 +106,7 @@ export class SharedCollection extends React.Component<SharedCollectionProps> {
     }
 
     renderInterior = () => {
-        if (!this.initialSharedCollection)
+        if (!this.initialDynamicCollection)
             return (
                 <p className="span-cols-12">
                     No charts were added to this collection.
@@ -115,7 +115,7 @@ export class SharedCollection extends React.Component<SharedCollectionProps> {
             )
         return (
             <div className="grid span-cols-12">
-                {this.initialSharedCollection
+                {this.initialDynamicCollection
                     .split(" ")
                     .map((chartSlug, index) => (
                         <figure
@@ -139,14 +139,14 @@ export class SharedCollection extends React.Component<SharedCollectionProps> {
     }
 }
 
-export function hydrateSharedCollectionsPage() {
+export function hydrateDynamicCollectionPage() {
     const container = document.querySelector(
-        `#${COLLECTIONS_PAGE_CONTAINER_ID}`
+        `#${DYNAMIC_COLLECTION_PAGE_CONTAINER_ID}`
     )
     const urlParams = new URLSearchParams(window.location.search)
-    const initialSharedCollection = urlParams.get("charts") || ""
+    const initialDynamicCollection = urlParams.get("charts") || ""
     window.graphers = new ObservableMap()
-    const entries = initialSharedCollection.split(" ").entries()
+    const entries = initialDynamicCollection.split(" ").entries()
     for (const [index, chartSlug] of entries) {
         window.graphers.set(
             // Include index in the key so that we can have multiple of the same chart
@@ -160,9 +160,9 @@ export function hydrateSharedCollectionsPage() {
         )
     }
     ReactDOM.hydrate(
-        <SharedCollection
+        <DynamicCollection
             baseUrl={BAKED_BASE_URL}
-            initialSharedCollection={initialSharedCollection}
+            initialDynamicCollection={initialDynamicCollection}
         />,
         container
     )

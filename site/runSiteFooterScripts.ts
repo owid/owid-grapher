@@ -17,7 +17,7 @@ import { hydrateKeyInsights } from "./blocks/KeyInsights.js"
 import { hydrateExpandableParagraphs } from "./blocks/ExpandableParagraph.js"
 import { hydrateCodeSnippets } from "@ourworldindata/components"
 import { hydrateStickyNav } from "./blocks/StickyNav.js"
-import { hydrateSharedCollectionsPage } from "./collections/SharedCollection.js"
+import { hydrateDynamicCollectionPage } from "./collections/DynamicCollection.js"
 
 export const runSiteFooterScripts = (
     args:
@@ -60,6 +60,9 @@ export const runSiteFooterScripts = (
             runSiteTools()
             runCookiePreferencesManager()
             break
+        case SiteFooterContext.dynamicCollectionPage:
+            // Don't break, run default case too
+            hydrateDynamicCollectionPage()
         default:
             // Features that were not ported over to gdocs, are only being run on WP pages:
             // - global entity selector
@@ -75,7 +78,6 @@ export const runSiteFooterScripts = (
             hydrateExpandableParagraphs()
             hydrateCodeSnippets()
             hydrateStickyNav()
-            hydrateSharedCollectionsPage()
             MultiEmbedderSingleton.setUpGlobalEntitySelectorForEmbeds()
             MultiEmbedderSingleton.embedAll()
             runLightbox()

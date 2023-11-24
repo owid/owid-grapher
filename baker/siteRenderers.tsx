@@ -6,7 +6,11 @@ import {
 import { BlogIndexPage } from "../site/BlogIndexPage.js"
 import { FrontPage } from "../site/FrontPage.js"
 import { ChartsIndexPage, ChartIndexItem } from "../site/ChartsIndexPage.js"
-import { SharedCollectionPage } from "../site/collections/CollectionsPage.js"
+import { DynamicCollectionPage } from "../site/collections/DynamicCollectionPage.js"
+import {
+    StaticCollectionPageProps,
+    StaticCollectionPage,
+} from "../site/collections/StaticCollectionPage.js"
 import { SearchPage } from "../site/search/SearchPage.js"
 import { NotFoundPage } from "../site/NotFoundPage.js"
 import { DonatePage } from "../site/DonatePage.js"
@@ -140,8 +144,29 @@ export const renderChartsPage = async (
     )
 }
 
-export function renderSharedCollectionPage() {
-    return renderToHtmlPage(<SharedCollectionPage baseUrl={BAKED_BASE_URL} />)
+export async function renderTopChartsCollectionPage() {
+    const charts: string[] = await queryMysql(
+        `
+    SELECT SUBSTRING_INDEX(url, '/', -1) AS slug
+    FROM pageviews
+    WHERE url LIKE "%https://ourworldindata.org/grapher/%"
+    ORDER BY views_14d DESC
+    LIMIT 50
+    `
+    ).then((rows) => rows.map((row: { slug: string }) => row.slug))
+
+    const props = {
+        baseUrl: BAKED_BASE_URL,
+        title: "Top Charts",
+        introduction:
+            "The 50 most viewed charts from the last 14 days on Our World in Data.",
+        charts,
+    }
+    return renderToHtmlPage(<StaticCollectionPage {...props} />)
+}
+
+export function renderDynamicCollectionPage() {
+    return renderToHtmlPage(<DynamicCollectionPage baseUrl={BAKED_BASE_URL} />)
 }
 
 export const renderGdocsPageBySlug = async (

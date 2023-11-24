@@ -1,5 +1,6 @@
 import express, { Router } from "express"
 import path from "path"
+import * as db from "../db/db"
 import {
     renderFrontPage,
     renderGdocsPageBySlug,
@@ -16,7 +17,8 @@ import {
     countryProfileCountryPage,
     renderExplorerPage,
     makeAtomFeedNoTopicPages,
-    renderSharedCollectionPage,
+    renderDynamicCollectionPage,
+    renderTopChartsCollectionPage,
 } from "../baker/siteRenderers.js"
 import {
     BAKED_BASE_URL,
@@ -135,8 +137,12 @@ mockSiteRouter.get("/*", async (req, res, next) => {
     )
 })
 
-mockSiteRouter.get("/shared-collection", async (req, res) => {
-    return res.send(await renderSharedCollectionPage())
+mockSiteRouter.get("/collection/top-charts", async (_, res) => {
+    return res.send(await renderTopChartsCollectionPage())
+})
+
+mockSiteRouter.get("/collection/custom", async (_, res) => {
+    return res.send(await renderDynamicCollectionPage())
 })
 
 mockSiteRouter.get("/grapher/:slug", async (req, res) => {

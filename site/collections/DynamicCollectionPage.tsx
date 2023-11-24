@@ -3,11 +3,11 @@ import { Head } from "../Head.js"
 import { SiteHeader } from "../SiteHeader.js"
 import { SiteFooter } from "../SiteFooter.js"
 import {
-    COLLECTIONS_PAGE_CONTAINER_ID,
+    DYNAMIC_COLLECTION_PAGE_CONTAINER_ID,
     SiteFooterContext,
 } from "@ourworldindata/utils"
 
-import { SharedCollection } from "./SharedCollection.js"
+import { DynamicCollection } from "./DynamicCollection.js"
 import { ObservableMap } from "mobx"
 import { Grapher } from "@ourworldindata/grapher"
 
@@ -36,13 +36,13 @@ declare global {
 
 export const COLLECTIONS_LOCAL_STORAGE_KEY = "collections"
 
-export const SharedCollectionPage = (props: { baseUrl: string }) => {
+export const DynamicCollectionPage = (props: { baseUrl: string }) => {
     const { baseUrl } = props
 
     return (
         <html>
             <Head
-                canonicalUrl={`${baseUrl}/shared-collection`}
+                canonicalUrl={`${baseUrl}/collection/custom`}
                 pageTitle="Chart Collection"
                 pageDesc="View charts you've saved on Our World in Data."
                 baseUrl={baseUrl}
@@ -52,7 +52,7 @@ export const SharedCollectionPage = (props: { baseUrl: string }) => {
                 <main className="collections-page grid grid-cols-12-full-width">
                     <header className="collections-page__header grid grid-cols-12-full-width span-cols-14">
                         <h1 className="display-2-semibold span-cols-12 col-start-2 collection-title">
-                            Shared Collection
+                            Custom Collection
                         </h1>
                         <p className="span-cols-8 col-start-2 span-md-cols-12 col-md-start-2 body-1-regular collection-explanation">
                             This page is displaying a selection of charts that
@@ -64,16 +64,16 @@ export const SharedCollectionPage = (props: { baseUrl: string }) => {
                         </p>
                     </header>
                     <div
-                        id={COLLECTIONS_PAGE_CONTAINER_ID}
+                        id={DYNAMIC_COLLECTION_PAGE_CONTAINER_ID}
                         className="grid span-cols-12 col-start-2"
                     >
-                        <SharedCollection baseUrl={baseUrl} />
+                        <DynamicCollection baseUrl={baseUrl} />
                     </div>
                 </main>
                 <SiteFooter
                     hideDonate={true}
                     baseUrl={baseUrl}
-                    context={SiteFooterContext.collectionsPage}
+                    context={SiteFooterContext.dynamicCollectionPage}
                 />
             </body>
         </html>

@@ -177,7 +177,7 @@ export {
     type RefDictionary,
     ScaleType,
     type SerializedGridProgram,
-    COLLECTIONS_PAGE_CONTAINER_ID,
+    DYNAMIC_COLLECTION_PAGE_CONTAINER_ID,
     SiteFooterContext,
     SortBy,
     type SortConfig,

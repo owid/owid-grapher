@@ -30,7 +30,8 @@ import {
     renderPost,
     renderGdoc,
     makeAtomFeedNoTopicPages,
-    renderSharedCollectionPage,
+    renderDynamicCollectionPage,
+    renderTopChartsCollectionPage,
 } from "../baker/siteRenderers.js"
 import {
     bakeGrapherUrls,
@@ -426,8 +427,12 @@ export class SiteBaker {
             await renderSearchPage()
         )
         await this.stageWrite(
-            `${this.bakedSiteDir}/shared-collection.html`,
-            await renderSharedCollectionPage()
+            `${this.bakedSiteDir}/collection/custom.html`,
+            await renderDynamicCollectionPage()
+        )
+        await this.stageWrite(
+            `${this.bakedSiteDir}/collection/top-charts.html`,
+            await renderTopChartsCollectionPage()
         )
         await this.stageWrite(
             `${this.bakedSiteDir}/404.html`,

@@ -40,7 +40,7 @@ import {
 } from "../../settings/clientSettings.js"
 import { hydrateAnnotatingDataValue } from "../AnnotatingDataValue.js"
 import Bugsnag from "@bugsnag/js"
-import { embedSharedCollectionGrapher } from "../collections/SharedCollection.js"
+import { embedDynamicCollectionGrapher } from "../collections/DynamicCollection.js"
 
 const figuresFromDOM = (
     container: HTMLElement | Document = document,
@@ -251,8 +251,8 @@ class MultiEmbedder {
             )
 
             // Special handling for shared collections
-            if (window.location.pathname.startsWith("/shared-collection")) {
-                embedSharedCollectionGrapher(grapherRef, figure)
+            if (window.location.pathname.startsWith("/collection/custom")) {
+                embedDynamicCollectionGrapher(grapherRef, figure)
             }
 
             if (!grapherRef.current) return
