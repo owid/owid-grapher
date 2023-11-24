@@ -95,29 +95,38 @@
             grid-column: span 12;
             margin: 0;
 
-            // grapher sizing is handled in site/css/chart.scss.
-            // the following rules overwrite some of the default styles.
-            // in particular, the ideal aspect ratio is slightly tweaked.
-            // this ensures that content below grapher is not pushed below the fold.
+            // grapher sizing roughly follows the strategy used on standalone grapher pages,
+            // outlined in site/css/chart.scss. some adjustments have been made.
+            // in particular, on data pages, we want to make sure that the content
+            // below the grapher chart is always partly visible.
 
             // landscape values – slightly adjusted from site/css/chart.scss
             $orientation-width: 680px;
             $orientation-height: 380px;
             $ideal-ratio: math.div($orientation-width, $orientation-height);
 
-            $max-width: 1260px;
-            $max-height: math.div($max-width, $ideal-ratio);
+            min-height: 540px;
 
-            // on small viewports, prevent the chart from growing too tall
+            // on small viewports, use the full available height
+            // but leave space for the mobile header and some more space
+            // to make content below the chart visible
+            height: calc(100vh - $header-height-sm - 110px);
+
+            // prevent the chart from growing too tall
             max-height: 150vw;
 
-            @media (min-width: $orientation-width) {
-                max-height: #{math.div(1, $ideal-ratio) * 100}vw;
+            // use ratio-preserving sizing but make sure the chart
+            // doesn't cover the full viewport height
+            @include sm-up {
+                height: #{math.div(1, $ideal-ratio) * 100}vw;
+                min-height: $orientation-height;
+                max-height: calc(100vh - $header-height-sm - 110px);
             }
 
-            @media (min-width: $max-width) {
-                max-width: $max-width;
-                max-height: $max-height;
+            // on large viewports, use a fixed height
+            @include lg-up {
+                height: 680px;
+                max-height: 680px;
             }
         }
 
