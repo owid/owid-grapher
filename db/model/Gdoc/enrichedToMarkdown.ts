@@ -36,6 +36,7 @@ import {
     RawBlockVideo,
     RawBlockTable,
     RawBlockBlockquote,
+    excludeNullish,
 } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
 
@@ -78,14 +79,26 @@ export function spansToMarkdown(spans: Span[]): string {
 
 function markdownComponent(
     componentName: string,
-    attributes: Record<string, string>,
+    attributes: Record<string, string | undefined>,
     exportComponents: boolean
 ): string | undefined {
     const attributesString = Object.entries(attributes)
+        .filter(([_, val]) => val !== undefined)
         .map(([key, val]) => `${key}: ${val}`)
         .join(" ")
     if (exportComponents) return `<${componentName} ${attributesString}/>`
     else return undefined
+}
+
+export function enrichedBlocksToMarkdown(
+    blocks: OwidEnrichedGdocBlock[],
+    exportComponents: boolean
+): string | undefined {
+    const result = excludeNullish(
+        blocks.map((block) => enrichedBlockToMarkdown(block, exportComponents))
+    ).join("\n\n")
+    if (result === "") return undefined
+    else return result
 }
 
 export function enrichedBlockToMarkdown(
@@ -93,378 +106,198 @@ export function enrichedBlockToMarkdown(
     exportComponents: boolean
 ): string | undefined {
     return match(block)
-        .with({ type: "text" }, (b) => spansToMarkdown(b.value))
-        .with({ type: "simple-text" }, (b) => b.value.text)
-        .with({ type: "all-charts" }, (b) =>
+        .with({ type: "text" }, (b): string | undefined =>
+            spansToMarkdown(b.value)
+        )
+        .with({ type: "simple-text" }, (b): string | undefined => b.value.text)
+        .with({ type: "all-charts" }, (b): string | undefined =>
             markdownComponent(
                 "AllCharts",
-                { heading: b.heading },
+                { heading: b.heading }, // Note: truncated
                 exportComponents
             )
         )
-        .with({ type: "additional-charts" }, (b) => {
+        .with({ type: "additional-charts" }, (b): string | undefined => {
             if (!exportComponents) return undefined
             else {
                 const items = b.items
-                    .map((i) => `* ${spansToMarkdown}`)
+                    .map((i) => `* ${spansToMarkdown(i)}`)
                     .join("\n")
                 return `<AdditionalCharts>
 ${items}
 </AdditionalCharts>`
             }
         })
-        .with(
-            { type: "callout" },
-            (b): RawBlockCallout => ({
-                type: b.type,
-                value: {
-                    title: b.title,
-                    text: b.text.map(
-                        (enriched) =>
-                            enrichedBlockToRawBlock(enriched) as
-                                | RawBlockText
-                                | RawBlockList
-                                | RawBlockHeading
-                    ),
+        .with({ type: "callout" }, (b): string | undefined =>
+            markdownComponent(
+                "Callout",
+                {
+                    title: b.title, // Note: truncated
                 },
-            })
+                exportComponents
+            )
         )
-        .with(
-            { type: "chart" },
-            (b): RawBlockChart => ({
-                type: b.type,
-                value: {
+        .with({ type: "chart" }, (b): string | undefined =>
+            markdownComponent(
+                "Chart",
+                {
                     url: b.url,
-                    height: b.height,
-                    row: b.row,
-                    column: b.column,
-                    position: b.position,
                     caption: b.caption ? spansToMarkdown(b.caption) : undefined,
+                    // Note: truncated
                 },
-            })
+                exportComponents
+            )
         )
-        .with(
-            { type: "scroller" },
-            (b): RawBlockScroller => ({
-                type: b.type,
-                value: b.blocks.flatMap((item) => [
-                    {
-                        type: "url",
-                        value: item.url,
-                    },
-                    {
-                        type: "text",
-                        value: spansToMarkdown(item.text.value),
-                    },
-                ]),
-            })
-        )
+        .with({ type: "scroller" }, () => undefined) // Note: dropped
         .with(
             { type: "chart-story" },
-            (b): RawBlockChartStory => ({
-                type: b.type,
-                value: b.items.map((item) => ({
-                    narrative: spansToMarkdown(item.narrative.value),
-                    chart: item.chart.url,
-                    technical: {
-                        list: item.technical.map((t) =>
-                            spansToMarkdown(t.value)
-                        ),
-                    },
-                })),
-            })
+            () => undefined // Note: dropped
         )
-        .with(
-            { type: "image" },
-            (b): RawBlockImage => ({
-                type: b.type,
-                value: {
+        .with({ type: "image" }, (b): string | undefined =>
+            markdownComponent(
+                "Image",
+                {
                     filename: b.filename,
                     alt: b.alt,
                 },
-            })
+                exportComponents
+            )
         )
-        .with(
-            { type: "video" },
-            (b): RawBlockVideo => ({
-                type: b.type,
-                value: {
+        .with({ type: "video" }, (b): string | undefined =>
+            markdownComponent(
+                "Video",
+                {
                     url: b.url,
                     filename: b.filename,
                     caption: b.caption ? spansToMarkdown(b.caption) : undefined,
                     shouldLoop: String(b.shouldLoop),
                 },
-            })
+                exportComponents
+            )
         )
-        .with(
-            { type: "list" },
-            (b): RawBlockList => ({
-                type: b.type,
-                value: b.items.map((item) => spansToMarkdown(item.value)),
-            })
+        .with({ type: "list" }, (b): string | undefined =>
+            b.items.map((item) => `* ${spansToMarkdown(item.value)}`).join("\n")
         )
         .with(
             { type: "pull-quote" },
-            (b): RawBlockPullQuote => ({
-                type: b.type,
-                value: b.text.map((item) => ({
-                    type: "text",
-                    value: spansToMarkdown([item]),
-                })),
-            })
+            (b): string | undefined => `> ${spansToMarkdown(b.text)}`
         )
-        .with(
-            { type: "recirc" },
-            (b): RawBlockRecirc => ({
-                type: b.type,
-                value: {
-                    title: spansToMarkdown([b.title]),
-                    links: b.links.map(
-                        (link): RawRecircLink => ({
-                            url: link.url!,
-                        })
-                    ),
-                },
-            })
+        .with({ type: "recirc" }, (b): string | undefined => {
+            const items = b.links.map((i) => `* ${i.url}`).join("\n")
+            return `### ${b.title}
+${items}`
+        })
+        .with({ type: "html" }, (b): string | undefined =>
+            exportComponents ? b.value : undefined
         )
-        .with(
-            { type: "html" },
-            (b): RawBlockHtml => ({
-                type: b.type,
-                value: b.value,
-            })
-        )
-        .with(
-            { type: "heading" },
-            (b): RawBlockHeading => ({
-                type: b.type,
-                value: {
-                    text: b.supertitle
-                        ? [
-                              spansToMarkdown(b.supertitle),
-                              "\u000b",
-                              spansToMarkdown(b.text),
-                          ].join("")
-                        : spansToMarkdown(b.text),
-                    level: b.level.toString(),
-                },
-            })
-        )
-        .with(
-            { type: "horizontal-rule" },
-            (b): RawBlockHorizontalRule => ({
-                type: b.type,
-                value: b.value,
-            })
-        )
-        .with(
-            { type: "sdg-grid" },
-            (b): RawBlockSDGGrid => ({
-                type: b.type,
-                value: b.items.map(
-                    (item): RawSDGGridItem => ({
-                        goal: item.goal,
-                        link: item.link,
-                    })
-                ),
-            })
+        .with({ type: "heading" }, (b): string | undefined => {
+            const prefix = "#".repeat(b.level)
+            const text = b.supertitle
+                ? [
+                      spansToMarkdown(b.supertitle),
+                      "\u000b",
+                      spansToMarkdown(b.text),
+                  ].join("")
+                : spansToMarkdown(b.text)
+            return `${prefix} ${text}`
+        })
+        .with({ type: "horizontal-rule" }, () => "---")
+        .with({ type: "sdg-grid" }, (b): string | undefined =>
+            b.items.map((item) => `${item.goal}: ${item.link}`).join("\n")
         )
         .with(
             { type: P.union("side-by-side", "sticky-left", "sticky-right") },
-            (b): OwidRawGdocBlock => ({
-                type: b.type,
-                value: {
-                    left: b.left.map(enrichedBlockToRawBlock),
-                    right: b.right.map(enrichedBlockToRawBlock),
-                },
-            })
+            (b): string | undefined => `${enrichedBlocksToMarkdown(
+                b.left,
+                exportComponents
+            )}
+
+${enrichedBlocksToMarkdown(b.right, exportComponents)}`
         )
-        .with(
-            { type: "gray-section" },
-            (b): RawBlockGraySection => ({
-                type: b.type,
-                value: b.items.map(enrichedBlockToRawBlock),
-            })
+        .with({ type: "gray-section" }, (b): string | undefined =>
+            enrichedBlocksToMarkdown(b.items, exportComponents)
         )
         .with(
             { type: "prominent-link" },
-            (b): RawBlockProminentLink => ({
-                type: b.type,
-                value: {
-                    url: b.url,
-                    title: b.title,
-                    description: b.description,
-                    thumbnail: b.thumbnail,
-                },
-            })
+            (b): string | undefined => `### ${b.title}
+${b.description}
+${b.url}`
         )
-        .with(
-            { type: "sdg-toc" },
-            (b): RawBlockSDGToc => ({
-                type: b.type,
-                value: b.value,
-            })
+        .with({ type: "sdg-toc" }, (b) => undefined)
+        .with({ type: "missing-data" }, () => undefined)
+        .with({ type: "numbered-list" }, (b): string | undefined =>
+            b.items
+                .map((item, i) => `${i}. ${spansToMarkdown(item.value)}`)
+                .join("\n")
         )
-        .with(
-            { type: "missing-data" },
-            (b): RawBlockMissingData => ({
-                type: b.type,
-                value: b.value,
-            })
+        .with({ type: "aside" }, (b): string | undefined =>
+            spansToMarkdown(b.caption)
         )
-        .with(
-            { type: "numbered-list" },
-            (b): RawBlockNumberedList => ({
-                type: b.type,
-                // When going to raw blocks, include a leading "1. " so
-                // that when going the reverse way we will parse the content
-                // correctly as a numbered list again
-                value: b.items.map(
-                    (item, i) => `${i}. ${spansToMarkdown(item.value)}`
+        .with({ type: "expandable-paragraph" }, (b): string | undefined =>
+            enrichedBlocksToMarkdown(b.items, exportComponents)
+        )
+        .with({ type: "topic-page-intro" }, (b): string | undefined =>
+            enrichedBlocksToMarkdown(b.content, exportComponents)
+        )
+        .with({ type: "key-insights" }, (b): string | undefined => {
+            // TODO: handle either filename or url as a chart or image
+            const insightTexts = b.insights.map((insight) => {
+                const imageOrChart = insight.filename
+                    ? `![](${insight.filename})`
+                    : insight.url
+                    ? markdownComponent(
+                          "Chart",
+                          { url: insight.url },
+                          exportComponents
+                      )
+                    : undefined
+                const content =
+                    enrichedBlocksToMarkdown(
+                        insight.content,
+                        exportComponents
+                    ) ?? ""
+
+                const text = `### ${insight.title}
+${content}
+${imageOrChart}`
+                return text
+            })
+            const allInsights = insightTexts.join("\n\n")
+            return `## ${b.heading}
+${allInsights}`
+        })
+        .with({ type: "research-and-writing" }, (b): string | undefined => {
+            const links = [
+                ...b.primary.map((item) => item.value.url),
+                ...b.secondary.map((item) => item.value.url),
+                ...b.rows.flatMap((item) =>
+                    item.articles.map((i) => i.value.url)
                 ),
-            })
-        )
-        .with(
-            { type: "aside" },
-            (b): RawBlockAside => ({
-                type: b.type,
-                value: {
-                    position: b.position,
-                    caption: spansToMarkdown(b.caption),
-                },
-            })
-        )
-        .with(
-            { type: "expandable-paragraph" },
-            (b): RawBlockExpandableParagraph => ({
-                type: b.type,
-                value: b.items.map(enrichedBlockToRawBlock),
-            })
-        )
-        .with(
-            { type: "topic-page-intro" },
-            (b): RawBlockTopicPageIntro => ({
-                type: b.type,
-                value: {
-                    "download-button": b.downloadButton
-                        ? {
-                              url: b.downloadButton.url,
-                              text: b.downloadButton.text,
-                          }
-                        : undefined,
-                    "related-topics": b.relatedTopics
-                        ? b.relatedTopics.map((relatedTopic) => ({
-                              text: relatedTopic.text,
-                              url: relatedTopic.url,
-                          }))
-                        : undefined,
-                    content: b.content.map((textBlock) => ({
-                        type: "text",
-                        value: spansToMarkdown(textBlock.value),
-                    })),
-                },
-            })
-        )
-        .with(
-            { type: "key-insights" },
-            (b): RawBlockKeyInsights => ({
-                type: b.type,
-                value: {
-                    heading: b.heading,
-                    insights: b.insights.map((insight) => ({
-                        title: insight.title,
-                        filename: insight.filename,
-                        url: insight.url,
-                        content: insight.content?.map((content) =>
-                            enrichedBlockToRawBlock(content)
-                        ),
-                    })),
-                },
-            })
-        )
-        .with(
-            { type: "research-and-writing" },
-            (b): RawBlockResearchAndWriting => {
-                function enrichedLinkToRawLink(
-                    enriched: EnrichedBlockResearchAndWritingLink
-                ): RawBlockResearchAndWritingLink {
-                    return {
-                        ...enriched.value,
-                        authors: enriched.value.authors?.join(", "),
-                    }
-                }
-                return {
-                    type: b.type,
-                    value: {
-                        primary: b.primary.map((enriched) =>
-                            enrichedLinkToRawLink(enriched)
-                        ),
-                        secondary: b.secondary.map((enriched) =>
-                            enrichedLinkToRawLink(enriched)
-                        ),
-                        more: b.more
-                            ? {
-                                  heading: b.more.heading,
-                                  articles: b.more.articles.map(
-                                      enrichedLinkToRawLink
-                                  ),
-                              }
-                            : undefined,
-                        rows: b.rows.map(({ heading, articles }) => ({
-                            heading: heading,
-                            articles: articles.map(enrichedLinkToRawLink),
-                        })),
-                    },
-                }
-            }
-        )
-        .with({ type: "align" }, (b): RawBlockAlign => {
-            return {
-                type: b.type,
-                value: {
-                    alignment: b.alignment as string,
-                    content: b.content.map(enrichedBlockToRawBlock),
-                },
-            }
+                ...(b.more?.articles ?? []).map((item) => item.value.url),
+            ].map((link) => `* ${link}\n`)
+            return `## Related research and writing
+${links}`
         })
-        .with({ type: "entry-summary" }, (b): RawBlockEntrySummary => {
-            return {
-                type: b.type,
-                value: {
-                    items: b.items,
-                },
-            }
+        .with({ type: "align" }, (b): string | undefined =>
+            enrichedBlocksToMarkdown(b.content, exportComponents)
+        )
+        .with({ type: "entry-summary" }, () => undefined) // Note: dropped
+        .with({ type: "table" }, (b): string | undefined => {
+            const rows = b.rows.map((row) => {
+                const cells = row.cells.map((cell) =>
+                    enrichedBlocksToMarkdown(cell.content, exportComponents)
+                )
+                return `|${cells.join("|")}|`
+            })
+            return "\n" + rows.join("\n") // markdown tables need a leading empty line
         })
-        .with({ type: "table" }, (b): RawBlockTable => {
-            return {
-                type: b.type,
-                value: {
-                    template: b.template,
-                    rows: b.rows.map((row) => ({
-                        type: row.type,
-                        value: {
-                            cells: row.cells.map((cell) => ({
-                                type: cell.type,
-                                value: cell.content.map(
-                                    enrichedBlockToRawBlock
-                                ),
-                            })),
-                        },
-                    })),
-                },
-            }
-        })
-        .with({ type: "blockquote" }, (b): RawBlockBlockquote => {
-            return {
-                type: "blockquote",
-                value: {
-                    text: b.text.map((enriched) => ({
-                        type: "text",
-                        value: spansToMarkdown(enriched.value),
-                    })),
-                    citation: b.citation,
-                },
-            }
+        .with({ type: "blockquote" }, (b): string | undefined => {
+            const text = excludeNullish(
+                b.text.map((text) =>
+                    enrichedBlockToMarkdown(text, exportComponents)
+                )
+            ).join("\n\n> ")
+            return `> ${text}` + b.citation ? `\n-- ${b.citation}` : ""
         })
         .exhaustive()
 }
