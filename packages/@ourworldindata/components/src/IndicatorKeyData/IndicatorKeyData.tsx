@@ -3,7 +3,7 @@ import {
     OwidProcessingLevel,
     getPhraseForProcessingLevel,
     splitSourceTextIntoFragments,
-    formatSourceDate
+    formatSourceDate,
 } from "@ourworldindata/utils"
 import { DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID } from "../SharedDataPageConstants.js"
 import { SimpleMarkdownText } from "../SimpleMarkdownText.js"
