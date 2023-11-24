@@ -4,7 +4,6 @@ import {
     OwidGdocContent,
     TocHeadingWithTitleSupertitle,
     compact,
-    RawBlockText,
     isArray,
     recursivelyMapArticleContent,
     OwidGdocStickyNavItem,
@@ -21,20 +20,18 @@ import {
     LICENSE_ID,
     RESEARCH_AND_WRITING_ID,
     checkIsPlainObjectWithGuard,
+    identity,
 } from "@ourworldindata/utils"
 import { convertHeadingTextToId } from "@ourworldindata/components"
 import { parseRawBlocksToEnrichedBlocks, parseRefs } from "./rawToEnriched.js"
 import urlSlug from "url-slug"
 import { parseAuthors, spansToSimpleString } from "./gdocUtils.js"
-import {
-    htmlToEnrichedTextBlock,
-    htmlToSimpleTextBlock,
-} from "./htmlToEnriched.js"
+import { htmlToSimpleTextBlock } from "./htmlToEnriched.js"
 
 // Topic page headings have predictable heading names which are used in the sticky nav.
 // If the user hasn't explicitly defined a sticky-nav in archie to map nav items to headings,
 // we can try to do it for them by looking for substring matches in the headings that they've written
-function generateStickyNav(
+export function generateStickyNav(
     content: OwidGdocContent
 ): OwidGdocStickyNavItem[] | undefined {
     if (content.type !== OwidGdocType.TopicPage) return
@@ -120,10 +117,12 @@ function generateStickyNav(
     return stickyNavItems
 }
 
-function generateToc(
-    body: OwidEnrichedGdocBlock[],
+export function generateToc(
+    body: OwidEnrichedGdocBlock[] | undefined,
     isTocForSidebar: boolean = false
 ): TocHeadingWithTitleSupertitle[] {
+    if (!body) return []
+
     // For linear topic pages, we record h1s & h2s
     // For the sdg-toc, we record h2s & h3s (as it was developed before we decided to use h1s as our top level heading)
     // It would be nice to standardise this but it would require a migration, updating CSS, updating Gdocs, etc.
@@ -185,7 +184,7 @@ function generateToc(
     return toc
 }
 
-function formatCitation(
+export function formatCitation(
     rawCitation?: string | string[]
 ): undefined | EnrichedBlockSimpleText[] {
     if (!rawCitation) return
@@ -267,7 +266,12 @@ export function extractRefs(text: string): {
     return { extractedText, refsByFirstAppearance, rawInlineRefs }
 }
 
-export const archieToEnriched = (text: string): OwidGdocContent => {
+export const archieToEnriched = (
+    text: string,
+    additionalEnrichmentFunction: (
+        content: Record<string, unknown>
+    ) => void = identity
+): OwidGdocContent => {
     const { extractedText, refsByFirstAppearance, rawInlineRefs } =
         extractRefs(text)
     text = extractedText
@@ -291,27 +295,18 @@ export const archieToEnriched = (text: string): OwidGdocContent => {
     // Parse elements of the ArchieML into enrichedBlocks
     parsed.body = compact(parsed.body.map(parseRawBlocksToEnrichedBlocks))
 
-    const isTocForSidebar = parsed["sidebar-toc"] === "true"
-    parsed.toc = generateToc(parsed.body, isTocForSidebar)
-
     const parsedRefs = parseRefs({
         refs: [...(parsed.refs ?? []), ...rawInlineRefs],
         refsByFirstAppearance,
     })
     parsed.refs = parsedRefs
 
-    parsed.summary = parsed.summary?.map((html: RawBlockText) =>
-        htmlToEnrichedTextBlock(html.value)
-    )
-
-    parsed.citation = formatCitation(parsed.citation)
-
-    parsed["sticky-nav"] = generateStickyNav(parsed)
-
     // this property was originally named byline even though it was a comma-separated list of authors
     // once this has been deployed for a while and we've migrated the property name in all gdocs,
     // we can remove this parsed.byline vestige
     parsed.authors = parseAuthors(parsed.byline || parsed.authors)
+
+    additionalEnrichmentFunction(parsed)
 
     return parsed
 }

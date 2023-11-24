@@ -9,13 +9,13 @@ import {
 } from "typeorm"
 import { getLinkType, getUrlTarget } from "@ourworldindata/components"
 import { OwidGdocLinkJSON, Url } from "@ourworldindata/utils"
-import { Gdoc } from "./Gdoc/Gdoc.js"
+import { Gdoc, GdocBase } from "./Gdoc/Gdoc.js"
 import { formatUrls } from "../../site/formatting.js"
 
 @Entity("posts_gdocs_links")
 export class Link extends BaseEntity implements OwidGdocLinkJSON {
     @PrimaryGeneratedColumn() id!: number
-    @ManyToOne(() => Gdoc, (gdoc) => gdoc.id) source!: Relation<Gdoc>
+    @ManyToOne(() => GdocBase, (gdoc) => gdoc.id) source!: Relation<GdocBase>
     @Column() linkType!: "gdoc" | "url" | "grapher" | "explorer"
     @Column() target!: string
     @Column() queryString!: string
@@ -40,7 +40,7 @@ export class Link extends BaseEntity implements OwidGdocLinkJSON {
         componentType = "",
     }: {
         url: string
-        source: Gdoc
+        source: GdocBase
         text?: string
         componentType?: string
     }): Link {

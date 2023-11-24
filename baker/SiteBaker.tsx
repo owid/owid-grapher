@@ -368,13 +368,13 @@ export class SiteBaker {
             // Pick the necessary metadata from the dictionaries we prefetched
             publishedGdoc.linkedDocuments = pick(
                 publishedGdocsDictionary,
-                publishedGdoc.getLinkedDocumentIds()
+                publishedGdoc.linkedDocumentIds
             )
             publishedGdoc.imageMetadata = pick(
                 imageMetadataDictionary,
-                publishedGdoc.getLinkedImageFilenames()
+                publishedGdoc.linkedImageFilenames
             )
-            const linkedChartSlugs = publishedGdoc.getLinkedChartSlugs()
+            const linkedChartSlugs = publishedGdoc.linkedChartSlugs
             publishedGdoc.linkedCharts = {
                 ...pick(publishedChartsBySlug, linkedChartSlugs.grapher),
                 ...pick(publishedExplorersBySlug, linkedChartSlugs.explorer),
