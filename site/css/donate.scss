@@ -22,6 +22,24 @@
     }
 }
 
+.donate-page__faq-button {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 8px 24px;
+    @include body-3-medium;
+    color: $blue-90;
+    background-color: $blue-20;
+    transition: background-color 0.1s;
+    &:hover {
+        cursor: pointer;
+        background-color: $blue-10;
+    }
+
+    svg {
+        margin-left: 4px;
+    }
+}
+
 .donate-form {
     padding: 32px 40px;
     background-color: $white;
