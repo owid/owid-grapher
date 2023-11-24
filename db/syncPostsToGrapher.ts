@@ -6,7 +6,6 @@ import * as db from "./db.js"
 import { excludeNullish, groupBy, keyBy, PostRow } from "@ourworldindata/utils"
 import { postsTable, select } from "./model/Post.js"
 import { PostLink } from "./model/PostLink.js"
-import { dataSource } from "./dataSource.js"
 
 const zeroDateString = "0000-00-00 00:00:00"
 
