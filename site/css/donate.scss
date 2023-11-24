@@ -19,6 +19,18 @@
     }
     .article-block__text {
         @include body-2-regular;
+        margin-bottom: 24px;
+    }
+}
+
+.donate-page__faq-link {
+    @include body-3-medium;
+    @include owid-link-90;
+    display: inline-block;
+
+    svg {
+        margin-left: 6px;
+        font-size: 10px;
     }
 }
 

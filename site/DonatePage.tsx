@@ -4,6 +4,8 @@ import { SiteHeader } from "./SiteHeader.js"
 import { SiteFooter } from "./SiteFooter.js"
 import { IMAGES_DIRECTORY, OwidGdocInterface } from "@ourworldindata/utils"
 import { ArticleBlocks } from "./gdocs/ArticleBlocks.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { faArrowDown } from "@fortawesome/free-solid-svg-icons"
 
 export const DonatePage = (props: {
     baseUrl: string
@@ -60,6 +62,15 @@ export const DonatePage = (props: {
                                 Thank you, <br />
                                 <em>Global Change Data Lab</em> and the{" "}
                                 <em>Our World in Data</em> team
+                            </p>
+                            <p className="article-block__text">
+                                <a
+                                    href="#fa-qs-about-donations"
+                                    className="donate-page__faq-link"
+                                >
+                                    Learn more about donations in the FAQs
+                                    <FontAwesomeIcon icon={faArrowDown} />
+                                </a>
                             </p>
                         </div>
                         <div className="col-start-7 span-cols-6 col-lg-start-7 span-lg-cols-6 col-md-start-6 span-md-cols-7 span-sm-cols-12">
