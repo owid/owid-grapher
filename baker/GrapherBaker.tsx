@@ -67,10 +67,6 @@ import { isEmpty } from "lodash"
 /**
  *
  * Render a datapage if available, otherwise render a grapher page.
- *
- * Rendering a datapage requires a datapage JSON file to be present in the
- * owid-content repository, and optionally a companion gdoc to be registered in
- * the posts_gdocs table
  */
 export const renderDataPageOrGrapherPage = async (
     grapher: GrapherInterface,
@@ -78,9 +74,9 @@ export const renderDataPageOrGrapherPage = async (
     imageMetadataDictionary?: Record<string, Image>
 ) => {
     // If we have a single Y variable and that one has a schema version >= 2,
-    // meaning it has the metadata to render a datapage, then we show the datapage
-    // based on this information. Otherwise we see if there is a legacy datapage.json
-    // available and if all else fails we render a classic Grapher page.
+    // meaning it has the metadata to render a datapage, AND if the metadata includes
+    // text for at least one of the description* fields or titlePublic, then we show the datapage
+    // based on this information.
     const yVariableIds = grapher
         .dimensions!.filter((d) => d.property === DimensionProperty.y)
         .map((d) => d.variableId)
