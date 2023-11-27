@@ -1,0 +1,44 @@
+.indicator-key-description {
+    .key-info {
+        background-color: $gray-10;
+        border-left: 4px solid $blue-10;
+        padding: 40px;
+        margin: 0 -40px;
+
+        &__title {
+            @include h5-black-caps;
+            color: $blue-50;
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+
+        &__content {
+            @include body-2-regular;
+            ul {
+                @include body-2-regular;
+                margin-left: 16px;
+
+                li {
+                    margin-bottom: 1em;
+
+                    &:last-child {
+                        margin-bottom: 0;
+                    }
+                }
+            }
+        }
+
+        &__learn-more {
+            @include expandable-paragraph__expand-button--full;
+            margin-top: 24px;
+            svg {
+                font-size: 0.75em;
+                margin-left: 12px;
+            }
+        }
+    }
+
+    .expandable-info-blocks {
+        margin-top: 32px;
+    }
+}

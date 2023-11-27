@@ -1,13 +1,15 @@
 import React, { useEffect } from "react"
 import { Grapher, GrapherInterface } from "@ourworldindata/grapher"
 import {
-    IndicatorBrief,
+    IndicatorKeyData,
+    IndicatorDescriptions,
     CodeSnippet,
     REUSE_THIS_WORK_SECTION_ID,
     OriginSubset,
     IndicatorSources,
     DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
     IndicatorProcessing,
+    SimpleMarkdownText,
 } from "@ourworldindata/components"
 import ReactDOM from "react-dom"
 import { GrapherWithFallback } from "./GrapherWithFallback.js"
@@ -20,6 +22,7 @@ import {
     pick,
     formatAuthors,
     intersection,
+    getPhraseForProcessingLevel,
 } from "@ourworldindata/utils"
 import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
 import StickyNav from "./blocks/StickyNav.js"
@@ -34,49 +37,6 @@ declare global {
     }
 }
 export const OWID_DATAPAGE_CONTENT_ROOT_ID = "owid-datapageJson-root"
-
-const getDateRange = (dateRange: string): string | null => {
-    // This regex matches:
-    //   Beginning of string
-    //   Ignore whitespace
-    //   a named group called start that matches:
-    //     hyphen aka minus
-    //     1 or more digits
-    //   Ignore whitespace
-    //   hyphen aka minus OR en dash
-    //   Ignore whitespace
-    //   a named group called end that matches:
-    //     hyphen aka minus
-    //     1 or more digits
-    //   Ignore whitespace
-    //   End of string
-    const dateRangeRegex = /^\s*(?<start>(-)?\d+)\s*(-|–)\s*(?<end>(-)?\d+)\s*$/
-    const match = dateRange.match(dateRangeRegex)
-    if (match) {
-        const firstYearString = match.groups?.start
-        const lastYearString = match.groups?.end
-        if (!firstYearString || !lastYearString) return null
-
-        const firstYear = parseInt(firstYearString, 10)
-        const lastYear = parseInt(lastYearString, 10)
-        let formattedFirstYear
-
-        // if start year is before year 0, add BCE to the end
-        if (firstYear < 0) formattedFirstYear = `${Math.abs(firstYear)} BCE`
-        else formattedFirstYear = firstYear
-
-        // if end year is before year 0, add BCE to the end or, if start year is after year 0, add CE to the end
-        let formattedLastYear
-        if (lastYear < 0) formattedLastYear = `${Math.abs(lastYear)} BCE`
-        else if (firstYear < 0) formattedLastYear = `${lastYear} CE`
-        else formattedLastYear = lastYear
-
-        if (lastYear < 0 || firstYear < 0)
-            return `${formattedFirstYear} – ${formattedLastYear}`
-        else return `${formattedFirstYear}–${formattedLastYear}`
-    }
-    return null
-}
 
 export const slugify_topic = (topic: string) => {
     // This is a heuristic to map from free form tag texts to topic page URLs. We'll
@@ -145,6 +105,7 @@ export const DataPageV2Content = ({
     const origins: OriginSubset[] = uniq(
         datapageData.origins.map((item) =>
             pick(item, [
+                "title",
                 "producer",
                 "descriptionSnapshot",
                 "dateAccessed",
@@ -162,10 +123,9 @@ export const DataPageV2Content = ({
             ? `${attributionFragments[0]} and other sources`
             : attributionFragments.join(", ")
     const attributionUnshortened = attributionFragments.join(", ")
-    const processedAdapted =
-        datapageData.owidProcessingLevel === "minor"
-            ? `minor processing`
-            : `major adaptations`
+    const processedAdapted = getPhraseForProcessingLevel(
+        datapageData.owidProcessingLevel
+    )
     const lastUpdated = dayjs(datapageData.lastUpdated, ["YYYY", "YYYY-MM-DD"])
     const yearOfUpdate = lastUpdated.year()
     const citationShort = `${attributionPotentiallyShortened} – with ${processedAdapted} by Our World In Data (${yearOfUpdate})`
@@ -185,8 +145,6 @@ export const DataPageV2Content = ({
         linkedCharts = {},
         relatedCharts = [],
     } = faqEntries ?? {}
-
-    const dateRange = getDateRange(datapageData.dateRange)
 
     const citationDatapage = datapageData.primaryTopic
         ? `“Data Page: ${datapageData.title}”, part of the following publication: ${datapageData.primaryTopic.citation}. Data adapted from ${producers}. Retrieved from ${canonicalUrl} [online resource]`
@@ -282,20 +240,53 @@ export const DataPageV2Content = ({
                             className="wrapper"
                             id="explore-the-data"
                         />
-                        <IndicatorBrief
-                            descriptionShort={datapageData.descriptionShort}
-                            descriptionKey={datapageData.descriptionKey}
-                            hasFaqEntries={!!faqEntries?.faqs.length}
-                            descriptionFromProducer={
-                                datapageData.descriptionFromProducer
-                            }
-                            attributionShort={datapageData.attributionShort}
-                            attribution={attributionUnshortened}
-                            processedAdapted={processedAdapted}
-                            dateRange={dateRange ?? undefined}
-                            lastUpdated={datapageData.lastUpdated}
-                            nextUpdate={datapageData.nextUpdate}
-                        />
+                        <div className="wrapper grid grid-cols-12">
+                            <div className="col-start-3 span-cols-8 span-lg-cols-12">
+                                <div className="about-this-data">
+                                    <h2 className="about-this-data__heading">
+                                        About this data
+                                    </h2>
+                                    {datapageData.descriptionShort && (
+                                        <>
+                                            <div className="about-this-data__indicator-title">
+                                                {datapageData.title}
+                                            </div>
+                                            <p className="about-this-data__indicator-description simple-markdown-text">
+                                                <SimpleMarkdownText
+                                                    text={datapageData.descriptionShort.trim()}
+                                                />
+                                            </p>
+                                        </>
+                                    )}
+                                    <IndicatorKeyData
+                                        attribution={attributionUnshortened}
+                                        owidProcessingLevel={
+                                            datapageData.owidProcessingLevel
+                                        }
+                                        dateRange={datapageData.dateRange}
+                                        lastUpdated={datapageData.lastUpdated}
+                                        nextUpdate={datapageData.nextUpdate}
+                                        unit={datapageData.unit}
+                                    />
+                                </div>
+                                <IndicatorDescriptions
+                                    descriptionShort={
+                                        datapageData.descriptionShort
+                                    }
+                                    descriptionKey={datapageData.descriptionKey}
+                                    hasFaqEntries={!!faqEntries?.faqs.length}
+                                    descriptionFromProducer={
+                                        datapageData.descriptionFromProducer
+                                    }
+                                    attributionShort={
+                                        datapageData.attributionShort
+                                    }
+                                    additionalInfo={
+                                        datapageData.source?.additionalInfo
+                                    }
+                                />
+                            </div>
+                        </div>
                     </div>
                     <div className="wrapper">
                         {relatedResearch && relatedResearch.length > 0 && (
@@ -492,12 +483,27 @@ export const DataPageV2Content = ({
                                 >
                                     Sources and processing
                                 </h2>
-                                <IndicatorSources origins={origins} />
-                                <IndicatorProcessing
-                                    descriptionProcessing={
-                                        datapageData.descriptionProcessing
-                                    }
-                                />
+                                <div className="data-sources grid span-cols-12">
+                                    <h3 className="data-sources__heading span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+                                        This data is based on the following
+                                        sources
+                                    </h3>
+                                    <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+                                        <IndicatorSources origins={origins} />
+                                    </div>
+                                </div>
+                                <div className="data-processing grid span-cols-12">
+                                    <h3 className="data-processing__heading span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+                                        How we process data at Our World in Data
+                                    </h3>
+                                    <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+                                        <IndicatorProcessing
+                                            descriptionProcessing={
+                                                datapageData.descriptionProcessing
+                                            }
+                                        />
+                                    </div>
+                                </div>
                             </div>
                             <div className="section-wrapper grid">
                                 <h2

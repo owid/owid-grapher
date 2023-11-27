@@ -1,0 +1,40 @@
+.source-content {
+    .description {
+        @include body-3-medium;
+        margin: 0;
+        margin-bottom: 16px;
+    }
+
+    .key-info {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+        row-gap: 8px;
+
+        .wp-code-snippet {
+            margin-top: 8px;
+            margin-bottom: 0;
+        }
+    }
+
+    .key-data {
+        @include body-3-medium;
+        a {
+            @include owid-link-90;
+            color: inherit;
+        }
+    }
+
+    .key-data--span-2 {
+        grid-column: span 2;
+    }
+
+    .key-data__title {
+        color: $blue-90;
+    }
+
+    .key-data--hide-overflow div:last-child {
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+    }
+}

@@ -3,6 +3,7 @@ import { Static, Type } from "@sinclair/typebox"
 import { gdocUrlRegex } from "./GdocsConstants.js"
 import { OwidOrigin } from "./OwidOrigin.js"
 import { OwidSource } from "./OwidSource.js"
+import { OwidProcessingLevel } from "./OwidVariable.js"
 
 // todo: remove when we ditch Year and YearIsDay
 export const EPOCH_DATE = "2020-01-21"
@@ -1589,7 +1590,7 @@ export interface DataPageDataV2 {
     faqs: FaqLink[] // Todo: resolve these at this level to the point where we can preview them
     descriptionKey: string[]
     descriptionProcessing?: string
-    owidProcessingLevel: "minor" | "major"
+    owidProcessingLevel: OwidProcessingLevel
     dateRange: string
     lastUpdated: string
     nextUpdate?: string
@@ -1599,6 +1600,7 @@ export interface DataPageDataV2 {
     source: OwidSource | undefined
     origins: OwidOrigin[]
     chartConfig: Record<string, unknown>
+    unit?: string
 }
 
 export interface DataPageRelatedResearch {

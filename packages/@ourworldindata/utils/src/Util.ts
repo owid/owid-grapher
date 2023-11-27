@@ -166,11 +166,9 @@ import {
     UserCountryInformation,
     SpanLink,
 } from "./owidTypes.js"
-import { OwidVariableWithSource } from "./OwidVariable.js"
 import { PointVector } from "./PointVector.js"
 import React from "react"
 import { match, P } from "ts-pattern"
-import { OwidOrigin } from "./OwidOrigin.js"
 
 export type NoUndefinedValues<T> = {
     [P in keyof T]: Required<NonNullable<T[P]>>
@@ -1739,80 +1737,6 @@ export function mergePartialGrapherConfigs<T extends Record<string, any>>(
     ...grapherConfigs: (T | undefined)[]
 ): T {
     return merge({}, ...grapherConfigs)
-}
-
-export function getOriginAttributionFragments(
-    origins: OwidOrigin[] | undefined
-): string[] {
-    return origins
-        ? origins.map((origin) => {
-              const yearPublished = origin.datePublished
-                  ? dayjs(origin.datePublished, ["YYYY", "YYYY-MM-DD"]).year()
-                  : undefined
-              const yearPublishedString = yearPublished
-                  ? ` (${yearPublished})`
-                  : ""
-              return (
-                  origin.attribution ??
-                  `${origin.producer}${yearPublishedString}`
-              )
-          })
-        : []
-}
-
-export function getAttributionFromVariable(
-    variable: OwidVariableWithSource
-): string {
-    return getAttributionFragmentsFromVariable(variable).join("; ")
-}
-
-export function getAttributionFragmentsFromVariable(
-    variable: OwidVariableWithSource
-): string[] {
-    if (
-        variable.presentation?.attribution &&
-        variable.presentation?.attribution !== ""
-    )
-        return [variable.presentation?.attribution]
-    const originAttributionFragments = getOriginAttributionFragments(
-        variable.origins
-    )
-    const sourceName = variable.source?.name
-    return uniq(compact([sourceName, ...originAttributionFragments]))
-}
-
-interface ETLPathComponents {
-    channel: string
-    producer: string
-    version: string
-    dataset: string
-    table: string
-    indicator: string
-}
-
-export const getETLPathComponents = (path: string): ETLPathComponents => {
-    const [channel, producer, version, dataset, table, indicator] =
-        path.split("/")
-    return { channel, producer, version, dataset, table, indicator }
-}
-
-export const formatAuthors = ({
-    authors,
-    requireMax,
-    forBibtex,
-}: {
-    authors: string[]
-    requireMax?: boolean
-    forBibtex?: boolean
-}): string => {
-    if (requireMax && !authors.includes("Max Roser"))
-        authors = [...authors, "Max Roser"]
-
-    let authorsText = authors.slice(0, -1).join(forBibtex ? " and " : ", ")
-    if (authorsText.length === 0) authorsText = authors[0]
-    else authorsText += ` and ${last(authors)}`
-
-    return authorsText
 }
 
 /** Works for:

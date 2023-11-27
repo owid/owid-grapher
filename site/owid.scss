@@ -23,8 +23,15 @@
 @import "../packages/@ourworldindata/components/src/styles/colors.scss";
 @import "../packages/@ourworldindata/components/src/styles/typography.scss";
 @import "../packages/@ourworldindata/components/src/styles/util.scss";
+@import "../packages/@ourworldindata/components/src/styles/mixins.scss";
 
-@import "css/mixins.scss";
+@import "../packages/@ourworldindata/components/src/CodeSnippet/code-snippet.scss";
+@import "../packages/@ourworldindata/components/src/ExpandableToggle/ExpandableToggle.scss";
+@import "../packages/@ourworldindata/components/src/IndicatorKeyData/IndicatorKeyData.scss";
+@import "../packages/@ourworldindata/components/src/IndicatorDescriptions/IndicatorDescriptions.scss";
+@import "../packages/@ourworldindata/components/src/IndicatorSources/IndicatorSources.scss";
+@import "../packages/@ourworldindata/components/src/IndicatorProcessing/IndicatorProcessing.scss";
+
 @import "css/grid.scss";
 @import "css/layout.scss";
 @import "css/general.scss";
@@ -69,7 +76,6 @@
 @import "./blocks/CookiePreferences.scss";
 @import "./blocks/Grid.scss";
 @import "./blocks/Card.scss";
-@import "../packages/@ourworldindata/components/src/CodeSnippet/code-snippet.scss";
 @import "./blocks/BiographyCard.scss";
 @import "./blocks/KeyInsights.scss";
 @import "./blocks/TechnicalText.scss";
@@ -91,7 +97,6 @@
 @import "./gdocs/Chart.scss";
 @import "./DataPage.scss";
 @import "./DataPageContent.scss";
-@import "../packages/@ourworldindata/components/src/ExpandableToggle/ExpandableToggle.scss";
 @import "./detailsOnDemand.scss";
 
 @import "css/donate.scss";
