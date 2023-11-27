@@ -2,16 +2,19 @@ import {
     Bounds,
     DEFAULT_BOUNDS,
     uniq,
+    sum,
+    zip,
     getAttributionFragmentsFromVariable,
     getLastUpdatedFromVariable,
     getNextUpdateFromVariable,
     excludeUndefined,
-    splitSourceTextIntoFragments,
     DisplaySource,
     prepareSourcesForDisplay,
     OwidSource,
 } from "@ourworldindata/utils"
 import {
+    Tabs,
+    ExpandableTabs,
     IndicatorKeyData,
     IndicatorDescriptions,
     IndicatorSources,
@@ -25,6 +28,9 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { CoreColumn, OwidColumnDef } from "@ourworldindata/core-table"
 import { Modal } from "./Modal"
 
+// keep in sync with variables in SourcesModal.scss
+const MAX_WIDTH = 832
+
 export interface SourcesModalManager {
     adminBaseUrl?: string
     columnsWithSourcesExtensive: CoreColumn[]
@@ -32,12 +38,30 @@ export interface SourcesModalManager {
     isSourcesModalOpen?: boolean
     tabBounds?: Bounds
     isEmbeddedInADataPage?: boolean
+    isNarrow?: boolean
+    fontSize?: number
+}
+
+interface SourcesModalProps {
+    manager: SourcesModalManager
+}
+
+interface SourcesModalState {
+    activeTabIndex: number
 }
 
 @observer
-export class SourcesModal extends React.Component<{
-    manager: SourcesModalManager
-}> {
+export class SourcesModal extends React.Component<
+    SourcesModalProps,
+    SourcesModalState
+> {
+    constructor(props: SourcesModalProps) {
+        super(props)
+        this.state = {
+            activeTabIndex: 0,
+        }
+    }
+
     @computed private get manager(): SourcesModalManager {
         return this.props.manager
     }
@@ -56,8 +80,106 @@ export class SourcesModal extends React.Component<{
         return `${this.props.manager.adminBaseUrl}/admin/datasets`
     }
 
+    @computed private get columns(): CoreColumn[] {
+        return this.manager.columnsWithSourcesExtensive
+    }
+
+    @computed private get tabLabels(): string[] {
+        return this.columns.map((column) => column.nonEmptyDisplayName)
+    }
+
+    private renderSource(column: CoreColumn | undefined): JSX.Element | null {
+        if (!column) return null
+        return (
+            <Source
+                column={column}
+                editBaseUrl={this.editBaseUrl}
+                isEmbeddedInADataPage={
+                    this.manager.isEmbeddedInADataPage ?? false
+                }
+            />
+        )
+    }
+
+    private renderTabs(): JSX.Element {
+        const activeIndex = this.state.activeTabIndex
+        const setActiveIndex = (index: number) =>
+            this.setState({
+                activeTabIndex: index,
+            })
+
+        if (this.manager.isNarrow)
+            return (
+                <Tabs
+                    labels={this.tabLabels}
+                    activeIndex={activeIndex}
+                    setActiveIndex={setActiveIndex}
+                    horizontalScroll={true}
+                />
+            )
+
+        // width available for tabs
+        const modalPadding = 1.5 * (this.manager.fontSize ?? 16)
+        const maxWidth = Math.min(
+            MAX_WIDTH,
+            this.modalBounds.width - 2 * modalPadding - 10 // wiggle room
+        )
+
+        const labelWidths = this.tabLabels.map(
+            (label) => measureTabWidth(label) + 8 // right padding
+        )
+
+        // check if all tabs fit into a single line
+        if (sum(labelWidths) <= maxWidth)
+            return (
+                <Tabs
+                    labels={this.tabLabels}
+                    activeIndex={activeIndex}
+                    setActiveIndex={setActiveIndex}
+                />
+            )
+
+        // get a subset of tabs that fit into a single line
+        const getVisibleLabels = (labels: string[]) => {
+            // take width of the "Show more" button into account
+            let width =
+                measureTabWidth("Show more") +
+                13 + // icon width
+                6 // icon padding
+
+            const visibleLabels: string[] = []
+            for (const [label, labelWidth] of zip(labels, labelWidths)) {
+                width += labelWidth as number
+                if (width > maxWidth) break
+                visibleLabels.push(label as string)
+            }
+
+            return visibleLabels
+        }
+
+        // if only a single label would be visible, we prefer tabs with horizontal scrolling
+        const visibleLabels = getVisibleLabels(this.tabLabels)
+        if (visibleLabels.length <= 1)
+            return (
+                <Tabs
+                    labels={this.tabLabels}
+                    activeIndex={activeIndex}
+                    setActiveIndex={setActiveIndex}
+                    horizontalScroll={true}
+                />
+            )
+
+        return (
+            <ExpandableTabs
+                labels={this.tabLabels}
+                activeIndex={activeIndex}
+                setActiveIndex={setActiveIndex}
+                getVisibleLabels={getVisibleLabels}
+            />
+        )
+    }
+
     render(): JSX.Element {
-        const { columnsWithSourcesExtensive } = this.manager
         return (
             <Modal
                 onDismiss={action(
@@ -66,16 +188,20 @@ export class SourcesModal extends React.Component<{
                 bounds={this.modalBounds}
             >
                 <div className="SourcesModalContent">
-                    {columnsWithSourcesExtensive.map((column) => (
-                        <Source
-                            key={column.slug}
-                            column={column}
-                            editBaseUrl={this.editBaseUrl}
-                            isEmbeddedInADataPage={
-                                this.manager.isEmbeddedInADataPage ?? false
-                            }
-                        />
-                    ))}
+                    {this.columns.length === 1 ? (
+                        this.renderSource(this.columns[0])
+                    ) : (
+                        <>
+                            <p className="note-multiple-indicators">
+                                This data includes several indicators. Select an
+                                indicator for more information.
+                            </p>
+                            {this.renderTabs()}
+                            {this.renderSource(
+                                this.columns[this.state.activeTabIndex]
+                            )}
+                        </>
+                    )}
                 </div>
             </Modal>
         )
@@ -97,7 +223,7 @@ export class Source extends React.Component<{
     }
 
     @computed private get title(): string {
-        return this.def.display?.name || this.def.name || ""
+        return this.props.column.nonEmptyDisplayName
     }
 
     @computed private get editUrl(): string | undefined {
@@ -143,10 +269,6 @@ export class Source extends React.Component<{
         )
     }
 
-    @computed private get sourceLinks(): string[] {
-        return splitSourceTextIntoFragments(this.source.link)
-    }
-
     @computed private get sourcesForDisplay(): DisplaySource[] {
         return prepareSourcesForDisplay(this.def)
     }
@@ -172,8 +294,17 @@ export class Source extends React.Component<{
                     lastUpdated={this.lastUpdated}
                     nextUpdate={this.nextUpdate}
                     unit={this.unit}
-                    links={this.sourceLinks}
+                    link={this.source.link}
+                    unitConversionFactor={
+                        this.props.column.unitConversionFactor
+                    }
                     isEmbeddedInADataPage={this.props.isEmbeddedInADataPage}
+                    hideTopBorder={!this.def.descriptionShort}
+                    hideBottomBorder={
+                        this.showDescriptions &&
+                        (!this.def.descriptionKey ||
+                            this.def.descriptionKey.length === 0)
+                    }
                 />
                 {this.showDescriptions && (
                     <IndicatorDescriptions
@@ -204,7 +335,7 @@ export class Source extends React.Component<{
                             />
                         </>
                     )}
-                <h3 className="heading heading--tight">
+                <h3 className="heading">
                     How we process data at Our World in Data:
                 </h3>
                 <IndicatorProcessing
@@ -213,4 +344,14 @@ export class Source extends React.Component<{
             </div>
         )
     }
+}
+
+// keep in sync with .Tabs__tab styles in SourcesModal.scss
+const measureTabWidth = (label: string): number => {
+    const maxWidth = 240
+    const computedWidth =
+        2 * 16 + // padding
+        Bounds.forText(label, { fontSize: 13 }).width +
+        2 // border
+    return Math.min(maxWidth, computedWidth)
 }

@@ -855,10 +855,7 @@ export class DataTable extends React.Component<{
             const coreTableColumn = d.sourceColumn
             const unit =
                 coreTableColumn.unit === "%" ? "percent" : coreTableColumn.unit
-            const columnName =
-                coreTableColumn.displayName !== ""
-                    ? coreTableColumn.displayName
-                    : coreTableColumn.name
+            const columnName = coreTableColumn.displayName
 
             return {
                 coreTableColumn,

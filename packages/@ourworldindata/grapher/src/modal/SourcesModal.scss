@@ -1,18 +1,24 @@
 .SourcesModalContent {
-    padding-bottom: $modal-padding;
+    // keep in sync with variables in SourcesModal.tsx
+    $max-width: 832px;
 
-    max-width: 840px;
+    padding-bottom: $modal-padding;
+    max-width: $max-width;
     margin: 0 auto;
 
     $border: #e7e7e7;
     $box-title: #a1a1a1;
 
+    .note-multiple-indicators {
+        margin-top: 0;
+        color: $light-text;
+        font-size: 0.875rem;
+        font-style: italic;
+        font-weight: 500;
+    }
+
     .source {
         color: $dark-text;
-
-        + .source {
-            margin-top: 48px;
-        }
 
         h2 {
             @include h1-semibold;
@@ -40,12 +46,8 @@
 
         .heading {
             @include h2-semibold;
-            margin-bottom: 16px;
             margin-top: 32px;
-
-            &--tight {
-                margin-bottom: 8px;
-            }
+            margin-bottom: 8px;
         }
 
         .indicator-key-data {
@@ -58,18 +60,31 @@
 
         .indicator-descriptions .key-info {
             --indicator-key-info-title: #{$box-title};
+            --indicator-key-info-content-size: 0.875rem;
 
             margin: 24px 0;
             padding: 32px;
+
+            &__content,
+            &__content ul {
+                font-weight: 500;
+            }
         }
 
-        .source-key-data {
-            --source-key-data-title: #{$dark-text};
+        .indicator-sources {
+            .ExpandableToggle:first-of-type {
+                border-top: none;
+            }
+
+            .source-key-data {
+                --source-key-data-title: #{$dark-text};
+            }
         }
 
         .data-processing {
             --data-processing-content: #{$light-text};
 
+            margin-top: 0;
             margin-bottom: 16px;
         }
 
@@ -105,6 +120,14 @@
             --code-snippet-button-active: #{$light-text};
         }
 
+        // keep in sync with measureTabWidth() in SourcesModal.tsx
+        .Tabs__tab {
+            font-size: 13px;
+            padding: 8px 16px;
+            margin-right: 8px;
+            max-width: 240px;
+        }
+
         .indicator-descriptions .key-info__learn-more,
         .indicator-processing .indicator-processing__link {
             @include body-3-medium;
@@ -125,6 +148,52 @@
                 display: inline-block;
                 transform: rotate(-90deg);
             }
+        }
+    }
+}
+
+&.GrapherComponentSmall .SourcesModalContent {
+    .source {
+        --text-small: 0.8125rem;
+
+        --indicator-processing-content-size: var(--text-small);
+        --data-processing-content-size: var(--text-small);
+        --expandable-toggle-title-size: 0.875rem;
+        --expandable-toggle-content-size: var(--text-small);
+        --non-expandable-title-size: 0.875rem;
+        --non-expandable-content-size: var(--text-small);
+
+        h2 {
+            font-size: 1.25rem;
+            @include sm-up {
+                font-size: 1.25rem;
+            }
+        }
+
+        h2 + p {
+            font-size: var(--text-small);
+        }
+
+        .heading {
+            font-size: 1.125rem;
+        }
+
+        .indicator-descriptions .key-info {
+            --indicator-key-info-content-size: var(--text-small);
+            padding: 24px;
+        }
+
+        .indicator-descriptions .key-info__learn-more,
+        .indicator-processing .indicator-processing__link {
+            font-size: var(--text-small);
+        }
+    }
+}
+
+&.GrapherComponentNarrow .SourcesModalContent {
+    .source {
+        .indicator-key-data-item {
+            display: block;
         }
     }
 }

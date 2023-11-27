@@ -51,8 +51,8 @@ $modal-padding: 1.5em;
             justify-content: center;
 
             position: absolute;
-            top: $modal-padding / 2;
-            right: $modal-padding / 2;
+            top: $modal-padding;
+            right: $modal-padding;
 
             &:hover {
                 border-color: $hover-fill;

@@ -22,6 +22,7 @@ import {
     intersection,
     getPhraseForProcessingLevel,
     prepareSourcesForDisplay,
+    excludeUndefined,
 } from "@ourworldindata/utils"
 import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
 import StickyNav from "./blocks/StickyNav.js"
@@ -113,7 +114,7 @@ export const DataPageV2Content = ({
     const processingLevelPhrase = getPhraseForProcessingLevel(
         datapageData.owidProcessingLevel
     )
-    const lastUpdated = dayjs(datapageData.lastUpdated, ["YYYY", "YYYY-MM-DD"])
+    const lastUpdated = dayjs(datapageData.lastUpdated, ["YYYY-MM-DD", "YYYY"])
     const yearOfUpdate = lastUpdated.year()
     const citationShort = `${attributionPotentiallyShortened} – ${processingLevelPhrase} by Our World in Data (${yearOfUpdate})`
     const citationLonger = `${attributionUnshortened} – ${processingLevelPhrase} by Our World in Data (${yearOfUpdate})`
@@ -124,7 +125,16 @@ export const DataPageV2Content = ({
     ).join("; ")
     const today = dayjs().format("MMMM D, YYYY")
     const currentYear = dayjs().year()
-    const citationLong = `${citationLonger}. ${datapageData.title}. ${originsLong}. Retrieved ${today} from ${canonicalUrl}`
+    const citationLong = excludeUndefined([
+        `${citationLonger}.`,
+        `${datapageData.title}.`,
+        originsLong
+            ? `${originsLong}.`
+            : datapageData.source?.name
+            ? `${datapageData.source?.name}.`
+            : undefined,
+        `Retrieved ${today} from ${canonicalUrl}`,
+    ]).join(" ")
 
     const {
         linkedDocuments = {},
@@ -133,9 +143,15 @@ export const DataPageV2Content = ({
         relatedCharts = [],
     } = faqEntries ?? {}
 
-    const citationDatapage = datapageData.primaryTopic
-        ? `“Data Page: ${datapageData.title}”, part of the following publication: ${datapageData.primaryTopic.citation}. Data adapted from ${producers}. Retrieved from ${canonicalUrl} [online resource]`
-        : `“Data Page: ${datapageData.title}”. Our World in Data (${currentYear}). Data adapted from ${producers}. Retrieved from ${canonicalUrl} [online resource]`
+    const adaptedFrom =
+        producers.length > 0 ? producers.join(", ") : datapageData.source?.name
+    const citationDatapage = excludeUndefined([
+        datapageData.primaryTopic
+            ? `“Data Page: ${datapageData.title}”, part of the following publication: ${datapageData.primaryTopic.citation}.`
+            : `“Data Page: ${datapageData.title}”. Our World in Data (${currentYear}).`,
+        adaptedFrom ? `Data adapted from ${adaptedFrom}.` : undefined,
+        `Retrieved from ${canonicalUrl} [online resource]`,
+    ]).join(" ")
 
     const relatedResearchCandidates = datapageData.relatedResearch
     const relatedResearch =
@@ -254,6 +270,10 @@ export const DataPageV2Content = ({
                                         lastUpdated={datapageData.lastUpdated}
                                         nextUpdate={datapageData.nextUpdate}
                                         unit={datapageData.unit}
+                                        unitConversionFactor={
+                                            datapageData.unitConversionFactor
+                                        }
+                                        link={datapageData.source?.link}
                                     />
                                 </div>
                                 <IndicatorDescriptions

@@ -4,11 +4,12 @@
         --border-left: var(--indicator-key-info-border-left, #{$blue-10});
         --title: var(--indicator-key-info-title, #{$blue-50});
         --content: var(--indicator-key-info-content, currentColor);
+        --content-size: var(--indicator-key-info-content-size, 1rem);
 
         background-color: var(--background);
         border-left: 4px solid var(--border-left);
         padding: 40px;
-        margin: 0 -40px;
+        margin: 32px -40px;
 
         &__title {
             @include h5-black-caps;
@@ -17,19 +18,20 @@
             margin-bottom: 16px;
         }
 
-        &__content {
+        &__content,
+        &__content ul {
             @include body-2-regular;
             color: var(--content);
-            ul {
-                @include body-2-regular;
-                margin-left: 16px;
+            font-size: var(--content-size);
+        }
 
-                li {
-                    margin-bottom: 1em;
+        &__content ul {
+            margin-left: 16px;
+            li {
+                margin-bottom: 1em;
 
-                    &:last-child {
-                        margin-bottom: 0;
-                    }
+                &:last-child {
+                    margin-bottom: 0;
                 }
             }
         }
@@ -44,16 +46,8 @@
         }
     }
 
-    .expandable-info-blocks {
-        margin-top: 32px;
-    }
-
-    .simple-markdown-text {
-        @include body-3-medium;
-
-        a {
-            @include owid-link-60;
-            color: inherit;
-        }
+    a {
+        @include owid-link-60;
+        color: inherit;
     }
 }

@@ -10,7 +10,7 @@ export function getOriginAttributionFragments(
     return origins
         ? origins.map((origin) => {
               const yearPublished = origin.datePublished
-                  ? dayjs(origin.datePublished, ["YYYY", "YYYY-MM-DD"]).year()
+                  ? dayjs(origin.datePublished, ["YYYY-MM-DD", "YYYY"]).year()
                   : undefined
               const yearPublishedString = yearPublished
                   ? ` (${yearPublished})`

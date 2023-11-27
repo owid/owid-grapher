@@ -4,6 +4,7 @@ import {
     dayjs,
     OwidProcessingLevel,
     getPhraseForProcessingLevel,
+    splitSourceTextIntoFragments,
 } from "@ourworldindata/utils"
 import { DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID } from "../SharedDataPageConstants.js"
 import { SimpleMarkdownText } from "../SimpleMarkdownText.js"
@@ -15,8 +16,13 @@ interface IndicatorKeyDataProps {
     nextUpdate?: string
     unit?: string
     owidProcessingLevel?: OwidProcessingLevel
-    links?: string[]
+    link?: string
+    unitConversionFactor?: number
     isEmbeddedInADataPage?: boolean // true by default
+
+    // styling
+    hideTopBorder?: boolean
+    hideBottomBorder?: boolean
 }
 
 export const IndicatorKeyData = (props: IndicatorKeyDataProps) => {
@@ -25,14 +31,40 @@ export const IndicatorKeyData = (props: IndicatorKeyDataProps) => {
         props.owidProcessingLevel
     )
 
-    const lastUpdated = dayjs(props.lastUpdated ?? "", ["YYYY", "YYYY-MM-DD"])
+    const lastUpdated = dayjs(props.lastUpdated ?? "", ["YYYY-MM-DD", "YYYY"])
     const showLastUpdated = lastUpdated.isValid()
 
-    const nextUpdate = dayjs(props.nextUpdate ?? "", ["YYYY", "YYYY-MM-DD"])
+    const nextUpdate = dayjs(props.nextUpdate ?? "", ["YYYY-MM-DD"])
     const showNextUpdate = nextUpdate.isValid()
 
+    const showUnitConversionFactor =
+        props.unitConversionFactor && props.unitConversionFactor !== 1
+
+    const linkFragments = splitSourceTextIntoFragments(props.link)
+    const link = linkFragments.join("\n")
+
+    const keyDataCount = count(
+        props.attribution,
+        showLastUpdated,
+        showNextUpdate,
+        props.dateRange,
+        props.unit,
+        showUnitConversionFactor,
+        link
+    )
+    const hasSingleRow =
+        keyDataCount === 1 ||
+        (keyDataCount === 2 && !props.attribution && !link)
+
     return (
-        <div className="indicator-key-data">
+        <div
+            className={cx("indicator-key-data", {
+                "indicator-key-data--top-border":
+                    !hasSingleRow && !props.hideTopBorder,
+                "indicator-key-data--bottom-border":
+                    !hasSingleRow && !props.hideBottomBorder,
+            })}
+        >
             {props.attribution && (
                 <div className="indicator-key-data-item indicator-key-data-item--span">
                     <div className="indicator-key-data-item__title">Source</div>
@@ -56,7 +88,10 @@ export const IndicatorKeyData = (props: IndicatorKeyDataProps) => {
                 <div
                     className={cx("indicator-key-data-item", {
                         "indicator-key-data-item--span":
-                            !showNextUpdate && !props.dateRange && !props.unit,
+                            !showNextUpdate &&
+                            !props.dateRange &&
+                            !props.unit &&
+                            !showUnitConversionFactor,
                     })}
                 >
                     <div className="indicator-key-data-item__title">
@@ -71,7 +106,10 @@ export const IndicatorKeyData = (props: IndicatorKeyDataProps) => {
                 <div
                     className={cx("indicator-key-data-item", {
                         "indicator-key-data-item--span":
-                            !props.dateRange && !props.unit && !showLastUpdated,
+                            !props.dateRange &&
+                            !showLastUpdated &&
+                            !props.unit &&
+                            !showUnitConversionFactor,
                     })}
                 >
                     <div className="indicator-key-data-item__title">
@@ -87,6 +125,7 @@ export const IndicatorKeyData = (props: IndicatorKeyDataProps) => {
                     className={cx("indicator-key-data-item", {
                         "indicator-key-data-item--span":
                             !props.unit &&
+                            !showUnitConversionFactor &&
                             isEven(count(showLastUpdated, showNextUpdate)),
                     })}
                 >
@@ -101,13 +140,15 @@ export const IndicatorKeyData = (props: IndicatorKeyDataProps) => {
             {props.unit && (
                 <div
                     className={cx("indicator-key-data-item", {
-                        "indicator-key-data-item--span": isEven(
-                            count(
-                                props.lastUpdated,
-                                props.nextUpdate,
-                                props.dateRange
-                            )
-                        ),
+                        "indicator-key-data-item--span":
+                            !showUnitConversionFactor &&
+                            isEven(
+                                count(
+                                    props.lastUpdated,
+                                    props.nextUpdate,
+                                    props.dateRange
+                                )
+                            ),
                     })}
                 >
                     <div className="indicator-key-data-item__title">Unit</div>
@@ -116,24 +157,34 @@ export const IndicatorKeyData = (props: IndicatorKeyDataProps) => {
                     </div>
                 </div>
             )}
-            {props.links && props.links.length > 0 && (
-                <div className="indicator-key-data-item indicator-key-data-item--span">
+            {showUnitConversionFactor && (
+                <div
+                    className={cx("indicator-key-data-item", {
+                        "indicator-key-data-item--span": isEven(
+                            count(
+                                props.lastUpdated,
+                                props.nextUpdate,
+                                props.dateRange,
+                                props.unit
+                            )
+                        ),
+                    })}
+                >
                     <div className="indicator-key-data-item__title">
-                        {props.links.length > 1 ? "Links" : "Link"}
+                        Unit conversion factor
                     </div>
                     <div className="indicator-key-data-item__content">
-                        {props.links.map((link, index, links) => (
-                            <>
-                                <a
-                                    href={link}
-                                    target="_blank"
-                                    rel="nopener noreferrer"
-                                >
-                                    {link}
-                                </a>
-                                {index < links.length - 1 && <br />}
-                            </>
-                        ))}
+                        {props.unitConversionFactor}
+                    </div>
+                </div>
+            )}
+            {link && (
+                <div className="indicator-key-data-item indicator-key-data-item--span">
+                    <div className="indicator-key-data-item__title">
+                        {linkFragments.length > 1 ? "Links" : "Link"}
+                    </div>
+                    <div className="indicator-key-data-item__content">
+                        <SimpleMarkdownText text={link} />
                     </div>
                 </div>
             )}

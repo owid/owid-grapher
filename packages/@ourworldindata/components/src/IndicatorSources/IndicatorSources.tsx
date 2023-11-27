@@ -16,7 +16,7 @@ export const IndicatorSources = (props: IndicatorSourcesProps) => {
     const uniqueSources = uniqBy(props.sources, "label")
 
     return (
-        <>
+        <div className="indicator-sources">
             {uniqueSources.map((source: DisplaySource, idx: number) => {
                 const isStacked = idx !== uniqueSources.length - 1
                 const content = (
@@ -44,7 +44,7 @@ export const IndicatorSources = (props: IndicatorSourcesProps) => {
                     />
                 )
             })}
-        </>
+        </div>
     )
 }
 

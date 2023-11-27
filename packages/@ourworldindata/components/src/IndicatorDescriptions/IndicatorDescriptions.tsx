@@ -26,7 +26,7 @@ export const IndicatorDescriptions = (props: IndicatorDescriptionsProps) => {
                     <h3 className="key-info__title">
                         What you should know about this data
                     </h3>
-                    <div className="key-info__content simple-markdown-text">
+                    <div className="key-info__content">
                         {props.descriptionKey.length === 1 ? (
                             <SimpleMarkdownText
                                 text={props.descriptionKey[0].trim()}
@@ -60,7 +60,7 @@ export const IndicatorDescriptions = (props: IndicatorDescriptionsProps) => {
                                 : "How does the producer of this data describe this data?"
                         }
                         content={
-                            <div className="simple-markdown-text">
+                            <div className="expandable-info-blocks__content">
                                 <SimpleMarkdownText
                                     text={props.descriptionFromProducer.trim()}
                                 />
@@ -76,7 +76,7 @@ export const IndicatorDescriptions = (props: IndicatorDescriptionsProps) => {
                     <ExpandableToggle
                         label="Additional information about this data"
                         content={
-                            <div className="simple-markdown-text">
+                            <div className="expandable-info-blocks__content">
                                 <HtmlOrSimpleMarkdownText
                                     text={props.additionalInfo.trim()}
                                 />

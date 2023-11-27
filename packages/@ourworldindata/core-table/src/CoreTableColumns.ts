@@ -261,8 +261,16 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return this.def.name ?? this.def.slug
     }
 
+    @imemo get nonEmptyName(): string {
+        return this.def.name || this.def.slug
+    }
+
     @imemo get displayName(): string {
         return this.display?.name ?? this.name ?? ""
+    }
+
+    @imemo get nonEmptyDisplayName(): string {
+        return this.display?.name || this.nonEmptyName
     }
 
     @imemo get datasetId(): number | undefined {

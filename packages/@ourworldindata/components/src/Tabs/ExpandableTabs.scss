@@ -1,0 +1,9 @@
+.ExpandableTabs__button {
+    color: #5b5b5b;
+    border-color: #f2f2f2 !important; // !important overwrites style definitions in grapher.scss
+    background: #f2f2f2 !important;
+
+    svg {
+        margin-right: 6px;
+    }
+}

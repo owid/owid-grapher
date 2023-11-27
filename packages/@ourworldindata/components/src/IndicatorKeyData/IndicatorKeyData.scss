@@ -5,8 +5,13 @@
 
     @include body-3-medium;
 
-    border-top: 1px solid var(--border);
-    border-bottom: 1px solid var(--border);
+    &--top-border {
+        border-top: 1px solid var(--border);
+    }
+
+    &--bottom-border {
+        border-bottom: 1px solid var(--border);
+    }
 
     display: grid;
     grid-template-columns: repeat(2, 1fr);
