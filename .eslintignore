@@ -15,3 +15,4 @@ wordpress/web/wp/wp-content/**
 wordpress/vendor/**
 packages/@ourworldindata/*/dist/
 dist/
+.vscode/

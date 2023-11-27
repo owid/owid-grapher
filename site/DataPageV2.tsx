@@ -135,6 +135,7 @@ export const DataPageV2 = (props: {
                                     {
                                         datapageData,
                                         faqEntries,
+                                        canonicalUrl,
                                     }
                                 )}`,
                             }}

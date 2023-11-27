@@ -19,12 +19,14 @@ import {
     uniq,
     pick,
     formatAuthors,
+    intersection,
 } from "@ourworldindata/utils"
 import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
 import StickyNav from "./blocks/StickyNav.js"
 import cx from "classnames"
 import { DebugProvider } from "./gdocs/DebugContext.js"
 import dayjs from "dayjs"
+import { IMAGE_HOSTING_CDN_URL } from "../settings/clientSettings.js"
 declare global {
     interface Window {
         _OWID_DATAPAGEV2_PROPS: DataPageV2ContentFields
@@ -190,6 +192,31 @@ export const DataPageV2Content = ({
         ? `“Data Page: ${datapageData.title}”, part of the following publication: ${datapageData.primaryTopic.citation}. Data adapted from ${producers}. Retrieved from ${canonicalUrl} [online resource]`
         : `“Data Page: ${datapageData.title}”. Our World in Data (${currentYear}). Data adapted from ${producers}. Retrieved from ${canonicalUrl} [online resource]`
 
+    const relatedResearchCandidates = datapageData.relatedResearch
+    const relatedResearch =
+        relatedResearchCandidates.length > 3 &&
+        datapageData.topicTagsLinks?.length
+            ? relatedResearchCandidates.filter((research) => {
+                  const shared = intersection(
+                      research.tags,
+                      datapageData.topicTagsLinks ?? []
+                  )
+                  return shared.length > 0
+              })
+            : relatedResearchCandidates
+    for (const item of relatedResearch) {
+        // TODO: these are workarounds to not link to the (not really existing) template pages for energy or co2
+        // country profiles but instead to the topic page at the country selector.
+        if (item.url === "/co2-country-profile")
+            item.url =
+                "/co2-and-greenhouse-gas-emissions#co2-and-greenhouse-gas-emissions-country-profiles"
+        else if (item.url === "/energy-country-profile")
+            item.url = "/energy#country-profiles"
+        else if (item.url === "/coronavirus-country-profile")
+            item.url = "/coronavirus#coronavirus-country-profiles"
+    }
+    // TODO: mark topic pages
+
     return (
         <AttachmentsContext.Provider
             value={{
@@ -271,45 +298,68 @@ export const DataPageV2Content = ({
                         />
                     </div>
                     <div className="wrapper">
-                        {datapageData.relatedResearch &&
-                            datapageData.relatedResearch.length > 0 && (
-                                <div className="section-wrapper grid">
-                                    <h2
-                                        className="related-research__title span-cols-3 span-lg-cols-12"
-                                        id="research-and-writing"
-                                    >
-                                        Related research and writing
-                                    </h2>
-                                    <div className="related-research__items grid grid-cols-9 grid-lg-cols-12 span-cols-9 span-lg-cols-12">
-                                        {datapageData.relatedResearch.map(
-                                            (research: any) => (
-                                                <a
-                                                    href={research.url}
-                                                    key={research.url}
-                                                    className="related-research__item grid grid-cols-4 grid-lg-cols-6 grid-sm-cols-12 span-cols-4 span-lg-cols-6 span-sm-cols-12"
-                                                >
-                                                    <img
-                                                        src={research.imageUrl}
-                                                        alt=""
-                                                        className="span-lg-cols-2 span-sm-cols-3"
-                                                    />
-                                                    <div className="span-cols-3 span-lg-cols-4 span-sm-cols-9">
-                                                        <h3 className="related-article__title">
-                                                            {research.title}
-                                                        </h3>
-                                                        <div className="related-article__authors body-3-medium-italic">
-                                                            {formatAuthors({
-                                                                authors:
-                                                                    research.authors,
-                                                            })}
-                                                        </div>
-                                                    </div>
-                                                </a>
-                                            )
-                                        )}
-                                    </div>
+                        {relatedResearch && relatedResearch.length > 0 && (
+                            <div className="section-wrapper grid">
+                                <h2
+                                    className="related-research__title span-cols-3 span-lg-cols-12"
+                                    id="research-and-writing"
+                                >
+                                    Related research and writing
+                                </h2>
+                                <div className="related-research__items grid grid-cols-9 grid-lg-cols-12 span-cols-9 span-lg-cols-12">
+                                    {relatedResearch.map((research) => (
+                                        <a
+                                            href={research.url}
+                                            key={research.url}
+                                            className="related-research__item grid grid-cols-4 grid-lg-cols-6 grid-sm-cols-12 span-cols-4 span-lg-cols-6 span-sm-cols-12"
+                                        >
+                                            {/* <figure>
+                                                        <Image
+                                                            filename={
+                                                                research.imageUrl
+                                                            }
+                                                            shouldLightbox={
+                                                                false
+                                                            }
+                                                            containerType={
+                                                                "thumbnail"
+                                                            }
+                                                        />
+                                                    </figure> */}
+                                            {/* // TODO: switch this to use the Image component and put the required information for the thumbnails into hte attachment context or similar */}
+                                            <img
+                                                src={
+                                                    research.imageUrl &&
+                                                    research.imageUrl.startsWith(
+                                                        "http"
+                                                    )
+                                                        ? research.imageUrl
+                                                        : encodeURI(
+                                                              `${IMAGE_HOSTING_CDN_URL}/production/${research.imageUrl}`
+                                                          )
+                                                }
+                                                alt=""
+                                                className="span-lg-cols-2 span-sm-cols-3"
+                                            />
+                                            <div className="span-cols-3 span-lg-cols-4 span-sm-cols-9">
+                                                <h3 className="related-article__title">
+                                                    {research.title}
+                                                </h3>
+                                                <div className="related-article__authors body-3-medium-italic">
+                                                    {research.authors &&
+                                                        research.authors
+                                                            .length &&
+                                                        formatAuthors({
+                                                            authors:
+                                                                research.authors,
+                                                        })}
+                                                </div>
+                                            </div>
+                                        </a>
+                                    ))}
                                 </div>
-                            )}
+                            </div>
+                        )}
                         {!!datapageData.relatedData?.length && (
                             <div className="section-wrapper grid">
                                 <h2

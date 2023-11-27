@@ -7,8 +7,12 @@ import { exit } from "../db/cleanup.js"
 import { PostRow } from "@ourworldindata/utils"
 import * as wpdb from "../db/wpdb.js"
 import * as db from "../db/db.js"
-import { buildReusableBlocksResolver } from "../db/syncPostsToGrapher.js"
+import {
+    buildReusableBlocksResolver,
+    getLinksToAddAndRemoveForPost,
+} from "../db/syncPostsToGrapher.js"
 import { postsTable, select } from "../db/model/Post.js"
+import { PostLink } from "../db/model/PostLink.js"
 const argv = parseArgs(process.argv.slice(2))
 
 const zeroDateString = "0000-00-00 00:00:00"
@@ -141,6 +145,37 @@ const syncPostToGrapher = async (
             db.knexTable(postsTable).where({ id: postId })
         )
     )[0]
+
+    if (postRow) {
+        const existingLinksForPost = await PostLink.findBy({
+            sourceId: wpPost.ID,
+        })
+
+        const { linksToAdd, linksToDelete } = getLinksToAddAndRemoveForPost(
+            postRow,
+            existingLinksForPost,
+            postRow!.content,
+            wpPost.ID
+        )
+
+        // TODO: unify our DB access and then do everything in one transaction
+        if (linksToAdd.length) {
+            console.log("linksToAdd", linksToAdd.length)
+            await PostLink.createQueryBuilder()
+                .insert()
+                .into(PostLink)
+                .values(linksToAdd)
+                .execute()
+        }
+
+        if (linksToDelete.length) {
+            console.log("linksToDelete", linksToDelete.length)
+            await PostLink.createQueryBuilder()
+                .where("id in (:ids)", { ids: linksToDelete.map((x) => x.id) })
+                .delete()
+                .execute()
+        }
+    }
     return newPost ? newPost.slug : undefined
 }
 

@@ -3,12 +3,16 @@
 
 import * as wpdb from "./wpdb.js"
 import * as db from "./db.js"
-import { keyBy, PostRow } from "@ourworldindata/utils"
+import { excludeNullish, groupBy, keyBy, PostRow } from "@ourworldindata/utils"
 import { postsTable, select } from "./model/Post.js"
+import { PostLink } from "./model/PostLink.js"
 
 const zeroDateString = "0000-00-00 00:00:00"
 
 const blockRefRegex = /<!-- wp:block \{"ref":(?<id>\d+)\} \/-->/g
+const prominentLinkRegex = /"linkUrl":"(?<url>[^"]+)"/g
+const anyHrefRegex = /href="(?<url>[^"]+)"/g
+const anySrcRegex = /src="(?<url>[^"]+)"/g
 
 interface ReusableBlock {
     ID: number
@@ -97,6 +101,78 @@ export async function buildReusableBlocksResolver(): Promise<BlockResolveFunctio
     const replacerFunction = buildReplacerFunction(allBlocks)
     return (content: string) =>
         replaceReusableBlocksRecursive(content, replacerFunction)
+}
+
+export const postLinkCompareStringGenerator = (item: PostLink): string =>
+    `${item.linkType} - ${item.target} - ${item.hash} - ${item.queryString}`
+
+export function getLinksToAddAndRemoveForPost(
+    post: PostRow,
+    existingLinksForPost: PostLink[],
+    content: string,
+    postId: number
+): { linksToAdd: PostLink[]; linksToDelete: PostLink[] } {
+    const linksInDb = groupBy(
+        existingLinksForPost,
+        postLinkCompareStringGenerator
+    )
+
+    const allHrefs = excludeNullish(
+        [...content.matchAll(anyHrefRegex)].map((x) =>
+            x.groups?.["url"]
+                ? {
+                      url: x.groups?.["url"].substring(0, 2046),
+                      sourceId: postId,
+                      componentType: "href",
+                  }
+                : undefined
+        )
+    )
+    const allSrcs = excludeNullish(
+        [...content.matchAll(anySrcRegex)].map((x) =>
+            x.groups?.["url"]
+                ? {
+                      url: x.groups?.["url"].substring(0, 2046),
+                      sourceId: postId,
+                      componentType: "src",
+                  }
+                : undefined
+        )
+    )
+    const allProminentLinks = excludeNullish(
+        [...content.matchAll(prominentLinkRegex)].map((x) =>
+            x.groups?.["url"]
+                ? {
+                      url: x.groups?.["url"].substring(0, 2046),
+                      sourceId: postId,
+                      componentType: "prominent-link",
+                  }
+                : undefined
+        )
+    )
+    const linksInDocument = keyBy(
+        [
+            ...allHrefs.map((link) => PostLink.createFromUrl(link)),
+            ...allSrcs.map((link) => PostLink.createFromUrl(link)),
+            ...allProminentLinks.map((link) => PostLink.createFromUrl(link)),
+        ],
+        postLinkCompareStringGenerator
+    )
+
+    const linksToAdd: PostLink[] = []
+    const linksToDelete: PostLink[] = []
+
+    // This is doing a set difference, but we want to do the set operation on a subset
+    // of fields (the ones we stringify into the compare key) while retaining the full
+    // object so that we can e.g. delete efficiently by id later on.
+    for (const [linkInDocCompareKey, linkInDoc] of Object.entries(
+        linksInDocument
+    ))
+        if (!(linkInDocCompareKey in linksInDb)) linksToAdd.push(linkInDoc)
+    for (const [linkInDbCompareKey, linkInDb] of Object.entries(linksInDb))
+        if (!(linkInDbCompareKey in linksInDocument))
+            linksToDelete.push(...linkInDb)
+    return { linksToAdd, linksToDelete }
 }
 
 const syncPostsToGrapher = async (): Promise<void> => {
@@ -222,6 +298,24 @@ const syncPostsToGrapher = async (): Promise<void> => {
             featured_image: post.featured_image || "",
         }
     }) as PostRow[]
+    const postLinks = await PostLink.find()
+    const postLinksById = groupBy(postLinks, (link) => link.sourceId)
+
+    const linksToAdd: PostLink[] = []
+    const linksToDelete: PostLink[] = []
+
+    for (const post of rows) {
+        const existingLinksForPost = postLinksById[post.ID]
+        const content = post.post_content as string
+        const linksToModify = getLinksToAddAndRemoveForPost(
+            post,
+            existingLinksForPost,
+            content,
+            post.ID
+        )
+        linksToAdd.push(...linksToModify.linksToAdd)
+        linksToDelete.push(...linksToModify.linksToDelete)
+    }
 
     await db.knexInstance().transaction(async (t) => {
         if (toDelete.length)
@@ -233,10 +327,29 @@ const syncPostsToGrapher = async (): Promise<void> => {
             else await t.insert(row).into(postsTable)
         }
     })
+
+    // TODO: unify our DB access and then do everything in one transaction
+    if (linksToAdd.length) {
+        console.log("linksToAdd", linksToAdd.length)
+        await PostLink.createQueryBuilder()
+            .insert()
+            .into(PostLink)
+            .values(linksToAdd)
+            .execute()
+    }
+
+    if (linksToDelete.length) {
+        console.log("linksToDelete", linksToDelete.length)
+        await PostLink.createQueryBuilder()
+            .where("id in (:ids)", { ids: linksToDelete.map((x) => x.id) })
+            .delete()
+            .execute()
+    }
 }
 
 const main = async (): Promise<void> => {
     try {
+        await db.getConnection()
         await syncPostsToGrapher()
     } finally {
         await wpdb.singleton.end()
