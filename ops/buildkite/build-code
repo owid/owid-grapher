@@ -93,7 +93,7 @@ build_grapher() {
         yarn cleanTsc
         git rev-parse HEAD > /home/owid/live-data/bakedSite/head.txt
         yarn install
-        yarn buildLerna
+        yarn buildLerna --skip-nx-cache
         yarn buildTsc
         yarn buildVite
         yarn runDbMigrations
