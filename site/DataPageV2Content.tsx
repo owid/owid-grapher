@@ -1,14 +1,23 @@
 import React, { useEffect } from "react"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { faArrowDown } from "@fortawesome/free-solid-svg-icons"
 import { Grapher, GrapherInterface } from "@ourworldindata/grapher"
 import {
-    IndicatorKeyData,
-    IndicatorDescriptions,
     CodeSnippet,
     REUSE_THIS_WORK_SECTION_ID,
     IndicatorSources,
     DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
     IndicatorProcessing,
     SimpleMarkdownText,
+    ExpandableToggle,
+    makeSource,
+    makeDateRange,
+    makeLastUpdated,
+    makeNextUpdate,
+    makeUnit,
+    makeUnitConversionFactor,
+    makeLinks,
+    HtmlOrSimpleMarkdownText,
 } from "@ourworldindata/components"
 import ReactDOM from "react-dom"
 import { GrapherWithFallback } from "./GrapherWithFallback.js"
@@ -23,6 +32,7 @@ import {
     getPhraseForProcessingLevel,
     prepareSourcesForDisplay,
     excludeUndefined,
+    DataPageDataV2,
 } from "@ourworldindata/utils"
 import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
 import StickyNav from "./blocks/StickyNav.js"
@@ -102,6 +112,9 @@ export const DataPageV2Content = ({
             : "related-data__category--columns span-cols-8 span-lg-cols-12"
     } `
 
+    const hasDescriptionKey =
+        datapageData.descriptionKey && datapageData.descriptionKey.length > 0
+
     const sourcesForDisplay = prepareSourcesForDisplay(datapageData)
     const producers = uniq(datapageData.origins.map((o) => o.producer))
 
@@ -114,7 +127,10 @@ export const DataPageV2Content = ({
     const processingLevelPhrase = getPhraseForProcessingLevel(
         datapageData.owidProcessingLevel
     )
-    const lastUpdated = dayjs(datapageData.lastUpdated, ["YYYY-MM-DD", "YYYY"])
+    const lastUpdated = dayjs(datapageData.lastUpdated ?? "", [
+        "YYYY-MM-DD",
+        "YYYY",
+    ])
     const yearOfUpdate = lastUpdated.year()
     const citationShort = `${attributionPotentiallyShortened} – ${processingLevelPhrase} by Our World in Data (${yearOfUpdate})`
     const citationLonger = `${attributionUnshortened} – ${processingLevelPhrase} by Our World in Data (${yearOfUpdate})`
@@ -243,56 +259,124 @@ export const DataPageV2Content = ({
                             className="wrapper"
                             id="explore-the-data"
                         />
-                        <div className="about-this-data-wrapper wrapper grid grid-cols-12">
-                            <div className="col-start-3 span-cols-8 span-lg-cols-12">
-                                <div className="about-this-data">
-                                    <h2 className="about-this-data__heading">
+                        <div className="wrapper grid grid-cols-12">
+                            {hasDescriptionKey ||
+                            datapageData.descriptionFromProducer ||
+                            datapageData.source?.additionalInfo ? (
+                                <>
+                                    <h2
+                                        id="about-this-data"
+                                        className="key-info__title span-cols-12"
+                                    >
+                                        What you should know about this
+                                        indicator
+                                    </h2>
+                                    <div className="col-start-1 span-cols-8 span-lg-cols-7 span-sm-cols-12">
+                                        <div className="key-info__content">
+                                            {hasDescriptionKey && (
+                                                <div className="key-info__key-description">
+                                                    {datapageData.descriptionKey
+                                                        .length === 1 ? (
+                                                        <SimpleMarkdownText
+                                                            text={datapageData.descriptionKey[0].trim()}
+                                                        />
+                                                    ) : (
+                                                        <ul>
+                                                            {datapageData.descriptionKey.map(
+                                                                (text, i) => (
+                                                                    <li key={i}>
+                                                                        <SimpleMarkdownText
+                                                                            text={text.trim()}
+                                                                            useParagraphs={
+                                                                                false
+                                                                            }
+                                                                        />
+                                                                    </li>
+                                                                )
+                                                            )}
+                                                        </ul>
+                                                    )}
+                                                    {!!faqEntries?.faqs
+                                                        .length && (
+                                                        <a
+                                                            className="key-info__learn-more"
+                                                            href="#faqs"
+                                                        >
+                                                            Learn more in the
+                                                            FAQs
+                                                            <FontAwesomeIcon
+                                                                icon={
+                                                                    faArrowDown
+                                                                }
+                                                            />
+                                                        </a>
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            <div className="key-info__expandable-descriptions">
+                                                {datapageData.descriptionFromProducer && (
+                                                    <ExpandableToggle
+                                                        label={
+                                                            datapageData.attributionShort
+                                                                ? `How does the producer of this data - ${datapageData.attributionShort} - describe this data?`
+                                                                : "How does the producer of this data describe this data?"
+                                                        }
+                                                        content={
+                                                            <div className="article-block__text">
+                                                                <SimpleMarkdownText
+                                                                    text={
+                                                                        datapageData.descriptionFromProducer
+                                                                    }
+                                                                />
+                                                            </div>
+                                                        }
+                                                        isStacked={
+                                                            !!datapageData
+                                                                .source
+                                                                ?.additionalInfo
+                                                        }
+                                                    />
+                                                )}
+                                                {datapageData.source
+                                                    ?.additionalInfo && (
+                                                    <ExpandableToggle
+                                                        label="Additional information about this data"
+                                                        content={
+                                                            <div className="expandable-info-blocks__content">
+                                                                <HtmlOrSimpleMarkdownText
+                                                                    text={datapageData.source?.additionalInfo.trim()}
+                                                                />
+                                                            </div>
+                                                        }
+                                                    />
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="key-info__right span-cols-4 span-lg-cols-5 span-sm-cols-12">
+                                        <KeyDataTable
+                                            datapageData={datapageData}
+                                            attribution={attributionUnshortened}
+                                        />
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <h2
+                                        className="about-this-data__title span-cols-3 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
+                                        id="about-this-data"
+                                    >
                                         About this data
                                     </h2>
-                                    {datapageData.descriptionShort && (
-                                        <>
-                                            <div className="about-this-data__indicator-title">
-                                                {datapageData.title}
-                                            </div>
-                                            <p className="about-this-data__indicator-description simple-markdown-text">
-                                                <SimpleMarkdownText
-                                                    text={datapageData.descriptionShort.trim()}
-                                                />
-                                            </p>
-                                        </>
-                                    )}
-                                    <IndicatorKeyData
-                                        attribution={attributionUnshortened}
-                                        owidProcessingLevel={
-                                            datapageData.owidProcessingLevel
-                                        }
-                                        dateRange={datapageData.dateRange}
-                                        lastUpdated={datapageData.lastUpdated}
-                                        nextUpdate={datapageData.nextUpdate}
-                                        unit={datapageData.unit}
-                                        unitConversionFactor={
-                                            datapageData.unitConversionFactor
-                                        }
-                                        link={datapageData.source?.link}
-                                    />
-                                </div>
-                                <IndicatorDescriptions
-                                    descriptionShort={
-                                        datapageData.descriptionShort
-                                    }
-                                    descriptionKey={datapageData.descriptionKey}
-                                    hasFaqEntries={!!faqEntries?.faqs.length}
-                                    descriptionFromProducer={
-                                        datapageData.descriptionFromProducer
-                                    }
-                                    attributionShort={
-                                        datapageData.attributionShort
-                                    }
-                                    additionalInfo={
-                                        datapageData.source?.additionalInfo
-                                    }
-                                />
-                            </div>
+                                    <div className="col-start-4 span-cols-10 col-lg-start-5 span-lg-cols-8 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+                                        <KeyDataTable
+                                            datapageData={datapageData}
+                                            attribution={attributionUnshortened}
+                                        />
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </div>
                     <div className="wrapper">
@@ -661,5 +745,81 @@ export const hydrateDataPageV2Content = (isPreviewing?: boolean) => {
             />
         </DebugProvider>,
         wrapper
+    )
+}
+
+const KeyDataTable = (props: {
+    datapageData: DataPageDataV2
+    attribution: string
+}) => {
+    const { datapageData } = props
+    const source = makeSource({
+        attribution: props.attribution,
+        owidProcessingLevel: datapageData.owidProcessingLevel,
+    })
+    const lastUpdated = makeLastUpdated(datapageData)
+    const nextUpdate = makeNextUpdate(datapageData)
+    const dateRange = makeDateRange(datapageData)
+    const unit = makeUnit(datapageData)
+    const unitConversionFactor = makeUnitConversionFactor(datapageData)
+    const links = makeLinks({ link: datapageData.source?.link })
+
+    return (
+        <div className="key-data-block grid grid-cols-4 grid-sm-cols-12 ">
+            {datapageData.descriptionShort && (
+                <div className="key-data span-cols-4 span-sm-cols-12">
+                    <div className="key-data__title key-data-description-short__title">
+                        {datapageData.title}
+                    </div>
+                    <div>{datapageData.descriptionShort}</div>
+                </div>
+            )}
+            {source && (
+                <div className="key-data span-cols-4 span-sm-cols-12">
+                    <div className="key-data__title">Source</div>
+                    <div>{source}</div>
+                </div>
+            )}
+            {lastUpdated && (
+                <div className="key-data span-cols-2 span-sm-cols-6">
+                    <div className="key-data__title">Last updated</div>
+                    <div>{lastUpdated}</div>
+                </div>
+            )}
+            {nextUpdate && (
+                <div className="key-data span-cols-2 span-sm-cols-6">
+                    <div className="key-data__title">Next expected update</div>
+                    <div>{nextUpdate}</div>
+                </div>
+            )}
+            {dateRange && (
+                <div className="key-data span-cols-2 span-sm-cols-6">
+                    <div className="key-data__title">Date range</div>
+                    <div>{dateRange}</div>
+                </div>
+            )}
+            {unit && (
+                <div className="key-data span-cols-2 span-sm-cols-6">
+                    <div className="key-data__title">Unit</div>
+                    <div>{unit}</div>
+                </div>
+            )}
+            {unitConversionFactor && (
+                <div className="key-data span-cols-2 span-sm-cols-6">
+                    <div className="key-data__title">
+                        Unit conversion factor
+                    </div>
+                    <div>{unitConversionFactor}</div>
+                </div>
+            )}
+            {links && (
+                <div className="key-data span-cols-2 span-sm-cols-6">
+                    <div className="key-data__title">Links</div>
+                    <div className="key-data__content--hide-overflow">
+                        {links}
+                    </div>
+                </div>
+            )}
+        </div>
     )
 }

@@ -5,7 +5,10 @@ export {
     sumTextWrapHeights,
 } from "./MarkdownTextWrap/MarkdownTextWrap.js"
 
-export { SimpleMarkdownText } from "./SimpleMarkdownText.js"
+export {
+    SimpleMarkdownText,
+    HtmlOrSimpleMarkdownText,
+} from "./SimpleMarkdownText.js"
 export {
     getLinkType,
     getUrlTarget,
@@ -17,8 +20,15 @@ export { ExpandableToggle } from "./ExpandableToggle/ExpandableToggle.js"
 export { Tabs } from "./Tabs/Tabs.js"
 export { ExpandableTabs } from "./Tabs/ExpandableTabs.js"
 
-export { IndicatorKeyData } from "./IndicatorKeyData/IndicatorKeyData.js"
-export { IndicatorDescriptions } from "./IndicatorDescriptions/IndicatorDescriptions.js"
+export {
+    makeSource,
+    makeDateRange,
+    makeLastUpdated,
+    makeNextUpdate,
+    makeUnit,
+    makeUnitConversionFactor,
+    makeLinks,
+} from "./IndicatorKeyData/IndicatorKeyData.js"
 export { IndicatorProcessing } from "./IndicatorProcessing/IndicatorProcessing.js"
 
 export { Checkbox } from "./Checkbox.js"

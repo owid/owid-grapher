@@ -1,13 +1,13 @@
 import React from "react"
 import { faArrowDown } from "@fortawesome/free-solid-svg-icons/faArrowDown"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { ExpandableToggle } from "../ExpandableToggle/ExpandableToggle.js"
 import {
+    ExpandableToggle,
     HtmlOrSimpleMarkdownText,
     SimpleMarkdownText,
-} from "../SimpleMarkdownText.js"
+} from "@ourworldindata/components"
 
-interface IndicatorDescriptionsProps {
+interface SourcesDescriptionsProps {
     descriptionShort?: string
     descriptionKey?: string[]
     descriptionFromProducer?: string
@@ -17,10 +17,10 @@ interface IndicatorDescriptionsProps {
     isEmbeddedInADataPage?: boolean // true by default
 }
 
-export const IndicatorDescriptions = (props: IndicatorDescriptionsProps) => {
+export const SourcesDescriptions = (props: SourcesDescriptionsProps) => {
     const isEmbeddedInADataPage = props.isEmbeddedInADataPage ?? true
     return (
-        <div className="indicator-descriptions">
+        <div className="sources-descriptions">
             {props.descriptionKey && props.descriptionKey.length > 0 && (
                 <div className="key-info">
                     <h3 className="key-info__title">

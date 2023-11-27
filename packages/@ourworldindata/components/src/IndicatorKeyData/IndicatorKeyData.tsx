@@ -1,5 +1,4 @@
 import React from "react"
-import cx from "classnames"
 import {
     dayjs,
     OwidProcessingLevel,
@@ -9,186 +8,92 @@ import {
 import { DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID } from "../SharedDataPageConstants.js"
 import { SimpleMarkdownText } from "../SimpleMarkdownText.js"
 
-interface IndicatorKeyDataProps {
+export const makeSource = ({
+    attribution,
+    owidProcessingLevel,
+    isEmbeddedInADataPage,
+}: {
     attribution?: string
-    dateRange?: string
-    lastUpdated?: string
-    nextUpdate?: string
-    unit?: string
     owidProcessingLevel?: OwidProcessingLevel
-    link?: string
-    unitConversionFactor?: number
-    isEmbeddedInADataPage?: boolean // true by default
-
-    // styling
-    hideTopBorder?: boolean
-    hideBottomBorder?: boolean
+    isEmbeddedInADataPage?: boolean
+}): React.ReactNode => {
+    if (!attribution) return null
+    const isEmbedded = isEmbeddedInADataPage ?? true
+    const processingLevelPhrase =
+        getPhraseForProcessingLevel(owidProcessingLevel)
+    return (
+        <>
+            <SimpleMarkdownText text={attribution} useParagraphs={false} />
+            {" - "}
+            {isEmbedded ? (
+                <a href={`#${DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}`}>
+                    {processingLevelPhrase}
+                </a>
+            ) : (
+                processingLevelPhrase
+            )}{" "}
+            by Our World in Data
+        </>
+    )
 }
 
-export const IndicatorKeyData = (props: IndicatorKeyDataProps) => {
-    const isEmbeddedInADataPage = props.isEmbeddedInADataPage ?? true
-    const processingLevelPhrase = getPhraseForProcessingLevel(
-        props.owidProcessingLevel
-    )
+export const makeLastUpdated = ({
+    lastUpdated,
+}: {
+    lastUpdated?: string
+}): React.ReactNode => {
+    const date = dayjs(lastUpdated ?? "", ["YYYY-MM-DD", "YYYY"])
+    if (!date.isValid()) return null
+    return date.format("MMMM D, YYYY")
+}
 
-    const lastUpdated = dayjs(props.lastUpdated ?? "", ["YYYY-MM-DD", "YYYY"])
-    const showLastUpdated = lastUpdated.isValid()
+export const makeNextUpdate = ({
+    nextUpdate,
+}: {
+    nextUpdate?: string
+}): React.ReactNode => {
+    const date = dayjs(nextUpdate ?? "", ["YYYY-MM-DD"])
+    if (!date.isValid()) return null
+    return date.format("MMMM YYYY")
+}
 
-    const nextUpdate = dayjs(props.nextUpdate ?? "", ["YYYY-MM-DD"])
-    const showNextUpdate = nextUpdate.isValid()
+export const makeDateRange = ({
+    dateRange,
+}: {
+    dateRange?: string
+}): React.ReactNode => {
+    if (!dateRange) return null
+    return getDateRange(dateRange)
+}
 
-    const showUnitConversionFactor =
-        props.unitConversionFactor && props.unitConversionFactor !== 1
+export const makeUnit = ({ unit }: { unit?: string }): React.ReactNode => {
+    if (!unit) return null
+    return unit
+}
 
-    const linkFragments = splitSourceTextIntoFragments(props.link)
-    const link = linkFragments.join("\n")
+export const makeUnitConversionFactor = ({
+    unitConversionFactor,
+}: {
+    unitConversionFactor?: number
+}): React.ReactNode => {
+    if (!unitConversionFactor || unitConversionFactor === 1) return null
+    return unitConversionFactor
+}
 
-    const keyDataCount = count(
-        props.attribution,
-        showLastUpdated,
-        showNextUpdate,
-        props.dateRange,
-        props.unit,
-        showUnitConversionFactor,
-        link
-    )
-    const hasSingleRow =
-        keyDataCount === 1 ||
-        (keyDataCount === 2 && !props.attribution && !link)
-
+export const makeLinks = ({ link }: { link?: string }): React.ReactNode => {
+    if (!link) return null
+    const linkFragments = splitSourceTextIntoFragments(link)
     return (
-        <div
-            className={cx("indicator-key-data", {
-                "indicator-key-data--top-border":
-                    !hasSingleRow && !props.hideTopBorder,
-                "indicator-key-data--bottom-border":
-                    !hasSingleRow && !props.hideBottomBorder,
-            })}
-        >
-            {props.attribution && (
-                <div className="indicator-key-data-item indicator-key-data-item--span">
-                    <div className="indicator-key-data-item__title">Source</div>
-                    <div className="indicator-key-data-item__content">
-                        <SimpleMarkdownText text={props.attribution} />
-                        {" - "}
-                        {isEmbeddedInADataPage ? (
-                            <a
-                                href={`#${DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}`}
-                            >
-                                {processingLevelPhrase}
-                            </a>
-                        ) : (
-                            processingLevelPhrase
-                        )}{" "}
-                        by Our World in Data
-                    </div>
-                </div>
-            )}
-            {showLastUpdated && (
-                <div
-                    className={cx("indicator-key-data-item", {
-                        "indicator-key-data-item--span":
-                            !showNextUpdate &&
-                            !props.dateRange &&
-                            !props.unit &&
-                            !showUnitConversionFactor,
-                    })}
-                >
-                    <div className="indicator-key-data-item__title">
-                        Last updated
-                    </div>
-                    <div className="indicator-key-data-item__content">
-                        {lastUpdated.format("MMMM D, YYYY")}
-                    </div>
-                </div>
-            )}
-            {showNextUpdate && (
-                <div
-                    className={cx("indicator-key-data-item", {
-                        "indicator-key-data-item--span":
-                            !props.dateRange &&
-                            !showLastUpdated &&
-                            !props.unit &&
-                            !showUnitConversionFactor,
-                    })}
-                >
-                    <div className="indicator-key-data-item__title">
-                        Next expected update
-                    </div>
-                    <div className="indicator-key-data-item__content">
-                        {nextUpdate.format("MMMM YYYY")}
-                    </div>
-                </div>
-            )}
-            {props.dateRange && (
-                <div
-                    className={cx("indicator-key-data-item", {
-                        "indicator-key-data-item--span":
-                            !props.unit &&
-                            !showUnitConversionFactor &&
-                            isEven(count(showLastUpdated, showNextUpdate)),
-                    })}
-                >
-                    <div className="indicator-key-data-item__title">
-                        Date range
-                    </div>
-                    <div className="indicator-key-data-item__content">
-                        {getDateRange(props.dateRange)}
-                    </div>
-                </div>
-            )}
-            {props.unit && (
-                <div
-                    className={cx("indicator-key-data-item", {
-                        "indicator-key-data-item--span":
-                            !showUnitConversionFactor &&
-                            isEven(
-                                count(
-                                    props.lastUpdated,
-                                    props.nextUpdate,
-                                    props.dateRange
-                                )
-                            ),
-                    })}
-                >
-                    <div className="indicator-key-data-item__title">Unit</div>
-                    <div className="indicator-key-data-item__content">
-                        {props.unit}
-                    </div>
-                </div>
-            )}
-            {showUnitConversionFactor && (
-                <div
-                    className={cx("indicator-key-data-item", {
-                        "indicator-key-data-item--span": isEven(
-                            count(
-                                props.lastUpdated,
-                                props.nextUpdate,
-                                props.dateRange,
-                                props.unit
-                            )
-                        ),
-                    })}
-                >
-                    <div className="indicator-key-data-item__title">
-                        Unit conversion factor
-                    </div>
-                    <div className="indicator-key-data-item__content">
-                        {props.unitConversionFactor}
-                    </div>
-                </div>
-            )}
-            {link && (
-                <div className="indicator-key-data-item indicator-key-data-item--span">
-                    <div className="indicator-key-data-item__title">
-                        {linkFragments.length > 1 ? "Links" : "Link"}
-                    </div>
-                    <div className="indicator-key-data-item__content">
-                        <SimpleMarkdownText text={link} />
-                    </div>
-                </div>
-            )}
-        </div>
+        <>
+            {linkFragments.map((text, index) => (
+                <>
+                    <span>
+                        <SimpleMarkdownText text={text} useParagraphs={false} />
+                    </span>
+                    {index < linkFragments.length - 1 && <br />}
+                </>
+            ))}
+        </>
     )
 }
 
@@ -234,6 +139,3 @@ const getDateRange = (dateRange: string): string | null => {
     }
     return null
 }
-
-const count = (...args: any[]) => args.filter((arg) => arg).length
-const isEven = (n: number) => n % 2 === 0

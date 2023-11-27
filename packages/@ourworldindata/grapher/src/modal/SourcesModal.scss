@@ -50,27 +50,6 @@
             margin-bottom: 8px;
         }
 
-        .indicator-key-data {
-            --indicator-key-data-title: #{$light-text};
-            --indicator-key-data-border: #{$border};
-
-            @include label-2-medium;
-            margin-top: 16px;
-        }
-
-        .indicator-descriptions .key-info {
-            --indicator-key-info-title: #{$box-title};
-            --indicator-key-info-content-size: 0.875rem;
-
-            margin: 24px 0;
-            padding: 32px;
-
-            &__content,
-            &__content ul {
-                font-weight: 500;
-            }
-        }
-
         .indicator-sources {
             .ExpandableToggle:first-of-type {
                 border-top: none;
@@ -128,7 +107,6 @@
             max-width: 240px;
         }
 
-        .indicator-descriptions .key-info__learn-more,
         .indicator-processing .indicator-processing__link {
             @include body-3-medium;
             display: inline-block;
@@ -186,14 +164,6 @@
         .indicator-descriptions .key-info__learn-more,
         .indicator-processing .indicator-processing__link {
             font-size: var(--text-small);
-        }
-    }
-}
-
-&.GrapherComponentNarrow .SourcesModalContent {
-    .source {
-        .indicator-key-data-item {
-            display: block;
         }
     }
 }

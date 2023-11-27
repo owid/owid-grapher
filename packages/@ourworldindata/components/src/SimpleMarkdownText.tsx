@@ -3,8 +3,10 @@ import { computed } from "mobx"
 import { Remark } from "react-remark"
 import { remarkPlainLinks } from "./markdown/remarkPlainLinks.js"
 import visit from "unist-util-visit"
+
 type SimpleMarkdownTextProps = {
     text: string
+    useParagraphs?: boolean // by default, text is wrapped in <p> tags
 }
 
 function transformDodLinks() {
@@ -38,11 +40,29 @@ export class SimpleMarkdownText extends React.Component<SimpleMarkdownTextProps>
         return this.props.text
     }
 
+    @computed get useParagraphs(): boolean {
+        return this.props.useParagraphs ?? true
+    }
+
+    @computed get rehypeReactOptions(): any {
+        if (!this.useParagraphs) {
+            // "unwrap" the text by rendering <p /> as a react fragment
+            return {
+                components: {
+                    p: (props: any) => <React.Fragment {...props} />,
+                },
+            }
+        }
+
+        return undefined
+    }
+
     render(): JSX.Element | null {
         return (
             <Remark
                 rehypePlugins={[transformDodLinks]}
                 remarkPlugins={[remarkPlainLinks]}
+                rehypeReactOptions={this.rehypeReactOptions}
             >
                 {this.text}
             </Remark>

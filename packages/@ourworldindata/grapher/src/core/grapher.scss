@@ -9,8 +9,6 @@
 @import "../../../components/src/Tabs/Tabs.scss";
 @import "../../../components/src/Tabs/ExpandableTabs.scss";
 
-@import "../../../components/src/IndicatorKeyData/IndicatorKeyData.scss";
-@import "../../../components/src/IndicatorDescriptions/IndicatorDescriptions.scss";
 @import "../../../components/src/IndicatorSources/IndicatorSources.scss";
 @import "../../../components/src/IndicatorProcessing/IndicatorProcessing.scss";
 
@@ -73,6 +71,8 @@ $zindex-controls-drawer: 140;
     @import "../loadingIndicator/LoadingIndicator.scss";
     @import "../footer/Footer.scss";
     @import "../header/Header.scss";
+    @import "../modal/SourcesKeyDataTable.scss";
+    @import "../modal/SourcesDescriptions.scss";
 }
 
 // These rules are currently used elsewhere in the site. e.g. Explorers
