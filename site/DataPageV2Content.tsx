@@ -176,7 +176,6 @@ export const DataPageV2Content = ({
     ]).join(" ")
 
     const getImageUrl = (research: DataPageRelatedResearch) => {
-
         if (research.imageUrl && research.imageUrl.startsWith("http"))
             return research.imageUrl
         else if (!isEmpty(research.imageUrl))
