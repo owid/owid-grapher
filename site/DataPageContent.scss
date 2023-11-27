@@ -171,14 +171,14 @@
 
         ul {
             padding-left: 1em;
-        }
 
-        li {
-            @include body-2-regular;
-            margin-bottom: 1em;
+            li {
+                @include body-2-regular;
+                margin-bottom: 1em;
 
-            &:last-child {
-                margin-bottom: 0;
+                &:last-child {
+                    margin-bottom: 0;
+                }
             }
         }
     }
@@ -189,6 +189,25 @@
         svg {
             font-size: 0.75em;
             margin-left: 12px;
+        }
+    }
+
+    .key-info__expandable-descriptions {
+        p {
+            margin: 8px 0;
+
+            &:first-of-type {
+                margin-top: 0;
+            }
+
+            &:last-of-type {
+                margin-bottom: 0;
+            }
+        }
+
+        a {
+            @include owid-link-60;
+            color: inherit;
         }
     }
 
@@ -424,7 +443,7 @@
     .reuse__list-item,
     .citation__paragraph {
         @include body-3-medium;
-        margin: 0 0 16px;
+        margin: 0 0 8px;
     }
 
     .citation__how-to-header {

@@ -140,14 +140,14 @@ export const getPhraseForProcessingLevel = (
 const prepareOriginForDisplay = (origin: OwidOrigin): DisplaySource => {
     let label = origin.producer ?? ""
     if (origin.title && origin.title !== label) {
-        label += " - " + origin.title
+        label += " – " + origin.title
     }
 
     return {
         label,
         description: origin.description,
         retrievedOn: origin.dateAccessed,
-        retrievedFrom: origin.urlMain ? [origin.urlMain] : undefined,
+        retrievedFrom: origin.urlMain,
         citation: origin.citationFull,
     }
 }
@@ -171,7 +171,7 @@ export const prepareSourcesForDisplay = (
             description,
             dataPublishedBy: source?.dataPublishedBy,
             retrievedOn: source?.retrievedDate,
-            retrievedFrom: splitSourceTextIntoFragments(source?.link),
+            retrievedFrom: source?.link,
         })
     }
 
@@ -182,4 +182,13 @@ export const prepareSourcesForDisplay = (
     }
 
     return sourcesForDisplay
+}
+
+export const formatSourceDate = (
+    date: string | undefined,
+    format: string
+): string | null => {
+    const parsedDate = dayjs(date ?? "", ["YYYY-MM-DD", "DD/MM/YYYY"])
+    if (!parsedDate.isValid()) return date || null
+    return parsedDate.format(format)
 }

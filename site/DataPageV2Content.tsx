@@ -6,6 +6,7 @@ import {
     CodeSnippet,
     REUSE_THIS_WORK_SECTION_ID,
     IndicatorSources,
+    DATAPAGE_ABOUT_THIS_DATA_SECTION_ID,
     DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
     IndicatorProcessing,
     SimpleMarkdownText,
@@ -265,7 +266,7 @@ export const DataPageV2Content = ({
                             datapageData.source?.additionalInfo ? (
                                 <>
                                     <h2
-                                        id="about-this-data"
+                                        id={DATAPAGE_ABOUT_THIS_DATA_SECTION_ID}
                                         className="key-info__title span-cols-12"
                                     >
                                         What you should know about this
@@ -365,7 +366,7 @@ export const DataPageV2Content = ({
                                 <>
                                     <h2
                                         className="about-this-data__title span-cols-3 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
-                                        id="about-this-data"
+                                        id={DATAPAGE_ABOUT_THIS_DATA_SECTION_ID}
                                     >
                                         About this data
                                     </h2>
@@ -678,6 +679,9 @@ export const DataPageV2Content = ({
                                                                     citationShort
                                                                 }
                                                                 theme="light"
+                                                                useMarkdown={
+                                                                    true
+                                                                }
                                                             />
                                                         </>
                                                     )}
@@ -694,6 +698,9 @@ export const DataPageV2Content = ({
                                                                     citationLong
                                                                 }
                                                                 theme="light"
+                                                                useMarkdown={
+                                                                    true
+                                                                }
                                                             />
                                                         </>
                                                     )}
@@ -716,6 +723,7 @@ export const DataPageV2Content = ({
                                                     <CodeSnippet
                                                         code={citationDatapage}
                                                         theme="light"
+                                                        useMarkdown={true}
                                                     />
                                                 </div>
                                             )}

@@ -1,49 +1,90 @@
-.indicator-source {
-    .description {
-        margin: 0;
-        margin-bottom: 16px;
-    }
+.indicator-sources {
+    --description-heading: var(
+        --indicator-sources-description-heading,
+        #{$blue-90}
+    );
+    --key-data-title: var(--indicator-sources-key-data-title, #{$blue-90});
+    --content: var(--indicator-sources-content, #{$blue-60});
 
-    .source-key-data-blocks {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
-        row-gap: 8px;
-        column-gap: 16px;
+    .source {
+        color: var(--content);
 
-        .wp-code-snippet {
-            margin-top: 8px;
-            margin-bottom: 0;
+        .description {
+            margin-bottom: 16px;
+
+            > *:first-child {
+                margin-top: 0;
+            }
+
+            > *:last-child {
+                margin-bottom: 0;
+            }
+
+            h1,
+            h2,
+            h3,
+            h4,
+            h5,
+            h6 {
+                color: var(--description-heading);
+                font-size: 1em;
+                margin-top: 14px;
+                margin-bottom: 6px;
+            }
+
+            p {
+                margin: 6px 0;
+            }
+
+            ol {
+                margin-left: 1.2em;
+            }
+
+            ul {
+                margin-left: 1em;
+            }
         }
-    }
 
-    .source-key-data {
-        --title: var(--source-key-data-title, #{$blue-90});
-    }
+        .source-key-data-blocks {
+            --code-snippet-text: #{$blue-50};
 
-    .source-key-data--span-2 {
-        grid-column: span 2;
-    }
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+            gap: 16px;
 
-    .source-key-data__title {
-        color: var(--title);
-        white-space: nowrap;
-    }
+            .wp-code-snippet {
+                margin-top: 16px;
+                margin-bottom: 0;
+            }
+        }
 
-    .source-key-data__content--hide-overflow {
-        white-space: nowrap;
-        text-overflow: ellipsis;
-        overflow: hidden;
-    }
+        .source-key-data--span-2 {
+            grid-column: span 2;
+        }
 
-    a {
-        @include owid-link-90;
-        color: inherit;
+        .source-key-data__title {
+            color: var(--key-data-title);
+            white-space: nowrap;
+        }
+
+        .source-key-data__content {
+            > p:first-of-type {
+                margin-top: 0;
+            }
+            > p:last-of-type {
+                margin-bottom: 0;
+            }
+        }
+
+        a {
+            @include owid-link-90;
+            color: inherit;
+        }
     }
 }
 
 .NonExpandable {
     --title: var(--non-expandable-title, currentColor);
-    --content: var(--non-expandable-content, #{$blue-60});
     --border: var(--non-expandable-border, #d0dae3);
 
     --title-size: var(--non-expandable-title-size, 1rem);
@@ -68,7 +109,6 @@
 
     &__content {
         @include body-3-medium;
-        color: var(--content);
         font-size: var(--content-size);
     }
 }

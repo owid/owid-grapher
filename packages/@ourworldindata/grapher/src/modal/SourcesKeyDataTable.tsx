@@ -1,6 +1,6 @@
 import React from "react"
 import cx from "classnames"
-import { OwidProcessingLevel } from "@ourworldindata/utils"
+import { OwidProcessingLevel, excludeNull, range } from "@ourworldindata/utils"
 import {
     makeSource,
     makeLastUpdated,
@@ -21,10 +21,6 @@ interface SourcesKeyDataTableProps {
     link?: string
     unitConversionFactor?: number
     isEmbeddedInADataPage?: boolean // true by default
-
-    // styling
-    hideTopBorder?: boolean
-    hideBottomBorder?: boolean
 }
 
 export const SourcesKeyDataTable = (props: SourcesKeyDataTableProps) => {
@@ -36,98 +32,59 @@ export const SourcesKeyDataTable = (props: SourcesKeyDataTableProps) => {
     const unitConversionFactor = makeUnitConversionFactor(props)
     const links = makeLinks(props)
 
+    const keyDataWithoutSource = excludeNull([
+        lastUpdated ? { label: "Last updated", content: lastUpdated } : null,
+        nextUpdate
+            ? { label: "Next expected update", content: nextUpdate }
+            : null,
+        dateRange ? { label: "Date range", content: dateRange } : null,
+        unit ? { label: "Unit", content: unit } : null,
+        unitConversionFactor
+            ? {
+                  label: "Unit conversion factor",
+                  content: unitConversionFactor,
+              }
+            : null,
+        links ? { label: "Links", content: links } : null,
+    ])
+
+    const rows = range(0, keyDataWithoutSource.length, 2).map(
+        (index: number) => [
+            keyDataWithoutSource[index],
+            keyDataWithoutSource[index + 1],
+        ]
+    )
+
     return (
-        <div
-            className={cx("sources-key-data-table", {
-                "sources-key-data-table--top-border": !props.hideTopBorder,
-                "sources-key-data-table--bottom-border":
-                    !props.hideBottomBorder,
-            })}
-        >
+        <div className="sources-key-data-table">
             {source && (
-                <div className="key-data key-data-source key-data--span">
+                <div className="key-data key-data--span">
                     <div className="key-data__title">Source</div>
                     <div className="key-data__content">{source}</div>
                 </div>
             )}
-            {lastUpdated && (
-                <div
-                    className={cx("key-data", {
-                        "key-data--span":
-                            !nextUpdate &&
-                            !dateRange &&
-                            !unit &&
-                            !unitConversionFactor,
-                    })}
-                >
-                    <div className="key-data__title">Last updated</div>
-                    <div className="key-data__content">{lastUpdated}</div>
-                </div>
-            )}
-            {nextUpdate && (
-                <div
-                    className={cx("key-data", {
-                        "key-data--span":
-                            !dateRange &&
-                            !lastUpdated &&
-                            !unit &&
-                            !unitConversionFactor,
-                    })}
-                >
-                    <div className="key-data__title">Next expected update</div>
-                    <div className="key-data__content">{nextUpdate}</div>
-                </div>
-            )}
-            {dateRange && (
-                <div
-                    className={cx("key-data", {
-                        "key-data--span":
-                            !unit &&
-                            !unitConversionFactor &&
-                            isEven(count(lastUpdated, nextUpdate)),
-                    })}
-                >
-                    <div className="key-data__title">Date range</div>
-                    <div className="key-data__content">{dateRange}</div>
-                </div>
-            )}
-            {unit && (
-                <div
-                    className={cx("key-data", {
-                        "key-data--span":
-                            !unitConversionFactor &&
-                            isEven(count(lastUpdated, nextUpdate, dateRange)),
-                    })}
-                >
-                    <div className="key-data__title">Unit</div>
-                    <div className="key-data__content">{unit}</div>
-                </div>
-            )}
-            {unitConversionFactor && (
-                <div
-                    className={cx("key-data", {
-                        "key-data--span": isEven(
-                            count(lastUpdated, nextUpdate, dateRange, unit)
-                        ),
-                    })}
-                >
-                    <div className="key-data__title">
-                        Unit conversion factor
+            {rows.map(([first, second]) => (
+                <React.Fragment key={first.label}>
+                    <div
+                        className={cx("key-data", {
+                            "key-data--span": !second,
+                        })}
+                    >
+                        <div className="key-data__title">{first.label}</div>
+                        <div className="key-data__content">{first.content}</div>
                     </div>
-                    <div className="key-data__content">
-                        {unitConversionFactor}
-                    </div>
-                </div>
-            )}
-            {links && (
-                <div className="key-data key-data--span">
-                    <div className="key-data__title">Links</div>
-                    <div className="key-data__content">{links}</div>
-                </div>
-            )}
+                    {second && (
+                        <div className="key-data">
+                            <div className="key-data__title">
+                                {second.label}
+                            </div>
+                            <div className="key-data__content">
+                                {second.content}
+                            </div>
+                        </div>
+                    )}
+                </React.Fragment>
+            ))}
         </div>
     )
 }
-
-const count = (...args: any[]) => args.filter((arg) => arg).length
-const isEven = (n: number) => n % 2 === 0

@@ -17,8 +17,6 @@ export {
 } from "./GdocsUtils.js"
 
 export { ExpandableToggle } from "./ExpandableToggle/ExpandableToggle.js"
-export { Tabs } from "./Tabs/Tabs.js"
-export { ExpandableTabs } from "./Tabs/ExpandableTabs.js"
 
 export {
     makeSource,
@@ -41,6 +39,7 @@ export {
 } from "./CodeSnippet/CodeSnippet.js"
 
 export {
+    DATAPAGE_ABOUT_THIS_DATA_SECTION_ID,
     DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
     REUSE_THIS_WORK_SECTION_ID,
 } from "./SharedDataPageConstants.js"

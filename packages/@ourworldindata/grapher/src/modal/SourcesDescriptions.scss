@@ -1,13 +1,14 @@
 .sources-descriptions {
-    .key-info {
+    margin-top: 24px;
+
+    .sources-description-key {
         background-color: $gray-10;
-        border-left: 4px solid $blue-10;
         margin: 24px 0;
-        padding: 32px;
+        padding: 24px;
 
         &__title {
-            @include h5-black-caps;
-            color: #a1a1a1;
+            @include h2-semibold;
+            color: $dark-text;
             margin-top: 0;
             margin-bottom: 16px;
         }
@@ -17,9 +18,12 @@
             @include body-2-regular;
             font-size: 0.875rem;
             font-weight: 500;
+            color: $dark-text;
+            margin: 0;
         }
 
         &__content ul {
+            margin-left: 1em;
             li {
                 margin-bottom: 1em;
 
@@ -31,12 +35,18 @@
 
         &__learn-more {
             @include body-3-medium;
-            margin-top: 24px;
+            display: inline-block;
+            margin-top: 16px;
             text-decoration: underline;
             text-underline-offset: 4px;
+            color: $dark-text;
 
             &:hover {
                 text-decoration: none;
+            }
+
+            &:visited {
+                color: $dark-text;
             }
 
             svg {
@@ -44,6 +54,16 @@
                 margin-left: 12px;
                 display: inline-block;
                 transform: rotate(-90deg);
+            }
+        }
+    }
+
+    .expandable-info-blocks {
+        p {
+            margin: 0;
+
+            + p {
+                margin-top: 8px;
             }
         }
     }

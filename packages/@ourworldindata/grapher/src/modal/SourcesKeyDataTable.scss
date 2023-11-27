@@ -1,59 +1,48 @@
 .sources-key-data-table {
-    $border: #e7e7e7;
-
-    @include label-2-medium;
     margin-top: 16px;
-
-    &--top-border {
-        border-top: 1px solid $border;
-    }
-
-    &--bottom-border {
-        border-bottom: 1px solid $border;
-    }
 
     display: grid;
     grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
 
     .key-data {
-        display: flex;
-        padding: 16px 24px 16px 0;
-
-        @include sm-only {
-            display: block;
-        }
-
-        &:not(.key-data-source) {
-            border-top: 1px solid $border;
-        }
+        @include label-2-medium;
 
         &__title {
-            flex: 0 0 140px; // using a fixed width here to make sure the content is aligned
-            margin-right: 24px;
+            margin-bottom: 4px;
             color: $light-text;
-
-            @include sm-only {
-                margin-right: 0;
-            }
         }
 
         &__content {
-            color: var(--content);
+            color: $dark-text;
         }
 
         &--span {
             grid-column: 1 / -1;
         }
+
+        a {
+            text-underline-offset: 2px;
+        }
     }
 
     a {
-        @include owid-link-90;
         color: inherit;
+        text-decoration: underline;
+
+        &:hover {
+            text-decoration: none;
+        }
     }
 }
 
-&.GrapherComponentNarrow .sources-key-data-table {
+&.GrapherComponentSemiNarrow .sources-key-data-table {
     .key-data {
-        display: block;
+        grid-column: 1 / -1;
+    }
+
+    .key-data__title {
+        margin-right: 0;
+        margin-bottom: 4px;
     }
 }

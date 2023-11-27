@@ -1,26 +1,33 @@
 .indicator-processing {
     .data-processing {
-        --content: var(--data-processing-content, currentColor);
+        --content: var(--data-processing-content, #{$blue-60});
         --content-size: var(--data-processing-content-size, 0.875rem);
 
         margin-top: 0;
         margin-bottom: 24px;
+        color: var(--content);
 
         > p {
             @include body-3-medium;
             margin: 0 0 16px;
-            color: var(--content);
             font-size: var(--content-size);
         }
     }
 
     .indicator-processing__link {
-        @include expandable-paragraph__expand-button--full;
+        @include body-3-medium;
+        color: inherit;
+        text-decoration: underline;
+        text-underline-offset: 4px;
+
+        &:hover {
+            text-decoration: none;
+        }
 
         svg {
-            display: none; // used in Grapher's sources modal
             font-size: 0.75em;
-            margin-left: 12px;
+            margin-left: 6px;
+            transform: rotate(-90deg);
         }
     }
 
@@ -48,6 +55,32 @@
             color: var(--content);
             margin: 0;
             font-size: var(--content-size);
+
+            ul {
+                margin-left: 1em;
+
+                li {
+                    margin: 1em 0;
+                    &:first-child {
+                        margin-top: 0;
+                    }
+                    &:last-child {
+                        margin-bottom: 0;
+                    }
+                }
+            }
+
+            > *:first-child {
+                margin-top: 0;
+            }
+
+            > *:last-child {
+                margin-bottom: 0;
+            }
+
+            ul li p {
+                margin: 0;
+            }
         }
 
         a {

@@ -1,6 +1,7 @@
 import React from "react"
 import { observer } from "mobx-react"
 import { action, computed } from "mobx"
+import cx from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faTimes } from "@fortawesome/free-solid-svg-icons"
 import { Bounds } from "@ourworldindata/utils"
@@ -13,6 +14,7 @@ export class Modal extends React.Component<{
     children?: React.ReactNode
     isHeightFixed?: boolean // by default, the modal height is not fixed but fits to the content
     alignVertical?: "center" | "bottom"
+    showStickyHeader?: boolean
 }> {
     contentRef: React.RefObject<HTMLDivElement> = React.createRef()
 
@@ -30,6 +32,10 @@ export class Modal extends React.Component<{
 
     @computed private get alignVertical(): "center" | "bottom" {
         return this.props.alignVertical ?? "center"
+    }
+
+    @computed private get showStickyHeader(): boolean {
+        return this.props.showStickyHeader || !!this.title
     }
 
     @action.bound onDocumentClick(e: MouseEvent): void {
@@ -95,8 +101,12 @@ export class Modal extends React.Component<{
                         style={contentStyle}
                         ref={this.contentRef}
                     >
-                        {this.title ? (
-                            <div className="modalHeader">
+                        {this.showStickyHeader ? (
+                            <div
+                                className={cx("modalHeader", {
+                                    modalHeader__empty: !this.title,
+                                })}
+                            >
                                 <div className="modalTitle">{this.title}</div>
                                 {dismissButton}
                             </div>

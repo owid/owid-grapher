@@ -1,7 +1,7 @@
 .ExpandableToggle {
     --title: var(--expandable-toggle-title, currentColor);
-    --content: var(--expandable-toggle-content, #{$blue-60});
     --border: var(--expandable-toggle-border, #d0dae3);
+    --content: var(--expandable-toggle-content, #{$blue-60});
 
     --button: var(--expandable-toggle-button, #{$blue-90});
     --button-hover: var(--expandable-toggle-button-hover, #{$blue-60});
@@ -32,6 +32,11 @@
     &:hover {
         color: var(--button-hover);
     }
+}
+
+.ExpandableToggle--teaser .ExpandableToggle__button,
+.ExpandableToggle--open .ExpandableToggle__button {
+    padding-bottom: 8px;
 }
 
 .ExpandableToggle__title {
@@ -66,17 +71,21 @@
         font-size: var(--content-size);
     }
 
+    > *:first-child {
+        margin-top: 0;
+    }
+
     > *:last-child {
         margin-bottom: 0;
     }
 }
 
-.ExpandableToggle__content--teaser {
+.ExpandableToggle--teaser .ExpandableToggle__content {
     height: 96px;
     -webkit-mask-image: linear-gradient(180deg, #000 0%, transparent);
 }
 
-.ExpandableToggle__content--open {
+.ExpandableToggle--open .ExpandableToggle__content {
     padding-bottom: 16px;
     height: auto;
     -webkit-mask-image: none;

@@ -2,6 +2,7 @@ import {
     Bounds,
     DEFAULT_BOUNDS,
     uniq,
+    uniqBy,
     sum,
     zip,
     getAttributionFragmentsFromVariable,
@@ -13,8 +14,6 @@ import {
     OwidSource,
 } from "@ourworldindata/utils"
 import {
-    Tabs,
-    ExpandableTabs,
     IndicatorSources,
     IndicatorProcessing,
 } from "@ourworldindata/components"
@@ -26,12 +25,19 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { CoreColumn, OwidColumnDef } from "@ourworldindata/core-table"
 import { Modal } from "./Modal"
 import { SourcesKeyDataTable } from "./SourcesKeyDataTable"
-import { SourcesDescriptions } from "./SourcesDescriptions.js"
+import { SourcesDescriptions } from "./SourcesDescriptions"
+import { Tabs } from "../tabs/Tabs"
+import { ExpandableTabs } from "../tabs/ExpandableTabs"
+import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
 
 // keep in sync with variables in SourcesModal.scss
-const MAX_WIDTH = 832
+const MAX_CONTENT_WIDTH = 640
+const TAB_PADDING = 16
+const TAB_FONT_SIZE = 13
+const TAB_GAP = 8
 
 export interface SourcesModalManager {
+    isReady?: boolean
     adminBaseUrl?: string
     columnsWithSourcesExtensive: CoreColumn[]
     showAdminControls?: boolean
@@ -71,8 +77,20 @@ export class SourcesModal extends React.Component<
     }
 
     @computed private get modalBounds(): Bounds {
+        const maxWidth = MAX_CONTENT_WIDTH + 220
         // using 15px instead of 16px to make sure the modal fully covers the OWID logo in the header
-        return this.tabBounds.pad(15)
+        const padWidth = Math.max(15, (this.tabBounds.width - maxWidth) / 2)
+        return this.tabBounds.padHeight(15).padWidth(padWidth)
+    }
+
+    @computed private get showStickyModalHeader(): boolean {
+        const modalWidth = this.modalBounds.width - 2 * this.modalPadding
+        const dismissButtonWidth = 32
+        return (modalWidth - MAX_CONTENT_WIDTH) / 2 < dismissButtonWidth
+    }
+
+    @computed private get modalPadding(): number {
+        return 1.5 * (this.manager.fontSize ?? 16)
     }
 
     @computed private get editBaseUrl(): string | undefined {
@@ -82,6 +100,19 @@ export class SourcesModal extends React.Component<
 
     @computed private get columns(): CoreColumn[] {
         return this.manager.columnsWithSourcesExtensive
+    }
+
+    @computed private get deduplicatedColumn(): CoreColumn | undefined {
+        const sources = this.columns.map((column) => new Source({ column }))
+
+        // no need to deduplicate if there is only one source
+        if (sources.length <= 1) return undefined
+
+        // deduplicate on all visible information
+        const uniqueSources = uniqBy(sources, (source) =>
+            visibleSourceInformation(source)
+        )
+        return uniqueSources.length === 1 ? this.columns[0] : undefined
     }
 
     @computed private get tabLabels(): string[] {
@@ -101,6 +132,19 @@ export class SourcesModal extends React.Component<
         )
     }
 
+    private renderDeduplicatedSource(): JSX.Element | null {
+        if (!this.deduplicatedColumn) return null
+        return (
+            <DeduplicatedSource
+                column={this.deduplicatedColumn}
+                editBaseUrl={this.editBaseUrl}
+                isEmbeddedInADataPage={
+                    this.manager.isEmbeddedInADataPage ?? false
+                }
+            />
+        )
+    }
+
     private renderTabs(): JSX.Element {
         const activeIndex = this.state.activeTabIndex
         const setActiveIndex = (index: number) =>
@@ -108,38 +152,61 @@ export class SourcesModal extends React.Component<
                 activeTabIndex: index,
             })
 
-        if (this.manager.isNarrow)
+        // tabs are clipped to this width
+        const maxTabWidth = 240
+
+        // on mobile, we show a horizontally scrolling tabs
+        if (this.manager.isNarrow) {
             return (
                 <Tabs
                     labels={this.tabLabels}
                     activeIndex={activeIndex}
                     setActiveIndex={setActiveIndex}
                     horizontalScroll={true}
+                    maxTabWidth={maxTabWidth}
                 />
             )
+        }
 
-        // width available for tabs
-        const modalPadding = 1.5 * (this.manager.fontSize ?? 16)
+        // maximum width available for tabs
         const maxWidth = Math.min(
-            MAX_WIDTH,
-            this.modalBounds.width - 2 * modalPadding - 10 // wiggle room
+            MAX_CONTENT_WIDTH,
+            this.modalBounds.width - 2 * this.modalPadding - 10 // wiggle room
         )
 
         const labelWidths = this.tabLabels.map(
-            (label) => measureTabWidth(label) + 8 // right padding
+            (label) => measureTabWidth(label) + TAB_GAP
         )
 
-        // check if all tabs fit into a single line
-        if (sum(labelWidths) <= maxWidth)
+        // check if all tab labels fit into a single line
+        if (sum(labelWidths) <= maxWidth) {
             return (
                 <Tabs
                     labels={this.tabLabels}
                     activeIndex={activeIndex}
                     setActiveIndex={setActiveIndex}
+                    maxTabWidth={null}
                 />
             )
+        }
 
-        // get a subset of tabs that fit into a single line
+        const clippedLabelWidths = this.tabLabels.map(
+            (label) => Math.min(measureTabWidth(label), maxTabWidth) + TAB_GAP
+        )
+
+        // check if all tab labels fit into a single line when they are clipped
+        if (sum(clippedLabelWidths) <= maxWidth) {
+            return (
+                <Tabs
+                    labels={this.tabLabels}
+                    activeIndex={activeIndex}
+                    setActiveIndex={setActiveIndex}
+                    maxTabWidth={maxTabWidth}
+                />
+            )
+        }
+
+        // compute the subset of tabs that fit into a single line
         const getVisibleLabels = (labels: string[]) => {
             // take width of the "Show more" button into account
             let width =
@@ -148,7 +215,7 @@ export class SourcesModal extends React.Component<
                 6 // icon padding
 
             const visibleLabels: string[] = []
-            for (const [label, labelWidth] of zip(labels, labelWidths)) {
+            for (const [label, labelWidth] of zip(labels, clippedLabelWidths)) {
                 width += labelWidth as number
                 if (width > maxWidth) break
                 visibleLabels.push(label as string)
@@ -159,15 +226,17 @@ export class SourcesModal extends React.Component<
 
         // if only a single label would be visible, we prefer tabs with horizontal scrolling
         const visibleLabels = getVisibleLabels(this.tabLabels)
-        if (visibleLabels.length <= 1)
+        if (visibleLabels.length <= 1) {
             return (
                 <Tabs
                     labels={this.tabLabels}
                     activeIndex={activeIndex}
                     setActiveIndex={setActiveIndex}
                     horizontalScroll={true}
+                    maxTabWidth={maxTabWidth}
                 />
             )
+        }
 
         return (
             <ExpandableTabs
@@ -175,8 +244,32 @@ export class SourcesModal extends React.Component<
                 activeIndex={activeIndex}
                 setActiveIndex={setActiveIndex}
                 getVisibleLabels={getVisibleLabels}
+                maxTabWidth={maxTabWidth}
             />
         )
+    }
+
+    private renderMultipleSources(): JSX.Element {
+        return (
+            <>
+                <p className="note-multiple-indicators">
+                    This chart is composed of multiple indicators. Select an
+                    indicator for more information.
+                </p>
+                {this.renderTabs()}
+                {this.renderSource(this.columns[this.state.activeTabIndex])}
+            </>
+        )
+    }
+
+    private renderModalContent(): JSX.Element | null {
+        if (this.deduplicatedColumn) {
+            return this.renderDeduplicatedSource()
+        }
+
+        return this.columns.length === 1
+            ? this.renderSource(this.columns[0])
+            : this.renderMultipleSources()
     }
 
     render(): JSX.Element {
@@ -186,21 +279,14 @@ export class SourcesModal extends React.Component<
                     () => (this.manager.isSourcesModalOpen = false)
                 )}
                 bounds={this.modalBounds}
+                isHeightFixed={true}
+                showStickyHeader={this.showStickyModalHeader}
             >
                 <div className="SourcesModalContent">
-                    {this.columns.length === 1 ? (
-                        this.renderSource(this.columns[0])
+                    {this.manager.isReady ? (
+                        this.renderModalContent()
                     ) : (
-                        <>
-                            <p className="note-multiple-indicators">
-                                This data includes several indicators. Select an
-                                indicator for more information.
-                            </p>
-                            {this.renderTabs()}
-                            {this.renderSource(
-                                this.columns[this.state.activeTabIndex]
-                            )}
-                        </>
+                        <LoadingIndicator />
                     )}
                 </div>
             </Modal>
@@ -214,16 +300,20 @@ export class Source extends React.Component<{
     editBaseUrl?: string
     isEmbeddedInADataPage?: boolean
 }> {
-    @computed private get def(): OwidColumnDef {
-        return this.props.column.def
+    @computed get column(): CoreColumn {
+        return this.props.column
+    }
+
+    @computed get def(): OwidColumnDef & { source?: OwidSource } {
+        return { ...this.column.def, source: this.column.source }
     }
 
     @computed private get source(): OwidSource {
-        return this.props.column.source ?? {}
+        return this.def.source ?? {}
     }
 
     @computed private get title(): string {
-        return this.props.column.nonEmptyDisplayName
+        return this.column.nonEmptyDisplayName
     }
 
     @computed private get editUrl(): string | undefined {
@@ -237,23 +327,23 @@ export class Source extends React.Component<{
         return uniq(excludeUndefined(this.def.origins.map((o) => o.producer)))
     }
 
-    @computed private get attributions(): string | undefined {
+    @computed get attributions(): string | undefined {
         const attributionFragments =
             getAttributionFragmentsFromVariable(this.def) ?? this.producers
         if (attributionFragments.length === 0) return undefined
         return attributionFragments.join(", ")
     }
 
-    @computed private get lastUpdated(): string | undefined {
+    @computed get lastUpdated(): string | undefined {
         return getLastUpdatedFromVariable(this.def)
     }
 
-    @computed private get nextUpdate(): string | undefined {
+    @computed get nextUpdate(): string | undefined {
         return getNextUpdateFromVariable(this.def)
     }
 
-    @computed private get unit(): string | undefined {
-        return this.def.display?.unit ?? this.def.unit
+    @computed get unit(): string | undefined {
+        return this.column.unit
     }
 
     @computed private get datapageHasFAQSection(): boolean {
@@ -273,17 +363,35 @@ export class Source extends React.Component<{
         return prepareSourcesForDisplay(this.def)
     }
 
+    @computed protected get sourcesSectionHeading(): string {
+        return "The data of this indicator is based on the following sources:"
+    }
+
+    @computed private get hideSourcesForDisplay(): boolean {
+        // the indictaor with id = 123 is the "Continent" variable curated by OWID.
+        // it's used in many charts but doesn't come with useful source information.
+        // that's why we hide the sources section for this indicator for now,
+        // but we might decide to show it in the future
+        return this.def.owidVariableId === 123
+    }
+
+    protected renderTitle(): JSX.Element {
+        return (
+            <h2>
+                {this.title}{" "}
+                {this.editUrl && (
+                    <a href={this.editUrl} target="_blank" rel="noopener">
+                        <FontAwesomeIcon icon={faPencilAlt} />
+                    </a>
+                )}
+            </h2>
+        )
+    }
+
     render(): JSX.Element {
         return (
             <div className="source">
-                <h2>
-                    {this.title}{" "}
-                    {this.editUrl && (
-                        <a href={this.editUrl} target="_blank" rel="noopener">
-                            <FontAwesomeIcon icon={faPencilAlt} />
-                        </a>
-                    )}
-                </h2>
+                {this.renderTitle()}
                 {this.def.descriptionShort && (
                     <p>{this.def.descriptionShort}</p>
                 )}
@@ -295,16 +403,8 @@ export class Source extends React.Component<{
                     nextUpdate={this.nextUpdate}
                     unit={this.unit}
                     link={this.source.link}
-                    unitConversionFactor={
-                        this.props.column.unitConversionFactor
-                    }
+                    unitConversionFactor={this.column.unitConversionFactor}
                     isEmbeddedInADataPage={this.props.isEmbeddedInADataPage}
-                    hideTopBorder={!this.def.descriptionShort}
-                    hideBottomBorder={
-                        this.showDescriptions &&
-                        (!this.def.descriptionKey ||
-                            this.def.descriptionKey.length === 0)
-                    }
                 />
                 {this.showDescriptions && (
                     <SourcesDescriptions
@@ -321,11 +421,12 @@ export class Source extends React.Component<{
                         isEmbeddedInADataPage={this.props.isEmbeddedInADataPage}
                     />
                 )}
-                {this.sourcesForDisplay &&
+                {!this.hideSourcesForDisplay &&
+                    this.sourcesForDisplay &&
                     this.sourcesForDisplay.length > 0 && (
                         <>
                             <h3 className="heading">
-                                This data is based on the following sources:
+                                {this.sourcesSectionHeading}
                             </h3>
                             <IndicatorSources
                                 sources={this.sourcesForDisplay}
@@ -335,7 +436,7 @@ export class Source extends React.Component<{
                             />
                         </>
                     )}
-                <h3 className="heading">
+                <h3 className="heading heading--tight">
                     How we process data at Our World in Data:
                 </h3>
                 <IndicatorProcessing
@@ -346,12 +447,58 @@ export class Source extends React.Component<{
     }
 }
 
-// keep in sync with .Tabs__tab styles in SourcesModal.scss
+@observer
+export class DeduplicatedSource extends Source {
+    renderTitle(): JSX.Element {
+        return <h2>About this data</h2>
+    }
+
+    @computed get sourcesSectionHeading(): string {
+        return "This data is based on the following sources"
+    }
+}
+
+const visibleSourceInformation = (source: Source): string => {
+    return [
+        // used in key data table
+        source.attributions,
+        source.def.timespan,
+        source.lastUpdated,
+        source.nextUpdate,
+        source.unit,
+        source.def.sourceLink,
+        source.column.unitConversionFactor,
+
+        // descriptions
+        source.def.descriptionShort,
+        source.def.descriptionKey,
+        source.def.descriptionFromProducer,
+        source.def.additionalInfo,
+
+        // old source information
+        source.def.sourceName,
+        source.def.dataPublishedBy,
+        source.def.retrievedDate,
+        source.def.description,
+
+        // origins
+        source.def.origins
+            ?.map((origin) => [
+                origin.producer,
+                origin.title,
+                origin.description,
+                origin.dateAccessed,
+                origin.urlMain,
+                origin.citationFull,
+            ])
+            .join("-"),
+    ].join("-")
+}
+
 const measureTabWidth = (label: string): number => {
-    const maxWidth = 240
-    const computedWidth =
-        2 * 16 + // padding
-        Bounds.forText(label, { fontSize: 13 }).width +
+    return (
+        2 * TAB_PADDING +
+        Bounds.forText(label, { fontSize: TAB_FONT_SIZE }).width +
         2 // border
-    return Math.min(maxWidth, computedWidth)
+    )
 }

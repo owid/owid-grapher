@@ -1,6 +1,7 @@
 import React, { useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faPlus, faMinus } from "@fortawesome/free-solid-svg-icons"
+import cx from "classnames"
 import { Tabs } from "./Tabs"
 
 export const ExpandableTabs = ({
@@ -9,12 +10,14 @@ export const ExpandableTabs = ({
     setActiveIndex,
     isExpandedDefault = false,
     getVisibleLabels = (labels: string[]) => labels.slice(0, 3),
+    maxTabWidth = 240,
 }: {
     labels: string[]
     activeIndex: number
     setActiveIndex: (index: number) => void
     isExpandedDefault?: boolean
     getVisibleLabels?: (tabLabels: string[]) => string[]
+    maxTabWidth?: number | null // if null, don't clip labels
 }) => {
     const [isExpanded, setExpanded] = useState(isExpandedDefault)
 
@@ -32,11 +35,18 @@ export const ExpandableTabs = ({
     )
 
     return (
-        <Tabs
-            labels={visibleLabels}
-            activeIndex={activeIndex}
-            setActiveIndex={setActiveIndex}
-            slot={moreButton}
-        />
+        <div
+            className={cx("ExpandableTabs", {
+                "ExpandableTabs--expanded": isExpanded,
+            })}
+        >
+            <Tabs
+                labels={visibleLabels}
+                activeIndex={activeIndex}
+                setActiveIndex={setActiveIndex}
+                slot={moreButton}
+                maxTabWidth={maxTabWidth}
+            />
+        </div>
     )
 }

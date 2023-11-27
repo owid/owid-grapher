@@ -1,0 +1,38 @@
+.Tabs {
+    margin: 16px 0;
+
+    &--horizontal-scroll {
+        overflow-x: auto;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+
+    &__tab {
+        margin: 0 8px 8px 0;
+        padding: 8px 16px;
+        border: 1px solid $blue-10;
+        background: #fff;
+        color: $light-text;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        letter-spacing: 0.01em;
+        white-space: nowrap;
+
+        &:hover {
+            cursor: pointer;
+            background-color: $gray-10;
+            border-color: $gray-10;
+        }
+
+        &[aria-selected="true"] {
+            background: $accent-pale-blue;
+            border-color: $accent-pale-blue;
+            color: $blue-90;
+        }
+    }
+}

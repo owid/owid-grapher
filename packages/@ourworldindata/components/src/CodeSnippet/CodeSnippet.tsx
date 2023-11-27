@@ -5,15 +5,18 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faCopy } from "@fortawesome/free-solid-svg-icons"
 import { canWriteToClipboard } from "@ourworldindata/utils"
 import cx from "classnames"
+import { SimpleMarkdownText } from "../SimpleMarkdownText"
 
 export const CodeSnippet = ({
     code,
     theme = "dark",
     isTruncated = false,
+    useMarkdown = false,
 }: {
     code: string
     theme?: "dark" | "light"
     isTruncated?: boolean
+    useMarkdown?: boolean
 }) => {
     const [canCopy, setCanCopy] = useState(false)
     const [hasCopied, setHasCopied] = useState(false)
@@ -44,7 +47,11 @@ export const CodeSnippet = ({
                         "wp-code-snippet__code--is-truncated": isTruncated,
                     })}
                 >
-                    {code}
+                    {useMarkdown ? (
+                        <SimpleMarkdownText text={code} useParagraphs={false} />
+                    ) : (
+                        code
+                    )}
                 </code>
             </pre>
             {canCopy && (

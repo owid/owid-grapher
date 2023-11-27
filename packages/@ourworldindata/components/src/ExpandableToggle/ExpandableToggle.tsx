@@ -27,6 +27,8 @@ export const ExpandableToggle = ({
         <div
             className={cx("ExpandableToggle", {
                 "ExpandableToggle--stacked": isStacked,
+                "ExpandableToggle--open": isOpen,
+                "ExpandableToggle--teaser": hasTeaser,
             })}
         >
             <button className="ExpandableToggle__button" onClick={toggle}>
@@ -36,14 +38,7 @@ export const ExpandableToggle = ({
                     icon={!isOpen ? faPlus : faMinus}
                 />
             </button>
-            <div
-                className={cx("ExpandableToggle__content", {
-                    "ExpandableToggle__content--open": isOpen,
-                    "ExpandableToggle__content--teaser": hasTeaser,
-                })}
-            >
-                {content}
-            </div>
+            <div className="ExpandableToggle__content">{content}</div>
         </div>
     )
 }

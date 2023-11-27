@@ -41,11 +41,11 @@ export const IndicatorProcessing = (props: IndicatorProcessingProps) => {
                     <h5 className="indicator-processing-callout__title">
                         Notes on our processing step for this indicator
                     </h5>
-                    <p className="indicator-processing-callout__content">
+                    <div className="indicator-processing-callout__content">
                         <SimpleMarkdownText
                             text={props.descriptionProcessing.trim()}
                         />
-                    </p>
+                    </div>
                 </div>
             )}
         </div>

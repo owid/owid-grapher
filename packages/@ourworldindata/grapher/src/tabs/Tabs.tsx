@@ -6,12 +6,14 @@ export const Tabs = ({
     activeIndex,
     setActiveIndex,
     horizontalScroll = false,
+    maxTabWidth = 240,
     slot,
 }: {
     labels: string[]
     activeIndex: number
     setActiveIndex: (label: number) => void
     horizontalScroll?: boolean
+    maxTabWidth?: number | null // if null, don't clip labels
     slot?: JSX.Element
 }) => {
     const container = useRef<HTMLDivElement>(null)
@@ -45,6 +47,15 @@ export const Tabs = ({
         if (activeTabElement) activeTabElement.focus()
     }
 
+    let style: React.CSSProperties | undefined = undefined
+    if (maxTabWidth !== null && Number.isFinite(maxTabWidth)) {
+        style = {
+            maxWidth: maxTabWidth,
+            textOverflow: "ellipsis",
+            overflow: "hidden",
+        }
+    }
+
     return (
         <div
             className={cx("Tabs", {
@@ -58,9 +69,8 @@ export const Tabs = ({
                 return (
                     <button
                         key={label}
-                        className={cx("Tabs__tab", {
-                            "Tabs__tab--active": isActive,
-                        })}
+                        className="Tabs__tab"
+                        style={style}
                         type="button"
                         role="tab"
                         tabIndex={isActive ? 0 : -1}
