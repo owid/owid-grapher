@@ -1,18 +1,8 @@
-import fs from "fs-extra"
-import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
-import { Value } from "@sinclair/typebox/value"
 import "dayjs"
 import { getLinkType, getUrlTarget } from "@ourworldindata/components"
 import {
-    OwidEnrichedGdocBlock,
     OwidGdocInterface,
-    pick,
     GdocsContentSource,
-    DataPageGdocContent,
-    DataPageJson,
-    DataPageJsonTypeObject,
-    DataPageParseError,
-    AllowedDataPageGdocFields,
     DataPageDataV2,
     OwidVariableWithSource,
     dayjs,
@@ -77,54 +67,6 @@ export const getDatapageDataV2 = async (
     }
 }
 
-export const getDatapageJson = async (
-    variableId: number
-): Promise<{
-    datapageJson: DataPageJson | null
-    parseErrors: DataPageParseError[]
-}> => {
-    let datapageJson: DataPageJson | null = null
-    try {
-        const fullPath = `${GIT_CMS_DIR}/datapages/${variableId}.json`
-        const datapageJsonFile = await fs.readFile(fullPath, "utf8")
-        datapageJson = JSON.parse(datapageJsonFile)
-    } catch (err: any) {
-        // An error has been thrown either because:
-        // - the file doesn't exist: it simply means we don't have a datapage
-        //   yet, and we just render a regular grapher page instead by returning
-        //   neither a datapage, nor parsing errors
-        // - the file exists but fails to parse because it contains invalid
-        //   JSON. In this case, we return parsing errors.
-        if (err.code === "ENOENT") {
-            return {
-                datapageJson: null,
-                parseErrors: [],
-            }
-        } else {
-            return {
-                datapageJson: null,
-                parseErrors: [
-                    {
-                        message: err.message,
-                    },
-                ],
-            }
-        }
-    }
-
-    // Validate the datapage JSON file against the DataPageJson schema
-    if (Value.Check(DataPageJsonTypeObject, datapageJson)) {
-        return { datapageJson, parseErrors: [] }
-    } else {
-        return {
-            datapageJson,
-            parseErrors: [
-                ...Value.Errors(DataPageJsonTypeObject, datapageJson),
-            ].map(({ message, path }) => ({ message, path })),
-        }
-    }
-}
-
 /**
  * Get the datapage companion gdoc, if any.
  *
@@ -167,47 +109,4 @@ export const getDatapageGdoc = async (
             : await Gdoc.findOneBy({ id: googleDocId })
 
     return datapageGdoc
-}
-
-/*
- * Takes a gdoc and splits its content into sections based on the heading 1s.
-
-* The heading 1 texts are used as keys, which can represent a nested structure,
- * e.g. `descriptionFromSource.content`.
- *
- * Validation: only a subset of the possible fields found is allowed (see
- * AllowedDataPageGdocFields). This means the gdoc can contain extra heading
- * one texts (e.g. for documentation) that will be ignored without raising
- * errors.
- *  */
-export const parseGdocContentFromAllowedLevelOneHeadings = (
-    gdoc: OwidGdocInterface | null
-): DataPageGdocContent | null => {
-    if (!gdoc) return null
-
-    let currentKey = ""
-    const keyedBlocks: Record<string, OwidEnrichedGdocBlock[]> = {}
-
-    // We want to split the content of the gdoc into sections based on the
-    // heading 1s. Each section will be stored under a new key named after the
-    // preceeding heading 1's text, which have been specially crafted for this
-    // purpose
-    gdoc.content.body?.forEach((block: any) => {
-        if (block.type === "heading" && block.level === 1) {
-            // Use the heading 1's text as a key through a very raw version of
-            // "spansToSimpleText". `currentKey` can represent a nested key, e.g.
-            // `descriptionFromSource.content`
-            currentKey = block.text[0].text
-        } else {
-            // If the current block is not a heading 1, we append its value to
-            // the content of the current key
-            keyedBlocks[currentKey] = [
-                ...(keyedBlocks[currentKey] || []),
-                block,
-            ]
-        }
-    })
-
-    // We only keep the allowed keys, silently filtering out the rest
-    return pick(keyedBlocks, AllowedDataPageGdocFields)
 }
