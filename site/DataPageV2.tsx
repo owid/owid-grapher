@@ -83,10 +83,13 @@ export const DataPageV2 = (props: {
         grapher
     )
 
+    // Note that we cannot set `bindUrlToWindow` and `isEmbeddedInADataPage` here,
+    // because this would then get serialized into the EMBEDDED_JSON object,
+    // and MultiEmbedder would then pick it up for other charts on the page
+    // _aside_ from the main one (e.g. the related charts block),
+    // which we don't want to happen.
     const grapherConfig: GrapherProgrammaticInterface = {
         ...mergedGrapherConfig,
-        isEmbeddedInADataPage: true,
-        bindUrlToWindow: true,
         bakedGrapherURL: BAKED_GRAPHER_URL,
         adminBaseUrl: ADMIN_BASE_URL,
         dataApiUrl: DATA_API_URL,
