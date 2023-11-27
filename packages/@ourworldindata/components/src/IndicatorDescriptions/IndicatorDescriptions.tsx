@@ -2,7 +2,10 @@ import React from "react"
 import { faArrowDown } from "@fortawesome/free-solid-svg-icons/faArrowDown"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { ExpandableToggle } from "../ExpandableToggle/ExpandableToggle.js"
-import { SimpleMarkdownText } from "../SimpleMarkdownText.js"
+import {
+    HtmlOrSimpleMarkdownText,
+    SimpleMarkdownText,
+} from "../SimpleMarkdownText.js"
 
 interface IndicatorDescriptionsProps {
     descriptionShort?: string
@@ -10,13 +13,14 @@ interface IndicatorDescriptionsProps {
     descriptionFromProducer?: string
     attributionShort?: string
     additionalInfo?: string
-    canonicalUrl?: string
     hasFaqEntries: boolean
+    isEmbeddedInADataPage?: boolean // true by default
 }
 
 export const IndicatorDescriptions = (props: IndicatorDescriptionsProps) => {
+    const isEmbeddedInADataPage = props.isEmbeddedInADataPage ?? true
     return (
-        <div className="indicator-key-description">
+        <div className="indicator-descriptions">
             {props.descriptionKey && props.descriptionKey.length > 0 && (
                 <div className="key-info">
                     <h3 className="key-info__title">
@@ -39,11 +43,8 @@ export const IndicatorDescriptions = (props: IndicatorDescriptionsProps) => {
                             </ul>
                         )}
                     </div>
-                    {props.hasFaqEntries && (
-                        <a
-                            className="key-info__learn-more"
-                            href={(props.canonicalUrl ?? "") + "#faqs"}
-                        >
+                    {isEmbeddedInADataPage && props.hasFaqEntries && (
+                        <a className="key-info__learn-more" href="#faqs">
                             Learn more in the FAQs
                             <FontAwesomeIcon icon={faArrowDown} />
                         </a>
@@ -76,7 +77,7 @@ export const IndicatorDescriptions = (props: IndicatorDescriptionsProps) => {
                         label="Additional information about this data"
                         content={
                             <div className="simple-markdown-text">
-                                <SimpleMarkdownText
+                                <HtmlOrSimpleMarkdownText
                                     text={props.additionalInfo.trim()}
                                 />
                             </div>

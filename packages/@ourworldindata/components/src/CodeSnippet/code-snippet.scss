@@ -1,14 +1,24 @@
 .wp-code-snippet {
+    --text: var(--code-snippet-text, #{$blue-60});
+    --border: var(--code-snippet-border, #{$blue-20});
+
+    --background: var(--code-snippet-background, #{$gray-10});
+    --background-light: var(--code-snippet-background-light, #{$white});
+
+    --button: var(--code-snippet-button, #{$blue-60});
+    --button-hover: var(--code-snippet-button-hover, #{$blue-90});
+    --button-active: var(--code-snippet-button-active, #{$blue-100});
+
     margin-bottom: 32px;
     font-size: 12px;
     line-height: calc(16 / 12);
     display: flex;
     align-items: stretch;
 
-    background-color: $gray-10;
+    background-color: var(--background);
     padding: 16px 24px;
-    border: 1px solid $blue-20;
-    color: $blue-60;
+    border: 1px solid var(--border);
+    color: var(--text);
 
     pre {
         margin: 0;
@@ -32,7 +42,7 @@
         flex: 0 0 64px;
         max-height: 32px;
         text-align: right;
-        color: $blue-60;
+        color: var(--button);
         cursor: pointer;
 
         &::before {
@@ -45,11 +55,11 @@
         }
 
         &:hover {
-            color: $blue-90;
+            color: var(--button-hover);
         }
 
         &:active {
-            color: $blue-100;
+            color: var(--button-active);
         }
 
         &.code-copy-button--has-copied {
@@ -59,5 +69,5 @@
 }
 
 .wp-code-snippet--light {
-    background-color: $white;
+    background-color: var(--background-light);
 }

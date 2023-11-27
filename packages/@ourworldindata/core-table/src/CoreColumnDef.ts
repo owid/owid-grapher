@@ -80,11 +80,12 @@ export interface CoreColumnDef extends ColumnColorScale {
     dataPublisherSource?: string
     retrievedDate?: string
     additionalInfo?: string
-    timespanFromMetadata?: string
+    timespan?: string
 
     // Metadata v2
     origins?: OwidOrigin[]
     presentation?: OwidVariablePresentation
+    updatePeriodDays?: number
 
     // Dataset information
     datasetId?: number

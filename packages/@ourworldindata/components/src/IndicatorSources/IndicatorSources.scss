@@ -1,11 +1,11 @@
-.source-content {
+.indicator-source {
     .description {
         @include body-3-medium;
         margin: 0;
         margin-bottom: 16px;
     }
 
-    .key-info {
+    .source-key-data-blocks {
         display: grid;
         grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
         row-gap: 8px;
@@ -16,25 +16,54 @@
         }
     }
 
-    .key-data {
+    .source-key-data {
+        --title: var(--source-key-data-title, #{$blue-90});
+
         @include body-3-medium;
-        a {
-            @include owid-link-90;
-            color: inherit;
-        }
     }
 
-    .key-data--span-2 {
+    .source-key-data--span-2 {
         grid-column: span 2;
     }
 
-    .key-data__title {
-        color: $blue-90;
+    .source-key-data__title {
+        color: var(--title);
     }
 
-    .key-data--hide-overflow div:last-child {
+    .source-key-data__content--hide-overflow {
         white-space: nowrap;
         text-overflow: ellipsis;
         overflow: hidden;
+    }
+
+    a {
+        @include owid-link-90;
+        color: inherit;
+    }
+}
+
+.NonExpandable {
+    --title: var(--non-expandable-title, currentColor);
+    --content: var(--non-expandable-content, #{$blue-60});
+    --border: var(--non-expandable-border, #d0dae3);
+
+    padding: 16px 0;
+
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+
+    &--stacked {
+        border-bottom: none;
+    }
+
+    &__title {
+        @include h4-semibold;
+        margin: 0;
+        margin-bottom: 8px;
+        color: var(--title);
+    }
+
+    &__content {
+        color: var(--content);
     }
 }

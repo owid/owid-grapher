@@ -5,7 +5,6 @@ import {
     IndicatorDescriptions,
     CodeSnippet,
     REUSE_THIS_WORK_SECTION_ID,
-    OriginSubset,
     IndicatorSources,
     DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
     IndicatorProcessing,
@@ -19,10 +18,10 @@ import {
     DataPageV2ContentFields,
     slugify,
     uniq,
-    pick,
     formatAuthors,
     intersection,
     getPhraseForProcessingLevel,
+    prepareSourcesForDisplay,
 } from "@ourworldindata/utils"
 import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
 import StickyNav from "./blocks/StickyNav.js"
@@ -102,19 +101,7 @@ export const DataPageV2Content = ({
             : "related-data__category--columns span-cols-8 span-lg-cols-12"
     } `
 
-    const origins: OriginSubset[] = uniq(
-        datapageData.origins.map((item) =>
-            pick(item, [
-                "title",
-                "producer",
-                "descriptionSnapshot",
-                "dateAccessed",
-                "urlMain",
-                "description",
-                "citationFull",
-            ])
-        )
-    )
+    const sourcesForDisplay = prepareSourcesForDisplay(datapageData)
     const producers = uniq(datapageData.origins.map((o) => o.producer))
 
     const attributionFragments = datapageData.attributions ?? producers
@@ -123,13 +110,13 @@ export const DataPageV2Content = ({
             ? `${attributionFragments[0]} and other sources`
             : attributionFragments.join(", ")
     const attributionUnshortened = attributionFragments.join(", ")
-    const processedAdapted = getPhraseForProcessingLevel(
+    const processingLevelPhrase = getPhraseForProcessingLevel(
         datapageData.owidProcessingLevel
     )
     const lastUpdated = dayjs(datapageData.lastUpdated, ["YYYY", "YYYY-MM-DD"])
     const yearOfUpdate = lastUpdated.year()
-    const citationShort = `${attributionPotentiallyShortened} – with ${processedAdapted} by Our World In Data (${yearOfUpdate})`
-    const citationLonger = `${attributionUnshortened} – with ${processedAdapted} by Our World In Data (${yearOfUpdate})`
+    const citationShort = `${attributionPotentiallyShortened} – ${processingLevelPhrase} by Our World in Data (${yearOfUpdate})`
+    const citationLonger = `${attributionUnshortened} – ${processingLevelPhrase} by Our World in Data (${yearOfUpdate})`
     const originsLong = uniq(
         datapageData.origins.map(
             (o) => `${o.producer}, ${o.title ?? o.titleSnapshot}`
@@ -240,7 +227,7 @@ export const DataPageV2Content = ({
                             className="wrapper"
                             id="explore-the-data"
                         />
-                        <div className="wrapper grid grid-cols-12">
+                        <div className="about-this-data-wrapper wrapper grid grid-cols-12">
                             <div className="col-start-3 span-cols-8 span-lg-cols-12">
                                 <div className="about-this-data">
                                     <h2 className="about-this-data__heading">
@@ -489,7 +476,9 @@ export const DataPageV2Content = ({
                                         sources
                                     </h3>
                                     <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                                        <IndicatorSources origins={origins} />
+                                        <IndicatorSources
+                                            sources={sourcesForDisplay}
+                                        />
                                     </div>
                                 </div>
                                 <div className="data-processing grid span-cols-12">

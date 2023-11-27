@@ -1,58 +1,52 @@
 .indicator-processing {
     .data-processing {
-        &__content {
-            margin-bottom: 24px;
-        }
+        --content: var(--data-processing-content, currentColor);
 
-        &__paragraph {
+        margin-top: 0;
+        margin-bottom: 24px;
+
+        > p {
             @include body-3-medium;
             margin: 0 0 16px;
-        }
-
-        &__link {
-            @include expandable-paragraph__expand-button--full;
-
-            svg {
-                display: none; // used in Grapher's sources modal
-                font-size: 0.75em;
-                margin-left: 12px;
-            }
+            color: var(--content);
         }
     }
 
-    .variable-processing-info {
+    .indicator-processing__link {
+        @include expandable-paragraph__expand-button--full;
+
+        svg {
+            display: none; // used in Grapher's sources modal
+            font-size: 0.75em;
+            margin-left: 12px;
+        }
+    }
+
+    .indicator-processing-callout {
+        --background: var(--indicator-processing-background, #{$white});
+        --title: var(--indicator-processing-title, currentColor);
+        --content: var(--indicator-processing-content, #{$blue-60});
+
         display: flex;
         flex-direction: column;
-        background-color: $white;
+        background-color: var(--background);
         margin: 32px -24px 0;
         padding: 24px;
 
-        &__header {
+        &__title {
             @include overline-black-caps;
             text-transform: uppercase;
             margin: 0 0 8px;
+            color: var(--title);
         }
 
-        &__description {
-            color: $blue-60;
-
-            .article-block__text,
-            .article-block__list,
-            .article-block__html,
-            .article-block__numbered-list {
-                @include body-3-medium;
-            }
-
-            > *:first-child {
-                margin-top: 0;
-            }
-
-            > *:last-child {
-                margin-bottom: 0;
-            }
+        &__content {
+            @include body-3-medium;
+            color: var(--content);
+            margin: 0;
         }
 
-        .article-block__text a {
+        a {
             @include owid-link-60;
             color: inherit;
         }

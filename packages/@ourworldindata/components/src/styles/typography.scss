@@ -146,6 +146,21 @@ body {
     @include h2-bold;
 }
 
+@mixin h2-semibold {
+    font-family: $serif-font-stack;
+    font-size: 1.25rem;
+    line-height: 1.2;
+    font-weight: 600;
+    display: block;
+    margin-top: 48px;
+    margin-bottom: 24px;
+    letter-spacing: 0;
+}
+
+.h2-semibold {
+    @include h2-bold;
+}
+
 @mixin h3-bold {
     font-family: $serif-font-stack;
     font-size: 1.125rem;
@@ -323,4 +338,15 @@ body {
 
 .body-3-medium-italic-underlined {
     @include body-3-medium-italic-underlined;
+}
+
+@mixin label-2-medium {
+    font-family: $sans-serif-font-stack;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+}
+
+.label-2-medium {
+    @include label-2-medium;
 }

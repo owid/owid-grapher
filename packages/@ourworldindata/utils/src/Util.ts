@@ -1739,6 +1739,15 @@ export function mergePartialGrapherConfigs<T extends Record<string, any>>(
     return merge({}, ...grapherConfigs)
 }
 
+export const joinWithAmpersand = (fragments: string[]): string => {
+    if (fragments.length === 0) return ""
+    else if (fragments.length === 1) return fragments[0]
+    else {
+        const last = fragments.pop()
+        return fragments.join(", ") + " & " + last
+    }
+}
+
 /** Works for:
  * #dod:text
  * #dod:text-hyphenated

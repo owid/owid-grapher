@@ -31,6 +31,39 @@ $modal-padding: 1.5em;
             flex-direction: column;
         }
 
+        .modalDismiss {
+            $light-stroke: #e7e7e7;
+            $hover-fill: #f2f2f2;
+            $active-fill: #dbe5f0;
+
+            font-size: 13px;
+            color: $dark-text;
+            border: 1px solid $light-stroke;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            background-color: #fff;
+            z-index: 1;
+
+            // center icon
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            position: absolute;
+            top: $modal-padding / 2;
+            right: $modal-padding / 2;
+
+            &:hover {
+                border-color: $hover-fill;
+                background: $hover-fill;
+                cursor: pointer;
+            }
+            &:active {
+                background-color: $active-fill;
+            }
+        }
+
         .modalHeader {
             flex-shrink: 0; // necessary to allow modal to scroll
             display: flex;
@@ -48,30 +81,7 @@ $modal-padding: 1.5em;
             }
 
             .modalDismiss {
-                $light-stroke: #e7e7e7;
-                $hover-fill: #f2f2f2;
-                $active-fill: #dbe5f0;
-
-                font-size: 13px;
-                color: $dark-text;
-                border: 1px solid $light-stroke;
-                border-radius: 50%;
-                width: 32px;
-                height: 32px;
-
-                // center icon
-                display: flex;
-                align-items: center;
-                justify-content: center;
-
-                &:hover {
-                    border-color: $hover-fill;
-                    background: $hover-fill;
-                    cursor: pointer;
-                }
-                &:active {
-                    background-color: $active-fill;
-                }
+                position: static;
             }
         }
 

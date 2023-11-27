@@ -1,109 +1,150 @@
 import React from "react"
+import cx from "classnames"
 import { ExpandableToggle } from "../ExpandableToggle/ExpandableToggle.js"
-import { OwidOrigin, dayjs, uniqBy } from "@ourworldindata/utils"
+import { DisplaySource, dayjs, uniqBy } from "@ourworldindata/utils"
 import { SimpleMarkdownText } from "../SimpleMarkdownText.js"
 import { CodeSnippet } from "../CodeSnippet/CodeSnippet.js"
 import { REUSE_THIS_WORK_SECTION_ID } from "../SharedDataPageConstants.js"
 
-export type OriginSubset = Pick<
-    OwidOrigin,
-    | "title"
-    | "producer"
-    | "descriptionSnapshot"
-    | "dateAccessed"
-    | "urlMain"
-    | "description"
-    | "citationFull"
->
-
 export interface IndicatorSourcesProps {
-    origins: OriginSubset[]
-    canonicalUrl?: string
+    sources: DisplaySource[]
+    isEmbeddedInADataPage?: boolean // true by default
 }
 
 export const IndicatorSources = (props: IndicatorSourcesProps) => {
-    const origins = props.origins.map((origin) => ({
-        ...origin,
-        label: makeLabel(origin),
-    }))
-    const uniqueOrigins = uniqBy(origins, "label")
+    const isEmbeddedInADataPage = props.isEmbeddedInADataPage ?? true
+    const uniqueSources = uniqBy(props.sources, "label")
 
     return (
         <>
-            {uniqueOrigins.map((source, idx: number, sources) => (
-                <ExpandableToggle
-                    key={source.label}
-                    label={source.label}
-                    content={
-                        <SourceContent
-                            source={source}
-                            canonicalUrl={props.canonicalUrl}
-                        />
-                    }
-                    isStacked={idx !== sources.length - 1}
-                    hasTeaser
-                />
-            ))}
+            {uniqueSources.map((source: DisplaySource, idx: number) => {
+                const isStacked = idx !== uniqueSources.length - 1
+                const content = (
+                    <SourceContent
+                        source={source}
+                        isEmbeddedInADataPage={isEmbeddedInADataPage}
+                    />
+                )
+                return source.description ||
+                    source.citation ||
+                    source.dataPublishedBy ? (
+                    <ExpandableToggle
+                        key={source.label}
+                        label={source.label}
+                        content={content}
+                        isStacked={isStacked}
+                        hasTeaser
+                    />
+                ) : (
+                    <NonExpandable
+                        key={source.label}
+                        label={source.label}
+                        isStacked={isStacked}
+                        content={content}
+                    />
+                )
+            })}
         </>
     )
 }
 
-const SourceContent = (props: {
-    source: OriginSubset
-    canonicalUrl?: string
+const NonExpandable = (props: {
+    label: string
+    content: React.ReactNode
+    isStacked?: boolean
 }) => {
-    const { source, canonicalUrl = "" } = props
-    const dateAccessed = source.dateAccessed
-        ? dayjs(source.dateAccessed).format("MMMM D, YYYY")
-        : undefined
-    const showKeyInfo = dateAccessed || source.urlMain || source.citationFull
     return (
-        <div className="source-content">
+        <div
+            className={cx("NonExpandable", {
+                "NonExpandable--stacked": props.isStacked,
+            })}
+        >
+            <h4 className="NonExpandable__title">{props.label}</h4>
+            <div className="NonExpandable__content">{props.content}</div>
+        </div>
+    )
+}
+
+const SourceContent = (props: {
+    source: DisplaySource
+    isEmbeddedInADataPage: boolean
+}) => {
+    const { source } = props
+    const retrievedOn = source.retrievedOn
+        ? dayjs(source.retrievedOn).format("MMMM D, YYYY")
+        : undefined
+    const showKeyInfo =
+        source.dataPublishedBy ||
+        retrievedOn ||
+        (source.retrievedFrom && source.retrievedFrom.length > 0) ||
+        source.citation
+    return (
+        <div className="indicator-source">
             {source.description && (
-                <p className="description simple-markdown-text">
+                <p className="description">
                     <SimpleMarkdownText text={source.description.trim()} />
                 </p>
             )}
             {showKeyInfo && (
-                <div className="key-info">
-                    {dateAccessed && (
-                        <div className="key-data">
-                            <div className="key-data__title">Retrieved on</div>
-                            <div>{dateAccessed}</div>
+                <div className="source-key-data-blocks">
+                    {source.dataPublishedBy && (
+                        <div className="source-key-data source-key-data--span-2">
+                            <div className="source-key-data__title">
+                                Data published by
+                            </div>
+                            <div>{source.dataPublishedBy}</div>
                         </div>
                     )}
-                    {source.urlMain && (
-                        <div className="key-data key-data--hide-overflow">
-                            <div className="key-data__title">
-                                Retrieved from
+                    {retrievedOn && (
+                        <div className="source-key-data">
+                            <div className="source-key-data__title">
+                                Retrieved on
                             </div>
-                            <div>
-                                <a
-                                    href={source.urlMain}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                >
-                                    {source.urlMain}
-                                </a>
-                            </div>
+                            <div>{retrievedOn}</div>
                         </div>
                     )}
-                    {source.citationFull && (
-                        <div className="key-data key-data--span-2">
-                            <div className="key-data__title">Citation</div>
+                    {source.retrievedFrom &&
+                        source.retrievedFrom.length > 0 && (
+                            <div className="source-key-data">
+                                <div className="source-key-data__title">
+                                    Retrieved from
+                                </div>
+                                {source.retrievedFrom.map((url: string) => (
+                                    <div
+                                        key={url}
+                                        className="source-key-data__content--hide-overflow"
+                                    >
+                                        <a
+                                            href={url}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                        >
+                                            {url}
+                                        </a>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    {source.citation && (
+                        <div className="source-key-data source-key-data--span-2">
+                            <div className="source-key-data__title">
+                                Citation
+                            </div>
                             This is the citation of the original data obtained
                             from the source, prior to any processing or
-                            adaptation by Our World in Data. To cite data
-                            downloaded from this page, please use the suggested
-                            citation given in{" "}
-                            <a
-                                href={`${canonicalUrl}#${REUSE_THIS_WORK_SECTION_ID}`}
-                            >
-                                Reuse This Work
-                            </a>{" "}
-                            below.
+                            adaptation by Our World in Data.{" "}
+                            {props.isEmbeddedInADataPage && (
+                                <>
+                                    To cite data downloaded from this page,
+                                    please use the suggested citation given in{" "}
+                                    <a href={`#${REUSE_THIS_WORK_SECTION_ID}`}>
+                                        Reuse This Work
+                                    </a>{" "}
+                                    below.
+                                </>
+                            )}
                             <CodeSnippet
-                                code={source.citationFull.trim()}
+                                code={source.citation.trim()}
                                 theme="light"
                             />
                         </div>
@@ -112,16 +153,4 @@ const SourceContent = (props: {
             )}
         </div>
     )
-}
-
-const makeLabel = (origin: OriginSubset) => {
-    let label =
-        origin.producer ??
-        origin.descriptionSnapshot ??
-        origin.description ??
-        ""
-    if (origin.title && origin.title !== label) {
-        label += " - " + origin.title
-    }
-    return label
 }

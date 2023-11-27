@@ -234,6 +234,7 @@ export {
     type EnrichedBlockAlign,
     type RawBlockAlign,
     type BreadcrumbItem,
+    type DisplaySource,
 } from "./owidTypes.js"
 
 export {
@@ -356,13 +357,14 @@ export {
 
 export {
     getOriginAttributionFragments,
-    getAttributionFromVariable,
     getAttributionFragmentsFromVariable,
     getETLPathComponents,
     formatAuthors,
     getLastUpdatedFromVariable,
     getNextUpdateFromVariable,
     getPhraseForProcessingLevel,
+    splitSourceTextIntoFragments,
+    prepareSourcesForDisplay,
 } from "./metadataHelpers.js"
 
 export {

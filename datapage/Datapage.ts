@@ -19,7 +19,6 @@ export const getDatapageDataV2 = async (
     partialGrapherConfig: GrapherInterface
 ): Promise<DataPageDataV2> => {
     {
-        const processingLevel = variableMetadata.processingLevel ?? "minor"
         const lastUpdated = getLastUpdatedFromVariable(variableMetadata) ?? ""
         const nextUpdate = getNextUpdateFromVariable(variableMetadata)
         const datapageJson: DataPageDataV2 = {
@@ -30,6 +29,7 @@ export const getDatapageDataV2 = async (
                 variableMetadata.display?.name ??
                 variableMetadata.name ??
                 "",
+            description: variableMetadata.description,
             descriptionShort: variableMetadata.descriptionShort,
             descriptionFromProducer: variableMetadata.descriptionFromProducer,
             attributionShort: variableMetadata.presentation?.attributionShort,
@@ -39,7 +39,7 @@ export const getDatapageDataV2 = async (
             faqs: [],
             descriptionKey: variableMetadata.descriptionKey ?? [],
             descriptionProcessing: variableMetadata.descriptionProcessing,
-            owidProcessingLevel: processingLevel,
+            owidProcessingLevel: variableMetadata.processingLevel,
             dateRange: variableMetadata.timespan ?? "",
             lastUpdated: lastUpdated,
             nextUpdate: nextUpdate,

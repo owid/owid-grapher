@@ -1,6 +1,7 @@
 import { OwidOrigin } from "./OwidOrigin"
 import { OwidProcessingLevel, OwidVariableWithSource } from "./OwidVariable"
-import { compact, uniq, last } from "./Util"
+import { DisplaySource } from "./owidTypes"
+import { compact, uniq, last, excludeUndefined } from "./Util"
 import dayjs from "./dayjs.js"
 
 export function getOriginAttributionFragments(
@@ -22,10 +23,10 @@ export function getOriginAttributionFragments(
         : []
 }
 
-export function getAttributionFromVariable(
-    variable: OwidVariableWithSource
-): string {
-    return getAttributionFragmentsFromVariable(variable).join("; ")
+export const splitSourceTextIntoFragments = (
+    text: string | undefined
+): string[] => {
+    return text ? text.split(";").map((fragment) => fragment.trim()) : []
 }
 
 export function getAttributionFragmentsFromVariable(
@@ -39,11 +40,12 @@ export function getAttributionFragmentsFromVariable(
         variable.presentation?.attribution !== ""
     )
         return [variable.presentation?.attribution]
+
     const originAttributionFragments = getOriginAttributionFragments(
         variable.origins
     )
-    const dataPublishedBy = variable.source?.dataPublishedBy
-    return uniq(compact([dataPublishedBy, ...originAttributionFragments]))
+    const name = variable.source?.name
+    return uniq(compact([name, ...originAttributionFragments]))
 }
 
 interface ETLPathComponents {
@@ -80,10 +82,30 @@ export const formatAuthors = ({
     return authorsText
 }
 
+const isDate = (date: string): boolean => {
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/
+    return !!date.match(dateRegex)
+}
+
 export const getLastUpdatedFromVariable = (
-    variable: Pick<OwidVariableWithSource, "catalogPath">
+    variable: Pick<OwidVariableWithSource, "catalogPath" | "origins">
 ): string | undefined => {
-    return getETLPathComponents(variable.catalogPath ?? "")?.version
+    // if possible, extract date from the catalog path
+    const version = getETLPathComponents(variable.catalogPath ?? "")?.version
+    if (version && isDate(version)) return version
+
+    const { origins = [] } = variable
+    const originDates = excludeUndefined(
+        origins.map((origin) => origin.dateAccessed)
+    )
+
+    if (originDates.length === 0) return undefined
+
+    // alternatively, pick the latest dateAccessed from the origins
+    const latestDate = new Date(
+        Math.max(...originDates.map((date) => new Date(date).getTime()))
+    )
+    return dayjs(latestDate).format("YYYY-MM-DD")
 }
 
 export const getNextUpdateFromVariable = (
@@ -96,13 +118,68 @@ export const getNextUpdateFromVariable = (
         const nextUpdateDate = date.add(variable.updatePeriodDays, "day")
         // If the next update date is in the past, we set it to the next month
         if (nextUpdateDate.isBefore(dayjs()))
-            nextUpdate = dayjs().add(1, "month").format("MMMM YYYY")
-        else nextUpdate = nextUpdateDate.format("MMMM YYYY")
+            nextUpdate = dayjs().add(1, "month")
+        else nextUpdate = nextUpdateDate
     }
-    return nextUpdate
+    return nextUpdate?.format("YYYY-MM-DD")
 }
 
 export const getPhraseForProcessingLevel = (
-    processingLevel: OwidProcessingLevel
-): string =>
-    processingLevel === "major" ? "major adaptations" : "minor processing"
+    processingLevel: OwidProcessingLevel | undefined
+): string => {
+    switch (processingLevel) {
+        case "major":
+            return "with major adaptations"
+        case "minor":
+            return "with minor processing"
+        default:
+            return "processed"
+    }
+}
+
+const prepareOriginForDisplay = (origin: OwidOrigin): DisplaySource => {
+    let label = origin.producer ?? ""
+    if (origin.title && origin.title !== label) {
+        label += " - " + origin.title
+    }
+
+    return {
+        label,
+        description: origin.description,
+        retrievedOn: origin.dateAccessed,
+        retrievedFrom: origin.urlMain ? [origin.urlMain] : undefined,
+        citation: origin.citationFull,
+    }
+}
+
+export const prepareSourcesForDisplay = (
+    variable: Pick<OwidVariableWithSource, "origins" | "source" | "description">
+): DisplaySource[] => {
+    const { origins, source, description } = variable
+
+    const sourcesForDisplay: DisplaySource[] = []
+
+    if (
+        source?.name &&
+        (description ||
+            source?.dataPublishedBy ||
+            source?.retrievedDate ||
+            source?.link)
+    ) {
+        sourcesForDisplay.push({
+            label: source?.name,
+            description,
+            dataPublishedBy: source?.dataPublishedBy,
+            retrievedOn: source?.retrievedDate,
+            retrievedFrom: splitSourceTextIntoFragments(source?.link),
+        })
+    }
+
+    if (origins && origins.length > 0) {
+        sourcesForDisplay.push(
+            ...origins.map((origin) => prepareOriginForDisplay(origin))
+        )
+    }
+
+    return sourcesForDisplay
+}

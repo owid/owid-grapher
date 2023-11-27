@@ -49,3 +49,21 @@ export class SimpleMarkdownText extends React.Component<SimpleMarkdownTextProps>
         )
     }
 }
+
+// TODO: remove this component once all backported indicators
+// etc have switched from HTML to markdown for their sources
+export const HtmlOrSimpleMarkdownText = (props: {
+    text: string
+}): JSX.Element => {
+    // check the text for closing a, li or p tags. If
+    // one is found, render using dangerouslySetInnerHTML,
+    // otherwise use SimpleMarkdownText
+    const { text } = props
+    const htmlRegex = /<\/(a|li|p)>/
+    const match = text.match(htmlRegex)
+    if (match) {
+        return <span dangerouslySetInnerHTML={{ __html: text }} />
+    } else {
+        return <SimpleMarkdownText text={text} />
+    }
+}

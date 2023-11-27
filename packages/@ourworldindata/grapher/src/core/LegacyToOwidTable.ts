@@ -564,6 +564,8 @@ const columnDefFromOwidVariable = (
         timespan,
         nonRedistributable,
         presentation,
+        catalogPath,
+        updatePeriodDays,
     } = variable
 
     // Without this the much used var 123 appears as "Countries Continent". We could rename in Grapher but not sure the effects of that.
@@ -592,10 +594,14 @@ const columnDefFromOwidVariable = (
         dataPublisherSource: source?.dataPublisherSource,
         retrievedDate: source?.retrievedDate,
         additionalInfo: source?.additionalInfo,
-        timespanFromMetadata: timespan,
+        timespan,
         origins,
         presentation,
+        catalogPath,
+        updatePeriodDays,
         owidVariableId: variable.id,
+        owidProcessingLevel: variable.processingLevel,
+        owidSchemaVersion: variable.schemaVersion,
         type: isContinent
             ? ColumnTypeNames.Continent
             : ColumnTypeNames.NumberOrString,

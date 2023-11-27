@@ -13,6 +13,6 @@ export interface OwidOrigin {
     citationFull?: string
     urlMain?: string
     urlDownload?: string
-    dateAccessed?: Date
+    dateAccessed?: string
     datePublished?: string
 }

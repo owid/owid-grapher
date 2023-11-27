@@ -1,6 +1,10 @@
 import { CoreRow, Integer, Time, Year } from "./CoreTableConstants.js"
 import { ColumnTypeNames, CoreColumnDef } from "./CoreColumnDef.js"
-import { ColumnSlug, PrimitiveType } from "@ourworldindata/utils"
+import {
+    ColumnSlug,
+    PrimitiveType,
+    OwidProcessingLevel,
+} from "@ourworldindata/utils"
 
 export enum OwidTableSlugs {
     entityName = "entityName",
@@ -32,6 +36,9 @@ export interface OwidColumnDef extends CoreColumnDef {
     annotationsColumnSlug?: ColumnSlug
     nonRedistributable?: boolean
     skipParsing?: boolean
+    catalogPath?: string
+    owidProcessingLevel?: OwidProcessingLevel
+    owidSchemaVersion?: number
 }
 
 export const OwidEntityNameColumnDef = {

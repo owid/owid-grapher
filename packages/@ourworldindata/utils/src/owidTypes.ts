@@ -1585,12 +1585,13 @@ export interface DataPageDataV2 {
     topicTagsLinks?: string[]
     primaryTopic?: PrimaryTopic
     attributions: string[]
+    description?: string
     descriptionShort?: string
     descriptionFromProducer?: string
     faqs: FaqLink[] // Todo: resolve these at this level to the point where we can preview them
     descriptionKey: string[]
     descriptionProcessing?: string
-    owidProcessingLevel: OwidProcessingLevel
+    owidProcessingLevel?: OwidProcessingLevel
     dateRange: string
     lastUpdated: string
     nextUpdate?: string
@@ -1727,4 +1728,14 @@ export interface UserCountryInformation {
     short_code: string
     slug: string
     regions: string[] | null
+}
+
+// consumed by <IndicatorSources />
+export interface DisplaySource {
+    label: string
+    description?: string
+    dataPublishedBy?: string
+    retrievedOn?: string
+    retrievedFrom?: string[]
+    citation?: string
 }
