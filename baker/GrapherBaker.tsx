@@ -45,7 +45,7 @@ import * as db from "../db/db.js"
 import { glob } from "glob"
 import { isPathRedirectedToExplorer } from "../explorerAdminServer/ExplorerRedirects.js"
 import { bySlug, getPostBySlug, parsePostAuthors } from "../db/model/Post.js"
-import { GrapherInterface } from "@ourworldindata/grapher"
+import { ChartTypeName, GrapherInterface } from "@ourworldindata/grapher"
 import workerpool from "workerpool"
 import ProgressBar from "progress"
 import {
@@ -62,6 +62,7 @@ import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 import { parseFaqs } from "../db/model/Gdoc/rawToEnriched.js"
 import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
 import { getShortPageCitation } from "../site/gdocs/utils.js"
+import { isEmpty } from "lodash"
 
 /**
  *
@@ -83,13 +84,30 @@ export const renderDataPageOrGrapherPage = async (
     const yVariableIds = grapher
         .dimensions!.filter((d) => d.property === DimensionProperty.y)
         .map((d) => d.variableId)
-    if (yVariableIds.length === 1) {
+    const xVariableIds = grapher
+        .dimensions!.filter((d) => d.property === DimensionProperty.x)
+        .map((d) => d.variableId)
+    // Make a data page for single indicator indicator charts.
+    // For scatter plots we want to only show a data page if it has no X variable mapped, which
+    // is a special case where time is the X axis. Marimekko charts are the other chart that uses
+    // the X dimension but there we usually map population on X which should not prevent us from
+    // showing a data page.
+    if (
+        yVariableIds.length === 1 &&
+        (grapher.type !== ChartTypeName.ScatterPlot ||
+            xVariableIds.length === 0)
+    ) {
         const variableId = yVariableIds[0]
         const variableMetadata = await getVariableMetadata(variableId)
 
         if (
             variableMetadata.schemaVersion !== undefined &&
-            variableMetadata.schemaVersion >= 2
+            variableMetadata.schemaVersion >= 2 &&
+            (!isEmpty(variableMetadata.descriptionShort) ||
+                !isEmpty(variableMetadata.descriptionProcessing) ||
+                !isEmpty(variableMetadata.descriptionKey) ||
+                !isEmpty(variableMetadata.descriptionFromProducer) ||
+                !isEmpty(variableMetadata.presentation?.titlePublic))
         ) {
             return await renderDataPageV2({
                 variableId,
