@@ -275,6 +275,7 @@ adminRouter.get("/datapage-preview/:id", async (req, res) => {
             variableId,
             variableMetadata,
             isPreviewing: true,
+            useIndicatorGrapherConfigs: true,
             publishedExplorersBySlug,
         })
     )
