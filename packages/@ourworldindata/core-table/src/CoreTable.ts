@@ -1621,7 +1621,6 @@ class FilterMask {
         for (let i = 0; i < this.numRows; i++) {
             if (this.mask[i]) keepIndexes.push(i)
         }
-        if (keepIndexes.length === this.numRows) return columnStore
 
         Object.keys(columnStore).forEach((slug) => {
             const originalColumn = columnStore[slug]
