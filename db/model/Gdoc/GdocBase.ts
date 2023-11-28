@@ -49,7 +49,7 @@ import {
     getAllLinksFromResearchAndWritingBlock,
     spansToSimpleString,
 } from "./gdocUtils.js"
-import { Gdoc } from "./Gdoc.js"
+import { GdocPost } from "./GdocPost.js"
 import { OwidGoogleAuth } from "../../OwidGoogleAuth.js"
 
 @Entity()
@@ -66,7 +66,7 @@ export class GdocBase extends BaseEntity {
     errors: OwidGdocErrorMessage[] = []
     imageMetadata: Record<string, ImageMetadata> = {}
     linkedCharts: Record<string, LinkedChart> = {}
-    linkedDocuments: Record<string, Gdoc> = {}
+    linkedDocuments: Record<string, GdocPost> = {}
     relatedCharts: RelatedChart[] = []
 
     _getSubclassEnrichedBlocks: (gdoc: typeof this) => OwidEnrichedGdocBlock[] =
@@ -185,7 +185,7 @@ export class GdocBase extends BaseEntity {
     get linkedImageFilenames(): string[] {
         // Used for prominent links
         const featuredImages = Object.values(this.linkedDocuments)
-            .map((gdoc: Gdoc) => gdoc.content["featured-image"])
+            .map((gdoc: GdocPost) => gdoc.content["featured-image"])
             .filter((filename?: string): filename is string => !!filename)
 
         return [...this.filenames, ...featuredImages]
@@ -491,7 +491,7 @@ export class GdocBase extends BaseEntity {
     async loadLinkedDocuments(): Promise<void> {
         const linkedDocuments = await Promise.all(
             this.linkedDocumentIds.map(async (target) => {
-                const linkedDocument = await Gdoc.findOneBy({
+                const linkedDocument = await GdocPost.findOneBy({
                     id: target,
                 })
                 return linkedDocument
@@ -604,7 +604,7 @@ export class GdocBase extends BaseEntity {
         let dodErrors: OwidGdocErrorMessage[] = []
         // Validating the DoD document is infinitely recursive :)
         if (this.id !== GDOCS_DETAILS_ON_DEMAND_ID) {
-            const { details } = await Gdoc.getDetailsOnDemandGdoc()
+            const { details } = await GdocPost.getDetailsOnDemandGdoc()
             dodErrors = this.details.reduce(
                 (
                     acc: OwidGdocErrorMessage[],
@@ -672,7 +672,7 @@ export class GdocBase extends BaseEntity {
         publishedExplorersBySlug: Record<string, any>,
         contentSource?: GdocsContentSource
     ): Promise<OwidGdocInterface> {
-        const gdoc = await Gdoc.findOne({
+        const gdoc = await GdocPost.findOne({
             where: {
                 id,
             },

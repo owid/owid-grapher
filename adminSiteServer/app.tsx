@@ -31,7 +31,7 @@ import { mockSiteRouter } from "./mockSiteRouter.js"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import { GdocsContentSource } from "@ourworldindata/utils"
 import OwidGdocPage from "../site/gdocs/OwidGdocPage.js"
-import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
+import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 
 interface OwidAdminAppOptions {
@@ -130,7 +130,7 @@ export class OwidAdminApp {
             const publishedExplorersBySlug =
                 await adminExplorerServer.getAllPublishedExplorersBySlugCached()
             try {
-                const gdoc = await Gdoc.getGdocFromContentSource(
+                const gdoc = await GdocPost.getGdocFromContentSource(
                     req.params.id,
                     publishedExplorersBySlug,
                     GdocsContentSource.Gdocs

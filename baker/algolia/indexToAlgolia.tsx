@@ -23,7 +23,7 @@ import {
     SearchIndexName,
 } from "../../site/search/searchTypes.js"
 import { Pageview } from "../../db/model/Pageview.js"
-import { Gdoc } from "../../db/model/Gdoc/Gdoc.js"
+import { GdocPost } from "../../db/model/Gdoc/GdocPost.js"
 import { ArticleBlocks } from "../../site/gdocs/ArticleBlocks.js"
 import React from "react"
 
@@ -131,10 +131,10 @@ async function generateWordpressRecords(
 }
 
 function generateGdocRecords(
-    gdocs: Gdoc[],
+    gdocs: GdocPost[],
     pageviews: Record<string, RawPageview>
 ): PageRecord[] {
-    const getPostTypeAndImportance = (gdoc: Gdoc): TypeAndImportance => {
+    const getPostTypeAndImportance = (gdoc: GdocPost): TypeAndImportance => {
         switch (gdoc.content.type) {
             case OwidGdocType.TopicPage:
                 return { type: "topic", importance: 3 }
@@ -188,7 +188,7 @@ function generateGdocRecords(
 // Generate records for countries, WP posts (not including posts that have been succeeded by Gdocs equivalents), and Gdocs
 const getPagesRecords = async () => {
     const pageviews = await Pageview.getViewsByUrlObj()
-    const gdocs = await Gdoc.getPublishedGdocs()
+    const gdocs = await GdocPost.getPublishedGdocs()
     const publishedGdocsBySlug = keyBy(gdocs, "slug")
     const slugsWithPublishedGdocsSuccessors =
         await db.getSlugsWithPublishedGdocsSuccessors()

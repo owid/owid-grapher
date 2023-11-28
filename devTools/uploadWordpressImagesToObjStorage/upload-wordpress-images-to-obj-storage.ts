@@ -4,7 +4,7 @@ import fs from "fs/promises"
 import path from "path"
 import parseArgs from "minimist"
 
-import { Gdoc, OwidGoogleAuth } from "../../db/model/Gdoc/Gdoc.js"
+import { GdocPost, OwidGoogleAuth } from "../../db/model/Gdoc/GdocPost.js"
 import { GDOCS_IMAGES_BACKPORTING_TARGET_FOLDER } from "../../settings/serverSettings.js"
 
 const args = parseArgs(process.argv.slice(2))

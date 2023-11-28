@@ -64,7 +64,7 @@ import {
 } from "./ExplorerBaker.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { postsTable } from "../db/model/Post.js"
-import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
+import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { Image } from "../db/model/Image.js"
 import { generateEmbedSnippet } from "../site/viteUtils.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
@@ -271,7 +271,7 @@ export class SiteBaker {
             postSlugs.push(post.slug)
         }
 
-        const gdocPosts = await Gdoc.getPublishedGdocs()
+        const gdocPosts = await GdocPost.getPublishedGdocs()
 
         for (const post of gdocPosts) {
             postSlugs.push(post.slug)
@@ -311,7 +311,7 @@ export class SiteBaker {
     async bakeGDocPosts(slugs?: string[]) {
         await db.getConnection()
         if (!this.bakeSteps.has("gdocPosts")) return
-        const publishedGdocs = await Gdoc.getPublishedGdocs()
+        const publishedGdocs = await GdocPost.getPublishedGdocs()
 
         const gdocsToBake =
             slugs !== undefined
@@ -470,7 +470,7 @@ export class SiteBaker {
             return
         }
 
-        const { details } = await Gdoc.getDetailsOnDemandGdoc()
+        const { details } = await GdocPost.getDetailsOnDemandGdoc()
 
         if (!details) {
             this.progressBar.tick({
@@ -522,7 +522,7 @@ export class SiteBaker {
             return
         }
 
-        const { details, parseErrors } = await Gdoc.getDetailsOnDemandGdoc()
+        const { details, parseErrors } = await GdocPost.getDetailsOnDemandGdoc()
         if (parseErrors.length) {
             logErrorAndMaybeSendToBugsnag(
                 `Error(s) baking details: ${parseErrors

@@ -47,7 +47,7 @@ import {
     renderPreviewDataPageOrGrapherPage,
     renderDataPageV2,
 } from "../baker/GrapherBaker.js"
-import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
+import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 
 require("express-async-errors")
 
@@ -268,7 +268,7 @@ mockSiteRouter.get("/multiEmbedderTest", async (req, res) =>
 
 mockSiteRouter.get("/dods.json", async (_, res) => {
     res.set("Access-Control-Allow-Origin", "*")
-    const { details, parseErrors } = await Gdoc.getDetailsOnDemandGdoc()
+    const { details, parseErrors } = await GdocPost.getDetailsOnDemandGdoc()
     if (parseErrors.length) {
         console.error(
             `Error(s) parsing details: ${parseErrors

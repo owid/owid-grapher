@@ -21,7 +21,7 @@ import {
     getAttributionFragmentsFromVariable,
 } from "@ourworldindata/utils"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
-import { Gdoc, OwidGoogleAuth } from "../db/model/Gdoc/Gdoc.js"
+import { GdocPost, OwidGoogleAuth } from "../db/model/Gdoc/GdocPost.js"
 import { GrapherInterface } from "@ourworldindata/grapher"
 
 export const getDatapageDataV2 = async (
@@ -161,12 +161,12 @@ export const getDatapageGdoc = async (
         isPreviewing &&
         publishedExplorersBySlug &&
         OwidGoogleAuth.areGdocAuthKeysSet()
-            ? await Gdoc.getGdocFromContentSource(
+            ? await GdocPost.getGdocFromContentSource(
                   googleDocId,
                   publishedExplorersBySlug,
                   GdocsContentSource.Gdocs
               )
-            : await Gdoc.findOneBy({ id: googleDocId })
+            : await GdocPost.findOneBy({ id: googleDocId })
 
     return datapageGdoc
 }

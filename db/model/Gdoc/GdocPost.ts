@@ -46,12 +46,12 @@ export class Tag extends BaseEntity implements TagInterface {
     @Column() isBulkImport!: boolean
     @Column() isTopic!: boolean
     @Column() specialType!: string
-    @ManyToMany(() => Gdoc, (gdoc) => gdoc.tags)
-    gdocs!: Gdoc[]
+    @ManyToMany(() => GdocPost, (gdoc) => gdoc.tags)
+    gdocs!: GdocPost[]
 }
 
 @Entity("posts_gdocs")
-export class Gdoc extends GdocBase implements OwidGdocInterface {
+export class GdocPost extends GdocBase implements OwidGdocInterface {
     static table = "posts_gdocs"
     @Column({ default: "{}", type: "json" }) content!: OwidGdocContent
     @Column() publicationContext: OwidGdocPublicationContext =
@@ -135,7 +135,7 @@ export class Gdoc extends GdocBase implements OwidGdocInterface {
             )
             return { details: {}, parseErrors: [] }
         }
-        const gdoc = await Gdoc.findOne({
+        const gdoc = await GdocPost.findOne({
             where: {
                 id: GDOCS_DETAILS_ON_DEMAND_ID,
                 published: true,
@@ -156,7 +156,9 @@ export class Gdoc extends GdocBase implements OwidGdocInterface {
         return parseDetails(gdoc.content.details)
     }
 
-    static async getPublishedGdocs(): Promise<(Gdoc & OwidGdocPublished)[]> {
+    static async getPublishedGdocs(): Promise<
+        (GdocPost & OwidGdocPublished)[]
+    > {
         // #gdocsvalidation this cast means that we trust the admin code and
         // workflow to provide published articles that have all the required content
         // fields (see #gdocsvalidationclient and pending #gdocsvalidationserver).
@@ -169,7 +171,7 @@ export class Gdoc extends GdocBase implements OwidGdocInterface {
         // mapGdocsToWordpressPosts(). This would make the Gdoc entity coming from
         // the database dependent on the mapping function, which is more practical
         // but also makes it less of a source of truth when considered in isolation.
-        return Gdoc.find({
+        return GdocPost.find({
             where: {
                 published: true,
                 publishedAt: LessThanOrEqual(new Date()),
@@ -179,18 +181,18 @@ export class Gdoc extends GdocBase implements OwidGdocInterface {
             gdocs.filter(
                 ({ content: { type } }) => type !== OwidGdocType.Fragment
             )
-        ) as Promise<(OwidGdocPublished & Gdoc)[]>
+        ) as Promise<(OwidGdocPublished & GdocPost)[]>
     }
 
     /**
      * Excludes published listed Gdocs with a publication date in the future
      */
-    static async getListedGdocs(): Promise<(Gdoc & OwidGdocPublished)[]> {
-        return Gdoc.findBy({
+    static async getListedGdocs(): Promise<(GdocPost & OwidGdocPublished)[]> {
+        return GdocPost.findBy({
             published: true,
             publicationContext: OwidGdocPublicationContext.listed,
             publishedAt: LessThanOrEqual(new Date()),
-        }) as Promise<(Gdoc & OwidGdocPublished)[]>
+        }) as Promise<(GdocPost & OwidGdocPublished)[]>
     }
 
     get hasAllChartsBlock(): boolean {
