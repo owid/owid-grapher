@@ -64,12 +64,9 @@ import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
 import { getShortPageCitation } from "../site/gdocs/utils.js"
 import { isEmpty } from "lodash"
 
-/**
- *
- * Render a datapage if available, otherwise render a grapher page.
- */
-export const renderDataPageOrGrapherPage = async (
+const renderDatapageIfApplicable = async (
     grapher: GrapherInterface,
+    isPreviewing: boolean,
     publishedExplorersBySlug?: Record<string, ExplorerProgram>,
     imageMetadataDictionary?: Record<string, Image>
 ) => {
@@ -108,13 +105,33 @@ export const renderDataPageOrGrapherPage = async (
             return await renderDataPageV2({
                 variableId,
                 variableMetadata,
-                isPreviewing: true,
+                isPreviewing: isPreviewing,
+                useIndicatorGrapherConfigs: false,
                 pageGrapher: grapher,
                 publishedExplorersBySlug,
                 imageMetadataDictionary,
             })
         }
     }
+    return undefined
+}
+
+/**
+ *
+ * Render a datapage if available, otherwise render a grapher page.
+ */
+export const renderDataPageOrGrapherPage = async (
+    grapher: GrapherInterface,
+    publishedExplorersBySlug?: Record<string, ExplorerProgram>,
+    imageMetadataDictionary?: Record<string, Image>
+): Promise<string> => {
+    const datapage = await renderDatapageIfApplicable(
+        grapher,
+        false,
+        publishedExplorersBySlug,
+        imageMetadataDictionary
+    )
+    if (datapage) return datapage
     return renderGrapherPage(grapher)
 }
 
@@ -134,6 +151,7 @@ export async function renderDataPageV2({
     variableId,
     variableMetadata,
     isPreviewing,
+    useIndicatorGrapherConfigs,
     pageGrapher,
     publishedExplorersBySlug,
     imageMetadataDictionary = {},
@@ -141,16 +159,20 @@ export async function renderDataPageV2({
     variableId: number
     variableMetadata: OwidVariableWithSource
     isPreviewing: boolean
+    useIndicatorGrapherConfigs: boolean
     pageGrapher?: GrapherInterface
     publishedExplorersBySlug?: Record<string, ExplorerProgram>
     imageMetadataDictionary?: Record<string, ImageMetadata>
 }) {
     const grapherConfigForVariable =
         await getMergedGrapherConfigForVariable(variableId)
-    const grapher = mergePartialGrapherConfigs(
-        grapherConfigForVariable,
-        pageGrapher
-    )
+    // Only merge the grapher config on the indicator if the caller tells us to do so -
+    // this is true for preview pages for datapages on the indicator level but false
+    // if we are on Grapher pages. Once we have a good way in the grapher admin for how
+    // to use indicator level defaults, we should reconsider how this works here.
+    const grapher = useIndicatorGrapherConfigs
+        ? mergePartialGrapherConfigs(grapherConfigForVariable, pageGrapher)
+        : pageGrapher ?? {}
 
     const faqDocs = compact(
         uniq(variableMetadata.presentation?.faqs?.map((faq) => faq.gdocId))
@@ -311,30 +333,12 @@ export const renderPreviewDataPageOrGrapherPage = async (
     grapher: GrapherInterface,
     publishedExplorersBySlug?: Record<string, ExplorerProgram>
 ) => {
-    // If we have a single Y variable and that one has a schema version >= 2,
-    // meaning it has the metadata to render a datapage, then we show the datapage
-    // based on this information. Otherwise we see if there is a legacy datapage.json
-    // available and if all else fails we render a classic Grapher page.
-    const yVariableIds = grapher
-        .dimensions!.filter((d) => d.property === DimensionProperty.y)
-        .map((d) => d.variableId)
-    if (yVariableIds.length === 1) {
-        const variableId = yVariableIds[0]
-        const variableMetadata = await getVariableMetadata(variableId)
-
-        if (
-            variableMetadata.schemaVersion !== undefined &&
-            variableMetadata.schemaVersion >= 2
-        ) {
-            return await renderDataPageV2({
-                variableId,
-                variableMetadata,
-                isPreviewing: true,
-                pageGrapher: grapher,
-                publishedExplorersBySlug,
-            })
-        }
-    }
+    const datapage = await renderDatapageIfApplicable(
+        grapher,
+        true,
+        publishedExplorersBySlug
+    )
+    if (datapage) return datapage
 
     return renderGrapherPage(grapher)
 }
