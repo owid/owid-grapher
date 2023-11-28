@@ -105,7 +105,7 @@ const renderDatapageIfApplicable = async (
             return await renderDataPageV2({
                 variableId,
                 variableMetadata,
-                isPreviewing: false,
+                isPreviewing: isPreviewing,
                 useIndicatorGrapherConfigs: false,
                 pageGrapher: grapher,
                 publishedExplorersBySlug,
