@@ -153,6 +153,16 @@ $zindex-controls-drawer: 140;
     .DataTableContainer {
         z-index: $zindex-table;
     }
+
+    // customize css of the <CodeSnippet> component
+    .wp-code-snippet {
+        --code-snippet-border: #e7e7e7;
+        --code-snippet-background-light: #f7f7f7;
+        --code-snippet-text: #{$light-text};
+        --code-snippet-button: #{$dark-text};
+        --code-snippet-button-hover: #{$light-text};
+        --code-snippet-button-active: #{$light-text};
+    }
 }
 
 .GrapherComponent.isExportingToSvgOrPng {

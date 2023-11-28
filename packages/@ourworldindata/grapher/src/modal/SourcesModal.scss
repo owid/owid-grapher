@@ -109,15 +109,6 @@
             --non-expandable-border: #{$border};
         }
 
-        .wp-code-snippet {
-            --code-snippet-border: #{$border};
-            --code-snippet-background-light: #f7f7f7;
-            --code-snippet-text: #{$light-text};
-            --code-snippet-button: #{$dark-text};
-            --code-snippet-button-hover: #{$light-text};
-            --code-snippet-button-active: #{$light-text};
-        }
-
         .Tabs__tab {
             font-size: $tab-font-size;
             padding: 8px $tab-padding;
