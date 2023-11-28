@@ -9,7 +9,7 @@ import {
 } from "typeorm"
 import { getLinkType, getUrlTarget } from "@ourworldindata/components"
 import { OwidGdocLinkJSON, Url } from "@ourworldindata/utils"
-import { GdocPost, GdocBase } from "./Gdoc/GdocPost.js"
+import { GdocBase } from "./Gdoc/GdocBase.js"
 import { formatUrls } from "../../site/formatting.js"
 
 @Entity("posts_gdocs_links")

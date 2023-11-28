@@ -21,7 +21,8 @@ import {
     getAttributionFragmentsFromVariable,
 } from "@ourworldindata/utils"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
-import { GdocPost, OwidGoogleAuth } from "../db/model/Gdoc/GdocPost.js"
+import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
+import { OwidGoogleAuth } from "../db/OwidGoogleAuth.js"
 import { GrapherInterface } from "@ourworldindata/grapher"
 
 export const getDatapageDataV2 = async (

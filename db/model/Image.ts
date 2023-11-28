@@ -19,7 +19,7 @@ import {
     ImageMetadata,
     findDuplicates,
 } from "@ourworldindata/utils"
-import { OwidGoogleAuth } from "./Gdoc/GdocPost.js"
+import { OwidGoogleAuth } from "../OwidGoogleAuth.js"
 import {
     IMAGE_HOSTING_SPACE_URL,
     IMAGE_HOSTING_SPACE_ACCESS_KEY_ID,
