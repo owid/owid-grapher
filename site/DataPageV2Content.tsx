@@ -825,6 +825,7 @@ const KeyDataTable = (props: {
                     <div>
                         <SimpleMarkdownText
                             text={datapageData.descriptionShort}
+                            useParagraphs={false}
                         />
                     </div>
                 </div>
