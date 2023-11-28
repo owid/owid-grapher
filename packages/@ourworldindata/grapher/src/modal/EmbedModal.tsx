@@ -1,14 +1,9 @@
 import { observer } from "mobx-react"
 import React from "react"
 import { computed, action } from "mobx"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faCopy } from "@fortawesome/free-solid-svg-icons"
-import {
-    Bounds,
-    canWriteToClipboard,
-    DEFAULT_BOUNDS,
-} from "@ourworldindata/utils"
+import { Bounds, DEFAULT_BOUNDS } from "@ourworldindata/utils"
 import { Modal } from "./Modal"
+import { CodeSnippet } from "@ourworldindata/components"
 
 export interface EmbedModalManager {
     canonicalUrl?: string
@@ -22,27 +17,8 @@ interface EmbedModalProps {
     manager: EmbedModalManager
 }
 
-interface EmbedModalState {
-    canWriteToClipboard: boolean
-    copied: boolean
-}
-
 @observer
-export class EmbedModal extends React.Component<
-    EmbedModalProps,
-    EmbedModalState
-> {
-    textAreaRef: React.RefObject<HTMLTextAreaElement> = React.createRef()
-
-    constructor(props: EmbedModalProps) {
-        super(props)
-
-        this.state = {
-            canWriteToClipboard: false,
-            copied: false,
-        }
-    }
-
+export class EmbedModal extends React.Component<EmbedModalProps> {
     @computed private get tabBounds(): Bounds {
         return this.manager.tabBounds ?? DEFAULT_BOUNDS
     }
@@ -62,25 +38,6 @@ export class EmbedModal extends React.Component<
         return this.props.manager
     }
 
-    componentDidMount(): void {
-        canWriteToClipboard().then((canWriteToClipboard) =>
-            this.setState({ canWriteToClipboard })
-        )
-    }
-
-    @action.bound async copyCodeSnippet(): Promise<void> {
-        try {
-            await navigator.clipboard.writeText(this.codeSnippet)
-            this.setState({ copied: true })
-            setTimeout(() => this.setState({ copied: false }), 2000)
-        } catch (err) {
-            console.error(
-                "couldn't copy to clipboard using navigator.clipboard",
-                err
-            )
-        }
-    }
-
     render(): JSX.Element {
         return (
             <Modal
@@ -93,18 +50,7 @@ export class EmbedModal extends React.Component<
             >
                 <div className="embedMenu">
                     <p>Paste this into any HTML page:</p>
-                    <div className="embedCode">
-                        <code>{this.codeSnippet}</code>
-                        {this.state.canWriteToClipboard && (
-                            <button onClick={this.copyCodeSnippet}>
-                                {this.state.copied ? (
-                                    "Copied!"
-                                ) : (
-                                    <FontAwesomeIcon icon={faCopy} />
-                                )}
-                            </button>
-                        )}
-                    </div>
+                    <CodeSnippet code={this.codeSnippet} />
                     {this.manager.embedDialogAdditionalElements}
                 </div>
             </Modal>
