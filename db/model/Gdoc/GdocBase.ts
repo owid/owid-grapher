@@ -43,7 +43,7 @@ import {
     BAKED_GRAPHER_EXPORTS_BASE_URL,
 } from "../../../settings/clientSettings.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../../../explorer/ExplorerConstants.js"
-import { parseDetails, parseFaqs } from "./rawToEnriched.js"
+import { parseDetails } from "./rawToEnriched.js"
 import { match, P } from "ts-pattern"
 import {
     getAllLinksFromResearchAndWritingBlock,
@@ -79,7 +79,7 @@ export class GdocBase extends BaseEntity {
     get enrichedBlockSources(): OwidEnrichedGdocBlock[][] {
         const enrichedBlockSources: OwidEnrichedGdocBlock[][] = [
             this.content.body,
-            ...this._getSubclassEnrichedBlocks(this),
+            this._getSubclassEnrichedBlocks(this),
         ]
 
         return enrichedBlockSources
@@ -640,21 +640,6 @@ export class GdocBase extends BaseEntity {
             dodDocumentErrors.push(...errors)
         }
 
-        const faqs = this.content.faqs
-            ? parseFaqs(this.content.faqs, this.id)
-            : undefined
-        const faqErrors: OwidGdocErrorMessage[] = []
-        if (faqs?.parseErrors.length) {
-            const errors: OwidGdocErrorMessage[] = faqs.parseErrors.map(
-                (parseError) => ({
-                    ...parseError,
-                    property: "faqs",
-                    type: OwidGdocErrorMessageType.Error,
-                })
-            )
-            faqErrors.push(...errors)
-        }
-
         const subclassErrors = this._validateSubclass(this)
 
         this.errors = [
@@ -662,7 +647,6 @@ export class GdocBase extends BaseEntity {
             ...linkErrors,
             ...dodErrors,
             ...dodDocumentErrors,
-            ...faqErrors,
             ...subclassErrors,
         ]
     }
@@ -683,11 +667,6 @@ export class GdocBase extends BaseEntity {
 
         if (contentSource === GdocsContentSource.Gdocs) {
             await gdoc.fetchAndEnrichGdoc()
-        }
-
-        if (gdoc.content.faqs && Object.values(gdoc.content.faqs).length) {
-            const faqResults = parseFaqs(gdoc.content.faqs, gdoc.id)
-            gdoc.content.parsedFaqs = faqResults.faqs
         }
 
         await gdoc.loadLinkedDocuments()

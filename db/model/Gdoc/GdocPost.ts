@@ -30,7 +30,7 @@ import {
     generateToc,
 } from "./archieToEnriched.js"
 import { ADMIN_BASE_URL } from "../../../settings/clientSettings.js"
-import { parseDetails } from "./rawToEnriched.js"
+import { parseDetails, parseFaqs } from "./rawToEnriched.js"
 import { getConnection } from "../../db.js"
 import { htmlToEnrichedTextBlock } from "./htmlToEnriched.js"
 import { GdocBase } from "./GdocBase.js"
@@ -83,8 +83,13 @@ export class GdocPost extends GdocBase implements OwidGdocInterface {
     _getSubclassEnrichedBlocks = (gdoc: this): OwidEnrichedGdocBlock[] => {
         const enrichedBlocks: OwidEnrichedGdocBlock[] = []
 
-        // TODO: sort this out later, probably a good candidate for its own subclass
-        // Object.values(gdoc.parsedFaqs).flatMap((faq) => faq.content)
+        // TODO: GdocFaq should be its own subclass, requires refactor of admin gdoc registration process
+        const parsedFaqs = gdoc.content.parsedFaqs
+        if (parsedFaqs) {
+            for (const faq of Object.values(parsedFaqs)) {
+                enrichedBlocks.push(...faq.content)
+            }
+        }
 
         if (gdoc.content.refs?.definitions) {
             const refBlocks = Object.values(
@@ -109,6 +114,11 @@ export class GdocPost extends GdocBase implements OwidGdocInterface {
         content.citation = formatCitation(content.citation)
 
         content["sticky-nav"] = generateStickyNav(content as any)
+
+        if (content.faqs && Object.values(content.faqs).length) {
+            const faqResults = parseFaqs(content.faqs, this.id)
+            content.parsedFaqs = faqResults.faqs
+        }
     }
 
     _validateSubclass = (): OwidGdocErrorMessage[] => {
@@ -120,6 +130,21 @@ export class GdocPost extends GdocBase implements OwidGdocInterface {
                 message: "No tags set on document for all-charts block to use",
                 type: OwidGdocErrorMessageType.Error,
             })
+        }
+
+        const faqs = this.content.faqs
+        const parsedFaqs = faqs
+            ? parseFaqs(this.content.faqs, this.id)
+            : undefined
+        // Only validate faqs if they were actually specified
+        if (parsedFaqs) {
+            for (const parseError of parsedFaqs.parseErrors) {
+                errors.push({
+                    ...parseError,
+                    property: "faqs",
+                    type: OwidGdocErrorMessageType.Error,
+                })
+            }
         }
 
         return errors
