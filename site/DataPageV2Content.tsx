@@ -822,7 +822,12 @@ const KeyDataTable = (props: {
                     <div className="key-data__title key-data-description-short__title">
                         {datapageData.title}
                     </div>
-                    <div>{datapageData.descriptionShort}</div>
+                    <div>
+                        <SimpleMarkdownText
+                            text={datapageData.descriptionShort}
+                            useParagraphs={false}
+                        />
+                    </div>
                 </div>
             )}
             {source && (

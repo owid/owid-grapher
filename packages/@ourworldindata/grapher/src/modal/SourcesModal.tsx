@@ -16,6 +16,7 @@ import {
 import {
     IndicatorSources,
     IndicatorProcessing,
+    SimpleMarkdownText,
 } from "@ourworldindata/components"
 import React from "react"
 import { action, computed } from "mobx"
@@ -393,7 +394,7 @@ export class Source extends React.Component<{
             <div className="source">
                 {this.renderTitle()}
                 {this.def.descriptionShort && (
-                    <p>{this.def.descriptionShort}</p>
+                    <SimpleMarkdownText text={this.def.descriptionShort} />
                 )}
                 <SourcesKeyDataTable
                     attribution={this.attributions}

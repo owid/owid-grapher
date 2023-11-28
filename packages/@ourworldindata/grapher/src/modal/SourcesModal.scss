@@ -46,6 +46,11 @@
             &:hover {
                 text-decoration: none;
             }
+
+            // DoD spans should be dotted via the border, not underlined
+            &.dod-span {
+                text-decoration: none;
+            }
         }
 
         .heading {
