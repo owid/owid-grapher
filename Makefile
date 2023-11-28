@@ -148,6 +148,11 @@ refresh.wp:
 	@echo '==> Updating wordpress data'
 	@. ./.env && DATA_FOLDER=tmp-downloads ./devTools/docker/refresh-wordpress-data.sh
 
+	@echo '!!! WARNING !!!'
+	@echo 'If you run this for staging WP, you have to set !Account password! for'
+	@echo 'tech@ourworldindata.org user to the value from `.env:WORDPRESS_API_PASS`'
+	@echo 'at https://staging.owid.cloud/wp/wp-admin/user-edit.php?user_id=35'
+
 sync-images:
 	@echo '==> Syncing S3 images'
 	@. ./.env && ./devTools/docker/sync-s3-images.sh
