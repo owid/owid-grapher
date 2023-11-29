@@ -786,6 +786,7 @@ export class Grapher
     }
 
     @observable.ref isExportingtoSvgOrPng = false
+    @observable.ref isExportingPortraitSvgOrPng = false
     @observable.ref isGeneratingThumbnail = false
 
     tooltips?: TooltipManager["tooltips"] = observable.map({}, { deep: false })
@@ -801,12 +802,18 @@ export class Grapher
         return location.host.includes("staging")
     }
 
+    private get isLocalhost(): boolean {
+        if (typeof location === undefined) return false
+        return location.host.includes("localhost")
+    }
+
     @computed get editUrl(): string | undefined {
-        if (!this.showAdminControls && !this.isDev && !this.isStaging)
-            return undefined
-        return `${this.adminBaseUrl}/admin/${
-            this.manager?.editUrl ?? `charts/${this.id}/edit`
-        }`
+        if (this.showAdminControls) {
+            return `${this.adminBaseUrl}/admin/${
+                this.manager?.editUrl ?? `charts/${this.id}/edit`
+            }`
+        }
+        return undefined
     }
 
     /**
@@ -817,11 +824,7 @@ export class Grapher
         return window.admin !== undefined
     }
 
-    /**
-     * Whether the user viewing the chart is an admin and we should show admin controls,
-     * like the "Edit" option in the share menu.
-     */
-    @computed get showAdminControls(): boolean {
+    @computed get isUserLoggedInAsAdmin(): boolean {
         // This cookie is set by visiting ourworldindata.org/identifyadmin on the static site.
         // There is an iframe on owid.cloud to trigger a visit to that page.
 
@@ -833,6 +836,15 @@ export class Grapher
         } catch {
             return false
         }
+    }
+
+    @computed get showAdminControls(): boolean {
+        return (
+            this.isUserLoggedInAsAdmin ||
+            this.isDev ||
+            this.isLocalhost ||
+            this.isStaging
+        )
     }
 
     @action.bound
@@ -1262,7 +1274,7 @@ export class Grapher
                 fontSize: 12,
                 // leave room for padding on the left and right
                 maxWidth:
-                    this.idealBounds.width - 2 * this.framePaddingHorizontal,
+                    this.staticBounds.width - 2 * this.framePaddingHorizontal,
                 lineHeight: 1.2,
                 style: {
                     fill: GRAPHER_DARK_TEXT,
@@ -1704,6 +1716,10 @@ export class Grapher
         return new Bounds(0, 0, DEFAULT_GRAPHER_WIDTH, DEFAULT_GRAPHER_HEIGHT)
     }
 
+    @computed get portraitBounds(): Bounds {
+        return new Bounds(0, 0, DEFAULT_GRAPHER_HEIGHT, DEFAULT_GRAPHER_WIDTH)
+    }
+
     @computed get hasYDimension(): boolean {
         return this.dimensions.some((d) => d.property === DimensionProperty.y)
     }
@@ -1718,8 +1734,18 @@ export class Grapher
         return staticSvg
     }
 
+    @computed get staticBounds(): Bounds {
+        return this.isExportingPortraitSvgOrPng
+            ? this.portraitBounds
+            : this.idealBounds
+    }
+
     get staticSVG(): string {
         return this.generateStaticSvg()
+    }
+
+    get staticSVGPortrait(): string {
+        return this.generateStaticSvg(this.portraitBounds)
     }
 
     @computed get disableIntroAnimation(): boolean {

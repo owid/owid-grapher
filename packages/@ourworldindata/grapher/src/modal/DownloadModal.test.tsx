@@ -34,6 +34,7 @@ it("correctly passes non-redistributable flag", () => {
     const viewFalse = new DownloadModal({
         manager: {
             staticSVG: "",
+            staticSVGPortrait: "",
             displaySlug: "",
             table: tableFalse,
             detailRenderers: [],
@@ -45,6 +46,7 @@ it("correctly passes non-redistributable flag", () => {
     const viewTrue = new DownloadModal({
         manager: {
             staticSVG: "",
+            staticSVGPortrait: "",
             displaySlug: "",
             table: tableTrue,
             detailRenderers: [],

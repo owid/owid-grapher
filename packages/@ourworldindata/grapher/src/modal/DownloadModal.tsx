@@ -27,9 +27,10 @@ import { Modal } from "./Modal"
 import { StaticChartRasterizer } from "../captionedChart/StaticChartRasterizer"
 
 export interface DownloadModalManager {
-    idealBounds?: Bounds
-    staticSVG: string
     displaySlug: string
+    staticSVG: string
+    staticSVGPortrait: string
+    staticBounds?: Bounds
     baseUrl?: string
     queryStr?: string
     table?: OwidTable
@@ -40,6 +41,8 @@ export interface DownloadModalManager {
     tabBounds?: Bounds
     isOnChartOrMapTab?: boolean
     framePaddingVertical?: number
+    isExportingPortraitSvgOrPng?: boolean
+    showAdminControls?: boolean
 }
 
 interface DownloadModalProps {
@@ -48,8 +51,8 @@ interface DownloadModalProps {
 
 @observer
 export class DownloadModal extends React.Component<DownloadModalProps> {
-    @computed private get idealBounds(): Bounds {
-        return this.manager.idealBounds ?? DEFAULT_BOUNDS
+    @computed private get staticBounds(): Bounds {
+        return this.manager.staticBounds ?? DEFAULT_BOUNDS
     }
 
     @computed private get tabBounds(): Bounds {
@@ -63,7 +66,7 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
     }
 
     @computed private get targetWidth(): number {
-        return this.idealBounds.width
+        return this.staticBounds.width
     }
 
     @computed private get targetHeight(): number {
@@ -72,7 +75,7 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
             !isEmpty(this.manager.detailRenderers)
         ) {
             return (
-                this.idealBounds.height +
+                this.staticBounds.height +
                 2 * this.manager.framePaddingVertical! +
                 sumTextWrapHeights(
                     this.manager.detailRenderers,
@@ -80,7 +83,7 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
                 )
             )
         }
-        return this.idealBounds.height
+        return this.staticBounds.height
     }
 
     @computed private get manager(): DownloadModalManager {
@@ -96,14 +99,14 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
     @observable private isReady: boolean = false
 
     @action.bound private export(): void {
-        const {
-            targetWidth: width,
-            targetHeight: height,
-            manager: { staticSVG },
-        } = this
+        const { targetWidth, targetHeight } = this
+
+        const staticSVG = this.manager.isExportingPortraitSvgOrPng
+            ? this.manager.staticSVGPortrait
+            : this.manager.staticSVG
 
         // render the graphic then cache data-urls for display & blobs for downloads
-        new StaticChartRasterizer(staticSVG, width, height)
+        new StaticChartRasterizer(staticSVG, targetWidth, targetHeight)
             .render()
             .then(({ url, blob, svgUrl, svgBlob }) => {
                 this.pngPreviewUrl = url
@@ -127,6 +130,10 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
 
     @action.bound private markAsReady(): void {
         this.isReady = true
+    }
+
+    @action.bound private reset(): void {
+        this.isReady = false
     }
 
     @computed private get fallbackPngUrl(): string {
@@ -196,6 +203,13 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
         } else {
             triggerDownloadFromBlob(filename, this.csvBlob)
         }
+    }
+
+    @computed private get showExportControls(): boolean {
+        return (
+            !isEmpty(this.manager.detailRenderers) ||
+            !!this.manager.showAdminControls
+        )
     }
 
     private renderReady(): JSX.Element {
@@ -273,22 +287,40 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
                                 </div>
                             </button>
                         </div>
-                        {!isEmpty(this.manager.detailRenderers) && (
+                        {this.showExportControls && (
                             <div className="static-exports-options">
-                                <Checkbox
-                                    checked={
-                                        !!this.manager
-                                            .shouldIncludeDetailsInStaticExport
-                                    }
-                                    label="Include terminology definitions at bottom of chart"
-                                    onChange={(): void => {
-                                        this.isReady = false
-                                        this.manager.shouldIncludeDetailsInStaticExport =
-                                            !this.manager
+                                {!isEmpty(this.manager.detailRenderers) && (
+                                    <Checkbox
+                                        checked={
+                                            !!this.manager
                                                 .shouldIncludeDetailsInStaticExport
-                                        this.export()
-                                    }}
-                                />
+                                        }
+                                        label="Include terminology definitions at bottom of chart"
+                                        onChange={(): void => {
+                                            this.reset()
+                                            this.manager.shouldIncludeDetailsInStaticExport =
+                                                !this.manager
+                                                    .shouldIncludeDetailsInStaticExport
+                                            this.export()
+                                        }}
+                                    />
+                                )}
+                                {this.manager.showAdminControls && (
+                                    <Checkbox
+                                        checked={
+                                            !!this.manager
+                                                .isExportingPortraitSvgOrPng
+                                        }
+                                        label="Portrait format"
+                                        onChange={(): void => {
+                                            this.reset()
+                                            this.manager.isExportingPortraitSvgOrPng =
+                                                !this.manager
+                                                    .isExportingPortraitSvgOrPng
+                                            this.export()
+                                        }}
+                                    />
+                                )}
                             </div>
                         )}
                     </div>
