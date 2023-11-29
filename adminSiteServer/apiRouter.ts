@@ -2443,7 +2443,7 @@ apiRouter.get("/gdocs/:id", async (req, res) => {
         const publishedExplorersBySlug =
             await explorerAdminServer.getAllPublishedExplorersBySlugCached()
 
-        const gdoc = await GdocPost.getGdocFromContentSource(
+        const gdoc = await GdocPost.load(
             id,
             publishedExplorersBySlug,
             contentSource
@@ -2476,7 +2476,7 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
         const publishedExplorersBySlug =
             await explorerAdminServer.getAllPublishedExplorersBySlugCached()
 
-        const initData = await GdocPost.getGdocFromContentSource(
+        const initData = await GdocPost.load(
             id,
             publishedExplorersBySlug,
             GdocsContentSource.Gdocs

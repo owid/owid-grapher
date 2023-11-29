@@ -130,7 +130,7 @@ export class OwidAdminApp {
             const publishedExplorersBySlug =
                 await adminExplorerServer.getAllPublishedExplorersBySlugCached()
             try {
-                const gdoc = await GdocPost.getGdocFromContentSource<GdocPost>(
+                const gdoc = await GdocPost.load(
                     req.params.id,
                     publishedExplorersBySlug,
                     GdocsContentSource.Gdocs

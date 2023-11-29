@@ -22,6 +22,8 @@ import {
     OwidEnrichedGdocBlock,
     BreadcrumbItem,
     RawBlockText,
+    GdocsContentSource,
+    JsonError,
 } from "@ourworldindata/utils"
 import { GDOCS_DETAILS_ON_DEMAND_ID } from "../../../settings/serverSettings.js"
 import {
@@ -178,8 +180,32 @@ export class GdocPost extends GdocBase implements OwidGdocInterface {
         return errors
     }
 
-    _loadSubclassAttachments: (gdoc: this) => Promise<void> = async () => {
-        await this.loadRelatedCharts()
+    static async load(
+        id: string,
+        publishedExplorersBySlug: Record<string, any>,
+        contentSource?: GdocsContentSource
+    ): Promise<GdocPost> {
+        const gdoc = await GdocPost.findOne({
+            where: {
+                id,
+            },
+            relations: ["tags"],
+        })
+
+        if (!gdoc) throw new JsonError(`No Google Doc with id ${id} found`)
+
+        if (contentSource === GdocsContentSource.Gdocs) {
+            await gdoc.fetchAndEnrichGdoc()
+        }
+
+        await gdoc.loadLinkedDocuments()
+        await gdoc.loadImageMetadata()
+        await gdoc.loadLinkedCharts(publishedExplorersBySlug)
+        await gdoc.loadRelatedCharts()
+
+        await gdoc.validate(publishedExplorersBySlug)
+
+        return gdoc
     }
 
     static async getDetailsOnDemandGdoc(): Promise<{

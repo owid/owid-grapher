@@ -8,8 +8,6 @@ import {
 import { getUrlTarget } from "@ourworldindata/components"
 import {
     LinkedChart,
-    GdocsContentSource,
-    JsonError,
     keyBy,
     excludeNull,
     ImageMetadata,
@@ -71,8 +69,6 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
         () => new Promise(() => [])
     _filenameProperties: string[] = []
     _omittableFields: string[] = []
-    _loadSubclassAttachments: (gdoc: typeof this) => Promise<void> = () =>
-        new Promise(() => undefined)
 
     get enrichedBlockSources(): OwidEnrichedGdocBlock[][] {
         const enrichedBlockSources: OwidEnrichedGdocBlock[][] = [
@@ -605,34 +601,6 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
         const subclassErrors = await this._validateSubclass(this)
 
         this.errors = [...filenameErrors, ...linkErrors, ...subclassErrors]
-    }
-
-    static async getGdocFromContentSource<T extends GdocBase>(
-        id: string,
-        publishedExplorersBySlug: Record<string, any>,
-        contentSource?: GdocsContentSource
-    ): Promise<T> {
-        const gdoc = await GdocBase.findOne({
-            where: {
-                id,
-            },
-            relations: ["tags"],
-        })
-
-        if (!gdoc) throw new JsonError(`No Google Doc with id ${id} found`)
-
-        if (contentSource === GdocsContentSource.Gdocs) {
-            await gdoc.fetchAndEnrichGdoc()
-        }
-
-        await gdoc.loadLinkedDocuments()
-        await gdoc.loadImageMetadata()
-        await gdoc.loadLinkedCharts(publishedExplorersBySlug)
-        await gdoc._loadSubclassAttachments(gdoc)
-
-        await gdoc.validate(publishedExplorersBySlug)
-
-        return gdoc as T
     }
 
     toJSON(): Record<string, any> {
