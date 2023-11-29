@@ -39,7 +39,7 @@ export const StaticLineChartForExport = (): JSX.Element => {
         <StaticCaptionedChart
             manager={{
                 ...manager,
-                isExportingtoSvgOrPng: true,
+                isExportingToSvgOrPng: true,
             }}
         />
     )

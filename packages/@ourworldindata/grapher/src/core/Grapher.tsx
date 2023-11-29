@@ -785,7 +785,7 @@ export class Grapher
         return this.tableAfterAllTransformsAndFilters
     }
 
-    @observable.ref isExportingtoSvgOrPng = false
+    @observable.ref isExportingToSvgOrPng = false
     @observable.ref isExportingPortraitSvgOrPng = false
     @observable.ref isGeneratingThumbnail = false
 
@@ -962,7 +962,7 @@ export class Grapher
     @observable private _baseFontSize = BASE_FONT_SIZE
 
     @computed get baseFontSize(): number {
-        if (this.isExportingtoSvgOrPng) return Math.max(this._baseFontSize, 18)
+        if (this.isExportingToSvgOrPng) return Math.max(this._baseFontSize, 18)
         return this._baseFontSize
     }
 
@@ -1080,7 +1080,7 @@ export class Grapher
     @computed get shouldLinkToOwid(): boolean {
         if (
             this.isEmbeddedInAnOwidPage ||
-            this.isExportingtoSvgOrPng ||
+            this.isExportingToSvgOrPng ||
             !this.isInIFrame
         )
             return false
@@ -1725,12 +1725,12 @@ export class Grapher
     }
 
     generateStaticSvg(bounds: Bounds = this.idealBounds): string {
-        const _isExportingtoSvgOrPng = this.isExportingtoSvgOrPng
-        this.isExportingtoSvgOrPng = true
+        const _isExportingtoSvgOrPng = this.isExportingToSvgOrPng
+        this.isExportingToSvgOrPng = true
         const staticSvg = ReactDOMServer.renderToStaticMarkup(
             <StaticCaptionedChart manager={this} bounds={bounds} />
         )
-        this.isExportingtoSvgOrPng = _isExportingtoSvgOrPng
+        this.isExportingToSvgOrPng = _isExportingtoSvgOrPng
         return staticSvg
     }
 
@@ -1749,7 +1749,7 @@ export class Grapher
     }
 
     @computed get disableIntroAnimation(): boolean {
-        return this.isExportingtoSvgOrPng
+        return this.isExportingToSvgOrPng
     }
 
     @computed get mapConfig(): MapConfig {
@@ -1934,7 +1934,7 @@ export class Grapher
     @computed private get useIdealBounds(): boolean {
         const {
             isEditor,
-            isExportingtoSvgOrPng,
+            isExportingToSvgOrPng,
             bounds,
             widthForDeviceOrientation,
             heightForDeviceOrientation,
@@ -1965,7 +1965,7 @@ export class Grapher
             return false
 
         // If the user is using interactive version and then goes to export chart, use current bounds to maintain WYSIWYG
-        if (isExportingtoSvgOrPng) return false
+        if (isExportingToSvgOrPng) return false
 
         // todo: can remove this if we drop old adminSite editor
         if (isEditor) return true
@@ -2440,7 +2440,7 @@ export class Grapher
         const containerClasses = classnames({
             GrapherComponent: true,
             GrapherPortraitClass: this.isPortrait,
-            isExportingToSvgOrPng: this.isExportingtoSvgOrPng,
+            isExportingToSvgOrPng: this.isExportingToSvgOrPng,
             optimizeForHorizontalSpace: this.optimizeForHorizontalSpace,
             GrapherComponentNarrow: this.isNarrow,
             GrapherComponentSemiNarrow: this.isSemiNarrow,
@@ -2451,7 +2451,7 @@ export class Grapher
         const containerStyle = {
             width: this.renderWidth,
             height: this.renderHeight,
-            fontSize: this.isExportingtoSvgOrPng
+            fontSize: this.isExportingToSvgOrPng
                 ? 18
                 : Math.min(16, this.baseFontSize), // cap font size at 16px
         }
@@ -2472,7 +2472,7 @@ export class Grapher
     render(): JSX.Element | undefined {
         // TODO how to handle errors in exports?
         // TODO remove this? should have a simple toStaticSVG for exporting
-        if (this.isExportingtoSvgOrPng) return <CaptionedChart manager={this} />
+        if (this.isExportingToSvgOrPng) return <CaptionedChart manager={this} />
 
         if (this.isInFullScreenMode) {
             return (
@@ -2544,27 +2544,27 @@ export class Grapher
     }
 
     @computed get isNarrow(): boolean {
-        if (this.isExportingtoSvgOrPng) return false
+        if (this.isExportingToSvgOrPng) return false
         return this.renderWidth <= 400
     }
 
     // SemiNarrow charts shorten their button labels to fit within the controls row
     @computed get isSemiNarrow(): boolean {
-        if (this.isExportingtoSvgOrPng) return false
+        if (this.isExportingToSvgOrPng) return false
         return this.renderWidth <= 550
     }
 
     // Small charts are rendered into 6 or 7 columns in a 12-column grid layout
     // (e.g. side-by-side charts or charts in the All Charts block)
     @computed get isSmall(): boolean {
-        if (this.isExportingtoSvgOrPng) return false
+        if (this.isExportingToSvgOrPng) return false
         return this.renderWidth <= 740
     }
 
     // Medium charts are rendered into 8 columns in a 12-column grid layout
     // (e.g. stand-alone charts in the main text of an article)
     @computed get isMedium(): boolean {
-        if (this.isExportingtoSvgOrPng) return false
+        if (this.isExportingToSvgOrPng) return false
         return this.renderWidth <= 840
     }
 
