@@ -312,7 +312,7 @@ export const DataPageV2Content = ({
                             className="wrapper"
                             id="explore-the-data"
                         />
-                        <div className="wrapper grid grid-cols-12">
+                        <div className="wrapper wrapper-about-this-data grid grid-cols-12">
                             {hasDescriptionKey ||
                             datapageData.descriptionFromProducer ||
                             datapageData.source?.additionalInfo ? (
