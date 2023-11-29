@@ -48,7 +48,7 @@ export const ALGOLIA_SEARCH_KEY: string = process.env.ALGOLIA_SEARCH_KEY ?? ""
 export const STRIPE_PUBLIC_KEY: string =
     process.env.STRIPE_PUBLIC_KEY ?? "pk_test_nIHvmH37zsoltpw3xMssPIYq"
 export const DONATE_API_URL: string =
-    process.env.DONATE_API_URL ?? "http://localhost:9000/donate"
+    process.env.DONATE_API_URL ?? "http://localhost:8788/donate/donate"
 
 export const RECAPTCHA_SITE_KEY: string =
     process.env.RECAPTCHA_SITE_KEY ?? "6LcJl5YUAAAAAATQ6F4vl9dAWRZeKPBm15MAZj4Q"

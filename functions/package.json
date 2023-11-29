@@ -4,6 +4,7 @@
     "@ourworldindata/grapher": "workspace:^",
     "@ourworldindata/utils": "workspace:^",
     "itty-router": "^4.0.23",
+    "stripe": "^14.5.0",
     "svg2png-wasm": "^1.4.1"
   }
 }
