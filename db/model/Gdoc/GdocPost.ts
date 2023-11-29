@@ -78,6 +78,7 @@ export class GdocPost extends GdocBase implements OwidGdocInterface {
         }
     }
 
+    linkedDocuments: Record<string, OwidGdocInterface> = {}
     _filenameProperties = ["cover-image", "featured-image"]
 
     _getSubclassEnrichedBlocks = (gdoc: this): OwidEnrichedGdocBlock[] => {
@@ -121,7 +122,7 @@ export class GdocPost extends GdocBase implements OwidGdocInterface {
         }
     }
 
-    _validateSubclass = (): OwidGdocErrorMessage[] => {
+    _validateSubclass = async (): Promise<OwidGdocErrorMessage[]> => {
         const errors: OwidGdocErrorMessage[] = []
 
         if (this.hasAllChartsBlock && !this.tags.length) {
@@ -147,7 +148,38 @@ export class GdocPost extends GdocBase implements OwidGdocInterface {
             }
         }
 
+        // Unless this is the DoD document, validate that all referenced dods exist
+        if (this.id !== GDOCS_DETAILS_ON_DEMAND_ID) {
+            const { details } = await GdocPost.getDetailsOnDemandGdoc()
+            for (const detailId of this.details) {
+                if (details && !details[detailId]) {
+                    errors.push({
+                        type: OwidGdocErrorMessageType.Error,
+                        message: `Invalid DoD referenced: "${detailId}"`,
+                        property: "content",
+                    })
+                }
+            }
+        }
+
+        // This is to validate the DoD document itself
+        // TODO: this should be done on a GdocDods subclass
+        if (this.id === GDOCS_DETAILS_ON_DEMAND_ID) {
+            const results = parseDetails(this.content.details)
+            for (const parseError of results.parseErrors) {
+                errors.push({
+                    ...parseError,
+                    property: "details",
+                    type: OwidGdocErrorMessageType.Error,
+                })
+            }
+        }
+
         return errors
+    }
+
+    _loadSubclassAttachments: (gdoc: this) => Promise<void> = async () => {
+        await this.loadRelatedCharts()
     }
 
     static async getDetailsOnDemandGdoc(): Promise<{

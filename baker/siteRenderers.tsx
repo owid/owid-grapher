@@ -155,10 +155,11 @@ export const renderGdocsPageBySlug = async (
     const publishedExplorersBySlug =
         await explorerAdminServer.getAllPublishedExplorersBySlug()
 
-    const gdocWithAttachments = await GdocPost.getGdocFromContentSource(
-        gdoc.id,
-        publishedExplorersBySlug
-    )
+    const gdocWithAttachments =
+        await GdocPost.getGdocFromContentSource<GdocPost>(
+            gdoc.id,
+            publishedExplorersBySlug
+        )
 
     return renderGdoc(gdocWithAttachments)
 }
@@ -306,7 +307,7 @@ export const renderFrontPage = async () => {
 }
 
 export const renderDonatePage = async () => {
-    const faqsGdoc = await GdocPost.getGdocFromContentSource(
+    const faqsGdoc = await GdocPost.getGdocFromContentSource<GdocPost>(
         GDOCS_DONATE_FAQS_DOCUMENT_ID,
         {}
     )

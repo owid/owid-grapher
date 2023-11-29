@@ -162,7 +162,7 @@ export const getDatapageGdoc = async (
         isPreviewing &&
         publishedExplorersBySlug &&
         OwidGoogleAuth.areGdocAuthKeysSet()
-            ? await GdocPost.getGdocFromContentSource(
+            ? await GdocPost.getGdocFromContentSource<GdocPost>(
                   googleDocId,
                   publishedExplorersBySlug,
                   GdocsContentSource.Gdocs

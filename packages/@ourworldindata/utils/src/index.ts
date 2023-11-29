@@ -107,6 +107,7 @@ export {
     type OwidGdocErrorMessage,
     OwidGdocErrorMessageType,
     type OwidGdocLinkJSON,
+    type OwidGdocBaseInterface,
     type OwidGdocInterface,
     type Tag,
     OwidGdocType,

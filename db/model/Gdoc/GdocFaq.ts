@@ -42,7 +42,7 @@ export class GdocFaq extends GdocBase {
         }
     }
 
-    _validateSubclass = (): OwidGdocErrorMessage[] => {
+    _validateSubclass = async (): Promise<OwidGdocErrorMessage[]> => {
         const errors: OwidGdocErrorMessage[] = []
 
         for (const parseError of this.content.parseErrors) {

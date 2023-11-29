@@ -8,7 +8,6 @@ import {
 import { getUrlTarget } from "@ourworldindata/components"
 import {
     LinkedChart,
-    OwidGdocInterface,
     GdocsContentSource,
     JsonError,
     keyBy,
@@ -27,11 +26,9 @@ import {
     uniq,
     omit,
     identity,
+    OwidGdocBaseInterface,
 } from "@ourworldindata/utils"
-import {
-    BAKED_GRAPHER_URL,
-    GDOCS_DETAILS_ON_DEMAND_ID,
-} from "../../../settings/serverSettings.js"
+import { BAKED_GRAPHER_URL } from "../../../settings/serverSettings.js"
 import { google } from "googleapis"
 import { gdocToArchie } from "./gdocToArchie.js"
 import { archieToEnriched } from "./archieToEnriched.js"
@@ -43,17 +40,15 @@ import {
     BAKED_GRAPHER_EXPORTS_BASE_URL,
 } from "../../../settings/clientSettings.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../../../explorer/ExplorerConstants.js"
-import { parseDetails } from "./rawToEnriched.js"
 import { match, P } from "ts-pattern"
 import {
     getAllLinksFromResearchAndWritingBlock,
     spansToSimpleString,
 } from "./gdocUtils.js"
-import { GdocPost } from "./GdocPost.js"
 import { OwidGoogleAuth } from "../../OwidGoogleAuth.js"
 
-@Entity()
-export class GdocBase extends BaseEntity {
+@Entity("posts_gdocs")
+export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
     @PrimaryColumn() id!: string
     @Column() slug: string = ""
     @Column({ default: "{}", type: "json" }) content!: Record<string, any>
@@ -66,15 +61,18 @@ export class GdocBase extends BaseEntity {
     errors: OwidGdocErrorMessage[] = []
     imageMetadata: Record<string, ImageMetadata> = {}
     linkedCharts: Record<string, LinkedChart> = {}
-    linkedDocuments: Record<string, GdocPost> = {}
+    linkedDocuments: Record<string, OwidGdocBaseInterface> = {}
     relatedCharts: RelatedChart[] = []
 
     _getSubclassEnrichedBlocks: (gdoc: typeof this) => OwidEnrichedGdocBlock[] =
         () => []
     _enrichSubclassContent: (content: Record<string, any>) => void = identity
-    _validateSubclass: (gdoc: typeof this) => OwidGdocErrorMessage[] = () => []
+    _validateSubclass: (gdoc: typeof this) => Promise<OwidGdocErrorMessage[]> =
+        () => new Promise(() => [])
     _filenameProperties: string[] = []
     _omittableFields: string[] = []
+    _loadSubclassAttachments: (gdoc: typeof this) => Promise<void> = () =>
+        new Promise(() => undefined)
 
     get enrichedBlockSources(): OwidEnrichedGdocBlock[][] {
         const enrichedBlockSources: OwidEnrichedGdocBlock[][] = [
@@ -183,9 +181,12 @@ export class GdocBase extends BaseEntity {
     }
 
     get linkedImageFilenames(): string[] {
-        // Used for prominent links
+        // The typing logic is a little strange here
+        // `featured-image` isn't guaranteed to be on all types of Gdoc (it's a GdocPost thing)
+        // but we try (and then filter nulls) because we need featured images if we're using prominent links
+        // even if this method is being called on a GdocFaq (for example)
         const featuredImages = Object.values(this.linkedDocuments)
-            .map((gdoc: GdocPost) => gdoc.content["featured-image"])
+            .map((d: OwidGdocBaseInterface) => d.content["featured-image"])
             .filter((filename?: string): filename is string => !!filename)
 
         return [...this.filenames, ...featuredImages]
@@ -491,7 +492,7 @@ export class GdocBase extends BaseEntity {
     async loadLinkedDocuments(): Promise<void> {
         const linkedDocuments = await Promise.all(
             this.linkedDocumentIds.map(async (target) => {
-                const linkedDocument = await GdocPost.findOneBy({
+                const linkedDocument = await GdocBase.findOneBy({
                     id: target,
                 })
                 return linkedDocument
@@ -601,62 +602,17 @@ export class GdocBase extends BaseEntity {
             []
         )
 
-        let dodErrors: OwidGdocErrorMessage[] = []
-        // Validating the DoD document is infinitely recursive :)
-        if (this.id !== GDOCS_DETAILS_ON_DEMAND_ID) {
-            const { details } = await GdocPost.getDetailsOnDemandGdoc()
-            dodErrors = this.details.reduce(
-                (
-                    acc: OwidGdocErrorMessage[],
-                    detailId
-                ): OwidGdocErrorMessage[] => {
-                    if (details && !details[detailId]) {
-                        acc.push({
-                            type: OwidGdocErrorMessageType.Error,
-                            message: `Invalid DoD referenced: "${detailId}"`,
-                            property: "content",
-                        })
-                    }
-                    return acc
-                },
-                []
-            )
-        }
+        const subclassErrors = await this._validateSubclass(this)
 
-        // A one-off custom validation for this particular case
-        // Until we implement a more robust validation abstraction for fragments
-        // This is to validate the details document itself
-        // Whereas dodErrors is to validate *other documents* that are referencing dods
-        const dodDocumentErrors: OwidGdocErrorMessage[] = []
-        if (this.id === GDOCS_DETAILS_ON_DEMAND_ID) {
-            const results = parseDetails(this.content.details)
-            const errors: OwidGdocErrorMessage[] = results.parseErrors.map(
-                (parseError) => ({
-                    ...parseError,
-                    property: "details",
-                    type: OwidGdocErrorMessageType.Error,
-                })
-            )
-            dodDocumentErrors.push(...errors)
-        }
-
-        const subclassErrors = this._validateSubclass(this)
-
-        this.errors = [
-            ...filenameErrors,
-            ...linkErrors,
-            ...dodErrors,
-            ...dodDocumentErrors,
-            ...subclassErrors,
-        ]
+        this.errors = [...filenameErrors, ...linkErrors, ...subclassErrors]
     }
 
-    static async getGdocFromContentSource(
+    static async getGdocFromContentSource<T extends GdocBase>(
         id: string,
         publishedExplorersBySlug: Record<string, any>,
         contentSource?: GdocsContentSource
-    ): Promise<OwidGdocInterface> {
-        const gdoc = await GdocPost.findOne({
+    ): Promise<T> {
+        const gdoc = await GdocBase.findOne({
             where: {
                 id,
             },
@@ -672,11 +628,11 @@ export class GdocBase extends BaseEntity {
         await gdoc.loadLinkedDocuments()
         await gdoc.loadImageMetadata()
         await gdoc.loadLinkedCharts(publishedExplorersBySlug)
-        await gdoc.loadRelatedCharts()
+        await gdoc._loadSubclassAttachments(gdoc)
 
         await gdoc.validate(publishedExplorersBySlug)
 
-        return gdoc
+        return gdoc as T
     }
 
     toJSON(): Record<string, any> {
