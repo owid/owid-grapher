@@ -2167,6 +2167,14 @@ export class Grapher
                 category: "Chart",
             },
             {
+                combo: "d",
+                fn: (): void => {
+                    this.isDownloadModalOpen = !this.isDownloadModalOpen
+                },
+                title: "Toggle download modal",
+                category: "Chart",
+            },
+            {
                 combo: "esc",
                 fn: (): void => this.clearErrors(),
             },
