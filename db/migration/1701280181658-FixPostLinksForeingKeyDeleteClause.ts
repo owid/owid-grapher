@@ -18,5 +18,7 @@ export class FixPostLinksForeingKeyDeleteClause1701280181658
         `)
     }
 
-    public async down(queryRunner: QueryRunner): Promise<void> {}
+    public async down(_queryRunner: QueryRunner): Promise<void> {
+        return
+    }
 }
