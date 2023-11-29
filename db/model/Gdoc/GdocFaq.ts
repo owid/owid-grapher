@@ -16,8 +16,9 @@ interface InterfaceGdocFaq {
 }
 
 /**
- * I *think* this would be usable, but we'd need a different code path for registering
- * FAQs through the server instead of using the same endpoint for posts and faqs.
+ * This is an unused mock prototype, I think *something* like this could work,
+ * but we'd need a different code path for registering FAQs through the server
+ * instead of using the same endpoint for both posts and faqs.
  * For now, we'll just use the GdocPost class.
  */
 @Entity("posts_gdocs")
@@ -31,7 +32,7 @@ export class GdocFaq extends GdocBase {
             this.id = id
         }
     }
-    _omittableFields: string[] = ["content.parseErrors"]
+    _omittableFields: string[] = ["content.parseErrors, content.faqs"]
 
     _enrichSubclassContent = (content: Record<string, any>): void => {
         if (content.faqs) {
