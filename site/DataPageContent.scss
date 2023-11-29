@@ -257,6 +257,10 @@
         margin-bottom: 8px;
     }
 
+    .wrapper-about-this-data {
+        width: 100%;
+    }
+
     .about-this-data__title {
         @include datapage-section-title;
         @include md-up {
