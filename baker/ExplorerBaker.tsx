@@ -22,12 +22,14 @@ const bakeExplorersToDir = async (
     directory: string,
     explorers: ExplorerProgram[] = []
 ) => {
-    for (const explorer of explorers) {
-        await write(
-            `${directory}/${explorer.slug}.html`,
-            await renderExplorerPage(explorer)
-        )
-    }
+    await Promise.all(
+        explorers.map(async (explorer) => {
+            await write(
+                `${directory}/${explorer.slug}.html`,
+                await renderExplorerPage(explorer)
+            )
+        })
+    )
 }
 
 export const bakeAllExplorerRedirects = async (
@@ -36,7 +38,7 @@ export const bakeAllExplorerRedirects = async (
 ) => {
     const explorers = await explorerAdminServer.getAllExplorers()
     const redirects = explorerRedirectTable.rows
-    for (const redirect of redirects) {
+    const tasks = redirects.map(async (redirect) => {
         const { migrationId, path: redirectPath, baseQueryStr } = redirect
         const transform = explorerUrlMigrationsById[migrationId]
         if (!transform) {
@@ -58,7 +60,8 @@ export const bakeAllExplorerRedirects = async (
             baseQueryStr,
         })
         await write(path.join(outputFolder, `${redirectPath}.html`), html)
-    }
+    })
+    await Promise.all(tasks)
 }
 
 // todo: merge with SiteBaker's?

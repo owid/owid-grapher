@@ -183,7 +183,7 @@ export class SiteBaker {
 
                 // Not necessary, as this is done by stageWrite already
                 // await this.ensureDir(profile.rootPath)
-                for (const country of countries) {
+                const tasks = countries.map(async (country) => {
                     const html = await renderCountryProfile(
                         spec,
                         country,
@@ -201,7 +201,8 @@ export class SiteBaker {
                         )
                         await this.stageWrite(outPath, html)
                     }
-                }
+                })
+                await Promise.all(tasks)
             })
         )
         this.progressBar.tick({ name: "✅ baked country profiles" })
@@ -265,11 +266,11 @@ export class SiteBaker {
         if (!this.bakeSteps.has("removeDeletedPosts")) return
         const postsApi = await wpdb.getPosts()
 
-        const postSlugs = []
-        for (const postApi of postsApi) {
-            const post = await wpdb.getFullPost(postApi)
-            postSlugs.push(post.slug)
-        }
+        const postSlugs = await Promise.all(
+            postsApi.map(
+                async (postApi) => (await wpdb.getFullPost(postApi)).slug
+            )
+        )
 
         const gdocPosts = await Gdoc.getPublishedGdocs()
 
@@ -278,11 +279,13 @@ export class SiteBaker {
         }
 
         // Delete any previously rendered posts that aren't in the database
-        for (const slug of this.getPostSlugsToRemove(postSlugs)) {
-            const outPath = `${this.bakedSiteDir}/${slug}.html`
-            await fs.unlink(outPath)
-            this.stage(outPath, `DELETING ${outPath}`)
-        }
+        await Promise.all(
+            this.getPostSlugsToRemove(postSlugs).map(async (slug) => {
+                const outPath = `${this.bakedSiteDir}/${slug}.html`
+                await fs.unlink(outPath)
+                this.stage(outPath, `DELETING ${outPath}`)
+            })
+        )
 
         this.progressBar.tick({ name: "✅ removed deleted posts" })
     }
@@ -364,7 +367,7 @@ export class SiteBaker {
                 )
         )
 
-        for (const publishedGdoc of gdocsToBake) {
+        const tasks = gdocsToBake.map(async (publishedGdoc) => {
             // Pick the necessary metadata from the dictionaries we prefetched
             publishedGdoc.linkedDocuments = pick(
                 publishedGdocsDictionary,
@@ -400,7 +403,8 @@ export class SiteBaker {
                     `Error baking gdoc post with id "${publishedGdoc.id}" and slug "${publishedGdoc.slug}": ${e}`
                 )
             }
-        }
+        })
+        await Promise.all(tasks)
 
         this.progressBar.tick({ name: "✅ baked google doc posts" })
     }
@@ -408,40 +412,42 @@ export class SiteBaker {
     // Bake unique individual pages
     private async bakeSpecialPages() {
         if (!this.bakeSteps.has("specialPages")) return
-        await this.stageWrite(
-            `${this.bakedSiteDir}/index.html`,
-            await renderFrontPage()
-        )
-        await this.stageWrite(
-            `${this.bakedSiteDir}/donate.html`,
-            await renderDonatePage()
-        )
-        await this.stageWrite(
-            `${this.bakedSiteDir}/feedback.html`,
-            await feedbackPage()
-        )
-        await this.stageWrite(
-            `${this.bakedSiteDir}/search.html`,
-            await renderSearchPage()
-        )
-        await this.stageWrite(
-            `${this.bakedSiteDir}/404.html`,
-            await renderNotFoundPage()
-        )
-        await this.stageWrite(
-            `${this.bakedSiteDir}/headerMenu.json`,
-            await renderMenuJson()
-        )
 
-        await this.stageWrite(
-            `${this.bakedSiteDir}/sitemap.xml`,
-            await makeSitemap(this.explorerAdminServer)
-        )
+        await Promise.all([
+            this.stageWrite(
+                `${this.bakedSiteDir}/index.html`,
+                await renderFrontPage()
+            ),
+            this.stageWrite(
+                `${this.bakedSiteDir}/donate.html`,
+                await renderDonatePage()
+            ),
+            this.stageWrite(
+                `${this.bakedSiteDir}/feedback.html`,
+                await feedbackPage()
+            ),
+            this.stageWrite(
+                `${this.bakedSiteDir}/search.html`,
+                await renderSearchPage()
+            ),
+            this.stageWrite(
+                `${this.bakedSiteDir}/404.html`,
+                await renderNotFoundPage()
+            ),
+            this.stageWrite(
+                `${this.bakedSiteDir}/headerMenu.json`,
+                await renderMenuJson()
+            ),
+            this.stageWrite(
+                `${this.bakedSiteDir}/sitemap.xml`,
+                await makeSitemap(this.explorerAdminServer)
+            ),
+            this.stageWrite(
+                `${this.bakedSiteDir}/charts.html`,
+                await renderChartsPage(this.explorerAdminServer)
+            ),
+        ])
 
-        await this.stageWrite(
-            `${this.bakedSiteDir}/charts.html`,
-            await renderChartsPage(this.explorerAdminServer)
-        )
         this.progressBar.tick({ name: "✅ baked special pages" })
     }
 
