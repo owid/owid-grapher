@@ -245,7 +245,7 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
             previewHeight = (targetHeight / targetWidth) * previewWidth
         }
 
-        const imgStyle = {
+        const imageStyle = {
             minWidth: previewWidth,
             minHeight: previewHeight,
             maxWidth: previewWidth,
@@ -259,50 +259,22 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
                     <div className="grouped-menu-section">
                         <h2>Visualization</h2>
                         <div className="grouped-menu-list">
-                            <button
-                                className="grouped-menu-item"
+                            <DownloadButton
+                                title="Image (PNG)"
+                                description="Suitable for most uses, widely compatible."
+                                previewImageUrl={pngPreviewUrl}
                                 onClick={this.onPngDownload}
-                                data-track-note="chart_download_png"
-                            >
-                                <div className="grouped-menu-icon">
-                                    <img src={pngPreviewUrl} style={imgStyle} />
-                                </div>
-                                <div className="grouped-menu-content">
-                                    <h3 className="title">Image (PNG)</h3>
-                                    <p className="description">
-                                        Suitable for most uses, widely
-                                        compatible.
-                                    </p>
-                                </div>
-                                <div className="grouped-menu-icon">
-                                    <span className="download-icon">
-                                        <FontAwesomeIcon icon={faDownload} />
-                                    </span>
-                                </div>
-                            </button>
-                            <button
-                                className="grouped-menu-item"
+                                imageStyle={imageStyle}
+                                tracking="chart_download_png"
+                            />
+                            <DownloadButton
+                                title="Vector graphic (SVG)"
+                                description="For high quality prints, or further editing the chart in graphics software."
+                                previewImageUrl={svgPreviewUrl}
                                 onClick={this.onSvgDownload}
-                                data-track-note="chart_download_svg"
-                            >
-                                <div className="grouped-menu-icon">
-                                    <img src={svgPreviewUrl} style={imgStyle} />
-                                </div>
-                                <div className="grouped-menu-content">
-                                    <h3 className="title">
-                                        Vector graphic (SVG)
-                                    </h3>
-                                    <p className="description">
-                                        For high quality prints, or further
-                                        editing the chart in graphics software.
-                                    </p>
-                                </div>
-                                <div className="grouped-menu-icon">
-                                    <span className="download-icon">
-                                        <FontAwesomeIcon icon={faDownload} />
-                                    </span>
-                                </div>
-                            </button>
+                                imageStyle={imageStyle}
+                                tracking="chart_download_svg"
+                            />
                         </div>
                         {this.showExportControls && (
                             <div className="static-exports-options">
@@ -370,23 +342,12 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
                         </div>
                     ) : (
                         <div className="grouped-menu-list">
-                            <button
-                                className="grouped-menu-item"
+                            <DownloadButton
+                                title="Full data (CSV)"
+                                description="The full dataset used in this chart."
                                 onClick={this.onCsvDownload}
-                                data-track-note="chart_download_csv"
-                            >
-                                <div className="grouped-menu-content">
-                                    <h3 className="title">Full data (CSV)</h3>
-                                    <p className="description">
-                                        The full dataset used in this chart.
-                                    </p>
-                                </div>
-                                <div className="grouped-menu-icon">
-                                    <span className="download-icon">
-                                        <FontAwesomeIcon icon={faDownload} />
-                                    </span>
-                                </div>
-                            </button>
+                                tracking="chart_download_csv"
+                            />
                         </div>
                     )}
                 </div>
@@ -417,4 +378,38 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
             </Modal>
         )
     }
+}
+
+interface DownloadButtonProps {
+    title: string
+    description: string
+    onClick: () => void
+    previewImageUrl?: string
+    imageStyle?: React.CSSProperties
+    tracking?: string
+}
+
+function DownloadButton(props: DownloadButtonProps): JSX.Element {
+    return (
+        <button
+            className="grouped-menu-item"
+            onClick={props.onClick}
+            data-track-note={props.tracking}
+        >
+            {props.previewImageUrl && (
+                <div className="grouped-menu-icon">
+                    <img src={props.previewImageUrl} style={props.imageStyle} />
+                </div>
+            )}
+            <div className="grouped-menu-content">
+                <h3 className="title">{props.title}</h3>
+                <p className="description">{props.description}</p>
+            </div>
+            <div className="grouped-menu-icon">
+                <span className="download-icon">
+                    <FontAwesomeIcon icon={faDownload} />
+                </span>
+            </div>
+        </button>
+    )
 }
