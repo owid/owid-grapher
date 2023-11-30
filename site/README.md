@@ -62,7 +62,7 @@ If you are refreshing your environment's database by importing a database dump f
 In this project's root Makefile, we have a make command (`make sync-images`) that runs `aws s3 sync` from prod to your environment to solve this problem. Make sure your `~/.aws/config` is configured correctly and contains
 
 ```
-[owid]
+[default]
 aws_access_key_id = xxx
 aws_secret_access_key = xxx
 region = nyc3
