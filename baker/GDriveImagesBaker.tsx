@@ -41,13 +41,9 @@ export const bakeDriveImages = async (bakedSiteDir: string) => {
             const localImageEtagPath = localImagePath + ".etag"
 
             // If the image already exists locally, try to use its etag
-            const existingEtag = await Promise.all([
-                fs.exists(localImagePath),
-                fs.exists(localImageEtagPath),
-            ]).then(([exists, etagExists]) =>
-                exists && etagExists
-                    ? fs.readFile(localImageEtagPath, "utf8")
-                    : ""
+            const existingEtag = await readEtagFromFile(
+                localImagePath,
+                localImageEtagPath
             )
 
             const response = await retryPromise(() =>
@@ -127,4 +123,23 @@ const readEtagFromHeader = (response: Response) => {
     }
     // strip extra quotes from etag
     return etag.replace(/^"|"$/g, "")
+}
+
+const readEtagFromFile = async (
+    localImagePath: string,
+    localImageEtagPath: string
+) => {
+    let etag = await Promise.all([
+        fs.exists(localImagePath),
+        fs.exists(localImageEtagPath),
+    ]).then(([exists, etagExists]) =>
+        exists && etagExists ? fs.readFile(localImageEtagPath, "utf8") : ""
+    )
+
+    // DigitalOcean wraps etag in double quotes
+    if (!etag.includes('"')) {
+        etag = '"' + etag + '"'
+    }
+
+    return etag
 }
