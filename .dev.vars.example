@@ -1,0 +1,10 @@
+# env vars for local development of /functions/donate/donate.ts cloudflare pages function
+# rename to .dev.vars and fill in the values from the Stripe and Recaptcha dashboards
+
+# https://dashboard.stripe.com/test/apikeys
+# required
+STRIPE_SECRET_KEY=
+
+# https://www.google.com/recaptcha/admin/site/345413385
+#required
+RECAPTCHA_SECRET_KEY=

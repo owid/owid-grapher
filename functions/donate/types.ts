@@ -25,14 +25,8 @@ export interface StripeMetadata {
     showOnList: boolean
 }
 
-const {
-    STRIPE_MONTHLY_USD_PLAN_ID,
-    STRIPE_MONTHLY_GBP_PLAN_ID,
-    STRIPE_MONTHLY_EUR_PLAN_ID,
-} = process.env
-
-export const plansByCurrencyCode: Record<CurrencyCode, string> = {
-    [CurrencyCode.USD]: STRIPE_MONTHLY_USD_PLAN_ID!,
-    [CurrencyCode.GBP]: STRIPE_MONTHLY_GBP_PLAN_ID!,
-    [CurrencyCode.EUR]: STRIPE_MONTHLY_EUR_PLAN_ID!,
+export interface EnvVars {
+    ASSETS: Fetcher
+    STRIPE_SECRET_KEY: string
+    RECAPTCHA_SECRET_KEY: string
 }

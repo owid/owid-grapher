@@ -4,19 +4,7 @@ import {
     Interval,
     CurrencyCode,
     StripeMetadata,
-    plansByCurrencyCode,
 } from "./types.js"
-
-const { STRIPE_SECRET_KEY } = process.env
-
-if (!STRIPE_SECRET_KEY) {
-    throw new Error("Please set the STRIPE_SECRET_KEY environment variable")
-}
-
-export const stripe = new Stripe(STRIPE_SECRET_KEY, {
-    apiVersion: "2020-08-27",
-    maxNetworkRetries: 2,
-})
 
 function getPaymentMethodTypes(
     donation: DonationRequest

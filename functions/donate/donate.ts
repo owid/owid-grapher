@@ -1,9 +1,6 @@
-import { DonationRequest } from "./types.js"
-import { URLSearchParams } from "url"
+import { DonationRequest, EnvVars } from "./types.js"
 import fetch from "node-fetch"
 import { createSession } from "./stripe.js"
-
-const { RECAPTCHA_SECRET_KEY } = process.env
 
 const DEFAULT_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -12,19 +9,36 @@ const DEFAULT_HEADERS = {
         "Content-Type, Access-Control-Allow-Headers, X-Requested-With",
 }
 
-export const onRequestPost: PagesFunction = async (context) => {
+const isEnvVars = (env: any): env is EnvVars => {
+    return !!env.ASSETS && !!env.STRIPE_SECRET_KEY && !!env.RECAPTCHA_SECRET_KEY
+}
+
+export const onRequestPost: PagesFunction = async ({
+    request,
+    env,
+}: {
+    request: Request
+    env
+}) => {
+    if (!isEnvVars(env))
+        throw new Error(
+            "Missing environment variables. Please check that both STRIPE_SECRET_KEY and RECAPTCHA_SECRET_KEY are set."
+        )
+
     // Parse the body of the request as JSON
-    const data: DonationRequest = await context.request.json()
+    const data: DonationRequest = await request.json()
 
     try {
-        if (!(await validCaptcha(data.captchaToken))) {
+        if (
+            !(await validCaptcha(data.captchaToken, env.RECAPTCHA_SECRET_KEY))
+        ) {
             throw {
                 status: 400,
                 message:
                     "The CAPTCHA challenge failed, please try submitting the form again.",
             }
         }
-        const session = await createSession(data)
+        const session = await createSession(data, env.STRIPE_SECRET_KEY)
         return new Response(JSON.stringify({ id: session.id }), {
             headers: DEFAULT_HEADERS,
             status: 200,
@@ -44,9 +58,9 @@ export const onRequestPost: PagesFunction = async (context) => {
     }
 }
 
-async function validCaptcha(token: string): Promise<boolean> {
+async function validCaptcha(token: string, key: string): Promise<boolean> {
     const body = new URLSearchParams({
-        secret: RECAPTCHA_SECRET_KEY,
+        secret: key,
         response: token,
     })
     const response = await fetch(
