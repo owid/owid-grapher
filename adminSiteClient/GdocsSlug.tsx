@@ -1,7 +1,7 @@
 import { Col, Input, Row, Space, Switch } from "antd"
 import React, { useEffect, useState } from "react"
 import {
-    OwidGdocInterface,
+    OwidGdocPostInterface,
     slugify,
     OwidGdocErrorMessage,
 } from "@ourworldindata/utils"
@@ -13,8 +13,8 @@ export const GdocsSlug = ({
     setCurrentGdoc,
     errors,
 }: {
-    gdoc: OwidGdocInterface
-    setCurrentGdoc: (gdoc: OwidGdocInterface) => void
+    gdoc: OwidGdocPostInterface
+    setCurrentGdoc: (gdoc: OwidGdocPostInterface) => void
     errors?: OwidGdocErrorMessage[]
 }) => {
     const [isSlugSyncing, setSlugSyncing] = useState(false)

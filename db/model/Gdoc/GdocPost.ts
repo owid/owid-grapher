@@ -10,7 +10,7 @@ import {
 import {
     Tag as TagInterface,
     type OwidGdocContent,
-    OwidGdocInterface,
+    OwidGdocPostInterface,
     OwidGdocPublished,
     OwidGdocPublicationContext,
     OwidGdocErrorMessage,
@@ -53,7 +53,7 @@ export class Tag extends BaseEntity implements TagInterface {
 }
 
 @Entity("posts_gdocs")
-export class GdocPost extends GdocBase implements OwidGdocInterface {
+export class GdocPost extends GdocBase implements OwidGdocPostInterface {
     static table = "posts_gdocs"
     @Column({ default: "{}", type: "json" }) content!: OwidGdocContent
     @Column() publicationContext: OwidGdocPublicationContext =
@@ -80,7 +80,7 @@ export class GdocPost extends GdocBase implements OwidGdocInterface {
         }
     }
 
-    linkedDocuments: Record<string, OwidGdocInterface> = {}
+    linkedDocuments: Record<string, OwidGdocPostInterface> = {}
     _filenameProperties = ["cover-image", "featured-image"]
 
     _getSubclassEnrichedBlocks = (gdoc: this): OwidEnrichedGdocBlock[] => {

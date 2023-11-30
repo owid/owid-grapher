@@ -1,5 +1,8 @@
 import React from "react"
-import { OwidGdocInterface, OwidGdocErrorMessage } from "@ourworldindata/utils"
+import {
+    OwidGdocPostInterface,
+    OwidGdocErrorMessage,
+} from "@ourworldindata/utils"
 import { ExcerptHandler } from "./gdocsValidation.js"
 import { GdocsSlug } from "./GdocsSlug.js"
 import {
@@ -16,8 +19,8 @@ export const GdocsSettingsForm = ({
     setCurrentGdoc,
     errors,
 }: {
-    gdoc: OwidGdocInterface
-    setCurrentGdoc: (gdoc: OwidGdocInterface) => void
+    gdoc: OwidGdocPostInterface
+    setCurrentGdoc: (gdoc: OwidGdocPostInterface) => void
     errors?: OwidGdocErrorMessage[]
 }) => {
     // Show errors at the top of the drawer for errors that don't have specific fields

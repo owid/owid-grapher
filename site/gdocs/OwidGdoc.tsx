@@ -5,7 +5,7 @@ import { ArticleBlocks } from "./ArticleBlocks.js"
 import Footnotes from "./Footnotes.js"
 import {
     LinkedChart,
-    OwidGdocInterface,
+    OwidGdocPostInterface,
     getOwidGdocFromJSON,
     ImageMetadata,
     RelatedChart,
@@ -24,7 +24,7 @@ import { getShortPageCitation } from "./utils.js"
 import { TableOfContents } from "../TableOfContents.js"
 export const AttachmentsContext = createContext<{
     linkedCharts: Record<string, LinkedChart>
-    linkedDocuments: Record<string, OwidGdocInterface>
+    linkedDocuments: Record<string, OwidGdocPostInterface>
     imageMetadata: Record<string, ImageMetadata>
     relatedCharts: RelatedChart[]
 }>({
@@ -38,7 +38,7 @@ export const DocumentContext = createContext<{ isPreviewing: boolean }>({
     isPreviewing: false,
 })
 
-type OwidGdocProps = OwidGdocInterface & {
+type OwidGdocProps = OwidGdocPostInterface & {
     isPreviewing?: boolean
 }
 

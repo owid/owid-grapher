@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react"
-import { OwidGdocInterface } from "@ourworldindata/utils"
+import { OwidGdocPostInterface } from "@ourworldindata/utils"
 import { checkHasChanges, checkIsLightningUpdate } from "./gdocsDeploy.js"
 
 export const useGdocsChanged = (
-    prevGdoc: OwidGdocInterface | undefined,
-    nextGdoc: OwidGdocInterface | undefined
+    prevGdoc: OwidGdocPostInterface | undefined,
+    nextGdoc: OwidGdocPostInterface | undefined
 ) => {
     const [hasChanges, setHasChanges] = useState(false)
 
@@ -17,8 +17,8 @@ export const useGdocsChanged = (
 }
 
 export const useLightningUpdate = (
-    prevGdoc: OwidGdocInterface | undefined,
-    nextGdoc: OwidGdocInterface | undefined,
+    prevGdoc: OwidGdocPostInterface | undefined,
+    nextGdoc: OwidGdocPostInterface | undefined,
     hasChanges: boolean
 ) => {
     const [isLightningDeploy, setLightningUpdate] = useState(false)

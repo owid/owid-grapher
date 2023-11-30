@@ -1,7 +1,7 @@
 import "dayjs"
 import { getLinkType, getUrlTarget } from "@ourworldindata/components"
 import {
-    OwidGdocInterface,
+    OwidGdocPostInterface,
     GdocsContentSource,
     DataPageDataV2,
     OwidVariableWithSource,
@@ -70,7 +70,7 @@ export const getDatapageGdoc = async (
     googleDocEditLinkOrId: string,
     isPreviewing: boolean,
     publishedExplorersBySlug?: Record<string, ExplorerProgram>
-): Promise<OwidGdocInterface | null> => {
+): Promise<OwidGdocPostInterface | null> => {
     // Get the google doc id from the datapage JSON file and return early if
     // none found
     const isPlainGoogleId = gdocIdRegex.exec(googleDocEditLinkOrId)

@@ -1,6 +1,6 @@
 import {
     OwidGdocContent,
-    OwidGdocInterface,
+    OwidGdocPostInterface,
     isEqual,
     omit,
 } from "@ourworldindata/utils"
@@ -8,8 +8,8 @@ import { GDOC_DIFF_OMITTABLE_PROPERTIES } from "./GdocsDiff.js"
 import { GDOCS_DETAILS_ON_DEMAND_ID } from "../settings/clientSettings.js"
 
 export const checkFullDeployFallback = (
-    prevGdoc: OwidGdocInterface,
-    nextGdoc: OwidGdocInterface,
+    prevGdoc: OwidGdocPostInterface,
+    nextGdoc: OwidGdocPostInterface,
     hasChanges: boolean
 ) => {
     return hasChanges && (prevGdoc.published || nextGdoc.published)
@@ -23,15 +23,15 @@ export const checkFullDeployFallback = (
  *
  */
 export const checkIsLightningUpdate = (
-    prevGdoc: OwidGdocInterface,
-    nextGdoc: OwidGdocInterface,
+    prevGdoc: OwidGdocPostInterface,
+    nextGdoc: OwidGdocPostInterface,
     hasChanges: boolean
 ) => {
     // lightning props are props that do not require a full rebake of the site if changed, because
     // their impact is limited to just this article. They are marked as "true" in these two config maps.
     // The props that *do* require a full rebake if changed are marked "false".
     const lightningPropConfigMap: Record<
-        Exclude<keyof OwidGdocInterface, "content">,
+        Exclude<keyof OwidGdocPostInterface, "content">,
         boolean
     > = {
         breadcrumbs: true,
@@ -99,7 +99,7 @@ export const checkIsLightningUpdate = (
     // When this function is called from server-side code and a Gdoc object
     // is passed in, the omit() call will surface Gdoc class members. The
     // comparison will then fail if the other operand in the comparison is
-    // an OwidGdocInterface object. To avoid this, we spread into new objects
+    // an OwidGdocPostInterface object. To avoid this, we spread into new objects
     // in order to compare the same types.
     const prevOmitted = omit({ ...prevGdoc }, keysToOmit)
     const nextOmitted = omit({ ...nextGdoc }, keysToOmit)
@@ -114,8 +114,8 @@ export const checkIsLightningUpdate = (
 }
 
 export const checkHasChanges = (
-    prevGdoc: OwidGdocInterface,
-    nextGdoc: OwidGdocInterface
+    prevGdoc: OwidGdocPostInterface,
+    nextGdoc: OwidGdocPostInterface
 ) =>
     !isEqual(
         omit(

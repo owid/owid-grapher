@@ -13,7 +13,7 @@ import {
     checkIsPlainObjectWithGuard,
     GdocsContentSource,
     getOwidGdocFromJSON,
-    OwidGdocInterface,
+    OwidGdocPostInterface,
     OwidGdocJSON,
     OwidGdocErrorMessage,
     OwidGdocErrorMessageType,
@@ -37,15 +37,15 @@ import { GdocsDiff } from "./GdocsDiff.js"
 export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     const { id } = match.params
     const [gdoc, setGdoc] = useState<{
-        original?: OwidGdocInterface
-        current?: OwidGdocInterface
+        original?: OwidGdocPostInterface
+        current?: OwidGdocPostInterface
     }>({ original: undefined, current: undefined })
     const originalGdoc = gdoc.original
     const currentGdoc = gdoc.current
     const setCurrentGdoc = (
         updater: (
-            current: OwidGdocInterface | undefined
-        ) => OwidGdocInterface | undefined
+            current: OwidGdocPostInterface | undefined
+        ) => OwidGdocPostInterface | undefined
     ) => {
         setGdoc(({ original, current }) => ({
             original,

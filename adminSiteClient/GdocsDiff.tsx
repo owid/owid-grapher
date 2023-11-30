@@ -1,7 +1,7 @@
 import React from "react"
 import ReactDiffViewer, { DiffMethod } from "react-diff-viewer"
 import { stringify } from "safe-stable-stringify"
-import { omit, OwidGdocInterface } from "@ourworldindata/utils"
+import { omit, OwidGdocPostInterface } from "@ourworldindata/utils"
 
 // Non-deterministic values which shouldn't be displayed in the diff viewer
 // Errors are already shown in the settings drawer, so we don't show those either
@@ -20,8 +20,8 @@ export const GdocsDiff = ({
     originalGdoc,
     currentGdoc,
 }: {
-    originalGdoc: OwidGdocInterface | undefined
-    currentGdoc: OwidGdocInterface
+    originalGdoc: OwidGdocPostInterface | undefined
+    currentGdoc: OwidGdocPostInterface
 }) => (
     <ReactDiffViewer
         oldValue={stringify(

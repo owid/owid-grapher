@@ -1364,9 +1364,9 @@ export interface OwidGdocBaseInterface {
     errors?: OwidGdocErrorMessage[]
 }
 
-export interface OwidGdocInterface extends OwidGdocBaseInterface {
+export interface OwidGdocPostInterface extends OwidGdocBaseInterface {
     content: OwidGdocContent
-    linkedDocuments?: Record<string, OwidGdocInterface>
+    linkedDocuments?: Record<string, OwidGdocPostInterface>
     publicationContext: OwidGdocPublicationContext
     breadcrumbs?: BreadcrumbItem[] | null
     relatedCharts?: RelatedChart[]
@@ -1378,7 +1378,9 @@ export enum OwidGdocErrorMessageType {
     Warning = "warning",
 }
 
-export type OwidGdocProperty = keyof OwidGdocInterface | keyof OwidGdocContent
+export type OwidGdocProperty =
+    | keyof OwidGdocPostInterface
+    | keyof OwidGdocContent
 export type OwidGdocErrorMessageProperty =
     | OwidGdocProperty
     | `${OwidGdocProperty}${string}` // also allows for nesting, like `breadcrumbs[0].label`
@@ -1390,7 +1392,10 @@ export interface OwidGdocErrorMessage {
 
 // see also: getOwidGdocFromJSON()
 export interface OwidGdocJSON
-    extends Omit<OwidGdocInterface, "createdAt" | "publishedAt" | "updatedAt"> {
+    extends Omit<
+        OwidGdocPostInterface,
+        "createdAt" | "publishedAt" | "updatedAt"
+    > {
     createdAt: string
     publishedAt: string | null
     updatedAt: string | null
@@ -1408,7 +1413,7 @@ export interface OwidGdocLinkJSON {
  * See ../adminSiteClient/gdocsValidation/getErrors() where these existence
  * constraints are surfaced at runtime on the draft article
  */
-export interface OwidGdocPublished extends OwidGdocInterface {
+export interface OwidGdocPublished extends OwidGdocPostInterface {
     publishedAt: Date
     updatedAt: Date
     content: OwidGdocContentPublished
@@ -1476,7 +1481,7 @@ export interface OwidGdocContentPublished extends OwidGdocContent {
     excerpt: string
 }
 
-export type GdocsPatch = Partial<OwidGdocInterface>
+export type GdocsPatch = Partial<OwidGdocPostInterface>
 
 export enum GdocsContentSource {
     Internal = "internal",
@@ -1713,13 +1718,13 @@ export type DataPageParseError = { message: string; path?: string }
 
 export interface DataPageContentFields {
     datapageJson: DataPageJson
-    datapageGdoc?: OwidGdocInterface | null
+    datapageGdoc?: OwidGdocPostInterface | null
     datapageGdocContent?: DataPageGdocContent | null
     isPreviewing?: boolean
 }
 
 export type FaqEntryData = Pick<
-    OwidGdocInterface,
+    OwidGdocPostInterface,
     "linkedCharts" | "linkedDocuments" | "relatedCharts" | "imageMetadata"
 > & {
     faqs: OwidEnrichedGdocBlock[]

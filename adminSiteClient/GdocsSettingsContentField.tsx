@@ -1,7 +1,7 @@
 import React from "react"
 import { Input, InputProps } from "antd"
 import {
-    OwidGdocInterface,
+    OwidGdocPostInterface,
     OwidGdocContent,
     OwidGdocErrorMessage,
     OwidGdocErrorMessageType,
@@ -19,7 +19,7 @@ export const GdocsSettingsContentField = ({
     errors,
     description,
 }: {
-    gdoc: OwidGdocInterface
+    gdoc: OwidGdocPostInterface
     property: keyof OwidGdocContent
     render?: ({
         name,

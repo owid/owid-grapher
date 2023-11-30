@@ -13,7 +13,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
     Tag,
-    OwidGdocInterface,
+    OwidGdocPostInterface,
     OwidGdocType,
     SearchWord,
     buildSearchWordsFromSearchString,
@@ -127,7 +127,7 @@ export class GdocsIndexPage extends React.Component<GdocsMatchProps> {
         return this.context?.availableTags || []
     }
 
-    @computed get allGdocsToShow(): OwidGdocInterface[] {
+    @computed get allGdocsToShow(): OwidGdocPostInterface[] {
         const { searchWords, context } = this
         if (!context) return []
 
@@ -147,7 +147,7 @@ export class GdocsIndexPage extends React.Component<GdocsMatchProps> {
         if (searchWords.length > 0) {
             const filterFn = filterFunctionForSearchWords(
                 searchWords,
-                (gdoc: OwidGdocInterface) => [
+                (gdoc: OwidGdocPostInterface) => [
                     gdoc.content.title,
                     gdoc.content.subtitle,
                     gdoc.content.summary

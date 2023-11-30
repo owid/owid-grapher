@@ -34,7 +34,7 @@ import {
     JsonError,
     OperationContext,
     OwidGdocJSON,
-    OwidGdocInterface,
+    OwidGdocPostInterface,
     parseIntOrUndefined,
     parseToOperation,
     PostRow,
@@ -2195,7 +2195,7 @@ apiRouter.put("/tags/:tagId", async (req: Request) => {
         // See if there's a published gdoc with a matching slug.
         // We're not enforcing that the gdoc be a topic page, as there are cases like /human-development-index,
         // where the page for the topic is just an article.
-        const gdoc: OwidGdocInterface[] = await db.execute(
+        const gdoc: OwidGdocPostInterface[] = await db.execute(
             `SELECT slug FROM posts_gdocs pg
              WHERE EXISTS (
                     SELECT 1
@@ -2356,7 +2356,7 @@ apiRouter.post("/posts/:postId/createGdoc", async (req: Request) => {
     const tags =
         tagsByPostId.get(postId)?.map(({ id }) => TagEntity.create({ id })) ||
         []
-    const archieMl = JSON.parse(post.archieml) as OwidGdocInterface
+    const archieMl = JSON.parse(post.archieml) as OwidGdocPostInterface
     const gdocId = await createGdocAndInsertOwidGdocContent(
         archieMl.content,
         post.gdocSuccessorId

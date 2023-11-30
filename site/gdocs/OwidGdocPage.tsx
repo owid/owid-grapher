@@ -7,7 +7,7 @@ import { CitationMeta } from "../CitationMeta.js"
 import { OwidGdoc } from "./OwidGdoc.js"
 
 import {
-    OwidGdocInterface,
+    OwidGdocPostInterface,
     SiteFooterContext,
     getFilenameAsPng,
     IMAGES_DIRECTORY,
@@ -27,7 +27,7 @@ export default function OwidGdocPage({
     isPreviewing = false,
 }: {
     baseUrl: string
-    gdoc: OwidGdocInterface
+    gdoc: OwidGdocPostInterface
     debug?: boolean
     isPreviewing?: boolean
 }) {

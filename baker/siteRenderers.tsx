@@ -52,7 +52,7 @@ import {
     FullPost,
     JsonError,
     KeyInsight,
-    OwidGdocInterface,
+    OwidGdocPostInterface,
     PostRow,
     Url,
     IndexPost,
@@ -190,7 +190,7 @@ export const renderGdocsPageBySlug = async (
     return renderGdoc(gdocWithAttachments)
 }
 
-export const renderGdoc = (gdoc: OwidGdocInterface) => {
+export const renderGdoc = (gdoc: OwidGdocPostInterface) => {
     return renderToHtmlPage(
         <OwidGdocPage baseUrl={BAKED_BASE_URL} gdoc={gdoc} />
     )
