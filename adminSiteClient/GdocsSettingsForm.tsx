@@ -20,17 +20,18 @@ export const GdocsSettingsForm = ({
     setCurrentGdoc: (gdoc: OwidGdocInterface) => void
     errors?: OwidGdocErrorMessage[]
 }) => {
-    // These errors don't have a specific form field to render them in. We just show them at the top of the drawer
-    const errorsToShowInDrawer = (errors || []).filter(({ property }) =>
-        [
-            "content",
-            "linkedDocuments",
-            "linkedCharts",
-            "details",
-            "body",
-            "refs",
-            "imageMetadata",
-        ].includes(property)
+    // Show errors at the top of the drawer for errors that don't have specific fields
+    const errorsToShowInDrawer = (errors || []).filter(
+        ({ property }) =>
+            ![
+                "title",
+                "excerpt",
+                "authors",
+                "cover-image",
+                "featured-image",
+                "atom-title",
+                "atom-excerpt",
+            ].includes(property)
     )
 
     return gdoc ? (

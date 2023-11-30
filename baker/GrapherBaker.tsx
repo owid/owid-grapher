@@ -60,7 +60,7 @@ import { Image } from "../db/model/Image.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 
 import { parseFaqs } from "../db/model/Gdoc/rawToEnriched.js"
-import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
+import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { getShortPageCitation } from "../site/gdocs/utils.js"
 import { isEmpty } from "lodash"
 
@@ -270,7 +270,7 @@ export async function renderDataPageV2({
     const firstTopicTag = datapageData.topicTagsLinks?.[0]
 
     if (firstTopicTag) {
-        const gdoc = await Gdoc.findOne({
+        const gdoc = await GdocPost.findOne({
             where: {
                 slug: slugify_topic(firstTopicTag),
             },

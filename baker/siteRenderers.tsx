@@ -90,7 +90,7 @@ import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import { ExplorerFullQueryParams } from "../explorer/ExplorerConstants.js"
 import { resolveInternalRedirect } from "./redirects.js"
 import { postsTable } from "../db/model/Post.js"
-import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
+import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
@@ -142,7 +142,7 @@ export const renderChartsPage = async (
 export const renderGdocsPageBySlug = async (
     slug: string
 ): Promise<string | undefined> => {
-    const gdoc = await Gdoc.findOneBy({ slug })
+    const gdoc = await GdocPost.findOneBy({ slug })
     if (!gdoc) {
         throw new Error(`Failed to render an unknown GDocs post: ${slug}.`)
     }
@@ -155,7 +155,7 @@ export const renderGdocsPageBySlug = async (
     const publishedExplorersBySlug =
         await explorerAdminServer.getAllPublishedExplorersBySlug()
 
-    const gdocWithAttachments = await Gdoc.getGdocFromContentSource(
+    const gdocWithAttachments = await GdocPost.load(
         gdoc.id,
         publishedExplorersBySlug
     )
@@ -240,7 +240,7 @@ export const renderFrontPage = async () => {
 
     let featuredWork: IndexPost[]
     try {
-        const frontPageConfigGdoc = await Gdoc.getGdocFromContentSource(
+        const frontPageConfigGdoc = await GdocPost.load(
             GDOCS_HOMEPAGE_CONFIG_DOCUMENT_ID,
             {}
         )
@@ -306,10 +306,7 @@ export const renderFrontPage = async () => {
 }
 
 export const renderDonatePage = async () => {
-    const faqsGdoc = await Gdoc.getGdocFromContentSource(
-        GDOCS_DONATE_FAQS_DOCUMENT_ID,
-        {}
-    )
+    const faqsGdoc = await GdocPost.load(GDOCS_DONATE_FAQS_DOCUMENT_ID, {})
 
     return renderToHtmlPage(
         <DonatePage

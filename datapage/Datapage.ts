@@ -11,7 +11,8 @@ import {
     getNextUpdateFromVariable,
 } from "@ourworldindata/utils"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
-import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
+import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
+import { OwidGoogleAuth } from "../db/OwidGoogleAuth.js"
 import { GrapherInterface } from "@ourworldindata/grapher"
 
 export const getDatapageDataV2 = async (
@@ -89,13 +90,15 @@ export const getDatapageGdoc = async (
     // support images (imageMetadata won't be set).
 
     const datapageGdoc =
-        isPreviewing && publishedExplorersBySlug && Gdoc.areGdocAuthKeysSet()
-            ? await Gdoc.getGdocFromContentSource(
+        isPreviewing &&
+        publishedExplorersBySlug &&
+        OwidGoogleAuth.areGdocAuthKeysSet()
+            ? await GdocPost.load(
                   googleDocId,
                   publishedExplorersBySlug,
                   GdocsContentSource.Gdocs
               )
-            : await Gdoc.findOneBy({ id: googleDocId })
+            : await GdocPost.findOneBy({ id: googleDocId })
 
     return datapageGdoc
 }

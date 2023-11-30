@@ -12,7 +12,7 @@ import { countryProfileSpecs } from "../site/countryProfileProjects.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants.js"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
-import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
+import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 
 interface SitemapUrl {
     loc: string
@@ -64,7 +64,7 @@ export const makeSitemap = async (explorerAdminServer: ExplorerAdminServer) => {
         undefined,
         (postrow) => !alreadyPublishedViaGdocsSlugsSet.has(postrow.slug)
     )
-    const gdocPosts = await Gdoc.getPublishedGdocs()
+    const gdocPosts = await GdocPost.getPublishedGdocs()
     const charts = (await db
         .knexTable(Chart.table)
         .select(db.knexRaw(`updatedAt, config->>"$.slug" AS slug`))

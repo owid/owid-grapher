@@ -61,7 +61,7 @@ import {
 } from "../adminSiteClient/CountryNameFormat.js"
 import { Dataset } from "../db/model/Dataset.js"
 import { User } from "../db/model/User.js"
-import { Gdoc, Tag as TagEntity } from "../db/model/Gdoc/Gdoc.js"
+import { GdocPost, Tag as TagEntity } from "../db/model/Gdoc/GdocPost.js"
 import { Pageview } from "../db/model/Pageview.js"
 import {
     syncDatasetToGitRepo,
@@ -2351,14 +2351,14 @@ apiRouter.post("/posts/:postId/createGdoc", async (req: Request) => {
             .where({ id: postId })
             .update("gdocSuccessorId", gdocId)
 
-        const gdoc = new Gdoc(gdocId)
+        const gdoc = new GdocPost(gdocId)
         gdoc.slug = post.slug
         gdoc.tags = tags
         gdoc.content.title = post.title
         gdoc.published = false
         gdoc.createdAt = new Date()
         gdoc.publishedAt = post.published_at
-        await dataSource.getRepository(Gdoc).save(gdoc)
+        await dataSource.getRepository(GdocPost).save(gdoc)
     }
 
     return { googleDocsId: gdocId }
@@ -2390,7 +2390,7 @@ apiRouter.post("/posts/:postId/unlinkGdoc", async (req: Request) => {
         .where({ id: postId })
         .update("gdocSuccessorId", null)
 
-    await dataSource.getRepository(Gdoc).delete(existingGdocId)
+    await dataSource.getRepository(GdocPost).delete(existingGdocId)
 
     return { success: true }
 })
@@ -2425,7 +2425,7 @@ apiRouter.put("/deploy", async (req: Request, res: Response) => {
 apiRouter.get("/gdocs", async () => {
     // orderBy was leading to a sort buffer overflow (ER_OUT_OF_SORTMEMORY) with MySQL's default sort_buffer_size
     // when the posts_gdocs table got larger than 9MB, so we sort in memory
-    return Gdoc.find({ relations: ["tags"] }).then((gdocs) =>
+    return GdocPost.find({ relations: ["tags"] }).then((gdocs) =>
         gdocs.sort((a, b) => {
             if (!a.updatedAt || !b.updatedAt) return 0
             return b.updatedAt.getTime() - a.updatedAt.getTime()
@@ -2443,13 +2443,13 @@ apiRouter.get("/gdocs/:id", async (req, res) => {
         const publishedExplorersBySlug =
             await explorerAdminServer.getAllPublishedExplorersBySlugCached()
 
-        const gdoc = await Gdoc.getGdocFromContentSource(
+        const gdoc = await GdocPost.load(
             id,
             publishedExplorersBySlug,
             contentSource
         )
         if (!gdoc.published) {
-            await dataSource.getRepository(Gdoc).create(gdoc).save()
+            await dataSource.getRepository(GdocPost).create(gdoc).save()
         }
         res.set("Cache-Control", "no-store")
         res.send(gdoc)
@@ -2469,28 +2469,28 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
     const nextGdocJSON: OwidGdocJSON = req.body
 
     if (isEmpty(nextGdocJSON)) {
-        const newGdoc = new Gdoc(id)
+        const newGdoc = new GdocPost(id)
         // this will fail if the gdoc already exists, as opposed to a call to newGdoc.save()
-        await dataSource.getRepository(Gdoc).insert(newGdoc)
+        await dataSource.getRepository(GdocPost).insert(newGdoc)
 
         const publishedExplorersBySlug =
             await explorerAdminServer.getAllPublishedExplorersBySlugCached()
 
-        const initData = await Gdoc.getGdocFromContentSource(
+        const initData = await GdocPost.load(
             id,
             publishedExplorersBySlug,
             GdocsContentSource.Gdocs
         )
 
         const updated = await dataSource
-            .getRepository(Gdoc)
+            .getRepository(GdocPost)
             .create(initData)
             .save()
 
         return updated
     }
 
-    const prevGdoc = await Gdoc.findOne({
+    const prevGdoc = await GdocPost.findOne({
         where: {
             id: id,
         },
@@ -2499,7 +2499,7 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
     if (!prevGdoc) throw new JsonError(`No Google Doc with id ${id} found`)
 
     const nextGdoc = dataSource
-        .getRepository(Gdoc)
+        .getRepository(GdocPost)
         .create(getOwidGdocFromJSON(nextGdocJSON))
 
     // Need to load these to compare them for lightning update candidacy
@@ -2586,7 +2586,7 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
 apiRouter.delete("/gdocs/:id", async (req, res) => {
     const { id } = req.params
 
-    const gdoc = await Gdoc.findOneBy({ id })
+    const gdoc = await GdocPost.findOneBy({ id })
     if (!gdoc) throw new JsonError(`No Google Doc with id ${id} found`)
 
     await db
@@ -2600,7 +2600,7 @@ apiRouter.delete("/gdocs/:id", async (req, res) => {
         },
     })
     await GdocXImage.delete({ gdocId: id })
-    await Gdoc.delete({ id })
+    await GdocPost.delete({ id })
     await triggerStaticBuild(res.locals.user, `Deleting ${gdoc.slug}`)
     return {}
 })
@@ -2611,7 +2611,7 @@ apiRouter.post(
         const { gdocId } = req.params
         const { tagIds } = req.body
 
-        const gdoc = await Gdoc.findOneBy({ id: gdocId })
+        const gdoc = await GdocPost.findOneBy({ id: gdocId })
         if (!gdoc) return Error(`Unable to find Gdoc with ID: ${gdocId}`)
         const tags = await dataSource
             .getRepository(TagEntity)

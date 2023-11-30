@@ -19,7 +19,7 @@ import {
     ImageMetadata,
     findDuplicates,
 } from "@ourworldindata/utils"
-import { Gdoc } from "./Gdoc/Gdoc.js"
+import { OwidGoogleAuth } from "../OwidGoogleAuth.js"
 import {
     IMAGE_HOSTING_SPACE_URL,
     IMAGE_HOSTING_SPACE_ACCESS_KEY_ID,
@@ -36,7 +36,7 @@ class ImageStore {
         console.log("Fetching all image metadata from Google Drive")
         const driveClient = google.drive({
             version: "v3",
-            auth: Gdoc.getGoogleReadonlyAuth(),
+            auth: OwidGoogleAuth.getGoogleReadonlyAuth(),
         })
         // e.g. `and (name="example.png" or name="image.svg")`
         // https://developers.google.com/drive/api/guides/search-files#examples
@@ -210,7 +210,7 @@ export class Image extends BaseEntity implements ImageMetadata {
     async fetchFromDriveAndUploadToS3(): Promise<void> {
         const driveClient = google.drive({
             version: "v3",
-            auth: Gdoc.getGoogleReadonlyAuth(), // TODO: extract auth from Gdoc
+            auth: OwidGoogleAuth.getGoogleReadonlyAuth(),
         })
 
         const file = await driveClient.files.get(

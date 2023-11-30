@@ -48,7 +48,7 @@ import {
     WPPostTypeToGraphDocumentType,
 } from "./contentGraph.js"
 import { TOPICS_CONTENT_GRAPH } from "../settings/clientSettings.js"
-import { Gdoc } from "./model/Gdoc/Gdoc.js"
+import { GdocPost } from "./model/Gdoc/GdocPost.js"
 import { Link } from "./model/Link.js"
 
 let _knexInstance: Knex
@@ -911,7 +911,7 @@ export const getFullPost = async (
 
 export const getBlogIndex = memoize(async (): Promise<IndexPost[]> => {
     await db.getConnection() // side effect: ensure connection is established
-    const gdocPosts = await Gdoc.getListedGdocs()
+    const gdocPosts = await GdocPost.getListedGdocs()
     const wpPosts = await Promise.all(
         await getPosts([WP_PostType.Post], selectHomepagePosts).then((posts) =>
             posts.map((post) => getFullPost(post, true))

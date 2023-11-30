@@ -1347,22 +1347,27 @@ export enum OwidGdocType {
     LinearTopicPage = "linear-topic-page",
 }
 
-export interface OwidGdocInterface {
+export interface OwidGdocBaseInterface {
     id: string
     slug: string
-    content: OwidGdocContent
+    content: Record<string, any>
     published: boolean
     createdAt: Date
     publishedAt: Date | null
     updatedAt: Date | null
-    publicationContext: OwidGdocPublicationContext
     revisionId: string | null
-    breadcrumbs?: BreadcrumbItem[] | null
+    linkedDocuments?: Record<string, OwidGdocBaseInterface>
     linkedCharts?: Record<string, LinkedChart>
-    linkedDocuments?: Record<string, OwidGdocInterface>
-    relatedCharts?: RelatedChart[]
     imageMetadata?: Record<string, ImageMetadata>
     errors?: OwidGdocErrorMessage[]
+}
+
+export interface OwidGdocInterface extends OwidGdocBaseInterface {
+    content: OwidGdocContent
+    linkedDocuments?: Record<string, OwidGdocInterface>
+    publicationContext: OwidGdocPublicationContext
+    breadcrumbs?: BreadcrumbItem[] | null
+    relatedCharts?: RelatedChart[]
     tags?: Tag[]
 }
 
@@ -1390,7 +1395,7 @@ export interface OwidGdocJSON
 }
 
 export interface OwidGdocLinkJSON {
-    source: OwidGdocInterface
+    source: Record<string, any>
     linkType: "gdoc" | "url" | "grapher" | "explorer"
     target: string
     componentType: string
@@ -1432,7 +1437,7 @@ export interface OwidGdocContent {
     "featured-image"?: string
     "atom-title"?: string
     "atom-excerpt"?: string
-    "sidebar-toc"?: boolean
+    "sidebar-toc"?: "true" | "false"
     "cover-color"?:
         | "sdg-color-1"
         | "sdg-color-2"
