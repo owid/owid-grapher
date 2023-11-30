@@ -68,27 +68,50 @@ export async function createSession(donation: DonationRequest, key: string) {
     }
 
     if (interval === Interval.MONTHLY) {
-        options.subscription_data = {
-            items: [
-                {
-                    plan: plansByCurrencyCode[currency],
-                    quantity: amount,
-                },
-            ],
-            metadata: metadata as any,
-        }
-    } else if (interval === Interval.ONCE) {
+        options.mode = "subscription"
         options.line_items = [
             {
-                amount: amount,
-                currency: currency,
-                name: "One-time donation",
+                price_data: {
+                    currency: currency,
+                    product_data: {
+                        name: "Monthly donation",
+                        description: metadata.showOnList
+                            ? `This is a public monthly donation: you will be listed as "${metadata.name}"`
+                            : "This is an anonymous monthly donation",
+                        metadata: {
+                            ...metadata,
+                            // Stripe metadata are key-value pairs of strings.
+                            // showOnList is not strictly necessary since we
+                            // could just rely on the presence of a name to
+                            // indicate the willingness to be shown on the list
+                            // (a name can only be filled in if showOnList is true).
+                            // It might however be useful to have the explicit
+                            // boolean in the Stripe portal for auditing
+                            // purposes.
+                            showOnList: showOnList.toString(),
+                        },
+                    },
+                    recurring: {
+                        interval: "month",
+                        interval_count: 1,
+                    },
+                    unit_amount: amount,
+                },
                 quantity: 1,
             },
         ]
-        options.payment_intent_data = {
-            metadata: metadata as any,
-        }
+    } else if (interval === Interval.ONCE) {
+        // options.line_items = [
+        //     {
+        //         amount: amount,
+        //         currency: currency,
+        //         name: "One-time donation",
+        //         quantity: 1,
+        //     },
+        // ]
+        // options.payment_intent_data = {
+        //     metadata: metadata as any,
+        // }
     }
 
     try {
