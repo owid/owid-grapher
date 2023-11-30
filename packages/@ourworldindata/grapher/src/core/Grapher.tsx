@@ -1735,9 +1735,13 @@ export class Grapher
     }
 
     @computed get staticBounds(): Bounds {
-        return this.exportMode === GrapherExportMode.portrait
-            ? this.portraitBounds
-            : this.idealBounds
+        // in landscape and portrait mode, the bounds are fixed
+        if (this.exportMode === GrapherExportMode.landscape) {
+            return this.idealBounds
+        } else if (this.exportMode === GrapherExportMode.portrait) {
+            return this.portraitBounds
+        }
+        return this.props.bounds ?? this.idealBounds
     }
 
     get staticSVG(): string {
