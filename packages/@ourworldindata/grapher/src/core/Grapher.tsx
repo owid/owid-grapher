@@ -1725,12 +1725,12 @@ export class Grapher
     }
 
     generateStaticSvg(bounds: Bounds = this.idealBounds): string {
-        const _isExportingtoSvgOrPng = this.isExportingToSvgOrPng
+        const _isExportingToSvgOrPng = this.isExportingToSvgOrPng
         this.isExportingToSvgOrPng = true
         const staticSvg = ReactDOMServer.renderToStaticMarkup(
             <StaticCaptionedChart manager={this} bounds={bounds} />
         )
-        this.isExportingToSvgOrPng = _isExportingtoSvgOrPng
+        this.isExportingToSvgOrPng = _isExportingToSvgOrPng
         return staticSvg
     }
 

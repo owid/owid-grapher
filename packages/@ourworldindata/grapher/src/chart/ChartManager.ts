@@ -33,7 +33,7 @@ export interface ChartManager {
 
     isSelectingData?: boolean
     startSelectingWhenLineClicked?: boolean // used by lineLabels
-    isExportingtoSvgOrPng?: boolean
+    isExportingToSvgOrPng?: boolean
     isRelativeMode?: boolean
     comparisonLines?: ComparisonLineConfig[]
     hideLegend?: boolean
