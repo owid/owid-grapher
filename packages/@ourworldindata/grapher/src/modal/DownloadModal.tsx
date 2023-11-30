@@ -70,6 +70,10 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
         return this.exportMode === GrapherExportMode.portrait
     }
 
+    @computed private get shouldIncludeDetails(): boolean {
+        return !!this.manager.shouldIncludeDetailsInStaticExport
+    }
+
     @computed private get modalBounds(): Bounds {
         const maxWidth = 640
         const padWidth = Math.max(16, (this.tabBounds.width - maxWidth) / 2)
@@ -222,6 +226,11 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
             : GrapherExportMode.portrait
     }
 
+    @action.bound private toggleIncludeDetails(): void {
+        this.manager.shouldIncludeDetailsInStaticExport =
+            !this.manager.shouldIncludeDetailsInStaticExport
+    }
+
     @computed private get showExportControls(): boolean {
         return (
             !isEmpty(this.manager.detailRenderers) ||
@@ -280,16 +289,11 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
                             <div className="static-exports-options">
                                 {!isEmpty(this.manager.detailRenderers) && (
                                     <Checkbox
-                                        checked={
-                                            !!this.manager
-                                                .shouldIncludeDetailsInStaticExport
-                                        }
+                                        checked={this.shouldIncludeDetails}
                                         label="Include terminology definitions at bottom of chart"
                                         onChange={(): void => {
                                             this.reset()
-                                            this.manager.shouldIncludeDetailsInStaticExport =
-                                                !this.manager
-                                                    .shouldIncludeDetailsInStaticExport
+                                            this.toggleIncludeDetails()
                                             this.export()
                                         }}
                                     />
