@@ -22,7 +22,10 @@ import {
     OwidColumnDef,
     CoreColumn,
 } from "@ourworldindata/core-table"
-import { STATIC_EXPORT_DETAIL_SPACING } from "../core/GrapherConstants"
+import {
+    GrapherExportMode,
+    STATIC_EXPORT_DETAIL_SPACING,
+} from "../core/GrapherConstants"
 import { Modal } from "./Modal"
 import { StaticChartRasterizer } from "../captionedChart/StaticChartRasterizer"
 
@@ -41,7 +44,7 @@ export interface DownloadModalManager {
     tabBounds?: Bounds
     isOnChartOrMapTab?: boolean
     framePaddingVertical?: number
-    isExportingPortraitSvgOrPng?: boolean
+    exportMode?: GrapherExportMode
     showAdminControls?: boolean
 }
 
@@ -57,6 +60,14 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
 
     @computed private get tabBounds(): Bounds {
         return this.manager.tabBounds ?? DEFAULT_BOUNDS
+    }
+
+    @computed private get exportMode(): GrapherExportMode {
+        return this.manager.exportMode ?? GrapherExportMode.landscape
+    }
+
+    @computed private get isExportingPortrait(): boolean {
+        return this.exportMode === GrapherExportMode.portrait
     }
 
     @computed private get modalBounds(): Bounds {
@@ -101,7 +112,7 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
     @action.bound private export(): void {
         const { targetWidth, targetHeight } = this
 
-        const staticSVG = this.manager.isExportingPortraitSvgOrPng
+        const staticSVG = this.isExportingPortrait
             ? this.manager.staticSVGPortrait
             : this.manager.staticSVG
 
@@ -203,6 +214,12 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
         } else {
             triggerDownloadFromBlob(filename, this.csvBlob)
         }
+    }
+
+    @action.bound private togglePortraitMode(): void {
+        this.manager.exportMode = this.isExportingPortrait
+            ? GrapherExportMode.landscape
+            : GrapherExportMode.portrait
     }
 
     @computed private get showExportControls(): boolean {
@@ -307,16 +324,11 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
                                 )}
                                 {this.manager.showAdminControls && (
                                     <Checkbox
-                                        checked={
-                                            !!this.manager
-                                                .isExportingPortraitSvgOrPng
-                                        }
+                                        checked={this.isExportingPortrait}
                                         label="Portrait format"
                                         onChange={(): void => {
                                             this.reset()
-                                            this.manager.isExportingPortraitSvgOrPng =
-                                                !this.manager
-                                                    .isExportingPortraitSvgOrPng
+                                            this.togglePortraitMode()
                                             this.export()
                                         }}
                                     />

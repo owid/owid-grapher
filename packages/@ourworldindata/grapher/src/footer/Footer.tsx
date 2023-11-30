@@ -14,6 +14,7 @@ import { ActionButtons } from "../controls/ActionButtons"
 import {
     DEFAULT_GRAPHER_FRAME_PADDING,
     GRAPHER_DARK_TEXT,
+    GrapherExportMode,
 } from "../core/GrapherConstants"
 
 /*
@@ -662,7 +663,7 @@ export class StaticFooter extends Footer<StaticFooterProps> {
 
     @computed protected get fontSize(): number {
         // respect base font size for thumbnails
-        if (this.manager.isGeneratingThumbnail) {
+        if (this.manager.exportMode === GrapherExportMode.thumbnail) {
             return (13 / 16) * (this.manager.fontSize ?? 16)
         }
         return 13

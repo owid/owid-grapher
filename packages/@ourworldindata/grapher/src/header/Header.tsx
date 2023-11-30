@@ -8,6 +8,7 @@ import { HeaderManager } from "./HeaderManager"
 import {
     DEFAULT_GRAPHER_FRAME_PADDING,
     GRAPHER_DARK_TEXT,
+    GrapherExportMode,
 } from "../core/GrapherConstants"
 
 interface HeaderProps {
@@ -95,13 +96,14 @@ export class Header<
     }
 
     @computed get subtitle(): MarkdownTextWrap {
-        const fontSize = this.manager.isGeneratingThumbnail
-            ? (14 / 16) * (this.manager.fontSize ?? 16) // respect base font size for thumbnails
-            : this.manager.isSmall
-            ? 12
-            : this.manager.isMedium
-            ? 13
-            : 14
+        const fontSize =
+            this.manager.exportMode === GrapherExportMode.thumbnail
+                ? (14 / 16) * (this.manager.fontSize ?? 16) // respect base font size for thumbnails
+                : this.manager.isSmall
+                ? 12
+                : this.manager.isMedium
+                ? 13
+                : 14
         const lineHeight = this.manager.isMedium ? 1.2 : 1.28571
         return new MarkdownTextWrap({
             maxWidth: this.subtitleWidth,
@@ -215,9 +217,10 @@ export class StaticHeader extends Header<StaticHeaderProps> {
             })
 
         // try to fit the title into a single line if possible-- but not if it would make the text too small
-        const initialFontSize = manager.isGeneratingThumbnail
-            ? (24 / 16) * (manager.fontSize ?? 16) // respect base font size for thumbnails
-            : 24
+        const initialFontSize =
+            manager.exportMode === GrapherExportMode.thumbnail
+                ? (24 / 16) * (manager.fontSize ?? 16) // respect base font size for thumbnails
+                : 24
         let title = makeTitle(initialFontSize)
 
         // if the title is already a single line, no need to decrease font size

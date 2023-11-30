@@ -94,6 +94,7 @@ import {
     DEFAULT_GRAPHER_ENTITY_TYPE,
     DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL,
     GRAPHER_DARK_TEXT,
+    GrapherExportMode,
 } from "../core/GrapherConstants"
 import Cookies from "js-cookie"
 import {
@@ -786,8 +787,7 @@ export class Grapher
     }
 
     @observable.ref isExportingToSvgOrPng = false
-    @observable.ref isExportingPortraitSvgOrPng = false
-    @observable.ref isGeneratingThumbnail = false
+    @observable.ref exportMode = GrapherExportMode.landscape
 
     tooltips?: TooltipManager["tooltips"] = observable.map({}, { deep: false })
     @observable isPlaying = false
@@ -1735,7 +1735,7 @@ export class Grapher
     }
 
     @computed get staticBounds(): Bounds {
-        return this.isExportingPortraitSvgOrPng
+        return this.exportMode === GrapherExportMode.portrait
             ? this.portraitBounds
             : this.idealBounds
     }

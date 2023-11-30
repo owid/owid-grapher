@@ -1,4 +1,8 @@
-import { Grapher, GrapherInterface } from "@ourworldindata/grapher"
+import {
+    Grapher,
+    GrapherInterface,
+    GrapherExportMode,
+} from "@ourworldindata/grapher"
 import { Bounds, deserializeJSONFromHTML } from "@ourworldindata/utils"
 import { svg2png, initialize as initializeSvg2Png } from "svg2png-wasm"
 import { TimeLogger } from "./timeLogger"
@@ -160,7 +164,7 @@ async function fetchAndRenderGrapherToSvg({
         queryStr: "?" + searchParams.toString(),
         bounds,
     })
-    grapher.isGeneratingThumbnail = true
+    grapher.exportMode = GrapherExportMode.thumbnail
     grapher.shouldIncludeDetailsInStaticExport = options.details
     grapher.baseFontSize = options.fontSize
 
