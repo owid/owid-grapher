@@ -38,7 +38,12 @@ function getPaymentMethodTypes(
     return ["card"]
 }
 
-export async function createSession(donation: DonationRequest) {
+export async function createSession(donation: DonationRequest, key: string) {
+    const stripe = new Stripe(key, {
+        apiVersion: "2023-10-16",
+        maxNetworkRetries: 2,
+    })
+
     if (donation.amount == null)
         throw { status: 400, message: "Please specify an amount" }
     if (!Object.values(Interval).includes(donation.interval))
