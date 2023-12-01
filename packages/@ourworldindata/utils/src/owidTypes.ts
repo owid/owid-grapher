@@ -205,7 +205,7 @@ export interface Tag {
     parentId: number
     isBulkImport: boolean
     specialType: string
-    isTopic: boolean
+    slug: string
 }
 
 /** the entity in the `chart_tags` table */

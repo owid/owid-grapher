@@ -27,13 +27,13 @@ interface TagPageData {
     children: ChartTagJoin[]
     possibleParents: ChartTagJoin[]
     isBulkImport: boolean
-    isTopic: boolean
+    slug: string | null
 }
 
 class TagEditable {
     @observable name: string = ""
     @observable parentId?: number
-    @observable isTopic: boolean = false
+    @observable slug: string | null = null
 
     constructor(json: TagPageData) {
         for (const key in this) {
@@ -68,9 +68,10 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
 
     async save() {
         const { tag } = this.props
+        const slug = this.newtag.slug || null
         const json = await this.context.admin.requestJSON(
             `/api/tags/${tag.id}`,
-            { tag: this.newtag },
+            { tag: { ...this.newtag, slug } },
             "PUT"
         )
 
@@ -150,15 +151,12 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
                         />
                         {!tag.isBulkImport && (
                             <>
-                                <FieldsRow>
-                                    <Toggle
-                                        value={!!newtag.isTopic}
-                                        onValue={(value) => {
-                                            newtag.isTopic = value
-                                        }}
-                                        label="Tag is a topic"
-                                    />
-                                </FieldsRow>
+                                <BindString
+                                    field="slug"
+                                    store={newtag}
+                                    label="Slug"
+                                    helpText="The slug for the topic page that this tag corresponds to e.g. trade-and-globalization"
+                                />
                                 <FieldsRow>
                                     <NumericSelectField
                                         label="Parent Category"

@@ -46,7 +46,7 @@ export class Tag extends BaseEntity implements TagInterface {
     @Column({ nullable: true }) updatedAt!: Date
     @Column({ nullable: true }) parentId!: number
     @Column() isBulkImport!: boolean
-    @Column() isTopic!: boolean
+    @Column() slug!: string
     @Column() specialType!: string
     @ManyToMany(() => GdocPost, (gdoc) => gdoc.tags)
     gdocs!: GdocPost[]
