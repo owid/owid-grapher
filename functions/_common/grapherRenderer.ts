@@ -1,8 +1,4 @@
-import {
-    Grapher,
-    GrapherInterface,
-    GrapherExportMode,
-} from "@ourworldindata/grapher"
+import { Grapher, GrapherInterface } from "@ourworldindata/grapher"
 import { Bounds, deserializeJSONFromHTML } from "@ourworldindata/utils"
 import { svg2png, initialize as initializeSvg2Png } from "svg2png-wasm"
 import { TimeLogger } from "./timeLogger"
@@ -163,10 +159,10 @@ async function fetchAndRenderGrapherToSvg({
         bakedGrapherURL: grapherBaseUrl,
         queryStr: "?" + searchParams.toString(),
         bounds,
+        staticBounds: bounds,
+        baseFontSize: options.fontSize,
+        shouldIncludeDetailsInStaticExport: options.details,
     })
-    grapher.exportMode = GrapherExportMode.thumbnail
-    grapher.shouldIncludeDetailsInStaticExport = options.details
-    grapher.baseFontSize = options.fontSize
 
     grapherLogger.log("grapherInit")
     const promises = []

@@ -6,9 +6,9 @@ import { observer } from "mobx-react"
 import { Logo, LogoOption } from "../captionedChart/Logos"
 import { HeaderManager } from "./HeaderManager"
 import {
+    BASE_FONT_SIZE,
     DEFAULT_GRAPHER_FRAME_PADDING,
     GRAPHER_DARK_TEXT,
-    GrapherExportMode,
 } from "../core/GrapherConstants"
 
 interface HeaderProps {
@@ -40,6 +40,14 @@ export class Header<
         )
     }
 
+    @computed protected get useBaseFontSize(): boolean {
+        return !!this.manager.useBaseFontSize
+    }
+
+    @computed protected get baseFontSize(): number {
+        return this.manager.fontSize ?? BASE_FONT_SIZE
+    }
+
     @computed protected get titleText(): string {
         return this.manager.currentTitle?.trim() ?? ""
     }
@@ -68,18 +76,20 @@ export class Header<
         return this.logo ? this.logo.height : 0
     }
 
+    @computed get titleFontSize(): number {
+        if (this.useBaseFontSize) {
+            return (24 / BASE_FONT_SIZE) * this.baseFontSize
+        }
+        return this.manager.isNarrow ? 18 : this.manager.isMedium ? 20 : 24
+    }
+
     @computed get title(): TextWrap {
         const { logoWidth } = this
-        const fontSize = this.manager.isNarrow
-            ? 18
-            : this.manager.isMedium
-            ? 20
-            : 24
         return new TextWrap({
             maxWidth: this.maxWidth - logoWidth - 24,
             fontWeight: 600,
             lineHeight: this.manager.isSmall ? 1.1 : 1.2,
-            fontSize,
+            fontSize: this.titleFontSize,
             text: this.titleText,
         })
     }
@@ -95,19 +105,18 @@ export class Header<
             : this.maxWidth - this.logoWidth - 12
     }
 
+    @computed get subtitleFontSize(): number {
+        if (this.useBaseFontSize) {
+            return (14 / BASE_FONT_SIZE) * this.baseFontSize
+        }
+        return this.manager.isSmall ? 12 : this.manager.isMedium ? 13 : 14
+    }
+
     @computed get subtitle(): MarkdownTextWrap {
-        const fontSize =
-            this.manager.exportMode === GrapherExportMode.thumbnail
-                ? (14 / 16) * (this.manager.fontSize ?? 16) // respect base font size for thumbnails
-                : this.manager.isSmall
-                ? 12
-                : this.manager.isMedium
-                ? 13
-                : 14
         const lineHeight = this.manager.isMedium ? 1.2 : 1.28571
         return new MarkdownTextWrap({
             maxWidth: this.subtitleWidth,
-            fontSize,
+            fontSize: this.subtitleFontSize,
             text: this.subtitleText,
             lineHeight,
             detailsOrderedByReference: this.manager
@@ -205,7 +214,7 @@ interface StaticHeaderProps extends HeaderProps {
 @observer
 export class StaticHeader extends Header<StaticHeaderProps> {
     @computed get title(): TextWrap {
-        const { logoWidth, titleText, manager } = this
+        const { logoWidth, titleText } = this
 
         const makeTitle = (fontSize: number): TextWrap =>
             new TextWrap({
@@ -217,10 +226,9 @@ export class StaticHeader extends Header<StaticHeaderProps> {
             })
 
         // try to fit the title into a single line if possible-- but not if it would make the text too small
-        const initialFontSize =
-            manager.exportMode === GrapherExportMode.thumbnail
-                ? (24 / 16) * (manager.fontSize ?? 16) // respect base font size for thumbnails
-                : 24
+        const initialFontSize = this.useBaseFontSize
+            ? (24 / BASE_FONT_SIZE) * this.baseFontSize
+            : 24
         let title = makeTitle(initialFontSize)
 
         // if the title is already a single line, no need to decrease font size

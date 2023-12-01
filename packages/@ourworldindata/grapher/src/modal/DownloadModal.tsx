@@ -23,7 +23,7 @@ import {
     CoreColumn,
 } from "@ourworldindata/core-table"
 import {
-    GrapherExportMode,
+    GrapherExportFormat,
     STATIC_EXPORT_DETAIL_SPACING,
 } from "../core/GrapherConstants"
 import { Modal } from "./Modal"
@@ -31,8 +31,7 @@ import { StaticChartRasterizer } from "../captionedChart/StaticChartRasterizer"
 
 export interface DownloadModalManager {
     displaySlug: string
-    staticSVG: string
-    staticSVGPortrait: string
+    generateStaticSvg: (bounds?: Bounds) => string
     staticBounds?: Bounds
     baseUrl?: string
     queryStr?: string
@@ -44,7 +43,7 @@ export interface DownloadModalManager {
     tabBounds?: Bounds
     isOnChartOrMapTab?: boolean
     framePaddingVertical?: number
-    exportMode?: GrapherExportMode
+    exportFormat?: GrapherExportFormat
     showAdminControls?: boolean
 }
 
@@ -62,12 +61,12 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
         return this.manager.tabBounds ?? DEFAULT_BOUNDS
     }
 
-    @computed private get exportMode(): GrapherExportMode {
-        return this.manager.exportMode ?? GrapherExportMode.landscape
+    @computed private get exportFormat(): GrapherExportFormat {
+        return this.manager.exportFormat ?? GrapherExportFormat.landscape
     }
 
     @computed private get isExportingPortrait(): boolean {
-        return this.exportMode === GrapherExportMode.portrait
+        return this.exportFormat === GrapherExportFormat.portrait
     }
 
     @computed private get shouldIncludeDetails(): boolean {
@@ -101,6 +100,10 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
         return this.staticBounds.height
     }
 
+    @computed private get staticSVG(): string {
+        return this.manager.generateStaticSvg(this.staticBounds)
+    }
+
     @computed private get manager(): DownloadModalManager {
         return this.props.manager
     }
@@ -114,11 +117,7 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
     @observable private isReady: boolean = false
 
     @action.bound private export(): void {
-        const { targetWidth, targetHeight } = this
-
-        const staticSVG = this.isExportingPortrait
-            ? this.manager.staticSVGPortrait
-            : this.manager.staticSVG
+        const { staticSVG, targetWidth, targetHeight } = this
 
         // render the graphic then cache data-urls for display & blobs for downloads
         new StaticChartRasterizer(staticSVG, targetWidth, targetHeight)
@@ -221,9 +220,9 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
     }
 
     @action.bound private togglePortraitMode(): void {
-        this.manager.exportMode = this.isExportingPortrait
-            ? GrapherExportMode.landscape
-            : GrapherExportMode.portrait
+        this.manager.exportFormat = this.isExportingPortrait
+            ? GrapherExportFormat.landscape
+            : GrapherExportFormat.portrait
     }
 
     @action.bound private toggleIncludeDetails(): void {

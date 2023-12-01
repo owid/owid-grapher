@@ -12,9 +12,9 @@ import { Tooltip } from "../tooltip/Tooltip"
 import { FooterManager } from "./FooterManager"
 import { ActionButtons } from "../controls/ActionButtons"
 import {
+    BASE_FONT_SIZE,
     DEFAULT_GRAPHER_FRAME_PADDING,
     GRAPHER_DARK_TEXT,
-    GrapherExportMode,
 } from "../core/GrapherConstants"
 
 /*
@@ -81,6 +81,14 @@ export class Footer<
         return (
             this.manager.framePaddingHorizontal ?? DEFAULT_GRAPHER_FRAME_PADDING
         )
+    }
+
+    @computed protected get useBaseFontSize(): boolean {
+        return !!this.manager.useBaseFontSize
+    }
+
+    @computed protected get baseFontSize(): number {
+        return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
     @computed protected get sourcesLine(): string {
@@ -184,10 +192,16 @@ export class Footer<
     }
 
     @computed protected get fontSize(): number {
+        if (this.useBaseFontSize) {
+            return (12 / BASE_FONT_SIZE) * this.baseFontSize
+        }
         return this.manager.isMedium ? 11 : 12
     }
 
     @computed protected get sourcesFontSize(): number {
+        if (this.useBaseFontSize) {
+            return (13 / BASE_FONT_SIZE) * this.baseFontSize
+        }
         return this.manager.isSmall ? 12 : 13
     }
 
@@ -662,9 +676,8 @@ export class StaticFooter extends Footer<StaticFooterProps> {
     }
 
     @computed protected get fontSize(): number {
-        // respect base font size for thumbnails
-        if (this.manager.exportMode === GrapherExportMode.thumbnail) {
-            return (13 / 16) * (this.manager.fontSize ?? 16)
+        if (this.useBaseFontSize) {
+            return (13 / BASE_FONT_SIZE) * this.baseFontSize
         }
         return 13
     }

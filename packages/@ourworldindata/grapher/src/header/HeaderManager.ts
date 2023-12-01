@@ -1,5 +1,4 @@
 import { Bounds } from "@ourworldindata/utils"
-import { GrapherExportMode } from "../core/GrapherConstants"
 
 export interface HeaderManager {
     currentTitle?: string
@@ -19,6 +18,6 @@ export interface HeaderManager {
     framePaddingVertical?: number
     isOnCanonicalUrl?: boolean
     isInIFrame?: boolean
-    exportMode?: GrapherExportMode
+    useBaseFontSize?: boolean
     fontSize?: number
 }

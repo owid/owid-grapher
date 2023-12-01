@@ -94,7 +94,7 @@ import {
     DEFAULT_GRAPHER_ENTITY_TYPE,
     DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL,
     GRAPHER_DARK_TEXT,
-    GrapherExportMode,
+    GrapherExportFormat,
 } from "../core/GrapherConstants"
 import Cookies from "js-cookie"
 import {
@@ -263,6 +263,8 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     env?: string
     dataApiUrlForAdmin?: string
     annotation?: Annotation
+    staticBounds?: Bounds
+    baseFontSize?: number
 
     hideEntityControls?: boolean
     hideZoomToggle?: boolean
@@ -787,7 +789,7 @@ export class Grapher
     }
 
     @observable.ref isExportingToSvgOrPng = false
-    @observable.ref exportMode = GrapherExportMode.landscape
+    @observable.ref exportFormat = GrapherExportFormat.landscape
 
     tooltips?: TooltipManager["tooltips"] = observable.map({}, { deep: false })
     @observable isPlaying = false
@@ -1724,6 +1726,19 @@ export class Grapher
         return this.dimensions.some((d) => d.property === DimensionProperty.y)
     }
 
+    @computed get staticBounds(): Bounds {
+        if (this.props.staticBounds) return this.props.staticBounds
+
+        switch (this.exportFormat) {
+            case GrapherExportFormat.landscape:
+                return this.idealBounds
+            case GrapherExportFormat.portrait:
+                return this.portraitBounds
+            default:
+                return this.idealBounds
+        }
+    }
+
     generateStaticSvg(bounds: Bounds = this.idealBounds): string {
         const _isExportingToSvgOrPng = this.isExportingToSvgOrPng
         this.isExportingToSvgOrPng = true
@@ -1734,22 +1749,8 @@ export class Grapher
         return staticSvg
     }
 
-    @computed get staticBounds(): Bounds {
-        // in landscape and portrait mode, the bounds are fixed
-        if (this.exportMode === GrapherExportMode.landscape) {
-            return this.idealBounds
-        } else if (this.exportMode === GrapherExportMode.portrait) {
-            return this.portraitBounds
-        }
-        return this.props.bounds ?? this.idealBounds
-    }
-
     get staticSVG(): string {
         return this.generateStaticSvg()
-    }
-
-    get staticSVGPortrait(): string {
-        return this.generateStaticSvg(this.portraitBounds)
     }
 
     @computed get disableIntroAnimation(): boolean {
@@ -2537,11 +2538,22 @@ export class Grapher
         }
     }
 
-    @action.bound private setBaseFontSize(): void {
+    // the header and footer don't rely on the base font size unless explicitly specified
+    @computed get useBaseFontSize(): boolean {
+        return this.props.baseFontSize !== undefined
+    }
+
+    computeBaseFontSize(): number {
         const { renderWidth } = this
-        if (renderWidth <= 400) this.baseFontSize = 14
-        else if (renderWidth < 1080) this.baseFontSize = 16
-        else if (renderWidth >= 1080) this.baseFontSize = 18
+        if (renderWidth <= 400) return 14
+        else if (renderWidth < 1080) return 16
+        else if (renderWidth >= 1080) return 18
+        else return 16
+    }
+
+    @action.bound private setBaseFontSize(): void {
+        this.baseFontSize =
+            this.props.baseFontSize ?? this.computeBaseFontSize()
     }
 
     // when optimized for horizontal screen, grapher bleeds onto the edges horizontally

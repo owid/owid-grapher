@@ -92,10 +92,9 @@ export enum GrapherTabOption {
     table = "table",
 }
 
-export enum GrapherExportMode {
+export enum GrapherExportFormat {
     landscape = "landscape",
     portrait = "portrait",
-    thumbnail = "thumbnail",
 }
 
 export enum ScaleType {
