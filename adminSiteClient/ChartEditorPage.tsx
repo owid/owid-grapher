@@ -54,6 +54,7 @@ import {
 } from "./VisionDeficiencies.js"
 import { EditorMarimekkoTab } from "./EditorMarimekkoTab.js"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
+import { EditorExportTab } from "./EditorExportTab.js"
 
 @observer
 class TabBinder extends React.Component<{ editor: ChartEditor }> {
@@ -326,6 +327,16 @@ export class ChartEditorPage
                 }
             )
         )
+
+        this.disposers.push(
+            reaction(
+                () => this.editor && this.editor.showStaticPreview,
+                () => {
+                    this.grapher.renderToStatic =
+                        !!this.editor?.showStaticPreview
+                }
+            )
+        )
     }
 
     // This funny construction allows the "new chart" link to work by forcing an update
@@ -417,6 +428,9 @@ export class ChartEditorPage
                         )}
                         {editor.tab === "refs" && (
                             <EditorReferencesTab editor={editor} />
+                        )}
+                        {editor.tab === "export" && (
+                            <EditorExportTab editor={editor} />
                         )}
                     </div>
                     <SaveButtons editor={editor} />

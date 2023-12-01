@@ -635,6 +635,11 @@ interface StaticFooterProps extends FooterProps {
 export class StaticFooter extends Footer<StaticFooterProps> {
     verticalPadding = 2
 
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    componentDidMount(): void {}
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    componentWillUnmount(): void {}
+
     @computed protected get showLicenseNextToSources(): boolean {
         return (
             this.maxWidth - this.sources.width - HORIZONTAL_PADDING >

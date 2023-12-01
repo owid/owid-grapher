@@ -611,7 +611,7 @@ export class StaticCaptionedChart extends CaptionedChart {
                     targetX={paddedBounds.x}
                     targetY={paddedBounds.y}
                 />
-                {this.renderChart()}
+                <g style={{ pointerEvents: "none" }}>{this.renderChart()}</g>
                 <StaticFooter
                     manager={manager}
                     maxWidth={maxWidth}
