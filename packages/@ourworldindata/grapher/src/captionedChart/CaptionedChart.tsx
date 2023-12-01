@@ -181,8 +181,8 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     @computed protected get bounds(): Bounds {
         return (
             this.props.bounds ??
-            // right padding prevents grapher's frame to be obscured by the chart/map
-            this.manager.tabBounds?.padRight(2) ??
+            // the padding ensures grapher's frame is not cut off
+            this.manager.tabBounds?.padRight(2).padBottom(2) ??
             DEFAULT_BOUNDS
         )
     }
