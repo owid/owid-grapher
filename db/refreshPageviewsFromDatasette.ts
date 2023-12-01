@@ -30,9 +30,9 @@ async function downloadAndInsertCSV(): Promise<void> {
     console.log("Parsed CSV data:", onlyValidRows.length, "rows")
     console.log("Columns:", parsedData.meta.fields)
 
-    await db.knexRaw("TRUNCATE TABLE pageviews")
+    await db.knexRaw("TRUNCATE TABLE analytics_pageviews")
 
-    await db.knexInstance().batchInsert("pageviews", onlyValidRows)
+    await db.knexInstance().batchInsert("analytics_pageviews", onlyValidRows)
     console.log("CSV data inserted successfully!")
 }
 

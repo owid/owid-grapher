@@ -2,7 +2,7 @@ import { keyBy } from "lodash"
 import { Entity, Column, BaseEntity } from "typeorm"
 import { RawPageview } from "@ourworldindata/utils"
 
-@Entity("pageviews")
+@Entity("analytics_pageviews")
 export class Pageview extends BaseEntity implements RawPageview {
     /** The last day with pageview data that is included in the sum */
     @Column({ primary: true }) day!: Date

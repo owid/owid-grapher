@@ -715,7 +715,7 @@ export const getRelatedResearchAndWritingForVariable = async (
                 charts_via_redirects.id = csr.chart_id
             left join chart_dimensions cd on
                 cd.chartId = coalesce(csr.chart_id, c.id)
-            left join pageviews pv on
+            left join analytics_pageviews pv on
                 pv.url = concat('https://ourworldindata.org/', p.slug )
             left join posts_gdocs pg on
             	pg.id = p.gdocSuccessorId
@@ -773,7 +773,7 @@ export const getRelatedResearchAndWritingForVariable = async (
                 pl.target = csr.slug
             join chart_dimensions cd on
                 cd.chartId = c.id
-            left join pageviews pv on
+            left join analytics_pageviews pv on
                 pv.url = concat('https://ourworldindata.org/', p.slug )
             left join posts_gdocs_x_tags pt on
                 pt.gdocId = p.id
