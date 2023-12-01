@@ -31,7 +31,8 @@ import { StaticChartRasterizer } from "../captionedChart/StaticChartRasterizer"
 
 export interface DownloadModalManager {
     displaySlug: string
-    generateStaticSvg: (bounds?: Bounds) => string
+    staticSVGLandscape: string
+    staticSVGPortrait: string
     staticBounds?: Bounds
     baseUrl?: string
     queryStr?: string
@@ -100,10 +101,6 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
         return this.staticBounds.height
     }
 
-    @computed private get staticSVG(): string {
-        return this.manager.generateStaticSvg(this.staticBounds)
-    }
-
     @computed private get manager(): DownloadModalManager {
         return this.props.manager
     }
@@ -117,7 +114,11 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
     @observable private isReady: boolean = false
 
     @action.bound private export(): void {
-        const { staticSVG, targetWidth, targetHeight } = this
+        const { targetWidth, targetHeight } = this
+
+        const staticSVG = this.isExportingPortrait
+            ? this.manager.staticSVGPortrait
+            : this.manager.staticSVGLandscape
 
         // render the graphic then cache data-urls for display & blobs for downloads
         new StaticChartRasterizer(staticSVG, targetWidth, targetHeight)

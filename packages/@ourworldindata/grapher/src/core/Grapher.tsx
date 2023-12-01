@@ -1749,6 +1749,14 @@ export class Grapher
         return this.generateStaticSvg()
     }
 
+    get staticSVGLandscape(): string {
+        return this.staticSVG
+    }
+
+    get staticSVGPortrait(): string {
+        return this.generateStaticSvg(this.portraitBounds)
+    }
+
     @computed get disableIntroAnimation(): boolean {
         return this.isExportingToSvgOrPng
     }
