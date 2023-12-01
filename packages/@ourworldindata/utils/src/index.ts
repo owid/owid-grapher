@@ -109,6 +109,8 @@ export {
     type OwidGdocLinkJSON,
     type OwidGdocBaseInterface,
     type OwidGdocPostInterface,
+    type OwidGdocInsightInterface,
+    type OwidInsightContent,
     type Tag,
     OwidGdocType,
     type OwidGdocStickyNavItem,

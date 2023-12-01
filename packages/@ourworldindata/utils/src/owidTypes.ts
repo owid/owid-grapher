@@ -1373,6 +1373,20 @@ export interface OwidGdocPostInterface extends OwidGdocBaseInterface {
     tags?: Tag[]
 }
 
+export interface OwidInsightContent {
+    title: string
+    authors: string[]
+    grapherSlug?: string
+    approvedBy: string // can't publish a data insight unless this is set
+    body: OwidEnrichedGdocBlock[]
+}
+
+export interface OwidGdocInsightInterface extends OwidGdocBaseInterface {
+    content: OwidInsightContent
+    linkedDocuments?: Record<string, OwidGdocPostInterface>
+    tags?: Tag[]
+}
+
 export enum OwidGdocErrorMessageType {
     Error = "error",
     Warning = "warning",
@@ -1381,6 +1395,7 @@ export enum OwidGdocErrorMessageType {
 export type OwidGdocProperty =
     | keyof OwidGdocPostInterface
     | keyof OwidGdocContent
+    | keyof OwidInsightContent
 export type OwidGdocErrorMessageProperty =
     | OwidGdocProperty
     | `${OwidGdocProperty}${string}` // also allows for nesting, like `breadcrumbs[0].label`
