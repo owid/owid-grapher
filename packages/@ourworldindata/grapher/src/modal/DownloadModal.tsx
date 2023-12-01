@@ -219,7 +219,7 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
         }
     }
 
-    @action.bound private togglePortraitMode(): void {
+    @action.bound private toggleExportFormat(): void {
         this.manager.exportFormat = this.isExportingPortrait
             ? GrapherExportFormat.landscape
             : GrapherExportFormat.portrait
@@ -303,7 +303,7 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
                                         label="Portrait format"
                                         onChange={(): void => {
                                             this.reset()
-                                            this.togglePortraitMode()
+                                            this.toggleExportFormat()
                                             this.export()
                                         }}
                                     />
