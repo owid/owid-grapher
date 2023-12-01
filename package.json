@@ -30,6 +30,7 @@
         "revertLastDbMigration": "yarn typeorm migration:revert -d itsJustJavascript/db/dataSource.js",
         "runPostUpdateHook": "node --enable-source-maps ./itsJustJavascript/baker/postUpdatedHook.js",
         "startAdminServer": "node --enable-source-maps ./itsJustJavascript/adminSiteServer/app.js",
+        "startLocalCloudflareFunctions": "wrangler pages dev localBake --compatibility-date 2023-10-09",
         "startDeployQueueServer": "node --enable-source-maps ./itsJustJavascript/baker/startDeployQueueServer.js",
         "startLernaWatcher": "lerna watch --scope '@ourworldindata/*' -- lerna run build --scope=\\$LERNA_PACKAGE_NAME --include-dependents",
         "startTmuxServer": "node_modules/tmex/tmex dev \"yarn startTscServer\" \"yarn startLernaWatcher\" \"yarn startAdminServer\" \"yarn startViteServer\"",
