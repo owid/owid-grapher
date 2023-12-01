@@ -182,6 +182,7 @@ async function writeToSlugMap(path: string, slug: string): Promise<void> {
     return
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function resolveSlugs(): Promise<void> {
     console.log("Resolving slugs 🚀")
     const slugMap = await readSlugMap()
@@ -229,6 +230,7 @@ const manualSlugMap: Record<string, string> = {
     "Suicides": "suicide",
     "Meat & Dairy Production": "meat-production",
     "Water Use & Stress": "water-use-stress",
+    "Human Development Index (HDI)": "human-development-index",
     "Space Exploration & Satellites": "space-exploration-satellites",
     "Violence Against Children & Children's Rights": "violence-against-rights-for-children",
     "Education Spending": "financing-education",
@@ -303,7 +305,6 @@ const tagNameSlugResolutions = {
   "Economic Inequality": "economic-inequality",
   "Economic Inequality by Gender": "economic-inequality-by-gender",
   "Happiness & Life Satisfaction": "happiness-and-life-satisfaction",
-  "Human Development Index (HDI)": "human-development-index-hdi",
   "Working Hours": "working-hours",
   "Urbanization": "urbanization",
   "Homelessness": "homelessness",

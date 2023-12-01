@@ -4,13 +4,7 @@ import { observable, computed, action, runInAction } from "mobx"
 import { Prompt, Redirect } from "react-router-dom"
 import { ChartTagJoin } from "@ourworldindata/utils"
 import { AdminLayout } from "./AdminLayout.js"
-import {
-    BindString,
-    NumericSelectField,
-    FieldsRow,
-    Timeago,
-    Toggle,
-} from "./Forms.js"
+import { BindString, NumericSelectField, FieldsRow, Timeago } from "./Forms.js"
 import { DatasetList, DatasetListItem } from "./DatasetList.js"
 import { ChartList, ChartListItem } from "./ChartList.js"
 import { TagBadge } from "./TagBadge.js"

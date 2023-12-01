@@ -12,7 +12,7 @@ import { bakeGraphersToSvgs } from "../baker/GrapherImageBaker.js"
 import { warn } from "../serverUtils/errorLog.js"
 import { Chart } from "../db/model/Chart.js"
 import md5 from "md5"
-import { Url } from "@ourworldindata/utils"
+import { Url, Tag } from "@ourworldindata/utils"
 
 interface ChartExportMeta {
     key: string
@@ -120,4 +120,50 @@ export const getGrapherExportsByUrl = async (): Promise<GrapherExports> => {
             )
         },
     }
+}
+
+/**
+ * Returns a map that can resolve Tag names and Tag IDs to the Tag's slug
+ * e.g.
+ *   "Women's Rights" -> "womens-rights"
+ *   123 -> "womens-rights"
+ */
+let _tagsByIdAndName: Record<string | number, string> | undefined = undefined
+export async function getTagToSlugMap(): Promise<
+    Record<string | number, string>
+> {
+    if (!_tagsByIdAndName) {
+        const tags = (await db.queryMysql(
+            `SELECT slug, name, id FROM tags WHERE slug IS NOT NULL`
+        )) as Pick<Tag, "name" | "id" | "slug">[]
+        _tagsByIdAndName = {}
+        for (const tag of tags) {
+            if (tag.slug) {
+                _tagsByIdAndName[tag.name] = tag.slug
+                _tagsByIdAndName[tag.id] = tag.slug
+            }
+        }
+    }
+
+    return _tagsByIdAndName
+}
+
+/**
+ * Given a topic tag's name or ID, return its slug
+ * Throws an error if no slug is found so we can log it in Bugsnag
+ */
+export async function getSlugForTopicTag(
+    identifier: string | number
+): Promise<string> {
+    const propertyToMatch = typeof identifier === "string" ? "slug" : "id"
+    const tagsByIdAndName = await getTagToSlugMap()
+    const slug = tagsByIdAndName[identifier]
+
+    if (!slug) {
+        throw new Error(
+            `No slug found for tag with ${propertyToMatch}: "${identifier}"`
+        )
+    }
+
+    return slug
 }

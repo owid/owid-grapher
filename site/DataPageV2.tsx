@@ -39,6 +39,7 @@ export const DataPageV2 = (props: {
     baseGrapherUrl: string
     isPreviewing: boolean
     faqEntries?: FaqEntryData
+    tagToSlugMap: Record<string | number, string>
 }) => {
     const {
         grapher,
@@ -47,6 +48,7 @@ export const DataPageV2 = (props: {
         baseUrl,
         isPreviewing,
         faqEntries,
+        tagToSlugMap,
     } = props
     const pageTitle = grapher?.title ?? datapageData.title
     const canonicalUrl = grapher?.slug
@@ -95,6 +97,17 @@ export const DataPageV2 = (props: {
         dataApiUrl: DATA_API_URL,
     }
 
+    // Only embed the tags that are actually used by the datapage, instead of the complete JSON object with ~240 properties
+    const minimalTagToSlugMap = Object.entries(tagToSlugMap).reduce(
+        (acc, [key, value]) => {
+            if (datapageData.topicTagsLinks?.includes(key)) {
+                acc[key] = value
+            }
+            return acc
+        },
+        {} as Record<string, string>
+    )
+
     return (
         <html>
             <Head
@@ -139,6 +152,7 @@ export const DataPageV2 = (props: {
                                         datapageData,
                                         faqEntries,
                                         canonicalUrl,
+                                        tagToSlugMap: minimalTagToSlugMap,
                                     }
                                 )}`,
                             }}
@@ -151,6 +165,7 @@ export const DataPageV2 = (props: {
                                     isPreviewing={isPreviewing}
                                     faqEntries={faqEntries}
                                     canonicalUrl={canonicalUrl}
+                                    tagToSlugMap={tagToSlugMap}
                                 />
                             </DebugProvider>
                         </div>

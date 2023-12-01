@@ -30,7 +30,6 @@ import { ArticleBlocks } from "./gdocs/ArticleBlocks.js"
 import { RelatedCharts } from "./blocks/RelatedCharts.js"
 import {
     DataPageV2ContentFields,
-    slugify,
     uniq,
     formatAuthors,
     intersection,
@@ -59,22 +58,13 @@ declare global {
 }
 export const OWID_DATAPAGE_CONTENT_ROOT_ID = "owid-datapageJson-root"
 
-export const slugify_topic = (topic: string) => {
-    // This is a heuristic to map from free form tag texts to topic page URLs. We'll
-    // have to switch to explicitly stored URLs or explicit links between tags and topic pages
-    // soon but for the time being this makes sure that "CO2 & Greenhouse Gas Emissions" can be automatically
-    // linked to /co2-and-greenhouse-gas-emissions
-    // Note that the heuristic fails for a few cases like "HIV/AIDS" or "Mpox (Monkeypox)"
-    const replaced = topic.replace("&", "and").replace("'", "").replace("+", "")
-    return slugify(replaced)
-}
-
 export const DataPageV2Content = ({
     datapageData,
     grapherConfig,
     isPreviewing = false,
     faqEntries,
     canonicalUrl = "{URL}", // when we bake pages to their proper url this will be set correctly but on preview pages we leave this undefined
+    tagToSlugMap,
 }: DataPageV2ContentFields & {
     grapherConfig: GrapherInterface
 }) => {
@@ -247,6 +237,15 @@ export const DataPageV2Content = ({
     }
     // TODO: mark topic pages
 
+    const topicTags = datapageData.topicTagsLinks
+        ?.map((name) => ({ name, slug: tagToSlugMap[name] }))
+        .filter((tag): tag is { name: string; slug: string } => !!tag.slug)
+        .map((tag) => (
+            <a href={`/${tag.slug}`} key={tag.slug}>
+                {tag.name}
+            </a>
+        ))
+
     return (
         <AttachmentsContext.Provider
             value={{
@@ -281,18 +280,7 @@ export const DataPageV2Content = ({
                                         See all data and research on:
                                     </div>
                                     <div className="topic-tags">
-                                        {datapageData.topicTagsLinks?.map(
-                                            (topic: any) => (
-                                                <a
-                                                    href={`/${slugify_topic(
-                                                        topic
-                                                    )}`}
-                                                    key={topic}
-                                                >
-                                                    {topic}
-                                                </a>
-                                            )
-                                        )}
+                                        {topicTags}
                                     </div>
                                 </div>
                             )}
