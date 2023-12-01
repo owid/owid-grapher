@@ -114,14 +114,17 @@ export class ChartEditorPage
 
     @observable simulateVisionDeficiency?: VisionDeficiency
 
+    fetchedGrapherConfig?: any
+
     async fetchGrapher(): Promise<void> {
         const { grapherId, grapherConfig } = this.props
-        const { admin } = this.context
-        const json =
-            grapherId === undefined
-                ? grapherConfig
-                : await admin.getJSON(`/api/charts/${grapherId}.config.json`)
-        this.loadGrapherJson(json)
+        if (grapherId !== undefined) {
+            this.fetchedGrapherConfig = await this.context.admin.getJSON(
+                `/api/charts/${grapherId}.config.json`
+            )
+        }
+        const config = this.fetchedGrapherConfig ?? grapherConfig
+        this.initGrapher(config)
     }
 
     @observable private _isDbSet = false
@@ -130,24 +133,35 @@ export class ChartEditorPage
         return this._isDbSet && this._isGrapherSet
     }
 
-    @action.bound private loadGrapherJson(json: any): void {
-        this.grapherElement = (
-            <Grapher
-                {...{
-                    ...json,
-                    bounds:
-                        this.editor?.previewMode === "mobile"
-                            ? new Bounds(0, 0, 360, 500)
-                            : new Bounds(0, 0, 800, 600),
-                    getGrapherInstance: (grapher) => {
-                        this.grapher = grapher
-                    },
-                    dataApiUrlForAdmin:
-                        this.context.admin.settings.DATA_API_FOR_ADMIN_UI, // passed this way because clientSettings are baked and need a recompile to be updated
-                }}
-            />
-        )
+    @action.bound private initGrapher(config: any): void {
+        const grapherConfig = {
+            ...config,
+            // binds the grapher instance to this.grapher
+            getGrapherInstance: (grapher: Grapher) => {
+                this.grapher = grapher
+            },
+            // admin-specific settings
+            dataApiUrlForAdmin:
+                this.context.admin.settings.DATA_API_FOR_ADMIN_UI, // passed this way because clientSettings are baked and need a recompile to be updated
+            // reactive settings
+            bounds: this.bounds,
+        }
+        this.grapherElement = <Grapher {...grapherConfig} />
         this._isGrapherSet = true
+    }
+
+    @action.bound private updateGrapher(): void {
+        const config = this.fetchedGrapherConfig ?? this.props.grapherConfig
+        const grapherConfig = {
+            ...config,
+            // binds the grapher instance to this.grapher
+            getGrapherInstance: (grapher: Grapher) => {
+                this.grapher = grapher
+            },
+            // reactive settings
+            bounds: this.bounds,
+        }
+        this.grapherElement = <Grapher {...grapherConfig} />
     }
 
     @action.bound private setDb(json: any): void {
@@ -232,6 +246,12 @@ export class ChartEditorPage
         runInAction(() => {
             this.details = details
         })
+    }
+
+    @computed private get bounds(): Bounds {
+        return this.editor?.previewMode === "mobile"
+            ? new Bounds(0, 0, 360, 500)
+            : new Bounds(0, 0, 800, 600)
     }
 
     // unvalidated terms extracted from the subtitle and note fields
@@ -428,7 +448,7 @@ export class ChartEditorPage
                                     type="radio"
                                     onChange={action(() => {
                                         editor.previewMode = "mobile"
-                                        this.refresh()
+                                        this.updateGrapher()
                                     })}
                                     name="previewSize"
                                     id="mobile"
@@ -446,7 +466,7 @@ export class ChartEditorPage
                                 <input
                                     onChange={action(() => {
                                         editor.previewMode = "desktop"
-                                        this.refresh()
+                                        this.updateGrapher()
                                     })}
                                     type="radio"
                                     name="previewSize"
