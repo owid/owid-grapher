@@ -7,11 +7,13 @@ export class CreateAnalyticsCharts1701446901429 implements MigrationInterface {
             CREATE TABLE analytics_charts (
                 chart_id INT NOT NULL,
                 slug VARCHAR(180) NOT NULL,
+                is_data_page TINYINT NOT NULL,
                 views_7d INT NOT NULL,
                 views_14d INT NOT NULL,
                 views_365d INT NOT NULL,
                 url VARCHAR(255) NOT NULL,
-                updated_at DATETIME NOT NULL,
+                views_updated_at DATETIME NOT NULL,
+                chart_updated_at DATETIME NOT NULL,
                 PRIMARY KEY (chart_id)
             );
         `)
