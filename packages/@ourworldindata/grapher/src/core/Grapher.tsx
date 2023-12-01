@@ -2462,7 +2462,7 @@ export class Grapher
             height: this.renderHeight,
             fontSize: this.isExportingToSvgOrPng
                 ? 18
-                : Math.min(16, this.baseFontSize), // cap font size at 16px
+                : Math.min(16, this.fontSize), // cap font size at 16px
         }
 
         return (

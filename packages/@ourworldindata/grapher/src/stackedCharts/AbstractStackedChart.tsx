@@ -145,7 +145,7 @@ export class AbstractStackedChart
     }
 
     @computed get fontSize(): number {
-        return this.manager.baseFontSize ?? BASE_FONT_SIZE
+        return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
     protected get paddingForLegend(): number {

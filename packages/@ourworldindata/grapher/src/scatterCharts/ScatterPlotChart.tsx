@@ -373,7 +373,7 @@ export class ScatterPlotChart
     }
 
     @computed get fontSize(): number {
-        return this.manager.baseFontSize ?? BASE_FONT_SIZE
+        return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
     @action.bound onLegendMouseOver(color: string): void {

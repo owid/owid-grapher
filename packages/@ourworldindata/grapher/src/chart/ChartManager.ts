@@ -26,7 +26,7 @@ import { ColorScale } from "../color/ColorScale"
 
 export interface ChartManager {
     base?: React.RefObject<SVGGElement | HTMLDivElement>
-    baseFontSize?: number
+    fontSize?: number
 
     table: OwidTable
     transformedTable?: OwidTable

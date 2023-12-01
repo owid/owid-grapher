@@ -140,7 +140,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
             colorScaleOverride: this.lineColorScale,
             hideLegend: true,
             hidePoints: true,
-            baseFontSize: 11,
+            fontSize: 11,
             disableIntroAnimation: true,
             lineStrokeWidth: 2,
             annotation: {
