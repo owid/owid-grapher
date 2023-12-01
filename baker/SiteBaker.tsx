@@ -266,10 +266,12 @@ export class SiteBaker {
         if (!this.bakeSteps.has("removeDeletedPosts")) return
         const postsApi = await wpdb.getPosts()
 
-        const postSlugs = await Promise.all(
-            postsApi.map(
-                async (postApi) => (await wpdb.getFullPost(postApi)).slug
-            )
+        const postSlugs = await pMap(
+            postsApi,
+            async (postApi) => {
+                return (await wpdb.getFullPost(postApi)).slug
+            },
+            { concurrency: 10 }
         )
 
         const gdocPosts = await Gdoc.getPublishedGdocs()
