@@ -33,7 +33,7 @@ export interface DownloadModalManager {
     displaySlug: string
     staticSVGLandscape: string
     staticSVGPortrait: string
-    staticBounds?: Bounds
+    boundsForExport?: Bounds
     baseUrl?: string
     queryStr?: string
     table?: OwidTable
@@ -54,8 +54,8 @@ interface DownloadModalProps {
 
 @observer
 export class DownloadModal extends React.Component<DownloadModalProps> {
-    @computed private get staticBounds(): Bounds {
-        return this.manager.staticBounds ?? DEFAULT_BOUNDS
+    @computed private get boundsForExport(): Bounds {
+        return this.manager.boundsForExport ?? DEFAULT_BOUNDS
     }
 
     @computed private get tabBounds(): Bounds {
@@ -81,7 +81,7 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
     }
 
     @computed private get targetWidth(): number {
-        return this.staticBounds.width
+        return this.boundsForExport.width
     }
 
     @computed private get targetHeight(): number {
@@ -90,7 +90,7 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
             !isEmpty(this.manager.detailRenderers)
         ) {
             return (
-                this.staticBounds.height +
+                this.boundsForExport.height +
                 2 * this.manager.framePaddingVertical! +
                 sumTextWrapHeights(
                     this.manager.detailRenderers,
@@ -98,7 +98,7 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
                 )
             )
         }
-        return this.staticBounds.height
+        return this.boundsForExport.height
     }
 
     @computed private get manager(): DownloadModalManager {

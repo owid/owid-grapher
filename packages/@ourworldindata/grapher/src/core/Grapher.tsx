@@ -263,7 +263,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     env?: string
     dataApiUrlForAdmin?: string
     annotation?: Annotation
-    staticBounds?: Bounds
+    boundsForExport?: Bounds
     baseFontSize?: number
 
     hideEntityControls?: boolean
@@ -1272,7 +1272,8 @@ export class Grapher
                 fontSize: 12,
                 // leave room for padding on the left and right
                 maxWidth:
-                    this.staticBounds.width - 2 * this.framePaddingHorizontal,
+                    this.boundsForExport.width -
+                    2 * this.framePaddingHorizontal,
                 lineHeight: 1.2,
                 style: {
                     fill: GRAPHER_DARK_TEXT,
@@ -1722,8 +1723,8 @@ export class Grapher
         return this.dimensions.some((d) => d.property === DimensionProperty.y)
     }
 
-    @computed get staticBounds(): Bounds {
-        if (this.props.staticBounds) return this.props.staticBounds
+    @computed get boundsForExport(): Bounds {
+        if (this.props.boundsForExport) return this.props.boundsForExport
 
         switch (this.exportFormat) {
             case GrapherExportFormat.landscape:
