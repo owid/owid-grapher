@@ -2273,6 +2273,7 @@ apiRouter.get("/posts.json", async (req) => {
         db
             .knexInstance()
             .from(postsTable)
+            .whereNotIn("type", ["wp_block"])
             .orderBy("updated_at_in_wordpress", "desc")
     )
 

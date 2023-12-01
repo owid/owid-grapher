@@ -54,7 +54,7 @@ function buildReplacerFunction(
     ) => {
         const block = blocks[matches["id"].toString()]
         return block
-            ? `<!-- wp-block-tombstone ${matches["id"]} -->` +
+            ? `<!-- wp-block-tombstone ${matches["id"]} -->\n` +
                   block.post_content
             : ""
     }
@@ -262,7 +262,7 @@ const syncPostsToGrapher = async (): Promise<void> => {
 		left join post_ids_with_authors pwa   on p.ID = pwa.ID
         left join first_revision fr on fr.post_id = pwa.ID
         left join post_featured_image fi on fi.ID = p.id
-        where p.post_type in ('post', 'page') AND post_status != 'trash'
+        where p.post_type in ('post', 'page', 'wp_block') AND post_status != 'trash'
         `
     )
 

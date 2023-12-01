@@ -731,6 +731,7 @@ export const getRelatedResearchAndWritingForVariable = async (
                 -- be disregarded
                 and componentType = 'src'
                 and cd.variableId = ?
+                and p.type <> 'wp_block'
                 and cd.property in ('x', 'y') -- ignore cases where the indicator is size, color etc
                 and p.status = 'publish' -- only use published wp posts
                 and coalesce(pg.published, 0) = 0 -- ignore posts if the wp post has a published gdoc successor. The

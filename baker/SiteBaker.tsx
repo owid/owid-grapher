@@ -152,7 +152,7 @@ export class SiteBaker {
         if (!this.bakeSteps.has("embeds")) return
         // Find all grapher urls used as embeds in all posts on the site
         const rows = await wpdb.singleton.query(
-            `SELECT post_content FROM wp_posts WHERE (post_type='page' OR post_type='post' OR post_type='wp_block') AND post_status='publish'`
+            `SELECT post_content FROM wp_posts WHERE (post_type='page' OR post_type='post') AND post_status='publish'`
         )
         let grapherUrls = []
         for (const row of rows) {
@@ -553,6 +553,7 @@ export class SiteBaker {
         const rows = (await db
             .knexTable(postsTable)
             .where({ status: "publish" })
+            .whereNotIn("type", ["wp_block"])
             .join("post_tags", { "post_tags.post_id": "posts.id" })
             .join("tags", { "tags.id": "post_tags.tag_id" })
             .where({ "tags.name": "Entries" })

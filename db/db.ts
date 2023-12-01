@@ -122,7 +122,7 @@ export const getSlugsWithPublishedGdocsSuccessors = async (): Promise<
     return knexRaw(
         `-- sql
             select slug from posts_with_gdoc_publish_status
-            where isGdocPublished = TRUE`
+            where isGdocPublished = TRUE and type <> 'wp_block'`
     )
         .then((res) => res[0])
         .then((rows) => new Set(rows.map((row: any) => row.slug)))
