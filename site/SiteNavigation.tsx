@@ -220,11 +220,15 @@ export const SiteNavigation = ({
                             </a>
                         </div>
                     </div>
-                    {!hideDonationFlag && (
+                    {/*
+                        Uncomment below to show the "Giving season" flag on pages where it should not be hidden.
+                        We probably want to make a setting for this if it becomes a yearly occurrence.
+                    */}
+                    {/* {!hideDonationFlag && (
                         <a href="/donate" className="site-navigation__giving">
                             Giving season
                         </a>
-                    )}
+                    )} */}
                 </div>
             </div>
         </>
