@@ -205,7 +205,7 @@ export interface Tag {
     parentId: number
     isBulkImport: boolean
     specialType: string
-    slug: string
+    slug: string | null
 }
 
 /** the entity in the `chart_tags` table */
@@ -1726,6 +1726,7 @@ export interface DataPageV2ContentFields {
     // TODO: add gdocs for FAQs
     isPreviewing?: boolean
     canonicalUrl: string
+    tagToSlugMap: Record<string, string>
 }
 
 export interface UserCountryInformation {
