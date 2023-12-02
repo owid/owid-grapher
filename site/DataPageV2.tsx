@@ -13,6 +13,7 @@ import {
     mergePartialGrapherConfigs,
     compact,
     FaqEntryData,
+    pick,
 } from "@ourworldindata/utils"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import React from "react"
@@ -98,14 +99,9 @@ export const DataPageV2 = (props: {
     }
 
     // Only embed the tags that are actually used by the datapage, instead of the complete JSON object with ~240 properties
-    const minimalTagToSlugMap = Object.entries(tagToSlugMap).reduce(
-        (acc, [key, value]) => {
-            if (datapageData.topicTagsLinks?.includes(key)) {
-                acc[key] = value
-            }
-            return acc
-        },
-        {} as Record<string, string>
+    const minimalTagToSlugMap = pick(
+        tagToSlugMap,
+        datapageData.topicTagsLinks || []
     )
 
     return (

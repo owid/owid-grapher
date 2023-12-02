@@ -128,24 +128,21 @@ export const getGrapherExportsByUrl = async (): Promise<GrapherExports> => {
  *   "Women's Rights" -> "womens-rights"
  *   123 -> "womens-rights"
  */
-let _tagsByIdAndName: Record<string | number, string> | undefined = undefined
 export async function getTagToSlugMap(): Promise<
     Record<string | number, string>
 > {
-    if (!_tagsByIdAndName) {
-        const tags = (await db.queryMysql(
-            `SELECT slug, name, id FROM tags WHERE slug IS NOT NULL`
-        )) as Pick<Tag, "name" | "id" | "slug">[]
-        _tagsByIdAndName = {}
-        for (const tag of tags) {
-            if (tag.slug) {
-                _tagsByIdAndName[tag.name] = tag.slug
-                _tagsByIdAndName[tag.id] = tag.slug
-            }
+    const tags = (await db.queryMysql(
+        `SELECT slug, name, id FROM tags WHERE slug IS NOT NULL`
+    )) as Pick<Tag, "name" | "id" | "slug">[]
+    const tagsByIdAndName: Record<string | number, string> = {}
+    for (const tag of tags) {
+        if (tag.slug) {
+            tagsByIdAndName[tag.name] = tag.slug
+            tagsByIdAndName[tag.id] = tag.slug
         }
     }
 
-    return _tagsByIdAndName
+    return tagsByIdAndName
 }
 
 /**
