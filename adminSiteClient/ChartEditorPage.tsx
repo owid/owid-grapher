@@ -118,14 +118,13 @@ export class ChartEditorPage
     fetchedGrapherConfig?: any
 
     async fetchGrapher(): Promise<void> {
-        const { grapherId, grapherConfig } = this.props
+        const { grapherId } = this.props
         if (grapherId !== undefined) {
             this.fetchedGrapherConfig = await this.context.admin.getJSON(
                 `/api/charts/${grapherId}.config.json`
             )
         }
-        const config = this.fetchedGrapherConfig ?? grapherConfig
-        this.initGrapher(config)
+        this.updateGrapher()
     }
 
     @observable private _isDbSet = false
@@ -134,7 +133,8 @@ export class ChartEditorPage
         return this._isDbSet && this._isGrapherSet
     }
 
-    @action.bound private initGrapher(config: any): void {
+    @action.bound private updateGrapher(): void {
+        const config = this.fetchedGrapherConfig ?? this.props.grapherConfig
         const grapherConfig = {
             ...config,
             // binds the grapher instance to this.grapher
@@ -147,23 +147,10 @@ export class ChartEditorPage
             shouldIncludeDetailsInStaticExport: false,
             // reactive settings
             bounds: this.bounds,
+            renderToStatic: !!this.editor?.showStaticPreview,
         }
         this.grapherElement = <Grapher {...grapherConfig} />
         this._isGrapherSet = true
-    }
-
-    @action.bound private updateGrapher(): void {
-        const config = this.fetchedGrapherConfig ?? this.props.grapherConfig
-        const grapherConfig = {
-            ...config,
-            // binds the grapher instance to this.grapher
-            getGrapherInstance: (grapher: Grapher) => {
-                this.grapher = grapher
-            },
-            // reactive settings
-            bounds: this.bounds,
-        }
-        this.grapherElement = <Grapher {...grapherConfig} />
     }
 
     @action.bound private setDb(json: any): void {
