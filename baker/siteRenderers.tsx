@@ -7,10 +7,7 @@ import { BlogIndexPage } from "../site/BlogIndexPage.js"
 import { FrontPage } from "../site/FrontPage.js"
 import { ChartsIndexPage, ChartIndexItem } from "../site/ChartsIndexPage.js"
 import { DynamicCollectionPage } from "../site/collections/DynamicCollectionPage.js"
-import {
-    StaticCollectionPageProps,
-    StaticCollectionPage,
-} from "../site/collections/StaticCollectionPage.js"
+import { StaticCollectionPage } from "../site/collections/StaticCollectionPage.js"
 import { SearchPage } from "../site/search/SearchPage.js"
 import { NotFoundPage } from "../site/NotFoundPage.js"
 import { DonatePage } from "../site/DonatePage.js"

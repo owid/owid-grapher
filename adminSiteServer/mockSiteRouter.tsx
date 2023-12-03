@@ -1,6 +1,5 @@
 import express, { Router } from "express"
 import path from "path"
-import * as db from "../db/db"
 import {
     renderFrontPage,
     renderGdocsPageBySlug,
