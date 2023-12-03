@@ -311,6 +311,7 @@ export class ChartEditorPage
                             this.editor.previewMode
                         )
                     }
+                    this.updateGrapher()
                 }
             )
         )
@@ -450,7 +451,6 @@ export class ChartEditorPage
                                     type="radio"
                                     onChange={action(() => {
                                         editor.previewMode = "mobile"
-                                        this.updateGrapher()
                                     })}
                                     name="previewSize"
                                     id="mobile"
@@ -468,7 +468,6 @@ export class ChartEditorPage
                                 <input
                                     onChange={action(() => {
                                         editor.previewMode = "desktop"
-                                        this.updateGrapher()
                                     })}
                                     type="radio"
                                     name="previewSize"
