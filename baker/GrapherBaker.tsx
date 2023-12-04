@@ -269,14 +269,24 @@ export async function renderDataPageV2({
 
     const firstTopicTag = datapageData.topicTagsLinks?.[0]
 
+    let slug = ""
     if (firstTopicTag) {
-        const slug = await getSlugForTopicTag(firstTopicTag)
-        const gdoc = await GdocPost.findOne({
-            where: {
-                slug,
-            },
-            relations: ["tags"],
-        })
+        try {
+            slug = await getSlugForTopicTag(firstTopicTag)
+        } catch (error) {
+            logErrorAndMaybeSendToBugsnag(
+                `Datapage with variableId "${variableId}" and title "${datapageData.title}" is using "${firstTopicTag}" as its primary tag, which we are unable to resolve to a tag in the grapher DB`
+            )
+        }
+        let gdoc: GdocPost | null = null
+        if (slug) {
+            gdoc = await GdocPost.findOne({
+                where: {
+                    slug,
+                },
+                relations: ["tags"],
+            })
+        }
         if (gdoc) {
             const citation = getShortPageCitation(
                 gdoc.content.authors,
