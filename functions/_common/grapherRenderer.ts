@@ -161,8 +161,8 @@ async function fetchAndRenderGrapherToSvg({
         bounds,
         boundsForExport: bounds,
         baseFontSize: options.fontSize,
-        shouldIncludeDetailsInStaticExport: options.details,
     })
+    grapher.shouldIncludeDetailsInStaticExport = options.details
 
     grapherLogger.log("grapherInit")
     const promises = []
