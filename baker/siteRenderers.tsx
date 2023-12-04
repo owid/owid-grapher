@@ -404,7 +404,7 @@ export const entriesByYearPage = async (year?: number) => {
         .join("post_tags", { "post_tags.post_id": "posts.id" })
         .join("tags", { "tags.id": "post_tags.tag_id" })
         .where({ "tags.name": "Entries" })
-        .select("title", "slug", "published_at")) as Pick<
+        .select("title", "posts.slug", "published_at")) as Pick<
         PostRow,
         "title" | "slug" | "published_at"
     >[]
