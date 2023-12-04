@@ -7,6 +7,7 @@ import {
     autorun,
     IReactionDisposer,
 } from "mobx"
+import { dump } from "js-yaml"
 import * as lodash from "lodash"
 import { Prompt, Redirect } from "react-router-dom"
 import { AdminLayout } from "./AdminLayout.js"
@@ -15,9 +16,11 @@ import { BindString, BindFloat, FieldsRow, Toggle } from "./Forms.js"
 import {
     OwidVariableWithDataAndSource,
     OwidVariableDisplayConfig,
+    OwidVariablePresentation,
     DimensionProperty,
     EPOCH_DATE,
     getETLPathComponents,
+    OwidProcessingLevel,
 } from "@ourworldindata/utils"
 import { GrapherFigureView } from "../site/GrapherFigureView.js"
 import { ChartList, ChartListItem } from "./ChartList.js"
@@ -37,6 +40,10 @@ interface VariablePageData
     source: { id: number; name: string }
 }
 
+const createBulletList = (items: string[]): string => {
+    return items.map((item) => `• ${item}`).join("\n")
+}
+
 class VariableEditable
     implements
         Omit<
@@ -51,9 +58,19 @@ class VariableEditable
     @observable entityAnnotationsMap = ""
     @observable display = new OwidVariableDisplayConfig()
 
+    @observable descriptionShort = ""
+    @observable descriptionFromProducer = ""
+    @observable descriptionKey: string[] = []
+    @observable descriptionProcessing = ""
+    @observable processingLevel: OwidProcessingLevel | undefined = undefined
+
+    @observable presentation = {} as OwidVariablePresentation
+
     constructor(json: any) {
         for (const key in this) {
             if (key === "display") lodash.extend(this.display, json.display)
+            else if (key === "presentation")
+                lodash.extend(this.presentation, json.presentation)
             else this[key] = json[key]
         }
     }
@@ -158,6 +175,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                         needed in the Github UI)
                                     </small>
                                 </p>
+                                <h4>General</h4>
                                 <BindString
                                     field="name"
                                     store={newVariable}
@@ -237,6 +255,102 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                         helpText={`The day series starts on this date.`}
                                     />
                                 </FieldsRow>
+                                <h4>Data Page</h4>
+                                <FieldsRow>
+                                    <BindString
+                                        label="Title public"
+                                        field="titlePublic"
+                                        store={newVariable.presentation}
+                                        disabled={isDisabled}
+                                        helpText={`FIXME.`}
+                                    />
+                                    <BindString
+                                        label="Title variant"
+                                        field="titleVariant"
+                                        store={newVariable.presentation}
+                                        disabled={isDisabled}
+                                        helpText={`FIXME.`}
+                                    />
+                                </FieldsRow>
+                                <FieldsRow>
+                                    <BindString
+                                        label="Attribution"
+                                        field="attribution"
+                                        store={newVariable.presentation}
+                                        disabled={isDisabled}
+                                        helpText={`FIXME.`}
+                                    />
+                                    <BindString
+                                        label="Attribution short"
+                                        field="attributionShort"
+                                        store={newVariable.presentation}
+                                        disabled={isDisabled}
+                                        helpText={`FIXME.`}
+                                    />
+                                </FieldsRow>
+                                <FieldsRow>
+                                    <BindString
+                                        label="Description short"
+                                        field="descriptionShort"
+                                        store={newVariable}
+                                        disabled={isDisabled}
+                                        helpText={`FIXME.`}
+                                        textarea
+                                    />
+                                    <BindString
+                                        label="Description from producer"
+                                        field="descriptionFromProducer"
+                                        store={newVariable}
+                                        disabled={isDisabled}
+                                        helpText={`FIXME.`}
+                                        textarea
+                                    />
+                                </FieldsRow>
+                                <FieldsRow>
+                                    <BindString
+                                        label="Processing level"
+                                        field="processingLevel"
+                                        store={newVariable}
+                                        disabled={isDisabled}
+                                        helpText={`FIXME.`}
+                                    />
+                                    <BindString
+                                        label="Description processing"
+                                        field="descriptionProcessing"
+                                        store={newVariable}
+                                        disabled={isDisabled}
+                                        helpText={`FIXME.`}
+                                        textarea
+                                    />
+                                </FieldsRow>
+                                <BindString
+                                    label="Description key"
+                                    field="v"
+                                    store={{
+                                        v: createBulletList(
+                                            newVariable.descriptionKey
+                                        ),
+                                    }}
+                                    disabled={isDisabled}
+                                    helpText={`FIXME.`}
+                                    textarea
+                                />
+
+                                <BindString
+                                    label="Grapher Config ETL"
+                                    field="v"
+                                    store={{
+                                        v: dump(
+                                            newVariable.presentation
+                                                .grapherConfigETL
+                                        ),
+                                    }}
+                                    disabled={isDisabled}
+                                    helpText={`FIXME.`}
+                                    textarea
+                                    rows={10}
+                                />
+                                <h4>Others</h4>
                                 <FieldsRow>
                                     <Toggle
                                         value={
