@@ -22,7 +22,7 @@ const filePath =
         ? "/tmp/owid_metadata.sql"
         : "/tmp/owid_metadata_with_passwords.sql")
 
-const excludeTables = ["sessions", "dataset_files", "pageviews"]
+const excludeTables = ["sessions", "dataset_files", "analytics_pageviews"]
 
 async function dataExport(): Promise<void> {
     await db.getConnection()
