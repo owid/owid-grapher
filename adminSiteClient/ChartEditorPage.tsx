@@ -141,14 +141,12 @@ export class ChartEditorPage
             getGrapherInstance: (grapher: Grapher) => {
                 this.grapher = grapher
             },
-            // admin-specific settings
             dataApiUrlForAdmin:
                 this.context.admin.settings.DATA_API_FOR_ADMIN_UI, // passed this way because clientSettings are baked and need a recompile to be updated
-            shouldIncludeDetailsInStaticExport: false,
-            // reactive settings
             bounds: this.bounds,
-            renderToStatic: !!this.editor?.showStaticPreview,
         }
+        this.grapher.shouldIncludeDetailsInStaticExport = false
+        this.grapher.renderToStatic = !!this.editor?.showStaticPreview
         this.grapherElement = <Grapher {...grapherConfig} />
         this._isGrapherSet = true
     }
@@ -320,8 +318,7 @@ export class ChartEditorPage
             reaction(
                 () => this.editor && this.editor.showStaticPreview,
                 () => {
-                    this.grapher.renderToStatic =
-                        !!this.editor?.showStaticPreview
+                    this.updateGrapher()
                 }
             )
         )
