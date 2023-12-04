@@ -119,7 +119,7 @@ export class DynamicCollection extends React.Component<DynamicCollectionProps> {
                     .split(" ")
                     .map((chartSlug, index) => (
                         <figure
-                            key={chartSlug}
+                            key={index}
                             data-grapher-src={`${this.props.baseUrl}/grapher/${chartSlug}`}
                             data-grapher-index={index}
                             className="span-cols-6 span-md-cols-12"
