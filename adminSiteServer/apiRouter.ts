@@ -2266,6 +2266,7 @@ apiRouter.get("/posts.json", async (req) => {
         "id",
         "title",
         "type",
+        "slug",
         "status",
         "updated_at_in_wordpress",
         "gdocSuccessorId"
