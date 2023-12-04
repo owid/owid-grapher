@@ -2089,7 +2089,7 @@ apiRouter.get("/tags/:tagId.json", async (req: Request, res: Response) => {
 
     const tag = await db.mysqlFirst(
         `
-        SELECT t.id, t.name, t.specialType, t.updatedAt, t.parentId, t.isTopic, p.isBulkImport
+        SELECT t.id, t.name, t.specialType, t.updatedAt, t.parentId, t.slug, p.isBulkImport
         FROM tags t LEFT JOIN tags p ON t.parentId=p.id
         WHERE t.id = ?
     `,
@@ -2188,9 +2188,31 @@ apiRouter.put("/tags/:tagId", async (req: Request) => {
     const tagId = expectInt(req.params.tagId)
     const tag = (req.body as { tag: any }).tag
     await db.execute(
-        `UPDATE tags SET name=?, updatedAt=?, parentId=?, isTopic=? WHERE id=?`,
-        [tag.name, new Date(), tag.parentId, tag.isTopic, tagId]
+        `UPDATE tags SET name=?, updatedAt=?, parentId=?, slug=? WHERE id=?`,
+        [tag.name, new Date(), tag.parentId, tag.slug, tagId]
     )
+    if (tag.slug) {
+        // See if there's a published gdoc with a matching slug.
+        // We're not enforcing that the gdoc be a topic page, as there are cases like /human-development-index,
+        // where the page for the topic is just an article.
+        const gdoc: OwidGdocInterface[] = await db.execute(
+            `SELECT slug FROM posts_gdocs pg
+             WHERE EXISTS (
+                    SELECT 1
+                    FROM posts_gdocs_x_tags gt
+                    WHERE pg.id = gt.gdocId AND gt.tagId = ?
+            ) AND pg.published = TRUE`,
+            [tag.id]
+        )
+        if (!gdoc.length) {
+            return {
+                success: true,
+                tagUpdateWarning: `The tag's slug has been updated, but there isn't a published Gdoc page with the same slug. 
+                    
+Are you sure you haven't made a typo?`,
+            }
+        }
+    }
     return { success: true }
 })
 

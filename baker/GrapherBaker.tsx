@@ -54,7 +54,6 @@ import {
     getMergedGrapherConfigForVariable,
 } from "../db/model/Variable.js"
 import { getDatapageDataV2, getDatapageGdoc } from "../datapage/Datapage.js"
-import { slugify_topic } from "../site/DataPageV2Content.js"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { Image } from "../db/model/Image.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
@@ -63,6 +62,7 @@ import { parseFaqs } from "../db/model/Gdoc/rawToEnriched.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { getShortPageCitation } from "../site/gdocs/utils.js"
 import { isEmpty } from "lodash"
+import { getSlugForTopicTag, getTagToSlugMap } from "./GrapherBakingUtils.js"
 
 const renderDatapageIfApplicable = async (
     grapher: GrapherInterface,
@@ -269,13 +269,24 @@ export async function renderDataPageV2({
 
     const firstTopicTag = datapageData.topicTagsLinks?.[0]
 
+    let slug = ""
     if (firstTopicTag) {
-        const gdoc = await GdocPost.findOne({
-            where: {
-                slug: slugify_topic(firstTopicTag),
-            },
-            relations: ["tags"],
-        })
+        try {
+            slug = await getSlugForTopicTag(firstTopicTag)
+        } catch (error) {
+            logErrorAndMaybeSendToBugsnag(
+                `Datapage with variableId "${variableId}" and title "${datapageData.title}" is using "${firstTopicTag}" as its primary tag, which we are unable to resolve to a tag in the grapher DB`
+            )
+        }
+        let gdoc: GdocPost | null = null
+        if (slug) {
+            gdoc = await GdocPost.findOne({
+                where: {
+                    slug,
+                },
+                relations: ["tags"],
+            })
+        }
         if (gdoc) {
             const citation = getShortPageCitation(
                 gdoc.content.authors,
@@ -287,7 +298,7 @@ export async function renderDataPageV2({
                 citation,
             }
         } else {
-            const post = await bySlug(slugify_topic(firstTopicTag))
+            const post = await bySlug(slug)
             if (post) {
                 const authors = parsePostAuthors(post.authors)
                 const citation = getShortPageCitation(
@@ -313,6 +324,8 @@ export async function renderDataPageV2({
     datapageData.relatedResearch =
         await getRelatedResearchAndWritingForVariable(variableId)
 
+    const tagToSlugMap = await getTagToSlugMap()
+
     return renderToHtmlPage(
         <DataPageV2
             grapher={grapher}
@@ -321,6 +334,7 @@ export async function renderDataPageV2({
             baseGrapherUrl={BAKED_GRAPHER_URL}
             isPreviewing={isPreviewing}
             faqEntries={faqEntries}
+            tagToSlugMap={tagToSlugMap}
         />
     )
 }

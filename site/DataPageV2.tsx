@@ -13,6 +13,7 @@ import {
     mergePartialGrapherConfigs,
     compact,
     FaqEntryData,
+    pick,
 } from "@ourworldindata/utils"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import React from "react"
@@ -39,6 +40,7 @@ export const DataPageV2 = (props: {
     baseGrapherUrl: string
     isPreviewing: boolean
     faqEntries?: FaqEntryData
+    tagToSlugMap: Record<string | number, string>
 }) => {
     const {
         grapher,
@@ -47,6 +49,7 @@ export const DataPageV2 = (props: {
         baseUrl,
         isPreviewing,
         faqEntries,
+        tagToSlugMap,
     } = props
     const pageTitle = grapher?.title ?? datapageData.title
     const canonicalUrl = grapher?.slug
@@ -95,6 +98,12 @@ export const DataPageV2 = (props: {
         dataApiUrl: DATA_API_URL,
     }
 
+    // Only embed the tags that are actually used by the datapage, instead of the complete JSON object with ~240 properties
+    const minimalTagToSlugMap = pick(
+        tagToSlugMap,
+        datapageData.topicTagsLinks || []
+    )
+
     return (
         <html>
             <Head
@@ -139,6 +148,7 @@ export const DataPageV2 = (props: {
                                         datapageData,
                                         faqEntries,
                                         canonicalUrl,
+                                        tagToSlugMap: minimalTagToSlugMap,
                                     }
                                 )}`,
                             }}
@@ -151,6 +161,7 @@ export const DataPageV2 = (props: {
                                     isPreviewing={isPreviewing}
                                     faqEntries={faqEntries}
                                     canonicalUrl={canonicalUrl}
+                                    tagToSlugMap={tagToSlugMap}
                                 />
                             </DebugProvider>
                         </div>
