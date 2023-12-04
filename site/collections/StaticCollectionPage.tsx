@@ -18,8 +18,8 @@ export const StaticCollectionPage = (
         <html>
             <Head
                 canonicalUrl={`${baseUrl}/shared-collection/top-charts`}
-                pageTitle="Chart Collection"
-                pageDesc="View charts you've saved on Our World in Data."
+                pageTitle={title}
+                pageDesc={introduction}
                 baseUrl={baseUrl}
             />
             <body>
