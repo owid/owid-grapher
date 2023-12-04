@@ -69,6 +69,20 @@ export async function createSession(donation: DonationRequest, key: string) {
 
     if (interval === Interval.MONTHLY) {
         options.mode = "subscription"
+        options.subscription_data = {
+            metadata: {
+                ...metadata,
+                // Stripe metadata are key-value pairs of strings.
+                // showOnList is not strictly necessary since we
+                // could just rely on the presence of a name to
+                // indicate the willingness to be shown on the list
+                // (a name can only be filled in if showOnList is true).
+                // It might however be useful to have the explicit
+                // boolean in the Stripe portal for auditing
+                // purposes.
+                showOnList: showOnList.toString(),
+            },
+        }
         options.line_items = [
             {
                 price_data: {
@@ -78,18 +92,6 @@ export async function createSession(donation: DonationRequest, key: string) {
                         description: metadata.showOnList
                             ? `This is a public monthly donation: you will be listed as "${metadata.name}"`
                             : "This is an anonymous monthly donation",
-                        metadata: {
-                            ...metadata,
-                            // Stripe metadata are key-value pairs of strings.
-                            // showOnList is not strictly necessary since we
-                            // could just rely on the presence of a name to
-                            // indicate the willingness to be shown on the list
-                            // (a name can only be filled in if showOnList is true).
-                            // It might however be useful to have the explicit
-                            // boolean in the Stripe portal for auditing
-                            // purposes.
-                            showOnList: showOnList.toString(),
-                        },
                     },
                     recurring: {
                         interval: "month",
