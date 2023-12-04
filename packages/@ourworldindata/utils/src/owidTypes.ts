@@ -1481,10 +1481,13 @@ export enum GdocsContentSource {
     Gdocs = "gdocs",
 }
 
+export const DYNAMIC_COLLECTION_PAGE_CONTAINER_ID = "dynamic-collection-page"
+
 export enum SiteFooterContext {
     gdocsDocument = "gdocsDocument", // the rendered version (on the site)
     grapherPage = "grapherPage",
     dataPageV2 = "dataPageV2",
+    dynamicCollectionPage = "dynamicCollectionPage",
     explorerPage = "explorerPage",
     default = "default",
 }

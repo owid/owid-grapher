@@ -16,6 +16,8 @@ import {
     countryProfileCountryPage,
     renderExplorerPage,
     makeAtomFeedNoTopicPages,
+    renderDynamicCollectionPage,
+    renderTopChartsCollectionPage,
 } from "../baker/siteRenderers.js"
 import {
     BAKED_BASE_URL,
@@ -132,6 +134,14 @@ mockSiteRouter.get("/*", async (req, res, next) => {
             baseQueryStr,
         })
     )
+})
+
+mockSiteRouter.get("/collection/top-charts", async (_, res) => {
+    return res.send(await renderTopChartsCollectionPage())
+})
+
+mockSiteRouter.get("/collection/custom", async (_, res) => {
+    return res.send(await renderDynamicCollectionPage())
 })
 
 mockSiteRouter.get("/grapher/:slug", async (req, res) => {

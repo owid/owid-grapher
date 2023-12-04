@@ -4,7 +4,8 @@ import Papa from "papaparse"
 import * as db from "./db.js"
 
 async function downloadAndInsertCSV(): Promise<void> {
-    const csvUrl = "http://datasette-private/owid/pageviews.csv?_size=max"
+    const csvUrl =
+        "http://datasette-private/owid/analytics_pageviews.csv?_size=max"
     const response = await fetch(csvUrl)
 
     if (!response.ok) {
