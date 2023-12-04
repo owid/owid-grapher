@@ -145,7 +145,7 @@ export async function renderTopChartsCollectionPage() {
     const charts: string[] = await queryMysql(
         `
     SELECT SUBSTRING_INDEX(url, '/', -1) AS slug
-    FROM pageviews
+    FROM analytics_pageviews
     WHERE url LIKE "%https://ourworldindata.org/grapher/%"
     ORDER BY views_14d DESC
     LIMIT 50
