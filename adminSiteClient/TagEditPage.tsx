@@ -75,6 +75,9 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
                 this.props.tag.updatedAt = new Date().toString()
             })
         }
+        if (json.tagUpdateWarning) {
+            window.alert(json.tagUpdateWarning)
+        }
     }
 
     async deleteTag() {
