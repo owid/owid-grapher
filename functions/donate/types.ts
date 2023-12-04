@@ -20,11 +20,6 @@ export interface DonationRequest {
     captchaToken: string
 }
 
-export interface StripeMetadata {
-    name: string
-    showOnList: boolean
-}
-
 export interface EnvVars {
     ASSETS: Fetcher
     STRIPE_SECRET_KEY: string
