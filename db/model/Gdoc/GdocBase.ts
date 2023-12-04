@@ -71,10 +71,10 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
     _omittableFields: string[] = []
 
     get enrichedBlockSources(): OwidEnrichedGdocBlock[][] {
-        const enrichedBlockSources: OwidEnrichedGdocBlock[][] = [
+        const enrichedBlockSources: OwidEnrichedGdocBlock[][] = excludeNullish([
             this.content.body,
             this._getSubclassEnrichedBlocks(this),
-        ]
+        ])
 
         return enrichedBlockSources
     }
