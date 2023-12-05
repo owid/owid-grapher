@@ -222,7 +222,7 @@ export class PostsIndexPage extends React.Component {
     }
 
     @computed get postsToShow(): PostIndexMeta[] {
-        const { searchWords, maxVisibleRows, posts } = this
+        const { searchWords, posts } = this
         if (searchWords.length > 0) {
             const filterFn = filterFunctionForSearchWords(
                 searchWords,
@@ -233,10 +233,14 @@ export class PostsIndexPage extends React.Component {
                     post.authors.join(" "),
                 ]
             )
-            return posts.filter(filterFn).slice(0, maxVisibleRows)
+            return posts.filter(filterFn)
         } else {
-            return posts.slice(0, maxVisibleRows)
+            return posts
         }
+    }
+
+    @computed get postsToShowLimited(): PostIndexMeta[] {
+        return this.postsToShow.slice(0, this.maxVisibleRows)
     }
 
     @computed get numTotalRows(): number {
@@ -252,14 +256,22 @@ export class PostsIndexPage extends React.Component {
     }
 
     render() {
-        const { postsToShow, searchInput, numTotalRows } = this
+        const {
+            postsToShowLimited,
+            postsToShow,
+            searchInput,
+            numTotalRows,
+            maxVisibleRows,
+        } = this
 
         return (
             <AdminLayout title="Posts">
                 <main className="PostsIndexPage">
                     <FieldsRow>
                         <span>
-                            Showing {postsToShow.length} of {numTotalRows} posts
+                            {searchInput
+                                ? `Showing the first ${maxVisibleRows} of ${postsToShow.length} filtered posts out of a total of ${numTotalRows} posts`
+                                : `Showing the first ${maxVisibleRows} of ${numTotalRows} posts`}
                         </span>
                         <SearchField
                             placeholder="Search all posts..."
@@ -284,7 +296,7 @@ export class PostsIndexPage extends React.Component {
                             </tr>
                         </thead>
                         <tbody>
-                            {postsToShow.map((post) => (
+                            {postsToShowLimited.map((post) => (
                                 <PostRow
                                     key={post.id}
                                     post={post}
@@ -293,7 +305,7 @@ export class PostsIndexPage extends React.Component {
                             ))}
                         </tbody>
                     </table>
-                    {!searchInput && (
+                    {postsToShow.length > maxVisibleRows && (
                         <button
                             className="btn btn-secondary"
                             onClick={this.onShowMore}
