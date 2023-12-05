@@ -138,9 +138,9 @@ export class DonateForm extends React.Component {
         const captchaToken = await this.getCaptchaToken()
         const response = await fetch(DONATE_API_URL, {
             method: "POST",
-            credentials: "same-origin",
             headers: {
-                Accept: "application/json",
+                Accept: "application/json", // expect JSON in response
+                "Content-Type": "application/json", // send JSON in request
             },
             body: JSON.stringify({
                 name: this.name,

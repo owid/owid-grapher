@@ -2,11 +2,17 @@ import { DonationRequest, EnvVars } from "./types.js"
 import fetch from "node-fetch"
 import { createSession } from "./stripe.js"
 
-const DEFAULT_HEADERS = {
+// CORS headers need to be sent in responses to both preflight ("OPTIONS") and
+// actual requests.
+const CORS_HEADERS = {
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, POST, OPTIONS, PUT, DELETE",
-    "Access-Control-Allow-Headers":
-        "Content-Type, Access-Control-Allow-Headers, X-Requested-With",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    // The Content-Type header is required to allow requests to be sent with a
+    // Content-Type of "application/json". This is because "application/json" is
+    // not an allowed value for Content-Type to be considered a CORS-safelisted
+    // header.
+    // - https://developer.mozilla.org/en-US/docs/Glossary/CORS-safelisted_request_header
+    "Access-Control-Allow-Headers": "Content-Type",
 }
 
 const isEnvVars = (env: any): env is EnvVars => {
@@ -40,7 +46,7 @@ export const onRequestPost: PagesFunction = async ({
         }
         const session = await createSession(data, env.STRIPE_SECRET_KEY)
         return new Response(JSON.stringify({ url: session.url }), {
-            headers: DEFAULT_HEADERS,
+            headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
             status: 200,
         })
     } catch (error) {
@@ -51,7 +57,7 @@ export const onRequestPost: PagesFunction = async ({
                     "An unexpected error occurred. " + (error && error.message),
             }),
             {
-                headers: DEFAULT_HEADERS,
+                headers: CORS_HEADERS,
                 status: +error.status || 500,
             }
         )
