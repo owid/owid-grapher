@@ -8,9 +8,14 @@
     .header__wrapper {
         padding-top: 24px;
         padding-bottom: 24px;
-
         @include sm-up {
             padding-top: 48px;
+            padding-bottom: 0;
+        }
+    }
+
+    .header__left {
+        @include sm-up {
             padding-bottom: 40px;
         }
     }
