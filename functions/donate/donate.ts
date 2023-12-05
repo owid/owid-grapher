@@ -19,6 +19,14 @@ const isEnvVars = (env: any): env is EnvVars => {
     return !!env.ASSETS && !!env.STRIPE_SECRET_KEY && !!env.RECAPTCHA_SECRET_KEY
 }
 
+// This function is called when the request is a preflight request ("OPTIONS").
+export const onRequestOptions: PagesFunction = async () => {
+    return new Response(null, {
+        headers: CORS_HEADERS,
+        status: 200,
+    })
+}
+
 export const onRequestPost: PagesFunction = async ({
     request,
     env,
