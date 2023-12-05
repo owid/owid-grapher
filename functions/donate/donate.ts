@@ -39,7 +39,7 @@ export const onRequestPost: PagesFunction = async ({
             }
         }
         const session = await createSession(data, env.STRIPE_SECRET_KEY)
-        return new Response(JSON.stringify({ id: session.id }), {
+        return new Response(JSON.stringify({ url: session.url }), {
             headers: DEFAULT_HEADERS,
             status: 200,
         })

@@ -10,7 +10,6 @@ import {
     BAKED_BASE_URL,
     RECAPTCHA_SITE_KEY,
 } from "../../settings/clientSettings.js"
-import stripe from "./stripe.js"
 import { Tippy, stringifyUnknownError, titleCase } from "@ourworldindata/utils"
 import { Checkbox } from "@ourworldindata/components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -155,21 +154,13 @@ export class DonateForm extends React.Component {
             }),
         })
         const session = await response.json()
-        if (!response.ok) throw session
-
-        if (!stripe)
+        if (!response.ok) {
             throw new Error(
                 "Could not connect to Stripe, our payment provider."
             )
-
-        const result = await stripe?.redirectToCheckout({
-            sessionId: session.id,
-        })
-        if (result.error) {
-            // If `redirectToCheckout` fails due to a browser or network
-            // error, display the localized error message to your customer.
-            throw result.error
         }
+
+        window.location.href = session.url
     }
 
     @bind async getCaptchaToken() {

@@ -45,8 +45,6 @@ export const WORDPRESS_URL: string = process.env.WORDPRESS_URL ?? ""
 export const ALGOLIA_ID: string = process.env.ALGOLIA_ID ?? ""
 export const ALGOLIA_SEARCH_KEY: string = process.env.ALGOLIA_SEARCH_KEY ?? ""
 
-export const STRIPE_PUBLIC_KEY: string =
-    process.env.STRIPE_PUBLIC_KEY ?? "pk_test_nIHvmH37zsoltpw3xMssPIYq"
 export const DONATE_API_URL: string =
     process.env.DONATE_API_URL ?? "http://localhost:8788/donate/donate"
 
