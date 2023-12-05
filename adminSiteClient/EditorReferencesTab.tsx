@@ -256,7 +256,12 @@ class AddRedirectForm extends React.Component<{
 
     render() {
         return (
-            <form onSubmit={this.onSubmit}>
+            <form
+                onSubmit={(e) => {
+                    e.preventDefault()
+                    this.onSubmit()
+                }}
+            >
                 <div className="input-group mb-3">
                     <div className="input-group-prepend">
                         <span className="input-group-text" id="basic-addon3">
