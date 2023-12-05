@@ -71,6 +71,14 @@ export async function createSession(donation: DonationRequest, key: string) {
         payment_method_types: getPaymentMethodTypes(donation),
     }
 
+    const messageInterval =
+        interval === Interval.MONTHLY
+            ? "You will be charged monthly and can cancel any time by writing us at donate@ourworldindata.org."
+            : "You will only be charged once."
+    const message = showOnList
+        ? `You chose for your donation to be publicly attributed to "${metadata.name}. It will appear on our list of donors next time we update it. The donation amount will not be disclosed. ${messageInterval}`
+        : `You chose to remain anonymous, your name won't be shown on our list of donors. ${messageInterval}`
+
     if (interval === Interval.MONTHLY) {
         options.mode = "subscription"
         options.subscription_data = {
@@ -82,9 +90,6 @@ export async function createSession(donation: DonationRequest, key: string) {
                     currency: currency,
                     product_data: {
                         name: "Monthly donation",
-                        description: showOnList
-                            ? `This is a public monthly donation: you will be listed as "${metadata.name}"`
-                            : "This is an anonymous monthly donation",
                     },
                     recurring: {
                         interval: "month",
@@ -95,6 +100,11 @@ export async function createSession(donation: DonationRequest, key: string) {
                 quantity: 1,
             },
         ]
+        options.custom_text = {
+            submit: {
+                message,
+            },
+        }
     } else if (interval === Interval.ONCE) {
         // options.line_items = [
         //     {
