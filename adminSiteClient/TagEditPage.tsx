@@ -152,7 +152,7 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
                                     field="slug"
                                     store={newtag}
                                     label="Slug"
-                                    helpText="The slug for the topic page that this tag corresponds to e.g. trade-and-globalization"
+                                    helpText="The slug for this tag's topic page, e.g. trade-and-globalization. If specified, we assume this tag is a topic."
                                 />
                                 <FieldsRow>
                                     <NumericSelectField
