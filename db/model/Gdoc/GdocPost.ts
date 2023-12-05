@@ -105,7 +105,7 @@ export class GdocPost extends GdocBase implements OwidGdocInterface {
     }
 
     _enrichSubclassContent = (content: Record<string, any>): void => {
-        const isTocForSidebar = content["sidebar-toc"] === "true"
+        const isTocForSidebar = content["sidebar-toc"]
         content.toc = generateToc(content.body, isTocForSidebar)
 
         if (content.summary) {
