@@ -106,17 +106,32 @@ export async function createSession(donation: DonationRequest, key: string) {
             },
         }
     } else if (interval === Interval.ONCE) {
-        // options.line_items = [
-        //     {
-        //         amount: amount,
-        //         currency: currency,
-        //         name: "One-time donation",
-        //         quantity: 1,
-        //     },
-        // ]
-        // options.payment_intent_data = {
-        //     metadata: metadata as any,
-        // }
+        options.mode = "payment"
+        // Create a customer for one-time payments. Without this, payments are
+        // associated with guest customers, which are not surfaced when exporting
+        // donors in owid-donors. Note: this doesn't apply to subscriptions, where
+        // customers are always created.
+        options.customer_creation = "always"
+        options.payment_intent_data = {
+            metadata,
+        }
+        options.custom_text = {
+            submit: {
+                message,
+            },
+        }
+        options.line_items = [
+            {
+                price_data: {
+                    currency: currency,
+                    product_data: {
+                        name: "One-time donation",
+                    },
+                    unit_amount: amount,
+                },
+                quantity: 1,
+            },
+        ]
     }
 
     try {
