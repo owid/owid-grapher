@@ -189,7 +189,7 @@ export const prepareSourcesForDisplay = (
     return sourcesForDisplay
 }
 
-const getYearSuffixFromOrigin = (o: OwidOrigin) => {
+const getYearSuffixFromOrigin = (o: OwidOrigin): string => {
     const year = o.dateAccessed
         ? dayjs(o.dateAccessed, ["YYYY-MM-DD", "YYYY"]).year()
         : o.datePublished
@@ -202,7 +202,7 @@ export const getCitationShort = (
     origins: OwidOrigin[],
     attributions: string[],
     owidProcessingLevel: OwidProcessingLevel | undefined
-) => {
+): string => {
     const producersWithYear = uniq(
         origins.map((o) => `${o.producer}${getYearSuffixFromOrigin(o)}`)
     )
@@ -227,7 +227,7 @@ export const getCitationLong = (
     titleVariant: string | undefined,
     owidProcessingLevel: OwidProcessingLevel | undefined,
     canonicalUrl: string | undefined
-) => {
+): string => {
     const sourceShortName =
         attributionShort && titleVariant
             ? `${attributionShort} – ${titleVariant}`
