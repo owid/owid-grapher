@@ -1,11 +1,14 @@
 import React from "react"
 import { observer } from "mobx-react"
 import { observable, computed, action, runInAction } from "mobx"
-import fuzzysort from "fuzzysort"
-import * as lodash from "lodash"
 
-import { highlight as fuzzyHighlight } from "@ourworldindata/grapher"
-import { ChartTagJoin, Tag } from "@ourworldindata/utils"
+import {
+    ChartTagJoin,
+    Tag,
+    buildSearchWordsFromSearchString,
+    filterFunctionForSearchWords,
+    SearchWord,
+} from "@ourworldindata/utils"
 import { AdminLayout } from "./AdminLayout.js"
 import { SearchField, FieldsRow, Timeago } from "./Forms.js"
 import { EditableTags } from "./EditableTags.js"
@@ -26,14 +29,10 @@ interface PostIndexMeta {
     type: string
     status: string
     authors: string[]
+    slug: string
     updatedAtInWordpress: string
     tags: ChartTagJoin[]
     gdocSuccessorId: string | undefined
-}
-
-interface Searchable {
-    post: PostIndexMeta
-    term?: Fuzzysort.Prepared
 }
 
 enum GdocStatus {
@@ -44,7 +43,6 @@ enum GdocStatus {
 
 interface PostRowProps {
     post: PostIndexMeta
-    highlight: (text: string) => string | JSX.Element
     availableTags: Tag[]
 }
 
@@ -119,7 +117,7 @@ class PostRow extends React.Component<PostRowProps> {
     }
 
     render() {
-        const { post, highlight, availableTags } = this.props
+        const { post, availableTags } = this.props
         const { postGdocStatus } = this
         const gdocElement = match(postGdocStatus)
             .with(GdocStatus.MISSING, () => (
@@ -167,10 +165,11 @@ class PostRow extends React.Component<PostRowProps> {
 
         return (
             <tr>
-                <td>{highlight(post.title) || "(no title)"}</td>
-                <td>{highlight(post.authors.join(", "))}</td>
+                <td>{post.title || "(no title)"}</td>
+                <td>{post.authors.join(", ")}</td>
                 <td>{post.type}</td>
                 <td>{post.status}</td>
+                <td>{post.slug}</td>
                 <td style={{ minWidth: "380px" }}>
                     <EditableTags
                         tags={post.tags}
@@ -217,30 +216,26 @@ export class PostsIndexPage extends React.Component {
     @observable searchInput?: string
     @observable availableTags: Tag[] = []
 
-    @computed get searchIndex(): Searchable[] {
-        const searchIndex: Searchable[] = []
-        for (const post of this.posts) {
-            searchIndex.push({
-                post: post,
-                term: fuzzysort.prepare(
-                    post.title + " " + post.authors.join(", ")
-                ),
-            })
-        }
-
-        return searchIndex
+    @computed get searchWords(): SearchWord[] {
+        const { searchInput } = this
+        return buildSearchWordsFromSearchString(searchInput)
     }
 
     @computed get postsToShow(): PostIndexMeta[] {
-        const { searchInput, searchIndex, maxVisibleRows } = this
-        if (searchInput) {
-            const results = fuzzysort.go(searchInput, searchIndex, {
-                limit: 50,
-                key: "term",
-            })
-            return lodash.uniq(results.map((result) => result.obj.post))
+        const { searchWords, maxVisibleRows, posts } = this
+        if (searchWords.length > 0) {
+            const filterFn = filterFunctionForSearchWords(
+                searchWords,
+                (post: PostIndexMeta) => [
+                    post.title,
+                    post.slug,
+                    `${post.id}`,
+                    post.authors.join(" "),
+                ]
+            )
+            return posts.filter(filterFn).slice(0, maxVisibleRows)
         } else {
-            return this.posts.slice(0, maxVisibleRows)
+            return posts.slice(0, maxVisibleRows)
         }
     }
 
@@ -258,15 +253,6 @@ export class PostsIndexPage extends React.Component {
 
     render() {
         const { postsToShow, searchInput, numTotalRows } = this
-
-        const highlight = (text: string) => {
-            if (this.searchInput) {
-                const html =
-                    fuzzyHighlight(fuzzysort.single(this.searchInput, text)) ??
-                    text
-                return <span dangerouslySetInnerHTML={{ __html: html }} />
-            } else return text
-        }
 
         return (
             <AdminLayout title="Posts">
@@ -289,6 +275,7 @@ export class PostsIndexPage extends React.Component {
                                 <th>Authors</th>
                                 <th>Type</th>
                                 <th>Status</th>
+                                <th>Slug</th>
                                 <th>Tags</th>
                                 <th>Last Updated</th>
                                 <th></th>
@@ -301,7 +288,6 @@ export class PostsIndexPage extends React.Component {
                                 <PostRow
                                     key={post.id}
                                     post={post}
-                                    highlight={highlight}
                                     availableTags={this.availableTags}
                                 />
                             ))}
