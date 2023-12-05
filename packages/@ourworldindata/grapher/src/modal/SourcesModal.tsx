@@ -13,11 +13,14 @@ import {
     OwidSource,
     IndicatorTitleWithFragments,
     joinTitleFragments,
+    getCitationShort,
+    getCitationLong,
 } from "@ourworldindata/utils"
 import {
     IndicatorSources,
     IndicatorProcessing,
     SimpleMarkdownText,
+    DataCitation,
 } from "@ourworldindata/components"
 import React from "react"
 import { action, computed } from "mobx"
@@ -282,6 +285,27 @@ export class Source extends React.Component<{
         return { ...this.column.def, source: this.column.source }
     }
 
+    @computed get citationShort(): string {
+        return getCitationShort(
+            this.def.origins ?? [],
+            getAttributionFragmentsFromVariable(this.def),
+            this.def.owidProcessingLevel
+        )
+    }
+
+    @computed get citationLong(): string {
+        return getCitationLong(
+            this.title,
+            this.def.origins ?? [],
+            this.source,
+            getAttributionFragmentsFromVariable(this.def),
+            this.def.presentation?.attributionShort,
+            this.def.presentation?.titleVariant,
+            this.def.owidProcessingLevel,
+            undefined
+        )
+    }
+
     @computed private get source(): OwidSource {
         return this.def.source ?? {}
     }
@@ -425,6 +449,13 @@ export class Source extends React.Component<{
                 </h3>
                 <IndicatorProcessing
                     descriptionProcessing={this.def.descriptionProcessing}
+                />
+                <h3 className="heading heading--tight">
+                    How to cite this data:
+                </h3>
+                <DataCitation
+                    citationShort={this.citationShort}
+                    citationLong={this.citationLong}
                 />
             </div>
         )

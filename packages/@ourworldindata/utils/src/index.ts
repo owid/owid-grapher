@@ -382,6 +382,8 @@ export {
     splitSourceTextIntoFragments,
     prepareSourcesForDisplay,
     formatSourceDate,
+    getCitationLong,
+    getCitationShort,
 } from "./metadataHelpers.js"
 
 export {

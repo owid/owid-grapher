@@ -1,8 +1,13 @@
 import { OwidOrigin } from "./OwidOrigin"
-import { OwidProcessingLevel, OwidVariableWithSource } from "./OwidVariable"
+import {
+    IndicatorTitleWithFragments,
+    OwidProcessingLevel,
+    OwidVariableWithSource,
+} from "./OwidVariable"
 import { DisplaySource } from "./owidTypes"
 import { compact, uniq, last, excludeUndefined } from "./Util"
 import dayjs from "./dayjs.js"
+import { OwidSource } from "./OwidSource.js"
 
 export function getOriginAttributionFragments(
     origins: OwidOrigin[] | undefined
@@ -184,6 +189,82 @@ export const prepareSourcesForDisplay = (
     return sourcesForDisplay
 }
 
+const getYearSuffixFromOrigin = (o: OwidOrigin) => {
+    const year = o.dateAccessed
+        ? dayjs(o.dateAccessed, ["YYYY-MM-DD", "YYYY"]).year()
+        : o.datePublished
+        ? dayjs(o.datePublished, ["YYYY-MM-DD", "YYYY"]).year()
+        : undefined
+    if (year) return ` (${year})`
+    else return ""
+}
+export const getCitationShort = (
+    origins: OwidOrigin[],
+    attributions: string[],
+    owidProcessingLevel: OwidProcessingLevel | undefined
+) => {
+    const producersWithYear = uniq(
+        origins.map((o) => `${o.producer}${getYearSuffixFromOrigin(o)}`)
+    )
+    const processingLevelPhrase =
+        getPhraseForProcessingLevel(owidProcessingLevel)
+
+    const attributionFragments = attributions ?? producersWithYear
+    const attributionPotentiallyShortened =
+        attributionFragments.length > 3
+            ? `${attributionFragments[0]} and other sources`
+            : attributionFragments.join("; ")
+
+    return `${attributionPotentiallyShortened} – ${processingLevelPhrase} by Our World in Data`
+}
+
+export const getCitationLong = (
+    indicatorTitle: IndicatorTitleWithFragments,
+    origins: OwidOrigin[],
+    source: OwidSource | undefined,
+    attributions: string[],
+    attributionShort: string | undefined,
+    titleVariant: string | undefined,
+    owidProcessingLevel: OwidProcessingLevel | undefined,
+    canonicalUrl: string | undefined
+) => {
+    const sourceShortName =
+        attributionShort && titleVariant
+            ? `${attributionShort} – ${titleVariant}`
+            : attributionShort || titleVariant
+    const producersWithYear = uniq(
+        origins.map((o) => `${o.producer}${getYearSuffixFromOrigin(o)}`)
+    )
+    const processingLevelPhrase =
+        getPhraseForProcessingLevel(owidProcessingLevel)
+
+    const attributionFragments = attributions ?? producersWithYear
+    const attributionUnshortened = attributionFragments.join("; ")
+    const citationLonger = `${attributionUnshortened} – ${processingLevelPhrase} by Our World in Data`
+    const titleWithOptionalFragments = excludeUndefined([
+        indicatorTitle.title,
+        sourceShortName,
+    ]).join(" – ")
+    const originsLong = uniq(
+        origins.map(
+            (o) =>
+                `${o.producer}, “${o.title ?? o.titleSnapshot}${
+                    o.versionProducer ? " " + o.versionProducer : ""
+                }”`
+        )
+    ).join("; ")
+    const today = dayjs().format("MMMM D, YYYY")
+    return excludeUndefined([
+        `${citationLonger}.`,
+        `“${titleWithOptionalFragments}” [dataset].`,
+        originsLong
+            ? `${originsLong} [original data].`
+            : source?.name
+            ? `${source?.name} [original data].`
+            : undefined,
+        canonicalUrl ? `Retrieved ${today} from ${canonicalUrl}` : undefined,
+    ]).join(" ")
+}
 export const formatSourceDate = (
     date: string | undefined,
     format: string
