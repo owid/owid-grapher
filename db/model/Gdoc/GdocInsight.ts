@@ -8,12 +8,6 @@ import {
 } from "@ourworldindata/utils"
 import { GdocBase } from "./GdocBase.js"
 
-/**
- * This is an unused mock prototype, I think *something* like this could work,
- * but we'd need a different code path for registering FAQs through the server
- * instead of using the same endpoint for both posts and faqs.
- * For now, we'll just use the GdocPost class.
- */
 @Entity("posts_gdocs")
 export class OwidInsight extends GdocBase implements OwidGdocInsightInterface {
     static table = "posts_gdocs"

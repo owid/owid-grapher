@@ -9,6 +9,7 @@ import {
     faNewspaper,
     faPuzzlePiece,
     faQuestion,
+    faThList,
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
@@ -34,6 +35,7 @@ const iconGdocTypeMap = {
     [OwidGdocType.Article]: <FontAwesomeIcon icon={faNewspaper} />,
     [OwidGdocType.TopicPage]: <FontAwesomeIcon icon={faLightbulb} />,
     [OwidGdocType.LinearTopicPage]: <FontAwesomeIcon icon={faLightbulb} />,
+    [OwidGdocType.DataInsight]: <FontAwesomeIcon icon={faThList} />,
 }
 
 @observer
@@ -51,6 +53,7 @@ class GdocsIndexPageSearch extends React.Component<{
             OwidGdocType.Article,
             OwidGdocType.TopicPage,
             OwidGdocType.LinearTopicPage,
+            OwidGdocType.DataInsight,
         ]
         return (
             <div className="d-flex flex-grow-1 flex-wrap">
@@ -108,6 +111,7 @@ export class GdocsIndexPage extends React.Component<GdocsMatchProps> {
         [OwidGdocType.Article]: false,
         [OwidGdocType.TopicPage]: false,
         [OwidGdocType.LinearTopicPage]: false,
+        [OwidGdocType.DataInsight]: false,
     }
 
     @observable search = { value: "" }

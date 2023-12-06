@@ -272,7 +272,10 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
             relations: ["tags"],
         }).then((gdocs) =>
             gdocs.filter(
-                ({ content: { type } }) => type !== OwidGdocType.Fragment
+                ({ content: { type } }) =>
+                    ![OwidGdocType.Fragment, OwidGdocType.DataInsight].includes(
+                        type as OwidGdocType
+                    )
             )
         ) as Promise<(OwidGdocPublished & GdocPost)[]>
     }

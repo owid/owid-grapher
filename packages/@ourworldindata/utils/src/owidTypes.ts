@@ -1347,6 +1347,7 @@ export enum OwidGdocType {
     TopicPage = "topic-page",
     Fragment = "fragment",
     LinearTopicPage = "linear-topic-page",
+    DataInsight = "data-insight",
 }
 
 export interface OwidGdocBaseInterface {
@@ -1377,8 +1378,9 @@ export interface OwidInsightContent {
     title: string
     authors: string[]
     grapherSlug?: string
-    approvedBy: string // can't publish a data insight unless this is set
+    approvedBy: string // can't publish an insight unless this is set
     body: OwidEnrichedGdocBlock[]
+    type: OwidGdocType.DataInsight
 }
 
 export interface OwidGdocInsightInterface extends OwidGdocBaseInterface {
