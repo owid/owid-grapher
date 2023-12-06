@@ -85,19 +85,33 @@ const legacyToCurrentCovidQueryParams = (
 
     const urlContainsMetric = !!covidMetricFromLegacyQueryParams(queryParams)
 
+    // For the following params, use the modern query param if it exists, otherwise
+    // fall back to trying to convert the legacy one.
     const explorerQueryParams: QueryParams = {
         Metric:
+            queryParams.Metric ??
+            baseQueryParams.Metric ??
             covidMetricFromLegacyQueryParams(queryParams) ??
             covidMetricFromLegacyQueryParams(baseQueryParams),
         Interval:
+            queryParams.Interval ??
+            baseQueryParams.Interval ??
             covidIntervalFromLegacyQueryParams(queryParams) ??
             covidIntervalFromLegacyQueryParams(baseQueryParams),
-        "Align outbreaks": urlContainsMetric
-            ? boolParamToString(queryParams.aligned)
-            : boolParamToString(baseQueryParams.aligned),
-        "Relative to Population": urlContainsMetric
-            ? boolParamToString(queryParams.perCapita)
-            : boolParamToString(baseQueryParams.perCapita),
+        "Align outbreaks": boolParamToString(
+            queryParams["Align outbreaks"] ??
+                baseQueryParams["Align outbreaks"] ??
+                urlContainsMetric
+                ? queryParams.aligned
+                : baseQueryParams.aligned
+        ),
+        "Relative to Population": boolParamToString(
+            queryParams["Relative to Population"] ??
+                baseQueryParams["Relative to Population"] ??
+                urlContainsMetric
+                ? queryParams.perCapita
+                : baseQueryParams.perCapita
+        ),
     }
 
     return {
