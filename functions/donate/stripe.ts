@@ -24,12 +24,9 @@ export async function createSession(donation: DonationRequest, key: string) {
         maxNetworkRetries: 2,
     })
 
-    const { name, showOnList, interval, successUrl, cancelUrl } = donation
+    const { name, currency, showOnList, interval, successUrl, cancelUrl } =
+        donation
     const amount = Math.floor(donation.amount)
-
-    // It used to be only possible to donate in USD, so USD was hardcoded here.
-    // We want to temporarily handle the old payload while the new form is deployed.
-    const currency = donation.currency || "USD"
 
     if (amount < 100 || amount > 10_000 * 100) {
         throw {
@@ -72,7 +69,7 @@ export async function createSession(donation: DonationRequest, key: string) {
         options.line_items = [
             {
                 price_data: {
-                    currency: currency,
+                    currency,
                     product_data: {
                         name: "Monthly donation",
                     },
@@ -109,7 +106,7 @@ export async function createSession(donation: DonationRequest, key: string) {
         options.line_items = [
             {
                 price_data: {
-                    currency: currency,
+                    currency,
                     product_data: {
                         name: "One-time donation",
                     },
