@@ -1,5 +1,5 @@
 import {
-    OwidGdocContent,
+    OwidGdocPostContent,
     OwidGdocPostInterface,
     isEqual,
     omit,
@@ -54,7 +54,7 @@ export const checkIsLightningUpdate = (
     }
 
     const lightningPropContentConfigMap: Record<
-        keyof OwidGdocContent,
+        keyof OwidGdocPostContent,
         boolean
     > = {
         "cover-color": true,

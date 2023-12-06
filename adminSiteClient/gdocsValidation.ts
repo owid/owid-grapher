@@ -1,5 +1,5 @@
 import {
-    OwidGdocContent,
+    OwidGdocPostContent,
     OwidGdocPostInterface,
     OwidGdocErrorMessage,
     OwidGdocErrorMessageType,
@@ -241,7 +241,7 @@ export class RefsHandler extends AbstractHandler {
 // #gdocsvalidationclient in codebase), but should ultimately be performed in
 // server code too (see #gdocsvalidationserver). The checks performed here
 // should match the list of required fields in OwidGdocPublished and
-// OwidGdocContentPublished types, so that gdocs coming from the DB effectively
+// OwidGdocPostContentPublished types, so that gdocs coming from the DB effectively
 // honor the type cast (and subsequent assumptions) in getPublishedGdocs()
 export const getErrors = (
     gdoc: OwidGdocPostInterface
@@ -290,7 +290,9 @@ export const getPropertyMostCriticalError = (
     )
 }
 
-const getMissingContentPropertyError = (property: keyof OwidGdocContent) => {
+const getMissingContentPropertyError = (
+    property: keyof OwidGdocPostContent
+) => {
     return {
         property,
         type: OwidGdocErrorMessageType.Error,

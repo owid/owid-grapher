@@ -88,7 +88,7 @@ import {
     checkIsLightningUpdate,
 } from "../adminSiteClient/gdocsDeploy.js"
 import { dataSource } from "../db/dataSource.js"
-import { createGdocAndInsertOwidGdocContent } from "../db/model/Gdoc/archieToGdoc.js"
+import { createGdocAndInsertOwidGdocPostContent } from "../db/model/Gdoc/archieToGdoc.js"
 import { Link } from "../db/model/Link.js"
 import { In } from "typeorm"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
@@ -2357,7 +2357,7 @@ apiRouter.post("/posts/:postId/createGdoc", async (req: Request) => {
         tagsByPostId.get(postId)?.map(({ id }) => TagEntity.create({ id })) ||
         []
     const archieMl = JSON.parse(post.archieml) as OwidGdocPostInterface
-    const gdocId = await createGdocAndInsertOwidGdocContent(
+    const gdocId = await createGdocAndInsertOwidGdocPostContent(
         archieMl.content,
         post.gdocSuccessorId
     )

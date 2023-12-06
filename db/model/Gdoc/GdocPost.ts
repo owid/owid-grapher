@@ -9,7 +9,7 @@ import {
 } from "typeorm"
 import {
     Tag as TagInterface,
-    type OwidGdocContent,
+    type OwidGdocPostContent,
     OwidGdocPostInterface,
     OwidGdocPublished,
     OwidGdocPublicationContext,
@@ -55,7 +55,7 @@ export class Tag extends BaseEntity implements TagInterface {
 @Entity("posts_gdocs")
 export class GdocPost extends GdocBase implements OwidGdocPostInterface {
     static table = "posts_gdocs"
-    @Column({ default: "{}", type: "json" }) content!: OwidGdocContent
+    @Column({ default: "{}", type: "json" }) content!: OwidGdocPostContent
     @Column() publicationContext: OwidGdocPublicationContext =
         OwidGdocPublicationContext.unlisted
     @Column({ type: "json", nullable: true }) breadcrumbs:

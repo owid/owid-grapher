@@ -1,6 +1,6 @@
 import React from "react"
 import { ErrorBoundary } from "react-error-boundary"
-import { useDebug } from "./DebugContext.js"
+import { useDebug } from "../DebugContext.js"
 
 export const BlockErrorBoundary = ({
     children,

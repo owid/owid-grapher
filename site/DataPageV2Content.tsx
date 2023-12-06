@@ -26,7 +26,7 @@ import {
 } from "@ourworldindata/components"
 import ReactDOM from "react-dom"
 import { GrapherWithFallback } from "./GrapherWithFallback.js"
-import { ArticleBlocks } from "./gdocs/ArticleBlocks.js"
+import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
 import { RelatedCharts } from "./blocks/RelatedCharts.js"
 import {
     DataPageV2ContentFields,

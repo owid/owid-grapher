@@ -8,14 +8,14 @@ import {
     ImageMetadata,
     LinkedChart,
     Url,
-    OwidGdocContent,
+    OwidGdocPostContent,
     formatAuthors,
 } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
 import { AttachmentsContext } from "./OwidGdoc.js"
 
 export const breadcrumbColorForCoverColor = (
-    coverColor: OwidGdocContent["cover-color"]
+    coverColor: OwidGdocPostContent["cover-color"]
 ): "white" | "blue" => {
     // exhaustive list of all possible cover colors
     switch (coverColor) {

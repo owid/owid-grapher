@@ -5,9 +5,9 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
-import { useEmbedChart } from "../hooks.js"
+import { useEmbedChart } from "../../hooks.js"
 import { EnrichedBlockChartStory } from "@ourworldindata/utils"
-import { renderSpans } from "./utils.js"
+import { renderSpans } from "../utils.js"
 import Chart from "./Chart.js"
 import cx from "classnames"
 

@@ -100,7 +100,7 @@ export {
     KeyChartLevel,
     type KeyInsight,
     type KeyValueProps,
-    type OwidGdocContent,
+    type OwidGdocPostContent,
     type LinkedChart,
     OwidGdocPublicationContext,
     type OwidGdocErrorMessageProperty,

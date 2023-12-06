@@ -1366,7 +1366,7 @@ export interface OwidGdocBaseInterface {
 }
 
 export interface OwidGdocPostInterface extends OwidGdocBaseInterface {
-    content: OwidGdocContent
+    content: OwidGdocPostContent
     linkedDocuments?: Record<string, OwidGdocPostInterface>
     publicationContext: OwidGdocPublicationContext
     breadcrumbs?: BreadcrumbItem[] | null
@@ -1396,7 +1396,7 @@ export enum OwidGdocErrorMessageType {
 
 export type OwidGdocProperty =
     | keyof OwidGdocPostInterface
-    | keyof OwidGdocContent
+    | keyof OwidGdocPostContent
     | keyof OwidInsightContent
 export type OwidGdocErrorMessageProperty =
     | OwidGdocProperty
@@ -1433,7 +1433,7 @@ export interface OwidGdocLinkJSON {
 export interface OwidGdocPublished extends OwidGdocPostInterface {
     publishedAt: Date
     updatedAt: Date
-    content: OwidGdocContentPublished
+    content: OwidGdocPostContentPublished
 }
 
 export interface OwidArticleBackportingStatistics {
@@ -1444,9 +1444,18 @@ export interface OwidArticleBackportingStatistics {
     wpTagCounts: Record<string, number>
 }
 
-export interface OwidGdocContent {
+export interface OwidGdocPostContent {
     body?: OwidEnrichedGdocBlock[]
-    type?: OwidGdocType
+    type?:
+        | OwidGdocType.Article
+        | OwidGdocType.TopicPage
+        | OwidGdocType.LinearTopicPage
+        // TODO: Fragments need their own OwidGdocFragment interface and flow in the UI
+        // Historically they were treated the same as GdocPosts but not baked
+        // In reality, they have multiple possible data structures in their content (details, faqs, frontPageConfig, etc)
+        // We should be able to render these in the preview before publishing
+        // We're keeping them in this union until we have time to sort this out
+        | OwidGdocType.Fragment
     title?: string
     supertitle?: string
     subtitle?: string
@@ -1492,7 +1501,7 @@ export interface OwidGdocContent {
 
 export type OwidGdocStickyNavItem = { target: string; text: string }
 
-export interface OwidGdocContentPublished extends OwidGdocContent {
+export interface OwidGdocPostContentPublished extends OwidGdocPostContent {
     body: OwidEnrichedGdocBlock[]
     title: string
     excerpt: string
