@@ -57,7 +57,7 @@ const covidIntervalFromLegacyQueryParams = (queryParams: QueryParams) => {
 }
 
 const boolParamToString = (bool: boolean | string | undefined) =>
-    bool ? "true" : "false"
+    bool === "true" || bool === "false" ? bool : bool ? "true" : "false"
 
 const legacyToCurrentCovidQueryParams = (
     queryParams: QueryParams,
@@ -101,16 +101,16 @@ const legacyToCurrentCovidQueryParams = (
         "Align outbreaks": boolParamToString(
             queryParams["Align outbreaks"] ??
                 baseQueryParams["Align outbreaks"] ??
-                urlContainsMetric
-                ? queryParams.aligned
-                : baseQueryParams.aligned
+                (urlContainsMetric
+                    ? queryParams.aligned
+                    : baseQueryParams.aligned)
         ),
         "Relative to Population": boolParamToString(
             queryParams["Relative to Population"] ??
                 baseQueryParams["Relative to Population"] ??
-                urlContainsMetric
-                ? queryParams.perCapita
-                : baseQueryParams.perCapita
+                (urlContainsMetric
+                    ? queryParams.perCapita
+                    : baseQueryParams.perCapita)
         ),
     }
 
