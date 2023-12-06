@@ -1,13 +1,10 @@
 import Stripe from "stripe"
-import { DonationRequest, Interval, CurrencyCode } from "./types.js"
+import { DonationRequest } from "@ourworldindata/utils"
 
 function getPaymentMethodTypes(
     donation: DonationRequest
 ): Stripe.Checkout.SessionCreateParams.PaymentMethodType[] {
-    if (
-        donation.interval === Interval.ONCE &&
-        donation.currency === CurrencyCode.EUR
-    ) {
+    if (donation.interval === "once" && donation.currency === "EUR") {
         return [
             "card",
             "sepa_debit",
@@ -27,24 +24,12 @@ export async function createSession(donation: DonationRequest, key: string) {
         maxNetworkRetries: 2,
     })
 
-    if (donation.amount == null)
-        throw { status: 400, message: "Please specify an amount" }
-    if (!Object.values(Interval).includes(donation.interval))
-        throw { status: 400, message: "Please specify an interval" }
-    // Temporarily disable while the new form is being deployed.
-    // if (!Object.values(CurrencyCode).includes(donation.currency)) throw { status: 400, message: "Please specify a currency" }
-    if (donation.successUrl == null || donation.cancelUrl == null)
-        throw {
-            status: 400,
-            message: "Please specify a successUrl and cancelUrl",
-        }
-
     const { name, showOnList, interval, successUrl, cancelUrl } = donation
     const amount = Math.floor(donation.amount)
 
     // It used to be only possible to donate in USD, so USD was hardcoded here.
     // We want to temporarily handle the old payload while the new form is deployed.
-    const currency = donation.currency || CurrencyCode.USD
+    const currency = donation.currency || "USD"
 
     if (amount < 100 || amount > 10_000 * 100) {
         throw {
@@ -72,14 +57,14 @@ export async function createSession(donation: DonationRequest, key: string) {
     }
 
     const messageInterval =
-        interval === Interval.MONTHLY
+        interval === "monthly"
             ? "You will be charged monthly and can cancel any time by writing us at donate@ourworldindata.org."
             : "You will only be charged once."
     const message = showOnList
         ? `You chose for your donation to be publicly attributed to "${metadata.name}. It will appear on our list of donors next time we update it. The donation amount will not be disclosed. ${messageInterval}`
         : `You chose to remain anonymous, your name won't be shown on our list of donors. ${messageInterval}`
 
-    if (interval === Interval.MONTHLY) {
+    if (interval === "monthly") {
         options.mode = "subscription"
         options.subscription_data = {
             metadata,
@@ -105,7 +90,7 @@ export async function createSession(donation: DonationRequest, key: string) {
                 message,
             },
         }
-    } else if (interval === Interval.ONCE) {
+    } else if (interval === "once") {
         options.submit_type = "donate"
         options.mode = "payment"
         // Create a customer for one-time payments. Without this, payments are

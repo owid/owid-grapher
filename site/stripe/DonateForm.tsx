@@ -10,24 +10,23 @@ import {
     BAKED_BASE_URL,
     RECAPTCHA_SITE_KEY,
 } from "../../settings/clientSettings.js"
-import { Tippy, stringifyUnknownError, titleCase } from "@ourworldindata/utils"
+import {
+    Tippy,
+    stringifyUnknownError,
+    titleCase,
+    DonationCurrencyCode,
+    DonationInterval,
+    DonationRequest,
+} from "@ourworldindata/utils"
 import { Checkbox } from "@ourworldindata/components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowRight, faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 import Bugsnag from "@bugsnag/js"
 
-type Interval = "once" | "monthly"
-
-enum CurrencyCode {
-    GBP = "GBP",
-    EUR = "EUR",
-    USD = "USD",
-}
-
-const currencySymbolByCode: Record<CurrencyCode, string> = {
-    [CurrencyCode.GBP]: "£",
-    [CurrencyCode.EUR]: "€",
-    [CurrencyCode.USD]: "$",
+const currencySymbolByCode: Record<DonationCurrencyCode, string> = {
+    GBP: "£",
+    EUR: "€",
+    USD: "$",
 }
 
 const ONETIME_DONATION_AMOUNTS = [10, 50, 100, 500, 1000]
@@ -39,15 +38,11 @@ const MONTHLY_DEFAULT_INDEX = 1
 const MIN_DONATION = 1
 const MAX_DONATION: number = 10_000
 
-const SUPPORTED_CURRENCY_CODES = [
-    CurrencyCode.GBP,
-    CurrencyCode.EUR,
-    CurrencyCode.USD,
-]
+const SUPPORTED_CURRENCY_CODES: DonationCurrencyCode[] = ["GBP", "EUR", "USD"]
 
 @observer
 export class DonateForm extends React.Component {
-    @observable interval: Interval = "once"
+    @observable interval: DonationInterval = "once"
     @observable presetAmount?: number =
         ONETIME_DONATION_AMOUNTS[ONETIME_DEFAULT_INDEX]
     @observable customAmount: string = ""
@@ -56,7 +51,7 @@ export class DonateForm extends React.Component {
     @observable errorMessage?: string
     @observable isSubmitting: boolean = false
     @observable isLoading: boolean = true
-    @observable currencyCode: CurrencyCode = CurrencyCode.GBP
+    @observable currencyCode: DonationCurrencyCode = "GBP"
 
     captchaInstance?: Recaptcha | null
     @observable.ref captchaPromiseHandlers?: {
@@ -64,7 +59,7 @@ export class DonateForm extends React.Component {
         reject: (value: any) => void
     }
 
-    @action.bound setInterval(interval: Interval) {
+    @action.bound setInterval(interval: DonationInterval) {
         this.interval = interval
         this.presetAmount =
             this.intervalAmounts[
@@ -98,7 +93,7 @@ export class DonateForm extends React.Component {
         this.errorMessage = message
     }
 
-    @action.bound setCurrency(currency: CurrencyCode) {
+    @action.bound setCurrency(currency: DonationCurrencyCode) {
         this.currencyCode = currency
     }
 
@@ -136,22 +131,24 @@ export class DonateForm extends React.Component {
         }
 
         const captchaToken = await this.getCaptchaToken()
+        const requestBody: DonationRequest = {
+            name: this.name,
+            showOnList: this.showOnList,
+            currency: this.currencyCode,
+            amount: Math.floor(this.amount * 100),
+            interval: this.interval,
+            successUrl: `${BAKED_BASE_URL}/thank-you`,
+            cancelUrl: `${BAKED_BASE_URL}/donate`,
+            captchaToken: captchaToken,
+        }
+
         const response = await fetch(DONATE_API_URL, {
             method: "POST",
             headers: {
                 Accept: "application/json", // expect JSON in response
                 "Content-Type": "application/json", // send JSON in request
             },
-            body: JSON.stringify({
-                name: this.name,
-                showOnList: this.showOnList,
-                currency: this.currencyCode,
-                amount: Math.floor(this.amount * 100),
-                interval: this.interval,
-                successUrl: `${BAKED_BASE_URL}/thank-you`,
-                cancelUrl: `${BAKED_BASE_URL}/donate`,
-                captchaToken: captchaToken,
-            }),
+            body: JSON.stringify(requestBody),
         })
         const session = await response.json()
         if (!response.ok) {
@@ -163,7 +160,7 @@ export class DonateForm extends React.Component {
         window.location.href = session.url
     }
 
-    @bind async getCaptchaToken() {
+    @bind async getCaptchaToken(): Promise<string> {
         return new Promise((resolve, reject) => {
             if (!this.captchaInstance)
                 return reject(

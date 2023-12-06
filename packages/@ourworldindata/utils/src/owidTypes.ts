@@ -1767,3 +1767,18 @@ export interface DisplaySource {
     retrievedFrom?: string
     citation?: string
 }
+
+export type DonationInterval = "once" | "monthly"
+
+export type DonationCurrencyCode = "USD" | "GBP" | "EUR"
+
+export interface DonationRequest {
+    name: string
+    showOnList: boolean
+    currency: DonationCurrencyCode
+    amount: number
+    interval: DonationInterval
+    successUrl: string
+    cancelUrl: string
+    captchaToken: string
+}

@@ -1,6 +1,12 @@
-import { DonationRequest, EnvVars } from "./types.js"
 import fetch from "node-fetch"
 import { createSession } from "./stripe.js"
+import { DonationRequest } from "@ourworldindata/utils"
+
+interface EnvVars {
+    ASSETS: Fetcher
+    STRIPE_SECRET_KEY: string
+    RECAPTCHA_SECRET_KEY: string
+}
 
 // CORS headers need to be sent in responses to both preflight ("OPTIONS") and
 // actual requests.
