@@ -690,7 +690,7 @@ export const getRelatedResearchAndWritingForVariable = async (
                 distinct
                 pl.target as linkTargetSlug,
                 pl.componentType as componentType,
-                coalesce(charts_via_redirects.slug, c.slug) as chartSlug,
+                coalesce(csr.slug, c.slug) as chartSlug,
                 p.title as title,
                 p.slug as postSlug,
                 coalesce(csr.chart_id, c.id) as chartId,
@@ -711,8 +711,6 @@ export const getRelatedResearchAndWritingForVariable = async (
                 pl.target = c.slug
             left join chart_slug_redirects csr on
                 pl.target = csr.slug
-            left join charts charts_via_redirects on
-                charts_via_redirects.id = csr.chart_id
             left join chart_dimensions cd on
                 cd.chartId = coalesce(csr.chart_id, c.id)
             left join analytics_pageviews pv on
@@ -750,7 +748,7 @@ export const getRelatedResearchAndWritingForVariable = async (
                 distinct
                 pl.target as linkTargetSlug,
                 pl.componentType as componentType,
-                c.slug as chartSlug,
+                coalesce(csr.slug, c.slug) as chartSlug,
                 p.content ->> '$.title' as title,
                 p.slug as postSlug,
                 coalesce(csr.chart_id, c.id) as chartId,
@@ -772,7 +770,7 @@ export const getRelatedResearchAndWritingForVariable = async (
             left join chart_slug_redirects csr on
                 pl.target = csr.slug
             join chart_dimensions cd on
-                cd.chartId = c.id
+                cd.chartId = coalesce(csr.chart_id, c.id)
             left join analytics_pageviews pv on
                 pv.url = concat('https://ourworldindata.org/', p.slug )
             left join posts_gdocs_x_tags pt on
