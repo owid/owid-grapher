@@ -106,6 +106,7 @@ export async function createSession(donation: DonationRequest, key: string) {
             },
         }
     } else if (interval === Interval.ONCE) {
+        options.submit_type = "donate"
         options.mode = "payment"
         // Create a customer for one-time payments. Without this, payments are
         // associated with guest customers, which are not surfaced when exporting
