@@ -7,7 +7,7 @@ import React, {
 } from "react"
 import { AdminLayout } from "./AdminLayout.js"
 import { GdocsMatchProps } from "./GdocsIndexPage.js"
-import { GdocPostSettings } from "./GdocsSettingsForms.js"
+import { GdocPostSettings, GdocsInsightSettings } from "./GdocsSettingsForms.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import {
     checkIsPlainObjectWithGuard,
@@ -300,7 +300,15 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                                     type: OwidGdocType.Fragment,
                                 },
                             },
-                            () => null
+                            (gdoc) => (
+                                <GdocPostSettings
+                                    gdoc={gdoc}
+                                    setCurrentGdoc={(updatedGdoc) =>
+                                        setCurrentGdoc(() => updatedGdoc)
+                                    }
+                                    errors={errors}
+                                />
+                            )
                         )
                         .with(
                             {
@@ -308,7 +316,15 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                                     type: OwidGdocType.DataInsight,
                                 },
                             },
-                            () => null
+                            (gdoc) => (
+                                <GdocsInsightSettings
+                                    gdoc={gdoc}
+                                    setCurrentGdoc={(updatedGdoc) =>
+                                        setCurrentGdoc(() => updatedGdoc)
+                                    }
+                                    errors={errors}
+                                />
+                            )
                         )
                         .with(
                             {
@@ -316,7 +332,13 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                                     type: undefined,
                                 },
                             },
-                            () => null
+                            () => (
+                                <div>
+                                    Unknown gdoc type. Add a <pre>type</pre> to
+                                    the front-matter of this gdoc and reload
+                                    this page.
+                                </div>
+                            )
                         )
                         .exhaustive()}
                 </Drawer>

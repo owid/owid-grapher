@@ -4,7 +4,7 @@ import {
     OwidGdocErrorMessage,
     OwidGdocDataInsightInterface,
 } from "@ourworldindata/utils"
-import { ExcerptHandler } from "./gdocsValidation.js"
+import { EXCERPT_MAX_LENGTH } from "./gdocsValidation.js"
 import { GdocsSlug } from "./GdocsSlug.js"
 import {
     GdocsSettingsContentField,
@@ -67,7 +67,7 @@ export const GdocPostSettings = ({
                         {...props}
                         inputProps={{
                             showCount: true,
-                            maxLength: ExcerptHandler.maxLength,
+                            maxLength: EXCERPT_MAX_LENGTH,
                         }}
                     />
                 )}
@@ -148,7 +148,15 @@ export const GdocsInsightSettings = ({
 }) => {
     // Show errors at the top of the drawer for errors that don't have specific fields
     const errorsToShowInDrawer = (errors || []).filter(
-        ({ property }) => !["title", "excerpt", "authors"].includes(property)
+        ({ property }) =>
+            ![
+                "title",
+                "authors",
+                "approvedBy",
+                "grapherSlug",
+                "slug",
+                "publishedAt",
+            ].includes(property)
     )
 
     return gdoc ? (
@@ -173,6 +181,11 @@ export const GdocsInsightSettings = ({
             />
             <GdocsSettingsContentField
                 property="approvedBy"
+                gdoc={gdoc}
+                errors={errors}
+            />
+            <GdocsSettingsContentField
+                property="grapherSlug"
                 gdoc={gdoc}
                 errors={errors}
             />

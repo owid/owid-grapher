@@ -1,9 +1,5 @@
 import { useEffect, useState } from "react"
-import {
-    OwidGdoc,
-    OwidGdocPostInterface,
-    checkIsGdocPost,
-} from "@ourworldindata/utils"
+import { OwidGdoc, checkIsGdocPost } from "@ourworldindata/utils"
 import { checkHasChanges, checkIsLightningUpdate } from "./gdocsDeploy.js"
 
 export const useGdocsChanged = (

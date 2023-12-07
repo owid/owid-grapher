@@ -3,7 +3,6 @@ import { action, observable } from "mobx"
 import {
     getOwidGdocFromJSON,
     omit,
-    OwidGdocPostInterface,
     OwidGdocJSON,
     Tag,
     OwidGdoc,

@@ -14,12 +14,13 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
     Tag,
-    OwidGdocPostInterface,
     OwidGdocType,
     SearchWord,
     buildSearchWordsFromSearchString,
     filterFunctionForSearchWords,
     spansToUnformattedPlainText,
+    OwidGdoc,
+    checkIsGdocPost,
 } from "@ourworldindata/utils"
 import { Route, RouteComponentProps } from "react-router-dom"
 import { Link } from "./Link.js"
@@ -131,7 +132,7 @@ export class GdocsIndexPage extends React.Component<GdocsMatchProps> {
         return this.context?.availableTags || []
     }
 
-    @computed get allGdocsToShow(): OwidGdocPostInterface[] {
+    @computed get allGdocsToShow(): OwidGdoc[] {
         const { searchWords, context } = this
         if (!context) return []
 
@@ -151,21 +152,31 @@ export class GdocsIndexPage extends React.Component<GdocsMatchProps> {
         if (searchWords.length > 0) {
             const filterFn = filterFunctionForSearchWords(
                 searchWords,
-                (gdoc: OwidGdocPostInterface) => [
-                    gdoc.content.title,
-                    gdoc.content.subtitle,
-                    gdoc.content.summary
-                        ? spansToUnformattedPlainText(
-                              gdoc.content.summary.flatMap(
-                                  (block) => block.value
-                              )
-                          )
-                        : undefined,
-                    gdoc.slug,
-                    gdoc.id,
-                    gdoc.content.authors?.join(" "),
-                    gdoc.tags?.map(({ name }) => name).join(" "),
-                ]
+                (gdoc: OwidGdoc) => {
+                    const properties = [
+                        gdoc.content.title,
+                        gdoc.slug,
+                        gdoc.content.authors?.join(" "),
+                        gdoc.tags?.map(({ name }) => name).join(" "),
+                        gdoc.id,
+                    ]
+
+                    if (checkIsGdocPost(gdoc)) {
+                        properties.push(
+                            ...[
+                                gdoc.content.subtitle,
+                                gdoc.content.summary
+                                    ? spansToUnformattedPlainText(
+                                          gdoc.content.summary.flatMap(
+                                              (block) => block.value
+                                          )
+                                      )
+                                    : undefined,
+                            ]
+                        )
+                    }
+                    return properties
+                }
             )
             return filteredByType.filter(filterFn)
         } else {

@@ -1767,24 +1767,18 @@ export function extractDetailsFromSyntax(str: string): string[] {
 }
 
 export function checkIsGdocPost(x: unknown): x is OwidGdocPostInterface {
-    return (
-        isObject(x) &&
-        "type" in x &&
-        [
-            OwidGdocType.Article,
-            OwidGdocType.TopicPage,
-            OwidGdocType.LinearTopicPage,
-            OwidGdocType.Fragment,
-        ].includes(x.type as OwidGdocType)
-    )
+    const type = get(x, "content.type")
+    return [
+        OwidGdocType.Article,
+        OwidGdocType.TopicPage,
+        OwidGdocType.LinearTopicPage,
+        OwidGdocType.Fragment,
+    ].includes(type)
 }
 
 export function checkIsDataInsight(
     x: unknown
 ): x is OwidGdocDataInsightInterface {
-    return (
-        isObject(x) &&
-        "type" in x &&
-        [OwidGdocType.DataInsight].includes(x.type as OwidGdocType)
-    )
+    const type = get(x, "content.type")
+    return type === OwidGdocType.DataInsight
 }

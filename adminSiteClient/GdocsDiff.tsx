@@ -1,7 +1,7 @@
 import React from "react"
 import ReactDiffViewer, { DiffMethod } from "react-diff-viewer"
 import { stringify } from "safe-stable-stringify"
-import { omit, OwidGdoc, OwidGdocPostInterface } from "@ourworldindata/utils"
+import { omit, OwidGdoc } from "@ourworldindata/utils"
 
 // Non-deterministic values which shouldn't be displayed in the diff viewer
 // Errors are already shown in the settings drawer, so we don't show those either

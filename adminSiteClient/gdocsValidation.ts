@@ -9,258 +9,224 @@ import {
     OwidGdocErrorMessageProperty,
     OwidGdoc,
     checkIsGdocPost,
+    checkIsDataInsight,
+    OwidGdocDataInsightInterface,
 } from "@ourworldindata/utils"
 
-type Handler<T extends OwidGdoc = OwidGdoc> = {
-    setNext: (handler: Handler<T>) => Handler<T>
-    handle: (gdoc: T, messages: OwidGdocErrorMessage[]) => null
-}
-
-abstract class AbstractHandler<T extends OwidGdoc = OwidGdoc>
-    implements Handler<T>
-{
-    #nextHandler: Handler<T> | null = null
-
-    setNext(handler: Handler<T>) {
-        this.#nextHandler = handler
-        return handler
-    }
-
-    handle(gdoc: T, messages: OwidGdocErrorMessage[]) {
-        if (this.#nextHandler) return this.#nextHandler.handle(gdoc, messages)
-        return null
+function validateTitle(gdoc: OwidGdoc, errors: OwidGdocErrorMessage[]) {
+    if (!gdoc.content.title) {
+        errors.push(getMissingContentPropertyError("title"))
     }
 }
 
-class BodyHandler extends AbstractHandler {
-    handle(gdoc: OwidGdoc, messages: OwidGdocErrorMessage[]) {
-        const { body } = gdoc.content
-        if (!body) {
-            messages.push(getMissingContentPropertyError("body"))
-        } else {
-            for (const block of body) {
-                traverseEnrichedBlocks(block, (block) => {
-                    messages.push(
-                        ...block.parseErrors.map((parseError) => ({
-                            message: parseError.message,
-                            type: parseError.isWarning
-                                ? OwidGdocErrorMessageType.Warning
-                                : OwidGdocErrorMessageType.Error,
-                            property: "body" as const,
-                        }))
-                    )
+function validatePublishedAt(gdoc: OwidGdoc, errors: OwidGdocErrorMessage[]) {
+    if (!gdoc.publishedAt) {
+        errors.push({
+            property: "publishedAt",
+            type: OwidGdocErrorMessageType.Warning,
+            message: `The publication date will be set to the current date on publishing.`,
+        })
+    }
+}
+
+function validateSlug(gdoc: OwidGdoc, errors: OwidGdocErrorMessage[]) {
+    if (!gdoc.slug.match(/^[a-z0-9-\/]+$/)) {
+        errors.push({
+            property: "slug",
+            type: OwidGdocErrorMessageType.Error,
+            message: `Slug must only contain lowercase letters, numbers and hyphens. Double underscores are interpreted as slashes.`,
+        })
+    }
+}
+
+function validateContentType(gdoc: OwidGdoc, errors: OwidGdocErrorMessage[]) {
+    if (!gdoc.content.type || !checkIsOwidGdocType(gdoc.content.type)) {
+        errors.push({
+            property: "content",
+            message: `Invalid or unset document type. Must be one-of: ${Object.values(
+                OwidGdocType
+            ).join(", ")}`,
+            type: OwidGdocErrorMessageType.Error,
+        })
+    }
+}
+
+function validateBody(gdoc: OwidGdoc, errors: OwidGdocErrorMessage[]) {
+    if (!gdoc.content.body) {
+        errors.push(getMissingContentPropertyError("body"))
+    } else {
+        for (const block of gdoc.content.body) {
+            traverseEnrichedBlocks(block, (block) => {
+                errors.push(
+                    ...block.parseErrors.map((parseError) => ({
+                        message: parseError.message,
+                        type: parseError.isWarning
+                            ? OwidGdocErrorMessageType.Warning
+                            : OwidGdocErrorMessageType.Error,
+                        property: "body" as const,
+                    }))
+                )
+            })
+        }
+    }
+}
+
+function validateRefs(
+    gdoc: OwidGdocPostInterface,
+    errors: OwidGdocErrorMessage[]
+) {
+    if (gdoc.content.refs) {
+        // Errors due to refs being unused / undefined / malformed
+        if (gdoc.content.refs.errors.length) {
+            errors.push(...gdoc.content.refs.errors)
+        }
+        // Errors due to the content of the refs having parse errors
+        if (gdoc.content.refs.definitions) {
+            Object.values(gdoc.content.refs.definitions).map((definition) => {
+                definition.content.map((block) => {
+                    traverseEnrichedBlocks(block, (node) => {
+                        if (node.parseErrors.length) {
+                            for (const parseError of node.parseErrors) {
+                                errors.push({
+                                    message: `Parse error in "${definition.id}" ref content: ${parseError.message}`,
+                                    property: "refs",
+                                    type: parseError.isWarning
+                                        ? OwidGdocErrorMessageType.Warning
+                                        : OwidGdocErrorMessageType.Error,
+                                })
+                            }
+                        }
+                    })
+                })
+            })
+        }
+    }
+}
+
+// Kind of arbitrary, see https://github.com/owid/owid-grapher/issues/2983
+export const EXCERPT_MAX_LENGTH = 175
+
+function validateExcerpt(
+    gdoc: OwidGdocPostInterface,
+    errors: OwidGdocErrorMessage[]
+) {
+    if (!gdoc.content.excerpt) {
+        errors.push(getMissingContentPropertyError("excerpt"))
+    } else if (gdoc.content.excerpt.length > EXCERPT_MAX_LENGTH) {
+        errors.push({
+            property: "excerpt",
+            type: OwidGdocErrorMessageType.Warning,
+            message: `Long excerpts may not display well in our list of articles or on social media.`,
+        })
+    }
+}
+
+function validateBreadcrumbs(
+    gdoc: OwidGdocPostInterface,
+    errors: OwidGdocErrorMessage[]
+) {
+    if (gdoc.breadcrumbs) {
+        for (const [i, breadcrumb] of gdoc.breadcrumbs.entries()) {
+            if (!breadcrumb.label) {
+                errors.push({
+                    property: `breadcrumbs[${i}].label`,
+                    type: OwidGdocErrorMessageType.Error,
+                    message: `Breadcrumb must have a label`,
+                })
+            }
+
+            // Last item can be missing a href
+            if (!breadcrumb.href && i !== gdoc.breadcrumbs.length - 1) {
+                errors.push({
+                    property: `breadcrumbs[${i}].href`,
+                    type: OwidGdocErrorMessageType.Error,
+                    message: `Breadcrumb must have a url`,
+                })
+            }
+            if (breadcrumb.href && !breadcrumb.href.startsWith("/")) {
+                errors.push({
+                    property: `breadcrumbs[${i}].href`,
+                    type: OwidGdocErrorMessageType.Error,
+                    message: `Breadcrumb url must start with a /`,
                 })
             }
         }
-
-        return super.handle(gdoc, messages)
     }
 }
 
-class TitleHandler extends AbstractHandler {
-    handle(gdoc: OwidGdoc, messages: OwidGdocErrorMessage[]) {
-        const { title } = gdoc.content
-        if (!title) {
-            messages.push(getMissingContentPropertyError("title"))
-        }
-
-        return super.handle(gdoc, messages)
+function validateApprovedBy(
+    gdoc: OwidGdocDataInsightInterface,
+    errors: OwidGdocErrorMessage[]
+) {
+    if (!gdoc.content.approvedBy) {
+        errors.push({
+            property: "approvedBy",
+            type: OwidGdocErrorMessageType.Error,
+            message: `This data insight hasn't been approved by anyone yet. Please have someone approve it and add "approvedBy: their name" to the front-matter.`,
+        })
     }
 }
 
-class RSSFieldsHandler extends AbstractHandler<OwidGdocPostInterface> {
-    handle(gdoc: OwidGdocPostInterface, messages: OwidGdocErrorMessage[]) {
-        const rssTitle = gdoc.content["atom-title"]
-        const rssExcerpt = gdoc.content["atom-excerpt"]
-
-        if (rssTitle && typeof rssTitle !== "string") {
-            messages.push({
-                property: "atom-title",
-                message: "atom-title must be a string",
-                type: OwidGdocErrorMessageType.Error,
-            })
-        }
-
-        if (rssExcerpt && typeof rssExcerpt !== "string") {
-            messages.push({
-                property: "atom-excerpt",
-                message: "atom-excerpt must be a string",
-                type: OwidGdocErrorMessageType.Error,
-            })
-        }
-
-        return super.handle(gdoc, messages)
+function validateGrapherSlug(
+    gdoc: OwidGdocDataInsightInterface,
+    errors: OwidGdocErrorMessage[]
+) {
+    if (!gdoc.content.grapherSlug) {
+        errors.push({
+            property: "grapherSlug",
+            type: OwidGdocErrorMessageType.Warning,
+            message: `Missing grapherSlug. This isn't required, but if you're referencing a grapher, it's a good idea to add it so that we can link it to this data insight in the future. Include country selections, if applicable.`,
+        })
     }
 }
 
-class SlugHandler extends AbstractHandler {
-    handle(gdoc: OwidGdocPostInterface, messages: OwidGdocErrorMessage[]) {
-        const { slug } = gdoc
-        // !slug would be invalid, but we call setSlugSyncing(true) in GdocsSlug.tsx if that happens
-        if (slug && !slug.match(/^[a-z0-9-\/]+$/)) {
-            messages.push({
-                property: "slug",
-                type: OwidGdocErrorMessageType.Error,
-                message: `Slug must only contain lowercase letters, numbers and hyphens. Double underscores are interpreted as slashes.`,
-            })
-        }
+function validateAtomFields(
+    gdoc: OwidGdocPostInterface,
+    errors: OwidGdocErrorMessage[]
+) {
+    const rssTitle = gdoc.content["atom-title"]
+    const rssExcerpt = gdoc.content["atom-excerpt"]
 
-        return super.handle(gdoc, messages)
+    if (rssTitle && typeof rssTitle !== "string") {
+        errors.push({
+            property: "atom-title",
+            message: "atom-title must be a string",
+            type: OwidGdocErrorMessageType.Error,
+        })
+    }
+
+    if (rssExcerpt && typeof rssExcerpt !== "string") {
+        errors.push({
+            property: "atom-excerpt",
+            message: "atom-excerpt must be a string",
+            type: OwidGdocErrorMessageType.Error,
+        })
     }
 }
 
-class PublishedAtHandler extends AbstractHandler {
-    handle(gdoc: OwidGdocPostInterface, messages: OwidGdocErrorMessage[]) {
-        const { publishedAt } = gdoc
-        if (!publishedAt) {
-            messages.push({
-                property: "publishedAt",
-                type: OwidGdocErrorMessageType.Warning,
-                message: `The publication date will be set to the current date on publishing.`,
-            })
-        }
-
-        return super.handle(gdoc, messages)
-    }
-}
-
-class BreadcrumbsHandler extends AbstractHandler {
-    handle(gdoc: OwidGdocPostInterface, messages: OwidGdocErrorMessage[]) {
-        const { breadcrumbs } = gdoc
-
-        if (breadcrumbs) {
-            for (const [i, breadcrumb] of breadcrumbs.entries()) {
-                if (!breadcrumb.label) {
-                    messages.push({
-                        property: `breadcrumbs[${i}].label`,
-                        type: OwidGdocErrorMessageType.Error,
-                        message: `Breadcrumb must have a label`,
-                    })
-                }
-
-                // Last item can be missing a href
-                if (!breadcrumb.href && i !== breadcrumbs.length - 1) {
-                    messages.push({
-                        property: `breadcrumbs[${i}].href`,
-                        type: OwidGdocErrorMessageType.Error,
-                        message: `Breadcrumb must have a url`,
-                    })
-                }
-                if (breadcrumb.href && !breadcrumb.href.startsWith("/")) {
-                    messages.push({
-                        property: `breadcrumbs[${i}].href`,
-                        type: OwidGdocErrorMessageType.Error,
-                        message: `Breadcrumb url must start with a /`,
-                    })
-                }
-            }
-        }
-
-        return super.handle(gdoc, messages)
-    }
-}
-
-export class ExcerptHandler extends AbstractHandler {
-    static maxLength = 150
-    handle(gdoc: OwidGdocPostInterface, messages: OwidGdocErrorMessage[]) {
-        const { excerpt } = gdoc.content
-        if (!excerpt) {
-            messages.push(getMissingContentPropertyError("excerpt"))
-        } else if (excerpt.length > ExcerptHandler.maxLength) {
-            messages.push({
-                property: "excerpt",
-                type: OwidGdocErrorMessageType.Warning,
-                message: `Long excerpts may not display well in our list of articles or on social media.`,
-            })
-        }
-
-        return super.handle(gdoc, messages)
-    }
-}
-
-export class AttachmentsHandler extends AbstractHandler {
-    handle(gdoc: OwidGdocPostInterface, messages: OwidGdocErrorMessage[]) {
-        // These errors come from the server and we can't currently easily match them to their origin
-        // So instead we just render them all on the settings drawer
-        gdoc.errors?.forEach((error) => messages.push(error))
-        return super.handle(gdoc, messages)
-    }
-}
-
-export class DocumentTypeHandler extends AbstractHandler {
-    handle(gdoc: OwidGdocPostInterface, messages: OwidGdocErrorMessage[]) {
-        if (!gdoc.content.type || !checkIsOwidGdocType(gdoc.content.type)) {
-            messages.push({
-                property: "content",
-                message: `Invalid or unset document type. Must be one-of: ${Object.values(
-                    OwidGdocType
-                ).join(", ")}`,
-                type: OwidGdocErrorMessageType.Error,
-            })
-        }
-        return super.handle(gdoc, messages)
-    }
-}
-
-export class RefsHandler extends AbstractHandler {
-    handle(gdoc: OwidGdocPostInterface, messages: OwidGdocErrorMessage[]) {
-        if (gdoc.content.refs) {
-            // Errors due to refs being unused / undefined / malformed
-            if (gdoc.content.refs.errors.length) {
-                messages.push(...gdoc.content.refs.errors)
-            }
-            // Errors due to the content of the refs having parse errors
-            if (gdoc.content.refs.definitions) {
-                Object.values(gdoc.content.refs.definitions).map(
-                    (definition) => {
-                        definition.content.map((block) => {
-                            traverseEnrichedBlocks(block, (node) => {
-                                if (node.parseErrors.length) {
-                                    for (const parseError of node.parseErrors) {
-                                        messages.push({
-                                            message: `Parse error in "${definition.id}" ref content: ${parseError.message}`,
-                                            property: "refs",
-                                            type: parseError.isWarning
-                                                ? OwidGdocErrorMessageType.Warning
-                                                : OwidGdocErrorMessageType.Error,
-                                        })
-                                    }
-                                }
-                            })
-                        })
-                    }
-                )
-            }
-        }
-
-        return super.handle(gdoc, messages)
-    }
-}
-
-// #gdocsvalidation Errors prevent saving published articles. Errors are only
-// raised in front-end admin code at the moment (search for
-// #gdocsvalidationclient in codebase), but should ultimately be performed in
-// server code too (see #gdocsvalidationserver). The checks performed here
-// should match the list of required fields in OwidGdocPublished and
-// OwidGdocPostContentPublished types, so that gdocs coming from the DB effectively
-// honor the type cast (and subsequent assumptions) in getPublishedGdocs()
 export const getErrors = (gdoc: OwidGdoc): OwidGdocErrorMessage[] => {
     const errors: OwidGdocErrorMessage[] = []
 
-    const bodyHandler = new BodyHandler()
+    // These errors come from attachments; see GdocBase.validate()
+    gdoc.errors?.forEach((error) => errors.push(error))
 
-    bodyHandler
-        .setNext(new TitleHandler())
-        .setNext(new RSSFieldsHandler())
-        .setNext(new SlugHandler())
-        .setNext(new PublishedAtHandler())
-        .setNext(new BreadcrumbsHandler())
-        .setNext(new ExcerptHandler())
-        .setNext(new AttachmentsHandler())
-        .setNext(new DocumentTypeHandler())
-        .setNext(new RefsHandler())
+    validateTitle(gdoc, errors)
+    validateSlug(gdoc, errors)
+    validateBody(gdoc, errors)
+    validatePublishedAt(gdoc, errors)
+    validateContentType(gdoc, errors)
 
-    bodyHandler.handle(gdoc, errors)
+    if (checkIsGdocPost(gdoc)) {
+        validateRefs(gdoc, errors)
+        validateExcerpt(gdoc, errors)
+        validateBreadcrumbs(gdoc, errors)
+        validateAtomFields(gdoc, errors)
+    }
+
+    if (checkIsDataInsight(gdoc)) {
+        validateApprovedBy(gdoc, errors)
+        validateGrapherSlug(gdoc, errors)
+    }
 
     return errors
 }

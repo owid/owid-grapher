@@ -7,7 +7,7 @@ import {
     faBug,
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { OwidGdoc, OwidGdocPostInterface } from "@ourworldindata/utils"
+import { OwidGdoc } from "@ourworldindata/utils"
 
 enum GdocsMoreMenuAction {
     Debug = "debug",
