@@ -9,6 +9,7 @@ import { GdocsDiff } from "./GdocsDiff.js"
 import {
     OwidGdocPostInterface,
     OwidGdocErrorMessage,
+    OwidGdoc,
 } from "@ourworldindata/utils"
 
 export const GdocsSaveButtons = ({
@@ -24,8 +25,8 @@ export const GdocsSaveButtons = ({
     saveDraft,
 }: {
     published: boolean
-    originalGdoc: OwidGdocPostInterface | undefined
-    currentGdoc: OwidGdocPostInterface
+    originalGdoc: OwidGdoc | undefined
+    currentGdoc: OwidGdoc
     errors: OwidGdocErrorMessage[] | undefined
     hasErrors: boolean
     hasWarnings: boolean

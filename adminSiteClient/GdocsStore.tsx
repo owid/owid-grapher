@@ -6,6 +6,7 @@ import {
     OwidGdocPostInterface,
     OwidGdocJSON,
     Tag,
+    OwidGdoc,
 } from "@ourworldindata/utils"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { Admin } from "./Admin.js"
@@ -18,7 +19,7 @@ import { Admin } from "./Admin.js"
  * Today, this store acts as CRUD proxy for requests to API endpoints.
  */
 export class GdocsStore {
-    @observable gdocs: OwidGdocPostInterface[] = []
+    @observable gdocs: OwidGdoc[] = []
     @observable availableTags: Tag[] = []
     admin: Admin
 
@@ -32,7 +33,7 @@ export class GdocsStore {
     }
 
     @action
-    async update(gdoc: OwidGdocPostInterface): Promise<OwidGdocPostInterface> {
+    async update(gdoc: OwidGdoc): Promise<OwidGdoc> {
         return this.admin
             .requestJSON<OwidGdocJSON>(
                 `/api/gdocs/${gdoc.id}`,
@@ -46,15 +47,13 @@ export class GdocsStore {
     }
 
     @action
-    async publish(gdoc: OwidGdocPostInterface): Promise<OwidGdocPostInterface> {
+    async publish(gdoc: OwidGdoc): Promise<OwidGdoc> {
         const publishedGdoc = await this.update({ ...gdoc, published: true })
         return publishedGdoc
     }
 
     @action
-    async unpublish(
-        gdoc: OwidGdocPostInterface
-    ): Promise<OwidGdocPostInterface> {
+    async unpublish(gdoc: OwidGdoc): Promise<OwidGdoc> {
         const unpublishedGdoc = await this.update({
             ...gdoc,
             publishedAt: null,
@@ -65,15 +64,13 @@ export class GdocsStore {
     }
 
     @action
-    async delete(gdoc: OwidGdocPostInterface) {
+    async delete(gdoc: OwidGdoc) {
         await this.admin.requestJSON(`/api/gdocs/${gdoc.id}`, {}, "DELETE")
     }
 
     @action
     async fetchGdocs() {
-        const gdocs = (await this.admin.getJSON(
-            "/api/gdocs"
-        )) as OwidGdocPostInterface[]
+        const gdocs = (await this.admin.getJSON("/api/gdocs")) as OwidGdoc[]
         this.gdocs = gdocs
     }
 
@@ -84,7 +81,7 @@ export class GdocsStore {
     }
 
     @action
-    async updateTags(gdoc: OwidGdocPostInterface, tags: Tag[]) {
+    async updateTags(gdoc: OwidGdoc, tags: Tag[]) {
         const json = await this.admin.requestJSON(
             `/api/gdocs/${gdoc.id}/setTags`,
             { tagIds: tags.map((t) => t.id) },

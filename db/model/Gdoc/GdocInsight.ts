@@ -2,16 +2,20 @@ import { Entity, Column } from "typeorm"
 import {
     OwidGdocErrorMessage,
     OwidGdocErrorMessageType,
-    OwidInsightContent,
-    OwidGdocInsightInterface,
+    OwidGdocDataInsightContent,
+    OwidGdocDataInsightInterface,
     OwidGdocPostInterface,
 } from "@ourworldindata/utils"
 import { GdocBase } from "./GdocBase.js"
 
 @Entity("posts_gdocs")
-export class OwidInsight extends GdocBase implements OwidGdocInsightInterface {
+export class OwidInsight
+    extends GdocBase
+    implements OwidGdocDataInsightInterface
+{
     static table = "posts_gdocs"
-    @Column({ default: "{}", type: "json" }) content!: OwidInsightContent
+    @Column({ default: "{}", type: "json" })
+    content!: OwidGdocDataInsightContent
 
     constructor(id?: string) {
         super()

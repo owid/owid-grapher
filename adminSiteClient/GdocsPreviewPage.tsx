@@ -7,21 +7,23 @@ import React, {
 } from "react"
 import { AdminLayout } from "./AdminLayout.js"
 import { GdocsMatchProps } from "./GdocsIndexPage.js"
-import { GdocsSettingsForm } from "./GdocsSettingsForm.js"
+import { GdocPostSettings } from "./GdocsSettingsForms.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import {
     checkIsPlainObjectWithGuard,
     GdocsContentSource,
     getOwidGdocFromJSON,
-    OwidGdocPostInterface,
     OwidGdocJSON,
     OwidGdocErrorMessage,
     OwidGdocErrorMessageType,
     slugify,
+    OwidGdocType,
+    OwidGdoc,
 } from "@ourworldindata/utils"
 import { Button, Col, Drawer, Row, Space, Tag, Typography } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faGear, faAngleLeft } from "@fortawesome/free-solid-svg-icons"
+import { match as tsMatch, P } from "ts-pattern"
 
 import { getErrors } from "./gdocsValidation.js"
 import { GdocsSaveButtons } from "./GdocsSaveButtons.js"
@@ -37,15 +39,13 @@ import { GdocsDiff } from "./GdocsDiff.js"
 export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     const { id } = match.params
     const [gdoc, setGdoc] = useState<{
-        original?: OwidGdocPostInterface
-        current?: OwidGdocPostInterface
+        original?: OwidGdoc
+        current?: OwidGdoc
     }>({ original: undefined, current: undefined })
     const originalGdoc = gdoc.original
     const currentGdoc = gdoc.current
     const setCurrentGdoc = (
-        updater: (
-            current: OwidGdocPostInterface | undefined
-        ) => OwidGdocPostInterface | undefined
+        updater: (current: OwidGdoc | undefined) => OwidGdoc | undefined
     ) => {
         setGdoc(({ original, current }) => ({
             original,
@@ -273,13 +273,52 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                         </Button>
                     }
                 >
-                    <GdocsSettingsForm
-                        gdoc={currentGdoc}
-                        setCurrentGdoc={(updatedGdoc) =>
-                            setCurrentGdoc(() => updatedGdoc)
-                        }
-                        errors={errors}
-                    />
+                    {tsMatch(currentGdoc)
+                        .with(
+                            {
+                                content: {
+                                    type: P.union(
+                                        OwidGdocType.Article,
+                                        OwidGdocType.TopicPage,
+                                        OwidGdocType.LinearTopicPage
+                                    ),
+                                },
+                            },
+                            (gdoc) => (
+                                <GdocPostSettings
+                                    gdoc={gdoc}
+                                    setCurrentGdoc={(updatedGdoc) =>
+                                        setCurrentGdoc(() => updatedGdoc)
+                                    }
+                                    errors={errors}
+                                />
+                            )
+                        )
+                        .with(
+                            {
+                                content: {
+                                    type: OwidGdocType.Fragment,
+                                },
+                            },
+                            () => null
+                        )
+                        .with(
+                            {
+                                content: {
+                                    type: OwidGdocType.DataInsight,
+                                },
+                            },
+                            () => null
+                        )
+                        .with(
+                            {
+                                content: {
+                                    type: undefined,
+                                },
+                            },
+                            () => null
+                        )
+                        .exhaustive()}
                 </Drawer>
                 <Drawer
                     placement="bottom"

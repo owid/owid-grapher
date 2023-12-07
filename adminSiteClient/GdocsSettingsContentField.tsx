@@ -2,9 +2,11 @@ import React from "react"
 import { Input, InputProps } from "antd"
 import {
     OwidGdocPostInterface,
-    OwidGdocPostContent,
     OwidGdocErrorMessage,
     OwidGdocErrorMessageType,
+    OwidGdocDataInsightInterface,
+    OwidGdocErrorMessageProperty,
+    get,
 } from "@ourworldindata/utils"
 import { GdocsEditLink } from "./GdocsEditLink.js"
 import { GdocsErrorHelp } from "./GdocsErrorHelp.js"
@@ -19,13 +21,9 @@ export const GdocsSettingsContentField = ({
     errors,
     description,
 }: {
-    gdoc: OwidGdocPostInterface
-    property: keyof OwidGdocPostContent
-    render?: ({
-        name,
-        value,
-        errorType,
-    }: {
+    gdoc: OwidGdocPostInterface | OwidGdocDataInsightInterface
+    property: OwidGdocErrorMessageProperty
+    render?: (props: {
         name: string
         value: string
         errorType?: OwidGdocErrorMessageType
@@ -34,7 +32,7 @@ export const GdocsSettingsContentField = ({
     description?: string
 }) => {
     const error = getPropertyMostCriticalError(property, errors)
-
+    const value = get(gdoc, property)
     return (
         <div className="form-group">
             <label htmlFor={property}>
@@ -44,7 +42,7 @@ export const GdocsSettingsContentField = ({
                 <GdocsEditLink gdocId={gdoc.id} />
                 {render({
                     name: property,
-                    value: gdoc.content[property] as string,
+                    value,
                     errorType: error?.type,
                 })}
             </div>

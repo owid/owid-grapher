@@ -100,7 +100,6 @@ export {
     KeyChartLevel,
     type KeyInsight,
     type KeyValueProps,
-    type OwidGdocPostContent,
     type LinkedChart,
     OwidGdocPublicationContext,
     type OwidGdocErrorMessageProperty,
@@ -108,9 +107,11 @@ export {
     OwidGdocErrorMessageType,
     type OwidGdocLinkJSON,
     type OwidGdocBaseInterface,
+    type OwidGdocPostContent,
     type OwidGdocPostInterface,
-    type OwidGdocInsightInterface,
-    type OwidInsightContent,
+    type OwidGdocDataInsightContent,
+    type OwidGdocDataInsightInterface,
+    type OwidGdoc,
     type Tag,
     OwidGdocType,
     type OwidGdocStickyNavItem,
@@ -357,6 +358,8 @@ export {
     traverseEnrichedSpan,
     mergePartialGrapherConfigs,
     copyToClipboard,
+    checkIsGdocPost,
+    checkIsDataInsight,
 } from "./Util.js"
 
 export {

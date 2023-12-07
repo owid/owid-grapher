@@ -4,6 +4,7 @@ import {
     OwidGdocPostInterface,
     slugify,
     OwidGdocErrorMessage,
+    OwidGdocDataInsightInterface,
 } from "@ourworldindata/utils"
 import { Help } from "./Forms.js"
 import { getPropertyMostCriticalError } from "./gdocsValidation.js"
@@ -13,8 +14,10 @@ export const GdocsSlug = ({
     setCurrentGdoc,
     errors,
 }: {
-    gdoc: OwidGdocPostInterface
-    setCurrentGdoc: (gdoc: OwidGdocPostInterface) => void
+    gdoc: OwidGdocPostInterface | OwidGdocDataInsightInterface
+    setCurrentGdoc:
+        | ((gdoc: OwidGdocPostInterface) => void)
+        | ((gdoc: OwidGdocDataInsightInterface) => void)
     errors?: OwidGdocErrorMessage[]
 }) => {
     const [isSlugSyncing, setSlugSyncing] = useState(false)
@@ -37,7 +40,7 @@ export const GdocsSlug = ({
     }, [slug])
 
     const setSlug = (slug: string) => {
-        setCurrentGdoc({ ...gdoc, slug })
+        setCurrentGdoc({ ...gdoc, slug } as any)
     }
 
     useEffect(() => {

@@ -4,6 +4,8 @@ import React from "react"
 /**
  * We would like to handle Fragments better in the future
  * For now, we're just displaying them as JSON
+ * When we get around to that, we should render them via the admin, because style bleed isn't so important and we don't
+ * want to add extra JS/CSS to the common bundle
  */
 export function Fragment(props: OwidGdocPostInterface): JSX.Element {
     return (

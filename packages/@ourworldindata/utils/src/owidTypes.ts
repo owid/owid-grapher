@@ -1374,7 +1374,7 @@ export interface OwidGdocPostInterface extends OwidGdocBaseInterface {
     tags?: Tag[]
 }
 
-export interface OwidInsightContent {
+export interface OwidGdocDataInsightContent {
     title: string
     authors: string[]
     grapherSlug?: string
@@ -1383,11 +1383,13 @@ export interface OwidInsightContent {
     type: OwidGdocType.DataInsight
 }
 
-export interface OwidGdocInsightInterface extends OwidGdocBaseInterface {
-    content: OwidInsightContent
+export interface OwidGdocDataInsightInterface extends OwidGdocBaseInterface {
+    content: OwidGdocDataInsightContent
     linkedDocuments?: Record<string, OwidGdocPostInterface>
     tags?: Tag[]
 }
+
+export type OwidGdoc = OwidGdocPostInterface | OwidGdocDataInsightInterface
 
 export enum OwidGdocErrorMessageType {
     Error = "error",
@@ -1397,7 +1399,8 @@ export enum OwidGdocErrorMessageType {
 export type OwidGdocProperty =
     | keyof OwidGdocPostInterface
     | keyof OwidGdocPostContent
-    | keyof OwidInsightContent
+    | keyof OwidGdocDataInsightInterface
+    | keyof OwidGdocDataInsightContent
 export type OwidGdocErrorMessageProperty =
     | OwidGdocProperty
     | `${OwidGdocProperty}${string}` // also allows for nesting, like `breadcrumbs[0].label`

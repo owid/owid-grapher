@@ -1,4 +1,5 @@
 import {
+    OwidGdoc,
     OwidGdocPostContent,
     OwidGdocPostInterface,
     isEqual,
@@ -113,10 +114,7 @@ export const checkIsLightningUpdate = (
     )
 }
 
-export const checkHasChanges = (
-    prevGdoc: OwidGdocPostInterface,
-    nextGdoc: OwidGdocPostInterface
-) =>
+export const checkHasChanges = (prevGdoc: OwidGdoc, nextGdoc: OwidGdoc) =>
     !isEqual(
         omit(
             {

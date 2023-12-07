@@ -165,6 +165,7 @@ import {
     EnrichedBlockKeyInsightsSlide,
     UserCountryInformation,
     SpanLink,
+    OwidGdocDataInsightInterface,
 } from "./owidTypes.js"
 import { PointVector } from "./PointVector.js"
 import React from "react"
@@ -1762,5 +1763,28 @@ export const detailOnDemandRegex = /#dod:([\w\-_]+)/
 export function extractDetailsFromSyntax(str: string): string[] {
     return [...str.matchAll(new RegExp(detailOnDemandRegex, "g"))].map(
         ([_, term]) => term
+    )
+}
+
+export function checkIsGdocPost(x: unknown): x is OwidGdocPostInterface {
+    return (
+        isObject(x) &&
+        "type" in x &&
+        [
+            OwidGdocType.Article,
+            OwidGdocType.TopicPage,
+            OwidGdocType.LinearTopicPage,
+            OwidGdocType.Fragment,
+        ].includes(x.type as OwidGdocType)
+    )
+}
+
+export function checkIsDataInsight(
+    x: unknown
+): x is OwidGdocDataInsightInterface {
+    return (
+        isObject(x) &&
+        "type" in x &&
+        [OwidGdocType.DataInsight].includes(x.type as OwidGdocType)
     )
 }

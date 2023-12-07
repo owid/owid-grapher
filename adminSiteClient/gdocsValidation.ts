@@ -7,32 +7,33 @@ import {
     checkIsOwidGdocType,
     traverseEnrichedBlocks,
     OwidGdocErrorMessageProperty,
+    OwidGdoc,
+    checkIsGdocPost,
 } from "@ourworldindata/utils"
 
-interface Handler {
-    setNext: (handler: Handler) => Handler
-    handle: (
-        gdoc: OwidGdocPostInterface,
-        messages: OwidGdocErrorMessage[]
-    ) => null
+type Handler<T extends OwidGdoc = OwidGdoc> = {
+    setNext: (handler: Handler<T>) => Handler<T>
+    handle: (gdoc: T, messages: OwidGdocErrorMessage[]) => null
 }
 
-abstract class AbstractHandler implements Handler {
-    #nextHandler: Handler | null = null
+abstract class AbstractHandler<T extends OwidGdoc = OwidGdoc>
+    implements Handler<T>
+{
+    #nextHandler: Handler<T> | null = null
 
-    setNext(handler: Handler) {
+    setNext(handler: Handler<T>) {
         this.#nextHandler = handler
         return handler
     }
 
-    handle(gdoc: OwidGdocPostInterface, messages: OwidGdocErrorMessage[]) {
+    handle(gdoc: T, messages: OwidGdocErrorMessage[]) {
         if (this.#nextHandler) return this.#nextHandler.handle(gdoc, messages)
         return null
     }
 }
 
 class BodyHandler extends AbstractHandler {
-    handle(gdoc: OwidGdocPostInterface, messages: OwidGdocErrorMessage[]) {
+    handle(gdoc: OwidGdoc, messages: OwidGdocErrorMessage[]) {
         const { body } = gdoc.content
         if (!body) {
             messages.push(getMissingContentPropertyError("body"))
@@ -57,7 +58,7 @@ class BodyHandler extends AbstractHandler {
 }
 
 class TitleHandler extends AbstractHandler {
-    handle(gdoc: OwidGdocPostInterface, messages: OwidGdocErrorMessage[]) {
+    handle(gdoc: OwidGdoc, messages: OwidGdocErrorMessage[]) {
         const { title } = gdoc.content
         if (!title) {
             messages.push(getMissingContentPropertyError("title"))
@@ -67,7 +68,7 @@ class TitleHandler extends AbstractHandler {
     }
 }
 
-class RSSFieldsHandler extends AbstractHandler {
+class RSSFieldsHandler extends AbstractHandler<OwidGdocPostInterface> {
     handle(gdoc: OwidGdocPostInterface, messages: OwidGdocErrorMessage[]) {
         const rssTitle = gdoc.content["atom-title"]
         const rssExcerpt = gdoc.content["atom-excerpt"]
@@ -243,9 +244,7 @@ export class RefsHandler extends AbstractHandler {
 // should match the list of required fields in OwidGdocPublished and
 // OwidGdocPostContentPublished types, so that gdocs coming from the DB effectively
 // honor the type cast (and subsequent assumptions) in getPublishedGdocs()
-export const getErrors = (
-    gdoc: OwidGdocPostInterface
-): OwidGdocErrorMessage[] => {
+export const getErrors = (gdoc: OwidGdoc): OwidGdocErrorMessage[] => {
     const errors: OwidGdocErrorMessage[] = []
 
     const bodyHandler = new BodyHandler()

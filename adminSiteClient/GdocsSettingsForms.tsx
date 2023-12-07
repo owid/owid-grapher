@@ -2,6 +2,7 @@ import React from "react"
 import {
     OwidGdocPostInterface,
     OwidGdocErrorMessage,
+    OwidGdocDataInsightInterface,
 } from "@ourworldindata/utils"
 import { ExcerptHandler } from "./gdocsValidation.js"
 import { GdocsSlug } from "./GdocsSlug.js"
@@ -9,12 +10,12 @@ import {
     GdocsSettingsContentField,
     GdocsSettingsTextArea,
 } from "./GdocsSettingsContentField.js"
-import { GdocsDateline } from "./GdocsDateline.js"
+import { GdocsPublishedAt } from "./GdocsDateline.js"
 import { GdocsPublicationContext } from "./GdocsPublicationContext.js"
-import { Alert } from "antd"
+import { Alert, Col, Row } from "antd"
 import { GdocsBreadcrumbsInput } from "./GdocsBreadcrumbsInput.js"
 
-export const GdocsSettingsForm = ({
+export const GdocPostSettings = ({
     gdoc,
     setCurrentGdoc,
     errors,
@@ -94,11 +95,20 @@ export const GdocsSettingsForm = ({
                 errors={errors}
             />
             <div className="form-group">
-                <GdocsDateline
-                    gdoc={gdoc}
-                    setCurrentGdoc={setCurrentGdoc}
-                    errors={errors}
-                />
+                <Row gutter={24}>
+                    <Col span={16}>
+                        <GdocsSettingsContentField
+                            property="dateline"
+                            gdoc={gdoc}
+                            errors={errors}
+                        />
+                    </Col>
+                    <GdocsPublishedAt
+                        gdoc={gdoc}
+                        setCurrentGdoc={setCurrentGdoc}
+                        errors={errors}
+                    />
+                </Row>
             </div>
             <div className="form-group">
                 <GdocsPublicationContext
@@ -123,6 +133,68 @@ export const GdocsSettingsForm = ({
                 errors={errors}
                 setCurrentGdoc={setCurrentGdoc}
             />
+        </form>
+    ) : null
+}
+
+export const GdocsInsightSettings = ({
+    gdoc,
+    setCurrentGdoc,
+    errors,
+}: {
+    gdoc: OwidGdocDataInsightInterface
+    setCurrentGdoc: (gdoc: OwidGdocDataInsightInterface) => void
+    errors?: OwidGdocErrorMessage[]
+}) => {
+    // Show errors at the top of the drawer for errors that don't have specific fields
+    const errorsToShowInDrawer = (errors || []).filter(
+        ({ property }) => !["title", "excerpt", "authors"].includes(property)
+    )
+
+    return gdoc ? (
+        <form className="GdocsSettingsForm">
+            {errorsToShowInDrawer.length ? (
+                <div className="form-group">
+                    {errorsToShowInDrawer.map((error) => (
+                        <Alert
+                            message={error.message}
+                            type={error.type}
+                            key={error.message}
+                            className="GdocsSettingsForm__alert"
+                            showIcon
+                        />
+                    ))}
+                </div>
+            ) : null}
+            <GdocsSettingsContentField
+                property="title"
+                gdoc={gdoc}
+                errors={errors}
+            />
+            <GdocsSettingsContentField
+                property="approvedBy"
+                gdoc={gdoc}
+                errors={errors}
+            />
+            <div className="form-group">
+                <GdocsSlug
+                    gdoc={gdoc}
+                    setCurrentGdoc={setCurrentGdoc}
+                    errors={errors}
+                />
+            </div>
+            <GdocsSettingsContentField
+                property="authors"
+                gdoc={gdoc}
+                errors={errors}
+            />
+            <div className="form-group">
+                <GdocsPublishedAt
+                    gdoc={gdoc}
+                    setCurrentGdoc={setCurrentGdoc}
+                    errors={errors}
+                />
+            </div>
         </form>
     ) : null
 }

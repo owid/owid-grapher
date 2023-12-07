@@ -6,7 +6,7 @@ import {
     getOwidGdocFromJSON,
     ImageMetadata,
     RelatedChart,
-    OwidGdocInsightInterface,
+    OwidGdocDataInsightInterface,
     get,
     OwidGdocType,
 } from "@ourworldindata/utils"
@@ -45,7 +45,7 @@ function AdminLinks() {
     )
 }
 
-type OwidGdocProps = (OwidGdocPostInterface | OwidGdocInsightInterface) & {
+type OwidGdocProps = (OwidGdocPostInterface | OwidGdocDataInsightInterface) & {
     isPreviewing?: boolean
 }
 
