@@ -228,6 +228,7 @@ export default function ArticleBlock({
             >
                 <Image
                     filename={block.filename}
+                    smallFilename={block.smallFilename}
                     alt={block.alt}
                     containerType={containerType}
                 />

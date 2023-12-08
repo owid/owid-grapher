@@ -706,6 +706,7 @@ export type RawBlockImage = {
     type: "image"
     value: {
         filename?: string
+        smallFilename?: string
         alt?: string
         caption?: string
         size?: BlockImageSize
@@ -715,6 +716,7 @@ export type RawBlockImage = {
 export type EnrichedBlockImage = {
     type: "image"
     filename: string
+    smallFilename?: string
     alt?: string // optional as we can use the default alt from the file
     caption?: Span[]
     originalWidth?: number

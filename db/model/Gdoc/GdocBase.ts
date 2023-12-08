@@ -96,6 +96,9 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
                         if ("filename" in item && item.filename) {
                             filenames.add(item.filename)
                         }
+                        if (item.type === "image" && item.smallFilename) {
+                            filenames.add(item.smallFilename)
+                        }
                         if (item.type === "prominent-link" && item.thumbnail) {
                             filenames.add(item.thumbnail)
                         }
