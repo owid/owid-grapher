@@ -199,11 +199,10 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
     }
 
     @computed get gitHistoryUrl() {
-        return `https://github.com/${
-            this.context.admin.settings.GITHUB_USERNAME
-        }/owid-datasets/tree/master/datasets/${encodeURIComponent(
-            filenamify(this.props.dataset.name)
-        )}`
+        return `https://github.com/${this.context.admin.settings.GITHUB_USERNAME
+            }/owid-datasets/tree/master/datasets/${encodeURIComponent(
+                filenamify(this.props.dataset.name)
+            )}`
     }
 
     render() {
@@ -350,7 +349,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                     )}
                 <section>
                     <h3>Indicators</h3>
-                    <VariableList variables={dataset.variables} />
+                    <VariableList variables={dataset.variables} fields={[]} />
                 </section>
                 <section>
                     <button

@@ -72,6 +72,7 @@ export class VariablesIndexPage extends React.Component {
                     </FieldsRow>
                     <VariableList
                         variables={variablesToShow}
+                        fields={["namespace", "version", "dataset", "table", "shortName", "uploadedAt"]}
                         searchHighlight={highlight}
                     />
                     {!searchInput && (
