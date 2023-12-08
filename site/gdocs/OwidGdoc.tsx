@@ -72,10 +72,20 @@ export function OwidGdoc({
         .with({ content: { type: OwidGdocType.Fragment } }, (props) => (
             <Fragment {...props} />
         ))
-        .with({ content: { type: undefined } }, () => (
-            <div>Unknown article type</div>
+        .with(P.any, (gdoc) => (
+            <div
+                className="grid grid-cols-12-full-width"
+                style={{ height: 250 }}
+            >
+                <h3 className="span-cols-12 col-start-2">
+                    Unknown article type: "{gdoc.content.type}"
+                </h3>
+                <p className="span-cols-12 col-start-2">
+                    Must be one of: {Object.values(OwidGdocType).join(", ")}
+                </p>
+            </div>
         ))
-        .exhaustive()
+        .run()
 
     return (
         <AttachmentsContext.Provider

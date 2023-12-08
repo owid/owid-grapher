@@ -158,24 +158,24 @@ function validateApprovedBy(
     gdoc: OwidGdocDataInsightInterface,
     errors: OwidGdocErrorMessage[]
 ) {
-    if (!gdoc.content.approvedBy) {
+    if (!gdoc.content["approved-by"]) {
         errors.push({
-            property: "approvedBy",
+            property: "approved-by",
             type: OwidGdocErrorMessageType.Error,
-            message: `This data insight hasn't been approved by anyone yet. Please have someone approve it and add "approvedBy: their name" to the front-matter.`,
+            message: `This data insight hasn't been approved by anyone yet. Please have someone approve it and add "approved-by: their name" to the front-matter.`,
         })
     }
 }
 
-function validateGrapherSlug(
+function validateGrapherUrl(
     gdoc: OwidGdocDataInsightInterface,
     errors: OwidGdocErrorMessage[]
 ) {
-    if (!gdoc.content.grapherSlug) {
+    if (!gdoc.content["grapher-url"]) {
         errors.push({
-            property: "grapherSlug",
+            property: "grapher-url",
             type: OwidGdocErrorMessageType.Warning,
-            message: `Missing grapherSlug. This isn't required, but if you're referencing a grapher, it's a good idea to add it so that we can link it to this data insight in the future. Include country selections, if applicable.`,
+            message: `Missing "grapher-url". This isn't required, but if you're referencing a grapher, it's a good idea to add it so that we can link it to this data insight in the future. Include country selections, if applicable.`,
         })
     }
 }
@@ -225,7 +225,7 @@ export const getErrors = (gdoc: OwidGdoc): OwidGdocErrorMessage[] => {
 
     if (checkIsDataInsight(gdoc)) {
         validateApprovedBy(gdoc, errors)
-        validateGrapherSlug(gdoc, errors)
+        validateGrapherUrl(gdoc, errors)
     }
 
     return errors

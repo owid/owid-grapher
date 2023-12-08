@@ -1,23 +1,16 @@
 import { Col, Input, Row, Space, Switch } from "antd"
 import React, { useEffect, useState } from "react"
-import {
-    OwidGdocPostInterface,
-    slugify,
-    OwidGdocErrorMessage,
-    OwidGdocDataInsightInterface,
-} from "@ourworldindata/utils"
+import { slugify, OwidGdocErrorMessage, OwidGdoc } from "@ourworldindata/utils"
 import { Help } from "./Forms.js"
 import { getPropertyMostCriticalError } from "./gdocsValidation.js"
 
-export const GdocsSlug = ({
+export const GdocsSlug = <T extends OwidGdoc>({
     gdoc,
     setCurrentGdoc,
     errors,
 }: {
-    gdoc: OwidGdocPostInterface | OwidGdocDataInsightInterface
-    setCurrentGdoc:
-        | ((gdoc: OwidGdocPostInterface) => void)
-        | ((gdoc: OwidGdocDataInsightInterface) => void)
+    gdoc: T
+    setCurrentGdoc: (gdoc: T) => void
     errors?: OwidGdocErrorMessage[]
 }) => {
     const [isSlugSyncing, setSlugSyncing] = useState(false)

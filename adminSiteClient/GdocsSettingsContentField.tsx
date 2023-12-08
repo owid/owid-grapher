@@ -32,7 +32,7 @@ export const GdocsSettingsContentField = ({
     description?: string
 }) => {
     const error = getPropertyMostCriticalError(property, errors)
-    const value = get(gdoc, property)
+    const value = get(gdoc, ["content", property])
     return (
         <div className="form-group">
             <label htmlFor={property}>

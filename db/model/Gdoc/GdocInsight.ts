@@ -28,11 +28,11 @@ export class OwidInsight
 
     _validateSubclass = async (): Promise<OwidGdocErrorMessage[]> => {
         const errors: OwidGdocErrorMessage[] = []
-        if (!this.content.approvedBy) {
+        if (!this.content["approved-by"]) {
             errors.push({
                 type: OwidGdocErrorMessageType.Error,
-                property: "approvedBy",
-                message: "Missing an approvedBy field in the front-matter",
+                property: "approved-by",
+                message: "Missing an approved-by field in the front-matter",
             })
         }
         return errors

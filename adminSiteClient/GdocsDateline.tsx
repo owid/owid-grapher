@@ -1,19 +1,12 @@
 import { Col } from "antd"
 import { Dayjs } from "dayjs"
-import {
-    dayjs,
-    OwidGdocPostInterface,
-    OwidGdocErrorMessage,
-    OwidGdocDataInsightInterface,
-} from "@ourworldindata/utils"
+import { dayjs, OwidGdocErrorMessage, OwidGdoc } from "@ourworldindata/utils"
 import React from "react"
 import DatePicker from "./DatePicker.js"
 import { getPropertyMostCriticalError } from "./gdocsValidation.js"
 import { GdocsErrorHelp } from "./GdocsErrorHelp.js"
 
-export const GdocsPublishedAt = <
-    T extends OwidGdocPostInterface | OwidGdocDataInsightInterface,
->({
+export const GdocsPublishedAt = <T extends OwidGdoc>({
     gdoc,
     setCurrentGdoc,
     errors,

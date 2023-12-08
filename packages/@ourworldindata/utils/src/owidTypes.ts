@@ -1377,8 +1377,8 @@ export interface OwidGdocPostInterface extends OwidGdocBaseInterface {
 export interface OwidGdocDataInsightContent {
     title: string
     authors: string[]
-    grapherSlug?: string
-    approvedBy: string // can't publish an insight unless this is set
+    ["grapher-url"]?: string
+    ["approved-by"]: string // can't publish an insight unless this is set
     body: OwidEnrichedGdocBlock[]
     type: OwidGdocType.DataInsight
 }

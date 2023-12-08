@@ -7,7 +7,7 @@ import React, {
 } from "react"
 import { AdminLayout } from "./AdminLayout.js"
 import { GdocsMatchProps } from "./GdocsIndexPage.js"
-import { GdocPostSettings, GdocsInsightSettings } from "./GdocsSettingsForms.js"
+import { GdocPostSettings, GdocInsightSettings } from "./GdocsSettingsForms.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import {
     checkIsPlainObjectWithGuard,
@@ -317,7 +317,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                                 },
                             },
                             (gdoc) => (
-                                <GdocsInsightSettings
+                                <GdocInsightSettings
                                     gdoc={gdoc}
                                     setCurrentGdoc={(updatedGdoc) =>
                                         setCurrentGdoc(() => updatedGdoc)
@@ -326,21 +326,14 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                                 />
                             )
                         )
-                        .with(
-                            {
-                                content: {
-                                    type: undefined,
-                                },
-                            },
-                            () => (
-                                <div>
-                                    Unknown gdoc type. Add a <pre>type</pre> to
-                                    the front-matter of this gdoc and reload
-                                    this page.
-                                </div>
-                            )
-                        )
-                        .exhaustive()}
+                        .with(P.any, () => (
+                            <div>
+                                Unknown gdoc type. Add a <strong>type</strong>{" "}
+                                to the front-matter of this gdoc and reload this
+                                page.
+                            </div>
+                        ))
+                        .run()}
                 </Drawer>
                 <Drawer
                     placement="bottom"
