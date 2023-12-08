@@ -275,6 +275,9 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     staticBounds?: Bounds
     staticFormat?: GrapherStaticFormat
 
+    hideNote?: boolean
+    hideOriginUrl?: boolean
+
     hideEntityControls?: boolean
     hideZoomToggle?: boolean
     hideNoDataAreaToggle?: boolean
@@ -3037,6 +3040,9 @@ export class Grapher
     @computed get startSelectingWhenLineClicked(): boolean {
         return this.showAddEntityButton && !this.isMobile
     }
+
+    @observable hideNote = false
+    @observable hideOriginUrl = false
 
     // For now I am only exposing this programmatically for the dashboard builder. Setting this to true
     // allows you to still use add country "modes" without showing the buttons in order to prioritize

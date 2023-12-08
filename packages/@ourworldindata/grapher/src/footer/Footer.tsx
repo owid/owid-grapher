@@ -158,6 +158,8 @@ export class Footer<
             actionButtons,
         } = this
 
+        if (this.manager.hideOriginUrl) return undefined
+
         if (!correctedUrlText) return undefined
 
         const licenseAndOriginUrlText = Footer.constructLicenseAndOriginUrlText(
@@ -205,8 +207,8 @@ export class Footer<
         return this.manager.isSmall ? 12 : 13
     }
 
-    @computed private get hasNote(): boolean {
-        return !!this.noteText
+    @computed protected get hasNote(): boolean {
+        return !this.manager.hideNote && !!this.noteText
     }
 
     @computed private get actionButtonsWidthWithIconsOnly(): number {
@@ -650,6 +652,8 @@ export class StaticFooter extends Footer<StaticFooterProps> {
     @computed protected get finalUrlText(): string | undefined {
         const { correctedUrlText, licenseText, fontSize, maxWidth } = this
 
+        if (this.manager.hideOriginUrl) return undefined
+
         if (!correctedUrlText) return undefined
 
         const licenseAndOriginUrlText = Footer.constructLicenseAndOriginUrlText(
@@ -706,7 +710,7 @@ export class StaticFooter extends Footer<StaticFooterProps> {
     @computed get height(): number {
         return (
             this.sources.height +
-            (this.note.height ? this.note.height + this.verticalPadding : 0) +
+            (this.hasNote ? this.note.height + this.verticalPadding : 0) +
             (this.showLicenseNextToSources
                 ? 0
                 : this.licenseAndOriginUrl.height + this.verticalPadding)
@@ -726,10 +730,11 @@ export class StaticFooter extends Footer<StaticFooterProps> {
         return (
             <g className="SourcesFooter" style={{ fill: GRAPHER_DARK_TEXT }}>
                 {sources.renderSVG(targetX, targetY)}
-                {note.renderSVG(
-                    targetX,
-                    targetY + sources.height + this.verticalPadding
-                )}
+                {this.hasNote &&
+                    note.renderSVG(
+                        targetX,
+                        targetY + sources.height + this.verticalPadding
+                    )}
                 {showLicenseNextToSources
                     ? licenseAndOriginUrl.render(
                           targetX + maxWidth - licenseAndOriginUrl.width,
@@ -739,7 +744,7 @@ export class StaticFooter extends Footer<StaticFooterProps> {
                           targetX,
                           targetY +
                               sources.height +
-                              (note.height
+                              (this.hasNote
                                   ? note.height + this.verticalPadding
                                   : 0) +
                               this.verticalPadding

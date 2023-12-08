@@ -119,6 +119,16 @@ export class EditorExportTab extends React.Component<{ editor: ChartEditor }> {
                         value={!grapher.forceHideAnnotationFieldsInTitle?.time}
                         onValue={this.onToggleTitleAnnotationTime}
                     />
+                    <Toggle
+                        label="Note"
+                        value={!grapher.hideNote}
+                        onValue={(value) => (grapher.hideNote = !value)}
+                    />
+                    <Toggle
+                        label="Origin URL"
+                        value={!grapher.hideOriginUrl}
+                        onValue={(value) => (grapher.hideOriginUrl = !value)}
+                    />
                 </Section>
                 <Section name="Export static chart">
                     <div className="DownloadButtons">
