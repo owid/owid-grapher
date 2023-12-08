@@ -49,42 +49,30 @@ class VariableRow extends React.Component<{
                             : variable.name}
                     </Link>
                 </td>
-                {fields.includes("namespace") && (
-                    <td>
-                        {variable.namespace}
-                    </td>
-                )
-                }
-                {fields.includes("version") && (
-                    <td>
-                        {variable.version}
-                    </td>
-                )
-                }
-                {fields.includes("dataset") && (
-                    <td>
-                        {variable.dataset}
-                    </td>
-                )
-                }
+                {fields.includes("namespace") && <td>{variable.namespace}</td>}
+                {fields.includes("version") && <td>{variable.version}</td>}
+                {fields.includes("dataset") && <td>{variable.dataset}</td>}
                 {fields.includes("table") && (
                     <td>
                         {
                             // Some table are very long, truncate them
-                            (variable.table && variable.table!.length > 20) ? variable.table!.substring(0, 20) + "..." : variable.table
+                            variable.table && variable.table!.length > 20
+                                ? variable.table!.substring(0, 20) + "..."
+                                : variable.table
                         }
                     </td>
-                )
-                }
+                )}
                 {fields.includes("shortName") && (
                     <td>
                         {
                             // Some "short names" are very long, so truncate them
-                            (variable.shortName && variable.shortName!.length > 20) ? variable.shortName!.substring(0, 20) + "..." : variable.shortName
+                            variable.shortName &&
+                            variable.shortName!.length > 20
+                                ? variable.shortName!.substring(0, 20) + "..."
+                                : variable.shortName
                         }
                     </td>
-                )
-                }
+                )}
                 {fields.includes("uploadedAt") && (
                     <td>
                         <Timeago
@@ -117,20 +105,15 @@ export class VariableList extends React.Component<{
                         {props.fields.includes("namespace") && (
                             <th>Namespace</th>
                         )}
-                        {props.fields.includes("version") && (
-                            <th>Version</th>
-                        )}
-                        {props.fields.includes("dataset") && (
-                            <th>Dataset</th>
-                        )}
-                        {props.fields.includes("table") && (
-                            <th>Table</th>
-                        )}
+                        {props.fields.includes("version") && <th>Version</th>}
+                        {props.fields.includes("dataset") && <th>Dataset</th>}
+                        {props.fields.includes("table") && <th>Table</th>}
                         {props.fields.includes("shortName") && (
                             <th>Short name</th>
                         )}
                         {props.fields.includes("uploadedAt") && (
-                            <th>Uploaded</th>)}
+                            <th>Uploaded</th>
+                        )}
                     </tr>
                 </thead>
                 <tbody>

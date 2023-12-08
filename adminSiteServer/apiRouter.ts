@@ -170,11 +170,11 @@ const getPostsForSlugs = async (
                     AND post_status='publish'
                     AND (
                         ${slugs
-                .map(
-                    () =>
-                        `post_content REGEXP CONCAT('grapher/', ?, '[^a-zA-Z_\-]')`
-                )
-                .join(" OR ")}
+                            .map(
+                                () =>
+                                    `post_content REGEXP CONCAT('grapher/', ?, '[^a-zA-Z_\-]')`
+                            )
+                            .join(" OR ")}
                     )
             `,
             slugs.map(lodash.escapeRegExp)
@@ -659,14 +659,14 @@ apiRouter.get(
 
         let dataset:
             | {
-                id: number
-                name: string
-                version: string
-                namespace: string
-                isPrivate: boolean
-                nonRedistributable: boolean
-                variables: { id: number; name: string }[]
-            }
+                  id: number
+                  name: string
+                  version: string
+                  namespace: string
+                  isPrivate: boolean
+                  nonRedistributable: boolean
+                  variables: { id: number; name: string }[]
+              }
             | undefined
         for (const row of rows) {
             if (!dataset || row.datasetName !== dataset.name) {
@@ -979,9 +979,9 @@ apiRouter.post(
                 ) {
                     throw new JsonError(
                         `Expected all "${obj.key}" values to be non-null and of ` +
-                        `type "${obj.expectedType}", but one or more chart ` +
-                        `configs contains a "${obj.key}" value that does ` +
-                        `not meet this criteria.`
+                            `type "${obj.expectedType}", but one or more chart ` +
+                            `configs contains a "${obj.key}" value that does ` +
+                            `not meet this criteria.`
                     )
                 }
             })
@@ -1140,9 +1140,9 @@ apiRouter.post(
                     if (!config.hasOwnProperty(k)) {
                         throw new JsonError(
                             `The "${k}" field is required, but one or more ` +
-                            `chart configs in the database does not ` +
-                            `contain it. Please report this issue to a ` +
-                            `developer.`
+                                `chart configs in the database does not ` +
+                                `contain it. Please report this issue to a ` +
+                                `developer.`
                         )
                     }
                 })
@@ -1212,8 +1212,9 @@ apiRouter.post(
             if (suggestedConfigs.length - result.affectedRows > 0) {
                 messages.push({
                     type: "warning",
-                    text: `${suggestedConfigs.length - result.affectedRows
-                        } chart revisions have not been queued for approval (e.g. because the chart revision does not contain any changes).`,
+                    text: `${
+                        suggestedConfigs.length - result.affectedRows
+                    } chart revisions have not been queued for approval (e.g. because the chart revision does not contain any changes).`,
                 })
             }
         })
@@ -1340,7 +1341,7 @@ apiRouter.post(
             if (!canUpdate) {
                 throw new JsonError(
                     `Suggest chart revision ${suggestedChartRevisionId} cannot be ` +
-                    `updated with status="${status}".`,
+                        `updated with status="${status}".`,
                     404
                 )
             }
@@ -1493,45 +1494,83 @@ apiRouter.get("/variables.json", async (req) => {
     if (searchStr) {
         for (let part of searchStr.split(" ")) {
             part = part.trim()
-            let not = ' '
+            let not = " "
             if (part.startsWith("-")) {
                 part = part.substr(1)
-                not = 'NOT '
+                not = "NOT "
             }
             if (part.startsWith("name:")) {
                 const q = part.substr("name:".length)
                 // force a case insensitive regex search
-                q && whereClauses.push(`v.name COLLATE utf8mb4_general_ci ${not} REGEXP ${escape(q)}`)
+                q &&
+                    whereClauses.push(
+                        `v.name COLLATE utf8mb4_general_ci ${not} REGEXP ${escape(
+                            q
+                        )}`
+                    )
             } else if (part.startsWith("path:")) {
                 const q = part.substr("path:".length)
-                q && whereClauses.push(`v.catalogPath ${not} REGEXP ${escape(q)}`)
+                q &&
+                    whereClauses.push(
+                        `v.catalogPath ${not} REGEXP ${escape(q)}`
+                    )
             } else if (part.startsWith("namespace:")) {
                 const q = part.substr("namespace:".length)
-                q && whereClauses.push(`v.catalogPath ${not} LIKE "grapher/${q}/%/%/%#%"`)
+                q &&
+                    whereClauses.push(
+                        `v.catalogPath ${not} LIKE "grapher/${q}/%/%/%#%"`
+                    )
             } else if (part.startsWith("version:")) {
                 const q = part.substr("version:".length)
-                q && whereClauses.push(`v.catalogPath ${not} LIKE "grapher/%/${q}/%/%#%"`)
+                q &&
+                    whereClauses.push(
+                        `v.catalogPath ${not} LIKE "grapher/%/${q}/%/%#%"`
+                    )
             } else if (part.startsWith("dataset:")) {
                 const q = part.substr("dataset:".length)
-                q && whereClauses.push(`v.catalogPath ${not} LIKE "grapher/%/%/${q}/%#%"`)
+                q &&
+                    whereClauses.push(
+                        `v.catalogPath ${not} LIKE "grapher/%/%/${q}/%#%"`
+                    )
             } else if (part.startsWith("table:")) {
                 const q = part.substr("table:".length)
-                q && whereClauses.push(`v.catalogPath ${not} LIKE "grapher/%/%/%/${q}#%"`)
+                q &&
+                    whereClauses.push(
+                        `v.catalogPath ${not} LIKE "grapher/%/%/%/${q}#%"`
+                    )
             } else if (part.startsWith("short:")) {
                 const q = part.substr("short:".length)
-                q && whereClauses.push(`v.catalogPath ${not} LIKE "grapher/%/%/%/%#${q}"`)
+                q &&
+                    whereClauses.push(
+                        `v.catalogPath ${not} LIKE "grapher/%/%/%/%#${q}"`
+                    )
             } else if (part.startsWith("before:")) {
                 const q = part.substr("before:".length)
-                q && whereClauses.push(`${not} IF(d.version is not null, d.version < ${escape(q)}, cast(date(d.createdAt) as char) < ${escape(q)})`)
+                q &&
+                    whereClauses.push(
+                        `${not} IF(d.version is not null, d.version < ${escape(
+                            q
+                        )}, cast(date(d.createdAt) as char) < ${escape(q)})`
+                    )
             } else if (part.startsWith("after:")) {
                 const q = part.substr("after:".length)
-                q && whereClauses.push(`${not} (IF (d.version is not null, d.version = "latest" OR d.version > ${escape(q)}, cast(date(d.createdAt) as char) > ${escape(q)}))`)
+                q &&
+                    whereClauses.push(
+                        `${not} (IF (d.version is not null, d.version = "latest" OR d.version > ${escape(
+                            q
+                        )}, cast(date(d.createdAt) as char) > ${escape(q)}))`
+                    )
             } else if (part === "is:published") {
                 whereClauses.push(`${not} (NOT d.isPrivate)`)
             } else if (part === "is:private") {
                 whereClauses.push(`${not} d.isPrivate`)
             } else {
-                part && whereClauses.push(`${not} (v.name REGEXP ${escape(part)} OR v.catalogPath REGEXP ${escape(part)})`)
+                part &&
+                    whereClauses.push(
+                        `${not} (v.name REGEXP ${escape(
+                            part
+                        )} OR v.catalogPath REGEXP ${escape(part)})`
+                    )
             }
         }
     }
@@ -1550,16 +1589,13 @@ apiRouter.get("/variables.json", async (req) => {
         FROM variables AS v
         JOIN active_datasets d ON d.id=v.datasetId
         JOIN users u ON u.id=d.dataEditedByUserId
-        ${(whereClauses.length ? "WHERE " + whereClauses.join(" AND ") : "")}
+        ${whereClauses.length ? "WHERE " + whereClauses.join(" AND ") : ""}
         ORDER BY d.dataEditedAt DESC
         LIMIT ?
     `
     console.log(query)
 
-    const rows = await db.queryMysql(
-        query,
-        [limit]
-    )
+    const rows = await db.queryMysql(query, [limit])
 
     const numTotalRows = (
         await db.queryMysql(`SELECT COUNT(*) as count FROM variables`)
@@ -1568,7 +1604,9 @@ apiRouter.get("/variables.json", async (req) => {
     rows.forEach((row: any) => {
         if (row.catalogPath) {
             const [path, shortName] = row.catalogPath.split("#")
-            const [namespace, version, dataset, table] = path.substr('grapher/'.length).split('/')
+            const [namespace, version, dataset, table] = path
+                .substr("grapher/".length)
+                .split("/")
 
             row.namespace = namespace
             row.version = version
@@ -2714,8 +2752,8 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
             prevGdoc.published && nextGdoc.published
                 ? "Updating"
                 : !prevGdoc.published && nextGdoc.published
-                    ? "Publishing"
-                    : "Unpublishing"
+                ? "Publishing"
+                : "Unpublishing"
         await triggerStaticBuild(res.locals.user, `${action} ${nextGdoc.slug}`)
     }
 
