@@ -313,15 +313,6 @@ export class ChartEditorPage
                 }
             )
         )
-
-        this.disposers.push(
-            reaction(
-                () => this.editor && this.editor.showStaticPreview,
-                () => {
-                    this.updateGrapher()
-                }
-            )
-        )
     }
 
     // This funny construction allows the "new chart" link to work by forcing an update
@@ -373,7 +364,12 @@ export class ChartEditorPage
                                                 ? " active"
                                                 : "")
                                         }
-                                        onClick={() => (editor.tab = tab)}
+                                        onClick={() => {
+                                            editor.tab = tab
+                                            editor.showStaticPreview =
+                                                tab === "export"
+                                            this.updateGrapher()
+                                        }}
                                     >
                                         {capitalize(tab)}
                                         {tab === "refs" && this.references
