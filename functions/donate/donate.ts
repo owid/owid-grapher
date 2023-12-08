@@ -1,6 +1,12 @@
 import fetch from "node-fetch"
-import { createSession } from "./stripe.js"
-import { DonationRequest } from "@ourworldindata/utils"
+import { createCheckoutSession } from "./stripe.js"
+import {
+    DonateSessionResponse,
+    DonationRequest,
+    JsonError,
+    PLEASE_TRY_AGAIN,
+    stringifyUnknownError,
+} from "@ourworldindata/utils"
 
 interface EnvVars {
     ASSETS: Fetcher
@@ -20,6 +26,8 @@ const CORS_HEADERS = {
     // - https://developer.mozilla.org/en-US/docs/Glossary/CORS-safelisted_request_header
     "Access-Control-Allow-Headers": "Content-Type",
 }
+
+const DEFAULT_HEADERS = { ...CORS_HEADERS, "Content-Type": "application/json" }
 
 const isEnvVars = (env: any): env is EnvVars => {
     return !!env.ASSETS && !!env.STRIPE_SECRET_KEY && !!env.RECAPTCHA_SECRET_KEY
@@ -41,6 +49,7 @@ export const onRequestPost: PagesFunction = async ({
     env
 }) => {
     if (!isEnvVars(env))
+        // This error is not being caught and surfaced to the client voluntarily.
         throw new Error(
             "Missing environment variables. Please check that both STRIPE_SECRET_KEY and RECAPTCHA_SECRET_KEY are set."
         )
@@ -50,26 +59,22 @@ export const onRequestPost: PagesFunction = async ({
 
     try {
         if (
-            !(await validCaptcha(data.captchaToken, env.RECAPTCHA_SECRET_KEY))
-        ) {
-            throw {
-                status: 400,
-                message:
-                    "The CAPTCHA challenge failed, please try submitting the form again.",
-            }
-        }
-        const session = await createSession(data, env.STRIPE_SECRET_KEY)
-        return new Response(JSON.stringify({ url: session.url }), {
-            headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+            !(await isCaptchaValid(data.captchaToken, env.RECAPTCHA_SECRET_KEY))
+        )
+            throw new JsonError(
+                `The CAPTCHA challenge failed. ${PLEASE_TRY_AGAIN}`
+            )
+
+        const session = await createCheckoutSession(data, env.STRIPE_SECRET_KEY)
+        const sessionResponse: DonateSessionResponse = { url: session.url }
+
+        return new Response(JSON.stringify(sessionResponse), {
+            headers: DEFAULT_HEADERS,
             status: 200,
         })
     } catch (error) {
-        console.error(error)
         return new Response(
-            JSON.stringify({
-                message:
-                    "An unexpected error occurred. " + (error && error.message),
-            }),
+            JSON.stringify({ error: stringifyUnknownError(error) }),
             {
                 headers: CORS_HEADERS,
                 status: +error.status || 500,
@@ -78,7 +83,7 @@ export const onRequestPost: PagesFunction = async ({
     }
 }
 
-async function validCaptcha(token: string, key: string): Promise<boolean> {
+async function isCaptchaValid(token: string, key: string): Promise<boolean> {
     const body = new URLSearchParams({
         secret: key,
         response: token,

@@ -1,7 +1,7 @@
 import React from "react"
 import ReactDOM from "react-dom"
 import cx from "classnames"
-import { observable, action, computed, runInAction } from "mobx"
+import { observable, action, computed } from "mobx"
 import { observer } from "mobx-react"
 import { bind } from "decko"
 import Recaptcha from "react-recaptcha"
@@ -17,28 +17,22 @@ import {
     DonationCurrencyCode,
     DonationInterval,
     DonationRequest,
+    getErrorMessageDonation,
+    SUPPORTED_CURRENCY_CODES,
+    getCurrencySymbol,
+    DonateSessionResponse,
+    PLEASE_TRY_AGAIN,
 } from "@ourworldindata/utils"
 import { Checkbox } from "@ourworldindata/components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowRight, faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 import Bugsnag from "@bugsnag/js"
 
-const currencySymbolByCode: Record<DonationCurrencyCode, string> = {
-    GBP: "£",
-    EUR: "€",
-    USD: "$",
-}
-
 const ONETIME_DONATION_AMOUNTS = [10, 50, 100, 500, 1000]
 const MONTHLY_DONATION_AMOUNTS = [5, 10, 20, 50, 100]
 
 const ONETIME_DEFAULT_INDEX = 1
 const MONTHLY_DEFAULT_INDEX = 1
-
-const MIN_DONATION = 1
-const MAX_DONATION: number = 10_000
-
-const SUPPORTED_CURRENCY_CODES: DonationCurrencyCode[] = ["GBP", "EUR", "USD"]
 
 @observer
 export class DonateForm extends React.Component {
@@ -93,6 +87,10 @@ export class DonateForm extends React.Component {
         this.errorMessage = message
     }
 
+    @action.bound setIsSubmitting(isSubmitting: boolean) {
+        this.isSubmitting = isSubmitting
+    }
+
     @action.bound setCurrency(currency: DonationCurrencyCode) {
         this.currencyCode = currency
     }
@@ -110,38 +108,37 @@ export class DonateForm extends React.Component {
     }
 
     @computed get currencySymbol(): string {
-        return currencySymbolByCode[this.currencyCode]
+        return getCurrencySymbol(this.currencyCode)
     }
 
     async submitDonation(): Promise<void> {
-        if (
-            !this.amount ||
-            this.amount > MAX_DONATION ||
-            this.amount < MIN_DONATION
-        ) {
-            throw new Error(
-                `You can only donate between ${this.currencySymbol}1 and ${this.currencySymbol}10,000. For other amounts, please get in touch with us at donate@ourworldindata.org.`
-            )
-        }
-
-        if (this.showOnList && !this.name) {
-            throw new Error(
-                "Please enter your full name if you would like to be included on our public list of donors."
-            )
-        }
-
-        const captchaToken = await this.getCaptchaToken()
-        const requestBody: DonationRequest = {
+        const requestBodyForClientSideValidation: DonationRequest = {
             name: this.name,
             showOnList: this.showOnList,
             currency: this.currencyCode,
-            amount: Math.floor(this.amount * 100),
+            amount: this.amount || 0,
             interval: this.interval,
             successUrl: `${BAKED_BASE_URL}/thank-you`,
             cancelUrl: `${BAKED_BASE_URL}/donate`,
-            captchaToken: captchaToken,
+            captchaToken: "",
         }
 
+        // Validate the request body before requesting the CAPTCHA token for
+        // faster feedback in case of form errors (e.g. invalid amount).
+        const errorMessage = getErrorMessageDonation(
+            requestBodyForClientSideValidation
+        )
+        if (errorMessage) throw new Error(errorMessage)
+
+        // Get the CAPTCHA token once the request body is validated.
+        const captchaToken = await this.getCaptchaToken()
+
+        const requestBody: DonationRequest = {
+            ...requestBodyForClientSideValidation,
+            captchaToken,
+        }
+
+        // Send the request to the server, along with the CAPTCHA token.
         const response = await fetch(DONATE_API_URL, {
             method: "POST",
             headers: {
@@ -150,10 +147,12 @@ export class DonateForm extends React.Component {
             },
             body: JSON.stringify(requestBody),
         })
-        const session = await response.json()
-        if (!response.ok) {
+
+        const session: DonateSessionResponse = await response.json()
+
+        if (!response.ok || !session.url) {
             throw new Error(
-                "Could not connect to Stripe, our payment provider."
+                session.error || `Something went wrong. ${PLEASE_TRY_AGAIN}`
             )
         }
 
@@ -164,9 +163,7 @@ export class DonateForm extends React.Component {
         return new Promise((resolve, reject) => {
             if (!this.captchaInstance)
                 return reject(
-                    new Error(
-                        "Could not load reCAPTCHA. Please try again. If the problem persists, please get in touch with us at donate@ourworldindata.org"
-                    )
+                    new Error(`Could not load reCAPTCHA. ${PLEASE_TRY_AGAIN}`)
                 )
             this.captchaPromiseHandlers = { resolve, reject }
             this.captchaInstance.reset()
@@ -185,39 +182,36 @@ export class DonateForm extends React.Component {
 
     @bind async onSubmit(event: React.FormEvent) {
         event.preventDefault()
-        this.isSubmitting = true
-        this.errorMessage = undefined
+        this.setIsSubmitting(true)
+        this.setErrorMessage(undefined)
+
         try {
             await this.submitDonation()
         } catch (error) {
-            this.isSubmitting = false
+            this.setIsSubmitting(false)
 
-            runInAction(() => {
-                const prefixedErrorMessage = stringifyUnknownError(error)
-                // Send all errors to Bugsnag. This will help surface issues
-                // with our aging reCAPTCHA setup, and pull the trigger on a
-                // (hook-based?) rewrite if it starts failing. This reporting
-                // also includes form validation errors, which are useful to
-                // identify possible UX improvements or validate UX experiments
-                // (such as the combination of the name field and the "include
-                // my name on the list" checkbox).
-                Bugsnag.notify(
-                    error instanceof Error
-                        ? error
-                        : new Error(prefixedErrorMessage)
+            const prefixedErrorMessage = stringifyUnknownError(error)
+            // Send all errors to Bugsnag. This will help surface issues
+            // with our aging reCAPTCHA setup, and pull the trigger on a
+            // (hook-based?) rewrite if it starts failing. This reporting
+            // also includes form validation errors, which are useful to
+            // identify possible UX improvements or validate UX experiments
+            // (such as the combination of the name field and the "include
+            // my name on the list" checkbox).
+            Bugsnag.notify(
+                error instanceof Error ? error : new Error(prefixedErrorMessage)
+            )
+
+            if (!prefixedErrorMessage) {
+                this.setErrorMessage(
+                    `Something went wrong. ${PLEASE_TRY_AGAIN}`
                 )
+                return
+            }
 
-                if (!prefixedErrorMessage) {
-                    this.errorMessage =
-                        "Something went wrong. Please get in touch with us at donate@ourworldindata.org"
-                    return
-                }
+            const rawErrorMessage = prefixedErrorMessage.match(/^Error: (.*)$/)
 
-                const rawErrorMessage =
-                    prefixedErrorMessage.match(/^Error: (.*)$/)
-
-                this.errorMessage = rawErrorMessage?.[1] || prefixedErrorMessage
-            })
+            this.setErrorMessage(rawErrorMessage?.[1] || prefixedErrorMessage)
         }
     }
 
@@ -252,7 +246,7 @@ export class DonateForm extends React.Component {
                         {SUPPORTED_CURRENCY_CODES.map((code) => (
                             <input
                                 type="button"
-                                value={`${code} (${currencySymbolByCode[code]})`}
+                                value={`${code} (${getCurrencySymbol(code)})`}
                                 onClick={() => this.setCurrency(code)}
                                 className={cx("donation-options__button", {
                                     active: this.currencyCode === code,

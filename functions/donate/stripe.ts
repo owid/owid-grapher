@@ -1,5 +1,11 @@
 import Stripe from "stripe"
-import { DonationRequest } from "@ourworldindata/utils"
+import {
+    DonationRequest,
+    DonationRequestTypeObject,
+    getErrorMessageDonation,
+    JsonError,
+} from "@ourworldindata/utils"
+import { Value } from "@sinclair/typebox/value"
 
 function getPaymentMethodTypes(
     donation: DonationRequest
@@ -18,23 +24,44 @@ function getPaymentMethodTypes(
     return ["card"]
 }
 
-export async function createSession(donation: DonationRequest, key: string) {
+export async function createCheckoutSession(donation: unknown, key: string) {
     const stripe = new Stripe(key, {
         apiVersion: "2023-10-16",
         maxNetworkRetries: 2,
     })
 
-    const { name, currency, showOnList, interval, successUrl, cancelUrl } =
-        donation
-    const amount = Math.floor(donation.amount)
-
-    if (amount < 100 || amount > 10_000 * 100) {
-        throw {
-            status: 400,
-            message:
-                "You can only donate between $1 and $10,000 USD. For higher amounts, please contact donate@ourworldindata.org",
-        }
+    // Check that the received donation object has the right type. Given that we
+    // use the same types in the client and the server, this should never fail
+    // when the request is coming from the client. However, it could happen if a
+    // request is manually crafted. In this case, we select the first error and
+    // send TypeBox's default error message.
+    if (!Value.Check(DonationRequestTypeObject, donation)) {
+        const { message, path } = Value.Errors(
+            DonationRequestTypeObject,
+            donation
+        ).First()
+        throw new JsonError(`${message} (${path})`)
     }
+
+    // When the donation object is valid, we check that the donation parameters
+    // are within the allowed range. If not, we send a helpful error message.
+    // Once again, this step should never fail when the request is coming from
+    // the client since we are running the same validation code there before
+    // sending it over to the server.
+    const errorMessage = getErrorMessageDonation(donation)
+    if (errorMessage) throw new JsonError(errorMessage)
+
+    const {
+        name,
+        amount,
+        currency,
+        showOnList,
+        interval,
+        successUrl,
+        cancelUrl,
+    } = donation
+
+    const amountRoundedCents = Math.floor(amount) * 100
 
     const metadata: Stripe.Metadata = {
         name,
@@ -77,7 +104,7 @@ export async function createSession(donation: DonationRequest, key: string) {
                         interval: "month",
                         interval_count: 1,
                     },
-                    unit_amount: amount,
+                    unit_amount: amountRoundedCents,
                 },
                 quantity: 1,
             },
@@ -110,7 +137,7 @@ export async function createSession(donation: DonationRequest, key: string) {
                     product_data: {
                         name: "One-time donation",
                     },
-                    unit_amount: amount,
+                    unit_amount: amountRoundedCents,
                 },
                 quantity: 1,
             },
@@ -120,6 +147,9 @@ export async function createSession(donation: DonationRequest, key: string) {
     try {
         return await stripe.checkout.sessions.create(options)
     } catch (error) {
-        throw { message: `Error from our payments processor: ${error.message}` }
+        throw new JsonError(
+            `Error from our payments processor: ${error.message}`,
+            500
+        )
     }
 }

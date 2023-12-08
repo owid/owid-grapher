@@ -29,9 +29,11 @@ export {
     type Deploy,
     type DeployChange,
     DeployStatus,
+    type DonateSessionResponse,
     type DonationCurrencyCode,
     type DonationInterval,
     type DonationRequest,
+    DonationRequestTypeObject,
     type EnrichedDetail,
     type EnrichedFaq,
     type FaqEntryData,
@@ -677,3 +679,12 @@ export {
     parseFormattingOptions,
     parseKeyValueArgs,
 } from "./wordpressUtils.js"
+
+export {
+    getErrorMessageDonation,
+    getCurrencySymbol,
+    SUPPORTED_CURRENCY_CODES,
+    MIN_DONATION_AMOUNT,
+    MAX_DONATION_AMOUNT,
+    PLEASE_TRY_AGAIN,
+} from "./DonateUtils.js"
