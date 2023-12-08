@@ -20,6 +20,6 @@ export const IMAGES_DIRECTORY = "/images/published/"
  * https://docs.google.com/spreadsheets/d/abcd1234
  */
 export const gdocUrlRegex =
-    /https:\/\/docs\.google\.com\/document(?:\/u\/\d)?\/d\/([-\w]+)\/?(edit)?#?/
+    /https:\/\/docs\.google\.com\/document(?:\/u\/\d)?\/d\/([\-\w]+)\/?(edit)?#?/
 
 export const gdocIdRegex = /^[0-9A-Za-z\-_]{44}$/

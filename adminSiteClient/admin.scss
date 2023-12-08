@@ -1243,6 +1243,22 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
             margin-bottom: 1rem;
         }
     }
+    .validation-notice {
+        display: none;
+    }
+    input:invalid + .validation-notice {
+        display: block;
+        margin-top: 4px;
+        color: red;
+        padding-left: 5px;
+        pre {
+            color: red;
+        }
+    }
+    // don't show the validation notice when the input is blank (because that counts as "invalid")
+    input:placeholder-shown + .validation-notice {
+        display: none;
+    }
 }
 
 .GdocsEditPage,
