@@ -352,6 +352,12 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                     />
                 </Drawer>
 
+                {/*
+                    This uses the full SSR rendering pipeline. It is more accurate but comes
+                    with an additional requests to the Google API and has a less polished
+                    authoring experience at the moment (content flashes and scrolling position
+                    resets on every change)
+                */}
                 <iframe
                     ref={iframeRef}
                     src={`/gdocs/${currentGdoc.id}/preview#owid-document-root`}
