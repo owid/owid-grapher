@@ -5,9 +5,15 @@ import { ChartEditor } from "./ChartEditor.js"
 import { Section, SelectField } from "./Forms.js"
 import { GrapherStaticFormat } from "@ourworldindata/grapher"
 
+const FORMAT_LABELS: Record<GrapherStaticFormat, string> = {
+    [GrapherStaticFormat.portrait]: "Data insight",
+    [GrapherStaticFormat.instagram]: "Instagram",
+    [GrapherStaticFormat.landscape]: "Landscape",
+}
+
 @observer
 export class EditorExportTab extends React.Component<{ editor: ChartEditor }> {
-    @action.bound onFormatChange(value: string) {
+    @action.bound onPresetChange(value: string) {
         this.props.editor.staticPreviewFormat = value as GrapherStaticFormat
     }
 
@@ -18,8 +24,9 @@ export class EditorExportTab extends React.Component<{ editor: ChartEditor }> {
             <div className="EditorTextTab">
                 <Section name="Mobile image size">
                     <SelectField
+                        label="Preset"
                         value={editor.staticPreviewFormat}
-                        onValue={this.onFormatChange}
+                        onValue={this.onPresetChange}
                         options={Object.keys(GrapherStaticFormat)
                             .filter(
                                 (format) =>
@@ -27,7 +34,9 @@ export class EditorExportTab extends React.Component<{ editor: ChartEditor }> {
                             )
                             .map((format) => ({
                                 value: format,
-                                label: format,
+                                label: FORMAT_LABELS[
+                                    format as GrapherStaticFormat
+                                ],
                             }))}
                     />
                 </Section>
