@@ -66,21 +66,25 @@ export class DonateForm extends React.Component {
     @action.bound setPresetAmount(amount?: number) {
         this.presetAmount = amount
         this.customAmount = ""
+        this.errorMessage = undefined
     }
 
     @action.bound setCustomAmount(amount: string) {
         this.customAmount = amount
         this.presetAmount = undefined
+        this.errorMessage = undefined
     }
 
     @action.bound setName(name: string) {
         // capitalize first letter of each word. Words can be separated by
         // spaces or hyphens.
         this.name = titleCase(name)
+        this.errorMessage = undefined
     }
 
     @action.bound toggleShowOnList() {
         this.showOnList = !this.showOnList
+        this.errorMessage = undefined
     }
 
     @action.bound setErrorMessage(message?: string) {
