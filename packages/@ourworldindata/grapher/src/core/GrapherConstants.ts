@@ -92,7 +92,7 @@ export enum GrapherTabOption {
     table = "table",
 }
 
-export enum GrapherExportFormat {
+export enum GrapherStaticFormat {
     landscape = "landscape",
     portrait = "portrait",
 }

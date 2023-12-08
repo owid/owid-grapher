@@ -159,7 +159,7 @@ async function fetchAndRenderGrapherToSvg({
         bakedGrapherURL: grapherBaseUrl,
         queryStr: "?" + searchParams.toString(),
         bounds,
-        boundsForExport: bounds,
+        staticBounds: bounds,
         baseFontSize: options.fontSize,
     })
     grapher.shouldIncludeDetailsInStaticExport = options.details

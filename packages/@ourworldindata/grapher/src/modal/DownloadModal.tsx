@@ -23,7 +23,7 @@ import {
     CoreColumn,
 } from "@ourworldindata/core-table"
 import {
-    GrapherExportFormat,
+    GrapherStaticFormat,
     STATIC_EXPORT_DETAIL_SPACING,
 } from "../core/GrapherConstants"
 import { Modal } from "./Modal"
@@ -31,9 +31,9 @@ import { StaticChartRasterizer } from "../captionedChart/StaticChartRasterizer"
 
 export interface DownloadModalManager {
     displaySlug: string
-    staticSVGLandscape: string
-    staticSVGPortrait: string
-    boundsForExport?: Bounds
+    generateStaticSvg: (bounds: Bounds) => string
+    staticBounds?: Bounds
+    staticFormat?: GrapherStaticFormat
     baseUrl?: string
     queryStr?: string
     table?: OwidTable
@@ -44,7 +44,6 @@ export interface DownloadModalManager {
     tabBounds?: Bounds
     isOnChartOrMapTab?: boolean
     framePaddingVertical?: number
-    exportFormat?: GrapherExportFormat
     showAdminControls?: boolean
 }
 
@@ -54,20 +53,16 @@ interface DownloadModalProps {
 
 @observer
 export class DownloadModal extends React.Component<DownloadModalProps> {
-    @computed private get boundsForExport(): Bounds {
-        return this.manager.boundsForExport ?? DEFAULT_BOUNDS
+    @computed private get staticBounds(): Bounds {
+        return this.manager.staticBounds ?? DEFAULT_BOUNDS
     }
 
     @computed private get tabBounds(): Bounds {
         return this.manager.tabBounds ?? DEFAULT_BOUNDS
     }
 
-    @computed private get exportFormat(): GrapherExportFormat {
-        return this.manager.exportFormat ?? GrapherExportFormat.landscape
-    }
-
     @computed private get isExportingPortrait(): boolean {
-        return this.exportFormat === GrapherExportFormat.portrait
+        return this.manager.staticFormat === GrapherStaticFormat.portrait
     }
 
     @computed private get shouldIncludeDetails(): boolean {
@@ -81,7 +76,7 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
     }
 
     @computed private get targetWidth(): number {
-        return this.boundsForExport.width
+        return this.staticBounds.width
     }
 
     @computed private get targetHeight(): number {
@@ -90,7 +85,7 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
             !isEmpty(this.manager.detailRenderers)
         ) {
             return (
-                this.boundsForExport.height +
+                this.staticBounds.height +
                 2 * this.manager.framePaddingVertical! +
                 sumTextWrapHeights(
                     this.manager.detailRenderers,
@@ -98,7 +93,7 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
                 )
             )
         }
-        return this.boundsForExport.height
+        return this.staticBounds.height
     }
 
     @computed private get manager(): DownloadModalManager {
@@ -114,11 +109,9 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
     @observable private isReady: boolean = false
 
     @action.bound private export(): void {
-        const { targetWidth, targetHeight } = this
+        const { staticBounds, targetWidth, targetHeight } = this
 
-        const staticSVG = this.isExportingPortrait
-            ? this.manager.staticSVGPortrait
-            : this.manager.staticSVGLandscape
+        const staticSVG = this.manager.generateStaticSvg(staticBounds)
 
         // render the graphic then cache data-urls for display & blobs for downloads
         new StaticChartRasterizer(staticSVG, targetWidth, targetHeight)
@@ -221,9 +214,9 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
     }
 
     @action.bound private toggleExportFormat(): void {
-        this.manager.exportFormat = this.isExportingPortrait
-            ? GrapherExportFormat.landscape
-            : GrapherExportFormat.portrait
+        this.manager.staticFormat = this.isExportingPortrait
+            ? GrapherStaticFormat.landscape
+            : GrapherStaticFormat.portrait
     }
 
     @action.bound private toggleIncludeDetails(): void {

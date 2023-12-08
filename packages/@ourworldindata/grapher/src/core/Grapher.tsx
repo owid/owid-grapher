@@ -94,7 +94,7 @@ import {
     DEFAULT_GRAPHER_ENTITY_TYPE,
     DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL,
     GRAPHER_DARK_TEXT,
-    GrapherExportFormat,
+    GrapherStaticFormat,
 } from "../core/GrapherConstants"
 import Cookies from "js-cookie"
 import {
@@ -263,8 +263,9 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     env?: string
     dataApiUrlForAdmin?: string
     annotation?: Annotation
-    boundsForExport?: Bounds
     baseFontSize?: number
+    staticBounds?: Bounds
+    staticFormat?: GrapherStaticFormat
 
     hideEntityControls?: boolean
     hideZoomToggle?: boolean
@@ -789,9 +790,7 @@ export class Grapher
     }
 
     @observable.ref renderToStatic = false
-
     @observable.ref isExportingToSvgOrPng = false
-    @observable.ref exportFormat = GrapherExportFormat.landscape
 
     tooltips?: TooltipManager["tooltips"] = observable.map({}, { deep: false })
     @observable isPlaying = false
@@ -1258,6 +1257,9 @@ export class Grapher
     // Used for static exports. Defined at this level because they need to
     // be accessed by CaptionedChart and DownloadModal
     @computed get detailRenderers(): MarkdownTextWrap[] {
+        const activeBounds = this.isExportingToSvgOrPng
+            ? this.staticBounds
+            : this.tabBounds
         return [...this.detailsOrderedByReference].map((term, i) => {
             let text = `**${i + 1}.** `
             const detail: EnrichedDetail = window.details?.[term]
@@ -1273,9 +1275,7 @@ export class Grapher
                 text,
                 fontSize: 12,
                 // leave room for padding on the left and right
-                maxWidth:
-                    this.boundsForExport.width -
-                    2 * this.framePaddingHorizontal,
+                maxWidth: activeBounds.width - 2 * this.framePaddingHorizontal,
                 lineHeight: 1.2,
                 style: {
                     fill: GRAPHER_DARK_TEXT,
@@ -1717,22 +1717,29 @@ export class Grapher
         return new Bounds(0, 0, DEFAULT_GRAPHER_WIDTH, DEFAULT_GRAPHER_HEIGHT)
     }
 
-    @computed get portraitBounds(): Bounds {
-        return new Bounds(0, 0, DEFAULT_GRAPHER_HEIGHT, DEFAULT_GRAPHER_WIDTH)
-    }
-
     @computed get hasYDimension(): boolean {
         return this.dimensions.some((d) => d.property === DimensionProperty.y)
     }
 
-    @computed get boundsForExport(): Bounds {
-        if (this.props.boundsForExport) return this.props.boundsForExport
+    @observable.ref private _staticFormat = GrapherStaticFormat.landscape
 
-        switch (this.exportFormat) {
-            case GrapherExportFormat.landscape:
+    @computed get staticFormat(): GrapherStaticFormat {
+        if (this.props.staticFormat) return this.props.staticFormat
+        return this._staticFormat
+    }
+
+    set staticFormat(preset: GrapherStaticFormat) {
+        this._staticFormat = preset
+    }
+
+    @computed get staticBounds(): Bounds {
+        if (this.props.staticBounds) return this.props.staticBounds
+
+        switch (this.staticFormat) {
+            case GrapherStaticFormat.landscape:
                 return this.idealBounds
-            case GrapherExportFormat.portrait:
-                return this.portraitBounds
+            case GrapherStaticFormat.portrait:
+                return new Bounds(0, 0, 1080, 1080)
             default:
                 return this.idealBounds
         }
@@ -1750,14 +1757,6 @@ export class Grapher
 
     get staticSVG(): string {
         return this.generateStaticSvg()
-    }
-
-    get staticSVGLandscape(): string {
-        return this.staticSVG
-    }
-
-    get staticSVGPortrait(): string {
-        return this.generateStaticSvg(this.portraitBounds)
     }
 
     @computed get disableIntroAnimation(): boolean {
@@ -1979,8 +1978,9 @@ export class Grapher
         // If the user is using interactive version and then goes to export chart, use current bounds to maintain WYSIWYG
         if (isExportingToSvgOrPng) return false
 
-        // todo: can remove this if we drop old adminSite editor
-        if (isEditor) return true
+        // In the editor, we usually want ideal bounds, except when we're rendering a static preview;
+        // in that case, we want to use the given static bounds
+        if (isEditor) return !this.renderToStatic
 
         // If the available space is very small, we use all of the space given to us
         if (

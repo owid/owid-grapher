@@ -41,7 +41,7 @@ export {
     Patterns,
     grapherInterfaceWithHiddenControlsOnly,
     grapherInterfaceWithHiddenTabsOnly,
-    GrapherExportFormat,
+    GrapherStaticFormat,
 } from "./core/GrapherConstants"
 export { ColorScale } from "./color/ColorScale"
 export { ColorScaleConfig } from "./color/ColorScaleConfig"

@@ -236,9 +236,25 @@ export class ChartEditorPage
     }
 
     @computed private get bounds(): Bounds {
-        return this.editor?.previewMode === "mobile"
-            ? new Bounds(0, 0, 360, 500)
-            : new Bounds(0, 0, 800, 600)
+        const { grapher } = this
+        const { previewMode, showStaticPreview } = this.editor ?? {}
+        const isMobile = previewMode === "mobile"
+
+        const initialBounds = !isMobile
+            ? grapher.idealBounds
+            : showStaticPreview
+            ? grapher.staticBounds
+            : new Bounds(0, 0, 380, 525)
+
+        const targetHeight = 550
+        const scaleFactor = Math.min(1, targetHeight / initialBounds.height)
+
+        return new Bounds(
+            0,
+            0,
+            scaleFactor * initialBounds.width,
+            scaleFactor * initialBounds.height
+        )
     }
 
     // unvalidated terms extracted from the subtitle and note fields
@@ -313,6 +329,16 @@ export class ChartEditorPage
                 }
             )
         )
+
+        this.disposers.push(
+            reaction(
+                () => this.editor && this.editor.staticPreviewFormat,
+                () => {
+                    this.grapher.staticFormat = this.editor!.staticPreviewFormat
+                    this.updateGrapher()
+                }
+            )
+        )
     }
 
     // This funny construction allows the "new chart" link to work by forcing an update
@@ -368,6 +394,11 @@ export class ChartEditorPage
                                             editor.tab = tab
                                             editor.showStaticPreview =
                                                 tab === "export"
+                                            if (tab === "export") {
+                                                editor.previewMode = "mobile"
+                                                grapher.staticFormat =
+                                                    editor.staticPreviewFormat
+                                            }
                                             this.updateGrapher()
                                         }}
                                     >
