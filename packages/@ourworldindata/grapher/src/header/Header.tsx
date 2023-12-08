@@ -48,11 +48,11 @@ export class Header<
         return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
-    @computed protected get hasTitle(): boolean {
+    @computed protected get showTitle(): boolean {
         return !this.manager.hideTitle && !!this.titleText
     }
 
-    @computed protected get hasSubtitle(): boolean {
+    @computed protected get showSubtitle(): boolean {
         return !this.manager.hideSubtitle && !!this.subtitleText
     }
 
@@ -138,14 +138,14 @@ export class Header<
         const {
             title,
             subtitle,
-            hasTitle,
-            hasSubtitle,
+            showTitle,
+            showSubtitle,
             subtitleMarginTop,
             logoHeight,
         } = this
         return Math.max(
-            (hasTitle ? title.height : 0) +
-                (hasSubtitle ? subtitle.height + subtitleMarginTop : 0),
+            (showTitle ? title.height : 0) +
+                (showSubtitle ? subtitle.height + subtitleMarginTop : 0),
             logoHeight
         )
     }
@@ -211,10 +211,10 @@ export class Header<
                 }}
             >
                 {this.logo && this.logo.renderHTML()}
-                {(this.hasTitle || this.hasSubtitle) && (
+                {(this.showTitle || this.showSubtitle) && (
                     <div style={{ minHeight: this.height }}>
-                        {this.hasTitle && this.renderTitle()}
-                        {this.hasSubtitle && this.renderSubtitle()}
+                        {this.showTitle && this.renderTitle()}
+                        {this.showSubtitle && this.renderSubtitle()}
                     </div>
                 )}
             </div>
@@ -276,7 +276,7 @@ export class StaticHeader extends Header<StaticHeaderProps> {
                 {logo &&
                     logo.height > 0 &&
                     logo.renderSVG(x + maxWidth - logo.width, y)}
-                {this.hasTitle && (
+                {this.showTitle && (
                     <a
                         href={manager.canonicalUrl}
                         style={{
@@ -291,11 +291,11 @@ export class StaticHeader extends Header<StaticHeaderProps> {
                         })}
                     </a>
                 )}
-                {this.hasSubtitle &&
+                {this.showSubtitle &&
                     subtitle.renderSVG(
                         x,
                         y +
-                            (this.hasTitle
+                            (this.showTitle
                                 ? title.height + this.subtitleMarginTop
                                 : 0),
                         {

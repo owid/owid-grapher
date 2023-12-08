@@ -207,7 +207,7 @@ export class Footer<
         return this.manager.isSmall ? 12 : 13
     }
 
-    @computed protected get hasNote(): boolean {
+    @computed protected get showNote(): boolean {
         return !this.manager.hideNote && !!this.noteText
     }
 
@@ -220,13 +220,13 @@ export class Footer<
 
     @computed private get useFullWidthSources(): boolean {
         const {
-            hasNote,
+            showNote,
             sourcesFontSize,
             maxWidth,
             sourcesText,
             actionButtonsWidthWithIconsOnly,
         } = this
-        if (hasNote) return true
+        if (showNote) return true
         const sourcesWidth = Bounds.forText(sourcesText, {
             fontSize: sourcesFontSize,
         }).width
@@ -320,7 +320,7 @@ export class Footer<
             useFullWidthSources,
             sourcesText,
             noteText,
-            hasNote,
+            showNote,
             useFullWidthNote,
         } = this
 
@@ -332,7 +332,7 @@ export class Footer<
         // text next to the action buttons
         const leftTextWidth = !useFullWidthSources
             ? sourcesWidth
-            : hasNote && !useFullWidthNote
+            : showNote && !useFullWidthNote
             ? noteWidth
             : 0
         // text above the action buttons
@@ -491,7 +491,7 @@ export class Footer<
         const { sources, note } = this
 
         const renderSources = this.useFullWidthSources
-        const renderNote = this.hasNote && this.useFullWidthNote
+        const renderNote = this.showNote && this.useFullWidthNote
 
         if (!renderSources && !renderNote) return 0
 
@@ -507,7 +507,7 @@ export class Footer<
     // make sure to keep this.topContentHeight in sync if you edit this method
     private renderTopContent(): JSX.Element | null {
         const renderSources = this.useFullWidthSources
-        const renderNote = this.hasNote && this.useFullWidthNote
+        const renderNote = this.showNote && this.useFullWidthNote
         const renderLicense = this.showLicenseNextToSources
 
         if (!renderSources && !renderNote) return null
@@ -533,7 +533,7 @@ export class Footer<
         const { actionButtons, sources, note } = this
 
         const renderSources = !this.useFullWidthSources
-        const renderNote = this.hasNote && !this.useFullWidthNote
+        const renderNote = this.showNote && !this.useFullWidthNote
         const renderLicense = !this.showLicenseNextToSources
         const renderPadding = (renderSources || renderNote) && renderLicense
 
@@ -549,7 +549,7 @@ export class Footer<
     // make sure to keep this.bottomContentHeight in sync if you edit this method
     private renderBottomContent(): JSX.Element {
         const renderSources = !this.useFullWidthSources
-        const renderNote = this.hasNote && !this.useFullWidthNote
+        const renderNote = this.showNote && !this.useFullWidthNote
         const renderLicense = !this.showLicenseNextToSources
         const renderPadding = (renderSources || renderNote) && renderLicense
 
@@ -710,7 +710,7 @@ export class StaticFooter extends Footer<StaticFooterProps> {
     @computed get height(): number {
         return (
             this.sources.height +
-            (this.hasNote ? this.note.height + this.verticalPadding : 0) +
+            (this.showNote ? this.note.height + this.verticalPadding : 0) +
             (this.showLicenseNextToSources
                 ? 0
                 : this.licenseAndOriginUrl.height + this.verticalPadding)
@@ -730,7 +730,7 @@ export class StaticFooter extends Footer<StaticFooterProps> {
         return (
             <g className="SourcesFooter" style={{ fill: GRAPHER_DARK_TEXT }}>
                 {sources.renderSVG(targetX, targetY)}
-                {this.hasNote &&
+                {this.showNote &&
                     note.renderSVG(
                         targetX,
                         targetY + sources.height + this.verticalPadding
@@ -744,7 +744,7 @@ export class StaticFooter extends Footer<StaticFooterProps> {
                           targetX,
                           targetY +
                               sources.height +
-                              (this.hasNote
+                              (this.showNote
                                   ? note.height + this.verticalPadding
                                   : 0) +
                               this.verticalPadding
