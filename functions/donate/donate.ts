@@ -84,15 +84,10 @@ export const onRequestPost: PagesFunction = async ({
 }
 
 async function isCaptchaValid(token: string, key: string): Promise<boolean> {
-    const body = new URLSearchParams({
-        secret: key,
-        response: token,
-    })
     const response = await fetch(
-        "https://www.google.com/recaptcha/api/siteverify",
+        `https://www.google.com/recaptcha/api/siteverify?secret=${key}&response=${token}`,
         {
-            method: "post",
-            body: body,
+            method: "POST",
         }
     )
     const json = (await response.json()) as { success: boolean }
