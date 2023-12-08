@@ -445,7 +445,7 @@ export class ChartEditorPage
                             <EditorExportTab editor={editor} />
                         )}
                     </div>
-                    <SaveButtons editor={editor} />
+                    {editor.tab !== "export" && <SaveButtons editor={editor} />}
                 </div>
                 <div className="chart-editor-view">
                     <figure
