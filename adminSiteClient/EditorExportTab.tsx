@@ -2,7 +2,7 @@ import { action, computed } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"
 import { ChartEditor } from "./ChartEditor.js"
-import { Section, SelectField } from "./Forms.js"
+import { Section, SelectField, Toggle } from "./Forms.js"
 import { Grapher, GrapherStaticFormat } from "@ourworldindata/grapher"
 import { Bounds, triggerDownloadFromBlob } from "@ourworldindata/utils"
 
@@ -57,6 +57,18 @@ export class EditorExportTab extends React.Component<{ editor: ChartEditor }> {
         )
     }
 
+    @action.bound onToggleTitleAnnotationEntity(value: boolean) {
+        const { grapher } = this.props.editor
+        grapher.forceHideAnnotationFieldsInTitle ??= {}
+        grapher.forceHideAnnotationFieldsInTitle.entity = !value || undefined
+    }
+
+    @action.bound onToggleTitleAnnotationTime(value: boolean) {
+        const { grapher } = this.props.editor
+        grapher.forceHideAnnotationFieldsInTitle ??= {}
+        grapher.forceHideAnnotationFieldsInTitle.time = !value || undefined
+    }
+
     async download(filename: ExportFilename, bounds: Bounds) {
         try {
             const { blob: pngBlob, svgBlob } =
@@ -73,6 +85,7 @@ export class EditorExportTab extends React.Component<{ editor: ChartEditor }> {
 
     render() {
         const { editor } = this.props
+        const { grapher } = editor
         return (
             <div className="EditorExportTab">
                 <Section name="Mobile image size">
@@ -91,6 +104,20 @@ export class EditorExportTab extends React.Component<{ editor: ChartEditor }> {
                                     format as GrapherStaticFormat
                                 ],
                             }))}
+                    />
+                </Section>
+                <Section name="Displayed elements">
+                    <Toggle
+                        label="Title suffix: automatic entity"
+                        value={
+                            !grapher.forceHideAnnotationFieldsInTitle?.entity
+                        }
+                        onValue={this.onToggleTitleAnnotationEntity}
+                    />
+                    <Toggle
+                        label="Title suffix: automatic time"
+                        value={!grapher.forceHideAnnotationFieldsInTitle?.time}
+                        onValue={this.onToggleTitleAnnotationTime}
                     />
                 </Section>
                 <Section name="Export static chart">
