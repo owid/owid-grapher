@@ -12,6 +12,79 @@ In addition, there's a [`_routes.json`](../_routes.json) file that specifies whi
 
 # Our dynamic routes
 
+## `/donate/donate`
+
+This route is used to create a Stripe Checkout session for a donation.
+
+When a user clicks the Donate button on our donate page, they send a request to this function, which verifies that they've passed the CAPTCHA challenge and validates their donation parameters (amount, interval, etc.).
+
+If all goes well, this function will respond with the URL of a Stripe Checkout form, where the donor's browser will be redirected to. From there, Stripe deals with the donation – collecting card & address info. Stripe has success and cancel URLs configured to redirect users after completion.
+
+```mermaid
+sequenceDiagram
+    box Purple Donor flow
+    participant Donor
+    participant Donation Form
+    participant Recaptcha
+    participant Cloud Functions
+    participant Stripe Checkout
+    participant "Thank you" page
+    end
+    box Green Udate public donors list
+    participant Lars
+    participant Donors sheet
+    participant Valerie
+    participant Wordpress
+    end
+    Donor ->>+ Donation Form: Visits
+    Donation Form ->> Donation Form: Activates donate button
+    Donor ->> Donation Form: Fills in and submits
+    Donation Form ->> Donation Form: Validates submission
+    break when donation parameters invalid
+    Donation Form -->> Donor: Show error
+    end
+    Donation Form ->>+ Recaptcha: is human?
+    Recaptcha -->>- Donation Form: yes
+    break when bot suspected
+    Recaptcha -->> Donor: show challenge
+    end
+    Donation Form ->>+ Cloud Functions: submits
+    Cloud Functions ->> Recaptcha: is token valid?
+    Recaptcha -->> Cloud Functions: yes
+    break when token invalid or donation parameters invalid
+    Cloud Functions -->> Donor: Show error
+    end
+    Cloud Functions ->> Stripe Checkout: Requests Stripe checkout session
+    Stripe Checkout -->> Cloud Functions: Generates Stripe checkout session
+    break when session creation failed
+    Cloud Functions -->> Donor: Show error
+    end
+    Cloud Functions -->>- Donation Form: Send session URL
+    Donation Form ->>- Stripe Checkout: Redirects
+    Donor ->> Stripe Checkout: Proceeds with payment
+    Stripe Checkout -->> Cloud Functions: Confirms payment
+    Cloud Functions ->> Donor: Sends confirmation email via Mailgun
+    Stripe Checkout ->> "Thank you" page: Redirects
+    Note right of "Thank you" page: A few weeks/months later
+    Lars ->> Donors sheet: ✍️ Exports new donors
+    Valerie ->> Donors sheet: ✍️  Edits/Deletes donors
+    Valerie ->> Wordpress: ✍️  Pastes updated donors list
+```
+
+### Development
+
+Start the Cloudflare function development server with either:
+
+-   (preferred) `yarn make up.full`: starts the whole local development stack, including the functions development server
+-   `yarn startLocalCloudflareFunctions`: only starts the functions development server
+
+The route is available at `http://localhost:8788/donate/donate`.
+
+Note: compatibility dates between local development and production environments should be kept in sync:
+
+-   local: defined in `package.json` -> `startLocalCloudflareFunctions`
+-   production: see https://dash.cloudflare.com/078fcdfed9955087315dd86792e71a7e/pages/view/owid/settings/functions
+
 ## `/grapher/:slug`
 
 Our grapher pages are (slightly) dynamic!
