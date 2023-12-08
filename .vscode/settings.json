@@ -14,7 +14,7 @@
     "typescript.preferences.useAliasesForRenames": false,
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
-        "source.fixAll.eslint": true
+        "source.fixAll.eslint": "explicit"
     },
     "typescript.preferences.importModuleSpecifierEnding": "js",
     "javascript.preferences.importModuleSpecifierEnding": "js",
