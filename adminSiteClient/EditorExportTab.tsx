@@ -108,6 +108,11 @@ export class EditorExportTab extends React.Component<{ editor: ChartEditor }> {
                 </Section>
                 <Section name="Displayed elements">
                     <Toggle
+                        label="Title"
+                        value={!grapher.hideTitle}
+                        onValue={(value) => (grapher.hideTitle = !value)}
+                    />
+                    <Toggle
                         label="Title suffix: automatic entity"
                         value={
                             !grapher.forceHideAnnotationFieldsInTitle?.entity
@@ -118,6 +123,16 @@ export class EditorExportTab extends React.Component<{ editor: ChartEditor }> {
                         label="Title suffix: automatic time"
                         value={!grapher.forceHideAnnotationFieldsInTitle?.time}
                         onValue={this.onToggleTitleAnnotationTime}
+                    />
+                    <Toggle
+                        label="Subtitle"
+                        value={!grapher.hideSubtitle}
+                        onValue={(value) => (grapher.hideSubtitle = !value)}
+                    />
+                    <Toggle
+                        label="Logo"
+                        value={!grapher.hideLogo}
+                        onValue={(value) => (grapher.hideLogo = !value)}
                     />
                     <Toggle
                         label="Note"

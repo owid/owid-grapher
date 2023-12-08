@@ -48,6 +48,14 @@ export class Header<
         return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
+    @computed protected get hasTitle(): boolean {
+        return !this.manager.hideTitle && !!this.titleText
+    }
+
+    @computed protected get hasSubtitle(): boolean {
+        return !this.manager.hideSubtitle && !!this.subtitleText
+    }
+
     @computed protected get titleText(): string {
         return this.manager.currentTitle?.trim() ?? ""
     }
@@ -127,11 +135,17 @@ export class Header<
     }
 
     @computed get height(): number {
-        const { title, subtitle, subtitleText, subtitleMarginTop, logoHeight } =
-            this
+        const {
+            title,
+            subtitle,
+            hasTitle,
+            hasSubtitle,
+            subtitleMarginTop,
+            logoHeight,
+        } = this
         return Math.max(
-            title.height +
-                (subtitleText ? subtitle.height + subtitleMarginTop : 0),
+            (hasTitle ? title.height : 0) +
+                (hasSubtitle ? subtitle.height + subtitleMarginTop : 0),
             logoHeight
         )
     }
@@ -197,10 +211,12 @@ export class Header<
                 }}
             >
                 {this.logo && this.logo.renderHTML()}
-                <div style={{ minHeight: this.height }}>
-                    {this.renderTitle()}
-                    {this.subtitleText && this.renderSubtitle()}
-                </div>
+                {(this.hasTitle || this.hasSubtitle) && (
+                    <div style={{ minHeight: this.height }}>
+                        {this.hasTitle && this.renderTitle()}
+                        {this.hasSubtitle && this.renderSubtitle()}
+                    </div>
+                )}
             </div>
         )
     }
@@ -260,26 +276,32 @@ export class StaticHeader extends Header<StaticHeaderProps> {
                 {logo &&
                     logo.height > 0 &&
                     logo.renderSVG(x + maxWidth - logo.width, y)}
-                <a
-                    href={manager.canonicalUrl}
-                    style={{
-                        fontFamily:
-                            "'Playfair Display', Georgia, 'Times New Roman', 'Liberation Serif', serif",
-                    }}
-                    target="_blank"
-                    rel="noopener"
-                >
-                    {title.render(x, y, {
-                        fill: GRAPHER_DARK_TEXT,
-                    })}
-                </a>
-                {subtitle.renderSVG(
-                    x,
-                    y + title.height + this.subtitleMarginTop,
-                    {
-                        fill: GRAPHER_DARK_TEXT,
-                    }
+                {this.hasTitle && (
+                    <a
+                        href={manager.canonicalUrl}
+                        style={{
+                            fontFamily:
+                                "'Playfair Display', Georgia, 'Times New Roman', 'Liberation Serif', serif",
+                        }}
+                        target="_blank"
+                        rel="noopener"
+                    >
+                        {title.render(x, y, {
+                            fill: GRAPHER_DARK_TEXT,
+                        })}
+                    </a>
                 )}
+                {this.hasSubtitle &&
+                    subtitle.renderSVG(
+                        x,
+                        y +
+                            (this.hasTitle
+                                ? title.height + this.subtitleMarginTop
+                                : 0),
+                        {
+                            fill: GRAPHER_DARK_TEXT,
+                        }
+                    )}
             </g>
         )
     }

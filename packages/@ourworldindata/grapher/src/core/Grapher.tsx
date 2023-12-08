@@ -275,6 +275,8 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     staticBounds?: Bounds
     staticFormat?: GrapherStaticFormat
 
+    hideTitle?: boolean
+    hideSubtitle?: boolean
     hideNote?: boolean
     hideOriginUrl?: boolean
 
@@ -3041,6 +3043,8 @@ export class Grapher
         return this.showAddEntityButton && !this.isMobile
     }
 
+    @observable hideTitle = false
+    @observable hideSubtitle = false
     @observable hideNote = false
     @observable hideOriginUrl = false
 
