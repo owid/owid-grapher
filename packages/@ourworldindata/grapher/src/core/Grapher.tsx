@@ -67,7 +67,10 @@ import {
     getOriginAttributionFragments,
     sortBy,
 } from "@ourworldindata/utils"
-import { MarkdownTextWrap } from "@ourworldindata/components"
+import {
+    MarkdownTextWrap,
+    sumTextWrapHeights,
+} from "@ourworldindata/components"
 import {
     ChartTypeName,
     GrapherTabOption,
@@ -95,6 +98,7 @@ import {
     DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL,
     GRAPHER_DARK_TEXT,
     GrapherStaticFormat,
+    STATIC_EXPORT_DETAIL_SPACING,
 } from "../core/GrapherConstants"
 import Cookies from "js-cookie"
 import {
@@ -184,6 +188,10 @@ import { MarimekkoChartManager } from "../stackedCharts/MarimekkoChartConstants"
 import { AxisConfigInterface } from "../axis/AxisConfigInterface"
 import Bugsnag from "@bugsnag/js"
 import { FacetChartManager } from "../facetChart/FacetChartConstants"
+import {
+    StaticChartRasterizer,
+    type GrapherExport,
+} from "../captionedChart/StaticChartRasterizer.js"
 
 declare const window: any
 
@@ -1759,6 +1767,39 @@ export class Grapher
 
     get staticSVG(): string {
         return this.generateStaticSvg()
+    }
+
+    exportWidth(bounds: Bounds = this.staticBounds): number {
+        return bounds.width
+    }
+
+    exportHeight(bounds: Bounds = this.staticBounds): number {
+        if (
+            this.shouldIncludeDetailsInStaticExport &&
+            !isEmpty(this.detailRenderers)
+        ) {
+            return (
+                bounds.height +
+                2 * this.framePaddingVertical! +
+                sumTextWrapHeights(
+                    this.detailRenderers,
+                    STATIC_EXPORT_DETAIL_SPACING
+                )
+            )
+        }
+        return bounds.height
+    }
+
+    rasterize(bounds: Bounds = this.staticBounds): Promise<GrapherExport> {
+        const targetWidth = this.exportWidth(bounds)
+        const targetHeight = this.exportHeight(bounds)
+        const staticSVG = this.generateStaticSvg(bounds)
+
+        return new StaticChartRasterizer(
+            staticSVG,
+            targetWidth,
+            targetHeight
+        ).render()
     }
 
     @computed get disableIntroAnimation(): boolean {

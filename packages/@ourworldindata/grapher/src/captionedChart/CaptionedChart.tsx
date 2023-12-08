@@ -7,10 +7,7 @@ import {
     exposeInstanceOnWindow,
     isEmpty,
 } from "@ourworldindata/utils"
-import {
-    MarkdownTextWrap,
-    sumTextWrapHeights,
-} from "@ourworldindata/components"
+import { MarkdownTextWrap } from "@ourworldindata/components"
 import { Header, StaticHeader } from "../header/Header"
 import { Footer, StaticFooter } from "../footer/Footer"
 import {
@@ -94,6 +91,8 @@ export interface CaptionedChartManager
     isMedium?: boolean
     framePaddingHorizontal?: number
     framePaddingVertical?: number
+    exportWidth?: (bounds?: Bounds) => number
+    exportHeight?: (bounds?: Bounds) => number
 }
 
 interface CaptionedChartProps {
@@ -575,20 +574,13 @@ export class StaticCaptionedChart extends CaptionedChart {
 
     render(): JSX.Element {
         const { bounds, paddedBounds, manager, maxWidth } = this
-        let { width, height } = bounds
+
+        const width = this.manager.exportWidth?.(bounds) ?? bounds.width
+        const height = this.manager.exportHeight?.(bounds) ?? bounds.height
 
         const includeDetailsInStaticExport =
             manager.shouldIncludeDetailsInStaticExport &&
             !isEmpty(this.manager.detailRenderers)
-
-        if (includeDetailsInStaticExport) {
-            height +=
-                2 * this.framePaddingVertical +
-                sumTextWrapHeights(
-                    this.manager.detailRenderers,
-                    STATIC_EXPORT_DETAIL_SPACING
-                )
-        }
 
         return (
             <svg

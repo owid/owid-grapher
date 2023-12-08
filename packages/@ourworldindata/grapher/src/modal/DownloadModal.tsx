@@ -8,11 +8,7 @@ import {
     triggerDownloadFromBlob,
     triggerDownloadFromUrl,
 } from "@ourworldindata/utils"
-import {
-    MarkdownTextWrap,
-    sumTextWrapHeights,
-    Checkbox,
-} from "@ourworldindata/components"
+import { MarkdownTextWrap, Checkbox } from "@ourworldindata/components"
 import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faDownload, faInfoCircle } from "@fortawesome/free-solid-svg-icons"
@@ -22,16 +18,16 @@ import {
     OwidColumnDef,
     CoreColumn,
 } from "@ourworldindata/core-table"
-import {
-    GrapherStaticFormat,
-    STATIC_EXPORT_DETAIL_SPACING,
-} from "../core/GrapherConstants"
+import { GrapherStaticFormat } from "../core/GrapherConstants"
 import { Modal } from "./Modal"
-import { StaticChartRasterizer } from "../captionedChart/StaticChartRasterizer"
+import { GrapherExport } from "../captionedChart/StaticChartRasterizer.js"
 
 export interface DownloadModalManager {
     displaySlug: string
     generateStaticSvg: (bounds: Bounds) => string
+    rasterize: (bounds?: Bounds) => Promise<GrapherExport>
+    exportWidth: (bounds?: Bounds) => number
+    exportHeight: (bounds?: Bounds) => number
     staticBounds?: Bounds
     staticFormat?: GrapherStaticFormat
     baseUrl?: string
@@ -76,24 +72,11 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
     }
 
     @computed private get targetWidth(): number {
-        return this.staticBounds.width
+        return this.manager.exportWidth(this.staticBounds)
     }
 
     @computed private get targetHeight(): number {
-        if (
-            this.manager.shouldIncludeDetailsInStaticExport &&
-            !isEmpty(this.manager.detailRenderers)
-        ) {
-            return (
-                this.staticBounds.height +
-                2 * this.manager.framePaddingVertical! +
-                sumTextWrapHeights(
-                    this.manager.detailRenderers,
-                    STATIC_EXPORT_DETAIL_SPACING
-                )
-            )
-        }
-        return this.staticBounds.height
+        return this.manager.exportHeight(this.staticBounds)
     }
 
     @computed private get manager(): DownloadModalManager {
@@ -109,13 +92,11 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
     @observable private isReady: boolean = false
 
     @action.bound private export(): void {
-        const { staticBounds, targetWidth, targetHeight } = this
-
-        const staticSVG = this.manager.generateStaticSvg(staticBounds)
+        const { staticBounds } = this
 
         // render the graphic then cache data-urls for display & blobs for downloads
-        new StaticChartRasterizer(staticSVG, targetWidth, targetHeight)
-            .render()
+        this.manager
+            .rasterize(staticBounds)
             .then(({ url, blob, svgUrl, svgBlob }) => {
                 this.pngPreviewUrl = url
                 this.pngBlob = blob

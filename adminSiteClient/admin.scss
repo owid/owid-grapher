@@ -299,8 +299,8 @@ $nav-height: 45px;
     }
 
     > .chart-editor-settings {
-        min-width: 500px;
-        width: 500px;
+        min-width: 550px;
+        width: 550px;
         min-height: 100%;
         display: flex;
         flex-direction: column;
@@ -388,6 +388,15 @@ $nav-height: 45px;
         display: flex;
         flex-direction: column;
         gap: 1em;
+    }
+}
+
+.EditorExportTab {
+    .DownloadButtons {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        align-items: flex-start;
     }
 }
 
