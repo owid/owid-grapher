@@ -140,7 +140,7 @@ class PostRow extends React.Component<PostRowProps> {
             .with(GdocStatus.MISSING_NO_SLUG_SUCCESSOR, () => (
                 <button
                     onClick={async () => await this.onConvertGdoc()}
-                    className="btn btn-primary"
+                    className="btn btn-primary btn-sm"
                 >
                     Create GDoc
                 </button>
@@ -151,26 +151,19 @@ class PostRow extends React.Component<PostRowProps> {
                         <a
                             key={gdocSlugSuccessor.id}
                             href={`${ADMIN_BASE_URL}/admin/gdocs/${gdocSlugSuccessor.id}/preview`}
-                            className="btn btn-primary"
+                            className="btn btn-primary btn-sm"
+                            title="Preview GDoc with same slug"
                         >
                             <>
                                 <FontAwesomeIcon icon={faEye} /> Preview
                                 {gdocSlugSuccessor.published ? (
-                                    <span className="badge badge-success">
-                                        (published)
-                                    </span>
+                                    <span title="Published">✅</span>
                                 ) : (
                                     <></>
                                 )}
                             </>
                         </a>
                     ))}
-                    <button
-                        onClick={async () => await this.onConvertGdoc()}
-                        className="btn btn-primary"
-                    >
-                        Create GDoc
-                    </button>
                 </>
             ))
             .with(GdocStatus.CONVERTING, () => <span>Converting...</span>)
@@ -178,14 +171,12 @@ class PostRow extends React.Component<PostRowProps> {
                 <>
                     <a
                         href={`${ADMIN_BASE_URL}/admin/gdocs/${post.gdocSuccessorId}/preview`}
-                        className="btn btn-primary"
+                        className="btn btn-primary btn-sm button-with-margin"
                     >
                         <>
                             <FontAwesomeIcon icon={faEye} /> Preview
                             {post.gdocSuccessorPublished ? (
-                                <span className="badge badge-success">
-                                    (published)
-                                </span>
+                                <span title="Published">✅</span>
                             ) : (
                                 <></>
                             )}
@@ -193,7 +184,7 @@ class PostRow extends React.Component<PostRowProps> {
                     </a>
                     <button
                         onClick={this.onRecreateGdoc}
-                        className="btn btn-primary alert-danger"
+                        className="btn btn-primary alert-danger btn-sm button-with-margin"
                     >
                         <FontAwesomeIcon
                             icon={faRecycle}
@@ -204,7 +195,7 @@ class PostRow extends React.Component<PostRowProps> {
                     </button>
                     <button
                         onClick={this.onUnlinkGdoc}
-                        className="btn btn-primary alert-danger"
+                        className="btn btn-primary alert-danger btn-sm button-with-margin"
                     >
                         <FontAwesomeIcon
                             icon={faChainBroken}
