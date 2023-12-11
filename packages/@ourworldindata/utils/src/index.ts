@@ -624,6 +624,8 @@ export {
     getFilenameAsPng,
     type GDriveImageMetadata,
     type ImageMetadata,
+    type SourceProps,
+    generateSourceProps,
 } from "./image.js"
 
 export { Tippy, TippyIfInteractive } from "./Tippy.js"

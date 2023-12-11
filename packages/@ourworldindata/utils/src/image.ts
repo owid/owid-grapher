@@ -62,3 +62,29 @@ export function getFilenameWithoutExtension(
 export function getFilenameAsPng(filename: ImageMetadata["filename"]): string {
     return `${getFilenameWithoutExtension(filename)}.png`
 }
+
+export type SourceProps = {
+    media: string | undefined
+    srcSet: string
+}
+
+// When we have a small and large image, we want to generate two <source> elements, one of which will only be used on mobile
+export function generateSourceProps(
+    smallImage: ImageMetadata | undefined,
+    regularImage: ImageMetadata
+): SourceProps[] {
+    const props: SourceProps[] = []
+    if (smallImage) {
+        const smallSizes = getSizes(smallImage.originalWidth)
+        props.push({
+            media: "(max-width: 768px)",
+            srcSet: generateSrcSet(smallSizes, smallImage.filename),
+        })
+    }
+    const regularSizes = getSizes(regularImage.originalWidth)
+    props.push({
+        media: undefined,
+        srcSet: generateSrcSet(regularSizes, regularImage.filename),
+    })
+    return props
+}

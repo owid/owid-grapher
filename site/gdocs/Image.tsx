@@ -1,10 +1,8 @@
 import React, { useContext } from "react"
 import {
-    getSizes,
-    generateSrcSet,
     getFilenameWithoutExtension,
     IMAGES_DIRECTORY,
-    identity,
+    generateSourceProps,
     ImageMetadata,
 } from "@ourworldindata/utils"
 import { LIGHTBOX_IMAGE_CLASS } from "../Lightbox.js"
@@ -142,32 +140,21 @@ export default function Image(props: {
         )
     }
 
-    let sizes = getSizes(image.originalWidth)
-    let smallSrcSet = ""
-    if (smallImage) {
-        /**
-         * If we have a small image
-         * 1. generate its srcSet
-         * 2. remove sizes that are smaller than it from the sizes of the larger image
-         * 3. generate the srcSet for the larger image
-         * 4. combine the two srcSets
-         * e.g. small_100.png 100px, small_350.png 350px, large_600.png 600px, large_850.png 850px
-         */
-        const smallSizes = getSizes(smallImage.originalWidth)
-        smallSrcSet = generateSrcSet(smallSizes, smallImage.filename)
-        sizes = sizes.filter((size) => size > smallImage.originalWidth!)
-    }
-    const srcSet = generateSrcSet(sizes, filename)
     const imageSrc = `${IMAGES_DIRECTORY}${filename}`
-    const finalSrcSet = [smallSrcSet, srcSet].filter(identity).join(", ")
+    const sourceProps = generateSourceProps(smallImage, image)
 
     return (
         <picture className={className}>
-            <source
-                srcSet={finalSrcSet}
-                type="image/webp"
-                sizes={containerSizes[containerType] ?? containerSizes.default}
-            />
+            {sourceProps.map((props, i) => (
+                <source
+                    key={i}
+                    {...props}
+                    type="image/webp"
+                    sizes={
+                        containerSizes[containerType] ?? containerSizes.default
+                    }
+                />
+            ))}
             <img
                 src={encodeURI(imageSrc)}
                 alt={alt}
