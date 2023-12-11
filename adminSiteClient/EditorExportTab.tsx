@@ -1,4 +1,4 @@
-import { action, computed } from "mobx"
+import { IReactionDisposer, action, autorun, computed, observable } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"
 import { ChartEditor } from "./ChartEditor.js"
@@ -10,61 +10,137 @@ import {
     capitalize,
 } from "@ourworldindata/utils"
 
+type ExportSettings = Pick<
+    Grapher,
+    | "hideTitle"
+    | "forceHideAnnotationFieldsInTitle"
+    | "hideSubtitle"
+    | "hideLogo"
+    | "hideNote"
+    | "hideOriginUrl"
+>
+
+type ExportSettingsByChartId = Record<number, ExportSettings>
+
 type Format = "png" | "svg"
 type ExportFilename = `${string}.${Format}`
 
+const STORAGE_KEY = "chart-export-settings"
+
+const DEFAULT_SETTINGS: ExportSettings = {
+    hideTitle: false,
+    forceHideAnnotationFieldsInTitle: { entity: false, time: false },
+    hideSubtitle: false,
+    hideLogo: false,
+    hideNote: false,
+    hideOriginUrl: false,
+}
+
 @observer
 export class EditorExportTab extends React.Component<{ editor: ChartEditor }> {
+    @observable private settings = DEFAULT_SETTINGS
+    private originalSettings = DEFAULT_SETTINGS
+    private disposers: IReactionDisposer[] = []
+
+    componentDidMount(): void {
+        this.saveOriginalSettings()
+
+        if (sessionStorage) {
+            this.loadSettingsFromSessionStorage()
+        }
+
+        this.disposers.push(autorun(() => this.updateGrapher()))
+    }
+
+    componentWillUnmount(): void {
+        this.resetGrapher()
+
+        if (sessionStorage) {
+            this.saveSettingsToSessionStorage()
+        }
+
+        this.disposers.forEach((dispose) => dispose())
+    }
+
+    private loadSettingsFromSessionStorage() {
+        const settingsByChartId = (loadJSONFromSessionStorage(STORAGE_KEY) ??
+            {}) as ExportSettingsByChartId
+        const settings = settingsByChartId[this.chartId]
+        if (settings) {
+            this.settings = settings
+        }
+    }
+
+    private saveSettingsToSessionStorage() {
+        const settingsByChartId = (loadJSONFromSessionStorage(STORAGE_KEY) ??
+            {}) as ExportSettingsByChartId
+        settingsByChartId[this.chartId] = this.settings
+        saveJSONToSessionStorage(STORAGE_KEY, settingsByChartId)
+    }
+
+    private saveOriginalSettings() {
+        this.originalSettings = {
+            hideTitle: this.grapher.hideTitle,
+            forceHideAnnotationFieldsInTitle:
+                this.grapher.forceHideAnnotationFieldsInTitle,
+            hideSubtitle: this.grapher.hideSubtitle,
+            hideLogo: this.grapher.hideLogo,
+            hideNote: this.grapher.hideNote,
+            hideOriginUrl: this.grapher.hideOriginUrl,
+        }
+    }
+
+    private resetGrapher() {
+        Object.assign(this.grapher, this.originalSettings)
+    }
+
+    private updateGrapher() {
+        Object.assign(this.grapher, this.settings)
+    }
+
     @computed private get grapher(): Grapher {
         return this.props.editor.grapher
+    }
+
+    @computed private get chartId(): number {
+        // the id is undefined for unsaved charts
+        return this.grapher.id ?? 0
     }
 
     @computed private get baseFilename(): string {
         return this.props.editor.grapher.displaySlug
     }
 
-    @action.bound onPresetChange(value: string) {
+    @action.bound private onPresetChange(value: string) {
         this.props.editor.staticPreviewFormat = value as GrapherStaticFormat
     }
 
-    @action.bound async onDownloadDesktopSVG() {
+    @action.bound private onDownloadDesktopSVG() {
         this.download(
             `${this.baseFilename}-desktop.svg`,
             this.grapher.idealBounds
         )
     }
 
-    @action.bound async onDownloadDesktopPNG() {
+    @action.bound private onDownloadDesktopPNG() {
         this.download(
             `${this.baseFilename}-desktop.png`,
             this.grapher.idealBounds
         )
     }
 
-    @action.bound async onDownloadMobileSVG() {
+    @action.bound private onDownloadMobileSVG() {
         this.download(
             `${this.baseFilename}-mobile.svg`,
             this.grapher.staticBounds
         )
     }
 
-    @action.bound onDownloadMobilePNG() {
+    @action.bound private onDownloadMobilePNG() {
         this.download(
             `${this.baseFilename}-mobile.png`,
             this.grapher.staticBounds
         )
-    }
-
-    @action.bound onToggleTitleAnnotationEntity(value: boolean) {
-        const { grapher } = this.props.editor
-        grapher.forceHideAnnotationFieldsInTitle ??= {}
-        grapher.forceHideAnnotationFieldsInTitle.entity = !value || undefined
-    }
-
-    @action.bound onToggleTitleAnnotationTime(value: boolean) {
-        const { grapher } = this.props.editor
-        grapher.forceHideAnnotationFieldsInTitle ??= {}
-        grapher.forceHideAnnotationFieldsInTitle.time = !value || undefined
     }
 
     async download(filename: ExportFilename, bounds: Bounds) {
@@ -83,7 +159,6 @@ export class EditorExportTab extends React.Component<{ editor: ChartEditor }> {
 
     render() {
         const { editor } = this.props
-        const { grapher } = editor
         return (
             <div className="EditorExportTab">
                 <Section name="Mobile image size">
@@ -105,40 +180,54 @@ export class EditorExportTab extends React.Component<{ editor: ChartEditor }> {
                 <Section name="Displayed elements">
                     <Toggle
                         label="Title"
-                        value={!grapher.hideTitle}
-                        onValue={(value) => (grapher.hideTitle = !value)}
+                        value={!this.settings.hideTitle}
+                        onValue={(value) => (this.settings.hideTitle = !value)}
                     />
                     <Toggle
                         label="Title suffix: automatic entity"
                         value={
-                            !grapher.forceHideAnnotationFieldsInTitle?.entity
+                            !this.settings.forceHideAnnotationFieldsInTitle
+                                ?.entity
                         }
-                        onValue={this.onToggleTitleAnnotationEntity}
+                        onValue={(value) =>
+                            (this.settings.forceHideAnnotationFieldsInTitle.entity =
+                                !value)
+                        }
                     />
                     <Toggle
                         label="Title suffix: automatic time"
-                        value={!grapher.forceHideAnnotationFieldsInTitle?.time}
-                        onValue={this.onToggleTitleAnnotationTime}
+                        value={
+                            !this.settings.forceHideAnnotationFieldsInTitle
+                                ?.time
+                        }
+                        onValue={(value) =>
+                            (this.settings.forceHideAnnotationFieldsInTitle.time =
+                                !value)
+                        }
                     />
                     <Toggle
                         label="Subtitle"
-                        value={!grapher.hideSubtitle}
-                        onValue={(value) => (grapher.hideSubtitle = !value)}
+                        value={!this.settings.hideSubtitle}
+                        onValue={(value) =>
+                            (this.settings.hideSubtitle = !value)
+                        }
                     />
                     <Toggle
                         label="Logo"
-                        value={!grapher.hideLogo}
-                        onValue={(value) => (grapher.hideLogo = !value)}
+                        value={!this.settings.hideLogo}
+                        onValue={(value) => (this.settings.hideLogo = !value)}
                     />
                     <Toggle
                         label="Note"
-                        value={!grapher.hideNote}
-                        onValue={(value) => (grapher.hideNote = !value)}
+                        value={!this.settings.hideNote}
+                        onValue={(value) => (this.settings.hideNote = !value)}
                     />
                     <Toggle
                         label="Origin URL"
-                        value={!grapher.hideOriginUrl}
-                        onValue={(value) => (grapher.hideOriginUrl = !value)}
+                        value={!this.settings.hideOriginUrl}
+                        onValue={(value) =>
+                            (this.settings.hideOriginUrl = !value)
+                        }
                     />
                 </Section>
                 <Section name="Export static chart">
@@ -172,4 +261,19 @@ export class EditorExportTab extends React.Component<{ editor: ChartEditor }> {
             </div>
         )
     }
+}
+
+function loadJSONFromSessionStorage(key: string): unknown | undefined {
+    const rawJSON = sessionStorage.getItem(key)
+    if (!rawJSON) return undefined
+    try {
+        return JSON.parse(rawJSON)
+    } catch (err) {
+        console.error(err)
+        return undefined
+    }
+}
+
+function saveJSONToSessionStorage(key: string, value: any) {
+    sessionStorage.setItem(key, JSON.stringify(value))
 }
