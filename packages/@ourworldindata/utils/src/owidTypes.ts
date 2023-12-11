@@ -1389,6 +1389,12 @@ export interface OwidGdocDataInsightInterface extends OwidGdocBaseInterface {
     tags?: Tag[]
 }
 
+export type MinimalDataInsightInterface = Pick<
+    OwidGdocDataInsightContent,
+    "title"
+> &
+    Pick<OwidGdocDataInsightInterface, "slug" | "publishedAt">
+
 export type OwidGdoc = OwidGdocPostInterface | OwidGdocDataInsightInterface
 
 export enum OwidGdocErrorMessageType {

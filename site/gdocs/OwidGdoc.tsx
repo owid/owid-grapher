@@ -9,22 +9,25 @@ import {
     get,
     OwidGdocType,
     OwidGdoc as OwidGdocInterface,
+    MinimalDataInsightInterface,
 } from "@ourworldindata/utils"
 import { DebugProvider } from "./DebugContext.js"
 import { match, P } from "ts-pattern"
 import { GdocPost } from "./pages/GdocPost.js"
-import { DataInsight } from "./pages/DataInsight.js"
+import { DataInsightPage } from "./pages/DataInsight.js"
 import { Fragment } from "./pages/Fragment.js"
 export const AttachmentsContext = createContext<{
     linkedCharts: Record<string, LinkedChart>
     linkedDocuments: Record<string, OwidGdocPostInterface>
     imageMetadata: Record<string, ImageMetadata>
     relatedCharts: RelatedChart[]
+    latestDataInsights?: MinimalDataInsightInterface[]
 }>({
     linkedDocuments: {},
     imageMetadata: {},
     linkedCharts: {},
     relatedCharts: [],
+    latestDataInsights: [],
 })
 
 export const DocumentContext = createContext<{ isPreviewing: boolean }>({
@@ -67,7 +70,7 @@ export function OwidGdoc({
             (props) => <GdocPost {...props} />
         )
         .with({ content: { type: OwidGdocType.DataInsight } }, (props) => (
-            <DataInsight {...props} />
+            <DataInsightPage {...props} />
         ))
         .with({ content: { type: OwidGdocType.Fragment } }, (props) => (
             <Fragment {...props} />
@@ -94,6 +97,7 @@ export function OwidGdoc({
                 imageMetadata: get(props, "imageMetadata", {}),
                 linkedCharts: get(props, "linkedCharts", {}),
                 relatedCharts: get(props, "relatedCharts", []),
+                latestDataInsights: get(props, "latestDataInsights", []),
             }}
         >
             <DocumentContext.Provider value={{ isPreviewing }}>
