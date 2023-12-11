@@ -21,6 +21,7 @@ import {
     EPOCH_DATE,
     getETLPathComponents,
     OwidProcessingLevel,
+    OwidOrigin,
 } from "@ourworldindata/utils"
 import { GrapherFigureView } from "../site/GrapherFigureView.js"
 import { ChartList, ChartListItem } from "./ChartList.js"
@@ -38,6 +39,7 @@ interface VariablePageData
     charts: ChartListItem[]
     grapherConfig: GrapherInterface | undefined
     source: { id: number; name: string }
+    origins: OwidOrigin[]
 }
 
 const createBulletList = (items: string[]): string => {
@@ -65,6 +67,8 @@ class VariableEditable
     @observable processingLevel: OwidProcessingLevel | undefined = undefined
 
     @observable presentation = {} as OwidVariablePresentation
+
+    @observable origins: OwidOrigin[] = []
 
     constructor(json: any) {
         for (const key in this) {
@@ -255,132 +259,6 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                         helpText={`The day series starts on this date.`}
                                     />
                                 </FieldsRow>
-                                <h4>Data Page</h4>
-                                <FieldsRow>
-                                    <BindString
-                                        label="Title public"
-                                        field="titlePublic"
-                                        store={newVariable.presentation}
-                                        disabled={isDisabled}
-                                        helpText={`FIXME.`}
-                                    />
-                                    <BindString
-                                        label="Title variant"
-                                        field="titleVariant"
-                                        store={newVariable.presentation}
-                                        disabled={isDisabled}
-                                        helpText={`FIXME.`}
-                                    />
-                                </FieldsRow>
-                                <FieldsRow>
-                                    <BindString
-                                        label="Attribution"
-                                        field="attribution"
-                                        store={newVariable.presentation}
-                                        disabled={isDisabled}
-                                        helpText={`FIXME.`}
-                                    />
-                                    <BindString
-                                        label="Attribution short"
-                                        field="attributionShort"
-                                        store={newVariable.presentation}
-                                        disabled={isDisabled}
-                                        helpText={`FIXME.`}
-                                    />
-                                </FieldsRow>
-                                <FieldsRow>
-                                    <BindString
-                                        label="Description short"
-                                        field="descriptionShort"
-                                        store={newVariable}
-                                        disabled={isDisabled}
-                                        helpText={`FIXME.`}
-                                        textarea
-                                    />
-                                    <BindString
-                                        label="Description from producer"
-                                        field="descriptionFromProducer"
-                                        store={newVariable}
-                                        disabled={isDisabled}
-                                        helpText={`FIXME.`}
-                                        textarea
-                                    />
-                                </FieldsRow>
-                                <FieldsRow>
-                                    <BindString
-                                        label="Processing level"
-                                        field="processingLevel"
-                                        store={newVariable}
-                                        disabled={isDisabled}
-                                        helpText={`FIXME.`}
-                                    />
-                                    <BindString
-                                        label="Description processing"
-                                        field="descriptionProcessing"
-                                        store={newVariable}
-                                        disabled={isDisabled}
-                                        helpText={`FIXME.`}
-                                        textarea
-                                    />
-                                </FieldsRow>
-                                <BindString
-                                    label="Description key"
-                                    field="v"
-                                    store={{
-                                        v: createBulletList(
-                                            newVariable.descriptionKey
-                                        ),
-                                    }}
-                                    disabled={isDisabled}
-                                    helpText={`FIXME.`}
-                                    textarea
-                                />
-
-                                <BindString
-                                    label="Grapher Config ETL"
-                                    field="v"
-                                    store={{
-                                        v: dump(
-                                            newVariable.presentation
-                                                .grapherConfigETL
-                                        ),
-                                    }}
-                                    disabled={isDisabled}
-                                    helpText={`FIXME.`}
-                                    textarea
-                                    rows={10}
-                                />
-                                <h4>Others</h4>
-                                <FieldsRow>
-                                    <Toggle
-                                        value={
-                                            newVariable.display
-                                                .includeInTable === true
-                                        }
-                                        onValue={(value) =>
-                                            (newVariable.display.includeInTable =
-                                                value)
-                                        }
-                                        label="Include in table"
-                                        disabled={isDisabled}
-                                    />
-                                </FieldsRow>
-                                <BindString
-                                    field="description"
-                                    store={newVariable}
-                                    label="Description"
-                                    textarea
-                                    disabled={isDisabled}
-                                />
-                                <BindString
-                                    field="entityAnnotationsMap"
-                                    placeholder="Entity: note"
-                                    store={newVariable.display}
-                                    label="Entity annotations"
-                                    textarea
-                                    disabled={isDisabled}
-                                    helpText="Additional text to show next to entity labels. Each note should be in a separate line."
-                                />
                             </section>
                         </form>
                     </div>
@@ -400,6 +278,248 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                             <GrapherFigureView grapher={this.grapher} />
                         </div>
                     )}
+                </div>
+                <div className="row">
+                    <div className="col">
+                        <form>
+                            <section>
+                                <h4>Data Page</h4>
+                                <FieldsRow>
+                                    <BindString
+                                        label="Title public"
+                                        field="titlePublic"
+                                        store={newVariable.presentation}
+                                        disabled={isDisabled}
+                                        secondaryLabel={`FIXME.`}
+                                    />
+                                    <BindString
+                                        label="Title variant"
+                                        field="titleVariant"
+                                        store={newVariable.presentation}
+                                        disabled={isDisabled}
+                                        secondaryLabel={`FIXME.`}
+                                    />
+                                    <BindString
+                                        label="Attribution"
+                                        field="attribution"
+                                        store={newVariable.presentation}
+                                        disabled={isDisabled}
+                                        secondaryLabel={`FIXME.`}
+                                    />
+                                    <BindString
+                                        label="Attribution short"
+                                        field="attributionShort"
+                                        store={newVariable.presentation}
+                                        disabled={isDisabled}
+                                        secondaryLabel={`FIXME.`}
+                                    />
+                                </FieldsRow>
+                                <FieldsRow>
+                                    <BindString
+                                        label="Description short"
+                                        field="descriptionShort"
+                                        store={newVariable}
+                                        disabled={isDisabled}
+                                        secondaryLabel={`FIXME.`}
+                                        textarea
+                                    />
+                                    <BindString
+                                        label="Description from producer"
+                                        field="descriptionFromProducer"
+                                        store={newVariable}
+                                        disabled={isDisabled}
+                                        secondaryLabel={`FIXME.`}
+                                        textarea
+                                    />
+                                </FieldsRow>
+                                <FieldsRow>
+                                    <BindString
+                                        label="Grapher Config ETL"
+                                        field="v"
+                                        store={{
+                                            v: dump(
+                                                newVariable.presentation
+                                                    .grapherConfigETL
+                                            ),
+                                        }}
+                                        disabled={isDisabled}
+                                        secondaryLabel={`FIXME.`}
+                                        textarea
+                                        rows={8}
+                                    />
+                                    <BindString
+                                        label="Description key"
+                                        field="v"
+                                        store={{
+                                            v: createBulletList(
+                                                newVariable.descriptionKey
+                                            ),
+                                        }}
+                                        disabled={isDisabled}
+                                        secondaryLabel={`FIXME.`}
+                                        textarea
+                                        rows={8}
+                                    />
+                                </FieldsRow>
+                                <FieldsRow>
+                                    <BindString
+                                        label="Description processing"
+                                        field="descriptionProcessing"
+                                        store={newVariable}
+                                        disabled={isDisabled}
+                                        secondaryLabel={`FIXME.`}
+                                    />
+                                    <BindString
+                                        label="Processing level"
+                                        field="processingLevel"
+                                        store={newVariable}
+                                        disabled={isDisabled}
+                                        secondaryLabel={`FIXME.`}
+                                    />
+                                </FieldsRow>
+
+                                <h4>Other metadata</h4>
+                                <FieldsRow>
+                                    <Toggle
+                                        value={
+                                            newVariable.display
+                                                .includeInTable === true
+                                        }
+                                        onValue={(value) =>
+                                            (newVariable.display.includeInTable =
+                                                value)
+                                        }
+                                        label="Include in table"
+                                        disabled={isDisabled}
+                                    />
+                                </FieldsRow>
+                                <FieldsRow>
+                                    <BindString
+                                        field="description"
+                                        store={newVariable}
+                                        label="Description"
+                                        textarea
+                                        disabled={isDisabled}
+                                    />
+                                    <BindString
+                                        field="entityAnnotationsMap"
+                                        placeholder="Entity: note"
+                                        store={newVariable.display}
+                                        label="Entity annotations"
+                                        textarea
+                                        disabled={isDisabled}
+                                        helpText="Additional text to show next to entity labels. Each note should be in a separate line."
+                                    />
+                                </FieldsRow>
+                            </section>
+                        </form>
+                    </div>
+                </div>
+                <div className="row">
+                    <div className="col">
+                        <form>
+                            <section>
+                                <h3>Origins</h3>
+                                {newVariable.origins.map((origin, index) => (
+                                    <div key={index}>
+                                        <h4>{origin.title}</h4>
+                                        <FieldsRow>
+                                            <BindString
+                                                label="Title"
+                                                field="title"
+                                                store={origin}
+                                                disabled={isDisabled}
+                                                secondaryLabel={`FIXME.`}
+                                            />
+                                            <BindString
+                                                label="Title Snapshot"
+                                                field="titleSnapshot"
+                                                store={origin}
+                                                disabled={isDisabled}
+                                                secondaryLabel={`FIXME.`}
+                                            />
+                                            <BindString
+                                                label="Attribution"
+                                                field="attribution"
+                                                store={origin}
+                                                disabled={isDisabled}
+                                                secondaryLabel={`FIXME.`}
+                                            />
+                                            <BindString
+                                                label="Attribution Short"
+                                                field="attributionShort"
+                                                store={origin}
+                                                disabled={isDisabled}
+                                                secondaryLabel={`FIXME.`}
+                                            />
+                                        </FieldsRow>
+                                        <FieldsRow>
+                                            <BindString
+                                                label="Description"
+                                                field="description"
+                                                store={origin}
+                                                disabled={isDisabled}
+                                                secondaryLabel={`FIXME.`}
+                                            />
+                                            <BindString
+                                                label="Description Snapshot"
+                                                field="descriptionSnapshot"
+                                                store={origin}
+                                                disabled={isDisabled}
+                                                secondaryLabel={`FIXME.`}
+                                            />
+                                            <BindString
+                                                label="Producer"
+                                                field="producer"
+                                                store={origin}
+                                                disabled={isDisabled}
+                                                secondaryLabel={`FIXME.`}
+                                            />
+                                            <BindString
+                                                label="Citation Full"
+                                                field="citationFull"
+                                                store={origin}
+                                                disabled={isDisabled}
+                                                secondaryLabel={`FIXME.`}
+                                            />
+                                        </FieldsRow>
+                                        <FieldsRow>
+                                            <BindString
+                                                label="URL Main"
+                                                field="urlMain"
+                                                store={origin}
+                                                disabled={isDisabled}
+                                                secondaryLabel={`FIXME.`}
+                                            />
+                                            <BindString
+                                                label="URL Download"
+                                                field="urlDownload"
+                                                store={origin}
+                                                disabled={isDisabled}
+                                                secondaryLabel={`FIXME.`}
+                                            />
+                                            <BindString
+                                                label="Date Accessed"
+                                                field="dateAccessed"
+                                                store={origin}
+                                                disabled={isDisabled}
+                                                secondaryLabel={`FIXME.`}
+                                            />
+                                            <BindString
+                                                label="Date Published"
+                                                field="datePublished"
+                                                store={origin}
+                                                disabled={isDisabled}
+                                                secondaryLabel={`FIXME.`}
+                                            />
+                                            {/* license */}
+                                        </FieldsRow>
+                                        <hr />
+                                    </div>
+                                ))}
+                            </section>
+                        </form>
+                    </div>
                 </div>
                 <section>
                     <h3>Charts</h3>
