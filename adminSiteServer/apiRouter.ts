@@ -1827,7 +1827,8 @@ apiRouter.get("/datasets/:datasetId.json", async (req: Request) => {
             mu.fullName AS metadataEditedByUserName,
             d.isPrivate,
             d.isArchived,
-            d.nonRedistributable
+            d.nonRedistributable,
+            d.updatePeriodDays
         FROM datasets AS d
         JOIN users du ON du.id=d.dataEditedByUserId
         JOIN users mu ON mu.id=d.metadataEditedByUserId

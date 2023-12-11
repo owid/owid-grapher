@@ -25,6 +25,7 @@ import {
 } from "@ourworldindata/utils"
 import { GrapherFigureView } from "../site/GrapherFigureView.js"
 import { ChartList, ChartListItem } from "./ChartList.js"
+import { OriginList } from "./OriginList.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { Base64 } from "js-base64"
 import {
@@ -32,6 +33,8 @@ import {
     GrapherTabOption,
     GrapherInterface,
 } from "@ourworldindata/grapher"
+import { faCircleInfo } from "@fortawesome/free-solid-svg-icons"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
 interface VariablePageData
     extends Omit<OwidVariableWithDataAndSource, "source"> {
@@ -285,35 +288,40 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                     <div className="col">
                         <form>
                             <section>
-                                <h4>Data Page</h4>
+                                <h4>
+                                    Data Page&nbsp;
+                                    <a href="https://docs.owid.io/projects/etl/architecture/metadata/reference/indicator/">
+                                        <FontAwesomeIcon
+                                            icon={faCircleInfo}
+                                            className="text-muted"
+                                        />
+                                    </a>
+                                </h4>
+
                                 <FieldsRow>
                                     <BindString
                                         label="Title public"
                                         field="titlePublic"
                                         store={newVariable.presentation}
                                         disabled={isDisabled}
-                                        secondaryLabel={`FIXME.`}
                                     />
                                     <BindString
                                         label="Title variant"
                                         field="titleVariant"
                                         store={newVariable.presentation}
                                         disabled={isDisabled}
-                                        secondaryLabel={`FIXME.`}
                                     />
                                     <BindString
                                         label="Attribution"
                                         field="attribution"
                                         store={newVariable.presentation}
                                         disabled={isDisabled}
-                                        secondaryLabel={`FIXME.`}
                                     />
                                     <BindString
                                         label="Attribution short"
                                         field="attributionShort"
                                         store={newVariable.presentation}
                                         disabled={isDisabled}
-                                        secondaryLabel={`FIXME.`}
                                     />
                                 </FieldsRow>
                                 <FieldsRow>
@@ -322,7 +330,6 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                         field="descriptionShort"
                                         store={newVariable}
                                         disabled={isDisabled}
-                                        secondaryLabel={`FIXME.`}
                                         textarea
                                     />
                                     <BindString
@@ -330,7 +337,6 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                         field="descriptionFromProducer"
                                         store={newVariable}
                                         disabled={isDisabled}
-                                        secondaryLabel={`FIXME.`}
                                         textarea
                                     />
                                 </FieldsRow>
@@ -345,7 +351,6 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                             ),
                                         }}
                                         disabled={isDisabled}
-                                        secondaryLabel={`FIXME.`}
                                         textarea
                                         rows={8}
                                     />
@@ -354,11 +359,10 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                         field="v"
                                         store={{
                                             v: createBulletList(
-                                                newVariable.descriptionKey
+                                                newVariable.descriptionKey || []
                                             ),
                                         }}
                                         disabled={isDisabled}
-                                        secondaryLabel={`FIXME.`}
                                         textarea
                                         rows={8}
                                     />
@@ -370,26 +374,23 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                             field="descriptionProcessing"
                                             store={newVariable}
                                             disabled={isDisabled}
-                                            secondaryLabel={`FIXME.`}
+                                            textarea
+                                            rows={8}
                                         />
                                     </div>
                                     <div className="col">
-                                        <FieldsRow>
-                                            <BindString
-                                                label="Processing level"
-                                                field="processingLevel"
-                                                store={newVariable}
-                                                disabled={isDisabled}
-                                                secondaryLabel={`FIXME.`}
-                                            />
-                                            <BindString
-                                                label="Number of days between OWID updates"
-                                                field="updatePeriodDays"
-                                                store={newVariable}
-                                                disabled={isDisabled}
-                                                secondaryLabel={`FIXME.`}
-                                            />
-                                        </FieldsRow>
+                                        <BindString
+                                            label="Processing level"
+                                            field="processingLevel"
+                                            store={newVariable}
+                                            disabled={isDisabled}
+                                        />
+                                        <BindString
+                                            label="Number of days between OWID updates"
+                                            field="updatePeriodDays"
+                                            store={newVariable}
+                                            disabled={isDisabled}
+                                        />
                                     </div>
                                 </FieldsRow>
 
@@ -434,104 +435,20 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                     <div className="col">
                         <form>
                             <section>
-                                <h3>Origins</h3>
-                                {newVariable.origins.map((origin, index) => (
-                                    <div key={index}>
-                                        <h4>{origin.title}</h4>
-                                        <FieldsRow>
-                                            <BindString
-                                                label="Title"
-                                                field="title"
-                                                store={origin}
-                                                disabled={isDisabled}
-                                                secondaryLabel={`FIXME.`}
+                                <section>
+                                    <h3>
+                                        Origins&nbsp;
+                                        <a href="https://docs.owid.io/projects/etl/architecture/metadata/reference/origin/">
+                                            <FontAwesomeIcon
+                                                icon={faCircleInfo}
+                                                className="text-muted"
                                             />
-                                            <BindString
-                                                label="Title Snapshot"
-                                                field="titleSnapshot"
-                                                store={origin}
-                                                disabled={isDisabled}
-                                                secondaryLabel={`FIXME.`}
-                                            />
-                                            <BindString
-                                                label="Attribution"
-                                                field="attribution"
-                                                store={origin}
-                                                disabled={isDisabled}
-                                                secondaryLabel={`FIXME.`}
-                                            />
-                                            <BindString
-                                                label="Attribution Short"
-                                                field="attributionShort"
-                                                store={origin}
-                                                disabled={isDisabled}
-                                                secondaryLabel={`FIXME.`}
-                                            />
-                                        </FieldsRow>
-                                        <FieldsRow>
-                                            <BindString
-                                                label="Description"
-                                                field="description"
-                                                store={origin}
-                                                disabled={isDisabled}
-                                                secondaryLabel={`FIXME.`}
-                                            />
-                                            <BindString
-                                                label="Description Snapshot"
-                                                field="descriptionSnapshot"
-                                                store={origin}
-                                                disabled={isDisabled}
-                                                secondaryLabel={`FIXME.`}
-                                            />
-                                            <BindString
-                                                label="Producer"
-                                                field="producer"
-                                                store={origin}
-                                                disabled={isDisabled}
-                                                secondaryLabel={`FIXME.`}
-                                            />
-                                            <BindString
-                                                label="Citation Full"
-                                                field="citationFull"
-                                                store={origin}
-                                                disabled={isDisabled}
-                                                secondaryLabel={`FIXME.`}
-                                            />
-                                        </FieldsRow>
-                                        <FieldsRow>
-                                            <BindString
-                                                label="URL Main"
-                                                field="urlMain"
-                                                store={origin}
-                                                disabled={isDisabled}
-                                                secondaryLabel={`FIXME.`}
-                                            />
-                                            <BindString
-                                                label="URL Download"
-                                                field="urlDownload"
-                                                store={origin}
-                                                disabled={isDisabled}
-                                                secondaryLabel={`FIXME.`}
-                                            />
-                                            <BindString
-                                                label="Date Accessed"
-                                                field="dateAccessed"
-                                                store={origin}
-                                                disabled={isDisabled}
-                                                secondaryLabel={`FIXME.`}
-                                            />
-                                            <BindString
-                                                label="Date Published"
-                                                field="datePublished"
-                                                store={origin}
-                                                disabled={isDisabled}
-                                                secondaryLabel={`FIXME.`}
-                                            />
-                                            {/* Missing origin license... is it worth adding it? */}
-                                        </FieldsRow>
-                                        <hr />
-                                    </div>
-                                ))}
+                                        </a>
+                                    </h3>
+                                </section>
+                                <OriginList
+                                    origins={newVariable.origins || []}
+                                />
                             </section>
                         </form>
                     </div>

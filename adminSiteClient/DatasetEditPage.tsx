@@ -5,13 +5,14 @@ import * as lodash from "lodash"
 import { Prompt, Redirect } from "react-router-dom"
 import filenamify from "filenamify"
 
-import { OwidSource, ChartTagJoin } from "@ourworldindata/utils"
+import { OwidSource, ChartTagJoin, OwidOrigin } from "@ourworldindata/utils"
 
 import { AdminLayout } from "./AdminLayout.js"
 import { Link } from "./Link.js"
 import { BindString, Toggle, FieldsRow, Timeago } from "./Forms.js"
 import { EditableTags } from "./EditableTags.js"
 import { ChartList, ChartListItem } from "./ChartList.js"
+import { OriginList } from "./OriginList.js"
 import { VariableList, VariableListItem } from "./VariableList.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -27,6 +28,7 @@ interface DatasetPageData {
     version: string
     isPrivate: boolean
     nonRedistributable: boolean
+    updatePeriodDays: number
 
     dataEditedAt: Date
     dataEditedByUserId: number
@@ -42,6 +44,8 @@ interface DatasetPageData {
     charts: ChartListItem[]
     source?: OwidSource
     zipFile?: { filename: string }
+
+    origins: OwidOrigin[]
 }
 
 class DatasetEditable {
@@ -49,6 +53,7 @@ class DatasetEditable {
     @observable description: string = ""
     @observable isPrivate: boolean = false
     @observable nonRedistributable: boolean = false
+    @observable updatePeriodDays: number | undefined = undefined
 
     @observable source: OwidSource = {
         id: -1,
@@ -305,6 +310,13 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                                     disabled={isDisabled}
                                     helpText="Date when this data was obtained by us. Date format should always be YYYY-MM-DD."
                                 />
+                                <BindString
+                                    label="Number of days between OWID updates"
+                                    field="updatePeriodDays"
+                                    store={newDataset}
+                                    disabled={isDisabled}
+                                    helpText="Date when this data was obtained by us. Date format should always be YYYY-MM-DD."
+                                />
                                 <DatasetTagEditor
                                     newDataset={newDataset}
                                     availableTags={dataset.availableTags}
@@ -375,6 +387,10 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                             value="Update dataset"
                         />
                     </form>
+                </section>
+                <section>
+                    <h3>Origins</h3>
+                    <OriginList origins={dataset.origins || []} />
                 </section>
                 <section>
                     <h3>Indicators</h3>
