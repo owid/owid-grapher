@@ -397,6 +397,7 @@ export function convertAllWpComponentsToArchieMLBlocks(
 
 export function adjustHeadingLevels(
     blocks: OwidEnrichedGdocBlock[],
+    minHeadingLevel: number,
     isEntry: boolean
 ): void {
     for (let i = 0; i < blocks.length; i++) {
@@ -411,10 +412,11 @@ export function adjustHeadingLevels(
                 blocks.splice(i + 2, 0, { ...hr })
                 i += 2
             }
-            block.level = Math.max(1, block.level - 1)
+            block.level = block.level - (minHeadingLevel - 1)
         } else if ("children" in block) {
             adjustHeadingLevels(
                 block.children as OwidEnrichedGdocBlock[],
+                minHeadingLevel,
                 isEntry
             )
         }

@@ -8,6 +8,7 @@ import {
     OwidGdocType,
     RelatedChart,
     EnrichedBlockAllCharts,
+    OwidEnrichedGdocBlock,
 } from "@ourworldindata/utils"
 import * as Post from "./model/Post.js"
 import fs from "fs"
@@ -139,7 +140,9 @@ const migrate = async (): Promise<void> => {
             // Heading levels used to start at 2, in the new layout system they start at 1
             // This function iterates all blocks recursively and adjusts the heading levels inline
             // If the article is an entry, we also put an <hr /> above and below h1's
-            adjustHeadingLevels(archieMlBodyElements, isEntry)
+            const minHeadingLevel =
+                findMinimumHeadingLevel(archieMlBodyElements)
+            adjustHeadingLevels(archieMlBodyElements, minHeadingLevel, isEntry)
 
             if (relatedCharts.length) {
                 const indexOfFirstHeading = archieMlBodyElements.findIndex(
@@ -282,6 +285,23 @@ const migrate = async (): Promise<void> => {
         console.error("Errors", errors)
         throw new Error(`${errors.length} items had errors`)
     }
+}
+
+function findMinimumHeadingLevel(blocks: OwidEnrichedGdocBlock[]): number {
+    let minBlockLevel = 6
+    for (const block of blocks) {
+        if (block.type === "heading") {
+            minBlockLevel = Math.min(block.level, minBlockLevel)
+        } else if ("children" in block) {
+            minBlockLevel = Math.min(
+                findMinimumHeadingLevel(
+                    block.children as OwidEnrichedGdocBlock[]
+                ),
+                minBlockLevel
+            )
+        }
+    }
+    return minBlockLevel
 }
 
 migrate()
