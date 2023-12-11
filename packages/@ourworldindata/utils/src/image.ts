@@ -68,7 +68,12 @@ export type SourceProps = {
     srcSet: string
 }
 
-// When we have a small and large image, we want to generate two <source> elements, one of which will only be used on mobile
+/**
+ * When we have a small and large image, we want to generate two <source> elements.
+ * The first will only be active at small screen sizes, due to its `media` property.
+ * The second will be active at all screen sizes.
+ * These props work in conjuction with a `sizes` attribute on the <source> element.
+ */
 export function generateSourceProps(
     smallImage: ImageMetadata | undefined,
     regularImage: ImageMetadata
