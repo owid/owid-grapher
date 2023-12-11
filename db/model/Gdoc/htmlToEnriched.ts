@@ -395,6 +395,25 @@ export function convertAllWpComponentsToArchieMLBlocks(
     })
 }
 
+export function findMinimumHeadingLevel(
+    blocks: OwidEnrichedGdocBlock[]
+): number {
+    let minBlockLevel = 6
+    for (const block of blocks) {
+        if (block.type === "heading") {
+            minBlockLevel = Math.min(block.level, minBlockLevel)
+        } else if ("children" in block) {
+            minBlockLevel = Math.min(
+                findMinimumHeadingLevel(
+                    block.children as OwidEnrichedGdocBlock[]
+                ),
+                minBlockLevel
+            )
+        }
+    }
+    return minBlockLevel
+}
+
 export function adjustHeadingLevels(
     blocks: OwidEnrichedGdocBlock[],
     minHeadingLevel: number,

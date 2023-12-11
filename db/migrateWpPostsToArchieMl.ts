@@ -8,7 +8,6 @@ import {
     OwidGdocType,
     RelatedChart,
     EnrichedBlockAllCharts,
-    OwidEnrichedGdocBlock,
 } from "@ourworldindata/utils"
 import * as Post from "./model/Post.js"
 import fs from "fs"
@@ -17,6 +16,7 @@ import {
     withoutEmptyOrWhitespaceOnlyTextBlocks,
     convertAllWpComponentsToArchieMLBlocks,
     adjustHeadingLevels,
+    findMinimumHeadingLevel,
 } from "./model/Gdoc/htmlToEnriched.js"
 import { getRelatedCharts, isPostCitable } from "./wpdb.js"
 import { parsePostAuthors } from "./model/Post.js"
@@ -286,23 +286,6 @@ const migrate = async (): Promise<void> => {
         console.error("Errors", errors)
         throw new Error(`${errors.length} items had errors`)
     }
-}
-
-function findMinimumHeadingLevel(blocks: OwidEnrichedGdocBlock[]): number {
-    let minBlockLevel = 6
-    for (const block of blocks) {
-        if (block.type === "heading") {
-            minBlockLevel = Math.min(block.level, minBlockLevel)
-        } else if ("children" in block) {
-            minBlockLevel = Math.min(
-                findMinimumHeadingLevel(
-                    block.children as OwidEnrichedGdocBlock[]
-                ),
-                minBlockLevel
-            )
-        }
-    }
-    return minBlockLevel
 }
 
 migrate()
