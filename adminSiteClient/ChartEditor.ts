@@ -113,7 +113,7 @@ export class ChartEditor {
     @observable.ref previewMode: "mobile" | "desktop"
     @observable.ref showStaticPreview: boolean = false
     @observable.ref staticPreviewFormat: GrapherStaticFormat =
-        GrapherStaticFormat.portrait
+        GrapherStaticFormat.square
     @observable.ref savedGrapherJson: string = ""
 
     // This gets set when we save a new chart for the first time

@@ -57,8 +57,8 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
         return this.manager.tabBounds ?? DEFAULT_BOUNDS
     }
 
-    @computed private get isExportingPortrait(): boolean {
-        return this.manager.staticFormat === GrapherStaticFormat.portrait
+    @computed private get isExportingSquare(): boolean {
+        return this.manager.staticFormat === GrapherStaticFormat.square
     }
 
     @computed private get shouldIncludeDetails(): boolean {
@@ -195,9 +195,9 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
     }
 
     @action.bound private toggleExportFormat(): void {
-        this.manager.staticFormat = this.isExportingPortrait
+        this.manager.staticFormat = this.isExportingSquare
             ? GrapherStaticFormat.landscape
-            : GrapherStaticFormat.portrait
+            : GrapherStaticFormat.square
     }
 
     @action.bound private toggleIncludeDetails(): void {
@@ -274,8 +274,8 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
                                 )}
                                 {this.manager.showAdminControls && (
                                     <Checkbox
-                                        checked={this.isExportingPortrait}
-                                        label="Portrait format"
+                                        checked={this.isExportingSquare}
+                                        label="Square format"
                                         onChange={(): void => {
                                             this.reset()
                                             this.toggleExportFormat()

@@ -4,13 +4,11 @@ import React from "react"
 import { ChartEditor } from "./ChartEditor.js"
 import { Section, SelectField, Toggle } from "./Forms.js"
 import { Grapher, GrapherStaticFormat } from "@ourworldindata/grapher"
-import { Bounds, triggerDownloadFromBlob } from "@ourworldindata/utils"
-
-const FORMAT_LABELS: Record<GrapherStaticFormat, string> = {
-    [GrapherStaticFormat.portrait]: "Data insight",
-    [GrapherStaticFormat.instagram]: "Instagram",
-    [GrapherStaticFormat.landscape]: "Landscape",
-}
+import {
+    Bounds,
+    triggerDownloadFromBlob,
+    capitalize,
+} from "@ourworldindata/utils"
 
 type Format = "png" | "svg"
 type ExportFilename = `${string}.${Format}`
@@ -100,9 +98,7 @@ export class EditorExportTab extends React.Component<{ editor: ChartEditor }> {
                             )
                             .map((format) => ({
                                 value: format,
-                                label: FORMAT_LABELS[
-                                    format as GrapherStaticFormat
-                                ],
+                                label: capitalize(format),
                             }))}
                     />
                 </Section>
