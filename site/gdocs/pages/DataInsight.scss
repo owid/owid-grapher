@@ -46,6 +46,11 @@
         margin-top: 0;
     }
 
+    // the tags block adds padding that we need to compensate for
+    &.data-insight-body--has-tags {
+        padding-bottom: 8px;
+    }
+
     .article-block__image {
         outline: 1px solid $blue-10;
     }

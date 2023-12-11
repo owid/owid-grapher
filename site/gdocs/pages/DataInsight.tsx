@@ -102,7 +102,11 @@ const DataInsightBody = (props: DataInsightProps) => {
                 publishedAt={props.publishedAt}
                 authors={props.content.authors}
             />
-            <div className="span-cols-8 col-start-4 data-insight-body">
+            <div
+                className={cx("span-cols-8 col-start-4 data-insight-body", {
+                    "data-insight-body--has-tags": !!props.tags?.length,
+                })}
+            >
                 <h1 className="display-3-semibold">{props.content.title}</h1>
                 <div className="data-insight-blocks">
                     <ArticleBlocks blocks={props.content.body} />
