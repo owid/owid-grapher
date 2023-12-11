@@ -68,6 +68,8 @@ class VariableEditable
 
     @observable presentation = {} as OwidVariablePresentation
 
+    @observable updatePeriodDays: number | undefined = undefined
+
     @observable origins: OwidOrigin[] = []
 
     constructor(json: any) {
@@ -362,20 +364,33 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                     />
                                 </FieldsRow>
                                 <FieldsRow>
-                                    <BindString
-                                        label="Description processing"
-                                        field="descriptionProcessing"
-                                        store={newVariable}
-                                        disabled={isDisabled}
-                                        secondaryLabel={`FIXME.`}
-                                    />
-                                    <BindString
-                                        label="Processing level"
-                                        field="processingLevel"
-                                        store={newVariable}
-                                        disabled={isDisabled}
-                                        secondaryLabel={`FIXME.`}
-                                    />
+                                    <div className="col">
+                                        <BindString
+                                            label="Description processing"
+                                            field="descriptionProcessing"
+                                            store={newVariable}
+                                            disabled={isDisabled}
+                                            secondaryLabel={`FIXME.`}
+                                        />
+                                    </div>
+                                    <div className="col">
+                                        <FieldsRow>
+                                            <BindString
+                                                label="Processing level"
+                                                field="processingLevel"
+                                                store={newVariable}
+                                                disabled={isDisabled}
+                                                secondaryLabel={`FIXME.`}
+                                            />
+                                            <BindString
+                                                label="Number of days between OWID updates"
+                                                field="updatePeriodDays"
+                                                store={newVariable}
+                                                disabled={isDisabled}
+                                                secondaryLabel={`FIXME.`}
+                                            />
+                                        </FieldsRow>
+                                    </div>
                                 </FieldsRow>
 
                                 <h4>Other metadata</h4>
@@ -512,7 +527,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                                 disabled={isDisabled}
                                                 secondaryLabel={`FIXME.`}
                                             />
-                                            {/* license */}
+                                            {/* Missing origin license... is it worth adding it? */}
                                         </FieldsRow>
                                         <hr />
                                     </div>

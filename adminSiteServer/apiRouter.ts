@@ -1859,7 +1859,24 @@ apiRouter.get("/datasets/:datasetId.json", async (req: Request) => {
 
     dataset.variables = variables
 
-    // TODO: support multiple origins here as well
+    // add all origins
+    const origins = await db.queryMysql(
+        `
+        select distinct
+            o.*
+        from origins_variables as ov
+        join origins as o on ov.originId = o.id
+        join variables as v on ov.variableId = v.id
+        where v.datasetId = ?
+    `,
+        [datasetId]
+    )
+
+    for (const o of origins) {
+        o.license = JSON.parse(o.license)
+    }
+
+    dataset.origins = origins
 
     // Currently for backwards compatibility datasets can still have multiple sources
     // but the UI presents only a single item of source metadata, we use the first source
@@ -2207,8 +2224,8 @@ apiRouter.put("/tags/:tagId", async (req: Request) => {
         if (!gdoc.length) {
             return {
                 success: true,
-                tagUpdateWarning: `The tag's slug has been updated, but there isn't a published Gdoc page with the same slug. 
-                    
+                tagUpdateWarning: `The tag's slug has been updated, but there isn't a published Gdoc page with the same slug.
+
 Are you sure you haven't made a typo?`,
             }
         }
