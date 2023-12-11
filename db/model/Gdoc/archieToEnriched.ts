@@ -292,6 +292,12 @@ export const archieToEnriched = (
     const parsed_unsanitized = load(noLeadingWSLinks)
     const parsed: any = lowercaseObjectKeys(parsed_unsanitized)
 
+    // Convert "true" and "false" strings in the front matter to booleans
+    for (const key of Object.keys(parsed)) {
+        if (parsed[key] === "true") parsed[key] = true
+        if (parsed[key] === "false") parsed[key] = false
+    }
+
     // Parse elements of the ArchieML into enrichedBlocks
     parsed.body = compact(parsed.body.map(parseRawBlocksToEnrichedBlocks))
 

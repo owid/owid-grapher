@@ -209,7 +209,7 @@ const migrate = async (): Promise<void> => {
                     // Provide an empty array to prevent the sticky nav from rendering at all
                     // Because if it isn't defined, it tries to automatically populate itself
                     "sticky-nav": isEntry ? [] : undefined,
-                    "sidebar-toc": `${isEntry}`,
+                    "sidebar-toc": isEntry,
                 },
                 relatedCharts,
                 published: false,

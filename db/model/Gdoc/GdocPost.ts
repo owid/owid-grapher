@@ -105,7 +105,7 @@ export class GdocPost extends GdocBase implements OwidGdocInterface {
     }
 
     _enrichSubclassContent = (content: Record<string, any>): void => {
-        const isTocForSidebar = content["sidebar-toc"] === "true"
+        const isTocForSidebar = content["sidebar-toc"]
         content.toc = generateToc(content.body, isTocForSidebar)
 
         if (content.summary) {
@@ -127,12 +127,22 @@ export class GdocPost extends GdocBase implements OwidGdocInterface {
     _validateSubclass = async (): Promise<OwidGdocErrorMessage[]> => {
         const errors: OwidGdocErrorMessage[] = []
 
-        if (this.hasAllChartsBlock && !this.tags.length) {
-            errors.push({
-                property: "content",
-                message: "No tags set on document for all-charts block to use",
-                type: OwidGdocErrorMessageType.Error,
-            })
+        if (!this.tags.length) {
+            if (this.content.type !== OwidGdocType.Fragment) {
+                errors.push({
+                    property: "content",
+                    message:
+                        "Article has no tags set. We won't be able to connect this article to datapages.",
+                    type: OwidGdocErrorMessageType.Warning,
+                })
+            }
+            if (this.hasAllChartsBlock) {
+                errors.push({
+                    property: "content",
+                    message: "Tags must be set for all-charts block",
+                    type: OwidGdocErrorMessageType.Error,
+                })
+            }
         }
 
         const faqs = this.content.faqs

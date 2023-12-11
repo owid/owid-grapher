@@ -57,9 +57,10 @@ export const ProminentLink = (props: {
         description =
             // Adding extra context for graphers by default
             // Not needed for Explorers as their titles are self-explanatory
-            description ?? linkType === "grapher"
+            description ??
+            (linkType === "grapher"
                 ? "See the data in our interactive visualization"
-                : ""
+                : "")
     }
 
     const Thumbnail = ({ thumbnail }: { thumbnail: string }) => {
