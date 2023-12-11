@@ -20,6 +20,7 @@ import {
     findMinimumHeadingLevel,
 } from "./model/Gdoc/htmlToEnriched.js"
 import { getRelatedCharts, isPostCitable } from "./wpdb.js"
+import { enrichedBlocksToMarkdown } from "./model/Gdoc/enrichedToMarkdown.js"
 
 // slugs from all the linear entries we want to migrate from @edomt
 const entries = new Set([
@@ -198,6 +199,11 @@ const migrate = async (): Promise<void> => {
                 ? post.published_at.toLocaleDateString("en-US", options)
                 : ""
 
+            const markdown = enrichedBlocksToMarkdown(
+                archieMlBodyElements,
+                true
+            )
+
             const archieMlFieldContent: OwidGdocPostInterface = {
                 id: `wp-${post.id}`,
                 slug: post.slug,
@@ -241,11 +247,12 @@ const migrate = async (): Promise<void> => {
             } as OwidArticleBackportingStatistics
 
             const insertQuery = `
-        UPDATE posts SET archieml = ?, archieml_update_statistics = ? WHERE id = ?
+        UPDATE posts SET archieml = ?, archieml_update_statistics = ?, markdown = ? WHERE id = ?
         `
             await db.queryMysql(insertQuery, [
                 JSON.stringify(archieMlFieldContent, null, 2),
                 JSON.stringify(archieMlStatsContent, null, 2),
+                markdown,
                 post.id,
             ])
             console.log("inserted", post.id)
