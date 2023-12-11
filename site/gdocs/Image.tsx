@@ -94,20 +94,25 @@ export default function Image(props: {
         const makePreviewUrl = (f: string) =>
             `${IMAGE_HOSTING_CDN_URL}/${IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH}/${f}`
 
-        const previewSrcset = [smallImage, image]
-            .filter((i): i is ImageMetadata => !!i)
-            .map((i) => `${makePreviewUrl(i.filename)} ${i.originalWidth}w`)
-            .join(", ")
+        const PreviewSource = (props: { i?: ImageMetadata; sm?: boolean }) => {
+            const { i, sm } = props
+            if (!i) return null
 
-        return (
-            <picture className={className}>
+            return (
                 <source
-                    srcSet={previewSrcset}
+                    srcSet={`${makePreviewUrl(i.filename)} ${i.originalWidth}w`}
+                    media={sm ? "(max-width: 798px)" : undefined}
                     type="image/webp"
                     sizes={
                         containerSizes[containerType] ?? containerSizes.default
                     }
                 />
+            )
+        }
+        return (
+            <picture className={className}>
+                <PreviewSource i={smallImage} sm />
+                <PreviewSource i={image} />
                 <img
                     src={makePreviewUrl(image.filename)}
                     alt={alt}
