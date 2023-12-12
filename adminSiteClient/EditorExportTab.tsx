@@ -185,7 +185,7 @@ export class EditorExportTab extends React.Component<EditorExportTabProps> {
         )
     }
 
-    async download(filename: ExportFilename, bounds: Bounds) {
+    private async download(filename: ExportFilename, bounds: Bounds) {
         try {
             const { blob: pngBlob, svgBlob } =
                 await this.grapher.rasterize(bounds)

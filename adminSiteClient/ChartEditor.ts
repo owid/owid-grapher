@@ -111,7 +111,7 @@ export class ChartEditor {
     @observable.ref tab: EditorTab = "basic"
     @observable.ref errorMessage?: { title: string; content: string }
     @observable.ref previewMode: "mobile" | "desktop"
-    @observable.ref showStaticPreview: boolean = false
+    @observable.ref showStaticPreview = false
     @observable.ref savedGrapherJson: string = ""
 
     // This gets set when we save a new chart for the first time
