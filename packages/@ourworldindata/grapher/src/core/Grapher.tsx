@@ -1311,29 +1311,15 @@ export class Grapher
         return ""
     }
 
-    @computed get currentTitle(): string {
-        let text = this.displayTitle.trim()
+    @computed get shouldAddEntitySuffixToTitle(): boolean {
         const selectedEntityNames = this.selection.selectedEntityNames
         const showEntityAnnotation = !this.hideAnnotationFieldsInTitle?.entity
-        const showTimeAnnotation = !this.hideAnnotationFieldsInTitle?.time
-        const showChangeInPrefix =
-            !this.hideAnnotationFieldsInTitle?.changeInPrefix
 
         const seriesStrategy =
             this.chartInstance.seriesStrategy ||
             autoDetectSeriesStrategy(this, true)
 
-        // helper function to add an annotation fragment to the title
-        // only adds a comma if the text does not end with a question mark
-        const appendAnnotationField = (
-            text: string,
-            annotation: string
-        ): string => {
-            const separator = text.endsWith("?") ? "" : ","
-            return `${text}${separator} ${annotation}`
-        }
-
-        if (
+        return !!(
             !this.forceHideAnnotationFieldsInTitle?.entity &&
             this.tab === GrapherTabOption.chart &&
             (seriesStrategy !== SeriesStrategy.entity || this.hideLegend) &&
@@ -1341,20 +1327,12 @@ export class Grapher
             (showEntityAnnotation ||
                 this.canChangeEntity ||
                 this.canSelectMultipleEntities)
-        ) {
-            const entityStr = selectedEntityNames[0]
-            if (entityStr?.length) text = appendAnnotationField(text, entityStr)
-        }
-
-        if (
-            !this.forceHideAnnotationFieldsInTitle?.changeInPrefix &&
-            this.isLineChart &&
-            this.isRelativeMode &&
-            showChangeInPrefix
         )
-            text = "Change in " + lowerCaseFirstLetterUnlessAbbreviation(text)
+    }
 
-        if (
+    @computed get shouldAddTimeSuffixToTitle(): boolean {
+        const showTimeAnnotation = !this.hideAnnotationFieldsInTitle?.time
+        return (
             !this.forceHideAnnotationFieldsInTitle?.time &&
             this.isReady &&
             (showTimeAnnotation ||
@@ -1366,6 +1344,42 @@ export class Grapher
                         this.isMarimekko ||
                         this.isOnMapTab)))
         )
+    }
+
+    @computed get shouldAddChangeInPrefixToTitle(): boolean {
+        const showChangeInPrefix =
+            !this.hideAnnotationFieldsInTitle?.changeInPrefix
+        return (
+            !this.forceHideAnnotationFieldsInTitle?.changeInPrefix &&
+            this.isLineChart &&
+            this.isRelativeMode &&
+            showChangeInPrefix
+        )
+    }
+
+    @computed get currentTitle(): string {
+        let text = this.displayTitle.trim()
+
+        // helper function to add an annotation fragment to the title
+        // only adds a comma if the text does not end with a question mark
+        const appendAnnotationField = (
+            text: string,
+            annotation: string
+        ): string => {
+            const separator = text.endsWith("?") ? "" : ","
+            return `${text}${separator} ${annotation}`
+        }
+
+        if (this.shouldAddEntitySuffixToTitle) {
+            const selectedEntityNames = this.selection.selectedEntityNames
+            const entityStr = selectedEntityNames[0]
+            if (entityStr?.length) text = appendAnnotationField(text, entityStr)
+        }
+
+        if (this.shouldAddChangeInPrefixToTitle)
+            text = "Change in " + lowerCaseFirstLetterUnlessAbbreviation(text)
+
+        if (this.shouldAddTimeSuffixToTitle)
             text = appendAnnotationField(text, this.timeTitleSuffix)
 
         return text.trim()

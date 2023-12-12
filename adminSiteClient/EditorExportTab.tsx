@@ -20,6 +20,17 @@ type ExportSettings = Pick<
     | "hideOriginUrl"
 >
 
+type OriginalGrapher = Pick<
+    Grapher,
+    | "currentTitle"
+    | "shouldAddEntitySuffixToTitle"
+    | "shouldAddTimeSuffixToTitle"
+    | "currentSubtitle"
+    | "hideLogo"
+    | "note"
+    | "originUrl"
+>
+
 type ExportSettingsByChartId = Record<number, ExportSettings>
 
 type Format = "png" | "svg"
@@ -29,7 +40,10 @@ const STORAGE_KEY = "chart-export-settings"
 
 const DEFAULT_SETTINGS: ExportSettings = {
     hideTitle: false,
-    forceHideAnnotationFieldsInTitle: { entity: false, time: false },
+    forceHideAnnotationFieldsInTitle: {
+        entity: false,
+        time: false,
+    },
     hideSubtitle: false,
     hideLogo: false,
     hideNote: false,
@@ -40,10 +54,12 @@ const DEFAULT_SETTINGS: ExportSettings = {
 export class EditorExportTab extends React.Component<{ editor: ChartEditor }> {
     @observable private settings = DEFAULT_SETTINGS
     private originalSettings = DEFAULT_SETTINGS
+    private originalGrapher: OriginalGrapher | undefined = undefined
     private disposers: IReactionDisposer[] = []
 
     componentDidMount(): void {
         this.saveOriginalSettings()
+        this.saveOriginalGrapher()
 
         if (sessionStorage) {
             this.loadSettingsFromSessionStorage()
@@ -87,6 +103,19 @@ export class EditorExportTab extends React.Component<{ editor: ChartEditor }> {
             hideLogo: this.grapher.hideLogo,
             hideNote: this.grapher.hideNote,
             hideOriginUrl: this.grapher.hideOriginUrl,
+        }
+    }
+
+    private saveOriginalGrapher() {
+        this.originalGrapher = {
+            currentTitle: this.grapher.currentTitle,
+            shouldAddEntitySuffixToTitle:
+                this.grapher.shouldAddEntitySuffixToTitle,
+            shouldAddTimeSuffixToTitle: this.grapher.shouldAddTimeSuffixToTitle,
+            currentSubtitle: this.grapher.currentSubtitle,
+            hideLogo: this.grapher.hideLogo,
+            note: this.grapher.note,
+            originUrl: this.grapher.originUrl,
         }
     }
 
@@ -179,57 +208,80 @@ export class EditorExportTab extends React.Component<{ editor: ChartEditor }> {
                     />
                 </Section>
                 <Section name="Displayed elements">
-                    <Toggle
-                        label="Title"
-                        value={!this.settings.hideTitle}
-                        onValue={(value) => (this.settings.hideTitle = !value)}
-                    />
-                    <Toggle
-                        label="Title suffix: automatic entity"
-                        value={
-                            !this.settings.forceHideAnnotationFieldsInTitle
-                                ?.entity
-                        }
-                        onValue={(value) =>
-                            (this.settings.forceHideAnnotationFieldsInTitle.entity =
-                                !value)
-                        }
-                    />
-                    <Toggle
-                        label="Title suffix: automatic time"
-                        value={
-                            !this.settings.forceHideAnnotationFieldsInTitle
-                                ?.time
-                        }
-                        onValue={(value) =>
-                            (this.settings.forceHideAnnotationFieldsInTitle.time =
-                                !value)
-                        }
-                    />
-                    <Toggle
-                        label="Subtitle"
-                        value={!this.settings.hideSubtitle}
-                        onValue={(value) =>
-                            (this.settings.hideSubtitle = !value)
-                        }
-                    />
-                    <Toggle
-                        label="Logo"
-                        value={!this.settings.hideLogo}
-                        onValue={(value) => (this.settings.hideLogo = !value)}
-                    />
-                    <Toggle
-                        label="Note"
-                        value={!this.settings.hideNote}
-                        onValue={(value) => (this.settings.hideNote = !value)}
-                    />
-                    <Toggle
-                        label="Origin URL"
-                        value={!this.settings.hideOriginUrl}
-                        onValue={(value) =>
-                            (this.settings.hideOriginUrl = !value)
-                        }
-                    />
+                    {this.originalGrapher?.currentTitle && (
+                        <Toggle
+                            label="Title"
+                            value={!this.settings.hideTitle}
+                            onValue={(value) =>
+                                (this.settings.hideTitle = !value)
+                            }
+                        />
+                    )}
+                    {this.originalGrapher?.currentTitle &&
+                        this.originalGrapher?.shouldAddEntitySuffixToTitle && (
+                            <Toggle
+                                label="Title suffix: automatic entity"
+                                value={
+                                    !this.settings
+                                        .forceHideAnnotationFieldsInTitle
+                                        ?.entity
+                                }
+                                onValue={(value) =>
+                                    (this.settings.forceHideAnnotationFieldsInTitle.entity =
+                                        !value)
+                                }
+                            />
+                        )}
+                    {this.originalGrapher?.currentTitle &&
+                        this.originalGrapher?.shouldAddTimeSuffixToTitle && (
+                            <Toggle
+                                label="Title suffix: automatic time"
+                                value={
+                                    !this.settings
+                                        .forceHideAnnotationFieldsInTitle?.time
+                                }
+                                onValue={(value) =>
+                                    (this.settings.forceHideAnnotationFieldsInTitle.time =
+                                        !value)
+                                }
+                            />
+                        )}
+                    {this.originalGrapher?.currentSubtitle && (
+                        <Toggle
+                            label="Subtitle"
+                            value={!this.settings.hideSubtitle}
+                            onValue={(value) =>
+                                (this.settings.hideSubtitle = !value)
+                            }
+                        />
+                    )}
+                    {!this.originalGrapher?.hideLogo && (
+                        <Toggle
+                            label="Logo"
+                            value={!this.settings.hideLogo}
+                            onValue={(value) =>
+                                (this.settings.hideLogo = !value)
+                            }
+                        />
+                    )}
+                    {this.originalGrapher?.note && (
+                        <Toggle
+                            label="Note"
+                            value={!this.settings.hideNote}
+                            onValue={(value) =>
+                                (this.settings.hideNote = !value)
+                            }
+                        />
+                    )}
+                    {this.originalGrapher?.originUrl && (
+                        <Toggle
+                            label="Origin URL"
+                            value={!this.settings.hideOriginUrl}
+                            onValue={(value) =>
+                                (this.settings.hideOriginUrl = !value)
+                            }
+                        />
+                    )}
                 </Section>
                 <Section name="Export static chart">
                     <div className="DownloadButtons">
