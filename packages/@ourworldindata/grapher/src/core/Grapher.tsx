@@ -1269,7 +1269,7 @@ export class Grapher
 
     // Used for static exports. Defined at this level because they need to
     // be accessed by CaptionedChart and DownloadModal
-    @computed get detailRenderers(): MarkdownTextWrap[] {
+    detailRenderers(bounds: Bounds = this.staticBounds): MarkdownTextWrap[] {
         return [...this.detailsOrderedByReference].map((term, i) => {
             let text = `**${i + 1}.** `
             const detail: EnrichedDetail = window.details?.[term]
@@ -1285,8 +1285,7 @@ export class Grapher
                 text,
                 fontSize: 12,
                 // leave room for padding on the left and right
-                maxWidth:
-                    this.staticBounds.width - 2 * this.framePaddingHorizontal,
+                maxWidth: bounds.width - 2 * this.framePaddingHorizontal,
                 lineHeight: 1.2,
                 style: {
                     fill: GRAPHER_DARK_TEXT,
@@ -1785,17 +1784,16 @@ export class Grapher
     }
 
     staticBoundsWithDetails(bounds: Bounds = this.staticBounds): Bounds {
+        const detailRenderers = this.detailRenderers(bounds)
         const includeDetails =
-            this.shouldIncludeDetailsInStaticExport &&
-            !isEmpty(this.detailRenderers)
+            this.shouldIncludeDetailsInStaticExport && !isEmpty(detailRenderers)
 
         let height = bounds.height
         if (includeDetails) {
-            console.log("rendering details", this.detailRenderers)
             height +=
                 2 * this.framePaddingVertical +
                 sumTextWrapHeights(
-                    this.detailRenderers,
+                    detailRenderers,
                     STATIC_EXPORT_DETAIL_SPACING
                 )
         }

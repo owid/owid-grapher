@@ -10,14 +10,17 @@ import {
     capitalize,
 } from "@ourworldindata/utils"
 
-type ExportSettings = Pick<
-    Grapher,
-    | "hideTitle"
-    | "forceHideAnnotationFieldsInTitle"
-    | "hideSubtitle"
-    | "hideLogo"
-    | "hideNote"
-    | "hideOriginUrl"
+type ExportSettings = Required<
+    Pick<
+        Grapher,
+        | "hideTitle"
+        | "forceHideAnnotationFieldsInTitle"
+        | "hideSubtitle"
+        | "hideLogo"
+        | "hideNote"
+        | "hideOriginUrl"
+        | "shouldIncludeDetailsInStaticExport"
+    >
 >
 
 type OriginalGrapher = Pick<
@@ -29,12 +32,13 @@ type OriginalGrapher = Pick<
     | "hideLogo"
     | "note"
     | "originUrl"
+    | "shouldIncludeDetailsInStaticExport"
 >
 
 type ExportSettingsByChartId = Record<number, ExportSettings>
 
-type Format = "png" | "svg"
-type ExportFilename = `${string}.${Format}`
+type Extension = "png" | "svg"
+type ExportFilename = `${string}.${Extension}`
 
 const STORAGE_KEY = "chart-export-settings"
 
@@ -48,24 +52,36 @@ const DEFAULT_SETTINGS: ExportSettings = {
     hideLogo: false,
     hideNote: false,
     hideOriginUrl: false,
+    shouldIncludeDetailsInStaticExport: false,
+}
+
+interface EditorExportTabProps {
+    editor: ChartEditor
 }
 
 @observer
-export class EditorExportTab extends React.Component<{ editor: ChartEditor }> {
+export class EditorExportTab extends React.Component<EditorExportTabProps> {
     @observable private settings = DEFAULT_SETTINGS
-    private originalSettings = DEFAULT_SETTINGS
-    private originalGrapher: OriginalGrapher | undefined = undefined
+    private originalSettings: Partial<ExportSettings> = DEFAULT_SETTINGS
+    private originalGrapher: OriginalGrapher
     private disposers: IReactionDisposer[] = []
+
+    constructor(props: EditorExportTabProps) {
+        super(props)
+        this.originalGrapher = this.grabRelevantPropertiesFromGrapher()
+    }
 
     componentDidMount(): void {
         this.saveOriginalSettings()
-        this.saveOriginalGrapher()
+
+        // needs to run before settings are loaded from session storage
+        const dispose = autorun(() => this.updateGrapher())
 
         if (sessionStorage) {
             this.loadSettingsFromSessionStorage()
         }
 
-        this.disposers.push(autorun(() => this.updateGrapher()))
+        this.disposers.push(dispose)
     }
 
     componentWillUnmount(): void {
@@ -103,11 +119,14 @@ export class EditorExportTab extends React.Component<{ editor: ChartEditor }> {
             hideLogo: this.grapher.hideLogo,
             hideNote: this.grapher.hideNote,
             hideOriginUrl: this.grapher.hideOriginUrl,
+            shouldIncludeDetailsInStaticExport:
+                this.grapher.shouldIncludeDetailsInStaticExport,
         }
     }
 
-    private saveOriginalGrapher() {
-        this.originalGrapher = {
+    // a deep clone of Grapher would be simpler and cleaner, but takes too long
+    private grabRelevantPropertiesFromGrapher(): OriginalGrapher {
+        return {
             currentTitle: this.grapher.currentTitle,
             shouldAddEntitySuffixToTitle:
                 this.grapher.shouldAddEntitySuffixToTitle,
@@ -116,6 +135,8 @@ export class EditorExportTab extends React.Component<{ editor: ChartEditor }> {
             hideLogo: this.grapher.hideLogo,
             note: this.grapher.note,
             originUrl: this.grapher.originUrl,
+            shouldIncludeDetailsInStaticExport:
+                this.grapher.shouldIncludeDetailsInStaticExport,
         }
     }
 
@@ -208,7 +229,7 @@ export class EditorExportTab extends React.Component<{ editor: ChartEditor }> {
                     />
                 </Section>
                 <Section name="Displayed elements">
-                    {this.originalGrapher?.currentTitle && (
+                    {this.originalGrapher.currentTitle && (
                         <Toggle
                             label="Title"
                             value={!this.settings.hideTitle}
@@ -217,8 +238,8 @@ export class EditorExportTab extends React.Component<{ editor: ChartEditor }> {
                             }
                         />
                     )}
-                    {this.originalGrapher?.currentTitle &&
-                        this.originalGrapher?.shouldAddEntitySuffixToTitle && (
+                    {this.originalGrapher.currentTitle &&
+                        this.originalGrapher.shouldAddEntitySuffixToTitle && (
                             <Toggle
                                 label="Title suffix: automatic entity"
                                 value={
@@ -232,8 +253,8 @@ export class EditorExportTab extends React.Component<{ editor: ChartEditor }> {
                                 }
                             />
                         )}
-                    {this.originalGrapher?.currentTitle &&
-                        this.originalGrapher?.shouldAddTimeSuffixToTitle && (
+                    {this.originalGrapher.currentTitle &&
+                        this.originalGrapher.shouldAddTimeSuffixToTitle && (
                             <Toggle
                                 label="Title suffix: automatic time"
                                 value={
@@ -246,7 +267,7 @@ export class EditorExportTab extends React.Component<{ editor: ChartEditor }> {
                                 }
                             />
                         )}
-                    {this.originalGrapher?.currentSubtitle && (
+                    {this.originalGrapher.currentSubtitle && (
                         <Toggle
                             label="Subtitle"
                             value={!this.settings.hideSubtitle}
@@ -255,7 +276,7 @@ export class EditorExportTab extends React.Component<{ editor: ChartEditor }> {
                             }
                         />
                     )}
-                    {!this.originalGrapher?.hideLogo && (
+                    {!this.originalGrapher.hideLogo && (
                         <Toggle
                             label="Logo"
                             value={!this.settings.hideLogo}
@@ -264,7 +285,7 @@ export class EditorExportTab extends React.Component<{ editor: ChartEditor }> {
                             }
                         />
                     )}
-                    {this.originalGrapher?.note && (
+                    {this.originalGrapher.note && (
                         <Toggle
                             label="Note"
                             value={!this.settings.hideNote}
@@ -273,7 +294,7 @@ export class EditorExportTab extends React.Component<{ editor: ChartEditor }> {
                             }
                         />
                     )}
-                    {this.originalGrapher?.originUrl && (
+                    {this.originalGrapher.originUrl && (
                         <Toggle
                             label="Origin URL"
                             value={!this.settings.hideOriginUrl}
@@ -282,6 +303,14 @@ export class EditorExportTab extends React.Component<{ editor: ChartEditor }> {
                             }
                         />
                     )}
+                    <Toggle
+                        label="Details on demand"
+                        value={this.settings.shouldIncludeDetailsInStaticExport}
+                        onValue={(value) =>
+                            (this.settings.shouldIncludeDetailsInStaticExport =
+                                value)
+                        }
+                    />
                 </Section>
                 <Section name="Export static chart">
                     <div className="DownloadButtons">

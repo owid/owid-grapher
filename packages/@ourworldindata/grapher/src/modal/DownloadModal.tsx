@@ -34,7 +34,7 @@ export interface DownloadModalManager {
     table?: OwidTable
     externalCsvLink?: string // Todo: we can ditch this once rootTable === externalCsv (currently not quite the case for Covid Explorer)
     shouldIncludeDetailsInStaticExport?: boolean
-    detailRenderers: MarkdownTextWrap[]
+    detailRenderers: (bounds?: Bounds) => MarkdownTextWrap[]
     isDownloadModalOpen?: boolean
     tabBounds?: Bounds
     isOnChartOrMapTab?: boolean
@@ -211,10 +211,13 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
             !this.manager.shouldIncludeDetailsInStaticExport
     }
 
+    @computed private get detailRenderers(): MarkdownTextWrap[] {
+        return this.manager.detailRenderers(this.staticBounds)
+    }
+
     @computed private get showExportControls(): boolean {
         return (
-            !isEmpty(this.manager.detailRenderers) ||
-            !!this.manager.showAdminControls
+            !isEmpty(this.detailRenderers) || !!this.manager.showAdminControls
         )
     }
 
@@ -267,7 +270,7 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
                         </div>
                         {this.showExportControls && (
                             <div className="static-exports-options">
-                                {!isEmpty(this.manager.detailRenderers) && (
+                                {!isEmpty(this.detailRenderers) && (
                                     <Checkbox
                                         checked={this.shouldIncludeDetails}
                                         label="Include terminology definitions at bottom of chart"

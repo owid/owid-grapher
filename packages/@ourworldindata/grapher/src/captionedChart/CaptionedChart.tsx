@@ -81,7 +81,7 @@ export interface CaptionedChartManager
     entityType?: string
     entityTypePlural?: string
     shouldIncludeDetailsInStaticExport?: boolean
-    detailRenderers: MarkdownTextWrap[]
+    detailRenderers: (bounds?: Bounds) => MarkdownTextWrap[]
     isOnMapTab?: boolean
     isOnTableTab?: boolean
     hasTimeline?: boolean
@@ -534,6 +534,10 @@ export class StaticCaptionedChart extends CaptionedChart {
             .padTop(this.manager.isOnMapTab ? 0 : this.verticalPadding)
     }
 
+    @computed private get detailRenderers(): MarkdownTextWrap[] {
+        return this.manager.detailRenderers(this.bounds)
+    }
+
     renderSVGDetails(): JSX.Element {
         let yOffset = 0
         let previousOffset = 0
@@ -555,7 +559,7 @@ export class StaticCaptionedChart extends CaptionedChart {
                         this.bounds.height + this.framePaddingVertical
                     })`}
                 >
-                    {this.manager.detailRenderers.map((detail, i) => {
+                    {this.detailRenderers.map((detail, i) => {
                         previousOffset = yOffset
                         yOffset += detail.height + STATIC_EXPORT_DETAIL_SPACING
                         return detail.renderSVG(0, previousOffset, { key: i })
@@ -588,7 +592,7 @@ export class StaticCaptionedChart extends CaptionedChart {
 
         const includeDetailsInStaticExport =
             manager.shouldIncludeDetailsInStaticExport &&
-            !isEmpty(this.manager.detailRenderers)
+            !isEmpty(this.detailRenderers)
 
         return (
             <svg

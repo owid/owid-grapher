@@ -58,8 +58,8 @@ import {
     VisionDeficiencyEntity,
 } from "./VisionDeficiencies.js"
 import { EditorMarimekkoTab } from "./EditorMarimekkoTab.js"
-import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import { EditorExportTab } from "./EditorExportTab.js"
+import { runDetailsOnDemand } from "../site/detailsOnDemand.js"
 
 @observer
 class TabBinder extends React.Component<{ editor: ChartEditor }> {
@@ -151,7 +151,6 @@ export class ChartEditorPage
             bounds: this.bounds,
             staticFormat: this.staticFormat,
         }
-        this.grapher.shouldIncludeDetailsInStaticExport = false
         this.grapher.renderToStatic = !!this.editor?.showStaticPreview
         this.grapherElement = <Grapher {...grapherConfig} />
         this._isGrapherSet = true
@@ -232,12 +231,10 @@ export class ChartEditorPage
     }
 
     async fetchDetails(): Promise<void> {
-        const details: DetailDictionary = await fetch(
-            `${BAKED_BASE_URL}/dods.json`
-        ).then((res) => res.json())
+        await runDetailsOnDemand()
 
         runInAction(() => {
-            this.details = details
+            if (window.details) this.details = window.details
         })
     }
 
@@ -450,6 +447,9 @@ export class ChartEditorPage
                     <figure
                         data-grapher-src
                         style={{
+                            minHeight: this.editor?.showStaticPreview
+                                ? this.grapher.staticBoundsWithDetails().height
+                                : undefined,
                             filter:
                                 this.simulateVisionDeficiency &&
                                 `url(#${this.simulateVisionDeficiency.id})`,
