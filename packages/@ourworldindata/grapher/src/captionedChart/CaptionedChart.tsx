@@ -486,11 +486,7 @@ export class StaticCaptionedChart extends CaptionedChart {
     }
 
     @computed protected get bounds(): Bounds {
-        const bounds =
-            this.props.bounds ?? this.manager.staticBounds ?? DEFAULT_BOUNDS
-        // the padding ensures grapher's frame is not cut off
-        const padding = this.manager.isExportingToSvgOrPng ? 0 : 2
-        return bounds.padRight(padding).padBottom(padding)
+        return this.props.bounds ?? this.manager.staticBounds ?? DEFAULT_BOUNDS
     }
 
     @computed protected get staticFooter(): Footer {
