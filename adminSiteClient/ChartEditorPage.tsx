@@ -249,10 +249,8 @@ export class ChartEditorPage
     }
 
     @computed private get staticFormat(): GrapherStaticFormat {
-        const mobileStaticPreviewFormat =
-            this.editor?.mobileStaticPreviewFormat ?? GrapherStaticFormat.square
         return this.isMobilePreview
-            ? mobileStaticPreviewFormat
+            ? GrapherStaticFormat.square
             : GrapherStaticFormat.landscape
     }
 
@@ -324,15 +322,6 @@ export class ChartEditorPage
                             this.editor.previewMode
                         )
                     }
-                    this.updateGrapher()
-                }
-            )
-        )
-
-        this.disposers.push(
-            reaction(
-                () => this.editor && this.editor.mobileStaticPreviewFormat,
-                () => {
                     this.updateGrapher()
                 }
             )

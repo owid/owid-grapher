@@ -5,7 +5,7 @@
  *
  */
 
-import { Grapher, GrapherStaticFormat, Topic } from "@ourworldindata/grapher"
+import { Grapher, Topic } from "@ourworldindata/grapher"
 import { type DetailDictionary, type RawPageview } from "@ourworldindata/utils"
 import { computed, observable, runInAction, when } from "mobx"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
@@ -112,8 +112,6 @@ export class ChartEditor {
     @observable.ref errorMessage?: { title: string; content: string }
     @observable.ref previewMode: "mobile" | "desktop"
     @observable.ref showStaticPreview: boolean = false
-    @observable.ref mobileStaticPreviewFormat: GrapherStaticFormat =
-        GrapherStaticFormat.square
     @observable.ref savedGrapherJson: string = ""
 
     // This gets set when we save a new chart for the first time

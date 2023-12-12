@@ -2,13 +2,9 @@ import { IReactionDisposer, action, autorun, computed, observable } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"
 import { ChartEditor } from "./ChartEditor.js"
-import { Section, SelectField, Toggle } from "./Forms.js"
-import { Grapher, GrapherStaticFormat } from "@ourworldindata/grapher"
-import {
-    Bounds,
-    triggerDownloadFromBlob,
-    capitalize,
-} from "@ourworldindata/utils"
+import { Section, Toggle } from "./Forms.js"
+import { Grapher } from "@ourworldindata/grapher"
+import { Bounds, triggerDownloadFromBlob } from "@ourworldindata/utils"
 
 type ExportSettings = Required<
     Pick<
@@ -161,11 +157,6 @@ export class EditorExportTab extends React.Component<EditorExportTabProps> {
         return this.props.editor.grapher.displaySlug
     }
 
-    @action.bound private onPresetChange(value: string) {
-        this.props.editor.mobileStaticPreviewFormat =
-            value as GrapherStaticFormat
-    }
-
     @action.bound private onDownloadDesktopSVG() {
         this.download(
             `${this.baseFilename}-desktop.svg`,
@@ -209,25 +200,8 @@ export class EditorExportTab extends React.Component<EditorExportTabProps> {
     }
 
     render() {
-        const { editor } = this.props
         return (
             <div className="EditorExportTab">
-                <Section name="Mobile image size">
-                    <SelectField
-                        label="Preset"
-                        value={editor.mobileStaticPreviewFormat}
-                        onValue={this.onPresetChange}
-                        options={Object.keys(GrapherStaticFormat)
-                            .filter(
-                                (format) =>
-                                    format !== GrapherStaticFormat.landscape
-                            )
-                            .map((format) => ({
-                                value: format,
-                                label: capitalize(format),
-                            }))}
-                    />
-                </Section>
                 <Section name="Displayed elements">
                     {this.originalGrapher.currentTitle && (
                         <Toggle
