@@ -1,11 +1,9 @@
 import Stripe from "stripe"
 import {
     DonationRequest,
-    DonationRequestTypeObject,
     getErrorMessageDonation,
     JsonError,
 } from "@ourworldindata/utils"
-import { Value } from "@sinclair/typebox/value"
 
 function getPaymentMethodTypes(
     donation: DonationRequest
@@ -24,30 +22,19 @@ function getPaymentMethodTypes(
     return ["card"]
 }
 
-export async function createCheckoutSession(donation: unknown, key: string) {
+export async function createCheckoutSession(
+    donation: DonationRequest,
+    key: string
+) {
     const stripe = new Stripe(key, {
         apiVersion: "2023-10-16",
         maxNetworkRetries: 2,
     })
 
-    // Check that the received donation object has the right type. Given that we
-    // use the same types in the client and the server, this should never fail
-    // when the request is coming from the client. However, it could happen if a
-    // request is manually crafted. In this case, we select the first error and
-    // send TypeBox's default error message.
-    if (!Value.Check(DonationRequestTypeObject, donation)) {
-        const { message, path } = Value.Errors(
-            DonationRequestTypeObject,
-            donation
-        ).First()
-        throw new JsonError(`${message} (${path})`)
-    }
-
-    // When the donation object is valid, we check that the donation parameters
-    // are within the allowed range. If not, we send a helpful error message.
-    // Once again, this step should never fail when the request is coming from
-    // the client since we are running the same validation code there before
-    // sending it over to the server.
+    // We check that the donation parameters are within the allowed range. If
+    // not, we send a helpful error message. This step should never fail when
+    // the request is coming from the client since we are running the same
+    // validation code there before sending it over to the server.
     const errorMessage = getErrorMessageDonation(donation)
     if (errorMessage) throw new JsonError(errorMessage)
 

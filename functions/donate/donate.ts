@@ -2,11 +2,12 @@ import fetch from "node-fetch"
 import { createCheckoutSession } from "./stripe.js"
 import {
     DonateSessionResponse,
-    DonationRequest,
+    DonationRequestTypeObject,
     JsonError,
     PLEASE_TRY_AGAIN,
     stringifyUnknownError,
 } from "@ourworldindata/utils"
+import { Value } from "@sinclair/typebox/value"
 
 interface EnvVars {
     ASSETS: Fetcher
@@ -55,17 +56,36 @@ export const onRequestPost: PagesFunction = async ({
         )
 
     // Parse the body of the request as JSON
-    const data: DonationRequest = await request.json()
+    const donation = await request.json()
 
     try {
+        // Check that the received donation object has the right type. Given that we
+        // use the same types in the client and the server, this should never fail
+        // when the request is coming from the client. However, it could happen if a
+        // request is manually crafted. In this case, we select the first error and
+        // send TypeBox's default error message.
+        if (!Value.Check(DonationRequestTypeObject, donation)) {
+            const { message, path } = Value.Errors(
+                DonationRequestTypeObject,
+                donation
+            ).First()
+            throw new JsonError(`${message} (${path})`)
+        }
+
         if (
-            !(await isCaptchaValid(data.captchaToken, env.RECAPTCHA_SECRET_KEY))
+            !(await isCaptchaValid(
+                donation.captchaToken,
+                env.RECAPTCHA_SECRET_KEY
+            ))
         )
             throw new JsonError(
                 `The CAPTCHA challenge failed. ${PLEASE_TRY_AGAIN}`
             )
 
-        const session = await createCheckoutSession(data, env.STRIPE_SECRET_KEY)
+        const session = await createCheckoutSession(
+            donation,
+            env.STRIPE_SECRET_KEY
+        )
         const sessionResponse: DonateSessionResponse = { url: session.url }
 
         return new Response(JSON.stringify(sessionResponse), {
