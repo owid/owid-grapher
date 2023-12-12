@@ -381,9 +381,6 @@ export class ChartEditorPage
                                             editor.tab = tab
                                             editor.showStaticPreview =
                                                 tab === "export"
-                                            if (tab === "export") {
-                                                editor.previewMode = "mobile"
-                                            }
                                             this.updateGrapher()
                                         }}
                                     >
