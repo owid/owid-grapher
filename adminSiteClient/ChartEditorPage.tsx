@@ -20,7 +20,12 @@ import {
     groupBy,
     extractDetailsFromSyntax,
 } from "@ourworldindata/utils"
-import { Grapher, Topic, GrapherInterface } from "@ourworldindata/grapher"
+import {
+    Grapher,
+    Topic,
+    GrapherInterface,
+    GrapherStaticFormat,
+} from "@ourworldindata/grapher"
 import { Admin } from "./Admin.js"
 import {
     ChartEditor,
@@ -144,6 +149,7 @@ export class ChartEditorPage
             dataApiUrlForAdmin:
                 this.context.admin.settings.DATA_API_FOR_ADMIN_UI, // passed this way because clientSettings are baked and need a recompile to be updated
             bounds: this.bounds,
+            staticFormat: this.staticFormat,
         }
         this.grapher.shouldIncludeDetailsInStaticExport = false
         this.grapher.renderToStatic = !!this.editor?.showStaticPreview
@@ -235,26 +241,22 @@ export class ChartEditorPage
         })
     }
 
+    @computed private get isMobilePreview(): boolean {
+        return this.editor?.previewMode === "mobile"
+    }
+
     @computed private get bounds(): Bounds {
-        const { grapher } = this
-        const { previewMode, showStaticPreview } = this.editor ?? {}
-        const isMobile = previewMode === "mobile"
+        return this.isMobilePreview
+            ? new Bounds(0, 0, 380, 525)
+            : this.grapher.idealBounds
+    }
 
-        const initialBounds = !isMobile
-            ? grapher.idealBounds
-            : showStaticPreview
-            ? grapher.staticBounds
-            : new Bounds(0, 0, 380, 525)
-
-        const targetHeight = 550
-        const scaleFactor = Math.min(1, targetHeight / initialBounds.height)
-
-        return new Bounds(
-            0,
-            0,
-            scaleFactor * initialBounds.width,
-            scaleFactor * initialBounds.height
-        )
+    @computed private get staticFormat(): GrapherStaticFormat {
+        const mobileStaticPreviewFormat =
+            this.editor?.mobileStaticPreviewFormat ?? GrapherStaticFormat.square
+        return this.isMobilePreview
+            ? mobileStaticPreviewFormat
+            : GrapherStaticFormat.landscape
     }
 
     // unvalidated terms extracted from the subtitle and note fields
@@ -332,9 +334,8 @@ export class ChartEditorPage
 
         this.disposers.push(
             reaction(
-                () => this.editor && this.editor.staticPreviewFormat,
+                () => this.editor && this.editor.mobileStaticPreviewFormat,
                 () => {
-                    this.grapher.staticFormat = this.editor!.staticPreviewFormat
                     this.updateGrapher()
                 }
             )
@@ -364,7 +365,7 @@ export class ChartEditorPage
     }
 
     renderReady(editor: ChartEditor): JSX.Element {
-        const { grapher, availableTabs, previewMode } = editor
+        const { grapher, availableTabs } = editor
 
         return (
             <React.Fragment>
@@ -396,8 +397,6 @@ export class ChartEditorPage
                                                 tab === "export"
                                             if (tab === "export") {
                                                 editor.previewMode = "mobile"
-                                                grapher.staticFormat =
-                                                    editor.staticPreviewFormat
                                             }
                                             this.updateGrapher()
                                         }}
@@ -467,7 +466,7 @@ export class ChartEditorPage
                             <label
                                 className={
                                     "btn btn-light" +
-                                    (previewMode === "mobile" ? " active" : "")
+                                    (this.isMobilePreview ? " active" : "")
                                 }
                                 title="Mobile preview"
                             >
@@ -478,14 +477,14 @@ export class ChartEditorPage
                                     })}
                                     name="previewSize"
                                     id="mobile"
-                                    checked={previewMode === "mobile"}
+                                    checked={this.isMobilePreview}
                                 />{" "}
                                 <FontAwesomeIcon icon={faMobile} />
                             </label>
                             <label
                                 className={
                                     "btn btn-light" +
-                                    (previewMode === "desktop" ? " active" : "")
+                                    (!this.isMobilePreview ? " active" : "")
                                 }
                                 title="Desktop preview"
                             >
@@ -496,7 +495,7 @@ export class ChartEditorPage
                                     type="radio"
                                     name="previewSize"
                                     id="desktop"
-                                    checked={previewMode === "desktop"}
+                                    checked={!this.isMobilePreview}
                                 />{" "}
                                 <FontAwesomeIcon icon={faDesktop} />
                             </label>

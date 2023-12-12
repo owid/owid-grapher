@@ -26,9 +26,8 @@ export interface DownloadModalManager {
     displaySlug: string
     generateStaticSvg: (bounds: Bounds) => string
     rasterize: (bounds?: Bounds) => Promise<GrapherExport>
-    exportWidth: (bounds?: Bounds) => number
-    exportHeight: (bounds?: Bounds) => number
     staticBounds?: Bounds
+    staticBoundsWithDetails?: (bounds?: Bounds) => Bounds
     staticFormat?: GrapherStaticFormat
     baseUrl?: string
     queryStr?: string
@@ -71,12 +70,19 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
         return this.tabBounds.padHeight(16).padWidth(padWidth)
     }
 
+    @computed private get targetBounds(): Bounds {
+        return (
+            this.manager.staticBoundsWithDetails?.(this.staticBounds) ??
+            this.staticBounds
+        )
+    }
+
     @computed private get targetWidth(): number {
-        return this.manager.exportWidth(this.staticBounds)
+        return this.targetBounds.width
     }
 
     @computed private get targetHeight(): number {
-        return this.manager.exportHeight(this.staticBounds)
+        return this.targetBounds.height
     }
 
     @computed private get manager(): DownloadModalManager {

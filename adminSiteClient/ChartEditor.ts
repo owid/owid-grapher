@@ -112,7 +112,7 @@ export class ChartEditor {
     @observable.ref errorMessage?: { title: string; content: string }
     @observable.ref previewMode: "mobile" | "desktop"
     @observable.ref showStaticPreview: boolean = false
-    @observable.ref staticPreviewFormat: GrapherStaticFormat =
+    @observable.ref mobileStaticPreviewFormat: GrapherStaticFormat =
         GrapherStaticFormat.square
     @observable.ref savedGrapherJson: string = ""
 

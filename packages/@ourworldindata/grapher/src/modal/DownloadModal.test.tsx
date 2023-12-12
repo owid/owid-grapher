@@ -36,8 +36,6 @@ it("correctly passes non-redistributable flag", () => {
             generateStaticSvg: () => "",
             // eslint-disable-next-line @typescript-eslint/no-empty-function
             rasterize: () => new Promise(() => {}),
-            exportWidth: () => 0,
-            exportHeight: () => 0,
             displaySlug: "",
             table: tableFalse,
             detailRenderers: [],
@@ -51,8 +49,6 @@ it("correctly passes non-redistributable flag", () => {
             generateStaticSvg: () => "",
             // eslint-disable-next-line @typescript-eslint/no-empty-function
             rasterize: () => new Promise(() => {}),
-            exportWidth: () => 0,
-            exportHeight: () => 0,
             displaySlug: "",
             table: tableTrue,
             detailRenderers: [],

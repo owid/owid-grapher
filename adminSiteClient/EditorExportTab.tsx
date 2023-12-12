@@ -112,7 +112,8 @@ export class EditorExportTab extends React.Component<{ editor: ChartEditor }> {
     }
 
     @action.bound private onPresetChange(value: string) {
-        this.props.editor.staticPreviewFormat = value as GrapherStaticFormat
+        this.props.editor.mobileStaticPreviewFormat =
+            value as GrapherStaticFormat
     }
 
     @action.bound private onDownloadDesktopSVG() {
@@ -164,7 +165,7 @@ export class EditorExportTab extends React.Component<{ editor: ChartEditor }> {
                 <Section name="Mobile image size">
                     <SelectField
                         label="Preset"
-                        value={editor.staticPreviewFormat}
+                        value={editor.mobileStaticPreviewFormat}
                         onValue={this.onPresetChange}
                         options={Object.keys(GrapherStaticFormat)
                             .filter(

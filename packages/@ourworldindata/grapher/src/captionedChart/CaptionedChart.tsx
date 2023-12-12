@@ -67,6 +67,8 @@ export interface CaptionedChartManager
         SettingsMenuManager {
     containerElement?: HTMLDivElement
     tabBounds?: Bounds
+    staticBounds?: Bounds
+    staticBoundsWithDetails?: (bounds?: Bounds) => Bounds
     fontSize?: number
     bakedGrapherURL?: string
     tab?: GrapherTabOption
@@ -91,8 +93,6 @@ export interface CaptionedChartManager
     isMedium?: boolean
     framePaddingHorizontal?: number
     framePaddingVertical?: number
-    exportWidth?: (bounds?: Bounds) => number
-    exportHeight?: (bounds?: Bounds) => number
 }
 
 interface CaptionedChartProps {
@@ -178,12 +178,10 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     }
 
     @computed protected get bounds(): Bounds {
-        return (
-            this.props.bounds ??
-            // the padding ensures grapher's frame is not cut off
-            this.manager.tabBounds?.padRight(2).padBottom(2) ??
-            DEFAULT_BOUNDS
-        )
+        const bounds =
+            this.props.bounds ?? this.manager.tabBounds ?? DEFAULT_BOUNDS
+        // the padding ensures grapher's frame is not cut off
+        return bounds.padRight(2).padBottom(2)
     }
 
     @computed protected get boundsForChartArea(): Bounds {
@@ -487,6 +485,14 @@ export class StaticCaptionedChart extends CaptionedChart {
         super(props)
     }
 
+    @computed protected get bounds(): Bounds {
+        const bounds =
+            this.props.bounds ?? this.manager.staticBounds ?? DEFAULT_BOUNDS
+        // the padding ensures grapher's frame is not cut off
+        const padding = this.manager.isExportingToSvgOrPng ? 0 : 2
+        return bounds.padRight(padding).padBottom(padding)
+    }
+
     @computed protected get staticFooter(): Footer {
         const { paddedBounds } = this
         return new StaticFooter({
@@ -573,10 +579,12 @@ export class StaticCaptionedChart extends CaptionedChart {
     }
 
     render(): JSX.Element {
-        const { bounds, paddedBounds, manager, maxWidth } = this
+        const { paddedBounds, manager, maxWidth } = this
 
-        const width = this.manager.exportWidth?.(bounds) ?? bounds.width
-        const height = this.manager.exportHeight?.(bounds) ?? bounds.height
+        const bounds =
+            this.manager.staticBoundsWithDetails?.(this.bounds) ?? this.bounds
+        const width = bounds.width
+        const height = bounds.height
 
         const includeDetailsInStaticExport =
             manager.shouldIncludeDetailsInStaticExport &&
