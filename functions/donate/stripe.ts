@@ -86,6 +86,9 @@ export async function createCheckoutSession(
                     currency,
                     product_data: {
                         name: "Monthly donation",
+                        images: [
+                            "https://ourworldindata.org/default-thumbnail.jpg",
+                        ],
                     },
                     recurring: {
                         interval: "month",
@@ -123,6 +126,9 @@ export async function createCheckoutSession(
                     currency,
                     product_data: {
                         name: "One-time donation",
+                        images: [
+                            "https://ourworldindata.org/default-thumbnail.jpg",
+                        ],
                     },
                     unit_amount: amountRoundedCents,
                 },
