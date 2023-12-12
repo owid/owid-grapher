@@ -23,6 +23,7 @@ import {
     PrimitiveType,
     imemo,
     ToleranceStrategy,
+    IndicatorTitleWithFragments,
 } from "@ourworldindata/utils"
 import { CoreTable } from "./CoreTable.js"
 import { Time, JsTypes, CoreValueType } from "./CoreTableConstants.js"
@@ -266,7 +267,22 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     @imemo get displayName(): string {
-        return this.display?.name ?? this.name ?? ""
+        return (
+            this.display?.name ??
+            this.def.presentation?.titlePublic ?? // this is a bit of an unusual fallback - if display.name is not given, titlePublic is the next best thing before name
+            this.name ??
+            ""
+        )
+    }
+
+    @imemo get titlePublicOrDisplayName(): IndicatorTitleWithFragments {
+        return this.def.presentation?.titlePublic
+            ? {
+                  title: this.def.presentation?.titlePublic,
+                  attributionShort: this.def.presentation?.attributionShort,
+                  titleVariant: this.def.presentation?.titleVariant,
+              }
+            : { title: this.display?.name ?? this.name ?? "" }
     }
 
     @imemo get nonEmptyDisplayName(): string {

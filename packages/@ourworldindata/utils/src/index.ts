@@ -533,6 +533,8 @@ export {
     type OwidEntityKey,
     type OwidLicense,
     type OwidProcessingLevel,
+    type IndicatorTitleWithFragments,
+    joinTitleFragments,
 } from "./OwidVariable.js"
 
 export {

@@ -40,6 +40,7 @@ import {
     excludeUndefined,
     OwidOrigin,
     DataPageDataV2,
+    joinTitleFragments,
 } from "@ourworldindata/utils"
 import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
 import StickyNav from "./blocks/StickyNav.js"
@@ -809,6 +810,18 @@ const KeyDataTable = (props: {
                 <div className="key-data span-cols-4 span-sm-cols-12">
                     <div className="key-data__title key-data-description-short__title">
                         {datapageData.title}
+                        {(datapageData.attributionShort ||
+                            datapageData.titleVariant) && (
+                            <>
+                                {" "}
+                                <span className="title-fragments">
+                                    {joinTitleFragments(
+                                        datapageData.attributionShort,
+                                        datapageData.titleVariant
+                                    )}
+                                </span>
+                            </>
+                        )}
                     </div>
                     <div>
                         <SimpleMarkdownText

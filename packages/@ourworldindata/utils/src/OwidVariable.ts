@@ -86,6 +86,28 @@ export interface OwidVariableWithSource {
     // metadataPath
 }
 
+export interface IndicatorTitleWithFragments {
+    title: string
+    attributionShort?: string
+    titleVariant?: string
+}
+
+export function joinTitleFragments(
+    attributionShort: string | undefined,
+    titleVariant: string | undefined
+): string {
+    if (attributionShort && titleVariant) {
+        return `${attributionShort} – ${titleVariant}`
+    }
+    if (attributionShort) {
+        return attributionShort
+    }
+    if (titleVariant) {
+        return titleVariant
+    }
+    return ""
+}
+
 export interface OwidLicense {
     name: string
     url: string

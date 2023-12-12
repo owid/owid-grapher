@@ -40,6 +40,11 @@
             color: $dark-text;
         }
 
+        .title-fragments {
+            color: $light-text;
+            font-size: 1.25rem;
+            margin-left: 8px;
+        }
         a {
             color: inherit;
             text-decoration: underline;

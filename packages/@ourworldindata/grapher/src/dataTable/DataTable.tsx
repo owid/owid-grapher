@@ -38,6 +38,8 @@ import {
     maxBy,
     minBy,
     excludeUndefined,
+    IndicatorTitleWithFragments,
+    joinTitleFragments,
 } from "@ourworldindata/utils"
 import { makeSelectionArray } from "../chart/ChartUtils"
 import { SelectionArray } from "../selection/SelectionArray"
@@ -306,7 +308,15 @@ export class DataTable extends React.Component<{
 
             const dimensionHeaderText = (
                 <React.Fragment>
-                    <div className="name">{upperFirst(display.columnName)}</div>
+                    <div className="name">
+                        {upperFirst(display.columnName.title)}
+                        <span className="title-fragments">
+                            {joinTitleFragments(
+                                display.columnName.attributionShort,
+                                display.columnName.titleVariant
+                            )}
+                        </span>
+                    </div>
                     <div className="description">
                         <span className="unit">{display.unit}</span>{" "}
                         <span className="divider">
@@ -541,7 +551,19 @@ export class DataTable extends React.Component<{
         const singleDimension = this.displayDimensions[0]
         return singleDimension ? (
             <div className="caption">
-                {singleDimension.display.columnName}{" "}
+                {singleDimension.display.columnName.title}{" "}
+                {(singleDimension.display.columnName.attributionShort ||
+                    singleDimension.display.columnName.titleVariant) && (
+                    <>
+                        <span className="title-fragments">
+                            {joinTitleFragments(
+                                singleDimension.display.columnName
+                                    .attributionShort,
+                                singleDimension.display.columnName.titleVariant
+                            )}
+                        </span>{" "}
+                    </>
+                )}
                 {singleDimension.display.unit && (
                     <span className="unit">{singleDimension.display.unit}</span>
                 )}
@@ -855,7 +877,8 @@ export class DataTable extends React.Component<{
             const coreTableColumn = d.sourceColumn
             const unit =
                 coreTableColumn.unit === "%" ? "percent" : coreTableColumn.unit
-            const columnName = coreTableColumn.displayName
+
+            const columnName = coreTableColumn.titlePublicOrDisplayName
 
             return {
                 coreTableColumn,
@@ -1084,7 +1107,7 @@ interface DataTableDimension {
     columns: DataTableColumn[]
     coreTableColumn: CoreColumn
     sortable: boolean
-    display: { columnName: string; unit?: string }
+    display: { columnName: IndicatorTitleWithFragments; unit?: string }
 }
 
 interface DataTableRow {
