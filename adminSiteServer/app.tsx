@@ -29,10 +29,10 @@ import { renderToHtmlPage } from "../serverUtils/serverUtil.js"
 import { publicApiRouter } from "./publicApiRouter.js"
 import { mockSiteRouter } from "./mockSiteRouter.js"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
-import { GdocsContentSource } from "@ourworldindata/utils"
+import { GdocsContentSource, OwidGdoc } from "@ourworldindata/utils"
 import OwidGdocPage from "../site/gdocs/OwidGdocPage.js"
-import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
+import { GdocBase } from "../db/model/Gdoc/GdocBase.js"
 
 interface OwidAdminAppOptions {
     gitCmsDir: string
@@ -129,12 +129,14 @@ export class OwidAdminApp {
         app.get("/gdocs/:id/preview", async (req, res) => {
             const publishedExplorersBySlug =
                 await adminExplorerServer.getAllPublishedExplorersBySlugCached()
+
             try {
-                const gdoc = await GdocPost.load(
+                const gdoc = await GdocBase.load(
                     req.params.id,
                     publishedExplorersBySlug,
                     GdocsContentSource.Gdocs
                 )
+
                 res.set("X-Robots-Tag", "noindex")
                 res.send(
                     renderToHtmlPage(

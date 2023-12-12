@@ -4,7 +4,10 @@ import {
     BaseEntity,
     UpdateDateColumn,
     PrimaryColumn,
+    ManyToMany,
+    JoinTable,
 } from "typeorm"
+import { getConnection } from "../../db.js"
 import { getUrlTarget } from "@ourworldindata/components"
 import {
     LinkedChart,
@@ -25,6 +28,12 @@ import {
     omit,
     identity,
     OwidGdocBaseInterface,
+    OwidGdoc,
+    Tag as TagInterface,
+    GdocsContentSource,
+    OwidGdocPublicationContext,
+    BreadcrumbItem,
+    OwidGdocType,
 } from "@ourworldindata/utils"
 import { BAKED_GRAPHER_URL } from "../../../settings/serverSettings.js"
 import { google } from "googleapis"
@@ -45,6 +54,21 @@ import {
 } from "./gdocUtils.js"
 import { OwidGoogleAuth } from "../../OwidGoogleAuth.js"
 
+@Entity("tags")
+export class Tag extends BaseEntity implements TagInterface {
+    static table = "tags"
+    @PrimaryColumn() id!: number
+    @Column() name!: string
+    @Column() createdAt!: Date
+    @Column({ nullable: true }) updatedAt!: Date
+    @Column({ nullable: true }) parentId!: number
+    @Column() isBulkImport!: boolean
+    @Column({ type: "varchar", nullable: true }) slug!: string | null
+    @Column() specialType!: string
+    @ManyToMany(() => GdocBase, (gdoc) => gdoc.tags)
+    gdocs!: GdocBase[]
+}
+
 @Entity("posts_gdocs")
 export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
     @PrimaryColumn() id!: string
@@ -55,6 +79,18 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
     @Column({ type: Date, nullable: true }) publishedAt: Date | null = null
     @UpdateDateColumn({ nullable: true }) updatedAt: Date | null = null
     @Column({ type: String, nullable: true }) revisionId: string | null = null
+    @Column() publicationContext: OwidGdocPublicationContext =
+        OwidGdocPublicationContext.unlisted
+    @Column({ type: "json", nullable: true }) breadcrumbs:
+        | BreadcrumbItem[]
+        | null = null
+    @ManyToMany(() => Tag, { cascade: true })
+    @JoinTable({
+        name: "posts_gdocs_x_tags",
+        joinColumn: { name: "gdocId", referencedColumnName: "id" },
+        inverseJoinColumn: { name: "tagId", referencedColumnName: "id" },
+    })
+    tags!: Tag[]
 
     errors: OwidGdocErrorMessage[] = []
     imageMetadata: Record<string, ImageMetadata> = {}
@@ -66,7 +102,7 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
         () => []
     _enrichSubclassContent: (content: Record<string, any>) => void = identity
     _validateSubclass: (gdoc: typeof this) => Promise<OwidGdocErrorMessage[]> =
-        () => new Promise(() => [])
+        async () => []
     _filenameProperties: string[] = []
     _omittableFields: string[] = []
 
@@ -153,7 +189,7 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
         const links: Link[] = []
 
         for (const enrichedBlockSource of this.enrichedBlockSources) {
-            enrichedBlockSource.map((block) =>
+            enrichedBlockSource.forEach((block) =>
                 traverseEnrichedBlocks(
                     block,
                     (block) => {
@@ -206,6 +242,22 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
         )
 
         return { grapher: [...grapher], explorer: [...explorer] }
+    }
+
+    get hasAllChartsBlock(): boolean {
+        let hasAllChartsBlock = false
+        for (const enrichedBlockSource of this.enrichedBlockSources) {
+            for (const block of enrichedBlockSource) {
+                if (hasAllChartsBlock) break
+                traverseEnrichedBlocks(block, (block) => {
+                    if (block.type === "all-charts") {
+                        hasAllChartsBlock = true
+                    }
+                })
+            }
+        }
+
+        return hasAllChartsBlock
     }
 
     extractLinksFromBlock(block: OwidEnrichedGdocBlock): Link[] | void {
@@ -511,6 +563,29 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
         }
     }
 
+    async loadRelatedCharts(): Promise<void> {
+        if (!this.tags.length || !this.hasAllChartsBlock) return
+
+        const connection = await getConnection()
+        const relatedCharts = await connection.query(
+            `
+        SELECT DISTINCT
+        charts.config->>"$.slug" AS slug,
+        charts.config->>"$.title" AS title,
+        charts.config->>"$.variantName" AS variantName,
+        chart_tags.keyChartLevel
+        FROM charts
+        INNER JOIN chart_tags ON charts.id=chart_tags.chartId
+        WHERE chart_tags.tagId IN (?)
+        AND charts.config->>"$.isPublished" = "true"
+        ORDER BY title ASC
+        `,
+            [this.tags.map((tag) => tag.id)]
+        )
+
+        this.relatedCharts = relatedCharts
+    }
+
     async fetchAndEnrichGdoc(): Promise<void> {
         const docsClient = google.docs({
             version: "v1",
@@ -602,8 +677,33 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
         )
 
         const subclassErrors = await this._validateSubclass(this)
-
         this.errors = [...filenameErrors, ...linkErrors, ...subclassErrors]
+    }
+
+    static async load(
+        id: string,
+        publishedExplorersBySlug: Record<string, any>,
+        contentSource?: GdocsContentSource
+    ): Promise<OwidGdoc> {
+        const gdoc = await GdocBase.findOne({
+            where: {
+                id,
+            },
+            relations: ["tags"],
+        })
+
+        if (!gdoc) throw new Error(`No Google Doc with id ${id} found`)
+
+        if (contentSource === GdocsContentSource.Gdocs) {
+            await gdoc.fetchAndEnrichGdoc()
+        }
+
+        await gdoc.loadLinkedDocuments()
+        await gdoc.loadImageMetadata()
+        await gdoc.loadLinkedCharts(publishedExplorersBySlug)
+        await gdoc.loadRelatedCharts()
+        await gdoc.validate(publishedExplorersBySlug)
+        return gdoc as any as OwidGdoc
     }
 
     toJSON(): Record<string, any> {

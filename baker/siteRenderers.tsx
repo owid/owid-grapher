@@ -58,6 +58,7 @@ import {
     IndexPost,
     mergePartialGrapherConfigs,
     OwidGdocType,
+    OwidGdoc,
 } from "@ourworldindata/utils"
 import { CountryProfileSpec } from "../site/countryProfileProjects.js"
 import { formatPost } from "./formatWordpressPost.js"
@@ -190,7 +191,7 @@ export const renderGdocsPageBySlug = async (
     return renderGdoc(gdocWithAttachments)
 }
 
-export const renderGdoc = (gdoc: OwidGdocPostInterface) => {
+export const renderGdoc = (gdoc: OwidGdoc) => {
     return renderToHtmlPage(
         <OwidGdocPage baseUrl={BAKED_BASE_URL} gdoc={gdoc} />
     )
@@ -333,7 +334,7 @@ export const renderFrontPage = async () => {
 }
 
 export const renderDonatePage = async () => {
-    const faqsGdoc = await GdocPost.load(GDOCS_DONATE_FAQS_DOCUMENT_ID, {})
+    const faqsGdoc = await GdocPost.loadPost(GDOCS_DONATE_FAQS_DOCUMENT_ID, {})
 
     return renderToHtmlPage(
         <DonatePage

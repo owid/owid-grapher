@@ -9,7 +9,7 @@ import {
 import { GdocBase } from "./GdocBase.js"
 
 @Entity("posts_gdocs")
-export class OwidDataInsight
+export class GdocDataInsight
     extends GdocBase
     implements OwidGdocDataInsightInterface
 {

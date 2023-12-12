@@ -1,14 +1,5 @@
+import { Entity, Column, LessThanOrEqual } from "typeorm"
 import {
-    Entity,
-    Column,
-    BaseEntity,
-    PrimaryColumn,
-    ManyToMany,
-    JoinTable,
-    LessThanOrEqual,
-} from "typeorm"
-import {
-    Tag as TagInterface,
     type OwidGdocPostContent,
     OwidGdocPostInterface,
     OwidGdocPublished,
@@ -18,12 +9,11 @@ import {
     DetailDictionary,
     ParseError,
     OwidGdocType,
-    traverseEnrichedBlocks,
     OwidEnrichedGdocBlock,
     BreadcrumbItem,
     RawBlockText,
     GdocsContentSource,
-    JsonError,
+    checkIsGdocPost,
 } from "@ourworldindata/utils"
 import { GDOCS_DETAILS_ON_DEMAND_ID } from "../../../settings/serverSettings.js"
 import {
@@ -33,42 +23,12 @@ import {
 } from "./archieToEnriched.js"
 import { ADMIN_BASE_URL } from "../../../settings/clientSettings.js"
 import { parseDetails, parseFaqs } from "./rawToEnriched.js"
-import { getConnection } from "../../db.js"
 import { htmlToEnrichedTextBlock } from "./htmlToEnriched.js"
 import { GdocBase } from "./GdocBase.js"
 
-@Entity("tags")
-export class Tag extends BaseEntity implements TagInterface {
-    static table = "tags"
-    @PrimaryColumn() id!: number
-    @Column() name!: string
-    @Column() createdAt!: Date
-    @Column({ nullable: true }) updatedAt!: Date
-    @Column({ nullable: true }) parentId!: number
-    @Column() isBulkImport!: boolean
-    @Column({ type: "varchar", nullable: true }) slug!: string | null
-    @Column() specialType!: string
-    @ManyToMany(() => GdocPost, (gdoc) => gdoc.tags)
-    gdocs!: GdocPost[]
-}
-
 @Entity("posts_gdocs")
 export class GdocPost extends GdocBase implements OwidGdocPostInterface {
-    static table = "posts_gdocs"
     @Column({ default: "{}", type: "json" }) content!: OwidGdocPostContent
-    @Column() publicationContext: OwidGdocPublicationContext =
-        OwidGdocPublicationContext.unlisted
-    @Column({ type: "json", nullable: true }) breadcrumbs:
-        | BreadcrumbItem[]
-        | null = null
-
-    @ManyToMany(() => Tag, { cascade: true })
-    @JoinTable({
-        name: "posts_gdocs_x_tags",
-        joinColumn: { name: "gdocId", referencedColumnName: "id" },
-        inverseJoinColumn: { name: "tagId", referencedColumnName: "id" },
-    })
-    tags!: Tag[]
 
     constructor(id?: string) {
         super()
@@ -125,6 +85,7 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
     }
 
     _validateSubclass = async (): Promise<OwidGdocErrorMessage[]> => {
+        console.log("_validateSubclass")
         const errors: OwidGdocErrorMessage[] = []
 
         if (!this.tags.length) {
@@ -188,34 +149,6 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
         }
 
         return errors
-    }
-
-    static async load(
-        id: string,
-        publishedExplorersBySlug: Record<string, any>,
-        contentSource?: GdocsContentSource
-    ): Promise<GdocPost> {
-        const gdoc = await GdocPost.findOne({
-            where: {
-                id,
-            },
-            relations: ["tags"],
-        })
-
-        if (!gdoc) throw new JsonError(`No Google Doc with id ${id} found`)
-
-        if (contentSource === GdocsContentSource.Gdocs) {
-            await gdoc.fetchAndEnrichGdoc()
-        }
-
-        await gdoc.loadLinkedDocuments()
-        await gdoc.loadImageMetadata()
-        await gdoc.loadLinkedCharts(publishedExplorersBySlug)
-        await gdoc.loadRelatedCharts()
-
-        await gdoc.validate(publishedExplorersBySlug)
-
-        return gdoc
     }
 
     static async getDetailsOnDemandGdoc(): Promise<{
@@ -291,42 +224,21 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
         }) as Promise<(GdocPost & OwidGdocPublished)[]>
     }
 
-    get hasAllChartsBlock(): boolean {
-        let hasAllChartsBlock = false
-        if (this.content.body) {
-            for (const node of this.content.body) {
-                if (hasAllChartsBlock) break
-                traverseEnrichedBlocks(node, (node) => {
-                    if (node.type === "all-charts") {
-                        hasAllChartsBlock = true
-                    }
-                })
-            }
-        }
-
-        return hasAllChartsBlock
-    }
-
-    async loadRelatedCharts(): Promise<void> {
-        if (!this.tags.length || !this.hasAllChartsBlock) return
-
-        const connection = await getConnection()
-        const relatedCharts = await connection.query(
-            `
-        SELECT DISTINCT
-        charts.config->>"$.slug" AS slug,
-        charts.config->>"$.title" AS title,
-        charts.config->>"$.variantName" AS variantName,
-        chart_tags.keyChartLevel
-        FROM charts
-        INNER JOIN chart_tags ON charts.id=chart_tags.chartId
-        WHERE chart_tags.tagId IN (?)
-        AND charts.config->>"$.isPublished" = "true"
-        ORDER BY title ASC
-        `,
-            [this.tags.map((tag) => tag.id)]
+    static async loadPost(
+        id: string,
+        publishedExplorersBySlug: Record<string, any>,
+        contentSource?: GdocsContentSource
+    ): Promise<GdocPost> {
+        const gdoc = await this.load(
+            id,
+            publishedExplorersBySlug,
+            contentSource
         )
-
-        this.relatedCharts = relatedCharts
+        if (!checkIsGdocPost(gdoc)) {
+            throw new Error(
+                `Gdoc ${id} has type ${gdoc.content.type} but expected to be ${OwidGdocType.Article} | ${OwidGdocType.TopicPage} | ${OwidGdocType.LinearTopicPage} | ${OwidGdocType.Fragment}`
+            )
+        }
+        return gdoc as GdocPost
     }
 }

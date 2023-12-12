@@ -61,7 +61,8 @@ import {
 } from "../adminSiteClient/CountryNameFormat.js"
 import { Dataset } from "../db/model/Dataset.js"
 import { User } from "../db/model/User.js"
-import { GdocPost, Tag as TagEntity } from "../db/model/Gdoc/GdocPost.js"
+import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
+import { Tag as TagEntity } from "../db/model/Gdoc/GdocBase.js"
 import { Pageview } from "../db/model/Pageview.js"
 import {
     syncDatasetToGitRepo,
@@ -2457,6 +2458,7 @@ apiRouter.get("/gdocs", async () => {
 })
 
 apiRouter.get("/gdocs/:id", async (req, res) => {
+    console.log("gdocs/:id")
     const id = req.params.id
     const contentSource = req.query.contentSource as
         | GdocsContentSource
@@ -2466,11 +2468,12 @@ apiRouter.get("/gdocs/:id", async (req, res) => {
         const publishedExplorersBySlug =
             await explorerAdminServer.getAllPublishedExplorersBySlugCached()
 
-        const gdoc = await GdocPost.load(
+        const gdoc = await GdocPost.loadPost(
             id,
             publishedExplorersBySlug,
             contentSource
         )
+        console.log("gdoc", gdoc)
         if (!gdoc.published) {
             await dataSource.getRepository(GdocPost).create(gdoc).save()
         }
@@ -2513,7 +2516,7 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
         const publishedExplorersBySlug =
             await explorerAdminServer.getAllPublishedExplorersBySlugCached()
 
-        const initData = await GdocPost.load(
+        const initData = await GdocPost.loadPost(
             id,
             publishedExplorersBySlug,
             GdocsContentSource.Gdocs

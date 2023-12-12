@@ -6,9 +6,9 @@ import {
     getOwidGdocFromJSON,
     ImageMetadata,
     RelatedChart,
-    OwidGdocDataInsightInterface,
     get,
     OwidGdocType,
+    OwidGdoc as OwidGdocInterface,
 } from "@ourworldindata/utils"
 import { DebugProvider } from "./DebugContext.js"
 import { match, P } from "ts-pattern"
@@ -45,7 +45,7 @@ function AdminLinks() {
     )
 }
 
-type OwidGdocProps = (OwidGdocPostInterface | OwidGdocDataInsightInterface) & {
+type OwidGdocProps = OwidGdocInterface & {
     isPreviewing?: boolean
 }
 
