@@ -1270,6 +1270,7 @@ export class Grapher
     // Used for static exports. Defined at this level because they need to
     // be accessed by CaptionedChart and DownloadModal
     detailRenderers(bounds: Bounds = this.staticBounds): MarkdownTextWrap[] {
+        if (typeof window === "undefined") return []
         return [...this.detailsOrderedByReference].map((term, i) => {
             let text = `**${i + 1}.** `
             const detail: EnrichedDetail = window.details?.[term]
