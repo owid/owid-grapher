@@ -10928,6 +10928,7 @@ __metadata:
     simple-statistics: "npm:^7.3.2"
     sql-fixtures: "npm:^1.0.4"
     string-pixel-width: "npm:^1.10.0"
+    stripe: "npm:^14.8.0"
     striptags: "npm:^3.2.0"
     svgo: "npm:^3.0.2"
     timezone-mock: "npm:^1.0.18"
@@ -18968,6 +18969,16 @@ __metadata:
     "@types/node": "npm:>=8.1.0"
     qs: "npm:^6.11.0"
   checksum: a2b9615ef7b1f53a2214ce21d533fe66df3575e89f22b74fba885111c66ac17064951f68065b336fb16ce1d93f7bf2c334604c1c6419917073cf6778a251f516
+  languageName: node
+  linkType: hard
+
+"stripe@npm:^14.8.0":
+  version: 14.8.0
+  resolution: "stripe@npm:14.8.0"
+  dependencies:
+    "@types/node": "npm:>=8.1.0"
+    qs: "npm:^6.11.0"
+  checksum: 6cf0046b210e43eeacd8a630c43b2478d5d18213a65f06234c5572cbf01b454356843a15cff8f84c5e72e9d65c21fec5cff0728b6dca1d2f26217dc27d9d41e6
   languageName: node
   linkType: hard
 
