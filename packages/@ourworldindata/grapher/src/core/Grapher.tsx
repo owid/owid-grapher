@@ -1273,7 +1273,7 @@ export class Grapher
 
     // Used for static exports. Defined at this level because they need to
     // be accessed by CaptionedChart and DownloadModal
-    detailRenderers(bounds: Bounds = this.staticBounds): MarkdownTextWrap[] {
+    @computed get detailRenderers(): MarkdownTextWrap[] {
         if (typeof window === "undefined") return []
         return [...this.detailsOrderedByReference].map((term, i) => {
             let text = `**${i + 1}.** `
@@ -1290,7 +1290,8 @@ export class Grapher
                 text,
                 fontSize: 12,
                 // leave room for padding on the left and right
-                maxWidth: bounds.width - 2 * this.framePaddingHorizontal,
+                maxWidth:
+                    this.staticBounds.width - 2 * this.framePaddingHorizontal,
                 lineHeight: 1.2,
                 style: {
                     fill: GRAPHER_DARK_TEXT,
@@ -1777,41 +1778,41 @@ export class Grapher
         return this.getStaticBounds(this.staticFormat)
     }
 
-    generateStaticSvg(bounds: Bounds = this.staticBounds): string {
+    generateStaticSvg(): string {
         const _isExportingToSvgOrPng = this.isExportingToSvgOrPng
         this.isExportingToSvgOrPng = true
         const staticSvg = ReactDOMServer.renderToStaticMarkup(
-            <StaticCaptionedChart manager={this} bounds={bounds} />
+            <StaticCaptionedChart manager={this} />
         )
         this.isExportingToSvgOrPng = _isExportingToSvgOrPng
         return staticSvg
     }
 
     get staticSVG(): string {
-        return this.generateStaticSvg(this.idealBounds)
+        return this.generateStaticSvg()
     }
 
-    staticBoundsWithDetails(bounds: Bounds = this.staticBounds): Bounds {
-        const detailRenderers = this.detailRenderers(bounds)
+    @computed get staticBoundsWithDetails(): Bounds {
         const includeDetails =
-            this.shouldIncludeDetailsInStaticExport && !isEmpty(detailRenderers)
+            this.shouldIncludeDetailsInStaticExport &&
+            !isEmpty(this.detailRenderers)
 
-        let height = bounds.height
+        let height = this.staticBounds.height
         if (includeDetails) {
             height +=
                 2 * this.framePaddingVertical +
                 sumTextWrapHeights(
-                    detailRenderers,
+                    this.detailRenderers,
                     STATIC_EXPORT_DETAIL_SPACING
                 )
         }
 
-        return new Bounds(0, 0, bounds.width, height)
+        return new Bounds(0, 0, this.staticBounds.width, height)
     }
 
-    rasterize(bounds: Bounds = this.staticBounds): Promise<GrapherExport> {
-        const { width, height } = this.staticBoundsWithDetails(bounds)
-        const staticSVG = this.generateStaticSvg(bounds)
+    rasterize(): Promise<GrapherExport> {
+        const { width, height } = this.staticBoundsWithDetails
+        const staticSVG = this.generateStaticSvg()
 
         return new StaticChartRasterizer(staticSVG, width, height).render()
     }

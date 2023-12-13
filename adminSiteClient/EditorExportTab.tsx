@@ -4,7 +4,7 @@ import React from "react"
 import { ChartEditor } from "./ChartEditor.js"
 import { Section, Toggle } from "./Forms.js"
 import { Grapher, GrapherStaticFormat } from "@ourworldindata/grapher"
-import { Bounds, triggerDownloadFromBlob } from "@ourworldindata/utils"
+import { triggerDownloadFromBlob } from "@ourworldindata/utils"
 
 type ExportSettings = Required<
     Pick<
@@ -157,34 +157,47 @@ export class EditorExportTab extends React.Component<EditorExportTabProps> {
         return this.props.editor.grapher.displaySlug
     }
 
-    @computed private get landscapeBounds(): Bounds {
-        return this.grapher.getStaticBounds(GrapherStaticFormat.landscape)
-    }
-
-    @computed private get squareBounds(): Bounds {
-        return this.grapher.getStaticBounds(GrapherStaticFormat.square)
-    }
-
     @action.bound private onDownloadDesktopSVG() {
-        this.download(`${this.baseFilename}-desktop.svg`, this.landscapeBounds)
+        this.download(
+            `${this.baseFilename}-desktop.svg`,
+            GrapherStaticFormat.landscape
+        )
     }
 
     @action.bound private onDownloadDesktopPNG() {
-        this.download(`${this.baseFilename}-desktop.png`, this.landscapeBounds)
+        this.download(
+            `${this.baseFilename}-desktop.png`,
+            GrapherStaticFormat.landscape
+        )
     }
 
     @action.bound private onDownloadMobileSVG() {
-        this.download(`${this.baseFilename}-mobile.svg`, this.squareBounds)
+        this.download(
+            `${this.baseFilename}-mobile.svg`,
+            GrapherStaticFormat.square
+        )
     }
 
     @action.bound private onDownloadMobilePNG() {
-        this.download(`${this.baseFilename}-mobile.png`, this.squareBounds)
+        this.download(
+            `${this.baseFilename}-mobile.png`,
+            GrapherStaticFormat.square
+        )
     }
 
-    private async download(filename: ExportFilename, bounds: Bounds) {
+    private async download(
+        filename: ExportFilename,
+        format: GrapherStaticFormat
+    ) {
         try {
-            const { blob: pngBlob, svgBlob } =
-                await this.grapher.rasterize(bounds)
+            let grapher = this.grapher
+            if (this.grapher.staticFormat !== format) {
+                grapher = new Grapher({
+                    ...this.grapher,
+                    staticFormat: format,
+                })
+            }
+            const { blob: pngBlob, svgBlob } = await grapher.rasterize()
             if (filename.endsWith("svg") && svgBlob) {
                 triggerDownloadFromBlob(filename, svgBlob)
             } else if (filename.endsWith("png") && pngBlob) {

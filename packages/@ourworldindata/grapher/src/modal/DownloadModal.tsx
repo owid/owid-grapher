@@ -24,17 +24,16 @@ import { GrapherExport } from "../captionedChart/StaticChartRasterizer.js"
 
 export interface DownloadModalManager {
     displaySlug: string
-    generateStaticSvg: (bounds: Bounds) => string
     rasterize: (bounds?: Bounds) => Promise<GrapherExport>
     staticBounds?: Bounds
-    staticBoundsWithDetails?: (bounds?: Bounds) => Bounds
+    staticBoundsWithDetails?: Bounds
     staticFormat?: GrapherStaticFormat
     baseUrl?: string
     queryStr?: string
     table?: OwidTable
     externalCsvLink?: string // Todo: we can ditch this once rootTable === externalCsv (currently not quite the case for Covid Explorer)
     shouldIncludeDetailsInStaticExport?: boolean
-    detailRenderers: (bounds?: Bounds) => MarkdownTextWrap[]
+    detailRenderers: MarkdownTextWrap[]
     isDownloadModalOpen?: boolean
     tabBounds?: Bounds
     isOnChartOrMapTab?: boolean
@@ -71,10 +70,7 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
     }
 
     @computed private get targetBounds(): Bounds {
-        return (
-            this.manager.staticBoundsWithDetails?.(this.staticBounds) ??
-            this.staticBounds
-        )
+        return this.manager.staticBoundsWithDetails ?? this.staticBounds
     }
 
     @computed private get targetWidth(): number {
@@ -98,11 +94,9 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
     @observable private isReady: boolean = false
 
     @action.bound private export(): void {
-        const { staticBounds } = this
-
         // render the graphic then cache data-urls for display & blobs for downloads
         this.manager
-            .rasterize(staticBounds)
+            .rasterize()
             .then(({ url, blob, svgUrl, svgBlob }) => {
                 this.pngPreviewUrl = url
                 this.pngBlob = blob
@@ -211,13 +205,10 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
             !this.manager.shouldIncludeDetailsInStaticExport
     }
 
-    @computed private get detailRenderers(): MarkdownTextWrap[] {
-        return this.manager.detailRenderers(this.staticBounds)
-    }
-
     @computed private get showExportControls(): boolean {
         return (
-            !isEmpty(this.detailRenderers) || !!this.manager.showAdminControls
+            !isEmpty(this.manager.detailRenderers) ||
+            !!this.manager.showAdminControls
         )
     }
 
@@ -270,7 +261,7 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
                         </div>
                         {this.showExportControls && (
                             <div className="static-exports-options">
-                                {!isEmpty(this.detailRenderers) && (
+                                {!isEmpty(this.manager.detailRenderers) && (
                                     <Checkbox
                                         checked={this.shouldIncludeDetails}
                                         label="Include terminology definitions at bottom of chart"

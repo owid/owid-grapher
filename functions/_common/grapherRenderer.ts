@@ -181,7 +181,7 @@ async function fetchAndRenderGrapherToSvg({
     await Promise.all(promises) // Run these (potentially) two fetches in parallel
     grapherLogger.log("fetchDataAndDods")
 
-    const svg = grapher.generateStaticSvg(bounds)
+    const svg = grapher.generateStaticSvg()
     grapherLogger.log("generateStaticSvg")
     return svg
 }

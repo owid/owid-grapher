@@ -68,7 +68,7 @@ export interface CaptionedChartManager
     containerElement?: HTMLDivElement
     tabBounds?: Bounds
     staticBounds?: Bounds
-    staticBoundsWithDetails?: (bounds?: Bounds) => Bounds
+    staticBoundsWithDetails?: Bounds
     fontSize?: number
     bakedGrapherURL?: string
     tab?: GrapherTabOption
@@ -81,7 +81,7 @@ export interface CaptionedChartManager
     entityType?: string
     entityTypePlural?: string
     shouldIncludeDetailsInStaticExport?: boolean
-    detailRenderers: (bounds?: Bounds) => MarkdownTextWrap[]
+    detailRenderers: MarkdownTextWrap[]
     isOnMapTab?: boolean
     isOnTableTab?: boolean
     hasTimeline?: boolean
@@ -530,10 +530,6 @@ export class StaticCaptionedChart extends CaptionedChart {
             .padTop(this.manager.isOnMapTab ? 0 : this.verticalPadding)
     }
 
-    @computed private get detailRenderers(): MarkdownTextWrap[] {
-        return this.manager.detailRenderers(this.bounds)
-    }
-
     renderSVGDetails(): JSX.Element {
         let yOffset = 0
         let previousOffset = 0
@@ -555,7 +551,7 @@ export class StaticCaptionedChart extends CaptionedChart {
                         this.bounds.height + this.framePaddingVertical
                     })`}
                 >
-                    {this.detailRenderers.map((detail, i) => {
+                    {this.manager.detailRenderers.map((detail, i) => {
                         previousOffset = yOffset
                         yOffset += detail.height + STATIC_EXPORT_DETAIL_SPACING
                         return detail.renderSVG(0, previousOffset, { key: i })
@@ -581,14 +577,13 @@ export class StaticCaptionedChart extends CaptionedChart {
     render(): JSX.Element {
         const { paddedBounds, manager, maxWidth } = this
 
-        const bounds =
-            this.manager.staticBoundsWithDetails?.(this.bounds) ?? this.bounds
+        const bounds = this.manager.staticBoundsWithDetails ?? this.bounds
         const width = bounds.width
         const height = bounds.height
 
         const includeDetailsInStaticExport =
             manager.shouldIncludeDetailsInStaticExport &&
-            !isEmpty(this.detailRenderers)
+            !isEmpty(this.manager.detailRenderers)
 
         return (
             <svg

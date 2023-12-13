@@ -434,7 +434,7 @@ export class ChartEditorPage
                         data-grapher-src
                         style={{
                             minHeight: this.editor?.showStaticPreview
-                                ? this.grapher.staticBoundsWithDetails().height
+                                ? this.grapher.staticBoundsWithDetails.height
                                 : undefined,
                             boxShadow: this.editor?.showStaticPreview
                                 ? "0px 4px 40px rgba(0, 0, 0, 0.2)"
