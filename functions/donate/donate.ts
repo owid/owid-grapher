@@ -96,7 +96,7 @@ export const onRequestPost: PagesFunction = async ({
         return new Response(
             JSON.stringify({ error: stringifyUnknownError(error) }),
             {
-                headers: CORS_HEADERS,
+                headers: DEFAULT_HEADERS,
                 status: +error.status || 500,
             }
         )
