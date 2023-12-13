@@ -1761,10 +1761,8 @@ export class Grapher
         this._staticFormat = format
     }
 
-    @computed get staticBounds(): Bounds {
-        if (this.props.staticBounds) return this.props.staticBounds
-
-        switch (this.staticFormat) {
+    getStaticBounds(format: GrapherStaticFormat): Bounds {
+        switch (format) {
             case GrapherStaticFormat.landscape:
                 return this.idealBounds
             case GrapherStaticFormat.square:
@@ -1772,6 +1770,11 @@ export class Grapher
             default:
                 return this.idealBounds
         }
+    }
+
+    @computed get staticBounds(): Bounds {
+        if (this.props.staticBounds) return this.props.staticBounds
+        return this.getStaticBounds(this.staticFormat)
     }
 
     generateStaticSvg(bounds: Bounds = this.staticBounds): string {

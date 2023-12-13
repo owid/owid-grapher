@@ -3,7 +3,7 @@ import { observer } from "mobx-react"
 import React from "react"
 import { ChartEditor } from "./ChartEditor.js"
 import { Section, Toggle } from "./Forms.js"
-import { Grapher } from "@ourworldindata/grapher"
+import { Grapher, GrapherStaticFormat } from "@ourworldindata/grapher"
 import { Bounds, triggerDownloadFromBlob } from "@ourworldindata/utils"
 
 type ExportSettings = Required<
@@ -157,32 +157,28 @@ export class EditorExportTab extends React.Component<EditorExportTabProps> {
         return this.props.editor.grapher.displaySlug
     }
 
+    @computed private get landscapeBounds(): Bounds {
+        return this.grapher.getStaticBounds(GrapherStaticFormat.landscape)
+    }
+
+    @computed private get squareBounds(): Bounds {
+        return this.grapher.getStaticBounds(GrapherStaticFormat.square)
+    }
+
     @action.bound private onDownloadDesktopSVG() {
-        this.download(
-            `${this.baseFilename}-desktop.svg`,
-            this.grapher.idealBounds
-        )
+        this.download(`${this.baseFilename}-desktop.svg`, this.landscapeBounds)
     }
 
     @action.bound private onDownloadDesktopPNG() {
-        this.download(
-            `${this.baseFilename}-desktop.png`,
-            this.grapher.idealBounds
-        )
+        this.download(`${this.baseFilename}-desktop.png`, this.landscapeBounds)
     }
 
     @action.bound private onDownloadMobileSVG() {
-        this.download(
-            `${this.baseFilename}-mobile.svg`,
-            this.grapher.staticBounds
-        )
+        this.download(`${this.baseFilename}-mobile.svg`, this.squareBounds)
     }
 
     @action.bound private onDownloadMobilePNG() {
-        this.download(
-            `${this.baseFilename}-mobile.png`,
-            this.grapher.staticBounds
-        )
+        this.download(`${this.baseFilename}-mobile.png`, this.squareBounds)
     }
 
     private async download(filename: ExportFilename, bounds: Bounds) {
