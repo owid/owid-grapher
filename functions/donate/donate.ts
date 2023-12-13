@@ -9,10 +9,14 @@ import {
 } from "@ourworldindata/utils"
 import { Value } from "@sinclair/typebox/value"
 
-interface EnvVars {
+interface DonateEnvVars {
     ASSETS: Fetcher
     STRIPE_SECRET_KEY: string
     RECAPTCHA_SECRET_KEY: string
+}
+
+const hasDonateEnvVars = (env: any): env is DonateEnvVars => {
+    return !!env.ASSETS && !!env.STRIPE_SECRET_KEY && !!env.RECAPTCHA_SECRET_KEY
 }
 
 // CORS headers need to be sent in responses to both preflight ("OPTIONS") and
@@ -30,10 +34,6 @@ const CORS_HEADERS = {
 
 const DEFAULT_HEADERS = { ...CORS_HEADERS, "Content-Type": "application/json" }
 
-const isEnvVars = (env: any): env is EnvVars => {
-    return !!env.ASSETS && !!env.STRIPE_SECRET_KEY && !!env.RECAPTCHA_SECRET_KEY
-}
-
 // This function is called when the request is a preflight request ("OPTIONS").
 export const onRequestOptions: PagesFunction = async () => {
     return new Response(null, {
@@ -49,7 +49,7 @@ export const onRequestPost: PagesFunction = async ({
     request: Request
     env
 }) => {
-    if (!isEnvVars(env))
+    if (!hasDonateEnvVars(env))
         // This error is not being caught and surfaced to the client voluntarily.
         throw new Error(
             "Missing environment variables. Please check that both STRIPE_SECRET_KEY and RECAPTCHA_SECRET_KEY are set."
