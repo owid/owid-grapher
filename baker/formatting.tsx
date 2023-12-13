@@ -3,8 +3,6 @@ import {
     DataValueConfiguration,
     DataValueQueryArgs,
     FormattedPost,
-    FormattingOptions,
-    KeyValueProps,
     OwidVariableId,
     Country,
     OwidVariableDataMetadataDimensions,
@@ -12,8 +10,6 @@ import {
     OwidVariableDisplayConfigInterface,
     capitalize,
     Url,
-    extractFormattingOptions,
-    parseFormattingOptions,
     parseKeyValueArgs,
 } from "@ourworldindata/utils"
 import { countryProfileDefaultCountryPlaceholder } from "../site/countryProfileProjects.js"
