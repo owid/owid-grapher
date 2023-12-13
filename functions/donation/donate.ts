@@ -32,7 +32,10 @@ const CORS_HEADERS = {
     "Access-Control-Allow-Headers": "Content-Type",
 }
 
-const DEFAULT_HEADERS = { ...CORS_HEADERS, "Content-Type": "application/json" }
+export const DEFAULT_HEADERS = {
+    ...CORS_HEADERS,
+    "Content-Type": "application/json",
+}
 
 // This function is called when the request is a preflight request ("OPTIONS").
 export const onRequestOptions: PagesFunction = async () => {

@@ -3,9 +3,12 @@
 # For testing, you can use the Stripe API and Recaptcha test keys saved in 1Password.
 
 # https://dashboard.stripe.com/test/apikeys
-# required
+# required by /donate/donate
 STRIPE_SECRET_KEY=
 
 # https://www.google.com/recaptcha/admin/site/345413385
-#required
+# required by /donate/donate
 RECAPTCHA_SECRET_KEY=
+
+# required by /donate/thank-you
+STRIPE_WEBHOOK_SECRET=
