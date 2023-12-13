@@ -28,12 +28,9 @@ import {
     omit,
     identity,
     OwidGdocBaseInterface,
-    OwidGdoc,
     Tag as TagInterface,
-    GdocsContentSource,
     OwidGdocPublicationContext,
     BreadcrumbItem,
-    OwidGdocType,
 } from "@ourworldindata/utils"
 import { BAKED_GRAPHER_URL } from "../../../settings/serverSettings.js"
 import { google } from "googleapis"
@@ -105,6 +102,14 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
         async () => []
     _filenameProperties: string[] = []
     _omittableFields: string[] = []
+
+    constructor(id?: string) {
+        super()
+        if (id) {
+            this.id = id
+        }
+        this.content = {}
+    }
 
     get enrichedBlockSources(): OwidEnrichedGdocBlock[][] {
         const enrichedBlockSources: OwidEnrichedGdocBlock[][] = excludeNullish([
@@ -680,33 +685,17 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
         this.errors = [...filenameErrors, ...linkErrors, ...subclassErrors]
     }
 
-    static async load(
-        id: string,
-        publishedExplorersBySlug: Record<string, any>,
-        contentSource?: GdocsContentSource
-    ): Promise<OwidGdoc> {
-        const gdoc = await GdocBase.findOne({
-            where: {
-                id,
-            },
-            relations: ["tags"],
-        })
-
-        if (!gdoc) throw new Error(`No Google Doc with id ${id} found`)
-
-        if (contentSource === GdocsContentSource.Gdocs) {
-            await gdoc.fetchAndEnrichGdoc()
-        }
-
-        await gdoc.loadLinkedDocuments()
-        await gdoc.loadImageMetadata()
-        await gdoc.loadLinkedCharts(publishedExplorersBySlug)
-        await gdoc.loadRelatedCharts()
-        await gdoc.validate(publishedExplorersBySlug)
-        return gdoc as any as OwidGdoc
+    async loadState(
+        publishedExplorersBySlug: Record<string, any>
+    ): Promise<void> {
+        await this.loadLinkedDocuments()
+        await this.loadImageMetadata()
+        await this.loadLinkedCharts(publishedExplorersBySlug)
+        await this.loadRelatedCharts()
+        await this.validate(publishedExplorersBySlug)
     }
 
-    toJSON(): Record<string, any> {
+    toJSON<T extends OwidGdocBaseInterface>(): T {
         return omit(this, [
             "_enrichSubclassContent",
             "_filenameProperties",
@@ -714,6 +703,6 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
             "_omittableFields",
             "_validateSubclass",
             ...this._omittableFields,
-        ])
+        ]) as any as T
     }
 }

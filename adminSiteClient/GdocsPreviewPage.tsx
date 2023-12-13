@@ -92,6 +92,9 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                 // if images need to be uploaded from the original
                 const original = await fetchGdoc(GdocsContentSource.Internal)
                 const current = await fetchGdoc(GdocsContentSource.Gdocs)
+                if (!current.slug && current.content.title) {
+                    current.slug = slugify(current.content.title)
+                }
                 admin.loadingIndicatorSetting = "off"
                 setGdoc({ original, current })
             } catch (error) {

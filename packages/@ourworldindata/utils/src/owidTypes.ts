@@ -1359,19 +1359,19 @@ export interface OwidGdocBaseInterface {
     publishedAt: Date | null
     updatedAt: Date | null
     revisionId: string | null
+    publicationContext: OwidGdocPublicationContext
+    breadcrumbs?: BreadcrumbItem[] | null
     linkedDocuments?: Record<string, OwidGdocBaseInterface>
     linkedCharts?: Record<string, LinkedChart>
     imageMetadata?: Record<string, ImageMetadata>
+    relatedCharts?: RelatedChart[]
+    tags?: Tag[]
     errors?: OwidGdocErrorMessage[]
 }
 
 export interface OwidGdocPostInterface extends OwidGdocBaseInterface {
     content: OwidGdocPostContent
     linkedDocuments?: Record<string, OwidGdocPostInterface>
-    publicationContext: OwidGdocPublicationContext
-    breadcrumbs?: BreadcrumbItem[] | null
-    relatedCharts?: RelatedChart[]
-    tags?: Tag[]
 }
 
 export interface OwidGdocDataInsightContent {

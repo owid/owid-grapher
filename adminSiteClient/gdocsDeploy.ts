@@ -1,16 +1,18 @@
 import {
     OwidGdoc,
+    OwidGdocBaseInterface,
     OwidGdocPostContent,
-    OwidGdocPostInterface,
     isEqual,
     omit,
+    OwidGdocDataInsightContent,
+    OwidGdocType,
 } from "@ourworldindata/utils"
 import { GDOC_DIFF_OMITTABLE_PROPERTIES } from "./GdocsDiff.js"
 import { GDOCS_DETAILS_ON_DEMAND_ID } from "../settings/clientSettings.js"
 
 export const checkFullDeployFallback = (
-    prevGdoc: OwidGdocPostInterface,
-    nextGdoc: OwidGdocPostInterface,
+    prevGdoc: OwidGdoc,
+    nextGdoc: OwidGdoc,
     hasChanges: boolean
 ) => {
     return hasChanges && (prevGdoc.published || nextGdoc.published)
@@ -24,15 +26,27 @@ export const checkFullDeployFallback = (
  *
  */
 export const checkIsLightningUpdate = (
-    prevGdoc: OwidGdocPostInterface,
-    nextGdoc: OwidGdocPostInterface,
+    prevGdoc: OwidGdoc,
+    nextGdoc: OwidGdoc,
     hasChanges: boolean
 ) => {
+    if (
+        prevGdoc.content.type !== nextGdoc.content.type ||
+        prevGdoc.id === GDOCS_DETAILS_ON_DEMAND_ID ||
+        !hasChanges ||
+        !prevGdoc.published ||
+        !nextGdoc.published
+    ) {
+        return false
+    }
+
+    const gdocType = nextGdoc.content.type as OwidGdocType
+
     // lightning props are props that do not require a full rebake of the site if changed, because
     // their impact is limited to just this article. They are marked as "true" in these two config maps.
     // The props that *do* require a full rebake if changed are marked "false".
-    const lightningPropConfigMap: Record<
-        Exclude<keyof OwidGdocPostInterface, "content">,
+    const baseLightningPropConfigMap: Record<
+        Exclude<keyof OwidGdocBaseInterface, "content">,
         boolean
     > = {
         breadcrumbs: true,
@@ -41,12 +55,10 @@ export const checkIsLightningUpdate = (
         linkedDocuments: true,
         relatedCharts: true,
         revisionId: true,
-        // "tags" is not actually a lightning prop, as it requires rebaking other parts of the site,
-        // but they're set via the /setTags route and so should be ignored here
-        tags: true,
         updatedAt: true,
-        createdAt: false,
+        createdAt: false, // weird case - can't be updated
         id: false, // weird case - can't be updated
+        tags: false, // could require updating datapages
         imageMetadata: false, // could require baking new images
         publicationContext: false, // requires an update of the blog roll
         published: false, // requires an update of the blog roll
@@ -54,7 +66,7 @@ export const checkIsLightningUpdate = (
         slug: false, // requires updating any articles that link to it
     }
 
-    const lightningPropContentConfigMap: Record<
+    const postlightningPropContentConfigMap: Record<
         keyof OwidGdocPostContent,
         boolean
     > = {
@@ -82,14 +94,35 @@ export const checkIsLightningUpdate = (
         type: false, // could require updating other content if switching type to fragment
     }
 
+    const dataInsightLightningPropContentConfigMap: Record<
+        keyof OwidGdocDataInsightContent,
+        boolean
+    > = {
+        ["grapher-url"]: true,
+        ["approved-by"]: true,
+        title: false, // requires rebaking the feed
+        authors: false, // requires rebaking the feed
+        body: false, // requires rebaking the feed
+        type: false, // shouldn't be changed, but would require rebaking the feed if it was
+    }
+
+    const contentPropsMap: Record<OwidGdocType, Record<string, boolean>> = {
+        [OwidGdocType.Article]: postlightningPropContentConfigMap,
+        [OwidGdocType.Fragment]: postlightningPropContentConfigMap,
+        [OwidGdocType.LinearTopicPage]: postlightningPropContentConfigMap,
+        [OwidGdocType.TopicPage]: postlightningPropContentConfigMap,
+        [OwidGdocType.DataInsight]: dataInsightLightningPropContentConfigMap,
+    }
+
     const getLightningPropKeys = (configMap: Record<string, boolean>) =>
         Object.entries(configMap)
             .filter(([_, isLightningProp]) => isLightningProp)
             .map(([key]) => key)
 
-    const lightningPropKeys = getLightningPropKeys(lightningPropConfigMap)
+    const lightningPropKeys = getLightningPropKeys(baseLightningPropConfigMap)
+
     const lightningPropContentKeys = getLightningPropKeys(
-        lightningPropContentConfigMap
+        contentPropsMap[gdocType]
     )
 
     const keysToOmit = [
@@ -105,13 +138,7 @@ export const checkIsLightningUpdate = (
     const prevOmitted = omit({ ...prevGdoc }, keysToOmit)
     const nextOmitted = omit({ ...nextGdoc }, keysToOmit)
 
-    return (
-        prevGdoc.id !== GDOCS_DETAILS_ON_DEMAND_ID &&
-        hasChanges &&
-        prevGdoc.published &&
-        nextGdoc.published &&
-        isEqual(prevOmitted, nextOmitted)
-    )
+    return isEqual(prevOmitted, nextOmitted)
 }
 
 export const checkHasChanges = (prevGdoc: OwidGdoc, nextGdoc: OwidGdoc) =>

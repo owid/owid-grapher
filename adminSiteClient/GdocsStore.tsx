@@ -34,14 +34,7 @@ export class GdocsStore {
     @action
     async update(gdoc: OwidGdoc): Promise<OwidGdoc> {
         return this.admin
-            .requestJSON<OwidGdocJSON>(
-                `/api/gdocs/${gdoc.id}`,
-                // omitting tags because they get saved via the /api/gdocs/:id/setTags route, not this /api/gdocs/:id route
-                // If we were to save them here, it could lead to updates from this request
-                // overwriting tags that had been set by someone else after the preview page was loaded
-                omit(gdoc, "tags"),
-                "PUT"
-            )
+            .requestJSON<OwidGdocJSON>(`/api/gdocs/${gdoc.id}`, gdoc, "PUT")
             .then(getOwidGdocFromJSON)
     }
 

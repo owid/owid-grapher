@@ -48,6 +48,7 @@ import {
     DimensionProperty,
     TaggableType,
     ChartTagJoin,
+    OwidGdoc,
 } from "@ourworldindata/utils"
 import {
     GrapherInterface,
@@ -62,7 +63,7 @@ import {
 import { Dataset } from "../db/model/Dataset.js"
 import { User } from "../db/model/User.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
-import { Tag as TagEntity } from "../db/model/Gdoc/GdocBase.js"
+import { GdocBase, Tag as TagEntity } from "../db/model/Gdoc/GdocBase.js"
 import { Pageview } from "../db/model/Pageview.js"
 import {
     syncDatasetToGitRepo,
@@ -94,6 +95,7 @@ import { Link } from "../db/model/Link.js"
 import { In } from "typeorm"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
+import { GdocFactory } from "../db/model/Gdoc/GdocFactory.js"
 
 const apiRouter = new FunctionalRouter()
 const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
@@ -2458,7 +2460,6 @@ apiRouter.get("/gdocs", async () => {
 })
 
 apiRouter.get("/gdocs/:id", async (req, res) => {
-    console.log("gdocs/:id")
     const id = req.params.id
     const contentSource = req.query.contentSource as
         | GdocsContentSource
@@ -2468,15 +2469,16 @@ apiRouter.get("/gdocs/:id", async (req, res) => {
         const publishedExplorersBySlug =
             await explorerAdminServer.getAllPublishedExplorersBySlugCached()
 
-        const gdoc = await GdocPost.loadPost(
+        const gdoc = await GdocFactory.load(
             id,
             publishedExplorersBySlug,
             contentSource
         )
-        console.log("gdoc", gdoc)
+
         if (!gdoc.published) {
-            await dataSource.getRepository(GdocPost).create(gdoc).save()
+            await gdoc.save()
         }
+
         res.set("Cache-Control", "no-store")
         res.send(gdoc)
     } catch (error) {
@@ -2493,58 +2495,24 @@ apiRouter.get("/gdocs/:id", async (req, res) => {
 apiRouter.put("/gdocs/:id", async (req, res) => {
     const { id } = req.params
     const nextGdocJSON: OwidGdocJSON = req.body
+    const explorers =
+        await explorerAdminServer.getAllPublishedExplorersBySlugCached()
 
     if (isEmpty(nextGdocJSON)) {
-        const newGdoc = new GdocPost(id)
-        // this will fail if the gdoc already exists, as opposed to a call to newGdoc.save()
-        try {
-            await dataSource.getRepository(GdocPost).insert(newGdoc)
-        } catch (e) {
-            if (
-                typeof e === "object" &&
-                e !== null &&
-                "code" in e &&
-                e.code === "ER_DUP_ENTRY"
-            ) {
-                const preexistingGdoc = dataSource
-                    .getRepository(GdocPost)
-                    .findBy({ id: id })
-                return preexistingGdoc
-            }
+        // Check to see if the gdoc already exists in the database
+        const existingGdoc = await GdocBase.findOneBy({ id })
+        if (existingGdoc) {
+            return GdocFactory.load(id, explorers, GdocsContentSource.Gdocs)
+        } else {
+            return GdocFactory.create(id, explorers)
         }
-
-        const publishedExplorersBySlug =
-            await explorerAdminServer.getAllPublishedExplorersBySlugCached()
-
-        const initData = await GdocPost.loadPost(
-            id,
-            publishedExplorersBySlug,
-            GdocsContentSource.Gdocs
-        )
-
-        const updated = await dataSource
-            .getRepository(GdocPost)
-            .create(initData)
-            .save()
-
-        return updated
     }
 
-    const prevGdoc = await GdocPost.findOne({
-        where: {
-            id: id,
-        },
-        relations: ["tags"],
-    })
+    const prevGdoc = await GdocFactory.load(id, {})
     if (!prevGdoc) throw new JsonError(`No Google Doc with id ${id} found`)
 
-    const nextGdoc = dataSource
-        .getRepository(GdocPost)
-        .create(getOwidGdocFromJSON(nextGdocJSON))
-
-    // Need to load these to compare them for lightning update candidacy
-    await prevGdoc.loadImageMetadata()
-    await nextGdoc.loadImageMetadata()
+    const nextGdoc = GdocFactory.fromJSON(nextGdocJSON)
+    await nextGdoc.loadState(explorers)
 
     // Deleting and recreating these is simpler than tracking orphans over the next code block
     await GdocXImage.delete({ gdocId: id })
@@ -2604,20 +2572,22 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
     await nextGdoc.save()
 
     const hasChanges = checkHasChanges(prevGdoc, nextGdoc)
-    if (checkIsLightningUpdate(prevGdoc, nextGdoc, hasChanges)) {
+    const prevJson = prevGdoc.toJSON<OwidGdoc>()
+    const nextJson = nextGdoc.toJSON<OwidGdoc>()
+    if (checkIsLightningUpdate(prevJson, nextJson, hasChanges)) {
         await enqueueLightningChange(
             res.locals.user,
-            `Lightning update ${nextGdoc.slug}`,
-            nextGdoc.slug
+            `Lightning update ${nextJson.slug}`,
+            nextJson.slug
         )
-    } else if (checkFullDeployFallback(prevGdoc, nextGdoc, hasChanges)) {
+    } else if (checkFullDeployFallback(prevJson, nextJson, hasChanges)) {
         const action =
-            prevGdoc.published && nextGdoc.published
+            prevJson.published && nextJson.published
                 ? "Updating"
-                : !prevGdoc.published && nextGdoc.published
+                : !prevJson.published && nextJson.published
                 ? "Publishing"
                 : "Unpublishing"
-        await triggerStaticBuild(res.locals.user, `${action} ${nextGdoc.slug}`)
+        await triggerStaticBuild(res.locals.user, `${action} ${nextJson.slug}`)
     }
 
     return nextGdoc

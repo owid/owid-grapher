@@ -10,10 +10,7 @@ import {
     ParseError,
     OwidGdocType,
     OwidEnrichedGdocBlock,
-    BreadcrumbItem,
     RawBlockText,
-    GdocsContentSource,
-    checkIsGdocPost,
 } from "@ourworldindata/utils"
 import { GDOCS_DETAILS_ON_DEMAND_ID } from "../../../settings/serverSettings.js"
 import {
@@ -31,10 +28,7 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
     @Column({ default: "{}", type: "json" }) content!: OwidGdocPostContent
 
     constructor(id?: string) {
-        super()
-        if (id) {
-            this.id = id
-        }
+        super(id)
         this.content = {
             authors: ["Our World in Data team"],
         }
@@ -85,7 +79,6 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
     }
 
     _validateSubclass = async (): Promise<OwidGdocErrorMessage[]> => {
-        console.log("_validateSubclass")
         const errors: OwidGdocErrorMessage[] = []
 
         if (!this.tags.length) {
@@ -222,23 +215,5 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
             publicationContext: OwidGdocPublicationContext.listed,
             publishedAt: LessThanOrEqual(new Date()),
         }) as Promise<(GdocPost & OwidGdocPublished)[]>
-    }
-
-    static async loadPost(
-        id: string,
-        publishedExplorersBySlug: Record<string, any>,
-        contentSource?: GdocsContentSource
-    ): Promise<GdocPost> {
-        const gdoc = await this.load(
-            id,
-            publishedExplorersBySlug,
-            contentSource
-        )
-        if (!checkIsGdocPost(gdoc)) {
-            throw new Error(
-                `Gdoc ${id} has type ${gdoc.content.type} but expected to be ${OwidGdocType.Article} | ${OwidGdocType.TopicPage} | ${OwidGdocType.LinearTopicPage} | ${OwidGdocType.Fragment}`
-            )
-        }
-        return gdoc as GdocPost
     }
 }

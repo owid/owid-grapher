@@ -12,6 +12,7 @@ import {
 } from "@ourworldindata/utils"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
+import { GdocFactory } from "../db/model/Gdoc/GdocFactory.js"
 import { OwidGoogleAuth } from "../db/OwidGoogleAuth.js"
 import { GrapherInterface } from "@ourworldindata/grapher"
 
@@ -93,11 +94,11 @@ export const getDatapageGdoc = async (
         isPreviewing &&
         publishedExplorersBySlug &&
         OwidGoogleAuth.areGdocAuthKeysSet()
-            ? await GdocPost.loadPost(
+            ? ((await GdocFactory.load(
                   googleDocId,
                   publishedExplorersBySlug,
                   GdocsContentSource.Gdocs
-              )
+              )) as GdocPost)
             : await GdocPost.findOneBy({ id: googleDocId })
 
     return datapageGdoc

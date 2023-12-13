@@ -29,10 +29,10 @@ import { renderToHtmlPage } from "../serverUtils/serverUtil.js"
 import { publicApiRouter } from "./publicApiRouter.js"
 import { mockSiteRouter } from "./mockSiteRouter.js"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
-import { GdocsContentSource, OwidGdoc } from "@ourworldindata/utils"
+import { GdocsContentSource } from "@ourworldindata/utils"
 import OwidGdocPage from "../site/gdocs/OwidGdocPage.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
-import { GdocBase } from "../db/model/Gdoc/GdocBase.js"
+import { GdocFactory } from "../db/model/Gdoc/GdocFactory.js"
 
 interface OwidAdminAppOptions {
     gitCmsDir: string
@@ -131,7 +131,7 @@ export class OwidAdminApp {
                 await adminExplorerServer.getAllPublishedExplorersBySlugCached()
 
             try {
-                const gdoc = await GdocBase.load(
+                const gdoc = await GdocFactory.load(
                     req.params.id,
                     publishedExplorersBySlug,
                     GdocsContentSource.Gdocs

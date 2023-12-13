@@ -95,6 +95,7 @@ import { resolveInternalRedirect } from "./redirects.js"
 import { postsTable } from "../db/model/Post.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
+import { GdocFactory } from "../db/model/Gdoc/GdocFactory.js"
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
 
@@ -182,13 +183,9 @@ export const renderGdocsPageBySlug = async (
     const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
     const publishedExplorersBySlug =
         await explorerAdminServer.getAllPublishedExplorersBySlug()
+    await gdoc.loadState(publishedExplorersBySlug)
 
-    const gdocWithAttachments = await GdocPost.load(
-        gdoc.id,
-        publishedExplorersBySlug
-    )
-
-    return renderGdoc(gdocWithAttachments)
+    return renderGdoc(gdoc)
 }
 
 export const renderGdoc = (gdoc: OwidGdoc) => {
@@ -268,10 +265,11 @@ export const renderFrontPage = async () => {
 
     let featuredWork: IndexPost[]
     try {
-        const frontPageConfigGdoc = await GdocPost.load(
-            GDOCS_HOMEPAGE_CONFIG_DOCUMENT_ID,
-            {}
-        )
+        const frontPageConfigGdoc = await GdocPost.findOneBy({
+            id: GDOCS_HOMEPAGE_CONFIG_DOCUMENT_ID,
+        })
+        if (!frontPageConfigGdoc) throw new Error("No front page config found")
+        await frontPageConfigGdoc.loadState({})
         const frontPageConfig: any = frontPageConfigGdoc.content
         const featuredPosts: { slug: string; position: number }[] =
             frontPageConfig["featured-posts"] ?? []
@@ -334,7 +332,14 @@ export const renderFrontPage = async () => {
 }
 
 export const renderDonatePage = async () => {
-    const faqsGdoc = await GdocPost.loadPost(GDOCS_DONATE_FAQS_DOCUMENT_ID, {})
+    const faqsGdoc = await GdocPost.findOneBy({
+        id: GDOCS_DONATE_FAQS_DOCUMENT_ID,
+    })
+    if (!faqsGdoc)
+        throw new Error(
+            `Failed to find donate FAQs Gdoc with id "${GDOCS_DONATE_FAQS_DOCUMENT_ID}"`
+        )
+    await faqsGdoc.loadState({})
 
     return renderToHtmlPage(
         <DonatePage

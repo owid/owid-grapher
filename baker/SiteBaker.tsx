@@ -48,6 +48,7 @@ import {
     clone,
     LinkedChart,
     extractDetailsFromSyntax,
+    OwidGdocErrorMessageType,
 } from "@ourworldindata/utils"
 
 import { execWrapper } from "../db/execWrapper.js"
@@ -386,7 +387,11 @@ export class SiteBaker {
             await publishedGdoc.loadRelatedCharts()
 
             await publishedGdoc.validate(publishedExplorersBySlug)
-            if (publishedGdoc.errors.length) {
+            if (
+                publishedGdoc.errors.filter(
+                    (e) => e.type === OwidGdocErrorMessageType.Error
+                ).length
+            ) {
                 await logErrorAndMaybeSendToBugsnag(
                     `Error(s) baking "${
                         publishedGdoc.slug
