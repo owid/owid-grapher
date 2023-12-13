@@ -89,6 +89,39 @@ Note: compatibility dates between local development and production environments 
 
 3. Go to `http://localhost:3030/donate` and fill in the form. You should be redirected to a Stripe Checkout page. You should use the Stripe VISA test card saved in 1Password (or any other test payment method from https://stripe.com/docs/testing) to complete the donation. Do not use a real card.
 
+## `donate/thank-you`
+
+This route is used to handle incoming Stripe webhook `checkout.session.completed` events.
+
+This webhook event is fired by Stripe when a user completes a donation on the Stripe checkout page.
+
+This webhook is registered in the Stripe dashboard, at https://dashboard.stripe.com/webhooks.
+
+In order to test the webhook function locally, you can use the Stripe CLI to listen to incoming events and forward them to your functions development server.
+
+1. Install Stripe CLI:
+   https://stripe.com/docs/stripe-cli#install
+
+2. Register a temporary webhook using the Stripe CLI (runs in test mode by default):
+
+```sh
+stripe listen --latest --forward-to localhost:8788/donate/thank-you
+```
+
+Note: `--latest` is required when development code uses a more recent API version than the one set in the Stripe dashboard (which `stripe listen` will default to).
+
+3. Copy the webhook secret into `STRIPE_WEBHOOK_SECRET` variable in your `.dev.vars` and then restart the development server. This secret is shown when you ran `stripe listen`, and is stable across restarts.
+
+4. Make a test donation through http://localhost:3030/donate. You should see the event logged in the terminal where you ran `stripe listen`.
+
+Alternatively, you can trigger a test event from the CLI.
+
+```sh
+stripe trigger checkout.session.completed
+```
+
+Note: this will send the `checkout.session.completed` event expected in `donate/thank-you`. However, I didn't manage to add metadata with `--add checkout.session:metadata.name="John Doe" --add checkout.session:metadata.showOnList=true` to perform a full test.
+
 ## `/grapher/:slug`
 
 Our grapher pages are (slightly) dynamic!
