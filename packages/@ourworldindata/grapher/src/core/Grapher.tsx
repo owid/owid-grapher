@@ -983,7 +983,8 @@ export class Grapher
     @observable private _baseFontSize = BASE_FONT_SIZE
 
     @computed get baseFontSize(): number {
-        if (this.isExportingToSvgOrPng) return Math.max(this._baseFontSize, 18)
+        if (this.shouldOptimizeForHorizontalSpace) return 21
+        else if (this.isStatic) return 18
         return this._baseFontSize
     }
 
@@ -1289,7 +1290,7 @@ export class Grapher
             }
             return new MarkdownTextWrap({
                 text,
-                fontSize: 12,
+                fontSize: 0.66 * this.fontSize,
                 // leave room for padding on the left and right
                 maxWidth:
                     this.staticBounds.width - 2 * this.framePaddingHorizontal,
@@ -2614,10 +2615,10 @@ export class Grapher
 
     // the header and footer don't rely on the base font size unless explicitly specified
     @computed get useBaseFontSize(): boolean {
-        return this.props.baseFontSize !== undefined
+        return this.props.baseFontSize !== undefined || this.isStatic
     }
 
-    computeBaseFontSize(): number {
+    computeBaseFontSizeFromWidth(): number {
         const { renderWidth } = this
         if (renderWidth <= 400) return 14
         else if (renderWidth < 1080) return 16
@@ -2626,7 +2627,7 @@ export class Grapher
     }
 
     @action.bound private setBaseFontSize(): void {
-        this.baseFontSize = this.computeBaseFontSize()
+        this.baseFontSize = this.computeBaseFontSizeFromWidth()
     }
 
     @computed get fontSize(): number {
@@ -2645,27 +2646,27 @@ export class Grapher
     }
 
     @computed get isNarrow(): boolean {
-        if (this.isExportingToSvgOrPng) return false
+        if (this.isStatic) return false
         return this.renderWidth <= 400
     }
 
     // SemiNarrow charts shorten their button labels to fit within the controls row
     @computed get isSemiNarrow(): boolean {
-        if (this.isExportingToSvgOrPng) return false
+        if (this.isStatic) return false
         return this.renderWidth <= 550
     }
 
     // Small charts are rendered into 6 or 7 columns in a 12-column grid layout
     // (e.g. side-by-side charts or charts in the All Charts block)
     @computed get isSmall(): boolean {
-        if (this.isExportingToSvgOrPng) return false
+        if (this.isStatic) return false
         return this.renderWidth <= 740
     }
 
     // Medium charts are rendered into 8 columns in a 12-column grid layout
     // (e.g. stand-alone charts in the main text of an article)
     @computed get isMedium(): boolean {
-        if (this.isExportingToSvgOrPng) return false
+        if (this.isStatic) return false
         return this.renderWidth <= 840
     }
 
