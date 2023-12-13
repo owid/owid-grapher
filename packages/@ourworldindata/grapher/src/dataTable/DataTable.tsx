@@ -309,7 +309,7 @@ export class DataTable extends React.Component<{
             const dimensionHeaderText = (
                 <React.Fragment>
                     <div className="name">
-                        {upperFirst(display.columnName.title)}
+                        {upperFirst(display.columnName.title)}{" "}
                         <span className="title-fragments">
                             {joinTitleFragments(
                                 display.columnName.attributionShort,

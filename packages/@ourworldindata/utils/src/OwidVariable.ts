@@ -95,9 +95,9 @@ export interface IndicatorTitleWithFragments {
 export function joinTitleFragments(
     attributionShort: string | undefined,
     titleVariant: string | undefined
-): string {
-    if (attributionShort && titleVariant) {
-        return `${attributionShort} – ${titleVariant}`
+): string | undefined {
+    if (attributionShort && titleVariant && attributionShort !== titleVariant) {
+        return `${titleVariant} – ${attributionShort}`
     }
     if (attributionShort) {
         return attributionShort
@@ -105,7 +105,7 @@ export function joinTitleFragments(
     if (titleVariant) {
         return titleVariant
     }
-    return ""
+    return undefined
 }
 
 export interface OwidLicense {
