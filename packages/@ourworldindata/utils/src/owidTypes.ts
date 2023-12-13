@@ -183,6 +183,7 @@ export interface PostRow {
     excerpt: string
     created_at_in_wordpress: Date | null
     featured_image: string
+    formattingOptions: FormattingOptions
 }
 
 export interface PostRowWithGdocPublishStatus extends PostRow {

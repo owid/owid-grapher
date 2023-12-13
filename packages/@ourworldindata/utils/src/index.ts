@@ -641,3 +641,9 @@ export {
     gdocUrlRegex,
     gdocIdRegex,
 } from "./GdocsConstants.js"
+
+export {
+    extractFormattingOptions,
+    parseFormattingOptions,
+    parseKeyValueArgs,
+} from "./wordpressUtils.js"
