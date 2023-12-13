@@ -1,5 +1,5 @@
 import fetch from "node-fetch"
-import { createCheckoutSession } from "./stripe.js"
+import { createCheckoutSession } from "./checkout.js"
 import {
     DonateSessionResponse,
     DonationRequestTypeObject,
