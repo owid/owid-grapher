@@ -642,6 +642,10 @@ export class StaticFooter extends Footer<StaticFooterProps> {
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     componentWillUnmount(): void {}
 
+    @computed private get textColor(): string {
+        return this.manager.secondaryColorInStaticCharts ?? GRAPHER_DARK_TEXT
+    }
+
     @computed protected get showLicenseNextToSources(): boolean {
         return (
             this.maxWidth - this.sources.width - HORIZONTAL_PADDING >
@@ -672,8 +676,9 @@ export class StaticFooter extends Footer<StaticFooterProps> {
     }
 
     @computed protected get licenseAndOriginUrlText(): string {
-        const { finalUrl, finalUrlText, licenseText, licenseUrl } = this
-        const linkStyle = `fill: ${GRAPHER_DARK_TEXT}; text-decoration: underline;`
+        const { finalUrl, finalUrlText, licenseText, licenseUrl, textColor } =
+            this
+        const linkStyle = `fill: ${textColor}; text-decoration: underline;`
         const licenseSvg = `<a target="_blank" style="${linkStyle}" href="${licenseUrl}">${licenseText}</a>`
         if (!finalUrlText) return licenseSvg
         const originUrlSvg = `<a target="_blank" style="${linkStyle}" href="${finalUrl}">${finalUrlText}</a>`
@@ -724,11 +729,17 @@ export class StaticFooter extends Footer<StaticFooterProps> {
             licenseAndOriginUrl,
             showLicenseNextToSources,
             maxWidth,
+            textColor,
         } = this
         const { targetX, targetY } = this.props
 
         return (
-            <g className="SourcesFooter" style={{ fill: GRAPHER_DARK_TEXT }}>
+            <g
+                className="SourcesFooter"
+                style={{
+                    fill: textColor,
+                }}
+            >
                 {sources.renderSVG(targetX, targetY)}
                 {this.showNote &&
                     note.renderSVG(

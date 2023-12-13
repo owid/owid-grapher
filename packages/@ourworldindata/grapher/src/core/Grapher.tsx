@@ -99,6 +99,7 @@ import {
     GRAPHER_DARK_TEXT,
     GrapherStaticFormat,
     STATIC_EXPORT_DETAIL_SPACING,
+    GRAPHER_LIGHT_TEXT,
 } from "../core/GrapherConstants"
 import Cookies from "js-cookie"
 import {
@@ -1294,7 +1295,7 @@ export class Grapher
                     this.staticBounds.width - 2 * this.framePaddingHorizontal,
                 lineHeight: 1.2,
                 style: {
-                    fill: GRAPHER_DARK_TEXT,
+                    fill: this.secondaryColorInStaticCharts,
                 },
             })
         })
@@ -2666,6 +2667,20 @@ export class Grapher
     @computed get isMedium(): boolean {
         if (this.isExportingToSvgOrPng) return false
         return this.renderWidth <= 840
+    }
+
+    @computed get secondaryColorInStaticCharts(): string {
+        return this.shouldOptimizeStaticForMobile
+            ? GRAPHER_LIGHT_TEXT
+            : GRAPHER_DARK_TEXT
+    }
+
+    @computed get shouldOptimizeStaticForMobile(): boolean {
+        if (!this.isStatic) return false
+        return (
+            this.staticBounds.width < this.idealBounds.width &&
+            this.staticBounds.width <= this.staticBounds.height
+        )
     }
 
     // Binds chart properties to global window title and URL. This should only

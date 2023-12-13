@@ -299,7 +299,7 @@ export class StaticHeader extends Header<StaticHeaderProps> {
                                 ? title.height + this.subtitleMarginTop
                                 : 0),
                         {
-                            fill: GRAPHER_DARK_TEXT,
+                            fill: manager.secondaryColorInStaticCharts,
                         }
                     )}
             </g>
