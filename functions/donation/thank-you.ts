@@ -1,5 +1,6 @@
 import Stripe from "stripe"
 import { DEFAULT_HEADERS } from "./donate.js"
+import { JsonError, stringifyUnknownError } from "@ourworldindata/utils"
 
 interface EmailOptions {
     email: string
@@ -57,56 +58,58 @@ export const onRequestPost: PagesFunction = async ({
     request: Request
     env
 }) => {
-    if (!hasThankYouEnvVars(env))
-        // This error is not being caught and surfaced to the client voluntarily.
-        throw new Error(
-            "Missing environment variables. Please check that STRIPE_WEBHOOK_SECRET is set."
-        )
-
-    let event: Stripe.Event
     try {
+        if (!hasThankYouEnvVars(env))
+            throw new JsonError(
+                "Missing environment variables. Please check that STRIPE_WEBHOOK_SECRET is set.",
+                500
+            )
+
         // Stripe requires the raw body to construct the event
         const requestBodyRaw = await request.text()
 
         // Construct the event from the signed request payload
-        event = await Stripe.webhooks.constructEventAsync(
+        const event = await Stripe.webhooks.constructEventAsync(
             requestBodyRaw,
             request.headers.get("stripe-signature"),
             env.STRIPE_WEBHOOK_SECRET
         )
-    } catch (err) {
-        console.error(err)
-        return new Response(`Webhook Error: ${err.message}`, {
+
+        switch (event.type) {
+            case "checkout.session.completed":
+                const session = event.data.object
+                await sendThankYouEmail({
+                    email: session.customer_details.email,
+                    customerId: session.customer as string,
+                    // We support two checkout modes: "payment" (for one-time payments) and "subscription"
+                    // These are set when creating the checkout session, in checkout.ts
+                    // see https://stripe.com/docs/api/checkout/sessions/object#checkout_session_object-mode
+                    isMonthly: session.mode === "subscription",
+                    name: session.metadata.name,
+                    showOnList: session.metadata.showOnList === "true",
+                    giftAid:
+                        (session.customer_details.address.country === "GB" ||
+                            session.currency === "gbp") &&
+                        session.amount_total >= 3000, // 30 GBP
+                })
+                break
+            default: // do not process other event types
+        }
+
+        return new Response(null, {
             headers: DEFAULT_HEADERS,
-            status: 400,
+            status: 200,
         })
+    } catch (error) {
+        console.error(error)
+        return new Response(
+            JSON.stringify({ error: stringifyUnknownError(error) }),
+            {
+                headers: DEFAULT_HEADERS,
+                status: +error.status || 500,
+            }
+        )
     }
-
-    switch (event.type) {
-        case "checkout.session.completed":
-            const session = event.data.object
-            await sendThankYouEmail({
-                email: session.customer_details.email,
-                customerId: session.customer as string,
-                // We support two checkout modes: "payment" (for one-time payments) and "subscription"
-                // These are set when creating the checkout session, in checkout.ts
-                // see https://stripe.com/docs/api/checkout/sessions/object#checkout_session_object-mode
-                isMonthly: session.mode === "subscription",
-                name: session.metadata.name,
-                showOnList: session.metadata.showOnList === "true",
-                giftAid:
-                    (session.customer_details.address.country === "GB" ||
-                        session.currency === "gbp") &&
-                    session.amount_total >= 3000, // 30 GBP
-            })
-            break
-        default: // do not process other event types
-    }
-
-    return new Response(null, {
-        headers: DEFAULT_HEADERS,
-        status: 200,
-    })
 }
 
 // onRequestOptions shouldn't be necessary here since this webhook is not called from
