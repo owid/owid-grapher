@@ -38,7 +38,7 @@ export const configureAlgolia = async () => {
     const baseSettings: Settings = {
         queryLanguages: ["en"],
         indexLanguages: ["en"],
-        ranking: ["exact", "typo", "attribute", "words", "proximity", "custom"],
+        ranking: ["exact", "typo", "words", "proximity", "attribute", "custom"],
         alternativesAsExact: [
             "ignorePlurals",
             "singleWordSynonym",
