@@ -11,6 +11,7 @@ import {
     OwidGdocType,
     OwidEnrichedGdocBlock,
     RawBlockText,
+    RelatedChart,
 } from "@ourworldindata/utils"
 import { GDOCS_DETAILS_ON_DEMAND_ID } from "../../../settings/serverSettings.js"
 import {
@@ -22,6 +23,7 @@ import { ADMIN_BASE_URL } from "../../../settings/clientSettings.js"
 import { parseDetails, parseFaqs } from "./rawToEnriched.js"
 import { htmlToEnrichedTextBlock } from "./htmlToEnriched.js"
 import { GdocBase } from "./GdocBase.js"
+import { getConnection } from "../../db.js"
 
 @Entity("posts_gdocs")
 export class GdocPost extends GdocBase implements OwidGdocPostInterface {
@@ -35,6 +37,7 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
     }
 
     linkedDocuments: Record<string, OwidGdocPostInterface> = {}
+    relatedCharts: RelatedChart[] = []
     _filenameProperties = ["cover-image", "featured-image"]
 
     _getSubclassEnrichedBlocks = (gdoc: this): OwidEnrichedGdocBlock[] => {
@@ -142,6 +145,33 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
         }
 
         return errors
+    }
+
+    _loadSubclassAttachments: () => Promise<void> = async () => {
+        await this.loadRelatedCharts()
+    }
+
+    async loadRelatedCharts(): Promise<void> {
+        if (!this.tags.length || !this.hasAllChartsBlock) return
+
+        const connection = await getConnection()
+        const relatedCharts = await connection.query(
+            `
+        SELECT DISTINCT
+        charts.config->>"$.slug" AS slug,
+        charts.config->>"$.title" AS title,
+        charts.config->>"$.variantName" AS variantName,
+        chart_tags.keyChartLevel
+        FROM charts
+        INNER JOIN chart_tags ON charts.id=chart_tags.chartId
+        WHERE chart_tags.tagId IN (?)
+        AND charts.config->>"$.isPublished" = "true"
+        ORDER BY title ASC
+        `,
+            [this.tags.map((tag) => tag.id)]
+        )
+
+        this.relatedCharts = relatedCharts
     }
 
     static async getDetailsOnDemandGdoc(): Promise<{
