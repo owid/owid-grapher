@@ -692,7 +692,7 @@ class LabelledSlopes
     }
 
     @computed private get isPortrait() {
-        return this.bounds.width < 400
+        return this.manager.isNarrow || this.manager.isStaticAndSmall
     }
 
     @computed private get allValues() {
