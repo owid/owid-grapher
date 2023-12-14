@@ -1778,7 +1778,7 @@ export interface DonateSessionResponse {
 }
 
 // This is used to validate the type of the request body in the donate session
-// when received by the server (see functions/donate/stripe).
+// when received by the server (see functions/donation/checkout).
 export const DonationRequestTypeObject = Type.Object({
     name: Type.Optional(Type.String()),
     showOnList: Type.Boolean(),

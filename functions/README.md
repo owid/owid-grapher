@@ -12,7 +12,7 @@ In addition, there's a [`_routes.json`](../_routes.json) file that specifies whi
 
 # Our dynamic routes
 
-## `/donate/donate`
+## `/donation/donate`
 
 This route is used to create a Stripe Checkout session for a donation.
 
@@ -78,7 +78,7 @@ Start the Cloudflare function development server with either:
 -   (preferred) `yarn make up.full`: starts the whole local development stack, including the functions development server
 -   `yarn startLocalCloudflareFunctions`: only starts the functions development server
 
-The route is available at `http://localhost:8788/donate/donate`.
+The route is available at `http://localhost:8788/donation/donate`.
 
 Note: compatibility dates between local development and production environments should be kept in sync:
 

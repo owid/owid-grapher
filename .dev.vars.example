@@ -1,4 +1,4 @@
-# env vars for local development of /functions/donate/donate.ts cloudflare pages function
+# env vars for local development of /functions/donation/donate.ts cloudflare pages function
 # rename to .dev.vars and fill in the values from the Stripe and Recaptcha dashboards
 
 # https://dashboard.stripe.com/test/apikeys
