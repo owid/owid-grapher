@@ -1879,8 +1879,8 @@ apiRouter.get("/datasets/:datasetId.json", async (req: Request) => {
 
     dataset.origins = origins
 
-    // Currently for backwards compatibility datasets can still have multiple sources
-    // but the UI presents only a single item of source metadata, we use the first source
+    // This is only for backwards compatibility where we showed only the first source per
+    // dataset. We now show all of them, so perhaps this part could be removed.
     const sources = await db.queryMysql(
         `
         SELECT s.id, s.name, s.description
@@ -1896,6 +1896,15 @@ apiRouter.get("/datasets/:datasetId.json", async (req: Request) => {
         dataset.source.id = sources[0].id
         dataset.source.name = sources[0].name
     }
+
+    // expand description of sources and add to dataset as variableSources
+    dataset.variableSources = sources.map((s: any) => {
+        return {
+            id: s.id,
+            name: s.name,
+            ...JSON.parse(s.description),
+        }
+    })
 
     const charts = await db.queryMysql(
         `

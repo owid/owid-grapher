@@ -13,6 +13,7 @@ import { BindString, Toggle, FieldsRow, Timeago } from "./Forms.js"
 import { EditableTags } from "./EditableTags.js"
 import { ChartList, ChartListItem } from "./ChartList.js"
 import { OriginList } from "./OriginList.js"
+import { SourceList } from "./SourceList.js"
 import { VariableList, VariableListItem } from "./VariableList.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -43,6 +44,7 @@ interface DatasetPageData {
     variables: VariableListItem[]
     charts: ChartListItem[]
     source?: OwidSource
+    variableSources: OwidSource[]
     zipFile?: { filename: string }
 
     origins: OwidOrigin[]
@@ -284,39 +286,6 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                                     disabled={isDisabled}
                                     helpText="Short name for this dataset, followed by the source and year. Example: Government Revenue Data – ICTD (2016)"
                                 />
-                                <BindString
-                                    field="additionalInfo"
-                                    store={newDataset.source}
-                                    label="Description"
-                                    secondaryLabel="DB field: sources.description ->> '$.additionalInfo' - only the lowest id source is shown!"
-                                    textarea
-                                    disabled={isDisabled}
-                                    helpText="Describe the dataset and the methodology used in its construction. This can be as long and detailed as you like."
-                                    rows={10}
-                                />
-                                <BindString
-                                    field="link"
-                                    store={newDataset.source}
-                                    label="Link"
-                                    secondaryLabel="DB field: sources.description ->> '$.link' - only the lowest id source is shown!"
-                                    disabled={isDisabled}
-                                    helpText="Link to the publication from which we retrieved this data"
-                                />
-                                <BindString
-                                    field="retrievedDate"
-                                    store={newDataset.source}
-                                    label="Retrieved"
-                                    secondaryLabel="DB field: sources.description ->> '$.retrievedDate' - only the lowest id source is shown!"
-                                    disabled={isDisabled}
-                                    helpText="Date when this data was obtained by us. Date format should always be YYYY-MM-DD."
-                                />
-                                <BindString
-                                    label="Number of days between OWID updates"
-                                    field="updatePeriodDays"
-                                    store={newDataset}
-                                    disabled={isDisabled}
-                                    helpText="Date when this data was obtained by us. Date format should always be YYYY-MM-DD."
-                                />
                                 <DatasetTagEditor
                                     newDataset={newDataset}
                                     availableTags={dataset.availableTags}
@@ -344,32 +313,13 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                                     />
                                 </FieldsRow>
                             </div>
-
                             <div className="col">
                                 <BindString
-                                    field="name"
-                                    store={newDataset.source}
-                                    label="Source name"
-                                    secondaryLabel="DB field: sources.description ->> '$.name' - only the lowest id source is shown!"
+                                    label="Number of days between OWID updates"
+                                    field="updatePeriodDays"
+                                    store={newDataset}
                                     disabled={isDisabled}
-                                    helpText={`Short citation of the main sources, to be displayed on the charts. Additional sources (e.g. population denominator) should not be included. Use semi-colons to separate multiple sources e.g. "UN (2022); World Bank (2022)". For institutional datasets or reports, use "Institution, Project (year or vintage)" e.g. "IHME, Global Burden of Disease (2019)". For data we have modified extensively, use "Our World in Data based on X (year)" e.g. "Our World in Data based on Pew Research Center (2022)". For academic papers, use "Authors (year)" e.g. "Arroyo-Abad and Lindert (2016)".`}
-                                />
-
-                                <BindString
-                                    field="dataPublishedBy"
-                                    store={newDataset.source}
-                                    label="Data published by"
-                                    secondaryLabel="DB field: sources.description ->> '$.dataPublishedBy' - only the lowest id source is shown!"
-                                    disabled={isDisabled}
-                                    helpText={`Full citation of main and additional sources. For academic papers, institutional datasets, and reports, use the complete citation recommended by the publisher. For data we have modified extensively, use "Our World in Data based on X (year) and Y (year)" e.g. "Our World in Data based on Pew Research Center (2022) and UN (2022)".`}
-                                />
-                                <BindString
-                                    field="dataPublisherSource"
-                                    store={newDataset.source}
-                                    label="Data publisher's source"
-                                    secondaryLabel="DB field: sources.description ->> '$.dataPublisherSource' - only the lowest id source is shown!"
-                                    disabled={isDisabled}
-                                    helpText={`Optional field. Basic indication of how the publisher collected this data e.g. "Survey data". Anything longer than a line should go in the dataset description.`}
+                                    helpText="Date when this data was obtained by us. Date format should always be YYYY-MM-DD."
                                 />
                                 <BindString
                                     field="description"
@@ -391,6 +341,10 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                 <section>
                     <h3>Origins</h3>
                     <OriginList origins={dataset.origins || []} />
+                </section>
+                <section>
+                    <h3>Sources</h3>
+                    <SourceList sources={dataset.variableSources || []} />
                 </section>
                 <section>
                     <h3>Indicators</h3>

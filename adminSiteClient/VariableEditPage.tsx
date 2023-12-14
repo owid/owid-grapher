@@ -22,10 +22,12 @@ import {
     getETLPathComponents,
     OwidProcessingLevel,
     OwidOrigin,
+    OwidSource,
 } from "@ourworldindata/utils"
 import { GrapherFigureView } from "../site/GrapherFigureView.js"
 import { ChartList, ChartListItem } from "./ChartList.js"
 import { OriginList } from "./OriginList.js"
+import { SourceList } from "./SourceList.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { Base64 } from "js-base64"
 import {
@@ -74,6 +76,8 @@ class VariableEditable
     @observable updatePeriodDays: number | undefined = undefined
 
     @observable origins: OwidOrigin[] = []
+
+    @observable source: OwidSource | undefined = undefined
 
     constructor(json: any) {
         for (const key in this) {
@@ -435,17 +439,15 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                     <div className="col">
                         <form>
                             <section>
-                                <section>
-                                    <h3>
-                                        Origins&nbsp;
-                                        <a href="https://docs.owid.io/projects/etl/architecture/metadata/reference/origin/">
-                                            <FontAwesomeIcon
-                                                icon={faCircleInfo}
-                                                className="text-muted"
-                                            />
-                                        </a>
-                                    </h3>
-                                </section>
+                                <h3>
+                                    Origins&nbsp;
+                                    <a href="https://docs.owid.io/projects/etl/architecture/metadata/reference/origin/">
+                                        <FontAwesomeIcon
+                                            icon={faCircleInfo}
+                                            className="text-muted"
+                                        />
+                                    </a>
+                                </h3>
                                 <OriginList
                                     origins={newVariable.origins || []}
                                 />
@@ -453,6 +455,14 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                         </form>
                     </div>
                 </div>
+                {newVariable.source && (
+                    <section>
+                        <form>
+                            <h3>Source</h3>
+                            <SourceList sources={[newVariable.source]} />
+                        </form>
+                    </section>
+                )}
                 <section>
                     <h3>Charts</h3>
                     <ChartList charts={variable.charts} />
