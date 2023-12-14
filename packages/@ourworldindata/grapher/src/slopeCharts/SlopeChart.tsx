@@ -735,6 +735,7 @@ class LabelledSlopes
     }
 
     @computed get sizeScale(): ScaleLinear<number, number> {
+        const factor = this.manager.isStaticAndSmall ? 1.5 : 1
         return scaleLinear()
             .domain(
                 extent(this.props.seriesArr.map((series) => series.size)) as [
@@ -742,7 +743,7 @@ class LabelledSlopes
                     number,
                 ]
             )
-            .range([1, 4])
+            .range([factor, 4 * factor])
     }
 
     @computed get yScaleConstructor(): any {

@@ -425,12 +425,11 @@ export class LineChart
     }
 
     @computed private get lineStrokeWidth(): number {
-        return (
-            this.manager.lineStrokeWidth ??
-            (this.hasColorScale
-                ? VARIABLE_COLOR_STROKE_WIDTH
-                : DEFAULT_STROKE_WIDTH)
-        )
+        if (this.manager.lineStrokeWidth) return this.manager.lineStrokeWidth
+        const factor = this.manager.isStaticAndSmall ? 2 : 1
+        return this.hasColorScale
+            ? factor * VARIABLE_COLOR_STROKE_WIDTH
+            : factor * DEFAULT_STROKE_WIDTH
     }
 
     @computed private get lineOutlineWidth(): number {
@@ -440,6 +439,8 @@ export class LineChart
     }
 
     @computed private get markerRadius(): number {
+        // hide markers but don't remove them from the DOM
+        if (this.manager.isStaticAndSmall) return 0
         return this.hasColorScale
             ? VARIABLE_COLOR_MARKER_RADIUS
             : DEFAULT_MARKER_RADIUS
