@@ -24,6 +24,7 @@ import {
 import { Tooltip, TooltipState, TooltipTable } from "../tooltip/Tooltip"
 import {
     BASE_FONT_SIZE,
+    GRAPHER_AREA_OPACITY_DEFAULT,
     GRAPHER_DARK_TEXT,
     GRAPHER_GRID_LINE_WIDTH_DEFAULT,
     GRAPHER_GRID_LINE_WIDTH_THICK,
@@ -493,7 +494,7 @@ export class StackedBarChart
                         )
                         const opacity =
                             isLegendHovered || this.hoverKeys.length === 0
-                                ? 0.8
+                                ? GRAPHER_AREA_OPACITY_DEFAULT
                                 : 0.2
 
                         return (

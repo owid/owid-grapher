@@ -15,6 +15,7 @@ import {
 } from "@ourworldindata/utils"
 import { computed, action, observable } from "mobx"
 import {
+    GRAPHER_AREA_OPACITY_DEFAULT,
     GRAPHER_GRID_LINE_WIDTH_DEFAULT,
     GRAPHER_GRID_LINE_WIDTH_THICK,
     SeriesName,
@@ -156,9 +157,9 @@ class Areas extends React.Component<AreasProps> {
             }
             const points = [...placedPoints, ...reverse(clone(prevPoints))]
             const opacity = !hoveredAreaName
-                ? 0.7 // normal opacity
+                ? GRAPHER_AREA_OPACITY_DEFAULT // normal opacity
                 : hoveredAreaName === series.seriesName
-                ? 0.7 // hovered
+                ? GRAPHER_AREA_OPACITY_DEFAULT // hovered
                 : 0.2 // non-hovered
 
             return (

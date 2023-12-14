@@ -24,6 +24,7 @@ import { observer } from "mobx-react"
 import {
     BASE_FONT_SIZE,
     FacetStrategy,
+    GRAPHER_AREA_OPACITY_DEFAULT,
     GRAPHER_GRID_LINE_WIDTH_DEFAULT,
     GRAPHER_GRID_LINE_WIDTH_THICK,
     SeriesName,
@@ -673,7 +674,13 @@ export class StackedDiscreteBarChart
                     width={barWidth}
                     height={barHeight}
                     fill={bar.color}
-                    opacity={isHover ? 1 : isFaint ? 0.1 : 0.8}
+                    opacity={
+                        isHover
+                            ? 1
+                            : isFaint
+                            ? 0.1
+                            : GRAPHER_AREA_OPACITY_DEFAULT
+                    }
                     style={{
                         transition: "height 200ms ease",
                     }}

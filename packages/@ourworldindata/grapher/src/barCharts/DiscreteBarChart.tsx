@@ -28,6 +28,7 @@ import {
     GRAPHER_DARK_TEXT,
     GRAPHER_GRID_LINE_WIDTH_THICK,
     GRAPHER_GRID_LINE_WIDTH_DEFAULT,
+    GRAPHER_AREA_OPACITY_DEFAULT,
 } from "../core/GrapherConstants"
 import {
     HorizontalAxisComponent,
@@ -482,7 +483,7 @@ export class DiscreteBarChart
                                 width={barWidth}
                                 height={barHeight}
                                 fill={barColor}
-                                opacity={0.85}
+                                opacity={GRAPHER_AREA_OPACITY_DEFAULT}
                                 style={{ transition: "height 200ms ease" }}
                             />
                             {getElementWithHalo(
