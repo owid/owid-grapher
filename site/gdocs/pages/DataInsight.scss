@@ -30,8 +30,13 @@
 
     .data-insight-meta__copy-link-button {
         @include light-blue-button;
-        padding: 10px 24px;
+        background-color: $blue-20;
+        padding: 10px 0;
+        min-width: 140px;
         margin-top: 24px;
+        &:hover {
+            background-color: $blue-10;
+        }
         svg {
             height: 16px;
             margin-right: 8px;
@@ -125,5 +130,28 @@
     .data-insight-card__title {
         color: $blue-90;
         margin: 0;
+    }
+}
+
+// Index page
+.data-insights-index-page {
+    background-color: $gray-10;
+
+    // Add a small margin above where we scroll to when arriving via a hash link
+    [id] {
+        scroll-margin-top: 40px;
+    }
+}
+
+.data-insights-index-page__header {
+    margin-bottom: 40px;
+    background-color: #fff;
+    h2 {
+        margin: 0;
+        margin-top: 40px;
+    }
+    p {
+        margin: 0;
+        margin-bottom: 32px;
     }
 }

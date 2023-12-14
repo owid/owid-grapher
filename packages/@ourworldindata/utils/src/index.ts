@@ -112,6 +112,7 @@ export {
     type OwidGdocDataInsightContent,
     type OwidGdocDataInsightInterface,
     type MinimalDataInsightInterface,
+    DATA_INSIGHTS_INDEX_PAGE_SIZE,
     type OwidGdoc,
     type Tag,
     OwidGdocType,

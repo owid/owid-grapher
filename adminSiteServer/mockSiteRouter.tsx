@@ -18,6 +18,7 @@ import {
     makeAtomFeedNoTopicPages,
     renderDynamicCollectionPage,
     renderTopChartsCollectionPage,
+    renderDataInsightsIndexPage,
 } from "../baker/siteRenderers.js"
 import {
     BAKED_BASE_URL,
@@ -169,6 +170,12 @@ mockSiteRouter.get("/", async (req, res) => {
 mockSiteRouter.get("/donate", async (req, res) =>
     res.send(await renderDonatePage())
 )
+
+mockSiteRouter.get("/data-insights/:page?", async (req, res) => {
+    const page = parseInt(req.params.page || "1")
+    if (isNaN(page) || page < 1) throw new JsonError("Invalid page number", 404)
+    res.send(await renderDataInsightsIndexPage(page - 1, true))
+})
 
 mockSiteRouter.get("/charts", async (req, res) => {
     const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)

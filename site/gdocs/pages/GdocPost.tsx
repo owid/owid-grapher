@@ -1,12 +1,9 @@
-import React, { createContext } from "react"
+import React from "react"
 import cx from "classnames"
 import { ArticleBlocks } from "../components/ArticleBlocks.js"
 import Footnotes from "../components/Footnotes.js"
 import {
-    LinkedChart,
     OwidGdocPostInterface,
-    ImageMetadata,
-    RelatedChart,
     CITATION_ID,
     LICENSE_ID,
     isEmpty,
@@ -19,21 +16,6 @@ import { OwidGdocHeader } from "../components/OwidGdocHeader.js"
 import StickyNav from "../../blocks/StickyNav.js"
 import { getShortPageCitation } from "../utils.js"
 import { TableOfContents } from "../../TableOfContents.js"
-export const AttachmentsContext = createContext<{
-    linkedCharts: Record<string, LinkedChart>
-    linkedDocuments: Record<string, OwidGdocPostInterface>
-    imageMetadata: Record<string, ImageMetadata>
-    relatedCharts: RelatedChart[]
-}>({
-    linkedDocuments: {},
-    imageMetadata: {},
-    linkedCharts: {},
-    relatedCharts: [],
-})
-
-export const DocumentContext = createContext<{ isPreviewing: boolean }>({
-    isPreviewing: false,
-})
 
 const citationDescriptionsByArticleType: Record<
     | OwidGdocType.Article

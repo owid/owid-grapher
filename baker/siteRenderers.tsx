@@ -58,6 +58,7 @@ import {
     mergePartialGrapherConfigs,
     OwidGdocType,
     OwidGdoc,
+    DATA_INSIGHTS_INDEX_PAGE_SIZE,
 } from "@ourworldindata/utils"
 import { CountryProfileSpec } from "../site/countryProfileProjects.js"
 import { formatPost } from "./formatWordpressPost.js"
@@ -86,6 +87,7 @@ import {
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { ExplorerPageUrlMigrationSpec } from "../explorer/urlMigrations/ExplorerPageUrlMigrationSpec.js"
 import { ExplorerPage } from "../site/ExplorerPage.js"
+import { DataInsightsIndexPage } from "../site/DataInsightsIndexPage.js"
 import { Chart } from "../db/model/Chart.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
@@ -95,6 +97,7 @@ import { postsTable } from "../db/model/Post.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 import { GdocFactory } from "../db/model/Gdoc/GdocFactory.js"
+import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
 
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
@@ -346,6 +349,29 @@ export const renderDonatePage = async () => {
             baseUrl={BAKED_BASE_URL}
             faqsGdoc={faqsGdoc}
             recaptchaKey={RECAPTCHA_SITE_KEY}
+        />
+    )
+}
+
+export const renderDataInsightsIndexPage = async (
+    page: number = 0,
+    isPreviewing: boolean = false
+) => {
+    const insights = await GdocDataInsight.getPublishedDataInsights(page)
+    // TODO: calling fetchImageMetadata 20 times in a row is horrible
+    await Promise.all(insights.map((insight) => insight.loadState({})))
+
+    const publishedDataInsightCount =
+        await GdocDataInsight.getPublishedDataInsightCount()
+    const totalPages = publishedDataInsightCount / DATA_INSIGHTS_INDEX_PAGE_SIZE
+
+    return renderToHtmlPage(
+        <DataInsightsIndexPage
+            dataInsights={insights}
+            baseUrl={BAKED_BASE_URL}
+            pageNumber={page}
+            totalPages={totalPages}
+            isPreviewing={isPreviewing}
         />
     )
 }

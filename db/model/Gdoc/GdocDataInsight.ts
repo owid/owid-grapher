@@ -1,4 +1,4 @@
-import { Entity, Column } from "typeorm"
+import { Entity, Column, LessThanOrEqual, Raw } from "typeorm"
 import {
     OwidGdocErrorMessage,
     OwidGdocErrorMessageType,
@@ -7,6 +7,7 @@ import {
     OwidGdocPostInterface,
     MinimalDataInsightInterface,
     OwidGdocType,
+    DATA_INSIGHTS_INDEX_PAGE_SIZE,
 } from "@ourworldindata/utils"
 import { GdocBase } from "./GdocBase.js"
 import { getConnection } from "../../../db/db.js"
@@ -42,6 +43,10 @@ export class GdocDataInsight
     }
 
     _loadSubclassAttachments = async (): Promise<void> => {
+        await this.loadLatestDataInsights()
+    }
+
+    async loadLatestDataInsights(): Promise<void> {
         const c = await getConnection()
         this.latestDataInsights = (
             await c.query(`
@@ -56,15 +61,42 @@ export class GdocDataInsight
         ORDER BY publishedAt DESC
         LIMIT 5
         `)
-        ).map(
-            (record: {
-                title: string
-                publishedAt: string
-                index: string
-            }) => ({
-                ...record,
-                index: Number(record.index),
-            })
-        ) as MinimalDataInsightInterface[]
+        ).map((record: any) => ({
+            ...record,
+            index: Number(record.index),
+        })) as MinimalDataInsightInterface[]
+    }
+
+    static async getPublishedDataInsights(
+        page: number = 0
+    ): Promise<GdocDataInsight[]> {
+        return GdocDataInsight.find({
+            where: {
+                published: true,
+                publishedAt: LessThanOrEqual(new Date()),
+                content: Raw(
+                    (content) =>
+                        `${content}->"$.type" = '${OwidGdocType.DataInsight}'`
+                ),
+            },
+            order: {
+                publishedAt: "DESC",
+            },
+            take: DATA_INSIGHTS_INDEX_PAGE_SIZE,
+            skip: page * DATA_INSIGHTS_INDEX_PAGE_SIZE,
+            relations: ["tags"],
+        })
+    }
+
+    static async getPublishedDataInsightCount(): Promise<number> {
+        const c = await getConnection()
+        const query = `
+            SELECT COUNT(*) AS count
+            FROM posts_gdocs
+            WHERE content->>'$.type' = '${OwidGdocType.DataInsight}'
+                AND published = TRUE
+                AND publishedAt < NOW()
+        `
+        return (await c.query(query))[0].count
     }
 }

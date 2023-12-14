@@ -1383,6 +1383,8 @@ export interface OwidGdocDataInsightContent {
     type: OwidGdocType.DataInsight
 }
 
+export const DATA_INSIGHTS_INDEX_PAGE_SIZE = 20
+
 export interface OwidGdocDataInsightInterface extends OwidGdocBaseInterface {
     content: OwidGdocDataInsightContent
     linkedDocuments?: Record<string, OwidGdocPostInterface>
@@ -1537,6 +1539,7 @@ export enum SiteFooterContext {
     dynamicCollectionPage = "dynamicCollectionPage",
     explorerPage = "explorerPage",
     default = "default",
+    dataInsightsIndexPage = "data-insights-index-page",
 }
 
 export type RawDetail = {

@@ -1,6 +1,7 @@
 import {
     faArrowRight,
     faChain,
+    faCheck,
     faChevronRight,
 } from "@fortawesome/free-solid-svg-icons"
 import cx from "classnames"
@@ -11,10 +12,12 @@ import {
     MinimalDataInsightInterface,
     formatDate,
     Tag,
+    copyToClipboard,
 } from "@ourworldindata/utils"
 import React, { useContext } from "react"
 import { ArticleBlocks } from "../components/ArticleBlocks.js"
 import { AttachmentsContext } from "../OwidGdoc.js"
+import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
 
 export const MOST_RECENT_DATA_INSIGHT = "most-recent-data-insight"
 export const SECOND_MOST_RECENT_INSIGHT = "second-most-recent-data-insight"
@@ -22,7 +25,7 @@ export const THIRD_MOST_RECENT_INSIGHT = "third-most-recent-data-insight"
 export const FOURTH_MOST_RECENT_INSIGHT = "fourth-most-recent-data-insight"
 export const FIFTH_MOST_RECENT_INSIGHT = "fifth-most-recent-data-insight"
 
-const indexToIdMap = {
+export const indexToIdMap: Record<number, string> = {
     0: MOST_RECENT_DATA_INSIGHT,
     1: SECOND_MOST_RECENT_INSIGHT,
     2: THIRD_MOST_RECENT_INSIGHT,
@@ -97,37 +100,61 @@ const RelatedTopicsList = ({
 }
 
 const DataInsightMeta = (props: {
-    publishedAt: Date | null
+    publishedAt: Date | string | null
     authors: string[]
+    slug: string
 }) => {
+    const [hasCopied, setHasCopied] = React.useState(false)
+    const innerText = hasCopied ? "Copied!" : "Copy link"
+    const icon = hasCopied ? faCheck : faChain
+    const publishedAt = props.publishedAt
+        ? formatDate(new Date(props.publishedAt))
+        : "Unpublished"
+
     return (
         <div className="span-cols-2 col-start-2 data-insight-meta">
             <span className="data-insight-meta__published-at h6-black-caps">
-                {props.publishedAt
-                    ? formatDate(props.publishedAt)
-                    : "Unpublished"}
+                {publishedAt}
             </span>
             <span className="data-insight-meta__authors">
                 {formatAuthors({ authors: props.authors })}
             </span>
             <div>
-                <button className="data-insight-meta__copy-link-button">
-                    <FontAwesomeIcon icon={faChain} />
-                    Copy link
+                <button
+                    className="data-insight-meta__copy-link-button"
+                    onClick={() => {
+                        copyToClipboard(
+                            `${BAKED_BASE_URL}/data-insights/${props.slug}`
+                        )
+                        setHasCopied(true)
+                        setTimeout(() => {
+                            setHasCopied(false)
+                        }, 1000)
+                    }}
+                >
+                    <FontAwesomeIcon icon={icon} />
+                    {innerText}
                 </button>
             </div>
         </div>
     )
 }
 
-const DataInsightBody = (props: DataInsightProps) => {
+export const DataInsightBody = (
+    props: OwidGdocDataInsightInterface & {
+        anchor?: string
+        publishedAt: Date | string | null
+    }
+) => {
     return (
         <>
             <DataInsightMeta
                 publishedAt={props.publishedAt}
                 authors={props.content.authors}
+                slug={props.slug}
             />
             <div
+                id={props.anchor}
                 className={cx("span-cols-8 col-start-4 data-insight-body", {
                     "data-insight-body--has-tags": !!props.tags?.length,
                 })}
