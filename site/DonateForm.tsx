@@ -9,7 +9,7 @@ import {
     DONATE_API_URL,
     BAKED_BASE_URL,
     RECAPTCHA_SITE_KEY,
-} from "../../settings/clientSettings.js"
+} from "../settings/clientSettings.js"
 import {
     Tippy,
     stringifyUnknownError,
