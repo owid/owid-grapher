@@ -67,12 +67,14 @@ export class Header<
     @computed get logo(): Logo | undefined {
         const { manager } = this
         if (manager.hideLogo) return undefined
+        const isSmall = manager.isSmall || manager.isStaticAndSmall
         const isOwidLogo = !manager.logo || manager.logo === LogoOption.owid
         return new Logo({
             logo: manager.logo as any,
             isLink: !!manager.shouldLinkToOwid,
-            heightScale: manager.isSmall && !isOwidLogo ? 0.775 : 1,
-            useSmallVersion: manager.isSmall && isOwidLogo,
+            // if it's the OWID logo, use the small version; otherwise, decrease the size
+            heightScale: isSmall && !isOwidLogo ? 0.775 : 1,
+            useSmallVersion: isSmall && isOwidLogo,
         })
     }
 
