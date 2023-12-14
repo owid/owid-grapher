@@ -694,8 +694,7 @@ export class StaticFooter extends Footer<StaticFooterProps> {
 
     @computed protected get fontSize(): number {
         if (this.useBaseFontSize) {
-            const target = this.manager.isStaticAndSmall ? 10 : 12
-            return (target / BASE_FONT_SIZE) * this.baseFontSize
+            return (12 / BASE_FONT_SIZE) * this.baseFontSize
         }
         return 13
     }

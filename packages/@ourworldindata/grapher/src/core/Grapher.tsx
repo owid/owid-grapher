@@ -1294,8 +1294,7 @@ export class Grapher
 
                 text += `${plainText.join(" ")}`
             }
-            const fontSizeTarget = this.isStaticAndSmall ? 9 : 11
-            const fontSize = (fontSizeTarget / BASE_FONT_SIZE) * this.fontSize
+            const fontSize = (11 / BASE_FONT_SIZE) * this.fontSize
             return new MarkdownTextWrap({
                 text,
                 fontSize,
