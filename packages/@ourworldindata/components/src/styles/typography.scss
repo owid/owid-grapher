@@ -223,6 +223,19 @@ body {
     @include h5-black-caps;
 }
 
+@mixin h6-black-caps {
+    font-family: $sans-serif-font-stack;
+    font-size: 0.625rem;
+    font-weight: 900;
+    line-height: 1.25;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.h6-black-caps {
+    @include h6-black-caps;
+}
+
 @mixin subtitle-1 {
     font-family: $sans-serif-font-stack;
     font-size: 1.5rem;
@@ -233,6 +246,18 @@ body {
 
 .subtitle-1 {
     @include subtitle-1;
+}
+
+@mixin subtitle-2 {
+    font-family: $sans-serif-font-stack;
+    font-size: 1.375rem;
+    line-height: calc(28 / 22);
+    font-weight: 400;
+    letter-spacing: 0;
+}
+
+.subtitle-2 {
+    @include subtitle-2;
 }
 
 @mixin overline-black-caps {

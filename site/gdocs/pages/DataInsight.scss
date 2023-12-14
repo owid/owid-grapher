@@ -1,5 +1,6 @@
 .data-insight-page {
     background-color: $gray-10;
+    padding-bottom: 80px;
 }
 
 .data-insight-breadcrumbs {
@@ -84,4 +85,43 @@
 }
 
 .data-insight-cards-container {
+    padding-top: 40px;
+    border-top: $blue-10 4px solid;
+    .insight-cards-header {
+        margin-bottom: 24px;
+        h2 {
+            margin: 0;
+        }
+        .see-all-button-container {
+            position: relative;
+            a {
+                border: 1px solid $vermillion;
+                color: $vermillion;
+                padding: 4.5px 24px;
+                display: inline-block;
+                position: absolute;
+                right: 0;
+                transition: 200ms;
+                &:hover {
+                    color: $accent-vermillion;
+                    border-color: $accent-vermillion;
+                }
+            }
+        }
+    }
+}
+
+.data-insight-card {
+    background-color: $blue-10;
+    padding: 24px;
+    transition: 200ms;
+    &:hover {
+        background-color: $blue-20;
+    }
+    .data-insight-card__published-at {
+        color: $blue-60;
+    }
+    .data-insight-card__title {
+        color: $blue-90;
+    }
 }

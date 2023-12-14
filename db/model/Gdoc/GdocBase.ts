@@ -31,6 +31,7 @@ import {
     Tag as TagInterface,
     OwidGdocPublicationContext,
     BreadcrumbItem,
+    MinimalDataInsightInterface,
 } from "@ourworldindata/utils"
 import { BAKED_GRAPHER_URL } from "../../../settings/serverSettings.js"
 import { google } from "googleapis"
@@ -94,6 +95,7 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
     linkedCharts: Record<string, LinkedChart> = {}
     linkedDocuments: Record<string, OwidGdocBaseInterface> = {}
     relatedCharts: RelatedChart[] = []
+    latestDataInsights: MinimalDataInsightInterface[] = []
 
     _getSubclassEnrichedBlocks: (gdoc: typeof this) => OwidEnrichedGdocBlock[] =
         () => []
@@ -102,6 +104,7 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
         async () => []
     _filenameProperties: string[] = []
     _omittableFields: string[] = []
+    _loadSubclassAttachments: () => Promise<void> = async () => undefined
 
     constructor(id?: string) {
         super()
@@ -692,6 +695,7 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
         await this.loadImageMetadata()
         await this.loadLinkedCharts(publishedExplorersBySlug)
         await this.loadRelatedCharts()
+        await this._loadSubclassAttachments()
         await this.validate(publishedExplorersBySlug)
     }
 
