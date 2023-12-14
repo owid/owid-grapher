@@ -22,4 +22,5 @@ export interface FooterManager extends TooltipManager, ActionButtonsManager {
     hideNote?: boolean
     hideOriginUrl?: boolean
     secondaryColorInStaticCharts?: string
+    isStaticAndSmall?: boolean
 }

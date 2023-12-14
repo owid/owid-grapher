@@ -905,6 +905,7 @@ export class MarimekkoChart
             )
 
         const {
+            manager,
             bounds,
             dualAxis,
             tooltipItem,
@@ -956,7 +957,11 @@ export class MarimekkoChart
                     opacity={0}
                     fill="rgba(255,255,255,0)"
                 />
-                <DualAxisComponent dualAxis={dualAxis} showTickMarks={true} />
+                <DualAxisComponent
+                    dualAxis={dualAxis}
+                    showTickMarks={true}
+                    labelColor={manager.secondaryColorInStaticCharts}
+                />
                 <HorizontalCategoricalColorLegend manager={this} />
                 {this.renderBars()}
                 {target && (
@@ -1007,6 +1012,7 @@ export class MarimekkoChart
             labelLines,
             placedItems,
             tooltipState,
+            fontSize,
         } = this
         const selectionSet = this.selectionArray.selectedSet
         const labelYOffset = 0
@@ -1052,7 +1058,7 @@ export class MarimekkoChart
                     fontWeight={700}
                     fill="#666"
                     opacity={1}
-                    fontSize="0.8em"
+                    fontSize={0.75 * fontSize}
                     textAnchor="middle"
                     dominantBaseline="middle"
                     style={{ pointerEvents: "none" }}
@@ -1157,13 +1163,13 @@ export class MarimekkoChart
 
     private static labelCandidateFromItem(
         item: EntityWithSize,
-        baseFontSize: number,
+        fontSize: number,
         isSelected: boolean
     ): LabelCandidate {
         return {
             item: item,
             bounds: Bounds.forText(item.entityName, {
-                fontSize: 0.7 * baseFontSize,
+                fontSize,
             }),
             isPicked: isSelected,
             isSelected,
@@ -1240,7 +1246,7 @@ export class MarimekkoChart
                                 : 1,
                         ySortValue: ySizeMap.get(row.entityName),
                     },
-                    baseFontSize,
+                    this.entityLabelFontSize,
                     selectedItemsSet.has(row.entityName)
                 )
             )
@@ -1576,6 +1582,10 @@ export class MarimekkoChart
         return Math.max(this.fontSize, rotatedLabelWidth)
     }
 
+    @computed private get entityLabelFontSize(): number {
+        return 0.75 * this.fontSize
+    }
+
     @computed private get labels(): LabelCandidateWithElement[] {
         const { labelAngleInDegrees, series, domainColorForEntityMap } = this
         return this.pickedLabelCandidates.map((candidate) => {
@@ -1598,7 +1608,7 @@ export class MarimekkoChart
                         fill={color}
                         transform={`rotate(${labelAngleInDegrees}, 0, 0)`}
                         opacity={1}
-                        fontSize="0.7em"
+                        fontSize={this.entityLabelFontSize}
                         textAnchor="right"
                         dominantBaseline="middle"
                         onMouseOver={(): void =>

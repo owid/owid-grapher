@@ -779,7 +779,11 @@ export class LineChart
                 {this.hasColorLegend && (
                     <HorizontalNumericColorLegend manager={this} />
                 )}
-                <DualAxisComponent dualAxis={dualAxis} showTickMarks={true} />
+                <DualAxisComponent
+                    dualAxis={dualAxis}
+                    showTickMarks={true}
+                    labelColor={manager.secondaryColorInStaticCharts}
+                />
                 <g clipPath={clipPath.id}>
                     {comparisonLines.map((line, index) => (
                         <ComparisonLine

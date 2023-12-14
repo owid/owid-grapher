@@ -23,4 +23,5 @@ export interface HeaderManager {
     hideTitle?: boolean
     hideSubtitle?: boolean
     secondaryColorInStaticCharts?: string
+    isStaticAndSmall?: boolean
 }

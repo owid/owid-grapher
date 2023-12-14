@@ -15,9 +15,9 @@ import {
 } from "@ourworldindata/core-table"
 import {
     ScatterPlotManager,
-    SCATTER_LABEL_DEFAULT_FONT_SIZE,
-    SCATTER_LABEL_MAX_FONT_SIZE,
-    SCATTER_LABEL_MIN_FONT_SIZE,
+    SCATTER_LABEL_DEFAULT_FONT_SIZE_FACTOR,
+    SCATTER_LABEL_MAX_FONT_SIZE_FACTOR,
+    SCATTER_LABEL_MIN_FONT_SIZE_FACTOR,
     SCATTER_POINT_DEFAULT_RADIUS,
     SCATTER_POINT_MAX_RADIUS,
     SCATTER_POINT_MIN_RADIUS,
@@ -1022,6 +1022,7 @@ describe("correct bubble sizes", () => {
             dualAxis: chart["dualAxis"],
             sizeScale: chart["sizeScale"],
             fontScale: chart["fontScale"],
+            baseFontSize: chart["fontSize"],
             focusedSeriesNames: chart["focusedEntityNames"],
             hoveredSeriesNames: chart["hoveredSeriesNames"],
             onMouseEnter: chart["onScatterMouseEnter"],
@@ -1037,24 +1038,16 @@ describe("correct bubble sizes", () => {
 
         expect(sortedRenderSeries[0].seriesName).toEqual("SWE")
         expect(sortedRenderSeries[0].size).toEqual(SCATTER_POINT_MIN_RADIUS)
-        expect(sortedRenderSeries[0].fontSize).toEqual(
-            SCATTER_LABEL_MIN_FONT_SIZE
-        )
+        expect(sortedRenderSeries[0].fontSize).toEqual(10)
         expect(sortedRenderSeries[1].seriesName).toEqual("UK")
         expect(sortedRenderSeries[1].size).toEqual(SCATTER_POINT_MIN_RADIUS)
-        expect(sortedRenderSeries[1].fontSize).toEqual(
-            SCATTER_LABEL_MIN_FONT_SIZE
-        )
+        expect(sortedRenderSeries[1].fontSize).toEqual(10)
         expect(sortedRenderSeries[2].seriesName).toEqual("USA")
         expect(sortedRenderSeries[2].size).toEqual(SCATTER_POINT_MAX_RADIUS)
-        expect(sortedRenderSeries[2].fontSize).toEqual(
-            SCATTER_LABEL_MAX_FONT_SIZE
-        )
+        expect(sortedRenderSeries[2].fontSize).toEqual(13)
         expect(sortedRenderSeries[3].seriesName).toEqual("ZZZ")
         expect(sortedRenderSeries[3].size).toEqual(SCATTER_POINT_MIN_RADIUS)
-        expect(sortedRenderSeries[3].fontSize).toEqual(
-            SCATTER_LABEL_MIN_FONT_SIZE
-        )
+        expect(sortedRenderSeries[3].fontSize).toEqual(10)
     })
 
     it("without column", () => {
@@ -1095,6 +1088,7 @@ describe("correct bubble sizes", () => {
             dualAxis: chart["dualAxis"],
             sizeScale: chart["sizeScale"],
             fontScale: chart["fontScale"],
+            baseFontSize: chart["fontSize"],
             focusedSeriesNames: chart["focusedEntityNames"],
             hoveredSeriesNames: chart["hoveredSeriesNames"],
             onMouseEnter: chart["onScatterMouseEnter"],
@@ -1110,13 +1104,9 @@ describe("correct bubble sizes", () => {
 
         expect(sortedRenderSeries[0].seriesName).toEqual("SWE")
         expect(sortedRenderSeries[0].size).toEqual(SCATTER_POINT_DEFAULT_RADIUS)
-        expect(sortedRenderSeries[0].fontSize).toEqual(
-            SCATTER_LABEL_DEFAULT_FONT_SIZE
-        )
+        expect(sortedRenderSeries[0].fontSize).toEqual(10.5)
         expect(sortedRenderSeries[1].seriesName).toEqual("UK")
         expect(sortedRenderSeries[1].size).toEqual(SCATTER_POINT_DEFAULT_RADIUS)
-        expect(sortedRenderSeries[1].fontSize).toEqual(
-            SCATTER_LABEL_DEFAULT_FONT_SIZE
-        )
+        expect(sortedRenderSeries[1].fontSize).toEqual(10.5)
     })
 })

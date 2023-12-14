@@ -195,14 +195,14 @@ export class Footer<
 
     @computed protected get fontSize(): number {
         if (this.useBaseFontSize) {
-            return (12 / BASE_FONT_SIZE) * this.baseFontSize
+            return (11 / BASE_FONT_SIZE) * this.baseFontSize
         }
         return this.manager.isMedium ? 11 : 12
     }
 
     @computed protected get sourcesFontSize(): number {
         if (this.useBaseFontSize) {
-            return (13 / BASE_FONT_SIZE) * this.baseFontSize
+            return (12 / BASE_FONT_SIZE) * this.baseFontSize
         }
         return this.manager.isSmall ? 12 : 13
     }
@@ -678,7 +678,10 @@ export class StaticFooter extends Footer<StaticFooterProps> {
     @computed protected get licenseAndOriginUrlText(): string {
         const { finalUrl, finalUrlText, licenseText, licenseUrl, textColor } =
             this
-        const linkStyle = `fill: ${textColor}; text-decoration: underline;`
+        const textDecoration = this.manager.isStaticAndSmall
+            ? "none"
+            : "underline"
+        const linkStyle = `fill: ${textColor};  text-decoration: ${textDecoration};`
         const licenseSvg = `<a target="_blank" style="${linkStyle}" href="${licenseUrl}">${licenseText}</a>`
         if (!finalUrlText) return licenseSvg
         const originUrlSvg = `<a target="_blank" style="${linkStyle}" href="${finalUrl}">${finalUrlText}</a>`
@@ -691,7 +694,8 @@ export class StaticFooter extends Footer<StaticFooterProps> {
 
     @computed protected get fontSize(): number {
         if (this.useBaseFontSize) {
-            return (13 / BASE_FONT_SIZE) * this.baseFontSize
+            const target = this.manager.isStaticAndSmall ? 9 : 12
+            return (target / BASE_FONT_SIZE) * this.baseFontSize
         }
         return 13
     }

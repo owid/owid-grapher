@@ -22,7 +22,7 @@ import {
     LegendItem,
 } from "../verticalColorLegend/VerticalColorLegend"
 import { Tooltip, TooltipState, TooltipTable } from "../tooltip/Tooltip"
-import { BASE_FONT_SIZE } from "../core/GrapherConstants"
+import { BASE_FONT_SIZE, GRAPHER_DARK_TEXT } from "../core/GrapherConstants"
 import { ColorScaleManager } from "../color/ColorScale"
 import {
     AbstractStackedChart,
@@ -134,7 +134,7 @@ export class StackedBarChart
     }
 
     @computed get tickFontSize(): number {
-        return 0.9 * this.baseFontSize
+        return 0.875 * this.baseFontSize
     }
 
     @computed get barWidth(): number {
@@ -406,6 +406,7 @@ export class StackedBarChart
             )
 
         const {
+            manager,
             dualAxis,
             renderUid,
             bounds,
@@ -417,8 +418,6 @@ export class StackedBarChart
         } = this
         const { series } = this
         const { innerBounds, verticalAxis } = dualAxis
-
-        const textColor = "#666"
 
         const clipPath = makeClipPath(renderUid, innerBounds)
 
@@ -442,6 +441,7 @@ export class StackedBarChart
                 <VerticalAxisComponent
                     bounds={bounds}
                     verticalAxis={verticalAxis}
+                    labelColor={manager.secondaryColorInStaticCharts}
                 />
                 <VerticalAxisGridLines
                     verticalAxis={verticalAxis}
@@ -453,7 +453,7 @@ export class StackedBarChart
                     tickMarkXPositions={ticks.map(
                         (tick) => tick.bounds.centerX
                     )}
-                    color={textColor}
+                    color="#666"
                 />
 
                 <g>
@@ -463,7 +463,7 @@ export class StackedBarChart
                                 key={i}
                                 x={tick.bounds.x}
                                 y={tick.bounds.y}
-                                fill={textColor}
+                                fill={GRAPHER_DARK_TEXT}
                                 fontSize={this.tickFontSize}
                                 onMouseOver={(): void => {
                                     this.onLabelMouseOver(tick)

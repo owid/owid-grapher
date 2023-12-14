@@ -25,6 +25,7 @@ import {
     BASE_FONT_SIZE,
     SeriesStrategy,
     FacetStrategy,
+    GRAPHER_DARK_TEXT,
 } from "../core/GrapherConstants"
 import {
     HorizontalAxisComponent,
@@ -393,6 +394,7 @@ export class DiscreteBarChart
             )
 
         const {
+            manager,
             series,
             boundsWithoutColorLegend,
             yAxis,
@@ -421,6 +423,7 @@ export class DiscreteBarChart
                         bounds={boundsWithoutColorLegend}
                         axis={yAxis}
                         preferredAxisPosition={innerBounds.bottom}
+                        labelColor={manager.secondaryColorInStaticCharts}
                     />
                 )}
                 <HorizontalAxisGridLines
@@ -483,7 +486,7 @@ export class DiscreteBarChart
                                         ? -labelToBarPadding
                                         : labelToBarPadding)
                                 }, 0)`}
-                                fill="#666"
+                                fill={GRAPHER_DARK_TEXT}
                                 dominantBaseline="middle"
                                 textAnchor={isNegative ? "end" : "start"}
                                 {...this.valueLabelStyle}

@@ -983,8 +983,14 @@ export class Grapher
     @observable private _baseFontSize = BASE_FONT_SIZE
 
     @computed get baseFontSize(): number {
-        if (this.shouldOptimizeForHorizontalSpace) return 21
-        else if (this.isStatic) return 18
+        if (this.isStaticAndSmall) {
+            const squareBounds = this.getStaticBounds(
+                GrapherStaticFormat.square
+            )
+            const factor = squareBounds.height / 21
+            return Math.max(10, this.staticBounds.height / factor)
+        }
+        if (this.isStatic) return 18
         return this._baseFontSize
     }
 
@@ -1288,9 +1294,11 @@ export class Grapher
 
                 text += `${plainText.join(" ")}`
             }
+            const fontSizeTarget = this.isStaticAndSmall ? 9 : 11
+            const fontSize = (fontSizeTarget / BASE_FONT_SIZE) * this.fontSize
             return new MarkdownTextWrap({
                 text,
-                fontSize: 0.66 * this.fontSize,
+                fontSize,
                 // leave room for padding on the left and right
                 maxWidth:
                     this.staticBounds.width - 2 * this.framePaddingHorizontal,
@@ -2670,18 +2678,16 @@ export class Grapher
         return this.renderWidth <= 840
     }
 
-    @computed get secondaryColorInStaticCharts(): string {
-        return this.shouldOptimizeStaticForMobile
-            ? GRAPHER_LIGHT_TEXT
-            : GRAPHER_DARK_TEXT
-    }
-
-    @computed get shouldOptimizeStaticForMobile(): boolean {
+    @computed get isStaticAndSmall(): boolean {
         if (!this.isStatic) return false
         return (
             this.staticBounds.width < this.idealBounds.width &&
             this.staticBounds.width <= this.staticBounds.height
         )
+    }
+
+    @computed get secondaryColorInStaticCharts(): string {
+        return this.isStaticAndSmall ? GRAPHER_LIGHT_TEXT : GRAPHER_DARK_TEXT
     }
 
     // Binds chart properties to global window title and URL. This should only

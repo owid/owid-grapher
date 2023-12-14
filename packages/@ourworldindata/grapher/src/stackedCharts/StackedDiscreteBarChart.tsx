@@ -488,7 +488,7 @@ export class StackedDiscreteBarChart
                 />
             )
 
-        const { bounds, yAxis, innerBounds } = this
+        const { manager, bounds, yAxis, innerBounds } = this
 
         const chartContext: StackedBarChartContext = {
             yAxis,
@@ -587,6 +587,7 @@ export class StackedDiscreteBarChart
                         bounds={bounds}
                         axis={yAxis}
                         preferredAxisPosition={innerBounds.bottom}
+                        labelColor={manager.secondaryColorInStaticCharts}
                     />
                 )}
                 <HorizontalAxisGridLines
@@ -637,7 +638,7 @@ export class StackedDiscreteBarChart
             yAxis.place(bar.point.value) - yAxis.place(chartContext.x0)
 
         const barLabel = formatValueForLabel(bar.point.value)
-        const labelFontSize = 0.7 * chartContext.baseFontSize
+        const labelFontSize = 0.75 * chartContext.baseFontSize
         const labelBounds = Bounds.forText(barLabel, {
             fontSize: labelFontSize,
         })

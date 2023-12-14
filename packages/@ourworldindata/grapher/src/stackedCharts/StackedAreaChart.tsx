@@ -500,7 +500,7 @@ export class StackedAreaChart
                 />
             )
 
-        const { bounds, dualAxis, renderUid, series } = this
+        const { manager, bounds, dualAxis, renderUid, series } = this
         const { target } = this.tooltipState
 
         const showLegend = !this.manager.hideLegend
@@ -528,7 +528,11 @@ export class StackedAreaChart
                     whole charting area, including the axis, the entity labels, and the whitespace next to them.
                     We need these to be able to show the tooltip for the first/last year even if the mouse is outside the charting area. */}
                 </rect>
-                <DualAxisComponent dualAxis={dualAxis} showTickMarks={true} />
+                <DualAxisComponent
+                    dualAxis={dualAxis}
+                    showTickMarks={true}
+                    labelColor={manager.secondaryColorInStaticCharts}
+                />
                 <g clipPath={clipPath.id}>
                     {showLegend && <LineLegend manager={this} />}
                     <Areas

@@ -357,7 +357,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
     }
 
     @computed private get legendTitleFontSize(): number {
-        return this.fontSize * 0.85
+        return this.fontSize * 0.875
     }
 
     @computed private get legendTitle(): TextWrap | undefined {
