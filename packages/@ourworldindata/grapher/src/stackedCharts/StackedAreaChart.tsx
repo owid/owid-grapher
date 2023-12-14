@@ -14,7 +14,11 @@ import {
     lastOfNonEmptyArray,
 } from "@ourworldindata/utils"
 import { computed, action, observable } from "mobx"
-import { SeriesName } from "../core/GrapherConstants"
+import {
+    GRAPHER_GRID_LINE_WIDTH_DEFAULT,
+    GRAPHER_GRID_LINE_WIDTH_THICK,
+    SeriesName,
+} from "../core/GrapherConstants"
 import { observer } from "mobx-react"
 import { DualAxisComponent } from "../axis/AxisViews"
 import { DualAxis } from "../axis/Axis"
@@ -532,6 +536,11 @@ export class StackedAreaChart
                     dualAxis={dualAxis}
                     showTickMarks={true}
                     labelColor={manager.secondaryColorInStaticCharts}
+                    gridLineWidth={
+                        manager.isStaticAndSmall
+                            ? GRAPHER_GRID_LINE_WIDTH_THICK
+                            : GRAPHER_GRID_LINE_WIDTH_DEFAULT
+                    }
                 />
                 <g clipPath={clipPath.id}>
                     {showLegend && <LineLegend manager={this} />}

@@ -39,6 +39,9 @@ export const STATIC_EXPORT_DETAIL_SPACING = 8
 export const GRAPHER_DARK_TEXT = "#5b5b5b"
 export const GRAPHER_LIGHT_TEXT = "#858585"
 
+export const GRAPHER_GRID_LINE_WIDTH_DEFAULT = 1
+export const GRAPHER_GRID_LINE_WIDTH_THICK = 2
+
 export enum CookieKey {
     isAdmin = "isAdmin",
 }

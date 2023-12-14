@@ -24,6 +24,8 @@ import { observer } from "mobx-react"
 import {
     BASE_FONT_SIZE,
     FacetStrategy,
+    GRAPHER_GRID_LINE_WIDTH_DEFAULT,
+    GRAPHER_GRID_LINE_WIDTH_THICK,
     SeriesName,
 } from "../core/GrapherConstants"
 import {
@@ -593,6 +595,11 @@ export class StackedDiscreteBarChart
                 <HorizontalAxisGridLines
                     horizontalAxis={yAxis}
                     bounds={innerBounds}
+                    strokeWidth={
+                        manager.isStaticAndSmall
+                            ? GRAPHER_GRID_LINE_WIDTH_THICK
+                            : GRAPHER_GRID_LINE_WIDTH_DEFAULT
+                    }
                 />
                 {this.showLegend && (
                     <HorizontalCategoricalColorLegend manager={this} />

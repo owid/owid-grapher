@@ -12,7 +12,11 @@ import {
 } from "@ourworldindata/utils"
 import { VerticalAxis, HorizontalAxis, DualAxis } from "./Axis"
 import classNames from "classnames"
-import { GRAPHER_DARK_TEXT, ScaleType } from "../core/GrapherConstants"
+import {
+    GRAPHER_DARK_TEXT,
+    GRAPHER_GRID_LINE_WIDTH_DEFAULT,
+    ScaleType,
+} from "../core/GrapherConstants"
 
 const dasharrayFromFontSize = (fontSize: number): string => {
     const dashLength = Math.round((fontSize / 16) * 3)
@@ -28,9 +32,10 @@ const SOLID_TICK_COLOR = "#999"
 export class VerticalAxisGridLines extends React.Component<{
     verticalAxis: VerticalAxis
     bounds: Bounds
+    strokeWidth?: number
 }> {
     render(): JSX.Element {
-        const { bounds, verticalAxis } = this.props
+        const { bounds, verticalAxis, strokeWidth } = this.props
         const axis = verticalAxis.clone()
         axis.range = bounds.yRange()
 
@@ -51,6 +56,9 @@ export class VerticalAxisGridLines extends React.Component<{
                             x2={bounds.right.toFixed(2)}
                             y2={axis.place(t.value)}
                             stroke={color}
+                            strokeWidth={
+                                strokeWidth ?? GRAPHER_GRID_LINE_WIDTH_DEFAULT
+                            }
                             strokeDasharray={
                                 t.solid
                                     ? undefined
@@ -70,13 +78,14 @@ export class VerticalAxisGridLines extends React.Component<{
 export class HorizontalAxisGridLines extends React.Component<{
     horizontalAxis: HorizontalAxis
     bounds?: Bounds
+    strokeWidth?: number
 }> {
     @computed get bounds(): Bounds {
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
     render(): JSX.Element {
-        const { horizontalAxis } = this.props
+        const { horizontalAxis, strokeWidth } = this.props
         const { bounds } = this
         const axis = horizontalAxis.clone()
         axis.range = bounds.xRange()
@@ -98,6 +107,9 @@ export class HorizontalAxisGridLines extends React.Component<{
                             x2={axis.place(t.value)}
                             y2={bounds.top.toFixed(2)}
                             stroke={color}
+                            strokeWidth={
+                                strokeWidth ?? GRAPHER_GRID_LINE_WIDTH_DEFAULT
+                            }
                             strokeDasharray={
                                 t.solid
                                     ? undefined
@@ -149,18 +161,26 @@ interface DualAxisViewProps {
     showTickMarks?: boolean
     labelColor?: string
     tickColor?: string
+    gridLineWidth?: number
 }
 
 @observer
 export class DualAxisComponent extends React.Component<DualAxisViewProps> {
     render(): JSX.Element {
-        const { dualAxis, showTickMarks, labelColor, tickColor } = this.props
+        const {
+            dualAxis,
+            showTickMarks,
+            labelColor,
+            tickColor,
+            gridLineWidth,
+        } = this.props
         const { bounds, horizontalAxis, verticalAxis, innerBounds } = dualAxis
 
         const verticalGridlines = verticalAxis.hideGridlines ? null : (
             <VerticalAxisGridLines
                 verticalAxis={verticalAxis}
                 bounds={innerBounds}
+                strokeWidth={gridLineWidth}
             />
         )
 
@@ -168,6 +188,7 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
             <HorizontalAxisGridLines
                 horizontalAxis={horizontalAxis}
                 bounds={innerBounds}
+                strokeWidth={gridLineWidth}
             />
         )
 

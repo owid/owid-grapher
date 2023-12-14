@@ -26,6 +26,8 @@ import {
     SeriesStrategy,
     FacetStrategy,
     GRAPHER_DARK_TEXT,
+    GRAPHER_GRID_LINE_WIDTH_THICK,
+    GRAPHER_GRID_LINE_WIDTH_DEFAULT,
 } from "../core/GrapherConstants"
 import {
     HorizontalAxisComponent,
@@ -429,6 +431,11 @@ export class DiscreteBarChart
                 <HorizontalAxisGridLines
                     horizontalAxis={yAxis}
                     bounds={innerBounds}
+                    strokeWidth={
+                        manager.isStaticAndSmall
+                            ? GRAPHER_GRID_LINE_WIDTH_THICK
+                            : GRAPHER_GRID_LINE_WIDTH_DEFAULT
+                    }
                 />
                 {series.map((series) => {
                     // Todo: add a "placedSeries" getter to get the transformed series, then just loop over the placedSeries and render a bar for each

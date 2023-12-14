@@ -48,6 +48,8 @@ import {
     SeriesStrategy,
     FacetStrategy,
     MissingDataStrategy,
+    GRAPHER_GRID_LINE_WIDTH_THICK,
+    GRAPHER_GRID_LINE_WIDTH_DEFAULT,
 } from "../core/GrapherConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { AxisConfig, FontSizeManager } from "../axis/AxisConfig"
@@ -783,6 +785,11 @@ export class LineChart
                     dualAxis={dualAxis}
                     showTickMarks={true}
                     labelColor={manager.secondaryColorInStaticCharts}
+                    gridLineWidth={
+                        manager.isStaticAndSmall
+                            ? GRAPHER_GRID_LINE_WIDTH_THICK
+                            : GRAPHER_GRID_LINE_WIDTH_DEFAULT
+                    }
                 />
                 <g clipPath={clipPath.id}>
                     {comparisonLines.map((line, index) => (
