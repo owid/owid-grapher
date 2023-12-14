@@ -22,7 +22,12 @@ import {
     LegendItem,
 } from "../verticalColorLegend/VerticalColorLegend"
 import { Tooltip, TooltipState, TooltipTable } from "../tooltip/Tooltip"
-import { BASE_FONT_SIZE, GRAPHER_DARK_TEXT } from "../core/GrapherConstants"
+import {
+    BASE_FONT_SIZE,
+    GRAPHER_DARK_TEXT,
+    GRAPHER_GRID_LINE_WIDTH_DEFAULT,
+    GRAPHER_GRID_LINE_WIDTH_THICK,
+} from "../core/GrapherConstants"
 import { ColorScaleManager } from "../color/ColorScale"
 import {
     AbstractStackedChart,
@@ -446,6 +451,11 @@ export class StackedBarChart
                 <VerticalAxisGridLines
                     verticalAxis={verticalAxis}
                     bounds={innerBounds}
+                    strokeWidth={
+                        manager.isStaticAndSmall
+                            ? GRAPHER_GRID_LINE_WIDTH_THICK
+                            : GRAPHER_GRID_LINE_WIDTH_DEFAULT
+                    }
                 />
 
                 <AxisTickMarks
