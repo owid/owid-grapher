@@ -70,6 +70,7 @@ import {
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { HorizontalNumericColorLegend } from "../horizontalColorLegend/HorizontalColorLegends"
 import { BaseType, Selection } from "d3"
+import { getElementWithHalo } from "../scatterCharts/Halos.js"
 
 const labelToTextPadding = 10
 const labelToBarPadding = 5
@@ -484,23 +485,28 @@ export class DiscreteBarChart
                                 opacity={0.85}
                                 style={{ transition: "height 200ms ease" }}
                             />
-                            <text
-                                x={0}
-                                y={0}
-                                transform={`translate(${
-                                    yAxis.place(series.value) +
-                                    (isNegative
-                                        ? -labelToBarPadding
-                                        : labelToBarPadding)
-                                }, 0)`}
-                                fill={GRAPHER_DARK_TEXT}
-                                dominantBaseline="middle"
-                                textAnchor={isNegative ? "end" : "start"}
-                                {...this.valueLabelStyle}
-                            >
-                                {label.valueString}
-                                <tspan fill="#999">{label.timeString}</tspan>
-                            </text>
+                            {getElementWithHalo(
+                                series.seriesName + "-label",
+                                <text
+                                    x={0}
+                                    y={0}
+                                    transform={`translate(${
+                                        yAxis.place(series.value) +
+                                        (isNegative
+                                            ? -labelToBarPadding
+                                            : labelToBarPadding)
+                                    }, 0)`}
+                                    fill={GRAPHER_DARK_TEXT}
+                                    dominantBaseline="middle"
+                                    textAnchor={isNegative ? "end" : "start"}
+                                    {...this.valueLabelStyle}
+                                >
+                                    {label.valueString}
+                                    <tspan fill="#999">
+                                        {label.timeString}
+                                    </tspan>
+                                </text>
+                            )}
                         </g>
                     )
 

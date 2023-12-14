@@ -59,6 +59,7 @@ import { HashMap, NodeGroup } from "react-move"
 import { easeQuadOut } from "d3-ease"
 import { bind } from "decko"
 import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner.js"
+import { getElementWithHalo } from "../scatterCharts/Halos.js"
 
 const labelToBarPadding = 5
 
@@ -555,17 +556,19 @@ export class StackedDiscreteBarChart
                             onMouseLeave={this.onEntityMouseLeave}
                         />
                     ))}
-                    {this.showTotalValueLabel && (
-                        <text
-                            transform={`translate(${
-                                yAxis.place(totalValue) + labelToBarPadding
-                            }, 0)`}
-                            dominantBaseline="middle"
-                            {...this.totalValueLabelStyle}
-                        >
-                            {totalLabel}
-                        </text>
-                    )}
+                    {this.showTotalValueLabel &&
+                        getElementWithHalo(
+                            label + "-value-label",
+                            <text
+                                transform={`translate(${
+                                    yAxis.place(totalValue) + labelToBarPadding
+                                }, 0)`}
+                                dominantBaseline="middle"
+                                {...this.totalValueLabelStyle}
+                            >
+                                {totalLabel}
+                            </text>
+                        )}
                 </g>
             )
         }
