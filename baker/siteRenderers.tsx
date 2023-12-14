@@ -430,6 +430,7 @@ ${posts
 export const entriesByYearPage = async (year?: number) => {
     const entries = (await knexTable(postsTable)
         .where({ status: "publish" })
+        .whereNot({ type: "wp_block" })
         .join("post_tags", { "post_tags.post_id": "posts.id" })
         .join("tags", { "tags.id": "post_tags.tag_id" })
         .where({ "tags.name": "Entries" })
