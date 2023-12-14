@@ -16,8 +16,8 @@ import {
 import { computed, action, observable } from "mobx"
 import {
     GRAPHER_AREA_OPACITY_DEFAULT,
-    GRAPHER_GRID_LINE_WIDTH_DEFAULT,
-    GRAPHER_GRID_LINE_WIDTH_THICK,
+    GRAPHER_AXIS_LINE_WIDTH_DEFAULT,
+    GRAPHER_AXIS_LINE_WIDTH_THICK,
     SeriesName,
 } from "../core/GrapherConstants"
 import { observer } from "mobx-react"
@@ -537,10 +537,10 @@ export class StackedAreaChart
                     dualAxis={dualAxis}
                     showTickMarks={true}
                     labelColor={manager.secondaryColorInStaticCharts}
-                    gridLineWidth={
+                    lineWidth={
                         manager.isStaticAndSmall
-                            ? GRAPHER_GRID_LINE_WIDTH_THICK
-                            : GRAPHER_GRID_LINE_WIDTH_DEFAULT
+                            ? GRAPHER_AXIS_LINE_WIDTH_THICK
+                            : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
                     }
                 />
                 <g clipPath={clipPath.id}>

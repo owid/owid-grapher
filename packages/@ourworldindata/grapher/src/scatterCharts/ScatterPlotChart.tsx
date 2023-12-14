@@ -41,8 +41,8 @@ import {
     EntitySelectionMode,
     ScatterPointLabelStrategy,
     SeriesName,
-    GRAPHER_GRID_LINE_WIDTH_DEFAULT,
-    GRAPHER_GRID_LINE_WIDTH_THICK,
+    GRAPHER_AXIS_LINE_WIDTH_DEFAULT,
+    GRAPHER_AXIS_LINE_WIDTH_THICK,
 } from "../core/GrapherConstants"
 import {
     Color,
@@ -779,10 +779,10 @@ export class ScatterPlotChart
                     dualAxis={dualAxis}
                     showTickMarks={false}
                     labelColor={manager.secondaryColorInStaticCharts}
-                    gridLineWidth={
+                    lineWidth={
                         manager.isStaticAndSmall
-                            ? GRAPHER_GRID_LINE_WIDTH_THICK
-                            : GRAPHER_GRID_LINE_WIDTH_DEFAULT
+                            ? GRAPHER_AXIS_LINE_WIDTH_THICK
+                            : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
                     }
                 />
                 {comparisonLines &&

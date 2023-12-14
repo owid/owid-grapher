@@ -25,8 +25,8 @@ import { observer } from "mobx-react"
 import {
     BASE_FONT_SIZE,
     EntitySelectionMode,
-    GRAPHER_GRID_LINE_WIDTH_DEFAULT,
-    GRAPHER_GRID_LINE_WIDTH_THICK,
+    GRAPHER_AXIS_LINE_WIDTH_DEFAULT,
+    GRAPHER_AXIS_LINE_WIDTH_THICK,
     Patterns,
 } from "../core/GrapherConstants"
 import { DualAxisComponent } from "../axis/AxisViews"
@@ -963,10 +963,10 @@ export class MarimekkoChart
                     dualAxis={dualAxis}
                     showTickMarks={true}
                     labelColor={manager.secondaryColorInStaticCharts}
-                    gridLineWidth={
+                    lineWidth={
                         manager.isStaticAndSmall
-                            ? GRAPHER_GRID_LINE_WIDTH_THICK
-                            : GRAPHER_GRID_LINE_WIDTH_DEFAULT
+                            ? GRAPHER_AXIS_LINE_WIDTH_THICK
+                            : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
                     }
                 />
                 <HorizontalCategoricalColorLegend manager={this} />

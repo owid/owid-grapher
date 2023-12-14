@@ -26,8 +26,8 @@ import {
     BASE_FONT_SIZE,
     GRAPHER_AREA_OPACITY_DEFAULT,
     GRAPHER_DARK_TEXT,
-    GRAPHER_GRID_LINE_WIDTH_DEFAULT,
-    GRAPHER_GRID_LINE_WIDTH_THICK,
+    GRAPHER_AXIS_LINE_WIDTH_DEFAULT,
+    GRAPHER_AXIS_LINE_WIDTH_THICK,
 } from "../core/GrapherConstants"
 import { ColorScaleManager } from "../color/ColorScale"
 import {
@@ -427,6 +427,10 @@ export class StackedBarChart
 
         const clipPath = makeClipPath(renderUid, innerBounds)
 
+        const axisLineWidth = manager.isStaticAndSmall
+            ? GRAPHER_AXIS_LINE_WIDTH_THICK
+            : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
+
         return (
             <g
                 className="StackedBarChart"
@@ -452,11 +456,7 @@ export class StackedBarChart
                 <VerticalAxisGridLines
                     verticalAxis={verticalAxis}
                     bounds={innerBounds}
-                    strokeWidth={
-                        manager.isStaticAndSmall
-                            ? GRAPHER_GRID_LINE_WIDTH_THICK
-                            : GRAPHER_GRID_LINE_WIDTH_DEFAULT
-                    }
+                    strokeWidth={axisLineWidth}
                 />
 
                 <AxisTickMarks
@@ -465,6 +465,7 @@ export class StackedBarChart
                         (tick) => tick.bounds.centerX
                     )}
                     color="#666"
+                    width={axisLineWidth}
                 />
 
                 <g>

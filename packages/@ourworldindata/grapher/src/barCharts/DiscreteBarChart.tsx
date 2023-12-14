@@ -26,8 +26,8 @@ import {
     SeriesStrategy,
     FacetStrategy,
     GRAPHER_DARK_TEXT,
-    GRAPHER_GRID_LINE_WIDTH_THICK,
-    GRAPHER_GRID_LINE_WIDTH_DEFAULT,
+    GRAPHER_AXIS_LINE_WIDTH_THICK,
+    GRAPHER_AXIS_LINE_WIDTH_DEFAULT,
     GRAPHER_AREA_OPACITY_DEFAULT,
 } from "../core/GrapherConstants"
 import {
@@ -409,6 +409,10 @@ export class DiscreteBarChart
 
         let yOffset = innerBounds.top + barHeight / 2 + barSpacing / 2
 
+        const axisLineWidth = manager.isStaticAndSmall
+            ? GRAPHER_AXIS_LINE_WIDTH_THICK
+            : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
+
         return (
             <g ref={this.base} className="DiscreteBarChart">
                 <rect
@@ -428,16 +432,13 @@ export class DiscreteBarChart
                         axis={yAxis}
                         preferredAxisPosition={innerBounds.bottom}
                         labelColor={manager.secondaryColorInStaticCharts}
+                        tickMarkWidth={axisLineWidth}
                     />
                 )}
                 <HorizontalAxisGridLines
                     horizontalAxis={yAxis}
                     bounds={innerBounds}
-                    strokeWidth={
-                        manager.isStaticAndSmall
-                            ? GRAPHER_GRID_LINE_WIDTH_THICK
-                            : GRAPHER_GRID_LINE_WIDTH_DEFAULT
-                    }
+                    strokeWidth={axisLineWidth}
                 />
                 {series.map((series) => {
                     // Todo: add a "placedSeries" getter to get the transformed series, then just loop over the placedSeries and render a bar for each
@@ -519,6 +520,7 @@ export class DiscreteBarChart
                     <HorizontalAxisZeroLine
                         horizontalAxis={yAxis}
                         bounds={innerBounds}
+                        strokeWidth={axisLineWidth}
                     />
                 )}
             </g>

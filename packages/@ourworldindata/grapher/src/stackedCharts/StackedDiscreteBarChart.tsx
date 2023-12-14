@@ -25,8 +25,8 @@ import {
     BASE_FONT_SIZE,
     FacetStrategy,
     GRAPHER_AREA_OPACITY_DEFAULT,
-    GRAPHER_GRID_LINE_WIDTH_DEFAULT,
-    GRAPHER_GRID_LINE_WIDTH_THICK,
+    GRAPHER_AXIS_LINE_WIDTH_DEFAULT,
+    GRAPHER_AXIS_LINE_WIDTH_THICK,
     SeriesName,
 } from "../core/GrapherConstants"
 import {
@@ -574,6 +574,10 @@ export class StackedDiscreteBarChart
             )
         }
 
+        const axisLineWidth = manager.isStaticAndSmall
+            ? GRAPHER_AXIS_LINE_WIDTH_THICK
+            : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
+
         return (
             <g
                 ref={this.base}
@@ -594,16 +598,13 @@ export class StackedDiscreteBarChart
                         axis={yAxis}
                         preferredAxisPosition={innerBounds.bottom}
                         labelColor={manager.secondaryColorInStaticCharts}
+                        tickMarkWidth={axisLineWidth}
                     />
                 )}
                 <HorizontalAxisGridLines
                     horizontalAxis={yAxis}
                     bounds={innerBounds}
-                    strokeWidth={
-                        manager.isStaticAndSmall
-                            ? GRAPHER_GRID_LINE_WIDTH_THICK
-                            : GRAPHER_GRID_LINE_WIDTH_DEFAULT
-                    }
+                    strokeWidth={axisLineWidth}
                 />
                 {this.showLegend && (
                     <HorizontalCategoricalColorLegend manager={this} />
@@ -621,6 +622,7 @@ export class StackedDiscreteBarChart
                 <HorizontalAxisZeroLine
                     horizontalAxis={yAxis}
                     bounds={innerBounds}
+                    strokeWidth={axisLineWidth}
                 />
                 {this.Tooltip}
             </g>
