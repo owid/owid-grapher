@@ -134,7 +134,7 @@ export class StackedBarChart
     }
 
     @computed get tickFontSize(): number {
-        return 0.875 * this.baseFontSize
+        return 0.75 * this.baseFontSize
     }
 
     @computed get barWidth(): number {

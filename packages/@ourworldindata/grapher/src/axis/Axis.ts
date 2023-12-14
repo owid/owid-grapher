@@ -387,7 +387,7 @@ abstract class AbstractAxis {
     }
 
     @computed get tickFontSize(): number {
-        return 0.875 * this.fontSize
+        return 0.75 * this.fontSize
     }
 
     @computed protected get baseTicks(): Tickmark[] {
