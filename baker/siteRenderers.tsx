@@ -94,6 +94,7 @@ import { resolveInternalRedirect } from "./redirects.js"
 import { postsTable } from "../db/model/Post.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
+import { GdocFactory } from "../db/model/Gdoc/GdocFactory.js"
 
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
@@ -331,14 +332,14 @@ export const renderFrontPage = async () => {
 }
 
 export const renderDonatePage = async () => {
-    const faqsGdoc = await GdocPost.findOneBy({
-        id: GDOCS_DONATE_FAQS_DOCUMENT_ID,
-    })
+    const faqsGdoc = (await GdocFactory.load(
+        GDOCS_DONATE_FAQS_DOCUMENT_ID,
+        {}
+    )) as GdocPost
     if (!faqsGdoc)
         throw new Error(
             `Failed to find donate FAQs Gdoc with id "${GDOCS_DONATE_FAQS_DOCUMENT_ID}"`
         )
-    await faqsGdoc.loadState({})
 
     return renderToHtmlPage(
         <DonatePage
