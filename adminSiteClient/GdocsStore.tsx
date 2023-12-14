@@ -2,7 +2,6 @@ import React, { useContext, createContext, useState } from "react"
 import { action, observable } from "mobx"
 import {
     getOwidGdocFromJSON,
-    omit,
     OwidGdocJSON,
     Tag,
     OwidGdoc,

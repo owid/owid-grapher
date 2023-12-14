@@ -28,7 +28,6 @@ import {
     camelCaseProperties,
     chartBulkUpdateAllowedColumnNamesAndTypes,
     GdocsContentSource,
-    getOwidGdocFromJSON,
     GrapherConfigPatch,
     isEmpty,
     JsonError,
