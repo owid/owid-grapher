@@ -189,7 +189,7 @@ export class Footer<
         )
     }
 
-    @computed private get lineHeight(): number {
+    @computed protected get lineHeight(): number {
         return this.manager.isSmall ? 1.1 : 1.2
     }
 
@@ -694,8 +694,34 @@ export class StaticFooter extends Footer<StaticFooterProps> {
 
     @computed protected get fontSize(): number {
         if (this.useBaseFontSize) {
-            return (12 / BASE_FONT_SIZE) * this.baseFontSize
+            let fontSize = (12 / BASE_FONT_SIZE) * this.baseFontSize
+
+            // for small charts, reduce the font size if the footer text is long
+            if (this.manager.isStaticAndSmall) {
+                const sources = new MarkdownTextWrap({
+                    text: this.sourcesText,
+                    maxWidth: this.sourcesMaxWidth,
+                    lineHeight: this.lineHeight,
+                    fontSize,
+                })
+                const note = new MarkdownTextWrap({
+                    text: this.markdownNoteText,
+                    maxWidth: this.noteMaxWidth,
+                    lineHeight: this.lineHeight,
+                    fontSize,
+                })
+
+                const lineCount =
+                    sources.svgLines.length +
+                    (this.showNote ? note.svgLines.length : 0)
+                if (lineCount > 2) {
+                    fontSize = (10 / BASE_FONT_SIZE) * this.baseFontSize
+                }
+            }
+
+            return fontSize
         }
+
         return 13
     }
 
