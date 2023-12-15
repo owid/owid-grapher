@@ -17,7 +17,7 @@ export interface DataInsightsIndexPageProps {
     dataInsights: OwidGdocDataInsightInterface[]
     baseUrl: string
     pageNumber: number
-    totalPages: number
+    totalPageCount: number
     isPreviewing?: boolean
 }
 

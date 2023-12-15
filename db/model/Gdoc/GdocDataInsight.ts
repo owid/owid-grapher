@@ -43,12 +43,14 @@ export class GdocDataInsight
     }
 
     _loadSubclassAttachments = async (): Promise<void> => {
-        await this.loadLatestDataInsights()
+        this.latestDataInsights = await GdocDataInsight.loadLatestDataInsights()
     }
 
-    async loadLatestDataInsights(): Promise<void> {
+    static async loadLatestDataInsights(): Promise<
+        MinimalDataInsightInterface[]
+    > {
         const c = await getConnection()
-        this.latestDataInsights = (
+        return (
             await c.query(`
         SELECT
             content->>'$.title' AS title,
@@ -68,8 +70,9 @@ export class GdocDataInsight
     }
 
     static async getPublishedDataInsights(
-        page: number = 0
+        page?: number
     ): Promise<GdocDataInsight[]> {
+        const isPaging = page !== undefined
         return GdocDataInsight.find({
             where: {
                 published: true,
@@ -82,8 +85,8 @@ export class GdocDataInsight
             order: {
                 publishedAt: "DESC",
             },
-            take: DATA_INSIGHTS_INDEX_PAGE_SIZE,
-            skip: page * DATA_INSIGHTS_INDEX_PAGE_SIZE,
+            take: isPaging ? DATA_INSIGHTS_INDEX_PAGE_SIZE : undefined,
+            skip: isPaging ? page * DATA_INSIGHTS_INDEX_PAGE_SIZE : undefined,
             relations: ["tags"],
         })
     }

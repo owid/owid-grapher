@@ -1442,16 +1442,6 @@ export interface OwidGdocLinkJSON {
     text: string
 }
 
-/**
- * See ../adminSiteClient/gdocsValidation/getErrors() where these existence
- * constraints are surfaced at runtime on the draft article
- */
-export interface OwidGdocPublished extends OwidGdocPostInterface {
-    publishedAt: Date
-    updatedAt: Date
-    content: OwidGdocPostContentPublished
-}
-
 export interface OwidArticleBackportingStatistics {
     errors: { name: string; details: string }[]
     numErrors: number
@@ -1516,12 +1506,6 @@ export interface OwidGdocPostContent {
 }
 
 export type OwidGdocStickyNavItem = { target: string; text: string }
-
-export interface OwidGdocPostContentPublished extends OwidGdocPostContent {
-    body: OwidEnrichedGdocBlock[]
-    title: string
-    excerpt: string
-}
 
 export type GdocsPatch = Partial<OwidGdocPostInterface>
 

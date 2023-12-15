@@ -58,6 +58,7 @@ import {
     mergePartialGrapherConfigs,
     OwidGdocType,
     OwidGdoc,
+    OwidGdocDataInsightInterface,
 } from "@ourworldindata/utils"
 import { CountryProfileSpec } from "../site/countryProfileProjects.js"
 import { formatPost } from "./formatWordpressPost.js"
@@ -354,22 +355,18 @@ export const renderDonatePage = async () => {
     )
 }
 
-export const renderDataInsightsIndexPage = async (
+export const renderDataInsightsIndexPage = (
+    dataInsights: OwidGdocDataInsightInterface[],
     page: number = 0,
+    totalPageCount: number,
     isPreviewing: boolean = false
 ) => {
-    const insights = await GdocDataInsight.getPublishedDataInsights(page)
-    // TODO: calling fetchImageMetadata 20 times in a row is horrible
-    await Promise.all(insights.map((insight) => insight.loadState({})))
-
-    const totalPages = await GdocDataInsight.getTotalPageCount()
-
     return renderToHtmlPage(
         <DataInsightsIndexPage
-            dataInsights={insights}
+            dataInsights={dataInsights}
             baseUrl={BAKED_BASE_URL}
             pageNumber={page}
-            totalPages={totalPages}
+            totalPageCount={totalPageCount}
             isPreviewing={isPreviewing}
         />
     )

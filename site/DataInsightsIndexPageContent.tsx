@@ -13,9 +13,9 @@ import { DataInsightsIndexPageProps } from "./DataInsightsIndexPage.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowLeft, faArrowRight } from "@fortawesome/free-solid-svg-icons"
 
-const Pagination = (props: { pageNumber: number; totalPages: number }) => {
-    const { pageNumber, totalPages } = props
-    if (totalPages <= 1) return null
+const Pagination = (props: { pageNumber: number; totalPageCount: number }) => {
+    const { pageNumber, totalPageCount } = props
+    if (totalPageCount <= 1) return null
 
     // pageNumber is 0-indexed, even though the page routes are 1-indexed. Also pageNumber === 0 is a special case.
     // e.g. /data-insights, /data-insights/2, /data-insights/3
@@ -28,13 +28,15 @@ const Pagination = (props: { pageNumber: number; totalPages: number }) => {
 
     const nextTarget =
         // pageNumber + 1 is the same as the route we're on, hence pageNumber + 2
-        pageNumber < totalPages - 1 ? `/data-insights/${pageNumber + 2}` : ""
-    const isRightArrowDisabled = pageNumber === totalPages - 1
+        pageNumber < totalPageCount - 1
+            ? `/data-insights/${pageNumber + 2}`
+            : ""
+    const isRightArrowDisabled = pageNumber === totalPageCount - 1
 
     // Select 5 values around the current page number
     const pageNumbers = []
     const start = Math.max(0, pageNumber - 2)
-    for (let i = start; i < Math.min(start + 5, totalPages); i++) {
+    for (let i = start; i < Math.min(start + 5, totalPageCount); i++) {
         pageNumbers.push(i)
     }
 
@@ -126,7 +128,7 @@ export const DataInsightsIndexPageContent = (
                     )
                 })}
                 <Pagination
-                    totalPages={props.totalPages}
+                    totalPageCount={props.totalPageCount}
                     pageNumber={props.pageNumber}
                 />
             </AttachmentsContext.Provider>

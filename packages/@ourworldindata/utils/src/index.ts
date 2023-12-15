@@ -118,7 +118,6 @@ export {
     OwidGdocType,
     type OwidGdocStickyNavItem,
     type OwidGdocJSON,
-    type OwidGdocPublished,
     type OwidEnrichedGdocBlock,
     type OwidRawGdocBlock,
     type OwidArticleBackportingStatistics,
