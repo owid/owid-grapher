@@ -363,7 +363,9 @@ export const renderDataInsightsIndexPage = async (
 
     const publishedDataInsightCount =
         await GdocDataInsight.getPublishedDataInsightCount()
-    const totalPages = publishedDataInsightCount / DATA_INSIGHTS_INDEX_PAGE_SIZE
+    const totalPages =
+        1 +
+        Math.floor(publishedDataInsightCount / DATA_INSIGHTS_INDEX_PAGE_SIZE)
 
     return renderToHtmlPage(
         <DataInsightsIndexPage

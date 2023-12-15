@@ -1,4 +1,5 @@
 import React from "react"
+import cx from "classnames"
 import ReactDOM from "react-dom"
 import {
     ImageMetadata,
@@ -9,6 +10,71 @@ import {
 import { DataInsightBody, indexToIdMap } from "./gdocs/pages/DataInsight.js"
 import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
 import { DataInsightsIndexPageProps } from "./DataInsightsIndexPage.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faArrowLeft, faArrowRight } from "@fortawesome/free-solid-svg-icons"
+
+const Pagination = (props: { pageNumber: number; totalPages: number }) => {
+    const { pageNumber, totalPages } = props
+    if (totalPages <= 1) return null
+
+    // pageNumber is 0-indexed, even though the page routes are 1-indexed. Also pageNumber === 0 is a special case.
+    // e.g. /data-insights, /data-insights/2, /data-insights/3
+    const prevTarget =
+        pageNumber === 1
+            ? "/data-insights"
+            : // pageNumber is already "one less" than the page route we're on
+              `/data-insights/${pageNumber}`
+    const isLeftArrowDisabled = pageNumber === 0
+
+    const nextTarget =
+        // pageNumber + 1 is the same as the route we're on, hence pageNumber + 2
+        pageNumber < totalPages - 1 ? `/data-insights/${pageNumber + 2}` : ""
+    const isRightArrowDisabled = pageNumber === totalPages - 1
+
+    // Select 5 values around the current page number
+    const pageNumbers = []
+    const start = Math.max(0, pageNumber - 2)
+    for (let i = start; i < Math.min(start + 5, totalPages); i++) {
+        pageNumbers.push(i)
+    }
+
+    return (
+        <div className="data-insights-index-page__pagination span-cols-8 col-start-4 span-md-cols-10 col-md-start-3 span-sm-cols-12 col-sm-start-2">
+            <a
+                href={prevTarget}
+                aria-disabled={isLeftArrowDisabled}
+                className={cx("data-insights-index-page__pagination-link", {
+                    "data-insights-index-page__pagination-link--disabled":
+                        isLeftArrowDisabled,
+                })}
+            >
+                <FontAwesomeIcon icon={faArrowLeft} />
+            </a>
+            {pageNumbers.map((i) => (
+                <a
+                    href={`/data-insights${i === 0 ? "" : `/${i + 1}`}`}
+                    key={i}
+                    className={cx("data-insights-index-page__pagination-link", {
+                        "data-insights-index-page__pagination-link--active":
+                            i === pageNumber,
+                    })}
+                >
+                    {i + 1}
+                </a>
+            ))}
+            <a
+                href={nextTarget}
+                aria-disabled={isRightArrowDisabled}
+                className={cx("data-insights-index-page__pagination-link", {
+                    "data-insights-index-page__pagination-link--disabled":
+                        isRightArrowDisabled,
+                })}
+            >
+                <FontAwesomeIcon icon={faArrowRight} />
+            </a>
+        </div>
+    )
+}
 
 export const DataInsightsIndexPageContent = (
     props: DataInsightsIndexPageProps
@@ -59,6 +125,10 @@ export const DataInsightsIndexPageContent = (
                         />
                     )
                 })}
+                <Pagination
+                    totalPages={props.totalPages}
+                    pageNumber={props.pageNumber}
+                />
             </AttachmentsContext.Provider>
         </DocumentContext.Provider>
     )

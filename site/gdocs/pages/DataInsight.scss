@@ -255,3 +255,31 @@
         margin-bottom: 32px;
     }
 }
+
+.data-insights-index-page__pagination {
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: space-between;
+    a {
+        color: $blue-60;
+        min-width: 40px;
+        min-height: 40px;
+        text-align: center;
+        line-height: 40px;
+        transition: 200ms;
+    }
+    a.data-insights-index-page__pagination-link {
+        &:hover {
+            background-color: $blue-10;
+        }
+    }
+    a.data-insights-index-page__pagination-link--disabled {
+        pointer-events: none;
+        svg {
+            color: $blue-30;
+        }
+    }
+    a.data-insights-index-page__pagination-link--active {
+        background-color: $blue-20;
+    }
+}
