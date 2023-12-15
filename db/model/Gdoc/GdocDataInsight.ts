@@ -99,4 +99,18 @@ export class GdocDataInsight
         `
         return (await c.query(query))[0].count
     }
+
+    /**
+     * Returns the number of pages that will exist on the data insights index page
+     * based on the number of published data insights and DATA_INSIGHTS_INDEX_PAGE_SIZE
+     */
+    static async getTotalPageCount(): Promise<number> {
+        return (
+            1 +
+            Math.floor(
+                (await GdocDataInsight.getPublishedDataInsightCount()) /
+                    DATA_INSIGHTS_INDEX_PAGE_SIZE
+            )
+        )
+    }
 }

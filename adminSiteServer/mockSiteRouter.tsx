@@ -51,6 +51,7 @@ import {
     renderDataPageV2,
 } from "../baker/GrapherBaker.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
+import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
 
 require("express-async-errors")
 
@@ -171,10 +172,26 @@ mockSiteRouter.get("/donate", async (req, res) =>
     res.send(await renderDonatePage())
 )
 
-mockSiteRouter.get("/data-insights/:page?", async (req, res) => {
-    const page = parseInt(req.params.page || "1")
-    if (isNaN(page) || page < 1) throw new JsonError("Invalid page number", 404)
-    res.send(await renderDataInsightsIndexPage(page - 1, true))
+mockSiteRouter.get("/data-insights/:pageNumberOrSlug?", async (req, res) => {
+    const pageNumberOrSlug = req.params.pageNumberOrSlug
+    if (!pageNumberOrSlug) {
+        return res.send(await renderDataInsightsIndexPage(0, true))
+    }
+    const pageNumber = parseInt(pageNumberOrSlug)
+    if (!isNaN(pageNumber)) {
+        if (pageNumber < 1) return res.redirect("/data-insights")
+        const totalPages = await GdocDataInsight.getTotalPageCount()
+        if (pageNumber > totalPages) return res.redirect("/data-insights")
+        return res.send(await renderDataInsightsIndexPage(pageNumber - 1, true))
+    }
+    const slug = pageNumberOrSlug
+    try {
+        return res.send(await renderGdocsPageBySlug(slug, true))
+    } catch (e) {
+        console.error(e)
+    }
+
+    return new JsonError(`Data insight with slug "${slug}" not found`, 404)
 })
 
 mockSiteRouter.get("/charts", async (req, res) => {

@@ -77,6 +77,21 @@ export class GdocFactory {
         return gdoc
     }
 
+    static async loadBySlug(
+        slug: string,
+        publishedExplorersBySlug: Record<string, any>
+    ): Promise<GdocPost | GdocDataInsight> {
+        const base = await GdocBase.findOne({
+            where: { slug, published: true },
+        })
+        if (!base) {
+            throw new Error(
+                `No published Google Doc with slug "${slug}" found in the database`
+            )
+        }
+        return this.load(base.id, publishedExplorersBySlug)
+    }
+
     // From an ID, get a Gdoc object with all its metadata and state loaded, in its correct subclass.
     // If contentSource is Gdocs, use live data from Google, otherwise use the data in the DB.
     static async load(

@@ -58,7 +58,6 @@ import {
     mergePartialGrapherConfigs,
     OwidGdocType,
     OwidGdoc,
-    DATA_INSIGHTS_INDEX_PAGE_SIZE,
 } from "@ourworldindata/utils"
 import { CountryProfileSpec } from "../site/countryProfileProjects.js"
 import { formatPost } from "./formatWordpressPost.js"
@@ -172,28 +171,30 @@ export function renderDynamicCollectionPage() {
 }
 
 export const renderGdocsPageBySlug = async (
-    slug: string
+    slug: string,
+    isPreviewing: boolean = false
 ): Promise<string | undefined> => {
-    const gdoc = await GdocPost.findOneBy({ slug })
-    if (!gdoc) {
-        throw new Error(`Failed to render an unknown GDocs post: ${slug}.`)
-    }
-    if (!gdoc.published) {
-        throw new Error(
-            `A Gdoc exists with slug "${slug}" but it is not published.`
-        )
-    }
     const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
     const publishedExplorersBySlug =
         await explorerAdminServer.getAllPublishedExplorersBySlug()
+
+    const gdoc = await GdocFactory.loadBySlug(slug, publishedExplorersBySlug)
+    if (!gdoc) {
+        throw new Error(`Failed to render an unknown GDocs post: ${slug}.`)
+    }
+
     await gdoc.loadState(publishedExplorersBySlug)
 
-    return renderGdoc(gdoc)
+    return renderGdoc(gdoc, isPreviewing)
 }
 
-export const renderGdoc = (gdoc: OwidGdoc) => {
+export const renderGdoc = (gdoc: OwidGdoc, isPreviewing: boolean = false) => {
     return renderToHtmlPage(
-        <OwidGdocPage baseUrl={BAKED_BASE_URL} gdoc={gdoc} />
+        <OwidGdocPage
+            baseUrl={BAKED_BASE_URL}
+            gdoc={gdoc}
+            isPreviewing={isPreviewing}
+        />
     )
 }
 
@@ -361,11 +362,7 @@ export const renderDataInsightsIndexPage = async (
     // TODO: calling fetchImageMetadata 20 times in a row is horrible
     await Promise.all(insights.map((insight) => insight.loadState({})))
 
-    const publishedDataInsightCount =
-        await GdocDataInsight.getPublishedDataInsightCount()
-    const totalPages =
-        1 +
-        Math.floor(publishedDataInsightCount / DATA_INSIGHTS_INDEX_PAGE_SIZE)
+    const totalPages = await GdocDataInsight.getTotalPageCount()
 
     return renderToHtmlPage(
         <DataInsightsIndexPage

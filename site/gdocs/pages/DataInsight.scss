@@ -9,7 +9,7 @@
 
 // Orders
 .data-insight-breadcrumbs {
-    order: 1;
+    order: 0;
 }
 .data-insight-meta {
     order: 2;
@@ -281,5 +281,6 @@
     }
     a.data-insights-index-page__pagination-link--active {
         background-color: $blue-20;
+        pointer-events: none;
     }
 }
