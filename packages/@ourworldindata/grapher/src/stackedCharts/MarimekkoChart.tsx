@@ -1217,7 +1217,6 @@ export class MarimekkoChart
             yColumnsAtLastTimePoint,
             selectedItems,
             xRange,
-            baseFontSize,
             sortConfig,
             paddingInPixels,
         } = this
