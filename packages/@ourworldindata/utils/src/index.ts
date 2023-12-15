@@ -123,8 +123,6 @@ export {
     type PositionMap,
     type PostReference,
     type PostRestApi,
-    type PostRowEnriched,
-    type PostRowRaw,
     type PrimitiveType,
     type RawBlockAllCharts,
     type RawBlockAdditionalCharts,
@@ -238,14 +236,22 @@ export {
     type RawBlockAlign,
     type BreadcrumbItem,
     type DisplaySource,
-    type PostParsedFields,
-    type PostPlainFields,
-    type PostUnparsedFields,
+} from "./owidTypes.js"
+
+export {
     parsePostFormattingOptions,
     parsePostAuthors,
     parsePostRow,
     serializePostRow,
-} from "./owidTypes.js"
+} from "./dbTypes/PostsUtilities.js"
+
+export {
+    type PostRowParsedFields,
+    type PostRowPlainFields,
+    type PostRowUnparsedFields,
+    type PostRowEnriched,
+    type PostRowRaw,
+} from "./dbTypes/Posts.js"
 
 export {
     pairs,

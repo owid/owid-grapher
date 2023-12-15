@@ -4,6 +4,7 @@ import { gdocUrlRegex } from "./GdocsConstants.js"
 import { OwidOrigin } from "./OwidOrigin.js"
 import { OwidSource } from "./OwidSource.js"
 import { OwidProcessingLevel } from "./OwidVariable.js"
+import { PostRowEnriched } from "./dbTypes/Posts.js"
 
 // todo: remove when we ditch Year and YearIsDay
 export const EPOCH_DATE = "2020-01-21"
@@ -163,65 +164,6 @@ export interface TocHeading {
 export interface TocHeadingWithTitleSupertitle extends TocHeading {
     title: string
     supertitle?: string
-}
-
-export interface PostPlainFields {
-    id: number
-    title: string
-    slug: string
-    type: WP_PostType
-    status: string
-    content: string
-    published_at: Date | null
-    updated_at: Date | null
-    updated_at_in_wordpress: Date | null
-    archieml: string
-    archieml_update_statistics: string
-    gdocSuccessorId: string | null
-    excerpt: string
-    created_at_in_wordpress: Date | null
-    featured_image: string
-}
-
-export interface PostUnparsedFields {
-    authors: string
-    formattingOptions: string
-}
-
-export interface PostParsedFields {
-    authors: string[]
-    formattingOptions: FormattingOptions
-}
-export type PostRowRaw = PostPlainFields & PostUnparsedFields
-export type PostRowEnriched = PostPlainFields & PostParsedFields
-
-export function parsePostFormattingOptions(
-    formattingOptions: string
-): FormattingOptions {
-    return JSON.parse(formattingOptions)
-}
-
-export function parsePostAuthors(authors: string): string[] {
-    const authorsJson = JSON.parse(authors)
-    return authorsJson
-}
-
-export function parsePostRow(postRow: PostRowRaw): PostRowEnriched {
-    return {
-        ...postRow,
-        authors: parsePostAuthors(postRow.authors),
-        formattingOptions: parsePostFormattingOptions(
-            postRow.formattingOptions
-        ),
-    }
-}
-
-export function serializePostRow(postRow: PostRowEnriched): PostRowRaw {
-    return {
-        ...postRow,
-        authors: JSON.stringify(postRow.authors),
-        formattingOptions: JSON.stringify(postRow.formattingOptions),
-    }
 }
 
 export interface PostRowWithGdocPublishStatus extends PostRowEnriched {
