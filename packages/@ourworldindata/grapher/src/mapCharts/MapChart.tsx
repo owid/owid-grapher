@@ -576,6 +576,10 @@ export class MapChart
         return 0
     }
 
+    @computed get strokeWidth(): number | undefined {
+        return this.manager.isStaticAndSmall ? 2 : undefined
+    }
+
     renderMapLegend(): JSX.Element {
         const { numericLegend, categoryLegend } = this
 
@@ -629,7 +633,9 @@ export class MapChart
 declare type SVGMouseEvent = React.MouseEvent<SVGElement>
 
 @observer
-class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
+class ChoroplethMap extends React.Component<{
+    manager: ChoroplethMapManager
+}> {
     base: React.RefObject<SVGGElement> = React.createRef()
 
     @computed private get uid(): number {
@@ -638,6 +644,10 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
 
     @computed private get manager(): ChoroplethMapManager {
         return this.props.manager
+    }
+
+    @computed private get strokeWidth(): number {
+        return this.manager.strokeWidth ?? 1
     }
 
     @computed.struct private get bounds(): Bounds {
@@ -843,8 +853,10 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
             featuresWithData,
         } = this
         const focusStrokeColor = "#111"
-        const focusStrokeWidth = 1.5
-        const selectedStrokeWidth = 1
+        const defaultStrokeWidth = this.strokeWidth * 0.3
+        const focusStrokeWidth = this.strokeWidth * 1.5
+        const selectedStrokeWidth = this.strokeWidth * 1
+        const patternStrokeWidth = this.strokeWidth * 0.7
         const blurFillOpacity = 0.2
         const blurStrokeOpacity = 0.5
 
@@ -883,7 +895,9 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
                                     <path
                                         key={feature.id}
                                         d={feature.path}
-                                        strokeWidth={0.3 / viewportScale}
+                                        strokeWidth={
+                                            defaultStrokeWidth / viewportScale
+                                        }
                                         stroke={"#aaa"}
                                         fill={"#fff"}
                                     />
@@ -912,7 +926,7 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
                                     <path
                                         d="M -1,2 l 6,0"
                                         stroke="#ccc"
-                                        strokeWidth="0.7"
+                                        strokeWidth={patternStrokeWidth}
                                     />
                                 </pattern>
                             </defs>
@@ -935,7 +949,9 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
                                         key={feature.id}
                                         d={feature.path}
                                         strokeWidth={
-                                            (isFocus ? focusStrokeWidth : 0.3) /
+                                            (isFocus
+                                                ? focusStrokeWidth
+                                                : defaultStrokeWidth) /
                                             viewportScale
                                         }
                                         stroke={stroke}
@@ -991,7 +1007,8 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
                                             ? focusStrokeWidth
                                             : showSelectedStyle
                                             ? selectedStrokeWidth
-                                            : 0.3) / viewportScale
+                                            : defaultStrokeWidth) /
+                                        viewportScale
                                     }
                                     stroke={stroke}
                                     strokeOpacity={strokeOpacity}
