@@ -92,7 +92,9 @@ export default function Image(props: {
 
     if (isPreviewing) {
         const makePreviewUrl = (f: string) =>
-            `${IMAGE_HOSTING_CDN_URL}/${IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH}/${f}`
+            encodeURI(
+                `${IMAGE_HOSTING_CDN_URL}/${IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH}/${f}`
+            )
 
         const PreviewSource = (props: { i?: ImageMetadata; sm?: boolean }) => {
             const { i, sm } = props
@@ -101,7 +103,7 @@ export default function Image(props: {
             return (
                 <source
                     srcSet={`${makePreviewUrl(i.filename)} ${i.originalWidth}w`}
-                    media={sm ? "(max-width: 798px)" : undefined}
+                    media={sm ? "(max-width: 768px)" : undefined}
                     type="image/webp"
                     sizes={
                         containerSizes[containerType] ?? containerSizes.default

@@ -9,7 +9,7 @@ $vertical-spacing: 16px;
 :root {
     --grid-gap: 24px;
 
-    @media (max-width: 798px) {
+    @media (max-width: 768px) {
         --grid-gap: 16px;
     }
 }
