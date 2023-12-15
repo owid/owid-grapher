@@ -2679,10 +2679,10 @@ export class Grapher
 
     @computed get isStaticAndSmall(): boolean {
         if (!this.isStatic) return false
-        return (
-            this.staticBounds.width < this.idealBounds.width &&
-            this.staticBounds.width <= this.staticBounds.height
-        )
+        const { idealBounds, staticBounds } = this
+        const idealPixelCount = idealBounds.width * idealBounds.height
+        const staticPixelCount = staticBounds.width * staticBounds.height
+        return staticPixelCount < 0.66 * idealPixelCount
     }
 
     @computed get secondaryColorInStaticCharts(): string {
