@@ -12,11 +12,7 @@ import {
 } from "@ourworldindata/utils"
 import { VerticalAxis, HorizontalAxis, DualAxis } from "./Axis"
 import classNames from "classnames"
-import {
-    GRAPHER_DARK_TEXT,
-    GRAPHER_AXIS_LINE_WIDTH_DEFAULT,
-    ScaleType,
-} from "../core/GrapherConstants"
+import { GRAPHER_DARK_TEXT, ScaleType } from "../core/GrapherConstants"
 
 const dasharrayFromFontSize = (fontSize: number): string => {
     const dashLength = Math.round((fontSize / 16) * 3)
@@ -105,9 +101,7 @@ export class HorizontalAxisGridLines extends React.Component<{
                             x2={axis.place(t.value)}
                             y2={bounds.top.toFixed(2)}
                             stroke={color}
-                            strokeWidth={
-                                strokeWidth ?? GRAPHER_AXIS_LINE_WIDTH_DEFAULT
-                            }
+                            strokeWidth={strokeWidth}
                             strokeDasharray={
                                 t.solid
                                     ? undefined
