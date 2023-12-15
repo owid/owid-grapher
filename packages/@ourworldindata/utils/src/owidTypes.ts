@@ -165,8 +165,7 @@ export interface TocHeadingWithTitleSupertitle extends TocHeading {
     supertitle?: string
 }
 
-// todo; remove
-export interface PostRow {
+export interface PostPlainFields {
     id: number
     title: string
     slug: string
@@ -179,11 +178,50 @@ export interface PostRow {
     archieml: string
     archieml_update_statistics: string
     gdocSuccessorId: string | null
-    authors: string
     excerpt: string
     created_at_in_wordpress: Date | null
     featured_image: string
+}
+
+interface PostUnparsedFields {
+    authors: string
+    formattingOptions: string
+}
+
+interface PostParsedFields {
+    authors: string[]
     formattingOptions: FormattingOptions
+}
+export type PostRowRaw = PostPlainFields & PostUnparsedFields
+export type PostRow = PostPlainFields & PostParsedFields
+
+export function parsePostFormattingOptions(
+    formattingOptions: string
+): FormattingOptions {
+    return JSON.parse(formattingOptions)
+}
+
+export function parsePostAuthors(authors: string): string[] {
+    const authorsJson = JSON.parse(authors)
+    return authorsJson
+}
+
+export function parsePostRow(postRow: PostRowRaw): PostRow {
+    return {
+        ...postRow,
+        authors: parsePostAuthors(postRow.authors),
+        formattingOptions: parsePostFormattingOptions(
+            postRow.formattingOptions
+        ),
+    }
+}
+
+export function serializePostRow(postRow: PostRow): PostRowRaw {
+    return {
+        ...postRow,
+        authors: JSON.stringify(postRow.authors),
+        formattingOptions: JSON.stringify(postRow.formattingOptions),
+    }
 }
 
 export interface PostRowWithGdocPublishStatus extends PostRow {

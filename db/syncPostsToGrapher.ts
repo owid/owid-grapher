@@ -9,6 +9,7 @@ import {
     groupBy,
     keyBy,
     PostRow,
+    sortBy,
 } from "@ourworldindata/utils"
 import { postsTable, select } from "./model/Post.js"
 import { PostLink } from "./model/PostLink.js"
@@ -285,6 +286,10 @@ const syncPostsToGrapher = async (): Promise<void> => {
     const toInsert = rows.map((post: any) => {
         const content = post.post_content as string
         const formattingOptions = extractFormattingOptions(content)
+        const authors: string[] = sortBy(
+            JSON.parse(post.authors),
+            (item: { author: string; order: number }) => item.order
+        ).map((author: { author: string; order: number }) => author.author)
 
         return {
             id: post.ID,
@@ -302,7 +307,7 @@ const syncPostsToGrapher = async (): Promise<void> => {
                 post.post_modified_gmt === zeroDateString
                     ? "1970-01-01 00:00:00"
                     : post.post_modified_gmt,
-            authors: post.authors,
+            authors: JSON.stringify(authors),
             excerpt: post.post_excerpt,
             created_at_in_wordpress:
                 post.created_at === zeroDateString ? null : post.created_at,

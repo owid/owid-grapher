@@ -4,7 +4,11 @@ import parseArgs from "minimist"
 import { BAKE_ON_CHANGE } from "../settings/serverSettings.js"
 import { DeployQueueServer } from "./DeployQueueServer.js"
 import { exit } from "../db/cleanup.js"
-import { PostRow, extractFormattingOptions } from "@ourworldindata/utils"
+import {
+    PostRow,
+    extractFormattingOptions,
+    sortBy,
+} from "@ourworldindata/utils"
 import * as wpdb from "../db/wpdb.js"
 import * as db from "../db/db.js"
 import {
@@ -96,7 +100,10 @@ const syncPostToGrapher = async (
     const wpPost = rows[0]
 
     const formattingOptions = extractFormattingOptions(wpPost.post_content)
-
+    const authors: string[] = sortBy(
+        JSON.parse(wpPost.authors),
+        (item: { author: string; order: number }) => item.order
+    ).map((author: { author: string; order: number }) => author.author)
     const postRow = wpPost
         ? ({
               id: wpPost.ID,
@@ -114,7 +121,7 @@ const syncPostToGrapher = async (
                   wpPost.post_modified_gmt === zeroDateString
                       ? "1970-01-01 00:00:00"
                       : wpPost.post_modified_gmt,
-              authors: wpPost.authors,
+              authors: JSON.stringify(authors),
               excerpt: wpPost.post_excerpt,
               created_at_in_wordpress:
                   wpPost.created_at === zeroDateString

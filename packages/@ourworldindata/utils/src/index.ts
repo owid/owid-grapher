@@ -124,6 +124,7 @@ export {
     type PostReference,
     type PostRestApi,
     type PostRow,
+    type PostRowRaw,
     type PrimitiveType,
     type RawBlockAllCharts,
     type RawBlockAdditionalCharts,
