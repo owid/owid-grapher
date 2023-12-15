@@ -1,6 +1,11 @@
 import * as db from "../db.js"
 import { Knex } from "knex"
-import { PostRowRaw, sortBy } from "@ourworldindata/utils"
+import {
+    PostRowEnriched,
+    PostRowRaw,
+    parsePostRow,
+    sortBy,
+} from "@ourworldindata/utils"
 
 export const postsTable = "posts"
 
@@ -46,9 +51,6 @@ export const setTags = async (
             )
     })
 
-export const bySlug = async (slug: string): Promise<PostRowRaw | undefined> =>
-    (await db.knexTable("posts").where({ slug: slug }))[0]
-
 export const setTagsForPost = async (
     postId: number,
     tagIds: number[]
@@ -63,7 +65,15 @@ export const setTagsForPost = async (
             )
     })
 
-export const getPostBySlug = async (
+export const getPostRawBySlug = async (
     slug: string
 ): Promise<PostRowRaw | undefined> =>
     (await db.knexTable("posts").where({ slug: slug }))[0]
+
+export const getPostEnrichedBySlug = async (
+    slug: string
+): Promise<PostRowEnriched | undefined> => {
+    const post = await getPostRawBySlug(slug)
+    if (!post) return undefined
+    return parsePostRow(post)
+}
