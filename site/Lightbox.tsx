@@ -15,6 +15,27 @@ import { useTriggerOnEscape } from "./hooks.js"
 
 export const LIGHTBOX_IMAGE_CLASS = "lightbox-image"
 
+/**
+ * If the image is inside a <picture> element, get the URL of the largest
+ * source image that matches the current viewport size.
+ */
+function getActiveSourceImgUrl(img: HTMLImageElement): string | undefined {
+    if (img.closest("picture")) {
+        const sources = img.closest("picture")!.querySelectorAll("source")
+        const activeSource = Array.from(sources).find((s) =>
+            s.media ? window.matchMedia(s.media).matches : true
+        )
+        const sourceSrcset = activeSource?.getAttribute("srcset")
+        // split sourceSrcset into [src, width] pairs
+        const srcsetPairs = sourceSrcset
+            ?.split(",")
+            .map((pair) => pair.trim().split(" "))
+        const largestImgSrc = srcsetPairs?.at(-1)?.[0]
+        return largestImgSrc
+    }
+    return undefined
+}
+
 const Lightbox = ({
     children,
     containerNode,
@@ -145,9 +166,17 @@ export const runLightbox = () => {
 
         img.classList.add("lightbox-enabled")
         img.addEventListener("click", () => {
-            // getAttribute doesn't automatically URI encode values, img.src does
+            // An attribute placed by our WP image formatter: the URL of the original image without any WxH suffix
             const highResSrc = img.getAttribute("data-high-res-src")
-            const imgSrc = highResSrc ? encodeURI(highResSrc) : img.src
+            // If the image is a Gdoc Image with a smallFilename, get the source that is currently active
+            const activeSourceImgUrl = getActiveSourceImgUrl(img)
+            const imgSrc = highResSrc
+                ? // getAttribute doesn't automatically URI encode values, img.src does
+                  encodeURI(highResSrc)
+                : activeSourceImgUrl
+                ? activeSourceImgUrl
+                : img.src
+
             const imgAlt = img.alt
             if (imgSrc) {
                 ReactDOM.render(
