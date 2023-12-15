@@ -123,7 +123,7 @@ export {
     type PositionMap,
     type PostReference,
     type PostRestApi,
-    type PostRow,
+    type PostRowEnriched,
     type PostRowRaw,
     type PrimitiveType,
     type RawBlockAllCharts,
@@ -238,6 +238,13 @@ export {
     type RawBlockAlign,
     type BreadcrumbItem,
     type DisplaySource,
+    type PostParsedFields,
+    type PostPlainFields,
+    type PostUnparsedFields,
+    parsePostFormattingOptions,
+    parsePostAuthors,
+    parsePostRow,
+    serializePostRow,
 } from "./owidTypes.js"
 
 export {

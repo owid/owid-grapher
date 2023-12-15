@@ -50,7 +50,7 @@ import {
     JsonError,
     KeyInsight,
     OwidGdocInterface,
-    PostRow,
+    PostRowEnriched,
     Url,
     IndexPost,
     mergePartialGrapherConfigs,
@@ -435,7 +435,7 @@ export const entriesByYearPage = async (year?: number) => {
         .join("tags", { "tags.id": "post_tags.tag_id" })
         .where({ "tags.name": "Entries" })
         .select("title", "posts.slug", "published_at")) as Pick<
-        PostRow,
+        PostRowEnriched,
         "title" | "slug" | "published_at"
     >[]
 

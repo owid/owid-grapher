@@ -183,17 +183,17 @@ export interface PostPlainFields {
     featured_image: string
 }
 
-interface PostUnparsedFields {
+export interface PostUnparsedFields {
     authors: string
     formattingOptions: string
 }
 
-interface PostParsedFields {
+export interface PostParsedFields {
     authors: string[]
     formattingOptions: FormattingOptions
 }
 export type PostRowRaw = PostPlainFields & PostUnparsedFields
-export type PostRow = PostPlainFields & PostParsedFields
+export type PostRowEnriched = PostPlainFields & PostParsedFields
 
 export function parsePostFormattingOptions(
     formattingOptions: string
@@ -206,7 +206,7 @@ export function parsePostAuthors(authors: string): string[] {
     return authorsJson
 }
 
-export function parsePostRow(postRow: PostRowRaw): PostRow {
+export function parsePostRow(postRow: PostRowRaw): PostRowEnriched {
     return {
         ...postRow,
         authors: parsePostAuthors(postRow.authors),
@@ -216,7 +216,7 @@ export function parsePostRow(postRow: PostRowRaw): PostRow {
     }
 }
 
-export function serializePostRow(postRow: PostRow): PostRowRaw {
+export function serializePostRow(postRow: PostRowEnriched): PostRowRaw {
     return {
         ...postRow,
         authors: JSON.stringify(postRow.authors),
@@ -224,7 +224,7 @@ export function serializePostRow(postRow: PostRow): PostRowRaw {
     }
 }
 
-export interface PostRowWithGdocPublishStatus extends PostRow {
+export interface PostRowWithGdocPublishStatus extends PostRowEnriched {
     isGdocPublished: boolean
 }
 

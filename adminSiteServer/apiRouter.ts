@@ -37,7 +37,7 @@ import {
     OwidGdocInterface,
     parseIntOrUndefined,
     parseToOperation,
-    PostRow,
+    PostRowEnriched,
     PostRowWithGdocPublishStatus,
     SuggestedChartRevisionStatus,
     variableAnnotationAllowedColumnNamesAndTypes,
@@ -2370,7 +2370,7 @@ apiRouter.get("/posts/:postId.json", async (req: Request, res: Response) => {
         .knexTable(postsTable)
         .where({ id: postId })
         .select("*")
-        .first()) as PostRow | undefined
+        .first()) as PostRowEnriched | undefined
     return camelCaseProperties({ ...post })
 })
 

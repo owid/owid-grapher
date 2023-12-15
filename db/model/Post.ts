@@ -1,14 +1,14 @@
 import * as db from "../db.js"
 import { Knex } from "knex"
-import { PostRow, sortBy } from "@ourworldindata/utils"
+import { PostRowRaw, sortBy } from "@ourworldindata/utils"
 
 export const postsTable = "posts"
 
-export const table = "posts"
-
-export const select = <K extends keyof PostRow>(
+export const select = <K extends keyof PostRowRaw>(
     ...args: K[]
-): { from: (query: Knex.QueryBuilder) => Promise<Pick<PostRow, K>[]> } => ({
+): {
+    from: (query: Knex.QueryBuilder) => Promise<Pick<PostRowRaw, K>[]>
+} => ({
     from: (query) => query.select(...args) as any,
 })
 
@@ -46,16 +46,8 @@ export const setTags = async (
             )
     })
 
-export const bySlug = async (slug: string): Promise<PostRow | undefined> =>
+export const bySlug = async (slug: string): Promise<PostRowRaw | undefined> =>
     (await db.knexTable("posts").where({ slug: slug }))[0]
-
-/** The authors field in the posts table is a json column that contains an array of
-    { order: 1, authors: "Max Mustermann" } like records. This function parses the
-    string and returns a simple string array of author names in the correct order  */
-export const parsePostAuthors = (authorsJson: string): string[] => {
-    const authors = JSON.parse(authorsJson)
-    return sortBy(authors, ["order"]).map((author) => author.author)
-}
 
 export const setTagsForPost = async (
     postId: number,
@@ -73,5 +65,5 @@ export const setTagsForPost = async (
 
 export const getPostBySlug = async (
     slug: string
-): Promise<PostRow | undefined> =>
+): Promise<PostRowRaw | undefined> =>
     (await db.knexTable("posts").where({ slug: slug }))[0]

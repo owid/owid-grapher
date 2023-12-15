@@ -8,8 +8,9 @@ import {
     extractFormattingOptions,
     groupBy,
     keyBy,
-    PostRow,
+    PostRowEnriched,
     sortBy,
+    serializePostRow,
 } from "@ourworldindata/utils"
 import { postsTable, select } from "./model/Post.js"
 import { PostLink } from "./model/PostLink.js"
@@ -117,7 +118,7 @@ export const postLinkCompareStringGenerator = (item: PostLink): string =>
     `${item.linkType} - ${item.target} - ${item.hash} - ${item.queryString}`
 
 export function getLinksToAddAndRemoveForPost(
-    post: PostRow,
+    post: PostRowEnriched,
     existingLinksForPost: PostLink[],
     content: string,
     postId: number
@@ -307,13 +308,13 @@ const syncPostsToGrapher = async (): Promise<void> => {
                 post.post_modified_gmt === zeroDateString
                     ? "1970-01-01 00:00:00"
                     : post.post_modified_gmt,
-            authors: JSON.stringify(authors),
+            authors: authors,
             excerpt: post.post_excerpt,
             created_at_in_wordpress:
                 post.created_at === zeroDateString ? null : post.created_at,
             formattingOptions: formattingOptions,
         }
-    }) as PostRow[]
+    }) as PostRowEnriched[]
     const postLinks = await PostLink.find()
     const postLinksById = groupBy(postLinks, (link: PostLink) => link.sourceId)
 
@@ -338,11 +339,7 @@ const syncPostsToGrapher = async (): Promise<void> => {
             await t.whereIn("id", toDelete).delete().from(postsTable)
 
         for (const row of toInsert) {
-            const rowForDb = {
-                ...row,
-                // TODO: it's not nice that we have to stringify this here
-                formattingOptions: JSON.stringify(row.formattingOptions),
-            }
+            const rowForDb = serializePostRow(row)
             if (doesExistInGrapher[row.id])
                 await t
                     .update(rowForDb)
