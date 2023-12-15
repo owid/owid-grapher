@@ -2,10 +2,13 @@ import { FormattingOptions, KeyValueProps } from "./owidTypes.js"
 
 export const extractFormattingOptions = (html: string): FormattingOptions => {
     const formattingOptionsMatch = html.match(
-        /<!--\s*formatting-options\s+(.*)\s*-->/
+        /<!--\s*formatting-options(.*)-->/
     )
+    const innerFormattingOptions = formattingOptionsMatch
+        ? formattingOptionsMatch[1].trim()
+        : ""
     return formattingOptionsMatch
-        ? parseFormattingOptions(formattingOptionsMatch[1])
+        ? parseFormattingOptions(innerFormattingOptions)
         : {}
 }
 
