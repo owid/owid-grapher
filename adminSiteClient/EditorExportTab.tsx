@@ -29,6 +29,7 @@ type OriginalGrapher = Pick<
     | "note"
     | "originUrl"
     | "shouldIncludeDetailsInStaticExport"
+    | "detailsOrderedByReference"
 >
 
 type ExportSettingsByChartId = Record<number, ExportSettings>
@@ -133,6 +134,7 @@ export class EditorExportTab extends React.Component<EditorExportTabProps> {
             originUrl: this.grapher.originUrl,
             shouldIncludeDetailsInStaticExport:
                 this.grapher.shouldIncludeDetailsInStaticExport,
+            detailsOrderedByReference: this.grapher.detailsOrderedByReference,
         }
     }
 
@@ -286,14 +288,19 @@ export class EditorExportTab extends React.Component<EditorExportTabProps> {
                             }
                         />
                     )}
-                    <Toggle
-                        label="Details on demand"
-                        value={this.settings.shouldIncludeDetailsInStaticExport}
-                        onValue={(value) =>
-                            (this.settings.shouldIncludeDetailsInStaticExport =
-                                value)
-                        }
-                    />
+                    {this.originalGrapher.detailsOrderedByReference.size >
+                        0 && (
+                        <Toggle
+                            label="Details on demand"
+                            value={
+                                this.settings.shouldIncludeDetailsInStaticExport
+                            }
+                            onValue={(value) =>
+                                (this.settings.shouldIncludeDetailsInStaticExport =
+                                    value)
+                            }
+                        />
+                    )}
                 </Section>
                 <Section name="Export static chart">
                     <div className="DownloadButtons">
