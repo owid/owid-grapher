@@ -40,7 +40,7 @@ const DataInsightCard = (props: MinimalDataInsightInterface): JSX.Element => {
     return (
         <a
             href={`/data-insights#${indexToIdMap[props.index]}`}
-            className="data-insight-card span-cols-3"
+            className="data-insight-card"
         >
             <p className="data-insight-card__published-at h6-black-caps">
                 {publishedAt}
@@ -58,21 +58,19 @@ export const LatestDataInsightCards = (props: {
     if (!latestDataInsights?.length) return null
 
     return (
-        <div className={cx(className, "grid", "data-insight-cards-container")}>
-            <div className="span-cols-12 grid insight-cards-header">
-                <h2 className="h2-bold span-cols-8 col-start-1">
-                    Our latest data insights
-                </h2>
-                <div className="span-cols-3 col-start-10 see-all-button-container">
-                    <a href="/data-insights" className="body-3-medium">
-                        See all data insights{" "}
-                        <FontAwesomeIcon icon={faArrowRight} />
-                    </a>
-                </div>
+        <div className={cx(className, "data-insight-cards-container")}>
+            <h2 className="h2-bold ">Our latest data insights</h2>
+            <div className="see-all-button-container">
+                <a href="/data-insights" className="body-3-medium">
+                    See all data insights{" "}
+                    <FontAwesomeIcon icon={faArrowRight} />
+                </a>
             </div>
-            {latestDataInsights.map((dataInsight) => (
-                <DataInsightCard key={dataInsight.title} {...dataInsight} />
-            ))}
+            <div className="data-insight-cards-container__cards">
+                {latestDataInsights.map((dataInsight) => (
+                    <DataInsightCard key={dataInsight.title} {...dataInsight} />
+                ))}
+            </div>
         </div>
     )
 }
@@ -87,7 +85,7 @@ const RelatedTopicsList = ({
     if (!tags?.length) return null
     return (
         <div className={cx(className, "data-insights-related-topics")}>
-            <p>Related topics: </p>
+            <p className="h5-black-caps">Related topics: </p>
             <ul>
                 {tags.map((tag) => (
                     <li key={tag.name}>
@@ -112,15 +110,21 @@ const DataInsightMeta = (props: {
         : "Unpublished"
 
     return (
-        <div className="span-cols-2 col-start-2 data-insight-meta">
-            <span className="data-insight-meta__published-at h6-black-caps">
-                {publishedAt}
-            </span>
-            <span className="data-insight-meta__authors">
-                {formatAuthors({ authors: props.authors })}
-            </span>
+        <div className="span-cols-2 col-start-2 span-md-cols-10 col-md-start-3 span-sm-cols-14 col-sm-start-1 data-insight-meta">
             <div>
+                <span className="data-insight-meta__published-at h6-black-caps">
+                    {publishedAt}
+                </span>
+                <span className="data-insight-meta__authors">
+                    {formatAuthors({ authors: props.authors })}
+                </span>
+            </div>
+            <div>
+                <label className="h6-black-caps" htmlFor="copy-link-button">
+                    Share this insight
+                </label>
                 <button
+                    id="copy-link-button"
                     className="data-insight-meta__copy-link-button"
                     onClick={() => {
                         copyToClipboard(
@@ -147,7 +151,7 @@ export const DataInsightBody = (
     }
 ) => {
     return (
-        <>
+        <div className="grid grid-cols-12-full-width span-cols-14">
             <DataInsightMeta
                 publishedAt={props.publishedAt}
                 authors={props.content.authors}
@@ -155,9 +159,12 @@ export const DataInsightBody = (
             />
             <div
                 id={props.anchor}
-                className={cx("span-cols-8 col-start-4 data-insight-body", {
-                    "data-insight-body--has-tags": !!props.tags?.length,
-                })}
+                className={cx(
+                    "span-cols-8 col-start-4 span-md-cols-10 col-md-start-3 span-sm-cols-14 col-sm-start-1 data-insight-body",
+                    {
+                        "data-insight-body--has-tags": !!props.tags?.length,
+                    }
+                )}
             >
                 <h1 className="display-3-semibold">{props.content.title}</h1>
                 <div className="data-insight-blocks">
@@ -165,7 +172,7 @@ export const DataInsightBody = (
                 </div>
                 <RelatedTopicsList tags={props.tags} />
             </div>
-        </>
+        </div>
     )
 }
 
@@ -181,7 +188,7 @@ export const DataInsightPage = (props: DataInsightProps): JSX.Element => {
 
     return (
         <div className="grid grid-cols-12-full-width data-insight-page">
-            <div className="span-cols-8 col-start-4 data-insight-breadcrumbs">
+            <div className="span-cols-8 col-start-4 span-md-cols-10 col-md-start-3 col-sm-start-2 span-sm-cols-12 data-insight-breadcrumbs">
                 <a href="/data-insights">Data Insights</a>
                 <FontAwesomeIcon icon={faChevronRight} />
                 <span>{props.content.title}</span>

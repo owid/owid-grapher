@@ -212,7 +212,7 @@
 @mixin topic-chip {
     a {
         background-color: $blue-10;
-        border-radius: 24px;
+        border-radius: 50px;
         padding: 8.5px 16px;
         white-space: nowrap;
         @include body-3-medium;
