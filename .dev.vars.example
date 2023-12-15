@@ -1,5 +1,6 @@
 # env vars for local development of /functions/donation/donate.ts cloudflare pages function
 # rename to .dev.vars and fill in the values from the Stripe and Recaptcha dashboards
+# For testing, you can use the Stripe API and Recaptcha test keys saved in 1Password.
 
 # https://dashboard.stripe.com/test/apikeys
 # required

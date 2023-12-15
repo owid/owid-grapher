@@ -73,7 +73,9 @@ sequenceDiagram
 
 ### Development
 
-Start the Cloudflare function development server with either:
+1. Copy `.dev.vars.example` to `.dev.vars` and fill in the required variables.
+
+2. Start the Cloudflare function development server with either:
 
 -   (preferred) `yarn make up.full`: starts the whole local development stack, including the functions development server
 -   `yarn startLocalCloudflareFunctions`: only starts the functions development server
@@ -84,6 +86,8 @@ Note: compatibility dates between local development and production environments 
 
 -   local: defined in `package.json` -> `startLocalCloudflareFunctions`
 -   production: see https://dash.cloudflare.com/078fcdfed9955087315dd86792e71a7e/pages/view/owid/settings/functions
+
+3. Go to `http://localhost:3030/donate` and fill in the form. You should be redirected to a Stripe Checkout page. You should use the Stripe VISA test card saved in 1Password (or any other test payment method from https://stripe.com/docs/testing) to complete the donation. Do not use a real card.
 
 ## `/grapher/:slug`
 
