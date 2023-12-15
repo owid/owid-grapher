@@ -735,7 +735,7 @@ class LabelledSlopes
     }
 
     @computed get sizeScale(): ScaleLinear<number, number> {
-        const factor = this.manager.isStaticAndSmall ? 1.5 : 1
+        const factor = this.manager.isStaticAndSmall ? 1.2 : 1
         return scaleLinear()
             .domain(
                 extent(this.props.seriesArr.map((series) => series.size)) as [
