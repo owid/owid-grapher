@@ -335,6 +335,10 @@ $nav-height: 45px;
             border-bottom: 1px solid #ccc;
         }
     }
+
+    figure[data-grapher-src] {
+        line-height: 0; // remove extra space on the bottom
+    }
 }
 
 .list-group {
