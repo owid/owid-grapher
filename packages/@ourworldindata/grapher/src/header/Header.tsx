@@ -210,7 +210,7 @@ export class StaticHeader extends Header<StaticHeaderProps> {
                 text: titleText,
                 maxWidth: this.maxWidth - logoWidth - 24,
                 fontSize,
-                fontWeight: 500,
+                fontWeight: 600,
                 lineHeight: 1.2,
             })
 
