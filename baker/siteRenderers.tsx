@@ -97,7 +97,6 @@ import { postsTable } from "../db/model/Post.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 import { GdocFactory } from "../db/model/Gdoc/GdocFactory.js"
-import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
 
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
