@@ -195,6 +195,7 @@
         margin-top: 24px;
         display: flex;
         overflow-x: auto;
+        width: 100%;
     }
 
     @include md-down {
@@ -216,6 +217,7 @@
     background-color: $blue-10;
     padding: 24px;
     transition: 200ms;
+    max-width: 298px;
     min-width: 298px;
     &:not(:last-child) {
         margin-right: 24px;
