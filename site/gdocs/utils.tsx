@@ -4,18 +4,18 @@ import { getLinkType, getUrlTarget } from "@ourworldindata/components"
 import {
     Span,
     SpanLink,
-    OwidGdocInterface,
+    OwidGdocPostInterface,
     ImageMetadata,
     LinkedChart,
     Url,
-    OwidGdocContent,
+    OwidGdocPostContent,
     formatAuthors,
 } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
 import { AttachmentsContext } from "./OwidGdoc.js"
 
 export const breadcrumbColorForCoverColor = (
-    coverColor: OwidGdocContent["cover-color"]
+    coverColor: OwidGdocPostContent["cover-color"]
 ): "white" | "blue" => {
     // exhaustive list of all possible cover colors
     switch (coverColor) {
@@ -45,10 +45,10 @@ export const breadcrumbColorForCoverColor = (
 
 export const useLinkedDocument = (
     url: string
-): { linkedDocument?: OwidGdocInterface; errorMessage?: string } => {
+): { linkedDocument?: OwidGdocPostInterface; errorMessage?: string } => {
     const { linkedDocuments } = useContext(AttachmentsContext)
     let errorMessage: string | undefined = undefined
-    let linkedDocument: OwidGdocInterface | undefined = undefined
+    let linkedDocument: OwidGdocPostInterface | undefined = undefined
     const linkType = getLinkType(url)
     if (linkType !== "gdoc") {
         return { linkedDocument }
@@ -59,7 +59,7 @@ export const useLinkedDocument = (
     const hash = urlObj.hash
     const urlTarget = getUrlTarget(url)
     linkedDocument = linkedDocuments?.[urlTarget] as
-        | OwidGdocInterface
+        | OwidGdocPostInterface
         | undefined
 
     if (!linkedDocument) {

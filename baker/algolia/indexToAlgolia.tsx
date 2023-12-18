@@ -24,7 +24,7 @@ import {
 } from "../../site/search/searchTypes.js"
 import { Pageview } from "../../db/model/Pageview.js"
 import { GdocPost } from "../../db/model/Gdoc/GdocPost.js"
-import { ArticleBlocks } from "../../site/gdocs/ArticleBlocks.js"
+import { ArticleBlocks } from "../../site/gdocs/components/ArticleBlocks.js"
 import React from "react"
 
 interface TypeAndImportance {

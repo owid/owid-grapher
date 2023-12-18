@@ -11,7 +11,7 @@ import {
     KEY_INSIGHTS_SLIDE_CLASS_NAME,
     KEY_INSIGHTS_SLIDE_CONTENT_CLASS_NAME,
     KeyInsightsThumbs,
-} from "../blocks/KeyInsights.js"
+} from "../../blocks/KeyInsights.js"
 import { ArticleBlocks } from "./ArticleBlocks.js"
 import Image from "./Image.js"
 import Chart from "./Chart.js"

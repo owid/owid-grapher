@@ -2,17 +2,17 @@ import React from "react"
 import cx from "classnames"
 import {
     BreadcrumbItem,
-    OwidGdocContent,
+    OwidGdocPostContent,
     OwidGdocType,
     formatDate,
 } from "@ourworldindata/utils"
-import { formatAuthors } from "../clientFormatting.js"
+import { formatAuthors } from "../../clientFormatting.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faBook } from "@fortawesome/free-solid-svg-icons"
 import { faCreativeCommons } from "@fortawesome/free-brands-svg-icons"
 import Image from "./Image.js"
-import { Breadcrumbs } from "../Breadcrumb/Breadcrumb.js"
-import { breadcrumbColorForCoverColor } from "./utils.js"
+import { Breadcrumbs } from "../../Breadcrumb/Breadcrumb.js"
+import { breadcrumbColorForCoverColor } from "../utils.js"
 
 function OwidArticleHeader({
     content,
@@ -20,7 +20,7 @@ function OwidArticleHeader({
     publishedAt,
     breadcrumbs,
 }: {
-    content: OwidGdocContent
+    content: OwidGdocPostContent
     authors: string[]
     publishedAt: Date | null
     breadcrumbs?: BreadcrumbItem[]
@@ -120,7 +120,7 @@ function OwidTopicPageHeader({
     content,
     authors,
 }: {
-    content: OwidGdocContent
+    content: OwidGdocPostContent
     authors: string[]
 }) {
     return (
@@ -147,7 +147,7 @@ function OwidLinearTopicPageHeader({
     content,
     authors,
 }: {
-    content: OwidGdocContent
+    content: OwidGdocPostContent
     authors: string[]
 }) {
     return (
@@ -174,7 +174,7 @@ function OwidLinearTopicPageHeader({
 }
 
 export function OwidGdocHeader(props: {
-    content: OwidGdocContent
+    content: OwidGdocPostContent
     authors: string[]
     publishedAt: Date | null
     breadcrumbs?: BreadcrumbItem[]

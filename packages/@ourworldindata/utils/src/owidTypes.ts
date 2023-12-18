@@ -706,6 +706,7 @@ export type RawBlockImage = {
     type: "image"
     value: {
         filename?: string
+        smallFilename?: string
         alt?: string
         caption?: string
         size?: BlockImageSize
@@ -715,6 +716,7 @@ export type RawBlockImage = {
 export type EnrichedBlockImage = {
     type: "image"
     filename: string
+    smallFilename?: string
     alt?: string // optional as we can use the default alt from the file
     caption?: Span[]
     originalWidth?: number
@@ -1345,6 +1347,7 @@ export enum OwidGdocType {
     TopicPage = "topic-page",
     Fragment = "fragment",
     LinearTopicPage = "linear-topic-page",
+    DataInsight = "data-insight",
 }
 
 export interface OwidGdocBaseInterface {
@@ -1356,27 +1359,48 @@ export interface OwidGdocBaseInterface {
     publishedAt: Date | null
     updatedAt: Date | null
     revisionId: string | null
+    publicationContext: OwidGdocPublicationContext
+    breadcrumbs?: BreadcrumbItem[] | null
     linkedDocuments?: Record<string, OwidGdocBaseInterface>
     linkedCharts?: Record<string, LinkedChart>
     imageMetadata?: Record<string, ImageMetadata>
+    relatedCharts?: RelatedChart[]
+    tags?: Tag[]
     errors?: OwidGdocErrorMessage[]
 }
 
-export interface OwidGdocInterface extends OwidGdocBaseInterface {
-    content: OwidGdocContent
-    linkedDocuments?: Record<string, OwidGdocInterface>
-    publicationContext: OwidGdocPublicationContext
-    breadcrumbs?: BreadcrumbItem[] | null
-    relatedCharts?: RelatedChart[]
+export interface OwidGdocPostInterface extends OwidGdocBaseInterface {
+    content: OwidGdocPostContent
+    linkedDocuments?: Record<string, OwidGdocPostInterface>
+}
+
+export interface OwidGdocDataInsightContent {
+    title: string
+    authors: string[]
+    ["grapher-url"]?: string
+    ["approved-by"]: string // can't publish an insight unless this is set
+    body: OwidEnrichedGdocBlock[]
+    type: OwidGdocType.DataInsight
+}
+
+export interface OwidGdocDataInsightInterface extends OwidGdocBaseInterface {
+    content: OwidGdocDataInsightContent
+    linkedDocuments?: Record<string, OwidGdocPostInterface>
     tags?: Tag[]
 }
+
+export type OwidGdoc = OwidGdocPostInterface | OwidGdocDataInsightInterface
 
 export enum OwidGdocErrorMessageType {
     Error = "error",
     Warning = "warning",
 }
 
-export type OwidGdocProperty = keyof OwidGdocInterface | keyof OwidGdocContent
+export type OwidGdocProperty =
+    | keyof OwidGdocPostInterface
+    | keyof OwidGdocPostContent
+    | keyof OwidGdocDataInsightInterface
+    | keyof OwidGdocDataInsightContent
 export type OwidGdocErrorMessageProperty =
     | OwidGdocProperty
     | `${OwidGdocProperty}${string}` // also allows for nesting, like `breadcrumbs[0].label`
@@ -1388,7 +1412,10 @@ export interface OwidGdocErrorMessage {
 
 // see also: getOwidGdocFromJSON()
 export interface OwidGdocJSON
-    extends Omit<OwidGdocInterface, "createdAt" | "publishedAt" | "updatedAt"> {
+    extends Omit<
+        OwidGdocPostInterface,
+        "createdAt" | "publishedAt" | "updatedAt"
+    > {
     createdAt: string
     publishedAt: string | null
     updatedAt: string | null
@@ -1406,10 +1433,10 @@ export interface OwidGdocLinkJSON {
  * See ../adminSiteClient/gdocsValidation/getErrors() where these existence
  * constraints are surfaced at runtime on the draft article
  */
-export interface OwidGdocPublished extends OwidGdocInterface {
+export interface OwidGdocPublished extends OwidGdocPostInterface {
     publishedAt: Date
     updatedAt: Date
-    content: OwidGdocContentPublished
+    content: OwidGdocPostContentPublished
 }
 
 export interface OwidArticleBackportingStatistics {
@@ -1420,9 +1447,18 @@ export interface OwidArticleBackportingStatistics {
     wpTagCounts: Record<string, number>
 }
 
-export interface OwidGdocContent {
+export interface OwidGdocPostContent {
     body?: OwidEnrichedGdocBlock[]
-    type?: OwidGdocType
+    type?:
+        | OwidGdocType.Article
+        | OwidGdocType.TopicPage
+        | OwidGdocType.LinearTopicPage
+        // TODO: Fragments need their own OwidGdocFragment interface and flow in the UI
+        // Historically they were treated the same as GdocPosts but not baked
+        // In reality, they have multiple possible data structures in their content (details, faqs, frontPageConfig, etc)
+        // We should be able to render these in the preview before publishing
+        // We're keeping them in this union until we have time to sort this out
+        | OwidGdocType.Fragment
     title?: string
     supertitle?: string
     subtitle?: string
@@ -1468,13 +1504,13 @@ export interface OwidGdocContent {
 
 export type OwidGdocStickyNavItem = { target: string; text: string }
 
-export interface OwidGdocContentPublished extends OwidGdocContent {
+export interface OwidGdocPostContentPublished extends OwidGdocPostContent {
     body: OwidEnrichedGdocBlock[]
     title: string
     excerpt: string
 }
 
-export type GdocsPatch = Partial<OwidGdocInterface>
+export type GdocsPatch = Partial<OwidGdocPostInterface>
 
 export enum GdocsContentSource {
     Internal = "internal",
@@ -1711,13 +1747,13 @@ export type DataPageParseError = { message: string; path?: string }
 
 export interface DataPageContentFields {
     datapageJson: DataPageJson
-    datapageGdoc?: OwidGdocInterface | null
+    datapageGdoc?: OwidGdocPostInterface | null
     datapageGdocContent?: DataPageGdocContent | null
     isPreviewing?: boolean
 }
 
 export type FaqEntryData = Pick<
-    OwidGdocInterface,
+    OwidGdocPostInterface,
     "linkedCharts" | "linkedDocuments" | "relatedCharts" | "imageMetadata"
 > & {
     faqs: OwidEnrichedGdocBlock[]

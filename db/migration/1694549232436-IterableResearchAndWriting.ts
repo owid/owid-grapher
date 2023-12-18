@@ -1,4 +1,4 @@
-import { OwidGdocContent } from "@ourworldindata/utils"
+import { OwidGdocPostContent } from "@ourworldindata/utils"
 import { MigrationInterface, QueryRunner } from "typeorm"
 
 export class IterableResearchAndWriting1694549232436
@@ -31,7 +31,7 @@ async function migrateResearchAndWritingBlocks(
         "SELECT id, slug, content FROM posts_gdocs"
     )
     for (const gdoc of allGdocs) {
-        const content = JSON.parse(gdoc.content) as OwidGdocContent
+        const content = JSON.parse(gdoc.content) as OwidGdocPostContent
         if (!content.body) continue
 
         let hasResearchAndWriting = false

@@ -1,20 +1,16 @@
 import { Col, Input, Row, Space, Switch } from "antd"
 import React, { useEffect, useState } from "react"
-import {
-    OwidGdocInterface,
-    slugify,
-    OwidGdocErrorMessage,
-} from "@ourworldindata/utils"
+import { slugify, OwidGdocErrorMessage, OwidGdoc } from "@ourworldindata/utils"
 import { Help } from "./Forms.js"
 import { getPropertyMostCriticalError } from "./gdocsValidation.js"
 
-export const GdocsSlug = ({
+export const GdocsSlug = <T extends OwidGdoc>({
     gdoc,
     setCurrentGdoc,
     errors,
 }: {
-    gdoc: OwidGdocInterface
-    setCurrentGdoc: (gdoc: OwidGdocInterface) => void
+    gdoc: T
+    setCurrentGdoc: (gdoc: T) => void
     errors?: OwidGdocErrorMessage[]
 }) => {
     const [isSlugSyncing, setSlugSyncing] = useState(false)
@@ -25,16 +21,10 @@ export const GdocsSlug = ({
     const slugFromTitle = slugify(title, true)
 
     useEffect(() => {
-        if (gdoc.published) {
-            setSlugSyncing(false)
-        }
-    }, [gdoc.published])
-
-    useEffect(() => {
-        if (!slug) {
+        if (!slug || slugFromTitle === slug) {
             setSlugSyncing(true)
         }
-    }, [slug])
+    }, [slug, slugFromTitle])
 
     const setSlug = (slug: string) => {
         setCurrentGdoc({ ...gdoc, slug })
@@ -82,12 +72,6 @@ export const GdocsSlug = ({
                         {isSlugSyncing
                             ? "Updating the title updates the slug."
                             : "Unlock to update the slug from the title."}
-                        {gdoc.published && (
-                            <>
-                                <br />ⓘ This setting is not saved to prevent the
-                                creation of unncessary redirects.
-                            </>
-                        )}
                     </Help>
                 </Col>
             </Row>

@@ -5,10 +5,10 @@ import {
     EnrichedBlockResearchAndWritingLink,
     RESEARCH_AND_WRITING_ID,
 } from "@ourworldindata/utils"
-import { useLinkedDocument } from "./utils.js"
-import { formatAuthors } from "../clientFormatting.js"
+import { useLinkedDocument } from "../utils.js"
+import { formatAuthors } from "../../clientFormatting.js"
 import Image from "./Image.js"
-import { DocumentContext } from "./OwidGdoc.js"
+import { DocumentContext } from "../OwidGdoc.js"
 
 type ResearchAndWritingProps = {
     className?: string

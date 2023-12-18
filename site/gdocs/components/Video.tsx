@@ -1,12 +1,12 @@
 import React, { useContext } from "react"
 import cx from "classnames"
 import { IMAGES_DIRECTORY, Span } from "@ourworldindata/utils"
-import { renderSpans } from "./utils.js"
-import { DocumentContext } from "./OwidGdoc.js"
+import { renderSpans } from "../utils.js"
+import { DocumentContext } from "../OwidGdoc.js"
 import {
     IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH,
     IMAGE_HOSTING_CDN_URL,
-} from "../../settings/clientSettings.js"
+} from "../../../settings/clientSettings.js"
 
 interface VideoProps {
     url: string

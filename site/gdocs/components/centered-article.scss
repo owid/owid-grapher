@@ -14,6 +14,13 @@
     }
 }
 
+.fragment-json {
+    background-color: $gray-10;
+    padding: 32px;
+    white-space: pre-wrap;
+    border-radius: 3px;
+}
+
 .centered-article-container {
     // !important because we never want this to be overwritten
     .ref {

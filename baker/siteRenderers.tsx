@@ -52,12 +52,12 @@ import {
     FullPost,
     JsonError,
     KeyInsight,
-    OwidGdocInterface,
     PostRow,
     Url,
     IndexPost,
     mergePartialGrapherConfigs,
     OwidGdocType,
+    OwidGdoc,
 } from "@ourworldindata/utils"
 import { CountryProfileSpec } from "../site/countryProfileProjects.js"
 import { formatPost } from "./formatWordpressPost.js"
@@ -94,6 +94,8 @@ import { resolveInternalRedirect } from "./redirects.js"
 import { postsTable } from "../db/model/Post.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
+import { GdocFactory } from "../db/model/Gdoc/GdocFactory.js"
+
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
 
@@ -181,16 +183,12 @@ export const renderGdocsPageBySlug = async (
     const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
     const publishedExplorersBySlug =
         await explorerAdminServer.getAllPublishedExplorersBySlug()
+    await gdoc.loadState(publishedExplorersBySlug)
 
-    const gdocWithAttachments = await GdocPost.load(
-        gdoc.id,
-        publishedExplorersBySlug
-    )
-
-    return renderGdoc(gdocWithAttachments)
+    return renderGdoc(gdoc)
 }
 
-export const renderGdoc = (gdoc: OwidGdocInterface) => {
+export const renderGdoc = (gdoc: OwidGdoc) => {
     return renderToHtmlPage(
         <OwidGdocPage baseUrl={BAKED_BASE_URL} gdoc={gdoc} />
     )
@@ -267,10 +265,11 @@ export const renderFrontPage = async () => {
 
     let featuredWork: IndexPost[]
     try {
-        const frontPageConfigGdoc = await GdocPost.load(
-            GDOCS_HOMEPAGE_CONFIG_DOCUMENT_ID,
-            {}
-        )
+        const frontPageConfigGdoc = await GdocPost.findOneBy({
+            id: GDOCS_HOMEPAGE_CONFIG_DOCUMENT_ID,
+        })
+        if (!frontPageConfigGdoc) throw new Error("No front page config found")
+        await frontPageConfigGdoc.loadState({})
         const frontPageConfig: any = frontPageConfigGdoc.content
         const featuredPosts: { slug: string; position: number }[] =
             frontPageConfig["featured-posts"] ?? []
@@ -333,7 +332,14 @@ export const renderFrontPage = async () => {
 }
 
 export const renderDonatePage = async () => {
-    const faqsGdoc = await GdocPost.load(GDOCS_DONATE_FAQS_DOCUMENT_ID, {})
+    const faqsGdoc = (await GdocFactory.load(
+        GDOCS_DONATE_FAQS_DOCUMENT_ID,
+        {}
+    )) as GdocPost
+    if (!faqsGdoc)
+        throw new Error(
+            `Failed to find donate FAQs Gdoc with id "${GDOCS_DONATE_FAQS_DOCUMENT_ID}"`
+        )
 
     return renderToHtmlPage(
         <DonatePage

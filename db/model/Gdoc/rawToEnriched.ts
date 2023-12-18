@@ -601,6 +601,7 @@ const parseImage = (image: RawBlockImage): EnrichedBlockImage => {
     return {
         type: "image",
         filename,
+        smallFilename: image.value.smallFilename,
         alt: image.value.alt,
         caption,
         size,
