@@ -108,10 +108,10 @@ export const DataInsightsIndexPageContent = (
                 }}
             >
                 <header className="data-insights-index-page__header grid grid-cols-12-full-width span-cols-14">
-                    <h2 className="span-cols-8 col-start-4 display-2-semibold">
+                    <h2 className="span-cols-8 col-start-4 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12 display-2-semibold ">
                         Data insights
                     </h2>
-                    <p className="span-cols-8 col-start-4 body-1-regular">
+                    <p className="span-cols-8 col-start-4 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12 body-1-regular">
                         Bite-sized insights on how the world is changing,
                         written by our team.
                     </p>
