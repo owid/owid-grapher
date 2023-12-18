@@ -482,7 +482,6 @@ export {
     aggregates,
     type Aggregate,
     others,
-    isAggregateEntity,
 } from "./regions.js"
 
 export { getStylesForTargetHeight } from "./react-select.js"

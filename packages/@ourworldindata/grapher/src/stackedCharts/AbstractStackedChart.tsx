@@ -15,7 +15,6 @@ import {
     flatten,
     guid,
     max,
-    isAggregateEntity,
 } from "@ourworldindata/utils"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
