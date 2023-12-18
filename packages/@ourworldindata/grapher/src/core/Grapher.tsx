@@ -675,16 +675,21 @@ export class Grapher
         // Depending on the chart type, the criteria for being able to select an entity are
         // different; e.g. for scatterplots, the entity needs to (1) not be excluded and
         // (2) needs to have data for the x and y dimension.
+        let table =
+            this.isScatter || this.isSlopeChart
+                ? this.tableAfterAuthorTimelineAndActiveChartTransform
+                : this.inputTable
 
-        if (this.isScatter || this.isSlopeChart)
-            // for scatter and slope charts, the `transformTable()` call takes care of removing
-            // all entities that cannot be selected
-            return this.tableAfterAuthorTimelineAndActiveChartTransform
+        if (!this.isReady) return table
 
-        // for other chart types, the `transformTable()` call would sometimes remove too many
-        // entities, and we want to use the inputTable instead (which should have exactly the
-        // entities where data is available)
-        return this.inputTable
+        // Some chart types (e.g. stacked area charts) choose not to show an entity
+        // with incomplete data. Such chart types define a custom transform function
+        // to ensure that the entity selector only offers entities that are actually plotted.
+        if (this.chartInstance.transformTableForSelection) {
+            table = this.chartInstance.transformTableForSelection(table)
+        }
+
+        return table
     }
 
     // If an author sets a timeline filter run it early in the pipeline so to the charts it's as if the filtered times do not exist

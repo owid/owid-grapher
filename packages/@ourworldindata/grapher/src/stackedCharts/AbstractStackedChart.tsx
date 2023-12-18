@@ -24,7 +24,11 @@ import {
     StackedRawSeries,
     StackedSeries,
 } from "./StackedConstants"
-import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
+import {
+    OwidTable,
+    CoreColumn,
+    BlankOwidTable,
+} from "@ourworldindata/core-table"
 import {
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
@@ -81,6 +85,34 @@ export class AbstractStackedChart
                       this.yColumnSlugs
                   )
         }
+        return table
+    }
+
+    transformTableForSelection(table: OwidTable): OwidTable {
+        // if entities with partial data are not plotted,
+        // make sure they don't show up in the entity selector
+        if (this.missingDataStrategy !== MissingDataStrategy.show) {
+            table = table
+                .replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
+                .dropRowsWithErrorValuesForAllColumns(this.yColumnSlugs)
+
+            if (this.shouldRunLinearInterpolation) {
+                this.yColumnSlugs.forEach((slug) => {
+                    table = table.interpolateColumnLinearly(slug)
+                })
+            }
+
+            const groupedByEntity = table
+                .groupBy("entityName")
+                .map((t: OwidTable) =>
+                    t.dropRowsWithErrorValuesForAnyColumn(this.yColumnSlugs)
+                )
+
+            if (groupedByEntity.length === 0) return BlankOwidTable()
+
+            table = groupedByEntity[0].concat(groupedByEntity.slice(1))
+        }
+
         return table
     }
 
