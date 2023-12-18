@@ -283,24 +283,9 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                                     type: P.union(
                                         OwidGdocType.Article,
                                         OwidGdocType.TopicPage,
-                                        OwidGdocType.LinearTopicPage
+                                        OwidGdocType.LinearTopicPage,
+                                        OwidGdocType.Fragment
                                     ),
-                                },
-                            },
-                            (gdoc) => (
-                                <GdocPostSettings
-                                    gdoc={gdoc}
-                                    setCurrentGdoc={(updatedGdoc) =>
-                                        setCurrentGdoc(() => updatedGdoc)
-                                    }
-                                    errors={errors}
-                                />
-                            )
-                        )
-                        .with(
-                            {
-                                content: {
-                                    type: OwidGdocType.Fragment,
                                 },
                             },
                             (gdoc) => (

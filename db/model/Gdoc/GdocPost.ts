@@ -199,9 +199,12 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
         }).then((gdocs) =>
             gdocs.filter(
                 ({ content: { type } }) =>
-                    ![OwidGdocType.Fragment, OwidGdocType.DataInsight].includes(
-                        type as OwidGdocType
-                    )
+                    type &&
+                    [
+                        OwidGdocType.Article,
+                        OwidGdocType.TopicPage,
+                        OwidGdocType.LinearTopicPage,
+                    ].includes(type)
             )
         ) as Promise<(OwidGdocPublished & GdocPost)[]>
     }

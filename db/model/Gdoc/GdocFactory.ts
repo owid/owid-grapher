@@ -5,6 +5,7 @@ import {
     OwidGdoc,
     OwidGdocType,
     Tag as TagInterface,
+    checkIsOwidGdocType,
 } from "@ourworldindata/utils"
 
 import { GdocBase, Tag } from "./GdocBase.js"
@@ -92,11 +93,16 @@ export class GdocFactory {
                 `No Google Doc with id "${id}" found in the database`
             )
 
-        const type = get(base, "content.type") as OwidGdocType | undefined
+        const type = get(base, "content.type") as unknown
         if (!type)
             throw new Error(
                 `Database record for Google Doc with id "${id}" has no type`
             )
+        if (!checkIsOwidGdocType(type)) {
+            throw new Error(
+                `Database record for Google Doc with id "${id}" has invalid type "${type}"`
+            )
+        }
 
         const gdoc = match(type)
             .with(
@@ -106,9 +112,9 @@ export class GdocFactory {
                     OwidGdocType.TopicPage,
                     OwidGdocType.Fragment
                 ),
-                () => GdocPost.create(base!)
+                () => GdocPost.create(base)
             )
-            .with(OwidGdocType.DataInsight, () => GdocDataInsight.create(base!))
+            .with(OwidGdocType.DataInsight, () => GdocDataInsight.create(base))
             .exhaustive()
 
         if (contentSource === GdocsContentSource.Gdocs) {

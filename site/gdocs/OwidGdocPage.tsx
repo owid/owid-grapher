@@ -39,7 +39,7 @@ function getFeaturedImageUrl(
             },
             (match) => {
                 const featuredImageSlug = match.content["featured-image"]
-                if (!featuredImageSlug) return "default-thumbnail.jpg"
+                if (!featuredImageSlug) return
                 // Social media platforms don't support SVG's for og:image
                 // So no matter what, we use the png fallback that the baker generates
                 return new URL(
@@ -53,7 +53,7 @@ function getFeaturedImageUrl(
         )
         .with({ content: { type: OwidGdocType.DataInsight } }, () => {
             // TODO: get the right image, at the right size
-            return "default-thumbnail.jpg"
+            return "data-insights-thumbnail.jpg"
         })
         .with(
             { content: { type: P.union(OwidGdocType.Fragment, undefined) } },

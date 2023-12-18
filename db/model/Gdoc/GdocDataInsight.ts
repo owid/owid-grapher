@@ -13,7 +13,6 @@ export class GdocDataInsight
     extends GdocBase
     implements OwidGdocDataInsightInterface
 {
-    static table = "posts_gdocs"
     @Column({ default: "{}", type: "json" })
     content!: OwidGdocDataInsightContent
 

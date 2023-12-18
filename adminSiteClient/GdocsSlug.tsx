@@ -27,7 +27,7 @@ export const GdocsSlug = <T extends OwidGdoc>({
     }, [slug, slugFromTitle])
 
     const setSlug = (slug: string) => {
-        setCurrentGdoc({ ...gdoc, slug } as any)
+        setCurrentGdoc({ ...gdoc, slug })
     }
 
     useEffect(() => {

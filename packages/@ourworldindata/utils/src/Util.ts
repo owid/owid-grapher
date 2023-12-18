@@ -1686,9 +1686,9 @@ export function spansToUnformattedPlainText(spans: Span[]): string {
 }
 
 export function checkIsOwidGdocType(
-    documentType: unknown
-): documentType is OwidGdocType {
-    return Object.values(OwidGdocType).includes(documentType as any)
+    gdocType: unknown
+): gdocType is OwidGdocType {
+    return Object.values(OwidGdocType).includes(gdocType as any)
 }
 
 export function isArrayOfNumbers(arr: unknown[]): arr is number[] {
