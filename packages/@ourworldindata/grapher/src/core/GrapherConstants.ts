@@ -42,7 +42,7 @@ export const GRAPHER_LIGHT_TEXT = "#858585"
 export const GRAPHER_AXIS_LINE_WIDTH_DEFAULT = 1
 export const GRAPHER_AXIS_LINE_WIDTH_THICK = 2
 
-export const GRAPHER_AREA_OPACITY_DEFAULT = 0.85
+export const GRAPHER_AREA_OPACITY_DEFAULT = 0.8
 
 export enum CookieKey {
     isAdmin = "isAdmin",
