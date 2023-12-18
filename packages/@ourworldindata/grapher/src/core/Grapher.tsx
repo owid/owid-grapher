@@ -980,24 +980,6 @@ export class Grapher
             this.selection.setSelectedEntities(this.selectedEntityNames)
     }
 
-    @observable private _baseFontSize = BASE_FONT_SIZE
-
-    @computed get baseFontSize(): number {
-        if (this.isStaticAndSmall) {
-            const squareBounds = this.getStaticBounds(
-                GrapherStaticFormat.square
-            )
-            const factor = squareBounds.height / 21
-            return Math.max(10, this.staticBounds.height / factor)
-        }
-        if (this.isStatic) return 18
-        return this._baseFontSize
-    }
-
-    set baseFontSize(val: number) {
-        this._baseFontSize = val
-    }
-
     // Ready to go iff we have retrieved data for every variable associated with the chart
     @computed get isReady(): boolean {
         return this.whatAreWeWaitingFor === ""
@@ -1294,10 +1276,15 @@ export class Grapher
 
                 text += `${plainText.join(" ")}`
             }
-            const fontSize = (11 / BASE_FONT_SIZE) * this.fontSize
+
+            // can't use the computed property here because Grapher might not currently be in static mode
+            const baseFontSize = this.computeBaseFontSizeFromHeight(
+                this.staticBounds
+            )
+
             return new MarkdownTextWrap({
                 text,
-                fontSize,
+                fontSize: (11 / BASE_FONT_SIZE) * baseFontSize,
                 // leave room for padding on the left and right
                 maxWidth:
                     this.staticBounds.width - 2 * this.framePaddingHorizontal,
@@ -2620,21 +2607,40 @@ export class Grapher
         }
     }
 
+    @observable private _baseFontSize = BASE_FONT_SIZE
+
+    @computed get baseFontSize(): number {
+        if (this.isStaticAndSmall) {
+            return this.computeBaseFontSizeFromHeight(this.staticBounds)
+        }
+        if (this.isStatic) return 18
+        return this._baseFontSize
+    }
+
+    set baseFontSize(val: number) {
+        this._baseFontSize = val
+    }
+
     // the header and footer don't rely on the base font size unless explicitly specified
     @computed get useBaseFontSize(): boolean {
         return this.props.baseFontSize !== undefined || this.isStatic
     }
 
-    computeBaseFontSizeFromWidth(): number {
-        const { renderWidth } = this
-        if (renderWidth <= 400) return 14
-        else if (renderWidth < 1080) return 16
-        else if (renderWidth >= 1080) return 18
+    private computeBaseFontSizeFromHeight(bounds: Bounds): number {
+        const squareBounds = this.getStaticBounds(GrapherStaticFormat.square)
+        const factor = squareBounds.height / 21
+        return Math.max(10, bounds.height / factor)
+    }
+
+    private computeBaseFontSizeFromWidth(bounds: Bounds): number {
+        if (bounds.width <= 400) return 14
+        else if (bounds.width < 1080) return 16
+        else if (bounds.width >= 1080) return 18
         else return 16
     }
 
     @action.bound private setBaseFontSize(): void {
-        this.baseFontSize = this.computeBaseFontSizeFromWidth()
+        this.baseFontSize = this.computeBaseFontSizeFromWidth(this.tabBounds)
     }
 
     @computed get fontSize(): number {
