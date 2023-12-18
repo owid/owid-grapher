@@ -115,7 +115,7 @@ const DataInsightMeta = (props: {
                 <span className="data-insight-meta__published-at h6-black-caps">
                     {publishedAt}
                 </span>
-                <span className="data-insight-meta__authors">
+                <span className="data-insight-meta__authors body-3-medium">
                     {formatAuthors({ authors: props.authors })}
                 </span>
             </div>
@@ -125,7 +125,7 @@ const DataInsightMeta = (props: {
                 </label>
                 <button
                     id="copy-link-button"
-                    className="data-insight-meta__copy-link-button"
+                    className="data-insight-meta__copy-link-button body-3-medium"
                     onClick={() => {
                         copyToClipboard(
                             `${BAKED_BASE_URL}/data-insights/${props.slug}`

@@ -65,14 +65,16 @@
     .data-insight-meta__copy-link-button {
         @include light-blue-button;
         background-color: $blue-20;
-        padding: 10px 0;
+        padding: 9.5px 0;
         min-width: 140px;
         margin-top: 24px;
+        border-radius: 0;
         &:hover {
             background-color: $blue-10;
         }
         svg {
-            height: 16px;
+            height: 14px;
+            color: $blue-60;
             margin-right: 8px;
         }
     }
@@ -103,6 +105,7 @@
     margin-bottom: 48px;
     h1 {
         margin-top: 0;
+        margin-bottom: 24px;
     }
 
     // the tags block adds padding that we need to compensate for
@@ -112,6 +115,7 @@
 
     .article-block__image {
         outline: 1px solid $blue-10;
+        margin-top: 24px;
     }
 
     @include md-down {
@@ -121,7 +125,10 @@
 }
 
 .data-insight-blocks {
-    *:last-child {
+    > *:first-child {
+        margin-top: 0;
+    }
+    > *:last-child {
         margin-bottom: 0;
     }
 }
@@ -261,7 +268,7 @@
 .data-insights-index-page__pagination {
     margin-bottom: 24px;
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     a {
         color: $blue-60;
         min-width: 40px;
@@ -283,6 +290,7 @@
     }
     a.data-insights-index-page__pagination-link--active {
         background-color: $blue-20;
+        color: $blue-90;
         pointer-events: none;
     }
 }
