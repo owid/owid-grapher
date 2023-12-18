@@ -19,6 +19,7 @@
         "buildVite": "vite build",
         "buildWordpressPlugin": "cd ./wordpress/web/app/plugins/owid && yarn && yarn build",
         "bakeGdocPosts": "node --enable-source-maps ./itsJustJavascript/baker/bakeGdocPosts.js",
+        "bakeCharts": "node --enable-source-maps ./itsJustJavascript/baker/bakeCharts.js",
         "cleanTsc": "rm -rf itsJustJavascript && tsc -b -clean",
         "deployWordpress": "./wordpress/scripts/deploy.sh",
         "fetchServerStatus": "node --enable-source-maps ./itsJustJavascript/baker/liveCommit.js",

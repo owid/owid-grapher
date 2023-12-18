@@ -434,7 +434,8 @@ export interface DeployChange {
     authorName?: string
     authorEmail?: string
     message?: string
-    slug?: string
+    gdocSlug?: string
+    chartSlug?: string
 }
 
 export interface Deploy {

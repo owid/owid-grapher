@@ -114,7 +114,7 @@ const triggerStaticBuild = async (user: CurrentUser, commitMessage: string) => {
     })
 }
 
-const enqueueLightningChange = async (
+const enqueueLightningGDocChange = async (
     user: CurrentUser,
     commitMessage: string,
     slug: string
@@ -131,7 +131,28 @@ const enqueueLightningChange = async (
         authorName: user.fullName,
         authorEmail: user.email,
         message: commitMessage,
-        slug,
+        gdocSlug: slug,
+    })
+}
+
+const enqueueLightningChartChange = async (
+    user: CurrentUser,
+    commitMessage: string,
+    slug: string
+) => {
+    if (!BAKE_ON_CHANGE) {
+        console.log(
+            "Not triggering static build because BAKE_ON_CHANGE is false"
+        )
+        return
+    }
+
+    return new DeployQueueServer().enqueueChange({
+        timeISOString: new Date().toISOString(),
+        authorName: user.fullName,
+        authorEmail: user.email,
+        message: commitMessage,
+        chartSlug: slug,
     })
 }
 
@@ -406,7 +427,12 @@ const saveGrapher = async (
             `UPDATE charts SET publishedAt=?, publishedByUserId=? WHERE id = ? `,
             [now, user.id, chartId]
         )
-        await triggerStaticBuild(user, `Publishing chart ${newConfig.slug}`)
+        // await triggerStaticBuild(user, `Publishing chart ${newConfig.slug}`)
+        await enqueueLightningChartChange(
+            user,
+            `(Lightning) Publishing chart ${newConfig.slug}`,
+            newConfig.slug!
+        )
     } else if (
         !newConfig.isPublished &&
         existingConfig &&
@@ -417,9 +443,15 @@ const saveGrapher = async (
             `DELETE FROM chart_slug_redirects WHERE chart_id = ?`,
             [existingConfig.id]
         )
+        // This doesn't trigger lightning build, it should happen quite rarely
         await triggerStaticBuild(user, `Unpublishing chart ${newConfig.slug}`)
     } else if (newConfig.isPublished)
-        await triggerStaticBuild(user, `Updating chart ${newConfig.slug}`)
+        // await triggerStaticBuild(user, `Updating chart ${newConfig.slug}`)
+        await enqueueLightningChartChange(
+            user,
+            `(Lightning) Updating chart ${newConfig.slug}`,
+            newConfig.slug!
+        )
 
     return chartId
 }
@@ -2207,8 +2239,8 @@ apiRouter.put("/tags/:tagId", async (req: Request) => {
         if (!gdoc.length) {
             return {
                 success: true,
-                tagUpdateWarning: `The tag's slug has been updated, but there isn't a published Gdoc page with the same slug. 
-                    
+                tagUpdateWarning: `The tag's slug has been updated, but there isn't a published Gdoc page with the same slug.
+
 Are you sure you haven't made a typo?`,
             }
         }
@@ -2602,9 +2634,9 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
 
     const hasChanges = checkHasChanges(prevGdoc, nextGdoc)
     if (checkIsLightningUpdate(prevGdoc, nextGdoc, hasChanges)) {
-        await enqueueLightningChange(
+        await enqueueLightningGDocChange(
             res.locals.user,
-            `Lightning update ${nextGdoc.slug}`,
+            `(Lightning) Gdoc update ${nextGdoc.slug}`,
             nextGdoc.slug
         )
     } else if (checkFullDeployFallback(prevGdoc, nextGdoc, hasChanges)) {

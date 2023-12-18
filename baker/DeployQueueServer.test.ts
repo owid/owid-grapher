@@ -28,7 +28,7 @@ describe("parseQueueContent", () => {
         )
         expect(output[1].message).toEqual("something one")
         expect(output[2].message).toEqual("something two")
-        expect(output[3].slug).toEqual("article-lightning-deploy")
+        expect(output[3].gdocSlug).toEqual("article-lightning-deploy")
     })
 })
 

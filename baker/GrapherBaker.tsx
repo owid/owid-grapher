@@ -498,14 +498,21 @@ export const bakeSingleGrapherChart = async (
 }
 
 export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
-    async (bakedSiteDir: string) => {
-        const chartsToBake: { id: number; config: string; slug: string }[] =
+    async (bakedSiteDir: string, slugsToBake: string[] = []) => {
+        let chartsToBake: { id: number; config: string; slug: string }[] =
             await db.queryMysql(`
                 SELECT
                     id, config, config->>'$.slug' as slug
                 FROM charts WHERE JSON_EXTRACT(config, "$.isPublished")=true
                 ORDER BY JSON_EXTRACT(config, "$.slug") ASC
                 `)
+
+        // If we are passed a list of slugs, only bake those charts
+        if (slugsToBake.length) {
+            chartsToBake = chartsToBake.filter((row) =>
+                slugsToBake.includes(row.slug)
+            )
+        }
 
         const newSlugs = chartsToBake.map((row) => row.slug)
         await fs.mkdirp(bakedSiteDir + "/grapher")
@@ -535,7 +542,8 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
             }
         )
 
-        if (MAX_NUM_BAKE_PROCESSES === 1) {
+        // run async if we use single process or bake specific slugs
+        if (MAX_NUM_BAKE_PROCESSES === 1 || slugsToBake.length) {
             await Promise.all(
                 jobs.map(async (job) => {
                     await bakeSingleGrapherChart(job)
@@ -563,6 +571,9 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
             }
         }
 
-        await deleteOldGraphers(bakedSiteDir, excludeUndefined(newSlugs))
-        progressBar.tick({ name: `✅ Deleted old graphers` })
+        // only delete old graphers if we don't bake selected slugs
+        if (!slugsToBake.length) {
+            await deleteOldGraphers(bakedSiteDir, excludeUndefined(newSlugs))
+            progressBar.tick({ name: `✅ Deleted old graphers` })
+        }
     }

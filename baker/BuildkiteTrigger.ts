@@ -101,12 +101,28 @@ export class BuildkiteTrigger {
         }
     }
 
-    async runLightningBuild(
+    async runLightningGdocBuild(
         message: string,
         gdocSlugs: string[]
     ): Promise<void> {
+        if (!gdocSlugs.length) {
+            return
+        }
         const buildNumber = await this.triggerBuild(message, {
             LIGHTNING_GDOC_SLUGS: gdocSlugs.join(" "),
+        })
+        await this.waitForBuildToFinish(buildNumber)
+    }
+
+    async runLightningChartBuild(
+        message: string,
+        chartSlugs: string[]
+    ): Promise<void> {
+        if (!chartSlugs.length) {
+            return
+        }
+        const buildNumber = await this.triggerBuild(message, {
+            LIGHTNING_CHART_SLUGS: chartSlugs.join(" "),
         })
         await this.waitForBuildToFinish(buildNumber)
     }

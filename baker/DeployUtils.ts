@@ -40,10 +40,23 @@ const triggerBakeAndDeploy = async (
     if (BUILDKITE_API_ACCESS_TOKEN) {
         const buildkite = new BuildkiteTrigger()
         if (lightningQueue?.length) {
+            // first run lightning gdocs
             await buildkite
-                .runLightningBuild(
+                .runLightningGdocBuild(
                     message!,
-                    lightningQueue.map((change) => change.slug!)
+                    lightningQueue
+                        .map((change) => change.gdocSlug!)
+                        .filter(Boolean)
+                )
+                .catch(logErrorAndMaybeSendToBugsnag)
+
+            // then run chart builds
+            await buildkite
+                .runLightningChartBuild(
+                    message!,
+                    lightningQueue
+                        .map((change) => change.chartSlug!)
+                        .filter(Boolean)
                 )
                 .catch(logErrorAndMaybeSendToBugsnag)
         } else {
@@ -55,10 +68,12 @@ const triggerBakeAndDeploy = async (
         // otherwise, bake locally. This is used for local development or staging servers
         const baker = new SiteBaker(BAKED_SITE_DIR, BAKED_BASE_URL)
         if (lightningQueue?.length) {
-            if (!lightningQueue.every((change) => change.slug))
-                throw new Error("Lightning deploy is missing a slug")
-
-            await baker.bakeGDocPosts(lightningQueue.map((c) => c.slug!))
+            await baker.bakeGDocPosts(
+                lightningQueue.map((c) => c.gdocSlug!).filter(Boolean)
+            )
+            await baker.bakeCharts(
+                lightningQueue.map((c) => c.chartSlug!).filter(Boolean)
+            )
         } else {
             await baker.bakeAll()
         }
@@ -135,4 +150,5 @@ export const deployIfQueueIsNotEmpty = async () => {
     deploying = false
 }
 
-const isLightningChange = (item: DeployChange) => item.slug
+const isLightningChange = (item: DeployChange) =>
+    item.gdocSlug || item.chartSlug

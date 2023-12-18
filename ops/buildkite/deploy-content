@@ -31,6 +31,11 @@ deploy_content () {
     # right now lightning bake has to wait if there's a regular bake
     if [ -n "${LIGHTNING_GDOC_SLUGS:-}" ]; then
         bake_gdoc_posts "$LIGHTNING_GDOC_SLUGS"
+    # Lightning updates for charts
+    elif [ -n "${LIGHTNING_CHART_SLUGS:-}" ]; then
+        bake_charts "$LIGHTNING_CHART_SLUGS"
+        # We could only sync selected slugs, but syncing everything takes only 6s anyway
+        sync_to_r2_aws grapher/exports
     else
         update_owid_content_repo
         sync_wordpress_uploads
@@ -168,6 +173,15 @@ bake_gdoc_posts() {
     (
         cd owid-grapher
         yarn bakeGdocPosts --slugs ${slugs}
+    )
+}
+
+bake_charts() {
+    local slugs="$1"
+    echo "--- Baking Charts ${slugs}"
+    (
+        cd owid-grapher
+        yarn bakeCharts --slugs ${slugs}
     )
 }
 

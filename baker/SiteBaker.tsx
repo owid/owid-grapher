@@ -407,6 +407,17 @@ export class SiteBaker {
         this.progressBar.tick({ name: "✅ baked google doc posts" })
     }
 
+    async bakeCharts(slugsToBake: string[] = []) {
+        if (!this.bakeSteps.has("charts")) return
+        await bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers(
+            this.bakedSiteDir,
+            slugsToBake
+        )
+        this.progressBar.tick({
+            name: "✅ bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers",
+        })
+    }
+
     // Bake unique individual pages
     private async bakeSpecialPages() {
         if (!this.bakeSteps.has("specialPages")) return
@@ -678,14 +689,7 @@ export class SiteBaker {
         await this.bakeSpecialPages()
         await this.bakeCountryProfiles()
         await this.bakeExplorers()
-        if (this.bakeSteps.has("charts")) {
-            await bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers(
-                this.bakedSiteDir
-            )
-            this.progressBar.tick({
-                name: "✅ bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers",
-            })
-        }
+        await this.bakeCharts()
         await this.bakeDetailsOnDemand()
         await this.validateGrapherDodReferences()
         await this.bakeGDocPosts()
