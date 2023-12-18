@@ -11,6 +11,7 @@ import { StaticCollectionPage } from "../site/collections/StaticCollectionPage.j
 import { SearchPage } from "../site/search/SearchPage.js"
 import { NotFoundPage } from "../site/NotFoundPage.js"
 import { DonatePage } from "../site/DonatePage.js"
+import { ThankYouPage } from "../site/ThankYouPage.js"
 import OwidGdocPage from "../site/gdocs/OwidGdocPage.js"
 import React from "react"
 import ReactDOMServer from "react-dom/server.js"
@@ -342,6 +343,10 @@ export const renderDonatePage = async () => {
             recaptchaKey={RECAPTCHA_SITE_KEY}
         />
     )
+}
+
+export const renderThankYouPage = async () => {
+    return renderToHtmlPage(<ThankYouPage baseUrl={BAKED_BASE_URL} />)
 }
 
 export const renderBlogByPageNum = async (pageNum: number) => {
