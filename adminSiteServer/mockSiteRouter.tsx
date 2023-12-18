@@ -172,7 +172,6 @@ mockSiteRouter.get("/donate", async (req, res) =>
     res.send(await renderDonatePage())
 )
 
-// pageNumber is 1-indexed, but DB operations are 0-indexed so there's a bunch of -1s in the code
 mockSiteRouter.get("/data-insights/:pageNumberOrSlug?", async (req, res) => {
     const pageNumberOrSlug = req.params.pageNumberOrSlug
     if (!pageNumberOrSlug) {
@@ -190,22 +189,22 @@ mockSiteRouter.get("/data-insights/:pageNumberOrSlug?", async (req, res) => {
             )
         )
     }
-    const pageNumber = parseInt(pageNumberOrSlug)
+    // pageNumber is 1-indexed, but DB operations are 0-indexed
+    const pageNumber = parseInt(pageNumberOrSlug) - 1
     if (!isNaN(pageNumber)) {
-        if (pageNumber < 1) return res.redirect("/data-insights")
+        if (pageNumber <= 0) return res.redirect("/data-insights")
         const totalPages = await GdocDataInsight.getTotalPageCount()
-        if (pageNumber > totalPages) return res.redirect("/data-insights")
+        if (pageNumber >= totalPages) return res.redirect("/data-insights")
 
-        const dataInsights = await GdocDataInsight.getPublishedDataInsights(
-            pageNumber - 1
-        )
-        // TODO: calling fetchImageMetadata 20 times in a row is horrible
+        const dataInsights =
+            await GdocDataInsight.getPublishedDataInsights(pageNumber)
+        // TODO: calling fetchImageMetadata 20 times in a row makes me sad
         await Promise.all(dataInsights.map((insight) => insight.loadState({})))
         const totalPageCount = await GdocDataInsight.getTotalPageCount()
         return res.send(
             await renderDataInsightsIndexPage(
                 dataInsights,
-                pageNumber - 1,
+                pageNumber,
                 totalPageCount,
                 true
             )
