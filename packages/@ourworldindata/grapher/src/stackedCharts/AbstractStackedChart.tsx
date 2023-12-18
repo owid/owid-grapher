@@ -313,9 +313,6 @@ export class AbstractStackedChart
 
         const { selectedEntityNames } = this.selectionArray
         const areMultipleEntitiesSelected = selectedEntityNames.length > 1
-        const isAggregateEntitySelected = selectedEntityNames.some(
-            (entityName: string) => isAggregateEntity(entityName)
-        )
         const hasMultipleYColumns = this.yColumns.length > 1
         const shortUnits = this.yColumns.map((column) => column.shortUnit)
         const uniqueUnits = new Set(shortUnits)
@@ -337,9 +334,7 @@ export class AbstractStackedChart
         if (
             hasMultipleYColumns &&
             // Stacking percentages doesn't make sense unless we're in relative mode
-            (!hasPercentageUnit || this.manager.isRelativeMode) &&
-            // Stacking countries/regions doesn't make sense if aggregates are present
-            (!isAggregateEntitySelected || !areMultipleEntitiesSelected)
+            (!hasPercentageUnit || this.manager.isRelativeMode)
         )
             strategies.push(FacetStrategy.metric)
 
