@@ -111,6 +111,7 @@ export {
     type OwidGdocPostInterface,
     type OwidGdocDataInsightContent,
     type OwidGdocDataInsightInterface,
+    type MinimalDataInsightInterface,
     type OwidGdoc,
     type Tag,
     OwidGdocType,

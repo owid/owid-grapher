@@ -7,7 +7,6 @@ import {
     ManyToMany,
     JoinTable,
 } from "typeorm"
-import { getConnection } from "../../db.js"
 import { getUrlTarget } from "@ourworldindata/components"
 import {
     LinkedChart,
@@ -23,7 +22,6 @@ import {
     Span,
     EnrichedBlockResearchAndWritingLink,
     traverseEnrichedSpan,
-    RelatedChart,
     uniq,
     omit,
     identity,
@@ -31,6 +29,7 @@ import {
     Tag as TagInterface,
     OwidGdocPublicationContext,
     BreadcrumbItem,
+    MinimalDataInsightInterface,
 } from "@ourworldindata/utils"
 import { BAKED_GRAPHER_URL } from "../../../settings/serverSettings.js"
 import { google } from "googleapis"
@@ -93,7 +92,7 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
     imageMetadata: Record<string, ImageMetadata> = {}
     linkedCharts: Record<string, LinkedChart> = {}
     linkedDocuments: Record<string, OwidGdocBaseInterface> = {}
-    relatedCharts: RelatedChart[] = []
+    latestDataInsights: MinimalDataInsightInterface[] = []
 
     _getSubclassEnrichedBlocks: (gdoc: typeof this) => OwidEnrichedGdocBlock[] =
         () => []
@@ -102,6 +101,7 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
         async () => []
     _filenameProperties: string[] = []
     _omittableFields: string[] = []
+    _loadSubclassAttachments: () => Promise<void> = async () => undefined
 
     constructor(id?: string) {
         super()
@@ -568,29 +568,6 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
         }
     }
 
-    async loadRelatedCharts(): Promise<void> {
-        if (!this.tags.length || !this.hasAllChartsBlock) return
-
-        const connection = await getConnection()
-        const relatedCharts = await connection.query(
-            `
-        SELECT DISTINCT
-        charts.config->>"$.slug" AS slug,
-        charts.config->>"$.title" AS title,
-        charts.config->>"$.variantName" AS variantName,
-        chart_tags.keyChartLevel
-        FROM charts
-        INNER JOIN chart_tags ON charts.id=chart_tags.chartId
-        WHERE chart_tags.tagId IN (?)
-        AND charts.config->>"$.isPublished" = "true"
-        ORDER BY title ASC
-        `,
-            [this.tags.map((tag) => tag.id)]
-        )
-
-        this.relatedCharts = relatedCharts
-    }
-
     async fetchAndEnrichGdoc(): Promise<void> {
         const docsClient = google.docs({
             version: "v1",
@@ -691,7 +668,7 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
         await this.loadLinkedDocuments()
         await this.loadImageMetadata()
         await this.loadLinkedCharts(publishedExplorersBySlug)
-        await this.loadRelatedCharts()
+        await this._loadSubclassAttachments()
         await this.validate(publishedExplorersBySlug)
     }
 

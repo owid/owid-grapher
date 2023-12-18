@@ -1386,7 +1386,18 @@ export interface OwidGdocDataInsightContent {
 export interface OwidGdocDataInsightInterface extends OwidGdocBaseInterface {
     content: OwidGdocDataInsightContent
     linkedDocuments?: Record<string, OwidGdocPostInterface>
+    latestDataInsights?: MinimalDataInsightInterface[]
     tags?: Tag[]
+}
+
+export type MinimalDataInsightInterface = Pick<
+    OwidGdocDataInsightContent,
+    "title"
+> & {
+    publishedAt: string
+    // We select the 5 most recently published insights
+    // We only display 4, but if you're on the DI page for one of them we hide it and show the next most recent
+    index: 0 | 1 | 2 | 3 | 4
 }
 
 export type OwidGdoc = OwidGdocPostInterface | OwidGdocDataInsightInterface

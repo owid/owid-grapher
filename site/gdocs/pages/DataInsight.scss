@@ -1,0 +1,129 @@
+.data-insight-page {
+    background-color: $gray-10;
+    padding-bottom: 80px;
+}
+
+.data-insight-breadcrumbs {
+    margin: 32px 0;
+    a {
+        @include owid-link-90;
+    }
+    svg {
+        height: 12px;
+        margin: 0 8px 1px 8px;
+    }
+    span {
+        color: $blue-60;
+    }
+}
+
+.data-insight-meta {
+    display: flex;
+    flex-direction: column;
+    .data-insight-meta__published-at {
+        color: $blue-60;
+    }
+
+    .data-insight-meta__authors {
+        color: $blue-60;
+    }
+
+    .data-insight-meta__copy-link-button {
+        @include light-blue-button;
+        padding: 10px 24px;
+        margin-top: 24px;
+        svg {
+            height: 16px;
+            margin-right: 8px;
+        }
+    }
+}
+
+.data-insight-body {
+    background-color: #fff;
+    padding: 24px;
+    margin-bottom: 48px;
+    h1 {
+        margin-top: 0;
+    }
+
+    // the tags block adds padding that we need to compensate for
+    &.data-insight-body--has-tags {
+        padding-bottom: 8px;
+    }
+
+    .article-block__image {
+        outline: 1px solid $blue-10;
+    }
+}
+
+.data-insight-blocks {
+    *:last-child {
+        margin-bottom: 0;
+    }
+}
+
+.data-insights-related-topics {
+    border-top: solid $blue-20 1px;
+    display: flex;
+    padding-top: 24px;
+    margin-top: 24px;
+    p {
+        margin: 0 16px 0 0;
+    }
+    ul {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    li {
+        list-style: none;
+        margin-right: 8px;
+        margin-bottom: 16px;
+
+        @include topic-chip;
+    }
+}
+
+.data-insight-cards-container {
+    padding-top: 40px;
+    border-top: $blue-10 4px solid;
+    .insight-cards-header {
+        margin-bottom: 24px;
+        h2 {
+            margin: 0;
+        }
+        .see-all-button-container {
+            position: relative;
+            a {
+                border: 1px solid $vermillion;
+                color: $vermillion;
+                padding: 4.5px 24px;
+                display: inline-block;
+                position: absolute;
+                right: 0;
+                transition: 200ms;
+                &:hover {
+                    color: $accent-vermillion;
+                    border-color: $accent-vermillion;
+                }
+            }
+        }
+    }
+}
+
+.data-insight-card {
+    background-color: $blue-10;
+    padding: 24px;
+    transition: 200ms;
+    &:hover {
+        background-color: $blue-20;
+    }
+    .data-insight-card__published-at {
+        color: $blue-60;
+        margin: 0 0 4px;
+    }
+    .data-insight-card__title {
+        color: $blue-90;
+        margin: 0;
+    }
+}
