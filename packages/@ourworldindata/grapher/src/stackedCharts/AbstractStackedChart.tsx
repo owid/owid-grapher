@@ -336,8 +336,8 @@ export class AbstractStackedChart
 
         if (
             hasMultipleYColumns &&
-            // Stacking percentages doesn't make sense
-            !hasPercentageUnit &&
+            // Stacking percentages doesn't make sense unless we're in relative mode
+            (!hasPercentageUnit || this.manager.isRelativeMode) &&
             // Stacking countries/regions doesn't make sense if aggregates are present
             (!isAggregateEntitySelected || !areMultipleEntitiesSelected)
         )
