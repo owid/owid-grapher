@@ -25,7 +25,7 @@ export class GdocFactory {
         }
 
         json.createdAt = new Date(json.createdAt)
-        json.publishedAt = new Date(json.publishedAt)
+        json.publishedAt = json.publishedAt ? new Date(json.publishedAt) : null
         json.updatedAt = new Date(json.updatedAt)
         // `tags` ordinarily gets populated via a join table in .load(), for our purposes we don't need it here
         // except for the fact that loadRelatedCharts() assumes the array exists
