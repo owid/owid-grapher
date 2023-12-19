@@ -6,6 +6,10 @@ import { IMAGES_DIRECTORY } from "@ourworldindata/utils"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faFacebook, faXTwitter } from "@fortawesome/free-brands-svg-icons"
 
+const shareMessage =
+    "I’m proud to be a supporter of Our World in Data! Their team builds a public resource, free for everyone, that makes the research and data on the world’s largest problems easier to access and understand. You can donate here:"
+const donateLink = "https://ourworldindata.org/donate"
+
 export const ThankYouPage = (props: { baseUrl: string }) => (
     <html>
         <Head
@@ -48,25 +52,27 @@ export const ThankYouPage = (props: { baseUrl: string }) => (
                             Share a message with your followers
                         </h5>
                         <div className="share-message__content">
-                            “I’m proud to be a supporter of Our World in Data!
-                            Their team builds a public resource, free for
-                            everyone, that makes the research and data on the
-                            world’s largest problems easier to access and
-                            understand. You can donate here:{" "}
-                            <a href="/donate">
-                                https://ourworldindata.org/donate
-                            </a>
-                            ”
+                            “{shareMessage} <a href="/donate">{donateLink}</a>”
                             <div className="share-message__buttons">
                                 <a
-                                    href="https://twitter.com/intent/tweet?text=I%20just%20donated%20to%20Our%20World%20in%20Data%20to%20help%20them%20keep%20making%20data%20on%20the%20world%20accessible%20to%20everyone.%20Join%20me%20in%20supporting%20them%20here%3A%20https%3A%2F%2Fourworldindata.org%2Fdonate"
+                                    href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
+                                        shareMessage
+                                    )}&url=${encodeURIComponent(
+                                        donateLink
+                                    )}&via=OurWorldInData`}
                                     className="share-message__button"
+                                    target="_blank"
+                                    rel="noopener"
                                 >
                                     <FontAwesomeIcon icon={faXTwitter} />
                                 </a>
                                 <a
-                                    href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fourworldindata.org%2Fdonate"
+                                    href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+                                        donateLink
+                                    )}`}
                                     className="share-message__button"
+                                    target="_blank"
+                                    rel="noopener"
                                 >
                                     <FontAwesomeIcon icon={faFacebook} />
                                 </a>
