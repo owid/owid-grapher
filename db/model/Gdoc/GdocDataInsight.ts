@@ -29,6 +29,8 @@ export class GdocDataInsight
 
     linkedDocuments: Record<string, OwidGdocPostInterface> = {}
     latestDataInsights: MinimalDataInsightInterface[] = []
+    // TODO: support query parameters in grapher urls so we can track country selections
+    _urlProperties: string[] = ["grapher-url"]
 
     _validateSubclass = async (): Promise<OwidGdocErrorMessage[]> => {
         const errors: OwidGdocErrorMessage[] = []
