@@ -98,6 +98,7 @@ export interface OwidVariablePresentation {
     attribution?: string
     topicTagsLinks?: string[]
     faqs?: FaqLink[]
+    grapherConfigETL?: string
 }
 
 export type OwidProcessingLevel = "minor" | "major"
