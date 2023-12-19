@@ -4,6 +4,8 @@ import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { OwidSource } from "@ourworldindata/utils"
 import { BindString } from "./Forms.js"
 
+const MAX_SOURCES = 10
+
 @observer
 export class SourceList extends React.Component<{
     sources: OwidSource[]
@@ -15,8 +17,21 @@ export class SourceList extends React.Component<{
         const { sources } = this.props
         const isDisabled = true
 
+        // limit sources to MAX_SOURCES, if there's over MAX_SOURCES, add a warning at the top
+        const sourcesLength = sources.length
+        if (sourcesLength > MAX_SOURCES) {
+            sources.length = MAX_SOURCES
+        }
+
         return (
             <div>
+                {sourcesLength > MAX_SOURCES && (
+                    <div className="alert alert-warning">
+                        <strong>Warning:</strong> There are {sourcesLength}{" "}
+                        sources for this dataset. Only the first {MAX_SOURCES}{" "}
+                        will be displayed.
+                    </div>
+                )}
                 {sources.map((source, index) => (
                     <div key={index}>
                         <div className="row">

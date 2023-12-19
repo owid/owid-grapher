@@ -341,10 +341,13 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                     <h3>Origins</h3>
                     <OriginList origins={dataset.origins || []} />
                 </section>
-                <section>
-                    <h3>Sources</h3>
-                    <SourceList sources={dataset.variableSources || []} />
-                </section>
+                {dataset.variableSources &&
+                    dataset.variableSources.length > 0 && (
+                        <section>
+                            <h3>Sources</h3>
+                            <SourceList sources={dataset.variableSources} />
+                        </section>
+                    )}
                 <section>
                     <h3>Indicators</h3>
                     <VariableList variables={dataset.variables} />
