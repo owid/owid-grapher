@@ -1879,8 +1879,6 @@ apiRouter.get("/datasets/:datasetId.json", async (req: Request) => {
 
     dataset.origins = origins
 
-    // This is only for backwards compatibility where we showed only the first source per
-    // dataset. We now show all of them, so perhaps this part could be removed.
     const sources = await db.queryMysql(
         `
         SELECT s.id, s.name, s.description
@@ -1890,12 +1888,6 @@ apiRouter.get("/datasets/:datasetId.json", async (req: Request) => {
     `,
         [datasetId]
     )
-
-    if (sources.length > 0) {
-        dataset.source = JSON.parse(sources[0].description)
-        dataset.source.id = sources[0].id
-        dataset.source.name = sources[0].name
-    }
 
     // expand description of sources and add to dataset as variableSources
     dataset.variableSources = sources.map((s: any) => {

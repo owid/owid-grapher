@@ -43,7 +43,6 @@ interface DatasetPageData {
     tags: { id: number; name: string }[]
     variables: VariableListItem[]
     charts: ChartListItem[]
-    source?: OwidSource
     variableSources: OwidSource[]
     zipFile?: { filename: string }
 
