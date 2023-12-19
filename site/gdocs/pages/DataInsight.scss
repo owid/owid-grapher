@@ -29,6 +29,7 @@
 
 .data-insight-breadcrumbs {
     margin: 32px 0;
+    font-size: 0.875rem;
     a {
         @include owid-link-90;
     }
@@ -119,8 +120,23 @@
     }
 
     @include md-down {
+        padding: 16px;
         margin-bottom: 0;
         padding-bottom: 0;
+
+        h1 {
+            font-size: 1.625rem;
+            margin-bottom: 16px;
+        }
+
+        .article-block__image {
+            margin-top: 16px;
+            margin-bottom: 24px;
+        }
+
+        .article-block__text {
+            font-size: 1rem;
+        }
     }
 }
 
@@ -196,6 +212,10 @@
                 border-color: $accent-vermillion;
             }
         }
+
+        svg {
+            height: 0.75rem;
+        }
     }
 
     .data-insight-cards-container__cards {
@@ -238,6 +258,7 @@
     }
     .data-insight-card__title {
         color: $blue-90;
+        font-weight: 500;
         margin: 0;
     }
 }
@@ -255,6 +276,10 @@
 .data-insights-index-page__header {
     margin-bottom: 40px;
     background-color: #fff;
+    @include md-down {
+        margin-bottom: 24px;
+    }
+
     h2 {
         margin: 0;
         margin-top: 40px;
