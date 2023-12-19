@@ -110,12 +110,7 @@ export class GdocDataInsight
      * based on the number of published data insights and DATA_INSIGHTS_INDEX_PAGE_SIZE
      */
     static async getTotalPageCount(): Promise<number> {
-        return (
-            1 +
-            Math.floor(
-                (await GdocDataInsight.getPublishedDataInsightCount()) /
-                    DATA_INSIGHTS_INDEX_PAGE_SIZE
-            )
-        )
+        const count = await GdocDataInsight.getPublishedDataInsightCount()
+        return Math.ceil(count / DATA_INSIGHTS_INDEX_PAGE_SIZE)
     }
 }
