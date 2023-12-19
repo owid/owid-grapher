@@ -36,6 +36,7 @@
 
 .share-campaign__heading {
     @include h2-bold;
+    margin-bottom: 8px;
     color: $blue-60;
 }
 .share-message__heading {
