@@ -1,0 +1,15 @@
+{
+    "extends": "../tsconfigs/tsconfig.base.json",
+    "compilerOptions": {
+        "outDir": "../../itsJustJavascript/devTools/markdownTest",
+        "rootDir": "."
+    },
+    "references": [
+        {
+            "path": "../../baker"
+        },
+        {
+            "path": "../../settings"
+        }
+    ]
+}
