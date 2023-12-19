@@ -27,14 +27,14 @@ export const ThankYouPage = (props: { baseUrl: string }) => (
                         <h1 className="thank-you-page__title">Thank you!</h1>
                         <p className="article-block__text">
                             Thank you for your support. We really appreciate it.
-                            Your name should appear on{" "}
-                            <a href="/funding">our public list of donors</a>{" "}
-                            next time we update it.
                         </p>
                         <p className="article-block__text">
                             We have sent a receipt to the e-mail you provided.
-                            If you have any questions, please visit our
-                            Donations FAQ or otherwise get in touch with us at{" "}
+                            If you have any questions, please visit our{" "}
+                            <a href="/donate#fa-qs-about-donations">
+                                Donations FAQ
+                            </a>{" "}
+                            or otherwise get in touch with us at{" "}
                             <a href="mailto:donate@ourworldindata.org">
                                 donate@ourworldindata.org
                             </a>
