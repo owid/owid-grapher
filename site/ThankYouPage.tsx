@@ -59,7 +59,7 @@ export const ThankYouPage = (props: { baseUrl: string }) => (
                                         shareMessage
                                     )}&url=${encodeURIComponent(
                                         donateLink
-                                    )}&via=OurWorldInData`}
+                                    )}&related=OurWorldInData`}
                                     className="share-message__button"
                                     target="_blank"
                                     rel="noopener"
