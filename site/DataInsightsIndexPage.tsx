@@ -30,8 +30,7 @@ export const DataInsightsIndexPage = (props: DataInsightsIndexPageProps) => {
                 pageTitle="Data Insights"
                 baseUrl={baseUrl}
                 pageDesc="Bite-sized insights on how the world is changing, written by our team"
-                // TODO: make this image
-                imageUrl={`${baseUrl}${IMAGES_DIRECTORY}data-insights-thumbnail.png`}
+                imageUrl={`${baseUrl}/data-insights-thumbnail.png`}
             ></Head>
             <body>
                 <SiteHeader baseUrl={baseUrl} />

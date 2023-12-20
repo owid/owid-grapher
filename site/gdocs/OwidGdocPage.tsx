@@ -1,18 +1,15 @@
 import React from "react"
-import path from "path"
 import { Head } from "../Head.js"
 import { SiteHeader } from "../SiteHeader.js"
 import { SiteFooter } from "../SiteFooter.js"
 import { CitationMeta } from "../CitationMeta.js"
 import { OwidGdoc } from "./OwidGdoc.js"
-
 import {
+    getFeaturedImageFilename,
     OwidGdoc as OwidGdocUnionType,
     SiteFooterContext,
-    getFilenameAsPng,
-    IMAGES_DIRECTORY,
     OwidGdocType,
-    traverseEnrichedBlocks,
+    filenameToUrl,
 } from "@ourworldindata/utils"
 import { DebugProvider } from "./DebugContext.js"
 import { match, P } from "ts-pattern"
@@ -21,59 +18,6 @@ declare global {
     interface Window {
         _OWID_GDOC_PROPS: any
     }
-}
-
-/**
- * example-image.png -> https://ourworldindata.org/uploads/published/example-image.png
- */
-const filenameToUrl = (filename: string, baseUrl: string) =>
-    new URL(path.join(IMAGES_DIRECTORY, getFilenameAsPng(filename)), baseUrl)
-        .href
-
-function getFeaturedImageUrl(
-    gdoc: OwidGdocUnionType,
-    baseUrl: string
-): string | undefined {
-    return match(gdoc)
-        .with(
-            {
-                content: {
-                    type: P.union(
-                        OwidGdocType.Article,
-                        OwidGdocType.TopicPage,
-                        OwidGdocType.LinearTopicPage
-                    ),
-                },
-            },
-            (match) => {
-                const featuredImageSlug = match.content["featured-image"]
-                if (!featuredImageSlug) return
-                // Social media platforms don't support SVG's for og:image
-                // So no matter what, we use the png fallback that the baker generates
-                return filenameToUrl(featuredImageSlug, baseUrl)
-            }
-        )
-        .with({ content: { type: OwidGdocType.DataInsight } }, (gdoc) => {
-            // Use the first image in the document as the featured image
-            let filename: string | undefined = undefined
-            for (const block of gdoc.content.body) {
-                traverseEnrichedBlocks(block, (block) => {
-                    if (!filename && block.type === "image") {
-                        filename = block.smallFilename || block.filename
-                    }
-                })
-            }
-            return filename
-                ? filenameToUrl(filename, baseUrl)
-                : `${baseUrl}/data-insights-thumbnail.png`
-        })
-        .with(
-            { content: { type: P.union(OwidGdocType.Fragment, undefined) } },
-            () => {
-                return undefined
-            }
-        )
-        .exhaustive()
 }
 
 function getPageDesc(gdoc: OwidGdocUnionType): string | undefined {
@@ -119,7 +63,7 @@ export default function OwidGdocPage({
     const { content, slug, createdAt, updatedAt } = gdoc
 
     const pageDesc = getPageDesc(gdoc)
-    const featuredImageUrl = getFeaturedImageUrl(gdoc, baseUrl)
+    const featuredImageFilename = getFeaturedImageFilename(gdoc)
     const canonicalUrl = `${baseUrl}/${slug}`
 
     return (
@@ -129,7 +73,11 @@ export default function OwidGdocPage({
                 pageDesc={pageDesc}
                 canonicalUrl={canonicalUrl}
                 imageUrl={
-                    featuredImageUrl ? encodeURI(featuredImageUrl) : undefined
+                    featuredImageFilename
+                        ? encodeURI(
+                              filenameToUrl(featuredImageFilename, baseUrl)
+                          )
+                        : undefined
                 }
                 baseUrl={baseUrl}
             >

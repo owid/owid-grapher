@@ -58,7 +58,7 @@ export const checkIsLightningUpdate = (
         updatedAt: true,
         createdAt: false, // weird case - can't be updated
         id: false, // weird case - can't be updated
-        tags: false, // could require updating datapages
+        tags: false, // could require updating datapages, though it's currently not possible to have a difference between prevGdoc.tags and nextGdoc.tags
         imageMetadata: false, // could require baking new images
         publicationContext: false, // requires an update of the blog roll
         published: false, // requires an update of the blog roll

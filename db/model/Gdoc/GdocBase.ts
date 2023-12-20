@@ -30,6 +30,8 @@ import {
     OwidGdocPublicationContext,
     BreadcrumbItem,
     MinimalDataInsightInterface,
+    getFeaturedImageFilename,
+    OwidGdoc,
 } from "@ourworldindata/utils"
 import { BAKED_GRAPHER_URL } from "../../../settings/serverSettings.js"
 import { google } from "googleapis"
@@ -242,7 +244,7 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
         // but we try (and then filter nulls) because we need featured images if we're using prominent links
         // even if this method is being called on a GdocFaq (for example)
         const featuredImages = Object.values(this.linkedDocuments)
-            .map((d: OwidGdocBaseInterface) => d.content["featured-image"])
+            .map((d) => getFeaturedImageFilename(d as OwidGdoc))
             .filter((filename?: string): filename is string => !!filename)
 
         return [...this.filenames, ...featuredImages]

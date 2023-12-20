@@ -632,6 +632,8 @@ export {
     type ImageMetadata,
     type SourceProps,
     generateSourceProps,
+    getFeaturedImageFilename,
+    filenameToUrl,
 } from "./image.js"
 
 export { Tippy, TippyIfInteractive } from "./Tippy.js"
