@@ -628,6 +628,12 @@ export class Grapher
         } else if (params.uniformYAxis === "1") {
             this.yAxis.facetDomain = FacetAxisDomain.shared
         }
+
+        // only relevant for the table
+        if (params.showSelectionOnlyInTable) {
+            this.showSelectionOnlyInDataTable =
+                params.showSelectionOnlyInTable === "1" ? true : undefined
+        }
     }
 
     @action.bound private setTimeFromTimeQueryParam(time: string): void {
@@ -2649,6 +2655,8 @@ export class Grapher
         this.maxTime = authorsVersion.maxTime
         this.map.time = authorsVersion.map.time
         this.map.projection = authorsVersion.map.projection
+        this.showSelectionOnlyInDataTable =
+            authorsVersion.showSelectionOnlyInDataTable
         this.clearSelection()
     }
 
@@ -2700,6 +2708,9 @@ export class Grapher
         params.facet = this.selectedFacetStrategy
         params.uniformYAxis =
             this.yAxis.facetDomain === FacetAxisDomain.independent ? "0" : "1"
+        params.showSelectionOnlyInTable = this.showSelectionOnlyInDataTable
+            ? "1"
+            : "0"
         return setSelectedEntityNamesParam(
             Url.fromQueryParams(params),
             this.selectedEntitiesIfDifferentThanAuthors
