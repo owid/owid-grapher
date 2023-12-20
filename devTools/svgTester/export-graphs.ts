@@ -7,21 +7,14 @@ import fs from "fs-extra"
 import path from "path"
 import workerpool from "workerpool"
 
-function parseArgAsList(arg?: unknown): string[] {
-    return (arg ?? "")
-        .toString()
-        .split(",")
-        .filter((entry: string) => entry)
-}
-
 async function main(parsedArgs: parseArgs.ParsedArgs) {
     try {
         const inDir = parsedArgs["i"] ?? utils.DEFAULT_CONFIGS_DIR
         let outDir = parsedArgs["o"] ?? utils.DEFAULT_REFERENCE_DIR
-        const targetConfigIds: string[] = utils
-            .getGrapherIdListFromString(parsedArgs["c"])
-            .map((id) => id.toString())
-        const targetChartTypes: string[] = parseArgAsList(parsedArgs["t"])
+        const targetGrapherIds = utils.getGrapherIdListFromString(
+            utils.parseArgAsString(parsedArgs["c"])
+        )
+        const targetChartTypes = utils.parseArgAsList(parsedArgs["t"])
         const isolate = parsedArgs["isolate"] ?? false
 
         if (isolate) {
@@ -36,7 +29,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
 
         // create a directory that contains the old and new svgs for easy comparing
         const enableComparisons =
-            targetConfigIds.length || targetChartTypes.length
+            targetGrapherIds.length || targetChartTypes.length
         if (enableComparisons) {
             outDir = path.join(outDir, "comparisons")
         }
@@ -45,31 +38,12 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
             throw `Input directory does not exist ${inDir}`
         if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true })
 
-        const dir = await fs.opendir(inDir)
-        const directories = []
-        for await (const entry of dir) {
-            if (entry.isDirectory()) {
-                if (!targetConfigIds.length && !targetChartTypes.length) {
-                    directories.push(entry.name)
-                    continue
-                }
+        const directoriesToProcess = await utils.getDirectoriesToProcess(
+            inDir,
+            { grapherIds: targetGrapherIds, chartTypes: targetChartTypes }
+        )
 
-                if (targetConfigIds.includes(entry.name)) {
-                    directories.push(entry.name)
-                    continue
-                }
-
-                const configPath = path.join(inDir, entry.name, "config.json")
-                const config = await fs.readJson(configPath)
-
-                if (targetChartTypes.includes(config.type ?? "LineChart")) {
-                    directories.push(entry.name)
-                    continue
-                }
-            }
-        }
-
-        const n = directories.length
+        const n = directoriesToProcess.length
         if (n === 0) {
             console.info("No matching configs found")
             process.exit(0)
@@ -78,7 +52,10 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         }
 
         const jobDescriptions: utils.RenderSvgAndSaveJobDescription[] =
-            directories.map((dir) => ({ dir: path.join(inDir, dir), outDir }))
+            directoriesToProcess.map((dir) => ({
+                dir: dir.pathToProcess,
+                outDir,
+            }))
 
         let svgRecords: utils.SvgRecord[] = []
         if (!isolate) {

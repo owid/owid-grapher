@@ -24,6 +24,17 @@ import {
 } from "../../settings/serverSettings.js"
 import { getHeapStatistics } from "v8"
 
+const VALID_CHART_TYPES = [
+    "LineChart",
+    "ScatterPlot",
+    "StackedArea",
+    "StackedBar",
+    "DiscreteBar",
+    "SlopeChart",
+    "StackedDiscreteBar",
+    "Marimekko",
+]
+
 // the owid-grapher-svgs repo is usually cloned as a sibling to the owid-grapher repo
 export const DEFAULT_CONFIGS_DIR = "../owid-grapher-svgs/configs"
 export const DEFAULT_REFERENCE_DIR = "../owid-grapher-svgs/svg"
@@ -163,37 +174,81 @@ export async function verifySvg(
     })
 }
 
-export async function decideDirectoriesToVerify(
-    grapherIds: number[],
-    inDir: string
+export async function getDirectoriesToProcess(
+    inDir: string,
+    {
+        grapherIds = [],
+        chartTypes = [],
+    }: { grapherIds?: number[]; chartTypes?: string[] }
 ): Promise<JobDirectory[]> {
-    let directories: JobDirectory[] = []
-    if (grapherIds.length === 0) {
-        // If no grapher ids were given scan all directories in the inDir folder
+    const directories: JobDirectory[] = []
+
+    const areGrapherIdsGiven = grapherIds.length > 0
+    const areChartTypesGiven = chartTypes.length > 0
+
+    const makeJobDirectory = (grapherId: number): JobDirectory => ({
+        chartId: grapherId,
+        pathToProcess: path.join(inDir, grapherId.toString()),
+    })
+
+    // If neither grapher ids nor chart types were given scan all directories in the inDir folder
+    if (!areGrapherIdsGiven && !areChartTypesGiven) {
         const dir = await fs.opendir(inDir)
         for await (const entry of dir) {
             if (entry.isDirectory()) {
-                directories.push({
-                    chartId: parseInt(entry.name),
-                    pathToProcess: path.join(inDir, entry.name),
-                })
+                const grapherId = parseInt(entry.name)
+                directories.push(makeJobDirectory(grapherId))
             }
         }
-    } else {
-        // if grapher ids were given check which ones exist in inDir and filter to those
-        // -> if by doing so we drop some, warn the user
-        directories = grapherIds.map((id) => ({
-            chartId: id,
-            pathToProcess: path.join(inDir, id.toString()),
-        }))
-        const allDirsCount = directories.length
-        directories = directories.filter((item) =>
-            fs.existsSync(item.pathToProcess)
+        return directories
+    }
+
+    // If grapher ids were given check which ones exist in inDir and filter to those
+    // -> if by doing so we drop some, warn the user
+    if (areGrapherIdsGiven) {
+        directories.push(
+            ...grapherIds
+                .map((grapherId) => makeJobDirectory(grapherId))
+                .filter((jobDir) => fs.existsSync(jobDir.pathToProcess))
         )
-        if (directories.length < allDirsCount) {
+        if (directories.length < grapherIds.length) {
             console.warn(
-                `${allDirsCount} grapher ids were given but only ${directories.length} existed as directories`
+                `${grapherIds.length} grapher ids were given but only ${directories.length} existed as directories`
             )
+        }
+    }
+
+    // If chart types are given, scan all directories and add those that match a given chart type
+    if (areChartTypesGiven) {
+        // if invalid chart types were given, warn the user
+        const invalidChartTypes = chartTypes.filter(
+            (chartType) => !VALID_CHART_TYPES.includes(chartType)
+        )
+        if (invalidChartTypes.length) {
+            console.warn(
+                `Invalid chart types given: ${invalidChartTypes}. Valid chart types are: ${VALID_CHART_TYPES}`
+            )
+        }
+
+        const dir = await fs.opendir(inDir)
+        for await (const entry of dir) {
+            if (entry.isDirectory()) {
+                const grapherId = parseInt(entry.name)
+
+                // parse grapher config
+                const grapherConfigPath = path.join(
+                    inDir,
+                    entry.name,
+                    "config.json"
+                )
+                const grapherConfig = await fs.readJson(grapherConfigPath)
+
+                // read chart type from config and add the directory if it matches
+                const chartType = grapherConfig.type ?? "LineChart"
+                if (chartTypes.includes(chartType)) {
+                    directories.push(makeJobDirectory(grapherId))
+                }
+            }
         }
     }
 
@@ -521,17 +576,6 @@ export async function renderAndVerifySvg({
         )
     }
 }
-export async function prepareVerifyRun(
-    rawGrapherIds: string,
-    inDir: string
-): Promise<JobDirectory[]> {
-    const grapherIds: number[] = getGrapherIdListFromString(rawGrapherIds)
-    const directoriesToProcess = await decideDirectoriesToVerify(
-        grapherIds,
-        inDir
-    )
-    return directoriesToProcess
-}
 
 // no-op when not running inside GH Actions
 const setGhActionsOutput = (key: string, value: string | number) => {
@@ -591,4 +635,16 @@ export function displayVerifyResultsAndGetExitCode(
         returnCode = errorResults.length + differenceResults.length
     }
     return returnCode
+}
+
+// minimist turns a single number into a JS number so we do toString to normalize (TS types are misleading)
+export function parseArgAsString(arg?: unknown): string {
+    return (arg ?? "").toString()
+}
+
+export function parseArgAsList(arg?: unknown): string[] {
+    return (arg ?? "")
+        .toString()
+        .split(",")
+        .filter((entry: string) => entry)
 }
