@@ -100,6 +100,18 @@
     }
 }
 
+@include md-down {
+    // Add bottom border/padding to the insight body last child at mobile sizes if there are no tags
+    // to separate it from the meta
+    .data-insight-meta
+        + .data-insight-body:not(.data-insight-body--has-tags)
+        > *:last-child {
+        padding-bottom: 24px;
+        margin-bottom: 8px;
+        border-bottom: 1px solid $blue-10;
+    }
+}
+
 .data-insight-body {
     background-color: #fff;
     padding: 24px;
