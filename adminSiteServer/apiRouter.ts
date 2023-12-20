@@ -80,7 +80,6 @@ import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.
 import {
     postsTable,
     setTagsForPost,
-    select,
     getTagsByPostId,
 } from "../db/model/Post.js"
 import {
