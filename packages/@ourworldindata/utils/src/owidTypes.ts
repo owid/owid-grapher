@@ -1383,6 +1383,8 @@ export interface OwidGdocDataInsightContent {
     type: OwidGdocType.DataInsight
 }
 
+export const DATA_INSIGHTS_INDEX_PAGE_SIZE = 2
+
 export interface OwidGdocDataInsightInterface extends OwidGdocBaseInterface {
     content: OwidGdocDataInsightContent
     linkedDocuments?: Record<string, OwidGdocPostInterface>
@@ -1438,16 +1440,6 @@ export interface OwidGdocLinkJSON {
     target: string
     componentType: string
     text: string
-}
-
-/**
- * See ../adminSiteClient/gdocsValidation/getErrors() where these existence
- * constraints are surfaced at runtime on the draft article
- */
-export interface OwidGdocPublished extends OwidGdocPostInterface {
-    publishedAt: Date
-    updatedAt: Date
-    content: OwidGdocPostContentPublished
 }
 
 export interface OwidArticleBackportingStatistics {
@@ -1515,12 +1507,6 @@ export interface OwidGdocPostContent {
 
 export type OwidGdocStickyNavItem = { target: string; text: string }
 
-export interface OwidGdocPostContentPublished extends OwidGdocPostContent {
-    body: OwidEnrichedGdocBlock[]
-    title: string
-    excerpt: string
-}
-
 export type GdocsPatch = Partial<OwidGdocPostInterface>
 
 export enum GdocsContentSource {
@@ -1537,6 +1523,7 @@ export enum SiteFooterContext {
     dynamicCollectionPage = "dynamicCollectionPage",
     explorerPage = "explorerPage",
     default = "default",
+    dataInsightsIndexPage = "data-insights-index-page",
 }
 
 export type RawDetail = {

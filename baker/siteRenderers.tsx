@@ -58,6 +58,7 @@ import {
     mergePartialGrapherConfigs,
     OwidGdocType,
     OwidGdoc,
+    OwidGdocDataInsightInterface,
 } from "@ourworldindata/utils"
 import { CountryProfileSpec } from "../site/countryProfileProjects.js"
 import { formatPost } from "./formatWordpressPost.js"
@@ -86,6 +87,7 @@ import {
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { ExplorerPageUrlMigrationSpec } from "../explorer/urlMigrations/ExplorerPageUrlMigrationSpec.js"
 import { ExplorerPage } from "../site/ExplorerPage.js"
+import { DataInsightsIndexPage } from "../site/DataInsightsIndexPage.js"
 import { Chart } from "../db/model/Chart.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
@@ -169,28 +171,30 @@ export function renderDynamicCollectionPage() {
 }
 
 export const renderGdocsPageBySlug = async (
-    slug: string
+    slug: string,
+    isPreviewing: boolean = false
 ): Promise<string | undefined> => {
-    const gdoc = await GdocPost.findOneBy({ slug })
-    if (!gdoc) {
-        throw new Error(`Failed to render an unknown GDocs post: ${slug}.`)
-    }
-    if (!gdoc.published) {
-        throw new Error(
-            `A Gdoc exists with slug "${slug}" but it is not published.`
-        )
-    }
     const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
     const publishedExplorersBySlug =
         await explorerAdminServer.getAllPublishedExplorersBySlug()
+
+    const gdoc = await GdocFactory.loadBySlug(slug, publishedExplorersBySlug)
+    if (!gdoc) {
+        throw new Error(`Failed to render an unknown GDocs post: ${slug}.`)
+    }
+
     await gdoc.loadState(publishedExplorersBySlug)
 
-    return renderGdoc(gdoc)
+    return renderGdoc(gdoc, isPreviewing)
 }
 
-export const renderGdoc = (gdoc: OwidGdoc) => {
+export const renderGdoc = (gdoc: OwidGdoc, isPreviewing: boolean = false) => {
     return renderToHtmlPage(
-        <OwidGdocPage baseUrl={BAKED_BASE_URL} gdoc={gdoc} />
+        <OwidGdocPage
+            baseUrl={BAKED_BASE_URL}
+            gdoc={gdoc}
+            isPreviewing={isPreviewing}
+        />
     )
 }
 
@@ -346,6 +350,23 @@ export const renderDonatePage = async () => {
             baseUrl={BAKED_BASE_URL}
             faqsGdoc={faqsGdoc}
             recaptchaKey={RECAPTCHA_SITE_KEY}
+        />
+    )
+}
+
+export const renderDataInsightsIndexPage = (
+    dataInsights: OwidGdocDataInsightInterface[],
+    page: number = 0,
+    totalPageCount: number,
+    isPreviewing: boolean = false
+) => {
+    return renderToHtmlPage(
+        <DataInsightsIndexPage
+            dataInsights={dataInsights}
+            baseUrl={BAKED_BASE_URL}
+            pageNumber={page}
+            totalPageCount={totalPageCount}
+            isPreviewing={isPreviewing}
         />
     )
 }

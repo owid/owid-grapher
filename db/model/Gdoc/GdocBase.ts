@@ -45,6 +45,7 @@ import {
 import { EXPLORERS_ROUTE_FOLDER } from "../../../explorer/ExplorerConstants.js"
 import { match, P } from "ts-pattern"
 import {
+    extractUrl,
     getAllLinksFromResearchAndWritingBlock,
     spansToSimpleString,
 } from "./gdocUtils.js"
@@ -99,7 +100,9 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
     _enrichSubclassContent: (content: Record<string, any>) => void = identity
     _validateSubclass: (gdoc: typeof this) => Promise<OwidGdocErrorMessage[]> =
         async () => []
+    // Some subclasses have filenames/urls in the front-matter that we want to track
     _filenameProperties: string[] = []
+    _urlProperties: string[] = []
     _omittableFields: string[] = []
     _loadSubclassAttachments: () => Promise<void> = async () => undefined
 
@@ -192,6 +195,19 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
 
     get links(): Link[] {
         const links: Link[] = []
+
+        for (const urlProperty of this._urlProperties) {
+            const url = extractUrl(this.content[urlProperty])
+            if (url) {
+                links.push(
+                    Link.createFromUrl({
+                        url,
+                        source: this,
+                        componentType: "front-matter",
+                    })
+                )
+            }
+        }
 
         for (const enrichedBlockSource of this.enrichedBlockSources) {
             enrichedBlockSource.forEach((block) =>

@@ -12,6 +12,7 @@ import {
     getFilenameAsPng,
     IMAGES_DIRECTORY,
     OwidGdocType,
+    traverseEnrichedBlocks,
 } from "@ourworldindata/utils"
 import { DebugProvider } from "./DebugContext.js"
 import { match, P } from "ts-pattern"
@@ -21,6 +22,13 @@ declare global {
         _OWID_GDOC_PROPS: any
     }
 }
+
+/**
+ * example-image.png -> https://ourworldindata.org/uploads/published/example-image.png
+ */
+const filenameToUrl = (filename: string, baseUrl: string) =>
+    new URL(path.join(IMAGES_DIRECTORY, getFilenameAsPng(filename)), baseUrl)
+        .href
 
 function getFeaturedImageUrl(
     gdoc: OwidGdocUnionType,
@@ -42,18 +50,22 @@ function getFeaturedImageUrl(
                 if (!featuredImageSlug) return
                 // Social media platforms don't support SVG's for og:image
                 // So no matter what, we use the png fallback that the baker generates
-                return new URL(
-                    path.join(
-                        IMAGES_DIRECTORY,
-                        getFilenameAsPng(featuredImageSlug)
-                    ),
-                    baseUrl
-                ).href
+                return filenameToUrl(featuredImageSlug, baseUrl)
             }
         )
-        .with({ content: { type: OwidGdocType.DataInsight } }, () => {
-            // TODO: get the right image, at the right size
-            return "data-insights-thumbnail.jpg"
+        .with({ content: { type: OwidGdocType.DataInsight } }, (gdoc) => {
+            // Use the first image in the document as the featured image
+            let filename: string | undefined = undefined
+            for (const block of gdoc.content.body) {
+                traverseEnrichedBlocks(block, (block) => {
+                    if (!filename && block.type === "image") {
+                        filename = block.smallFilename || block.filename
+                    }
+                })
+            }
+            return filename
+                ? filenameToUrl(filename, baseUrl)
+                : `${baseUrl}/data-insights-thumbnail.png`
         })
         .with(
             { content: { type: P.union(OwidGdocType.Fragment, undefined) } },

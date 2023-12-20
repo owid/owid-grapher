@@ -4,7 +4,6 @@ import {
     GdocsContentSource,
     OwidGdoc,
     OwidGdocType,
-    Tag as TagInterface,
     checkIsOwidGdocType,
 } from "@ourworldindata/utils"
 
@@ -16,6 +15,9 @@ import { GdocDataInsight } from "./GdocDataInsight.js"
 // Couldn't put this in GdocBase because of circular dependency issues
 export class GdocFactory {
     static fromJSON(json: Record<string, any>): GdocPost | GdocDataInsight {
+        if (typeof json.content === "string") {
+            json.content = JSON.parse(json.content)
+        }
         const type = json.content.type as OwidGdocType | undefined
         const id = json.id as string
         if (!type) {
@@ -27,10 +29,10 @@ export class GdocFactory {
         json.createdAt = new Date(json.createdAt)
         json.publishedAt = json.publishedAt ? new Date(json.publishedAt) : null
         json.updatedAt = new Date(json.updatedAt)
+
         // `tags` ordinarily gets populated via a join table in .load(), for our purposes we don't need it here
         // except for the fact that loadRelatedCharts() assumes the array exists
-
-        const tags = json.tags.map((t: TagInterface) => Tag.create({ ...t }))
+        const tags = Tag.create(json.tags)
         json.tags = tags
 
         return match(type)
@@ -73,6 +75,21 @@ export class GdocFactory {
         await gdoc.save()
 
         return gdoc
+    }
+
+    static async loadBySlug(
+        slug: string,
+        publishedExplorersBySlug: Record<string, any>
+    ): Promise<GdocPost | GdocDataInsight> {
+        const base = await GdocBase.findOne({
+            where: { slug, published: true },
+        })
+        if (!base) {
+            throw new Error(
+                `No published Google Doc with slug "${slug}" found in the database`
+            )
+        }
+        return this.load(base.id, publishedExplorersBySlug)
     }
 
     // From an ID, get a Gdoc object with all its metadata and state loaded, in its correct subclass.

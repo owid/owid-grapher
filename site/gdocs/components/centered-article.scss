@@ -260,6 +260,11 @@ h3.article-block__heading {
     width: 100%;
     margin: 32px 0;
 
+    picture {
+        // fixes strange extra height that is otherwise added to the element on firefox
+        display: flex;
+    }
+
     img {
         width: 100%;
 

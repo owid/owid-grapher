@@ -1363,6 +1363,8 @@ export async function copyToClipboard(text: string): Promise<void> {
         // GPT 4 suggested attempt to work around the lack of clipboard API
         const textarea = document.createElement("textarea")
         textarea.value = text
+        textarea.style.position = "fixed"
+        textarea.style.opacity = "0"
         document.body.appendChild(textarea)
         textarea.focus()
         textarea.select()

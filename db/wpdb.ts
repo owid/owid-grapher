@@ -32,7 +32,6 @@ import {
     GraphType,
     memoize,
     IndexPost,
-    OwidGdocPublished,
     orderBy,
     IMAGES_DIRECTORY,
     uniqBy,
@@ -41,6 +40,7 @@ import {
     isString,
     OwidGdocType,
     Tag,
+    OwidGdocPostInterface,
 } from "@ourworldindata/utils"
 import { Topic } from "@ourworldindata/grapher"
 import {
@@ -931,14 +931,14 @@ export const getBlogIndex = memoize(async (): Promise<IndexPost[]> => {
 })
 
 export const mapGdocsToWordpressPosts = (
-    gdocs: OwidGdocPublished[]
+    gdocs: OwidGdocPostInterface[]
 ): IndexPost[] => {
     return gdocs.map((gdoc) => ({
-        title: gdoc.content["atom-title"] || gdoc.content.title,
+        title: gdoc.content["atom-title"] || gdoc.content.title || "Untitled",
         slug: gdoc.slug,
         type: gdoc.content.type,
-        date: gdoc.publishedAt,
-        modifiedDate: gdoc.updatedAt,
+        date: gdoc.publishedAt as Date,
+        modifiedDate: gdoc.updatedAt as Date,
         authors: gdoc.content.authors,
         excerpt: gdoc.content["atom-excerpt"] || gdoc.content.excerpt,
         imageUrl: gdoc.content["featured-image"]

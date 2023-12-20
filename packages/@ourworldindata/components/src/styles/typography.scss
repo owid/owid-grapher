@@ -71,7 +71,7 @@ body {
 
 @mixin display-2-semibold {
     font-family: $serif-font-stack;
-    font-size: 2rem;
+    font-size: 2.5rem;
     line-height: 1.2;
     font-weight: 600;
     display: block;
@@ -90,8 +90,8 @@ body {
 
 @mixin display-3-semibold {
     font-family: $sans-serif-font-stack;
-    font-size: 1.5rem;
-    line-height: 1.2;
+    font-size: 2rem;
+    line-height: 1.1875;
     font-weight: 500;
     display: block;
     margin-top: 32px;
