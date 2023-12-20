@@ -179,7 +179,8 @@ export async function getDirectoriesToProcess(
     {
         grapherIds = [],
         chartTypes = [],
-    }: { grapherIds?: number[]; chartTypes?: string[] }
+        randomCount = 0,
+    }: { grapherIds?: number[]; chartTypes?: string[]; randomCount?: number }
 ): Promise<JobDirectory[]> {
     const directories: JobDirectory[] = []
 
@@ -190,6 +191,20 @@ export async function getDirectoriesToProcess(
         chartId: grapherId,
         pathToProcess: path.join(inDir, grapherId.toString()),
     })
+
+    // If a random count was given, everything else is ignored and we just return a random sample
+    if (randomCount > 0) {
+        const availableGrapherIds: number[] = []
+        const dir = await fs.opendir(inDir)
+        for await (const entry of dir) {
+            if (entry.isDirectory()) {
+                const grapherId = parseInt(entry.name)
+                availableGrapherIds.push(grapherId)
+            }
+        }
+        const randomSample = _.sampleSize(availableGrapherIds, randomCount)
+        return randomSample.map((grapherId) => makeJobDirectory(grapherId))
+    }
 
     // If neither grapher ids nor chart types were given scan all directories in the inDir folder
     if (!areGrapherIdsGiven && !areChartTypesGiven) {
@@ -638,13 +653,29 @@ export function displayVerifyResultsAndGetExitCode(
 }
 
 // minimist turns a single number into a JS number so we do toString to normalize (TS types are misleading)
-export function parseArgAsString(arg?: unknown): string {
+export function parseArgAsString(arg: unknown): string {
     return (arg ?? "").toString()
 }
 
-export function parseArgAsList(arg?: unknown): string[] {
+export function parseArgAsList(arg: unknown): string[] {
     return (arg ?? "")
         .toString()
         .split(",")
         .filter((entry: string) => entry)
+}
+
+// parses a flag with an optional numeric argument:
+//   - if `arg` is not specified, `defaultIfFlagNotSpecified` is returned
+//   - if `arg` is specified without a value (`--arg`), `defaultIfFlagIsSpecified` is returned
+//   - if `arg` is specified with a value (`--arg 50`), the value is parsed as a number and returned
+export function parseArgAsOptionalNumber(
+    arg: unknown,
+    defaultIfFlagNotSpecified = 0,
+    defaultIfFlagIsSpecified = 1
+): number {
+    return arg === true
+        ? defaultIfFlagIsSpecified
+        : arg
+        ? parseInt(arg as string)
+        : defaultIfFlagNotSpecified
 }

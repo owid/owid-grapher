@@ -16,6 +16,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         )
         const targetChartTypes = utils.parseArgAsList(parsedArgs["t"])
         const isolate = parsedArgs["isolate"] ?? false
+        const randomCount = utils.parseArgAsOptionalNumber(parsedArgs["random"])
 
         if (isolate) {
             console.info(
@@ -40,7 +41,11 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
 
         const directoriesToProcess = await utils.getDirectoriesToProcess(
             inDir,
-            { grapherIds: targetGrapherIds, chartTypes: targetChartTypes }
+            {
+                grapherIds: targetGrapherIds,
+                chartTypes: targetChartTypes,
+                randomCount,
+            }
         )
 
         const n = directoriesToProcess.length
@@ -127,11 +132,12 @@ Usage:
     export-graphs.js (-i DIR) (-o DIR) (-c ID) (-t TYPE)
 
 Options:
-    -i DIR         Input directory containing the data. [default: ${utils.DEFAULT_CONFIGS_DIR}]
-    -o DIR         Output directory that will contain the csv file and one svg file per grapher [default: ${utils.DEFAULT_REFERENCE_DIR}]
-    -c IDS         A comma-separated list of config IDs and config ID ranges that you want to run instead of generating SVGs from all configs, e.g. 2,4-8,10 [default: undefined]
-    -t TYPES       A comma-separated list of chart types that you want to run instead of generating SVGs from all configs [default: undefined]
-    --isolate      Run each export in a separate process. This yields accurate heap usage measurements, but is slower. [default: false]
+    -i DIR              Input directory containing the data. [default: ${utils.DEFAULT_CONFIGS_DIR}]
+    -o DIR              Output directory that will contain the csv file and one svg file per grapher [default: ${utils.DEFAULT_REFERENCE_DIR}]
+    -c IDS              A comma-separated list of config IDs and config ID ranges that you want to run instead of generating SVGs from all configs, e.g. 2,4-8,10 [default: undefined]
+    -t TYPES            A comma-separated list of chart types that you want to run instead of generating SVGs from all configs [default: undefined]
+    --random NUMBER     Generate SVGs for a random set of configs [default: false]
+    --isolate           Run each export in a separate process. This yields accurate heap usage measurements, but is slower. [default: false]
     `)
     process.exit(0)
 } else {

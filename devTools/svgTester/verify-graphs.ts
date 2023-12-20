@@ -18,6 +18,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
             utils.parseArgAsString(parsedArgs["c"])
         )
         const targetChartTypes = utils.parseArgAsList(parsedArgs["t"])
+        const randomCount = utils.parseArgAsOptionalNumber(parsedArgs["random"])
         const rmOnError = parsedArgs["rmOnError"] ?? false
 
         if (!fs.existsSync(inDir))
@@ -29,7 +30,11 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         // Get the directories to process as a list and the content of the csv file with the md5 hashes etc as a map of grapher id -> SvgResult
         const directoriesToProcess = await utils.getDirectoriesToProcess(
             inDir,
-            { grapherIds: targetGrapherIds, chartTypes: targetChartTypes }
+            {
+                grapherIds: targetGrapherIds,
+                chartTypes: targetChartTypes,
+                randomCount,
+            }
         )
         const csvContentMap =
             await utils.getReferenceCsvContentMap(referenceDir)
