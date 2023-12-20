@@ -79,7 +79,7 @@ const entries = new Set([
 
 const migrate = async (): Promise<void> => {
     const writeToFile = false
-    const errors = []
+    const severeErrors: any[] = []
     await db.getConnection()
 
     const rawPosts = await Post.select(
@@ -199,11 +199,16 @@ const migrate = async (): Promise<void> => {
                 ? post.published_at.toLocaleDateString("en-US", options)
                 : ""
 
-            const markdown = enrichedBlocksToMarkdown(
-                archieMlBodyElements,
-                true
-            )
-
+            let markdown = null
+            try {
+                markdown = enrichedBlocksToMarkdown(archieMlBodyElements, true)
+            } catch (e) {
+                console.error(
+                    "Caught an exception when converting to markdown",
+                    post.id
+                )
+                severeErrors.push(e)
+            }
             const archieMlFieldContent: OwidGdocPostInterface = {
                 id: `wp-${post.id}`,
                 slug: post.slug,
@@ -280,7 +285,7 @@ const migrate = async (): Promise<void> => {
             }
         } catch (e) {
             console.error("Caught an exception", postRaw.id)
-            errors.push(e)
+            severeErrors.push(e)
         }
     }
 
@@ -294,9 +299,9 @@ const migrate = async (): Promise<void> => {
 
     await db.closeTypeOrmAndKnexConnections()
 
-    if (errors.length > 0) {
-        console.error("Errors", errors)
-        throw new Error(`${errors.length} items had errors`)
+    if (severeErrors.length > 0) {
+        console.error("Errors", severeErrors)
+        throw new Error(`${severeErrors.length} items had errors`)
     }
 }
 

@@ -2,6 +2,7 @@ import {
     OwidEnrichedGdocBlock,
     Span,
     excludeNullish,
+    isArray,
 } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
 
@@ -38,8 +39,8 @@ export function spanToMarkdown(s: Span): string {
         .exhaustive()
 }
 
-export function spansToMarkdown(spans: Span[]): string {
-    return spans.map((span) => spanToMarkdown(span)).join("")
+export function spansToMarkdown(spans: Span[] | undefined): string {
+    return spans?.map((span) => spanToMarkdown(span)).join("") ?? ""
 }
 
 function markdownComponent(
@@ -56,9 +57,10 @@ function markdownComponent(
 }
 
 export function enrichedBlocksToMarkdown(
-    blocks: OwidEnrichedGdocBlock[],
+    blocks: OwidEnrichedGdocBlock[] | undefined,
     exportComponents: boolean
 ): string | undefined {
+    if (!blocks) return undefined
     const result = excludeNullish(
         blocks.map((block) => enrichedBlockToMarkdown(block, exportComponents))
     ).join("\n\n")
@@ -71,9 +73,14 @@ export function enrichedBlockToMarkdown(
     exportComponents: boolean
 ): string | undefined {
     return match(block)
-        .with({ type: "text" }, (b): string | undefined =>
-            spansToMarkdown(b.value)
-        )
+        .with({ type: "text" }, (b): string | undefined => {
+            // TODO: the cases below should not happen but come up in the DB - this is a debug helper to get to the bottom of it
+            if (b.value === undefined)
+                console.error("Text block value is undefined")
+            if (!isArray(b.value))
+                console.error("Text block value is not an array", b.value)
+            return spansToMarkdown(b.value)
+        })
         .with({ type: "simple-text" }, (b): string | undefined => b.value.text)
         .with({ type: "all-charts" }, (b): string | undefined =>
             markdownComponent(
