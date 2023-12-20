@@ -1357,3 +1357,9 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
         z-index: 0;
     }
 }
+
+.PostsIndexPage {
+    .button-with-margin {
+        margin: 1px;
+    }
+}

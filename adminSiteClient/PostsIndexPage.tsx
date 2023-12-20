@@ -8,6 +8,7 @@ import {
     buildSearchWordsFromSearchString,
     filterFunctionForSearchWords,
     SearchWord,
+    uniq,
 } from "@ourworldindata/utils"
 import { AdminLayout } from "./AdminLayout.js"
 import { SearchField, FieldsRow, Timeago } from "./Forms.js"
@@ -23,6 +24,11 @@ import {
     faRecycle,
 } from "@fortawesome/free-solid-svg-icons"
 
+interface GDocSlugSuccessor {
+    id: string
+    published: boolean
+}
+
 interface PostIndexMeta {
     id: number
     title: string
@@ -31,12 +37,15 @@ interface PostIndexMeta {
     authors: string[]
     slug: string
     updatedAtInWordpress: string
-    tags: ChartTagJoin[]
+    tags: ChartTagJoin[] | null
     gdocSuccessorId: string | undefined
+    gdocSuccessorPublished: boolean
+    gdocSlugSuccessors: GDocSlugSuccessor[] | null
 }
 
 enum GdocStatus {
-    "MISSING" = "MISSING",
+    "MISSING_NO_SLUG_SUCCESSOR" = "MISSING_NO_SLUG_SUCCESSOR",
+    "MISSING_WITH_SLUG_SUCCESSOR" = "MISSING_WITH_SLUG_SUCCESSOR",
     "CONVERTING" = "CONVERTING",
     "CONVERTED" = "CONVERTED",
 }
@@ -51,13 +60,17 @@ class PostRow extends React.Component<PostRowProps> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    @observable private postGdocStatus: GdocStatus = GdocStatus.MISSING
+    @observable private postGdocStatus: GdocStatus =
+        GdocStatus.MISSING_NO_SLUG_SUCCESSOR
 
     constructor(props: PostRowProps) {
         super(props)
         this.postGdocStatus = props.post.gdocSuccessorId
             ? GdocStatus.CONVERTED
-            : GdocStatus.MISSING
+            : props.post.gdocSlugSuccessors &&
+              props.post.gdocSlugSuccessors.length > 0
+            ? GdocStatus.MISSING_WITH_SLUG_SUCCESSOR
+            : GdocStatus.MISSING_NO_SLUG_SUCCESSOR
     }
 
     async saveTags(tags: ChartTagJoin[]) {
@@ -111,7 +124,11 @@ class PostRow extends React.Component<PostRowProps> {
                 {},
                 "POST"
             )
-            this.postGdocStatus = GdocStatus.MISSING
+            this.postGdocStatus =
+                this.props.post.gdocSlugSuccessors &&
+                this.props.post.gdocSlugSuccessors.length > 0
+                    ? GdocStatus.MISSING_WITH_SLUG_SUCCESSOR
+                    : GdocStatus.MISSING_NO_SLUG_SUCCESSOR
             this.props.post.gdocSuccessorId = undefined
         }
     }
@@ -120,28 +137,54 @@ class PostRow extends React.Component<PostRowProps> {
         const { post, availableTags } = this.props
         const { postGdocStatus } = this
         const gdocElement = match(postGdocStatus)
-            .with(GdocStatus.MISSING, () => (
+            .with(GdocStatus.MISSING_NO_SLUG_SUCCESSOR, () => (
                 <button
                     onClick={async () => await this.onConvertGdoc()}
-                    className="btn btn-primary"
+                    className="btn btn-primary btn-sm"
                 >
                     Create GDoc
                 </button>
+            ))
+            .with(GdocStatus.MISSING_WITH_SLUG_SUCCESSOR, () => (
+                <>
+                    {uniq(post.gdocSlugSuccessors).map((gdocSlugSuccessor) => (
+                        <a
+                            key={gdocSlugSuccessor.id}
+                            href={`${ADMIN_BASE_URL}/admin/gdocs/${gdocSlugSuccessor.id}/preview`}
+                            className="btn btn-primary btn-sm"
+                            title="Preview GDoc with same slug"
+                        >
+                            <>
+                                <FontAwesomeIcon icon={faEye} /> Preview
+                                {gdocSlugSuccessor.published ? (
+                                    <span title="Published">✅</span>
+                                ) : (
+                                    <></>
+                                )}
+                            </>
+                        </a>
+                    ))}
+                </>
             ))
             .with(GdocStatus.CONVERTING, () => <span>Converting...</span>)
             .with(GdocStatus.CONVERTED, () => (
                 <>
                     <a
                         href={`${ADMIN_BASE_URL}/admin/gdocs/${post.gdocSuccessorId}/preview`}
-                        className="btn btn-primary"
+                        className="btn btn-primary btn-sm button-with-margin"
                     >
                         <>
                             <FontAwesomeIcon icon={faEye} /> Preview
+                            {post.gdocSuccessorPublished ? (
+                                <span title="Published">✅</span>
+                            ) : (
+                                <></>
+                            )}
                         </>
                     </a>
                     <button
                         onClick={this.onRecreateGdoc}
-                        className="btn btn-primary alert-danger"
+                        className="btn btn-primary alert-danger btn-sm button-with-margin"
                     >
                         <FontAwesomeIcon
                             icon={faRecycle}
@@ -152,7 +195,7 @@ class PostRow extends React.Component<PostRowProps> {
                     </button>
                     <button
                         onClick={this.onUnlinkGdoc}
-                        className="btn btn-primary alert-danger"
+                        className="btn btn-primary alert-danger btn-sm button-with-margin"
                     >
                         <FontAwesomeIcon
                             icon={faChainBroken}
@@ -172,7 +215,7 @@ class PostRow extends React.Component<PostRowProps> {
                 <td>{post.slug}</td>
                 <td style={{ minWidth: "380px" }}>
                     <EditableTags
-                        tags={post.tags}
+                        tags={post.tags ?? []}
                         suggestions={availableTags}
                         onSave={this.onSaveTags}
                     />
@@ -223,7 +266,7 @@ export class PostsIndexPage extends React.Component {
 
     @computed get postsToShow(): PostIndexMeta[] {
         const { searchWords, posts } = this
-        if (searchWords.length > 0) {
+        if (posts.length > 0 && searchWords.length > 0) {
             const filterFn = filterFunctionForSearchWords(
                 searchWords,
                 (post: PostIndexMeta) => [

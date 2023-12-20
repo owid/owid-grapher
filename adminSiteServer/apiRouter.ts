@@ -48,6 +48,7 @@ import {
     DimensionProperty,
     TaggableType,
     ChartTagJoin,
+    sortBy,
 } from "@ourworldindata/utils"
 import {
     GrapherInterface,
@@ -79,7 +80,6 @@ import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.
 import {
     postsTable,
     setTagsForPost,
-    select,
     getTagsByPostId,
 } from "../db/model/Post.js"
 import {
@@ -2303,32 +2303,54 @@ apiRouter.delete("/redirects/:id", async (req: Request, res: Response) => {
 })
 
 apiRouter.get("/posts.json", async (req) => {
-    const rows = await select(
-        "id",
-        "title",
-        "type",
-        "slug",
-        "status",
-        "updated_at_in_wordpress",
-        "gdocSuccessorId"
-    ).from(
-        db
-            .knexInstance()
-            .from(postsTable)
-            .orderBy("updated_at_in_wordpress", "desc")
+    const raw_rows = await db.queryMysql(
+        `-- sql
+        with posts_tags_aggregated as (
+            select post_id, if(count(tags.id) = 0, json_array(), json_arrayagg(json_object("id", tags.id, "name", tags.name))) as tags
+            from post_tags
+            left join tags on tags.id = post_tags.tag_id
+            group by post_id
+        ), post_gdoc_slug_successors as (
+            select posts.id, if (count(gdocSlugSuccessor.id) = 0, json_array(), json_arrayagg(json_object("id", gdocSlugSuccessor.id, "published", gdocSlugSuccessor.published ))) as gdocSlugSuccessors
+            from posts
+            left join posts_gdocs gdocSlugSuccessor on gdocSlugSuccessor.slug = posts.slug
+            group by posts.id
+        )
+        select
+             posts.id as id,
+             posts.title as title,
+             posts.type as type,
+             posts.slug as slug,
+             status,
+             updated_at_in_wordpress,
+             posts.authors, -- authors is a json array of objects with name and order
+             posts_tags_aggregated.tags as tags,
+             gdocSuccessorId,
+             gdocSuccessor.published as isGdocSuccessorPublished,
+             -- posts can either have explict successors via the gdocSuccessorId column
+             -- or implicit successors if a gdoc has been created that uses the same slug
+             -- as a Wp post (the gdoc one wins once it is published)
+             post_gdoc_slug_successors.gdocSlugSuccessors as gdocSlugSuccessors
+         from posts
+         left join post_gdoc_slug_successors on post_gdoc_slug_successors.id = posts.id
+         left join posts_gdocs gdocSuccessor on gdocSuccessor.id = posts.gdocSuccessorId
+         left join posts_tags_aggregated on posts_tags_aggregated.post_id = posts.id
+         order by updated_at_in_wordpress desc`,
+        []
     )
+    const rows = raw_rows.map((row: any) => ({
+        ...row,
+        tags: JSON.parse(row.tags),
+        isGdocSuccessorPublished: !!row.isGdocSuccessorPublished,
+        gdocSlugSuccessors: JSON.parse(row.gdocSlugSuccessors),
+        authors: row.authors
+            ? sortBy(JSON.parse(row.authors), "order").map(
+                  (author) => author.author
+              )
+            : [],
+    }))
 
-    const tagsByPostId = await getTagsByPostId()
-
-    const authorship = await wpdb.getAuthorship()
-
-    for (const post of rows) {
-        const postAsAny = post as any
-        postAsAny.authors = authorship.get(post.id) || []
-        postAsAny.tags = tagsByPostId.get(post.id) || []
-    }
-
-    return { posts: rows.map((r) => camelCaseProperties(r)) }
+    return { posts: rows }
 })
 
 apiRouter.post(
