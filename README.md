@@ -66,7 +66,7 @@ As of March 2023, code exists for rendering both WordPress posts and Google Docs
 
 ## Tooling
 
-Much of our code is based around [reactive programming](https://en.wikipedia.org/wiki/Reactive_programming) using [React](https://reactjs.org/) and [Mobx](http://github.com/mobxjs/mobx).
+Much of our code is based around [reactive programming](https://en.wikipedia.org/wiki/Reactive_programming) using [React](https://reactjs.org/) and [Mobx](http://github.com/mobxjs/mobx). We bundle our code with [vite](https://github.com/vitejs/vite).
 
 All non-WordPress code is written in [TypeScript](https://www.typescriptlang.org/).
 
