@@ -87,7 +87,10 @@ export const ThankYouPage = (props: { baseUrl: string }) => (
                             height="270"
                         >
                             <source
-                                src="https://assets.ourworldindata.org/uploads/2019/02/thank-you.mp4"
+                                // Use a media fragment (#t=0.001) to show the first frame of
+                                // the video as the poster on iOS Safari
+                                // - https://muffinman.io/blog/hack-for-ios-safari-to-display-html-video-thumbnail/
+                                src="https://assets.ourworldindata.org/uploads/2019/02/thank-you.mp4#t=0.001"
                                 type="video/mp4"
                             />
                             Your browser does not support the video tag.
