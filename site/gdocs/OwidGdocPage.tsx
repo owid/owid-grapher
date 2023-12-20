@@ -63,10 +63,9 @@ function getFeaturedImageUrl(
                     }
                 })
             }
-            return filenameToUrl(
-                filename || "data-insights-thumbnail.png",
-                baseUrl
-            )
+            return filename
+                ? filenameToUrl(filename, baseUrl)
+                : `${baseUrl}/data-insights-thumbnail.png`
         })
         .with(
             { content: { type: P.union(OwidGdocType.Fragment, undefined) } },
