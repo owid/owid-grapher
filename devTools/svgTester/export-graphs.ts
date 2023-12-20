@@ -18,7 +18,9 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
     try {
         const inDir = parsedArgs["i"] ?? utils.DEFAULT_CONFIGS_DIR
         let outDir = parsedArgs["o"] ?? utils.DEFAULT_REFERENCE_DIR
-        const targetConfigs: string[] = parseArgAsList(parsedArgs["c"])
+        const targetConfigIds: string[] = utils
+            .getGrapherIdListFromString(parsedArgs["c"])
+            .map((id) => id.toString())
         const targetChartTypes: string[] = parseArgAsList(parsedArgs["t"])
         const isolate = parsedArgs["isolate"] ?? false
 
@@ -34,7 +36,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
 
         // create a directory that contains the old and new svgs for easy comparing
         const enableComparisons =
-            targetConfigs.length || targetChartTypes.length
+            targetConfigIds.length || targetChartTypes.length
         if (enableComparisons) {
             outDir = path.join(outDir, "comparisons")
         }
@@ -47,12 +49,12 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         const directories = []
         for await (const entry of dir) {
             if (entry.isDirectory()) {
-                if (!targetConfigs.length && !targetChartTypes.length) {
+                if (!targetConfigIds.length && !targetChartTypes.length) {
                     directories.push(entry.name)
                     continue
                 }
 
-                if (targetConfigs.includes(entry.name)) {
+                if (targetConfigIds.includes(entry.name)) {
                     directories.push(entry.name)
                     continue
                 }
@@ -69,10 +71,10 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
 
         const n = directories.length
         if (n === 0) {
-            console.log("No matching configs found")
+            console.info("No matching configs found")
             process.exit(0)
         } else {
-            console.log(`Generating ${n} SVG${n > 1 ? "s" : ""}...`)
+            console.info(`Generating ${n} SVG${n > 1 ? "s" : ""}...`)
         }
 
         const jobDescriptions: utils.RenderSvgAndSaveJobDescription[] =
@@ -150,8 +152,8 @@ Usage:
 Options:
     -i DIR         Input directory containing the data. [default: ${utils.DEFAULT_CONFIGS_DIR}]
     -o DIR         Output directory that will contain the csv file and one svg file per grapher [default: ${utils.DEFAULT_REFERENCE_DIR}]
-    -c ID          A comma-separated list of config IDs that you want to run instead of generating SVGs from all configs [default: undefined]
-    -t TYPE        A comma-separated list of chart types that you want to run instead of generating SVGs from all configs [default: undefined]
+    -c IDS         A comma-separated list of config IDs and config ID ranges that you want to run instead of generating SVGs from all configs, e.g. 2,4-8,10 [default: undefined]
+    -t TYPES       A comma-separated list of chart types that you want to run instead of generating SVGs from all configs [default: undefined]
     --isolate      Run each export in a separate process. This yields accurate heap usage measurements, but is slower. [default: false]
     `)
     process.exit(0)

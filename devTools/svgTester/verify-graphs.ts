@@ -15,7 +15,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         const verbose = parsedArgs["v"] ?? false
         const suffix = parsedArgs["s"] ?? ""
         // minimist turns a single number into a JS number so we do toString to normalize (TS types are misleading)
-        const rawGrapherIds: string = (parsedArgs["g"] ?? "").toString()
+        const rawGrapherIds: string = (parsedArgs["c"] ?? "").toString()
         const rmOnError = parsedArgs["rmOnError"] ?? false
 
         if (!fs.existsSync(inDir))
@@ -88,7 +88,7 @@ Options:
     -i DIR         Input directory containing the data. [default: ${utils.DEFAULT_CONFIGS_DIR}]
     -r DIR         Input directory containing the results.csv file to check against [default: ${utils.DEFAULT_REFERENCE_DIR}]
     -o DIR         Output directory that will contain the svg files that were different [default: ${utils.DEFAULT_DIFFERENCES_DIR}]
-    -g IDS         Manually specify ids to verify (use comma separated ids and ranges, all without spaces. E.g.: 2,4-8,10)
+    -c IDS         Manually specify ids to verify (use comma separated ids and ranges, all without spaces. E.g.: 2,4-8,10)
     -v             Verbose mode
     -s SUFFIX      Suffix for different svg files to create <NAME><SUFFIX>.svg files - useful if you want to set output to the same as reference
     --rmOnError    Remove output files where we encounter errors, so errors are apparent in diffs
