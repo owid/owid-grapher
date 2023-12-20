@@ -173,43 +173,33 @@ mockSiteRouter.get("/donate", async (req, res) =>
 )
 
 mockSiteRouter.get("/data-insights/:pageNumberOrSlug?", async (req, res) => {
-    const pageNumberOrSlug = req.params.pageNumberOrSlug
-    if (!pageNumberOrSlug) {
-        const dataInsights = await GdocDataInsight.getPublishedDataInsights(0)
-        // TODO: calling fetchImageMetadata 20 times in a row is horrible
+    async function renderIndexPage(pageNumber: number) {
+        const dataInsights =
+            await GdocDataInsight.getPublishedDataInsights(pageNumber)
+        // calling fetchImageMetadata 20 times makes me sad, would be nice if we could cache this
         await Promise.all(dataInsights.map((insight) => insight.loadState({})))
         const totalPageCount = await GdocDataInsight.getTotalPageCount()
-
-        return res.send(
-            await renderDataInsightsIndexPage(
-                dataInsights,
-                0,
-                totalPageCount,
-                true
-            )
+        return renderDataInsightsIndexPage(
+            dataInsights,
+            pageNumber,
+            totalPageCount,
+            true
         )
     }
+    const pageNumberOrSlug = req.params.pageNumberOrSlug
+    if (!pageNumberOrSlug) {
+        return res.send(await renderIndexPage(0))
+    }
+
     // pageNumber is 1-indexed, but DB operations are 0-indexed
     const pageNumber = parseInt(pageNumberOrSlug) - 1
     if (!isNaN(pageNumber)) {
         if (pageNumber <= 0) return res.redirect("/data-insights")
         const totalPages = await GdocDataInsight.getTotalPageCount()
         if (pageNumber >= totalPages) return res.redirect("/data-insights")
-
-        const dataInsights =
-            await GdocDataInsight.getPublishedDataInsights(pageNumber)
-        // TODO: calling fetchImageMetadata 20 times in a row makes me sad
-        await Promise.all(dataInsights.map((insight) => insight.loadState({})))
-        const totalPageCount = await GdocDataInsight.getTotalPageCount()
-        return res.send(
-            await renderDataInsightsIndexPage(
-                dataInsights,
-                pageNumber,
-                totalPageCount,
-                true
-            )
-        )
+        return res.send(await renderIndexPage(pageNumber))
     }
+
     const slug = pageNumberOrSlug
     try {
         return res.send(await renderGdocsPageBySlug(slug, true))
