@@ -3,7 +3,6 @@ import { Head } from "./Head.js"
 import { SiteHeader } from "./SiteHeader.js"
 import { SiteFooter } from "./SiteFooter.js"
 import {
-    IMAGES_DIRECTORY,
     OwidGdocDataInsightInterface,
     SiteFooterContext,
     serializeJSONForHTML,
