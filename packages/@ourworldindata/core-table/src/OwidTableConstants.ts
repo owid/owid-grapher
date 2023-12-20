@@ -79,4 +79,5 @@ export interface OwidVariableRow<ValueType extends PrimitiveType> {
     entityName: EntityName
     time: Time
     value: ValueType
+    originalValue?: ValueType
 }

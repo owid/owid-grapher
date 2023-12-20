@@ -159,6 +159,58 @@ it("should drop missing values at start or end", () => {
     expect(chart.series[1].points.length).toEqual(3)
 })
 
+it("should mark interpolated values as fake", () => {
+    const csv = `gdp,year,entityName
+    10,2000,france
+    0,2001,france
+    ,2002,france
+    ,2003,france
+    8,2005,france
+    ,2006,france
+    2,2000,uk
+    3,2004,uk`
+    const table = new OwidTable(csv, [
+        { slug: "gdp", type: ColumnTypeNames.Numeric },
+        { slug: "year", type: ColumnTypeNames.Year },
+    ])
+
+    const manager: ChartManager = {
+        table,
+        yColumnSlugs: ["gdp"],
+        selection: table.availableEntityNames,
+    }
+
+    const chart = new StackedAreaChart({ manager })
+
+    // indices are reversed because stacked charts reverse the stacking order
+    const pointsFrance = chart.series[1].points
+    const pointsUK = chart.series[0].points
+
+    // year 2000
+    expect(pointsFrance[0].interpolated).toBeFalsy()
+    expect(pointsFrance[0].fake).toBeFalsy()
+    expect(pointsUK[0].interpolated).toBeFalsy()
+    expect(pointsUK[0].fake).toBeFalsy()
+
+    // year = 2001
+    expect(pointsFrance[1].interpolated).toBeFalsy()
+    expect(pointsFrance[1].fake).toBeFalsy()
+    expect(pointsUK[1].interpolated).toBeTruthy()
+    expect(pointsUK[1].fake).toBeTruthy()
+
+    // year = 2004
+    expect(pointsFrance[2].interpolated).toBeTruthy()
+    expect(pointsFrance[2].fake).toBeTruthy()
+    expect(pointsUK[2].interpolated).toBeFalsy()
+    expect(pointsUK[2].fake).toBeFalsy()
+
+    // year = 2005
+    expect(pointsFrance[3].interpolated).toBeFalsy()
+    expect(pointsFrance[3].fake).toBeFalsy()
+    expect(pointsUK[3].interpolated).toBeFalsy()
+    expect(pointsUK[3].fake).toBeTruthy() // true since it's zero-filled
+})
+
 describe("externalLegendBins", () => {
     const table = SynthesizeFruitTable({
         timeRange: [2000, 2010],

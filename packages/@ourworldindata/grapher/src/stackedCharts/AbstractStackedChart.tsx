@@ -28,6 +28,7 @@ import {
     OwidTable,
     CoreColumn,
     BlankOwidTable,
+    isNotErrorValueOrEmptyCell,
 } from "@ourworldindata/core-table"
 import {
     autoDetectSeriesStrategy,
@@ -385,6 +386,10 @@ export class AbstractStackedChart
                         time: row.time,
                         value: row.value,
                         valueOffset: 0,
+                        interpolated:
+                            this.shouldRunLinearInterpolation &&
+                            isNotErrorValueOrEmptyCell(row.value) &&
+                            !isNotErrorValueOrEmptyCell(row.originalValue),
                     }
                 })
 

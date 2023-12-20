@@ -43,6 +43,7 @@ import {
 import { ErrorValue, ErrorValueTypes, isNotErrorValue } from "./ErrorValues.js"
 import {
     getOriginalTimeColumnSlug,
+    makeOriginalValueSlugFromColumnSlug,
     makeOriginalTimeSlugFromColumnSlug,
     timeColumnSlugFromColumnDef,
     toPercentageColumnDef,
@@ -757,6 +758,14 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             this.get(maybeTimeColumnSlug) ??
             (this.get(OwidTableSlugs.time) as CoreColumn) // CovidTable does not have a day or year column so we need to use time.
 
+        const originalColumnSlug =
+            makeOriginalValueSlugFromColumnSlug(columnSlug)
+        const originalColumnDef = {
+            ...columnDef,
+            slug: originalColumnSlug,
+            display: { includeInTable: false },
+        }
+
         // todo: we can probably do this once early in the pipeline so we dont have to do it again since complete and sort can be expensive.
         const withAllRows = this.complete([
             this.entityNameSlug,
@@ -773,6 +782,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
         const columnStore = {
             ...withAllRows.columnStore,
+            [originalColumnSlug]: withAllRows.columnStore[columnSlug],
             [columnSlug]: interpolationResult.values,
         }
 
@@ -780,11 +790,12 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             columnStore,
             [
                 ...this.defs,
+                originalColumnDef,
                 {
                     ...timeColumn.def,
                 },
             ],
-            `Interpolated values in column ${columnSlug} linearly`,
+            `Interpolated values in column ${columnSlug} linearly and and appended column ${originalColumnSlug} with the original values`,
             TransformType.UpdateColumnDefs
         )
     }

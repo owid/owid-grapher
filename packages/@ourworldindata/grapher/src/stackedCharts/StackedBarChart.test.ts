@@ -4,6 +4,8 @@ import {
     SampleColumnSlugs,
     SynthesizeFruitTableWithStringValues,
     SynthesizeGDPTable,
+    OwidTable,
+    ColumnTypeNames,
 } from "@ourworldindata/core-table"
 import { ChartManager } from "../chart/ChartManager"
 import { SelectionArray } from "../selection/SelectionArray"
@@ -98,4 +100,42 @@ it("filters non-numeric values", () => {
             )
         )
     ).toBeTruthy()
+})
+
+it("should not mark any values as interpolated by default", () => {
+    const csv = `gdp,year,entityName
+    10,2000,france
+    0,2001,france
+    ,2002,france
+    ,2003,france
+    8,2005,france
+    ,2006,france
+    2,2000,uk
+    3,2004,uk`
+    const table = new OwidTable(csv, [
+        { slug: "gdp", type: ColumnTypeNames.Numeric },
+        { slug: "year", type: ColumnTypeNames.Year },
+    ])
+
+    const manager: ChartManager = {
+        table,
+        yColumnSlugs: ["gdp"],
+        selection: table.availableEntityNames,
+    }
+
+    const chart = new StackedBarChart({ manager })
+
+    // indices are reversed because stacked charts reverse the stacking order
+    const pointsFrance = chart.series[1].points
+    const pointsUK = chart.series[0].points
+
+    expect(pointsFrance[0].interpolated).toBeFalsy() // year = 2000
+    expect(pointsFrance[1].interpolated).toBeFalsy() // year = 2001
+    expect(pointsFrance[2].interpolated).toBeFalsy() // year = 2004
+    expect(pointsFrance[3].interpolated).toBeFalsy() // year = 2005
+
+    expect(pointsUK[0].interpolated).toBeFalsy() // year = 2000
+    expect(pointsUK[1].interpolated).toBeFalsy() // year = 2001
+    expect(pointsUK[2].interpolated).toBeFalsy() // year = 2004
+    expect(pointsUK[3].interpolated).toBeFalsy() // year = 2005
 })
