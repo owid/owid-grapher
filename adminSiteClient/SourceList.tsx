@@ -17,22 +17,22 @@ export class SourceList extends React.Component<{
         const { sources } = this.props
         const isDisabled = true
 
-        // limit sources to MAX_SOURCES, if there's over MAX_SOURCES, add a warning at the top
-        const sourcesLength = sources.length
-        if (sourcesLength > MAX_SOURCES) {
-            sources.length = MAX_SOURCES
-        }
+        // Use slice to create a new array with at most MAX_SOURCES items
+        const limitedSources =
+            sources.length > MAX_SOURCES
+                ? sources.slice(0, MAX_SOURCES)
+                : sources
 
         return (
             <div>
-                {sourcesLength > MAX_SOURCES && (
+                {sources.length > MAX_SOURCES && (
                     <div className="alert alert-warning">
-                        <strong>Warning:</strong> There are {sourcesLength}{" "}
+                        <strong>Warning:</strong> There are {sources.length}{" "}
                         sources for this dataset. Only the first {MAX_SOURCES}{" "}
                         will be displayed.
                     </div>
                 )}
-                {sources.map((source, index) => (
+                {limitedSources.map((source, index) => (
                     <div key={index}>
                         <div className="row">
                             <div className="col">
