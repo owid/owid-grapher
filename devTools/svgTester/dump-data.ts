@@ -12,7 +12,7 @@ import pMap from "p-map"
 
 async function main(parsedArgs: parseArgs.ParsedArgs) {
     try {
-        const outDir = parsedArgs["o"] ?? "grapherData"
+        const outDir = parsedArgs["o"] ?? utils.DEFAULT_CONFIGS_DIR
         if (!fs.existsSync(outDir)) fs.mkdirSync(outDir)
 
         const { graphersBySlug } = await getPublishedGraphersBySlug()
@@ -44,7 +44,7 @@ Usage:
     dump-data.js (-o DIR)
 
 Options:
-    -o DIR   Output directory. Inside it one dir per grapher will be created. [default: grapherData]
+    -o DIR   Output directory. Inside it one dir per grapher will be created. [default: ${utils.DEFAULT_CONFIGS_DIR}]
     `)
     process.exit(0)
 } else {

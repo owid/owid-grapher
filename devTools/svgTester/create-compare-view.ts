@@ -3,12 +3,15 @@
 import parseArgs from "minimist"
 import fs from "fs-extra"
 import path from "path"
+import * as utils from "./utils.js"
 
 async function main(parsedArgs: parseArgs.ParsedArgs) {
-    // perpare and check arguments
-    const referenceDir: string = parsedArgs["r"] ?? "grapherSvgs"
-    const differencesDir: string = parsedArgs["d"] ?? "differentGrapherSvgs"
+    // prepare and check arguments
+    const referenceDir: string = parsedArgs["r"] ?? utils.DEFAULT_REFERENCE_DIR
+    const differencesDir: string =
+        parsedArgs["d"] ?? utils.DEFAULT_DIFFERENCES_DIR
     const outFile: string = parsedArgs["o"] ?? "differences.html"
+
     if (!fs.existsSync(referenceDir))
         throw `Reference directory does not exist ${referenceDir}`
     if (!fs.existsSync(differencesDir))
@@ -35,8 +38,8 @@ Usage:
     create-compare-views.js (-d DIR) (-r DIR) (-o FILE)
 
 Options:
-    -r DIR   Input directory containing the reference svg files [default: grapherSvgs]
-    -d DIR   Input directory with the svgs that were found to be different [default: differentGrapherSvgs]
+    -r DIR   Input directory containing the reference svg files [default: ${utils.DEFAULT_REFERENCE_DIR}]
+    -d DIR   Input directory with the svgs that were found to be different [default: ${utils.DEFAULT_DIFFERENCES_DIR}]
     -o FILE  HTML Output filename to generate [default: differences.html]
     `)
 } else {

@@ -30,10 +30,10 @@ function getPaginator(baseName: string, current: number, total: number) {
 
 async function main(parsedArgs: parseArgs.ParsedArgs) {
     try {
-        // perpare and check arguments
-        const inDir = parsedArgs["i"] ?? "grapherData"
-        const referenceDir = parsedArgs["r"] ?? "grapherSvgs"
-        const outDir = parsedArgs["o"] ?? "differentGrapherSvgs"
+        // prepare and check arguments
+        const inDir = parsedArgs["i"] ?? utils.DEFAULT_CONFIGS_DIR
+        const referenceDir = parsedArgs["r"] ?? utils.DEFAULT_REFERENCE_DIR
+        const outDir = parsedArgs["o"] ?? utils.DEFAULT_DIFFERENCES_DIR
         const templateFile = parsedArgs["t"] ?? "diff-template.html"
         const suffix = parsedArgs["s"] ?? ""
 
@@ -119,9 +119,9 @@ Usage:
     diff-generator.js (-i DIR) (-o DIR)
 
 Options:
-    -i DIR         Input directory containing the data. [default: grapherData]
-    -r DIR         Input directory containing the results.csv file to check against [default: grapherSvgs]
-    -o DIR         Output directory that will contain the svg files that were different [default: differentGrapherSvgs]
+    -i DIR         Input directory containing the data. [default: ${utils.DEFAULT_CONFIGS_DIR}]
+    -r DIR         Input directory containing the results.csv file to check against [default: ${utils.DEFAULT_REFERENCE_DIR}]
+    -o DIR         Output directory that will contain the svg files that were different [default: ${utils.DEFAULT_DIFFERENCES_DIR}]
     -t PATH        Path to the template file to use
     -s SUFFIX      Suffix for different svg files to create <NAME><SUFFIX>.svg files - useful if you want to set output to the same as reference
     `)

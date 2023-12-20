@@ -24,6 +24,11 @@ import {
 } from "../../settings/serverSettings.js"
 import { getHeapStatistics } from "v8"
 
+// the owid-grapher-svgs repo is usually cloned as a sibling to the owid-grapher repo
+export const DEFAULT_CONFIGS_DIR = "../owid-grapher-svgs/configs"
+export const DEFAULT_REFERENCE_DIR = "../owid-grapher-svgs/svg"
+export const DEFAULT_DIFFERENCES_DIR = "../owid-grapher-svgs/differences"
+
 export const CONFIG_FILENAME: string = "config.json"
 const RESULTS_FILENAME = "results.csv"
 export const SVG_CSV_HEADER = `grapherId,slug,chartType,md5,svgFilename,durationReceiveData,durationTotal,heapUsed,totalDataFileSize`

@@ -16,8 +16,8 @@ function parseArgAsList(arg?: unknown): string[] {
 
 async function main(parsedArgs: parseArgs.ParsedArgs) {
     try {
-        const inDir = parsedArgs["i"] ?? "../owid-grapher-svgs/configs"
-        let outDir = parsedArgs["o"] ?? "../owid-grapher-svgs/svg"
+        const inDir = parsedArgs["i"] ?? utils.DEFAULT_CONFIGS_DIR
+        let outDir = parsedArgs["o"] ?? utils.DEFAULT_REFERENCE_DIR
         const targetConfigs: string[] = parseArgAsList(parsedArgs["c"])
         const targetChartTypes: string[] = parseArgAsList(parsedArgs["t"])
         const isolate = parsedArgs["isolate"] ?? false
@@ -148,8 +148,8 @@ Usage:
     export-graphs.js (-i DIR) (-o DIR) (-c ID) (-t TYPE)
 
 Options:
-    -i DIR         Input directory containing the data. [default: ../owid-grapher-svgs/configs]
-    -o DIR         Output directory that will contain the csv file and one svg file per grapher [default: ../owid-grapher-svgs/svg]
+    -i DIR         Input directory containing the data. [default: ${utils.DEFAULT_CONFIGS_DIR}]
+    -o DIR         Output directory that will contain the csv file and one svg file per grapher [default: ${utils.DEFAULT_REFERENCE_DIR}]
     -c ID          A comma-separated list of config IDs that you want to run instead of generating SVGs from all configs [default: undefined]
     -t TYPE        A comma-separated list of chart types that you want to run instead of generating SVGs from all configs [default: undefined]
     --isolate      Run each export in a separate process. This yields accurate heap usage measurements, but is slower. [default: false]
