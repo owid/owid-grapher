@@ -32,6 +32,7 @@ import {
     makeAtomFeedNoTopicPages,
     renderDynamicCollectionPage,
     renderTopChartsCollectionPage,
+    renderThankYouPage,
 } from "../baker/siteRenderers.js"
 import {
     bakeGrapherUrls,
@@ -417,6 +418,10 @@ export class SiteBaker {
         await this.stageWrite(
             `${this.bakedSiteDir}/donate.html`,
             await renderDonatePage()
+        )
+        await this.stageWrite(
+            `${this.bakedSiteDir}/thank-you.html`,
+            await renderThankYouPage()
         )
         await this.stageWrite(
             `${this.bakedSiteDir}/feedback.html`,
