@@ -19,6 +19,7 @@ import {
     renderDynamicCollectionPage,
     renderTopChartsCollectionPage,
     renderDataInsightsIndexPage,
+    renderThankYouPage,
 } from "../baker/siteRenderers.js"
 import {
     BAKED_BASE_URL,
@@ -170,6 +171,10 @@ mockSiteRouter.get("/", async (req, res) => {
 
 mockSiteRouter.get("/donate", async (req, res) =>
     res.send(await renderDonatePage())
+)
+
+mockSiteRouter.get("/thank-you", async (req, res) =>
+    res.send(await renderThankYouPage())
 )
 
 mockSiteRouter.get("/data-insights/:pageNumberOrSlug?", async (req, res) => {

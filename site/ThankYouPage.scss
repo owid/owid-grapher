@@ -1,0 +1,78 @@
+.thank-you-page {
+    padding-top: 48px;
+    padding-bottom: 80px;
+}
+
+.thank-you-page__title {
+    @include display-2-semibold;
+    margin-top: 0;
+    @include md-up {
+        @include display-1-semibold;
+        margin-top: 0;
+    }
+}
+
+.thank-you-page__content {
+    @include sm-only {
+        margin-bottom: 40px;
+    }
+    .article-block__text {
+        @include body-2-regular;
+        margin-bottom: 24px;
+    }
+
+    a {
+        @include owid-link-90;
+    }
+}
+
+.thank-you-page .article-block__horizontal-rule {
+    margin: 32px 0;
+}
+
+.article-block__horizontal-rule + .share-campaign__heading {
+    margin-top: 0;
+}
+
+.share-campaign__heading {
+    @include h2-bold;
+    margin-bottom: 8px;
+    color: $blue-60;
+}
+.share-message__heading {
+    margin-bottom: 16px;
+    @include h5-black-caps;
+    color: $blue-60;
+}
+
+.share-message__content {
+    @include body-3-medium;
+    padding: 24px;
+    border-left: 4px solid $blue-20;
+    background: $blue-5;
+}
+
+.share-message__buttons {
+    margin-top: 16px;
+    display: flex;
+}
+
+a.share-message__button {
+    margin-right: 8px;
+    border: 1px solid $vermillion;
+    padding: 8px 12px;
+    color: $vermillion;
+
+    &:visited {
+        color: $vermillion;
+    }
+
+    &:hover {
+        color: $accent-vermillion;
+    }
+}
+
+.thank-you-page__video {
+    width: 100%;
+    height: auto;
+}

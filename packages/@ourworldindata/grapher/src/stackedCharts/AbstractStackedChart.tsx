@@ -24,7 +24,11 @@ import {
     StackedRawSeries,
     StackedSeries,
 } from "./StackedConstants"
-import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
+import {
+    OwidTable,
+    CoreColumn,
+    BlankOwidTable,
+} from "@ourworldindata/core-table"
 import {
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
@@ -81,6 +85,34 @@ export class AbstractStackedChart
                       this.yColumnSlugs
                   )
         }
+        return table
+    }
+
+    transformTableForSelection(table: OwidTable): OwidTable {
+        // if entities with partial data are not plotted,
+        // make sure they don't show up in the entity selector
+        if (this.missingDataStrategy !== MissingDataStrategy.show) {
+            table = table
+                .replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
+                .dropRowsWithErrorValuesForAllColumns(this.yColumnSlugs)
+
+            if (this.shouldRunLinearInterpolation) {
+                this.yColumnSlugs.forEach((slug) => {
+                    table = table.interpolateColumnLinearly(slug)
+                })
+            }
+
+            const groupedByEntity = table
+                .groupBy("entityName")
+                .map((t: OwidTable) =>
+                    t.dropRowsWithErrorValuesForAnyColumn(this.yColumnSlugs)
+                )
+
+            if (groupedByEntity.length === 0) return BlankOwidTable()
+
+            table = groupedByEntity[0].concat(groupedByEntity.slice(1))
+        }
+
         return table
     }
 
@@ -310,25 +342,32 @@ export class AbstractStackedChart
     @computed get availableFacetStrategies(): FacetStrategy[] {
         const strategies: FacetStrategy[] = []
 
-        const hasMultipleEntities =
-            this.selectionArray.selectedEntityNames.length > 1
+        const { selectedEntityNames } = this.selectionArray
+        const areMultipleEntitiesSelected = selectedEntityNames.length > 1
         const hasMultipleYColumns = this.yColumns.length > 1
-        const uniqueUnits = new Set(
-            this.yColumns.map((column) => column.shortUnit)
-        )
+        const shortUnits = this.yColumns.map((column) => column.shortUnit)
+        const uniqueUnits = new Set(shortUnits)
         const hasMultipleUnits = uniqueUnits.size > 1
+        const hasPercentageUnit = shortUnits.some(
+            (shortUnit) => shortUnit === "%"
+        )
 
         // Normally StackedArea/StackedBar charts are always single-entity or single-column, but if we are ever in a mode where we
         // have multiple entities selected (e.g. through GlobalEntitySelector) and multiple columns, it only makes sense when faceted.
-        if (!this.isEntitySeries && !hasMultipleEntities)
+        if (!this.isEntitySeries && !areMultipleEntitiesSelected)
             strategies.push(FacetStrategy.none)
         else if (this.isEntitySeries && !hasMultipleYColumns)
             strategies.push(FacetStrategy.none)
 
-        if (hasMultipleEntities && !hasMultipleUnits)
+        if (areMultipleEntitiesSelected && !hasMultipleUnits)
             strategies.push(FacetStrategy.entity)
 
-        if (hasMultipleYColumns) strategies.push(FacetStrategy.metric)
+        if (
+            hasMultipleYColumns &&
+            // Stacking percentages doesn't make sense unless we're in relative mode
+            (!hasPercentageUnit || this.manager.isRelativeMode)
+        )
+            strategies.push(FacetStrategy.metric)
 
         return strategies
     }

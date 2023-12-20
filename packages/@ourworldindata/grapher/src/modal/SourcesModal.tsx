@@ -2,7 +2,6 @@ import {
     Bounds,
     DEFAULT_BOUNDS,
     uniq,
-    uniqBy,
     sum,
     zip,
     getAttributionFragmentsFromVariable,
@@ -103,19 +102,6 @@ export class SourcesModal extends React.Component<
         return this.manager.columnsWithSourcesExtensive
     }
 
-    @computed private get deduplicatedColumn(): CoreColumn | undefined {
-        const sources = this.columns.map((column) => new Source({ column }))
-
-        // no need to deduplicate if there is only one source
-        if (sources.length <= 1) return undefined
-
-        // deduplicate on all visible information
-        const uniqueSources = uniqBy(sources, (source) =>
-            visibleSourceInformation(source)
-        )
-        return uniqueSources.length === 1 ? this.columns[0] : undefined
-    }
-
     @computed private get tabLabels(): string[] {
         return this.columns.map((column) => column.nonEmptyDisplayName)
     }
@@ -125,19 +111,6 @@ export class SourcesModal extends React.Component<
         return (
             <Source
                 column={column}
-                editBaseUrl={this.editBaseUrl}
-                isEmbeddedInADataPage={
-                    this.manager.isEmbeddedInADataPage ?? false
-                }
-            />
-        )
-    }
-
-    private renderDeduplicatedSource(): JSX.Element | null {
-        if (!this.deduplicatedColumn) return null
-        return (
-            <DeduplicatedSource
-                column={this.deduplicatedColumn}
                 editBaseUrl={this.editBaseUrl}
                 isEmbeddedInADataPage={
                     this.manager.isEmbeddedInADataPage ?? false
@@ -264,10 +237,6 @@ export class SourcesModal extends React.Component<
     }
 
     private renderModalContent(): JSX.Element | null {
-        if (this.deduplicatedColumn) {
-            return this.renderDeduplicatedSource()
-        }
-
         return this.columns.length === 1
             ? this.renderSource(this.columns[0])
             : this.renderMultipleSources()
@@ -446,54 +415,6 @@ export class Source extends React.Component<{
             </div>
         )
     }
-}
-
-@observer
-export class DeduplicatedSource extends Source {
-    renderTitle(): JSX.Element {
-        return <h2>About this data</h2>
-    }
-
-    @computed get sourcesSectionHeading(): string {
-        return "This data is based on the following sources"
-    }
-}
-
-const visibleSourceInformation = (source: Source): string => {
-    return [
-        // used in key data table
-        source.attributions,
-        source.def.timespan,
-        source.lastUpdated,
-        source.nextUpdate,
-        source.unit,
-        source.def.sourceLink,
-        source.column.unitConversionFactor,
-
-        // descriptions
-        source.def.descriptionShort,
-        source.def.descriptionKey,
-        source.def.descriptionFromProducer,
-        source.def.additionalInfo,
-
-        // old source information
-        source.def.sourceName,
-        source.def.dataPublishedBy,
-        source.def.retrievedDate,
-        source.def.description,
-
-        // origins
-        source.def.origins
-            ?.map((origin) => [
-                origin.producer,
-                origin.title,
-                origin.description,
-                origin.dateAccessed,
-                origin.urlMain,
-                origin.citationFull,
-            ])
-            .join("-"),
-    ].join("-")
 }
 
 const measureTabWidth = (label: string): number => {

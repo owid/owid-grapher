@@ -1829,7 +1829,8 @@ apiRouter.get("/datasets/:datasetId.json", async (req: Request) => {
             mu.fullName AS metadataEditedByUserName,
             d.isPrivate,
             d.isArchived,
-            d.nonRedistributable
+            d.nonRedistributable,
+            d.updatePeriodDays
         FROM datasets AS d
         JOIN users du ON du.id=d.dataEditedByUserId
         JOIN users mu ON mu.id=d.metadataEditedByUserId
@@ -1861,10 +1862,25 @@ apiRouter.get("/datasets/:datasetId.json", async (req: Request) => {
 
     dataset.variables = variables
 
-    // TODO: support multiple origins here as well
+    // add all origins
+    const origins = await db.queryMysql(
+        `
+        select distinct
+            o.*
+        from origins_variables as ov
+        join origins as o on ov.originId = o.id
+        join variables as v on ov.variableId = v.id
+        where v.datasetId = ?
+    `,
+        [datasetId]
+    )
 
-    // Currently for backwards compatibility datasets can still have multiple sources
-    // but the UI presents only a single item of source metadata, we use the first source
+    for (const o of origins) {
+        o.license = JSON.parse(o.license)
+    }
+
+    dataset.origins = origins
+
     const sources = await db.queryMysql(
         `
         SELECT s.id, s.name, s.description
@@ -1875,11 +1891,14 @@ apiRouter.get("/datasets/:datasetId.json", async (req: Request) => {
         [datasetId]
     )
 
-    if (sources.length > 0) {
-        dataset.source = JSON.parse(sources[0].description)
-        dataset.source.id = sources[0].id
-        dataset.source.name = sources[0].name
-    }
+    // expand description of sources and add to dataset as variableSources
+    dataset.variableSources = sources.map((s: any) => {
+        return {
+            id: s.id,
+            name: s.name,
+            ...JSON.parse(s.description),
+        }
+    })
 
     const charts = await db.queryMysql(
         `
@@ -2209,8 +2228,8 @@ apiRouter.put("/tags/:tagId", async (req: Request) => {
         if (!gdoc.length) {
             return {
                 success: true,
-                tagUpdateWarning: `The tag's slug has been updated, but there isn't a published Gdoc page with the same slug. 
-                    
+                tagUpdateWarning: `The tag's slug has been updated, but there isn't a published Gdoc page with the same slug.
+
 Are you sure you haven't made a typo?`,
             }
         }
