@@ -795,7 +795,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
                     ...timeColumn.def,
                 },
             ],
-            `Interpolated values in column ${columnSlug} linearly and and appended column ${originalColumnSlug} with the original values`,
+            `Interpolated values in column ${columnSlug} linearly and appended column ${originalColumnSlug} with the original values`,
             TransformType.UpdateColumnDefs
         )
     }
