@@ -1565,7 +1565,11 @@ apiRouter.get("/variables.json", async (req) => {
             } else {
                 part &&
                     whereClauses.push(
-                        `${not} (REGEXP_LIKE(v.name, ${escape(part)}, 'i') OR REGEXP_LIKE(v.catalogPath, ${escape(part)}, 'i'))`
+                        `${not} (REGEXP_LIKE(v.name, ${escape(
+                            part
+                        )}, 'i') OR REGEXP_LIKE(v.catalogPath, ${escape(
+                            part
+                        )}, 'i'))`
                     )
             }
         }
