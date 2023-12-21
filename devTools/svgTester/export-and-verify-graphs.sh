@@ -14,18 +14,14 @@ Export Grapher charts from master and verify them against the current branch.
   exit
 }
 
-# global settings
-set -o errexit  # exit script when a command fails
-set -o pipefail  # treats pipeline command as failed when one command in the pipeline fails
-
 # internal constants
 TMP_FILE=tmp-export-and-verify-graphs
 
 # public constants
 CONFIGS_DIR=../owid-grapher-svgs/configs
-LOCAL_REFERENCE_DIR=../owid-grapher-svgs/svg-local
-LOCAL_DIFFERENCES_DIR=../owid-grapher-svgs/differences-local
-REPORT_FILE=../owid-grapher-svgs/differences.html
+LOCAL_REFERENCE_DIR=../owid-grapher-svgs/local-svg
+LOCAL_DIFFERENCES_DIR=../owid-grapher-svgs/local-differences
+REPORT_FILE=../owid-grapher-svgs/local-differences.html
 
 # parameter defaults
 CONFIG_IDS_ARG=""
@@ -74,13 +70,13 @@ stashChanges() {
     # (even if there are no changes to stash)
     touch $TMP_FILE
 
-    # stash current changes, including untracked files
-    git stash push -a && echo "=> Changes stashed"
+    echo "=> Stashing changes, including untracked files"
+    git stash push -uq
 }
 
 unstashChanges() {
-    # pop changes from stash
-    git stash pop && echo "=> Popped changes from stash"
+    echo "=> Popping changes from stash"
+    git stash pop -q
 
     # remove temporary file
     rm $TMP_FILE
@@ -88,11 +84,12 @@ unstashChanges() {
 
 checkoutMaster() {
     # checkout master
-    git checkout master && echo "=> Checked out master"
+    echo "=> Checking out master"
+    git checkout master
 }
 
 checkoutLastBranch() {
-    # checkout last branch
+    echo "=> Checking out last branch"
     git checkout - && echo "=> Checked out $(git branch --show-current)"
 }
 
@@ -100,35 +97,33 @@ runExportScript() {
     # start from a clean slate
     rm -rf $LOCAL_REFERENCE_DIR $LOCAL_DIFFERENCES_DIR 
 
-    # run export script
+    echo "=> Exporting graphs into $LOCAL_REFERENCE_DIR"
     node itsJustJavascript/devTools/svgTester/export-graphs.js\
         -i $CONFIGS_DIR\
         -o $LOCAL_REFERENCE_DIR\
         $CONFIG_IDS_ARG\
         $CHART_TYPES_ARG\
-        $GRAPHER_QUERY_STRING_ARG\
-        && echo "=> Exported graphs into $LOCAL_REFERENCE_DIR"
+        $GRAPHER_QUERY_STRING_ARG
 }
 
 runVerifyScript() {
-    # run verify script 
+    # run verify script
+    echo "=> Verifying graphs and storing differences in $LOCAL_DIFFERENCES_DIR"
     node itsJustJavascript/devTools/svgTester/verify-graphs.js\
         -i $CONFIGS_DIR\
         -r $LOCAL_REFERENCE_DIR\
         -o $LOCAL_DIFFERENCES_DIR\
         $CONFIG_IDS_ARG\
         $CHART_TYPES_ARG\
-        $GRAPHER_QUERY_STRING_ARG\
-        && echo "=> Verified graphs and stored differences in $LOCAL_DIFFERENCES_DIR"
+        $GRAPHER_QUERY_STRING_ARG
 }
 
 createHTMLReport() {
-    # create html report
+    echo "=> Creating HTML report at $REPORT_FILE"
     node itsJustJavascript/devTools/svgTester/create-compare-view.js\
         -r $LOCAL_REFERENCE_DIR\
         -d $LOCAL_DIFFERENCES_DIR\
-        -o $REPORT_FILE\
-        && echo "=> Created HTML report at $REPORT_FILE"
+        -o $REPORT_FILE
 }
 
 main() {
