@@ -92,18 +92,18 @@ if (parsedArgs["h"] || parsedArgs["help"]) {
     console.log(`verify-graphs.js - utility to check if grapher svg renderings have changed vs the reference export
 
 Usage:
-    verify-graphs.js (-i DIR) (-o DIR)
+    verify-graphs.js (-i DIR) (-r DIR) (-o DIR)
 
 Options:
-    -i DIR              Input directory containing the data. [default: ${utils.DEFAULT_CONFIGS_DIR}]
-    -r DIR              Input directory containing the results.csv file to check against [default: ${utils.DEFAULT_REFERENCE_DIR}]
-    -o DIR              Output directory that will contain the svg files that were different [default: ${utils.DEFAULT_DIFFERENCES_DIR}]
-    -c IDS              Manually specify ids to verify (use comma separated ids and ranges, all without spaces. E.g.: 2,4-8,10)
-    -t TYPES            A comma-separated list of chart types that you want to run instead of generating SVGs from all configs [default: undefined]
-    -v                  Verbose mode
-    -s SUFFIX           Suffix for different svg files to create <NAME><SUFFIX>.svg files - useful if you want to set output to the same as reference
-    --random NUMBER     Verify a random set of charts [default: false]
-    --rmOnError         Remove output files where we encounter errors, so errors are apparent in diffs
+    -i DIR             Input directory containing the data. [default: ${utils.DEFAULT_CONFIGS_DIR}]
+    -r DIR             Input directory containing the results.csv file to check against [default: ${utils.DEFAULT_REFERENCE_DIR}]
+    -o DIR             Output directory that will contain the svg files that were different [default: ${utils.DEFAULT_DIFFERENCES_DIR}]
+    -c IDS             Manually specify ids to verify (use comma separated ids and ranges, all without spaces. E.g.: 2,4-8,10)
+    -t TYPES           A comma-separated list of chart types that you want to run instead of generating SVGs from all configs [default: undefined]
+    -v                 Verbose mode
+    -s SUFFIX          Suffix for different svg files to create <NAME><SUFFIX>.svg files - useful if you want to set output to the same as reference
+    --random COUNT     Verify a random set of charts [default: false]
+    --rmOnError        Remove output files where we encounter errors, so errors are apparent in diffs
     `)
     process.exit(0)
 } else {
