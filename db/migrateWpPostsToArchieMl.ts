@@ -8,6 +8,7 @@ import {
     OwidGdocType,
     RelatedChart,
     EnrichedBlockAllCharts,
+    parsePostAuthors,
 } from "@ourworldindata/utils"
 import * as Post from "./model/Post.js"
 import fs from "fs"
@@ -18,7 +19,6 @@ import {
     adjustHeadingLevels,
 } from "./model/Gdoc/htmlToEnriched.js"
 import { getRelatedCharts, isPostCitable } from "./wpdb.js"
-import { parsePostAuthors } from "./model/Post.js"
 
 // slugs from all the linear entries we want to migrate from @edomt
 const entries = new Set([
@@ -80,7 +80,7 @@ const migrate = async (): Promise<void> => {
     const errors = []
     await db.getConnection()
 
-    const posts = await Post.select(
+    const rawPosts = await Post.select(
         "id",
         "slug",
         "title",
@@ -94,8 +94,14 @@ const migrate = async (): Promise<void> => {
         "featured_image"
     ).from(db.knexTable(Post.postsTable)) //.where("id", "=", "24808"))
 
-    for (const post of posts) {
+    for (const postRaw of rawPosts) {
         try {
+            const post = {
+                ...postRaw,
+                authors: postRaw.authors
+                    ? parsePostAuthors(postRaw.authors)
+                    : null,
+            }
             const isEntry = entries.has(post.slug)
             const text = post.content
             let relatedCharts: RelatedChart[] = []
@@ -109,11 +115,10 @@ const migrate = async (): Promise<void> => {
             )
             if (
                 shouldIncludeMaxAsAuthor &&
+                post.authors &&
                 !post.authors.includes("Max Roser")
             ) {
-                const authorsJson = JSON.parse(post.authors)
-                authorsJson.push({ author: "Max Roser", order: Infinity })
-                post.authors = JSON.stringify(authorsJson)
+                post.authors.push("Max Roser")
             }
 
             // We don't get the first and last nodes if they are comments.
@@ -196,9 +201,9 @@ const migrate = async (): Promise<void> => {
                     body: archieMlBodyElements,
                     toc: [],
                     title: post.title,
-                    subtitle: post.excerpt,
-                    excerpt: post.excerpt,
-                    authors: parsePostAuthors(post.authors),
+                    subtitle: post.excerpt ?? "",
+                    excerpt: post.excerpt ?? "",
+                    authors: post.authors ?? [],
                     "featured-image": post.featured_image.split("/").at(-1),
                     dateline: dateline,
                     // TODO: this discards block level elements - those might be needed?
@@ -263,7 +268,7 @@ const migrate = async (): Promise<void> => {
                 }
             }
         } catch (e) {
-            console.error("Caught an exception", post.id)
+            console.error("Caught an exception", postRaw.id)
             errors.push(e)
         }
     }

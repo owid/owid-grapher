@@ -178,6 +178,14 @@ adminRouter.get("/posts/compare/:postId", async (req, res) => {
         "archieml",
         "archieml_update_statistics"
     ).from(db.knexTable(Post.postsTable).where({ id: postId }))
+    if (
+        archieMlText.length === 0 ||
+        archieMlText[0].archieml === null ||
+        archieMlText[0].archieml_update_statistics === null
+    )
+        throw new Error(
+            `Could not compare posts because archieml was not present in the database for ${postId}`
+        )
     const archieMlJson = JSON.parse(archieMlText[0].archieml) as OwidGdocJSON
     const updateStatsJson = JSON.parse(
         archieMlText[0].archieml_update_statistics

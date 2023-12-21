@@ -37,7 +37,7 @@ import {
     OwidGdocInterface,
     parseIntOrUndefined,
     parseToOperation,
-    PostRow,
+    PostRowEnriched,
     PostRowWithGdocPublishStatus,
     SuggestedChartRevisionStatus,
     variableAnnotationAllowedColumnNamesAndTypes,
@@ -48,7 +48,6 @@ import {
     DimensionProperty,
     TaggableType,
     ChartTagJoin,
-    sortBy,
 } from "@ourworldindata/utils"
 import {
     GrapherInterface,
@@ -2323,7 +2322,7 @@ apiRouter.get("/posts.json", async (req) => {
              posts.slug as slug,
              status,
              updated_at_in_wordpress,
-             posts.authors, -- authors is a json array of objects with name and order
+             posts.authors,
              posts_tags_aggregated.tags as tags,
              gdocSuccessorId,
              gdocSuccessor.published as isGdocSuccessorPublished,
@@ -2343,11 +2342,7 @@ apiRouter.get("/posts.json", async (req) => {
         tags: JSON.parse(row.tags),
         isGdocSuccessorPublished: !!row.isGdocSuccessorPublished,
         gdocSlugSuccessors: JSON.parse(row.gdocSlugSuccessors),
-        authors: row.authors
-            ? sortBy(JSON.parse(row.authors), "order").map(
-                  (author) => author.author
-              )
-            : [],
+        authors: JSON.parse(row.authors),
     }))
 
     return { posts: rows }
@@ -2370,7 +2365,7 @@ apiRouter.get("/posts/:postId.json", async (req: Request, res: Response) => {
         .knexTable(postsTable)
         .where({ id: postId })
         .select("*")
-        .first()) as PostRow | undefined
+        .first()) as PostRowEnriched | undefined
     return camelCaseProperties({ ...post })
 })
 
@@ -2393,6 +2388,11 @@ apiRouter.post("/posts/:postId/createGdoc", async (req: Request) => {
             400
         )
     }
+    if (post.archieml === null)
+        throw new JsonError(
+            `ArchieML was not present for post with id ${postId}`,
+            500
+        )
     const tagsByPostId = await getTagsByPostId()
     const tags =
         tagsByPostId.get(postId)?.map(({ id }) => TagEntity.create({ id })) ||
