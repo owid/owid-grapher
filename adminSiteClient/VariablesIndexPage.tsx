@@ -62,7 +62,7 @@ export class VariablesIndexPage extends React.Component {
                             indicators
                         </span>
                         <SearchField
-                            placeholder="Search all indicators..."
+                            placeholder="e.g. ^population before:2023"
                             value={searchInput}
                             onValue={action(
                                 (v: string) => (this.searchInput = v)
@@ -70,6 +70,7 @@ export class VariablesIndexPage extends React.Component {
                             autofocus
                         />
                     </FieldsRow>
+                    <p><em>You can use regular expressions and the following fields:</em> <code>name:</code>, <code>namespace:</code>, <code>version:</code>, <code>dataset:</code>, <code>table:</code>, <code>short:</code>, <code>before:</code>, <code>after:</code></p>
                     <VariableList
                         variables={variablesToShow}
                         fields={[

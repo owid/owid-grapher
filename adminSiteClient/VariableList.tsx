@@ -67,7 +67,7 @@ class VariableRow extends React.Component<{
                         {
                             // Some "short names" are very long, so truncate them
                             variable.shortName &&
-                            variable.shortName!.length > 20
+                                variable.shortName!.length > 20
                                 ? variable.shortName!.substring(0, 20) + "..."
                                 : variable.shortName
                         }
@@ -101,7 +101,7 @@ export class VariableList extends React.Component<{
             <table className="table table-bordered">
                 <thead>
                     <tr>
-                        <th>Indicator</th>
+                        <th>Name</th>
                         {props.fields.includes("namespace") && (
                             <th>Namespace</th>
                         )}
