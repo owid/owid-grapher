@@ -106,6 +106,7 @@ export class VariablesIndexPage extends React.Component {
                 // Make sure this response is current
                 this.variables = json.variables
                 this.numTotalRows = json.numTotalRows
+                // NOTE: search highlighting is less relevant with fielded and regex search
                 this.highlightSearch = searchInput
             }
         })
