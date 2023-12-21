@@ -293,6 +293,7 @@ const syncPostsToGrapher = async (): Promise<void> => {
             type: post.post_type,
             status: post.post_status,
             content: dereferenceReusableBlocksFn(content),
+            featured_image: post.featured_image || "",
             published_at:
                 post.post_date_gmt === zeroDateString
                     ? null
@@ -305,12 +306,11 @@ const syncPostsToGrapher = async (): Promise<void> => {
             excerpt: post.post_excerpt,
             created_at_in_wordpress:
                 post.created_at === zeroDateString ? null : post.created_at,
-            featured_image: post.featured_image || "",
             formattingOptions: formattingOptions,
         }
     }) as PostRow[]
     const postLinks = await PostLink.find()
-    const postLinksById = groupBy(postLinks, (link) => link.sourceId)
+    const postLinksById = groupBy(postLinks, (link: PostLink) => link.sourceId)
 
     const linksToAdd: PostLink[] = []
     const linksToDelete: PostLink[] = []
