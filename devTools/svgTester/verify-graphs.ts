@@ -18,6 +18,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
             utils.parseArgAsString(parsedArgs["c"])
         )
         const targetChartTypes = utils.parseArgAsList(parsedArgs["t"])
+        const grapherQueryString = parsedArgs["q"]
         const randomCount =
             utils.parseArgAsOptionalNumber(parsedArgs["random"], {
                 defaultIfFlagIsSpecified: 10,
@@ -42,15 +43,17 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         const csvContentMap =
             await utils.getReferenceCsvContentMap(referenceDir)
 
-        const verifyJobs = directoriesToProcess.map((dir) => ({
-            dir,
-            referenceEntry: csvContentMap.get(dir.chartId)!,
-            referenceDir,
-            outDir,
-            verbose,
-            suffix,
-            rmOnError,
-        }))
+        const verifyJobs: utils.RenderJobDescription[] =
+            directoriesToProcess.map((dir) => ({
+                dir,
+                referenceEntry: csvContentMap.get(dir.chartId)!,
+                referenceDir,
+                outDir,
+                queryStr: grapherQueryString,
+                verbose,
+                suffix,
+                rmOnError,
+            }))
 
         const pool = workerpool.pool(__dirname + "/worker.js", {
             minWorkers: 2,
@@ -100,6 +103,7 @@ Options:
     -o DIR             Output directory that will contain the svg files that were different [default: ${utils.DEFAULT_DIFFERENCES_DIR}]
     -c IDS             Manually specify ids to verify (use comma separated ids and ranges, all without spaces. E.g.: 2,4-8,10)
     -t TYPES           A comma-separated list of chart types that you want to run instead of generating SVGs from all configs [default: undefined]
+    -q QUERY_STRING    Grapher query string to verify a specific chart view [default: undefined]
     -v                 Verbose mode
     -s SUFFIX          Suffix for different svg files to create <NAME><SUFFIX>.svg files - useful if you want to set output to the same as reference
     --random COUNT     Verify a random set of charts [default: false]

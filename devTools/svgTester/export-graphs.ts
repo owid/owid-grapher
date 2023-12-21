@@ -15,6 +15,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
             utils.parseArgAsString(parsedArgs["c"])
         )
         const targetChartTypes = utils.parseArgAsList(parsedArgs["t"])
+        const grapherQueryString = parsedArgs["q"]
         const enableComparisons = parsedArgs["compare"] ?? false
         const isolate = parsedArgs["isolate"] ?? false
         const randomCount =
@@ -62,6 +63,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
             directoriesToProcess.map((dir) => ({
                 dir: dir.pathToProcess,
                 outDir,
+                queryStr: grapherQueryString,
             }))
 
         let svgRecords: utils.SvgRecord[] = []
@@ -138,6 +140,7 @@ Options:
     -o DIR             Output directory that will contain the csv file and one svg file per grapher [default: ${utils.DEFAULT_REFERENCE_DIR}]
     -c IDS             A comma-separated list of config IDs and config ID ranges that you want to run instead of generating SVGs from all configs, e.g. 2,4-8,10 [default: undefined]
     -t TYPES           A comma-separated list of chart types that you want to run instead of generating SVGs from all configs [default: undefined]
+    -q QUERY_STRING    Grapher query string to export a specific chart view [default: undefined]
     --random COUNT     Generate SVGs for a random set of configs [default: false]
     --compare          Create a directory containing the old and new SVGs for easy comparison [default: false]
     --isolate          Run each export in a separate process. This yields accurate heap usage measurements, but is slower. [default: false]

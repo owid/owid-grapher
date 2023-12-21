@@ -316,7 +316,10 @@ export async function saveGrapherSchemaAndData(
     await Promise.allSettled([promise1, ...writeVariablePromises])
 }
 
-export async function renderSvg(dir: string): Promise<[string, SvgRecord]> {
+export async function renderSvg(
+    dir: string,
+    queryStr?: string
+): Promise<[string, SvgRecord]> {
     const configAndData = await loadGrapherConfigAndData(dir)
 
     // Graphers sometimes need to generate ids (incrementing numbers). For this
@@ -326,17 +329,21 @@ export async function renderSvg(dir: string): Promise<[string, SvgRecord]> {
 
     const timeStart = Date.now()
 
-    const grapher = initGrapherForSvgExport({
-        ...configAndData.config,
-        adminBaseUrl: BAKED_BASE_URL,
-        bakedGrapherURL: BAKED_GRAPHER_URL,
-    })
+    const grapher = initGrapherForSvgExport(
+        {
+            ...configAndData.config,
+            adminBaseUrl: BAKED_BASE_URL,
+            bakedGrapherURL: BAKED_GRAPHER_URL,
+        },
+        queryStr
+    )
     const { width, height } = grapher.idealBounds
     const outFilename = buildSvgOutFilename(
         configAndData.config.slug!,
         configAndData.config.version,
         width,
-        height
+        height,
+        queryStr
     )
 
     grapher.receiveOwidData(configAndData.variableData)
@@ -382,13 +389,13 @@ export function processSvgAndCalculateHash(svg: string): string {
 export interface RenderSvgAndSaveJobDescription {
     dir: string
     outDir: string
+    queryStr?: string
 }
 export async function renderSvgAndSave(
     jobDescription: RenderSvgAndSaveJobDescription
 ): Promise<SvgRecord> {
-    const dir = jobDescription.dir
-    const outDir = jobDescription.outDir
-    const [svg, svgRecord] = await renderSvg(dir)
+    const { dir, outDir, queryStr } = jobDescription
+    const [svg, svgRecord] = await renderSvg(dir, queryStr)
     const outPath = path.join(outDir, svgRecord.svgFilename)
     const cleanedSvg = prepareSvgForComparision(svg)
     await fs.writeFile(outPath, cleanedSvg)
@@ -524,6 +531,7 @@ export interface RenderJobDescription {
     referenceEntry: SvgRecord
     referenceDir: string
     outDir: string
+    queryStr?: string
     verbose: boolean
     suffix?: string
     rmOnError?: boolean
@@ -534,6 +542,7 @@ export async function renderAndVerifySvg({
     referenceEntry,
     referenceDir,
     outDir,
+    queryStr,
     verbose,
     suffix,
     rmOnError,
@@ -544,7 +553,7 @@ export async function renderAndVerifySvg({
         if (!referenceDir) throw "ReferenceDir was not defined"
         if (!outDir) throw "outdir was not defined"
 
-        const [svg, svgRecord] = await renderSvg(dir.pathToProcess)
+        const [svg, svgRecord] = await renderSvg(dir.pathToProcess, queryStr)
 
         const validationResult = await verifySvg(
             svg,
