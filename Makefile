@@ -246,7 +246,7 @@ deploy:
 
 	@echo '==> Building...'
 	yarn
-	yarn lerna run build
+	yarn lerna run build --skip-nx-cache
 	yarn run tsc -b
 
 	@echo '==> Deploying...'
