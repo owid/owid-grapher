@@ -3,7 +3,10 @@ import { Static, Type } from "@sinclair/typebox"
 import { gdocUrlRegex } from "./GdocsConstants.js"
 import { OwidOrigin } from "./OwidOrigin.js"
 import { OwidSource } from "./OwidSource.js"
-import { OwidProcessingLevel } from "./OwidVariable.js"
+import {
+    OwidProcessingLevel,
+    IndicatorTitleWithFragments,
+} from "./OwidVariable.js"
 import { PostRowRaw } from "./dbTypes/Posts.js"
 
 // todo: remove when we ditch Year and YearIsDay
@@ -1570,7 +1573,7 @@ export interface PrimaryTopic {
 
 export interface DataPageDataV2 {
     status: "published" | "draft"
-    title: string
+    title: IndicatorTitleWithFragments
     titleVariant?: string
     attributionShort?: string
     topicTagsLinks?: string[]

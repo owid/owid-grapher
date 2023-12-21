@@ -1475,7 +1475,7 @@ export class Grapher
         // sort y-columns by their display name
         const sortedYColumnSlugs = sortBy(
             yColumnSlugs,
-            (slug) => this.inputTable.get(slug).nonEmptyDisplayName
+            (slug) => this.inputTable.get(slug).titlePublicOrDisplayName
         )
 
         const columnSlugs = excludeUndefined([
@@ -1590,7 +1590,10 @@ export class Grapher
 
         if (this.isScatter)
             return this.axisDimensions
-                .map((dimension) => dimension.column.displayName)
+                .map(
+                    (dimension) =>
+                        dimension.column.titlePublicOrDisplayName.title
+                )
                 .join(" vs. ")
 
         const uniqueDatasetNames = uniq(
@@ -1603,9 +1606,13 @@ export class Grapher
             return uniqueDatasetNames[0]
 
         if (yColumns.length === 2)
-            return yColumns.map((col) => col.displayName).join(" and ")
+            return yColumns
+                .map((col) => col.titlePublicOrDisplayName.title)
+                .join(" and ")
 
-        return yColumns.map((col) => col.displayName).join(", ")
+        return yColumns
+            .map((col) => col.titlePublicOrDisplayName.title)
+            .join(", ")
     }
 
     @computed get displayTitle(): string {

@@ -40,6 +40,7 @@ import {
     excludeUndefined,
     OwidOrigin,
     DataPageDataV2,
+    joinTitleFragments,
 } from "@ourworldindata/utils"
 import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
 import StickyNav from "./blocks/StickyNav.js"
@@ -70,10 +71,10 @@ export const DataPageV2Content = ({
 }) => {
     const [grapher, setGrapher] = React.useState<Grapher | undefined>(undefined)
 
-    const sourceShortName =
-        datapageData.attributionShort && datapageData.titleVariant
-            ? `${datapageData.attributionShort} – ${datapageData.titleVariant}`
-            : datapageData.attributionShort || datapageData.titleVariant
+    const titleFragments = joinTitleFragments(
+        datapageData.attributionShort,
+        datapageData.titleVariant
+    )
 
     // Initialize the grapher for client-side rendering
     const mergedGrapherConfig: GrapherProgrammaticInterface = useMemo(
@@ -162,8 +163,8 @@ export const DataPageV2Content = ({
     const today = dayjs().format("MMMM D, YYYY")
     const currentYear = dayjs().year()
     const titleWithOptionalFragments = excludeUndefined([
-        datapageData.title,
-        sourceShortName,
+        datapageData.title.title,
+        titleFragments,
     ]).join(" – ")
     const citationLong = excludeUndefined([
         `${citationLonger}.`,
@@ -196,8 +197,8 @@ export const DataPageV2Content = ({
 
     const citationDatapage = excludeUndefined([
         datapageData.primaryTopic
-            ? `“Data Page: ${datapageData.title}”, part of the following publication: ${primaryTopicCitation}`
-            : `“Data Page: ${datapageData.title}”. Our World in Data (${currentYear}).`,
+            ? `“Data Page: ${datapageData.title.title}”, part of the following publication: ${primaryTopicCitation}`
+            : `“Data Page: ${datapageData.title.title}”. Our World in Data (${currentYear}).`,
         adaptedFrom ? `Data adapted from ${adaptedFrom}.` : undefined,
         `Retrieved from ${canonicalUrl} [online resource]`,
     ]).join(" ")
@@ -268,10 +269,10 @@ export const DataPageV2Content = ({
                             <div className="header__left span-cols-8 span-sm-cols-12">
                                 <div className="header__supertitle">Data</div>
                                 <h1 className="header__title">
-                                    {datapageData.title}
+                                    {datapageData.title.title}
                                 </h1>
                                 <div className="header__source">
-                                    {sourceShortName}
+                                    {titleFragments}
                                 </div>
                             </div>
                             {!!datapageData.topicTagsLinks?.length && (
@@ -808,7 +809,19 @@ const KeyDataTable = (props: {
             {datapageData.descriptionShort && (
                 <div className="key-data span-cols-4 span-sm-cols-12">
                     <div className="key-data__title key-data-description-short__title">
-                        {datapageData.title}
+                        {datapageData.title.title}
+                        {(datapageData.attributionShort ||
+                            datapageData.titleVariant) && (
+                            <>
+                                {" "}
+                                <span className="title-fragments">
+                                    {joinTitleFragments(
+                                        datapageData.attributionShort,
+                                        datapageData.titleVariant
+                                    )}
+                                </span>
+                            </>
+                        )}
                     </div>
                     <div>
                         <SimpleMarkdownText

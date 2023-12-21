@@ -11,6 +11,8 @@ import {
     DisplaySource,
     prepareSourcesForDisplay,
     OwidSource,
+    IndicatorTitleWithFragments,
+    joinTitleFragments,
 } from "@ourworldindata/utils"
 import {
     IndicatorSources,
@@ -103,7 +105,9 @@ export class SourcesModal extends React.Component<
     }
 
     @computed private get tabLabels(): string[] {
-        return this.columns.map((column) => column.nonEmptyDisplayName)
+        return this.columns.map(
+            (column) => column.titlePublicOrDisplayName.title
+        )
     }
 
     private renderSource(column: CoreColumn | undefined): JSX.Element | null {
@@ -282,8 +286,8 @@ export class Source extends React.Component<{
         return this.def.source ?? {}
     }
 
-    @computed private get title(): string {
-        return this.column.nonEmptyDisplayName
+    @computed private get title(): IndicatorTitleWithFragments {
+        return this.column.titlePublicOrDisplayName
     }
 
     @computed private get editUrl(): string | undefined {
@@ -348,7 +352,17 @@ export class Source extends React.Component<{
     protected renderTitle(): JSX.Element {
         return (
             <h2>
-                {this.title}{" "}
+                {this.title.title}{" "}
+                {(this.title.attributionShort || this.title.titleVariant) && (
+                    <>
+                        <span className="title-fragments">
+                            {joinTitleFragments(
+                                this.title.attributionShort,
+                                this.title.titleVariant
+                            )}
+                        </span>{" "}
+                    </>
+                )}
                 {this.editUrl && (
                     <a href={this.editUrl} target="_blank" rel="noopener">
                         <FontAwesomeIcon icon={faPencilAlt} />

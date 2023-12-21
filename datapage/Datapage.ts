@@ -9,6 +9,7 @@ import {
     getAttributionFragmentsFromVariable,
     getLastUpdatedFromVariable,
     getNextUpdateFromVariable,
+    omitUndefinedValues,
 } from "@ourworldindata/utils"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
@@ -24,12 +25,20 @@ export const getDatapageDataV2 = async (
         const nextUpdate = getNextUpdateFromVariable(variableMetadata)
         const datapageJson: DataPageDataV2 = {
             status: "draft",
-            title:
-                variableMetadata.presentation?.titlePublic ??
-                partialGrapherConfig.title ??
-                variableMetadata.display?.name ??
-                variableMetadata.name ??
-                "",
+            title: variableMetadata.presentation?.titlePublic
+                ? omitUndefinedValues({
+                      title: variableMetadata.presentation?.titlePublic,
+                      attributionShort:
+                          variableMetadata.presentation?.attributionShort,
+                      titleVariant: variableMetadata.presentation?.titleVariant,
+                  })
+                : {
+                      title:
+                          partialGrapherConfig.title ??
+                          variableMetadata.display?.name ??
+                          variableMetadata.name ??
+                          "",
+                  },
             description: variableMetadata.description,
             descriptionShort: variableMetadata.descriptionShort,
             descriptionFromProducer: variableMetadata.descriptionFromProducer,
