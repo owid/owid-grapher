@@ -3,7 +3,13 @@
 
 import * as wpdb from "./wpdb.js"
 import * as db from "./db.js"
-import { excludeNullish, groupBy, keyBy, PostRow } from "@ourworldindata/utils"
+import {
+    excludeNullish,
+    extractFormattingOptions,
+    groupBy,
+    keyBy,
+    PostRow,
+} from "@ourworldindata/utils"
 import { postsTable, select } from "./model/Post.js"
 import { PostLink } from "./model/PostLink.js"
 
@@ -278,6 +284,7 @@ const syncPostsToGrapher = async (): Promise<void> => {
 
     const toInsert = rows.map((post: any) => {
         const content = post.post_content as string
+        const formattingOptions = extractFormattingOptions(content)
 
         return {
             id: post.ID,
@@ -299,6 +306,7 @@ const syncPostsToGrapher = async (): Promise<void> => {
             created_at_in_wordpress:
                 post.created_at === zeroDateString ? null : post.created_at,
             featured_image: post.featured_image || "",
+            formattingOptions: formattingOptions,
         }
     }) as PostRow[]
     const postLinks = await PostLink.find()
@@ -325,9 +333,17 @@ const syncPostsToGrapher = async (): Promise<void> => {
             await t.whereIn("id", toDelete).delete().from(postsTable)
 
         for (const row of toInsert) {
+            const rowForDb = {
+                ...row,
+                // TODO: it's not nice that we have to stringify this here
+                formattingOptions: JSON.stringify(row.formattingOptions),
+            }
             if (doesExistInGrapher[row.id])
-                await t.update(row).where("id", "=", row.id).into(postsTable)
-            else await t.insert(row).into(postsTable)
+                await t
+                    .update(rowForDb)
+                    .where("id", "=", rowForDb.id)
+                    .into(postsTable)
+            else await t.insert(rowForDb).into(postsTable)
         }
     })
 

@@ -16,11 +16,7 @@ import OwidGdocPage from "../site/gdocs/OwidGdocPage.js"
 import React from "react"
 import ReactDOMServer from "react-dom/server.js"
 import * as lodash from "lodash"
-import {
-    extractFormattingOptions,
-    formatCountryProfile,
-    isCanonicalInternalUrl,
-} from "./formatting.js"
+import { formatCountryProfile, isCanonicalInternalUrl } from "./formatting.js"
 import {
     bakeGrapherUrls,
     getGrapherExportsByUrl,
@@ -59,6 +55,7 @@ import {
     IndexPost,
     mergePartialGrapherConfigs,
     OwidGdocType,
+    extractFormattingOptions,
 } from "@ourworldindata/utils"
 import { CountryProfileSpec } from "../site/countryProfileProjects.js"
 import { formatPost } from "./formatWordpressPost.js"
