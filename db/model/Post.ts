@@ -4,7 +4,6 @@ import {
     PostRowEnriched,
     PostRowRaw,
     parsePostRow,
-    sortBy,
 } from "@ourworldindata/utils"
 
 export const postsTable = "posts"
