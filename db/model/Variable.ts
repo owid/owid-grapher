@@ -22,6 +22,7 @@ import {
 } from "@ourworldindata/grapher"
 import pl from "nodejs-polars"
 import { DATA_API_URL } from "../../settings/serverSettings.js"
+import { escape } from "mysql"
 
 export interface VariableRow {
     id: number
@@ -418,8 +419,7 @@ export const fetchS3DataValuesByPath = async (
     )
     if (!resp.ok) {
         throw new Error(
-            `Error fetching data from S3 for ${dataPath}: ${resp.status} ${
-                resp.statusText
+            `Error fetching data from S3 for ${dataPath}: ${resp.status} ${resp.statusText
             } ${await resp.text()}`
         )
     }
@@ -438,8 +438,7 @@ export const fetchS3MetadataByPath = async (
     )
     if (!resp.ok) {
         throw new Error(
-            `Error fetching metadata from S3 for ${metadataPath}: ${
-                resp.status
+            `Error fetching metadata from S3 for ${metadataPath}: ${resp.status
             } ${resp.statusText} ${await resp.text()}`
         )
     }
@@ -465,4 +464,191 @@ export const readSQLasDF = async (
     params: any[]
 ): Promise<pl.DataFrame> => {
     return createDataFrame(await db.queryMysql(sql, params))
+}
+
+/**
+ * Perform regex search over the variables table.
+ */
+export const searchVariables = async (query: string, limit: number): Promise<VariablesSearchResult> => {
+    const whereClauses = buildWhereClauses(query)
+
+    const fromWhere = `
+        FROM variables AS v
+        LEFT JOIN active_datasets d ON d.id=v.datasetId
+        LEFT JOIN users u ON u.id=d.dataEditedByUserId
+        ${whereClauses.length ? "WHERE " + whereClauses.join(" AND ") : ""}
+    `
+    const sqlCount = `
+        SELECT COUNT(*) count
+        ${fromWhere}
+    `
+
+    const sqlResults = `
+        SELECT
+            v.id,
+            v.name,
+            catalogPath,
+            d.id AS datasetId,
+            d.name AS datasetName,
+            d.isPrivate AS isPrivate,
+            d.nonRedistributable AS nonRedistributable,
+            d.dataEditedAt AS uploadedAt,
+            u.fullName AS uploadedBy
+        ${fromWhere}
+        ORDER BY d.dataEditedAt DESC
+        LIMIT ${escape(limit)}
+    `
+    const rows = await queryRegexSafe(sqlResults)
+
+    const numTotalRows = await queryRegexCount(sqlCount)
+
+    rows.forEach((row: any) => {
+        if (row.catalogPath) {
+            const [path, shortName] = row.catalogPath.split("#")
+            const [namespace, version, dataset, table] = path
+                .substring("grapher/".length)
+                .split("/")
+
+            row.namespace = namespace
+            row.version = version
+            row.dataset = dataset
+            row.table = table
+            row.shortName = shortName
+        }
+    })
+
+    return { variables: rows, numTotalRows: numTotalRows }
+}
+
+const buildWhereClauses = (query: string): string[] => {
+    const whereClauses: string[] = []
+
+    if (!query) {
+        return whereClauses
+    }
+
+    for (let part of query.split(" ")) {
+        part = part.trim()
+        let not = " "
+        if (part.startsWith("-")) {
+            part = part.substring(1)
+            not = "NOT "
+        }
+        if (part.startsWith("name:")) {
+            const q = part.substring("name:".length)
+            q &&
+                whereClauses.push(
+                    `${not} REGEXP_LIKE(v.name, ${escape(q)}, 'i')`
+                )
+        } else if (part.startsWith("path:")) {
+            const q = part.substring("path:".length)
+            q &&
+                whereClauses.push(
+                    `${not} REGEXP_LIKE(v.catalogPath, ${escape(q)}, 'i')`
+                )
+        } else if (part.startsWith("namespace:")) {
+            const q = part.substring("namespace:".length)
+            q &&
+                whereClauses.push(
+                    `${not} REGEXP_LIKE(d.name, ${escape(q)}, 'i')`
+                )
+        } else if (part.startsWith("version:")) {
+            const q = part.substring("version:".length)
+            q &&
+                whereClauses.push(
+                    `${not} REGEXP_LIKE(d.version, ${escape(q)}, 'i')`
+                )
+        } else if (part.startsWith("dataset:")) {
+            const q = part.substring("dataset:".length)
+            q &&
+                whereClauses.push(
+                    `${not} REGEXP_LIKE(d.shortName, ${escape(q)}, 'i')`
+                )
+        } else if (part.startsWith("table:")) {
+            const q = part.substring("table:".length)
+            // NOTE: we don't have the table name in any db field, it's horrible to query
+            q &&
+                whereClauses.push(
+                    `${not} REGEXP_LIKE(SUBSTRING_INDEX(SUBSTRING_INDEX(v.catalogPath, '/', 5), '/', -1), ${escape(q)}, 'i')`
+                )
+        } else if (part.startsWith("short:")) {
+            const q = part.substring("short:".length)
+            q &&
+                whereClauses.push(
+                    `${not} REGEXP_LIKE(v.shortName, ${escape(q)}, 'i')`
+                )
+        } else if (part.startsWith("before:")) {
+            const q = part.substring("before:".length)
+            q &&
+                whereClauses.push(
+                    `${not} IF(d.version is not null, d.version < ${escape(
+                        q
+                    )}, cast(date(d.createdAt) as char) < ${escape(q)})`
+                )
+        } else if (part.startsWith("after:")) {
+            const q = part.substring("after:".length)
+            q &&
+                whereClauses.push(
+                    `${not} (IF (d.version is not null, d.version = "latest" OR d.version > ${escape(
+                        q
+                    )}, cast(date(d.createdAt) as char) > ${escape(q)}))`
+                )
+        } else if (part === "is:published") {
+            whereClauses.push(`${not} (NOT d.isPrivate)`)
+        } else if (part === "is:private") {
+            whereClauses.push(`${not} d.isPrivate`)
+        } else {
+            part &&
+                whereClauses.push(
+                    `${not} (REGEXP_LIKE(v.name, ${escape(part)}, 'i') OR REGEXP_LIKE(v.catalogPath, ${escape(part)}, 'i'))`
+                )
+        }
+    }
+    return whereClauses
+}
+
+/**
+ * Run a MySQL query that's robust to regular expression failures, simply
+ * returning an empty result if the query fails. 
+ * 
+ * This is useful if the regex is user-supplied and we want them to be able
+ * to construct it incrementally.
+ */
+const queryRegexSafe = async (query: string): Promise<any> => {
+    // catch regular expression failures in MySQL and return empty result
+    return await db.queryMysql(query).catch((err) => {
+        if (err.message.includes("regular expression")) {
+            return []
+        }
+        throw err
+    })
+}
+
+const queryRegexCount = async (query: string): Promise<number> => {
+    const results = await queryRegexSafe(query)
+    if (!results.length) {
+        return 0
+    }
+    return results[0].count
+}
+
+export interface VariablesSearchResult {
+    variables: VariableResultView[]
+    numTotalRows: number
+}
+
+export interface VariableResultView {
+    variableId: number
+    variableName: string
+    datasetId: number
+    datasetName: string
+    isPrivate: boolean
+    nonRedistributable: boolean
+    uploadedAt: string
+    uploadedBy: string
+    namespace: string
+    version: string
+    dataset: string
+    table: string
+    shortName: string
 }
