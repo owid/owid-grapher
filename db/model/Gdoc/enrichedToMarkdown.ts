@@ -195,7 +195,7 @@ ${enrichedBlocksToMarkdown(b.right, exportComponents)}`
 ${b.description}
 ${b.url}`
         )
-        .with({ type: "sdg-toc" }, (b) => undefined)
+        .with({ type: "sdg-toc" }, () => undefined)
         .with({ type: "missing-data" }, () => undefined)
         .with({ type: "numbered-list" }, (b): string | undefined =>
             b.items
