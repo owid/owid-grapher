@@ -62,7 +62,7 @@ function buildReplacerFunction(
     ) => {
         const block = blocks[matches["id"].toString()]
         return block
-            ? `<!-- wp-block-tombstone ${matches["id"]} -->` +
+            ? `<!-- wp-block-tombstone ${matches["id"]} -->\n` +
                   block.post_content
             : ""
     }

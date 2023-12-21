@@ -38,7 +38,6 @@ import {
     uniqBy,
     sortBy,
     DataPageRelatedResearch,
-    isString,
     OwidGdocType,
     Tag,
 } from "@ourworldindata/utils"

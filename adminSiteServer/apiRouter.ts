@@ -48,7 +48,6 @@ import {
     DimensionProperty,
     TaggableType,
     ChartTagJoin,
-    sortBy,
 } from "@ourworldindata/utils"
 import {
     GrapherInterface,
