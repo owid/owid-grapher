@@ -1496,56 +1496,54 @@ apiRouter.get("/variables.json", async (req) => {
             part = part.trim()
             let not = " "
             if (part.startsWith("-")) {
-                part = part.substr(1)
+                part = part.substring(1)
                 not = "NOT "
             }
             if (part.startsWith("name:")) {
-                const q = part.substr("name:".length)
+                const q = part.substring("name:".length)
                 // force a case insensitive regex search
                 q &&
                     whereClauses.push(
-                        `v.name COLLATE utf8mb4_general_ci ${not} REGEXP ${escape(
-                            q
-                        )}`
+                        `${not} REGEXP_LIKE(v.name, ${escape(q)}, 'i')`
                     )
             } else if (part.startsWith("path:")) {
-                const q = part.substr("path:".length)
+                const q = part.substring("path:".length)
                 q &&
                     whereClauses.push(
-                        `v.catalogPath ${not} REGEXP ${escape(q)}`
+                        `${not} REGEXP_LIKE(v.catalogPath, ${escape(q)}, 'i')`
                     )
             } else if (part.startsWith("namespace:")) {
-                const q = part.substr("namespace:".length)
+                const q = part.substring("namespace:".length)
                 q &&
                     whereClauses.push(
                         `v.catalogPath ${not} LIKE "grapher/${q}/%/%/%#%"`
                     )
             } else if (part.startsWith("version:")) {
-                const q = part.substr("version:".length)
+                const q = part.substring("version:".length)
                 q &&
                     whereClauses.push(
                         `v.catalogPath ${not} LIKE "grapher/%/${q}/%/%#%"`
                     )
             } else if (part.startsWith("dataset:")) {
-                const q = part.substr("dataset:".length)
+                const q = part.substring("dataset:".length)
                 q &&
                     whereClauses.push(
                         `v.catalogPath ${not} LIKE "grapher/%/%/${q}/%#%"`
                     )
             } else if (part.startsWith("table:")) {
-                const q = part.substr("table:".length)
+                const q = part.substring("table:".length)
                 q &&
                     whereClauses.push(
                         `v.catalogPath ${not} LIKE "grapher/%/%/%/${q}#%"`
                     )
             } else if (part.startsWith("short:")) {
-                const q = part.substr("short:".length)
+                const q = part.substring("short:".length)
                 q &&
                     whereClauses.push(
                         `v.catalogPath ${not} LIKE "grapher/%/%/%/%#${q}"`
                     )
             } else if (part.startsWith("before:")) {
-                const q = part.substr("before:".length)
+                const q = part.substring("before:".length)
                 q &&
                     whereClauses.push(
                         `${not} IF(d.version is not null, d.version < ${escape(
@@ -1553,7 +1551,7 @@ apiRouter.get("/variables.json", async (req) => {
                         )}, cast(date(d.createdAt) as char) < ${escape(q)})`
                     )
             } else if (part.startsWith("after:")) {
-                const q = part.substr("after:".length)
+                const q = part.substring("after:".length)
                 q &&
                     whereClauses.push(
                         `${not} (IF (d.version is not null, d.version = "latest" OR d.version > ${escape(
@@ -1567,9 +1565,7 @@ apiRouter.get("/variables.json", async (req) => {
             } else {
                 part &&
                     whereClauses.push(
-                        `${not} (v.name REGEXP ${escape(
-                            part
-                        )} OR v.catalogPath REGEXP ${escape(part)})`
+                        `${not} (REGEXP_LIKE(v.name, ${escape(part)}, 'i') OR REGEXP_LIKE(v.catalogPath, ${escape(part)}, 'i'))`
                     )
             }
         }
@@ -1605,7 +1601,7 @@ apiRouter.get("/variables.json", async (req) => {
         if (row.catalogPath) {
             const [path, shortName] = row.catalogPath.split("#")
             const [namespace, version, dataset, table] = path
-                .substr("grapher/".length)
+                .substring("grapher/".length)
                 .split("/")
 
             row.namespace = namespace
