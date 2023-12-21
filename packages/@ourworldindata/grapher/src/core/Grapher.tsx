@@ -1475,7 +1475,7 @@ export class Grapher
         // sort y-columns by their display name
         const sortedYColumnSlugs = sortBy(
             yColumnSlugs,
-            (slug) => this.inputTable.get(slug).nonEmptyDisplayName
+            (slug) => this.inputTable.get(slug).titlePublicOrDisplayName
         )
 
         const columnSlugs = excludeUndefined([

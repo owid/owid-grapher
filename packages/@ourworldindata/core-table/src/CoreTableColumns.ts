@@ -282,11 +282,7 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
                   attributionShort: this.def.presentation?.attributionShort,
                   titleVariant: this.def.presentation?.titleVariant,
               }
-            : { title: this.display?.name ?? this.name ?? "" }
-    }
-
-    @imemo get nonEmptyDisplayName(): string {
-        return this.display?.name || this.nonEmptyName
+            : { title: this.display?.name || this.name || "" }
     }
 
     @imemo get datasetId(): number | undefined {

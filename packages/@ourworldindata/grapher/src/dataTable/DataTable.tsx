@@ -549,21 +549,29 @@ export class DataTable extends React.Component<{
     @computed private get tableCaption(): JSX.Element | null {
         if (this.hasDimensionHeaders) return null
         const singleDimension = this.displayDimensions[0]
+        const titleFragments = (singleDimension.display.columnName
+            .attributionShort ||
+            singleDimension.display.columnName.titleVariant) && (
+            <>
+                <span className="title-fragments">
+                    {joinTitleFragments(
+                        singleDimension.display.columnName.attributionShort,
+                        singleDimension.display.columnName.titleVariant
+                    )}
+                </span>
+            </>
+        )
+        const separator =
+            (singleDimension.display.columnName.attributionShort ||
+                singleDimension.display.columnName.titleVariant) &&
+            singleDimension.display.unit
+                ? " – "
+                : " "
+
         return singleDimension ? (
             <div className="caption">
-                {singleDimension.display.columnName.title}{" "}
-                {(singleDimension.display.columnName.attributionShort ||
-                    singleDimension.display.columnName.titleVariant) && (
-                    <>
-                        <span className="title-fragments">
-                            {joinTitleFragments(
-                                singleDimension.display.columnName
-                                    .attributionShort,
-                                singleDimension.display.columnName.titleVariant
-                            )}
-                        </span>{" "}
-                    </>
-                )}
+                {singleDimension.display.columnName.title} {titleFragments}
+                {separator}
                 {singleDimension.display.unit && (
                     <span className="unit">{singleDimension.display.unit}</span>
                 )}
