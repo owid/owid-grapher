@@ -171,11 +171,11 @@ const getPostsForSlugs = async (
                     AND post_status='publish'
                     AND (
                         ${slugs
-                .map(
-                    () =>
-                        `post_content REGEXP CONCAT('grapher/', ?, '[^a-zA-Z_\-]')`
-                )
-                .join(" OR ")}
+                            .map(
+                                () =>
+                                    `post_content REGEXP CONCAT('grapher/', ?, '[^a-zA-Z_\-]')`
+                            )
+                            .join(" OR ")}
                     )
             `,
             slugs.map(lodash.escapeRegExp)
@@ -660,14 +660,14 @@ apiRouter.get(
 
         let dataset:
             | {
-                id: number
-                name: string
-                version: string
-                namespace: string
-                isPrivate: boolean
-                nonRedistributable: boolean
-                variables: { id: number; name: string }[]
-            }
+                  id: number
+                  name: string
+                  version: string
+                  namespace: string
+                  isPrivate: boolean
+                  nonRedistributable: boolean
+                  variables: { id: number; name: string }[]
+              }
             | undefined
         for (const row of rows) {
             if (!dataset || row.datasetName !== dataset.name) {
@@ -980,9 +980,9 @@ apiRouter.post(
                 ) {
                     throw new JsonError(
                         `Expected all "${obj.key}" values to be non-null and of ` +
-                        `type "${obj.expectedType}", but one or more chart ` +
-                        `configs contains a "${obj.key}" value that does ` +
-                        `not meet this criteria.`
+                            `type "${obj.expectedType}", but one or more chart ` +
+                            `configs contains a "${obj.key}" value that does ` +
+                            `not meet this criteria.`
                     )
                 }
             })
@@ -1141,9 +1141,9 @@ apiRouter.post(
                     if (!config.hasOwnProperty(k)) {
                         throw new JsonError(
                             `The "${k}" field is required, but one or more ` +
-                            `chart configs in the database does not ` +
-                            `contain it. Please report this issue to a ` +
-                            `developer.`
+                                `chart configs in the database does not ` +
+                                `contain it. Please report this issue to a ` +
+                                `developer.`
                         )
                     }
                 })
@@ -1213,8 +1213,9 @@ apiRouter.post(
             if (suggestedConfigs.length - result.affectedRows > 0) {
                 messages.push({
                     type: "warning",
-                    text: `${suggestedConfigs.length - result.affectedRows
-                        } chart revisions have not been queued for approval (e.g. because the chart revision does not contain any changes).`,
+                    text: `${
+                        suggestedConfigs.length - result.affectedRows
+                    } chart revisions have not been queued for approval (e.g. because the chart revision does not contain any changes).`,
                 })
             }
         })
@@ -1341,7 +1342,7 @@ apiRouter.post(
             if (!canUpdate) {
                 throw new JsonError(
                     `Suggest chart revision ${suggestedChartRevisionId} cannot be ` +
-                    `updated with status="${status}".`,
+                        `updated with status="${status}".`,
                     404
                 )
             }
@@ -2625,8 +2626,8 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
             prevGdoc.published && nextGdoc.published
                 ? "Updating"
                 : !prevGdoc.published && nextGdoc.published
-                    ? "Publishing"
-                    : "Unpublishing"
+                ? "Publishing"
+                : "Unpublishing"
         await triggerStaticBuild(res.locals.user, `${action} ${nextGdoc.slug}`)
     }
 

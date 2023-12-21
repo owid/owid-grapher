@@ -419,7 +419,8 @@ export const fetchS3DataValuesByPath = async (
     )
     if (!resp.ok) {
         throw new Error(
-            `Error fetching data from S3 for ${dataPath}: ${resp.status} ${resp.statusText
+            `Error fetching data from S3 for ${dataPath}: ${resp.status} ${
+                resp.statusText
             } ${await resp.text()}`
         )
     }
@@ -438,7 +439,8 @@ export const fetchS3MetadataByPath = async (
     )
     if (!resp.ok) {
         throw new Error(
-            `Error fetching metadata from S3 for ${metadataPath}: ${resp.status
+            `Error fetching metadata from S3 for ${metadataPath}: ${
+                resp.status
             } ${resp.statusText} ${await resp.text()}`
         )
     }
@@ -469,7 +471,10 @@ export const readSQLasDF = async (
 /**
  * Perform regex search over the variables table.
  */
-export const searchVariables = async (query: string, limit: number): Promise<VariablesSearchResult> => {
+export const searchVariables = async (
+    query: string,
+    limit: number
+): Promise<VariablesSearchResult> => {
     const whereClauses = buildWhereClauses(query)
 
     const fromWhere = `
@@ -569,7 +574,9 @@ const buildWhereClauses = (query: string): string[] => {
             // NOTE: we don't have the table name in any db field, it's horrible to query
             q &&
                 whereClauses.push(
-                    `${not} REGEXP_LIKE(SUBSTRING_INDEX(SUBSTRING_INDEX(v.catalogPath, '/', 5), '/', -1), ${escape(q)}, 'i')`
+                    `${not} REGEXP_LIKE(SUBSTRING_INDEX(SUBSTRING_INDEX(v.catalogPath, '/', 5), '/', -1), ${escape(
+                        q
+                    )}, 'i')`
                 )
         } else if (part.startsWith("short:")) {
             const q = part.substring("short:".length)
@@ -600,7 +607,11 @@ const buildWhereClauses = (query: string): string[] => {
         } else {
             part &&
                 whereClauses.push(
-                    `${not} (REGEXP_LIKE(v.name, ${escape(part)}, 'i') OR REGEXP_LIKE(v.catalogPath, ${escape(part)}, 'i'))`
+                    `${not} (REGEXP_LIKE(v.name, ${escape(
+                        part
+                    )}, 'i') OR REGEXP_LIKE(v.catalogPath, ${escape(
+                        part
+                    )}, 'i'))`
                 )
         }
     }
@@ -609,8 +620,8 @@ const buildWhereClauses = (query: string): string[] => {
 
 /**
  * Run a MySQL query that's robust to regular expression failures, simply
- * returning an empty result if the query fails. 
- * 
+ * returning an empty result if the query fails.
+ *
  * This is useful if the regex is user-supplied and we want them to be able
  * to construct it incrementally.
  */
