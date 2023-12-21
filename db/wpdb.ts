@@ -794,22 +794,13 @@ export const getRelatedResearchAndWritingForVariable = async (
 
     const allSortedRelatedResearch = sorted.map((post) => {
         const parsedAuthors = JSON.parse(post.authors)
-        // The authors in the gdocs table are just a list of strings, but in the wp_posts table
-        // they are a list of objects with an "author" key and an "order" key. We want to normalize this so that
-        // we can just use the same code to display the authors in both cases.
-        let authors
-        if (parsedAuthors.length > 0 && !isString(parsedAuthors[0])) {
-            authors = sortBy(parsedAuthors, (author) => author.order).map(
-                (author: any) => author.author
-            )
-        } else authors = parsedAuthors
         const parsedTags = post.tags !== "" ? JSON.parse(post.tags) : []
 
         return {
             title: post.title,
             url: `/${post.postSlug}`,
             variantName: "",
-            authors,
+            authors: parsedAuthors,
             imageUrl: post.thumbnail,
             tags: parsedTags,
         }

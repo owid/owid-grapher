@@ -98,7 +98,9 @@ const migrate = async (): Promise<void> => {
         try {
             const post = {
                 ...postRaw,
-                authors: parsePostAuthors(postRaw.authors),
+                authors: postRaw.authors
+                    ? parsePostAuthors(postRaw.authors)
+                    : null,
             }
             const isEntry = entries.has(post.slug)
             const text = post.content
@@ -113,6 +115,7 @@ const migrate = async (): Promise<void> => {
             )
             if (
                 shouldIncludeMaxAsAuthor &&
+                post.authors &&
                 !post.authors.includes("Max Roser")
             ) {
                 post.authors.push("Max Roser")
@@ -198,9 +201,9 @@ const migrate = async (): Promise<void> => {
                     body: archieMlBodyElements,
                     toc: [],
                     title: post.title,
-                    subtitle: post.excerpt,
-                    excerpt: post.excerpt,
-                    authors: post.authors,
+                    subtitle: post.excerpt ?? "",
+                    excerpt: post.excerpt ?? "",
+                    authors: post.authors ?? [],
                     "featured-image": post.featured_image.split("/").at(-1),
                     dateline: dateline,
                     // TODO: this discards block level elements - those might be needed?

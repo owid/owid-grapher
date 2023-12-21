@@ -302,7 +302,7 @@ export async function renderDataPageV2({
             if (post) {
                 const authors = post.authors
                 const citation = getShortPageCitation(
-                    authors,
+                    authors ?? [],
                     post.title,
                     post.published_at
                 )

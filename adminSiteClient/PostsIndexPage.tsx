@@ -34,9 +34,9 @@ interface PostIndexMeta {
     title: string
     type: string
     status: string
-    authors: string[]
+    authors: string[] | null
     slug: string
-    updatedAtInWordpress: string
+    updatedAtInWordpress: string | null
     tags: ChartTagJoin[] | null
     gdocSuccessorId: string | undefined
     gdocSuccessorPublished: boolean
@@ -209,7 +209,7 @@ class PostRow extends React.Component<PostRowProps> {
         return (
             <tr>
                 <td>{post.title || "(no title)"}</td>
-                <td>{post.authors.join(", ")}</td>
+                <td>{post.authors?.join(", ")}</td>
                 <td>{post.type}</td>
                 <td>{post.status}</td>
                 <td>{post.slug}</td>
@@ -273,7 +273,7 @@ export class PostsIndexPage extends React.Component {
                     post.title,
                     post.slug,
                     `${post.id}`,
-                    post.authors.join(" "),
+                    post.authors?.join(" "),
                 ]
             )
             return posts.filter(filterFn)

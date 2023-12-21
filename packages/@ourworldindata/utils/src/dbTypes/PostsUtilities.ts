@@ -12,13 +12,22 @@ export function parsePostAuthors(authors: string): string[] {
     return authorsJson
 }
 
+export function parsePostArchieml(archieml: string): any {
+    // TODO: validation would be nice here
+    return JSON.parse(archieml)
+}
+
 export function parsePostRow(postRow: PostRowRaw): PostRowEnriched {
     return {
         ...postRow,
-        authors: parsePostAuthors(postRow.authors),
-        formattingOptions: parsePostFormattingOptions(
-            postRow.formattingOptions
-        ),
+        authors: postRow.authors ? parsePostAuthors(postRow.authors) : null,
+        formattingOptions: postRow.formattingOptions
+            ? parsePostFormattingOptions(postRow.formattingOptions)
+            : null,
+        archieml: postRow.archieml ? parsePostArchieml(postRow.archieml) : null,
+        archieml_update_statistics: postRow.archieml_update_statistics
+            ? JSON.parse(postRow.archieml_update_statistics)
+            : null,
     }
 }
 
@@ -27,5 +36,9 @@ export function serializePostRow(postRow: PostRowEnriched): PostRowRaw {
         ...postRow,
         authors: JSON.stringify(postRow.authors),
         formattingOptions: JSON.stringify(postRow.formattingOptions),
+        archieml: JSON.stringify(postRow.archieml),
+        archieml_update_statistics: JSON.stringify(
+            postRow.archieml_update_statistics
+        ),
     }
 }

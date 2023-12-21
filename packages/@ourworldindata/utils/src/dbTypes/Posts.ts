@@ -1,4 +1,9 @@
-import { FormattingOptions, WP_PostType } from "../owidTypes.js"
+import {
+    FormattingOptions,
+    OwidArticleBackportingStatistics,
+    OwidGdocInterface,
+    WP_PostType,
+} from "../owidTypes.js"
 
 export interface PostRowPlainFields {
     id: number
@@ -10,22 +15,24 @@ export interface PostRowPlainFields {
     published_at: Date | null
     updated_at: Date | null
     updated_at_in_wordpress: Date | null
-    archieml: string
-    archieml_update_statistics: string
     gdocSuccessorId: string | null
-    excerpt: string
+    excerpt: string | null
     created_at_in_wordpress: Date | null
     featured_image: string
 }
 
 export interface PostRowUnparsedFields {
-    authors: string
-    formattingOptions: string
+    authors: string | null
+    formattingOptions: string | null
+    archieml: string | null
+    archieml_update_statistics: string | null
 }
 
 export interface PostRowParsedFields {
-    authors: string[]
-    formattingOptions: FormattingOptions
+    authors: string[] | null
+    formattingOptions: FormattingOptions | null
+    archieml: OwidGdocInterface | null
+    archieml_update_statistics: OwidArticleBackportingStatistics | null
 }
 export type PostRowRaw = PostRowPlainFields & PostRowUnparsedFields
 export type PostRowEnriched = PostRowPlainFields & PostRowParsedFields

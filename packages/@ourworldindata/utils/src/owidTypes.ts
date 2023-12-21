@@ -4,7 +4,7 @@ import { gdocUrlRegex } from "./GdocsConstants.js"
 import { OwidOrigin } from "./OwidOrigin.js"
 import { OwidSource } from "./OwidSource.js"
 import { OwidProcessingLevel } from "./OwidVariable.js"
-import { PostRowEnriched } from "./dbTypes/Posts.js"
+import { PostRowRaw } from "./dbTypes/Posts.js"
 
 // todo: remove when we ditch Year and YearIsDay
 export const EPOCH_DATE = "2020-01-21"
@@ -166,7 +166,7 @@ export interface TocHeadingWithTitleSupertitle extends TocHeading {
     supertitle?: string
 }
 
-export interface PostRowWithGdocPublishStatus extends PostRowEnriched {
+export interface PostRowWithGdocPublishStatus extends PostRowRaw {
     isGdocPublished: boolean
 }
 
