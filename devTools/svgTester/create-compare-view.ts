@@ -30,9 +30,13 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         }
     }
     const sections = files.map((file) =>
-        createSection(file, referenceDir, differencesDir)
+        createComparisonView(file, referenceDir, differencesDir)
     )
-    await fs.writeFile(outFile, createHtml(sections.join("\n")))
+
+    const summary = `<p class="summary">Number of differences: ${sections.length}</p>`
+
+    const content = summary + sections.join("\n")
+    await fs.writeFile(outFile, createHtml(content))
 }
 
 const parsedArgs = parseArgs(process.argv.slice(2))
@@ -51,25 +55,37 @@ Options:
     main(parsedArgs)
 }
 
-function createSection(
+function createComparisonView(
     filename: string,
     referenceDir: string,
     differencesDir: string
 ) {
-    const slug = filename.split("_")[0]
+    const fragments = utils.extractFragmentsFromSvgFilename(filename)
+    const slug = fragments?.slug
     const referenceFilename = path.join(referenceDir, filename)
     const differencesFilename = path.join(differencesDir, filename)
-    return `<section>
-        <h2>${slug}</h2>
-        <div class="side-by-side">
-            <a href="${LIVE_GRAPHER_URL}/${slug}" target="_blank">
+
+    if (slug) {
+        return `<section>
+            <h2>${slug}</h2>
+            <div class="side-by-side">
+                <a href="${LIVE_GRAPHER_URL}/${slug}" target="_blank">
+                    <img src="${referenceFilename}" loading="lazy">
+                </a>
+                <a href="${LOCAL_GRAPHER_URL}/${slug}" target="_blank">
+                    <img src="${differencesFilename}" loading="lazy">
+                </a>
+            </div>
+        </section>`
+    } else {
+        return `<section>
+            <h2>${filename}</h2>
+            <div class="side-by-side">
                 <img src="${referenceFilename}" loading="lazy">
-            </a>
-            <a href="${LOCAL_GRAPHER_URL}/${slug}" target="_blank">
                 <img src="${differencesFilename}" loading="lazy">
-            </a>
-        </div>
-    </section>`
+            </div>
+        </section>`
+    }
 }
 
 function createHtml(content: string) {
@@ -81,6 +97,10 @@ function createHtml(content: string) {
     <meta charset="utf-8">
     <title>Comparison</title>
     <style>
+        .summary {
+            text-align: center;
+        }
+
         section + section {
             margin-top: 60px;
         }

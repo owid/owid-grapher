@@ -13,6 +13,14 @@ import {
 } from "./GrapherBakingUtils.js"
 import pMap from "p-map"
 
+interface SvgFilenameFragments {
+    slug: string
+    version: number
+    width: number
+    height: number
+    queryStr?: string
+}
+
 export async function bakeGraphersToPngs(
     outDir: string,
     jsonConfig: GrapherInterface,
@@ -87,13 +95,15 @@ export async function bakeGrapherToSvg(
     const grapher = initGrapherForSvgExport(jsonConfig, queryStr)
     const { width, height } = grapher.idealBounds
     const outPath = buildSvgOutFilepath(
-        slug,
         outDir,
-        jsonConfig.version,
-        width,
-        height,
-        verbose,
-        queryStr
+        {
+            slug,
+            version: jsonConfig.version ?? 0,
+            width,
+            height,
+            queryStr,
+        },
+        verbose
     )
 
     if (fs.existsSync(outPath) && !overwriteExisting) return
@@ -122,34 +132,45 @@ export function initGrapherForSvgExport(
     return grapher
 }
 
-export function buildSvgOutFilename(
-    slug: string,
-    version: number | undefined,
-    width: number,
-    height: number,
-    queryStr: string = ""
-) {
+export function buildSvgOutFilename(fragments: SvgFilenameFragments): string {
+    const { slug, version, width, height, queryStr = "" } = fragments
     const fileKey = grapherSlugToExportFileKey(slug, queryStr)
     const outFilename = `${fileKey}_v${version}_${width}x${height}.svg`
     return outFilename
 }
 
-export function buildSvgOutFilepath(
-    slug: string,
-    outDir: string,
-    version: number | undefined,
-    width: number,
-    height: number,
-    verbose: boolean,
-    queryStr: string = ""
-) {
-    const outFilename = buildSvgOutFilename(
+export function extractFragmentsFromSvgFilename(
+    filename: string
+): SvgFilenameFragments | null {
+    // example: my-slug_v10_600x400.svg
+    const filenamePattern =
+        /(?<fileKey>[a-zA-Z\d-]+)_v(?<version>\d+)_(?<width>\d+)x(?<height>\d+)\.svg/
+    const fragments = filename.match(filenamePattern)?.groups
+
+    if (!fragments) return null
+
+    const { fileKey, version, width, height } = fragments
+
+    // split file key into slug and hashed(!) query string
+    const fileKeySplit = fileKey.split("-")
+    const slug = fileKeySplit.slice(0, -1).join("-")
+    const queryStr = fileKeySplit.slice(-1)[0]
+
+    return {
         slug,
-        version,
-        width,
-        height,
-        queryStr
-    )
+        version: parseInt(version),
+        width: parseInt(width),
+        height: parseInt(height),
+        queryStr,
+    }
+}
+
+export function buildSvgOutFilepath(
+    outDir: string,
+    fragments: SvgFilenameFragments,
+    verbose: boolean = false
+) {
+    const outFilename = buildSvgOutFilename(fragments)
     const outPath = path.join(outDir, outFilename)
     if (verbose) console.log(outPath)
     return outPath

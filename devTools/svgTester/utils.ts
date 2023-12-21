@@ -11,6 +11,7 @@ import path from "path"
 import stream from "stream"
 import {
     buildSvgOutFilename,
+    extractFragmentsFromSvgFilename,
     initGrapherForSvgExport,
 } from "../../baker/GrapherImageBaker.js"
 import { getVariableData } from "../../db/model/Variable.js"
@@ -114,6 +115,8 @@ export interface JobConfigAndData {
     variableData: MultipleOwidVariableDataDimensionsMap
     totalDataFileSize: number
 }
+
+export { extractFragmentsFromSvgFilename }
 
 export function logIfVerbose(verbose: boolean, message: string, param?: any) {
     if (verbose)
@@ -338,13 +341,13 @@ export async function renderSvg(
         queryStr
     )
     const { width, height } = grapher.idealBounds
-    const outFilename = buildSvgOutFilename(
-        configAndData.config.slug!,
-        configAndData.config.version,
+    const outFilename = buildSvgOutFilename({
+        slug: configAndData.config.slug!,
+        version: configAndData.config.version ?? 0,
         width,
         height,
-        queryStr
-    )
+        queryStr,
+    })
 
     grapher.receiveOwidData(configAndData.variableData)
     const durationReceiveData = Date.now() - timeStart
