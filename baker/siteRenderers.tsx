@@ -50,12 +50,12 @@ import {
     JsonError,
     KeyInsight,
     OwidGdocInterface,
-    PostRowEnriched,
     Url,
     IndexPost,
     mergePartialGrapherConfigs,
     OwidGdocType,
     extractFormattingOptions,
+    PostRowRaw,
 } from "@ourworldindata/utils"
 import { CountryProfileSpec } from "../site/countryProfileProjects.js"
 import { formatPost } from "./formatWordpressPost.js"
@@ -435,7 +435,7 @@ export const entriesByYearPage = async (year?: number) => {
         .join("tags", { "tags.id": "post_tags.tag_id" })
         .where({ "tags.name": "Entries" })
         .select("title", "posts.slug", "published_at")) as Pick<
-        PostRowEnriched,
+        PostRowRaw,
         "title" | "slug" | "published_at"
     >[]
 
