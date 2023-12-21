@@ -86,11 +86,19 @@ checkoutMaster() {
     # checkout master
     echo "=> Checking out master"
     git checkout master
+
+    echo "=> Build project"
+    yarn buildLerna
+    yarn buildTsc
 }
 
 checkoutLastBranch() {
     echo "=> Checking out last branch"
     git checkout - && echo "=> Checked out $(git branch --show-current)"
+
+    echo "=> Build project"
+    yarn buildLerna
+    yarn buildTsc
 }
 
 runExportScript() {
@@ -107,7 +115,6 @@ runExportScript() {
 }
 
 runVerifyScript() {
-    # run verify script
     echo "=> Verifying graphs and storing differences in $LOCAL_DIFFERENCES_DIR"
     node itsJustJavascript/devTools/svgTester/verify-graphs.js\
         -i $CONFIGS_DIR\
@@ -141,9 +148,8 @@ main() {
         unstashChanges
     fi
     
-    # verify grapher charts and create an html report
-    runVerifyScript
-    createHTMLReport
+    # verify grapher charts and create an html report if there are differences
+    runVerifyScript || createHTMLReport
 }
 
 parseArgs "$@"
