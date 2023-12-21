@@ -179,32 +179,19 @@ export async function getDirectoriesToProcess(
     {
         grapherIds = [],
         chartTypes = [],
-        randomCount = 0,
+        randomCount,
     }: { grapherIds?: number[]; chartTypes?: string[]; randomCount?: number }
 ): Promise<JobDirectory[]> {
     const directories: JobDirectory[] = []
 
     const areGrapherIdsGiven = grapherIds.length > 0
     const areChartTypesGiven = chartTypes.length > 0
+    const isRandomCountGiven = randomCount !== undefined
 
     const makeJobDirectory = (grapherId: number): JobDirectory => ({
         chartId: grapherId,
         pathToProcess: path.join(inDir, grapherId.toString()),
     })
-
-    // If a random count was given, everything else is ignored and we just return a random sample
-    if (randomCount > 0) {
-        const availableGrapherIds: number[] = []
-        const dir = await fs.opendir(inDir)
-        for await (const entry of dir) {
-            if (entry.isDirectory()) {
-                const grapherId = parseInt(entry.name)
-                availableGrapherIds.push(grapherId)
-            }
-        }
-        const randomSample = _.sampleSize(availableGrapherIds, randomCount)
-        return randomSample.map((grapherId) => makeJobDirectory(grapherId))
-    }
 
     // If neither grapher ids nor chart types were given scan all directories in the inDir folder
     if (!areGrapherIdsGiven && !areChartTypesGiven) {
@@ -215,6 +202,7 @@ export async function getDirectoriesToProcess(
                 directories.push(makeJobDirectory(grapherId))
             }
         }
+        if (isRandomCountGiven) return _.sampleSize(directories, randomCount)
         return directories
     }
 
@@ -267,6 +255,7 @@ export async function getDirectoriesToProcess(
         }
     }
 
+    if (isRandomCountGiven) return _.sampleSize(directories, randomCount)
     return directories
 }
 
@@ -670,9 +659,13 @@ export function parseArgAsList(arg: unknown): string[] {
 //   - if `arg` is specified with a value (`--arg 50`), the value is parsed as a number and returned
 export function parseArgAsOptionalNumber(
     arg: unknown,
-    defaultIfFlagNotSpecified = 0,
-    defaultIfFlagIsSpecified = 1
+    props?: {
+        defaultIfFlagNotSpecified?: number
+        defaultIfFlagIsSpecified?: number
+    }
 ): number {
+    const { defaultIfFlagIsSpecified = 1, defaultIfFlagNotSpecified = 0 } =
+        props ?? {}
     return arg === true
         ? defaultIfFlagIsSpecified
         : arg

@@ -18,7 +18,10 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
             utils.parseArgAsString(parsedArgs["c"])
         )
         const targetChartTypes = utils.parseArgAsList(parsedArgs["t"])
-        const randomCount = utils.parseArgAsOptionalNumber(parsedArgs["random"])
+        const randomCount =
+            utils.parseArgAsOptionalNumber(parsedArgs["random"], {
+                defaultIfFlagIsSpecified: 10,
+            }) || undefined
         const rmOnError = parsedArgs["rmOnError"] ?? false
 
         if (!fs.existsSync(inDir))

@@ -16,7 +16,10 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         )
         const targetChartTypes = utils.parseArgAsList(parsedArgs["t"])
         const isolate = parsedArgs["isolate"] ?? false
-        const randomCount = utils.parseArgAsOptionalNumber(parsedArgs["random"])
+        const randomCount =
+            utils.parseArgAsOptionalNumber(parsedArgs["random"], {
+                defaultIfFlagIsSpecified: 10,
+            }) || undefined
 
         if (isolate) {
             console.info(
