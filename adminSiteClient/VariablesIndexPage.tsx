@@ -79,7 +79,8 @@ export class VariablesIndexPage extends React.Component {
                         <code>namespace:</code>, <code>version:</code>,{" "}
                         <code>dataset:</code>, <code>table:</code>,{" "}
                         <code>short:</code>, <code>before:</code>,{" "}
-                        <code>after:</code>
+                        <code>after:</code>, <code>is:public</code>,{" "}
+                        <code>is:private</code>
                     </p>
                     <VariableList
                         variables={variablesToShow}
