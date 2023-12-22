@@ -541,7 +541,6 @@ Current  : ${validationResult.difference.newSvgFragment}`
 export async function parseReferenceCsv(
     referenceDir: string
 ): Promise<SvgRecord[]> {
-    // todo: wrong type
     const pathname = path.join(referenceDir, RESULTS_FILENAME)
     const rawContent = await fs.readFile(pathname, "utf-8")
     return d3.csvParse(rawContent, (d) => ({
