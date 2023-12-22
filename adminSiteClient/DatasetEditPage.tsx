@@ -350,7 +350,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                     )}
                 <section>
                     <h3>Indicators</h3>
-                    <VariableList variables={dataset.variables} />
+                    <VariableList variables={dataset.variables} fields={[]} />
                 </section>
                 <section>
                     <button

@@ -20,6 +20,7 @@ import {
     getMergedGrapherConfigForVariable,
     fetchS3MetadataByPath,
     fetchS3DataValuesByPath,
+    searchVariables,
 } from "../db/model/Variable.js"
 import {
     applyPatch,
@@ -1487,36 +1488,8 @@ apiRouter.post("/users/add", async (req: Request, res: Response) => {
 
 apiRouter.get("/variables.json", async (req) => {
     const limit = parseIntOrUndefined(req.query.limit as string) ?? 50
-    const searchStr = req.query.search
-
-    const query = `
-        SELECT
-            v.id,
-            v.name,
-            d.id AS datasetId,
-            d.name AS datasetName,
-            d.isPrivate AS isPrivate,
-            d.nonRedistributable AS nonRedistributable,
-            d.dataEditedAt AS uploadedAt,
-            u.fullName AS uploadedBy
-        FROM variables AS v
-        JOIN active_datasets d ON d.id=v.datasetId
-        JOIN users u ON u.id=d.dataEditedByUserId
-        ${searchStr ? "WHERE v.name LIKE ?" : ""}
-        ORDER BY d.dataEditedAt DESC
-        LIMIT ?
-    `
-
-    const rows = await db.queryMysql(
-        query,
-        searchStr ? [`%${searchStr}%`, limit] : [limit]
-    )
-
-    const numTotalRows = (
-        await db.queryMysql(`SELECT COUNT(*) as count FROM variables`)
-    )[0].count
-
-    return { variables: rows, numTotalRows: numTotalRows }
+    const query = req.query.search as string
+    return await searchVariables(query, limit)
 })
 
 apiRouter.get(
@@ -1846,7 +1819,7 @@ apiRouter.get("/datasets/:datasetId.json", async (req: Request) => {
 
     const variables = await db.queryMysql(
         `
-        SELECT v.id, v.name, v.description, v.display
+        SELECT v.id, v.name, v.description, v.display, v.catalogPath
         FROM variables AS v
         WHERE v.datasetId = ?
     `,
