@@ -547,7 +547,7 @@ export class DataTable extends React.Component<{
     }
 
     @computed private get tableCaption(): JSX.Element | null {
-        if (this.hasDimensionHeaders) return null
+        if (!this.hasDimensionHeaders) return null
         const singleDimension = this.displayDimensions[0]
         const titleFragments = (singleDimension.display.columnName
             .attributionShort ||
