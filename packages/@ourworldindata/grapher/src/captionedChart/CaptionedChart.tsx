@@ -338,7 +338,16 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         }
         return (
             <div className="DataTableContainer" style={containerStyle}>
-                <DataTable bounds={boundsForChartArea} manager={this.manager} />
+                {this.manager.isReady ? (
+                    <DataTable
+                        bounds={boundsForChartArea}
+                        manager={this.manager}
+                    />
+                ) : (
+                    <LoadingIndicator
+                        title={this.manager.whatAreWeWaitingFor}
+                    />
+                )}
             </div>
         )
     }
