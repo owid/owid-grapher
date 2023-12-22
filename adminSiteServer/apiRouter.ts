@@ -1685,6 +1685,13 @@ apiRouter.get(
             getVariableMetadataRoute(DATA_API_URL, variableId) + "?nocache"
         )
 
+        // XXX: Patch shortName onto the end of catalogPath when it's missing,
+        //      a temporary hack since our S3 metadata is out of date with our DB.
+        //      See: https://github.com/owid/etl/issues/2135
+        if (variable.catalogPath && !variable.catalogPath.includes("#")) {
+            variable.catalogPath += `#${variable.shortName}`
+        }
+
         const charts = await db.queryMysql(
             `
             SELECT ${OldChart.listFields}
