@@ -634,6 +634,10 @@ export class Grapher
             this.showSelectionOnlyInDataTable =
                 params.showSelectionOnlyInTable === "1" ? true : undefined
         }
+
+        if (params.showNoDataArea) {
+            this.showNoDataArea = params.showNoDataArea === "1"
+        }
     }
 
     @action.bound private setTimeFromTimeQueryParam(time: string): void {
@@ -2664,6 +2668,7 @@ export class Grapher
         this.map.projection = authorsVersion.map.projection
         this.showSelectionOnlyInDataTable =
             authorsVersion.showSelectionOnlyInDataTable
+        this.showNoDataArea = authorsVersion.showNoDataArea
         this.clearSelection()
     }
 
@@ -2718,6 +2723,7 @@ export class Grapher
         params.showSelectionOnlyInTable = this.showSelectionOnlyInDataTable
             ? "1"
             : "0"
+        params.showNoDataArea = this.showNoDataArea ? "1" : "0"
         return setSelectedEntityNamesParam(
             Url.fromQueryParams(params),
             this.selectedEntitiesIfDifferentThanAuthors
