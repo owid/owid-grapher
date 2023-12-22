@@ -9,20 +9,28 @@ import * as utils from "./utils.js"
 
 async function main(parsedArgs: parseArgs.ParsedArgs) {
     try {
+        // input and output directories
         const inDir = parsedArgs["i"] ?? utils.DEFAULT_CONFIGS_DIR
         let outDir = parsedArgs["o"] ?? utils.DEFAULT_REFERENCE_DIR
+
+        // charts to process
+        const chartIdsFile = parsedArgs["from-file"]
         const targetGrapherIds = utils.getGrapherIdListFromString(
-            utils.parseArgAsString(parsedArgs["c"])
+            utils.parseArgAsString(parsedArgs["configs"])
         )
         const targetChartTypes = utils.validateChartTypes(
-            utils.parseArgAsList(parsedArgs["t"])
+            utils.parseArgAsList(parsedArgs["types"])
         )
-        const grapherQueryString = parsedArgs["q"]
+        const randomCount = utils.parseRandomCount(parsedArgs["random"])
+
+        // chart configurations to test
+        const grapherQueryString = parsedArgs["query-str"]
         const shouldTestAllChartViews = parsedArgs["all-views"] ?? false
+
+        // other options
         const enableComparisons = parsedArgs["compare"] ?? false
         const isolate = parsedArgs["isolate"] ?? false
-        const randomCount = utils.parseRandomCount(parsedArgs["random"])
-        const verbose = parsedArgs["v"] ?? false
+        const verbose = parsedArgs["verbose"] ?? false
 
         if (isolate) {
             utils.logIfVerbose(
@@ -46,6 +54,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true })
 
         const chartsToProcess = await utils.findChartsToProcess(inDir, {
+            chartIdsFile,
             grapherIds: targetGrapherIds,
             chartTypes: targetChartTypes,
             randomCount,
@@ -128,19 +137,22 @@ if (parsedArgs["h"] || parsedArgs["help"]) {
     console.log(`export-graphs.js - utility to export grapher svg renderings and a summary csv file
 
 Usage:
-    export-graphs.js (-i DIR) (-o DIR)
+    export-graphs.js [-i DIR] [-o DIR] [--configs IDS] [--types TYPES] [--query-str STRING] [--random COUNT] [--all-views] [--compare] [--isolate] [--verbose] [--help | -h]
 
 Options:
-    -i DIR             Input directory containing the data. [default: ${utils.DEFAULT_CONFIGS_DIR}]
-    -o DIR             Output directory that will contain the csv file and one svg file per grapher [default: ${utils.DEFAULT_REFERENCE_DIR}]
-    -c IDS             A comma-separated list of config IDs and config ID ranges that you want to run instead of generating SVGs from all configs, e.g. 2,4-8,10 [default: undefined]
-    -t TYPES           A comma-separated list of chart types that you want to run instead of generating SVGs from all configs [default: undefined]
-    -q QUERY_STRING    Grapher query string to export a specific chart view [default: undefined]
-    --random COUNT     Generate SVGs for a random set of configs [default: false]
-    --all-views        Generate SVGs for all chart views [default: false]
-    --compare          Create a directory containing the old and new SVGs for easy comparison [default: false]
-    --isolate          Run each export in a separate process. This yields accurate heap usage measurements, but is slower. [default: false]
-    -v                 Verbose mode
+    -i DIR                  Input directory containing the data. [default: ${utils.DEFAULT_CONFIGS_DIR}]
+    -o DIR                  Output directory that will contain the csv file and one svg file per grapher [default: ${utils.DEFAULT_REFERENCE_DIR}]
+    
+    --configs IDS           A comma-separated list of config IDs and config ID ranges that you want to run instead of generating SVGs from all configs, e.g. 2,4-8,10 [default: undefined]
+    --types TYPES           A comma-separated list of chart types that you want to run instead of generating SVGs from all configs [default: undefined]
+    --query-str STRING      Grapher query string to export a specific chart view [default: undefined]
+    --random COUNT          Generate SVGs for a random set of configs [default: false]
+    --from-file FILE        Generate SVGs for a set of configs specified in a file [default: undefined]
+    
+    --all-views             Generate SVGs for all chart views [default: false]
+    --compare               Create a directory containing the old and new SVGs for easy comparison [default: false]
+    --isolate               Run each export in a separate process. This yields accurate heap usage measurements, but is slower. [default: false]
+    --verbose               Verbose mode
     `)
     process.exit(0)
 } else {

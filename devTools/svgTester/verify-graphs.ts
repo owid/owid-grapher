@@ -11,22 +11,29 @@ import { grapherSlugToExportFileKey } from "../../baker/GrapherBakingUtils.js"
 
 async function main(parsedArgs: parseArgs.ParsedArgs) {
     try {
-        // prepare and check arguments
+        // input and output directories
         const inDir = parsedArgs["i"] ?? utils.DEFAULT_CONFIGS_DIR
         const referenceDir = parsedArgs["r"] ?? utils.DEFAULT_REFERENCE_DIR
         const outDir = parsedArgs["o"] ?? utils.DEFAULT_DIFFERENCES_DIR
-        const verbose = parsedArgs["v"] ?? false
-        const suffix = parsedArgs["s"] ?? ""
+
+        // charts to process
+        const chartIdsFile = parsedArgs["from-file"]
         const targetGrapherIds = utils.getGrapherIdListFromString(
-            utils.parseArgAsString(parsedArgs["c"])
+            utils.parseArgAsString(parsedArgs["configs"])
         )
         const targetChartTypes = utils.validateChartTypes(
-            utils.parseArgAsList(parsedArgs["t"])
+            utils.parseArgAsList(parsedArgs["types"])
         )
-        const grapherQueryString = parsedArgs["q"]
         const randomCount = utils.parseRandomCount(parsedArgs["random"])
+
+        // chart configurations to test
+        const grapherQueryString = parsedArgs["query-str"]
         const shouldTestAllChartViews = parsedArgs["all-views"] ?? false
+
+        // other options
+        const suffix = parsedArgs["suffix"] ?? ""
         const rmOnError = parsedArgs["rmOnError"] ?? false
+        const verbose = parsedArgs["verbose"] ?? false
 
         if (!fs.existsSync(inDir))
             throw `Input directory does not exist ${inDir}`
@@ -35,6 +42,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         if (!fs.existsSync(outDir)) fs.mkdirSync(outDir)
 
         const chartsToProcess = await utils.findChartsToProcess(inDir, {
+            chartIdsFile,
             grapherIds: targetGrapherIds,
             chartTypes: targetChartTypes,
             randomCount,
@@ -109,20 +117,22 @@ if (parsedArgs["h"] || parsedArgs["help"]) {
     console.log(`verify-graphs.js - utility to check if grapher svg renderings have changed vs the reference export
 
 Usage:
-    verify-graphs.js (-i DIR) (-r DIR) (-o DIR)
+    verify-graphs.js [-i DIR] [-r DIR] [-o DIR] [--configs IDS] [--types TYPES] [--query-str STRING] [--random COUNT] [--suffix SUFFIX] [--all-views] [--rmOnError] [--verbose] [--help | -h]
 
 Options:
-    -i DIR             Input directory containing the data. [default: ${utils.DEFAULT_CONFIGS_DIR}]
-    -r DIR             Input directory containing the results.csv file to check against [default: ${utils.DEFAULT_REFERENCE_DIR}]
-    -o DIR             Output directory that will contain the svg files that were different [default: ${utils.DEFAULT_DIFFERENCES_DIR}]
-    -c IDS             Manually specify ids to verify (use comma separated ids and ranges, all without spaces. E.g.: 2,4-8,10)
-    -t TYPES           A comma-separated list of chart types that you want to run instead of generating SVGs from all configs [default: undefined]
-    -q QUERY_STRING    Grapher query string to verify a specific chart view [default: undefined]
-    -v                 Verbose mode
-    -s SUFFIX          Suffix for different svg files to create <NAME><SUFFIX>.svg files - useful if you want to set output to the same as reference
-    --random COUNT     Verify a random set of charts [default: false]
-    --all-views        Verify SVGs for all chart views [default: false]
-    --rmOnError        Remove output files where we encounter errors, so errors are apparent in diffs
+    -i DIR                  Input directory containing the data. [default: ${utils.DEFAULT_CONFIGS_DIR}]
+    -r DIR                  Input directory containing the results.csv file to check against [default: ${utils.DEFAULT_REFERENCE_DIR}]
+    -o DIR                  Output directory that will contain the svg files that were different [default: ${utils.DEFAULT_DIFFERENCES_DIR}]
+    
+    --configs IDS           Manually specify ids to verify (use comma separated ids and ranges, all without spaces. E.g.: 2,4-8,10)
+    --types TYPES           A comma-separated list of chart types that you want to run instead of generating SVGs from all configs [default: undefined]
+    --query-str STRING      Grapher query string to verify a specific chart view [default: undefined]
+    --random COUNT          Verify a random set of charts [default: false]
+
+    --suffix SUFFIX         Suffix for different svg files to create <NAME><SUFFIX>.svg files - useful if you want to set output to the same as reference
+    --all-views             Verify SVGs for all chart views [default: false]
+    --rmOnError             Remove output files where we encounter errors, so errors are apparent in diffs
+    --verbose               Verbose mode
     `)
     process.exit(0)
 } else {

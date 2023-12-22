@@ -177,6 +177,7 @@ export async function verifySvg(
 export async function findChartsToProcess(
     inDir: string,
     options: {
+        chartIdsFile?: string
         grapherIds?: number[]
         chartTypes?: ChartTypeName[]
         randomCount?: number
@@ -234,20 +235,19 @@ export async function findChartsToProcess(
 export async function findValidChartIds(
     inDir: string,
     {
+        chartIdsFile,
         grapherIds = [],
         chartTypes = [],
     }: {
+        chartIdsFile?: string
         grapherIds?: number[]
         chartTypes?: ChartTypeName[]
     }
 ): Promise<number[]> {
     const validChartIds: number[] = []
 
-    const areGrapherIdsGiven = grapherIds.length > 0
-    const areChartTypesGiven = chartTypes.length > 0
-
-    // If neither grapher ids nor chart types were given scan all directories in the inDir folder
-    if (!areGrapherIdsGiven && !areChartTypesGiven) {
+    // If nothing is specified, scan all directories in the inDir folder
+    if (grapherIds.length === 0 && chartTypes.length === 0 && !chartIdsFile) {
         const dir = await fs.opendir(inDir)
         for await (const entry of dir) {
             if (entry.isDirectory()) {
@@ -258,22 +258,30 @@ export async function findValidChartIds(
         return _.sortBy(validChartIds)
     }
 
+    if (chartIdsFile) {
+        const chartIdsFromFile = readLinesFromFile(chartIdsFile)
+            .map((line) => parseInt(line))
+            .filter((id) => !isNaN(id))
+        grapherIds.push(...chartIdsFromFile)
+    }
+
     // If grapher ids were given check which ones exist in inDir and filter to those
     // -> if by doing so we drop some, warn the user
-    if (areGrapherIdsGiven) {
+    if (grapherIds.length > 0) {
         const validatedChartIds = grapherIds.filter((grapherId) =>
             fs.existsSync(path.join(inDir, grapherId.toString()))
         )
         validChartIds.push(...validatedChartIds)
         if (validChartIds.length < grapherIds.length) {
+            const invalidChartIds = _.difference(grapherIds, validatedChartIds)
             console.warn(
-                `${grapherIds.length} grapher ids were given but only ${validChartIds.length} existed as directories`
+                `${grapherIds.length} grapher ids were given but only ${validChartIds.length} existed as directories: ${invalidChartIds}`
             )
         }
     }
 
     // If chart types are given, scan all directories and add those that match a given chart type
-    if (areChartTypesGiven) {
+    if (chartTypes.length > 0) {
         const dir = await fs.opendir(inDir)
         for await (const entry of dir) {
             if (entry.isDirectory()) {
@@ -736,4 +744,9 @@ export function parseRandomCount(arg: unknown) {
             defaultIfFlagIsSpecified: 10,
         }) || undefined
     )
+}
+
+export function readLinesFromFile(filename: string): string[] {
+    const content = fs.readFileSync(filename, "utf-8")
+    return content.split("\n")
 }
