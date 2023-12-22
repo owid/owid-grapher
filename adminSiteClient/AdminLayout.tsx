@@ -122,9 +122,7 @@ export class AdminLayout extends React.Component<{
                     </ul>
                 </nav>
                 {showSidebar && <AdminSidebar />}
-                <div style={{ marginBottom: "3rem" }}>
-                    {this.props.children}
-                </div>
+                {this.props.children}
             </div>
         )
     }
