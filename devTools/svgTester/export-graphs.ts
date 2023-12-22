@@ -1,11 +1,11 @@
 #! /usr/bin/env node
 
-import parseArgs from "minimist"
-import * as utils from "./utils.js"
 import fs from "fs-extra"
-
+import parseArgs from "minimist"
 import path from "path"
 import workerpool from "workerpool"
+
+import * as utils from "./utils.js"
 
 async function main(parsedArgs: parseArgs.ParsedArgs) {
     try {
@@ -14,21 +14,24 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         const targetGrapherIds = utils.getGrapherIdListFromString(
             utils.parseArgAsString(parsedArgs["c"])
         )
-        const targetChartTypes = utils.parseArgAsList(parsedArgs["t"])
+        const targetChartTypes = utils.validateChartTypes(
+            utils.parseArgAsList(parsedArgs["t"])
+        )
         const grapherQueryString = parsedArgs["q"]
+        const shouldTestAllChartViews = parsedArgs["all-views"] ?? false
         const enableComparisons = parsedArgs["compare"] ?? false
         const isolate = parsedArgs["isolate"] ?? false
-        const randomCount =
-            utils.parseArgAsOptionalNumber(parsedArgs["random"], {
-                defaultIfFlagIsSpecified: 10,
-            }) || undefined
+        const randomCount = utils.parseRandomCount(parsedArgs["random"])
+        const verbose = parsedArgs["v"] ?? false
 
         if (isolate) {
-            console.info(
+            utils.logIfVerbose(
+                verbose,
                 "Running in 'isolate' mode. This will be slower, but heap usage readouts will be accurate."
             )
         } else {
-            console.info(
+            utils.logIfVerbose(
+                verbose,
                 "Not running in 'isolate'. Reported heap usage readouts will be inaccurate. Run in --isolate mode (way slower!) for accurate heap usage readouts."
             )
         }
@@ -42,28 +45,20 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
             throw `Input directory does not exist ${inDir}`
         if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true })
 
-        const directoriesToProcess = await utils.getDirectoriesToProcess(
-            inDir,
-            {
-                grapherIds: targetGrapherIds,
-                chartTypes: targetChartTypes,
-                randomCount,
-            }
-        )
-
-        const n = directoriesToProcess.length
-        if (n === 0) {
-            console.info("No matching configs found")
-            process.exit(0)
-        } else {
-            console.info(`Generating ${n} SVG${n > 1 ? "s" : ""}...`)
-        }
+        const chartsToProcess = await utils.findChartsToProcess(inDir, {
+            grapherIds: targetGrapherIds,
+            chartTypes: targetChartTypes,
+            randomCount,
+            queryStr: grapherQueryString,
+            shouldTestAllViews: shouldTestAllChartViews,
+            verbose,
+        })
 
         const jobDescriptions: utils.RenderSvgAndSaveJobDescription[] =
-            directoriesToProcess.map((dir) => ({
-                dir: dir.pathToProcess,
+            chartsToProcess.map((chart: utils.ChartForTesting) => ({
+                dir: path.join(inDir, chart.id.toString()),
+                queryStr: chart.queryStr,
                 outDir,
-                queryStr: grapherQueryString,
             }))
 
         let svgRecords: utils.SvgRecord[] = []
@@ -87,7 +82,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
                 const svgRecord = await pool.exec("renderSvgAndSave", [job])
                 pool.terminate()
                 svgRecords.push(svgRecord)
-                console.log(i++, "/", n)
+                console.log(i++, "/", jobDescriptions.length)
             }
         }
 
@@ -116,7 +111,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
             }
         }
 
-        await utils.writeResultsCsvFile(outDir, svgRecords)
+        await utils.writeReferenceCsv(outDir, svgRecords)
         // This call to exit is necessary for some unknown reason to make sure that the process terminates. It
         // was not required before introducing the multiprocessing library.
         process.exit(0)
@@ -142,8 +137,10 @@ Options:
     -t TYPES           A comma-separated list of chart types that you want to run instead of generating SVGs from all configs [default: undefined]
     -q QUERY_STRING    Grapher query string to export a specific chart view [default: undefined]
     --random COUNT     Generate SVGs for a random set of configs [default: false]
+    --all-views        Generate SVGs for all chart views [default: false]
     --compare          Create a directory containing the old and new SVGs for easy comparison [default: false]
     --isolate          Run each export in a separate process. This yields accurate heap usage measurements, but is slower. [default: false]
+    -v                 Verbose mode
     `)
     process.exit(0)
 } else {

@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 
 usage() {
-  echo -e "Usage: ./$(basename $0) [-c] [-t] [-q] [--skip-export] [-h]
+  echo -e "Usage: ./$(basename $0) [-c] [-t] [-q] [--views] [--skip-export] [-h | --help]
 
 Export Grapher charts from master and verify them against the current branch.
 
     -c              config IDs passed to export-graphs.js and verify-graphs.js
     -t              chart types passed to export-graphs.js and verify-graphs.js
     -q              grapher query string passed to export-graphs.js and verify-graphs.js
+    --all-views     generate all possible views for each grapher id (passed to export-graphs.js and verify-graphs.js)
     --skip-export   skip the export step (useful when running this script multiple times)
     -h, --help      display this help and exit
 "
@@ -27,6 +28,7 @@ REPORT_FILE=../owid-grapher-svgs/local-differences.html
 CONFIG_IDS_ARG=""
 CHART_TYPES_ARG=""
 GRAPHER_QUERY_STRING_ARG=""
+VIEWS_ARG=""
 SKIP_EXPORT=false
 
 # Arguments parsing inspired by https://gist.github.com/jehiah/855086
@@ -51,6 +53,9 @@ parseArgs() {
             -q)
                 GRAPHER_QUERY_STRING=$VALUE
                 GRAPHER_QUERY_STRING_ARG=$([ -z "$GRAPHER_QUERY_STRING" ] || echo "-q $GRAPHER_QUERY_STRING")
+                ;;
+            --views)
+                VIEWS_ARG="--views"
                 ;;
             --skip-export)
                 SKIP_EXPORT=true
@@ -83,7 +88,6 @@ unstashChanges() {
 }
 
 checkoutMaster() {
-    # checkout master
     echo "=> Checking out master"
     git checkout master
 
@@ -111,7 +115,8 @@ runExportScript() {
         -o $LOCAL_REFERENCE_DIR\
         $CONFIG_IDS_ARG\
         $CHART_TYPES_ARG\
-        $GRAPHER_QUERY_STRING_ARG
+        $GRAPHER_QUERY_STRING_ARG\
+        $VIEWS_ARG
 }
 
 runVerifyScript() {
@@ -122,7 +127,8 @@ runVerifyScript() {
         -o $LOCAL_DIFFERENCES_DIR\
         $CONFIG_IDS_ARG\
         $CHART_TYPES_ARG\
-        $GRAPHER_QUERY_STRING_ARG
+        $GRAPHER_QUERY_STRING_ARG\
+        $VIEWS_ARG
 }
 
 createHTMLReport() {

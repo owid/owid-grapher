@@ -139,32 +139,6 @@ export function buildSvgOutFilename(fragments: SvgFilenameFragments): string {
     return outFilename
 }
 
-export function extractFragmentsFromSvgFilename(
-    filename: string
-): SvgFilenameFragments | null {
-    // example: my-slug_v10_600x400.svg
-    const filenamePattern =
-        /(?<fileKey>[a-zA-Z\d-]+)_v(?<version>\d+)_(?<width>\d+)x(?<height>\d+)\.svg/
-    const fragments = filename.match(filenamePattern)?.groups
-
-    if (!fragments) return null
-
-    const { fileKey, version, width, height } = fragments
-
-    // split file key into slug and hashed(!) query string
-    const fileKeySplit = fileKey.split("-")
-    const slug = fileKeySplit.slice(0, -1).join("-")
-    const queryStr = fileKeySplit.slice(-1)[0]
-
-    return {
-        slug,
-        version: parseInt(version),
-        width: parseInt(width),
-        height: parseInt(height),
-        queryStr,
-    }
-}
-
 export function buildSvgOutFilepath(
     outDir: string,
     fragments: SvgFilenameFragments,

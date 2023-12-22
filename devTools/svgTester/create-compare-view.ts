@@ -4,6 +4,7 @@ import parseArgs from "minimist"
 import fs from "fs-extra"
 import path from "path"
 import * as utils from "./utils.js"
+import _ from "lodash"
 
 const DEFAULT_REPORT_FILENAME = "../owid-grapher-svgs/differences.html"
 
@@ -22,19 +23,32 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
     if (!fs.existsSync(differencesDir))
         throw `Differences directory does not exist ${differencesDir}`
 
+    // collect svg files with differences
     const dir = await fs.opendir(differencesDir)
-    const files = []
+    const svgFilesWithDifferences = []
     for await (const entry of dir) {
         if (entry.isFile() && entry.name.endsWith("svg")) {
-            files.push(entry.name)
+            svgFilesWithDifferences.push(entry.name)
         }
     }
-    const sections = files.map((file) =>
-        createComparisonView(file, referenceDir, differencesDir)
+
+    // get reference records for each svg with differences
+    const referenceData = await utils.parseReferenceCsv(referenceDir)
+    const referenceDataByFilename = new Map(
+        referenceData.map((record) => [record.svgFilename, record])
+    )
+    const svgRecords = _.sortBy(
+        svgFilesWithDifferences.map(
+            (filename) => referenceDataByFilename.get(filename)!
+        ),
+        "slug"
     )
 
+    // prepare HTML report
+    const sections = svgRecords.map((record) =>
+        createComparisonView(record, referenceDir, differencesDir)
+    )
     const summary = `<p class="summary">Number of differences: ${sections.length}</p>`
-
     const content = summary + sections.join("\n")
     await fs.writeFile(outFile, createHtml(content))
 }
@@ -56,36 +70,28 @@ Options:
 }
 
 function createComparisonView(
-    filename: string,
+    svgRecord: utils.SvgRecord,
     referenceDir: string,
     differencesDir: string
 ) {
-    const fragments = utils.extractFragmentsFromSvgFilename(filename)
-    const slug = fragments?.slug
-    const referenceFilename = path.join(referenceDir, filename)
-    const differencesFilename = path.join(differencesDir, filename)
+    const { svgFilename, slug } = svgRecord
 
-    if (slug) {
-        return `<section>
-            <h2>${slug}</h2>
-            <div class="side-by-side">
-                <a href="${LIVE_GRAPHER_URL}/${slug}" target="_blank">
-                    <img src="${referenceFilename}" loading="lazy">
-                </a>
-                <a href="${LOCAL_GRAPHER_URL}/${slug}" target="_blank">
-                    <img src="${differencesFilename}" loading="lazy">
-                </a>
-            </div>
-        </section>`
-    } else {
-        return `<section>
-            <h2>${filename}</h2>
-            <div class="side-by-side">
+    const referenceFilename = path.join(referenceDir, svgFilename)
+    const differencesFilename = path.join(differencesDir, svgFilename)
+
+    const queryStr = svgRecord.queryStr ? `?${svgRecord.queryStr}` : ""
+
+    return `<section>
+        <h2>${slug}${queryStr}</h2>
+        <div class="side-by-side">
+            <a href="${LIVE_GRAPHER_URL}/${slug}${queryStr}" target="_blank">
                 <img src="${referenceFilename}" loading="lazy">
+            </a>
+            <a href="${LOCAL_GRAPHER_URL}/${slug}${queryStr}" target="_blank">
                 <img src="${differencesFilename}" loading="lazy">
-            </div>
-        </section>`
-    }
+            </a>
+        </div>
+    </section>`
 }
 
 function createHtml(content: string) {

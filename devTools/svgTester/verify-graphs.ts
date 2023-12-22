@@ -1,10 +1,13 @@
 #! /usr/bin/env node
 
 import parseArgs from "minimist"
-import * as utils from "./utils.js"
 import fs from "fs-extra"
-
+import path from "path"
 import workerpool from "workerpool"
+import _ from "lodash"
+
+import * as utils from "./utils.js"
+import { grapherSlugToExportFileKey } from "../../baker/GrapherBakingUtils.js"
 
 async function main(parsedArgs: parseArgs.ParsedArgs) {
     try {
@@ -17,12 +20,12 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         const targetGrapherIds = utils.getGrapherIdListFromString(
             utils.parseArgAsString(parsedArgs["c"])
         )
-        const targetChartTypes = utils.parseArgAsList(parsedArgs["t"])
+        const targetChartTypes = utils.validateChartTypes(
+            utils.parseArgAsList(parsedArgs["t"])
+        )
         const grapherQueryString = parsedArgs["q"]
-        const randomCount =
-            utils.parseArgAsOptionalNumber(parsedArgs["random"], {
-                defaultIfFlagIsSpecified: 10,
-            }) || undefined
+        const randomCount = utils.parseRandomCount(parsedArgs["random"])
+        const shouldTestAllChartViews = parsedArgs["all-views"] ?? false
         const rmOnError = parsedArgs["rmOnError"] ?? false
 
         if (!fs.existsSync(inDir))
@@ -31,29 +34,41 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
             throw `Reference directory does not exist ${inDir}`
         if (!fs.existsSync(outDir)) fs.mkdirSync(outDir)
 
-        // Get the directories to process as a list and the content of the csv file with the md5 hashes etc as a map of grapher id -> SvgResult
-        const directoriesToProcess = await utils.getDirectoriesToProcess(
-            inDir,
-            {
-                grapherIds: targetGrapherIds,
-                chartTypes: targetChartTypes,
-                randomCount,
+        const chartsToProcess = await utils.findChartsToProcess(inDir, {
+            grapherIds: targetGrapherIds,
+            chartTypes: targetChartTypes,
+            randomCount,
+            queryStr: grapherQueryString,
+            shouldTestAllViews: shouldTestAllChartViews,
+            verbose,
+        })
+
+        const referenceData = await utils.parseReferenceCsv(referenceDir)
+        const referenceDataByChartKey = new Map(
+            referenceData.map((record) => [
+                grapherSlugToExportFileKey(record.slug, record.queryStr),
+                record,
+            ])
+        )
+
+        const verifyJobs: utils.RenderJobDescription[] = chartsToProcess.map(
+            (chart) => {
+                const { id, slug, queryStr } = chart
+                const key = grapherSlugToExportFileKey(slug, queryStr)
+                const referenceEntry = referenceDataByChartKey.get(key)!
+                const pathToProcess = path.join(inDir, id.toString())
+                return {
+                    dir: { chartId: chart.id, pathToProcess },
+                    referenceEntry,
+                    referenceDir,
+                    outDir,
+                    queryStr,
+                    verbose,
+                    suffix,
+                    rmOnError,
+                }
             }
         )
-        const csvContentMap =
-            await utils.getReferenceCsvContentMap(referenceDir)
-
-        const verifyJobs: utils.RenderJobDescription[] =
-            directoriesToProcess.map((dir) => ({
-                dir,
-                referenceEntry: csvContentMap.get(dir.chartId)!,
-                referenceDir,
-                outDir,
-                queryStr: grapherQueryString,
-                verbose,
-                suffix,
-                rmOnError,
-            }))
 
         const pool = workerpool.pool(__dirname + "/worker.js", {
             minWorkers: 2,
@@ -62,7 +77,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         // Parallelize the CPU heavy verification using the workerpool library
         // This call will then in parallel take the descriptions of the verifyJobs,
         // load the config and data and intialize a grapher, create the default svg output and check if it's md5 hash is the same as the one in
-        // the reference csv file (from the csvContentMap lookup above). The entire parallel operation returns a promise containing an array
+        // the reference csv file (from the referenceDataByChartKey lookup above). The entire parallel operation returns a promise containing an array
         // of result values.
         const validationResults: utils.VerifyResult[] = await Promise.all(
             verifyJobs.map((job) => pool.exec("renderAndVerifySvg", [job]))
@@ -76,8 +91,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
 
         const exitCode = utils.displayVerifyResultsAndGetExitCode(
             validationResults,
-            verbose,
-            directoriesToProcess
+            verbose
         )
         // This call to exit is necessary for some unknown reason to make sure that the process terminates. It
         // was not required before introducing the multiprocessing library.
@@ -107,6 +121,7 @@ Options:
     -v                 Verbose mode
     -s SUFFIX          Suffix for different svg files to create <NAME><SUFFIX>.svg files - useful if you want to set output to the same as reference
     --random COUNT     Verify a random set of charts [default: false]
+    --all-views        Verify SVGs for all chart views [default: false]
     --rmOnError        Remove output files where we encounter errors, so errors are apparent in diffs
     `)
     process.exit(0)
