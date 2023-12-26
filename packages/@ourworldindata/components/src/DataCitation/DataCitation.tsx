@@ -12,9 +12,8 @@ export const DataCitation = (props: {
                     <p className="citation__paragraph">
                         <span className="citation__type">In-line citation</span>
                         <br />
-                        If you have limited space (e.g. in data visualizations,
-                        on social media), you can use this abbreviated in-line
-                        citation:
+                        If you have limited space (e.g. in data visualizations),
+                        you can use this abbreviated in-line citation:
                     </p>
                     <CodeSnippet
                         code={props.citationShort}
