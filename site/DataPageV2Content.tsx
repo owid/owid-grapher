@@ -23,6 +23,7 @@ import {
     makeUnitConversionFactor,
     makeLinks,
     HtmlOrSimpleMarkdownText,
+    DataCitation,
 } from "@ourworldindata/components"
 import ReactDOM from "react-dom"
 import { GrapherWithFallback } from "./GrapherWithFallback.js"
@@ -33,13 +34,14 @@ import {
     uniq,
     formatAuthors,
     intersection,
-    getPhraseForProcessingLevel,
     prepareSourcesForDisplay,
     DataPageRelatedResearch,
     isEmpty,
     excludeUndefined,
     OwidOrigin,
     DataPageDataV2,
+    getCitationShort,
+    getCitationLong,
     joinTitleFragments,
 } from "@ourworldindata/utils"
 import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
@@ -142,40 +144,23 @@ export const DataPageV2Content = ({
     )
 
     const attributionFragments = datapageData.attributions ?? producersWithYear
-    const attributionPotentiallyShortened =
-        attributionFragments.length > 3
-            ? `${attributionFragments[0]} and other sources`
-            : attributionFragments.join("; ")
     const attributionUnshortened = attributionFragments.join("; ")
-    const processingLevelPhrase = getPhraseForProcessingLevel(
+    const citationShort = getCitationShort(
+        datapageData.origins,
+        datapageData.attributions,
         datapageData.owidProcessingLevel
     )
-    const citationShort = `${attributionPotentiallyShortened} – ${processingLevelPhrase} by Our World in Data`
-    const citationLonger = `${attributionUnshortened} – ${processingLevelPhrase} by Our World in Data`
-    const originsLong = uniq(
-        datapageData.origins.map(
-            (o) =>
-                `${o.producer}, ${o.title ?? o.titleSnapshot}${
-                    o.versionProducer ? " " + o.versionProducer : ""
-                }`
-        )
-    ).join("; ")
-    const today = dayjs().format("MMMM D, YYYY")
     const currentYear = dayjs().year()
-    const titleWithOptionalFragments = excludeUndefined([
-        datapageData.title.title,
-        titleFragments,
-    ]).join(" – ")
-    const citationLong = excludeUndefined([
-        `${citationLonger}.`,
-        `${titleWithOptionalFragments} [dataset].`,
-        originsLong
-            ? `${originsLong} [original data].`
-            : datapageData.source?.name
-            ? `${datapageData.source?.name} [original data].`
-            : undefined,
-        `Retrieved ${today} from ${canonicalUrl}`,
-    ]).join(" ")
+    const citationLong = getCitationLong(
+        datapageData.title,
+        datapageData.origins,
+        datapageData.source,
+        datapageData.attributions,
+        datapageData.attributionShort,
+        datapageData.titleVariant,
+        datapageData.owidProcessingLevel,
+        canonicalUrl
+    )
 
     const {
         linkedDocuments = {},
@@ -673,6 +658,7 @@ export const DataPageV2Content = ({
                                         </li>
                                     </ul>
                                 </div>
+
                                 {(citationShort ||
                                     citationLong ||
                                     citationDatapage) && (
@@ -681,63 +667,6 @@ export const DataPageV2Content = ({
                                             Citations
                                         </h3>
                                         <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                                            {(citationShort ||
-                                                citationLong) && (
-                                                <div className="citations-section">
-                                                    <h5 className="citation__how-to-header citation__how-to-header--data">
-                                                        How to cite this data
-                                                    </h5>
-                                                    {citationShort && (
-                                                        <>
-                                                            <p className="citation__paragraph">
-                                                                <span className="citation__type">
-                                                                    In-line
-                                                                    citation
-                                                                </span>
-                                                                <br />
-                                                                If you have
-                                                                limited space
-                                                                (e.g. in data
-                                                                visualizations,
-                                                                on social
-                                                                media), you can
-                                                                use this
-                                                                abbreviated
-                                                                in-line
-                                                                citation:
-                                                            </p>
-                                                            <CodeSnippet
-                                                                code={
-                                                                    citationShort
-                                                                }
-                                                                theme="light"
-                                                                useMarkdown={
-                                                                    true
-                                                                }
-                                                            />
-                                                        </>
-                                                    )}
-                                                    {citationLong && (
-                                                        <>
-                                                            <p className="citation__paragraph">
-                                                                <span className="citation__type">
-                                                                    Full
-                                                                    citation
-                                                                </span>
-                                                            </p>
-                                                            <CodeSnippet
-                                                                code={
-                                                                    citationLong
-                                                                }
-                                                                theme="light"
-                                                                useMarkdown={
-                                                                    true
-                                                                }
-                                                            />
-                                                        </>
-                                                    )}
-                                                </div>
-                                            )}
                                             {citationDatapage && (
                                                 <div className="citations-section">
                                                     <h5 className="citation__how-to-header">
@@ -759,6 +688,22 @@ export const DataPageV2Content = ({
                                                     />
                                                 </div>
                                             )}
+                                            <div className="citations-section">
+                                                <h5 className="citation__how-to-header citation__how-to-header--data">
+                                                    How to cite this data
+                                                </h5>
+                                                {(citationShort ||
+                                                    citationLong) && (
+                                                    <DataCitation
+                                                        citationLong={
+                                                            citationLong
+                                                        }
+                                                        citationShort={
+                                                            citationShort
+                                                        }
+                                                    />
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 )}

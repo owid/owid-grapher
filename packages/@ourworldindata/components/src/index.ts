@@ -38,6 +38,8 @@ export {
     renderCodeSnippets,
 } from "./CodeSnippet/CodeSnippet.js"
 
+export { DataCitation } from "./DataCitation/DataCitation.js"
+
 export {
     DATAPAGE_ABOUT_THIS_DATA_SECTION_ID,
     DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
