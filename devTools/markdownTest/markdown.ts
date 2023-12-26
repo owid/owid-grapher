@@ -1,20 +1,21 @@
 import { closeTypeOrmAndKnexConnections } from "../../db/db.js"
-import { getPostBySlug } from "../../db/model/Post.js"
+import { getPostRawBySlug } from "../../db/model/Post.js"
 import { enrichedBlocksToMarkdown } from "../../db/model/Gdoc/enrichedToMarkdown.js"
 
 import fs from "fs-extra"
 
 import parseArgs from "minimist"
 import { OwidGdocBaseInterface, OwidGdocContent } from "@ourworldindata/utils"
+import { parsePostArchieml } from "@ourworldindata/utils/dist/dbTypes/PostsUtilities.js"
 
 async function main() {
     try {
-        const post = await getPostBySlug("about")
-        const archieMl: OwidGdocBaseInterface = JSON.parse(
-            post?.archieml || "{}"
-        )
+        const post = await getPostRawBySlug("about")
+        const archieMl: OwidGdocBaseInterface | null = post?.archieml
+            ? parsePostArchieml(post?.archieml)
+            : null
         const markdown = enrichedBlocksToMarkdown(
-            archieMl.content.body ?? [],
+            archieMl?.content.body ?? [],
             true
         )
         console.log(markdown)
