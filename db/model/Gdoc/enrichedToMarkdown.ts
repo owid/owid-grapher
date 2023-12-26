@@ -50,7 +50,7 @@ function markdownComponent(
 ): string | undefined {
     const attributesString = Object.entries(attributes)
         .filter(([_, val]) => val !== undefined)
-        .map(([key, val]) => `${key}: ${val}`)
+        .map(([key, val]) => `${key}="${val}"`)
         .join(" ")
     if (exportComponents) return `<${componentName} ${attributesString}/>`
     else return undefined
