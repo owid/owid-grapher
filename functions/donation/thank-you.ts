@@ -1,7 +1,7 @@
 import Stripe from "stripe"
 import { DEFAULT_HEADERS } from "./donate.js"
 import { JsonError, stringifyUnknownError } from "@ourworldindata/utils"
-import { MailgunEnvVars, sendMail } from "./email.js"
+import { MailgunEnvVars, sendMail } from "./_utils/email.js"
 
 interface MessageData {
     email: string

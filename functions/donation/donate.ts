@@ -1,5 +1,5 @@
 import fetch from "node-fetch"
-import { createCheckoutSession } from "./checkout.js"
+import { createCheckoutSession } from "./_utils/checkout.js"
 import {
     DonateSessionResponse,
     DonationRequestTypeObject,
