@@ -105,7 +105,7 @@ In order to test the webhook function locally, you can use the Stripe CLI to lis
 2. Register a temporary webhook using the Stripe CLI (runs in test mode by default):
 
 ```sh
-stripe listen --latest --forward-to localhost:8788/donate/thank-you
+stripe listen --latest --forward-to localhost:8788/donation/thank-you
 ```
 
 Note: `--latest` is required when development code uses a more recent API version than the one set in the Stripe dashboard (which `stripe listen` will default to).
@@ -120,7 +120,7 @@ Alternatively, you can trigger a test event from the CLI.
 stripe trigger checkout.session.completed
 ```
 
-Note: this will send the `checkout.session.completed` event expected in `donate/thank-you`. However, I didn't manage to add metadata with `--add checkout.session:metadata.name="John Doe" --add checkout.session:metadata.showOnList=true` to perform a full test.
+Note: this will send the `checkout.session.completed` event expected in `donation/thank-you`. However, I didn't manage to add metadata with `--add checkout.session:metadata.name="John Doe" --add checkout.session:metadata.showOnList=true` to perform a full test.
 
 ## `/grapher/:slug`
 
