@@ -11,11 +11,16 @@ import {
     DisplaySource,
     prepareSourcesForDisplay,
     OwidSource,
+    IndicatorTitleWithFragments,
+    joinTitleFragments,
+    getCitationShort,
+    getCitationLong,
 } from "@ourworldindata/utils"
 import {
     IndicatorSources,
     IndicatorProcessing,
     SimpleMarkdownText,
+    DataCitation,
 } from "@ourworldindata/components"
 import React from "react"
 import { action, computed } from "mobx"
@@ -103,7 +108,9 @@ export class SourcesModal extends React.Component<
     }
 
     @computed private get tabLabels(): string[] {
-        return this.columns.map((column) => column.nonEmptyDisplayName)
+        return this.columns.map(
+            (column) => column.titlePublicOrDisplayName.title
+        )
     }
 
     private renderSource(column: CoreColumn | undefined): JSX.Element | null {
@@ -278,12 +285,33 @@ export class Source extends React.Component<{
         return { ...this.column.def, source: this.column.source }
     }
 
+    @computed get citationShort(): string {
+        return getCitationShort(
+            this.def.origins ?? [],
+            getAttributionFragmentsFromVariable(this.def),
+            this.def.owidProcessingLevel
+        )
+    }
+
+    @computed get citationLong(): string {
+        return getCitationLong(
+            this.title,
+            this.def.origins ?? [],
+            this.source,
+            getAttributionFragmentsFromVariable(this.def),
+            this.def.presentation?.attributionShort,
+            this.def.presentation?.titleVariant,
+            this.def.owidProcessingLevel,
+            undefined
+        )
+    }
+
     @computed private get source(): OwidSource {
         return this.def.source ?? {}
     }
 
-    @computed private get title(): string {
-        return this.column.nonEmptyDisplayName
+    @computed private get title(): IndicatorTitleWithFragments {
+        return this.column.titlePublicOrDisplayName
     }
 
     @computed private get editUrl(): string | undefined {
@@ -348,7 +376,17 @@ export class Source extends React.Component<{
     protected renderTitle(): JSX.Element {
         return (
             <h2>
-                {this.title}{" "}
+                {this.title.title}{" "}
+                {(this.title.attributionShort || this.title.titleVariant) && (
+                    <>
+                        <span className="title-fragments">
+                            {joinTitleFragments(
+                                this.title.attributionShort,
+                                this.title.titleVariant
+                            )}
+                        </span>{" "}
+                    </>
+                )}
                 {this.editUrl && (
                     <a href={this.editUrl} target="_blank" rel="noopener">
                         <FontAwesomeIcon icon={faPencilAlt} />
@@ -411,6 +449,13 @@ export class Source extends React.Component<{
                 </h3>
                 <IndicatorProcessing
                     descriptionProcessing={this.def.descriptionProcessing}
+                />
+                <h3 className="heading heading--tight">
+                    How to cite this data:
+                </h3>
+                <DataCitation
+                    citationShort={this.citationShort}
+                    citationLong={this.citationLong}
                 />
             </div>
         )

@@ -38,6 +38,7 @@ help:
 	@echo '  make down.full         stop any services still running'
 	@echo '  make refresh.wp        download a new wordpress snapshot and update MySQL'
 	@echo '  make refresh.full      do a full MySQL update of both wordpress and grapher'
+	@echo '  make sync-images       sync all images from the remote master'
 	@echo
 	@echo '  OPS (staff-only)'
 	@echo '  make deploy            Deploy your local site to production'
@@ -246,7 +247,7 @@ deploy:
 
 	@echo '==> Building...'
 	yarn
-	yarn lerna run build
+	yarn lerna run build --skip-nx-cache
 	yarn run tsc -b
 
 	@echo '==> Deploying...'

@@ -16,11 +16,7 @@ import OwidGdocPage from "../site/gdocs/OwidGdocPage.js"
 import React from "react"
 import ReactDOMServer from "react-dom/server.js"
 import * as lodash from "lodash"
-import {
-    extractFormattingOptions,
-    formatCountryProfile,
-    isCanonicalInternalUrl,
-} from "./formatting.js"
+import { formatCountryProfile, isCanonicalInternalUrl } from "./formatting.js"
 import {
     bakeGrapherUrls,
     getGrapherExportsByUrl,
@@ -53,13 +49,14 @@ import {
     FullPost,
     JsonError,
     KeyInsight,
-    PostRow,
     Url,
     IndexPost,
     mergePartialGrapherConfigs,
     OwidGdocType,
     OwidGdoc,
     OwidGdocDataInsightInterface,
+    extractFormattingOptions,
+    PostRowRaw,
 } from "@ourworldindata/utils"
 import { CountryProfileSpec } from "../site/countryProfileProjects.js"
 import { formatPost } from "./formatWordpressPost.js"
@@ -460,11 +457,12 @@ ${posts
 export const entriesByYearPage = async (year?: number) => {
     const entries = (await knexTable(postsTable)
         .where({ status: "publish" })
+        .whereNot({ type: "wp_block" })
         .join("post_tags", { "post_tags.post_id": "posts.id" })
         .join("tags", { "tags.id": "post_tags.tag_id" })
         .where({ "tags.name": "Entries" })
         .select("title", "posts.slug", "published_at")) as Pick<
-        PostRow,
+        PostRowRaw,
         "title" | "slug" | "published_at"
     >[]
 

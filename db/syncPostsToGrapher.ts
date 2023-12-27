@@ -3,7 +3,15 @@
 
 import * as wpdb from "./wpdb.js"
 import * as db from "./db.js"
-import { excludeNullish, groupBy, keyBy, PostRow } from "@ourworldindata/utils"
+import {
+    excludeNullish,
+    extractFormattingOptions,
+    groupBy,
+    keyBy,
+    PostRowEnriched,
+    sortBy,
+    serializePostRow,
+} from "@ourworldindata/utils"
 import { postsTable, select } from "./model/Post.js"
 import { PostLink } from "./model/PostLink.js"
 
@@ -54,7 +62,7 @@ function buildReplacerFunction(
     ) => {
         const block = blocks[matches["id"].toString()]
         return block
-            ? `<!-- wp-block-tombstone ${matches["id"]} -->` +
+            ? `<!-- wp-block-tombstone ${matches["id"]} -->\n` +
                   block.post_content
             : ""
     }
@@ -110,7 +118,7 @@ export const postLinkCompareStringGenerator = (item: PostLink): string =>
     `${item.linkType} - ${item.target} - ${item.hash} - ${item.queryString}`
 
 export function getLinksToAddAndRemoveForPost(
-    post: PostRow,
+    post: PostRowEnriched,
     existingLinksForPost: PostLink[],
     content: string,
     postId: number
@@ -262,7 +270,7 @@ const syncPostsToGrapher = async (): Promise<void> => {
 		left join post_ids_with_authors pwa   on p.ID = pwa.ID
         left join first_revision fr on fr.post_id = pwa.ID
         left join post_featured_image fi on fi.ID = p.id
-        where p.post_type in ('post', 'page') AND post_status != 'trash'
+        where p.post_type in ('post', 'page', 'wp_block') AND post_status != 'trash'
         `
     )
 
@@ -278,6 +286,11 @@ const syncPostsToGrapher = async (): Promise<void> => {
 
     const toInsert = rows.map((post: any) => {
         const content = post.post_content as string
+        const formattingOptions = extractFormattingOptions(content)
+        const authors: string[] = sortBy(
+            JSON.parse(post.authors),
+            (item: { author: string; order: number }) => item.order
+        ).map((author: { author: string; order: number }) => author.author)
 
         return {
             id: post.ID,
@@ -286,6 +299,7 @@ const syncPostsToGrapher = async (): Promise<void> => {
             type: post.post_type,
             status: post.post_status,
             content: dereferenceReusableBlocksFn(content),
+            featured_image: post.featured_image || "",
             published_at:
                 post.post_date_gmt === zeroDateString
                     ? null
@@ -294,15 +308,15 @@ const syncPostsToGrapher = async (): Promise<void> => {
                 post.post_modified_gmt === zeroDateString
                     ? "1970-01-01 00:00:00"
                     : post.post_modified_gmt,
-            authors: post.authors,
+            authors: authors,
             excerpt: post.post_excerpt,
             created_at_in_wordpress:
                 post.created_at === zeroDateString ? null : post.created_at,
-            featured_image: post.featured_image || "",
+            formattingOptions: formattingOptions,
         }
-    }) as PostRow[]
+    }) as PostRowEnriched[]
     const postLinks = await PostLink.find()
-    const postLinksById = groupBy(postLinks, (link) => link.sourceId)
+    const postLinksById = groupBy(postLinks, (link: PostLink) => link.sourceId)
 
     const linksToAdd: PostLink[] = []
     const linksToDelete: PostLink[] = []
@@ -325,9 +339,13 @@ const syncPostsToGrapher = async (): Promise<void> => {
             await t.whereIn("id", toDelete).delete().from(postsTable)
 
         for (const row of toInsert) {
+            const rowForDb = serializePostRow(row)
             if (doesExistInGrapher[row.id])
-                await t.update(row).where("id", "=", row.id).into(postsTable)
-            else await t.insert(row).into(postsTable)
+                await t
+                    .update(rowForDb)
+                    .where("id", "=", rowForDb.id)
+                    .into(postsTable)
+            else await t.insert(rowForDb).into(postsTable)
         }
     })
 

@@ -1,10 +1,11 @@
 #! /usr/bin/env jest
 
+import { extractDataValuesConfiguration } from "./formatting.js"
+
 import {
-    extractDataValuesConfiguration,
     parseFormattingOptions,
     parseKeyValueArgs,
-} from "./formatting.js"
+} from "@ourworldindata/utils"
 
 it("parses formatting options", () => {
     const formattingOptions =

@@ -44,7 +44,7 @@ import {
 import * as db from "../db/db.js"
 import { glob } from "glob"
 import { isPathRedirectedToExplorer } from "../explorerAdminServer/ExplorerRedirects.js"
-import { bySlug, getPostBySlug, parsePostAuthors } from "../db/model/Post.js"
+import { getPostEnrichedBySlug } from "../db/model/Post.js"
 import { ChartTypeName, GrapherInterface } from "@ourworldindata/grapher"
 import workerpool from "workerpool"
 import ProgressBar from "progress"
@@ -275,7 +275,7 @@ export async function renderDataPageV2({
             slug = await getSlugForTopicTag(firstTopicTag)
         } catch (error) {
             logErrorAndMaybeSendToBugsnag(
-                `Datapage with variableId "${variableId}" and title "${datapageData.title}" is using "${firstTopicTag}" as its primary tag, which we are unable to resolve to a tag in the grapher DB`
+                `Datapage with variableId "${variableId}" and title "${datapageData.title.title}" is using "${firstTopicTag}" as its primary tag, which we are unable to resolve to a tag in the grapher DB`
             )
         }
         let gdoc: GdocPost | null = null
@@ -298,11 +298,11 @@ export async function renderDataPageV2({
                 citation,
             }
         } else {
-            const post = await bySlug(slug)
+            const post = await getPostEnrichedBySlug(slug)
             if (post) {
-                const authors = parsePostAuthors(post.authors)
+                const authors = post.authors
                 const citation = getShortPageCitation(
-                    authors,
+                    authors ?? [],
                     post.title,
                     post.published_at
                 )
@@ -359,7 +359,7 @@ export const renderPreviewDataPageOrGrapherPage = async (
 
 const renderGrapherPage = async (grapher: GrapherInterface) => {
     const postSlug = urlToSlug(grapher.originUrl || "")
-    const post = postSlug ? await getPostBySlug(postSlug) : undefined
+    const post = postSlug ? await getPostEnrichedBySlug(postSlug) : undefined
     const relatedCharts =
         post && isWordpressDBEnabled
             ? await getRelatedCharts(post.id)

@@ -634,6 +634,10 @@ export class Grapher
             this.showSelectionOnlyInDataTable =
                 params.showSelectionOnlyInTable === "1" ? true : undefined
         }
+
+        if (params.showNoDataArea) {
+            this.showNoDataArea = params.showNoDataArea === "1"
+        }
     }
 
     @action.bound private setTimeFromTimeQueryParam(time: string): void {
@@ -1475,7 +1479,7 @@ export class Grapher
         // sort y-columns by their display name
         const sortedYColumnSlugs = sortBy(
             yColumnSlugs,
-            (slug) => this.inputTable.get(slug).nonEmptyDisplayName
+            (slug) => this.inputTable.get(slug).titlePublicOrDisplayName
         )
 
         const columnSlugs = excludeUndefined([
@@ -1590,7 +1594,10 @@ export class Grapher
 
         if (this.isScatter)
             return this.axisDimensions
-                .map((dimension) => dimension.column.displayName)
+                .map(
+                    (dimension) =>
+                        dimension.column.titlePublicOrDisplayName.title
+                )
                 .join(" vs. ")
 
         const uniqueDatasetNames = uniq(
@@ -1603,9 +1610,13 @@ export class Grapher
             return uniqueDatasetNames[0]
 
         if (yColumns.length === 2)
-            return yColumns.map((col) => col.displayName).join(" and ")
+            return yColumns
+                .map((col) => col.titlePublicOrDisplayName.title)
+                .join(" and ")
 
-        return yColumns.map((col) => col.displayName).join(", ")
+        return yColumns
+            .map((col) => col.titlePublicOrDisplayName.title)
+            .join(", ")
     }
 
     @computed get displayTitle(): string {
@@ -2657,6 +2668,7 @@ export class Grapher
         this.map.projection = authorsVersion.map.projection
         this.showSelectionOnlyInDataTable =
             authorsVersion.showSelectionOnlyInDataTable
+        this.showNoDataArea = authorsVersion.showNoDataArea
         this.clearSelection()
     }
 
@@ -2711,6 +2723,7 @@ export class Grapher
         params.showSelectionOnlyInTable = this.showSelectionOnlyInDataTable
             ? "1"
             : "0"
+        params.showNoDataArea = this.showNoDataArea ? "1" : "0"
         return setSelectedEntityNamesParam(
             Url.fromQueryParams(params),
             this.selectedEntitiesIfDifferentThanAuthors

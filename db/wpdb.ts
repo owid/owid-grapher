@@ -37,7 +37,6 @@ import {
     uniqBy,
     sortBy,
     DataPageRelatedResearch,
-    isString,
     OwidGdocType,
     Tag,
     OwidGdocPostInterface,
@@ -731,6 +730,7 @@ export const getRelatedResearchAndWritingForVariable = async (
                 and cd.variableId = ?
                 and cd.property in ('x', 'y') -- ignore cases where the indicator is size, color etc
                 and p.status = 'publish' -- only use published wp posts
+                and p.type != 'wp_block'
                 and coalesce(pg.published, 0) = 0 -- ignore posts if the wp post has a published gdoc successor. The
                                                   -- coalesce makes sure that if there is no gdoc successor then
                                                   -- the filter keeps the post
@@ -793,22 +793,13 @@ export const getRelatedResearchAndWritingForVariable = async (
 
     const allSortedRelatedResearch = sorted.map((post) => {
         const parsedAuthors = JSON.parse(post.authors)
-        // The authors in the gdocs table are just a list of strings, but in the wp_posts table
-        // they are a list of objects with an "author" key and an "order" key. We want to normalize this so that
-        // we can just use the same code to display the authors in both cases.
-        let authors
-        if (parsedAuthors.length > 0 && !isString(parsedAuthors[0])) {
-            authors = sortBy(parsedAuthors, (author) => author.order).map(
-                (author: any) => author.author
-            )
-        } else authors = parsedAuthors
         const parsedTags = post.tags !== "" ? JSON.parse(post.tags) : []
 
         return {
             title: post.title,
             url: `/${post.postSlug}`,
             variantName: "",
-            authors,
+            authors: parsedAuthors,
             imageUrl: post.thumbnail,
             tags: parsedTags,
         }

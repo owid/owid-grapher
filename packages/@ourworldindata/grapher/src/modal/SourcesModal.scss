@@ -40,6 +40,11 @@
             color: $dark-text;
         }
 
+        .title-fragments {
+            color: $light-text;
+            font-size: 1.25rem;
+            margin-left: 8px;
+        }
         a {
             color: inherit;
             text-decoration: underline;
@@ -118,6 +123,14 @@
             font-size: $tab-font-size;
             padding: 8px $tab-padding;
             margin-right: $tab-gap;
+        }
+
+        .citation__paragraph {
+            color: $light-text;
+        }
+
+        .citation__type {
+            color: $dark-text;
         }
 
         .indicator-processing .indicator-processing__link {

@@ -127,7 +127,6 @@ export {
     type PositionMap,
     type PostReference,
     type PostRestApi,
-    type PostRow,
     type PrimitiveType,
     type RawBlockAllCharts,
     type RawBlockAdditionalCharts,
@@ -242,6 +241,21 @@ export {
     type BreadcrumbItem,
     type DisplaySource,
 } from "./owidTypes.js"
+
+export {
+    parsePostFormattingOptions,
+    parsePostAuthors,
+    parsePostRow,
+    serializePostRow,
+} from "./dbTypes/PostsUtilities.js"
+
+export {
+    type PostRowParsedFields,
+    type PostRowPlainFields,
+    type PostRowUnparsedFields,
+    type PostRowEnriched,
+    type PostRowRaw,
+} from "./dbTypes/Posts.js"
 
 export {
     pairs,
@@ -374,6 +388,8 @@ export {
     splitSourceTextIntoFragments,
     prepareSourcesForDisplay,
     formatSourceDate,
+    getCitationLong,
+    getCitationShort,
 } from "./metadataHelpers.js"
 
 export {
@@ -525,6 +541,8 @@ export {
     type OwidEntityKey,
     type OwidLicense,
     type OwidProcessingLevel,
+    type IndicatorTitleWithFragments,
+    joinTitleFragments,
 } from "./OwidVariable.js"
 
 export {
@@ -649,3 +667,9 @@ export {
     gdocUrlRegex,
     gdocIdRegex,
 } from "./GdocsConstants.js"
+
+export {
+    extractFormattingOptions,
+    parseFormattingOptions,
+    parseKeyValueArgs,
+} from "./wordpressUtils.js"

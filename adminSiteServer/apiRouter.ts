@@ -20,6 +20,7 @@ import {
     getMergedGrapherConfigForVariable,
     fetchS3MetadataByPath,
     fetchS3DataValuesByPath,
+    searchVariables,
 } from "../db/model/Variable.js"
 import {
     applyPatch,
@@ -36,7 +37,7 @@ import {
     OwidGdocPostInterface,
     parseIntOrUndefined,
     parseToOperation,
-    PostRow,
+    PostRowEnriched,
     PostRowWithGdocPublishStatus,
     SuggestedChartRevisionStatus,
     variableAnnotationAllowedColumnNamesAndTypes,
@@ -80,7 +81,6 @@ import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.
 import {
     postsTable,
     setTagsForPost,
-    select,
     getTagsByPostId,
 } from "../db/model/Post.js"
 import {
@@ -1490,36 +1490,8 @@ apiRouter.post("/users/add", async (req: Request, res: Response) => {
 
 apiRouter.get("/variables.json", async (req) => {
     const limit = parseIntOrUndefined(req.query.limit as string) ?? 50
-    const searchStr = req.query.search
-
-    const query = `
-        SELECT
-            v.id,
-            v.name,
-            d.id AS datasetId,
-            d.name AS datasetName,
-            d.isPrivate AS isPrivate,
-            d.nonRedistributable AS nonRedistributable,
-            d.dataEditedAt AS uploadedAt,
-            u.fullName AS uploadedBy
-        FROM variables AS v
-        JOIN active_datasets d ON d.id=v.datasetId
-        JOIN users u ON u.id=d.dataEditedByUserId
-        ${searchStr ? "WHERE v.name LIKE ?" : ""}
-        ORDER BY d.dataEditedAt DESC
-        LIMIT ?
-    `
-
-    const rows = await db.queryMysql(
-        query,
-        searchStr ? [`%${searchStr}%`, limit] : [limit]
-    )
-
-    const numTotalRows = (
-        await db.queryMysql(`SELECT COUNT(*) as count FROM variables`)
-    )[0].count
-
-    return { variables: rows, numTotalRows: numTotalRows }
+    const query = req.query.search as string
+    return await searchVariables(query, limit)
 })
 
 apiRouter.get(
@@ -1715,6 +1687,13 @@ apiRouter.get(
             getVariableMetadataRoute(DATA_API_URL, variableId) + "?nocache"
         )
 
+        // XXX: Patch shortName onto the end of catalogPath when it's missing,
+        //      a temporary hack since our S3 metadata is out of date with our DB.
+        //      See: https://github.com/owid/etl/issues/2135
+        if (variable.catalogPath && !variable.catalogPath.includes("#")) {
+            variable.catalogPath += `#${variable.shortName}`
+        }
+
         const charts = await db.queryMysql(
             `
             SELECT ${OldChart.listFields}
@@ -1849,7 +1828,7 @@ apiRouter.get("/datasets/:datasetId.json", async (req: Request) => {
 
     const variables = await db.queryMysql(
         `
-        SELECT v.id, v.name, v.description, v.display
+        SELECT v.id, v.name, v.description, v.display, v.catalogPath
         FROM variables AS v
         WHERE v.datasetId = ?
     `,
@@ -2305,32 +2284,50 @@ apiRouter.delete("/redirects/:id", async (req: Request, res: Response) => {
 })
 
 apiRouter.get("/posts.json", async (req) => {
-    const rows = await select(
-        "id",
-        "title",
-        "type",
-        "slug",
-        "status",
-        "updated_at_in_wordpress",
-        "gdocSuccessorId"
-    ).from(
-        db
-            .knexInstance()
-            .from(postsTable)
-            .orderBy("updated_at_in_wordpress", "desc")
+    const raw_rows = await db.queryMysql(
+        `-- sql
+        with posts_tags_aggregated as (
+            select post_id, if(count(tags.id) = 0, json_array(), json_arrayagg(json_object("id", tags.id, "name", tags.name))) as tags
+            from post_tags
+            left join tags on tags.id = post_tags.tag_id
+            group by post_id
+        ), post_gdoc_slug_successors as (
+            select posts.id, if (count(gdocSlugSuccessor.id) = 0, json_array(), json_arrayagg(json_object("id", gdocSlugSuccessor.id, "published", gdocSlugSuccessor.published ))) as gdocSlugSuccessors
+            from posts
+            left join posts_gdocs gdocSlugSuccessor on gdocSlugSuccessor.slug = posts.slug
+            group by posts.id
+        )
+        select
+             posts.id as id,
+             posts.title as title,
+             posts.type as type,
+             posts.slug as slug,
+             status,
+             updated_at_in_wordpress,
+             posts.authors,
+             posts_tags_aggregated.tags as tags,
+             gdocSuccessorId,
+             gdocSuccessor.published as isGdocSuccessorPublished,
+             -- posts can either have explict successors via the gdocSuccessorId column
+             -- or implicit successors if a gdoc has been created that uses the same slug
+             -- as a Wp post (the gdoc one wins once it is published)
+             post_gdoc_slug_successors.gdocSlugSuccessors as gdocSlugSuccessors
+         from posts
+         left join post_gdoc_slug_successors on post_gdoc_slug_successors.id = posts.id
+         left join posts_gdocs gdocSuccessor on gdocSuccessor.id = posts.gdocSuccessorId
+         left join posts_tags_aggregated on posts_tags_aggregated.post_id = posts.id
+         order by updated_at_in_wordpress desc`,
+        []
     )
+    const rows = raw_rows.map((row: any) => ({
+        ...row,
+        tags: JSON.parse(row.tags),
+        isGdocSuccessorPublished: !!row.isGdocSuccessorPublished,
+        gdocSlugSuccessors: JSON.parse(row.gdocSlugSuccessors),
+        authors: JSON.parse(row.authors),
+    }))
 
-    const tagsByPostId = await getTagsByPostId()
-
-    const authorship = await wpdb.getAuthorship()
-
-    for (const post of rows) {
-        const postAsAny = post as any
-        postAsAny.authors = authorship.get(post.id) || []
-        postAsAny.tags = tagsByPostId.get(post.id) || []
-    }
-
-    return { posts: rows.map((r) => camelCaseProperties(r)) }
+    return { posts: rows }
 })
 
 apiRouter.post(
@@ -2350,7 +2347,7 @@ apiRouter.get("/posts/:postId.json", async (req: Request, res: Response) => {
         .knexTable(postsTable)
         .where({ id: postId })
         .select("*")
-        .first()) as PostRow | undefined
+        .first()) as PostRowEnriched | undefined
     return camelCaseProperties({ ...post })
 })
 
@@ -2373,6 +2370,11 @@ apiRouter.post("/posts/:postId/createGdoc", async (req: Request) => {
             400
         )
     }
+    if (post.archieml === null)
+        throw new JsonError(
+            `ArchieML was not present for post with id ${postId}`,
+            500
+        )
     const tagsByPostId = await getTagsByPostId()
     const tags =
         tagsByPostId.get(postId)?.map(({ id }) => TagEntity.create({ id })) ||

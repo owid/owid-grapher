@@ -51,7 +51,7 @@ export const DataPageV2 = (props: {
         faqEntries,
         tagToSlugMap,
     } = props
-    const pageTitle = grapher?.title ?? datapageData.title
+    const pageTitle = grapher?.title ?? datapageData.title.title
     const canonicalUrl = grapher?.slug
         ? urljoin(baseGrapherUrl, grapher.slug as string)
         : ""

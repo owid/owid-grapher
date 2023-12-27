@@ -4,7 +4,12 @@ import parseArgs from "minimist"
 import { BAKE_ON_CHANGE } from "../settings/serverSettings.js"
 import { DeployQueueServer } from "./DeployQueueServer.js"
 import { exit } from "../db/cleanup.js"
-import { PostRow } from "@ourworldindata/utils"
+import {
+    PostRowEnriched,
+    extractFormattingOptions,
+    sortBy,
+    serializePostRow,
+} from "@ourworldindata/utils"
 import * as wpdb from "../db/wpdb.js"
 import * as db from "../db/db.js"
 import {
@@ -94,6 +99,12 @@ const syncPostToGrapher = async (
     const existsInGrapher = !!matchingRows.length
 
     const wpPost = rows[0]
+
+    const formattingOptions = extractFormattingOptions(wpPost.post_content)
+    const authors: string[] = sortBy(
+        JSON.parse(wpPost.authors),
+        (item: { author: string; order: number }) => item.order
+    ).map((author: { author: string; order: number }) => author.author)
     const postRow = wpPost
         ? ({
               id: wpPost.ID,
@@ -111,13 +122,14 @@ const syncPostToGrapher = async (
                   wpPost.post_modified_gmt === zeroDateString
                       ? "1970-01-01 00:00:00"
                       : wpPost.post_modified_gmt,
-              authors: wpPost.authors,
+              authors: authors,
               excerpt: wpPost.post_excerpt,
               created_at_in_wordpress:
                   wpPost.created_at === zeroDateString
                       ? "1970-01-01 00:00:00"
                       : wpPost.created_at,
-          } as PostRow)
+              formattingOptions: formattingOptions,
+          } as PostRowEnriched)
         : undefined
 
     await db.knexInstance().transaction(async (transaction) => {
@@ -130,13 +142,15 @@ const syncPostToGrapher = async (
             )
             postRow.content = contentWithBlocksInlined
 
+            const rowForDb = serializePostRow(postRow)
+
             if (!existsInGrapher)
-                await transaction.table(postsTable).insert(postRow)
+                await transaction.table(postsTable).insert(rowForDb)
             else if (existsInGrapher)
                 await transaction
                     .table(postsTable)
-                    .where("id", "=", postRow.id)
-                    .update(postRow)
+                    .where("id", "=", rowForDb.id)
+                    .update(rowForDb)
         }
     })
 

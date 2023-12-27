@@ -3,7 +3,11 @@ import { Static, Type } from "@sinclair/typebox"
 import { gdocUrlRegex } from "./GdocsConstants.js"
 import { OwidOrigin } from "./OwidOrigin.js"
 import { OwidSource } from "./OwidSource.js"
-import { OwidProcessingLevel } from "./OwidVariable.js"
+import {
+    OwidProcessingLevel,
+    IndicatorTitleWithFragments,
+} from "./OwidVariable.js"
+import { PostRowRaw } from "./dbTypes/Posts.js"
 
 // todo: remove when we ditch Year and YearIsDay
 export const EPOCH_DATE = "2020-01-21"
@@ -165,27 +169,7 @@ export interface TocHeadingWithTitleSupertitle extends TocHeading {
     supertitle?: string
 }
 
-// todo; remove
-export interface PostRow {
-    id: number
-    title: string
-    slug: string
-    type: WP_PostType
-    status: string
-    content: string
-    published_at: Date | null
-    updated_at: Date | null
-    updated_at_in_wordpress: Date | null
-    archieml: string
-    archieml_update_statistics: string
-    gdocSuccessorId: string | null
-    authors: string
-    excerpt: string
-    created_at_in_wordpress: Date | null
-    featured_image: string
-}
-
-export interface PostRowWithGdocPublishStatus extends PostRow {
+export interface PostRowWithGdocPublishStatus extends PostRowRaw {
     isGdocPublished: boolean
 }
 
@@ -1621,7 +1605,7 @@ export interface PrimaryTopic {
 
 export interface DataPageDataV2 {
     status: "published" | "draft"
-    title: string
+    title: IndicatorTitleWithFragments
     titleVariant?: string
     attributionShort?: string
     topicTagsLinks?: string[]
