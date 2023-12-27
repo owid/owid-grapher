@@ -45,7 +45,6 @@ import {
     Country,
     memoize,
     FormattedPost,
-    FormattingOptions,
     FullPost,
     JsonError,
     KeyInsight,
@@ -58,6 +57,7 @@ import {
     extractFormattingOptions,
     PostRowRaw,
 } from "@ourworldindata/utils"
+import { FormattingOptions } from "@ourworldindata/types"
 import { CountryProfileSpec } from "../site/countryProfileProjects.js"
 import { formatPost } from "./formatWordpressPost.js"
 import {

@@ -7,11 +7,11 @@ import { getTables } from "../db/wpdb.js"
 import Tablepress from "../site/Tablepress.js"
 import { GrapherExports } from "../baker/GrapherBakingUtils.js"
 import { AllCharts, renderAllCharts } from "../site/blocks/AllCharts.js"
+import { FormattingOptions } from "@ourworldindata/types"
 import {
     BLOCK_WRAPPER_DATATYPE,
     DataValueProps,
     FormattedPost,
-    FormattingOptions,
     FullPost,
     JsonError,
     TocHeading,

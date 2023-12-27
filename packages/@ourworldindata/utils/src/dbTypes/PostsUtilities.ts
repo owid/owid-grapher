@@ -1,4 +1,4 @@
-import { FormattingOptions } from "../owidTypes.js"
+import { FormattingOptions } from "@ourworldindata/types"
 import { PostRowEnriched, PostRowRaw } from "./Posts.js"
 
 export function parsePostFormattingOptions(

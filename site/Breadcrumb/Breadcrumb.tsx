@@ -1,5 +1,6 @@
 import React from "react"
-import { SubNavId, BreadcrumbItem } from "@ourworldindata/utils"
+import { BreadcrumbItem } from "@ourworldindata/utils"
+import { SubNavId } from "@ourworldindata/types"
 import { getSubnavItem, SubnavItem, subnavs } from "../SiteSubnavigation.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faAngleRight } from "@fortawesome/free-solid-svg-icons"

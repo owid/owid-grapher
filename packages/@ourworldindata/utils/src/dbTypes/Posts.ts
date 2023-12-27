@@ -1,9 +1,9 @@
 import {
-    FormattingOptions,
     OwidArticleBackportingStatistics,
     OwidGdocPostInterface,
     WP_PostType,
 } from "../owidTypes.js"
+import { FormattingOptions } from "@ourworldindata/types"
 
 export interface PostRowPlainFields {
     id: number
