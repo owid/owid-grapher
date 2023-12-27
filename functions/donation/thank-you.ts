@@ -1,5 +1,5 @@
 import Stripe from "stripe"
-import { DEFAULT_HEADERS } from "./donate.js"
+import { DEFAULT_HEADERS, STRIPE_API_VERSION } from "./_utils/constants.js"
 import { JsonError, stringifyUnknownError } from "@ourworldindata/utils"
 import { MailgunEnvVars, sendMail } from "./_utils/email.js"
 
@@ -83,7 +83,7 @@ export const onRequestPost: PagesFunction = async ({
             )
 
         const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
-            apiVersion: "2023-10-16",
+            apiVersion: STRIPE_API_VERSION,
             maxNetworkRetries: 2,
         })
 

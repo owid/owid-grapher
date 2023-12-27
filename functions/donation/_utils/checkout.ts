@@ -4,6 +4,7 @@ import {
     getErrorMessageDonation,
     JsonError,
 } from "@ourworldindata/utils"
+import { STRIPE_API_VERSION } from "./constants.js"
 
 function getPaymentMethodTypes(
     donation: DonationRequest
@@ -27,7 +28,7 @@ export async function createCheckoutSession(
     key: string
 ) {
     const stripe = new Stripe(key, {
-        apiVersion: "2023-10-16",
+        apiVersion: STRIPE_API_VERSION,
         maxNetworkRetries: 2,
     })
 
