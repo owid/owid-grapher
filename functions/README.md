@@ -63,7 +63,9 @@ sequenceDiagram
     Donation Form ->>- Stripe Checkout: Redirects
     Donor ->> Stripe Checkout: Proceeds with payment
     Stripe Checkout -->> Cloud Functions: Confirms payment
+    Note over Cloud Functions, Stripe Checkout: A private Slack channel is notified via a <br>Slack app integration
     Cloud Functions ->> Donor: Sends confirmation email via Mailgun
+    Note over Donor, Cloud Functions: A bcc is sent to donate@ourworldindata.org
     Stripe Checkout ->> "Thank you" page: Redirects
     Note right of "Thank you" page: A few weeks/months later
     Lars ->> Donors sheet: ✍️ Exports new donors
