@@ -1,16 +1,16 @@
-# env vars for local development of /functions/donation/donate.ts cloudflare pages function
-# rename to .dev.vars and fill in the values from the Stripe and Recaptcha dashboards
-# For testing, you can use the Stripe API and Recaptcha test keys saved in 1Password.
+# env vars for local development of /functions/donation/donate.ts Cloudflare pages function
+# rename to .dev.vars and fill in the values from the homonymous "(dev)" keys in 1Password
 
 # https://dashboard.stripe.com/test/apikeys
-# required by /donate/donate
+# required by /donation/donate
 STRIPE_SECRET_KEY=
 
 # https://www.google.com/recaptcha/admin/site/345413385
-# required by /donate/donate
+# required by /donation/donate
 RECAPTCHA_SECRET_KEY=
 
-# required by /donate/thank-you
+# required by /donation/thank-you
+# see README for getting STRIPE_WEBHOOK_SECRET
 STRIPE_WEBHOOK_SECRET=
 MAILGUN_DOMAIN=
 MAILGUN_SENDING_KEY=
