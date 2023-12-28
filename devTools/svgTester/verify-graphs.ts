@@ -9,31 +9,31 @@ import _ from "lodash"
 import * as utils from "./utils.js"
 import { grapherSlugToExportFileKey } from "../../baker/GrapherBakingUtils.js"
 
-async function main(parsedArgs: parseArgs.ParsedArgs) {
+async function main(args: parseArgs.ParsedArgs) {
     try {
         // input and output directories
-        const inDir = parsedArgs["i"] ?? utils.DEFAULT_CONFIGS_DIR
-        const referenceDir = parsedArgs["r"] ?? utils.DEFAULT_REFERENCE_DIR
-        const outDir = parsedArgs["o"] ?? utils.DEFAULT_DIFFERENCES_DIR
+        const inDir: string = args["i"] ?? utils.DEFAULT_CONFIGS_DIR
+        const referenceDir: string = args["r"] ?? utils.DEFAULT_REFERENCE_DIR
+        const outDir: string = args["o"] ?? utils.DEFAULT_DIFFERENCES_DIR
 
         // charts to process
-        const chartIdsFile = parsedArgs["from-file"]
         const targetGrapherIds = utils.getGrapherIdListFromString(
-            utils.parseArgAsString(parsedArgs["configs"])
+            utils.parseArgAsString(args["ids"] ?? args["c"])
         )
         const targetChartTypes = utils.validateChartTypes(
-            utils.parseArgAsList(parsedArgs["types"])
+            utils.parseArgAsList(args["chart-types"] ?? args["t"])
         )
-        const randomCount = utils.parseRandomCount(parsedArgs["random"])
+        const randomCount = utils.parseRandomCount(args["random"] ?? args["d"])
+        const chartIdsFile: string = args["ids-from-file"] ?? args["f"]
 
         // chart configurations to test
-        const grapherQueryString = parsedArgs["query-str"]
-        const shouldTestAllChartViews = parsedArgs["all-views"] ?? false
+        const grapherQueryString: string = args["query-str"] ?? args["q"]
+        const shouldTestAllChartViews: boolean = args["all-views"] ?? false
 
         // other options
-        const suffix = parsedArgs["suffix"] ?? ""
-        const rmOnError = parsedArgs["rmOnError"] ?? false
-        const verbose = parsedArgs["verbose"] ?? false
+        const suffix: string = args["suffix"] ?? ""
+        const rmOnError: boolean = args["rm-on-error"] ?? false
+        const verbose: boolean = args["verbose"] ?? false
 
         if (!fs.existsSync(inDir))
             throw `Input directory does not exist ${inDir}`
@@ -41,15 +41,21 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
             throw `Reference directory does not exist ${inDir}`
         if (!fs.existsSync(outDir)) fs.mkdirSync(outDir)
 
-        const chartsToProcess = await utils.findChartsToProcess(inDir, {
+        const chartIdsToProcess = await utils.selectChartIdsToProcess(inDir, {
             chartIdsFile,
             grapherIds: targetGrapherIds,
             chartTypes: targetChartTypes,
             randomCount,
-            queryStr: grapherQueryString,
-            shouldTestAllViews: shouldTestAllChartViews,
-            verbose,
         })
+
+        const chartViewsToGenerate = await utils.findChartViewsToGenerate(
+            inDir,
+            chartIdsToProcess,
+            {
+                queryStr: grapherQueryString,
+                shouldTestAllViews: shouldTestAllChartViews,
+            }
+        )
 
         const referenceData = await utils.parseReferenceCsv(referenceDir)
         const referenceDataByChartKey = new Map(
@@ -59,8 +65,8 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
             ])
         )
 
-        const verifyJobs: utils.RenderJobDescription[] = chartsToProcess.map(
-            (chart) => {
+        const verifyJobs: utils.RenderJobDescription[] =
+            chartViewsToGenerate.map((chart) => {
                 const { id, slug, queryStr } = chart
                 const key = grapherSlugToExportFileKey(slug, queryStr)
                 const referenceEntry = referenceDataByChartKey.get(key)!
@@ -75,8 +81,19 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
                     suffix,
                     rmOnError,
                 }
-            }
-        )
+            })
+
+        // if verbose, log how many SVGs we're going to process
+        const jobCount = verifyJobs.length
+        if (jobCount === 0) {
+            utils.logIfVerbose(verbose, "No matching configs found")
+            process.exit(0)
+        } else {
+            utils.logIfVerbose(
+                verbose,
+                `Verifying ${jobCount} SVG${jobCount > 1 ? "s" : ""}...`
+            )
+        }
 
         const pool = workerpool.pool(__dirname + "/worker.js", {
             minWorkers: 2,
@@ -114,25 +131,31 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
 
 const parsedArgs = parseArgs(process.argv.slice(2))
 if (parsedArgs["h"] || parsedArgs["help"]) {
-    console.log(`verify-graphs.js - utility to check if grapher svg renderings have changed vs the reference export
+    console.log(`Check if grapher SVG renderings have changed vs the reference export
 
 Usage:
-    verify-graphs.js [-i DIR] [-r DIR] [-o DIR] [--configs IDS] [--types TYPES] [--query-str STRING] [--random COUNT] [--suffix SUFFIX] [--all-views] [--rmOnError] [--verbose] [--help | -h]
+    verify-graphs.js [-i] [-r] [-o] [-c | --ids] [-t | --chart-types] [-d | --random] [-f | --ids-from-file] [-q | --query-str] [--all-views] [-s | --suffix] [--rm-on-error] [--verbose] [--help | -h]
 
-Options:
-    -i DIR                  Input directory containing the data. [default: ${utils.DEFAULT_CONFIGS_DIR}]
-    -r DIR                  Input directory containing the results.csv file to check against [default: ${utils.DEFAULT_REFERENCE_DIR}]
-    -o DIR                  Output directory that will contain the svg files that were different [default: ${utils.DEFAULT_DIFFERENCES_DIR}]
+Inputs and outputs:
+    -i      Input directory containing Grapher configs and data. [default: ${utils.DEFAULT_CONFIGS_DIR}]
+    -r      Input directory containing the results.csv file to check against [default: ${utils.DEFAULT_REFERENCE_DIR}]
+    -o      Output directory that will contain the SVGs that were different [default: ${utils.DEFAULT_DIFFERENCES_DIR}]
+
+Charts to process:
+    --ids, -c               A comma-separated list of config IDs and config ID ranges, e.g. 2,4-8,10
+    --chart-types, -t       A comma-separated list of chart types, e.g. LineChart,ScatterPlot
+    --random, -d            Verify SVGs for a random set of configs, optionally specify a count
+    --ids-from-file, -f     Verify SVGs for a set of configs read from a file with one config ID per line
+
+Chart configurations to test:
+    --query-str, -q     Grapher query string to verify charts with a specific configuration, e.g. tab=chart&stackMode=relative
+    --all-views         For each Grapher, verify SVGs for all possible chart configurations
     
-    --configs IDS           Manually specify ids to verify (use comma separated ids and ranges, all without spaces. E.g.: 2,4-8,10)
-    --types TYPES           A comma-separated list of chart types that you want to run instead of generating SVGs from all configs [default: undefined]
-    --query-str STRING      Grapher query string to verify a specific chart view [default: undefined]
-    --random COUNT          Verify a random set of charts [default: false]
-
-    --suffix SUFFIX         Suffix for different svg files to create <NAME><SUFFIX>.svg files - useful if you want to set output to the same as reference
-    --all-views             Verify SVGs for all chart views [default: false]
-    --rmOnError             Remove output files where we encounter errors, so errors are apparent in diffs
-    --verbose               Verbose mode
+Other options:
+    --suffix, -s    Suffix for different SVG files to create <NAME><SUFFIX>.svg files - useful if you want to set output to the same as reference
+    --rm-on-error   Remove output files where we encounter errors, so errors are apparent in diffs
+    --verbose       Verbose mode
+    -h, --help      Display this help and exit
     `)
     process.exit(0)
 } else {

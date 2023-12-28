@@ -38,7 +38,7 @@ const RESULTS_FILENAME = "results.csv"
 
 export const finished = util.promisify(stream.finished) // (A)
 
-export interface ChartForTesting {
+export interface ChartWithQueryStr {
     id: number
     slug: string
     type: ChartTypeName
@@ -174,28 +174,35 @@ export async function verifySvg(
     })
 }
 
-export async function findChartsToProcess(
+export async function selectChartIdsToProcess(
     inDir: string,
     options: {
         chartIdsFile?: string
         grapherIds?: number[]
         chartTypes?: ChartTypeName[]
         randomCount?: number
-        queryStr?: string
-        shouldTestAllViews?: boolean
-        verbose?: boolean
     }
-): Promise<ChartForTesting[]> {
+): Promise<number[]> {
     let validChartIds = await findValidChartIds(inDir, options)
 
     if (options.randomCount !== undefined) {
-        validChartIds = _.sortBy(
-            _.sampleSize(validChartIds, options.randomCount)
-        )
+        validChartIds = _.sampleSize(validChartIds, options.randomCount)
     }
 
-    const chartsToProcess: ChartForTesting[] = []
-    for (const chartId of validChartIds) {
+    return _.sortBy(validChartIds)
+}
+
+export async function findChartViewsToGenerate(
+    inDir: string,
+    chartIds: number[],
+    options: {
+        queryStr?: string
+        shouldTestAllViews?: boolean
+    }
+): Promise<ChartWithQueryStr[]> {
+    const chartsToProcess: ChartWithQueryStr[] = []
+
+    for (const chartId of chartIds) {
         const grapherConfig = await parseGrapherConfig(chartId, { inDir })
 
         const slug = grapherConfig.slug ?? chartId.toString()
@@ -215,18 +222,6 @@ export async function findChartsToProcess(
                 queryStr,
             })
         }
-    }
-
-    // if verbose, log how many charts we're going to process
-    const count = chartsToProcess.length
-    if (count === 0) {
-        logIfVerbose(!!options.verbose, "No matching configs found")
-        process.exit(0)
-    } else {
-        logIfVerbose(
-            !!options.verbose,
-            `Generating ${count} SVG${count > 1 ? "s" : ""}...`
-        )
     }
 
     return chartsToProcess
@@ -255,7 +250,7 @@ export async function findValidChartIds(
                 validChartIds.push(grapherId)
             }
         }
-        return _.sortBy(validChartIds)
+        return validChartIds
     }
 
     if (chartIdsFile) {
@@ -297,7 +292,7 @@ export async function findValidChartIds(
         }
     }
 
-    return _.sortBy(validChartIds)
+    return validChartIds
 }
 
 export function validateChartTypes(chartTypes: string[]): ChartTypeName[] {
@@ -711,8 +706,7 @@ export function parseArgAsString(arg: unknown): string {
 }
 
 export function parseArgAsList(arg: unknown): string[] {
-    return (arg ?? "")
-        .toString()
+    return parseArgAsString(arg)
         .split(",")
         .filter((entry: string) => entry)
 }

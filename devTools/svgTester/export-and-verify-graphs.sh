@@ -1,16 +1,17 @@
 #!/usr/bin/env bash
 
 usage() {
-  echo -e "Usage: ./$(basename $0) [-c] [-t] [-q] [--views] [--skip-export] [-h | --help]
+  echo -e "Usage: ./$(basename $0) [-c | --ids] [-t | --chart-types] [-q | --query-str] [--all-views] [--skip-export] [-h | --help]
 
 Export Grapher charts from master and verify them against the current branch.
 
-    -c              config IDs passed to export-graphs.js and verify-graphs.js
-    -t              chart types passed to export-graphs.js and verify-graphs.js
-    -q              grapher query string passed to export-graphs.js and verify-graphs.js
-    --all-views     generate all possible views for each grapher id (passed to export-graphs.js and verify-graphs.js)
-    --skip-export   skip the export step (useful when running this script multiple times)
-    -h, --help      display this help and exit
+Options:
+    --ids, -c           Config IDs passed to export-graphs.js and verify-graphs.js
+    --chart-types, -t   Chart types passed to export-graphs.js and verify-graphs.js
+    --query-str, -q     Grapher query string passed to export-graphs.js and verify-graphs.js
+    --all-views         Generate all possible views for each grapher id (passed to export-graphs.js and verify-graphs.js)
+    --skip-export       Skip the export step (useful when running this script multiple times)
+    -h, --help          Display this help and exit
 "
   exit
 }
@@ -28,7 +29,7 @@ REPORT_FILE=../owid-grapher-svgs/local-differences.html
 CONFIG_IDS_ARG=""
 CHART_TYPES_ARG=""
 GRAPHER_QUERY_STRING_ARG=""
-VIEWS_ARG=""
+ALL_VIEWS_ARG=""
 SKIP_EXPORT=false
 
 # Arguments parsing inspired by https://gist.github.com/jehiah/855086
@@ -42,20 +43,17 @@ parseArgs() {
                 usage
                 exit
                 ;;
-            -c)
-                CONFIG_IDS=$VALUE
-                CONFIG_IDS_ARG=$([ -z "$CONFIG_IDS" ] || echo "-c $CONFIG_IDS")
+            -c | --ids)
+                CONFIG_IDS_ARG=$([ -z "$VALUE" ] || echo "--ids $VALUE")
                 ;;
-            -t)
-                CHART_TYPES=$VALUE
-                CHART_TYPES_ARG=$([ -z "$CHART_TYPES" ] || echo "-t $CHART_TYPES")
+            -t | --chart-types)
+                CHART_TYPES_ARG=$([ -z "$VALUE" ] || echo "--chart-types $VALUE")
                 ;;
-            -q)
-                GRAPHER_QUERY_STRING=$VALUE
-                GRAPHER_QUERY_STRING_ARG=$([ -z "$GRAPHER_QUERY_STRING" ] || echo "-q $GRAPHER_QUERY_STRING")
+            -q | --query-str)
+                GRAPHER_QUERY_STRING_ARG=$([ -z "$VALUE" ] || echo "--query-str $VALUE")
                 ;;
-            --views)
-                VIEWS_ARG="--views"
+            --all-views)
+                ALL_VIEWS_ARG="--all-views"
                 ;;
             --skip-export)
                 SKIP_EXPORT=true
@@ -116,7 +114,7 @@ runExportScript() {
         $CONFIG_IDS_ARG\
         $CHART_TYPES_ARG\
         $GRAPHER_QUERY_STRING_ARG\
-        $VIEWS_ARG
+        $ALL_VIEWS_ARG
 }
 
 runVerifyScript() {
@@ -128,7 +126,7 @@ runVerifyScript() {
         $CONFIG_IDS_ARG\
         $CHART_TYPES_ARG\
         $GRAPHER_QUERY_STRING_ARG\
-        $VIEWS_ARG
+        $ALL_VIEWS_ARG
 }
 
 createHTMLReport() {
