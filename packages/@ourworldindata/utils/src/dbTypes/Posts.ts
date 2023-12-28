@@ -1,7 +1,7 @@
 import {
     FormattingOptions,
     OwidArticleBackportingStatistics,
-    OwidGdocInterface,
+    OwidGdocPostInterface,
     WP_PostType,
 } from "../owidTypes.js"
 
@@ -31,7 +31,7 @@ export interface PostRowUnparsedFields {
 export interface PostRowParsedFields {
     authors: string[] | null
     formattingOptions: FormattingOptions | null
-    archieml: OwidGdocInterface | null
+    archieml: OwidGdocPostInterface | null
     archieml_update_statistics: OwidArticleBackportingStatistics | null
 }
 export type PostRowRaw = PostRowPlainFields & PostRowUnparsedFields

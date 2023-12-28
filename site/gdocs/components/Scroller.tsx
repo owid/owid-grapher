@@ -5,8 +5,8 @@ import {
     EnrichedScrollerItem,
 } from "@ourworldindata/utils"
 
-import { useEmbedChart } from "../hooks.js"
-import { renderSpans } from "./utils.js"
+import { useEmbedChart } from "../../hooks.js"
+import { renderSpans } from "../utils.js"
 import cx from "classnames"
 export default function Scroller({
     d,

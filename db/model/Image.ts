@@ -33,7 +33,11 @@ class ImageStore {
     images: Record<string, ImageMetadata> | undefined
 
     async fetchImageMetadata(filesnames: string[]): Promise<void> {
-        console.log("Fetching all image metadata from Google Drive")
+        console.log(
+            `Fetching image metadata from Google Drive for ${filesnames.join(
+                ", "
+            )}`
+        )
         const driveClient = google.drive({
             version: "v3",
             auth: OwidGoogleAuth.getGoogleReadonlyAuth(),

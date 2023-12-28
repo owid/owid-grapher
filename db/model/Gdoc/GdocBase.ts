@@ -4,6 +4,8 @@ import {
     BaseEntity,
     UpdateDateColumn,
     PrimaryColumn,
+    ManyToMany,
+    JoinTable,
 } from "typeorm"
 import { getUrlTarget } from "@ourworldindata/components"
 import {
@@ -20,11 +22,16 @@ import {
     Span,
     EnrichedBlockResearchAndWritingLink,
     traverseEnrichedSpan,
-    RelatedChart,
     uniq,
     omit,
     identity,
     OwidGdocBaseInterface,
+    Tag as TagInterface,
+    OwidGdocPublicationContext,
+    BreadcrumbItem,
+    MinimalDataInsightInterface,
+    getFeaturedImageFilename,
+    OwidGdoc,
 } from "@ourworldindata/utils"
 import { BAKED_GRAPHER_URL } from "../../../settings/serverSettings.js"
 import { google } from "googleapis"
@@ -40,10 +47,26 @@ import {
 import { EXPLORERS_ROUTE_FOLDER } from "../../../explorer/ExplorerConstants.js"
 import { match, P } from "ts-pattern"
 import {
+    extractUrl,
     getAllLinksFromResearchAndWritingBlock,
     spansToSimpleString,
 } from "./gdocUtils.js"
 import { OwidGoogleAuth } from "../../OwidGoogleAuth.js"
+
+@Entity("tags")
+export class Tag extends BaseEntity implements TagInterface {
+    static table = "tags"
+    @PrimaryColumn() id!: number
+    @Column() name!: string
+    @Column() createdAt!: Date
+    @Column({ nullable: true }) updatedAt!: Date
+    @Column({ nullable: true }) parentId!: number
+    @Column() isBulkImport!: boolean
+    @Column({ type: "varchar", nullable: true }) slug!: string | null
+    @Column() specialType!: string
+    @ManyToMany(() => GdocBase, (gdoc) => gdoc.tags)
+    gdocs!: GdocBase[]
+}
 
 @Entity("posts_gdocs")
 export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
@@ -55,20 +78,43 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
     @Column({ type: Date, nullable: true }) publishedAt: Date | null = null
     @UpdateDateColumn({ nullable: true }) updatedAt: Date | null = null
     @Column({ type: String, nullable: true }) revisionId: string | null = null
+    @Column() publicationContext: OwidGdocPublicationContext =
+        OwidGdocPublicationContext.unlisted
+    @Column({ type: "json", nullable: true }) breadcrumbs:
+        | BreadcrumbItem[]
+        | null = null
+    @ManyToMany(() => Tag, { cascade: true })
+    @JoinTable({
+        name: "posts_gdocs_x_tags",
+        joinColumn: { name: "gdocId", referencedColumnName: "id" },
+        inverseJoinColumn: { name: "tagId", referencedColumnName: "id" },
+    })
+    tags!: Tag[]
 
     errors: OwidGdocErrorMessage[] = []
     imageMetadata: Record<string, ImageMetadata> = {}
     linkedCharts: Record<string, LinkedChart> = {}
     linkedDocuments: Record<string, OwidGdocBaseInterface> = {}
-    relatedCharts: RelatedChart[] = []
+    latestDataInsights: MinimalDataInsightInterface[] = []
 
     _getSubclassEnrichedBlocks: (gdoc: typeof this) => OwidEnrichedGdocBlock[] =
         () => []
     _enrichSubclassContent: (content: Record<string, any>) => void = identity
     _validateSubclass: (gdoc: typeof this) => Promise<OwidGdocErrorMessage[]> =
-        () => new Promise(() => [])
+        async () => []
+    // Some subclasses have filenames/urls in the front-matter that we want to track
     _filenameProperties: string[] = []
+    _urlProperties: string[] = []
     _omittableFields: string[] = []
+    _loadSubclassAttachments: () => Promise<void> = async () => undefined
+
+    constructor(id?: string) {
+        super()
+        if (id) {
+            this.id = id
+        }
+        this.content = {}
+    }
 
     get enrichedBlockSources(): OwidEnrichedGdocBlock[][] {
         const enrichedBlockSources: OwidEnrichedGdocBlock[][] = excludeNullish([
@@ -152,8 +198,21 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
     get links(): Link[] {
         const links: Link[] = []
 
+        for (const urlProperty of this._urlProperties) {
+            const url = extractUrl(this.content[urlProperty])
+            if (url) {
+                links.push(
+                    Link.createFromUrl({
+                        url,
+                        source: this,
+                        componentType: "front-matter",
+                    })
+                )
+            }
+        }
+
         for (const enrichedBlockSource of this.enrichedBlockSources) {
-            enrichedBlockSource.map((block) =>
+            enrichedBlockSource.forEach((block) =>
                 traverseEnrichedBlocks(
                     block,
                     (block) => {
@@ -185,7 +244,7 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
         // but we try (and then filter nulls) because we need featured images if we're using prominent links
         // even if this method is being called on a GdocFaq (for example)
         const featuredImages = Object.values(this.linkedDocuments)
-            .map((d: OwidGdocBaseInterface) => d.content["featured-image"])
+            .map((d) => getFeaturedImageFilename(d as OwidGdoc))
             .filter((filename?: string): filename is string => !!filename)
 
         return [...this.filenames, ...featuredImages]
@@ -206,6 +265,22 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
         )
 
         return { grapher: [...grapher], explorer: [...explorer] }
+    }
+
+    get hasAllChartsBlock(): boolean {
+        let hasAllChartsBlock = false
+        for (const enrichedBlockSource of this.enrichedBlockSources) {
+            for (const block of enrichedBlockSource) {
+                if (hasAllChartsBlock) break
+                traverseEnrichedBlocks(block, (block) => {
+                    if (block.type === "all-charts") {
+                        hasAllChartsBlock = true
+                    }
+                })
+            }
+        }
+
+        return hasAllChartsBlock
     }
 
     extractLinksFromBlock(block: OwidEnrichedGdocBlock): Link[] | void {
@@ -602,11 +677,20 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
         )
 
         const subclassErrors = await this._validateSubclass(this)
-
         this.errors = [...filenameErrors, ...linkErrors, ...subclassErrors]
     }
 
-    toJSON(): Record<string, any> {
+    async loadState(
+        publishedExplorersBySlug: Record<string, any>
+    ): Promise<void> {
+        await this.loadLinkedDocuments()
+        await this.loadImageMetadata()
+        await this.loadLinkedCharts(publishedExplorersBySlug)
+        await this._loadSubclassAttachments()
+        await this.validate(publishedExplorersBySlug)
+    }
+
+    toJSON<T extends OwidGdocBaseInterface>(): T {
         return omit(this, [
             "_enrichSubclassContent",
             "_filenameProperties",
@@ -614,6 +698,6 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
             "_omittableFields",
             "_validateSubclass",
             ...this._omittableFields,
-        ])
+        ]) as any as T
     }
 }

@@ -1,5 +1,5 @@
 import React, { useRef } from "react"
-import { useEmbedChart } from "../hooks.js"
+import { useEmbedChart } from "../../hooks.js"
 import {
     grapherInterfaceWithHiddenControlsOnly,
     grapherInterfaceWithHiddenTabsOnly,
@@ -13,9 +13,9 @@ import {
     Url,
     merge,
 } from "@ourworldindata/utils"
-import { renderSpans, useLinkedChart } from "./utils.js"
+import { renderSpans, useLinkedChart } from "../utils.js"
 import cx from "classnames"
-import { ExplorerProps } from "../../explorer/Explorer.js"
+import { ExplorerProps } from "../../../explorer/Explorer.js"
 
 export default function Chart({
     d,

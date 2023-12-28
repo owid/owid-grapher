@@ -7,8 +7,8 @@ import {
     ALL_CHARTS_ID,
     KeyChartLevel,
 } from "@ourworldindata/utils"
-import { AttachmentsContext } from "./OwidGdoc.js"
-import { RelatedCharts } from "../blocks/RelatedCharts.js"
+import { AttachmentsContext } from "../OwidGdoc.js"
+import { RelatedCharts } from "../../blocks/RelatedCharts.js"
 
 type AllChartsProps = EnrichedBlockAllCharts & {
     className?: string

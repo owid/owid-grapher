@@ -1,5 +1,5 @@
 import {
-    OwidGdocContent,
+    OwidGdocPostContent,
     EnrichedBlockText,
     EnrichedBlockSimpleText,
 } from "@ourworldindata/utils"
@@ -15,8 +15,8 @@ import { OwidGoogleAuth } from "../../OwidGoogleAuth.js"
 import cheerio from "cheerio"
 
 function* yieldMultiBlockPropertyIfDefined(
-    property: keyof OwidGdocContent,
-    article: OwidGdocContent,
+    property: keyof OwidGdocPostContent,
+    article: OwidGdocPostContent,
     target: (EnrichedBlockText | EnrichedBlockSimpleText)[] | undefined
 ): Generator<string, void, undefined> {
     if (property in article && target) {
@@ -32,7 +32,7 @@ function* yieldMultiBlockPropertyIfDefined(
 }
 
 function* owidArticleToArchieMLStringGenerator(
-    article: OwidGdocContent
+    article: OwidGdocPostContent
 ): Generator<string, void, undefined> {
     yield* propertyToArchieMLString("title", article)
     yield* propertyToArchieMLString("subtitle", article)
@@ -172,7 +172,7 @@ function* lineToBatchUpdates(line: Line): Generator<docs_v1.Schema$Request> {
 }
 
 function articleToBatchUpdates(
-    content: OwidGdocContent
+    content: OwidGdocPostContent
 ): docs_v1.Schema$Request[] {
     const archieMlLines = [...owidArticleToArchieMLStringGenerator(content)]
 
@@ -272,8 +272,8 @@ async function createGdoc(
     return createResp.data.id!
 }
 
-export async function createGdocAndInsertOwidGdocContent(
-    content: OwidGdocContent,
+export async function createGdocAndInsertOwidGdocPostContent(
+    content: OwidGdocPostContent,
     existingGdocId: string | null
 ): Promise<string> {
     const batchUpdates = articleToBatchUpdates(content)

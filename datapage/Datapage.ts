@@ -1,7 +1,7 @@
 import "dayjs"
 import { getLinkType, getUrlTarget } from "@ourworldindata/components"
 import {
-    OwidGdocInterface,
+    OwidGdocPostInterface,
     GdocsContentSource,
     DataPageDataV2,
     OwidVariableWithSource,
@@ -13,6 +13,7 @@ import {
 } from "@ourworldindata/utils"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
+import { GdocFactory } from "../db/model/Gdoc/GdocFactory.js"
 import { OwidGoogleAuth } from "../db/OwidGoogleAuth.js"
 import { GrapherInterface } from "@ourworldindata/grapher"
 
@@ -79,7 +80,7 @@ export const getDatapageGdoc = async (
     googleDocEditLinkOrId: string,
     isPreviewing: boolean,
     publishedExplorersBySlug?: Record<string, ExplorerProgram>
-): Promise<OwidGdocInterface | null> => {
+): Promise<OwidGdocPostInterface | null> => {
     // Get the google doc id from the datapage JSON file and return early if
     // none found
     const isPlainGoogleId = gdocIdRegex.exec(googleDocEditLinkOrId)
@@ -102,11 +103,11 @@ export const getDatapageGdoc = async (
         isPreviewing &&
         publishedExplorersBySlug &&
         OwidGoogleAuth.areGdocAuthKeysSet()
-            ? await GdocPost.load(
+            ? ((await GdocFactory.load(
                   googleDocId,
                   publishedExplorersBySlug,
                   GdocsContentSource.Gdocs
-              )
+              )) as GdocPost)
             : await GdocPost.findOneBy({ id: googleDocId })
 
     return datapageGdoc

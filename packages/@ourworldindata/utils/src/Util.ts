@@ -151,7 +151,7 @@ import {
     HorizontalAlign,
     IDEAL_PLOT_ASPECT_RATIO,
     GridParameters,
-    OwidGdocInterface,
+    OwidGdocPostInterface,
     OwidGdocJSON,
     TimeBound,
     TimeBoundValue,
@@ -165,6 +165,8 @@ import {
     EnrichedBlockKeyInsightsSlide,
     UserCountryInformation,
     SpanLink,
+    OwidGdocDataInsightInterface,
+    OwidGdoc,
 } from "./owidTypes.js"
 import { PointVector } from "./PointVector.js"
 import React from "react"
@@ -1313,7 +1315,7 @@ export const formatDate = (date: Date): string => {
  * write a custom JSON parser to handle that automatically for all keys. At this
  * stage, the manual approach is probably simpler.
  */
-export const getOwidGdocFromJSON = (json: OwidGdocJSON): OwidGdocInterface => {
+export const getOwidGdocFromJSON = (json: OwidGdocJSON): OwidGdoc => {
     return {
         ...json,
         createdAt: new Date(json.createdAt),
@@ -1361,6 +1363,8 @@ export async function copyToClipboard(text: string): Promise<void> {
         // GPT 4 suggested attempt to work around the lack of clipboard API
         const textarea = document.createElement("textarea")
         textarea.value = text
+        textarea.style.position = "fixed"
+        textarea.style.opacity = "0"
         document.body.appendChild(textarea)
         textarea.focus()
         textarea.select()
@@ -1684,9 +1688,9 @@ export function spansToUnformattedPlainText(spans: Span[]): string {
 }
 
 export function checkIsOwidGdocType(
-    documentType: unknown
-): documentType is OwidGdocType {
-    return Object.values(OwidGdocType).includes(documentType as any)
+    gdocType: unknown
+): gdocType is OwidGdocType {
+    return Object.values(OwidGdocType).includes(gdocType as any)
 }
 
 export function isArrayOfNumbers(arr: unknown[]): arr is number[] {
@@ -1761,4 +1765,21 @@ export function extractDetailsFromSyntax(str: string): string[] {
     return [...str.matchAll(new RegExp(detailOnDemandRegex, "g"))].map(
         ([_, term]) => term
     )
+}
+
+export function checkIsGdocPost(x: unknown): x is OwidGdocPostInterface {
+    const type = get(x, "content.type")
+    return [
+        OwidGdocType.Article,
+        OwidGdocType.TopicPage,
+        OwidGdocType.LinearTopicPage,
+        OwidGdocType.Fragment,
+    ].includes(type)
+}
+
+export function checkIsDataInsight(
+    x: unknown
+): x is OwidGdocDataInsightInterface {
+    const type = get(x, "content.type")
+    return type === OwidGdocType.DataInsight
 }

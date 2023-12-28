@@ -1,7 +1,7 @@
 import { load } from "archieml"
 import { createHash } from "crypto"
 import {
-    OwidGdocContent,
+    OwidGdocPostContent,
     TocHeadingWithTitleSupertitle,
     compact,
     isArray,
@@ -32,7 +32,7 @@ import { htmlToSimpleTextBlock } from "./htmlToEnriched.js"
 // If the user hasn't explicitly defined a sticky-nav in archie to map nav items to headings,
 // we can try to do it for them by looking for substring matches in the headings that they've written
 export function generateStickyNav(
-    content: OwidGdocContent
+    content: OwidGdocPostContent
 ): OwidGdocStickyNavItem[] | undefined {
     if (content.type !== OwidGdocType.TopicPage) return
     // If a sticky nav has been explicitly defined, use that.
@@ -271,7 +271,7 @@ export const archieToEnriched = (
     additionalEnrichmentFunction: (
         content: Record<string, unknown>
     ) => void = identity
-): OwidGdocContent => {
+): OwidGdocPostContent => {
     const { extractedText, refsByFirstAppearance, rawInlineRefs } =
         extractRefs(text)
     text = extractedText

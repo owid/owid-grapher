@@ -18,6 +18,7 @@ import {
     makeAtomFeedNoTopicPages,
     renderDynamicCollectionPage,
     renderTopChartsCollectionPage,
+    renderDataInsightsIndexPage,
     renderThankYouPage,
 } from "../baker/siteRenderers.js"
 import {
@@ -51,6 +52,7 @@ import {
     renderDataPageV2,
 } from "../baker/GrapherBaker.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
+import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
 
 require("express-async-errors")
 
@@ -174,6 +176,44 @@ mockSiteRouter.get("/donate", async (req, res) =>
 mockSiteRouter.get("/thank-you", async (req, res) =>
     res.send(await renderThankYouPage())
 )
+
+mockSiteRouter.get("/data-insights/:pageNumberOrSlug?", async (req, res) => {
+    async function renderIndexPage(pageNumber: number) {
+        const dataInsights =
+            await GdocDataInsight.getPublishedDataInsights(pageNumber)
+        // calling fetchImageMetadata 20 times makes me sad, would be nice if we could cache this
+        await Promise.all(dataInsights.map((insight) => insight.loadState({})))
+        const totalPageCount = await GdocDataInsight.getTotalPageCount()
+        return renderDataInsightsIndexPage(
+            dataInsights,
+            pageNumber,
+            totalPageCount,
+            true
+        )
+    }
+    const pageNumberOrSlug = req.params.pageNumberOrSlug
+    if (!pageNumberOrSlug) {
+        return res.send(await renderIndexPage(0))
+    }
+
+    // pageNumber is 1-indexed, but DB operations are 0-indexed
+    const pageNumber = parseInt(pageNumberOrSlug) - 1
+    if (!isNaN(pageNumber)) {
+        if (pageNumber <= 0) return res.redirect("/data-insights")
+        const totalPages = await GdocDataInsight.getTotalPageCount()
+        if (pageNumber >= totalPages) return res.redirect("/data-insights")
+        return res.send(await renderIndexPage(pageNumber))
+    }
+
+    const slug = pageNumberOrSlug
+    try {
+        return res.send(await renderGdocsPageBySlug(slug, true))
+    } catch (e) {
+        console.error(e)
+    }
+
+    return new JsonError(`Data insight with slug "${slug}" not found`, 404)
+})
 
 mockSiteRouter.get("/charts", async (req, res) => {
     const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)

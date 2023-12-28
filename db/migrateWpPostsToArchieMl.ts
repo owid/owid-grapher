@@ -3,7 +3,7 @@ import cheerio from "cheerio"
 
 import {
     OwidGdocPublicationContext,
-    OwidGdocInterface,
+    OwidGdocPostInterface,
     OwidArticleBackportingStatistics,
     OwidGdocType,
     RelatedChart,
@@ -198,7 +198,7 @@ const migrate = async (): Promise<void> => {
                 ? post.published_at.toLocaleDateString("en-US", options)
                 : ""
 
-            const archieMlFieldContent: OwidGdocInterface = {
+            const archieMlFieldContent: OwidGdocPostInterface = {
                 id: `wp-${post.id}`,
                 slug: post.slug,
                 content: {

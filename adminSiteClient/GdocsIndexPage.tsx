@@ -9,16 +9,18 @@ import {
     faNewspaper,
     faPuzzlePiece,
     faQuestion,
+    faThList,
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
     Tag,
-    OwidGdocInterface,
     OwidGdocType,
     SearchWord,
     buildSearchWordsFromSearchString,
     filterFunctionForSearchWords,
     spansToUnformattedPlainText,
+    OwidGdoc,
+    checkIsGdocPost,
 } from "@ourworldindata/utils"
 import { Route, RouteComponentProps } from "react-router-dom"
 import { Link } from "./Link.js"
@@ -34,6 +36,7 @@ const iconGdocTypeMap = {
     [OwidGdocType.Article]: <FontAwesomeIcon icon={faNewspaper} />,
     [OwidGdocType.TopicPage]: <FontAwesomeIcon icon={faLightbulb} />,
     [OwidGdocType.LinearTopicPage]: <FontAwesomeIcon icon={faLightbulb} />,
+    [OwidGdocType.DataInsight]: <FontAwesomeIcon icon={faThList} />,
 }
 
 @observer
@@ -51,6 +54,7 @@ class GdocsIndexPageSearch extends React.Component<{
             OwidGdocType.Article,
             OwidGdocType.TopicPage,
             OwidGdocType.LinearTopicPage,
+            OwidGdocType.DataInsight,
         ]
         return (
             <div className="d-flex flex-grow-1 flex-wrap">
@@ -108,6 +112,7 @@ export class GdocsIndexPage extends React.Component<GdocsMatchProps> {
         [OwidGdocType.Article]: false,
         [OwidGdocType.TopicPage]: false,
         [OwidGdocType.LinearTopicPage]: false,
+        [OwidGdocType.DataInsight]: false,
     }
 
     @observable search = { value: "" }
@@ -127,7 +132,7 @@ export class GdocsIndexPage extends React.Component<GdocsMatchProps> {
         return this.context?.availableTags || []
     }
 
-    @computed get allGdocsToShow(): OwidGdocInterface[] {
+    @computed get allGdocsToShow(): OwidGdoc[] {
         const { searchWords, context } = this
         if (!context) return []
 
@@ -147,21 +152,31 @@ export class GdocsIndexPage extends React.Component<GdocsMatchProps> {
         if (searchWords.length > 0) {
             const filterFn = filterFunctionForSearchWords(
                 searchWords,
-                (gdoc: OwidGdocInterface) => [
-                    gdoc.content.title,
-                    gdoc.content.subtitle,
-                    gdoc.content.summary
-                        ? spansToUnformattedPlainText(
-                              gdoc.content.summary.flatMap(
-                                  (block) => block.value
-                              )
-                          )
-                        : undefined,
-                    gdoc.slug,
-                    gdoc.id,
-                    gdoc.content.authors?.join(" "),
-                    gdoc.tags?.map(({ name }) => name).join(" "),
-                ]
+                (gdoc: OwidGdoc) => {
+                    const properties = [
+                        gdoc.content.title,
+                        gdoc.slug,
+                        gdoc.content.authors?.join(" "),
+                        gdoc.tags?.map(({ name }) => name).join(" "),
+                        gdoc.id,
+                    ]
+
+                    if (checkIsGdocPost(gdoc)) {
+                        properties.push(
+                            ...[
+                                gdoc.content.subtitle,
+                                gdoc.content.summary
+                                    ? spansToUnformattedPlainText(
+                                          gdoc.content.summary.flatMap(
+                                              (block) => block.value
+                                          )
+                                      )
+                                    : undefined,
+                            ]
+                        )
+                    }
+                    return properties
+                }
             )
             return filteredByType.filter(filterFn)
         } else {

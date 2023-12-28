@@ -1,7 +1,7 @@
 import React from "react"
 import { EnrichedBlockRecirc } from "@ourworldindata/utils"
-import { renderSpan, useLinkedDocument } from "./utils.js"
-import { formatAuthors } from "../clientFormatting.js"
+import { renderSpan, useLinkedDocument } from "../utils.js"
+import { formatAuthors } from "../../clientFormatting.js"
 
 function RecircItem({ url }: { url: string }) {
     const { linkedDocument } = useLinkedDocument(url)

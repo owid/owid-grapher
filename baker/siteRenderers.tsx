@@ -49,11 +49,12 @@ import {
     FullPost,
     JsonError,
     KeyInsight,
-    OwidGdocInterface,
     Url,
     IndexPost,
     mergePartialGrapherConfigs,
     OwidGdocType,
+    OwidGdoc,
+    OwidGdocDataInsightInterface,
     extractFormattingOptions,
     PostRowRaw,
 } from "@ourworldindata/utils"
@@ -84,6 +85,7 @@ import {
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { ExplorerPageUrlMigrationSpec } from "../explorer/urlMigrations/ExplorerPageUrlMigrationSpec.js"
 import { ExplorerPage } from "../site/ExplorerPage.js"
+import { DataInsightsIndexPage } from "../site/DataInsightsIndexPage.js"
 import { Chart } from "../db/model/Chart.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
@@ -92,6 +94,8 @@ import { resolveInternalRedirect } from "./redirects.js"
 import { postsTable } from "../db/model/Post.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
+import { GdocFactory } from "../db/model/Gdoc/GdocFactory.js"
+
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
 
@@ -165,32 +169,30 @@ export function renderDynamicCollectionPage() {
 }
 
 export const renderGdocsPageBySlug = async (
-    slug: string
+    slug: string,
+    isPreviewing: boolean = false
 ): Promise<string | undefined> => {
-    const gdoc = await GdocPost.findOneBy({ slug })
-    if (!gdoc) {
-        throw new Error(`Failed to render an unknown GDocs post: ${slug}.`)
-    }
-    if (!gdoc.published) {
-        throw new Error(
-            `A Gdoc exists with slug "${slug}" but it is not published.`
-        )
-    }
     const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
     const publishedExplorersBySlug =
         await explorerAdminServer.getAllPublishedExplorersBySlug()
 
-    const gdocWithAttachments = await GdocPost.load(
-        gdoc.id,
-        publishedExplorersBySlug
-    )
+    const gdoc = await GdocFactory.loadBySlug(slug, publishedExplorersBySlug)
+    if (!gdoc) {
+        throw new Error(`Failed to render an unknown GDocs post: ${slug}.`)
+    }
 
-    return renderGdoc(gdocWithAttachments)
+    await gdoc.loadState(publishedExplorersBySlug)
+
+    return renderGdoc(gdoc, isPreviewing)
 }
 
-export const renderGdoc = (gdoc: OwidGdocInterface) => {
+export const renderGdoc = (gdoc: OwidGdoc, isPreviewing: boolean = false) => {
     return renderToHtmlPage(
-        <OwidGdocPage baseUrl={BAKED_BASE_URL} gdoc={gdoc} />
+        <OwidGdocPage
+            baseUrl={BAKED_BASE_URL}
+            gdoc={gdoc}
+            isPreviewing={isPreviewing}
+        />
     )
 }
 
@@ -265,10 +267,11 @@ export const renderFrontPage = async () => {
 
     let featuredWork: IndexPost[]
     try {
-        const frontPageConfigGdoc = await GdocPost.load(
-            GDOCS_HOMEPAGE_CONFIG_DOCUMENT_ID,
-            {}
-        )
+        const frontPageConfigGdoc = await GdocPost.findOneBy({
+            id: GDOCS_HOMEPAGE_CONFIG_DOCUMENT_ID,
+        })
+        if (!frontPageConfigGdoc) throw new Error("No front page config found")
+        await frontPageConfigGdoc.loadState({})
         const frontPageConfig: any = frontPageConfigGdoc.content
         const featuredPosts: { slug: string; position: number }[] =
             frontPageConfig["featured-posts"] ?? []
@@ -331,7 +334,14 @@ export const renderFrontPage = async () => {
 }
 
 export const renderDonatePage = async () => {
-    const faqsGdoc = await GdocPost.load(GDOCS_DONATE_FAQS_DOCUMENT_ID, {})
+    const faqsGdoc = (await GdocFactory.load(
+        GDOCS_DONATE_FAQS_DOCUMENT_ID,
+        {}
+    )) as GdocPost
+    if (!faqsGdoc)
+        throw new Error(
+            `Failed to find donate FAQs Gdoc with id "${GDOCS_DONATE_FAQS_DOCUMENT_ID}"`
+        )
 
     return renderToHtmlPage(
         <DonatePage
@@ -344,6 +354,23 @@ export const renderDonatePage = async () => {
 
 export const renderThankYouPage = async () => {
     return renderToHtmlPage(<ThankYouPage baseUrl={BAKED_BASE_URL} />)
+}
+
+export const renderDataInsightsIndexPage = (
+    dataInsights: OwidGdocDataInsightInterface[],
+    page: number = 0,
+    totalPageCount: number,
+    isPreviewing: boolean = false
+) => {
+    return renderToHtmlPage(
+        <DataInsightsIndexPage
+            dataInsights={dataInsights}
+            baseUrl={BAKED_BASE_URL}
+            pageNumber={page}
+            totalPageCount={totalPageCount}
+            isPreviewing={isPreviewing}
+        />
+    )
 }
 
 export const renderBlogByPageNum = async (pageNum: number) => {

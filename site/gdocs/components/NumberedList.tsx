@@ -3,7 +3,7 @@ import {
     EnrichedBlockNumberedList,
     EnrichedBlockText,
 } from "@ourworldindata/utils"
-import { renderSpans } from "./utils.js"
+import { renderSpans } from "../utils.js"
 export default function NumberedList({
     d,
     className = "",

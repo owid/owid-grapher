@@ -1277,6 +1277,12 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
     .muted {
         color: rgba(0, 0, 0, 0.25);
     }
+    h3.form-section-heading {
+        color: #757575;
+    }
+    .form-group:not(:first-child) h3.form-section-heading {
+        margin-top: 32px;
+    }
 }
 
 .GdocsSettingsForm__alert {

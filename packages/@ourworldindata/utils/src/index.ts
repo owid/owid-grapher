@@ -100,7 +100,6 @@ export {
     KeyChartLevel,
     type KeyInsight,
     type KeyValueProps,
-    type OwidGdocContent,
     type LinkedChart,
     OwidGdocPublicationContext,
     type OwidGdocErrorMessageProperty,
@@ -108,12 +107,17 @@ export {
     OwidGdocErrorMessageType,
     type OwidGdocLinkJSON,
     type OwidGdocBaseInterface,
-    type OwidGdocInterface,
+    type OwidGdocPostContent,
+    type OwidGdocPostInterface,
+    type OwidGdocDataInsightContent,
+    type OwidGdocDataInsightInterface,
+    type MinimalDataInsightInterface,
+    DATA_INSIGHTS_INDEX_PAGE_SIZE,
+    type OwidGdoc,
     type Tag,
     OwidGdocType,
     type OwidGdocStickyNavItem,
     type OwidGdocJSON,
-    type OwidGdocPublished,
     type OwidEnrichedGdocBlock,
     type OwidRawGdocBlock,
     type OwidArticleBackportingStatistics,
@@ -369,6 +373,8 @@ export {
     traverseEnrichedSpan,
     mergePartialGrapherConfigs,
     copyToClipboard,
+    checkIsGdocPost,
+    checkIsDataInsight,
 } from "./Util.js"
 
 export {
@@ -644,6 +650,8 @@ export {
     type ImageMetadata,
     type SourceProps,
     generateSourceProps,
+    getFeaturedImageFilename,
+    filenameToUrl,
 } from "./image.js"
 
 export { Tippy, TippyIfInteractive } from "./Tippy.js"

@@ -16,7 +16,7 @@ import {
     mergePartialGrapherConfigs,
     OwidChartDimensionInterface,
     compact,
-    OwidGdocInterface,
+    OwidGdocPostInterface,
     merge,
     EnrichedFaq,
     FaqEntryData,
@@ -188,20 +188,20 @@ export async function renderDataPageV2({
         gdocIdToFragmentIdToBlock[gdoc.id] = faqs.faqs
     })
 
-    const linkedCharts: OwidGdocInterface["linkedCharts"] = merge(
+    const linkedCharts: OwidGdocPostInterface["linkedCharts"] = merge(
         {},
         ...compact(gdocs.map((gdoc) => gdoc?.linkedCharts))
     )
-    const linkedDocuments: OwidGdocInterface["linkedDocuments"] = merge(
+    const linkedDocuments: OwidGdocPostInterface["linkedDocuments"] = merge(
         {},
         ...compact(gdocs.map((gdoc) => gdoc?.linkedDocuments))
     )
-    const imageMetadata: OwidGdocInterface["imageMetadata"] = merge(
+    const imageMetadata: OwidGdocPostInterface["imageMetadata"] = merge(
         {},
         imageMetadataDictionary,
         ...compact(gdocs.map((gdoc) => gdoc?.imageMetadata))
     )
-    const relatedCharts: OwidGdocInterface["relatedCharts"] = gdocs.flatMap(
+    const relatedCharts: OwidGdocPostInterface["relatedCharts"] = gdocs.flatMap(
         (gdoc) => gdoc?.relatedCharts ?? []
     )
 

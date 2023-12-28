@@ -32,6 +32,7 @@ import {
     makeAtomFeedNoTopicPages,
     renderDynamicCollectionPage,
     renderTopChartsCollectionPage,
+    renderDataInsightsIndexPage,
     renderThankYouPage,
 } from "../baker/siteRenderers.js"
 import {
@@ -45,10 +46,14 @@ import { bakeDriveImages } from "../baker/GDriveImagesBaker.js"
 import {
     countries,
     FullPost,
-    OwidGdocPublished,
-    clone,
     LinkedChart,
     extractDetailsFromSyntax,
+    OwidGdocErrorMessageType,
+    ImageMetadata,
+    OwidGdoc,
+    OwidGdocPostInterface,
+    OwidGdocType,
+    DATA_INSIGHTS_INDEX_PAGE_SIZE,
 } from "@ourworldindata/utils"
 
 import { execWrapper } from "../db/execWrapper.js"
@@ -77,6 +82,16 @@ import {
     BAKED_GRAPHER_EXPORTS_BASE_URL,
 } from "../settings/clientSettings.js"
 import pMap from "p-map"
+import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
+
+type PrefetchedAttachments = {
+    linkedDocuments: Record<string, OwidGdocPostInterface>
+    imageMetadata: Record<string, ImageMetadata>
+    linkedCharts: {
+        graphers: Record<string, LinkedChart>
+        explorers: Record<string, LinkedChart>
+    }
+}
 
 // These aren't all "wordpress" steps
 // But they're only run when you have the full stack available
@@ -99,6 +114,7 @@ const nonWordpressSteps = [
     "gdocPosts",
     "gdriveImages",
     "dods",
+    "dataInsights",
 ] as const
 
 const otherSteps = ["removeDeletedPosts"] as const
@@ -211,9 +227,13 @@ export class SiteBaker {
     }
 
     // Bake an individual post/page
-    private async bakeGDocPost(post: OwidGdocPublished) {
+    private async bakeOwidGdoc(post: OwidGdoc) {
         const html = renderGdoc(post)
-        const outPath = path.join(this.bakedSiteDir, `${post.slug}.html`)
+        const dir =
+            post.content.type === OwidGdocType.DataInsight
+                ? "data-insights/"
+                : ""
+        const outPath = path.join(this.bakedSiteDir, `${dir}${post.slug}.html`)
         await fs.mkdirp(path.dirname(outPath))
         await this.stageWrite(outPath, html)
     }
@@ -262,7 +282,96 @@ export class SiteBaker {
         return without(existingSlugs, ...postSlugsFromDb)
     }
 
-    // Bake all Wordpress posts, both blog posts and entry pages
+    // Prefetches all linkedDocuments, imageMetadata, and linkedCharts instead of having to fetch them
+    // for each individual gdoc. Optionally takes a tuple of string arrays to pick from the prefetched
+    // dictionaries.
+    _prefetchedAttachmentsCache: PrefetchedAttachments | undefined = undefined
+    private async getPrefetchedGdocAttachments(
+        picks?: [string[], string[], string[], string[]]
+    ): Promise<PrefetchedAttachments> {
+        if (!this._prefetchedAttachmentsCache) {
+            const publishedGdocs = await GdocPost.getPublishedGdocs()
+            const publishedGdocsDictionary = keyBy(publishedGdocs, "id")
+
+            const imageMetadataDictionary: Record<string, Image> =
+                await Image.find().then((images) => keyBy(images, "filename"))
+            const publishedExplorersBySlug = await this.explorerAdminServer
+                .getAllPublishedExplorersBySlugCached()
+                .then((results) =>
+                    mapValues(results, (cur) => ({
+                        originalSlug: cur.slug,
+                        resolvedUrl: `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${cur.slug}`,
+                        queryString: "",
+                        title: cur.title || "",
+                        thumbnail:
+                            cur.thumbnail ||
+                            `${BAKED_BASE_URL}/default-thumbnail.jpg`,
+                    }))
+                )
+            // Includes redirects
+            const publishedChartsBySlug = await Chart.mapSlugsToConfigs().then(
+                (results) =>
+                    results.reduce(
+                        (acc, cur) => ({
+                            ...acc,
+                            [cur.slug]: {
+                                originalSlug: cur.slug,
+                                resolvedUrl: `${BAKED_GRAPHER_URL}/${cur.config.slug}`,
+                                queryString: "",
+                                title: cur.config.title || "",
+                                thumbnail: `${BAKED_GRAPHER_EXPORTS_BASE_URL}/${cur.config.slug}.svg`,
+                            },
+                        }),
+                        {} as Record<string, LinkedChart>
+                    )
+            )
+
+            const prefetchedAttachments = {
+                linkedDocuments: publishedGdocsDictionary,
+                imageMetadata: imageMetadataDictionary,
+                linkedCharts: {
+                    explorers: publishedExplorersBySlug,
+                    graphers: publishedChartsBySlug,
+                },
+            }
+            this._prefetchedAttachmentsCache = prefetchedAttachments
+        }
+        if (picks) {
+            const [
+                linkedDocumentIds,
+                imageFilenames,
+                linkedGrapherSlugs,
+                linkedExplorerSlugs,
+            ] = picks
+            return {
+                linkedDocuments: pick(
+                    this._prefetchedAttachmentsCache.linkedDocuments,
+                    linkedDocumentIds
+                ),
+                imageMetadata: pick(
+                    this._prefetchedAttachmentsCache.imageMetadata,
+                    imageFilenames
+                ),
+                linkedCharts: {
+                    graphers: {
+                        ...pick(
+                            this._prefetchedAttachmentsCache.linkedCharts
+                                .graphers,
+                            linkedGrapherSlugs
+                        ),
+                    },
+                    explorers: {
+                        ...pick(
+                            this._prefetchedAttachmentsCache.linkedCharts
+                                .explorers,
+                            linkedExplorerSlugs
+                        ),
+                    },
+                },
+            }
+        }
+        return this._prefetchedAttachmentsCache
+    }
 
     private async removeDeletedPosts() {
         if (!this.bakeSteps.has("removeDeletedPosts")) return
@@ -331,63 +440,31 @@ export class SiteBaker {
             )
         }
 
-        // Prefetch publishedGdocs, imageMetadata, and linkedCharts instead of each instance fetching
-        const publishedGdocsDictionary = keyBy(publishedGdocs.map(clone), "id")
-        const imageMetadataDictionary = await Image.find().then((images) =>
-            keyBy(images, "filename")
-        )
-        const publishedExplorersBySlug = await this.explorerAdminServer
-            .getAllPublishedExplorersBySlugCached()
-            .then((results) =>
-                mapValues(results, (cur) => ({
-                    originalSlug: cur.slug,
-                    resolvedUrl: `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${cur.slug}`,
-                    queryString: "",
-                    title: cur.title || "",
-                    thumbnail:
-                        cur.thumbnail ||
-                        `${BAKED_BASE_URL}/default-thumbnail.jpg`,
-                }))
-            )
-        // Includes redirects
-        const publishedChartsBySlug = await Chart.mapSlugsToConfigs().then(
-            (results) =>
-                results.reduce(
-                    (acc, cur) => ({
-                        ...acc,
-                        [cur.slug]: {
-                            originalSlug: cur.slug,
-                            resolvedUrl: `${BAKED_GRAPHER_URL}/${cur.config.slug}`,
-                            queryString: "",
-                            title: cur.config.title || "",
-                            thumbnail: `${BAKED_GRAPHER_EXPORTS_BASE_URL}/${cur.config.slug}.svg`,
-                        },
-                    }),
-                    {} as Record<string, LinkedChart>
-                )
-        )
-
         for (const publishedGdoc of gdocsToBake) {
-            // Pick the necessary metadata from the dictionaries we prefetched
-            publishedGdoc.linkedDocuments = pick(
-                publishedGdocsDictionary,
-                publishedGdoc.linkedDocumentIds
-            )
-            publishedGdoc.imageMetadata = pick(
-                imageMetadataDictionary,
-                publishedGdoc.linkedImageFilenames
-            )
-            const linkedChartSlugs = publishedGdoc.linkedChartSlugs
+            const attachments = await this.getPrefetchedGdocAttachments([
+                publishedGdoc.linkedDocumentIds,
+                publishedGdoc.linkedImageFilenames,
+                publishedGdoc.linkedChartSlugs.grapher,
+                publishedGdoc.linkedChartSlugs.explorer,
+            ])
+            publishedGdoc.linkedDocuments = attachments.linkedDocuments
+            publishedGdoc.imageMetadata = attachments.imageMetadata
             publishedGdoc.linkedCharts = {
-                ...pick(publishedChartsBySlug, linkedChartSlugs.grapher),
-                ...pick(publishedExplorersBySlug, linkedChartSlugs.explorer),
+                ...attachments.linkedCharts.graphers,
+                ...attachments.linkedCharts.explorers,
             }
 
             // this is a no-op if the gdoc doesn't have an all-chart block
             await publishedGdoc.loadRelatedCharts()
 
+            const publishedExplorersBySlug =
+                await this.explorerAdminServer.getAllPublishedExplorersBySlugCached()
             await publishedGdoc.validate(publishedExplorersBySlug)
-            if (publishedGdoc.errors.length) {
+            if (
+                publishedGdoc.errors.filter(
+                    (e) => e.type === OwidGdocErrorMessageType.Error
+                ).length
+            ) {
                 await logErrorAndMaybeSendToBugsnag(
                     `Error(s) baking "${
                         publishedGdoc.slug
@@ -397,7 +474,7 @@ export class SiteBaker {
                 )
             }
             try {
-                await this.bakeGDocPost(publishedGdoc as OwidGdocPublished)
+                await this.bakeOwidGdoc(publishedGdoc)
             } catch (e) {
                 logErrorAndMaybeSendToBugsnag(
                     `Error baking gdoc post with id "${publishedGdoc.id}" and slug "${publishedGdoc.slug}": ${e}`
@@ -557,6 +634,73 @@ export class SiteBaker {
         }
     }
 
+    private async bakeDataInsights() {
+        if (!this.bakeSteps.has("dataInsights")) return
+        const latestDataInsights =
+            await GdocDataInsight.loadLatestDataInsights()
+        const publishedDataInsights =
+            await GdocDataInsight.getPublishedDataInsights()
+
+        for (const dataInsight of publishedDataInsights) {
+            const attachments = await this.getPrefetchedGdocAttachments([
+                dataInsight.linkedDocumentIds,
+                dataInsight.linkedImageFilenames,
+                dataInsight.linkedChartSlugs.grapher,
+                dataInsight.linkedChartSlugs.explorer,
+            ])
+            dataInsight.linkedDocuments = attachments.linkedDocuments
+            dataInsight.imageMetadata = attachments.imageMetadata
+            dataInsight.linkedCharts = {
+                ...attachments.linkedCharts.graphers,
+                ...attachments.linkedCharts.explorers,
+            }
+            dataInsight.latestDataInsights = latestDataInsights
+
+            const publishedExplorersBySlug =
+                await this.explorerAdminServer.getAllPublishedExplorersBySlugCached()
+            await dataInsight.validate(publishedExplorersBySlug)
+            if (
+                dataInsight.errors.filter(
+                    (e) => e.type === OwidGdocErrorMessageType.Error
+                ).length
+            ) {
+                await logErrorAndMaybeSendToBugsnag(
+                    `Error(s) baking data insight "${
+                        dataInsight.slug
+                    }" :\n  ${dataInsight.errors
+                        .map((error) => error.message)
+                        .join("\n  ")}`
+                )
+            }
+            try {
+                await this.bakeOwidGdoc(dataInsight)
+            } catch (e) {
+                logErrorAndMaybeSendToBugsnag(
+                    `Error baking gdoc post with id "${dataInsight.id}" and slug "${dataInsight.slug}": ${e}`
+                )
+            }
+        }
+
+        const totalPageCount = await GdocDataInsight.getTotalPageCount()
+        for (let pageNumber = 0; pageNumber < totalPageCount; pageNumber++) {
+            const html = renderDataInsightsIndexPage(
+                publishedDataInsights.slice(
+                    pageNumber * DATA_INSIGHTS_INDEX_PAGE_SIZE,
+                    (pageNumber + 1) * DATA_INSIGHTS_INDEX_PAGE_SIZE
+                ),
+                pageNumber,
+                totalPageCount
+            )
+            // Page 0 is data-insights.html, page 1 is data-insights/2.html, etc.
+            const filename = pageNumber === 0 ? "" : `/${pageNumber + 1}`
+            const outPath = path.join(
+                this.bakedSiteDir,
+                `data-insights${filename}.html`
+            )
+            await fs.mkdirp(path.dirname(outPath))
+            await this.stageWrite(outPath, html)
+        }
+    }
     // Pages that are expected by google scholar for indexing
     private async bakeGoogleScholar() {
         if (!this.bakeSteps.has("googleScholar")) return
@@ -695,6 +839,7 @@ export class SiteBaker {
         await this.bakeDetailsOnDemand()
         await this.validateGrapherDodReferences()
         await this.bakeGDocPosts()
+        await this.bakeDataInsights()
         await this.bakeDriveImages()
     }
 

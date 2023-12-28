@@ -18,6 +18,10 @@ import { hydrateExpandableParagraphs } from "./blocks/ExpandableParagraph.js"
 import { hydrateCodeSnippets } from "@ourworldindata/components"
 import { hydrateStickyNav } from "./blocks/StickyNav.js"
 import { hydrateDynamicCollectionPage } from "./collections/DynamicCollection.js"
+import {
+    _OWID_DATA_INSIGHTS_INDEX_PAGE_DATA,
+    hydrateDataInsightsIndexPage,
+} from "./DataInsightsIndexPageContent.js"
 
 export const runSiteFooterScripts = (
     args:
@@ -63,6 +67,9 @@ export const runSiteFooterScripts = (
         case SiteFooterContext.dynamicCollectionPage:
             // Don't break, run default case too
             hydrateDynamicCollectionPage()
+        case SiteFooterContext.dataInsightsIndexPage:
+            // Don't break, run default case too
+            hydrateDataInsightsIndexPage()
         default:
             // Features that were not ported over to gdocs, are only being run on WP pages:
             // - global entity selector
