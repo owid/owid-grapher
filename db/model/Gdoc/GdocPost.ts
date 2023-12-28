@@ -83,7 +83,7 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
     _validateSubclass = async (): Promise<OwidGdocErrorMessage[]> => {
         const errors: OwidGdocErrorMessage[] = []
 
-        if (!this.tags.length) {
+        if (!this.tags?.length) {
             if (this.content.type !== OwidGdocType.Fragment) {
                 errors.push({
                     property: "content",
@@ -151,7 +151,7 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
     }
 
     async loadRelatedCharts(): Promise<void> {
-        if (!this.tags.length || !this.hasAllChartsBlock) return
+        if (!this.tags?.length || !this.hasAllChartsBlock) return
 
         const connection = await getConnection()
         const relatedCharts = await connection.query(
