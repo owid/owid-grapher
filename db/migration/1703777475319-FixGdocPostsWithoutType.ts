@@ -10,7 +10,7 @@ export class FixGdocPostsWithoutType1703777475319
         // actual type in the gdoc. Because of the current code being too strict,
         // the same does not happen when opening a gdoc in the admin if the type
         // is missing, so this is a next-best workaround.
-        queryRunner.query(`-- sql
+        await queryRunner.query(`-- sql
             update posts_gdocs
             set content = json_insert(content, '$.type', 'article')
             where content->>'$.type' is null;`)
