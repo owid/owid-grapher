@@ -4,6 +4,8 @@ import {
     BaseEntity,
     UpdateDateColumn,
     PrimaryColumn,
+    BeforeUpdate,
+    BeforeInsert,
     ManyToMany,
     JoinTable,
 } from "typeorm"
@@ -52,6 +54,7 @@ import {
     spansToSimpleString,
 } from "./gdocUtils.js"
 import { OwidGoogleAuth } from "../../OwidGoogleAuth.js"
+import { enrichedBlocksToMarkdown } from "./enrichedToMarkdown.js"
 
 @Entity("tags")
 export class Tag extends BaseEntity implements TagInterface {
@@ -78,6 +81,7 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
     @Column({ type: Date, nullable: true }) publishedAt: Date | null = null
     @UpdateDateColumn({ nullable: true }) updatedAt: Date | null = null
     @Column({ type: String, nullable: true }) revisionId: string | null = null
+    @Column({ type: String, nullable: true }) markdown: string | null = null
     @Column() publicationContext: OwidGdocPublicationContext =
         OwidGdocPublicationContext.unlisted
     @Column({ type: "json", nullable: true }) breadcrumbs:
@@ -123,6 +127,20 @@ export class GdocBase extends BaseEntity implements OwidGdocBaseInterface {
         ])
 
         return enrichedBlockSources
+    }
+
+    @BeforeUpdate()
+    @BeforeInsert()
+    updateMarkdown(): void {
+        try {
+            this.markdown =
+                enrichedBlocksToMarkdown(
+                    this.enrichedBlockSources.flat(),
+                    true
+                ) ?? null
+        } catch (e) {
+            console.error("Error when converting content to markdown", e)
+        }
     }
 
     get filenames(): string[] {

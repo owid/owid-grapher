@@ -44,6 +44,9 @@
             "path": "./devTools/uploadWordpressImagesToObjStorage"
         },
         {
+            "path": "./devTools/markdownTest"
+        },
+        {
             "path": "./devTools/explorerTools"
         },
         {
