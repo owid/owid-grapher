@@ -9,76 +9,143 @@ import {
 
 export type ViewMatrix = Record<keyof GrapherQueryParams, string[]>
 
-const timeOptionsSingle = ["earliest", "latest"]
-const timeOptionsDouble = ["earliest..latest"]
-const timeOptionsAll = [...timeOptionsSingle, ...timeOptionsDouble]
+enum TimePoint {
+    earliest = "earliest",
+    latest = "latest",
+}
+
+enum TimeSpan {
+    earliestLatest = "earliest..latest",
+}
+
+enum Boolean {
+    true = "1",
+    false = "0",
+}
+
+const timePoints = Object.values(TimePoint)
+const timeSpan = Object.values(TimeSpan)
+const timeOptionsAll = [...timePoints, ...timeSpan]
 const stackModeOptions = Object.values(StackMode)
 const scaleTypeOptions = Object.values(ScaleType)
 const facetOptions = Object.values(FacetStrategy)
-const booleanOptions = ["0", "1"]
+const booleanOptions = Object.values(Boolean)
 
 const VIEW_MATRIX_BY_CHART_TYPE: Record<ChartTypeName, ViewMatrix> = {
     [ChartTypeName.LineChart]: {
         tab: ["chart"],
         time: timeOptionsAll,
-        facet: facetOptions,
+        stackMode: stackModeOptions,
         yScale: scaleTypeOptions,
+        facet: facetOptions,
         uniformYAxis: booleanOptions,
     },
     [ChartTypeName.ScatterPlot]: {
         tab: ["chart"],
         time: timeOptionsAll,
+        stackMode: stackModeOptions,
         xScale: scaleTypeOptions,
         yScale: scaleTypeOptions,
-        stackMode: stackModeOptions,
+        endpointsOnly: booleanOptions,
+        // zoomToSelection ignored for now
     },
     [ChartTypeName.DiscreteBar]: {
         tab: ["chart"],
-        time: timeOptionsSingle,
+        time: timePoints,
         facet: facetOptions,
+        // uniformYAxis doesn't apply
     },
     [ChartTypeName.StackedDiscreteBar]: {
         tab: ["chart"],
-        time: timeOptionsSingle,
-        facet: facetOptions,
+        time: timePoints,
         stackMode: stackModeOptions,
+        facet: facetOptions,
+        // uniformYAxis doesn't apply
     },
     [ChartTypeName.Marimekko]: {
         tab: ["chart"],
-        time: timeOptionsSingle,
+        time: timePoints,
         stackMode: stackModeOptions,
         showNoDataArea: booleanOptions,
     },
     [ChartTypeName.SlopeChart]: {
         tab: ["chart"],
-        time: timeOptionsDouble,
+        time: timeSpan,
     },
     [ChartTypeName.StackedArea]: {
         tab: ["chart"],
-        time: timeOptionsAll,
+        time: timeSpan,
+        stackMode: stackModeOptions,
         facet: facetOptions,
         uniformYAxis: booleanOptions,
-        stackMode: stackModeOptions,
     },
     [ChartTypeName.StackedBar]: {
         tab: ["chart"],
-        time: timeOptionsAll,
+        time: timeSpan,
+        stackMode: stackModeOptions,
         facet: facetOptions,
         uniformYAxis: booleanOptions,
-        stackMode: stackModeOptions,
     },
     [ChartTypeName.WorldMap]: {},
+}
+
+const EXCLUDE_VIEWS_BY_CHART_TYPE: Record<
+    ChartTypeName,
+    Record<keyof GrapherQueryParams, string>[]
+> = {
+    [ChartTypeName.LineChart]: [
+        // sharing an axis only makes sense if a chart is faceted
+        { facet: FacetStrategy.none, uniformYAxis: Boolean.true },
+        // log scale for percentage values doesn't make sense
+        { stackMode: StackMode.relative, yScale: ScaleType.log },
+    ],
+    [ChartTypeName.ScatterPlot]: [
+        // relative mode only makes sense if a time span is selected
+        { time: TimePoint.earliest, stackMode: StackMode.relative },
+        { time: TimePoint.latest, stackMode: StackMode.relative },
+        // selecting the end points only makes sense if a time span is selected
+        { time: TimePoint.earliest, endpointsOnly: Boolean.true },
+        { time: TimePoint.latest, endpointsOnly: Boolean.true },
+        // selecting the end points only makes sense if a time span is selected
+        // and relative mode is not selected
+        { stackMode: StackMode.relative, endpointsOnly: Boolean.true },
+        // log scale for percentage values doesn't make sense
+        { stackMode: StackMode.relative, yScale: ScaleType.log },
+        { stackMode: StackMode.relative, xScale: ScaleType.log },
+    ],
+    [ChartTypeName.DiscreteBar]: [],
+    [ChartTypeName.StackedDiscreteBar]: [],
+    [ChartTypeName.Marimekko]: [],
+    [ChartTypeName.SlopeChart]: [],
+    [ChartTypeName.StackedArea]: [
+        // sharing an axis only makes sense if a chart is faceted
+        { facet: FacetStrategy.none, uniformYAxis: Boolean.true },
+    ],
+    [ChartTypeName.StackedBar]: [
+        // sharing an axis only makes sense if a chart is faceted
+        { facet: FacetStrategy.none, uniformYAxis: Boolean.true },
+    ],
+    [ChartTypeName.WorldMap]: [],
 }
 
 export const queryStringsByChartType = Object.fromEntries(
     Object.entries(VIEW_MATRIX_BY_CHART_TYPE).map(([chartType, viewMatrix]) => {
         const combinations = explode(viewMatrix)
-        const queryStrings = combinations.map(toQueryStr)
+
+        const viewsToExclude =
+            EXCLUDE_VIEWS_BY_CHART_TYPE[chartType as ChartTypeName]
+        const validCombinations = combinations.filter((view) =>
+            viewsToExclude.every(
+                (viewToExclude) => !_.isMatch(view, viewToExclude)
+            )
+        )
+
+        const queryStrings = validCombinations.map(toQueryStr)
         return [chartType, queryStrings]
     })
 ) as Record<ChartTypeName, string[]>
 
-// adapted from from https://stackoverflow.com/questions/12303989/cartesian-product-of-multiple-arrays-in-javascript
+// adapted from https://stackoverflow.com/questions/12303989/cartesian-product-of-multiple-arrays-in-javascript
 function cartesian(matrix: any[][]) {
     if (matrix.length === 0) return []
     if (matrix.length === 1) return matrix[0].map((i) => [i])
