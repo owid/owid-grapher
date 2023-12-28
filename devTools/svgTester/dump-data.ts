@@ -38,13 +38,13 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
 const parsedArgs = parseArgs(process.argv.slice(2))
 
 if (parsedArgs["h"] || parsedArgs["help"]) {
-    console.log(`dump-data.js - utility to export configs and data for all graphers.
+    console.log(`Export configs and data for all graphers
 
 Usage:
-    dump-data.js (-o DIR)
+    dump-data.js [-o]
 
 Options:
-    -o DIR   Output directory. Inside it one dir per grapher will be created. [default: ${utils.DEFAULT_CONFIGS_DIR}]
+    -o   Output directory. Inside it one dir per grapher will be created. [default: ${utils.DEFAULT_CONFIGS_DIR}]
     `)
     process.exit(0)
 } else {

@@ -26,7 +26,10 @@ import { getHeapStatistics } from "v8"
 import * as settings from "./settings.js"
 import * as d3 from "d3"
 
-const CHART_TYPES = Object.values(ChartTypeName)
+// ignore WorldMaps
+export const CHART_TYPES = Object.values(ChartTypeName).filter(
+    (chartType) => chartType !== ChartTypeName.WorldMap
+)
 
 // the owid-grapher-svgs repo is usually cloned as a sibling to the owid-grapher repo
 export const DEFAULT_CONFIGS_DIR = "../owid-grapher-svgs/configs"
