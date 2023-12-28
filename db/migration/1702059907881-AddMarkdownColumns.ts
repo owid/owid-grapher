@@ -3,7 +3,7 @@ import {
     EnrichedDetail,
     EnrichedFaq,
     Ref,
-    OwidGdocContent,
+    OwidGdocPostContent,
 } from "@ourworldindata/utils"
 import { MigrationInterface, QueryRunner } from "typeorm"
 import { enrichedBlocksToMarkdown } from "../model/Gdoc/enrichedToMarkdown.js"
@@ -44,7 +44,7 @@ export class AddMarkdownColumns1702059907881 implements MigrationInterface {
     ): void {
         for (const row of blocks) {
             try {
-                const content: OwidGdocContent = JSON.parse(row.content)
+                const content: OwidGdocPostContent = JSON.parse(row.content)
                 const blocks = excludeNullish([
                     content.body,
                     // TODO: this just concats detail text with no separators for the DoD document, could be improved

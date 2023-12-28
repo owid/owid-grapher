@@ -7,12 +7,8 @@ import { GdocPost } from "../../db/model/Gdoc/GdocPost.js"
 import fs from "fs-extra"
 
 import parseArgs from "minimist"
-import {
-    OwidEnrichedGdocBlock,
-    OwidGdocBaseInterface,
-    OwidGdocContent,
-} from "@ourworldindata/utils"
-import { parsePostArchieml } from "@ourworldindata/utils/dist/dbTypes/PostsUtilities.js"
+import { OwidEnrichedGdocBlock } from "@ourworldindata/utils"
+import { parsePostArchieml } from "@ourworldindata/utils"
 
 async function main(parsedArgs: parseArgs.ParsedArgs) {
     try {
