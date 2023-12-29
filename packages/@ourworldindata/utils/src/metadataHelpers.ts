@@ -173,7 +173,6 @@ export const prepareSourcesForDisplay = (
     ) {
         sourcesForDisplay.push({
             label: source?.name,
-            description,
             dataPublishedBy: source?.dataPublishedBy,
             retrievedOn: source?.retrievedDate,
             retrievedFrom: source?.link,
