@@ -87,18 +87,30 @@ export const makeUnitConversionFactor = ({
 export const makeLinks = ({ link }: { link?: string }): React.ReactNode => {
     if (!link) return null
     const linkFragments = splitSourceTextIntoFragments(link)
-    return (
-        <>
-            {linkFragments.map((text, index) => (
-                <>
-                    <span>
-                        <SimpleMarkdownText text={text} useParagraphs={false} />
-                    </span>
-                    {index < linkFragments.length - 1 && <br />}
-                </>
-            ))}
-        </>
-    )
+    return linkFragments.map((urlOrText, index) => {
+        const isUrl = urlOrText.startsWith("http") && !urlOrText.match(/\s/)
+        return (
+            <React.Fragment key={urlOrText}>
+                <span>
+                    {isUrl ? (
+                        <a
+                            href={urlOrText}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            {urlOrText}
+                        </a>
+                    ) : (
+                        <SimpleMarkdownText
+                            text={urlOrText}
+                            useParagraphs={false}
+                        />
+                    )}
+                </span>
+                {index < linkFragments.length - 1 && <br />}
+            </React.Fragment>
+        )
+    })
 }
 
 const getDateRange = (dateRange: string): string | null => {
