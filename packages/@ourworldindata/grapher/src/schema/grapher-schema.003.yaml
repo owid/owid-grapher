@@ -30,6 +30,7 @@ $defs:
             facetDomain:
                 type: string
                 description: Whether the axis domain should be the same across faceted charts (if possible)
+                default: shared
                 enum:
                     - independent
                     - shared
@@ -558,6 +559,7 @@ properties:
             - string
             - "null"
         description: Stack mode. Only absolute and relative are actively used.
+        default: absolute
         enum:
             - absolute
             - relative
