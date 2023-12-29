@@ -131,6 +131,7 @@
 
         .citation__type {
             color: $dark-text;
+            font-weight: 500;
         }
 
         .indicator-processing .indicator-processing__link {
@@ -146,11 +147,6 @@
 
             &:hover {
                 text-decoration: none;
-            }
-
-            svg {
-                //display: inline-block;
-                //transform: rotate(-90deg);
             }
         }
     }
@@ -188,7 +184,9 @@
         }
 
         .indicator-descriptions .key-info__learn-more,
-        .indicator-processing .indicator-processing__link {
+        .indicator-processing .indicator-processing__link,
+        .citation__paragraph,
+        .citation__type {
             font-size: var(--text-small);
         }
     }
