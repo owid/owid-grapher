@@ -6,7 +6,7 @@ export const DataCitation = (props: {
     citationLong: string
 }) => {
     return (
-        <>
+        <div className="data-citation">
             {props.citationShort && (
                 <>
                     <p className="citation__paragraph">
@@ -33,6 +33,6 @@ export const DataCitation = (props: {
                     />
                 </>
             )}
-        </>
+        </div>
     )
 }

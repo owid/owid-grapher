@@ -125,11 +125,17 @@
             margin-right: $tab-gap;
         }
 
+        .data-citation .wp-code-snippet {
+            margin-bottom: 16px;
+        }
+
         .citation__paragraph {
             color: $light-text;
         }
 
         .citation__type {
+            display: block;
+            line-height: 1.5;
             color: $dark-text;
             font-weight: 500;
         }
