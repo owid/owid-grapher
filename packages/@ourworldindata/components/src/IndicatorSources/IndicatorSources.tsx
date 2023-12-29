@@ -5,6 +5,7 @@ import { DisplaySource, uniqBy, formatSourceDate } from "@ourworldindata/utils"
 import { SimpleMarkdownText } from "../SimpleMarkdownText.js"
 import { CodeSnippet } from "../CodeSnippet/CodeSnippet.js"
 import { REUSE_THIS_WORK_SECTION_ID } from "../SharedDataPageConstants.js"
+import { makeLinks } from "../IndicatorKeyData/IndicatorKeyData.js"
 
 export interface IndicatorSourcesProps {
     sources: DisplaySource[]
@@ -128,10 +129,7 @@ const SourceContent = (props: {
                                     Retrieved from
                                 </div>
                                 <div className="source-key-data__content">
-                                    <SimpleMarkdownText
-                                        text={source.retrievedFrom}
-                                        useParagraphs={false}
-                                    />
+                                    {makeLinks({ link: source.retrievedFrom })}
                                 </div>
                             </div>
                         )}
