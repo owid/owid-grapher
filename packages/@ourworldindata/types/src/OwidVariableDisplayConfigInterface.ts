@@ -1,9 +1,9 @@
+import { OwidVariableId } from "./domainTypes/Various.js"
 import {
     ColumnSlug,
     DimensionProperty,
-    OwidVariableId,
     Time,
-} from "./owidTypes.js"
+} from "./grapherTypes/GrapherTypes.js"
 
 export interface OwidVariableDisplayConfigInterface {
     name?: string

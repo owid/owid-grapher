@@ -30,10 +30,10 @@ import {
     traverseEnrichedBlocks,
 } from "./Util.js"
 import {
+    BlockImageSize,
     OwidEnrichedGdocBlock,
     SortOrder,
-    BlockImageSize,
-} from "./owidTypes.js"
+} from "@ourworldindata/types"
 
 describe(findClosestTime, () => {
     describe("without tolerance", () => {

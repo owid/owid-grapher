@@ -1,4 +1,4 @@
-import { FormattingOptions } from "@ourworldindata/types"
+import { FormattingOptions } from "../Wordpress.js"
 import { PostRowEnriched, PostRowRaw } from "./Posts.js"
 
 export function parsePostFormattingOptions(

@@ -1,5 +1,4 @@
-import { KeyValueProps } from "./owidTypes.js"
-import { FormattingOptions } from "@ourworldindata/types"
+import { FormattingOptions, KeyValueProps } from "@ourworldindata/types"
 
 export const extractFormattingOptions = (html: string): FormattingOptions => {
     const formattingOptionsMatch = html.match(

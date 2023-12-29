@@ -5,7 +5,7 @@ import {
     IndicatorTitleWithFragments,
     OwidProcessingLevel,
 } from "../OwidVariable.js"
-import { RelatedChart } from "../domainTypes/Charts.js"
+import { RelatedChart } from "../grapherTypes/GrapherTypes.js"
 import { Static, Type } from "@sinclair/typebox"
 import { OwidGdocPostInterface } from "./Gdoc.js"
 import { OwidEnrichedGdocBlock } from "./ArchieMlComponents.js"

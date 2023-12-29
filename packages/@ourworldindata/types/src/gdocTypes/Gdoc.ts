@@ -1,8 +1,8 @@
 import { Tag } from "../dbTypes/Tags.js"
-import { RelatedChart } from "../domainTypes/Charts.js"
+import { RelatedChart } from "../grapherTypes/GrapherTypes.js"
 import { BreadcrumbItem } from "../domainTypes/Site.js"
 import { TocHeadingWithTitleSupertitle } from "../domainTypes/Toc.js"
-import { ImageMetadata } from "../image.js"
+import { ImageMetadata } from "./Image.js"
 import {
     EnrichedBlockText,
     EnrichedBlockWithParseErrors,

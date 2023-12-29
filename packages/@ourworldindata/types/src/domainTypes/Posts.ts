@@ -1,6 +1,6 @@
 import { OwidGdocType } from "../gdocTypes/Gdoc.js"
 import { WP_PostType } from "../wordpress/WordpressTypes.js"
-import { RelatedChart } from "./Charts.js"
+import { RelatedChart } from "../grapherTypes/GrapherTypes.js"
 import { TocHeading } from "./Toc.js"
 
 export interface FormattedPost extends FullPost {

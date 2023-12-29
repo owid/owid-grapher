@@ -1,4 +1,5 @@
-import { KeyChartLevel } from "../domainTypes/Charts.js"
+import { KeyChartLevel } from "../grapherTypes/GrapherTypes.js"
+import { Tag } from "./Tags.js"
 
 /** the entity in the `chart_tags` table */
 export interface ChartTag {

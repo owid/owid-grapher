@@ -1,6 +1,6 @@
 #! /usr/bin/env jest
 
-import { TimeBoundValue } from "./owidTypes.js"
+import { TimeBoundValue } from "@ourworldindata/types"
 import {
     minTimeBoundFromJSONOrNegativeInfinity,
     maxTimeBoundFromJSONOrPositiveInfinity,
