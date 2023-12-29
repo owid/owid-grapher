@@ -1,5 +1,11 @@
 {
     "version": 1,
-    "include": ["/grapher/*"],
-    "exclude": ["/grapher/embedCharts.js", "/grapher/_grapherRedirects.json"]
+    "include": [
+        "/grapher/*",
+        "/donation/*"
+    ],
+    "exclude": [
+        "/grapher/embedCharts.js",
+        "/grapher/_grapherRedirects.json"
+    ]
 }
