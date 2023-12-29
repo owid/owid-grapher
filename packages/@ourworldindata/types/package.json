@@ -19,5 +19,8 @@
     "jest": "^29.7.0",
     "typescript": "~5.2.2"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@sinclair/typebox": "^0.28.5"
+  }
 }
