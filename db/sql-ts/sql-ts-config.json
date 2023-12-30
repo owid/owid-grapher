@@ -11,5 +11,7 @@
     "typeMap": {
         "jsonString": "json"
     },
-    "filename": "db/sql-ts/Database"
+    "filename": "db/sql-ts/Database",
+    "template": "db/sql-ts/template.handlebars",
+    "interfaceNameFormat": "${table}Row"
 }
