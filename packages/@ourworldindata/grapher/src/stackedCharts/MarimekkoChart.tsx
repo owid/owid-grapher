@@ -36,12 +36,12 @@ import { NoDataModal } from "../noDataModal/NoDataModal"
 import { AxisConfig } from "../axis/AxisConfig"
 import { ChartInterface } from "../chart/ChartInterface"
 import {
-    OwidTable,
     EntityName,
     OwidVariableRow,
     OwidTableSlugs,
-    CoreColumn,
-} from "@ourworldindata/core-table"
+    colorScaleConfigDefaults,
+} from "@ourworldindata/types"
+import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
 import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
 import { StackedPoint, StackedSeries } from "./StackedConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
@@ -484,8 +484,10 @@ export class MarimekkoChart
 
     @computed get colorScaleConfig(): ColorScaleConfigDefaults | undefined {
         return (
-            ColorScaleConfig.fromDSL(this.colorColumn.def) ??
-            this.manager.colorScale
+            ColorScaleConfig.fromDSL(this.colorColumn.def) ?? {
+                ...colorScaleConfigDefaults,
+                ...this.manager.colorScale,
+            }
         )
     }
 

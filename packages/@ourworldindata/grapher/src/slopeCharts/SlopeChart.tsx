@@ -36,6 +36,7 @@ import {
 import {
     ScaleType,
     EntitySelectionMode,
+    Color,
     SeriesName,
     ColorSchemeName,
 } from "@ourworldindata/types"
@@ -53,7 +54,7 @@ import {
     SlopeChartValue,
     SlopeProps,
 } from "./SlopeChartConstants"
-import { CoreColumn, OwidTable, Color } from "@ourworldindata/core-table"
+import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
 import { AxisConfig, FontSizeManager } from "../axis/AxisConfig"
 

@@ -1,8 +1,7 @@
 #! /usr/bin/env jest
 
-import { SortOrder, SortBy } from "@ourworldindata/utils"
+import { SortOrder, SortBy, ColumnTypeNames } from "@ourworldindata/utils"
 import {
-    ColumnTypeNames,
     OwidTable,
     SampleColumnSlugs,
     SynthesizeFruitTable,

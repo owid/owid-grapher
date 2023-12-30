@@ -44,8 +44,10 @@ import { extent } from "d3-array"
 import {
     SeriesName,
     ScaleType,
+    EntityName,
     SeriesStrategy,
     FacetStrategy,
+    CoreValueType,
     MissingDataStrategy,
     ColorScaleConfigInterface,
     ColorSchemeName,
@@ -68,9 +70,7 @@ import {
 import {
     OwidTable,
     CoreColumn,
-    CoreValueType,
     isNotErrorValue,
-    EntityName,
     BlankOwidTable,
 } from "@ourworldindata/core-table"
 import {

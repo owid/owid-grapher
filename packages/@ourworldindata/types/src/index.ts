@@ -97,6 +97,7 @@ export {
     MissingDataStrategy,
     SeriesStrategy,
     type GrapherInterface,
+    type Topic,
     grapherKeysToSerialize,
     type GrapherQueryParams,
     type LegacyGrapherInterface,
@@ -327,7 +328,6 @@ export {
 } from "./dbTypes/Posts.js"
 
 export type { GDriveImageMetadata, ImageMetadata } from "./gdocTypes/Image.js"
-
 export {
     ALL_CHARTS_ID,
     LICENSE_ID,

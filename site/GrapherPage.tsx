@@ -1,7 +1,6 @@
 import {
     getVariableDataRoute,
     getVariableMetadataRoute,
-    GrapherInterface,
     GRAPHER_PAGE_BODY_CLASS,
     GRAPHER_SETTINGS_DRAWER_ID,
     LoadingIndicator,
@@ -12,6 +11,7 @@ import {
     PostRowEnriched,
     RelatedChart,
     serializeJSONForHTML,
+    GrapherInterface,
     uniq,
     SiteFooterContext,
     Url,

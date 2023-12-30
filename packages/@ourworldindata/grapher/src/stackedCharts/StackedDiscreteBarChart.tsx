@@ -17,6 +17,7 @@ import {
     SortBy,
     SortConfig,
     HorizontalAlign,
+    EntityName,
     getRelativeMouse,
 } from "@ourworldindata/utils"
 import { action, computed, observable } from "mobx"
@@ -37,7 +38,7 @@ import {
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { AxisConfig } from "../axis/AxisConfig"
 import { ChartInterface } from "../chart/ChartInterface"
-import { OwidTable, EntityName, CoreColumn } from "@ourworldindata/core-table"
+import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
 import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
 import {
     stackSeries,

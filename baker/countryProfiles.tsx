@@ -1,7 +1,7 @@
 import React from "react"
 import * as db from "../db/db.js"
 import { CountriesIndexPage } from "../site/CountriesIndexPage.js"
-import { GrapherInterface } from "@ourworldindata/grapher"
+import { GrapherInterface } from "@ourworldindata/types"
 import * as lodash from "lodash"
 import {
     CountryProfileIndicator,

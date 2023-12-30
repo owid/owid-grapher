@@ -43,11 +43,11 @@ import { BaseEditorComponent, HotColumn, HotTable } from "@handsontable/react"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 
 import Handsontable from "handsontable"
+import { ChartTypeName } from "@ourworldindata/types"
 import {
     Grapher,
     GrapherProgrammaticInterface,
     MapChart,
-    ChartTypeName,
 } from "@ourworldindata/grapher"
 import { BindString, SelectField, Toggle } from "./Forms.js"
 import { from } from "rxjs"

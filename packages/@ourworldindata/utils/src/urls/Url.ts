@@ -1,10 +1,9 @@
 import urlParseLib from "url-parse"
-import { gdocUrlRegex } from "@ourworldindata/types"
+import { gdocUrlRegex, QueryParams } from "@ourworldindata/types"
 
 import { excludeUndefined, omitUndefinedValues } from "../Util.js"
 
 import { queryParamsToStr, strToQueryParams } from "./UrlUtils.js"
-import { QueryParams } from "@ourworldindata/types"
 
 const parseUrl = (url: string): urlParseLib<string> => {
     const parsed = urlParseLib(url, {})

@@ -13,10 +13,10 @@ import {
     OwidVariableId,
     retryPromise,
     OwidLicense,
+    GrapherInterface,
     OwidProcessingLevel,
 } from "@ourworldindata/utils"
 import {
-    GrapherInterface,
     getVariableDataRoute,
     getVariableMetadataRoute,
 } from "@ourworldindata/grapher"

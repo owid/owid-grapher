@@ -21,11 +21,11 @@ import {
     extractDetailsFromSyntax,
 } from "@ourworldindata/utils"
 import {
-    Grapher,
     Topic,
     GrapherInterface,
     GrapherStaticFormat,
-} from "@ourworldindata/grapher"
+} from "@ourworldindata/types"
+import { Grapher } from "@ourworldindata/grapher"
 import { Admin } from "./Admin.js"
 import {
     ChartEditor,

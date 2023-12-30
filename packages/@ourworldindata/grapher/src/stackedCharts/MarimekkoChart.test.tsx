@@ -1,8 +1,12 @@
 #! /usr/bin/env jest
 
-import { Bounds, SortOrder, SortBy } from "@ourworldindata/utils"
 import {
+    Bounds,
+    SortOrder,
+    SortBy,
     ColumnTypeNames,
+} from "@ourworldindata/utils"
+import {
     OwidTable,
     SampleColumnSlugs,
     SynthesizeGDPTable,

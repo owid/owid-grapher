@@ -5,8 +5,8 @@ import {
     OwidColumnDef,
     OwidTableSlugs,
     StandardOwidColumnDefs,
+    LegacyGrapherInterface,
 } from "@ourworldindata/types"
-import { LegacyGrapherInterface } from "../core/GrapherInterface"
 import { ColumnTypeMap, ErrorValueTypes } from "@ourworldindata/core-table"
 import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable"
 import {

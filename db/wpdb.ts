@@ -41,7 +41,7 @@ import {
     Tag,
     OwidGdocPostInterface,
 } from "@ourworldindata/utils"
-import { Topic } from "@ourworldindata/grapher"
+import { Topic } from "@ourworldindata/types"
 import {
     getContentGraph,
     WPPostTypeToGraphDocumentType,

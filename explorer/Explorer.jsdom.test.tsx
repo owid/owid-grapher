@@ -8,7 +8,7 @@ import {
 
 import Enzyme from "enzyme"
 import Adapter from "@wojtekmaj/enzyme-adapter-react-17"
-import { GrapherTabOption } from "@ourworldindata/grapher"
+import { GrapherTabOption } from "@ourworldindata/types"
 
 Enzyme.configure({ adapter: new Adapter() })
 

@@ -1,5 +1,5 @@
 import { HotTable } from "@handsontable/react"
-import { CoreMatrix } from "@ourworldindata/core-table"
+import { CoreMatrix } from "@ourworldindata/types"
 import { LoadingIndicator } from "@ourworldindata/grapher"
 import {
     exposeInstanceOnWindow,

@@ -34,7 +34,7 @@ import React from "react"
 import { IconDefinition } from "@fortawesome/fontawesome-common-types"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
-import { GrapherInterface } from "@ourworldindata/grapher"
+import { GrapherInterface } from "@ourworldindata/types"
 import {
     AntdConfig,
     BasicConfig,

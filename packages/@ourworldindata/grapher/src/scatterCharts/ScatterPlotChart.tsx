@@ -1,8 +1,17 @@
 import React from "react"
 import {
     ComparisonLineConfig,
-    ComparisonLine,
-} from "../scatterCharts/ComparisonLine"
+    ScaleType,
+    EntitySelectionMode,
+    ScatterPointLabelStrategy,
+    SeriesName,
+    Color,
+    EntityName,
+    OwidTableSlugs,
+    ColorSchemeName,
+    colorScaleConfigDefaults,
+} from "@ourworldindata/types"
+import { ComparisonLine } from "../scatterCharts/ComparisonLine"
 import { observable, computed, action } from "mobx"
 import { ScaleLinear, scaleSqrt } from "d3-scale"
 import { Quadtree, quadtree } from "d3-quadtree"
@@ -36,25 +45,15 @@ import {
 import { observer } from "mobx-react"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import {
-    ScaleType,
-    EntitySelectionMode,
-    ScatterPointLabelStrategy,
-    SeriesName,
-} from "@ourworldindata/types"
-import {
     GRAPHER_AXIS_LINE_WIDTH_DEFAULT,
     GRAPHER_AXIS_LINE_WIDTH_THICK,
 } from "../core/GrapherConstants"
 import {
-    Color,
-    EntityName,
-    OwidTableSlugs,
     OwidTable,
     defaultIfErrorValue,
     isNotErrorValue,
     CoreColumn,
     ColumnTypeMap,
-    ColorSchemeName,
 } from "@ourworldindata/core-table"
 import {
     ConnectedScatterLegend,
@@ -945,8 +944,10 @@ export class ScatterPlotChart
 
     @computed get colorScaleConfig(): ColorScaleConfigDefaults | undefined {
         return (
-            ColorScaleConfig.fromDSL(this.colorColumn.def) ??
-            this.manager.colorScale
+            ColorScaleConfig.fromDSL(this.colorColumn.def) ?? {
+                ...colorScaleConfigDefaults,
+                ...this.manager.colorScale,
+            }
         )
     }
 

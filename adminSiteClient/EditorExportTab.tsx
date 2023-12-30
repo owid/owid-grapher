@@ -3,8 +3,11 @@ import { observer } from "mobx-react"
 import React from "react"
 import { ChartEditor } from "./ChartEditor.js"
 import { Section, Toggle } from "./Forms.js"
-import { Grapher, GrapherStaticFormat } from "@ourworldindata/grapher"
-import { triggerDownloadFromBlob } from "@ourworldindata/utils"
+import { Grapher } from "@ourworldindata/grapher"
+import {
+    triggerDownloadFromBlob,
+    GrapherStaticFormat,
+} from "@ourworldindata/utils"
 
 type ExportSettings = Required<
     Pick<

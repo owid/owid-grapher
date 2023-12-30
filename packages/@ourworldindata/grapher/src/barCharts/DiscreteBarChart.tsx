@@ -25,6 +25,7 @@ import {
     SeriesStrategy,
     FacetStrategy,
     ColorScaleConfigInterface,
+    CoreValueType,
     ColorSchemeName,
 } from "@ourworldindata/types"
 import {
@@ -52,7 +53,6 @@ import {
 import {
     OwidTable,
     CoreColumn,
-    CoreValueType,
     isNotErrorValue,
 } from "@ourworldindata/core-table"
 import {

@@ -1,10 +1,9 @@
+import { ChartTypeName, MapProjectionName } from "@ourworldindata/types"
 import {
     ChartDimension,
-    ChartTypeName,
     MapChart,
     MapConfig,
     MapProjectionLabels,
-    MapProjectionName,
 } from "@ourworldindata/grapher"
 import { ColumnSlug, isEmpty, ToleranceStrategy } from "@ourworldindata/utils"
 import { action, computed } from "mobx"

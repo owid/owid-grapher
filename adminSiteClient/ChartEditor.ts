@@ -5,8 +5,12 @@
  *
  */
 
-import { Grapher, Topic } from "@ourworldindata/grapher"
-import { type DetailDictionary, type RawPageview } from "@ourworldindata/utils"
+import { Grapher } from "@ourworldindata/grapher"
+import {
+    type DetailDictionary,
+    type RawPageview,
+    Topic,
+} from "@ourworldindata/utils"
 import { computed, observable, runInAction, when } from "mobx"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
 import { Admin } from "./Admin.js"

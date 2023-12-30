@@ -1,8 +1,5 @@
-import {
-    Grapher,
-    GrapherInterface,
-    GrapherProgrammaticInterface,
-} from "@ourworldindata/grapher"
+import { GrapherInterface } from "@ourworldindata/types"
+import { Grapher, GrapherProgrammaticInterface } from "@ourworldindata/grapher"
 import { MultipleOwidVariableDataDimensionsMap } from "@ourworldindata/utils"
 import fs from "fs-extra"
 import path from "path"

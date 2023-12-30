@@ -3,7 +3,7 @@ import { MigrationInterface, QueryRunner } from "typeorm"
 
 import { entityNameById } from "./data/entityNameById.js"
 
-import { ChartTypeName, GrapherInterface } from "@ourworldindata/grapher"
+import { ChartTypeName, GrapherInterface } from "@ourworldindata/types"
 
 /**
  * Migrate the legacy `selectedData` and get rid of it.

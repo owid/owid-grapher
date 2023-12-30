@@ -18,13 +18,13 @@ import {
     isSubsetOf,
     orderBy,
     queryParamsToStr,
+    ColumnTypeNames,
     Url,
     DimensionProperty,
 } from "@ourworldindata/utils"
 import {
     SampleColumnSlugs,
     SynthesizeGDPTable,
-    ColumnTypeNames,
     OwidTable,
 } from "@ourworldindata/core-table"
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations"

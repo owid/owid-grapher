@@ -1,11 +1,11 @@
 import {
     ChartTypeName,
-    ColorSchemes,
     FacetAxisDomain,
     FacetStrategy,
     GrapherTabOption,
     StackMode,
-} from "@ourworldindata/grapher"
+} from "@ourworldindata/types"
+import { ColorSchemes } from "@ourworldindata/grapher"
 import { SortBy, SortOrder } from "@ourworldindata/utils"
 import {
     GridBoolean,
