@@ -20,7 +20,9 @@ import {
     BinningStrategy,
     Color,
     CoreValueType,
+    colorScaleConfigDefaults,
 } from "@ourworldindata/types"
+import { CoreColumn } from "@ourworldindata/core-table"
 
 export const NO_DATA_LABEL = "No data"
 
@@ -41,7 +43,9 @@ export class ColorScale {
     // Config accessors
 
     @computed get config(): ColorScaleConfigDefaults {
-        return this.manager.colorScaleConfig ?? new ColorScaleConfig()
+        return this.manager.colorScaleConfig
+            ? { ...colorScaleConfigDefaults, ...this.manager.colorScaleConfig }
+            : new ColorScaleConfig()
     }
 
     @computed get customNumericValues(): number[] {

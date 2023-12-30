@@ -19,12 +19,13 @@ import {
     SortConfig,
     SortOrder,
     getRelativeMouse,
+    ColorSchemeName,
+    EntitySelectionMode,
 } from "@ourworldindata/utils"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
 import {
     BASE_FONT_SIZE,
-    EntitySelectionMode,
     GRAPHER_AXIS_LINE_WIDTH_DEFAULT,
     GRAPHER_AXIS_LINE_WIDTH_THICK,
     GRAPHER_FONT_SCALE_12,
@@ -56,7 +57,7 @@ import {
     ColorScaleConfig,
     ColorScaleConfigDefaults,
 } from "../color/ColorScaleConfig"
-import { ColorSchemeName, OwidNoDataGray } from "../color/ColorConstants"
+import { OwidNoDataGray } from "../color/ColorConstants"
 import { color } from "d3-color"
 import { SelectionArray } from "../selection/SelectionArray"
 import { ColorScheme } from "../color/ColorScheme"

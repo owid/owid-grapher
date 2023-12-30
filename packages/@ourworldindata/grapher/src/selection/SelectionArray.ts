@@ -1,4 +1,4 @@
-import { EntityCode, EntityId, EntityName } from "@ourworldindata/core-table"
+import { EntityCode, EntityId, EntityName } from "@ourworldindata/types"
 import { difference, mapBy } from "@ourworldindata/utils"
 import { action, computed, observable } from "mobx"
 

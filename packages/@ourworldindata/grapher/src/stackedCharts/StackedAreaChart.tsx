@@ -14,11 +14,11 @@ import {
     lastOfNonEmptyArray,
 } from "@ourworldindata/utils"
 import { computed, action, observable } from "mobx"
+import { SeriesName } from "@ourworldindata/types"
 import {
     GRAPHER_AREA_OPACITY_DEFAULT,
     GRAPHER_AXIS_LINE_WIDTH_DEFAULT,
     GRAPHER_AXIS_LINE_WIDTH_THICK,
-    SeriesName,
 } from "../core/GrapherConstants"
 import { observer } from "mobx-react"
 import { DualAxisComponent } from "../axis/AxisViews"

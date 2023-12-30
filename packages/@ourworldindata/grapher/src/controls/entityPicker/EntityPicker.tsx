@@ -22,17 +22,17 @@ import {
     regions,
     sortBy,
     upperFirst,
+    SortOrder,
+    EntityName,
     compact,
+    CoreColumnDef,
+    OwidTableSlugs,
 } from "@ourworldindata/utils"
 import { VerticalScrollContainer } from "../../controls/VerticalScrollContainer"
 import { SortIcon } from "../../controls/SortIcon"
 import {
-    SortOrder,
     ColumnTypeMap,
     CoreColumn,
-    EntityName,
-    OwidTableSlugs,
-    CoreColumnDef,
     OwidTable,
 } from "@ourworldindata/core-table"
 import { EntityPickerManager } from "./EntityPickerConstants"

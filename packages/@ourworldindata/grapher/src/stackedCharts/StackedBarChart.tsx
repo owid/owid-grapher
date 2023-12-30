@@ -37,7 +37,7 @@ import {
 } from "./AbstractStackedChart"
 import { StackedPoint, StackedSeries } from "./StackedConstants"
 import { VerticalAxis } from "../axis/Axis"
-import { ColorSchemeName } from "../color/ColorConstants"
+import { ColorSchemeName } from "@ourworldindata/types"
 import { stackSeries, withMissingValuesAsZeroes } from "./StackedUtils"
 import { makeClipPath } from "../chart/ChartUtils"
 import { ColorScaleConfigDefaults } from "../color/ColorScaleConfig"

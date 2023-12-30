@@ -97,13 +97,16 @@ import {
     EntityName,
     OwidColumnDef,
     OwidVariableRow,
+    GrapherStaticFormat,
+    ColorSchemeName,
+    AxisConfigInterface,
+} from "@ourworldindata/types"
+import {
     BlankOwidTable,
     OwidTable,
     ColumnTypeMap,
     CoreColumn,
-    ColorSchemeName,
-    AxisConfigInterface,
-} from "@ourworldindata/types"
+} from "@ourworldindata/core-table"
 import {
     BASE_FONT_SIZE,
     CookieKey,
@@ -117,7 +120,6 @@ import {
     DEFAULT_GRAPHER_ENTITY_TYPE,
     DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL,
     GRAPHER_DARK_TEXT,
-    GrapherStaticFormat,
     STATIC_EXPORT_DETAIL_SPACING,
     GRAPHER_LIGHT_TEXT,
 } from "../core/GrapherConstants"

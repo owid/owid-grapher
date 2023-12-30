@@ -4,7 +4,7 @@ import {
     FacetStrategy,
     GrapherTabOption,
     SeriesStrategy,
-} from "../core/GrapherConstants"
+} from "@ourworldindata/types"
 import { DEFAULT_BOUNDS } from "@ourworldindata/utils"
 import React from "react"
 import {

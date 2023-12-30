@@ -1,18 +1,16 @@
 #! /usr/bin/env jest
 import { Grapher, GrapherProgrammaticInterface } from "../core/Grapher"
+import { DEFAULT_GRAPHER_CONFIG_SCHEMA } from "./GrapherConstants"
 import {
     ChartTypeName,
-    DEFAULT_GRAPHER_CONFIG_SCHEMA,
     EntitySelectionMode,
     GrapherTabOption,
     ScaleType,
-} from "./GrapherConstants"
-import {
     GrapherInterface,
     GrapherQueryParams,
     LegacyGrapherInterface,
     LegacyGrapherQueryParams,
-} from "../core/GrapherInterface"
+} from "@ourworldindata/types"
 import {
     TimeBoundValue,
     TimeBound,

@@ -4,10 +4,8 @@ import { observer } from "mobx-react"
 import {
     SampleColumnSlugs,
     SynthesizeGDPTable,
-    EntityName,
-    OwidTableSlugs,
-    SortOrder,
 } from "@ourworldindata/core-table"
+import { EntityName, OwidTableSlugs, SortOrder } from "@ourworldindata/types"
 import { EntityPickerManager } from "./EntityPickerConstants"
 import { computed, observable } from "mobx"
 import { SelectionArray } from "../../selection/SelectionArray"

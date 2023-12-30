@@ -4,12 +4,8 @@ import { observer } from "mobx-react"
 import { Tooltip, TooltipValue, TooltipState } from "../tooltip/Tooltip"
 import { MapChartManager } from "./MapChartConstants"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale"
-import {
-    Time,
-    OwidTable,
-    EntityName,
-    OwidVariableRow,
-} from "@ourworldindata/core-table"
+import { Time, EntityName, OwidVariableRow } from "@ourworldindata/types"
+import { OwidTable } from "@ourworldindata/core-table"
 import { LineChart } from "../lineCharts/LineChart"
 import {
     Bounds,

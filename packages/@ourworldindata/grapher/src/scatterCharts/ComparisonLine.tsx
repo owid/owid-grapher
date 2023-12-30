@@ -6,6 +6,7 @@ import { observer } from "mobx-react"
 import { DualAxis } from "../axis/Axis"
 import { generateComparisonLinePoints } from "./ComparisonLineGenerator"
 import { getElementWithHalo } from "./Halos"
+import { ComparisonLineConfig } from "@ourworldindata/types"
 
 @observer
 export class ComparisonLine extends React.Component<{

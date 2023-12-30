@@ -1,5 +1,11 @@
 import { observable } from "mobx"
-import { Color, ColumnColorScale } from "@ourworldindata/core-table"
+import {
+    Color,
+    ColumnColorScale,
+    BinningStrategy,
+    ColorSchemeName,
+    ColorScaleConfigInterface,
+} from "@ourworldindata/types"
 import {
     extend,
     isEmpty,
@@ -9,7 +15,6 @@ import {
     Persistable,
     updatePersistables,
 } from "@ourworldindata/utils"
-import { BinningStrategy, ColorSchemeName } from "@ourworldindata/types"
 
 import { NO_DATA_LABEL } from "./ColorScale"
 
@@ -108,7 +113,7 @@ export class ColorScaleConfig
         const customNumericColors: (Color | undefined)[] = []
         scale.colorScaleNumericBins
             ?.split(INTER_BIN_DELIMITER)
-            .forEach((bin): void => {
+            .forEach((bin: string): void => {
                 const [value, color, ...label] = bin.split(
                     INTRA_BIN_DELIMITER
                 ) as (string | undefined)[]
@@ -137,7 +142,7 @@ export class ColorScaleConfig
         } = {}
         scale.colorScaleCategoricalBins
             ?.split(INTER_BIN_DELIMITER)
-            .forEach((bin): void => {
+            .forEach((bin: string): void => {
                 const [value, color, ...label] = bin.split(
                     INTRA_BIN_DELIMITER
                 ) as (string | undefined)[]

@@ -3,7 +3,7 @@
 import React from "react"
 
 import { DataTable } from "./DataTable"
-import { ChartTypeName, GrapherTabOption } from "../core/GrapherConstants"
+import { ChartTypeName, GrapherTabOption } from "@ourworldindata/types"
 import {
     childMortalityGrapher,
     IncompleteDataTable,

@@ -309,6 +309,17 @@ export interface ColorScaleConfigInterface {
     legendDescription?: string
 }
 
+export const colorScaleConfigDefaults = {
+    binningStrategy: BinningStrategy.ckmeans,
+    customNumericValues: [],
+    customNumericLabels: [],
+    customNumericColors: [],
+    equalSizeBins: true,
+    customCategoryColors: {},
+    customCategoryLabels: {},
+    customHiddenCategories: {},
+} satisfies ColorScaleConfigInterface
+
 export interface ColorSchemeInterface {
     name: string
     colorSets: Color[][] // Different color sets depending on how many distinct colors you want

@@ -1,7 +1,6 @@
 import { DimensionProperty } from "@ourworldindata/utils"
 import { Grapher } from "../core/Grapher"
-import { GrapherTabOption } from "../core/GrapherConstants"
-import { GrapherInterface } from "../core/GrapherInterface"
+import { GrapherTabOption, GrapherInterface } from "@ourworldindata/types"
 
 export const childMortalityGrapher = (
     props: Partial<GrapherInterface> = {}

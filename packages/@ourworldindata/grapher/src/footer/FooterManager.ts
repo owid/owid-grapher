@@ -1,5 +1,5 @@
 import { TooltipManager } from "../tooltip/TooltipProps"
-import { GrapherInterface } from "../core/GrapherInterface"
+import { GrapherInterface } from "@ourworldindata/types"
 import { ActionButtonsManager } from "../controls/ActionButtons"
 
 export interface FooterManager extends TooltipManager, ActionButtonsManager {

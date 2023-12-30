@@ -3,10 +3,8 @@ import Select from "react-select"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { MapConfig } from "../mapCharts/MapConfig"
-import {
-    MapProjectionName,
-    MapProjectionLabels,
-} from "../mapCharts/MapProjections"
+import { MapProjectionName } from "@ourworldindata/types"
+import { MapProjectionLabels } from "../mapCharts/MapProjections"
 
 export { AbsRelToggle } from "./settings/AbsRelToggle"
 export { FacetStrategySelector } from "./settings/FacetStrategySelector"

@@ -6,6 +6,7 @@ import {
     GV_LOGO_SVG,
     SMALL_OWID_LOGO_SVG,
 } from "./LogosSVG"
+import { LogoOption } from "@ourworldindata/types"
 
 interface LogoAttributes {
     svg: string

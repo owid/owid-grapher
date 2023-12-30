@@ -1,6 +1,6 @@
 import React from "react"
 import { Box } from "@ourworldindata/utils"
-import { SeriesStrategy } from "../core/GrapherConstants"
+import { SeriesStrategy } from "@ourworldindata/types"
 import { LineChartSeries } from "../lineCharts/LineChartConstants"
 import { SelectionArray } from "../selection/SelectionArray"
 import { ChartManager } from "./ChartManager"

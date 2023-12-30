@@ -36,11 +36,12 @@ import {
 import { observer } from "mobx-react"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import {
-    BASE_FONT_SIZE,
     ScaleType,
     EntitySelectionMode,
     ScatterPointLabelStrategy,
     SeriesName,
+} from "@ourworldindata/types"
+import {
     GRAPHER_AXIS_LINE_WIDTH_DEFAULT,
     GRAPHER_AXIS_LINE_WIDTH_THICK,
 } from "../core/GrapherConstants"
@@ -53,6 +54,7 @@ import {
     isNotErrorValue,
     CoreColumn,
     ColumnTypeMap,
+    ColorSchemeName,
 } from "@ourworldindata/core-table"
 import {
     ConnectedScatterLegend,
@@ -88,7 +90,7 @@ import {
 } from "./ScatterPlotChartConstants"
 import { ScatterPointsWithLabels } from "./ScatterPointsWithLabels"
 import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
-import { ColorSchemeName, OwidNoDataGray } from "../color/ColorConstants"
+import { OwidNoDataGray } from "../color/ColorConstants"
 import {
     ColorScaleConfig,
     ColorScaleConfigDefaults,

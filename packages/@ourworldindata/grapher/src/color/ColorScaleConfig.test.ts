@@ -1,7 +1,6 @@
 #! yarn testJest
 
-import { BinningStrategy } from "./BinningStrategy"
-import { ColorSchemeName } from "./ColorConstants"
+import { BinningStrategy, ColorSchemeName } from "@ourworldindata/types"
 import { NO_DATA_LABEL } from "./ColorScale"
 import { ColorScaleConfig } from "./ColorScaleConfig"
 

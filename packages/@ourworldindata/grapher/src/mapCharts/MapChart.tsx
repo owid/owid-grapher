@@ -23,7 +23,7 @@ import {
     HorizontalColorLegendManager,
     HorizontalNumericColorLegend,
 } from "../horizontalColorLegend/HorizontalColorLegends"
-import { MapProjectionName, MapProjectionGeos } from "./MapProjections"
+import { MapProjectionGeos } from "./MapProjections"
 import { GeoPathRoundingContext } from "./GeoPathRoundingContext"
 import { select } from "d3-selection"
 import { easeCubic } from "d3-ease"
@@ -31,7 +31,7 @@ import { Quadtree, quadtree } from "d3-quadtree"
 import { MapTooltip } from "./MapTooltip"
 import { TooltipState } from "../tooltip/Tooltip.js"
 import { isOnTheMap } from "./EntitiesOnTheMap"
-import { EntityName, OwidTable, CoreColumn } from "@ourworldindata/core-table"
+import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
 import {
     GeoFeature,
     MapBracket,
@@ -44,12 +44,7 @@ import {
 } from "./MapChartConstants"
 import { MapConfig } from "./MapConfig"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale"
-import {
-    BASE_FONT_SIZE,
-    GrapherTabOption,
-    SeriesName,
-    Patterns,
-} from "../core/GrapherConstants"
+import { BASE_FONT_SIZE, Patterns } from "../core/GrapherConstants"
 import { ChartInterface } from "../chart/ChartInterface"
 import {
     CategoricalBin,
@@ -62,7 +57,13 @@ import {
     WorldRegionName,
     WorldRegionToProjection,
 } from "./WorldRegionsToProjection"
-import { ColorSchemeName } from "../color/ColorConstants"
+import {
+    ColorSchemeName,
+    MapProjectionName,
+    GrapherTabOption,
+    SeriesName,
+    EntityName,
+} from "@ourworldindata/types"
 import {
     autoDetectYColumnSlugs,
     makeClipPath,

@@ -1,6 +1,7 @@
 import { ChartManager } from "../chart/ChartManager"
-import { CoreColumn, CoreValueType, Time } from "@ourworldindata/core-table"
+import { CoreColumn } from "@ourworldindata/core-table"
 import { ChartSeries } from "../chart/ChartInterface"
+import { CoreValueType, Time } from "@ourworldindata/types"
 
 export interface DiscreteBarSeries extends ChartSeries {
     yColumn: CoreColumn

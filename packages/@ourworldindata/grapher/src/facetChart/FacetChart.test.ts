@@ -11,7 +11,7 @@ import {
     ChartTypeName,
     FacetAxisDomain,
     FacetStrategy,
-} from "../core/GrapherConstants"
+} from "@ourworldindata/types"
 import { uniq } from "@ourworldindata/utils"
 import { LineChart } from "../lineCharts/LineChart"
 

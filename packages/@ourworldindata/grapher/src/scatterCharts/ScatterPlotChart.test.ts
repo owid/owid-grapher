@@ -23,7 +23,7 @@ import {
     EntitySelectionMode,
     ScaleType,
     ScatterPointLabelStrategy,
-} from "../core/GrapherConstants"
+} from "@ourworldindata/types"
 import { ContinentColors } from "../color/CustomSchemes"
 import { sortBy, uniq, uniqBy } from "@ourworldindata/utils"
 import { ScatterPointsWithLabels } from "./ScatterPointsWithLabels"

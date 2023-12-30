@@ -9,7 +9,7 @@ import {
     ChartTypeName,
     FacetStrategy,
     GrapherTabOption,
-} from "./GrapherConstants"
+} from "@ourworldindata/types"
 import { action, observable } from "mobx"
 import { observer } from "mobx-react"
 import { ChartTypeSwitcher } from "../chart/ChartTypeSwitcher"

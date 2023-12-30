@@ -22,9 +22,13 @@ import { computed } from "mobx"
 import { observer } from "mobx-react"
 import {
     ScaleType,
-    BASE_FONT_SIZE,
     SeriesStrategy,
     FacetStrategy,
+    ColorScaleConfigInterface,
+    ColorSchemeName,
+} from "@ourworldindata/types"
+import {
+    BASE_FONT_SIZE,
     GRAPHER_DARK_TEXT,
     GRAPHER_AXIS_LINE_WIDTH_THICK,
     GRAPHER_AXIS_LINE_WIDTH_DEFAULT,
@@ -60,15 +64,8 @@ import { HorizontalAxis } from "../axis/Axis"
 import { SelectionArray } from "../selection/SelectionArray"
 import { ColorScheme } from "../color/ColorScheme"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale"
-import {
-    ColorScaleConfig,
-    ColorScaleConfigInterface,
-} from "../color/ColorScaleConfig"
-import {
-    ColorSchemeName,
-    OwidErrorColor,
-    OwidNoDataGray,
-} from "../color/ColorConstants"
+import { ColorScaleConfig } from "../color/ColorScaleConfig"
+import { OwidErrorColor, OwidNoDataGray } from "../color/ColorConstants"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { HorizontalNumericColorLegend } from "../horizontalColorLegend/HorizontalColorLegends"
 import { BaseType, Selection } from "d3"

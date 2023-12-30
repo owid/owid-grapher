@@ -1,9 +1,10 @@
 import React from "react"
-import { DEFAULT_BOUNDS, range } from "@ourworldindata/utils"
+import { DEFAULT_BOUNDS, range, LogoOption } from "@ourworldindata/utils"
 import { MarkdownTextWrap, TextWrap } from "@ourworldindata/components"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { Logo, LogoOption } from "../captionedChart/Logos"
+import { Logo } from "../captionedChart/Logos"
+
 import { HeaderManager } from "./HeaderManager"
 import {
     BASE_FONT_SIZE,

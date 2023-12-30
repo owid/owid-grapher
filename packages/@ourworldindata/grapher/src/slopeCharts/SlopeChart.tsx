@@ -27,15 +27,18 @@ import {
 import { ColorScale, ColorScaleManager } from "../color/ColorScale"
 import {
     BASE_FONT_SIZE,
-    ScaleType,
-    EntitySelectionMode,
-    SeriesName,
     GRAPHER_DARK_TEXT,
     GRAPHER_FONT_SCALE_9_6,
     GRAPHER_FONT_SCALE_10_5,
     GRAPHER_FONT_SCALE_12,
     GRAPHER_FONT_SCALE_14,
 } from "../core/GrapherConstants"
+import {
+    ScaleType,
+    EntitySelectionMode,
+    SeriesName,
+    ColorSchemeName,
+} from "@ourworldindata/types"
 import { ChartInterface } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
 import { scaleLinear, scaleLog, ScaleLinear, ScaleLogarithmic } from "d3-scale"
@@ -52,7 +55,6 @@ import {
 } from "./SlopeChartConstants"
 import { CoreColumn, OwidTable, Color } from "@ourworldindata/core-table"
 import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
-import { ColorSchemeName } from "../color/ColorConstants"
 import { AxisConfig, FontSizeManager } from "../axis/AxisConfig"
 
 @observer
