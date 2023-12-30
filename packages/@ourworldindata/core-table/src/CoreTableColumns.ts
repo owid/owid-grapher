@@ -26,10 +26,17 @@ import {
     IndicatorTitleWithFragments,
 } from "@ourworldindata/utils"
 import { CoreTable } from "./CoreTable.js"
-import { Time, JsTypes, CoreValueType } from "./CoreTableConstants.js"
-import { ColumnTypeNames, CoreColumnDef } from "./CoreColumnDef.js"
-import { EntityName, OwidVariableRow } from "./OwidTableConstants.js" // todo: remove. Should not be on CoreTable
-import { ErrorValue, ErrorValueTypes, isNotErrorValue } from "./ErrorValues.js"
+import {
+    Time,
+    JsTypes,
+    CoreValueType,
+    ColumnTypeNames,
+    CoreColumnDef,
+    EntityName,
+    OwidVariableRow,
+    ErrorValue,
+} from "@ourworldindata/types"
+import { ErrorValueTypes, isNotErrorValue } from "./ErrorValues.js"
 import {
     getOriginalTimeColumnSlug,
     getOriginalValueColumnSlug,

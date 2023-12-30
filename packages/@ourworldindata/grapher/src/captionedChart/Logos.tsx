@@ -7,12 +7,6 @@ import {
     SMALL_OWID_LOGO_SVG,
 } from "./LogosSVG"
 
-export enum LogoOption {
-    owid = "owid",
-    "core+owid" = "core+owid",
-    "gv+owid" = "gv+owid",
-}
-
 interface LogoAttributes {
     svg: string
     width: number

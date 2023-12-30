@@ -1,7 +1,11 @@
-import { ColumnSlug } from "@ourworldindata/utils"
-import { ColumnTypeNames, CoreColumnDef } from "./CoreColumnDef.js"
+import {
+    ColumnSlug,
+    ColumnTypeNames,
+    CoreColumnDef,
+    OwidColumnDef,
+    OwidTableSlugs,
+} from "@ourworldindata/types"
 import { CoreTable } from "./CoreTable.js"
-import { OwidColumnDef, OwidTableSlugs } from "./OwidTableConstants.js"
 
 export function timeColumnSlugFromColumnDef(
     def: OwidColumnDef

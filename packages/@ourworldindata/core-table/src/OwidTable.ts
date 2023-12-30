@@ -31,16 +31,15 @@ import {
     CoreColumnStore,
     Color,
     CoreValueType,
-} from "./CoreTableConstants.js"
-import { ColumnTypeNames } from "./CoreColumnDef.js"
-import { CoreTable } from "./CoreTable.js"
-import {
+    ColumnTypeNames,
     EntityName,
     OwidColumnDef,
     OwidRow,
     OwidTableSlugs,
-} from "./OwidTableConstants.js"
-import { ErrorValue, ErrorValueTypes, isNotErrorValue } from "./ErrorValues.js"
+    ErrorValue,
+} from "@ourworldindata/types"
+import { CoreTable } from "./CoreTable.js"
+import { ErrorValueTypes, isNotErrorValue } from "./ErrorValues.js"
 import {
     getOriginalTimeColumnSlug,
     makeOriginalValueSlugFromColumnSlug,

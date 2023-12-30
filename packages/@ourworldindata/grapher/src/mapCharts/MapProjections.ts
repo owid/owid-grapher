@@ -4,22 +4,12 @@ import {
     geoAzimuthalEqualArea,
     GeoPath,
 } from "d3-geo"
-
+import { MapProjectionName } from "@ourworldindata/types"
 import { geoRobinson, geoPatterson } from "./d3-geo-projection.js"
 
 // https://github.com/d3/d3-geo-projection/issues/202
 // todo: would be nice to get propert types for this and not have to run different code during testing
 const projectionToUseDuringJestTesting = geoConicConformal()
-
-export enum MapProjectionName {
-    World = "World",
-    Africa = "Africa",
-    NorthAmerica = "NorthAmerica",
-    SouthAmerica = "SouthAmerica",
-    Asia = "Asia",
-    Europe = "Europe",
-    Oceania = "Oceania",
-}
 
 export const MapProjectionLabels: Record<MapProjectionName, string> = {
     World: "World",

@@ -1,8 +1,5 @@
+import { QueryParams } from "@ourworldindata/types"
 import { omitUndefinedValues } from "../Util.js"
-
-export interface QueryParams {
-    [key: string]: string | undefined
-}
 
 // Deprecated. Use getWindowQueryParams() to get the params from the global URL,
 // or strToQueryParams(str) to parse an arbtirary query string.

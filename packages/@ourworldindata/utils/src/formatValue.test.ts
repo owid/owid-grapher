@@ -1,5 +1,6 @@
 #! /usr/bin/env jest
-import { formatValue, TickFormattingOptions } from "./formatValue"
+import { TickFormattingOptions } from "@ourworldindata/types"
+import { formatValue } from "./formatValue"
 
 describe(formatValue, () => {
     // prettier-ignore
@@ -57,8 +58,8 @@ describe(formatValue, () => {
         ["with custom unit", 1, "1pp", { unit: "pp", spaceBeforeUnit: false }],
         ["with custom unit and space", 1, "1 pp", { unit: "pp", spaceBeforeUnit: true }],
         ["negative with unit", -1, "-$1", { unit: "$" }],
-        ["trailingZeroes true", 1.10, "1.1", { trailingZeroes: false }], 
-        ["trailingZeroes false", 1.10, "1.10", { trailingZeroes: true }], 
+        ["trailingZeroes true", 1.10, "1.1", { trailingZeroes: false }],
+        ["trailingZeroes false", 1.10, "1.10", { trailingZeroes: true }],
         ["$ spaceBeforeUnit false", 1.1, "$1.1", { spaceBeforeUnit: false, unit: "$" }],
         ["$ spaceBeforeUnit true", 1.1, "$1.1", { spaceBeforeUnit: true, unit: "$" }],
         ["% spaceBeforeUnit true", 1.1, "1.1 %", { spaceBeforeUnit: true, unit: "%" }],

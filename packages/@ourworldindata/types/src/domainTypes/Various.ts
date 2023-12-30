@@ -66,3 +66,7 @@ export class JsonError extends Error {
         this.status = status || 400
     }
 }
+
+export interface QueryParams {
+    [key: string]: string | undefined
+}

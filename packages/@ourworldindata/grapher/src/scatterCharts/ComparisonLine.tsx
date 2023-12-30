@@ -7,11 +7,6 @@ import { DualAxis } from "../axis/Axis"
 import { generateComparisonLinePoints } from "./ComparisonLineGenerator"
 import { getElementWithHalo } from "./Halos"
 
-export interface ComparisonLineConfig {
-    label?: string
-    yEquals?: string
-}
-
 @observer
 export class ComparisonLine extends React.Component<{
     dualAxis: DualAxis

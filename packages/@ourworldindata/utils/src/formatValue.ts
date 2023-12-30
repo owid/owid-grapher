@@ -1,15 +1,6 @@
 import { FormatSpecifier } from "d3-format"
 import { createFormatter } from "./Util.js"
-
-export interface TickFormattingOptions {
-    numDecimalPlaces?: number
-    unit?: string
-    trailingZeroes?: boolean
-    spaceBeforeUnit?: boolean
-    useNoBreakSpace?: boolean
-    showPlus?: boolean
-    numberAbbreviation?: "short" | "long" | false
-}
+import { TickFormattingOptions } from "@ourworldindata/types"
 
 // Used outside this module to figure out if the unit will be joined with the number.
 export function checkIsVeryShortUnit(unit: string): unit is "$" | "£" | "%" {

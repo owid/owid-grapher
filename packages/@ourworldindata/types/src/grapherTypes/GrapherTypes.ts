@@ -1,4 +1,8 @@
-import { Integer } from "../domainTypes/Various.js"
+import { OwidChartDimensionInterface } from "../OwidVariableDisplayConfigInterface.js"
+import { ColumnSlugs, EntityName } from "../domainTypes/CoreTableTypes.js"
+import { AxisAlign, Position } from "../domainTypes/Layout.js"
+import { Integer, QueryParams, TopicId } from "../domainTypes/Various.js"
+import { DetailDictionary } from "../gdocTypes/Gdoc.js"
 
 export interface Box {
     x: number
@@ -96,4 +100,489 @@ export enum ToleranceStrategy {
     closest = "closest",
     backwards = "backwards",
     forwards = "forwards",
+}
+export enum ChartTypeName {
+    LineChart = "LineChart",
+    ScatterPlot = "ScatterPlot",
+    StackedArea = "StackedArea",
+    DiscreteBar = "DiscreteBar",
+    StackedDiscreteBar = "StackedDiscreteBar",
+    SlopeChart = "SlopeChart",
+    StackedBar = "StackedBar",
+    Marimekko = "Marimekko",
+    // special map type that can't be selected by authors
+    WorldMap = "WorldMap",
+}
+
+// We currently have the notion of "modes", where you can either select 1 entity, or select multiple entities, or not change the selection at all.
+// Todo: can we remove?
+export enum EntitySelectionMode {
+    MultipleEntities = "add-country",
+    SingleEntity = "change-country",
+    Disabled = "disabled",
+}
+
+export enum StackMode {
+    absolute = "absolute",
+    relative = "relative",
+}
+
+export enum FacetStrategy {
+    none = "none", // No facets
+    entity = "entity", // One chart for each country/entity
+    metric = "metric", // One chart for each Y column
+}
+
+export enum FacetAxisDomain {
+    independent = "independent", // all facets have their own y domain
+    // TODO: rename to "uniform", since "shared" has a different meaning when
+    // axes are being plotted (it means the axis is omitted).
+    // Need to migrate Grapher & Explorer configs.
+    shared = "shared", // all facets share the same y domain
+}
+
+export enum SeriesStrategy {
+    column = "column", // One line per column
+    entity = "entity", // One line per entity
+}
+
+export type SeriesName = string
+
+export type SeriesColorMap = Map<SeriesName, Color>
+
+export enum GrapherTabOption {
+    chart = "chart",
+    map = "map",
+    table = "table",
+}
+export interface RelatedQuestionsConfig {
+    text: string
+    url: string
+}
+
+export interface Topic {
+    id: TopicId
+    name: string
+}
+
+export enum MissingDataStrategy {
+    auto = "auto", // pick default strategy based on chart type
+    hide = "hide", // hide entities with missing data
+    show = "show", // show entities with missing data
+}
+
+// When a user hovers over a connected series line in a ScatterPlot we show
+// a label for each point. By default that value will be from the "year" column
+// but by changing this option the column used for the x or y axis could be used instead.
+export enum ScatterPointLabelStrategy {
+    year = "year",
+    x = "x",
+    y = "y",
+}
+
+export interface AnnotationFieldsInTitle {
+    entity?: boolean
+    time?: boolean
+    changeInPrefix?: boolean
+}
+
+export interface Tickmark {
+    value: number
+    priority: number
+    faint?: boolean
+    gridLineOnly?: boolean
+    solid?: boolean // mostly for labelling domain start (e.g. 0)
+}
+export interface TickFormattingOptions {
+    numDecimalPlaces?: number
+    unit?: string
+    trailingZeroes?: boolean
+    spaceBeforeUnit?: boolean
+    useNoBreakSpace?: boolean
+    showPlus?: boolean
+    numberAbbreviation?: "short" | "long" | false
+}
+// Represents the actual entered configuration state in the editor
+export interface AxisConfigInterface {
+    scaleType?: ScaleType
+    label?: string
+    min?: number
+    max?: number
+    canChangeScaleType?: boolean
+    removePointsOutsideDomain?: boolean
+    hideAxis?: boolean
+
+    /** Hide the faint lines that are shown inside the plot (axis ticks may still be visible). */
+    hideGridlines?: boolean
+
+    /**
+     * The *preferred* orientation of the axis.
+     * If the orientation is not supported by the axis, this parameter will be ignored.
+     */
+    orient?: Position
+
+    /**
+     * Whether the axis domain should be the same across faceted charts (if possible)
+     */
+    facetDomain?: FacetAxisDomain
+
+    /**
+     * Minimum pixels to take up.
+     * Dictates the minimum height for a HorizontalAxis, minimum width for a VerticalAxis.
+     */
+    minSize?: number
+
+    /**
+     * The padding between:
+     * - an axis tick and an axis gridline
+     * - an axis label and an axis tick
+     */
+    labelPadding?: number
+
+    /**
+     * Extend scale to start & end on "nicer" round values.
+     * See: https://github.com/d3/d3-scale#continuous_nice
+     */
+    nice?: boolean
+
+    /**
+     * The (rough) maximum number of ticks to show. Not a strict limit, more ticks may be shown.
+     * See: https://github.com/d3/d3-scale#continuous_ticks
+     */
+    maxTicks?: number
+
+    /**
+     * Custom ticks to use. Any automatic ticks are omitted.
+     * Note that the ticks will be omitted if they are outside the axis domain.
+     * To control the domain, use `min` and `max`.
+     */
+    ticks?: Tickmark[]
+
+    /**
+     * Tick formatting overrides. Allows things like omitting the unit and using
+     * short number abbreviations.
+     */
+    tickFormattingOptions?: TickFormattingOptions
+
+    /**
+     * What to do when .place() is called on an axis that only contains a single
+     * domain value.
+     * Should the point be placed at the start, middle or end of the axis?
+     */
+    singleValueAxisPointAlign?: AxisAlign
+}
+
+export interface ComparisonLineConfig {
+    label?: string
+    yEquals?: string
+}
+
+export enum LogoOption {
+    owid = "owid",
+    "core+owid" = "core+owid",
+    "gv+owid" = "gv+owid",
+}
+
+export enum BinningStrategy {
+    equalInterval = "equalInterval",
+    quantiles = "quantiles",
+    ckmeans = "ckmeans",
+    // The `manual` option is ignored in the algorithms below,
+    // but it is stored and handled by the chart.
+    manual = "manual",
+}
+
+export interface ColorScaleConfigInterface {
+    baseColorScheme?: ColorSchemeName
+    colorSchemeInvert?: boolean
+    binningStrategy?: BinningStrategy
+    binningStrategyBinCount?: number
+    customNumericMinValue?: number
+    customNumericValues: number[]
+    customNumericLabels: (string | undefined | null)[]
+    customNumericColorsActive?: boolean
+    customNumericColors: (Color | undefined | null)[]
+    equalSizeBins?: boolean
+    customCategoryColors: Record<string, string | undefined>
+    customCategoryLabels: Record<string, string | undefined>
+    customHiddenCategories: Record<string, true | undefined>
+    legendDescription?: string
+}
+
+export interface ColorSchemeInterface {
+    name: string
+    colorSets: Color[][] // Different color sets depending on how many distinct colors you want
+    singleColorScale?: boolean
+    isDistinct?: boolean
+    displayName?: string
+}
+
+// Note: TypeScript does not currently support extending or merging enums. Ideally we would have 2 enums here (one for custom and one for brewer) and then just merge them.
+// https://github.com/microsoft/TypeScript/issues/17592
+export enum ColorSchemeName {
+    // Brewer schemes:
+    YlGn = "YlGn",
+    YlGnBu = "YlGnBu",
+    GnBu = "GnBu",
+    BuGn = "BuGn",
+    PuBuGn = "PuBuGn",
+    BuPu = "BuPu",
+    RdPu = "RdPu",
+    PuRd = "PuRd",
+    OrRd = "OrRd",
+    YlOrRd = "YlOrRd",
+    YlOrBr = "YlOrBr",
+    Purples = "Purples",
+    Blues = "Blues",
+    Greens = "Greens",
+    Oranges = "Oranges",
+    Reds = "Reds",
+    Greys = "Greys",
+    PuOr = "PuOr",
+    BrBG = "BrBG",
+    PRGn = "PRGn",
+    PiYG = "PiYG",
+    RdBu = "RdBu",
+    RdGy = "RdGy",
+    RdYlBu = "RdYlBu",
+    Spectral = "Spectral",
+    RdYlGn = "RdYlGn",
+    Accent = "Accent",
+    Dark2 = "Dark2",
+    Paired = "Paired",
+    Pastel1 = "Pastel1",
+    Pastel2 = "Pastel2",
+    Set1 = "Set1",
+    Set2 = "Set2",
+    Set3 = "Set3",
+    PuBu = "PuBu",
+    "hsv-RdBu" = "hsv-RdBu",
+    "hsv-CyMg" = "hsv-CyMg",
+
+    // Custom schemes:
+    Magma = "Magma",
+    Inferno = "Inferno",
+    Plasma = "Plasma",
+    Viridis = "Viridis",
+    continents = "continents",
+    ContinentsLines = "ContinentsLines",
+    stackedAreaDefault = "stackedAreaDefault",
+    "owid-distinct" = "owid-distinct",
+    SingleColorDenim = "SingleColorDenim",
+    SingleColorTeal = "SingleColorTeal",
+    SingleColorPurple = "SingleColorPurple",
+    SingleColorDustyCoral = "SingleColorDustyCoral",
+    SingleColorDarkCopper = "SingleColorDarkCopper",
+    OwidCategoricalA = "OwidCategoricalA",
+    OwidCategoricalB = "OwidCategoricalB",
+    OwidCategoricalC = "OwidCategoricalC",
+    OwidCategoricalD = "OwidCategoricalD",
+    OwidCategoricalE = "OwidCategoricalE",
+    OwidEnergy = "OwidEnergy",
+    OwidEnergyLines = "OwidEnergyLines",
+    OwidDistinctLines = "OwidDistinctLines",
+    BinaryMapPaletteA = "BinaryMapPaletteA",
+    BinaryMapPaletteB = "BinaryMapPaletteB",
+    BinaryMapPaletteC = "BinaryMapPaletteC",
+    BinaryMapPaletteD = "BinaryMapPaletteD",
+    BinaryMapPaletteE = "BinaryMapPaletteE",
+    SingleColorGradientDenim = "SingleColorGradientDenim",
+    SingleColorGradientTeal = "SingleColorGradientTeal",
+    SingleColorGradientPurple = "SingleColorGradientPurple",
+    SingleColorGradientDustyCoral = "SingleColorGradientDustyCoral",
+    SingleColorGradientDarkCopper = "SingleColorGradientDarkCopper",
+}
+
+export enum MapProjectionName {
+    World = "World",
+    Africa = "Africa",
+    NorthAmerica = "NorthAmerica",
+    SouthAmerica = "SouthAmerica",
+    Asia = "Asia",
+    Europe = "Europe",
+    Oceania = "Oceania",
+}
+
+export interface MapConfigInterface {
+    columnSlug?: ColumnSlug
+    time?: Time
+    timeTolerance?: number
+    toleranceStrategy?: ToleranceStrategy
+    hideTimeline?: boolean
+    projection?: MapProjectionName
+    colorScale?: ColorScaleConfigInterface
+    tooltipUseCustomLabels?: boolean
+}
+
+// This configuration represents the entire persistent state of a grapher
+// Ideally, this is also all of the interaction state: when a grapher is saved and loaded again
+// under the same rendering conditions it ought to remain visually identical
+export interface GrapherInterface extends SortConfig {
+    $schema?: string
+    type?: ChartTypeName
+    id?: number
+    version?: number
+    slug?: string
+    title?: string
+    subtitle?: string
+    sourceDesc?: string
+    note?: string
+    hideAnnotationFieldsInTitle?: AnnotationFieldsInTitle
+    minTime?: TimeBound
+    maxTime?: TimeBound
+    timelineMinTime?: Time
+    timelineMaxTime?: Time
+    dimensions?: OwidChartDimensionInterface[]
+    addCountryMode?: EntitySelectionMode
+    comparisonLines?: ComparisonLineConfig[]
+    stackMode?: StackMode
+
+    showNoDataArea?: boolean
+    hideLegend?: boolean
+    logo?: LogoOption
+    hideLogo?: boolean
+    hideRelativeToggle?: boolean
+    entityType?: string
+    entityTypePlural?: string
+    hideTimeline?: boolean
+    zoomToSelection?: boolean
+    showYearLabels?: boolean // Always show year in labels for bar charts
+    hasChartTab?: boolean
+    hasMapTab?: boolean
+    tab?: GrapherTabOption
+    relatedQuestions?: RelatedQuestionsConfig[]
+    details?: DetailDictionary
+    internalNotes?: string
+    variantName?: string
+    originUrl?: string
+    topicIds?: TopicId[]
+    isPublished?: boolean
+    baseColorScheme?: ColorSchemeName
+    invertColorScheme?: boolean
+    hideLinesOutsideTolerance?: boolean
+    hideConnectedScatterLines?: boolean // Hides lines between points when timeline spans multiple years. Requested by core-econ for certain charts
+    hideScatterLabels?: boolean
+    scatterPointLabelStrategy?: ScatterPointLabelStrategy
+    compareEndPointsOnly?: boolean
+    matchingEntitiesOnly?: boolean
+    hideTotalValueLabel?: boolean
+    excludedEntities?: number[]
+    includedEntities?: number[]
+    selectedEntityNames?: EntityName[]
+    selectedEntityColors?: { [entityName: string]: string | undefined }
+    facet?: FacetStrategy
+    missingDataStrategy?: MissingDataStrategy
+    hideFacetControl?: boolean
+
+    xAxis?: Partial<AxisConfigInterface>
+    yAxis?: Partial<AxisConfigInterface>
+    colorScale?: Partial<ColorScaleConfigInterface>
+    map?: Partial<MapConfigInterface>
+
+    // When we move graphers to Git, and remove dimensions, we can clean this up.
+    ySlugs?: ColumnSlugs
+    xSlug?: ColumnSlug
+    sizeSlug?: ColumnSlug
+    colorSlug?: ColumnSlug
+}
+
+export interface LegacyGrapherInterface extends GrapherInterface {
+    data: any
+}
+
+export interface GrapherQueryParams extends QueryParams {
+    tab?: string
+    overlay?: string
+    stackMode?: string
+    zoomToSelection?: string
+    xScale?: string
+    yScale?: string
+    time?: string
+    region?: string
+    shown?: string
+    endpointsOnly?: string
+    selection?: string
+    facet?: string
+    uniformYAxis?: string
+    showSelectionOnlyInTable?: string
+    showNoDataArea?: string
+}
+
+export interface LegacyGrapherQueryParams extends GrapherQueryParams {
+    year?: string
+    country?: string // deprecated
+}
+
+// Another approach we may want to try is this: https://github.com/mobxjs/serializr
+export const grapherKeysToSerialize = [
+    "$schema",
+    "type",
+    "id",
+    "version",
+    "slug",
+    "title",
+    "subtitle",
+    "sourceDesc",
+    "note",
+    "hideAnnotationFieldsInTitle",
+    "minTime",
+    "maxTime",
+    "timelineMinTime",
+    "timelineMaxTime",
+    "addCountryMode",
+    "stackMode",
+    "showNoDataArea",
+    "hideLegend",
+    "logo",
+    "hideLogo",
+    "hideRelativeToggle",
+    "entityType",
+    "entityTypePlural",
+    "facettingLabelByYVariables",
+    "hideTimeline",
+    "zoomToSelection",
+    "showYearLabels",
+    "hasChartTab",
+    "hasMapTab",
+    "tab",
+    "internalNotes",
+    "variantName",
+    "originUrl",
+    "isPublished",
+    "baseColorScheme",
+    "invertColorScheme",
+    "hideLinesOutsideTolerance",
+    "hideConnectedScatterLines",
+    "hideScatterLabels",
+    "scatterPointLabelStrategy",
+    "compareEndPointsOnly",
+    "matchingEntitiesOnly",
+    "includedEntities",
+    "hideTotalValueLabel",
+    "xAxis",
+    "yAxis",
+    "colorScale",
+    "map",
+    "dimensions",
+    "selectedEntityNames",
+    "selectedEntityColors",
+    "sortBy",
+    "sortOrder",
+    "sortColumnSlug",
+    "excludedEntities",
+    "selectedFacetStrategy",
+    "hideFacetControl",
+    "comparisonLines",
+    "relatedQuestions",
+    "topicIds",
+    "details",
+    "adminBaseUrl",
+    "bakedGrapherURL",
+    "missingDataStrategy",
+    "dataApiUrl",
+]
+
+export enum GrapherStaticFormat {
+    landscape = "landscape",
+    square = "square",
 }

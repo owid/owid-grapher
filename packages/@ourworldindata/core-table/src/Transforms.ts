@@ -5,10 +5,14 @@ import {
     uniq,
     cloneDeep,
 } from "@ourworldindata/utils"
-import { CoreColumnStore, Time, CoreValueType } from "./CoreTableConstants.js"
-import { CoreColumnDef } from "./CoreColumnDef.js"
 import {
     ErrorValue,
+    CoreColumnDef,
+    CoreColumnStore,
+    Time,
+    CoreValueType,
+} from "@ourworldindata/types"
+import {
     ErrorValueTypes,
     isNotErrorValue,
     MissingValuePlaceholder,

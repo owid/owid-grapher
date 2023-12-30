@@ -9,8 +9,8 @@ import {
     Persistable,
     updatePersistables,
 } from "@ourworldindata/utils"
-import { ColorSchemeName } from "./ColorConstants"
-import { BinningStrategy } from "./BinningStrategy"
+import { BinningStrategy, ColorSchemeName } from "@ourworldindata/types"
+
 import { NO_DATA_LABEL } from "./ColorScale"
 
 export class ColorScaleConfigDefaults {
@@ -78,8 +78,6 @@ export class ColorScaleConfigDefaults {
     /** A custom legend description. Only used in ScatterPlot legend titles for now. */
     @observable legendDescription?: string = undefined
 }
-
-export type ColorScaleConfigInterface = ColorScaleConfigDefaults
 
 export class ColorScaleConfig
     extends ColorScaleConfigDefaults

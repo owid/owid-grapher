@@ -79,18 +79,38 @@ import {
     EntitySelectionMode,
     ScatterPointLabelStrategy,
     RelatedQuestionsConfig,
-    BASE_FONT_SIZE,
-    CookieKey,
     FacetStrategy,
-    ThereWasAProblemLoadingThisChart,
     SeriesColorMap,
     FacetAxisDomain,
     AnnotationFieldsInTitle,
     MissingDataStrategy,
+    SeriesStrategy,
+    GrapherInterface,
+    grapherKeysToSerialize,
+    GrapherQueryParams,
+    LegacyGrapherInterface,
+    MapProjectionName,
+    LogoOption,
+    ComparisonLineConfig,
+    ColumnSlugs,
+    Time,
+    EntityName,
+    OwidColumnDef,
+    OwidVariableRow,
+    BlankOwidTable,
+    OwidTable,
+    ColumnTypeMap,
+    CoreColumn,
+    ColorSchemeName,
+    AxisConfigInterface,
+} from "@ourworldindata/types"
+import {
+    BASE_FONT_SIZE,
+    CookieKey,
+    ThereWasAProblemLoadingThisChart,
     DEFAULT_GRAPHER_CONFIG_SCHEMA,
     DEFAULT_GRAPHER_WIDTH,
     DEFAULT_GRAPHER_HEIGHT,
-    SeriesStrategy,
     getVariableDataRoute,
     getVariableMetadataRoute,
     DEFAULT_GRAPHER_FRAME_PADDING,
@@ -107,34 +127,15 @@ import {
     LegacyDimensionsManager,
 } from "../chart/ChartDimension"
 import { TooltipManager } from "../tooltip/TooltipProps"
-import {
-    GrapherInterface,
-    grapherKeysToSerialize,
-    GrapherQueryParams,
-    LegacyGrapherInterface,
-} from "../core/GrapherInterface"
+
 import { DimensionSlot } from "../chart/DimensionSlot"
 import {
     getSelectedEntityNamesParam,
     setSelectedEntityNamesParam,
 } from "./EntityUrlBuilder"
-import { MapProjectionName } from "../mapCharts/MapProjections"
-import { LogoOption } from "../captionedChart/Logos"
 import { AxisConfig, FontSizeManager } from "../axis/AxisConfig"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { MapConfig } from "../mapCharts/MapConfig"
-import { ComparisonLineConfig } from "../scatterCharts/ComparisonLine"
-import {
-    ColumnSlugs,
-    Time,
-    EntityName,
-    OwidColumnDef,
-    OwidVariableRow,
-    BlankOwidTable,
-    OwidTable,
-    ColumnTypeMap,
-    CoreColumn,
-} from "@ourworldindata/core-table"
 import { FullScreen } from "../fullScreen/FullScreen"
 import { isOnTheMap } from "../mapCharts/EntitiesOnTheMap"
 import { ChartManager } from "../chart/ChartManager"
@@ -173,7 +174,6 @@ import {
     ChartComponentClassMap,
     DefaultChartClass,
 } from "../chart/ChartTypeMap"
-import { ColorSchemeName } from "../color/ColorConstants"
 import { Entity, SelectionArray } from "../selection/SelectionArray"
 import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable"
 import { ScatterPlotManager } from "../scatterCharts/ScatterPlotChartConstants"
@@ -186,7 +186,6 @@ import { GrapherAnalytics } from "./GrapherAnalytics"
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations"
 import { ChartInterface, ChartTableTransformer } from "../chart/ChartInterface"
 import { MarimekkoChartManager } from "../stackedCharts/MarimekkoChartConstants"
-import { AxisConfigInterface } from "../axis/AxisConfigInterface"
 import Bugsnag from "@bugsnag/js"
 import { FacetChartManager } from "../facetChart/FacetChartConstants"
 import {
