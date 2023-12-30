@@ -4,6 +4,7 @@
 
 /** {{comment}} */
 {{/if}}
+const {{interfaceName}}TableName = "{{name}}"
 export interface {{interfaceName}} {{#if extends}}extends {{extends}} {{/if}}{
   {{#each additionalProperties as |prop|}}
   {{prop}}

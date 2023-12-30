@@ -3,7 +3,8 @@
 * Rerun sql-ts to regenerate this file.
 */
 type jsonString = string
-export interface active_datasetsRow {
+const ActiveDatasetsRowTableName = "active_datasets"
+export interface ActiveDatasetsRow {
   'createdAt'?: Date;
   'createdByUserId': number;
   'dataEditedAt': Date;
@@ -23,14 +24,16 @@ export interface active_datasetsRow {
   'updatePeriodDays': number | null;
   'version': string | null;
 }
-export interface analytics_pageviewsRow {
+const AnalyticsPageviewsRowTableName = "analytics_pageviews"
+export interface AnalyticsPageviewsRow {
   'day': Date;
   'url': string;
   'views_14d': number;
   'views_365d': number;
   'views_7d': number;
 }
-export interface chart_dimensionsRow {
+const ChartDimensionsRowTableName = "chart_dimensions"
+export interface ChartDimensionsRow {
   'chartId': number;
   'createdAt'?: Date;
   'id'?: number;
@@ -39,7 +42,8 @@ export interface chart_dimensionsRow {
   'updatedAt': Date | null;
   'variableId': number;
 }
-export interface chart_revisionsRow {
+const ChartRevisionsRowTableName = "chart_revisions"
+export interface ChartRevisionsRow {
   'chartId': number | null;
   'config': jsonString | null;
   'createdAt'?: Date;
@@ -47,14 +51,16 @@ export interface chart_revisionsRow {
   'updatedAt': Date | null;
   'userId': number | null;
 }
-export interface chart_slug_redirectsRow {
+const ChartSlugRedirectsRowTableName = "chart_slug_redirects"
+export interface ChartSlugRedirectsRow {
   'chart_id': number;
   'createdAt'?: Date;
   'id'?: number;
   'slug': string;
   'updatedAt': Date | null;
 }
-export interface chart_tagsRow {
+const ChartTagsRowTableName = "chart_tags"
+export interface ChartTagsRow {
   'chartId': number;
   'createdAt'?: Date;
   'isApproved'?: number;
@@ -62,7 +68,8 @@ export interface chart_tagsRow {
   'tagId': number;
   'updatedAt': Date | null;
 }
-export interface chartsRow {
+const ChartsRowTableName = "charts"
+export interface ChartsRow {
   'config': jsonString;
   'createdAt'?: Date;
   'id'?: number;
@@ -76,18 +83,21 @@ export interface chartsRow {
   'type': string | null;
   'updatedAt': Date | null;
 }
-export interface country_latest_dataRow {
+const CountryLatestDataRowTableName = "country_latest_data"
+export interface CountryLatestDataRow {
   'country_code': string | null;
   'value': string | null;
   'variable_id': number | null;
   'year': number | null;
 }
-export interface country_name_tool_continentRow {
+const CountryNameToolContinentRowTableName = "country_name_tool_continent"
+export interface CountryNameToolContinentRow {
   'continent_code': string;
   'continent_name': string;
   'id'?: number;
 }
-export interface country_name_tool_countrydataRow {
+const CountryNameToolCountrydataRowTableName = "country_name_tool_countrydata"
+export interface CountryNameToolCountrydataRow {
   'continent': number | null;
   'cow_code': number | null;
   'cow_letter': string | null;
@@ -102,25 +112,29 @@ export interface country_name_tool_countrydataRow {
   'penn_code': string | null;
   'unctad_code': string | null;
 }
-export interface country_name_tool_countrynameRow {
+const CountryNameToolCountrynameRowTableName = "country_name_tool_countryname"
+export interface CountryNameToolCountrynameRow {
   'country_name': string;
   'id'?: number;
   'owid_country': number;
 }
-export interface dataset_filesRow {
+const DatasetFilesRowTableName = "dataset_files"
+export interface DatasetFilesRow {
   'createdAt'?: Date;
   'datasetId': number;
   'file': any;
   'filename': string;
   'updatedAt': Date | null;
 }
-export interface dataset_tagsRow {
+const DatasetTagsRowTableName = "dataset_tags"
+export interface DatasetTagsRow {
   'createdAt'?: Date;
   'datasetId': number;
   'tagId': number;
   'updatedAt': Date | null;
 }
-export interface datasetsRow {
+const DatasetsRowTableName = "datasets"
+export interface DatasetsRow {
   'createdAt'?: Date;
   'createdByUserId': number;
   'dataEditedAt': Date;
@@ -140,7 +154,8 @@ export interface datasetsRow {
   'updatePeriodDays': number | null;
   'version': string | null;
 }
-export interface entitiesRow {
+const EntitiesRowTableName = "entities"
+export interface EntitiesRow {
   'code': string | null;
   'createdAt'?: Date;
   'displayName': string;
@@ -149,24 +164,28 @@ export interface entitiesRow {
   'updatedAt': Date | null;
   'validated': number;
 }
-export interface explorer_chartsRow {
+const ExplorerChartsRowTableName = "explorer_charts"
+export interface ExplorerChartsRow {
   'chartId': number;
   'explorerSlug': string;
   'id'?: number;
 }
-export interface explorer_variablesRow {
+const ExplorerVariablesRowTableName = "explorer_variables"
+export interface ExplorerVariablesRow {
   'explorerSlug': string;
   'id'?: number;
   'variableId': number;
 }
-export interface explorersRow {
+const ExplorersRowTableName = "explorers"
+export interface ExplorersRow {
   'config': jsonString;
   'createdAt'?: Date | null;
   'isPublished': number;
   'slug': string;
   'updatedAt'?: Date | null;
 }
-export interface imagesRow {
+const ImagesRowTableName = "images"
+export interface ImagesRow {
   'defaultAlt': string;
   'filename': string;
   'googleId': string;
@@ -174,7 +193,8 @@ export interface imagesRow {
   'originalWidth': number | null;
   'updatedAt': string | null;
 }
-export interface importer_additionalcountryinfoRow {
+const ImporterAdditionalcountryinfoRowTableName = "importer_additionalcountryinfo"
+export interface ImporterAdditionalcountryinfoRow {
   'country_code': string;
   'country_latest_census': string | null;
   'country_latest_survey': string | null;
@@ -186,19 +206,22 @@ export interface importer_additionalcountryinfoRow {
   'dataset': string;
   'id'?: number;
 }
-export interface importer_importhistoryRow {
+const ImporterImporthistoryRowTableName = "importer_importhistory"
+export interface ImporterImporthistoryRow {
   'id'?: number;
   'import_notes': string;
   'import_state': string;
   'import_time': Date;
   'import_type': string;
 }
-export interface migrationsRow {
+const MigrationsRowTableName = "migrations"
+export interface MigrationsRow {
   'id'?: number;
   'name': string;
   'timestamp': string;
 }
-export interface namespacesRow {
+const NamespacesRowTableName = "namespaces"
+export interface NamespacesRow {
   'createdAt'?: Date;
   'description': string | null;
   'id'?: number;
@@ -206,7 +229,8 @@ export interface namespacesRow {
   'name': string;
   'updatedAt': Date | null;
 }
-export interface originsRow {
+const OriginsRowTableName = "origins"
+export interface OriginsRow {
   'attribution': string | null;
   'attributionShort': string | null;
   'citationFull': string | null;
@@ -223,18 +247,21 @@ export interface originsRow {
   'urlMain': string | null;
   'versionProducer': string | null;
 }
-export interface origins_variablesRow {
+const OriginsVariablesRowTableName = "origins_variables"
+export interface OriginsVariablesRow {
   'displayOrder'?: number;
   'originId': number;
   'variableId': number;
 }
-export interface post_tagsRow {
+const PostTagsRowTableName = "post_tags"
+export interface PostTagsRow {
   'createdAt'?: Date;
   'post_id': number;
   'tag_id': number;
   'updatedAt': Date | null;
 }
-export interface postsRow {
+const PostsRowTableName = "posts"
+export interface PostsRow {
   'archieml': jsonString | null;
   'archieml_update_statistics': jsonString | null;
 
@@ -256,7 +283,8 @@ export interface postsRow {
   'updated_at': Date | null;
   'updated_at_in_wordpress': Date | null;
 }
-export interface posts_gdocsRow {
+const PostsGdocsRowTableName = "posts_gdocs"
+export interface PostsGdocsRow {
   'breadcrumbs': jsonString | null;
   'content': jsonString;
   'createdAt': Date;
@@ -269,7 +297,8 @@ export interface posts_gdocsRow {
   'slug': string;
   'updatedAt': Date | null;
 }
-export interface posts_gdocs_linksRow {
+const PostsGdocsLinksRowTableName = "posts_gdocs_links"
+export interface PostsGdocsLinksRow {
   'componentType': string;
   'hash': string;
   'id'?: number;
@@ -279,22 +308,26 @@ export interface posts_gdocs_linksRow {
   'target': string;
   'text': string;
 }
-export interface posts_gdocs_variables_faqsRow {
+const PostsGdocsVariablesFaqsRowTableName = "posts_gdocs_variables_faqs"
+export interface PostsGdocsVariablesFaqsRow {
   'displayOrder'?: number;
   'fragmentId': string;
   'gdocId': string;
   'variableId': number;
 }
-export interface posts_gdocs_x_imagesRow {
+const PostsGdocsXImagesRowTableName = "posts_gdocs_x_images"
+export interface PostsGdocsXImagesRow {
   'gdocId': string;
   'id'?: number;
   'imageId': number;
 }
-export interface posts_gdocs_x_tagsRow {
+const PostsGdocsXTagsRowTableName = "posts_gdocs_x_tags"
+export interface PostsGdocsXTagsRow {
   'gdocId': string;
   'tagId': number;
 }
-export interface posts_linksRow {
+const PostsLinksRowTableName = "posts_links"
+export interface PostsLinksRow {
   'componentType': string;
   'hash': string;
   'id'?: number;
@@ -304,7 +337,8 @@ export interface posts_linksRow {
   'target': string;
   'text': string;
 }
-export interface posts_with_gdoc_publish_statusRow {
+const PostsWithGdocPublishStatusRowTableName = "posts_with_gdoc_publish_status"
+export interface PostsWithGdocPublishStatusRow {
   'archieml': jsonString | null;
   'archieml_update_statistics': jsonString | null;
 
@@ -324,12 +358,14 @@ export interface posts_with_gdoc_publish_statusRow {
   'updated_at': Date | null;
   'updated_at_in_wordpress': Date | null;
 }
-export interface sessionsRow {
+const SessionsRowTableName = "sessions"
+export interface SessionsRow {
   'expire_date': Date;
   'session_data': string;
   'session_key': string;
 }
-export interface sourcesRow {
+const SourcesRowTableName = "sources"
+export interface SourcesRow {
   'createdAt'?: Date;
   'datasetId': number | null;
   'description': jsonString;
@@ -337,7 +373,8 @@ export interface sourcesRow {
   'name': string | null;
   'updatedAt': Date | null;
 }
-export interface suggested_chart_revisionsRow {
+const SuggestedChartRevisionsRowTableName = "suggested_chart_revisions"
+export interface SuggestedChartRevisionsRow {
   'changesInDataSummary': string | null;
   'chartId': number;
   'createdAt'?: Date;
@@ -355,7 +392,8 @@ export interface suggested_chart_revisionsRow {
   'updatedAt': Date | null;
   'updatedBy': number | null;
 }
-export interface tagsRow {
+const TagsRowTableName = "tags"
+export interface TagsRow {
   'createdAt'?: Date;
   'id'?: number;
   'isBulkImport'?: number;
@@ -365,12 +403,14 @@ export interface tagsRow {
   'specialType': string | null;
   'updatedAt': Date | null;
 }
-export interface tags_variables_topic_tagsRow {
+const TagsVariablesTopicTagsRowTableName = "tags_variables_topic_tags"
+export interface TagsVariablesTopicTagsRow {
   'displayOrder'?: number;
   'tagId': number;
   'variableId': number;
 }
-export interface usersRow {
+const UsersRowTableName = "users"
+export interface UsersRow {
   'createdAt'?: Date;
   'email': string;
   'fullName': string;
@@ -382,7 +422,8 @@ export interface usersRow {
   'password': string | null;
   'updatedAt': Date | null;
 }
-export interface variablesRow {
+const VariablesRowTableName = "variables"
+export interface VariablesRow {
   'attribution': string | null;
   'attributionShort': string | null;
   'catalogPath': string | null;

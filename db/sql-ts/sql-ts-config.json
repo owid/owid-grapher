@@ -13,5 +13,6 @@
     },
     "filename": "db/sql-ts/Database",
     "template": "db/sql-ts/template.handlebars",
-    "interfaceNameFormat": "${table}Row"
+    "interfaceNameFormat": "${table}Row",
+    "tableNameCasing": "pascal"
 }
