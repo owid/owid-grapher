@@ -9,7 +9,7 @@
     },
     "schemas": ["grapher"],
     "typeMap": {
-        "jsonString": "json"
+        "JsonString": "json"
     },
     "filename": "db/sql-ts/Database",
     "template": "db/sql-ts/template.handlebars",

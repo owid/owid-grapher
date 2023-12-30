@@ -4,8 +4,8 @@
 
 /** {{comment}} */
 {{/if}}
-const {{interfaceName}}TableName = "{{name}}"
-export interface {{interfaceName}} {{#if extends}}extends {{extends}} {{/if}}{
+export const {{interfaceName}}TableName = "{{name}}"
+export interface {{interfaceName}}ForInsert {{#if extends}}extends {{extends}} {{/if}}{
   {{#each additionalProperties as |prop|}}
   {{prop}}
   {{/each}}
@@ -17,6 +17,9 @@ export interface {{interfaceName}} {{#if extends}}extends {{extends}} {{/if}}{
   '{{propertyName}}'{{#if optional}}?{{/if}}: {{propertyType}}{{#if nullable}} | null{{/if}};
   {{/each}}
 }
+export type {{interfaceName}} = Required<{{interfaceName}}ForInsert>
+
+
 {{/each}}
 {{#each enums as |enum|}}
 export enum {{convertedName}} {

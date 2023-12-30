@@ -3,8 +3,8 @@
 * Rerun sql-ts to regenerate this file.
 */
 type jsonString = string
-const ActiveDatasetsRowTableName = "active_datasets"
-export interface ActiveDatasetsRow {
+export const ActiveDatasetsRowTableName = "active_datasets"
+export interface ActiveDatasetsRowForInsert {
   'createdAt'?: Date;
   'createdByUserId': number;
   'dataEditedAt': Date;
@@ -24,16 +24,22 @@ export interface ActiveDatasetsRow {
   'updatePeriodDays': number | null;
   'version': string | null;
 }
-const AnalyticsPageviewsRowTableName = "analytics_pageviews"
-export interface AnalyticsPageviewsRow {
+export type ActiveDatasetsRow = Required<ActiveDatasetsRowForInsert>
+
+
+export const AnalyticsPageviewsRowTableName = "analytics_pageviews"
+export interface AnalyticsPageviewsRowForInsert {
   'day': Date;
   'url': string;
   'views_14d': number;
   'views_365d': number;
   'views_7d': number;
 }
-const ChartDimensionsRowTableName = "chart_dimensions"
-export interface ChartDimensionsRow {
+export type AnalyticsPageviewsRow = Required<AnalyticsPageviewsRowForInsert>
+
+
+export const ChartDimensionsRowTableName = "chart_dimensions"
+export interface ChartDimensionsRowForInsert {
   'chartId': number;
   'createdAt'?: Date;
   'id'?: number;
@@ -42,25 +48,34 @@ export interface ChartDimensionsRow {
   'updatedAt': Date | null;
   'variableId': number;
 }
-const ChartRevisionsRowTableName = "chart_revisions"
-export interface ChartRevisionsRow {
+export type ChartDimensionsRow = Required<ChartDimensionsRowForInsert>
+
+
+export const ChartRevisionsRowTableName = "chart_revisions"
+export interface ChartRevisionsRowForInsert {
   'chartId': number | null;
-  'config': jsonString | null;
+  'config': JsonString | null;
   'createdAt'?: Date;
   'id'?: string;
   'updatedAt': Date | null;
   'userId': number | null;
 }
-const ChartSlugRedirectsRowTableName = "chart_slug_redirects"
-export interface ChartSlugRedirectsRow {
+export type ChartRevisionsRow = Required<ChartRevisionsRowForInsert>
+
+
+export const ChartSlugRedirectsRowTableName = "chart_slug_redirects"
+export interface ChartSlugRedirectsRowForInsert {
   'chart_id': number;
   'createdAt'?: Date;
   'id'?: number;
   'slug': string;
   'updatedAt': Date | null;
 }
-const ChartTagsRowTableName = "chart_tags"
-export interface ChartTagsRow {
+export type ChartSlugRedirectsRow = Required<ChartSlugRedirectsRowForInsert>
+
+
+export const ChartTagsRowTableName = "chart_tags"
+export interface ChartTagsRowForInsert {
   'chartId': number;
   'createdAt'?: Date;
   'isApproved'?: number;
@@ -68,9 +83,12 @@ export interface ChartTagsRow {
   'tagId': number;
   'updatedAt': Date | null;
 }
-const ChartsRowTableName = "charts"
-export interface ChartsRow {
-  'config': jsonString;
+export type ChartTagsRow = Required<ChartTagsRowForInsert>
+
+
+export const ChartsRowTableName = "charts"
+export interface ChartsRowForInsert {
+  'config': JsonString;
   'createdAt'?: Date;
   'id'?: number;
   'is_indexable'?: number;
@@ -83,21 +101,30 @@ export interface ChartsRow {
   'type': string | null;
   'updatedAt': Date | null;
 }
-const CountryLatestDataRowTableName = "country_latest_data"
-export interface CountryLatestDataRow {
+export type ChartsRow = Required<ChartsRowForInsert>
+
+
+export const CountryLatestDataRowTableName = "country_latest_data"
+export interface CountryLatestDataRowForInsert {
   'country_code': string | null;
   'value': string | null;
   'variable_id': number | null;
   'year': number | null;
 }
-const CountryNameToolContinentRowTableName = "country_name_tool_continent"
-export interface CountryNameToolContinentRow {
+export type CountryLatestDataRow = Required<CountryLatestDataRowForInsert>
+
+
+export const CountryNameToolContinentRowTableName = "country_name_tool_continent"
+export interface CountryNameToolContinentRowForInsert {
   'continent_code': string;
   'continent_name': string;
   'id'?: number;
 }
-const CountryNameToolCountrydataRowTableName = "country_name_tool_countrydata"
-export interface CountryNameToolCountrydataRow {
+export type CountryNameToolContinentRow = Required<CountryNameToolContinentRowForInsert>
+
+
+export const CountryNameToolCountrydataRowTableName = "country_name_tool_countrydata"
+export interface CountryNameToolCountrydataRowForInsert {
   'continent': number | null;
   'cow_code': number | null;
   'cow_letter': string | null;
@@ -112,29 +139,41 @@ export interface CountryNameToolCountrydataRow {
   'penn_code': string | null;
   'unctad_code': string | null;
 }
-const CountryNameToolCountrynameRowTableName = "country_name_tool_countryname"
-export interface CountryNameToolCountrynameRow {
+export type CountryNameToolCountrydataRow = Required<CountryNameToolCountrydataRowForInsert>
+
+
+export const CountryNameToolCountrynameRowTableName = "country_name_tool_countryname"
+export interface CountryNameToolCountrynameRowForInsert {
   'country_name': string;
   'id'?: number;
   'owid_country': number;
 }
-const DatasetFilesRowTableName = "dataset_files"
-export interface DatasetFilesRow {
+export type CountryNameToolCountrynameRow = Required<CountryNameToolCountrynameRowForInsert>
+
+
+export const DatasetFilesRowTableName = "dataset_files"
+export interface DatasetFilesRowForInsert {
   'createdAt'?: Date;
   'datasetId': number;
   'file': any;
   'filename': string;
   'updatedAt': Date | null;
 }
-const DatasetTagsRowTableName = "dataset_tags"
-export interface DatasetTagsRow {
+export type DatasetFilesRow = Required<DatasetFilesRowForInsert>
+
+
+export const DatasetTagsRowTableName = "dataset_tags"
+export interface DatasetTagsRowForInsert {
   'createdAt'?: Date;
   'datasetId': number;
   'tagId': number;
   'updatedAt': Date | null;
 }
-const DatasetsRowTableName = "datasets"
-export interface DatasetsRow {
+export type DatasetTagsRow = Required<DatasetTagsRowForInsert>
+
+
+export const DatasetsRowTableName = "datasets"
+export interface DatasetsRowForInsert {
   'createdAt'?: Date;
   'createdByUserId': number;
   'dataEditedAt': Date;
@@ -154,8 +193,11 @@ export interface DatasetsRow {
   'updatePeriodDays': number | null;
   'version': string | null;
 }
-const EntitiesRowTableName = "entities"
-export interface EntitiesRow {
+export type DatasetsRow = Required<DatasetsRowForInsert>
+
+
+export const EntitiesRowTableName = "entities"
+export interface EntitiesRowForInsert {
   'code': string | null;
   'createdAt'?: Date;
   'displayName': string;
@@ -164,28 +206,40 @@ export interface EntitiesRow {
   'updatedAt': Date | null;
   'validated': number;
 }
-const ExplorerChartsRowTableName = "explorer_charts"
-export interface ExplorerChartsRow {
+export type EntitiesRow = Required<EntitiesRowForInsert>
+
+
+export const ExplorerChartsRowTableName = "explorer_charts"
+export interface ExplorerChartsRowForInsert {
   'chartId': number;
   'explorerSlug': string;
   'id'?: number;
 }
-const ExplorerVariablesRowTableName = "explorer_variables"
-export interface ExplorerVariablesRow {
+export type ExplorerChartsRow = Required<ExplorerChartsRowForInsert>
+
+
+export const ExplorerVariablesRowTableName = "explorer_variables"
+export interface ExplorerVariablesRowForInsert {
   'explorerSlug': string;
   'id'?: number;
   'variableId': number;
 }
-const ExplorersRowTableName = "explorers"
-export interface ExplorersRow {
-  'config': jsonString;
+export type ExplorerVariablesRow = Required<ExplorerVariablesRowForInsert>
+
+
+export const ExplorersRowTableName = "explorers"
+export interface ExplorersRowForInsert {
+  'config': JsonString;
   'createdAt'?: Date | null;
   'isPublished': number;
   'slug': string;
   'updatedAt'?: Date | null;
 }
-const ImagesRowTableName = "images"
-export interface ImagesRow {
+export type ExplorersRow = Required<ExplorersRowForInsert>
+
+
+export const ImagesRowTableName = "images"
+export interface ImagesRowForInsert {
   'defaultAlt': string;
   'filename': string;
   'googleId': string;
@@ -193,8 +247,11 @@ export interface ImagesRow {
   'originalWidth': number | null;
   'updatedAt': string | null;
 }
-const ImporterAdditionalcountryinfoRowTableName = "importer_additionalcountryinfo"
-export interface ImporterAdditionalcountryinfoRow {
+export type ImagesRow = Required<ImagesRowForInsert>
+
+
+export const ImporterAdditionalcountryinfoRowTableName = "importer_additionalcountryinfo"
+export interface ImporterAdditionalcountryinfoRowForInsert {
   'country_code': string;
   'country_latest_census': string | null;
   'country_latest_survey': string | null;
@@ -206,22 +263,31 @@ export interface ImporterAdditionalcountryinfoRow {
   'dataset': string;
   'id'?: number;
 }
-const ImporterImporthistoryRowTableName = "importer_importhistory"
-export interface ImporterImporthistoryRow {
+export type ImporterAdditionalcountryinfoRow = Required<ImporterAdditionalcountryinfoRowForInsert>
+
+
+export const ImporterImporthistoryRowTableName = "importer_importhistory"
+export interface ImporterImporthistoryRowForInsert {
   'id'?: number;
   'import_notes': string;
   'import_state': string;
   'import_time': Date;
   'import_type': string;
 }
-const MigrationsRowTableName = "migrations"
-export interface MigrationsRow {
+export type ImporterImporthistoryRow = Required<ImporterImporthistoryRowForInsert>
+
+
+export const MigrationsRowTableName = "migrations"
+export interface MigrationsRowForInsert {
   'id'?: number;
   'name': string;
   'timestamp': string;
 }
-const NamespacesRowTableName = "namespaces"
-export interface NamespacesRow {
+export type MigrationsRow = Required<MigrationsRowForInsert>
+
+
+export const NamespacesRowTableName = "namespaces"
+export interface NamespacesRowForInsert {
   'createdAt'?: Date;
   'description': string | null;
   'id'?: number;
@@ -229,8 +295,11 @@ export interface NamespacesRow {
   'name': string;
   'updatedAt': Date | null;
 }
-const OriginsRowTableName = "origins"
-export interface OriginsRow {
+export type NamespacesRow = Required<NamespacesRowForInsert>
+
+
+export const OriginsRowTableName = "origins"
+export interface OriginsRowForInsert {
   'attribution': string | null;
   'attributionShort': string | null;
   'citationFull': string | null;
@@ -239,7 +308,7 @@ export interface OriginsRow {
   'description': string | null;
   'descriptionSnapshot': string | null;
   'id'?: number;
-  'license': jsonString | null;
+  'license': JsonString | null;
   'producer': string | null;
   'title': string | null;
   'titleSnapshot': string | null;
@@ -247,31 +316,40 @@ export interface OriginsRow {
   'urlMain': string | null;
   'versionProducer': string | null;
 }
-const OriginsVariablesRowTableName = "origins_variables"
-export interface OriginsVariablesRow {
+export type OriginsRow = Required<OriginsRowForInsert>
+
+
+export const OriginsVariablesRowTableName = "origins_variables"
+export interface OriginsVariablesRowForInsert {
   'displayOrder'?: number;
   'originId': number;
   'variableId': number;
 }
-const PostTagsRowTableName = "post_tags"
-export interface PostTagsRow {
+export type OriginsVariablesRow = Required<OriginsVariablesRowForInsert>
+
+
+export const PostTagsRowTableName = "post_tags"
+export interface PostTagsRowForInsert {
   'createdAt'?: Date;
   'post_id': number;
   'tag_id': number;
   'updatedAt': Date | null;
 }
-const PostsRowTableName = "posts"
-export interface PostsRow {
-  'archieml': jsonString | null;
-  'archieml_update_statistics': jsonString | null;
+export type PostTagsRow = Required<PostTagsRowForInsert>
+
+
+export const PostsRowTableName = "posts"
+export interface PostsRowForInsert {
+  'archieml': JsonString | null;
+  'archieml_update_statistics': JsonString | null;
 
   /** json array of objects with field author in the form "firstname lastname" and field order */
-  'authors': jsonString | null;
+  'authors': JsonString | null;
   'content': string;
   'created_at_in_wordpress': Date | null;
   'excerpt': string | null;
   'featured_image'?: string;
-  'formattingOptions': jsonString | null;
+  'formattingOptions': JsonString | null;
   'gdocSuccessorId': string | null;
   'id'?: number;
   'markdown': string | null;
@@ -283,10 +361,13 @@ export interface PostsRow {
   'updated_at': Date | null;
   'updated_at_in_wordpress': Date | null;
 }
-const PostsGdocsRowTableName = "posts_gdocs"
-export interface PostsGdocsRow {
-  'breadcrumbs': jsonString | null;
-  'content': jsonString;
+export type PostsRow = Required<PostsRowForInsert>
+
+
+export const PostsGdocsRowTableName = "posts_gdocs"
+export interface PostsGdocsRowForInsert {
+  'breadcrumbs': JsonString | null;
+  'content': JsonString;
   'createdAt': Date;
   'id': string;
   'markdown': string | null;
@@ -297,8 +378,11 @@ export interface PostsGdocsRow {
   'slug': string;
   'updatedAt': Date | null;
 }
-const PostsGdocsLinksRowTableName = "posts_gdocs_links"
-export interface PostsGdocsLinksRow {
+export type PostsGdocsRow = Required<PostsGdocsRowForInsert>
+
+
+export const PostsGdocsLinksRowTableName = "posts_gdocs_links"
+export interface PostsGdocsLinksRowForInsert {
   'componentType': string;
   'hash': string;
   'id'?: number;
@@ -308,26 +392,38 @@ export interface PostsGdocsLinksRow {
   'target': string;
   'text': string;
 }
-const PostsGdocsVariablesFaqsRowTableName = "posts_gdocs_variables_faqs"
-export interface PostsGdocsVariablesFaqsRow {
+export type PostsGdocsLinksRow = Required<PostsGdocsLinksRowForInsert>
+
+
+export const PostsGdocsVariablesFaqsRowTableName = "posts_gdocs_variables_faqs"
+export interface PostsGdocsVariablesFaqsRowForInsert {
   'displayOrder'?: number;
   'fragmentId': string;
   'gdocId': string;
   'variableId': number;
 }
-const PostsGdocsXImagesRowTableName = "posts_gdocs_x_images"
-export interface PostsGdocsXImagesRow {
+export type PostsGdocsVariablesFaqsRow = Required<PostsGdocsVariablesFaqsRowForInsert>
+
+
+export const PostsGdocsXImagesRowTableName = "posts_gdocs_x_images"
+export interface PostsGdocsXImagesRowForInsert {
   'gdocId': string;
   'id'?: number;
   'imageId': number;
 }
-const PostsGdocsXTagsRowTableName = "posts_gdocs_x_tags"
-export interface PostsGdocsXTagsRow {
+export type PostsGdocsXImagesRow = Required<PostsGdocsXImagesRowForInsert>
+
+
+export const PostsGdocsXTagsRowTableName = "posts_gdocs_x_tags"
+export interface PostsGdocsXTagsRowForInsert {
   'gdocId': string;
   'tagId': number;
 }
-const PostsLinksRowTableName = "posts_links"
-export interface PostsLinksRow {
+export type PostsGdocsXTagsRow = Required<PostsGdocsXTagsRowForInsert>
+
+
+export const PostsLinksRowTableName = "posts_links"
+export interface PostsLinksRowForInsert {
   'componentType': string;
   'hash': string;
   'id'?: number;
@@ -337,13 +433,16 @@ export interface PostsLinksRow {
   'target': string;
   'text': string;
 }
-const PostsWithGdocPublishStatusRowTableName = "posts_with_gdoc_publish_status"
-export interface PostsWithGdocPublishStatusRow {
-  'archieml': jsonString | null;
-  'archieml_update_statistics': jsonString | null;
+export type PostsLinksRow = Required<PostsLinksRowForInsert>
+
+
+export const PostsWithGdocPublishStatusRowTableName = "posts_with_gdoc_publish_status"
+export interface PostsWithGdocPublishStatusRowForInsert {
+  'archieml': JsonString | null;
+  'archieml_update_statistics': JsonString | null;
 
   /** json array of objects with field author in the form "firstname lastname" and field order */
-  'authors': jsonString | null;
+  'authors': JsonString | null;
   'content': string;
   'created_at_in_wordpress': Date | null;
   'excerpt': string | null;
@@ -358,42 +457,54 @@ export interface PostsWithGdocPublishStatusRow {
   'updated_at': Date | null;
   'updated_at_in_wordpress': Date | null;
 }
-const SessionsRowTableName = "sessions"
-export interface SessionsRow {
+export type PostsWithGdocPublishStatusRow = Required<PostsWithGdocPublishStatusRowForInsert>
+
+
+export const SessionsRowTableName = "sessions"
+export interface SessionsRowForInsert {
   'expire_date': Date;
   'session_data': string;
   'session_key': string;
 }
-const SourcesRowTableName = "sources"
-export interface SourcesRow {
+export type SessionsRow = Required<SessionsRowForInsert>
+
+
+export const SourcesRowTableName = "sources"
+export interface SourcesRowForInsert {
   'createdAt'?: Date;
   'datasetId': number | null;
-  'description': jsonString;
+  'description': JsonString;
   'id'?: number;
   'name': string | null;
   'updatedAt': Date | null;
 }
-const SuggestedChartRevisionsRowTableName = "suggested_chart_revisions"
-export interface SuggestedChartRevisionsRow {
+export type SourcesRow = Required<SourcesRowForInsert>
+
+
+export const SuggestedChartRevisionsRowTableName = "suggested_chart_revisions"
+export interface SuggestedChartRevisionsRowForInsert {
   'changesInDataSummary': string | null;
   'chartId': number;
   'createdAt'?: Date;
   'createdBy': number;
   'decisionReason': string | null;
-  'experimental': jsonString | null;
+  'experimental': JsonString | null;
   'id'?: string;
   'isPendingOrFlagged': number | null;
-  'originalConfig': jsonString;
+  'originalConfig': JsonString;
   'originalVersion': number;
   'status': string;
-  'suggestedConfig': jsonString;
+  'suggestedConfig': JsonString;
   'suggestedReason': string | null;
   'suggestedVersion': number;
   'updatedAt': Date | null;
   'updatedBy': number | null;
 }
-const TagsRowTableName = "tags"
-export interface TagsRow {
+export type SuggestedChartRevisionsRow = Required<SuggestedChartRevisionsRowForInsert>
+
+
+export const TagsRowTableName = "tags"
+export interface TagsRowForInsert {
   'createdAt'?: Date;
   'id'?: number;
   'isBulkImport'?: number;
@@ -403,14 +514,20 @@ export interface TagsRow {
   'specialType': string | null;
   'updatedAt': Date | null;
 }
-const TagsVariablesTopicTagsRowTableName = "tags_variables_topic_tags"
-export interface TagsVariablesTopicTagsRow {
+export type TagsRow = Required<TagsRowForInsert>
+
+
+export const TagsVariablesTopicTagsRowTableName = "tags_variables_topic_tags"
+export interface TagsVariablesTopicTagsRowForInsert {
   'displayOrder'?: number;
   'tagId': number;
   'variableId': number;
 }
-const UsersRowTableName = "users"
-export interface UsersRow {
+export type TagsVariablesTopicTagsRow = Required<TagsVariablesTopicTagsRowForInsert>
+
+
+export const UsersRowTableName = "users"
+export interface UsersRowForInsert {
   'createdAt'?: Date;
   'email': string;
   'fullName': string;
@@ -422,8 +539,11 @@ export interface UsersRow {
   'password': string | null;
   'updatedAt': Date | null;
 }
-const VariablesRowTableName = "variables"
-export interface VariablesRow {
+export type UsersRow = Required<UsersRowForInsert>
+
+
+export const VariablesRowTableName = "variables"
+export interface VariablesRowForInsert {
   'attribution': string | null;
   'attributionShort': string | null;
   'catalogPath': string | null;
@@ -434,20 +554,20 @@ export interface VariablesRow {
   'datasetId': number;
   'description': string | null;
   'descriptionFromProducer': string | null;
-  'descriptionKey': jsonString | null;
+  'descriptionKey': JsonString | null;
   'descriptionProcessing': string | null;
   'descriptionShort': string | null;
-  'dimensions': jsonString | null;
-  'display': jsonString;
-  'grapherConfigAdmin': jsonString | null;
-  'grapherConfigETL': jsonString | null;
+  'dimensions': JsonString | null;
+  'display': JsonString;
+  'grapherConfigAdmin': JsonString | null;
+  'grapherConfigETL': JsonString | null;
   'id'?: number;
-  'license': jsonString | null;
-  'licenses': jsonString | null;
+  'license': JsonString | null;
+  'licenses': JsonString | null;
   'name': string | null;
-  'originalMetadata': jsonString | null;
+  'originalMetadata': JsonString | null;
   'processingLevel': string | null;
-  'processingLog': jsonString | null;
+  'processingLog': JsonString | null;
   'schemaVersion'?: number;
   'shortName': string | null;
   'shortUnit': string | null;
@@ -458,3 +578,6 @@ export interface VariablesRow {
   'unit': string;
   'updatedAt': Date | null;
 }
+export type VariablesRow = Required<VariablesRowForInsert>
+
+
