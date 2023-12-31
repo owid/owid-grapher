@@ -111,7 +111,11 @@ function validateExcerpt(
     errors: OwidGdocErrorMessage[]
 ) {
     if (!gdoc.content.excerpt) {
-        errors.push(getMissingContentPropertyError("excerpt"))
+        errors.push({
+            property: "excerpt",
+            type: OwidGdocErrorMessageType.Warning,
+            message: `It is advised to add an excerpt before publishing.`,
+        })
     } else if (gdoc.content.excerpt.length > EXCERPT_MAX_LENGTH) {
         errors.push({
             property: "excerpt",
