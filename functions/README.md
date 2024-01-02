@@ -153,6 +153,12 @@ stripe trigger checkout.session.completed
 
 Note: this will send the `checkout.session.completed` event expected in `/donation/thank-you`. However, I didn't manage to add metadata with `--add checkout.session:metadata.name="John Doe" --add checkout.session:metadata.showOnList=true` to perform a full test.
 
+### Testing on Cloudflare previews
+
+The webhook registered in the Stripe dashboard is configured to send test events to https://donate.owid.pages.dev/donation/thank-you.
+
+There is however a Cloudflare Access rule restricting access to \*.owid.pages.dev, so the Stripe webhook invocation will hit the Google Auth page instead of the function. To test the webhook on a Cloudflare preview, you need to temporarily disable the Cloudflare Access rule (the easiest is to change the rule to an unused subdomain, e.g. `temp.owid.pages.dev`).
+
 ## `/grapher/:slug`
 
 Our grapher pages are (slightly) dynamic!
