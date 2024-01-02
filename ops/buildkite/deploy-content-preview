@@ -141,18 +141,23 @@ create_dist() {
     # we need node_modules for Pages Functions
     as_owid rm -rf dist/node_modules
     as_owid cp -rL owid-grapher/node_modules dist/ # the `L` flag copies over symlinked files, too, which we need for @ourworldindata/utils etc.
-
+    # hack to use the global `wrangler`` in deploy_to_cloudflare. `npx wrangler`
+    # otherwise uses the local version in node_modules, but fails to resolve
+    # some paths due to the copy.
+    as_owid rm -rf dist/node_modules/.bin/wrangler*  dist/node_modules/wrangler
     as_owid cp owid-grapher/_routes.json dist/_routes.json
 }
 
 deploy_to_cloudflare() {
-    (
-        echo '--- Deploy to Cloudflare'
-        # - Using the `--branch [PREVIEW_BRANCH]` argument creates a deploy
-        #   preview. This doesn't affect production.
-        # - trim \r, they remove previous logs in buildkite
-        as_owid "env \$(grep \"^CLOUDFLARE\" ./owid-grapher/.env | xargs -0) npx wrangler pages deploy ./dist --project-name "$PROJECT_NAME" --branch "$PREVIEW_BRANCH" 2>&1 | tr -d '\r'"
-    )
+    echo '--- Deploy to Cloudflare'
+    # - Using the `--branch [PREVIEW_BRANCH]` argument creates a deploy preview.
+    #   This doesn't affect production.
+    # - trim \r, they remove previous logs in buildkite
+    # - functions are not deployed if wrangler is not run from the folder
+    #   containing the functions at the root (e.g. `wrangler pages deploy dist`
+    #   fails to deploy functions, silently)
+    #   https://community.cloudflare.com/t/cf-pages-functions-wrangler-dev-405-method-not-allowed-locally/442767/15
+    as_owid "cd dist && env \$(grep \"^CLOUDFLARE\" ../owid-grapher/.env | xargs -0) npx wrangler pages deploy . --project-name "$PROJECT_NAME" --branch "$PREVIEW_BRANCH" 2>&1 | tr -d '\r'"
 }
 
 deploy_site
