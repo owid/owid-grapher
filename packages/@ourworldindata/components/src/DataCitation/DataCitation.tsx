@@ -6,12 +6,11 @@ export const DataCitation = (props: {
     citationLong: string
 }) => {
     return (
-        <>
+        <div className="data-citation">
             {props.citationShort && (
                 <>
                     <p className="citation__paragraph">
                         <span className="citation__type">In-line citation</span>
-                        <br />
                         If you have limited space (e.g. in data visualizations),
                         you can use this abbreviated in-line citation:
                     </p>
@@ -34,6 +33,6 @@ export const DataCitation = (props: {
                     />
                 </>
             )}
-        </>
+        </div>
     )
 }
