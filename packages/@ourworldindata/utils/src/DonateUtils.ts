@@ -31,8 +31,8 @@ export const getErrorMessageDonation = (
 ): string | undefined => {
     const symbol = getCurrencySymbol(donation.currency)
 
-    if (!donation.amount)
-        return "Please enter an amount or select a preset amount."
+    if (donation.amount === undefined || Number.isNaN(donation.amount))
+        return "Please enter a valid amount or select a preset amount."
 
     if (
         donation.amount < MIN_DONATION_AMOUNT ||

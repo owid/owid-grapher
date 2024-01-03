@@ -120,7 +120,7 @@ export class DonateForm extends React.Component {
             name: this.name,
             showOnList: this.showOnList,
             currency: this.currencyCode,
-            amount: this.amount || 0,
+            amount: this.amount,
             interval: this.interval,
             successUrl: `${BAKED_BASE_URL}/thank-you`,
             cancelUrl: `${BAKED_BASE_URL}/donate`,

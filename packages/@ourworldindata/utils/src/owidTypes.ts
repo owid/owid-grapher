@@ -1787,12 +1787,14 @@ export const DonationRequestTypeObject = Type.Object({
         Type.Literal("EUR"),
         Type.Literal("USD"),
     ]),
-    amount: Type.Number({
-        // We don't want to enforce a minimum or maximum donation amount at the
-        // type level so that we can return friendlier error messages than
-        // Typebox's default ones. These friendlier error messages are returned
-        // by getErrorMessageDonation().
-    }),
+    amount: Type.Optional(
+        Type.Number({
+            // We don't want to enforce a minimum or maximum donation amount at the
+            // type level so that we can return friendlier error messages than
+            // Typebox's default ones. These friendlier error messages are returned
+            // by getErrorMessageDonation().
+        })
+    ),
     interval: Type.Union([Type.Literal("once"), Type.Literal("monthly")]),
     successUrl: Type.String(),
     cancelUrl: Type.String(),
