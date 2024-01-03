@@ -90,6 +90,7 @@ export interface DataTableManager {
     isSmall?: boolean
     isMedium?: boolean
     isNarrow?: boolean
+    selection?: SelectionArray | EntityName[]
 }
 
 @observer
