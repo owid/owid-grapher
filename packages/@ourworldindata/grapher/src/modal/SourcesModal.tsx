@@ -400,9 +400,11 @@ export class Source extends React.Component<{
         return (
             <div className="source">
                 {this.renderTitle()}
-                {this.def.descriptionShort && (
+                {this.def.descriptionShort ? (
                     <SimpleMarkdownText text={this.def.descriptionShort} />
-                )}
+                ) : this.def.description ? (
+                    <SimpleMarkdownText text={this.def.description} />
+                ) : null}
                 <SourcesKeyDataTable
                     attribution={this.attributions}
                     owidProcessingLevel={this.def.owidProcessingLevel}

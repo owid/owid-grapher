@@ -158,22 +158,18 @@ const prepareOriginForDisplay = (origin: OwidOrigin): DisplaySource => {
 }
 
 export const prepareSourcesForDisplay = (
-    variable: Pick<OwidVariableWithSource, "origins" | "source" | "description">
+    variable: Pick<OwidVariableWithSource, "origins" | "source">
 ): DisplaySource[] => {
-    const { origins, source, description } = variable
+    const { origins, source } = variable
 
     const sourcesForDisplay: DisplaySource[] = []
 
     if (
         source?.name &&
-        (description ||
-            source?.dataPublishedBy ||
-            source?.retrievedDate ||
-            source?.link)
+        (source?.dataPublishedBy || source?.retrievedDate || source?.link)
     ) {
         sourcesForDisplay.push({
             label: source?.name,
-            description,
             dataPublishedBy: source?.dataPublishedBy,
             retrievedOn: source?.retrievedDate,
             retrievedFrom: source?.link,
