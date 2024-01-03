@@ -8,7 +8,7 @@ import {
     isObject,
     set,
 } from "lodash"
-import { OwidGdocContent } from "@ourworldindata/utils"
+import { OwidGdocPostContent } from "@ourworldindata/utils"
 
 export class UpdateGdocRecircComponent1685107433682
     implements MigrationInterface
@@ -27,7 +27,7 @@ export class UpdateGdocRecircComponent1685107433682
             "SELECT id, slug, content FROM posts_gdocs"
         )
         for (const gdoc of allGdocs) {
-            gdoc.content = JSON.parse(gdoc.content) as OwidGdocContent
+            gdoc.content = JSON.parse(gdoc.content) as OwidGdocPostContent
             const old = cloneDeep(gdoc.content.body)
             recursivelyFixRecircComponents(gdoc.content.body)
             if (JSON.stringify(old) !== JSON.stringify(gdoc.content.body)) {

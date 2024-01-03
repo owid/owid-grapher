@@ -32,6 +32,7 @@ export interface ChartInterface {
 
     transformTable: ChartTableTransformer
     transformTableForDisplay?: ChartTableTransformer
+    transformTableForSelection?: ChartTableTransformer
 
     yAxis?: HorizontalAxis | VerticalAxis
     xAxis?: HorizontalAxis | VerticalAxis

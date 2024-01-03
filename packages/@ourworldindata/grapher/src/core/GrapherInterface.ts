@@ -116,6 +116,8 @@ export interface GrapherQueryParams extends QueryParams {
     selection?: string
     facet?: string
     uniformYAxis?: string
+    showSelectionOnlyInTable?: string
+    showNoDataArea?: string
 }
 
 export interface LegacyGrapherQueryParams extends GrapherQueryParams {

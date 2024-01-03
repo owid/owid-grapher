@@ -1,0 +1,990 @@
+#gdoc-admin-bar {
+    display: none;
+    position: absolute;
+    right: 8px;
+    margin-top: 8px;
+    opacity: 0.7;
+    z-index: $zindex-adminbar;
+    a {
+        color: $blue-30;
+    }
+    span {
+        color: $blue-60;
+        margin: 0 4px;
+    }
+}
+
+.fragment-json {
+    background-color: $gray-10;
+    padding: 32px;
+    white-space: pre-wrap;
+    border-radius: 3px;
+}
+
+.centered-article-container {
+    // !important because we never want this to be overwritten
+    .ref {
+        color: $vermillion !important;
+        text-decoration: none !important;
+        &:visited {
+            color: $vermillion !important;
+        }
+    }
+
+    .toc-wrapper {
+        position: sticky;
+        top: 0;
+        height: 0;
+        // Above explorer chrome
+        z-index: 3;
+        margin-top: -48px;
+        .entry-sidebar {
+            height: 100vh;
+            position: absolute;
+            transition: margin 300ms ease;
+            width: 400px;
+            margin-left: -400px;
+            box-shadow: none;
+            @include sm-only {
+                width: 100vw;
+                margin-left: -100vw;
+            }
+            @include sm-up {
+                ul {
+                    margin-left: 32px;
+                }
+            }
+
+            li {
+                &:first-child {
+                    margin-top: 36px;
+                }
+
+                &.section {
+                    margin-top: 20px;
+                }
+                &.subsection a {
+                    color: $blue-60;
+                    margin-left: 16px;
+                    line-height: 1.125em;
+                }
+                &.active a {
+                    border-left-color: $vermillion;
+                    background: unset;
+                    font-weight: bold;
+                    // Counteract the font-weight so that the text doesn't wrap when active
+                    letter-spacing: -0.09px;
+                }
+                a {
+                    padding-left: 16px;
+                    color: $blue-90;
+                    border-width: 4px;
+                    padding-right: 32px;
+                    margin-left: 0;
+                    font-weight: 400;
+
+                    &:hover {
+                        background: none;
+                        text-decoration: underline;
+                    }
+                }
+            }
+
+            .toggle-toc {
+                margin-left: 0;
+                transform: translateX(calc(100% + 16px));
+                position: absolute;
+                top: 0;
+                bottom: 0;
+                right: 0;
+                padding: 16px 0;
+                pointer-events: none;
+                display: unset;
+                transition: transform 300ms ease;
+                button {
+                    @include popover-box-button;
+                    z-index: 20;
+                    position: sticky;
+                    top: 16px;
+                    pointer-events: auto;
+                    white-space: nowrap;
+                    box-shadow: none;
+                    background: #fff;
+                    border: 1px solid $blue-20;
+                    line-height: 1.25;
+                    padding: 6px;
+                    border-radius: 4px;
+
+                    &:hover {
+                        background: #fff;
+                        svg {
+                            color: $blue-100;
+                        }
+                    }
+                    svg {
+                        margin-right: 0;
+                        color: $blue-90;
+                        height: 12px;
+                    }
+
+                    span {
+                        color: $blue-90;
+                        margin-left: 5px;
+                        position: relative;
+                        top: 1px;
+                    }
+                }
+            }
+            &.entry-sidebar--is-open {
+                margin-left: 0;
+                .toggle-toc {
+                    transform: translateX(-16px);
+                    button {
+                        border: none;
+                        span {
+                            display: none;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+$banner-height: 200px;
+.centered-article-header__banner {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: $banner-height;
+    background: $amber;
+    z-index: -1;
+}
+
+// Until we implement a way to specifiy src-sets in archie, this image will need to have a 1:1 aspect ratio
+// to fit on both mobile and desktop resolutions
+.centered-article-header__cover-image {
+    height: 200px;
+    overflow: hidden;
+    position: absolute;
+    width: 100%;
+    z-index: -1;
+    img {
+        width: 100%;
+        object-fit: cover;
+        height: 100%;
+    }
+}
+
+.article-summary {
+    margin-bottom: 32px;
+}
+
+.centered-article-header {
+    background: $white;
+    margin: 80px 0 24px;
+    min-height: calc($banner-height - 80px);
+    padding-top: 48px;
+
+    @include md-down {
+        margin-top: 48px;
+        padding-top: 24px;
+    }
+}
+
+.article-block__text {
+    margin-top: 0;
+}
+
+.article-block__blockquote {
+    margin-top: 0;
+    color: $blue-60;
+    p {
+        font-style: italic;
+        &:last-of-type {
+            margin-bottom: 0px;
+        }
+    }
+    a {
+        color: $blue-60;
+    }
+    footer {
+        margin-top: 8px;
+    }
+    cite {
+        font-style: normal;
+    }
+}
+
+.article-block__heading {
+    a.deep-link {
+        position: absolute;
+    }
+
+    &:hover {
+        a.deep-link {
+            opacity: 1;
+        }
+    }
+}
+
+h1.article-block__heading {
+    a.deep-link {
+        margin-top: 16px;
+        height: 16px;
+        @include sm-only {
+            margin-top: 10px;
+        }
+    }
+}
+h2.article-block__heading {
+    a.deep-link {
+        margin-top: 11px;
+        height: 14px;
+        @include sm-only {
+            margin-top: 10px;
+        }
+    }
+}
+h3.article-block__heading {
+    a.deep-link {
+        margin-top: 8px;
+        height: 12px;
+        @include sm-only {
+            margin-top: 10px;
+        }
+    }
+}
+
+.article-block__image {
+    width: 100%;
+    margin: 32px 0;
+
+    picture {
+        // fixes strange extra height that is otherwise added to the element on firefox
+        display: flex;
+    }
+
+    img {
+        width: 100%;
+
+        &.lightbox-image {
+            cursor: zoom-in;
+        }
+    }
+
+    .download-png-link {
+        @include owid-link-60;
+        font-size: 14px;
+    }
+}
+
+.article-block__video {
+    margin: 24px 0 32px 0;
+    @include body-3-medium-italic;
+    color: $blue-60;
+    text-align: center;
+    a {
+        @include owid-link-90;
+    }
+    video {
+        width: 100%;
+    }
+}
+
+.article-block__sticky-left,
+.article-block__sticky-right {
+    @include md-up {
+        .article-block__heading:first-child,
+        .article-block__image:first-child {
+            margin-top: 0;
+        }
+    }
+}
+
+.article-block__image-caption {
+    @include body-3-medium-italic;
+    color: $blue-60;
+    text-align: center;
+}
+
+.article-block__chart + .article-block__heading {
+    margin-top: 0;
+}
+
+.article-block__heading + .article-block__heading {
+    margin-top: 0;
+}
+
+h2.article-block__heading.has-supertitle {
+    margin-top: 24px;
+    text-align: center;
+    .article-block__heading-supertitle {
+        color: $blue-50;
+        margin-bottom: 8px;
+    }
+}
+
+.centered-article-container > .article-block__divider {
+    border-top: 1px solid $blue-20;
+    margin: 48px 0;
+}
+
+// Don't show the divider directly after the ToC
+.article-block__toc + .article-block__divider {
+    border: none;
+    margin: 0;
+}
+
+h3.article-block__heading.has-supertitle {
+    text-align: center;
+
+    .article-block__heading-supertitle {
+        color: $blue-50;
+        margin-bottom: 8px;
+    }
+
+    + * {
+        margin-top: 0;
+    }
+}
+
+.centered-article-header__breadcrumbs-container {
+    .centered-article-header__breadcrumbs {
+        &.breadcrumbs-white {
+            color: $white;
+        }
+        &.breadcrumbs-blue {
+            color: $blue-100;
+        }
+
+        // Idea here: By using this positioning, we can have the breadcrumbs
+        // take up exactly: (number of lines - 1) * line-height
+        // in height, effectively, such that the header is always the same height
+        // unless the breadcrumbs are longer than a single line.
+        --header-breadcrumb-margin-top: 40px;
+
+        @include md-down {
+            --header-breadcrumb-margin-top: 16px;
+        }
+
+        margin-top: var(--header-breadcrumb-margin-top);
+        margin-bottom: calc(-1.6em - var(--header-breadcrumb-margin-top));
+
+        font-size: 1rem;
+        a {
+            @include owid-link-90;
+            color: inherit;
+
+            &:visited,
+            &:hover {
+                color: inherit;
+            }
+        }
+
+        .separator {
+            margin: 0 0.5rem;
+            vertical-align: -0.0625em;
+            opacity: 0.7;
+        }
+    }
+}
+
+.centered-article-header__title-container {
+    .centered-article-header__supertitle {
+        @include overline-black-caps;
+        color: $blue-50;
+    }
+
+    .centered-article-header__title {
+        @include display-2-semibold;
+        margin-top: 0;
+        margin-bottom: 24px;
+        color: $blue-90;
+
+        @include md-down {
+            @include h2-bold;
+            margin-top: 0;
+        }
+    }
+}
+
+.centered-article-header__subtitle {
+    @include subtitle-1;
+    margin-top: 0;
+    color: $blue-50;
+
+    @include md-down {
+        @include body-1-regular;
+    }
+}
+
+.centered-article-header__meta-container {
+    border-bottom: 1px solid $blue-10;
+    border-top: 1px solid $blue-10;
+    padding: 32px 0;
+    color: $blue-60;
+    @include body-1-regular;
+
+    a {
+        text-underline-offset: 5px;
+        margin-bottom: 8px;
+        @include owid-link-60;
+        &:visited {
+            color: $blue-60;
+        }
+    }
+
+    .centered-article-header__byline,
+    .centered-article-header__dateline {
+        // A small bit of padding to encourage line-wrapping on long bylines
+        padding-right: 8px;
+        margin-bottom: 8px;
+    }
+
+    svg {
+        margin-right: 8px;
+    }
+
+    @include sm-up {
+        > div:first-child {
+            border-right: 1px solid $blue-10;
+        }
+    }
+
+    @include sm-only {
+        padding: 16px 0;
+        > div:first-child {
+            border-bottom: 1px solid $blue-10;
+            padding-bottom: 16px;
+            margin-bottom: 16px;
+        }
+    }
+}
+
+.footnote-container,
+#article-citation,
+#article-licence {
+    @include body-3-medium;
+    color: $blue-60;
+    background-color: $beige;
+
+    h3 {
+        @include h3-bold;
+        color: $blue-50;
+        margin: 24px 0 16px;
+    }
+
+    a {
+        @include owid-link-60;
+        color: inherit;
+    }
+}
+
+.footnote-container {
+    margin-top: 48px;
+    padding-top: 40px;
+    padding-bottom: 0;
+    h3 {
+        @include overline-black-caps;
+        color: $blue-90;
+        text-align: center;
+        padding-bottom: 24px;
+        margin-bottom: 32px;
+        margin-top: 0;
+        border-bottom: 1px solid $blue-20;
+    }
+    .footnote-list {
+        column-count: 2;
+        &.footnote-list--single-column {
+            column-count: 1;
+        }
+        column-span: none;
+        column-gap: 48px;
+        color: $blue-60;
+        padding-bottom: 48px;
+        border-bottom: 1px solid $blue-20;
+        li {
+            break-inside: avoid-column;
+            -webkit-column-break-inside: avoid;
+            margin-left: 16px;
+        }
+        li:first-child p {
+            margin-top: 0;
+        }
+
+        @include sm-only {
+            column-count: 1;
+            margin: 0 24px;
+            li {
+                margin-left: 0;
+            }
+        }
+
+        .article-block__text,
+        .article-block__list,
+        .article-block__html,
+        .article-block__numbered-list {
+            @include body-3-medium;
+        }
+    }
+}
+
+#article-citation {
+    padding-top: 48px;
+    h3 {
+        margin-top: 0;
+        text-align: center;
+    }
+    p {
+        margin-bottom: 16px;
+        color: $blue-90;
+    }
+    div:last-of-type .wp-code-snippet {
+        margin-bottom: 0;
+        font-size: 0.875rem;
+    }
+    > div:last-child {
+        padding-bottom: 48px;
+        border-bottom: 1px solid $blue-20;
+    }
+}
+
+#article-licence {
+    padding-top: 48px;
+    padding-bottom: 48px;
+    text-align: center;
+}
+
+.article-block__text,
+.article-block__list,
+.article-block__html,
+.article-block__numbered-list {
+    @include body-1-regular;
+    margin-bottom: 16px;
+
+    .span-link {
+        @include owid-link-60;
+        color: inherit;
+    }
+}
+
+.article-block__numbered-list,
+.article-block__list {
+    margin-left: 16px;
+
+    li {
+        margin-bottom: 0.5em;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+    }
+}
+
+.article-block__aside-right figcaption {
+    border-left: 1px solid $blue-20;
+    padding-left: 24px;
+    a {
+        @include owid-link-90;
+    }
+
+    @include md-down {
+        border: 1px solid $blue-20;
+        padding: 24px;
+    }
+}
+
+.article-block__aside-left figcaption {
+    border-right: 1px solid $blue-20;
+    padding-right: 24px;
+    text-align: right;
+    a {
+        @include owid-link-90;
+    }
+
+    // Same as aside-right when in a single-column mobile view
+    @include md-down {
+        border: 1px solid $blue-20;
+        padding: 24px;
+        text-align: left;
+    }
+}
+
+div.article-block__table--narrow,
+div.article-block__table--wide {
+    overflow-x: auto;
+    table {
+        min-width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 32px;
+
+        th {
+            text-align: left;
+            &[scope="row"] {
+                text-align: right;
+            }
+        }
+
+        th[scope="col"],
+        th[scope="row"] {
+            background-color: $blue-10;
+            p {
+                font-weight: 700;
+                margin-bottom: 0;
+            }
+        }
+
+        td,
+        th {
+            border: 1px solid $blue-20;
+            padding: 16px;
+        }
+
+        .article-block__text,
+        .article-block__list {
+            @include body-3-medium;
+            &:last-child {
+                margin-bottom: 0;
+            }
+        }
+    }
+}
+
+.article-block__pull-quote {
+    @include h1-bold-italic;
+    border-bottom: 1px solid #dbe5f0;
+    border-top: 1px solid #dbe5f0;
+    margin: 32px 0;
+    padding: 32px 0;
+    text-align: center;
+}
+
+.article-block__horizontal-rule {
+    border-top: 1px solid $blue-10;
+    padding: 0;
+    margin: 48px 0;
+
+    + .article-block__heading {
+        margin-top: 0;
+    }
+}
+
+.article-block__recirc {
+    margin-bottom: 24px;
+
+    .recirc-content {
+        background: $gray-10;
+        padding: 24px;
+    }
+
+    .recirc-content__heading {
+        color: $blue-40;
+    }
+
+    h3 {
+        margin-top: 0;
+        a {
+            color: $blue-90;
+        }
+    }
+
+    .recirc-article-container {
+        padding: 24px 0;
+        &:not(:last-child) {
+            border-bottom: 1px solid $blue-10;
+        }
+    }
+}
+
+.sticky-column-wrapper {
+    .article-block__chart,
+    .article-block__explorer {
+        margin-top: 0;
+    }
+
+    .article-block__chart,
+    .article-block__image {
+        &:last-child {
+            margin-bottom: 0;
+        }
+    }
+}
+
+.article-block__chart,
+.article-block__explorer {
+    // width is necessary for containerNode.getBoundingClientRect() in Grapher.renderGrapherIntoContainer
+    width: 100%;
+    margin: 16px 0 48px 0;
+
+    figure {
+        margin: 0;
+    }
+
+    .GrapherComponent {
+        display: block;
+        margin: 0 auto;
+    }
+
+    .Explorer {
+        label {
+            margin-bottom: 0;
+        }
+    }
+}
+
+.article-block__chart-story {
+    .chart-story__nav-arrow {
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        background: none;
+        border: none;
+        font-size: 28px;
+
+        &:disabled {
+            cursor: default;
+            svg {
+                color: $blue-40;
+            }
+        }
+    }
+
+    .chart-story__nav-arrow--left {
+        justify-content: flex-start;
+        svg {
+            margin-left: 4px;
+        }
+    }
+
+    .chart-story__nav-arrow--right {
+        justify-content: flex-end;
+        svg {
+            margin-right: 8px;
+        }
+    }
+
+    .chart-story__narrative-text {
+        margin-top: 12px;
+        margin-bottom: 12px;
+    }
+
+    .chart-story__chart {
+        margin-bottom: 48px;
+        // width is necessary for containerNode.getBoundingClientRect() in Grapher.renderGrapherIntoContainer
+        width: 100%;
+        > div {
+            margin: 0;
+            width: 100%;
+            > figure {
+                margin: 0;
+
+                @include sm-only {
+                    // 50px is the height of the header on mobile
+                    // 65px is the height of the navigation
+                    // 1rem is additional padding
+                    height: calc(100vh - 115px - 1rem);
+                }
+            }
+        }
+    }
+
+    .chart-story__technical-text {
+        margin-bottom: 16px;
+    }
+
+    .chart-story__technical-details {
+        margin-bottom: 24px;
+        li {
+            margin-bottom: 12px;
+        }
+    }
+}
+
+.sticky-column-wrapper {
+    top: 32px;
+    position: sticky;
+}
+
+.article-block__scroller {
+    margin-bottom: 32px;
+    position: relative;
+
+    .scroller__chart {
+        margin: 0;
+    }
+
+    @include sm-up {
+        .scroller__paragraph {
+            height: 50vh;
+            margin: 200px 0;
+
+            &:first-child {
+                margin-top: 0;
+            }
+        }
+        .scroller__chart {
+            position: sticky;
+            top: calc((100vh - 550px) / 2);
+        }
+    }
+
+    @include sm-only {
+        .scroller__paragraph-container {
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .scroller__chart-container {
+            position: sticky;
+            bottom: 0;
+            z-index: 0;
+        }
+
+        .GrapherComponent {
+            box-shadow: none;
+        }
+
+        .scroller__paragraph-intersection-wrapper {
+            height: 100vh;
+        }
+
+        .scroller__paragraph {
+            @include body-2-regular;
+            background: white;
+            padding: 8px;
+            outline: 1px solid $gray-10;
+            pointer-events: all;
+        }
+    }
+}
+
+// A full-width grey section
+.article-block__gray-section {
+    background-color: $gray-10;
+    padding: 48px 0;
+    margin: 24px 0;
+
+    > *:first-child {
+        margin-top: 0;
+    }
+
+    > *:last-child {
+        margin-bottom: 0;
+    }
+
+    // don't add the special heading formatting if we're inside a grey section
+    .article-block__heading.has-supertitle {
+        border: none;
+        padding-top: 0;
+    }
+}
+
+// A small grey block
+.article-block__callout {
+    h4 {
+        color: $blue-90;
+        margin-bottom: 8px;
+        margin-top: 8px;
+    }
+    a {
+        @include owid-link-90;
+    }
+    color: $blue-60;
+    background: $gray-10;
+    padding: 16px 24px;
+    border-radius: 8px;
+    margin: 32px 0;
+    p:last-child {
+        margin-bottom: 8px;
+    }
+
+    + .article-block__horizontal-rule {
+        margin-top: 24px;
+    }
+}
+
+.article-block__sticky-right,
+.article-block__sticky-left,
+.article-block__side-by-side {
+    margin: 48px 0;
+
+    @include md-down {
+        margin: 0;
+    }
+}
+
+.article-block__prominent-link {
+    margin-bottom: 24px;
+    color: $blue-90;
+
+    > .prominent-link__image {
+        height: 100%;
+        width: 100%;
+    }
+
+    p,
+    h3 {
+        margin: 2px 0;
+    }
+
+    h3 {
+        display: inline-block;
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+
+    + .article-block__prominent-link {
+        padding-top: 24px;
+        border-top: 1px solid $blue-10;
+    }
+}
+
+.article-block__key-insights {
+    .slide[data-active="true"] {
+        // Have to override the WP styles, which we can undo once they're removed
+        display: grid !important;
+    }
+}
+
+.article-block__align {
+    &.align-left {
+        text-align: left;
+    }
+
+    &.align-center {
+        text-align: center;
+    }
+
+    &.align-right {
+        text-align: right;
+    }
+}
+
+.html-table {
+    @include body-3-medium;
+    border-collapse: collapse;
+    margin-bottom: 25px;
+    td:first-child {
+        background-color: $blue-10;
+        vertical-align: top;
+        font-weight: bold;
+    }
+    td {
+        border: 1px solid $blue-20;
+        padding: 16px;
+
+        ul {
+            margin-left: 16px;
+            li {
+                margin-bottom: 8px;
+            }
+        }
+    }
+    th {
+        border: 1px solid;
+        text-align: left;
+        padding: 6px;
+    }
+}

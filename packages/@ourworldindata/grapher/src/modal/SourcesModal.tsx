@@ -2,7 +2,6 @@ import {
     Bounds,
     DEFAULT_BOUNDS,
     uniq,
-    uniqBy,
     sum,
     zip,
     getAttributionFragmentsFromVariable,
@@ -12,11 +11,16 @@ import {
     DisplaySource,
     prepareSourcesForDisplay,
     OwidSource,
+    IndicatorTitleWithFragments,
+    joinTitleFragments,
+    getCitationShort,
+    getCitationLong,
 } from "@ourworldindata/utils"
 import {
     IndicatorSources,
     IndicatorProcessing,
     SimpleMarkdownText,
+    DataCitation,
 } from "@ourworldindata/components"
 import React from "react"
 import { action, computed } from "mobx"
@@ -103,21 +107,10 @@ export class SourcesModal extends React.Component<
         return this.manager.columnsWithSourcesExtensive
     }
 
-    @computed private get deduplicatedColumn(): CoreColumn | undefined {
-        const sources = this.columns.map((column) => new Source({ column }))
-
-        // no need to deduplicate if there is only one source
-        if (sources.length <= 1) return undefined
-
-        // deduplicate on all visible information
-        const uniqueSources = uniqBy(sources, (source) =>
-            visibleSourceInformation(source)
-        )
-        return uniqueSources.length === 1 ? this.columns[0] : undefined
-    }
-
     @computed private get tabLabels(): string[] {
-        return this.columns.map((column) => column.nonEmptyDisplayName)
+        return this.columns.map(
+            (column) => column.titlePublicOrDisplayName.title
+        )
     }
 
     private renderSource(column: CoreColumn | undefined): JSX.Element | null {
@@ -125,19 +118,6 @@ export class SourcesModal extends React.Component<
         return (
             <Source
                 column={column}
-                editBaseUrl={this.editBaseUrl}
-                isEmbeddedInADataPage={
-                    this.manager.isEmbeddedInADataPage ?? false
-                }
-            />
-        )
-    }
-
-    private renderDeduplicatedSource(): JSX.Element | null {
-        if (!this.deduplicatedColumn) return null
-        return (
-            <DeduplicatedSource
-                column={this.deduplicatedColumn}
                 editBaseUrl={this.editBaseUrl}
                 isEmbeddedInADataPage={
                     this.manager.isEmbeddedInADataPage ?? false
@@ -264,10 +244,6 @@ export class SourcesModal extends React.Component<
     }
 
     private renderModalContent(): JSX.Element | null {
-        if (this.deduplicatedColumn) {
-            return this.renderDeduplicatedSource()
-        }
-
         return this.columns.length === 1
             ? this.renderSource(this.columns[0])
             : this.renderMultipleSources()
@@ -309,12 +285,33 @@ export class Source extends React.Component<{
         return { ...this.column.def, source: this.column.source }
     }
 
+    @computed get citationShort(): string {
+        return getCitationShort(
+            this.def.origins ?? [],
+            getAttributionFragmentsFromVariable(this.def),
+            this.def.owidProcessingLevel
+        )
+    }
+
+    @computed get citationLong(): string {
+        return getCitationLong(
+            this.title,
+            this.def.origins ?? [],
+            this.source,
+            getAttributionFragmentsFromVariable(this.def),
+            this.def.presentation?.attributionShort,
+            this.def.presentation?.titleVariant,
+            this.def.owidProcessingLevel,
+            undefined
+        )
+    }
+
     @computed private get source(): OwidSource {
         return this.def.source ?? {}
     }
 
-    @computed private get title(): string {
-        return this.column.nonEmptyDisplayName
+    @computed private get title(): IndicatorTitleWithFragments {
+        return this.column.titlePublicOrDisplayName
     }
 
     @computed private get editUrl(): string | undefined {
@@ -379,7 +376,17 @@ export class Source extends React.Component<{
     protected renderTitle(): JSX.Element {
         return (
             <h2>
-                {this.title}{" "}
+                {this.title.title}{" "}
+                {(this.title.attributionShort || this.title.titleVariant) && (
+                    <>
+                        <span className="title-fragments">
+                            {joinTitleFragments(
+                                this.title.attributionShort,
+                                this.title.titleVariant
+                            )}
+                        </span>{" "}
+                    </>
+                )}
                 {this.editUrl && (
                     <a href={this.editUrl} target="_blank" rel="noopener">
                         <FontAwesomeIcon icon={faPencilAlt} />
@@ -393,9 +400,11 @@ export class Source extends React.Component<{
         return (
             <div className="source">
                 {this.renderTitle()}
-                {this.def.descriptionShort && (
+                {this.def.descriptionShort ? (
                     <SimpleMarkdownText text={this.def.descriptionShort} />
-                )}
+                ) : this.def.description ? (
+                    <SimpleMarkdownText text={this.def.description} />
+                ) : null}
                 <SourcesKeyDataTable
                     attribution={this.attributions}
                     owidProcessingLevel={this.def.owidProcessingLevel}
@@ -443,57 +452,16 @@ export class Source extends React.Component<{
                 <IndicatorProcessing
                     descriptionProcessing={this.def.descriptionProcessing}
                 />
+                <h3 className="heading heading--tight">
+                    How to cite this data:
+                </h3>
+                <DataCitation
+                    citationShort={this.citationShort}
+                    citationLong={this.citationLong}
+                />
             </div>
         )
     }
-}
-
-@observer
-export class DeduplicatedSource extends Source {
-    renderTitle(): JSX.Element {
-        return <h2>About this data</h2>
-    }
-
-    @computed get sourcesSectionHeading(): string {
-        return "This data is based on the following sources"
-    }
-}
-
-const visibleSourceInformation = (source: Source): string => {
-    return [
-        // used in key data table
-        source.attributions,
-        source.def.timespan,
-        source.lastUpdated,
-        source.nextUpdate,
-        source.unit,
-        source.def.sourceLink,
-        source.column.unitConversionFactor,
-
-        // descriptions
-        source.def.descriptionShort,
-        source.def.descriptionKey,
-        source.def.descriptionFromProducer,
-        source.def.additionalInfo,
-
-        // old source information
-        source.def.sourceName,
-        source.def.dataPublishedBy,
-        source.def.retrievedDate,
-        source.def.description,
-
-        // origins
-        source.def.origins
-            ?.map((origin) => [
-                origin.producer,
-                origin.title,
-                origin.description,
-                origin.dateAccessed,
-                origin.urlMain,
-                origin.citationFull,
-            ])
-            .join("-"),
-    ].join("-")
 }
 
 const measureTabWidth = (label: string): number => {

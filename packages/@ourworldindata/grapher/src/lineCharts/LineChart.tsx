@@ -66,6 +66,7 @@ import {
     CoreValueType,
     isNotErrorValue,
     EntityName,
+    BlankOwidTable,
 } from "@ourworldindata/core-table"
 import {
     autoDetectSeriesStrategy,
@@ -295,6 +296,26 @@ export class LineChart
             table.hasAnyColumnNoValidValue(this.yColumnSlugs)
         ) {
             table = table.dropAllRows()
+        }
+
+        return table
+    }
+
+    transformTableForSelection(table: OwidTable): OwidTable {
+        // if entities with partial data are not plotted,
+        // make sure they don't show up in the entity selector
+        if (this.missingDataStrategy === MissingDataStrategy.hide) {
+            table = table.replaceNonNumericCellsWithErrorValues(
+                this.yColumnSlugs
+            )
+
+            const groupedByEntity = table
+                .groupBy("entityName")
+                .filter((t) => !t.hasAnyColumnNoValidValue(this.yColumnSlugs))
+
+            if (groupedByEntity.length === 0) return BlankOwidTable()
+
+            table = groupedByEntity[0].concat(groupedByEntity.slice(1))
         }
 
         return table

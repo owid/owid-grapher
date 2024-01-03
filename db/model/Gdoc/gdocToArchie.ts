@@ -110,8 +110,8 @@ function tableToString(
                 value: [],
             }
             const { content = [] } = tableCell
-            // Yes, we're in a table" here, but this boolean is to track whether we should parse Gdocs tables
-            // in the "top level" of the document, not once we're inside a table already
+            // Yes, we're "in a table" here, but this boolean is to track whether we should parse Gdocs tables
+            // in the top level of the document, not once we're inside a table already
             const context = { isInList: false, isInTable: false }
             for (const item of content) {
                 if (item.paragraph) {

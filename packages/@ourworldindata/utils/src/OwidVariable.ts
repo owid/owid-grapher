@@ -86,6 +86,28 @@ export interface OwidVariableWithSource {
     // metadataPath
 }
 
+export interface IndicatorTitleWithFragments {
+    title: string
+    attributionShort?: string
+    titleVariant?: string
+}
+
+export function joinTitleFragments(
+    attributionShort: string | undefined,
+    titleVariant: string | undefined
+): string | undefined {
+    if (attributionShort && titleVariant && attributionShort !== titleVariant) {
+        return `${titleVariant} – ${attributionShort}`
+    }
+    if (attributionShort) {
+        return attributionShort
+    }
+    if (titleVariant) {
+        return titleVariant
+    }
+    return undefined
+}
+
 export interface OwidLicense {
     name: string
     url: string
@@ -98,6 +120,7 @@ export interface OwidVariablePresentation {
     attribution?: string
     topicTagsLinks?: string[]
     faqs?: FaqLink[]
+    grapherConfigETL?: string
 }
 
 export type OwidProcessingLevel = "minor" | "major"

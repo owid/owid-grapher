@@ -154,7 +154,7 @@ class SourceEditor extends React.Component<{ source: SourcePageData }> {
                 </section>
                 <section>
                     <h3>Indicators</h3>
-                    <VariableList variables={source.variables} />
+                    <VariableList variables={source.variables} fields={[]} />
                 </section>
             </main>
         )

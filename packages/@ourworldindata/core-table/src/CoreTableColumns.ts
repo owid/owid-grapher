@@ -23,13 +23,17 @@ import {
     PrimitiveType,
     imemo,
     ToleranceStrategy,
+    IndicatorTitleWithFragments,
 } from "@ourworldindata/utils"
 import { CoreTable } from "./CoreTable.js"
 import { Time, JsTypes, CoreValueType } from "./CoreTableConstants.js"
 import { ColumnTypeNames, CoreColumnDef } from "./CoreColumnDef.js"
 import { EntityName, OwidVariableRow } from "./OwidTableConstants.js" // todo: remove. Should not be on CoreTable
 import { ErrorValue, ErrorValueTypes, isNotErrorValue } from "./ErrorValues.js"
-import { getOriginalTimeColumnSlug } from "./OwidTableUtil.js"
+import {
+    getOriginalTimeColumnSlug,
+    getOriginalValueColumnSlug,
+} from "./OwidTableUtil.js"
 
 interface ColumnSummary {
     numErrorValues: number
@@ -266,11 +270,22 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     @imemo get displayName(): string {
-        return this.display?.name ?? this.name ?? ""
+        return (
+            this.display?.name ??
+            this.def.presentation?.titlePublic ?? // this is a bit of an unusual fallback - if display.name is not given, titlePublic is the next best thing before name
+            this.name ??
+            ""
+        )
     }
 
-    @imemo get nonEmptyDisplayName(): string {
-        return this.display?.name || this.nonEmptyName
+    @imemo get titlePublicOrDisplayName(): IndicatorTitleWithFragments {
+        return this.def.presentation?.titlePublic
+            ? {
+                  title: this.def.presentation?.titlePublic,
+                  attributionShort: this.def.presentation?.attributionShort,
+                  titleVariant: this.def.presentation?.titleVariant,
+              }
+            : { title: this.display?.name || this.name || "" }
     }
 
     @imemo get datasetId(): number | undefined {
@@ -382,6 +397,19 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         ) as number[]
     }
 
+    @imemo get originalValueColumnSlug(): string | undefined {
+        return getOriginalValueColumnSlug(this.table, this.slug)
+    }
+
+    @imemo get originalValues(): JS_TYPE[] {
+        const { originalValueColumnSlug } = this
+        if (!originalValueColumnSlug) return []
+        return this.table.getValuesAtIndices(
+            originalValueColumnSlug,
+            this.validRowIndices
+        ) as JS_TYPE[]
+    }
+
     /**
      * True if the column has only 1 unique value. ErrorValues are counted as values, so
      * something like [DivideByZeroError, 2, 2] would not be constant.
@@ -464,15 +492,17 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     // todo: remove? Should not be on CoreTable
     // assumes table is sorted by time
     @imemo get owidRows(): OwidVariableRow<JS_TYPE>[] {
+        const entities = this.allEntityNames
         const times = this.originalTimes
         const values = this.values
-        const entities = this.allEntityNames
+        const originalValues = this.originalValues
         return range(0, times.length).map((index) => {
-            return {
+            return omitUndefinedValues({
                 entityName: entities[index],
                 time: times[index],
                 value: values[index],
-            }
+                originalValue: originalValues[index],
+            })
         })
     }
 
@@ -679,18 +709,27 @@ class CurrencyColumn extends NumericColumn {
     formatValue(value: unknown, options?: TickFormattingOptions): string {
         return super.formatValue(value, {
             numDecimalPlaces: 0,
-            unit: "$",
+            unit: this.shortUnit,
             ...options,
         })
     }
+
+    @imemo get shortUnit(): string {
+        return "$"
+    }
 }
+
 // Expects 50% to be 50
 class PercentageColumn extends NumericColumn {
     formatValue(value: number, options?: TickFormattingOptions): string {
         return super.formatValue(value, {
-            unit: "%",
+            unit: this.shortUnit,
             ...options,
         })
+    }
+
+    @imemo get shortUnit(): string {
+        return "%"
     }
 }
 

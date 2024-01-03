@@ -23,24 +23,26 @@ import {
     makeUnitConversionFactor,
     makeLinks,
     HtmlOrSimpleMarkdownText,
+    DataCitation,
 } from "@ourworldindata/components"
 import ReactDOM from "react-dom"
 import { GrapherWithFallback } from "./GrapherWithFallback.js"
-import { ArticleBlocks } from "./gdocs/ArticleBlocks.js"
+import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
 import { RelatedCharts } from "./blocks/RelatedCharts.js"
 import {
     DataPageV2ContentFields,
-    slugify,
     uniq,
     formatAuthors,
     intersection,
-    getPhraseForProcessingLevel,
     prepareSourcesForDisplay,
     DataPageRelatedResearch,
     isEmpty,
     excludeUndefined,
     OwidOrigin,
     DataPageDataV2,
+    getCitationShort,
+    getCitationLong,
+    joinTitleFragments,
 } from "@ourworldindata/utils"
 import { AttachmentsContext, DocumentContext } from "./gdocs/OwidGdoc.js"
 import StickyNav from "./blocks/StickyNav.js"
@@ -59,31 +61,22 @@ declare global {
 }
 export const OWID_DATAPAGE_CONTENT_ROOT_ID = "owid-datapageJson-root"
 
-export const slugify_topic = (topic: string) => {
-    // This is a heuristic to map from free form tag texts to topic page URLs. We'll
-    // have to switch to explicitly stored URLs or explicit links between tags and topic pages
-    // soon but for the time being this makes sure that "CO2 & Greenhouse Gas Emissions" can be automatically
-    // linked to /co2-and-greenhouse-gas-emissions
-    // Note that the heuristic fails for a few cases like "HIV/AIDS" or "Mpox (Monkeypox)"
-    const replaced = topic.replace("&", "and").replace("'", "").replace("+", "")
-    return slugify(replaced)
-}
-
 export const DataPageV2Content = ({
     datapageData,
     grapherConfig,
     isPreviewing = false,
     faqEntries,
     canonicalUrl = "{URL}", // when we bake pages to their proper url this will be set correctly but on preview pages we leave this undefined
+    tagToSlugMap,
 }: DataPageV2ContentFields & {
     grapherConfig: GrapherInterface
 }) => {
     const [grapher, setGrapher] = React.useState<Grapher | undefined>(undefined)
 
-    const sourceShortName =
-        datapageData.attributionShort && datapageData.titleVariant
-            ? `${datapageData.attributionShort} – ${datapageData.titleVariant}`
-            : datapageData.attributionShort || datapageData.titleVariant
+    const titleFragments = joinTitleFragments(
+        datapageData.attributionShort,
+        datapageData.titleVariant
+    )
 
     // Initialize the grapher for client-side rendering
     const mergedGrapherConfig: GrapherProgrammaticInterface = useMemo(
@@ -151,40 +144,23 @@ export const DataPageV2Content = ({
     )
 
     const attributionFragments = datapageData.attributions ?? producersWithYear
-    const attributionPotentiallyShortened =
-        attributionFragments.length > 3
-            ? `${attributionFragments[0]} and other sources`
-            : attributionFragments.join("; ")
     const attributionUnshortened = attributionFragments.join("; ")
-    const processingLevelPhrase = getPhraseForProcessingLevel(
+    const citationShort = getCitationShort(
+        datapageData.origins,
+        datapageData.attributions,
         datapageData.owidProcessingLevel
     )
-    const citationShort = `${attributionPotentiallyShortened} – ${processingLevelPhrase} by Our World in Data`
-    const citationLonger = `${attributionUnshortened} – ${processingLevelPhrase} by Our World in Data`
-    const originsLong = uniq(
-        datapageData.origins.map(
-            (o) =>
-                `${o.producer}, ${o.title ?? o.titleSnapshot}${
-                    o.versionProducer ? " " + o.versionProducer : ""
-                }`
-        )
-    ).join("; ")
-    const today = dayjs().format("MMMM D, YYYY")
     const currentYear = dayjs().year()
-    const titleWithOptionalFragments = excludeUndefined([
+    const citationLong = getCitationLong(
         datapageData.title,
-        sourceShortName,
-    ]).join(" – ")
-    const citationLong = excludeUndefined([
-        `${citationLonger}.`,
-        `${titleWithOptionalFragments} [dataset].`,
-        originsLong
-            ? `${originsLong} [original data].`
-            : datapageData.source?.name
-            ? `${datapageData.source?.name} [original data].`
-            : undefined,
-        `Retrieved ${today} from ${canonicalUrl}`,
-    ]).join(" ")
+        datapageData.origins,
+        datapageData.source,
+        datapageData.attributions,
+        datapageData.attributionShort,
+        datapageData.titleVariant,
+        datapageData.owidProcessingLevel,
+        canonicalUrl
+    )
 
     const {
         linkedDocuments = {},
@@ -206,8 +182,8 @@ export const DataPageV2Content = ({
 
     const citationDatapage = excludeUndefined([
         datapageData.primaryTopic
-            ? `“Data Page: ${datapageData.title}”, part of the following publication: ${primaryTopicCitation}`
-            : `“Data Page: ${datapageData.title}”. Our World in Data (${currentYear}).`,
+            ? `“Data Page: ${datapageData.title.title}”, part of the following publication: ${primaryTopicCitation}`
+            : `“Data Page: ${datapageData.title.title}”. Our World in Data (${currentYear}).`,
         adaptedFrom ? `Data adapted from ${adaptedFrom}.` : undefined,
         `Retrieved from ${canonicalUrl} [online resource]`,
     ]).join(" ")
@@ -247,6 +223,15 @@ export const DataPageV2Content = ({
     }
     // TODO: mark topic pages
 
+    const topicTags = datapageData.topicTagsLinks
+        ?.map((name) => ({ name, slug: tagToSlugMap[name] }))
+        .filter((tag): tag is { name: string; slug: string } => !!tag.slug)
+        .map((tag) => (
+            <a href={`/${tag.slug}`} key={tag.slug}>
+                {tag.name}
+            </a>
+        ))
+
     return (
         <AttachmentsContext.Provider
             value={{
@@ -269,10 +254,10 @@ export const DataPageV2Content = ({
                             <div className="header__left span-cols-8 span-sm-cols-12">
                                 <div className="header__supertitle">Data</div>
                                 <h1 className="header__title">
-                                    {datapageData.title}
+                                    {datapageData.title.title}
                                 </h1>
                                 <div className="header__source">
-                                    {sourceShortName}
+                                    {titleFragments}
                                 </div>
                             </div>
                             {!!datapageData.topicTagsLinks?.length && (
@@ -281,18 +266,7 @@ export const DataPageV2Content = ({
                                         See all data and research on:
                                     </div>
                                     <div className="topic-tags">
-                                        {datapageData.topicTagsLinks?.map(
-                                            (topic: any) => (
-                                                <a
-                                                    href={`/${slugify_topic(
-                                                        topic
-                                                    )}`}
-                                                    key={topic}
-                                                >
-                                                    {topic}
-                                                </a>
-                                            )
-                                        )}
+                                        {topicTags}
                                     </div>
                                 </div>
                             )}
@@ -312,7 +286,7 @@ export const DataPageV2Content = ({
                             className="wrapper"
                             id="explore-the-data"
                         />
-                        <div className="wrapper grid grid-cols-12">
+                        <div className="wrapper wrapper-about-this-data grid grid-cols-12">
                             {hasDescriptionKey ||
                             datapageData.descriptionFromProducer ||
                             datapageData.source?.additionalInfo ? (
@@ -684,6 +658,7 @@ export const DataPageV2Content = ({
                                         </li>
                                     </ul>
                                 </div>
+
                                 {(citationShort ||
                                     citationLong ||
                                     citationDatapage) && (
@@ -692,63 +667,6 @@ export const DataPageV2Content = ({
                                             Citations
                                         </h3>
                                         <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                                            {(citationShort ||
-                                                citationLong) && (
-                                                <div className="citations-section">
-                                                    <h5 className="citation__how-to-header citation__how-to-header--data">
-                                                        How to cite this data
-                                                    </h5>
-                                                    {citationShort && (
-                                                        <>
-                                                            <p className="citation__paragraph">
-                                                                <span className="citation__type">
-                                                                    In-line
-                                                                    citation
-                                                                </span>
-                                                                <br />
-                                                                If you have
-                                                                limited space
-                                                                (e.g. in data
-                                                                visualizations,
-                                                                on social
-                                                                media), you can
-                                                                use this
-                                                                abbreviated
-                                                                in-line
-                                                                citation:
-                                                            </p>
-                                                            <CodeSnippet
-                                                                code={
-                                                                    citationShort
-                                                                }
-                                                                theme="light"
-                                                                useMarkdown={
-                                                                    true
-                                                                }
-                                                            />
-                                                        </>
-                                                    )}
-                                                    {citationLong && (
-                                                        <>
-                                                            <p className="citation__paragraph">
-                                                                <span className="citation__type">
-                                                                    Full
-                                                                    citation
-                                                                </span>
-                                                            </p>
-                                                            <CodeSnippet
-                                                                code={
-                                                                    citationLong
-                                                                }
-                                                                theme="light"
-                                                                useMarkdown={
-                                                                    true
-                                                                }
-                                                            />
-                                                        </>
-                                                    )}
-                                                </div>
-                                            )}
                                             {citationDatapage && (
                                                 <div className="citations-section">
                                                     <h5 className="citation__how-to-header">
@@ -770,6 +688,22 @@ export const DataPageV2Content = ({
                                                     />
                                                 </div>
                                             )}
+                                            <div className="citations-section">
+                                                <h5 className="citation__how-to-header citation__how-to-header--data">
+                                                    How to cite this data
+                                                </h5>
+                                                {(citationShort ||
+                                                    citationLong) && (
+                                                    <DataCitation
+                                                        citationLong={
+                                                            citationLong
+                                                        }
+                                                        citationShort={
+                                                            citationShort
+                                                        }
+                                                    />
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 )}
@@ -820,7 +754,19 @@ const KeyDataTable = (props: {
             {datapageData.descriptionShort && (
                 <div className="key-data span-cols-4 span-sm-cols-12">
                     <div className="key-data__title key-data-description-short__title">
-                        {datapageData.title}
+                        {datapageData.title.title}
+                        {(datapageData.attributionShort ||
+                            datapageData.titleVariant) && (
+                            <>
+                                {" "}
+                                <span className="title-fragments">
+                                    {joinTitleFragments(
+                                        datapageData.attributionShort,
+                                        datapageData.titleVariant
+                                    )}
+                                </span>
+                            </>
+                        )}
                     </div>
                     <div>
                         <SimpleMarkdownText

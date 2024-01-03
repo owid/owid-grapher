@@ -38,6 +38,7 @@ help:
 	@echo '  make down.full         stop any services still running'
 	@echo '  make refresh.wp        download a new wordpress snapshot and update MySQL'
 	@echo '  make refresh.full      do a full MySQL update of both wordpress and grapher'
+	@echo '  make sync-images       sync all images from the remote master'
 	@echo
 	@echo '  OPS (staff-only)'
 	@echo '  make deploy            Deploy your local site to production'
@@ -130,6 +131,8 @@ migrate:
 	@echo '==> Running DB migrations'
 	yarn && yarn buildTsc && yarn runDbMigrations
 
+refresh.full: refresh refresh.wp sync-images
+
 refresh:
 	@echo '==> Downloading chart data'
 	./devTools/docker/download-grapher-metadata-mysql.sh
@@ -153,11 +156,16 @@ refresh.wp:
 	@echo 'tech@ourworldindata.org user to the value from `.env:WORDPRESS_API_PASS`'
 	@echo 'at https://staging.owid.cloud/wp/wp-admin/user-edit.php?user_id=35'
 
-sync-images:
+sync-images: sync-images.preflight-check
 	@echo '==> Syncing S3 images'
 	@. ./.env && ./devTools/docker/sync-s3-images.sh
 
-refresh.full: refresh refresh.wp sync-images
+sync-images.preflight-check:
+	@echo '==> Checking for aws cli'
+	@which aws >/dev/null 2>&1 || (echo "ERROR: please install aws cli -- e.g. brew install awscli"; exit 1)
+	@echo '==> Checking if aws cli is configured'
+	@test -f ~/.aws/config || (echo "ERROR: please configure aws cli -- e.g. aws configure"; exit 1)
+
 
 down:
 	@echo '==> Stopping services'
@@ -239,7 +247,7 @@ deploy:
 
 	@echo '==> Building...'
 	yarn
-	yarn lerna run build
+	yarn lerna run build --skip-nx-cache
 	yarn run tsc -b
 
 	@echo '==> Deploying...'

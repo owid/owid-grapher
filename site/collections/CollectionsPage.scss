@@ -1,0 +1,30 @@
+.collections-page {
+    background-color: $gray-10;
+
+    .collections-page__header {
+        background-color: #fff;
+        margin-bottom: 24px;
+    }
+    .collection-title {
+        margin-bottom: 0;
+    }
+    .collection-explanation {
+        color: $blue-60;
+        margin-bottom: 32px;
+
+        &:not(:last-of-type) {
+            margin-bottom: 0;
+        }
+    }
+
+    figure {
+        width: 100%;
+        height: $grapher-height;
+        margin: 0;
+        margin-bottom: 48px;
+
+        @include sm-only {
+            height: 95vh;
+        }
+    }
+}

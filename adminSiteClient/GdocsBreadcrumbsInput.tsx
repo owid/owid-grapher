@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     BreadcrumbItem,
     OwidGdocErrorMessage,
-    OwidGdocInterface,
+    OwidGdocPostInterface,
 } from "@ourworldindata/utils"
 import { Button, Col, Input, Row } from "antd"
 import React from "react"
@@ -76,8 +76,8 @@ export const GdocsBreadcrumbsInput = ({
     setCurrentGdoc,
     errors,
 }: {
-    gdoc: OwidGdocInterface
-    setCurrentGdoc: (gdoc: OwidGdocInterface) => void
+    gdoc: OwidGdocPostInterface
+    setCurrentGdoc: (gdoc: OwidGdocPostInterface) => void
     errors?: OwidGdocErrorMessage[]
 }) => {
     const setBreadcrumbs = (breadcrumbs: BreadcrumbItem[] | undefined) => {

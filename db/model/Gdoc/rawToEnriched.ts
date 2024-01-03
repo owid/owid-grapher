@@ -109,12 +109,14 @@ import {
     tableTemplates,
     RawBlockBlockquote,
     EnrichedBlockBlockquote,
+    traverseEnrichedSpan,
 } from "@ourworldindata/utils"
 import { checkIsInternalLink } from "@ourworldindata/components"
 import {
     extractUrl,
     getTitleSupertitleFromHeadingText,
     parseAuthors,
+    spansToSimpleString,
 } from "./gdocUtils.js"
 import {
     htmlToEnrichedTextBlock,
@@ -599,6 +601,7 @@ const parseImage = (image: RawBlockImage): EnrichedBlockImage => {
     return {
         type: "image",
         filename,
+        smallFilename: image.value.smallFilename,
         alt: image.value.alt,
         caption,
         size,
@@ -961,6 +964,8 @@ export const parseText = (raw: RawBlockText): EnrichedBlockText => {
         parseErrors: [error],
     })
 
+    const parseErrors: ParseError[] = []
+
     if (typeof raw.value !== "string")
         return createError({
             message: "Value is a not a string",
@@ -968,10 +973,26 @@ export const parseText = (raw: RawBlockText): EnrichedBlockText => {
 
     const value = htmlToSpans(raw.value)
 
+    value.forEach((node) =>
+        traverseEnrichedSpan(node, (span) => {
+            if (
+                span.spanType === "span-link" &&
+                span.url.includes("owid.cloud")
+            ) {
+                parseErrors.push({
+                    message: `Link with text "${spansToSimpleString(
+                        span.children
+                    )}" is linking to owid.cloud instead of ourworldindata.org`,
+                    isWarning: true,
+                })
+            }
+        })
+    )
+
     return {
         type: "text",
         value,
-        parseErrors: [],
+        parseErrors,
     }
 }
 

@@ -40,7 +40,7 @@ const batchTagChartsWithGpt = async ({
         SELECT chartId
         FROM chart_tags
         JOIN tags ON chart_tags.tagId = tags.id
-        WHERE tags.isTopic = 1 OR tags.name = 'Unlisted'
+        WHERE tags.slug IS NOT NULL OR tags.name = 'Unlisted'
     )
     GROUP BY id
     ${limit ? `LIMIT ${limit}` : ""}

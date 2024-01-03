@@ -16,7 +16,7 @@ import {
     mergePartialGrapherConfigs,
     OwidChartDimensionInterface,
     compact,
-    OwidGdocInterface,
+    OwidGdocPostInterface,
     merge,
     EnrichedFaq,
     FaqEntryData,
@@ -44,7 +44,7 @@ import {
 import * as db from "../db/db.js"
 import { glob } from "glob"
 import { isPathRedirectedToExplorer } from "../explorerAdminServer/ExplorerRedirects.js"
-import { bySlug, getPostBySlug, parsePostAuthors } from "../db/model/Post.js"
+import { getPostEnrichedBySlug } from "../db/model/Post.js"
 import { ChartTypeName, GrapherInterface } from "@ourworldindata/grapher"
 import workerpool from "workerpool"
 import ProgressBar from "progress"
@@ -54,15 +54,15 @@ import {
     getMergedGrapherConfigForVariable,
 } from "../db/model/Variable.js"
 import { getDatapageDataV2, getDatapageGdoc } from "../datapage/Datapage.js"
-import { slugify_topic } from "../site/DataPageV2Content.js"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { Image } from "../db/model/Image.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 
 import { parseFaqs } from "../db/model/Gdoc/rawToEnriched.js"
-import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
+import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { getShortPageCitation } from "../site/gdocs/utils.js"
 import { isEmpty } from "lodash"
+import { getSlugForTopicTag, getTagToSlugMap } from "./GrapherBakingUtils.js"
 
 const renderDatapageIfApplicable = async (
     grapher: GrapherInterface,
@@ -188,20 +188,20 @@ export async function renderDataPageV2({
         gdocIdToFragmentIdToBlock[gdoc.id] = faqs.faqs
     })
 
-    const linkedCharts: OwidGdocInterface["linkedCharts"] = merge(
+    const linkedCharts: OwidGdocPostInterface["linkedCharts"] = merge(
         {},
         ...compact(gdocs.map((gdoc) => gdoc?.linkedCharts))
     )
-    const linkedDocuments: OwidGdocInterface["linkedDocuments"] = merge(
+    const linkedDocuments: OwidGdocPostInterface["linkedDocuments"] = merge(
         {},
         ...compact(gdocs.map((gdoc) => gdoc?.linkedDocuments))
     )
-    const imageMetadata: OwidGdocInterface["imageMetadata"] = merge(
+    const imageMetadata: OwidGdocPostInterface["imageMetadata"] = merge(
         {},
         imageMetadataDictionary,
         ...compact(gdocs.map((gdoc) => gdoc?.imageMetadata))
     )
-    const relatedCharts: OwidGdocInterface["relatedCharts"] = gdocs.flatMap(
+    const relatedCharts: OwidGdocPostInterface["relatedCharts"] = gdocs.flatMap(
         (gdoc) => gdoc?.relatedCharts ?? []
     )
 
@@ -269,13 +269,24 @@ export async function renderDataPageV2({
 
     const firstTopicTag = datapageData.topicTagsLinks?.[0]
 
+    let slug = ""
     if (firstTopicTag) {
-        const gdoc = await Gdoc.findOne({
-            where: {
-                slug: slugify_topic(firstTopicTag),
-            },
-            relations: ["tags"],
-        })
+        try {
+            slug = await getSlugForTopicTag(firstTopicTag)
+        } catch (error) {
+            logErrorAndMaybeSendToBugsnag(
+                `Datapage with variableId "${variableId}" and title "${datapageData.title.title}" is using "${firstTopicTag}" as its primary tag, which we are unable to resolve to a tag in the grapher DB`
+            )
+        }
+        let gdoc: GdocPost | null = null
+        if (slug) {
+            gdoc = await GdocPost.findOne({
+                where: {
+                    slug,
+                },
+                relations: ["tags"],
+            })
+        }
         if (gdoc) {
             const citation = getShortPageCitation(
                 gdoc.content.authors,
@@ -287,11 +298,11 @@ export async function renderDataPageV2({
                 citation,
             }
         } else {
-            const post = await bySlug(slugify_topic(firstTopicTag))
+            const post = await getPostEnrichedBySlug(slug)
             if (post) {
-                const authors = parsePostAuthors(post.authors)
+                const authors = post.authors
                 const citation = getShortPageCitation(
-                    authors,
+                    authors ?? [],
                     post.title,
                     post.published_at
                 )
@@ -313,6 +324,8 @@ export async function renderDataPageV2({
     datapageData.relatedResearch =
         await getRelatedResearchAndWritingForVariable(variableId)
 
+    const tagToSlugMap = await getTagToSlugMap()
+
     return renderToHtmlPage(
         <DataPageV2
             grapher={grapher}
@@ -321,6 +334,7 @@ export async function renderDataPageV2({
             baseGrapherUrl={BAKED_GRAPHER_URL}
             isPreviewing={isPreviewing}
             faqEntries={faqEntries}
+            tagToSlugMap={tagToSlugMap}
         />
     )
 }
@@ -345,7 +359,7 @@ export const renderPreviewDataPageOrGrapherPage = async (
 
 const renderGrapherPage = async (grapher: GrapherInterface) => {
     const postSlug = urlToSlug(grapher.originUrl || "")
-    const post = postSlug ? await getPostBySlug(postSlug) : undefined
+    const post = postSlug ? await getPostEnrichedBySlug(postSlug) : undefined
     const relatedCharts =
         post && isWordpressDBEnabled
             ? await getRelatedCharts(post.id)

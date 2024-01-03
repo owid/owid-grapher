@@ -1,5 +1,5 @@
 import {
-    OwidGdocContent,
+    OwidGdocPostContent,
     EnrichedBlockText,
     EnrichedBlockSimpleText,
 } from "@ourworldindata/utils"
@@ -11,12 +11,12 @@ import {
 import { GDOCS_BACKPORTING_TARGET_FOLDER } from "../../../settings/serverSettings.js"
 import { enrichedBlockToRawBlock } from "./enrichedToRaw.js"
 import { google, docs_v1, drive_v3 } from "googleapis"
-import { Gdoc } from "./Gdoc.js"
+import { OwidGoogleAuth } from "../../OwidGoogleAuth.js"
 import cheerio from "cheerio"
 
 function* yieldMultiBlockPropertyIfDefined(
-    property: keyof OwidGdocContent,
-    article: OwidGdocContent,
+    property: keyof OwidGdocPostContent,
+    article: OwidGdocPostContent,
     target: (EnrichedBlockText | EnrichedBlockSimpleText)[] | undefined
 ): Generator<string, void, undefined> {
     if (property in article && target) {
@@ -32,7 +32,7 @@ function* yieldMultiBlockPropertyIfDefined(
 }
 
 function* owidArticleToArchieMLStringGenerator(
-    article: OwidGdocContent
+    article: OwidGdocPostContent
 ): Generator<string, void, undefined> {
     yield* propertyToArchieMLString("title", article)
     yield* propertyToArchieMLString("subtitle", article)
@@ -172,7 +172,7 @@ function* lineToBatchUpdates(line: Line): Generator<docs_v1.Schema$Request> {
 }
 
 function articleToBatchUpdates(
-    content: OwidGdocContent
+    content: OwidGdocPostContent
 ): docs_v1.Schema$Request[] {
     const archieMlLines = [...owidArticleToArchieMLStringGenerator(content)]
 
@@ -272,8 +272,8 @@ async function createGdoc(
     return createResp.data.id!
 }
 
-export async function createGdocAndInsertOwidGdocContent(
-    content: OwidGdocContent,
+export async function createGdocAndInsertOwidGdocPostContent(
+    content: OwidGdocPostContent,
     existingGdocId: string | null
 ): Promise<string> {
     const batchUpdates = articleToBatchUpdates(content)
@@ -281,7 +281,7 @@ export async function createGdocAndInsertOwidGdocContent(
     const targetFolder = GDOCS_BACKPORTING_TARGET_FOLDER
     if (targetFolder === undefined || targetFolder === "")
         throw new Error("GDOCS_BACKPORTING_TARGET_FOLDER is not set")
-    const auth = Gdoc.getGoogleReadWriteAuth()
+    const auth = OwidGoogleAuth.getGoogleReadWriteAuth()
     const client = google.docs({
         version: "v1",
         auth,

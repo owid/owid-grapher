@@ -7,6 +7,7 @@ import {
     autorun,
     IReactionDisposer,
 } from "mobx"
+import { dump } from "js-yaml"
 import * as lodash from "lodash"
 import { Prompt, Redirect } from "react-router-dom"
 import { AdminLayout } from "./AdminLayout.js"
@@ -15,12 +16,18 @@ import { BindString, BindFloat, FieldsRow, Toggle } from "./Forms.js"
 import {
     OwidVariableWithDataAndSource,
     OwidVariableDisplayConfig,
+    OwidVariablePresentation,
     DimensionProperty,
     EPOCH_DATE,
     getETLPathComponents,
+    OwidProcessingLevel,
+    OwidOrigin,
+    OwidSource,
 } from "@ourworldindata/utils"
 import { GrapherFigureView } from "../site/GrapherFigureView.js"
 import { ChartList, ChartListItem } from "./ChartList.js"
+import { OriginList } from "./OriginList.js"
+import { SourceList } from "./SourceList.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { Base64 } from "js-base64"
 import {
@@ -28,6 +35,8 @@ import {
     GrapherTabOption,
     GrapherInterface,
 } from "@ourworldindata/grapher"
+import { faCircleInfo } from "@fortawesome/free-solid-svg-icons"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
 interface VariablePageData
     extends Omit<OwidVariableWithDataAndSource, "source"> {
@@ -35,6 +44,11 @@ interface VariablePageData
     charts: ChartListItem[]
     grapherConfig: GrapherInterface | undefined
     source: { id: number; name: string }
+    origins: OwidOrigin[]
+}
+
+const createBulletList = (items: string[]): string => {
+    return items.map((item) => `• ${item}`).join("\n")
 }
 
 class VariableEditable
@@ -51,9 +65,25 @@ class VariableEditable
     @observable entityAnnotationsMap = ""
     @observable display = new OwidVariableDisplayConfig()
 
+    @observable descriptionShort = ""
+    @observable descriptionFromProducer = ""
+    @observable descriptionKey: string[] = []
+    @observable descriptionProcessing = ""
+    @observable processingLevel: OwidProcessingLevel | undefined = undefined
+
+    @observable presentation = {} as OwidVariablePresentation
+
+    @observable updatePeriodDays: number | undefined = undefined
+
+    @observable origins: OwidOrigin[] = []
+
+    @observable source: OwidSource | undefined = undefined
+
     constructor(json: any) {
         for (const key in this) {
             if (key === "display") lodash.extend(this.display, json.display)
+            else if (key === "presentation")
+                lodash.extend(this.presentation, json.presentation)
             else this[key] = json[key]
         }
     }
@@ -158,6 +188,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                         needed in the Github UI)
                                     </small>
                                 </p>
+                                <h4>General</h4>
                                 <BindString
                                     field="name"
                                     store={newVariable}
@@ -237,36 +268,6 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                         helpText={`The day series starts on this date.`}
                                     />
                                 </FieldsRow>
-                                <FieldsRow>
-                                    <Toggle
-                                        value={
-                                            newVariable.display
-                                                .includeInTable === true
-                                        }
-                                        onValue={(value) =>
-                                            (newVariable.display.includeInTable =
-                                                value)
-                                        }
-                                        label="Include in table"
-                                        disabled={isDisabled}
-                                    />
-                                </FieldsRow>
-                                <BindString
-                                    field="description"
-                                    store={newVariable}
-                                    label="Description"
-                                    textarea
-                                    disabled={isDisabled}
-                                />
-                                <BindString
-                                    field="entityAnnotationsMap"
-                                    placeholder="Entity: note"
-                                    store={newVariable.display}
-                                    label="Entity annotations"
-                                    textarea
-                                    disabled={isDisabled}
-                                    helpText="Additional text to show next to entity labels. Each note should be in a separate line."
-                                />
                             </section>
                         </form>
                     </div>
@@ -287,6 +288,181 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                         </div>
                     )}
                 </div>
+                <div className="row">
+                    <div className="col">
+                        <form>
+                            <section>
+                                <h4>
+                                    Data Page&nbsp;
+                                    <a href="https://docs.owid.io/projects/etl/architecture/metadata/reference/indicator/">
+                                        <FontAwesomeIcon
+                                            icon={faCircleInfo}
+                                            className="text-muted"
+                                        />
+                                    </a>
+                                </h4>
+
+                                <FieldsRow>
+                                    <BindString
+                                        label="Title public"
+                                        field="titlePublic"
+                                        store={newVariable.presentation}
+                                        disabled={isDisabled}
+                                    />
+                                    <BindString
+                                        label="Title variant"
+                                        field="titleVariant"
+                                        store={newVariable.presentation}
+                                        disabled={isDisabled}
+                                    />
+                                    <BindString
+                                        label="Attribution"
+                                        field="attribution"
+                                        store={newVariable.presentation}
+                                        disabled={isDisabled}
+                                    />
+                                    <BindString
+                                        label="Attribution short"
+                                        field="attributionShort"
+                                        store={newVariable.presentation}
+                                        disabled={isDisabled}
+                                    />
+                                </FieldsRow>
+                                <FieldsRow>
+                                    <BindString
+                                        label="Description short"
+                                        field="descriptionShort"
+                                        store={newVariable}
+                                        disabled={isDisabled}
+                                        textarea
+                                    />
+                                    <BindString
+                                        label="Description from producer"
+                                        field="descriptionFromProducer"
+                                        store={newVariable}
+                                        disabled={isDisabled}
+                                        textarea
+                                    />
+                                </FieldsRow>
+                                <FieldsRow>
+                                    <BindString
+                                        label="Grapher Config ETL"
+                                        field="v"
+                                        store={{
+                                            v: dump(
+                                                newVariable.presentation
+                                                    .grapherConfigETL
+                                            ),
+                                        }}
+                                        disabled={isDisabled}
+                                        textarea
+                                        rows={8}
+                                    />
+                                    <BindString
+                                        label="Description key"
+                                        field="v"
+                                        store={{
+                                            v: createBulletList(
+                                                newVariable.descriptionKey || []
+                                            ),
+                                        }}
+                                        disabled={isDisabled}
+                                        textarea
+                                        rows={8}
+                                    />
+                                </FieldsRow>
+                                <FieldsRow>
+                                    <div className="col">
+                                        <BindString
+                                            label="Description processing"
+                                            field="descriptionProcessing"
+                                            store={newVariable}
+                                            disabled={isDisabled}
+                                            textarea
+                                            rows={8}
+                                        />
+                                    </div>
+                                    <div className="col">
+                                        <BindString
+                                            label="Processing level"
+                                            field="processingLevel"
+                                            store={newVariable}
+                                            disabled={isDisabled}
+                                        />
+                                        <BindString
+                                            label="Number of days between OWID updates"
+                                            field="updatePeriodDays"
+                                            store={newVariable}
+                                            disabled={isDisabled}
+                                        />
+                                    </div>
+                                </FieldsRow>
+
+                                <h4>Other metadata</h4>
+                                <FieldsRow>
+                                    <Toggle
+                                        value={
+                                            newVariable.display
+                                                .includeInTable === true
+                                        }
+                                        onValue={(value) =>
+                                            (newVariable.display.includeInTable =
+                                                value)
+                                        }
+                                        label="Include in table"
+                                        disabled={isDisabled}
+                                    />
+                                </FieldsRow>
+                                <FieldsRow>
+                                    <BindString
+                                        field="description"
+                                        store={newVariable}
+                                        label="Description"
+                                        textarea
+                                        disabled={isDisabled}
+                                    />
+                                    <BindString
+                                        field="entityAnnotationsMap"
+                                        placeholder="Entity: note"
+                                        store={newVariable.display}
+                                        label="Entity annotations"
+                                        textarea
+                                        disabled={isDisabled}
+                                        helpText="Additional text to show next to entity labels. Each note should be in a separate line."
+                                    />
+                                </FieldsRow>
+                            </section>
+                        </form>
+                    </div>
+                </div>
+                <div className="row">
+                    <div className="col">
+                        <form>
+                            <section>
+                                <h3>
+                                    Origins&nbsp;
+                                    <a href="https://docs.owid.io/projects/etl/architecture/metadata/reference/origin/">
+                                        <FontAwesomeIcon
+                                            icon={faCircleInfo}
+                                            className="text-muted"
+                                        />
+                                    </a>
+                                </h3>
+                                <OriginList
+                                    origins={newVariable.origins || []}
+                                />
+                            </section>
+                        </form>
+                    </div>
+                </div>
+                {newVariable.source && (
+                    <section>
+                        <form>
+                            <h3>Source</h3>
+                            <SourceList sources={[newVariable.source]} />
+                        </form>
+                    </section>
+                )}
                 <section>
                     <h3>Charts</h3>
                     <ChartList charts={variable.charts} />

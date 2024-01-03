@@ -20,6 +20,7 @@ import {
     getMergedGrapherConfigForVariable,
     fetchS3MetadataByPath,
     fetchS3DataValuesByPath,
+    searchVariables,
 } from "../db/model/Variable.js"
 import {
     applyPatch,
@@ -28,16 +29,15 @@ import {
     camelCaseProperties,
     chartBulkUpdateAllowedColumnNamesAndTypes,
     GdocsContentSource,
-    getOwidGdocFromJSON,
     GrapherConfigPatch,
     isEmpty,
     JsonError,
     OperationContext,
     OwidGdocJSON,
-    OwidGdocInterface,
+    OwidGdocPostInterface,
     parseIntOrUndefined,
     parseToOperation,
-    PostRow,
+    PostRowEnriched,
     PostRowWithGdocPublishStatus,
     SuggestedChartRevisionStatus,
     variableAnnotationAllowedColumnNamesAndTypes,
@@ -48,6 +48,7 @@ import {
     DimensionProperty,
     TaggableType,
     ChartTagJoin,
+    OwidGdoc,
 } from "@ourworldindata/utils"
 import {
     GrapherInterface,
@@ -61,7 +62,8 @@ import {
 } from "../adminSiteClient/CountryNameFormat.js"
 import { Dataset } from "../db/model/Dataset.js"
 import { User } from "../db/model/User.js"
-import { Gdoc, Tag as TagEntity } from "../db/model/Gdoc/Gdoc.js"
+import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
+import { GdocBase, Tag as TagEntity } from "../db/model/Gdoc/GdocBase.js"
 import { Pageview } from "../db/model/Pageview.js"
 import {
     syncDatasetToGitRepo,
@@ -79,7 +81,6 @@ import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.
 import {
     postsTable,
     setTagsForPost,
-    select,
     getTagsByPostId,
 } from "../db/model/Post.js"
 import {
@@ -88,11 +89,12 @@ import {
     checkIsLightningUpdate,
 } from "../adminSiteClient/gdocsDeploy.js"
 import { dataSource } from "../db/dataSource.js"
-import { createGdocAndInsertOwidGdocContent } from "../db/model/Gdoc/archieToGdoc.js"
+import { createGdocAndInsertOwidGdocPostContent } from "../db/model/Gdoc/archieToGdoc.js"
 import { Link } from "../db/model/Link.js"
 import { In } from "typeorm"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
+import { GdocFactory } from "../db/model/Gdoc/GdocFactory.js"
 
 const apiRouter = new FunctionalRouter()
 const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
@@ -1488,36 +1490,8 @@ apiRouter.post("/users/add", async (req: Request, res: Response) => {
 
 apiRouter.get("/variables.json", async (req) => {
     const limit = parseIntOrUndefined(req.query.limit as string) ?? 50
-    const searchStr = req.query.search
-
-    const query = `
-        SELECT
-            v.id,
-            v.name,
-            d.id AS datasetId,
-            d.name AS datasetName,
-            d.isPrivate AS isPrivate,
-            d.nonRedistributable AS nonRedistributable,
-            d.dataEditedAt AS uploadedAt,
-            u.fullName AS uploadedBy
-        FROM variables AS v
-        JOIN active_datasets d ON d.id=v.datasetId
-        JOIN users u ON u.id=d.dataEditedByUserId
-        ${searchStr ? "WHERE v.name LIKE ?" : ""}
-        ORDER BY d.dataEditedAt DESC
-        LIMIT ?
-    `
-
-    const rows = await db.queryMysql(
-        query,
-        searchStr ? [`%${searchStr}%`, limit] : [limit]
-    )
-
-    const numTotalRows = (
-        await db.queryMysql(`SELECT COUNT(*) as count FROM variables`)
-    )[0].count
-
-    return { variables: rows, numTotalRows: numTotalRows }
+    const query = req.query.search as string
+    return await searchVariables(query, limit)
 })
 
 apiRouter.get(
@@ -1713,6 +1687,13 @@ apiRouter.get(
             getVariableMetadataRoute(DATA_API_URL, variableId) + "?nocache"
         )
 
+        // XXX: Patch shortName onto the end of catalogPath when it's missing,
+        //      a temporary hack since our S3 metadata is out of date with our DB.
+        //      See: https://github.com/owid/etl/issues/2135
+        if (variable.catalogPath && !variable.catalogPath.includes("#")) {
+            variable.catalogPath += `#${variable.shortName}`
+        }
+
         const charts = await db.queryMysql(
             `
             SELECT ${OldChart.listFields}
@@ -1827,7 +1808,8 @@ apiRouter.get("/datasets/:datasetId.json", async (req: Request) => {
             mu.fullName AS metadataEditedByUserName,
             d.isPrivate,
             d.isArchived,
-            d.nonRedistributable
+            d.nonRedistributable,
+            d.updatePeriodDays
         FROM datasets AS d
         JOIN users du ON du.id=d.dataEditedByUserId
         JOIN users mu ON mu.id=d.metadataEditedByUserId
@@ -1846,7 +1828,7 @@ apiRouter.get("/datasets/:datasetId.json", async (req: Request) => {
 
     const variables = await db.queryMysql(
         `
-        SELECT v.id, v.name, v.description, v.display
+        SELECT v.id, v.name, v.description, v.display, v.catalogPath
         FROM variables AS v
         WHERE v.datasetId = ?
     `,
@@ -1859,10 +1841,25 @@ apiRouter.get("/datasets/:datasetId.json", async (req: Request) => {
 
     dataset.variables = variables
 
-    // TODO: support multiple origins here as well
+    // add all origins
+    const origins = await db.queryMysql(
+        `
+        select distinct
+            o.*
+        from origins_variables as ov
+        join origins as o on ov.originId = o.id
+        join variables as v on ov.variableId = v.id
+        where v.datasetId = ?
+    `,
+        [datasetId]
+    )
 
-    // Currently for backwards compatibility datasets can still have multiple sources
-    // but the UI presents only a single item of source metadata, we use the first source
+    for (const o of origins) {
+        o.license = JSON.parse(o.license)
+    }
+
+    dataset.origins = origins
+
     const sources = await db.queryMysql(
         `
         SELECT s.id, s.name, s.description
@@ -1873,11 +1870,14 @@ apiRouter.get("/datasets/:datasetId.json", async (req: Request) => {
         [datasetId]
     )
 
-    if (sources.length > 0) {
-        dataset.source = JSON.parse(sources[0].description)
-        dataset.source.id = sources[0].id
-        dataset.source.name = sources[0].name
-    }
+    // expand description of sources and add to dataset as variableSources
+    dataset.variableSources = sources.map((s: any) => {
+        return {
+            id: s.id,
+            name: s.name,
+            ...JSON.parse(s.description),
+        }
+    })
 
     const charts = await db.queryMysql(
         `
@@ -2089,7 +2089,7 @@ apiRouter.get("/tags/:tagId.json", async (req: Request, res: Response) => {
 
     const tag = await db.mysqlFirst(
         `
-        SELECT t.id, t.name, t.specialType, t.updatedAt, t.parentId, t.isTopic, p.isBulkImport
+        SELECT t.id, t.name, t.specialType, t.updatedAt, t.parentId, t.slug, p.isBulkImport
         FROM tags t LEFT JOIN tags p ON t.parentId=p.id
         WHERE t.id = ?
     `,
@@ -2188,9 +2188,31 @@ apiRouter.put("/tags/:tagId", async (req: Request) => {
     const tagId = expectInt(req.params.tagId)
     const tag = (req.body as { tag: any }).tag
     await db.execute(
-        `UPDATE tags SET name=?, updatedAt=?, parentId=?, isTopic=? WHERE id=?`,
-        [tag.name, new Date(), tag.parentId, tag.isTopic, tagId]
+        `UPDATE tags SET name=?, updatedAt=?, parentId=?, slug=? WHERE id=?`,
+        [tag.name, new Date(), tag.parentId, tag.slug, tagId]
     )
+    if (tag.slug) {
+        // See if there's a published gdoc with a matching slug.
+        // We're not enforcing that the gdoc be a topic page, as there are cases like /human-development-index,
+        // where the page for the topic is just an article.
+        const gdoc: OwidGdocPostInterface[] = await db.execute(
+            `SELECT slug FROM posts_gdocs pg
+             WHERE EXISTS (
+                    SELECT 1
+                    FROM posts_gdocs_x_tags gt
+                    WHERE pg.id = gt.gdocId AND gt.tagId = ?
+            ) AND pg.published = TRUE`,
+            [tag.id]
+        )
+        if (!gdoc.length) {
+            return {
+                success: true,
+                tagUpdateWarning: `The tag's slug has been updated, but there isn't a published Gdoc page with the same slug.
+
+Are you sure you haven't made a typo?`,
+            }
+        }
+    }
     return { success: true }
 })
 
@@ -2262,31 +2284,50 @@ apiRouter.delete("/redirects/:id", async (req: Request, res: Response) => {
 })
 
 apiRouter.get("/posts.json", async (req) => {
-    const rows = await select(
-        "id",
-        "title",
-        "type",
-        "status",
-        "updated_at_in_wordpress",
-        "gdocSuccessorId"
-    ).from(
-        db
-            .knexInstance()
-            .from(postsTable)
-            .orderBy("updated_at_in_wordpress", "desc")
+    const raw_rows = await db.queryMysql(
+        `-- sql
+        with posts_tags_aggregated as (
+            select post_id, if(count(tags.id) = 0, json_array(), json_arrayagg(json_object("id", tags.id, "name", tags.name))) as tags
+            from post_tags
+            left join tags on tags.id = post_tags.tag_id
+            group by post_id
+        ), post_gdoc_slug_successors as (
+            select posts.id, if (count(gdocSlugSuccessor.id) = 0, json_array(), json_arrayagg(json_object("id", gdocSlugSuccessor.id, "published", gdocSlugSuccessor.published ))) as gdocSlugSuccessors
+            from posts
+            left join posts_gdocs gdocSlugSuccessor on gdocSlugSuccessor.slug = posts.slug
+            group by posts.id
+        )
+        select
+             posts.id as id,
+             posts.title as title,
+             posts.type as type,
+             posts.slug as slug,
+             status,
+             updated_at_in_wordpress,
+             posts.authors,
+             posts_tags_aggregated.tags as tags,
+             gdocSuccessorId,
+             gdocSuccessor.published as isGdocSuccessorPublished,
+             -- posts can either have explict successors via the gdocSuccessorId column
+             -- or implicit successors if a gdoc has been created that uses the same slug
+             -- as a Wp post (the gdoc one wins once it is published)
+             post_gdoc_slug_successors.gdocSlugSuccessors as gdocSlugSuccessors
+         from posts
+         left join post_gdoc_slug_successors on post_gdoc_slug_successors.id = posts.id
+         left join posts_gdocs gdocSuccessor on gdocSuccessor.id = posts.gdocSuccessorId
+         left join posts_tags_aggregated on posts_tags_aggregated.post_id = posts.id
+         order by updated_at_in_wordpress desc`,
+        []
     )
+    const rows = raw_rows.map((row: any) => ({
+        ...row,
+        tags: JSON.parse(row.tags),
+        isGdocSuccessorPublished: !!row.isGdocSuccessorPublished,
+        gdocSlugSuccessors: JSON.parse(row.gdocSlugSuccessors),
+        authors: JSON.parse(row.authors),
+    }))
 
-    const tagsByPostId = await getTagsByPostId()
-
-    const authorship = await wpdb.getAuthorship()
-
-    for (const post of rows) {
-        const postAsAny = post as any
-        postAsAny.authors = authorship.get(post.id) || []
-        postAsAny.tags = tagsByPostId.get(post.id) || []
-    }
-
-    return { posts: rows.map((r) => camelCaseProperties(r)) }
+    return { posts: rows }
 })
 
 apiRouter.post(
@@ -2306,7 +2347,7 @@ apiRouter.get("/posts/:postId.json", async (req: Request, res: Response) => {
         .knexTable(postsTable)
         .where({ id: postId })
         .select("*")
-        .first()) as PostRow | undefined
+        .first()) as PostRowEnriched | undefined
     return camelCaseProperties({ ...post })
 })
 
@@ -2329,12 +2370,17 @@ apiRouter.post("/posts/:postId/createGdoc", async (req: Request) => {
             400
         )
     }
+    if (post.archieml === null)
+        throw new JsonError(
+            `ArchieML was not present for post with id ${postId}`,
+            500
+        )
     const tagsByPostId = await getTagsByPostId()
     const tags =
         tagsByPostId.get(postId)?.map(({ id }) => TagEntity.create({ id })) ||
         []
-    const archieMl = JSON.parse(post.archieml) as OwidGdocInterface
-    const gdocId = await createGdocAndInsertOwidGdocContent(
+    const archieMl = JSON.parse(post.archieml) as OwidGdocPostInterface
+    const gdocId = await createGdocAndInsertOwidGdocPostContent(
         archieMl.content,
         post.gdocSuccessorId
     )
@@ -2351,14 +2397,14 @@ apiRouter.post("/posts/:postId/createGdoc", async (req: Request) => {
             .where({ id: postId })
             .update("gdocSuccessorId", gdocId)
 
-        const gdoc = new Gdoc(gdocId)
+        const gdoc = new GdocPost(gdocId)
         gdoc.slug = post.slug
         gdoc.tags = tags
         gdoc.content.title = post.title
         gdoc.published = false
         gdoc.createdAt = new Date()
         gdoc.publishedAt = post.published_at
-        await dataSource.getRepository(Gdoc).save(gdoc)
+        await dataSource.getRepository(GdocPost).save(gdoc)
     }
 
     return { googleDocsId: gdocId }
@@ -2390,7 +2436,7 @@ apiRouter.post("/posts/:postId/unlinkGdoc", async (req: Request) => {
         .where({ id: postId })
         .update("gdocSuccessorId", null)
 
-    await dataSource.getRepository(Gdoc).delete(existingGdocId)
+    await dataSource.getRepository(GdocPost).delete(existingGdocId)
 
     return { success: true }
 })
@@ -2425,7 +2471,7 @@ apiRouter.put("/deploy", async (req: Request, res: Response) => {
 apiRouter.get("/gdocs", async () => {
     // orderBy was leading to a sort buffer overflow (ER_OUT_OF_SORTMEMORY) with MySQL's default sort_buffer_size
     // when the posts_gdocs table got larger than 9MB, so we sort in memory
-    return Gdoc.find({ relations: ["tags"] }).then((gdocs) =>
+    return GdocPost.find({ relations: ["tags"] }).then((gdocs) =>
         gdocs.sort((a, b) => {
             if (!a.updatedAt || !b.updatedAt) return 0
             return b.updatedAt.getTime() - a.updatedAt.getTime()
@@ -2443,14 +2489,16 @@ apiRouter.get("/gdocs/:id", async (req, res) => {
         const publishedExplorersBySlug =
             await explorerAdminServer.getAllPublishedExplorersBySlugCached()
 
-        const gdoc = await Gdoc.getGdocFromContentSource(
+        const gdoc = await GdocFactory.load(
             id,
             publishedExplorersBySlug,
             contentSource
         )
+
         if (!gdoc.published) {
-            await dataSource.getRepository(Gdoc).create(gdoc).save()
+            await gdoc.save()
         }
+
         res.set("Cache-Control", "no-store")
         res.send(gdoc)
     } catch (error) {
@@ -2467,44 +2515,24 @@ apiRouter.get("/gdocs/:id", async (req, res) => {
 apiRouter.put("/gdocs/:id", async (req, res) => {
     const { id } = req.params
     const nextGdocJSON: OwidGdocJSON = req.body
+    const explorers =
+        await explorerAdminServer.getAllPublishedExplorersBySlugCached()
 
     if (isEmpty(nextGdocJSON)) {
-        const newGdoc = new Gdoc(id)
-        // this will fail if the gdoc already exists, as opposed to a call to newGdoc.save()
-        await dataSource.getRepository(Gdoc).insert(newGdoc)
-
-        const publishedExplorersBySlug =
-            await explorerAdminServer.getAllPublishedExplorersBySlugCached()
-
-        const initData = await Gdoc.getGdocFromContentSource(
-            id,
-            publishedExplorersBySlug,
-            GdocsContentSource.Gdocs
-        )
-
-        const updated = await dataSource
-            .getRepository(Gdoc)
-            .create(initData)
-            .save()
-
-        return updated
+        // Check to see if the gdoc already exists in the database
+        const existingGdoc = await GdocBase.findOneBy({ id })
+        if (existingGdoc) {
+            return GdocFactory.load(id, explorers, GdocsContentSource.Gdocs)
+        } else {
+            return GdocFactory.create(id, explorers)
+        }
     }
 
-    const prevGdoc = await Gdoc.findOne({
-        where: {
-            id: id,
-        },
-        relations: ["tags"],
-    })
+    const prevGdoc = await GdocFactory.load(id, {})
     if (!prevGdoc) throw new JsonError(`No Google Doc with id ${id} found`)
 
-    const nextGdoc = dataSource
-        .getRepository(Gdoc)
-        .create(getOwidGdocFromJSON(nextGdocJSON))
-
-    // Need to load these to compare them for lightning update candidacy
-    await prevGdoc.loadImageMetadata()
-    await nextGdoc.loadImageMetadata()
+    const nextGdoc = GdocFactory.fromJSON(nextGdocJSON)
+    await nextGdoc.loadState(explorers)
 
     // Deleting and recreating these is simpler than tracking orphans over the next code block
     await GdocXImage.delete({ gdocId: id })
@@ -2564,20 +2592,22 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
     await nextGdoc.save()
 
     const hasChanges = checkHasChanges(prevGdoc, nextGdoc)
-    if (checkIsLightningUpdate(prevGdoc, nextGdoc, hasChanges)) {
+    const prevJson = prevGdoc.toJSON<OwidGdoc>()
+    const nextJson = nextGdoc.toJSON<OwidGdoc>()
+    if (checkIsLightningUpdate(prevJson, nextJson, hasChanges)) {
         await enqueueLightningChange(
             res.locals.user,
-            `Lightning update ${nextGdoc.slug}`,
-            nextGdoc.slug
+            `Lightning update ${nextJson.slug}`,
+            nextJson.slug
         )
-    } else if (checkFullDeployFallback(prevGdoc, nextGdoc, hasChanges)) {
+    } else if (checkFullDeployFallback(prevJson, nextJson, hasChanges)) {
         const action =
-            prevGdoc.published && nextGdoc.published
+            prevJson.published && nextJson.published
                 ? "Updating"
-                : !prevGdoc.published && nextGdoc.published
+                : !prevJson.published && nextJson.published
                 ? "Publishing"
                 : "Unpublishing"
-        await triggerStaticBuild(res.locals.user, `${action} ${nextGdoc.slug}`)
+        await triggerStaticBuild(res.locals.user, `${action} ${nextJson.slug}`)
     }
 
     return nextGdoc
@@ -2586,7 +2616,7 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
 apiRouter.delete("/gdocs/:id", async (req, res) => {
     const { id } = req.params
 
-    const gdoc = await Gdoc.findOneBy({ id })
+    const gdoc = await GdocPost.findOneBy({ id })
     if (!gdoc) throw new JsonError(`No Google Doc with id ${id} found`)
 
     await db
@@ -2600,7 +2630,7 @@ apiRouter.delete("/gdocs/:id", async (req, res) => {
         },
     })
     await GdocXImage.delete({ gdocId: id })
-    await Gdoc.delete({ id })
+    await GdocPost.delete({ id })
     await triggerStaticBuild(res.locals.user, `Deleting ${gdoc.slug}`)
     return {}
 })
@@ -2611,7 +2641,7 @@ apiRouter.post(
         const { gdocId } = req.params
         const { tagIds } = req.body
 
-        const gdoc = await Gdoc.findOneBy({ id: gdocId })
+        const gdoc = await GdocPost.findOneBy({ id: gdocId })
         if (!gdoc) return Error(`Unable to find Gdoc with ID: ${gdocId}`)
         const tags = await dataSource
             .getRepository(TagEntity)

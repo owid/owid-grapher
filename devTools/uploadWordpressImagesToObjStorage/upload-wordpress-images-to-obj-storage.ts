@@ -4,7 +4,7 @@ import fs from "fs/promises"
 import path from "path"
 import parseArgs from "minimist"
 
-import { Gdoc } from "../../db/model/Gdoc/Gdoc.js"
+import { OwidGoogleAuth } from "../../db/OwidGoogleAuth.js"
 import { GDOCS_IMAGES_BACKPORTING_TARGET_FOLDER } from "../../settings/serverSettings.js"
 
 const args = parseArgs(process.argv.slice(2))
@@ -40,7 +40,7 @@ const RESIZED_IMAGE_REGEX = /\d+x\d+\.(png|gif|jpg|jpeg)$/
 
 const UPLOAD_BATCH_SIZE = 15
 
-const auth = Gdoc.getGoogleReadWriteAuth()
+const auth = OwidGoogleAuth.getGoogleReadWriteAuth()
 
 const driveClient = google.drive({
     version: "v3",

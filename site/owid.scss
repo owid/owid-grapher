@@ -33,6 +33,7 @@
 @import "css/grid.scss";
 @import "css/layout.scss";
 @import "css/general.scss";
+@import "./collections/CollectionsPage.scss";
 @import "./SiteSearchNavigation.scss";
 @import "./site/search/Autocomplete.scss";
 @import "./site/search/Search.scss";
@@ -84,20 +85,22 @@
 @import "./Breadcrumb/Breadcrumb.scss";
 @import "./DataValue.scss";
 @import "./AnnotatingDataValue.scss";
-@import "./gdocs/centered-article.scss";
-@import "./gdocs/topic-page.scss";
-@import "./gdocs/SDGGrid.scss";
-@import "./gdocs/TableOfContents.scss";
-@import "./gdocs/MissingData.scss";
-@import "./gdocs/AllCharts.scss";
-@import "./gdocs/AdditionalCharts.scss";
-@import "./gdocs/ResearchAndWriting.scss";
-@import "./gdocs/Chart.scss";
+@import "./gdocs/components/centered-article.scss";
+@import "./gdocs/components/topic-page.scss";
+@import "./gdocs/components/SDGGrid.scss";
+@import "./gdocs/components/TableOfContents.scss";
+@import "./gdocs/components/MissingData.scss";
+@import "./gdocs/components/AllCharts.scss";
+@import "./gdocs/components/AdditionalCharts.scss";
+@import "./gdocs/components/ResearchAndWriting.scss";
+@import "./gdocs/components/Chart.scss";
 @import "./DataPage.scss";
 @import "./DataPageContent.scss";
 @import "./detailsOnDemand.scss";
+@import "./gdocs/pages/DataInsight.scss";
 
 @import "css/donate.scss";
+@import "./ThankYouPage.scss";
 
 /* HACK (Mispy): Fix search autozooming on iPhone Safari.
 http://stackoverflow.com/questions/2989263/disable-auto-zoom-in-input-text-tag-safari-on-iphone */

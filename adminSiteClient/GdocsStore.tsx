@@ -2,10 +2,9 @@ import React, { useContext, createContext, useState } from "react"
 import { action, observable } from "mobx"
 import {
     getOwidGdocFromJSON,
-    omit,
-    OwidGdocInterface,
     OwidGdocJSON,
     Tag,
+    OwidGdoc,
 } from "@ourworldindata/utils"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { Admin } from "./Admin.js"
@@ -18,7 +17,7 @@ import { Admin } from "./Admin.js"
  * Today, this store acts as CRUD proxy for requests to API endpoints.
  */
 export class GdocsStore {
-    @observable gdocs: OwidGdocInterface[] = []
+    @observable gdocs: OwidGdoc[] = []
     @observable availableTags: Tag[] = []
     admin: Admin
 
@@ -32,27 +31,20 @@ export class GdocsStore {
     }
 
     @action
-    async update(gdoc: OwidGdocInterface): Promise<OwidGdocInterface> {
+    async update(gdoc: OwidGdoc): Promise<OwidGdoc> {
         return this.admin
-            .requestJSON<OwidGdocJSON>(
-                `/api/gdocs/${gdoc.id}`,
-                // omitting tags because they get saved via the /api/gdocs/:id/setTags route, not this /api/gdocs/:id route
-                // If we were to save them here, it could lead to updates from this request
-                // overwriting tags that had been set by someone else after the preview page was loaded
-                omit(gdoc, "tags"),
-                "PUT"
-            )
+            .requestJSON<OwidGdocJSON>(`/api/gdocs/${gdoc.id}`, gdoc, "PUT")
             .then(getOwidGdocFromJSON)
     }
 
     @action
-    async publish(gdoc: OwidGdocInterface): Promise<OwidGdocInterface> {
+    async publish(gdoc: OwidGdoc): Promise<OwidGdoc> {
         const publishedGdoc = await this.update({ ...gdoc, published: true })
         return publishedGdoc
     }
 
     @action
-    async unpublish(gdoc: OwidGdocInterface): Promise<OwidGdocInterface> {
+    async unpublish(gdoc: OwidGdoc): Promise<OwidGdoc> {
         const unpublishedGdoc = await this.update({
             ...gdoc,
             publishedAt: null,
@@ -63,15 +55,13 @@ export class GdocsStore {
     }
 
     @action
-    async delete(gdoc: OwidGdocInterface) {
+    async delete(gdoc: OwidGdoc) {
         await this.admin.requestJSON(`/api/gdocs/${gdoc.id}`, {}, "DELETE")
     }
 
     @action
     async fetchGdocs() {
-        const gdocs = (await this.admin.getJSON(
-            "/api/gdocs"
-        )) as OwidGdocInterface[]
+        const gdocs = (await this.admin.getJSON("/api/gdocs")) as OwidGdoc[]
         this.gdocs = gdocs
     }
 
@@ -82,7 +72,7 @@ export class GdocsStore {
     }
 
     @action
-    async updateTags(gdoc: OwidGdocInterface, tags: Tag[]) {
+    async updateTags(gdoc: OwidGdoc, tags: Tag[]) {
         const json = await this.admin.requestJSON(
             `/api/gdocs/${gdoc.id}/setTags`,
             { tagIds: tags.map((t) => t.id) },

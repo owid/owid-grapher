@@ -1,0 +1,333 @@
+.data-insight-page {
+    background-color: $gray-10;
+    padding-bottom: 80px;
+
+    @include md-down {
+        padding-bottom: 40px;
+    }
+}
+
+// Orders
+.data-insight-breadcrumbs {
+    order: 0;
+}
+.data-insight-meta {
+    order: 2;
+    @include md-down {
+        order: 3;
+    }
+}
+.data-insight-body {
+    order: 3;
+    @include md-down {
+        order: 2;
+    }
+}
+.data-insight-cards-container {
+    order: 4;
+}
+
+.data-insight-breadcrumbs {
+    margin: 32px 0;
+    font-size: 0.875rem;
+    a {
+        @include owid-link-90;
+    }
+    svg {
+        height: 12px;
+        margin: 0 8px 1px 8px;
+    }
+    span {
+        color: $blue-60;
+    }
+}
+
+.data-insight-meta {
+    display: flex;
+    flex-direction: column;
+
+    div:nth-child(1) {
+        display: flex;
+        flex-direction: column;
+        .data-insight-meta__published-at {
+            color: $blue-60;
+        }
+
+        .data-insight-meta__authors {
+            color: $blue-60;
+        }
+    }
+
+    label {
+        display: none;
+        color: $blue-60;
+    }
+
+    .data-insight-meta__copy-link-button {
+        @include light-blue-button;
+        background-color: $blue-20;
+        padding: 9.5px 0;
+        min-width: 140px;
+        margin-top: 24px;
+        border-radius: 0;
+        &:hover {
+            background-color: $blue-10;
+        }
+        svg {
+            height: 14px;
+            color: $blue-60;
+            margin-right: 8px;
+        }
+    }
+
+    @include md-down {
+        background-color: #fff;
+        padding: 16px;
+        margin-bottom: 32px;
+        flex-direction: row;
+        justify-content: space-between;
+
+        label {
+            display: block;
+        }
+        .data-insight-meta__authors {
+            margin-top: 16px;
+        }
+
+        .data-insight-meta__copy-link-button {
+            margin-top: 8px;
+        }
+    }
+}
+
+@include md-down {
+    // Add bottom border/padding to the insight body last child at mobile sizes if there are no tags
+    // to separate it from the meta
+    .data-insight-meta
+        + .data-insight-body:not(.data-insight-body--has-tags)
+        > *:last-child {
+        padding-bottom: 24px;
+        margin-bottom: 8px;
+        border-bottom: 1px solid $blue-10;
+    }
+}
+
+.data-insight-body {
+    background-color: #fff;
+    padding: 24px;
+    margin-bottom: 48px;
+    h1 {
+        margin-top: 0;
+        margin-bottom: 24px;
+    }
+
+    // the tags block adds padding that we need to compensate for
+    &.data-insight-body--has-tags {
+        padding-bottom: 8px;
+    }
+
+    .article-block__image {
+        outline: 1px solid $blue-10;
+        margin-top: 24px;
+    }
+
+    @include md-down {
+        padding: 16px;
+        margin-bottom: 0;
+        padding-bottom: 0;
+
+        h1 {
+            font-size: 1.625rem;
+            margin-bottom: 16px;
+        }
+
+        .article-block__image {
+            margin-top: 16px;
+            margin-bottom: 24px;
+        }
+
+        .article-block__text {
+            font-size: 1rem;
+        }
+    }
+}
+
+.data-insight-blocks {
+    > *:first-child {
+        margin-top: 0;
+    }
+    > *:last-child {
+        margin-bottom: 0;
+    }
+}
+
+.data-insights-related-topics {
+    border-top: solid $blue-20 1px;
+    display: flex;
+    padding-top: 24px;
+    margin-top: 24px;
+    p {
+        margin: 0 16px 0 0;
+        white-space: nowrap;
+        line-height: 28px;
+    }
+    ul {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    li {
+        list-style: none;
+        margin-right: 8px;
+        margin-bottom: 16px;
+
+        @include topic-chip;
+    }
+
+    @include md-down {
+        padding: 16px 0;
+        border-bottom: solid $blue-20 1px;
+        p {
+            line-height: 38px;
+        }
+        ul {
+            flex-wrap: nowrap;
+            overflow-x: auto;
+        }
+        li {
+            margin-bottom: 0;
+            // needed to stop the rounded corners from getting cropped
+            padding: 6px;
+        }
+    }
+}
+
+.data-insight-cards-container {
+    padding-top: 40px;
+    border-top: $blue-10 4px solid;
+    margin-bottom: 24px;
+    display: flex;
+    flex-wrap: wrap;
+    h2 {
+        margin: 0;
+    }
+    .see-all-button-container {
+        margin-left: auto;
+        line-height: 2rem;
+        a {
+            border: 1px solid $vermillion;
+            line-height: 2rem;
+            color: $vermillion;
+            padding: 9.5px 24px;
+            transition: 200ms;
+            &:hover {
+                color: $accent-vermillion;
+                border-color: $accent-vermillion;
+            }
+        }
+
+        svg {
+            height: 0.75rem;
+        }
+    }
+
+    .data-insight-cards-container__cards {
+        margin-top: 24px;
+        display: flex;
+        overflow-x: auto;
+        width: 100%;
+    }
+
+    @include md-down {
+        overflow-x: auto;
+        border-top: none;
+        // needed to stop scroll overflow when moving the button below the cards
+        padding-bottom: 2px;
+
+        .see-all-button-container {
+            // put it below the cards
+            order: 1;
+            margin-top: 24px;
+            margin-right: auto;
+        }
+    }
+}
+
+.data-insight-card {
+    background-color: $blue-10;
+    padding: 24px;
+    transition: 200ms;
+    max-width: 298px;
+    min-width: 298px;
+    &:not(:last-child) {
+        margin-right: 24px;
+    }
+    &:hover {
+        background-color: $blue-20;
+    }
+    .data-insight-card__published-at {
+        color: $blue-60;
+        margin: 0 0 4px;
+    }
+    .data-insight-card__title {
+        color: $blue-90;
+        font-weight: 500;
+        margin: 0;
+    }
+}
+
+// Index page
+.data-insights-index-page {
+    background-color: $gray-10;
+
+    // Add a small margin above where we scroll to when arriving via a hash link
+    [id] {
+        scroll-margin-top: 40px;
+    }
+}
+
+.data-insights-index-page__header {
+    margin-bottom: 40px;
+    background-color: #fff;
+    @include md-down {
+        margin-bottom: 24px;
+    }
+
+    h2 {
+        margin: 0;
+        margin-top: 40px;
+    }
+    p {
+        margin: 0;
+        margin-bottom: 32px;
+    }
+}
+
+.data-insights-index-page__pagination {
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: center;
+    a {
+        color: $blue-60;
+        min-width: 40px;
+        min-height: 40px;
+        text-align: center;
+        line-height: 40px;
+        transition: 200ms;
+    }
+    a.data-insights-index-page__pagination-link {
+        &:hover {
+            background-color: $blue-10;
+        }
+    }
+    a.data-insights-index-page__pagination-link--disabled {
+        pointer-events: none;
+        svg {
+            color: $blue-30;
+        }
+    }
+    a.data-insights-index-page__pagination-link--active {
+        background-color: $blue-20;
+        color: $blue-90;
+        pointer-events: none;
+    }
+}

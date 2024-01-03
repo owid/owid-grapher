@@ -45,6 +45,11 @@
             overflow: auto;
             border: $cell-border;
         }
+
+        .title-fragments {
+            color: $light-text;
+            font-weight: 500;
+        }
     }
 
     table {

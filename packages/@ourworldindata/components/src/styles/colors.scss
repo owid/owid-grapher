@@ -22,6 +22,7 @@ $amber-10: #f4eddb;
 // Background colors
 $blue-20: #dbe5f0;
 $blue-10: #ebeef2;
+$blue-5: #f0f4fa;
 $gray-10: #f7f7f7;
 $beige: #fbf9f3;
 $white: #ffffff;
@@ -97,7 +98,7 @@ $sdgColors: (
 );
 
 :root {
-    // See also owidTypes.ts > OwidGdocContent > cover-color
+    // See also owidTypes.ts > OwidGdocPostContent > cover-color
     --amber: #{$amber};
     @each $i, $sdgColor in $sdgColors {
         --sdg-color-#{$i}: #{$sdgColor};

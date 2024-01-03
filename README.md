@@ -16,7 +16,7 @@ We're gradually making steps towards making our work more reusable, however we s
 
 You are still very welcome to reuse and adapt any of our code for your own purposes, and we welcome [contributions](CONTRIBUTING.md)!
 
-## 🏎 &nbsp;Quick start
+## 🏎 Quick start
 
 To quickly get a version of the site running for developing Grapher features, we recommend following the [local development setup](docs/docker-compose-mysql.md) guide.
 

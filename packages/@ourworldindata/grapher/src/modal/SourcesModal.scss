@@ -40,6 +40,11 @@
             color: $dark-text;
         }
 
+        .title-fragments {
+            color: $light-text;
+            font-size: 1.25rem;
+            margin-left: 8px;
+        }
         a {
             color: inherit;
             text-decoration: underline;
@@ -120,6 +125,21 @@
             margin-right: $tab-gap;
         }
 
+        .data-citation .wp-code-snippet {
+            margin-bottom: 16px;
+        }
+
+        .citation__paragraph {
+            color: $light-text;
+        }
+
+        .citation__type {
+            display: block;
+            line-height: 1.5;
+            color: $dark-text;
+            font-weight: 500;
+        }
+
         .indicator-processing .indicator-processing__link {
             @include body-3-medium;
             display: inline-block;
@@ -133,11 +153,6 @@
 
             &:hover {
                 text-decoration: none;
-            }
-
-            svg {
-                //display: inline-block;
-                //transform: rotate(-90deg);
             }
         }
     }
@@ -175,7 +190,9 @@
         }
 
         .indicator-descriptions .key-info__learn-more,
-        .indicator-processing .indicator-processing__link {
+        .indicator-processing .indicator-processing__link,
+        .citation__paragraph,
+        .citation__type {
             font-size: var(--text-small);
         }
     }

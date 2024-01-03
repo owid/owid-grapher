@@ -6,18 +6,17 @@ import {
 import { BlogIndexPage } from "../site/BlogIndexPage.js"
 import { FrontPage } from "../site/FrontPage.js"
 import { ChartsIndexPage, ChartIndexItem } from "../site/ChartsIndexPage.js"
+import { DynamicCollectionPage } from "../site/collections/DynamicCollectionPage.js"
+import { StaticCollectionPage } from "../site/collections/StaticCollectionPage.js"
 import { SearchPage } from "../site/search/SearchPage.js"
 import { NotFoundPage } from "../site/NotFoundPage.js"
 import { DonatePage } from "../site/DonatePage.js"
+import { ThankYouPage } from "../site/ThankYouPage.js"
 import OwidGdocPage from "../site/gdocs/OwidGdocPage.js"
 import React from "react"
 import ReactDOMServer from "react-dom/server.js"
 import * as lodash from "lodash"
-import {
-    extractFormattingOptions,
-    formatCountryProfile,
-    isCanonicalInternalUrl,
-} from "./formatting.js"
+import { formatCountryProfile, isCanonicalInternalUrl } from "./formatting.js"
 import {
     bakeGrapherUrls,
     getGrapherExportsByUrl,
@@ -50,12 +49,14 @@ import {
     FullPost,
     JsonError,
     KeyInsight,
-    OwidGdocInterface,
-    PostRow,
     Url,
     IndexPost,
     mergePartialGrapherConfigs,
     OwidGdocType,
+    OwidGdoc,
+    OwidGdocDataInsightInterface,
+    extractFormattingOptions,
+    PostRowRaw,
 } from "@ourworldindata/utils"
 import { CountryProfileSpec } from "../site/countryProfileProjects.js"
 import { formatPost } from "./formatWordpressPost.js"
@@ -84,14 +85,17 @@ import {
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { ExplorerPageUrlMigrationSpec } from "../explorer/urlMigrations/ExplorerPageUrlMigrationSpec.js"
 import { ExplorerPage } from "../site/ExplorerPage.js"
+import { DataInsightsIndexPage } from "../site/DataInsightsIndexPage.js"
 import { Chart } from "../db/model/Chart.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import { ExplorerFullQueryParams } from "../explorer/ExplorerConstants.js"
 import { resolveInternalRedirect } from "./redirects.js"
 import { postsTable } from "../db/model/Post.js"
-import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
+import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
+import { GdocFactory } from "../db/model/Gdoc/GdocFactory.js"
+
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
 
@@ -139,33 +143,56 @@ export const renderChartsPage = async (
     )
 }
 
+export async function renderTopChartsCollectionPage() {
+    const charts: string[] = await queryMysql(
+        `
+    SELECT SUBSTRING_INDEX(url, '/', -1) AS slug
+    FROM analytics_pageviews
+    WHERE url LIKE "%https://ourworldindata.org/grapher/%"
+    ORDER BY views_14d DESC
+    LIMIT 50
+    `
+    ).then((rows) => rows.map((row: { slug: string }) => row.slug))
+
+    const props = {
+        baseUrl: BAKED_BASE_URL,
+        title: "Top Charts",
+        introduction:
+            "The 50 most viewed charts from the last 14 days on Our World in Data.",
+        charts,
+    }
+    return renderToHtmlPage(<StaticCollectionPage {...props} />)
+}
+
+export function renderDynamicCollectionPage() {
+    return renderToHtmlPage(<DynamicCollectionPage baseUrl={BAKED_BASE_URL} />)
+}
+
 export const renderGdocsPageBySlug = async (
-    slug: string
+    slug: string,
+    isPreviewing: boolean = false
 ): Promise<string | undefined> => {
-    const gdoc = await Gdoc.findOneBy({ slug })
-    if (!gdoc) {
-        throw new Error(`Failed to render an unknown GDocs post: ${slug}.`)
-    }
-    if (!gdoc.published) {
-        throw new Error(
-            `A Gdoc exists with slug "${slug}" but it is not published.`
-        )
-    }
     const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
     const publishedExplorersBySlug =
         await explorerAdminServer.getAllPublishedExplorersBySlug()
 
-    const gdocWithAttachments = await Gdoc.getGdocFromContentSource(
-        gdoc.id,
-        publishedExplorersBySlug
-    )
+    const gdoc = await GdocFactory.loadBySlug(slug, publishedExplorersBySlug)
+    if (!gdoc) {
+        throw new Error(`Failed to render an unknown GDocs post: ${slug}.`)
+    }
 
-    return renderGdoc(gdocWithAttachments)
+    await gdoc.loadState(publishedExplorersBySlug)
+
+    return renderGdoc(gdoc, isPreviewing)
 }
 
-export const renderGdoc = (gdoc: OwidGdocInterface) => {
+export const renderGdoc = (gdoc: OwidGdoc, isPreviewing: boolean = false) => {
     return renderToHtmlPage(
-        <OwidGdocPage baseUrl={BAKED_BASE_URL} gdoc={gdoc} />
+        <OwidGdocPage
+            baseUrl={BAKED_BASE_URL}
+            gdoc={gdoc}
+            isPreviewing={isPreviewing}
+        />
     )
 }
 
@@ -240,10 +267,11 @@ export const renderFrontPage = async () => {
 
     let featuredWork: IndexPost[]
     try {
-        const frontPageConfigGdoc = await Gdoc.getGdocFromContentSource(
-            GDOCS_HOMEPAGE_CONFIG_DOCUMENT_ID,
-            {}
-        )
+        const frontPageConfigGdoc = await GdocPost.findOneBy({
+            id: GDOCS_HOMEPAGE_CONFIG_DOCUMENT_ID,
+        })
+        if (!frontPageConfigGdoc) throw new Error("No front page config found")
+        await frontPageConfigGdoc.loadState({})
         const frontPageConfig: any = frontPageConfigGdoc.content
         const featuredPosts: { slug: string; position: number }[] =
             frontPageConfig["featured-posts"] ?? []
@@ -306,16 +334,41 @@ export const renderFrontPage = async () => {
 }
 
 export const renderDonatePage = async () => {
-    const faqsGdoc = await Gdoc.getGdocFromContentSource(
+    const faqsGdoc = (await GdocFactory.load(
         GDOCS_DONATE_FAQS_DOCUMENT_ID,
         {}
-    )
+    )) as GdocPost
+    if (!faqsGdoc)
+        throw new Error(
+            `Failed to find donate FAQs Gdoc with id "${GDOCS_DONATE_FAQS_DOCUMENT_ID}"`
+        )
 
     return renderToHtmlPage(
         <DonatePage
             baseUrl={BAKED_BASE_URL}
             faqsGdoc={faqsGdoc}
             recaptchaKey={RECAPTCHA_SITE_KEY}
+        />
+    )
+}
+
+export const renderThankYouPage = async () => {
+    return renderToHtmlPage(<ThankYouPage baseUrl={BAKED_BASE_URL} />)
+}
+
+export const renderDataInsightsIndexPage = (
+    dataInsights: OwidGdocDataInsightInterface[],
+    page: number = 0,
+    totalPageCount: number,
+    isPreviewing: boolean = false
+) => {
+    return renderToHtmlPage(
+        <DataInsightsIndexPage
+            dataInsights={dataInsights}
+            baseUrl={BAKED_BASE_URL}
+            pageNumber={page}
+            totalPageCount={totalPageCount}
+            isPreviewing={isPreviewing}
         />
     )
 }
@@ -404,11 +457,12 @@ ${posts
 export const entriesByYearPage = async (year?: number) => {
     const entries = (await knexTable(postsTable)
         .where({ status: "publish" })
+        .whereNot({ type: "wp_block" })
         .join("post_tags", { "post_tags.post_id": "posts.id" })
         .join("tags", { "tags.id": "post_tags.tag_id" })
         .where({ "tags.name": "Entries" })
-        .select("title", "slug", "published_at")) as Pick<
-        PostRow,
+        .select("title", "posts.slug", "published_at")) as Pick<
+        PostRowRaw,
         "title" | "slug" | "published_at"
     >[]
 

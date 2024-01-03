@@ -1,11 +1,11 @@
 import React from "react"
-import { dayjs, groupBy, PostRow } from "@ourworldindata/utils"
+import { dayjs, groupBy, PostRowEnriched } from "@ourworldindata/utils"
 import { Head } from "./Head.js"
 import { SiteHeader } from "./SiteHeader.js"
 import { SiteFooter } from "./SiteFooter.js"
 import { TableOfContents } from "../site/TableOfContents.js"
 
-type Entry = Pick<PostRow, "title" | "slug" | "published_at">
+type Entry = Pick<PostRowEnriched, "title" | "slug" | "published_at">
 
 export const EntriesByYearPage = (props: {
     entries: Entry[]

@@ -4,7 +4,8 @@ import Papa from "papaparse"
 import * as db from "./db.js"
 
 async function downloadAndInsertCSV(): Promise<void> {
-    const csvUrl = "http://datasette-private/owid/pageviews.csv?_size=max"
+    const csvUrl =
+        "http://datasette-private/owid/analytics_pageviews.csv?_size=max"
     const response = await fetch(csvUrl)
 
     if (!response.ok) {
@@ -30,9 +31,9 @@ async function downloadAndInsertCSV(): Promise<void> {
     console.log("Parsed CSV data:", onlyValidRows.length, "rows")
     console.log("Columns:", parsedData.meta.fields)
 
-    await db.knexRaw("TRUNCATE TABLE pageviews")
+    await db.knexRaw("TRUNCATE TABLE analytics_pageviews")
 
-    await db.knexInstance().batchInsert("pageviews", onlyValidRows)
+    await db.knexInstance().batchInsert("analytics_pageviews", onlyValidRows)
     console.log("CSV data inserted successfully!")
 }
 

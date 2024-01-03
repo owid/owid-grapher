@@ -1,23 +1,52 @@
 import React from "react"
-import path from "path"
 import { Head } from "../Head.js"
 import { SiteHeader } from "../SiteHeader.js"
 import { SiteFooter } from "../SiteFooter.js"
 import { CitationMeta } from "../CitationMeta.js"
 import { OwidGdoc } from "./OwidGdoc.js"
-
 import {
-    OwidGdocInterface,
+    getFeaturedImageFilename,
+    OwidGdoc as OwidGdocUnionType,
     SiteFooterContext,
-    getFilenameAsPng,
-    IMAGES_DIRECTORY,
+    OwidGdocType,
+    filenameToUrl,
 } from "@ourworldindata/utils"
 import { DebugProvider } from "./DebugContext.js"
+import { match, P } from "ts-pattern"
 
 declare global {
     interface Window {
         _OWID_GDOC_PROPS: any
     }
+}
+
+function getPageDesc(gdoc: OwidGdocUnionType): string | undefined {
+    return match(gdoc)
+        .with(
+            {
+                content: {
+                    type: P.union(
+                        OwidGdocType.Article,
+                        OwidGdocType.TopicPage,
+                        OwidGdocType.LinearTopicPage
+                    ),
+                },
+            },
+            (match) => {
+                return match.content.excerpt
+            }
+        )
+        .with({ content: { type: OwidGdocType.DataInsight } }, () => {
+            // TODO: what do we put here?
+            return undefined
+        })
+        .with(
+            { content: { type: P.union(OwidGdocType.Fragment, undefined) } },
+            () => {
+                return ""
+            }
+        )
+        .exhaustive()
 }
 
 export default function OwidGdocPage({
@@ -27,33 +56,28 @@ export default function OwidGdocPage({
     isPreviewing = false,
 }: {
     baseUrl: string
-    gdoc: OwidGdocInterface
+    gdoc: OwidGdocUnionType
     debug?: boolean
     isPreviewing?: boolean
 }) {
     const { content, slug, createdAt, updatedAt } = gdoc
 
-    // Social media platforms don't support SVG's for og:image
-    // So no matter what, we use the png fallback that the baker generates
-    const featuredImageUrl =
-        content["featured-image"] &&
-        new URL(
-            path.join(
-                IMAGES_DIRECTORY,
-                getFilenameAsPng(content["featured-image"])
-            ),
-            baseUrl
-        ).href
+    const pageDesc = getPageDesc(gdoc)
+    const featuredImageFilename = getFeaturedImageFilename(gdoc)
     const canonicalUrl = `${baseUrl}/${slug}`
 
     return (
         <html>
             <Head
                 pageTitle={content.title}
-                pageDesc={content.excerpt}
+                pageDesc={pageDesc}
                 canonicalUrl={canonicalUrl}
                 imageUrl={
-                    featuredImageUrl ? encodeURI(featuredImageUrl) : undefined
+                    featuredImageFilename
+                        ? encodeURI(
+                              filenameToUrl(featuredImageFilename, baseUrl)
+                          )
+                        : undefined
                 }
                 baseUrl={baseUrl}
             >

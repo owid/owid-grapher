@@ -195,7 +195,7 @@
     }
 }
 
-@mixin expandable-block-button {
+@mixin light-blue-button {
     background-color: $blue-10;
     border-radius: 3px;
     border: none;
@@ -206,6 +206,22 @@
     transition: all 150ms;
     &:hover {
         background-color: $blue-20;
+    }
+}
+
+@mixin topic-chip {
+    a {
+        background-color: $blue-10;
+        border-radius: 50px;
+        padding: 8.5px 16px;
+        white-space: nowrap;
+        @include body-3-medium;
+        color: $blue-90;
+        transition: background-color 150ms;
+
+        &:hover {
+            background-color: $blue-20;
+        }
     }
 }
 

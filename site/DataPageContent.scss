@@ -8,9 +8,14 @@
     .header__wrapper {
         padding-top: 24px;
         padding-bottom: 24px;
-
         @include sm-up {
             padding-top: 48px;
+            padding-bottom: 0;
+        }
+    }
+
+    .header__left {
+        @include sm-up {
             padding-bottom: 40px;
         }
     }
@@ -257,6 +262,10 @@
         margin-bottom: 8px;
     }
 
+    .wrapper-about-this-data {
+        width: 100%;
+    }
+
     .about-this-data__title {
         @include datapage-section-title;
         @include md-up {
@@ -489,6 +498,7 @@
     }
 
     .citation__type {
+        display: block;
         color: $blue-90;
     }
 

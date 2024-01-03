@@ -100,19 +100,24 @@ export {
     KeyChartLevel,
     type KeyInsight,
     type KeyValueProps,
-    type OwidGdocContent,
     type LinkedChart,
     OwidGdocPublicationContext,
     type OwidGdocErrorMessageProperty,
     type OwidGdocErrorMessage,
     OwidGdocErrorMessageType,
     type OwidGdocLinkJSON,
-    type OwidGdocInterface,
+    type OwidGdocBaseInterface,
+    type OwidGdocPostContent,
+    type OwidGdocPostInterface,
+    type OwidGdocDataInsightContent,
+    type OwidGdocDataInsightInterface,
+    type MinimalDataInsightInterface,
+    DATA_INSIGHTS_INDEX_PAGE_SIZE,
+    type OwidGdoc,
     type Tag,
     OwidGdocType,
     type OwidGdocStickyNavItem,
     type OwidGdocJSON,
-    type OwidGdocPublished,
     type OwidEnrichedGdocBlock,
     type OwidRawGdocBlock,
     type OwidArticleBackportingStatistics,
@@ -122,7 +127,6 @@ export {
     type PositionMap,
     type PostReference,
     type PostRestApi,
-    type PostRow,
     type PrimitiveType,
     type RawBlockAllCharts,
     type RawBlockAdditionalCharts,
@@ -176,6 +180,7 @@ export {
     type RefDictionary,
     ScaleType,
     type SerializedGridProgram,
+    DYNAMIC_COLLECTION_PAGE_CONTAINER_ID,
     SiteFooterContext,
     SortBy,
     type SortConfig,
@@ -236,6 +241,22 @@ export {
     type BreadcrumbItem,
     type DisplaySource,
 } from "./owidTypes.js"
+
+export {
+    parsePostFormattingOptions,
+    parsePostAuthors,
+    parsePostRow,
+    serializePostRow,
+    parsePostArchieml,
+} from "./dbTypes/PostsUtilities.js"
+
+export {
+    type PostRowParsedFields,
+    type PostRowPlainFields,
+    type PostRowUnparsedFields,
+    type PostRowEnriched,
+    type PostRowRaw,
+} from "./dbTypes/Posts.js"
 
 export {
     pairs,
@@ -353,6 +374,8 @@ export {
     traverseEnrichedSpan,
     mergePartialGrapherConfigs,
     copyToClipboard,
+    checkIsGdocPost,
+    checkIsDataInsight,
 } from "./Util.js"
 
 export {
@@ -366,6 +389,8 @@ export {
     splitSourceTextIntoFragments,
     prepareSourcesForDisplay,
     formatSourceDate,
+    getCitationLong,
+    getCitationShort,
 } from "./metadataHelpers.js"
 
 export {
@@ -517,6 +542,8 @@ export {
     type OwidEntityKey,
     type OwidLicense,
     type OwidProcessingLevel,
+    type IndicatorTitleWithFragments,
+    joinTitleFragments,
 } from "./OwidVariable.js"
 
 export {
@@ -622,6 +649,10 @@ export {
     getFilenameAsPng,
     type GDriveImageMetadata,
     type ImageMetadata,
+    type SourceProps,
+    generateSourceProps,
+    getFeaturedImageFilename,
+    filenameToUrl,
 } from "./image.js"
 
 export { Tippy, TippyIfInteractive } from "./Tippy.js"
@@ -637,3 +668,9 @@ export {
     gdocUrlRegex,
     gdocIdRegex,
 } from "./GdocsConstants.js"
+
+export {
+    extractFormattingOptions,
+    parseFormattingOptions,
+    parseKeyValueArgs,
+} from "./wordpressUtils.js"

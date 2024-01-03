@@ -31,6 +31,10 @@ export enum Menu {
     Search = "search",
 }
 
+// Note: tranforming the flag from an env string to a boolean in
+// clientSettings.ts is convoluted due to the two-pass SSR/Vite build process.
+const HAS_DONATION_FLAG = false
+
 export const SiteNavigation = ({
     baseUrl,
     hideDonationFlag,
@@ -220,7 +224,7 @@ export const SiteNavigation = ({
                             </a>
                         </div>
                     </div>
-                    {!hideDonationFlag && (
+                    {HAS_DONATION_FLAG && !hideDonationFlag && (
                         <a href="/donate" className="site-navigation__giving">
                             Giving season
                         </a>

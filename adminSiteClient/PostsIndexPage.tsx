@@ -1,11 +1,15 @@
 import React from "react"
 import { observer } from "mobx-react"
 import { observable, computed, action, runInAction } from "mobx"
-import fuzzysort from "fuzzysort"
-import * as lodash from "lodash"
 
-import { highlight as fuzzyHighlight } from "@ourworldindata/grapher"
-import { ChartTagJoin, Tag } from "@ourworldindata/utils"
+import {
+    ChartTagJoin,
+    Tag,
+    buildSearchWordsFromSearchString,
+    filterFunctionForSearchWords,
+    SearchWord,
+    uniq,
+} from "@ourworldindata/utils"
 import { AdminLayout } from "./AdminLayout.js"
 import { SearchField, FieldsRow, Timeago } from "./Forms.js"
 import { EditableTags } from "./EditableTags.js"
@@ -20,31 +24,34 @@ import {
     faRecycle,
 } from "@fortawesome/free-solid-svg-icons"
 
+interface GDocSlugSuccessor {
+    id: string
+    published: boolean
+}
+
 interface PostIndexMeta {
     id: number
     title: string
     type: string
     status: string
-    authors: string[]
-    updatedAtInWordpress: string
-    tags: ChartTagJoin[]
+    authors: string[] | null
+    slug: string
+    updatedAtInWordpress: string | null
+    tags: ChartTagJoin[] | null
     gdocSuccessorId: string | undefined
-}
-
-interface Searchable {
-    post: PostIndexMeta
-    term?: Fuzzysort.Prepared
+    gdocSuccessorPublished: boolean
+    gdocSlugSuccessors: GDocSlugSuccessor[] | null
 }
 
 enum GdocStatus {
-    "MISSING" = "MISSING",
+    "MISSING_NO_SLUG_SUCCESSOR" = "MISSING_NO_SLUG_SUCCESSOR",
+    "MISSING_WITH_SLUG_SUCCESSOR" = "MISSING_WITH_SLUG_SUCCESSOR",
     "CONVERTING" = "CONVERTING",
     "CONVERTED" = "CONVERTED",
 }
 
 interface PostRowProps {
     post: PostIndexMeta
-    highlight: (text: string) => string | JSX.Element
     availableTags: Tag[]
 }
 
@@ -53,13 +60,17 @@ class PostRow extends React.Component<PostRowProps> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    @observable private postGdocStatus: GdocStatus = GdocStatus.MISSING
+    @observable private postGdocStatus: GdocStatus =
+        GdocStatus.MISSING_NO_SLUG_SUCCESSOR
 
     constructor(props: PostRowProps) {
         super(props)
         this.postGdocStatus = props.post.gdocSuccessorId
             ? GdocStatus.CONVERTED
-            : GdocStatus.MISSING
+            : props.post.gdocSlugSuccessors &&
+              props.post.gdocSlugSuccessors.length > 0
+            ? GdocStatus.MISSING_WITH_SLUG_SUCCESSOR
+            : GdocStatus.MISSING_NO_SLUG_SUCCESSOR
     }
 
     async saveTags(tags: ChartTagJoin[]) {
@@ -113,37 +124,67 @@ class PostRow extends React.Component<PostRowProps> {
                 {},
                 "POST"
             )
-            this.postGdocStatus = GdocStatus.MISSING
+            this.postGdocStatus =
+                this.props.post.gdocSlugSuccessors &&
+                this.props.post.gdocSlugSuccessors.length > 0
+                    ? GdocStatus.MISSING_WITH_SLUG_SUCCESSOR
+                    : GdocStatus.MISSING_NO_SLUG_SUCCESSOR
             this.props.post.gdocSuccessorId = undefined
         }
     }
 
     render() {
-        const { post, highlight, availableTags } = this.props
+        const { post, availableTags } = this.props
         const { postGdocStatus } = this
         const gdocElement = match(postGdocStatus)
-            .with(GdocStatus.MISSING, () => (
+            .with(GdocStatus.MISSING_NO_SLUG_SUCCESSOR, () => (
                 <button
                     onClick={async () => await this.onConvertGdoc()}
-                    className="btn btn-primary"
+                    className="btn btn-primary btn-sm"
                 >
                     Create GDoc
                 </button>
+            ))
+            .with(GdocStatus.MISSING_WITH_SLUG_SUCCESSOR, () => (
+                <>
+                    {uniq(post.gdocSlugSuccessors).map((gdocSlugSuccessor) => (
+                        <a
+                            key={gdocSlugSuccessor.id}
+                            href={`${ADMIN_BASE_URL}/admin/gdocs/${gdocSlugSuccessor.id}/preview`}
+                            className="btn btn-primary btn-sm"
+                            title="Preview GDoc with same slug"
+                        >
+                            <>
+                                <FontAwesomeIcon icon={faEye} /> Preview
+                                {gdocSlugSuccessor.published ? (
+                                    <span title="Published">✅</span>
+                                ) : (
+                                    <></>
+                                )}
+                            </>
+                        </a>
+                    ))}
+                </>
             ))
             .with(GdocStatus.CONVERTING, () => <span>Converting...</span>)
             .with(GdocStatus.CONVERTED, () => (
                 <>
                     <a
                         href={`${ADMIN_BASE_URL}/admin/gdocs/${post.gdocSuccessorId}/preview`}
-                        className="btn btn-primary"
+                        className="btn btn-primary btn-sm button-with-margin"
                     >
                         <>
                             <FontAwesomeIcon icon={faEye} /> Preview
+                            {post.gdocSuccessorPublished ? (
+                                <span title="Published">✅</span>
+                            ) : (
+                                <></>
+                            )}
                         </>
                     </a>
                     <button
                         onClick={this.onRecreateGdoc}
-                        className="btn btn-primary alert-danger"
+                        className="btn btn-primary alert-danger btn-sm button-with-margin"
                     >
                         <FontAwesomeIcon
                             icon={faRecycle}
@@ -154,7 +195,7 @@ class PostRow extends React.Component<PostRowProps> {
                     </button>
                     <button
                         onClick={this.onUnlinkGdoc}
-                        className="btn btn-primary alert-danger"
+                        className="btn btn-primary alert-danger btn-sm button-with-margin"
                     >
                         <FontAwesomeIcon
                             icon={faChainBroken}
@@ -167,13 +208,14 @@ class PostRow extends React.Component<PostRowProps> {
 
         return (
             <tr>
-                <td>{highlight(post.title) || "(no title)"}</td>
-                <td>{highlight(post.authors.join(", "))}</td>
+                <td>{post.title || "(no title)"}</td>
+                <td>{post.authors?.join(", ")}</td>
                 <td>{post.type}</td>
                 <td>{post.status}</td>
+                <td>{post.slug}</td>
                 <td style={{ minWidth: "380px" }}>
                     <EditableTags
-                        tags={post.tags}
+                        tags={post.tags ?? []}
                         suggestions={availableTags}
                         onSave={this.onSaveTags}
                     />
@@ -217,31 +259,31 @@ export class PostsIndexPage extends React.Component {
     @observable searchInput?: string
     @observable availableTags: Tag[] = []
 
-    @computed get searchIndex(): Searchable[] {
-        const searchIndex: Searchable[] = []
-        for (const post of this.posts) {
-            searchIndex.push({
-                post: post,
-                term: fuzzysort.prepare(
-                    post.title + " " + post.authors.join(", ")
-                ),
-            })
-        }
-
-        return searchIndex
+    @computed get searchWords(): SearchWord[] {
+        const { searchInput } = this
+        return buildSearchWordsFromSearchString(searchInput)
     }
 
     @computed get postsToShow(): PostIndexMeta[] {
-        const { searchInput, searchIndex, maxVisibleRows } = this
-        if (searchInput) {
-            const results = fuzzysort.go(searchInput, searchIndex, {
-                limit: 50,
-                key: "term",
-            })
-            return lodash.uniq(results.map((result) => result.obj.post))
+        const { searchWords, posts } = this
+        if (posts.length > 0 && searchWords.length > 0) {
+            const filterFn = filterFunctionForSearchWords(
+                searchWords,
+                (post: PostIndexMeta) => [
+                    post.title,
+                    post.slug,
+                    `${post.id}`,
+                    post.authors?.join(" "),
+                ]
+            )
+            return posts.filter(filterFn)
         } else {
-            return this.posts.slice(0, maxVisibleRows)
+            return posts
         }
+    }
+
+    @computed get postsToShowLimited(): PostIndexMeta[] {
+        return this.postsToShow.slice(0, this.maxVisibleRows)
     }
 
     @computed get numTotalRows(): number {
@@ -257,23 +299,22 @@ export class PostsIndexPage extends React.Component {
     }
 
     render() {
-        const { postsToShow, searchInput, numTotalRows } = this
-
-        const highlight = (text: string) => {
-            if (this.searchInput) {
-                const html =
-                    fuzzyHighlight(fuzzysort.single(this.searchInput, text)) ??
-                    text
-                return <span dangerouslySetInnerHTML={{ __html: html }} />
-            } else return text
-        }
+        const {
+            postsToShowLimited,
+            postsToShow,
+            searchInput,
+            numTotalRows,
+            maxVisibleRows,
+        } = this
 
         return (
             <AdminLayout title="Posts">
                 <main className="PostsIndexPage">
                     <FieldsRow>
                         <span>
-                            Showing {postsToShow.length} of {numTotalRows} posts
+                            {searchInput
+                                ? `Showing the first ${maxVisibleRows} of ${postsToShow.length} filtered posts out of a total of ${numTotalRows} posts`
+                                : `Showing the first ${maxVisibleRows} of ${numTotalRows} posts`}
                         </span>
                         <SearchField
                             placeholder="Search all posts..."
@@ -289,6 +330,7 @@ export class PostsIndexPage extends React.Component {
                                 <th>Authors</th>
                                 <th>Type</th>
                                 <th>Status</th>
+                                <th>Slug</th>
                                 <th>Tags</th>
                                 <th>Last Updated</th>
                                 <th></th>
@@ -297,17 +339,16 @@ export class PostsIndexPage extends React.Component {
                             </tr>
                         </thead>
                         <tbody>
-                            {postsToShow.map((post) => (
+                            {postsToShowLimited.map((post) => (
                                 <PostRow
                                     key={post.id}
                                     post={post}
-                                    highlight={highlight}
                                     availableTags={this.availableTags}
                                 />
                             ))}
                         </tbody>
                     </table>
-                    {!searchInput && (
+                    {postsToShow.length > maxVisibleRows && (
                         <button
                             className="btn btn-secondary"
                             onClick={this.onShowMore}

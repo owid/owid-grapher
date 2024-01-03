@@ -16,6 +16,10 @@ import {
     countryProfileCountryPage,
     renderExplorerPage,
     makeAtomFeedNoTopicPages,
+    renderDynamicCollectionPage,
+    renderTopChartsCollectionPage,
+    renderDataInsightsIndexPage,
+    renderThankYouPage,
 } from "../baker/siteRenderers.js"
 import {
     BAKED_BASE_URL,
@@ -47,7 +51,8 @@ import {
     renderPreviewDataPageOrGrapherPage,
     renderDataPageV2,
 } from "../baker/GrapherBaker.js"
-import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
+import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
+import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
 
 require("express-async-errors")
 
@@ -134,6 +139,14 @@ mockSiteRouter.get("/*", async (req, res, next) => {
     )
 })
 
+mockSiteRouter.get("/collection/top-charts", async (_, res) => {
+    return res.send(await renderTopChartsCollectionPage())
+})
+
+mockSiteRouter.get("/collection/custom", async (_, res) => {
+    return res.send(await renderDynamicCollectionPage())
+})
+
 mockSiteRouter.get("/grapher/:slug", async (req, res) => {
     const entity = await Chart.getBySlug(req.params.slug)
     if (!entity) throw new JsonError("No such chart", 404)
@@ -159,6 +172,48 @@ mockSiteRouter.get("/", async (req, res) => {
 mockSiteRouter.get("/donate", async (req, res) =>
     res.send(await renderDonatePage())
 )
+
+mockSiteRouter.get("/thank-you", async (req, res) =>
+    res.send(await renderThankYouPage())
+)
+
+mockSiteRouter.get("/data-insights/:pageNumberOrSlug?", async (req, res) => {
+    async function renderIndexPage(pageNumber: number) {
+        const dataInsights =
+            await GdocDataInsight.getPublishedDataInsights(pageNumber)
+        // calling fetchImageMetadata 20 times makes me sad, would be nice if we could cache this
+        await Promise.all(dataInsights.map((insight) => insight.loadState({})))
+        const totalPageCount = await GdocDataInsight.getTotalPageCount()
+        return renderDataInsightsIndexPage(
+            dataInsights,
+            pageNumber,
+            totalPageCount,
+            true
+        )
+    }
+    const pageNumberOrSlug = req.params.pageNumberOrSlug
+    if (!pageNumberOrSlug) {
+        return res.send(await renderIndexPage(0))
+    }
+
+    // pageNumber is 1-indexed, but DB operations are 0-indexed
+    const pageNumber = parseInt(pageNumberOrSlug) - 1
+    if (!isNaN(pageNumber)) {
+        if (pageNumber <= 0) return res.redirect("/data-insights")
+        const totalPages = await GdocDataInsight.getTotalPageCount()
+        if (pageNumber >= totalPages) return res.redirect("/data-insights")
+        return res.send(await renderIndexPage(pageNumber))
+    }
+
+    const slug = pageNumberOrSlug
+    try {
+        return res.send(await renderGdocsPageBySlug(slug, true))
+    } catch (e) {
+        console.error(e)
+    }
+
+    return new JsonError(`Data insight with slug "${slug}" not found`, 404)
+})
 
 mockSiteRouter.get("/charts", async (req, res) => {
     const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
@@ -269,7 +324,7 @@ mockSiteRouter.get("/multiEmbedderTest", async (req, res) =>
 
 mockSiteRouter.get("/dods.json", async (_, res) => {
     res.set("Access-Control-Allow-Origin", "*")
-    const { details, parseErrors } = await Gdoc.getDetailsOnDemandGdoc()
+    const { details, parseErrors } = await GdocPost.getDetailsOnDemandGdoc()
     if (parseErrors.length) {
         console.error(
             `Error(s) parsing details: ${parseErrors

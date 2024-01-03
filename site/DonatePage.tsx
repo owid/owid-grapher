@@ -2,14 +2,14 @@ import React from "react"
 import { Head } from "./Head.js"
 import { SiteHeader } from "./SiteHeader.js"
 import { SiteFooter } from "./SiteFooter.js"
-import { IMAGES_DIRECTORY, OwidGdocInterface } from "@ourworldindata/utils"
-import { ArticleBlocks } from "./gdocs/ArticleBlocks.js"
+import { IMAGES_DIRECTORY, OwidGdocPostInterface } from "@ourworldindata/utils"
+import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowDown } from "@fortawesome/free-solid-svg-icons"
 
 export const DonatePage = (props: {
     baseUrl: string
-    faqsGdoc: OwidGdocInterface
+    faqsGdoc: OwidGdocPostInterface
     recaptchaKey: string
 }) => (
     <html>

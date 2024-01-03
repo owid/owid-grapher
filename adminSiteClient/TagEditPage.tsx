@@ -4,13 +4,7 @@ import { observable, computed, action, runInAction } from "mobx"
 import { Prompt, Redirect } from "react-router-dom"
 import { ChartTagJoin } from "@ourworldindata/utils"
 import { AdminLayout } from "./AdminLayout.js"
-import {
-    BindString,
-    NumericSelectField,
-    FieldsRow,
-    Timeago,
-    Toggle,
-} from "./Forms.js"
+import { BindString, NumericSelectField, FieldsRow, Timeago } from "./Forms.js"
 import { DatasetList, DatasetListItem } from "./DatasetList.js"
 import { ChartList, ChartListItem } from "./ChartList.js"
 import { TagBadge } from "./TagBadge.js"
@@ -27,13 +21,13 @@ interface TagPageData {
     children: ChartTagJoin[]
     possibleParents: ChartTagJoin[]
     isBulkImport: boolean
-    isTopic: boolean
+    slug: string | null
 }
 
 class TagEditable {
     @observable name: string = ""
     @observable parentId?: number
-    @observable isTopic: boolean = false
+    @observable slug: string | null = null
 
     constructor(json: TagPageData) {
         for (const key in this) {
@@ -68,9 +62,10 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
 
     async save() {
         const { tag } = this.props
+        const slug = this.newtag.slug || null
         const json = await this.context.admin.requestJSON(
             `/api/tags/${tag.id}`,
-            { tag: this.newtag },
+            { tag: { ...this.newtag, slug } },
             "PUT"
         )
 
@@ -79,6 +74,9 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
                 Object.assign(this.props.tag, this.newtag)
                 this.props.tag.updatedAt = new Date().toString()
             })
+        }
+        if (json.tagUpdateWarning) {
+            window.alert(json.tagUpdateWarning)
         }
     }
 
@@ -150,15 +148,12 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
                         />
                         {!tag.isBulkImport && (
                             <>
-                                <FieldsRow>
-                                    <Toggle
-                                        value={!!newtag.isTopic}
-                                        onValue={(value) => {
-                                            newtag.isTopic = value
-                                        }}
-                                        label="Tag is a topic"
-                                    />
-                                </FieldsRow>
+                                <BindString
+                                    field="slug"
+                                    store={newtag}
+                                    label="Slug"
+                                    helpText="The slug for this tag's topic page, e.g. trade-and-globalization. If specified, we assume this tag is a topic."
+                                />
                                 <FieldsRow>
                                     <NumericSelectField
                                         label="Parent Category"

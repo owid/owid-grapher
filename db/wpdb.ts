@@ -32,15 +32,14 @@ import {
     GraphType,
     memoize,
     IndexPost,
-    OwidGdocPublished,
     orderBy,
     IMAGES_DIRECTORY,
     uniqBy,
     sortBy,
     DataPageRelatedResearch,
-    isString,
     OwidGdocType,
     Tag,
+    OwidGdocPostInterface,
 } from "@ourworldindata/utils"
 import { Topic } from "@ourworldindata/grapher"
 import {
@@ -48,7 +47,7 @@ import {
     WPPostTypeToGraphDocumentType,
 } from "./contentGraph.js"
 import { TOPICS_CONTENT_GRAPH } from "../settings/clientSettings.js"
-import { Gdoc } from "./model/Gdoc/Gdoc.js"
+import { GdocPost } from "./model/Gdoc/GdocPost.js"
 import { Link } from "./model/Link.js"
 
 let _knexInstance: Knex
@@ -690,7 +689,7 @@ export const getRelatedResearchAndWritingForVariable = async (
                 distinct
                 pl.target as linkTargetSlug,
                 pl.componentType as componentType,
-                coalesce(charts_via_redirects.slug, c.slug) as chartSlug,
+                coalesce(csr.slug, c.slug) as chartSlug,
                 p.title as title,
                 p.slug as postSlug,
                 coalesce(csr.chart_id, c.id) as chartId,
@@ -711,11 +710,9 @@ export const getRelatedResearchAndWritingForVariable = async (
                 pl.target = c.slug
             left join chart_slug_redirects csr on
                 pl.target = csr.slug
-            left join charts charts_via_redirects on
-                charts_via_redirects.id = csr.chart_id
             left join chart_dimensions cd on
                 cd.chartId = coalesce(csr.chart_id, c.id)
-            left join pageviews pv on
+            left join analytics_pageviews pv on
                 pv.url = concat('https://ourworldindata.org/', p.slug )
             left join posts_gdocs pg on
             	pg.id = p.gdocSuccessorId
@@ -733,6 +730,7 @@ export const getRelatedResearchAndWritingForVariable = async (
                 and cd.variableId = ?
                 and cd.property in ('x', 'y') -- ignore cases where the indicator is size, color etc
                 and p.status = 'publish' -- only use published wp posts
+                and p.type != 'wp_block'
                 and coalesce(pg.published, 0) = 0 -- ignore posts if the wp post has a published gdoc successor. The
                                                   -- coalesce makes sure that if there is no gdoc successor then
                                                   -- the filter keeps the post
@@ -750,7 +748,7 @@ export const getRelatedResearchAndWritingForVariable = async (
                 distinct
                 pl.target as linkTargetSlug,
                 pl.componentType as componentType,
-                c.slug as chartSlug,
+                coalesce(csr.slug, c.slug) as chartSlug,
                 p.content ->> '$.title' as title,
                 p.slug as postSlug,
                 coalesce(csr.chart_id, c.id) as chartId,
@@ -772,8 +770,8 @@ export const getRelatedResearchAndWritingForVariable = async (
             left join chart_slug_redirects csr on
                 pl.target = csr.slug
             join chart_dimensions cd on
-                cd.chartId = c.id
-            left join pageviews pv on
+                cd.chartId = coalesce(csr.chart_id, c.id)
+            left join analytics_pageviews pv on
                 pv.url = concat('https://ourworldindata.org/', p.slug )
             left join posts_gdocs_x_tags pt on
                 pt.gdocId = p.id
@@ -795,22 +793,13 @@ export const getRelatedResearchAndWritingForVariable = async (
 
     const allSortedRelatedResearch = sorted.map((post) => {
         const parsedAuthors = JSON.parse(post.authors)
-        // The authors in the gdocs table are just a list of strings, but in the wp_posts table
-        // they are a list of objects with an "author" key and an "order" key. We want to normalize this so that
-        // we can just use the same code to display the authors in both cases.
-        let authors
-        if (parsedAuthors.length > 0 && !isString(parsedAuthors[0])) {
-            authors = sortBy(parsedAuthors, (author) => author.order).map(
-                (author: any) => author.author
-            )
-        } else authors = parsedAuthors
         const parsedTags = post.tags !== "" ? JSON.parse(post.tags) : []
 
         return {
             title: post.title,
             url: `/${post.postSlug}`,
             variantName: "",
-            authors,
+            authors: parsedAuthors,
             imageUrl: post.thumbnail,
             tags: parsedTags,
         }
@@ -911,7 +900,7 @@ export const getFullPost = async (
 
 export const getBlogIndex = memoize(async (): Promise<IndexPost[]> => {
     await db.getConnection() // side effect: ensure connection is established
-    const gdocPosts = await Gdoc.getListedGdocs()
+    const gdocPosts = await GdocPost.getListedGdocs()
     const wpPosts = await Promise.all(
         await getPosts([WP_PostType.Post], selectHomepagePosts).then((posts) =>
             posts.map((post) => getFullPost(post, true))
@@ -933,14 +922,14 @@ export const getBlogIndex = memoize(async (): Promise<IndexPost[]> => {
 })
 
 export const mapGdocsToWordpressPosts = (
-    gdocs: OwidGdocPublished[]
+    gdocs: OwidGdocPostInterface[]
 ): IndexPost[] => {
     return gdocs.map((gdoc) => ({
-        title: gdoc.content["atom-title"] || gdoc.content.title,
+        title: gdoc.content["atom-title"] || gdoc.content.title || "Untitled",
         slug: gdoc.slug,
         type: gdoc.content.type,
-        date: gdoc.publishedAt,
-        modifiedDate: gdoc.updatedAt,
+        date: gdoc.publishedAt as Date,
+        modifiedDate: gdoc.updatedAt as Date,
         authors: gdoc.content.authors,
         excerpt: gdoc.content["atom-excerpt"] || gdoc.content.excerpt,
         imageUrl: gdoc.content["featured-image"]

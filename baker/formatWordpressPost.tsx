@@ -16,6 +16,7 @@ import {
     JsonError,
     TocHeading,
     WP_BlockType,
+    parseKeyValueArgs,
 } from "@ourworldindata/utils"
 import { Footnote } from "../site/Footnote.js"
 import { LoadingIndicator } from "@ourworldindata/grapher"
@@ -28,7 +29,6 @@ import {
     extractDataValuesConfiguration,
     formatDataValue,
     formatImages,
-    parseKeyValueArgs,
 } from "./formatting.js"
 import { mathjax } from "mathjax-full/js/mathjax.js"
 import { TeX } from "mathjax-full/js/input/tex.js"

@@ -3,11 +3,12 @@ import cheerio from "cheerio"
 
 import {
     OwidGdocPublicationContext,
-    OwidGdocInterface,
+    OwidGdocPostInterface,
     OwidArticleBackportingStatistics,
     OwidGdocType,
     RelatedChart,
     EnrichedBlockAllCharts,
+    parsePostAuthors,
 } from "@ourworldindata/utils"
 import * as Post from "./model/Post.js"
 import fs from "fs"
@@ -16,9 +17,10 @@ import {
     withoutEmptyOrWhitespaceOnlyTextBlocks,
     convertAllWpComponentsToArchieMLBlocks,
     adjustHeadingLevels,
+    findMinimumHeadingLevel,
 } from "./model/Gdoc/htmlToEnriched.js"
 import { getRelatedCharts, isPostCitable } from "./wpdb.js"
-import { parsePostAuthors } from "./model/Post.js"
+import { enrichedBlocksToMarkdown } from "./model/Gdoc/enrichedToMarkdown.js"
 
 // slugs from all the linear entries we want to migrate from @edomt
 const entries = new Set([
@@ -77,10 +79,10 @@ const entries = new Set([
 
 const migrate = async (): Promise<void> => {
     const writeToFile = false
-    const errors = []
+    const severeErrors: any[] = []
     await db.getConnection()
 
-    const posts = await Post.select(
+    const rawPosts = await Post.select(
         "id",
         "slug",
         "title",
@@ -92,10 +94,16 @@ const migrate = async (): Promise<void> => {
         "created_at_in_wordpress",
         "updated_at",
         "featured_image"
-    ).from(db.knexTable(Post.postsTable)) //.where("id", "=", "24808"))
+    ).from(db.knexTable(Post.postsTable)) //.where("id", "=", "54759"))
 
-    for (const post of posts) {
+    for (const postRaw of rawPosts) {
         try {
+            const post = {
+                ...postRaw,
+                authors: postRaw.authors
+                    ? parsePostAuthors(postRaw.authors)
+                    : null,
+            }
             const isEntry = entries.has(post.slug)
             const text = post.content
             let relatedCharts: RelatedChart[] = []
@@ -109,11 +117,10 @@ const migrate = async (): Promise<void> => {
             )
             if (
                 shouldIncludeMaxAsAuthor &&
+                post.authors &&
                 !post.authors.includes("Max Roser")
             ) {
-                const authorsJson = JSON.parse(post.authors)
-                authorsJson.push({ author: "Max Roser", order: Infinity })
-                post.authors = JSON.stringify(authorsJson)
+                post.authors.push("Max Roser")
             }
 
             // We don't get the first and last nodes if they are comments.
@@ -138,8 +145,11 @@ const migrate = async (): Promise<void> => {
 
             // Heading levels used to start at 2, in the new layout system they start at 1
             // This function iterates all blocks recursively and adjusts the heading levels inline
-            // If the article is an entry, we also put an <hr /> above and below h1's
-            adjustHeadingLevels(archieMlBodyElements, isEntry)
+            // If the article is an entry, we also put an <hr /> above and below h1's. The adjustment
+            // pulls heading levels up so that entries end up with h1s and others with h2s at the top.
+            const minHeadingLevel =
+                findMinimumHeadingLevel(archieMlBodyElements)
+            adjustHeadingLevels(archieMlBodyElements, minHeadingLevel, isEntry)
 
             if (relatedCharts.length) {
                 const indexOfFirstHeading = archieMlBodyElements.findIndex(
@@ -189,16 +199,26 @@ const migrate = async (): Promise<void> => {
                 ? post.published_at.toLocaleDateString("en-US", options)
                 : ""
 
-            const archieMlFieldContent: OwidGdocInterface = {
+            let markdown = null
+            try {
+                markdown = enrichedBlocksToMarkdown(archieMlBodyElements, true)
+            } catch (e) {
+                console.error(
+                    "Caught an exception when converting to markdown",
+                    post.id
+                )
+                severeErrors.push(e)
+            }
+            const archieMlFieldContent: OwidGdocPostInterface = {
                 id: `wp-${post.id}`,
                 slug: post.slug,
                 content: {
                     body: archieMlBodyElements,
                     toc: [],
                     title: post.title,
-                    subtitle: post.excerpt,
-                    excerpt: post.excerpt,
-                    authors: parsePostAuthors(post.authors),
+                    subtitle: post.excerpt ?? "",
+                    excerpt: post.excerpt ?? "",
+                    authors: post.authors ?? [],
                     "featured-image": post.featured_image.split("/").at(-1),
                     dateline: dateline,
                     // TODO: this discards block level elements - those might be needed?
@@ -232,11 +252,12 @@ const migrate = async (): Promise<void> => {
             } as OwidArticleBackportingStatistics
 
             const insertQuery = `
-        UPDATE posts SET archieml = ?, archieml_update_statistics = ? WHERE id = ?
+        UPDATE posts SET archieml = ?, archieml_update_statistics = ?, markdown = ? WHERE id = ?
         `
             await db.queryMysql(insertQuery, [
                 JSON.stringify(archieMlFieldContent, null, 2),
                 JSON.stringify(archieMlStatsContent, null, 2),
+                markdown,
                 post.id,
             ])
             console.log("inserted", post.id)
@@ -263,8 +284,8 @@ const migrate = async (): Promise<void> => {
                 }
             }
         } catch (e) {
-            console.error("Caught an exception", post.id)
-            errors.push(e)
+            console.error("Caught an exception", postRaw.id)
+            severeErrors.push(e)
         }
     }
 
@@ -278,9 +299,9 @@ const migrate = async (): Promise<void> => {
 
     await db.closeTypeOrmAndKnexConnections()
 
-    if (errors.length > 0) {
-        console.error("Errors", errors)
-        throw new Error(`${errors.length} items had errors`)
+    if (severeErrors.length > 0) {
+        console.error("Errors", severeErrors)
+        throw new Error(`${severeErrors.length} items had errors`)
     }
 }
 

@@ -1,7 +1,7 @@
 import "dayjs"
 import { getLinkType, getUrlTarget } from "@ourworldindata/components"
 import {
-    OwidGdocInterface,
+    OwidGdocPostInterface,
     GdocsContentSource,
     DataPageDataV2,
     OwidVariableWithSource,
@@ -9,9 +9,12 @@ import {
     getAttributionFragmentsFromVariable,
     getLastUpdatedFromVariable,
     getNextUpdateFromVariable,
+    omitUndefinedValues,
 } from "@ourworldindata/utils"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
-import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
+import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
+import { GdocFactory } from "../db/model/Gdoc/GdocFactory.js"
+import { OwidGoogleAuth } from "../db/OwidGoogleAuth.js"
 import { GrapherInterface } from "@ourworldindata/grapher"
 
 export const getDatapageDataV2 = async (
@@ -23,12 +26,20 @@ export const getDatapageDataV2 = async (
         const nextUpdate = getNextUpdateFromVariable(variableMetadata)
         const datapageJson: DataPageDataV2 = {
             status: "draft",
-            title:
-                variableMetadata.presentation?.titlePublic ??
-                partialGrapherConfig.title ??
-                variableMetadata.display?.name ??
-                variableMetadata.name ??
-                "",
+            title: variableMetadata.presentation?.titlePublic
+                ? omitUndefinedValues({
+                      title: variableMetadata.presentation?.titlePublic,
+                      attributionShort:
+                          variableMetadata.presentation?.attributionShort,
+                      titleVariant: variableMetadata.presentation?.titleVariant,
+                  })
+                : {
+                      title:
+                          partialGrapherConfig.title ??
+                          variableMetadata.display?.name ??
+                          variableMetadata.name ??
+                          "",
+                  },
             description: variableMetadata.description,
             descriptionShort: variableMetadata.descriptionShort,
             descriptionFromProducer: variableMetadata.descriptionFromProducer,
@@ -69,7 +80,7 @@ export const getDatapageGdoc = async (
     googleDocEditLinkOrId: string,
     isPreviewing: boolean,
     publishedExplorersBySlug?: Record<string, ExplorerProgram>
-): Promise<OwidGdocInterface | null> => {
+): Promise<OwidGdocPostInterface | null> => {
     // Get the google doc id from the datapage JSON file and return early if
     // none found
     const isPlainGoogleId = gdocIdRegex.exec(googleDocEditLinkOrId)
@@ -89,13 +100,15 @@ export const getDatapageGdoc = async (
     // support images (imageMetadata won't be set).
 
     const datapageGdoc =
-        isPreviewing && publishedExplorersBySlug && Gdoc.areGdocAuthKeysSet()
-            ? await Gdoc.getGdocFromContentSource(
+        isPreviewing &&
+        publishedExplorersBySlug &&
+        OwidGoogleAuth.areGdocAuthKeysSet()
+            ? ((await GdocFactory.load(
                   googleDocId,
                   publishedExplorersBySlug,
                   GdocsContentSource.Gdocs
-              )
-            : await Gdoc.findOneBy({ id: googleDocId })
+              )) as GdocPost)
+            : await GdocPost.findOneBy({ id: googleDocId })
 
     return datapageGdoc
 }

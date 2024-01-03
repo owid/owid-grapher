@@ -286,6 +286,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     shouldOptimizeForHorizontalSpace?: boolean
 
     manager?: GrapherManager
+    instanceRef?: React.RefObject<Grapher>
 }
 
 export interface GrapherManager {
@@ -627,6 +628,16 @@ export class Grapher
         } else if (params.uniformYAxis === "1") {
             this.yAxis.facetDomain = FacetAxisDomain.shared
         }
+
+        // only relevant for the table
+        if (params.showSelectionOnlyInTable) {
+            this.showSelectionOnlyInDataTable =
+                params.showSelectionOnlyInTable === "1" ? true : undefined
+        }
+
+        if (params.showNoDataArea) {
+            this.showNoDataArea = params.showNoDataArea === "1"
+        }
     }
 
     @action.bound private setTimeFromTimeQueryParam(time: string): void {
@@ -674,16 +685,21 @@ export class Grapher
         // Depending on the chart type, the criteria for being able to select an entity are
         // different; e.g. for scatterplots, the entity needs to (1) not be excluded and
         // (2) needs to have data for the x and y dimension.
+        let table =
+            this.isScatter || this.isSlopeChart
+                ? this.tableAfterAuthorTimelineAndActiveChartTransform
+                : this.inputTable
 
-        if (this.isScatter || this.isSlopeChart)
-            // for scatter and slope charts, the `transformTable()` call takes care of removing
-            // all entities that cannot be selected
-            return this.tableAfterAuthorTimelineAndActiveChartTransform
+        if (!this.isReady) return table
 
-        // for other chart types, the `transformTable()` call would sometimes remove too many
-        // entities, and we want to use the inputTable instead (which should have exactly the
-        // entities where data is available)
-        return this.inputTable
+        // Some chart types (e.g. stacked area charts) choose not to show an entity
+        // with incomplete data. Such chart types define a custom transform function
+        // to ensure that the entity selector only offers entities that are actually plotted.
+        if (this.chartInstance.transformTableForSelection) {
+            table = this.chartInstance.transformTableForSelection(table)
+        }
+
+        return table
     }
 
     // If an author sets a timeline filter run it early in the pipeline so to the charts it's as if the filtered times do not exist
@@ -1463,7 +1479,7 @@ export class Grapher
         // sort y-columns by their display name
         const sortedYColumnSlugs = sortBy(
             yColumnSlugs,
-            (slug) => this.inputTable.get(slug).nonEmptyDisplayName
+            (slug) => this.inputTable.get(slug).titlePublicOrDisplayName
         )
 
         const columnSlugs = excludeUndefined([
@@ -1578,7 +1594,10 @@ export class Grapher
 
         if (this.isScatter)
             return this.axisDimensions
-                .map((dimension) => dimension.column.displayName)
+                .map(
+                    (dimension) =>
+                        dimension.column.titlePublicOrDisplayName.title
+                )
                 .join(" vs. ")
 
         const uniqueDatasetNames = uniq(
@@ -1591,9 +1610,13 @@ export class Grapher
             return uniqueDatasetNames[0]
 
         if (yColumns.length === 2)
-            return yColumns.map((col) => col.displayName).join(" and ")
+            return yColumns
+                .map((col) => col.titlePublicOrDisplayName.title)
+                .join(" and ")
 
-        return yColumns.map((col) => col.displayName).join(", ")
+        return yColumns
+            .map((col) => col.titlePublicOrDisplayName.title)
+            .join(", ")
     }
 
     @computed get displayTitle(): string {
@@ -1780,7 +1803,7 @@ export class Grapher
     static renderGrapherIntoContainer(
         config: GrapherProgrammaticInterface,
         containerNode: Element
-    ): Grapher | null {
+    ): React.RefObject<Grapher> {
         const grapherInstanceRef = React.createRef<Grapher>()
 
         let ErrorBoundary = React.Fragment as React.ComponentType // use React.Fragment as a sort of default error boundary if Bugsnag is not available
@@ -1835,7 +1858,7 @@ export class Grapher
             Bugsnag?.notify("ResizeObserver not available")
         }
 
-        return grapherInstanceRef.current
+        return grapherInstanceRef
     }
 
     static renderSingleGrapherOnGrapherPage(
@@ -2643,6 +2666,9 @@ export class Grapher
         this.maxTime = authorsVersion.maxTime
         this.map.time = authorsVersion.map.time
         this.map.projection = authorsVersion.map.projection
+        this.showSelectionOnlyInDataTable =
+            authorsVersion.showSelectionOnlyInDataTable
+        this.showNoDataArea = authorsVersion.showNoDataArea
         this.clearSelection()
     }
 
@@ -2694,6 +2720,10 @@ export class Grapher
         params.facet = this.selectedFacetStrategy
         params.uniformYAxis =
             this.yAxis.facetDomain === FacetAxisDomain.independent ? "0" : "1"
+        params.showSelectionOnlyInTable = this.showSelectionOnlyInDataTable
+            ? "1"
+            : "0"
+        params.showNoDataArea = this.showNoDataArea ? "1" : "0"
         return setSelectedEntityNamesParam(
             Url.fromQueryParams(params),
             this.selectedEntitiesIfDifferentThanAuthors

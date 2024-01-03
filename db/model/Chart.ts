@@ -192,7 +192,7 @@ WHERE c.config -> "$.isPublished" = true
         const topics: Pick<Tag, "id" | "name">[] = await db.queryMysql(`
         SELECT t.id, t.name
             FROM tags t
-            WHERE t.isTopic IS TRUE
+            WHERE t.slug IS NOT NULL
             AND t.parentId IN (${PUBLIC_TAG_PARENT_IDS.join(",")})
         `)
 
