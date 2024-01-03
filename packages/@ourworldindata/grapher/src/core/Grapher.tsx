@@ -3069,9 +3069,10 @@ export class Grapher
 
     @computed get showEntityButton(): boolean {
         return (
-            this.showChangeEntityButton ||
-            this.showAddEntityButton ||
-            this.showSelectEntitiesButton
+            this.hasChartTab &&
+            (this.showChangeEntityButton ||
+                this.showAddEntityButton ||
+                this.showSelectEntitiesButton)
         )
     }
 
