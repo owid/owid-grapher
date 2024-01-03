@@ -194,6 +194,7 @@ import {
     StaticChartRasterizer,
     type GrapherExport,
 } from "../captionedChart/StaticChartRasterizer.js"
+import { EntitySelectionToggle } from "../controls/EntitySelectionToggle.js"
 
 declare const window: any
 
@@ -3067,13 +3068,8 @@ export class Grapher
         )
     }
 
-    @computed get showEntityButton(): boolean {
-        return (
-            this.hasChartTab &&
-            (this.showChangeEntityButton ||
-                this.showAddEntityButton ||
-                this.showSelectEntitiesButton)
-        )
+    @computed get showEntitySelectionToggle(): boolean {
+        return EntitySelectionToggle.shouldShow(this)
     }
 
     @computed get canSelectMultipleEntities(): boolean {
