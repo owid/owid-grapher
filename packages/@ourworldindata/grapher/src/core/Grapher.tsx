@@ -3067,6 +3067,14 @@ export class Grapher
         )
     }
 
+    @computed get showEntityButton(): boolean {
+        return (
+            this.showChangeEntityButton ||
+            this.showAddEntityButton ||
+            this.showSelectEntitiesButton
+        )
+    }
+
     @computed get canSelectMultipleEntities(): boolean {
         if (this.numSelectableEntityNames < 2) return false
         if (this.addCountryMode === EntitySelectionMode.MultipleEntities)

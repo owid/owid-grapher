@@ -8,6 +8,7 @@ import { faXmark, faGear } from "@fortawesome/free-solid-svg-icons"
 import { EntityName, ChartTypeName, FacetStrategy } from "@ourworldindata/types"
 import { SelectionArray } from "../selection/SelectionArray"
 import { ChartDimension } from "../chart/ChartDimension"
+import { makeSelectionArray } from "../chart/ChartUtils.js"
 import { AxisConfig } from "../axis/AxisConfig"
 import { GRAPHER_SETTINGS_DRAWER_ID } from "../core/GrapherConstants"
 
@@ -66,6 +67,7 @@ export interface SettingsMenuManager
     type: ChartTypeName
     isRelativeMode?: boolean
     selection?: SelectionArray | EntityName[]
+    showEntityButton?: boolean
     filledDimensions: ChartDimension[]
     xColumnSlug?: string
     xOverrideTime?: number
@@ -195,13 +197,13 @@ export class SettingsMenu extends React.Component<{
     }
 
     @computed get showTableFilterToggle(): boolean {
-        const { hideTableFilterToggle, selection } = this.manager
-        const hasSelection =
-            selection instanceof SelectionArray
-                ? selection.hasSelection
-                : (selection?.length ?? 0) > 0
-
-        return hasSelection && !hideTableFilterToggle
+        const { hideTableFilterToggle, showEntityButton } = this.manager
+        const selectionArray = makeSelectionArray(this.manager)
+        return (
+            selectionArray.hasSelection &&
+            !!showEntityButton &&
+            !hideTableFilterToggle
+        )
     }
 
     @computed get showSettingsMenuToggle(): boolean {
