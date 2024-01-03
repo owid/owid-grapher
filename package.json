@@ -251,7 +251,8 @@
         "tsc-watch": "^6.0.4",
         "vite": "^4.4.10",
         "vite-plugin-checker": "^0.6.2",
-        "vite-plugin-warmup": "^0.1.0"
+        "vite-plugin-warmup": "^0.1.0",
+        "wrangler": "^3.22.2"
     },
     "prettier": {
         "trailingComma": "es5",
