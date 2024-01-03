@@ -72,7 +72,7 @@ export async function createCheckoutSession(
             ? "You will be charged monthly and can cancel any time by writing to us at donate@ourworldindata.org."
             : "You will only be charged once."
     const message = showOnList
-        ? `You chose for your donation to be publicly listed as "${metadata.name}. Your name will appear on our list of donors next time we update it. The donation amount will not be disclosed. ${messageInterval}`
+        ? `You chose for your donation to be publicly listed as "${metadata.name}". Your name will appear on our list of donors next time we update it. The donation amount will not be disclosed. ${messageInterval}`
         : `You chose to remain anonymous, your name won't be shown on our list of supporters. ${messageInterval}`
 
     if (interval === "monthly") {
