@@ -7,6 +7,7 @@ import {
     isArrayOfNumbers,
     findGreatestCommonDivisorOfArray,
     rollingMap,
+    omitUndefinedValues,
 } from "@ourworldindata/utils"
 import { StackedPointPositionType, StackedSeries } from "./StackedConstants"
 
@@ -64,13 +65,14 @@ export const withMissingValuesAsZeroes = <
                 const point = pointsByPosition[position]
                 const value = point?.value ?? 0
                 const time = point?.time ?? 0
-                return {
+                return omitUndefinedValues({
                     time,
                     position,
                     value,
                     valueOffset: 0,
-                    fake: !point,
-                }
+                    interpolated: point?.interpolated,
+                    fake: !point || !!point.interpolated,
+                })
             }),
         }
     })

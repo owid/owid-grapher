@@ -13,6 +13,10 @@ export function makeOriginalTimeSlugFromColumnSlug(slug: ColumnSlug): string {
     return `${slug}-originalTime`
 }
 
+export function makeOriginalValueSlugFromColumnSlug(slug: ColumnSlug): string {
+    return `${slug}-originalValue`
+}
+
 export function getOriginalTimeColumnSlug(
     table: CoreTable,
     slug: ColumnSlug
@@ -20,6 +24,15 @@ export function getOriginalTimeColumnSlug(
     const originalTimeSlug = makeOriginalTimeSlugFromColumnSlug(slug)
     if (table.has(originalTimeSlug)) return originalTimeSlug
     return table.timeColumn.slug
+}
+
+export function getOriginalValueColumnSlug(
+    table: CoreTable,
+    slug: ColumnSlug
+): ColumnSlug | undefined {
+    const originalValueSlug = makeOriginalValueSlugFromColumnSlug(slug)
+    if (table.has(originalValueSlug)) return originalValueSlug
+    return undefined
 }
 
 export function toPercentageColumnDef(
