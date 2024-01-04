@@ -119,7 +119,10 @@ deploy_to_cloudflare() {
         # for branch-specific non-production deploys, use `--branch master`
         cd dist
         # trim \r, they remove previous logs in buildkite
-        env $(grep "^CLOUDFLARE" ../owid-grapher/.env | xargs -0) yarn wrangler pages deploy . --project-name "$PROJECT_NAME" 2>&1 | tr -d '\r'
+        # NOTE: using `node_modules/.bin/wrangler` would be preferable, but the current wrangler version
+        #   raises `Error: Cannot find module '/home/owid/dist/node_modules/wrangler-dist/cli.js'`
+        #   Fix this when possible.
+        env $(grep "^CLOUDFLARE" ../owid-grapher/.env | xargs -0) node_modules/wrangler/bin/wrangler.js pages deploy . --project-name "$PROJECT_NAME" 2>&1 | tr -d '\r'
     )
 }
 
