@@ -70,12 +70,15 @@
 #  deploy-content-preview` to deploy the updated functions code to the preview
 #  URL.
 #
-#  ## CREATING CLOUDFLARE PAGES API TOKEN
+#  ## CREATING CLOUDFLARE PAGES API TOKEN (optional)
 #
 #  This script requires a Cloudflare API token to deploy to the preview URL.
 #
 #  In particular, `wrangler` uses CLOUDFLARE_ACCOUNT_ID and
 #  CLOUDFLARE_API_TOKEN, read from owid-grapher/.env on the staging server.
+#
+#  These environment variables should be set automatically by the staging server
+#  creation script. If you need to create them manually, follow these steps:
 #
 #  - CLOUDFLARE_ACCOUNT_ID: You can find your account ID at
 #  https://dash.cloudflare.com/ > Our World in Data. The account ID is in the
