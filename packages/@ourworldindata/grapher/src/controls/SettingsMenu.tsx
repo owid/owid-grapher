@@ -123,18 +123,12 @@ export class SettingsMenu extends React.Component<{
     }
 
     @computed get showZoomToggle(): boolean {
-        // TODO:
-        // grapher passes a SelectionArray instance but programmatically defined
-        // managers treat `selection` as a string[] of entity names. do we need both?
-        const { selection, type, hideZoomToggle } = this.manager,
-            entities =
-                selection instanceof SelectionArray
-                    ? selection.selectedEntityNames
-                    : Array.isArray(selection)
-                    ? selection
-                    : []
-
-        return !hideZoomToggle && type === ScatterPlot && entities.length > 0
+        const { type, hideZoomToggle } = this.manager
+        return (
+            !hideZoomToggle &&
+            type === ScatterPlot &&
+            this.selectionArray.hasSelection
+        )
     }
 
     @computed get showNoDataAreaToggle(): boolean {
@@ -199,9 +193,8 @@ export class SettingsMenu extends React.Component<{
     @computed get showTableFilterToggle(): boolean {
         const { hideTableFilterToggle, showEntitySelectionToggle } =
             this.manager
-        const selectionArray = makeSelectionArray(this.manager)
         return (
-            selectionArray.hasSelection &&
+            this.selectionArray.hasSelection &&
             !!showEntitySelectionToggle &&
             !hideTableFilterToggle
         )
@@ -221,7 +214,7 @@ export class SettingsMenu extends React.Component<{
             this.showAbsRelToggle
         )
 
-        // TODO: add a showCompareEndPointsOnlyTogggle to complement compareEndPointsOnly
+        // TODO: add a showCompareEndPointsOnlyToggle to complement compareEndPointsOnly
     }
 
     componentDidMount(): void {
@@ -269,6 +262,10 @@ export class SettingsMenu extends React.Component<{
     @computed get chartType(): string {
         const { type } = this.manager
         return type.replace(/([A-Z])/g, " $1")
+    }
+
+    @computed get selectionArray(): SelectionArray {
+        return makeSelectionArray(this.manager)
     }
 
     @computed get drawer(): Element | null {
