@@ -548,7 +548,6 @@ properties:
             - StackedDiscreteBar
             - SlopeChart
             - StackedBar
-            - WorldMap
             - Marimekko
     hasMapTab:
         type: boolean
