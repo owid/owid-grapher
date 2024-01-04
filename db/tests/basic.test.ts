@@ -88,3 +88,9 @@ test("timestamps are automatically created and updated", async () => {
         }
     }
 })
+
+test("knex interface", async () => {
+    if (!knexInstance) throw new Error("Knex connection not initialized")
+    // const result = await knexInstance<
+    // expect(result.rows[0].solution).toBe(2)
+})

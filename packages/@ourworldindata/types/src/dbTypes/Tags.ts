@@ -1,11 +1,13 @@
 /** the entity in the `tags` table */
-export interface Tag {
-    id: number
+export const TagsRowTableName = "tags"
+export interface TagsRowForInsert {
+    createdAt?: Date
+    id?: number
+    isBulkImport?: number
     name: string
-    createdAt: Date
-    updatedAt: Date
-    parentId: number
-    isBulkImport: boolean
-    specialType: string
-    slug: string | null
+    parentId?: number | null
+    slug?: string | null
+    specialType?: string | null
+    updatedAt?: Date | null
 }
+export type TagsRow = Required<TagsRowForInsert>

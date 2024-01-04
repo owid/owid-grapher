@@ -1,4 +1,4 @@
-import { Tag } from "../dbTypes/Tags.js"
+import { Tag } from "../domainTypes/Tag.js"
 import { RelatedChart } from "../grapherTypes/GrapherTypes.js"
 import { BreadcrumbItem } from "../domainTypes/Site.js"
 import { TocHeadingWithTitleSupertitle } from "../domainTypes/Toc.js"

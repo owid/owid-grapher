@@ -1,5 +1,5 @@
 import { KeyChartLevel } from "../grapherTypes/GrapherTypes.js"
-import { Tag } from "./Tags.js"
+import { TagsRow } from "./Tags.js"
 
 export const ChartTagsRowTableName = "chart_tags"
 export interface ChartTagsRowForInsert {
@@ -16,5 +16,5 @@ export type ChartTagsRow = Required<ChartTagsRowForInsert>
  * A common minimal union of the tags and chart_tags entities.
  * Used anywhere we're using the TagBadge component.
  */
-export type ChartTagJoin = Pick<Tag, "id" | "name"> &
+export type ChartTagJoin = Pick<TagsRow, "id" | "name"> &
     Partial<Pick<ChartTagsRow, "isApproved" | "keyChartLevel">>

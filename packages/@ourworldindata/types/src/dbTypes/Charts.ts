@@ -30,13 +30,11 @@ export function serializeChartConfig(config: GrapherInterface): JsonString {
     return JSON.stringify(config)
 }
 
-export function parseChartRevisionsRow(row: ChartsRowRaw): ChartsRowEnriched {
+export function parseChartsRow(row: ChartsRowRaw): ChartsRowEnriched {
     return { ...row, config: parseChartConfig(row.config) }
 }
 
-export function serializeChartRevisionsRow(
-    row: ChartsRowEnriched
-): ChartsRowRaw {
+export function serializeChartsRow(row: ChartsRowEnriched): ChartsRowRaw {
     return {
         ...row,
         config: serializeChartConfig(row.config),
