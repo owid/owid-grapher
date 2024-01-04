@@ -17,7 +17,7 @@ Options:
 }
 
 # internal constants
-TMP_FILE=tmp-export-and-verify-graphs
+TMP_FILE=tmp-verify-against-master
 
 # public constants
 CONFIGS_DIR=../owid-grapher-svgs/configs
