@@ -306,7 +306,7 @@ export {
     IMAGES_DIRECTORY,
     gdocUrlRegex,
     gdocIdRegex,
-} from "@ourworldindata/types/src/GdocsConstants.js"
+} from "./GdocsConstants.js"
 export {
     type OwidVariableWithSource,
     type OwidVariableWithSourceAndDimension,
