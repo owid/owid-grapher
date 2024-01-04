@@ -51,7 +51,7 @@ export {
 } from "./domainTypes/DeployStatus.js"
 export { type Tag } from "./dbTypes/Tags.js"
 
-export { type ChartTag, type ChartTagJoin } from "./dbTypes/ChartTags.js"
+export { type ChartTagsRow, type ChartTagJoin } from "./dbTypes/ChartTags.js"
 
 export {
     IDEAL_PLOT_ASPECT_RATIO,
@@ -278,6 +278,7 @@ export {
     GdocsContentSource,
     type OwidArticleBackportingStatistics,
     type LinkedChart,
+    OwidGdocLinkType,
     DYNAMIC_COLLECTION_PAGE_CONTAINER_ID,
 } from "./gdocTypes/Gdoc.js"
 

@@ -50,7 +50,11 @@ import {
     ChartTagJoin,
     OwidGdoc,
 } from "@ourworldindata/utils"
-import { GrapherInterface, grapherKeysToSerialize } from "@ourworldindata/types"
+import {
+    GrapherInterface,
+    OwidGdocLinkType,
+    grapherKeysToSerialize,
+} from "@ourworldindata/types"
 import {
     getVariableDataRoute,
     getVariableMetadataRoute,
@@ -221,7 +225,7 @@ const getReferencesByChartId = async (chartId: number): Promise<References> => {
     const permalinksPromise = wpdb.getPermalinks()
     const publishedLinksToChartPromise = Link.getPublishedLinksTo(
         slugs,
-        "grapher"
+        OwidGdocLinkType.Grapher
     )
     const explorerSlugsPromise = db.queryMysql(
         `select distinct explorerSlug from explorer_charts where chartId = ?`,

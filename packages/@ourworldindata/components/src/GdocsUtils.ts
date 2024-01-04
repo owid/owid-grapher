@@ -1,24 +1,24 @@
+import { OwidGdocLinkType } from "@ourworldindata/types/dist/gdocTypes/Gdoc.js"
 import {
     spansToUnformattedPlainText,
     gdocUrlRegex,
-    OwidGdocLinkJSON,
     Span,
     Url,
 } from "@ourworldindata/utils"
 import urlSlug from "url-slug"
 
-export function getLinkType(urlString: string): OwidGdocLinkJSON["linkType"] {
+export function getLinkType(urlString: string): OwidGdocLinkType {
     const url = Url.fromURL(urlString)
     if (url.isGoogleDoc) {
-        return "gdoc"
+        return OwidGdocLinkType.Gdoc
     }
     if (url.isGrapher) {
-        return "grapher"
+        return OwidGdocLinkType.Grapher
     }
     if (url.isExplorer) {
-        return "explorer"
+        return OwidGdocLinkType.Explorer
     }
-    return "url"
+    return OwidGdocLinkType.Url
 }
 
 export function checkIsInternalLink(url: string): boolean {

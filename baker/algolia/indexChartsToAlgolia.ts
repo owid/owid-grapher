@@ -4,7 +4,7 @@ import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
 import { getAlgoliaClient } from "./configureAlgolia.js"
 import { isPathRedirectedToExplorer } from "../../explorerAdminServer/ExplorerRedirects.js"
 import { ChartRecord, SearchIndexName } from "../../site/search/searchTypes.js"
-import { KeyChartLevel, isNil } from "@ourworldindata/utils"
+import { KeyChartLevel, OwidGdocLinkType, isNil } from "@ourworldindata/utils"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import { Pageview } from "../../db/model/Pageview.js"
 import { Link } from "../../db/model/Link.js"
@@ -65,7 +65,10 @@ const getChartsRecords = async (): Promise<ChartRecord[]> => {
         if (isPathRedirectedToExplorer(`/grapher/${c.slug}`)) continue
 
         const relatedArticles = (await getRelatedArticles(c.id)) ?? []
-        const linksFromGdocs = await Link.getPublishedLinksTo(c.slug, "grapher")
+        const linksFromGdocs = await Link.getPublishedLinksTo(
+            c.slug,
+            OwidGdocLinkType.Grapher
+        )
 
         const plaintextSubtitle = isNil(c.subtitle)
             ? undefined

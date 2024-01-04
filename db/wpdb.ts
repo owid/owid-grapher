@@ -39,7 +39,7 @@ import {
     Tag,
     OwidGdocPostInterface,
 } from "@ourworldindata/utils"
-import { Topic } from "@ourworldindata/types"
+import { OwidGdocLinkType, Topic } from "@ourworldindata/types"
 import {
     getContentGraph,
     WPPostTypeToGraphDocumentType,
@@ -707,7 +707,7 @@ export const getRelatedArticles = async (
     const chart = chartRecord.payload.records[0]
     const publishedLinksToChart = await Link.getPublishedLinksTo(
         [chart.slug],
-        "grapher"
+        OwidGdocLinkType.Grapher
     )
     const publishedGdocPostsThatReferenceChart: PostReference[] =
         publishedLinksToChart

@@ -11,12 +11,13 @@ import { getLinkType, getUrlTarget } from "@ourworldindata/components"
 import { OwidGdocLinkJSON, Url } from "@ourworldindata/utils"
 import { GdocBase } from "./Gdoc/GdocBase.js"
 import { formatUrls } from "../../site/formatting.js"
+import { OwidGdocLinkType } from "@ourworldindata/types"
 
 @Entity("posts_gdocs_links")
 export class Link extends BaseEntity implements OwidGdocLinkJSON {
     @PrimaryGeneratedColumn() id!: number
     @ManyToOne(() => GdocBase, (gdoc) => gdoc.id) source!: Relation<GdocBase>
-    @Column() linkType!: "gdoc" | "url" | "grapher" | "explorer"
+    @Column() linkType!: OwidGdocLinkType
     @Column() target!: string
     @Column() queryString!: string
     @Column() hash!: string

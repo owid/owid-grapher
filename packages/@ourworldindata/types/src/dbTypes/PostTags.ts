@@ -1,7 +1,8 @@
-/** the entity in the `post_tags` table */
-export interface PostTag {
+export const PostTagsRowTableName = "post_tags"
+export interface PostTagsRowForInsert {
+    createdAt?: Date
     post_id: number
     tag_id: number
-    createdAt: Date
-    updatedAt: Date | null
+    updatedAt?: Date | null
 }
+export type PostTagsRow = Required<PostTagsRowForInsert>
