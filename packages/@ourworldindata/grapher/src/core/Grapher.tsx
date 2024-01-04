@@ -97,9 +97,9 @@ import {
     EntityName,
     OwidColumnDef,
     OwidVariableRow,
-    GrapherStaticFormat,
     ColorSchemeName,
     AxisConfigInterface,
+    GrapherStaticFormat,
 } from "@ourworldindata/types"
 import {
     BlankOwidTable,
