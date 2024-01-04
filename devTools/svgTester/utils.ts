@@ -23,7 +23,7 @@ import {
     BAKED_BASE_URL,
 } from "../../settings/serverSettings.js"
 import { getHeapStatistics } from "v8"
-import * as settings from "./settings.js"
+import { queryStringsByChartType } from "./chart-configurations.js"
 import * as d3 from "d3"
 
 // ignore WorldMaps
@@ -212,7 +212,7 @@ export async function findChartViewsToGenerate(
         const chartType = grapherConfig.type ?? ChartTypeName.LineChart
 
         const queryStrings = options.shouldTestAllViews
-            ? settings.queryStringsByChartType[chartType]
+            ? queryStringsByChartType[chartType]
             : options.queryStr
             ? [options.queryStr]
             : [undefined]
