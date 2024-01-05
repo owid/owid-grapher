@@ -469,7 +469,7 @@ export class FacetChart
     }
 
     @computed private get selectionArray(): SelectionArray {
-        return makeSelectionArray(this.manager)
+        return makeSelectionArray(this.manager.selection)
     }
 
     @computed private get entityFacets(): FacetSeries[] {

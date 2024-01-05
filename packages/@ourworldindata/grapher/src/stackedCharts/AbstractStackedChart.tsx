@@ -329,7 +329,7 @@ export class AbstractStackedChart
     }
 
     @computed protected get selectionArray(): SelectionArray {
-        return makeSelectionArray(this.manager)
+        return makeSelectionArray(this.manager.selection)
     }
 
     @computed get isEntitySeries(): boolean {

@@ -654,7 +654,7 @@ export class MarimekkoChart
     }
 
     @computed private get selectionArray(): SelectionArray {
-        return makeSelectionArray(this.manager)
+        return makeSelectionArray(this.manager.selection)
     }
 
     @computed private get selectedItems(): Item[] {

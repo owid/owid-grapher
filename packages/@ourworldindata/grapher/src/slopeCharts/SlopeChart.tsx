@@ -140,7 +140,7 @@ export class SlopeChart
     }
 
     @computed private get selectionArray() {
-        return makeSelectionArray(this.manager)
+        return makeSelectionArray(this.manager.selection)
     }
 
     @computed private get selectedEntityNames() {

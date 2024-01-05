@@ -448,7 +448,7 @@ export class LineChart
     }
 
     @computed get selectionArray(): SelectionArray {
-        return makeSelectionArray(this.manager)
+        return makeSelectionArray(this.manager.selection)
     }
 
     seriesIsBlurred(series: LineChartSeries): boolean {

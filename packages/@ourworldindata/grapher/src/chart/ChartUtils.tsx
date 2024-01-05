@@ -1,6 +1,6 @@
 import React from "react"
 import { Box } from "@ourworldindata/utils"
-import { SeriesStrategy } from "@ourworldindata/types"
+import { SeriesStrategy, EntityName } from "@ourworldindata/types"
 import { LineChartSeries } from "../lineCharts/LineChartConstants"
 import { SelectionArray } from "../selection/SelectionArray"
 import { ChartManager } from "./ChartManager"
@@ -20,7 +20,7 @@ export const getDefaultFailMessage = (manager: ChartManager): string => {
         return `Table is missing a Time column.`
     const yColumnSlugs = autoDetectYColumnSlugs(manager)
     if (!yColumnSlugs.length) return "Missing Y axis column"
-    const selection = makeSelectionArray(manager)
+    const selection = makeSelectionArray(manager.selection)
     if (!selection.hasSelection) return `No ${manager.entityType} selected`
     return ""
 }
@@ -78,8 +78,8 @@ export const makeClipPath = (
 }
 
 export const makeSelectionArray = (
-    manager: Pick<ChartManager, "selection">
+    selection?: SelectionArray | EntityName[]
 ): SelectionArray =>
-    manager.selection instanceof SelectionArray
-        ? manager.selection
-        : new SelectionArray(manager.selection ?? [])
+    selection instanceof SelectionArray
+        ? selection
+        : new SelectionArray(selection ?? [])

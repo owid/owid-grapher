@@ -696,7 +696,7 @@ export class DataTable extends React.Component<{
     }
 
     @computed private get selectionArray(): SelectionArray {
-        return makeSelectionArray(this.manager)
+        return makeSelectionArray(this.manager.selection)
     }
 
     @computed private get entityNames(): string[] {
