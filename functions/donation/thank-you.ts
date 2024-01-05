@@ -13,7 +13,6 @@ interface MessageData {
 }
 
 type ThankYouEnvVars = {
-    ASSETS: Fetcher
     STRIPE_WEBHOOK_SECRET: string
     STRIPE_SECRET_KEY: string
 } & MailgunEnvVars
@@ -21,10 +20,8 @@ type ThankYouEnvVars = {
 const hasThankYouEnvVars = (env: unknown): env is ThankYouEnvVars => {
     return (
         typeof env === "object" &&
-        "ASSETS" in env &&
         "STRIPE_WEBHOOK_SECRET" in env &&
         "STRIPE_SECRET_KEY" in env &&
-        !!env.ASSETS &&
         !!env.STRIPE_WEBHOOK_SECRET &&
         !!env.STRIPE_SECRET_KEY
     )
