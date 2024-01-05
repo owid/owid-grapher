@@ -49,10 +49,13 @@ import {
     TaggableType,
     DbChartTagJoin,
     OwidGdoc,
+    pick,
 } from "@ourworldindata/utils"
 import {
     GrapherInterface,
     OwidGdocLinkType,
+    UsersRow,
+    UsersRowTableName,
     grapherKeysToSerialize,
 } from "@ourworldindata/types"
 import {
@@ -64,7 +67,7 @@ import {
     CountryDefByKey,
 } from "../adminSiteClient/CountryNameFormat.js"
 import { Dataset } from "../db/model/Dataset.js"
-import { User } from "../db/model/User.js"
+import { getUserById, insertUser, updateUser } from "../db/model/User.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { GdocBase, Tag as TagEntity } from "../db/model/Gdoc/GdocBase.js"
 import { Pageview } from "../db/model/Pageview.js"
@@ -1412,38 +1415,29 @@ apiRouter.post(
 )
 
 apiRouter.get("/users.json", async (req: Request, res: Response) => ({
-    users: await User.find({
-        select: [
-            "id",
-            "email",
-            "fullName",
-            "isActive",
-            "isSuperuser",
-            "createdAt",
-            "updatedAt",
-            "lastLogin",
-            "lastSeen",
-        ],
-        order: { lastSeen: "DESC" },
-    }),
+    users: db
+        .knexInstance()
+        .select(
+            "id" satisfies keyof UsersRow,
+            "email" satisfies keyof UsersRow,
+            "fullName" satisfies keyof UsersRow,
+            "isActive" satisfies keyof UsersRow,
+            "isSuperuser" satisfies keyof UsersRow,
+            "createdAt" satisfies keyof UsersRow,
+            "updatedAt" satisfies keyof UsersRow,
+            "lastLogin" satisfies keyof UsersRow,
+            "lastSeen" satisfies keyof UsersRow
+        )
+        .from<UsersRow>(UsersRowTableName)
+        .orderBy("lastSeen", "desc"),
 }))
 
-apiRouter.get("/users/:userId.json", async (req: Request, res: Response) => ({
-    user: await User.findOne({
-        where: { id: parseIntOrUndefined(req.params.userId) },
-        select: {
-            id: true,
-            email: true,
-            fullName: true,
-            isActive: true,
-            isSuperuser: true,
-            createdAt: true,
-            updatedAt: true,
-            lastLogin: true,
-            lastSeen: true,
-        },
-    }),
-}))
+apiRouter.get("/users/:userId.json", async (req: Request, res: Response) => {
+    const id = parseIntOrUndefined(req.params.userId)
+    if (!id) throw new JsonError("No user id given")
+    const user = await getUserById(db.knexInstance(), id)
+    return { user }
+})
 
 apiRouter.delete("/users/:userId", async (req: Request, res: Response) => {
     if (!res.locals.user.isSuperuser)
@@ -1463,12 +1457,19 @@ apiRouter.put("/users/:userId", async (req: Request, res: Response) => {
 
     const userId = parseIntOrUndefined(req.params.userId)
     const user =
-        userId !== undefined ? await User.findOneBy({ id: userId }) : null
+        userId !== undefined
+            ? await getUserById(db.knexInstance(), userId)
+            : null
     if (!user) throw new JsonError("No such user", 404)
 
     user.fullName = req.body.fullName
     user.isActive = req.body.isActive
-    await user.save()
+
+    await updateUser(
+        db.knexInstance(),
+        userId!,
+        pick(user, ["fullName", "isActive"])
+    )
 
     return { success: true }
 })
@@ -1479,13 +1480,9 @@ apiRouter.post("/users/add", async (req: Request, res: Response) => {
 
     const { email, fullName } = req.body
 
-    await transaction(async (ctx) => {
-        const user = new User()
-        user.email = email
-        user.fullName = fullName
-        user.createdAt = new Date()
-        user.updatedAt = new Date()
-        await ctx.manager.getRepository(User).save(user)
+    await insertUser(db.knexInstance(), {
+        email,
+        fullName,
     })
 
     return { success: true }
