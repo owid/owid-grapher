@@ -20,7 +20,7 @@ function TopicPageRelatedTopic({
     if (errorMessage && isPreviewing) {
         return <li>{errorMessage}</li>
     }
-    const topicText = linkedDocument?.content.title || text
+    const topicText = linkedDocument?.title || text
     const topicUrl = linkedDocument?.slug ? `/${linkedDocument?.slug}` : url
     return (
         <li>

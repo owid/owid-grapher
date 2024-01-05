@@ -11,6 +11,7 @@ import {
     OwidEnrichedGdocBlock,
     RawBlockText,
     RelatedChart,
+    OwidGdocMinimalPostInterface,
 } from "@ourworldindata/utils"
 import { GDOCS_DETAILS_ON_DEMAND_ID } from "../../../settings/serverSettings.js"
 import {
@@ -35,7 +36,7 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
         }
     }
 
-    linkedDocuments: Record<string, OwidGdocPostInterface> = {}
+    linkedDocuments: Record<string, OwidGdocMinimalPostInterface> = {}
     relatedCharts: RelatedChart[] = []
     _filenameProperties = ["cover-image", "featured-image"]
 

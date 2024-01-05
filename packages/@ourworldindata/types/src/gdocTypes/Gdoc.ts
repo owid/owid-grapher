@@ -44,7 +44,7 @@ export interface OwidGdocBaseInterface {
     revisionId: string | null
     publicationContext: OwidGdocPublicationContext
     breadcrumbs?: BreadcrumbItem[] | null
-    linkedDocuments?: Record<string, OwidGdocBaseInterface>
+    linkedDocuments?: Record<string, OwidGdocMinimalPostInterface>
     linkedCharts?: Record<string, LinkedChart>
     imageMetadata?: Record<string, ImageMetadata>
     relatedCharts?: RelatedChart[]
@@ -54,7 +54,21 @@ export interface OwidGdocBaseInterface {
 
 export interface OwidGdocPostInterface extends OwidGdocBaseInterface {
     content: OwidGdocPostContent
-    linkedDocuments?: Record<string, OwidGdocPostInterface>
+    linkedDocuments?: Record<string, OwidGdocMinimalPostInterface>
+}
+
+// Used for linkedDocuments attachments, instead of attaching the entire gdoc model
+export interface OwidGdocMinimalPostInterface {
+    id: string
+    title: string
+    slug: string
+    authors: string[]
+    publishedAt: string
+    published: boolean
+    subtitle: string
+    excerpt: string
+    type: OwidGdocType
+    "featured-image"?: string
 }
 
 export interface OwidGdocDataInsightContent {
@@ -70,7 +84,7 @@ export const DATA_INSIGHTS_INDEX_PAGE_SIZE = 20
 
 export interface OwidGdocDataInsightInterface extends OwidGdocBaseInterface {
     content: OwidGdocDataInsightContent
-    linkedDocuments?: Record<string, OwidGdocPostInterface>
+    linkedDocuments?: Record<string, OwidGdocMinimalPostInterface>
     latestDataInsights?: MinimalDataInsightInterface[]
     tags?: Tag[]
 }
