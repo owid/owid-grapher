@@ -140,13 +140,13 @@ function ShowMore({
         ? numberShowing <= 2
             ? "Showing all results"
             : `Showing all ${numberShowing} results`
-        : `Showing ${numberShowing} out of ${results.hits.length} results`
+        : `Showing ${numberShowing} of the top ${results.hits.length} results`
 
     return (
         <div className="search-results__show-more-container">
             <em>{message}</em>
             {!isShowingAllResults && (
-                <button onClick={handleClick}>Show all</button>
+                <button onClick={handleClick}>Show more</button>
             )}
         </div>
     )
