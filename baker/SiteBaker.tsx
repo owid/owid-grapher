@@ -343,14 +343,21 @@ export class SiteBaker {
                 linkedGrapherSlugs,
                 linkedExplorerSlugs,
             ] = picks
+            const linkedDocuments = pick(
+                this._prefetchedAttachmentsCache.linkedDocuments,
+                linkedDocumentIds
+            )
+            // Gdoc.linkedImageFilenames normally gets featuredImages, but it relies on linkedDocuments already being populated,
+            // which is isn't when we're prefetching attachments. So we have to do it manually here.
+            const featuredImages = Object.values(linkedDocuments)
+                .map((gdoc) => gdoc.content["featured-image"])
+                .filter((filename): filename is string => !!filename)
+
             return {
-                linkedDocuments: pick(
-                    this._prefetchedAttachmentsCache.linkedDocuments,
-                    linkedDocumentIds
-                ),
+                linkedDocuments,
                 imageMetadata: pick(
                     this._prefetchedAttachmentsCache.imageMetadata,
-                    imageFilenames
+                    [...imageFilenames, ...featuredImages]
                 ),
                 linkedCharts: {
                     graphers: {
