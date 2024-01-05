@@ -3069,7 +3069,12 @@ export class Grapher
     }
 
     @computed get showEntitySelectionToggle(): boolean {
-        return EntitySelectionToggle.shouldShow(this)
+        return (
+            this.hasChartTab &&
+            (this.showChangeEntityButton ||
+                this.showAddEntityButton ||
+                this.showSelectEntitiesButton)
+        )
     }
 
     @computed get canSelectMultipleEntities(): boolean {
