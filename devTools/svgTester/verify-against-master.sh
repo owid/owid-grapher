@@ -21,9 +21,9 @@ TMP_FILE=tmp-verify-against-master
 
 # public constants
 CONFIGS_DIR=../owid-grapher-svgs/configs
-LOCAL_REFERENCE_DIR=../owid-grapher-svgs/local-svg
-LOCAL_DIFFERENCES_DIR=../owid-grapher-svgs/local-differences
-REPORT_FILE=../owid-grapher-svgs/local-differences.html
+LOCAL_REFERENCE_DIR=../owid-grapher-svgs/local/svg
+LOCAL_DIFFERENCES_DIR=../owid-grapher-svgs/local/differences
+REPORT_FILE=../owid-grapher-svgs/local/differences.html
 
 # parameter defaults
 CONFIG_IDS_ARG=""
