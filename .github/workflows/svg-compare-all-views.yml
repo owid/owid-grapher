@@ -52,7 +52,7 @@ jobs:
               env:
                   # using "ternary operator" from https://github.com/actions/runner/issues/409#issuecomment-752775072
                   RM_ON_ERROR: ${{ env.PUSH_BRANCH_NAME == 'master' && '' || '--rm-on-error' }}
-              run: node --enable-source-maps itsJustJavascript/devTools/svgTester/verify-graphs.js -i owid-grapher-svgs/configs -o owid-grapher-svgs/svg-all-views -r owid-grapher-svgs/svg-all-views --ids-from-file owid-grapher-svgs/most-viewed-charts.txt --all-views $RM_ON_ERROR > compare-result
+              run: node --enable-source-maps itsJustJavascript/devTools/svgTester/verify-graphs.js -i owid-grapher-svgs/configs -o owid-grapher-svgs/all-views/svg -r owid-grapher-svgs/all-views/svg --ids-from-file owid-grapher-svgs/most-viewed-charts.txt --all-views $RM_ON_ERROR > compare-result
 
             # If the last step failed we want to commit all changed svgs and push them to the new branch on the owid-grapher-svgs repo
             - uses: stefanzweifel/git-auto-commit-action@v4
