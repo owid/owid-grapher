@@ -337,7 +337,10 @@ export const getMostViewedGrapherIdsByChartType = async (
         `SELECT c.id
         FROM analytics_pageviews a
         JOIN charts c ON c.slug = SUBSTRING_INDEX(a.url, '/', -1)
-        WHERE a.url LIKE "https://ourworldindata.org/grapher/%" AND c.type = ? AND c.config ->> "$.isPublished" = "true"
+        WHERE a.url LIKE "https://ourworldindata.org/grapher/%"
+            AND c.type = ?
+            AND c.config ->> "$.isPublished" = "true"
+            and (c.config ->> "$.hasChartTab" = "false" or c.config ->> "$.hasChartTab" is null)
         ORDER BY a.views_365d DESC
         LIMIT ?`,
         [chartType, count]

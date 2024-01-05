@@ -8,15 +8,18 @@ import { getMostViewedGrapherIdsByChartType } from "../../db/model/Chart.js"
 import { CHART_TYPES } from "./utils.js"
 
 const DEFAULT_OUT_FILE = "../owid-grapher-svgs/most-viewed-charts.txt"
+const CHART_COUNT_PER_TYPE = 30
 
 async function main(parsedArgs: parseArgs.ParsedArgs) {
     try {
         const outFile = parsedArgs["o"] ?? DEFAULT_OUT_FILE
 
         const promises = CHART_TYPES.flatMap((chartType) =>
-            getMostViewedGrapherIdsByChartType(chartType)
+            getMostViewedGrapherIdsByChartType(chartType, CHART_COUNT_PER_TYPE)
         )
         const chartIds = (await Promise.all(promises)).flatMap((ids) => ids)
+
+        console.log(`Writing ${chartIds.length} chart ids to ${outFile}`)
 
         fs.writeFileSync(outFile, chartIds.join("\n"))
 
