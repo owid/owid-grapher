@@ -55,6 +55,7 @@
         "@bugsnag/js": "^7.20.0",
         "@bugsnag/plugin-express": "^7.19.0",
         "@bugsnag/plugin-react": "^7.19.0",
+        "@cloudflare/pages-plugin-sentry": "^1.1.1",
         "@fortawesome/fontawesome-svg-core": "^6.4.2",
         "@fortawesome/free-brands-svg-icons": "^6.4.2",
         "@fortawesome/free-solid-svg-icons": "^6.4.2",

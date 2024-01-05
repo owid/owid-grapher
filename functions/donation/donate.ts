@@ -79,6 +79,8 @@ export const onRequestPost: PagesFunction = async ({
             status: 200,
         })
     } catch (error) {
+        // Reporting to Sentry through the CaptureConsole integration in _middleware.ts
+        console.error("Error in donation/donate.ts", error)
         return new Response(
             JSON.stringify({ error: stringifyUnknownError(error) }),
             {
