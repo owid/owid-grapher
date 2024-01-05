@@ -17,9 +17,6 @@ export const chartIcons: Record<ChartTypeName, JSX.Element> = {
     [ChartTypeName.StackedBar]: <FontAwesomeIcon icon={faChartColumn} />,
     [ChartTypeName.StackedDiscreteBar]: <FontAwesomeIcon icon={faChartBar} />,
 
-    // world map
-    [ChartTypeName.WorldMap]: <FontAwesomeIcon icon={faEarthAmericas} />,
-
     // scatter
     [ChartTypeName.ScatterPlot]: (
         <svg
@@ -110,4 +107,7 @@ export const chartIcons: Record<ChartTypeName, JSX.Element> = {
             </g>
         </svg>
     ),
+
+    // world map (will never be invoked but included for completeness)
+    [ChartTypeName.WorldMap]: <FontAwesomeIcon icon={faEarthAmericas} />,
 }

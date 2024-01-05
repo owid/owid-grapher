@@ -10,8 +10,10 @@ export enum ChartTypeName {
     StackedDiscreteBar = "StackedDiscreteBar",
     SlopeChart = "SlopeChart",
     StackedBar = "StackedBar",
-    WorldMap = "WorldMap",
     Marimekko = "Marimekko",
+
+    // special map type that can't be selected by authors
+    WorldMap = "WorldMap",
 }
 
 export const GRAPHER_EMBEDDED_FIGURE_ATTR = "data-grapher-src"
