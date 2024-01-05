@@ -273,7 +273,7 @@ export async function findValidChartIds(
         if (validChartIds.length < grapherIds.length) {
             const invalidChartIds = _.difference(grapherIds, validatedChartIds)
             console.warn(
-                `${grapherIds.length} grapher ids were given but only ${validChartIds.length} existed as directories: ${invalidChartIds}`
+                `${grapherIds.length} grapher ids were given but only ${validChartIds.length} existed as directories. Missing ids: ${invalidChartIds}`
             )
         }
     }
@@ -406,13 +406,16 @@ export async function renderSvg(
         queryStr
     )
     const { width, height } = grapher.idealBounds
-    const outFilename = buildSvgOutFilename({
-        slug: configAndData.config.slug!,
-        version: configAndData.config.version ?? 0,
-        width,
-        height,
-        queryStr,
-    })
+    const outFilename = buildSvgOutFilename(
+        {
+            slug: configAndData.config.slug!,
+            version: configAndData.config.version ?? 0,
+            width,
+            height,
+            queryStr,
+        },
+        { shouldHashQueryStr: false }
+    )
 
     grapher.receiveOwidData(configAndData.variableData)
     const durationReceiveData = Date.now() - timeStart
