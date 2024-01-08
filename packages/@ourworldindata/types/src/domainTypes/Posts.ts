@@ -1,5 +1,5 @@
 import { OwidGdocType } from "../gdocTypes/Gdoc.js"
-import { WP_PostType } from "../wordpress/WordpressTypes.js"
+import { WP_PostType } from "../wordpressTypes/WordpressTypes.js"
 import { RelatedChart } from "../grapherTypes/GrapherTypes.js"
 import { TocHeading } from "./Toc.js"
 

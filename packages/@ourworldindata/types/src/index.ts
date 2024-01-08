@@ -110,7 +110,7 @@ export {
     type FilterFnPostRestApi,
     type FormattingOptions,
     SubNavId,
-} from "./wordpress/WordpressTypes.js"
+} from "./wordpressTypes/WordpressTypes.js"
 
 export {
     type Ref,

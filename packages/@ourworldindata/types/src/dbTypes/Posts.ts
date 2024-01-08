@@ -1,4 +1,7 @@
-import { WP_PostType, FormattingOptions } from "../wordpress/WordpressTypes.js"
+import {
+    WP_PostType,
+    FormattingOptions,
+} from "../wordpressTypes/WordpressTypes.js"
 import {
     OwidArticleBackportingStatistics,
     OwidGdocPostInterface,
