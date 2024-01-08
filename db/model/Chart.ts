@@ -340,7 +340,7 @@ export const getMostViewedGrapherIdsByChartType = async (
         WHERE a.url LIKE "https://ourworldindata.org/grapher/%"
             AND c.type = ?
             AND c.config ->> "$.isPublished" = "true"
-            and (c.config ->> "$.hasChartTab" = "false" or c.config ->> "$.hasChartTab" is null)
+            and (c.config ->> "$.hasChartTab" = "true" or c.config ->> "$.hasChartTab" is null)
         ORDER BY a.views_365d DESC
         LIMIT ?`,
         [chartType, count]
