@@ -8,7 +8,7 @@ import {
     deleteRuntimeAndUnchangedProps,
 } from "./persistable/Persistable.js"
 import {
-    OwidVariableDataTableConfigInteface,
+    OwidVariableDataTableConfigInterface,
     OwidVariableDisplayConfigInterface,
 } from "@ourworldindata/types"
 
@@ -24,7 +24,7 @@ class OwidVariableDisplayConfigDefaults {
     @observable zeroDay?: string = undefined
     @observable entityAnnotationsMap?: string = undefined
     @observable includeInTable? = true
-    @observable tableDisplay?: OwidVariableDataTableConfigInteface
+    @observable tableDisplay?: OwidVariableDataTableConfigInterface
     @observable color?: string = undefined
 }
 

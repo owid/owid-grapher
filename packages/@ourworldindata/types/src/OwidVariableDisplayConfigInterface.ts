@@ -17,12 +17,12 @@ export interface OwidVariableDisplayConfigInterface {
     zeroDay?: string
     entityAnnotationsMap?: string
     includeInTable?: boolean
-    tableDisplay?: OwidVariableDataTableConfigInteface
+    tableDisplay?: OwidVariableDataTableConfigInterface
     color?: string
 }
 
 // todo: flatten onto the above
-export interface OwidVariableDataTableConfigInteface {
+export interface OwidVariableDataTableConfigInterface {
     hideAbsoluteChange?: boolean
     hideRelativeChange?: boolean
 }

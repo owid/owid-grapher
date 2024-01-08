@@ -333,6 +333,6 @@ export type { OwidOrigin } from "./OwidOrigin.js"
 
 export type {
     OwidVariableDisplayConfigInterface,
-    OwidVariableDataTableConfigInteface,
+    OwidVariableDataTableConfigInterface,
     OwidChartDimensionInterface,
 } from "./OwidVariableDisplayConfigInterface.js"
