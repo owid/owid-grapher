@@ -55,7 +55,7 @@ import {
     GrapherInterface,
     OwidGdocLinkType,
     UsersRow,
-    UsersRowTableName,
+    UsersTableName,
     grapherKeysToSerialize,
 } from "@ourworldindata/types"
 import {
@@ -1428,7 +1428,7 @@ apiRouter.get("/users.json", async (req: Request, res: Response) => ({
             "lastLogin" satisfies keyof UsersRow,
             "lastSeen" satisfies keyof UsersRow
         )
-        .from<UsersRow>(UsersRowTableName)
+        .from<UsersRow>(UsersTableName)
         .orderBy("lastSeen", "desc"),
 }))
 

@@ -7,7 +7,7 @@ import { getConnection } from "../db.js"
 import { DataSource } from "typeorm"
 import { insertUser, updateUser, User } from "../model/User.js"
 import { Chart } from "../model/Chart.js"
-import { UsersRow, UsersRowTableName } from "@ourworldindata/types"
+import { UsersRow, UsersTableName } from "@ourworldindata/types"
 
 let knexInstance: Knex<any, unknown[]> | undefined = undefined
 let typeOrmConnection: DataSource | undefined = undefined
@@ -97,13 +97,13 @@ test("knex interface", async () => {
     knexInstance.transaction(async (trx) => {
         // Fetch all users into memory
         const users = await trx
-            .from<UsersRow>(UsersRowTableName)
+            .from<UsersRow>(UsersTableName)
             .select("isSuperuser", "email")
         expect(users.length).toBe(1)
 
         // Fetch all users in a streaming fashion, iterate over them async to avoid having to load everything into memory
         const usersStream = trx
-            .from<UsersRow>(UsersRowTableName)
+            .from<UsersRow>(UsersTableName)
             .select("isSuperuser", "email")
             .stream()
 
@@ -123,7 +123,7 @@ test("knex interface", async () => {
 
         // Check results after update and insert
         const afterUpdate = await trx
-            .from<UsersRow>(UsersRowTableName)
+            .from<UsersRow>(UsersTableName)
             .select("isSuperuser", "email")
             .orderBy("id")
         expect(afterUpdate.length).toBe(2)
@@ -133,7 +133,7 @@ test("knex interface", async () => {
         // The pick type is used to type the result row
         const usersFromRawQuery: Pick<UsersRow, "email">[] = await trx.raw(
             "select email from ??",
-            [UsersRowTableName]
+            [UsersTableName]
         )
         expect(usersFromRawQuery.length).toBe(2)
     })
