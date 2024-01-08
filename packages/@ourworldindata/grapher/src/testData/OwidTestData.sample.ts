@@ -1,6 +1,5 @@
 import { DimensionProperty } from "@ourworldindata/utils"
-import { Grapher } from "../core/Grapher"
-import { GrapherInterface } from "../core/GrapherInterface"
+import { Grapher, GrapherProgrammaticInterface } from "../core/Grapher"
 import {
     TestMetadata,
     createOwidTestDataset,
@@ -14,7 +13,7 @@ Grapher properties:
 - Multiple entities, including World, Continents, and Countries
  */
 export const GrapherLifeExpectancy = (
-    props: Partial<GrapherInterface> = {}
+    props: Partial<GrapherProgrammaticInterface> = {}
 ): Grapher => {
     const lifeExpectancyId = 815383
     const lifeExpectancyMetadata: TestMetadata = {

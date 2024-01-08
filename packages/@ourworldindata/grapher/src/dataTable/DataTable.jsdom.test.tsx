@@ -13,6 +13,8 @@ import {
 
 import Enzyme, { ReactWrapper } from "enzyme"
 import Adapter from "@wojtekmaj/enzyme-adapter-react-17"
+import { GrapherLifeExpectancy } from "../testData/OwidTestData.sample.js"
+import { faLeaf } from "@fortawesome/free-solid-svg-icons"
 Enzyme.configure({ adapter: new Adapter() })
 
 describe("when you render a table", () => {
@@ -149,5 +151,28 @@ describe("when the table has multiple variables and multiple years", () => {
 
     it("header is split into two rows", () => {
         expect(view.find("thead tr")).toHaveLength(2)
+    })
+})
+
+describe("when the table has no filter toggle", () => {
+    it("does not filter by default if we have a map tab", () => {
+        const grapher = GrapherLifeExpectancy({
+            hideEntityControls: true, // no filter toggle
+            hasMapTab: true,
+        })
+        const view = Enzyme.mount(<DataTable manager={grapher} />)
+        const rows = view.find("tbody tr:not(.title)")
+        expect(rows).toHaveLength(grapher.availableEntities.length)
+    })
+
+    it("does not filter by default if the selection is empty", () => {
+        const grapher = GrapherLifeExpectancy({
+            hideEntityControls: true, // not filter toggle
+            hasMapTab: false,
+            selectedEntityNames: [],
+        })
+        const view = Enzyme.mount(<DataTable manager={grapher} />)
+        const rows = view.find("tbody tr:not(.title)")
+        expect(rows).toHaveLength(grapher.availableEntities.length)
     })
 })
