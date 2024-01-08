@@ -13,12 +13,14 @@ import { User } from "./User.js"
 import { getSourcesForDataset, sourceToDatapackage } from "./Source.js"
 
 import * as db from "../db.js"
-import { VariableRow, variableTable, writeVariableCSV } from "./Variable.js"
+import { writeVariableCSV } from "./Variable.js"
 import _ from "lodash"
 import {
     DbPlainDataset,
     DatasetsTableName,
     DbPlainTag,
+    VariablesTableName,
+    DbRawVariable,
 } from "@ourworldindata/types"
 import { Knex } from "knex"
 
@@ -117,8 +119,8 @@ export async function datasetToDatapackage(
     const datasetName = (await getDatasetById(knex, datasetId))?.name
     const sources = await getSourcesForDataset(knex, datasetId)
     const variables = (await db
-        .knexTable(variableTable)
-        .where({ datasetId })) as VariableRow[]
+        .knexTable(VariablesTableName)
+        .where({ datasetId })) as DbRawVariable[]
     const tags = await db.knexRaw<Pick<DbPlainTag, "id" | "name">>(
         `SELECT t.id, t.name FROM dataset_tags dt JOIN tags t ON t.id=dt.tagId WHERE dt.datasetId=?`,
         knex,
@@ -147,7 +149,7 @@ export async function datasetToDatapackage(
                 schema: {
                     fields: initialFields.concat(
                         variables.map((v) => ({
-                            name: v.name,
+                            name: v.name ?? "",
                             type: "any",
                             description: v.description,
                             owidDisplaySettings: v.display,

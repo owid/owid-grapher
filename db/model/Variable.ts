@@ -24,6 +24,9 @@ import {
     OwidLicense,
     GrapherInterface,
     OwidProcessingLevel,
+    DbRawVariable,
+    VariablesTableName,
+    ChartsTableName,
 } from "@ourworldindata/types"
 
 export interface VariableRow {
@@ -105,8 +108,6 @@ export type VariableQueryRow = Readonly<
 
 export type Field = keyof VariableRow
 
-export const variableTable = "variables"
-
 export function parseVariableRows(
     plainRows: UnparsedVariableRow[]
 ): VariableRow[] {
@@ -137,11 +138,17 @@ export function parseVariableRows(
 export async function getMergedGrapherConfigForVariable(
     variableId: number
 ): Promise<GrapherInterface | undefined> {
-    const row = await db.mysqlFirst(
-        `SELECT grapherConfigAdmin, grapherConfigETL FROM variables WHERE id = ?`,
-        [variableId]
-    )
-    if (!row) return
+    const rows: Pick<
+        DbRawVariable,
+        "grapherConfigAdmin" | "grapherConfigETL"
+    >[] = await db
+        .knexInstance()
+        .raw(
+            `SELECT grapherConfigAdmin, grapherConfigETL FROM variables WHERE id = ?`,
+            [variableId]
+        )
+    if (!rows.length) return
+    const row = rows[0]
     const grapherConfigAdmin = row.grapherConfigAdmin
         ? JSON.parse(row.grapherConfigAdmin)
         : undefined
@@ -151,6 +158,7 @@ export async function getMergedGrapherConfigForVariable(
     return _.merge({}, grapherConfigAdmin, grapherConfigETL)
 }
 
+// TODO: these are domain functions and should live somewhere else
 export async function getVariableMetadata(
     variableId: number
 ): Promise<OwidVariableWithSourceAndDimension> {
@@ -195,15 +203,15 @@ export async function writeVariableCSV(
 ): Promise<void> {
     // get variables as dataframe
     const variablesDF = (
-        await readSQLasDF(
-            `
+        await db.knexInstance().raw(
+            `-- sql
         SELECT
             id as variableId,
             name as variableName,
             columnOrder
-        FROM variables v
+        FROM ?? v
         WHERE id IN (?)`,
-            [variableIds]
+            [VariablesTableName, variableIds]
         )
     ).withColumn(pl.col("variableId").cast(pl.Int32))
 
@@ -244,12 +252,12 @@ export const getDataValue = async ({
     )
 
     const unit = (
-        await db.mysqlFirst(
-            `
-        SELECT unit FROM variables
+        await db.knexInstance().raw(
+            `-- sql
+        SELECT unit FROM ??
         WHERE id = ?
         `,
-            [variableId]
+            [VariablesTableName, variableId]
         )
     ).unit
 
@@ -280,13 +288,13 @@ export const getOwidChartDimensionConfigForVariable = async (
     variableId: OwidVariableId,
     chartId: number
 ): Promise<OwidChartDimensionInterface | undefined> => {
-    const row = await db.mysqlFirst(
+    const row = await db.knexInstance().raw(
         `
         SELECT config->"$.dimensions" AS dimensions
-        FROM charts
+        FROM ??
         WHERE id = ?
         `,
-        [chartId]
+        [ChartsTableName, chartId]
     )
     if (!row.dimensions) return
     const dimensions = JSON.parse(row.dimensions)
@@ -702,12 +710,15 @@ const buildWhereClauses = (query: string): string[] => {
  */
 const queryRegexSafe = async (query: string): Promise<any> => {
     // catch regular expression failures in MySQL and return empty result
-    return await db.queryMysql(query).catch((err) => {
-        if (err.message.includes("regular expression")) {
-            return []
-        }
-        throw err
-    })
+    return await db
+        .knexInstance()
+        .raw(query)
+        .catch((err) => {
+            if (err.message.includes("regular expression")) {
+                return []
+            }
+            throw err
+        })
 }
 
 const queryRegexCount = async (query: string): Promise<number> => {
