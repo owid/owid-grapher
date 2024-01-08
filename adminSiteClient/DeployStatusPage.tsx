@@ -22,6 +22,18 @@ export class DeployStatusPage extends React.Component {
 
     @observable deploys: Deploy[] = []
     @observable canManuallyDeploy = true
+    refreshIntervalId?: number
+
+    componentDidMount() {
+        this.getData()
+        this.refreshIntervalId = window.setInterval(() => this.getData(), 30000)
+    }
+
+    componentWillUnmount() {
+        if (this.refreshIntervalId) {
+            window.clearInterval(this.refreshIntervalId)
+        }
+    }
 
     render() {
         return (
@@ -118,9 +130,5 @@ export class DeployStatusPage extends React.Component {
         runInAction(() => {
             this.deploys = json.deploys
         })
-    }
-
-    componentDidMount() {
-        this.getData()
     }
 }
