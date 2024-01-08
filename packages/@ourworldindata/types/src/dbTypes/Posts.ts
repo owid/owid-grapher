@@ -1,9 +1,8 @@
-import { WP_PostType } from "../wordpress/WordpressTypes.js"
+import { WP_PostType, FormattingOptions } from "../wordpress/WordpressTypes.js"
 import {
     OwidArticleBackportingStatistics,
     OwidGdocPostInterface,
 } from "../gdocTypes/Gdoc.js"
-import { FormattingOptions } from "../Wordpress.js"
 
 export interface PostRowPlainFields {
     id: number

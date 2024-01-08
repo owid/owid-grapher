@@ -1,4 +1,3 @@
-export { type FormattingOptions, SubNavId } from "./Wordpress.js"
 export {
     type DonateSessionResponse,
     type DonationCurrencyCode,
@@ -109,6 +108,8 @@ export {
     WP_PostType,
     type PostRestApi,
     type FilterFnPostRestApi,
+    type FormattingOptions,
+    SubNavId,
 } from "./wordpress/WordpressTypes.js"
 
 export {
