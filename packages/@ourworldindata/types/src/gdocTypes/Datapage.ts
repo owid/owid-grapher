@@ -1,4 +1,4 @@
-import { gdocUrlRegex } from "./GdocsConstants.js"
+import { gdocUrlRegex } from "./GdocConstants.js"
 import { OwidOrigin } from "../OwidOrigin.js"
 import { OwidSource } from "../OwidSource.js"
 import {
