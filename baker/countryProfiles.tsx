@@ -1,7 +1,13 @@
 import React from "react"
 import * as db from "../db/db.js"
 import { CountriesIndexPage } from "../site/CountriesIndexPage.js"
-import { GrapherInterface } from "@ourworldindata/types"
+import {
+    GrapherInterface,
+    VariablesRowEnriched,
+    VariablesRowRaw,
+    VariablesTableName,
+    parseVariablesRow,
+} from "@ourworldindata/types"
 import * as lodash from "lodash"
 import {
     CountryProfileIndicator,
@@ -10,12 +16,7 @@ import {
 import { SiteBaker } from "./SiteBaker.js"
 import { countries, getCountryBySlug, JsonError } from "@ourworldindata/utils"
 import { renderToHtmlPage } from "./siteRenderers.js"
-import {
-    parseVariableRows,
-    VariableRow,
-    variableTable,
-    dataAsDF,
-} from "../db/model/Variable.js"
+import { dataAsDF } from "../db/model/Variable.js"
 import pl from "nodejs-polars"
 
 export const countriesIndexPage = (baseUrl: string) =>
@@ -51,14 +52,17 @@ const countryIndicatorGraphers = async (): Promise<GrapherInterface[]> =>
         return graphers.filter(checkShouldShowIndicator)
     })
 
-export const countryIndicatorVariables = async (): Promise<VariableRow[]> =>
+export const countryIndicatorVariables = async (): Promise<
+    VariablesRowEnriched[]
+> =>
     bakeCache(countryIndicatorVariables, async () => {
         const variableIds = (await countryIndicatorGraphers()).map(
             (c) => c.dimensions![0]!.variableId
         )
-        return parseVariableRows(
-            await db.knexTable(variableTable).whereIn("id", variableIds)
-        )
+        const rows: VariablesRowRaw[] = await db
+            .knexTable(VariablesTableName)
+            .whereIn("id", variableIds)
+        return rows.map(parseVariablesRow)
     })
 
 export const denormalizeLatestCountryData = async (variableIds?: number[]) => {

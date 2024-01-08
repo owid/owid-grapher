@@ -13,7 +13,7 @@ import { BCryptHasher } from "../hashers.js"
 import {
     UsersRow,
     UsersRowForInsert,
-    UsersRowTableName,
+    UsersTableName,
 } from "@ourworldindata/types"
 import { Knex } from "knex"
 
@@ -57,14 +57,14 @@ export async function getUserById(
     knex: Knex<any, any[]>,
     id: number
 ): Promise<UsersRow | undefined> {
-    return knex<UsersRow>(UsersRowTableName).where({ id }).first()
+    return knex<UsersRow>(UsersTableName).where({ id }).first()
 }
 
 export async function insertUser(
     knex: Knex<any, any[]>,
     user: UsersRowForInsert
 ): Promise<{ id: number }> {
-    return knex(UsersRowTableName).returning("id").insert(user)
+    return knex(UsersTableName).returning("id").insert(user)
 }
 
 export async function updateUser(
@@ -72,12 +72,12 @@ export async function updateUser(
     id: number,
     user: Partial<UsersRowForInsert>
 ): Promise<void> {
-    return knex(UsersRowTableName).where({ id }).update(user)
+    return knex(UsersTableName).where({ id }).update(user)
 }
 
 export async function deleteUser(
     knex: Knex<any, any[]>,
     id: number
 ): Promise<void> {
-    return knex(UsersRowTableName).where({ id }).delete()
+    return knex(UsersTableName).where({ id }).delete()
 }

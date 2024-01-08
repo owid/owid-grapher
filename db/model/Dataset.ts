@@ -13,9 +13,14 @@ import { User } from "./User.js"
 import { Source } from "./Source.js"
 
 import * as db from "../db.js"
-import { slugify } from "@ourworldindata/utils"
+import {
+    TagsRow,
+    VariablesRowRaw,
+    VariablesTableName,
+    slugify,
+} from "@ourworldindata/utils"
 import filenamify from "filenamify"
-import { VariableRow, variableTable, writeVariableCSV } from "./Variable.js"
+import { writeVariableCSV } from "./Variable.js"
 import _ from "lodash"
 
 @Entity("datasets")
@@ -90,12 +95,14 @@ export class Dataset extends BaseEntity {
         // XXX
         const sources = await Source.findBy({ datasetId: this.id })
         const variables = (await db
-            .knexTable(variableTable)
-            .where({ datasetId: this.id })) as VariableRow[]
-        const tags = await db.queryMysql(
-            `SELECT t.id, t.name FROM dataset_tags dt JOIN tags t ON t.id=dt.tagId WHERE dt.datasetId=?`,
-            [this.id]
-        )
+            .knexTable(VariablesTableName)
+            .where({ datasetId: this.id })) as VariablesRowRaw[]
+        const tags: Pick<TagsRow, "id" | "name">[] = await db
+            .knexInstance()
+            .raw(
+                `SELECT t.id, t.name FROM dataset_tags dt JOIN tags t ON t.id=dt.tagId WHERE dt.datasetId=?`,
+                [this.id]
+            )
 
         const initialFields = [
             { name: "Entity", type: "string" },
@@ -119,7 +126,7 @@ export class Dataset extends BaseEntity {
                     schema: {
                         fields: initialFields.concat(
                             variables.map((v) => ({
-                                name: v.name,
+                                name: v.name ?? "",
                                 type: "any",
                                 description: v.description,
                                 owidDisplaySettings: v.display,
