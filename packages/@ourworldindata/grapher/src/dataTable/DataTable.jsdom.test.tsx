@@ -14,7 +14,6 @@ import {
 import Enzyme, { ReactWrapper } from "enzyme"
 import Adapter from "@wojtekmaj/enzyme-adapter-react-17"
 import { GrapherLifeExpectancy } from "../testData/OwidTestData.sample.js"
-import { faLeaf } from "@fortawesome/free-solid-svg-icons"
 Enzyme.configure({ adapter: new Adapter() })
 
 describe("when you render a table", () => {
