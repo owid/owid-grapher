@@ -1,8 +1,11 @@
 import React from "react"
 import { DataTable, DataTableManager } from "./DataTable"
 import { SynthesizeGDPTable } from "@ourworldindata/core-table"
-import { childMortalityGrapher, IncompleteDataTable } from "./DataTable.sample"
 import { ChartTypeName, GrapherTabOption } from "@ourworldindata/types"
+import {
+    childMortalityGrapher,
+    GrapherWithIncompleteData,
+} from "./DataTable.sample"
 
 export default {
     title: "DataTable",
@@ -19,6 +22,7 @@ const entityType = "country"
 export const Default = (): JSX.Element => {
     const manager: DataTableManager = {
         table,
+        tableForDisplay: table,
         entityType,
     }
     return <DataTable manager={manager} />
@@ -27,6 +31,7 @@ export const Default = (): JSX.Element => {
 export const WithTimeRange = (): JSX.Element => {
     const manager: DataTableManager = {
         table,
+        tableForDisplay: table,
         entityType,
     }
     manager.startTime = 1950
@@ -53,6 +58,7 @@ export const WithTolerance = (): JSX.Element => {
             <DataTable
                 manager={{
                     table,
+                    tableForDisplay: table,
                     startTime: 2010,
                     endTime: 2010,
                     entityType,
@@ -67,6 +73,7 @@ export const WithTolerance = (): JSX.Element => {
                     startTime: 2010,
                     endTime: 2010,
                     table: filteredTable,
+                    tableForDisplay: filteredTable,
                     entityType,
                 }}
             />
@@ -90,7 +97,7 @@ export const FromLegacyWithTimeRange = (): JSX.Element => {
 }
 
 export const IncompleteDataTableComponent = (): JSX.Element => {
-    const grapher = IncompleteDataTable()
+    const grapher = GrapherWithIncompleteData()
     grapher.timelineHandleTimeBounds = [2000, 2000]
     return <DataTable manager={grapher} />
 }

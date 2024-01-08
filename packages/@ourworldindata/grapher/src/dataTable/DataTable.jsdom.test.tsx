@@ -6,9 +6,9 @@ import { DataTable } from "./DataTable"
 import { ChartTypeName, GrapherTabOption } from "@ourworldindata/types"
 import {
     childMortalityGrapher,
-    IncompleteDataTable,
-    DataTableWithAggregates,
-    DataTableWithMultipleVariablesAndMultipleYears,
+    GrapherWithIncompleteData,
+    GrapherWithAggregates,
+    GrapherWithMultipleVariablesAndMultipleYears,
 } from "./DataTable.sample"
 
 import Enzyme, { ReactWrapper } from "enzyme"
@@ -99,7 +99,7 @@ describe("when you select a range of years", () => {
 })
 
 describe("when the table doesn't have data for all rows", () => {
-    const grapher = IncompleteDataTable()
+    const grapher = GrapherWithIncompleteData()
     grapher.timelineHandleTimeBounds = [2000, 2000]
     const view = Enzyme.mount(<DataTable manager={grapher} />)
 
@@ -129,7 +129,7 @@ describe("when the table doesn't have data for all rows", () => {
 describe("when the table has aggregates", () => {
     let view: ReactWrapper
     beforeAll(() => {
-        const grapher = DataTableWithAggregates()
+        const grapher = GrapherWithAggregates()
         view = Enzyme.mount(<DataTable manager={grapher} />)
     })
 
@@ -143,7 +143,7 @@ describe("when the table has aggregates", () => {
 describe("when the table has multiple variables and multiple years", () => {
     let view: ReactWrapper
     beforeAll(() => {
-        const grapher = DataTableWithMultipleVariablesAndMultipleYears()
+        const grapher = GrapherWithMultipleVariablesAndMultipleYears()
         view = Enzyme.mount(<DataTable manager={grapher} />)
     })
 
