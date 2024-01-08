@@ -8,11 +8,10 @@ import {
 
 /**
 Grapher properties:
-- LineChart
 - Single y-dimension
 - Multiple entities, including World, Continents, and Countries
  */
-export const GrapherLifeExpectancy = (
+export const Grapher_SingleYDim_MultipleEntities = (
     props: Partial<GrapherProgrammaticInterface> = {}
 ): Grapher => {
     const lifeExpectancyId = 815383
