@@ -93,6 +93,7 @@ export interface DataTableManager {
     selection?: SelectionArray | EntityName[]
     showEntitySelectionToggle?: boolean
     hasMapTab?: boolean
+    hasChartTab?: boolean
 }
 
 @observer
@@ -140,12 +141,20 @@ export class DataTable extends React.Component<{
         const {
             showSelectionOnlyInDataTable,
             showEntitySelectionToggle,
+            hasChartTab,
             hasMapTab,
         } = this.manager
+        const { selectionArray } = this
 
         // filter the table if the "Show selection only" toggle is hidden
-        // (unless we have a map tab, in which case we want to show all entities)
-        if (!showEntitySelectionToggle && !hasMapTab) return true
+        if (
+            !showEntitySelectionToggle &&
+            selectionArray.hasSelection &&
+            hasChartTab &&
+            // if we have a map tab, we want to show all entities
+            !hasMapTab
+        )
+            return true
 
         return !!showSelectionOnlyInDataTable
     }
