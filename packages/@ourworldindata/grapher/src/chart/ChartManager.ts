@@ -26,14 +26,14 @@ import { ColorScale } from "../color/ColorScale"
 
 export interface ChartManager {
     base?: React.RefObject<SVGGElement | HTMLDivElement>
-    baseFontSize?: number
+    fontSize?: number
 
     table: OwidTable
     transformedTable?: OwidTable
 
     isSelectingData?: boolean
     startSelectingWhenLineClicked?: boolean // used by lineLabels
-    isExportingtoSvgOrPng?: boolean
+    isExportingToSvgOrPng?: boolean
     isRelativeMode?: boolean
     comparisonLines?: ComparisonLineConfig[]
     hideLegend?: boolean

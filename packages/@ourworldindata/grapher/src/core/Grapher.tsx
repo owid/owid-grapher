@@ -94,6 +94,7 @@ import {
     DEFAULT_GRAPHER_ENTITY_TYPE,
     DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL,
     GRAPHER_DARK_TEXT,
+    GrapherExportFormat,
 } from "../core/GrapherConstants"
 import Cookies from "js-cookie"
 import {
@@ -262,6 +263,8 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     env?: string
     dataApiUrlForAdmin?: string
     annotation?: Annotation
+    boundsForExport?: Bounds
+    baseFontSize?: number
 
     hideEntityControls?: boolean
     hideZoomToggle?: boolean
@@ -785,8 +788,8 @@ export class Grapher
         return this.tableAfterAllTransformsAndFilters
     }
 
-    @observable.ref isExportingtoSvgOrPng = false
-    @observable.ref isGeneratingThumbnail = false
+    @observable.ref isExportingToSvgOrPng = false
+    @observable.ref exportFormat = GrapherExportFormat.landscape
 
     tooltips?: TooltipManager["tooltips"] = observable.map({}, { deep: false })
     @observable isPlaying = false
@@ -801,12 +804,18 @@ export class Grapher
         return location.host.includes("staging")
     }
 
+    private get isLocalhost(): boolean {
+        if (typeof location === undefined) return false
+        return location.host.includes("localhost")
+    }
+
     @computed get editUrl(): string | undefined {
-        if (!this.showAdminControls && !this.isDev && !this.isStaging)
-            return undefined
-        return `${this.adminBaseUrl}/admin/${
-            this.manager?.editUrl ?? `charts/${this.id}/edit`
-        }`
+        if (this.showAdminControls) {
+            return `${this.adminBaseUrl}/admin/${
+                this.manager?.editUrl ?? `charts/${this.id}/edit`
+            }`
+        }
+        return undefined
     }
 
     /**
@@ -817,11 +826,7 @@ export class Grapher
         return window.admin !== undefined
     }
 
-    /**
-     * Whether the user viewing the chart is an admin and we should show admin controls,
-     * like the "Edit" option in the share menu.
-     */
-    @computed get showAdminControls(): boolean {
+    @computed get isUserLoggedInAsAdmin(): boolean {
         // This cookie is set by visiting ourworldindata.org/identifyadmin on the static site.
         // There is an iframe on owid.cloud to trigger a visit to that page.
 
@@ -833,6 +838,15 @@ export class Grapher
         } catch {
             return false
         }
+    }
+
+    @computed get showAdminControls(): boolean {
+        return (
+            this.isUserLoggedInAsAdmin ||
+            this.isDev ||
+            this.isLocalhost ||
+            this.isStaging
+        )
     }
 
     @action.bound
@@ -950,7 +964,7 @@ export class Grapher
     @observable private _baseFontSize = BASE_FONT_SIZE
 
     @computed get baseFontSize(): number {
-        if (this.isExportingtoSvgOrPng) return Math.max(this._baseFontSize, 18)
+        if (this.isExportingToSvgOrPng) return Math.max(this._baseFontSize, 18)
         return this._baseFontSize
     }
 
@@ -1068,7 +1082,7 @@ export class Grapher
     @computed get shouldLinkToOwid(): boolean {
         if (
             this.isEmbeddedInAnOwidPage ||
-            this.isExportingtoSvgOrPng ||
+            this.isExportingToSvgOrPng ||
             !this.isInIFrame
         )
             return false
@@ -1099,10 +1113,6 @@ export class Grapher
 
     @bind dispose(): void {
         this.disposers.forEach((dispose) => dispose())
-    }
-
-    @computed get fontSize(): number {
-        return this.baseFontSize
     }
 
     // todo: can we remove this?
@@ -1262,7 +1272,8 @@ export class Grapher
                 fontSize: 12,
                 // leave room for padding on the left and right
                 maxWidth:
-                    this.idealBounds.width - 2 * this.framePaddingHorizontal,
+                    this.boundsForExport.width -
+                    2 * this.framePaddingHorizontal,
                 lineHeight: 1.2,
                 style: {
                     fill: GRAPHER_DARK_TEXT,
@@ -1704,17 +1715,34 @@ export class Grapher
         return new Bounds(0, 0, DEFAULT_GRAPHER_WIDTH, DEFAULT_GRAPHER_HEIGHT)
     }
 
+    @computed get portraitBounds(): Bounds {
+        return new Bounds(0, 0, DEFAULT_GRAPHER_HEIGHT, DEFAULT_GRAPHER_WIDTH)
+    }
+
     @computed get hasYDimension(): boolean {
         return this.dimensions.some((d) => d.property === DimensionProperty.y)
     }
 
+    @computed get boundsForExport(): Bounds {
+        if (this.props.boundsForExport) return this.props.boundsForExport
+
+        switch (this.exportFormat) {
+            case GrapherExportFormat.landscape:
+                return this.idealBounds
+            case GrapherExportFormat.portrait:
+                return this.portraitBounds
+            default:
+                return this.idealBounds
+        }
+    }
+
     generateStaticSvg(bounds: Bounds = this.idealBounds): string {
-        const _isExportingtoSvgOrPng = this.isExportingtoSvgOrPng
-        this.isExportingtoSvgOrPng = true
+        const _isExportingToSvgOrPng = this.isExportingToSvgOrPng
+        this.isExportingToSvgOrPng = true
         const staticSvg = ReactDOMServer.renderToStaticMarkup(
             <StaticCaptionedChart manager={this} bounds={bounds} />
         )
-        this.isExportingtoSvgOrPng = _isExportingtoSvgOrPng
+        this.isExportingToSvgOrPng = _isExportingToSvgOrPng
         return staticSvg
     }
 
@@ -1722,8 +1750,16 @@ export class Grapher
         return this.generateStaticSvg()
     }
 
+    get staticSVGLandscape(): string {
+        return this.staticSVG
+    }
+
+    get staticSVGPortrait(): string {
+        return this.generateStaticSvg(this.portraitBounds)
+    }
+
     @computed get disableIntroAnimation(): boolean {
-        return this.isExportingtoSvgOrPng
+        return this.isExportingToSvgOrPng
     }
 
     @computed get mapConfig(): MapConfig {
@@ -1908,7 +1944,7 @@ export class Grapher
     @computed private get useIdealBounds(): boolean {
         const {
             isEditor,
-            isExportingtoSvgOrPng,
+            isExportingToSvgOrPng,
             bounds,
             widthForDeviceOrientation,
             heightForDeviceOrientation,
@@ -1939,7 +1975,7 @@ export class Grapher
             return false
 
         // If the user is using interactive version and then goes to export chart, use current bounds to maintain WYSIWYG
-        if (isExportingtoSvgOrPng) return false
+        if (isExportingToSvgOrPng) return false
 
         // todo: can remove this if we drop old adminSite editor
         if (isEditor) return true
@@ -2138,6 +2174,14 @@ export class Grapher
                     this.isSourcesModalOpen = !this.isSourcesModalOpen
                 },
                 title: `Toggle sources modal`,
+                category: "Chart",
+            },
+            {
+                combo: "d",
+                fn: (): void => {
+                    this.isDownloadModalOpen = !this.isDownloadModalOpen
+                },
+                title: "Toggle download modal",
                 category: "Chart",
             },
             {
@@ -2414,7 +2458,7 @@ export class Grapher
         const containerClasses = classnames({
             GrapherComponent: true,
             GrapherPortraitClass: this.isPortrait,
-            isExportingToSvgOrPng: this.isExportingtoSvgOrPng,
+            isExportingToSvgOrPng: this.isExportingToSvgOrPng,
             optimizeForHorizontalSpace: this.optimizeForHorizontalSpace,
             GrapherComponentNarrow: this.isNarrow,
             GrapherComponentSemiNarrow: this.isSemiNarrow,
@@ -2425,9 +2469,9 @@ export class Grapher
         const containerStyle = {
             width: this.renderWidth,
             height: this.renderHeight,
-            fontSize: this.isExportingtoSvgOrPng
+            fontSize: this.isExportingToSvgOrPng
                 ? 18
-                : Math.min(16, this.baseFontSize), // cap font size at 16px
+                : Math.min(16, this.fontSize), // cap font size at 16px
         }
 
         return (
@@ -2446,7 +2490,7 @@ export class Grapher
     render(): JSX.Element | undefined {
         // TODO how to handle errors in exports?
         // TODO remove this? should have a simple toStaticSVG for exporting
-        if (this.isExportingtoSvgOrPng) return <CaptionedChart manager={this} />
+        if (this.isExportingToSvgOrPng) return <CaptionedChart manager={this} />
 
         if (this.isInFullScreenMode) {
             return (
@@ -2499,11 +2543,25 @@ export class Grapher
         }
     }
 
-    @action.bound private setBaseFontSize(): void {
+    // the header and footer don't rely on the base font size unless explicitly specified
+    @computed get useBaseFontSize(): boolean {
+        return this.props.baseFontSize !== undefined
+    }
+
+    computeBaseFontSize(): number {
         const { renderWidth } = this
-        if (renderWidth <= 400) this.baseFontSize = 14
-        else if (renderWidth < 1080) this.baseFontSize = 16
-        else if (renderWidth >= 1080) this.baseFontSize = 18
+        if (renderWidth <= 400) return 14
+        else if (renderWidth < 1080) return 16
+        else if (renderWidth >= 1080) return 18
+        else return 16
+    }
+
+    @action.bound private setBaseFontSize(): void {
+        this.baseFontSize = this.computeBaseFontSize()
+    }
+
+    @computed get fontSize(): number {
+        return this.props.baseFontSize ?? this.baseFontSize
     }
 
     // when optimized for horizontal screen, grapher bleeds onto the edges horizontally
@@ -2518,27 +2576,27 @@ export class Grapher
     }
 
     @computed get isNarrow(): boolean {
-        if (this.isExportingtoSvgOrPng) return false
+        if (this.isExportingToSvgOrPng) return false
         return this.renderWidth <= 400
     }
 
     // SemiNarrow charts shorten their button labels to fit within the controls row
     @computed get isSemiNarrow(): boolean {
-        if (this.isExportingtoSvgOrPng) return false
+        if (this.isExportingToSvgOrPng) return false
         return this.renderWidth <= 550
     }
 
     // Small charts are rendered into 6 or 7 columns in a 12-column grid layout
     // (e.g. side-by-side charts or charts in the All Charts block)
     @computed get isSmall(): boolean {
-        if (this.isExportingtoSvgOrPng) return false
+        if (this.isExportingToSvgOrPng) return false
         return this.renderWidth <= 740
     }
 
     // Medium charts are rendered into 8 columns in a 12-column grid layout
     // (e.g. stand-alone charts in the main text of an article)
     @computed get isMedium(): boolean {
-        if (this.isExportingtoSvgOrPng) return false
+        if (this.isExportingToSvgOrPng) return false
         return this.renderWidth <= 840
     }
 

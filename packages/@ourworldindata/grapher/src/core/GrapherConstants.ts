@@ -92,6 +92,11 @@ export enum GrapherTabOption {
     table = "table",
 }
 
+export enum GrapherExportFormat {
+    landscape = "landscape",
+    portrait = "portrait",
+}
+
 export enum ScaleType {
     linear = "linear",
     log = "log",

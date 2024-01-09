@@ -540,7 +540,7 @@ export class MarimekkoChart
     }
 
     @computed private get baseFontSize(): number {
-        return this.manager.baseFontSize ?? BASE_FONT_SIZE
+        return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
     @computed private get x0(): number {

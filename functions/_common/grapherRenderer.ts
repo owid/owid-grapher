@@ -159,10 +159,10 @@ async function fetchAndRenderGrapherToSvg({
         bakedGrapherURL: grapherBaseUrl,
         queryStr: "?" + searchParams.toString(),
         bounds,
+        boundsForExport: bounds,
+        baseFontSize: options.fontSize,
     })
-    grapher.isGeneratingThumbnail = true
     grapher.shouldIncludeDetailsInStaticExport = options.details
-    grapher.baseFontSize = options.fontSize
 
     grapherLogger.log("grapherInit")
     const promises = []

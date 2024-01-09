@@ -158,7 +158,7 @@ export class FacetChart
     }
 
     @computed get fontSize(): number {
-        return this.manager.baseFontSize ?? BASE_FONT_SIZE
+        return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
     @computed private get facetFontSize(): number {
@@ -231,7 +231,7 @@ export class FacetChart
         const { manager, series, facetCount, seriesColorMap } = this
 
         // Copy properties from manager to facets
-        const baseFontSize = this.facetFontSize
+        const fontSize = this.facetFontSize
         // We are using `bounds` instead of `facetsContainerBounds` because the legend
         // is not yet created, and it is derived from the intermediate chart series.
         const gridBoundsArr = this.bounds.grid(
@@ -288,7 +288,7 @@ export class FacetChart
             // We need to preserve most config coming in.
             const manager: ChartManager = {
                 table,
-                baseFontSize,
+                fontSize,
                 hideLegend,
                 hidePoints,
                 yColumnSlug,

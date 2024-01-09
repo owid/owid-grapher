@@ -83,7 +83,7 @@ export class SlopeChart
     }
 
     @computed get fontSize() {
-        return this.manager.baseFontSize ?? BASE_FONT_SIZE
+        return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
     @computed get legendItems() {
@@ -664,7 +664,7 @@ class LabelledSlopes
     }
 
     @computed get fontSize() {
-        return this.manager.baseFontSize ?? BASE_FONT_SIZE
+        return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
     @computed private get focusedSeriesNames() {

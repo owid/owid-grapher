@@ -130,7 +130,7 @@ export class StackedBarChart
     }>()
 
     @computed private get baseFontSize(): number {
-        return this.manager.baseFontSize ?? BASE_FONT_SIZE
+        return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
     @computed get tickFontSize(): number {
