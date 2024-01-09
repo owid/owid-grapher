@@ -33,8 +33,8 @@ it("correctly passes non-redistributable flag", () => {
     const tableFalse = getTable({ nonRedistributable: false })
     const viewFalse = new DownloadModal({
         manager: {
-            staticSVGLandscape: "",
-            staticSVGPortrait: "",
+            // eslint-disable-next-line @typescript-eslint/no-empty-function
+            rasterize: () => new Promise(() => {}),
             displaySlug: "",
             table: tableFalse,
             detailRenderers: [],
@@ -45,8 +45,8 @@ it("correctly passes non-redistributable flag", () => {
     const tableTrue = getTable({ nonRedistributable: true })
     const viewTrue = new DownloadModal({
         manager: {
-            staticSVGLandscape: "",
-            staticSVGPortrait: "",
+            // eslint-disable-next-line @typescript-eslint/no-empty-function
+            rasterize: () => new Promise(() => {}),
             displaySlug: "",
             table: tableTrue,
             detailRenderers: [],

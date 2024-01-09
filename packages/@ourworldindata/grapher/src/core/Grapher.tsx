@@ -67,7 +67,10 @@ import {
     getOriginAttributionFragments,
     sortBy,
 } from "@ourworldindata/utils"
-import { MarkdownTextWrap } from "@ourworldindata/components"
+import {
+    MarkdownTextWrap,
+    sumTextWrapHeights,
+} from "@ourworldindata/components"
 import {
     ChartTypeName,
     GrapherTabOption,
@@ -94,7 +97,8 @@ import {
     DEFAULT_GRAPHER_ENTITY_TYPE,
     DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL,
     GRAPHER_DARK_TEXT,
-    GrapherExportFormat,
+    GrapherStaticFormat,
+    STATIC_EXPORT_DETAIL_SPACING,
 } from "../core/GrapherConstants"
 import Cookies from "js-cookie"
 import {
@@ -184,6 +188,10 @@ import { MarimekkoChartManager } from "../stackedCharts/MarimekkoChartConstants"
 import { AxisConfigInterface } from "../axis/AxisConfigInterface"
 import Bugsnag from "@bugsnag/js"
 import { FacetChartManager } from "../facetChart/FacetChartConstants"
+import {
+    StaticChartRasterizer,
+    type GrapherExport,
+} from "../captionedChart/StaticChartRasterizer.js"
 
 declare const window: any
 
@@ -263,8 +271,14 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     env?: string
     dataApiUrlForAdmin?: string
     annotation?: Annotation
-    boundsForExport?: Bounds
     baseFontSize?: number
+    staticBounds?: Bounds
+    staticFormat?: GrapherStaticFormat
+
+    hideTitle?: boolean
+    hideSubtitle?: boolean
+    hideNote?: boolean
+    hideOriginUrl?: boolean
 
     hideEntityControls?: boolean
     hideZoomToggle?: boolean
@@ -788,8 +802,8 @@ export class Grapher
         return this.tableAfterAllTransformsAndFilters
     }
 
+    @observable.ref renderToStatic = false
     @observable.ref isExportingToSvgOrPng = false
-    @observable.ref exportFormat = GrapherExportFormat.landscape
 
     tooltips?: TooltipManager["tooltips"] = observable.map({}, { deep: false })
     @observable isPlaying = false
@@ -798,6 +812,10 @@ export class Grapher
     @observable.ref isSourcesModalOpen = false
     @observable.ref isDownloadModalOpen = false
     @observable.ref isEmbedModalOpen = false
+
+    @computed private get isStatic(): boolean {
+        return this.renderToStatic || this.isExportingToSvgOrPng
+    }
 
     private get isStaging(): boolean {
         if (typeof location === undefined) return false
@@ -1256,6 +1274,7 @@ export class Grapher
     // Used for static exports. Defined at this level because they need to
     // be accessed by CaptionedChart and DownloadModal
     @computed get detailRenderers(): MarkdownTextWrap[] {
+        if (typeof window === "undefined") return []
         return [...this.detailsOrderedByReference].map((term, i) => {
             let text = `**${i + 1}.** `
             const detail: EnrichedDetail = window.details?.[term]
@@ -1272,8 +1291,7 @@ export class Grapher
                 fontSize: 12,
                 // leave room for padding on the left and right
                 maxWidth:
-                    this.boundsForExport.width -
-                    2 * this.framePaddingHorizontal,
+                    this.staticBounds.width - 2 * this.framePaddingHorizontal,
                 lineHeight: 1.2,
                 style: {
                     fill: GRAPHER_DARK_TEXT,
@@ -1298,29 +1316,15 @@ export class Grapher
         return ""
     }
 
-    @computed get currentTitle(): string {
-        let text = this.displayTitle.trim()
+    @computed get shouldAddEntitySuffixToTitle(): boolean {
         const selectedEntityNames = this.selection.selectedEntityNames
         const showEntityAnnotation = !this.hideAnnotationFieldsInTitle?.entity
-        const showTimeAnnotation = !this.hideAnnotationFieldsInTitle?.time
-        const showChangeInPrefix =
-            !this.hideAnnotationFieldsInTitle?.changeInPrefix
 
         const seriesStrategy =
             this.chartInstance.seriesStrategy ||
             autoDetectSeriesStrategy(this, true)
 
-        // helper function to add an annotation fragment to the title
-        // only adds a comma if the text does not end with a question mark
-        const appendAnnotationField = (
-            text: string,
-            annotation: string
-        ): string => {
-            const separator = text.endsWith("?") ? "" : ","
-            return `${text}${separator} ${annotation}`
-        }
-
-        if (
+        return !!(
             !this.forceHideAnnotationFieldsInTitle?.entity &&
             this.tab === GrapherTabOption.chart &&
             (seriesStrategy !== SeriesStrategy.entity || this.hideLegend) &&
@@ -1328,20 +1332,12 @@ export class Grapher
             (showEntityAnnotation ||
                 this.canChangeEntity ||
                 this.canSelectMultipleEntities)
-        ) {
-            const entityStr = selectedEntityNames[0]
-            if (entityStr?.length) text = appendAnnotationField(text, entityStr)
-        }
-
-        if (
-            !this.forceHideAnnotationFieldsInTitle?.changeInPrefix &&
-            this.isLineChart &&
-            this.isRelativeMode &&
-            showChangeInPrefix
         )
-            text = "Change in " + lowerCaseFirstLetterUnlessAbbreviation(text)
+    }
 
-        if (
+    @computed get shouldAddTimeSuffixToTitle(): boolean {
+        const showTimeAnnotation = !this.hideAnnotationFieldsInTitle?.time
+        return (
             !this.forceHideAnnotationFieldsInTitle?.time &&
             this.isReady &&
             (showTimeAnnotation ||
@@ -1353,6 +1349,42 @@ export class Grapher
                         this.isMarimekko ||
                         this.isOnMapTab)))
         )
+    }
+
+    @computed get shouldAddChangeInPrefixToTitle(): boolean {
+        const showChangeInPrefix =
+            !this.hideAnnotationFieldsInTitle?.changeInPrefix
+        return (
+            !this.forceHideAnnotationFieldsInTitle?.changeInPrefix &&
+            this.isLineChart &&
+            this.isRelativeMode &&
+            showChangeInPrefix
+        )
+    }
+
+    @computed get currentTitle(): string {
+        let text = this.displayTitle.trim()
+
+        // helper function to add an annotation fragment to the title
+        // only adds a comma if the text does not end with a question mark
+        const appendAnnotationField = (
+            text: string,
+            annotation: string
+        ): string => {
+            const separator = text.endsWith("?") ? "" : ","
+            return `${text}${separator} ${annotation}`
+        }
+
+        if (this.shouldAddEntitySuffixToTitle) {
+            const selectedEntityNames = this.selection.selectedEntityNames
+            const entityStr = selectedEntityNames[0]
+            if (entityStr?.length) text = appendAnnotationField(text, entityStr)
+        }
+
+        if (this.shouldAddChangeInPrefixToTitle)
+            text = "Change in " + lowerCaseFirstLetterUnlessAbbreviation(text)
+
+        if (this.shouldAddTimeSuffixToTitle)
             text = appendAnnotationField(text, this.timeTitleSuffix)
 
         return text.trim()
@@ -1715,32 +1747,42 @@ export class Grapher
         return new Bounds(0, 0, DEFAULT_GRAPHER_WIDTH, DEFAULT_GRAPHER_HEIGHT)
     }
 
-    @computed get portraitBounds(): Bounds {
-        return new Bounds(0, 0, DEFAULT_GRAPHER_HEIGHT, DEFAULT_GRAPHER_WIDTH)
-    }
-
     @computed get hasYDimension(): boolean {
         return this.dimensions.some((d) => d.property === DimensionProperty.y)
     }
 
-    @computed get boundsForExport(): Bounds {
-        if (this.props.boundsForExport) return this.props.boundsForExport
+    @observable.ref private _staticFormat = GrapherStaticFormat.landscape
 
-        switch (this.exportFormat) {
-            case GrapherExportFormat.landscape:
+    @computed get staticFormat(): GrapherStaticFormat {
+        if (this.props.staticFormat) return this.props.staticFormat
+        return this._staticFormat
+    }
+
+    set staticFormat(format: GrapherStaticFormat) {
+        this._staticFormat = format
+    }
+
+    getStaticBounds(format: GrapherStaticFormat): Bounds {
+        switch (format) {
+            case GrapherStaticFormat.landscape:
                 return this.idealBounds
-            case GrapherExportFormat.portrait:
-                return this.portraitBounds
+            case GrapherStaticFormat.square:
+                return new Bounds(0, 0, 540, 540)
             default:
                 return this.idealBounds
         }
     }
 
-    generateStaticSvg(bounds: Bounds = this.idealBounds): string {
+    @computed get staticBounds(): Bounds {
+        if (this.props.staticBounds) return this.props.staticBounds
+        return this.getStaticBounds(this.staticFormat)
+    }
+
+    generateStaticSvg(): string {
         const _isExportingToSvgOrPng = this.isExportingToSvgOrPng
         this.isExportingToSvgOrPng = true
         const staticSvg = ReactDOMServer.renderToStaticMarkup(
-            <StaticCaptionedChart manager={this} bounds={bounds} />
+            <StaticCaptionedChart manager={this} />
         )
         this.isExportingToSvgOrPng = _isExportingToSvgOrPng
         return staticSvg
@@ -1750,16 +1792,33 @@ export class Grapher
         return this.generateStaticSvg()
     }
 
-    get staticSVGLandscape(): string {
-        return this.staticSVG
+    @computed get staticBoundsWithDetails(): Bounds {
+        const includeDetails =
+            this.shouldIncludeDetailsInStaticExport &&
+            !isEmpty(this.detailRenderers)
+
+        let height = this.staticBounds.height
+        if (includeDetails) {
+            height +=
+                2 * this.framePaddingVertical +
+                sumTextWrapHeights(
+                    this.detailRenderers,
+                    STATIC_EXPORT_DETAIL_SPACING
+                )
+        }
+
+        return new Bounds(0, 0, this.staticBounds.width, height)
     }
 
-    get staticSVGPortrait(): string {
-        return this.generateStaticSvg(this.portraitBounds)
+    rasterize(): Promise<GrapherExport> {
+        const { width, height } = this.staticBoundsWithDetails
+        const staticSVG = this.generateStaticSvg()
+
+        return new StaticChartRasterizer(staticSVG, width, height).render()
     }
 
     @computed get disableIntroAnimation(): boolean {
-        return this.isExportingToSvgOrPng
+        return this.isStatic
     }
 
     @computed get mapConfig(): MapConfig {
@@ -1977,8 +2036,9 @@ export class Grapher
         // If the user is using interactive version and then goes to export chart, use current bounds to maintain WYSIWYG
         if (isExportingToSvgOrPng) return false
 
-        // todo: can remove this if we drop old adminSite editor
-        if (isEditor) return true
+        // In the editor, we usually want ideal bounds, except when we're rendering a static preview;
+        // in that case, we want to use the given static bounds
+        if (isEditor) return !this.renderToStatic
 
         // If the available space is very small, we use all of the space given to us
         if (
@@ -2458,6 +2518,7 @@ export class Grapher
         const containerClasses = classnames({
             GrapherComponent: true,
             GrapherPortraitClass: this.isPortrait,
+            isStatic: this.isStatic,
             isExportingToSvgOrPng: this.isExportingToSvgOrPng,
             optimizeForHorizontalSpace: this.optimizeForHorizontalSpace,
             GrapherComponentNarrow: this.isNarrow,
@@ -2466,9 +2527,13 @@ export class Grapher
             GrapherComponentMedium: this.isMedium,
         })
 
+        const activeBounds = this.renderToStatic
+            ? this.staticBounds
+            : this.tabBounds
+
         const containerStyle = {
-            width: this.renderWidth,
-            height: this.renderHeight,
+            width: activeBounds.width,
+            height: activeBounds.height,
             fontSize: this.isExportingToSvgOrPng
                 ? 18
                 : Math.min(16, this.fontSize), // cap font size at 16px
@@ -2508,6 +2573,9 @@ export class Grapher
 
     private renderReady(): JSX.Element | null {
         if (!this.hasBeenVisible) return null
+        if (this.renderToStatic) {
+            return <StaticCaptionedChart manager={this} />
+        }
         return (
             <>
                 <CaptionedChart manager={this} />
@@ -2989,6 +3057,11 @@ export class Grapher
     @computed get startSelectingWhenLineClicked(): boolean {
         return this.showAddEntityButton && !this.isMobile
     }
+
+    @observable hideTitle = false
+    @observable hideSubtitle = false
+    @observable hideNote = false
+    @observable hideOriginUrl = false
 
     // For now I am only exposing this programmatically for the dashboard builder. Setting this to true
     // allows you to still use add country "modes" without showing the buttons in order to prioritize

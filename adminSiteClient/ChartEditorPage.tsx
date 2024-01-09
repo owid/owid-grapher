@@ -20,7 +20,12 @@ import {
     groupBy,
     extractDetailsFromSyntax,
 } from "@ourworldindata/utils"
-import { Grapher, Topic, GrapherInterface } from "@ourworldindata/grapher"
+import {
+    Grapher,
+    Topic,
+    GrapherInterface,
+    GrapherStaticFormat,
+} from "@ourworldindata/grapher"
 import { Admin } from "./Admin.js"
 import {
     ChartEditor,
@@ -53,7 +58,8 @@ import {
     VisionDeficiencyEntity,
 } from "./VisionDeficiencies.js"
 import { EditorMarimekkoTab } from "./EditorMarimekkoTab.js"
-import { BAKED_BASE_URL } from "../settings/clientSettings.js"
+import { EditorExportTab } from "./EditorExportTab.js"
+import { runDetailsOnDemand } from "../site/detailsOnDemand.js"
 
 @observer
 class TabBinder extends React.Component<{ editor: ChartEditor }> {
@@ -114,14 +120,16 @@ export class ChartEditorPage
 
     @observable simulateVisionDeficiency?: VisionDeficiency
 
+    fetchedGrapherConfig?: any
+
     async fetchGrapher(): Promise<void> {
-        const { grapherId, grapherConfig } = this.props
-        const { admin } = this.context
-        const json =
-            grapherId === undefined
-                ? grapherConfig
-                : await admin.getJSON(`/api/charts/${grapherId}.config.json`)
-        this.loadGrapherJson(json)
+        const { grapherId } = this.props
+        if (grapherId !== undefined) {
+            this.fetchedGrapherConfig = await this.context.admin.getJSON(
+                `/api/charts/${grapherId}.config.json`
+            )
+        }
+        this.updateGrapher()
     }
 
     @observable private _isDbSet = false
@@ -130,23 +138,21 @@ export class ChartEditorPage
         return this._isDbSet && this._isGrapherSet
     }
 
-    @action.bound private loadGrapherJson(json: any): void {
-        this.grapherElement = (
-            <Grapher
-                {...{
-                    ...json,
-                    bounds:
-                        this.editor?.previewMode === "mobile"
-                            ? new Bounds(0, 0, 360, 500)
-                            : new Bounds(0, 0, 800, 600),
-                    getGrapherInstance: (grapher) => {
-                        this.grapher = grapher
-                    },
-                    dataApiUrlForAdmin:
-                        this.context.admin.settings.DATA_API_FOR_ADMIN_UI, // passed this way because clientSettings are baked and need a recompile to be updated
-                }}
-            />
-        )
+    @action.bound private updateGrapher(): void {
+        const config = this.fetchedGrapherConfig ?? this.props.grapherConfig
+        const grapherConfig = {
+            ...config,
+            // binds the grapher instance to this.grapher
+            getGrapherInstance: (grapher: Grapher) => {
+                this.grapher = grapher
+            },
+            dataApiUrlForAdmin:
+                this.context.admin.settings.DATA_API_FOR_ADMIN_UI, // passed this way because clientSettings are baked and need a recompile to be updated
+            bounds: this.bounds,
+            staticFormat: this.staticFormat,
+        }
+        this.grapher.renderToStatic = !!this.editor?.showStaticPreview
+        this.grapherElement = <Grapher {...grapherConfig} />
         this._isGrapherSet = true
     }
 
@@ -225,13 +231,27 @@ export class ChartEditorPage
     }
 
     async fetchDetails(): Promise<void> {
-        const details: DetailDictionary = await fetch(
-            `${BAKED_BASE_URL}/dods.json`
-        ).then((res) => res.json())
+        await runDetailsOnDemand()
 
         runInAction(() => {
-            this.details = details
+            if (window.details) this.details = window.details
         })
+    }
+
+    @computed private get isMobilePreview(): boolean {
+        return this.editor?.previewMode === "mobile"
+    }
+
+    @computed private get bounds(): Bounds {
+        return this.isMobilePreview
+            ? new Bounds(0, 0, 380, 525)
+            : this.grapher.idealBounds
+    }
+
+    @computed private get staticFormat(): GrapherStaticFormat {
+        return this.isMobilePreview
+            ? GrapherStaticFormat.square
+            : GrapherStaticFormat.landscape
     }
 
     // unvalidated terms extracted from the subtitle and note fields
@@ -302,6 +322,7 @@ export class ChartEditorPage
                             this.editor.previewMode
                         )
                     }
+                    this.updateGrapher()
                 }
             )
         )
@@ -330,7 +351,7 @@ export class ChartEditorPage
     }
 
     renderReady(editor: ChartEditor): JSX.Element {
-        const { grapher, availableTabs, previewMode } = editor
+        const { grapher, availableTabs } = editor
 
         return (
             <React.Fragment>
@@ -356,7 +377,12 @@ export class ChartEditorPage
                                                 ? " active"
                                                 : "")
                                         }
-                                        onClick={() => (editor.tab = tab)}
+                                        onClick={() => {
+                                            editor.tab = tab
+                                            editor.showStaticPreview =
+                                                tab === "export"
+                                            this.updateGrapher()
+                                        }}
                                     >
                                         {capitalize(tab)}
                                         {tab === "refs" && this.references
@@ -397,13 +423,22 @@ export class ChartEditorPage
                         {editor.tab === "refs" && (
                             <EditorReferencesTab editor={editor} />
                         )}
+                        {editor.tab === "export" && (
+                            <EditorExportTab editor={editor} />
+                        )}
                     </div>
-                    <SaveButtons editor={editor} />
+                    {editor.tab !== "export" && <SaveButtons editor={editor} />}
                 </div>
                 <div className="chart-editor-view">
                     <figure
                         data-grapher-src
                         style={{
+                            minHeight: this.editor?.showStaticPreview
+                                ? this.grapher.staticBoundsWithDetails.height
+                                : undefined,
+                            boxShadow: this.editor?.showStaticPreview
+                                ? "0px 4px 40px rgba(0, 0, 0, 0.2)"
+                                : undefined,
                             filter:
                                 this.simulateVisionDeficiency &&
                                 `url(#${this.simulateVisionDeficiency.id})`,
@@ -420,7 +455,7 @@ export class ChartEditorPage
                             <label
                                 className={
                                     "btn btn-light" +
-                                    (previewMode === "mobile" ? " active" : "")
+                                    (this.isMobilePreview ? " active" : "")
                                 }
                                 title="Mobile preview"
                             >
@@ -428,30 +463,28 @@ export class ChartEditorPage
                                     type="radio"
                                     onChange={action(() => {
                                         editor.previewMode = "mobile"
-                                        this.refresh()
                                     })}
                                     name="previewSize"
                                     id="mobile"
-                                    checked={previewMode === "mobile"}
+                                    checked={this.isMobilePreview}
                                 />{" "}
                                 <FontAwesomeIcon icon={faMobile} />
                             </label>
                             <label
                                 className={
                                     "btn btn-light" +
-                                    (previewMode === "desktop" ? " active" : "")
+                                    (!this.isMobilePreview ? " active" : "")
                                 }
                                 title="Desktop preview"
                             >
                                 <input
                                     onChange={action(() => {
                                         editor.previewMode = "desktop"
-                                        this.refresh()
                                     })}
                                     type="radio"
                                     name="previewSize"
                                     id="desktop"
-                                    checked={previewMode === "desktop"}
+                                    checked={!this.isMobilePreview}
                                 />{" "}
                                 <FontAwesomeIcon icon={faDesktop} />
                             </label>

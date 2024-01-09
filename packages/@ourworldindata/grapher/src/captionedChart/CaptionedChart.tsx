@@ -7,10 +7,7 @@ import {
     exposeInstanceOnWindow,
     isEmpty,
 } from "@ourworldindata/utils"
-import {
-    MarkdownTextWrap,
-    sumTextWrapHeights,
-} from "@ourworldindata/components"
+import { MarkdownTextWrap } from "@ourworldindata/components"
 import { Header, StaticHeader } from "../header/Header"
 import { Footer, StaticFooter } from "../footer/Footer"
 import {
@@ -70,6 +67,8 @@ export interface CaptionedChartManager
         SettingsMenuManager {
     containerElement?: HTMLDivElement
     tabBounds?: Bounds
+    staticBounds?: Bounds
+    staticBoundsWithDetails?: Bounds
     fontSize?: number
     bakedGrapherURL?: string
     tab?: GrapherTabOption
@@ -179,12 +178,10 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     }
 
     @computed protected get bounds(): Bounds {
-        return (
-            this.props.bounds ??
-            // right padding prevents grapher's frame to be obscured by the chart/map
-            this.manager.tabBounds?.padRight(2) ??
-            DEFAULT_BOUNDS
-        )
+        const bounds =
+            this.props.bounds ?? this.manager.tabBounds ?? DEFAULT_BOUNDS
+        // the padding ensures grapher's frame is not cut off
+        return bounds.padRight(2).padBottom(2)
     }
 
     @computed protected get boundsForChartArea(): Bounds {
@@ -488,6 +485,10 @@ export class StaticCaptionedChart extends CaptionedChart {
         super(props)
     }
 
+    @computed protected get bounds(): Bounds {
+        return this.props.bounds ?? this.manager.staticBounds ?? DEFAULT_BOUNDS
+    }
+
     @computed protected get staticFooter(): Footer {
         const { paddedBounds } = this
         return new StaticFooter({
@@ -574,21 +575,15 @@ export class StaticCaptionedChart extends CaptionedChart {
     }
 
     render(): JSX.Element {
-        const { bounds, paddedBounds, manager, maxWidth } = this
-        let { width, height } = bounds
+        const { paddedBounds, manager, maxWidth } = this
+
+        const bounds = this.manager.staticBoundsWithDetails ?? this.bounds
+        const width = bounds.width
+        const height = bounds.height
 
         const includeDetailsInStaticExport =
             manager.shouldIncludeDetailsInStaticExport &&
             !isEmpty(this.manager.detailRenderers)
-
-        if (includeDetailsInStaticExport) {
-            height +=
-                2 * this.framePaddingVertical +
-                sumTextWrapHeights(
-                    this.manager.detailRenderers,
-                    STATIC_EXPORT_DETAIL_SPACING
-                )
-        }
 
         return (
             <svg
@@ -611,7 +606,7 @@ export class StaticCaptionedChart extends CaptionedChart {
                     targetX={paddedBounds.x}
                     targetY={paddedBounds.y}
                 />
-                {this.renderChart()}
+                <g style={{ pointerEvents: "none" }}>{this.renderChart()}</g>
                 <StaticFooter
                     manager={manager}
                     maxWidth={maxWidth}
