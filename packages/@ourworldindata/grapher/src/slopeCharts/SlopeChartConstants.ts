@@ -57,4 +57,5 @@ export interface SlopeAxisProps {
     column: CoreColumn
     scale: any
     scaleType: ScaleType
+    fontSize: number
 }

@@ -37,6 +37,12 @@ export const DEFAULT_GRAPHER_FRAME_PADDING = 16
 export const STATIC_EXPORT_DETAIL_SPACING = 8
 
 export const GRAPHER_DARK_TEXT = "#5b5b5b"
+export const GRAPHER_LIGHT_TEXT = "#858585"
+
+export const GRAPHER_AXIS_LINE_WIDTH_DEFAULT = 1
+export const GRAPHER_AXIS_LINE_WIDTH_THICK = 2
+
+export const GRAPHER_AREA_OPACITY_DEFAULT = 0.8
 
 export enum CookieKey {
     isAdmin = "isAdmin",

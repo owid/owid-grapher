@@ -41,6 +41,8 @@ import {
     EntitySelectionMode,
     ScatterPointLabelStrategy,
     SeriesName,
+    GRAPHER_AXIS_LINE_WIDTH_DEFAULT,
+    GRAPHER_AXIS_LINE_WIDTH_THICK,
 } from "../core/GrapherConstants"
 import {
     Color,
@@ -73,9 +75,9 @@ import { ChartInterface } from "../chart/ChartInterface"
 import {
     ScatterPlotManager,
     ScatterSeries,
-    SCATTER_LABEL_DEFAULT_FONT_SIZE,
-    SCATTER_LABEL_MAX_FONT_SIZE,
-    SCATTER_LABEL_MIN_FONT_SIZE,
+    SCATTER_LABEL_DEFAULT_FONT_SIZE_FACTOR,
+    SCATTER_LABEL_MAX_FONT_SIZE_FACTOR,
+    SCATTER_LABEL_MIN_FONT_SIZE_FACTOR,
     SCATTER_LINE_DEFAULT_WIDTH,
     SCATTER_LINE_MAX_WIDTH,
     SCATTER_POINT_DEFAULT_RADIUS,
@@ -655,6 +657,7 @@ export class ScatterPlotChart
                 }
                 sizeScale={this.sizeScale}
                 fontScale={this.fontScale}
+                baseFontSize={this.fontSize}
                 focusedSeriesNames={this.focusedEntityNames}
                 hoveredSeriesNames={this.hoveredSeriesNames}
                 tooltipSeriesName={this.tooltipSeries?.seriesName}
@@ -713,16 +716,17 @@ export class ScatterPlotChart
     }
 
     @computed get fontScale(): ScaleLinear<number, number> {
+        const defaultFontSize =
+            SCATTER_LABEL_DEFAULT_FONT_SIZE_FACTOR * this.fontSize
+        const minFontSize = SCATTER_LABEL_MIN_FONT_SIZE_FACTOR * this.fontSize
+        const maxFontSize = SCATTER_LABEL_MAX_FONT_SIZE_FACTOR * this.fontSize
         return scaleSqrt()
             .domain(this.sizeDomain)
             .range(
                 this.sizeColumn.isMissing
                     ? // if the size column is missing, we want all labels to have the same font size
-                      [
-                          SCATTER_LABEL_DEFAULT_FONT_SIZE,
-                          SCATTER_LABEL_DEFAULT_FONT_SIZE,
-                      ]
-                    : [SCATTER_LABEL_MIN_FONT_SIZE, SCATTER_LABEL_MAX_FONT_SIZE]
+                      [defaultFontSize, defaultFontSize]
+                    : [minFontSize, maxFontSize]
             )
     }
 
@@ -751,6 +755,7 @@ export class ScatterPlotChart
             )
 
         const {
+            manager,
             bounds,
             dualAxis,
             arrowLegend,
@@ -770,7 +775,16 @@ export class ScatterPlotChart
 
         return (
             <g className="ScatterPlot" onMouseMove={this.onScatterMouseMove}>
-                <DualAxisComponent dualAxis={dualAxis} showTickMarks={false} />
+                <DualAxisComponent
+                    dualAxis={dualAxis}
+                    showTickMarks={false}
+                    labelColor={manager.secondaryColorInStaticCharts}
+                    lineWidth={
+                        manager.isStaticAndSmall
+                            ? GRAPHER_AXIS_LINE_WIDTH_THICK
+                            : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
+                    }
+                />
                 {comparisonLines &&
                     comparisonLines.map((line, i) => (
                         <ComparisonLine

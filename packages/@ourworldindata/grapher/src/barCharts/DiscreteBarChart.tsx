@@ -25,6 +25,10 @@ import {
     BASE_FONT_SIZE,
     SeriesStrategy,
     FacetStrategy,
+    GRAPHER_DARK_TEXT,
+    GRAPHER_AXIS_LINE_WIDTH_THICK,
+    GRAPHER_AXIS_LINE_WIDTH_DEFAULT,
+    GRAPHER_AREA_OPACITY_DEFAULT,
 } from "../core/GrapherConstants"
 import {
     HorizontalAxisComponent,
@@ -67,6 +71,7 @@ import {
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { HorizontalNumericColorLegend } from "../horizontalColorLegend/HorizontalColorLegends"
 import { BaseType, Selection } from "d3"
+import { getElementWithHalo } from "../scatterCharts/Halos.js"
 
 const labelToTextPadding = 10
 const labelToBarPadding = 5
@@ -393,6 +398,7 @@ export class DiscreteBarChart
             )
 
         const {
+            manager,
             series,
             boundsWithoutColorLegend,
             yAxis,
@@ -402,6 +408,10 @@ export class DiscreteBarChart
         } = this
 
         let yOffset = innerBounds.top + barHeight / 2 + barSpacing / 2
+
+        const axisLineWidth = manager.isStaticAndSmall
+            ? GRAPHER_AXIS_LINE_WIDTH_THICK
+            : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
 
         return (
             <g ref={this.base} className="DiscreteBarChart">
@@ -421,11 +431,14 @@ export class DiscreteBarChart
                         bounds={boundsWithoutColorLegend}
                         axis={yAxis}
                         preferredAxisPosition={innerBounds.bottom}
+                        labelColor={manager.secondaryColorInStaticCharts}
+                        tickMarkWidth={axisLineWidth}
                     />
                 )}
                 <HorizontalAxisGridLines
                     horizontalAxis={yAxis}
                     bounds={innerBounds}
+                    strokeWidth={axisLineWidth}
                 />
                 {series.map((series) => {
                     // Todo: add a "placedSeries" getter to get the transformed series, then just loop over the placedSeries and render a bar for each
@@ -471,26 +484,31 @@ export class DiscreteBarChart
                                 width={barWidth}
                                 height={barHeight}
                                 fill={barColor}
-                                opacity={0.85}
+                                opacity={GRAPHER_AREA_OPACITY_DEFAULT}
                                 style={{ transition: "height 200ms ease" }}
                             />
-                            <text
-                                x={0}
-                                y={0}
-                                transform={`translate(${
-                                    yAxis.place(series.value) +
-                                    (isNegative
-                                        ? -labelToBarPadding
-                                        : labelToBarPadding)
-                                }, 0)`}
-                                fill="#666"
-                                dominantBaseline="middle"
-                                textAnchor={isNegative ? "end" : "start"}
-                                {...this.valueLabelStyle}
-                            >
-                                {label.valueString}
-                                <tspan fill="#999">{label.timeString}</tspan>
-                            </text>
+                            {getElementWithHalo(
+                                series.seriesName + "-label",
+                                <text
+                                    x={0}
+                                    y={0}
+                                    transform={`translate(${
+                                        yAxis.place(series.value) +
+                                        (isNegative
+                                            ? -labelToBarPadding
+                                            : labelToBarPadding)
+                                    }, 0)`}
+                                    fill={GRAPHER_DARK_TEXT}
+                                    dominantBaseline="middle"
+                                    textAnchor={isNegative ? "end" : "start"}
+                                    {...this.valueLabelStyle}
+                                >
+                                    {label.valueString}
+                                    <tspan fill="#999">
+                                        {label.timeString}
+                                    </tspan>
+                                </text>
+                            )}
                         </g>
                     )
 
@@ -502,6 +520,7 @@ export class DiscreteBarChart
                     <HorizontalAxisZeroLine
                         horizontalAxis={yAxis}
                         bounds={innerBounds}
+                        strokeWidth={axisLineWidth}
                     />
                 )}
             </g>

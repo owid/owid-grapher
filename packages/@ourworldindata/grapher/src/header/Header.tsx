@@ -71,6 +71,7 @@ export class Header<
         return new Logo({
             logo: manager.logo as any,
             isLink: !!manager.shouldLinkToOwid,
+            // if it's the OWID logo, use the small version; otherwise, decrease the size
             heightScale: manager.isSmall && !isOwidLogo ? 0.775 : 1,
             useSmallVersion: manager.isSmall && isOwidLogo,
         })
@@ -86,9 +87,13 @@ export class Header<
 
     @computed get titleFontSize(): number {
         if (this.useBaseFontSize) {
-            return (24 / BASE_FONT_SIZE) * this.baseFontSize
+            return (22 / BASE_FONT_SIZE) * this.baseFontSize
         }
         return this.manager.isNarrow ? 18 : this.manager.isMedium ? 20 : 24
+    }
+
+    @computed get titleLineHeight(): number {
+        return this.manager.isSmall ? 1.1 : 1.2
     }
 
     @computed get title(): TextWrap {
@@ -96,7 +101,7 @@ export class Header<
         return new TextWrap({
             maxWidth: this.maxWidth - logoWidth - 24,
             fontWeight: 600,
-            lineHeight: this.manager.isSmall ? 1.1 : 1.2,
+            lineHeight: this.titleLineHeight,
             fontSize: this.titleFontSize,
             text: this.titleText,
         })
@@ -115,18 +120,21 @@ export class Header<
 
     @computed get subtitleFontSize(): number {
         if (this.useBaseFontSize) {
-            return (14 / BASE_FONT_SIZE) * this.baseFontSize
+            return (13 / BASE_FONT_SIZE) * this.baseFontSize
         }
         return this.manager.isSmall ? 12 : this.manager.isMedium ? 13 : 14
     }
 
+    @computed get subtitleLineHeight(): number {
+        return this.manager.isMedium ? 1.2 : 1.28571
+    }
+
     @computed get subtitle(): MarkdownTextWrap {
-        const lineHeight = this.manager.isMedium ? 1.2 : 1.28571
         return new MarkdownTextWrap({
             maxWidth: this.subtitleWidth,
             fontSize: this.subtitleFontSize,
             text: this.subtitleText,
-            lineHeight,
+            lineHeight: this.subtitleLineHeight,
             detailsOrderedByReference: this.manager
                 .shouldIncludeDetailsInStaticExport
                 ? this.manager.detailsOrderedByReference
@@ -238,12 +246,12 @@ export class StaticHeader extends Header<StaticHeaderProps> {
                 maxWidth: this.maxWidth - logoWidth - 24,
                 fontSize,
                 fontWeight: 500,
-                lineHeight: 1.2,
+                lineHeight: this.manager.isStaticAndSmall ? 1.1 : 1.2,
             })
 
         // try to fit the title into a single line if possible-- but not if it would make the text too small
         const initialFontSize = this.useBaseFontSize
-            ? (24 / BASE_FONT_SIZE) * this.baseFontSize
+            ? (22 / BASE_FONT_SIZE) * this.baseFontSize
             : 24
         let title = makeTitle(initialFontSize)
 
@@ -266,6 +274,10 @@ export class StaticHeader extends Header<StaticHeaderProps> {
         // return the title at the new font size: either it now fits into a single line, or
         // its size has been reduced so the multi-line title doesn't take up quite that much space
         return title
+    }
+
+    @computed get subtitleLineHeight(): number {
+        return 1.2
     }
 
     render(): JSX.Element {
@@ -299,7 +311,7 @@ export class StaticHeader extends Header<StaticHeaderProps> {
                                 ? title.height + this.subtitleMarginTop
                                 : 0),
                         {
-                            fill: GRAPHER_DARK_TEXT,
+                            fill: manager.secondaryColorInStaticCharts,
                         }
                     )}
             </g>

@@ -30,6 +30,7 @@ import {
     ScaleType,
     EntitySelectionMode,
     SeriesName,
+    GRAPHER_DARK_TEXT,
 } from "../core/GrapherConstants"
 import { ChartInterface } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
@@ -495,21 +496,21 @@ class SlopeChartAxis extends React.Component<SlopeAxisProps> {
     }
 
     render() {
-        const { bounds, scale, orient, column } = this.props
+        const { bounds, scale, orient, column, fontSize } = this.props
         const { ticks } = this
-        const textColor = "#666"
 
         return (
-            <g className="axis" fontSize="0.8em">
+            <g className="axis">
                 {ticks.map((tick, i) => {
                     return (
                         <text
                             key={i}
                             x={orient === "left" ? bounds.left : bounds.right}
                             y={scale(tick)}
-                            fill={textColor}
+                            fill={GRAPHER_DARK_TEXT}
                             dominantBaseline="middle"
                             textAnchor={orient === "left" ? "start" : "end"}
+                            fontSize={fontSize}
                         >
                             {column.formatValueShort(tick)}
                         </text>
@@ -691,7 +692,7 @@ class LabelledSlopes
     }
 
     @computed private get isPortrait() {
-        return this.bounds.width < 400
+        return this.manager.isNarrow || this.manager.isStaticAndSmall
     }
 
     @computed private get allValues() {
@@ -734,6 +735,7 @@ class LabelledSlopes
     }
 
     @computed get sizeScale(): ScaleLinear<number, number> {
+        const factor = this.manager.isStaticAndSmall ? 1.2 : 1
         return scaleLinear()
             .domain(
                 extent(this.props.seriesArr.map((series) => series.size)) as [
@@ -741,7 +743,7 @@ class LabelledSlopes
                     number,
                 ]
             )
-            .range([1, 4])
+            .range([factor, 4 * factor])
     }
 
     @computed get yScaleConstructor(): any {
@@ -1069,6 +1071,8 @@ class LabelledSlopes
         const { x1, x2 } = slopeData[0]
         const [y1, y2] = yScale.range()
 
+        const tickFontSize = 0.75 * fontSize
+
         return (
             <g
                 className="LabelledSlopes"
@@ -1111,6 +1115,7 @@ class LabelledSlopes
                         scale={yScale}
                         scaleType={yScaleType}
                         bounds={bounds}
+                        fontSize={tickFontSize}
                     />
                 )}
                 {!isPortrait && (
@@ -1120,6 +1125,7 @@ class LabelledSlopes
                         scale={yScale}
                         scaleType={yScaleType}
                         bounds={bounds}
+                        fontSize={tickFontSize}
                     />
                 )}
                 <line x1={x1} y1={y1} x2={x1} y2={y2} stroke="#333" />
@@ -1128,7 +1134,7 @@ class LabelledSlopes
                     x={x1}
                     y={y1 + 10}
                     textAnchor="middle"
-                    fill="#666"
+                    fill={GRAPHER_DARK_TEXT}
                     fontSize={0.875 * fontSize}
                 >
                     {xDomain[0].toString()}
@@ -1137,7 +1143,7 @@ class LabelledSlopes
                     x={x2}
                     y={y1 + 10}
                     textAnchor="middle"
-                    fill="#666"
+                    fill={GRAPHER_DARK_TEXT}
                     fontSize={0.875 * fontSize}
                 >
                     {xDomain[1].toString()}

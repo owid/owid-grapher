@@ -99,6 +99,7 @@ import {
     GRAPHER_DARK_TEXT,
     GrapherStaticFormat,
     STATIC_EXPORT_DETAIL_SPACING,
+    GRAPHER_LIGHT_TEXT,
 } from "../core/GrapherConstants"
 import Cookies from "js-cookie"
 import {
@@ -979,17 +980,6 @@ export class Grapher
             this.selection.setSelectedEntities(this.selectedEntityNames)
     }
 
-    @observable private _baseFontSize = BASE_FONT_SIZE
-
-    @computed get baseFontSize(): number {
-        if (this.isExportingToSvgOrPng) return Math.max(this._baseFontSize, 18)
-        return this._baseFontSize
-    }
-
-    set baseFontSize(val: number) {
-        this._baseFontSize = val
-    }
-
     // Ready to go iff we have retrieved data for every variable associated with the chart
     @computed get isReady(): boolean {
         return this.whatAreWeWaitingFor === ""
@@ -1286,15 +1276,21 @@ export class Grapher
 
                 text += `${plainText.join(" ")}`
             }
+
+            // can't use the computed property here because Grapher might not currently be in static mode
+            const baseFontSize = this.areStaticBoundsSmall
+                ? this.computeBaseFontSizeFromHeight(this.staticBounds)
+                : 18
+
             return new MarkdownTextWrap({
                 text,
-                fontSize: 12,
+                fontSize: (11 / BASE_FONT_SIZE) * baseFontSize,
                 // leave room for padding on the left and right
                 maxWidth:
                     this.staticBounds.width - 2 * this.framePaddingHorizontal,
                 lineHeight: 1.2,
                 style: {
-                    fill: GRAPHER_DARK_TEXT,
+                    fill: this.secondaryColorInStaticCharts,
                 },
             })
         })
@@ -2611,21 +2607,40 @@ export class Grapher
         }
     }
 
-    // the header and footer don't rely on the base font size unless explicitly specified
-    @computed get useBaseFontSize(): boolean {
-        return this.props.baseFontSize !== undefined
+    @observable private _baseFontSize = BASE_FONT_SIZE
+
+    @computed get baseFontSize(): number {
+        if (this.isStaticAndSmall) {
+            return this.computeBaseFontSizeFromHeight(this.staticBounds)
+        }
+        if (this.isStatic) return 18
+        return this._baseFontSize
     }
 
-    computeBaseFontSize(): number {
-        const { renderWidth } = this
-        if (renderWidth <= 400) return 14
-        else if (renderWidth < 1080) return 16
-        else if (renderWidth >= 1080) return 18
+    set baseFontSize(val: number) {
+        this._baseFontSize = val
+    }
+
+    // the header and footer don't rely on the base font size unless explicitly specified
+    @computed get useBaseFontSize(): boolean {
+        return this.props.baseFontSize !== undefined || this.isStatic
+    }
+
+    private computeBaseFontSizeFromHeight(bounds: Bounds): number {
+        const squareBounds = this.getStaticBounds(GrapherStaticFormat.square)
+        const factor = squareBounds.height / 21
+        return Math.max(10, bounds.height / factor)
+    }
+
+    private computeBaseFontSizeFromWidth(bounds: Bounds): number {
+        if (bounds.width <= 400) return 14
+        else if (bounds.width < 1080) return 16
+        else if (bounds.width >= 1080) return 18
         else return 16
     }
 
     @action.bound private setBaseFontSize(): void {
-        this.baseFontSize = this.computeBaseFontSize()
+        this.baseFontSize = this.computeBaseFontSizeFromWidth(this.tabBounds)
     }
 
     @computed get fontSize(): number {
@@ -2644,28 +2659,44 @@ export class Grapher
     }
 
     @computed get isNarrow(): boolean {
-        if (this.isExportingToSvgOrPng) return false
+        if (this.isStatic) return false
         return this.renderWidth <= 400
     }
 
     // SemiNarrow charts shorten their button labels to fit within the controls row
     @computed get isSemiNarrow(): boolean {
-        if (this.isExportingToSvgOrPng) return false
+        if (this.isStatic) return false
         return this.renderWidth <= 550
     }
 
     // Small charts are rendered into 6 or 7 columns in a 12-column grid layout
     // (e.g. side-by-side charts or charts in the All Charts block)
     @computed get isSmall(): boolean {
-        if (this.isExportingToSvgOrPng) return false
+        if (this.isStatic) return false
         return this.renderWidth <= 740
     }
 
     // Medium charts are rendered into 8 columns in a 12-column grid layout
     // (e.g. stand-alone charts in the main text of an article)
     @computed get isMedium(): boolean {
-        if (this.isExportingToSvgOrPng) return false
+        if (this.isStatic) return false
         return this.renderWidth <= 840
+    }
+
+    @computed get isStaticAndSmall(): boolean {
+        if (!this.isStatic) return false
+        return this.areStaticBoundsSmall
+    }
+
+    @computed get areStaticBoundsSmall(): boolean {
+        const { idealBounds, staticBounds } = this
+        const idealPixelCount = idealBounds.width * idealBounds.height
+        const staticPixelCount = staticBounds.width * staticBounds.height
+        return staticPixelCount < 0.66 * idealPixelCount
+    }
+
+    @computed get secondaryColorInStaticCharts(): string {
+        return this.isStaticAndSmall ? GRAPHER_LIGHT_TEXT : GRAPHER_DARK_TEXT
     }
 
     // Binds chart properties to global window title and URL. This should only

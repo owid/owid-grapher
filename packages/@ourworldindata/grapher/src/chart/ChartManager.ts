@@ -88,4 +88,8 @@ export interface ChartManager {
     disableIntroAnimation?: boolean
 
     missingDataStrategy?: MissingDataStrategy
+
+    isNarrow?: boolean
+    isStaticAndSmall?: boolean
+    secondaryColorInStaticCharts?: string
 }

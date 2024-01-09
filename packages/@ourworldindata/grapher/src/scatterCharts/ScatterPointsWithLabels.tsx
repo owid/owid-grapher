@@ -29,7 +29,7 @@ import {
     SCATTER_POINT_MIN_RADIUS,
     SCATTER_POINT_HOVER_TARGET_RANGE,
     ScatterRenderPoint,
-    SCATTER_LABEL_MIN_FONT_SIZE,
+    SCATTER_LABEL_MIN_FONT_SIZE_FACTOR,
 } from "./ScatterPlotChartConstants"
 import { ScatterLine, ScatterPoint } from "./ScatterPoints"
 import {
@@ -127,7 +127,10 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
             value !== undefined
                 ? this.fontScale(value)
                 : this.fontScale.range()[0]
-        return Math.max(fontSize, SCATTER_LABEL_MIN_FONT_SIZE)
+        return Math.max(
+            fontSize,
+            SCATTER_LABEL_MIN_FONT_SIZE_FACTOR * this.props.baseFontSize
+        )
     }
 
     @computed private get hideConnectedScatterLines(): boolean {
@@ -197,17 +200,20 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
             series.startLabel = makeStartLabel(
                 series,
                 this.isSubtleForeground,
-                this.hideConnectedScatterLines
+                this.hideConnectedScatterLines,
+                this.props.baseFontSize
             )
             series.midLabels = makeMidLabels(
                 series,
                 this.isSubtleForeground,
-                this.hideConnectedScatterLines
+                this.hideConnectedScatterLines,
+                this.props.baseFontSize
             )
             series.endLabel = makeEndLabel(
                 series,
                 this.isSubtleForeground,
-                this.hideConnectedScatterLines
+                this.hideConnectedScatterLines,
+                this.props.baseFontSize
             )
             series.allLabels = [series.startLabel]
                 .concat(series.midLabels)

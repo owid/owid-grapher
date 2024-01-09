@@ -24,6 +24,9 @@ import { observer } from "mobx-react"
 import {
     BASE_FONT_SIZE,
     FacetStrategy,
+    GRAPHER_AREA_OPACITY_DEFAULT,
+    GRAPHER_AXIS_LINE_WIDTH_DEFAULT,
+    GRAPHER_AXIS_LINE_WIDTH_THICK,
     SeriesName,
 } from "../core/GrapherConstants"
 import {
@@ -57,6 +60,7 @@ import { HashMap, NodeGroup } from "react-move"
 import { easeQuadOut } from "d3-ease"
 import { bind } from "decko"
 import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner.js"
+import { getElementWithHalo } from "../scatterCharts/Halos.js"
 
 const labelToBarPadding = 5
 
@@ -488,7 +492,7 @@ export class StackedDiscreteBarChart
                 />
             )
 
-        const { bounds, yAxis, innerBounds } = this
+        const { manager, bounds, yAxis, innerBounds } = this
 
         const chartContext: StackedBarChartContext = {
             yAxis,
@@ -553,20 +557,26 @@ export class StackedDiscreteBarChart
                             onMouseLeave={this.onEntityMouseLeave}
                         />
                     ))}
-                    {this.showTotalValueLabel && (
-                        <text
-                            transform={`translate(${
-                                yAxis.place(totalValue) + labelToBarPadding
-                            }, 0)`}
-                            dominantBaseline="middle"
-                            {...this.totalValueLabelStyle}
-                        >
-                            {totalLabel}
-                        </text>
-                    )}
+                    {this.showTotalValueLabel &&
+                        getElementWithHalo(
+                            label + "-value-label",
+                            <text
+                                transform={`translate(${
+                                    yAxis.place(totalValue) + labelToBarPadding
+                                }, 0)`}
+                                dominantBaseline="middle"
+                                {...this.totalValueLabelStyle}
+                            >
+                                {totalLabel}
+                            </text>
+                        )}
                 </g>
             )
         }
+
+        const axisLineWidth = manager.isStaticAndSmall
+            ? GRAPHER_AXIS_LINE_WIDTH_THICK
+            : GRAPHER_AXIS_LINE_WIDTH_DEFAULT
 
         return (
             <g
@@ -587,11 +597,14 @@ export class StackedDiscreteBarChart
                         bounds={bounds}
                         axis={yAxis}
                         preferredAxisPosition={innerBounds.bottom}
+                        labelColor={manager.secondaryColorInStaticCharts}
+                        tickMarkWidth={axisLineWidth}
                     />
                 )}
                 <HorizontalAxisGridLines
                     horizontalAxis={yAxis}
                     bounds={innerBounds}
+                    strokeWidth={axisLineWidth}
                 />
                 {this.showLegend && (
                     <HorizontalCategoricalColorLegend manager={this} />
@@ -609,6 +622,7 @@ export class StackedDiscreteBarChart
                 <HorizontalAxisZeroLine
                     horizontalAxis={yAxis}
                     bounds={innerBounds}
+                    strokeWidth={axisLineWidth}
                 />
                 {this.Tooltip}
             </g>
@@ -637,7 +651,7 @@ export class StackedDiscreteBarChart
             yAxis.place(bar.point.value) - yAxis.place(chartContext.x0)
 
         const barLabel = formatValueForLabel(bar.point.value)
-        const labelFontSize = 0.7 * chartContext.baseFontSize
+        const labelFontSize = 0.75 * chartContext.baseFontSize
         const labelBounds = Bounds.forText(barLabel, {
             fontSize: labelFontSize,
         })
@@ -662,7 +676,13 @@ export class StackedDiscreteBarChart
                     width={barWidth}
                     height={barHeight}
                     fill={bar.color}
-                    opacity={isHover ? 1 : isFaint ? 0.1 : 0.8}
+                    opacity={
+                        isHover
+                            ? 1
+                            : isFaint
+                            ? 0.1
+                            : GRAPHER_AREA_OPACITY_DEFAULT
+                    }
                     style={{
                         transition: "height 200ms ease",
                     }}

@@ -12,7 +12,7 @@ import {
 } from "@ourworldindata/utils"
 import { VerticalAxis, HorizontalAxis, DualAxis } from "./Axis"
 import classNames from "classnames"
-import { ScaleType } from "../core/GrapherConstants"
+import { GRAPHER_DARK_TEXT, ScaleType } from "../core/GrapherConstants"
 
 const dasharrayFromFontSize = (fontSize: number): string => {
     const dashLength = Math.round((fontSize / 16) * 3)
@@ -28,9 +28,10 @@ const SOLID_TICK_COLOR = "#999"
 export class VerticalAxisGridLines extends React.Component<{
     verticalAxis: VerticalAxis
     bounds: Bounds
+    strokeWidth?: number
 }> {
     render(): JSX.Element {
-        const { bounds, verticalAxis } = this.props
+        const { bounds, verticalAxis, strokeWidth } = this.props
         const axis = verticalAxis.clone()
         axis.range = bounds.yRange()
 
@@ -51,6 +52,7 @@ export class VerticalAxisGridLines extends React.Component<{
                             x2={bounds.right.toFixed(2)}
                             y2={axis.place(t.value)}
                             stroke={color}
+                            strokeWidth={strokeWidth}
                             strokeDasharray={
                                 t.solid
                                     ? undefined
@@ -70,13 +72,14 @@ export class VerticalAxisGridLines extends React.Component<{
 export class HorizontalAxisGridLines extends React.Component<{
     horizontalAxis: HorizontalAxis
     bounds?: Bounds
+    strokeWidth?: number
 }> {
     @computed get bounds(): Bounds {
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
     render(): JSX.Element {
-        const { horizontalAxis } = this.props
+        const { horizontalAxis, strokeWidth } = this.props
         const { bounds } = this
         const axis = horizontalAxis.clone()
         axis.range = bounds.xRange()
@@ -98,6 +101,7 @@ export class HorizontalAxisGridLines extends React.Component<{
                             x2={axis.place(t.value)}
                             y2={bounds.top.toFixed(2)}
                             stroke={color}
+                            strokeWidth={strokeWidth}
                             strokeDasharray={
                                 t.solid
                                     ? undefined
@@ -117,9 +121,10 @@ export class HorizontalAxisGridLines extends React.Component<{
 export class HorizontalAxisZeroLine extends React.Component<{
     horizontalAxis: HorizontalAxis
     bounds: Bounds
+    strokeWidth?: number
 }> {
     render(): JSX.Element {
-        const { bounds, horizontalAxis } = this.props
+        const { bounds, horizontalAxis, strokeWidth } = this.props
         const axis = horizontalAxis.clone()
         axis.range = bounds.xRange()
 
@@ -137,6 +142,7 @@ export class HorizontalAxisZeroLine extends React.Component<{
                     x2={axis.place(0)}
                     y2={bounds.top.toFixed(2)}
                     stroke={SOLID_TICK_COLOR}
+                    strokeWidth={strokeWidth}
                 />
             </g>
         )
@@ -147,18 +153,23 @@ interface DualAxisViewProps {
     dualAxis: DualAxis
     highlightValue?: { x: number; y: number }
     showTickMarks?: boolean
+    labelColor?: string
+    tickColor?: string
+    lineWidth?: number
 }
 
 @observer
 export class DualAxisComponent extends React.Component<DualAxisViewProps> {
     render(): JSX.Element {
-        const { dualAxis, showTickMarks } = this.props
+        const { dualAxis, showTickMarks, labelColor, tickColor, lineWidth } =
+            this.props
         const { bounds, horizontalAxis, verticalAxis, innerBounds } = dualAxis
 
         const verticalGridlines = verticalAxis.hideGridlines ? null : (
             <VerticalAxisGridLines
                 verticalAxis={verticalAxis}
                 bounds={innerBounds}
+                strokeWidth={lineWidth}
             />
         )
 
@@ -166,6 +177,7 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
             <HorizontalAxisGridLines
                 horizontalAxis={horizontalAxis}
                 bounds={innerBounds}
+                strokeWidth={lineWidth}
             />
         )
 
@@ -173,6 +185,8 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
             <VerticalAxisComponent
                 bounds={bounds}
                 verticalAxis={verticalAxis}
+                labelColor={labelColor}
+                tickColor={tickColor}
             />
         )
 
@@ -182,6 +196,9 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
                 axis={horizontalAxis}
                 showTickMarks={showTickMarks}
                 preferredAxisPosition={innerBounds.bottom}
+                labelColor={labelColor}
+                tickColor={tickColor}
+                tickMarkWidth={lineWidth}
             />
         )
 
@@ -200,11 +217,12 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
 export class VerticalAxisComponent extends React.Component<{
     bounds: Bounds
     verticalAxis: VerticalAxis
+    labelColor?: string
+    tickColor?: string
 }> {
     render(): JSX.Element {
-        const { bounds, verticalAxis } = this.props
+        const { bounds, verticalAxis, labelColor, tickColor } = this.props
         const { tickLabels, labelTextWrap } = verticalAxis
-        const textColor = "#666"
 
         return (
             <g className="VerticalAxis">
@@ -214,6 +232,7 @@ export class VerticalAxisComponent extends React.Component<{
                         bounds.left,
                         {
                             transform: "rotate(-90)",
+                            fill: labelColor || GRAPHER_DARK_TEXT,
                         }
                     )}
                 {tickLabels.map((label, i) => {
@@ -231,7 +250,7 @@ export class VerticalAxisComponent extends React.Component<{
                             textAnchor={textAnchorFromAlign(
                                 xAlign ?? HorizontalAlign.right
                             )}
-                            fill={textColor}
+                            fill={tickColor || GRAPHER_DARK_TEXT}
                             fontSize={verticalAxis.tickFontSize}
                         >
                             {formattedValue}
@@ -248,6 +267,9 @@ export class HorizontalAxisComponent extends React.Component<{
     axis: HorizontalAxis
     showTickMarks?: boolean
     preferredAxisPosition?: number
+    labelColor?: string
+    tickColor?: string
+    tickMarkWidth?: number
 }> {
     @computed get scaleType(): ScaleType {
         return this.props.axis.scaleType
@@ -266,11 +288,17 @@ export class HorizontalAxisComponent extends React.Component<{
     }
 
     render(): JSX.Element {
-        const { bounds, axis, showTickMarks, preferredAxisPosition } =
-            this.props
+        const {
+            bounds,
+            axis,
+            showTickMarks,
+            preferredAxisPosition,
+            labelColor,
+            tickColor,
+            tickMarkWidth,
+        } = this.props
         const { tickLabels, labelTextWrap: label, labelOffset, orient } = axis
         const horizontalAxisLabelsOnTop = orient === Position.top
-        const textColor = "#666"
         const labelYPosition = horizontalAxisLabelsOnTop
             ? bounds.top
             : bounds.bottom - (label?.height ?? 0)
@@ -286,6 +314,7 @@ export class HorizontalAxisComponent extends React.Component<{
                     axis.place(label.value)
                 )}
                 color={SOLID_TICK_COLOR}
+                width={tickMarkWidth}
             />
         ) : undefined
 
@@ -297,7 +326,8 @@ export class HorizontalAxisComponent extends React.Component<{
                 {label &&
                     label.render(
                         axis.rangeCenter - label.width / 2,
-                        labelYPosition
+                        labelYPosition,
+                        { fill: labelColor || GRAPHER_DARK_TEXT }
                     )}
                 {tickMarks}
                 {tickLabels.map((label, i) => {
@@ -307,7 +337,7 @@ export class HorizontalAxisComponent extends React.Component<{
                             key={i}
                             x={x}
                             y={tickLabelYPlacement}
-                            fill={textColor}
+                            fill={tickColor || GRAPHER_DARK_TEXT}
                             textAnchor={textAnchorFromAlign(
                                 xAlign ?? HorizontalAlign.center
                             )}
@@ -326,9 +356,11 @@ export class AxisTickMarks extends React.Component<{
     tickMarkTopPosition: number
     tickMarkXPositions: number[]
     color: string
+    width?: number
 }> {
     render(): JSX.Element[] {
-        const { tickMarkTopPosition, tickMarkXPositions, color } = this.props
+        const { tickMarkTopPosition, tickMarkXPositions, color, width } =
+            this.props
         const tickSize = 5
         const tickBottom = tickMarkTopPosition + tickSize
         return tickMarkXPositions.map((tickMarkPosition, index) => {
@@ -340,6 +372,7 @@ export class AxisTickMarks extends React.Component<{
                     x2={tickMarkPosition}
                     y2={tickBottom}
                     stroke={color}
+                    strokeWidth={width}
                 />
             )
         })
