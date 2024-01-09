@@ -28,6 +28,7 @@ import {
     GRAPHER_DARK_TEXT,
     GRAPHER_AXIS_LINE_WIDTH_DEFAULT,
     GRAPHER_AXIS_LINE_WIDTH_THICK,
+    GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants"
 import { ColorScaleManager } from "../color/ColorScale"
 import {
@@ -140,7 +141,7 @@ export class StackedBarChart
     }
 
     @computed get tickFontSize(): number {
-        return 0.75 * this.baseFontSize
+        return GRAPHER_FONT_SCALE_12 * this.baseFontSize
     }
 
     @computed get barWidth(): number {
@@ -154,10 +155,6 @@ export class StackedBarChart
             this.dualAxis.innerBounds.width / this.xValues.length -
             this.barWidth
         )
-    }
-
-    @computed get barFontSize(): number {
-        return 0.75 * this.baseFontSize
     }
 
     @computed protected get paddingForLegend(): number {

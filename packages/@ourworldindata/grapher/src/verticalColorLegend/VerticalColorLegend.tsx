@@ -3,7 +3,10 @@ import { sum, max } from "@ourworldindata/utils"
 import { TextWrap } from "@ourworldindata/components"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { BASE_FONT_SIZE } from "../core/GrapherConstants"
+import {
+    BASE_FONT_SIZE,
+    GRAPHER_FONT_SCALE_11_2,
+} from "../core/GrapherConstants"
 import { Color } from "@ourworldindata/core-table"
 
 export interface VerticalColorLegendManager {
@@ -47,7 +50,9 @@ export class VerticalColorLegend extends React.Component<{
     }
 
     @computed private get fontSize(): number {
-        return 0.7 * (this.manager.fontSize ?? BASE_FONT_SIZE)
+        return (
+            GRAPHER_FONT_SCALE_11_2 * (this.manager.fontSize ?? BASE_FONT_SIZE)
+        )
     }
     @computed private get rectSize(): number {
         return Math.round(this.fontSize / 1.4)

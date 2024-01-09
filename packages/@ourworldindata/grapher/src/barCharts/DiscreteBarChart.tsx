@@ -29,6 +29,7 @@ import {
     GRAPHER_AXIS_LINE_WIDTH_THICK,
     GRAPHER_AXIS_LINE_WIDTH_DEFAULT,
     GRAPHER_AREA_OPACITY_DEFAULT,
+    GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants"
 import {
     HorizontalAxisComponent,
@@ -173,7 +174,10 @@ export class DiscreteBarChart
     @computed private get labelFontSize(): number {
         const availableHeight =
             this.boundsWithoutColorLegend.height / this.barCount
-        return Math.min(0.75 * this.fontSize, 1.1 * availableHeight)
+        return Math.min(
+            GRAPHER_FONT_SCALE_12 * this.fontSize,
+            1.1 * availableHeight
+        )
     }
 
     @computed private get legendLabelStyle(): {
