@@ -11,7 +11,7 @@ Grapher properties:
 - Single y-dimension
 - Multiple entities, including World, Continents, and Countries
  */
-export const Grapher_SingleYDim_MultipleEntities = (
+export const LifeExpectancyGrapher = (
     props: Partial<GrapherProgrammaticInterface> = {}
 ): Grapher => {
     const lifeExpectancyId = 815383

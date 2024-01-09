@@ -13,7 +13,7 @@ import {
 
 import Enzyme, { ReactWrapper } from "enzyme"
 import Adapter from "@wojtekmaj/enzyme-adapter-react-17"
-import { Grapher_SingleYDim_MultipleEntities } from "../testData/OwidTestData.sample.js"
+import { LifeExpectancyGrapher } from "../testData/OwidTestData.sample.js"
 Enzyme.configure({ adapter: new Adapter() })
 
 describe("when you render a table", () => {
@@ -155,7 +155,8 @@ describe("when the table has multiple variables and multiple years", () => {
 
 describe("when the table has no filter toggle", () => {
     it("does not filter by default if we have a map tab", () => {
-        const grapher = Grapher_SingleYDim_MultipleEntities({
+        const grapher = LifeExpectancyGrapher({
+            selectedEntityNames: ["World"],
             hideEntityControls: true, // no filter toggle
             hasMapTab: true,
         })
@@ -165,10 +166,10 @@ describe("when the table has no filter toggle", () => {
     })
 
     it("does not filter by default if the selection is empty", () => {
-        const grapher = Grapher_SingleYDim_MultipleEntities({
-            hideEntityControls: true, // not filter toggle
-            hasMapTab: false,
+        const grapher = LifeExpectancyGrapher({
             selectedEntityNames: [],
+            hideEntityControls: true, // no filter toggle
+            hasMapTab: false,
         })
         const view = Enzyme.mount(<DataTable manager={grapher} />)
         const rows = view.find("tbody tr:not(.title)")
