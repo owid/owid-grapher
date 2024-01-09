@@ -89,6 +89,9 @@ const VIEW_MATRIX_BY_CHART_TYPE: Record<ChartTypeName, ViewMatrix> = {
     [ChartTypeName.WorldMap]: {},
 }
 
+// the above view matrix is used to generate all possible combinations of query params
+// but some combinations don't make sense. this matrix is used to exclude those combinations.
+// for example, if a chart is not faceted, the uniformYAxis param doesn't apply
 const EXCLUDE_VIEWS_BY_CHART_TYPE: Record<
     ChartTypeName,
     Record<keyof GrapherQueryParams, string>[]
@@ -106,8 +109,7 @@ const EXCLUDE_VIEWS_BY_CHART_TYPE: Record<
         // selecting the end points only makes sense if a time span is selected
         { time: TimePoint.earliest, endpointsOnly: Boolean.true },
         { time: TimePoint.latest, endpointsOnly: Boolean.true },
-        // selecting the end points only makes sense if a time span is selected
-        // and relative mode is not selected
+        // selecting the end points only makes sense if relative mode is not selected
         { stackMode: StackMode.relative, endpointsOnly: Boolean.true },
         // log scale for percentage values doesn't make sense
         { stackMode: StackMode.relative, yScale: ScaleType.log },
