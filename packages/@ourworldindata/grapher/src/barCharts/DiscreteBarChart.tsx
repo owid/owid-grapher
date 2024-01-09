@@ -444,6 +444,7 @@ export class DiscreteBarChart
                 {series.map((series) => {
                     // Todo: add a "placedSeries" getter to get the transformed series, then just loop over the placedSeries and render a bar for each
                     const isNegative = series.value < 0
+                    const isProjection = series.yColumn.isProjection
                     const barX = isNegative
                         ? yAxis.place(series.value)
                         : yAxis.place(this.x0)
@@ -465,6 +466,28 @@ export class DiscreteBarChart
                             className="bar"
                             transform={`translate(0, ${yOffset})`}
                         >
+                            <defs>
+                                {/* Ids should be unique per document (!) Including the color
+                                in the id makes sure that – even if a pattern gets resolved
+                                to a definition from a different chart instance –
+                                the correct color will be used. */}
+                                <pattern
+                                    id={`DiscreteBarChart_striped_${barColor}`}
+                                    patternUnits="userSpaceOnUse"
+                                    width="16"
+                                    height="16"
+                                    patternTransform="rotate(45)"
+                                >
+                                    <line
+                                        x1="0"
+                                        y="0"
+                                        x2="0"
+                                        y2="16"
+                                        stroke={barColor}
+                                        stroke-width="28"
+                                    />
+                                </pattern>
+                            </defs>
                             <text
                                 x={0}
                                 y={0}
@@ -484,7 +507,11 @@ export class DiscreteBarChart
                                 })`}
                                 width={barWidth}
                                 height={barHeight}
-                                fill={barColor}
+                                fill={
+                                    isProjection
+                                        ? `url(#DiscreteBarChart_striped_${barColor})`
+                                        : barColor
+                                }
                                 opacity={GRAPHER_AREA_OPACITY_DEFAULT}
                                 style={{ transition: "height 200ms ease" }}
                             />
