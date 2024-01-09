@@ -140,6 +140,9 @@ refresh:
 	@echo '==> Updating grapher database'
 	@. ./.env && DATA_FOLDER=tmp-downloads ./devTools/docker/refresh-grapher-data.sh
 
+	@echo '!!! If you use ETL, wipe indicators from your R2 staging with `rclone delete r2:owid-api-staging/[yourname]/ ' \
+	'--fast-list --transfers 32 --checkers 32  --verbose`'
+
 refresh.pageviews:
 	@echo '==> Refreshing pageviews'
 	yarn && yarn buildTsc && yarn refreshPageviews
