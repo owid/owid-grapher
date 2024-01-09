@@ -119,6 +119,13 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         )
     }
 
+    @imemo get entityNameColumn(): CoreColumn {
+        return (
+            this.getFirstColumnWithType(ColumnTypeNames.EntityName) ??
+            this.get(OwidTableSlugs.entityName)
+        )
+    }
+
     @imemo get minTime(): Time {
         return this.allTimes[0]
     }
