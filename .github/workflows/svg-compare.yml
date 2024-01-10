@@ -41,7 +41,9 @@ jobs:
             - name: create owid-grapher-svgs local branch
               if: ${{ env.PUSH_BRANCH_NAME != 'master'}}
               working-directory: owid-grapher-svgs
-              run: git branch ${{ env.PUSH_BRANCH_NAME }} && git checkout ${{ env.PUSH_BRANCH_NAME }}
+              run: |
+                  git branch ${{ env.PUSH_BRANCH_NAME }} || echo "Branch ${{ env.PUSH_BRANCH_NAME }} already exists"
+                  git checkout ${{ env.PUSH_BRANCH_NAME }}
 
             # Run the verify tool overwriting any svgs. Stdout is piped to compare-result which will be a 0 byte file if everything works or contain failed grapher ids otherwise
             - name: Generate SVGs and compare to reference

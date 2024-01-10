@@ -17,7 +17,6 @@ jobs:
               shell: bash
               run: |
                   echo "PUSH_BRANCH_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
-                  echo "SVG_TESTER_BRANCH_NAME=${{ github.ref_name }}-all-views" >> $GITHUB_ENV
                   echo "TOKEN=${{ secrets.GITHUBPAT }}" >> $GITHUB_ENV
 
             - name: Set branch name and token for runs from a fork
@@ -25,7 +24,6 @@ jobs:
               shell: bash
               run: |
                   echo "PUSH_BRANCH_NAME=${{ github.repository_owner }}/${{ github.ref_name }}" >> $GITHUB_ENV
-                  echo "SVG_TESTER_BRANCH_NAME=${{ github.repository_owner }}/${{ github.ref_name }}-all-views" >> $GITHUB_ENV
                   echo "TOKEN=${{ github.token }}" >> $GITHUB_ENV
 
             # Checkout the owid-grapher-svgs repo into a subfolder. Use a Personal Access Token for checkout so the
@@ -43,7 +41,9 @@ jobs:
             - name: create owid-grapher-svgs local branch
               if: ${{ env.PUSH_BRANCH_NAME != 'master'}}
               working-directory: owid-grapher-svgs
-              run: git branch ${{ env.SVG_TESTER_BRANCH_NAME }} && git checkout ${{ env.SVG_TESTER_BRANCH_NAME }}
+              run: |
+                  git branch ${{ env.PUSH_BRANCH_NAME }} || echo "Branch ${{ env.PUSH_BRANCH_NAME }} already exists"
+                  git checkout ${{ env.PUSH_BRANCH_NAME }}
 
             # Run the verify tool overwriting any svgs. Stdout is piped to compare-result which will be a 0 byte file if everything works or contain failed grapher ids otherwise
             - name: Generate SVGs and compare to reference
