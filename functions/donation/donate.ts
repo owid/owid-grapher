@@ -11,12 +11,12 @@ import { Value } from "@sinclair/typebox/value"
 import { DEFAULT_HEADERS, CORS_HEADERS } from "./_utils/constants.js"
 
 interface DonateEnvVars {
-    STRIPE_SECRET_KEY: string
+    STRIPE_API_KEY: string
     RECAPTCHA_SECRET_KEY: string
 }
 
 const hasDonateEnvVars = (env: any): env is DonateEnvVars => {
-    return !!env.STRIPE_SECRET_KEY && !!env.RECAPTCHA_SECRET_KEY
+    return !!env.STRIPE_API_KEY && !!env.RECAPTCHA_SECRET_KEY
 }
 
 // This function is called when the request is a preflight request ("OPTIONS").
@@ -37,7 +37,7 @@ export const onRequestPost: PagesFunction = async ({
     if (!hasDonateEnvVars(env))
         // This error is not being caught and surfaced to the client voluntarily.
         throw new Error(
-            "Missing environment variables. Please check that both STRIPE_SECRET_KEY and RECAPTCHA_SECRET_KEY are set."
+            "Missing environment variables. Please check that both STRIPE_API_KEY and RECAPTCHA_SECRET_KEY are set."
         )
 
     // Parse the body of the request as JSON
@@ -69,7 +69,7 @@ export const onRequestPost: PagesFunction = async ({
 
         const session = await createCheckoutSession(
             donation,
-            env.STRIPE_SECRET_KEY
+            env.STRIPE_API_KEY
         )
         const sessionResponse: DonateSessionResponse = { url: session.url }
 
