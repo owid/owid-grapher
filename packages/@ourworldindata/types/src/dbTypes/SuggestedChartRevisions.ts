@@ -81,7 +81,7 @@ export interface SuggestedChartRevisionsRowWithUsersAndExistingConfigRaw {
     createdBy: number
     decisionReason: string | null
     experimental: JsonString | null
-    id: string
+    id: number
     originalConfig: JsonString
     status: SuggestedChartRevisionStatus
     suggestedConfig: JsonString

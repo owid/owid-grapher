@@ -4,8 +4,10 @@ import {
     GrapherInterface,
     SuggestedChartRevisionStatus,
     SuggestedChartRevisionsRowEnriched,
+    SuggestedChartRevisionsRowRaw,
     SuggestedChartRevisionsRowWithUsersAndExistingConfigEnriched,
     SuggestedChartRevisionsRowWithUsersAndExistingConfigRaw,
+    parseChartConfig,
     parseNullableChartConfig,
     parseSuggestedChartRevisionsRowWithUsersAndExistingConfig,
 } from "@ourworldindata/utils"
@@ -49,7 +51,10 @@ export function isValidStatus(
 }
 
 export function checkCanApprove(
-    suggestedChartRevision: SuggestedChartRevisionsRowWithUsersAndExistingConfigEnriched
+    suggestedChartRevision: Pick<
+        SuggestedChartRevisionsRowWithUsersAndExistingConfigEnriched,
+        "status" | "originalConfig" | "existingConfig"
+    >
 ): boolean {
     // note: a suggestion can be approved if status == "rejected" |
     // "flagged" | "pending" AND the original config version equals
@@ -78,7 +83,10 @@ export function checkCanApprove(
 }
 
 export function checkCanReject(
-    suggestedChartRevision: SuggestedChartRevisionsRowWithUsersAndExistingConfigEnriched
+    suggestedChartRevision: Pick<
+        SuggestedChartRevisionsRowWithUsersAndExistingConfigEnriched,
+        "status" | "suggestedConfig" | "existingConfig"
+    >
 ): boolean {
     // note: a suggestion can be rejected if: (1) status ==
     // "pending" | "flagged"; or (2) status == "approved" and the
@@ -112,7 +120,10 @@ export function checkCanReject(
 }
 
 export function checkCanFlag(
-    suggestedChartRevision: SuggestedChartRevisionsRowWithUsersAndExistingConfigEnriched
+    suggestedChartRevision: Pick<
+        SuggestedChartRevisionsRowWithUsersAndExistingConfigEnriched,
+        "status"
+    >
 ): boolean {
     // note: a suggestion can be flagged if status == "pending" or
     // if it is already flagged. Flagging a suggestion that is
@@ -132,20 +143,24 @@ export function checkCanFlag(
 }
 
 export function checkCanPending(
-    _suggestedChartRevision: SuggestedChartRevisionsRowWithUsersAndExistingConfigEnriched
+    _suggestedChartRevision: Pick<
+        SuggestedChartRevisionsRowWithUsersAndExistingConfigEnriched,
+        "status"
+    >
 ): boolean {
     // note: a suggestion cannot be altered to pending from another status
     return false
 }
 
 export async function getAllSuggestedChartRevisionsWithStatus(
+    knex: Knex<any, any[]>,
     limit: number,
     offset: number,
     orderBy: string,
     sortOrder: string,
     status: SuggestedChartRevisionStatus | null
 ): Promise<SuggestedChartRevisionsRowWithUsersAndExistingConfigEnriched[]> {
-    const rawRows = await db.knexInstance().raw(
+    const rawRows = await knex.raw(
         `-- sql
             SELECT scr.id,
                 scr.chartId,
@@ -179,12 +194,79 @@ export async function getAllSuggestedChartRevisionsWithStatus(
         parseSuggestedChartRevisionsRowWithUsersAndExistingConfig
     )
 }
+export async function getSuggestedChartRevisionsById(
+    knex: Knex<any, any[]>,
+    id: number
+): Promise<
+    SuggestedChartRevisionsRowWithUsersAndExistingConfigEnriched | undefined
+> {
+    const suggestedChartRevision: SuggestedChartRevisionsRowWithUsersAndExistingConfigRaw[] =
+        await knex.raw(
+            `-- sql
+            SELECT scr.id,
+                scr.chartId,
+                scr.updatedAt,
+                scr.createdAt,
+                scr.suggestedReason, scr.decisionReason,
+                scr.status,
+                scr.suggestedConfig, scr.changesInDataSummary,
+                scr.originalConfig,
+                scr.createdBy,
+                scr.updatedBy,
+                createdByUser.fullName as createdByFullName,
+                updatedByUser.fullName as updatedByFullName,
+                c.config as existingConfig,
+                c.updatedAt as chartUpdatedAt,
+                c.createdAt as chartCreatedAt
+            FROM suggested_chart_revisions as scr
+            LEFT JOIN charts c on c.id = scr.chartId
+            LEFT JOIN users createdByUser on createdByUser.id = scr.createdBy
+            LEFT JOIN users updatedByUser on updatedByUser.id = scr.updatedBy
+            WHERE scr.id = ?
+        `,
+            [id]
+        )
+    if (suggestedChartRevision.length === 0) return undefined
+    return parseSuggestedChartRevisionsRowWithUsersAndExistingConfig(
+        suggestedChartRevision[0]
+    )
+}
+
+export async function getReducedSuggestedChartRevisionById(
+    knex: Knex<any, any[]>,
+    id: number
+): Promise<
+    | Pick<
+          SuggestedChartRevisionsRowWithUsersAndExistingConfigEnriched,
+          "id" | "chartId" | "suggestedConfig" | "originalConfig" | "status"
+      >
+    | undefined
+> {
+    const rowRaw: Pick<
+        SuggestedChartRevisionsRowWithUsersAndExistingConfigRaw,
+        "id" | "chartId" | "suggestedConfig" | "originalConfig" | "status"
+    >[] = await knex.raw(
+        `SELECT id, chartId, suggestedConfig, originalConfig, status FROM suggested_chart_revisions WHERE id=?`,
+        [id]
+    )
+    if (rowRaw.length === 0) return undefined
+    const rowEnriched: Pick<
+        SuggestedChartRevisionsRowWithUsersAndExistingConfigEnriched,
+        "id" | "chartId" | "suggestedConfig" | "originalConfig" | "status"
+    > = {
+        ...rowRaw[0],
+        suggestedConfig: parseChartConfig(rowRaw[0].suggestedConfig),
+        originalConfig: parseChartConfig(rowRaw[0].originalConfig),
+    }
+    return rowEnriched
+}
 
 export async function getNumSuggestedChartRevisionsWithStatus(
+    knex: Knex<any, any[]>,
     status: string | null
 ): Promise<number> {
     const numTotalRows = (
-        await db.queryMysql(
+        await knex.raw(
             `
                 SELECT COUNT(*) as count
                 FROM suggested_chart_revisions
@@ -203,7 +285,7 @@ export async function getConfigFromChartsOrChartRevisionsPrioritized(
 ): Promise<
     {
         id: number
-        config: GrapherInterface | null
+        config: GrapherInterface
         priority: number
     }[]
 > {
@@ -226,11 +308,11 @@ export async function getConfigFromChartsOrChartRevisionsPrioritized(
 
     const rows: {
         id: number
-        config: GrapherInterface | null
+        config: GrapherInterface
         priority: number
     }[] = rawRows.map((row) => ({
         ...row,
-        config: parseNullableChartConfig(row.config),
+        config: parseChartConfig(row.config),
     }))
 
     return rows

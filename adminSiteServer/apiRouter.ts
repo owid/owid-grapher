@@ -52,8 +52,11 @@ import {
     pick,
 } from "@ourworldindata/utils"
 import {
+    ChartRevisionsRowForInsert,
     GrapherInterface,
     OwidGdocLinkType,
+    SuggestedChartRevision,
+    SuggestedChartRevisionsRowForInsert,
     SuggestedChartRevisionsRowWithUsersAndExistingConfigEnriched,
     SuggestedChartRevisionsRowWithUsersAndExistingConfigRaw,
     DbPlainUser,
@@ -80,7 +83,6 @@ import {
 } from "./gitDataExport.js"
 import { ChartRevision } from "../db/model/ChartRevision.js"
 import {
-    SuggestedChartRevision,
     checkCanApprove,
     checkCanFlag,
     checkCanPending,
@@ -88,6 +90,8 @@ import {
     getAllSuggestedChartRevisionsWithStatus,
     getConfigFromChartsOrChartRevisionsPrioritized,
     getNumSuggestedChartRevisionsWithStatus,
+    getReducedSuggestedChartRevisionById,
+    getSuggestedChartRevisionsById,
     isValidStatus,
 } from "../db/model/SuggestedChartRevision.js"
 import { denormalizeLatestCountryData } from "../baker/countryProfiles.js"
@@ -114,6 +118,7 @@ import { In } from "typeorm"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 import { GdocFactory } from "../db/model/Gdoc/GdocFactory.js"
+import { Knex } from "knex"
 
 const apiRouter = new FunctionalRouter()
 const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
@@ -303,7 +308,7 @@ const expectChartById = async (chartId: any): Promise<GrapherInterface> => {
 }
 
 const saveGrapher = async (
-    transactionContext: db.TransactionContext,
+    transactionContext: Knex<any, any[]>,
     user: CurrentUser,
     newConfig: GrapherInterface,
     existingConfig?: GrapherInterface,
@@ -312,7 +317,7 @@ const saveGrapher = async (
 ) => {
     // Slugs need some special logic to ensure public urls remain consistent whenever possible
     async function isSlugUsedInRedirect() {
-        const rows = await transactionContext.query(
+        const rows = await transactionContext.raw(
             `SELECT * FROM chart_slug_redirects WHERE chart_id != ? AND slug = ?`,
             // -1 is a placeholder ID that will never exist; but we cannot use NULL because
             // in that case we would always get back an empty resultset
@@ -322,7 +327,7 @@ const saveGrapher = async (
     }
 
     async function isSlugUsedInOtherGrapher() {
-        const rows = await transactionContext.query(
+        const rows = await transactionContext.raw(
             `SELECT id FROM charts WHERE id != ? AND config->>"$.isPublished" = "true" AND JSON_EXTRACT(config, "$.slug") = ?`,
             // -1 is a placeholder ID that will never exist; but we cannot use NULL because
             // in that case we would always get back an empty resultset
@@ -349,11 +354,11 @@ const saveGrapher = async (
             existingConfig.slug !== newConfig.slug
         ) {
             // Changing slug of an existing chart, delete any old redirect and create new one
-            await transactionContext.execute(
+            await transactionContext.raw(
                 `DELETE FROM chart_slug_redirects WHERE chart_id = ? AND slug = ?`,
                 [existingConfig.id, existingConfig.slug]
             )
-            await transactionContext.execute(
+            await transactionContext.raw(
                 `INSERT INTO chart_slug_redirects (chart_id, slug) VALUES (?, ?)`,
                 [existingConfig.id, existingConfig.slug]
             )
@@ -375,12 +380,12 @@ const saveGrapher = async (
     const newJsonConfig = JSON.stringify(newConfig)
     // todo: drop "isExplorable"
     if (existingConfig)
-        await transactionContext.query(
+        await transactionContext.raw(
             `UPDATE charts SET config=?, updatedAt=?, lastEditedAt=?, lastEditedByUserId=?, isExplorable=? WHERE id = ?`,
             [newJsonConfig, now, now, user.id, false, chartId]
         )
     else {
-        const result = await transactionContext.execute(
+        const result = await transactionContext.raw(
             `INSERT INTO charts (config, createdAt, updatedAt, lastEditedAt, lastEditedByUserId, isExplorable) VALUES (?)`,
             [[newJsonConfig, now, now, now, user.id, false]]
         )
@@ -388,25 +393,25 @@ const saveGrapher = async (
     }
 
     // Record this change in version history
-    const log = new ChartRevision()
-    log.chartId = chartId as number
-    log.userId = user.id
-    log.config = newConfig
-    // TODO: the orm needs to support this but it does not :(
-    log.createdAt = new Date()
-    log.updatedAt = new Date()
-    await transactionContext.manager.save(log)
+    const log = {
+        chartId: chartId as number,
+        userId: user.id,
+        config: JSON.stringify(newConfig),
+    } satisfies ChartRevisionsRowForInsert
+    transactionContext
+        .table<ChartRevisionsRowForInsert>("chart_revisions")
+        .insert(log)
 
     // Remove any old dimensions and store the new ones
     // We only note that a relationship exists between the chart and variable in the database; the actual dimension configuration is left to the json
-    await transactionContext.execute(
+    await transactionContext.raw(
         `DELETE FROM chart_dimensions WHERE chartId=?`,
         [chartId]
     )
 
     const newDimensions = newConfig.dimensions ?? []
     for (const [i, dim] of newDimensions.entries()) {
-        await transactionContext.execute(
+        await transactionContext.raw(
             `INSERT INTO chart_dimensions (chartId, variableId, property, \`order\`) VALUES (?)`,
             [[chartId, dim.variableId, dim.property, i]]
         )
@@ -423,7 +428,7 @@ const saveGrapher = async (
         (!existingConfig || !existingConfig.isPublished)
     ) {
         // Newly published, set publication info
-        await transactionContext.execute(
+        await transactionContext.raw(
             `UPDATE charts SET publishedAt=?, publishedByUserId=? WHERE id = ? `,
             [now, user.id, chartId]
         )
@@ -434,7 +439,7 @@ const saveGrapher = async (
         existingConfig.isPublished
     ) {
         // Unpublishing chart, delete any existing redirects to it
-        await transactionContext.execute(
+        await transactionContext.raw(
             `DELETE FROM chart_slug_redirects WHERE chart_id = ?`,
             [existingConfig.id]
         )
@@ -861,6 +866,7 @@ apiRouter.get(
 
         const suggestedChartRevisions: SuggestedChartRevisionsRowWithUsersAndExistingConfigEnriched[] =
             await getAllSuggestedChartRevisionsWithStatus(
+                db.knexInstance(),
                 limit,
                 offset,
                 orderBy,
@@ -868,8 +874,10 @@ apiRouter.get(
                 status
             )
 
-        const numTotalRows =
-            await getNumSuggestedChartRevisionsWithStatus(status)
+        const numTotalRows = await getNumSuggestedChartRevisionsWithStatus(
+            db.knexInstance(),
+            status
+        )
 
         const parsed = suggestedChartRevisions.map(
             (suggestedChartRevision): SuggestedChartRevision => ({
@@ -1032,7 +1040,7 @@ apiRouter.post(
             // retrieves original chart configs
             const rawRows: {
                 id: number
-                config: GrapherInterface | null
+                config: GrapherInterface
                 priority: number
             }[] = await getConfigFromChartsOrChartRevisionsPrioritized(
                 t,
@@ -1042,7 +1050,7 @@ apiRouter.post(
 
             // drops duplicate id-version rows (keeping the row from the
             // `charts` table when available).
-            const filteredRows = rows.filter(
+            const filteredRows = rawRows.filter(
                 (v, i, a) =>
                     a.findIndex(
                         (el) =>
@@ -1157,7 +1165,7 @@ apiRouter.post(
             })
 
             // inserts suggested chart revisions
-            const result = await t.execute(
+            const result = await t.raw(
                 `
                 INSERT INTO suggested_chart_revisions
                 (chartId, suggestedConfig, originalConfig, suggestedReason, changesInDataSummary, status, createdBy, createdAt, updatedAt)
@@ -1193,33 +1201,10 @@ apiRouter.get(
             req.params.suggestedChartRevisionId
         )
 
-        const suggestedChartRevision: SuggestedChartRevisionsRowWithUsersAndExistingConfigRaw =
-            await db.mysqlFirst(
-                `-- sql
-            SELECT scr.id,
-                scr.chartId,
-                scr.updatedAt,
-                scr.createdAt,
-                scr.suggestedReason, scr.decisionReason,
-                scr.status,
-                scr.suggestedConfig, scr.changesInDataSummary,
-                scr.originalConfig,
-                scr.createdBy,
-                scr.updatedBy,
-                createdByUser.fullName as createdByFullName,
-                updatedByUser.fullName as updatedByFullName,
-                c.config as existingConfig,
-                c.updatedAt as chartUpdatedAt,
-                c.createdAt as chartCreatedAt
-            FROM suggested_chart_revisions as scr
-            LEFT JOIN charts c on c.id = scr.chartId
-            LEFT JOIN users createdByUser on createdByUser.id = scr.createdBy
-            LEFT JOIN users updatedByUser on updatedByUser.id = scr.updatedBy
-            WHERE scr.id = ?
-        `,
-                [suggestedChartRevisionId]
-            )
-
+        const suggestedChartRevision = await getSuggestedChartRevisionsById(
+            db.knexInstance(),
+            suggestedChartRevisionId
+        )
         if (!suggestedChartRevision) {
             throw new JsonError(
                 `No suggested chart revision by id '${suggestedChartRevisionId}'`,
@@ -1227,27 +1212,14 @@ apiRouter.get(
             )
         }
 
-        suggestedChartRevision.suggestedConfig = JSON.parse(
-            suggestedChartRevision.suggestedConfig
-        )
-        suggestedChartRevision.originalConfig = JSON.parse(
-            suggestedChartRevision.originalConfig
-        )
-        suggestedChartRevision.existingConfig = JSON.parse(
-            suggestedChartRevision.existingConfig
-        )
-        suggestedChartRevision.canApprove =
-            SuggestedChartRevision.checkCanApprove(suggestedChartRevision)
-        suggestedChartRevision.canReject =
-            SuggestedChartRevision.checkCanReject(suggestedChartRevision)
-        suggestedChartRevision.canFlag = SuggestedChartRevision.checkCanFlag(
-            suggestedChartRevision
-        )
-        suggestedChartRevision.canPending =
-            SuggestedChartRevision.checkCanPending(suggestedChartRevision)
-
         return {
-            suggestedChartRevision: suggestedChartRevision,
+            suggestedChartRevision: {
+                ...suggestedChartRevision,
+                canApprove: checkCanApprove(suggestedChartRevision),
+                canReject: checkCanReject(suggestedChartRevision),
+                canFlag: checkCanFlag(suggestedChartRevision),
+                canPending: checkCanPending(suggestedChartRevision),
+            } satisfies SuggestedChartRevision,
         }
     }
 )
@@ -1265,43 +1237,37 @@ apiRouter.post(
             decisionReason: string
         }
 
-        await db.transaction(async (t) => {
-            const suggestedChartRevision = await db.mysqlFirst(
-                `SELECT id, chartId, suggestedConfig, originalConfig, status FROM suggested_chart_revisions WHERE id=?`,
-                [suggestedChartRevisionId]
+        await db.knexInstance().transaction(async (t) => {
+            const suggestedChartRevisionFromDb:
+                | Pick<
+                      SuggestedChartRevisionsRowWithUsersAndExistingConfigEnriched,
+                      | "id"
+                      | "chartId"
+                      | "suggestedConfig"
+                      | "originalConfig"
+                      | "status"
+                  >
+                | undefined = await getReducedSuggestedChartRevisionById(
+                t,
+                suggestedChartRevisionId
             )
-            if (!suggestedChartRevision) {
+            if (!suggestedChartRevisionFromDb) {
                 throw new JsonError(
                     `No suggested chart revision found for id '${suggestedChartRevisionId}'`,
                     404
                 )
             }
-            if (suggestedConfig !== undefined && suggestedConfig !== null) {
-                suggestedChartRevision.suggestedConfig = suggestedConfig
-            } else {
-                suggestedChartRevision.suggestedConfig = JSON.parse(
-                    suggestedChartRevision.suggestedConfig
-                )
+            const suggestedChartRevision = {
+                ...suggestedChartRevisionFromDb,
+                existingConfig: await expectChartById(
+                    suggestedChartRevisionFromDb.chartId
+                ),
             }
-            suggestedChartRevision.originalConfig = JSON.parse(
-                suggestedChartRevision.originalConfig
-            )
-            suggestedChartRevision.existingConfig = await expectChartById(
-                suggestedChartRevision.chartId
-            )
 
-            const canApprove = SuggestedChartRevision.checkCanApprove(
-                suggestedChartRevision
-            )
-            const canReject = SuggestedChartRevision.checkCanReject(
-                suggestedChartRevision
-            )
-            const canFlag = SuggestedChartRevision.checkCanFlag(
-                suggestedChartRevision
-            )
-            const canPending = SuggestedChartRevision.checkCanPending(
-                suggestedChartRevision
-            )
+            const canApprove = checkCanApprove(suggestedChartRevision)
+            const canReject = checkCanReject(suggestedChartRevision)
+            const canFlag = checkCanFlag(suggestedChartRevision)
+            const canPending = checkCanPending(suggestedChartRevision)
 
             const canUpdate =
                 (status === "approved" && canApprove) ||
@@ -1316,7 +1282,7 @@ apiRouter.post(
                 )
             }
 
-            await t.execute(
+            await t.raw(
                 `
                 UPDATE suggested_chart_revisions
                 SET status=?, decisionReason=?, updatedAt=?, updatedBy=?
@@ -1334,7 +1300,7 @@ apiRouter.post(
             // Update config ONLY when APPROVE button is clicked
             // Makes sense when the suggested config is a sugegstion by GPT, otherwise is redundant but we are cool with it
             if (status === SuggestedChartRevisionStatus.approved) {
-                await t.execute(
+                await t.raw(
                     `
                     UPDATE suggested_chart_revisions
                     SET suggestedConfig=?

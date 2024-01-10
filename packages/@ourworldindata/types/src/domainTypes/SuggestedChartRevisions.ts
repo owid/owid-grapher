@@ -23,19 +23,18 @@ export interface SuggestedChartRevision {
     canPending?: boolean
     canReject?: boolean
     changesInDataSummary?: string | null
-    chartCreatedAt: string
+    chartCreatedAt: Date
     chartId: number
-    chartUpdatedAt?: string
+    chartUpdatedAt?: Date | null
     createdAt?: Date
     createdBy: number
-    createdByFullName: string
+    createdByFullName: string | null
     decisionReason?: string | null
     existingConfig: GrapherInterface
     experimental?: SuggestedChartRevisionsExperimental | null
     id?: number
     isPendingOrFlagged?: number | null
     originalConfig: GrapherInterface
-    originalVersion: number
     status: SuggestedChartRevisionStatus
     suggestedConfig: GrapherInterface
     suggestedReason?: string | null
