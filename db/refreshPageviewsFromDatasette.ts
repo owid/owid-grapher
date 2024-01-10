@@ -4,6 +4,9 @@ import Papa from "papaparse"
 import * as db from "./db.js"
 
 async function downloadAndInsertCSV(): Promise<void> {
+    // Fetch CSV from private Datasette and insert it to a local MySQL. This function
+    // exists because `make refresh` uses MySQL dump that excludes analytics_pageviews
+    // table. That's why it's necessary to call `make refresh.pageviews` separately.
     const csvUrl =
         "http://datasette-private/owid/analytics_pageviews.csv?_size=max"
     const response = await fetch(csvUrl)
