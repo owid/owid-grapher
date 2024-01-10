@@ -41,6 +41,7 @@ jobs:
             - name: create owid-grapher-svgs local branch
               if: ${{ env.PUSH_BRANCH_NAME != 'master'}}
               working-directory: owid-grapher-svgs
+              continue-on-error: true
               run: |
                   git branch ${{ env.PUSH_BRANCH_NAME }} || echo "Branch ${{ env.PUSH_BRANCH_NAME }} already exists"
                   git checkout ${{ env.PUSH_BRANCH_NAME }}
