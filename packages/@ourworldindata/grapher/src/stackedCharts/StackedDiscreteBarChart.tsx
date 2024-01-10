@@ -27,6 +27,7 @@ import {
     GRAPHER_AREA_OPACITY_DEFAULT,
     GRAPHER_AXIS_LINE_WIDTH_DEFAULT,
     GRAPHER_AXIS_LINE_WIDTH_THICK,
+    GRAPHER_FONT_SCALE_12,
     SeriesName,
 } from "../core/GrapherConstants"
 import {
@@ -182,7 +183,7 @@ export class StackedDiscreteBarChart
         // can't use the computed property `barHeight` here as that would create a circular dependency
         const barHeight =
             (0.8 * this.boundsWithoutLegend.height) / this.items.length
-        return Math.min(0.75 * this.fontSize, 1.1 * barHeight)
+        return Math.min(GRAPHER_FONT_SCALE_12 * this.fontSize, 1.1 * barHeight)
     }
 
     @computed private get labelStyle(): {
@@ -651,7 +652,7 @@ export class StackedDiscreteBarChart
             yAxis.place(bar.point.value) - yAxis.place(chartContext.x0)
 
         const barLabel = formatValueForLabel(bar.point.value)
-        const labelFontSize = 0.75 * chartContext.baseFontSize
+        const labelFontSize = GRAPHER_FONT_SCALE_12 * chartContext.baseFontSize
         const labelBounds = Bounds.forText(barLabel, {
             fontSize: labelFontSize,
         })

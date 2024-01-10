@@ -27,6 +27,7 @@ import {
     EntitySelectionMode,
     GRAPHER_AXIS_LINE_WIDTH_DEFAULT,
     GRAPHER_AXIS_LINE_WIDTH_THICK,
+    GRAPHER_FONT_SCALE_12,
     Patterns,
 } from "../core/GrapherConstants"
 import { DualAxisComponent } from "../axis/AxisViews"
@@ -1065,7 +1066,7 @@ export class MarimekkoChart
                     fontWeight={700}
                     fill="#666"
                     opacity={1}
-                    fontSize={0.75 * fontSize}
+                    fontSize={GRAPHER_FONT_SCALE_12 * fontSize}
                     textAnchor="middle"
                     dominantBaseline="middle"
                     style={{ pointerEvents: "none" }}
@@ -1589,7 +1590,7 @@ export class MarimekkoChart
     }
 
     @computed private get entityLabelFontSize(): number {
-        return 0.75 * this.fontSize
+        return GRAPHER_FONT_SCALE_12 * this.fontSize
     }
 
     @computed private get labels(): LabelCandidateWithElement[] {

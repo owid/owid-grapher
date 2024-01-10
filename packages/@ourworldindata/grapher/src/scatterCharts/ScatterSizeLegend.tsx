@@ -6,6 +6,8 @@ import { first, last } from "@ourworldindata/utils"
 import {
     BASE_FONT_SIZE,
     GRAPHER_DARK_TEXT,
+    GRAPHER_FONT_SCALE_10,
+    GRAPHER_FONT_SCALE_11,
     GRAPHER_LIGHT_TEXT,
 } from "../core/GrapherConstants"
 import { CoreColumn } from "@ourworldindata/core-table"
@@ -96,7 +98,10 @@ export class ScatterSizeLegend {
     }
 
     @computed private get label(): TextWrap {
-        const fontSize = Math.max(MIN_FONT_SIZE, 0.625 * this.baseFontSize)
+        const fontSize = Math.max(
+            MIN_FONT_SIZE,
+            GRAPHER_FONT_SCALE_10 * this.baseFontSize
+        )
         return new TextWrap({
             text: "Circles sized by",
             // Allow text to _slightly_ go outside boundaries.
@@ -109,7 +114,10 @@ export class ScatterSizeLegend {
     }
 
     @computed private get title(): TextWrap {
-        const fontSize = Math.max(MIN_FONT_SIZE, 0.6875 * this.baseFontSize)
+        const fontSize = Math.max(
+            MIN_FONT_SIZE,
+            GRAPHER_FONT_SCALE_11 * this.baseFontSize
+        )
         return new TextWrap({
             text: this.manager.sizeColumn.displayName,
             // Allow text to _slightly_ go outside boundaries.

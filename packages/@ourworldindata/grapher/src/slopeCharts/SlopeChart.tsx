@@ -31,6 +31,10 @@ import {
     EntitySelectionMode,
     SeriesName,
     GRAPHER_DARK_TEXT,
+    GRAPHER_FONT_SCALE_9_6,
+    GRAPHER_FONT_SCALE_10_5,
+    GRAPHER_FONT_SCALE_12,
+    GRAPHER_FONT_SCALE_14,
 } from "../core/GrapherConstants"
 import { ChartInterface } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
@@ -807,7 +811,10 @@ class LabelledSlopes
             const [v1, v2] = series.values
             const [x1, x2] = [xScale(v1.x), xScale(v2.x)]
             const [y1, y2] = [yScale(v1.y), yScale(v2.y)]
-            const fontSize = (isPortrait ? 0.6 : 0.65) * this.fontSize
+            const fontSize =
+                (isPortrait
+                    ? GRAPHER_FONT_SCALE_9_6
+                    : GRAPHER_FONT_SCALE_10_5) * this.fontSize
             const leftValueStr = yColumn.formatValueShort(v1.y)
             const rightValueStr = yColumn.formatValueShort(v2.y)
             const leftValueWidth = Bounds.forText(leftValueStr, {
@@ -1071,7 +1078,7 @@ class LabelledSlopes
         const { x1, x2 } = slopeData[0]
         const [y1, y2] = yScale.range()
 
-        const tickFontSize = 0.75 * fontSize
+        const tickFontSize = GRAPHER_FONT_SCALE_12 * fontSize
 
         return (
             <g
@@ -1135,7 +1142,7 @@ class LabelledSlopes
                     y={y1 + 10}
                     textAnchor="middle"
                     fill={GRAPHER_DARK_TEXT}
-                    fontSize={0.875 * fontSize}
+                    fontSize={GRAPHER_FONT_SCALE_14 * fontSize}
                 >
                     {xDomain[0].toString()}
                 </Text>
@@ -1144,7 +1151,7 @@ class LabelledSlopes
                     y={y1 + 10}
                     textAnchor="middle"
                     fill={GRAPHER_DARK_TEXT}
-                    fontSize={0.875 * fontSize}
+                    fontSize={GRAPHER_FONT_SCALE_14 * fontSize}
                 >
                     {xDomain[1].toString()}
                 </Text>

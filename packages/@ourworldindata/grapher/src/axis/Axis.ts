@@ -25,6 +25,7 @@ import {
     ValueRange,
 } from "@ourworldindata/core-table"
 import { Tickmark } from "./AxisConfigInterface"
+import { GRAPHER_FONT_SCALE_12 } from "../core/GrapherConstants.js"
 
 interface TickLabelPlacement {
     value: number
@@ -387,7 +388,7 @@ abstract class AbstractAxis {
     }
 
     @computed get tickFontSize(): number {
-        return 0.75 * this.fontSize
+        return GRAPHER_FONT_SCALE_12 * this.fontSize
     }
 
     @computed protected get baseTicks(): Tickmark[] {
@@ -434,7 +435,7 @@ abstract class AbstractAxis {
     }
 
     @computed get labelFontSize(): number {
-        return 0.75 * this.fontSize
+        return GRAPHER_FONT_SCALE_12 * this.fontSize
     }
 
     @computed get labelTextWrap(): TextWrap | undefined {
