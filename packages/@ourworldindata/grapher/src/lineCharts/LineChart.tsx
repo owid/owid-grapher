@@ -312,7 +312,7 @@ export class LineChart
             )
 
             const groupedByEntity = table
-                .groupBy("entityName")
+                .groupBy(table.entityNameColumn.slug)
                 .filter((t) => !t.hasAnyColumnNoValidValue(this.yColumnSlugs))
 
             if (groupedByEntity.length === 0) return BlankOwidTable()

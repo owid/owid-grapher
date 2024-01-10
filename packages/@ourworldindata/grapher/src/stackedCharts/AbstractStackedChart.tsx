@@ -104,7 +104,7 @@ export class AbstractStackedChart
             }
 
             const groupedByEntity = table
-                .groupBy("entityName")
+                .groupBy(table.entityNameColumn.slug)
                 .map((t: OwidTable) =>
                     t.dropRowsWithErrorValuesForAnyColumn(this.yColumnSlugs)
                 )
