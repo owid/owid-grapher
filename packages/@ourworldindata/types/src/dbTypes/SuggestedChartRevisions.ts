@@ -1,16 +1,10 @@
+import {
+    SuggestedChartRevisionStatus,
+    SuggestedChartRevisionsExperimental,
+} from "../domainTypes/SuggestedChartRevisions.js"
 import { JsonString } from "../domainTypes/Various.js"
 import { GrapherInterface } from "../grapherTypes/GrapherTypes.js"
 import { parseChartConfig, serializeChartConfig } from "./Charts.js"
-
-export interface SuggestedChartRevisionsExperimental {
-    gpt: {
-        model: string
-        suggestions: {
-            title: string
-            subtitle: string
-        }[]
-    }
-}
 
 export const SuggestedChartRevisionsTableName = "suggested_chart_revisions"
 export interface DbInsertSuggestedChartRevision {
@@ -24,7 +18,7 @@ export interface DbInsertSuggestedChartRevision {
     isPendingOrFlagged?: number | null
     originalConfig: JsonString
     originalVersion: number
-    status: string
+    status: SuggestedChartRevisionStatus
     suggestedConfig: JsonString
     suggestedReason?: string | null
     suggestedVersion: number
@@ -74,6 +68,65 @@ export function serializeSuggestedChartRevisionsRow(
     return {
         ...row,
         originalConfig: serializeChartConfig(row.originalConfig),
+        suggestedConfig: serializeChartConfig(row.suggestedConfig),
+        experimental: serializeSuggestedChartRevisionsExperimental(
+            row.experimental
+        ),
+    }
+}
+
+export interface SuggestedChartRevisionsRowWithUsersAndExistingConfigRaw {
+    chartId: number
+    createdAt: Date
+    createdBy: number
+    decisionReason: string | null
+    experimental: JsonString | null
+    id: string
+    originalConfig: JsonString
+    status: SuggestedChartRevisionStatus
+    suggestedConfig: JsonString
+    suggestedReason: string | null
+    suggestedVersion: number
+    updatedAt: Date | null
+    updatedBy: number | null
+    createdByFullName: string | null
+    updatedByFullName: string | null
+    existingConfig: JsonString
+    chartCreatedAt: Date
+    chartUpdatedAt: Date | null
+}
+
+export type SuggestedChartRevisionsRowWithUsersAndExistingConfigEnriched = Omit<
+    SuggestedChartRevisionsRowWithUsersAndExistingConfigRaw,
+    "originalConfig" | "suggestedConfig" | "experimental" | "existingConfig"
+> & {
+    originalConfig: GrapherInterface
+    existingConfig: GrapherInterface
+    suggestedConfig: GrapherInterface
+    experimental: SuggestedChartRevisionsExperimental | null
+}
+
+export function parseSuggestedChartRevisionsRowWithUsersAndExistingConfig(
+    row: SuggestedChartRevisionsRowWithUsersAndExistingConfigRaw
+): SuggestedChartRevisionsRowWithUsersAndExistingConfigEnriched {
+    return {
+        ...row,
+        originalConfig: parseChartConfig(row.originalConfig),
+        existingConfig: parseChartConfig(row.existingConfig),
+        suggestedConfig: parseChartConfig(row.suggestedConfig),
+        experimental: parseSuggestedChartRevisionsExperimental(
+            row.experimental
+        ),
+    }
+}
+
+export function serializeSuggestedChartRevisionsRowWithUsersAndExistingConfig(
+    row: SuggestedChartRevisionsRowWithUsersAndExistingConfigEnriched
+): SuggestedChartRevisionsRowWithUsersAndExistingConfigRaw {
+    return {
+        ...row,
+        originalConfig: serializeChartConfig(row.originalConfig),
+        existingConfig: serializeChartConfig(row.existingConfig),
         suggestedConfig: serializeChartConfig(row.suggestedConfig),
         experimental: serializeSuggestedChartRevisionsExperimental(
             row.experimental

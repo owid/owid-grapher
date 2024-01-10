@@ -12,6 +12,7 @@ import {
     Tippy,
     uniqBy,
 } from "@ourworldindata/utils"
+import { SuggestedChartRevision } from "@ourworldindata/types"
 import { Grapher } from "@ourworldindata/grapher"
 import {
     TextAreaField,
@@ -44,7 +45,6 @@ import {
     VisionDeficiencyDropdown,
     VisionDeficiencyEntity,
 } from "./VisionDeficiencies.js"
-import { SuggestedChartRevisionSerialized } from "./SuggestedChartRevision.js"
 import { match } from "ts-pattern"
 import { ReferencesSection } from "./EditorReferencesTab.js"
 
@@ -57,7 +57,7 @@ interface UserSelectOption {
 export class SuggestedChartRevisionApproverPage extends React.Component<{
     suggestedChartRevisionId?: number
 }> {
-    @observable.ref suggestedChartRevisions?: SuggestedChartRevisionSerialized[]
+    @observable.ref suggestedChartRevisions?: SuggestedChartRevision[]
     @observable currentlyActiveUserId?: number
     @observable.ref originalGrapherElement?: JSX.Element
     @observable.ref suggestedGrapherElement?: JSX.Element
@@ -205,7 +205,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
         console.log("fetchGraphers 2")
         runInAction(() => {
             this.suggestedChartRevisions =
-                json.suggestedChartRevisions as SuggestedChartRevisionSerialized[]
+                json.suggestedChartRevisions as SuggestedChartRevision[]
         })
         console.log("fetchGraphers 3")
         this.decisionReasonInput = this.currentSuggestedChartRevision
@@ -289,9 +289,8 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
         if (this.currentSuggestedChartRevision) {
             // Get suggestions
             const suggestions =
-                this.currentSuggestedChartRevision?.experimental?.["gpt"]?.[
-                    "suggestions"
-                ]
+                this.currentSuggestedChartRevision?.experimental?.gpt
+                    ?.suggestions
             if (suggestions !== undefined) {
                 // Set title
                 const title = suggestions?.[this.gptNum]?.["title"]
@@ -498,7 +497,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
     @computed get availableUsers(): UserSelectOption[] {
         const availableUserAccordingToRevisions =
             this.suggestedChartRevisions?.map((revision) => ({
-                userId: revision.createdById,
+                userId: revision.createdBy,
                 userName: revision.createdByFullName,
             })) ?? []
 
@@ -518,7 +517,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
         if (this.currentlyActiveUserId === undefined)
             return this.suggestedChartRevisions
         return this.suggestedChartRevisions?.filter(
-            (revision) => revision.createdById === this.currentlyActiveUserId
+            (revision) => revision.createdBy === this.currentlyActiveUserId
         )
     }
 

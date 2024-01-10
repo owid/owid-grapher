@@ -30,6 +30,18 @@ export function serializeChartConfig(config: GrapherInterface): JsonString {
     return JSON.stringify(config)
 }
 
+export function parseNullableChartConfig(
+    config: JsonString | null
+): GrapherInterface | null {
+    return config ? JSON.parse(config) : null
+}
+
+export function serializeNullableChartConfig(
+    config: GrapherInterface | null
+): JsonString | null {
+    return config ? JSON.stringify(config) : null
+}
+
 export function parseChartsRow(row: DbRawChart): DbEnrichedChart {
     return { ...row, config: parseChartConfig(row.config) }
 }

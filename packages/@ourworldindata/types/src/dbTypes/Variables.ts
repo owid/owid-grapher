@@ -1,6 +1,11 @@
 import { OwidVariableDisplayConfigInterface } from "../OwidVariableDisplayConfigInterface.js"
 import { JsonString } from "../domainTypes/Various.js"
 import { GrapherInterface } from "../grapherTypes/GrapherTypes.js"
+import {
+    parseChartConfig,
+    parseNullableChartConfig,
+    serializeNullableChartConfig,
+} from "./Charts.js"
 
 export const VariablesTableName = "variables"
 export interface DbInsertVariable {
@@ -143,30 +148,6 @@ export function serializeVariableOriginalMetadata(
     return originalMetadata ? JSON.stringify(originalMetadata) : null
 }
 
-export function parseVariableGrapherConfigAdmin(
-    grapherConfigAdmin: JsonString | null
-): GrapherInterface {
-    return grapherConfigAdmin ? JSON.parse(grapherConfigAdmin) : null
-}
-
-export function serializeVariableGrapherConfigAdmin(
-    grapherConfigAdmin: GrapherInterface | null
-): JsonString | null {
-    return grapherConfigAdmin ? JSON.stringify(grapherConfigAdmin) : null
-}
-
-export function parseVariableGrapherConfigETL(
-    grapherConfigETL: JsonString | null
-): GrapherInterface {
-    return grapherConfigETL ? JSON.parse(grapherConfigETL) : null
-}
-
-export function serializeVariableGrapherConfigETL(
-    grapherConfigETL: GrapherInterface | null
-): JsonString | null {
-    return grapherConfigETL ? JSON.stringify(grapherConfigETL) : null
-}
-
 export function parseVariableProcessingLog(
     processingLog: JsonString | null
 ): any {
@@ -188,10 +169,8 @@ export function parseVariablesRow(row: DbRawVariable): DbEnrichedVariable {
         dimensions: parseVariableDimensions(row.dimensions),
         descriptionKey: parseVariableDescriptionKey(row.descriptionKey),
         originalMetadata: parseVariableOriginalMetadata(row.originalMetadata),
-        grapherConfigAdmin: parseVariableGrapherConfigAdmin(
-            row.grapherConfigAdmin
-        ),
-        grapherConfigETL: parseVariableGrapherConfigETL(row.grapherConfigETL),
+        grapherConfigAdmin: parseNullableChartConfig(row.grapherConfigAdmin),
+        grapherConfigETL: parseNullableChartConfig(row.grapherConfigETL),
         processingLog: parseVariableProcessingLog(row.processingLog),
     }
 }
@@ -207,12 +186,10 @@ export function serializeVariablesRow(row: DbEnrichedVariable): DbRawVariable {
         originalMetadata: serializeVariableOriginalMetadata(
             row.originalMetadata
         ),
-        grapherConfigAdmin: serializeVariableGrapherConfigAdmin(
+        grapherConfigAdmin: serializeNullableChartConfig(
             row.grapherConfigAdmin
         ),
-        grapherConfigETL: serializeVariableGrapherConfigETL(
-            row.grapherConfigETL
-        ),
+        grapherConfigETL: serializeNullableChartConfig(row.grapherConfigETL),
         processingLog: serializeVariableProcessingLog(row.processingLog),
     }
 }

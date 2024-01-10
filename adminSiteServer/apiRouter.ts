@@ -54,9 +54,12 @@ import {
 import {
     GrapherInterface,
     OwidGdocLinkType,
+    SuggestedChartRevisionsRowWithUsersAndExistingConfigEnriched,
+    SuggestedChartRevisionsRowWithUsersAndExistingConfigRaw,
     DbPlainUser,
     UsersTableName,
     grapherKeysToSerialize,
+    parseSuggestedChartRevisionsRowWithUsersAndExistingConfig,
 } from "@ourworldindata/types"
 import {
     getVariableDataRoute,
@@ -76,7 +79,17 @@ import {
     removeDatasetFromGitRepo,
 } from "./gitDataExport.js"
 import { ChartRevision } from "../db/model/ChartRevision.js"
-import { SuggestedChartRevision } from "../db/model/SuggestedChartRevision.js"
+import {
+    SuggestedChartRevision,
+    checkCanApprove,
+    checkCanFlag,
+    checkCanPending,
+    checkCanReject,
+    getAllSuggestedChartRevisionsWithStatus,
+    getConfigFromChartsOrChartRevisionsPrioritized,
+    getNumSuggestedChartRevisionsWithStatus,
+    isValidStatus,
+} from "../db/model/SuggestedChartRevision.js"
 import { denormalizeLatestCountryData } from "../baker/countryProfiles.js"
 import { ChartRedirect, References } from "../adminSiteClient/ChartEditor.js"
 import { DeployQueueServer } from "../baker/DeployQueueServer.js"
@@ -832,11 +845,7 @@ apiRouter.get(
         const sortOrder = isValidSortOrder(req.query.sortOrder as string)
             ? (req.query.sortOrder as string).toUpperCase()
             : "DESC"
-        const status = SuggestedChartRevision.isValidStatus(
-            req.query.status as SuggestedChartRevisionStatus
-        )
-            ? req.query.status
-            : null
+        const status = isValidStatus(req.query.status) ? req.query.status : null
 
         let orderBy
         if (sortBy === "variableId") {
@@ -850,74 +859,30 @@ apiRouter.get(
             orderBy = `scr.${sortBy}`
         }
 
-        const suggestedChartRevisions = await db.queryMysql(
-            `-- sql
-            SELECT scr.id, scr.chartId, scr.updatedAt, scr.createdAt,
-                scr.suggestedReason, scr.decisionReason, scr.status,
-                scr.suggestedConfig, scr.originalConfig, scr.changesInDataSummary,
-                scr.experimental,
-                createdByUser.id as createdById,
-                updatedByUser.id as updatedById,
-                createdByUser.fullName as createdByFullName,
-                updatedByUser.fullName as updatedByFullName,
-                c.config as existingConfig, c.updatedAt as chartUpdatedAt,
-                c.createdAt as chartCreatedAt
-            FROM suggested_chart_revisions as scr
-            LEFT JOIN charts c on c.id = scr.chartId
-            LEFT JOIN users createdByUser on createdByUser.id = scr.createdBy
-            LEFT JOIN users updatedByUser on updatedByUser.id = scr.updatedBy
-            ${status ? "WHERE scr.status = ?" : ""}
-            ORDER BY ${orderBy} ${sortOrder}
-            LIMIT ? OFFSET ?
-        `,
-            status ? [status, limit, offset] : [limit, offset]
-        )
-
-        let numTotalRows = (
-            await db.queryMysql(
-                `
-                SELECT COUNT(*) as count
-                FROM suggested_chart_revisions
-                ${status ? "WHERE status = ?" : ""}
-            `,
-                status ? [status] : []
+        const suggestedChartRevisions: SuggestedChartRevisionsRowWithUsersAndExistingConfigEnriched[] =
+            await getAllSuggestedChartRevisionsWithStatus(
+                limit,
+                offset,
+                orderBy,
+                sortOrder,
+                status
             )
-        )[0].count
-        numTotalRows = numTotalRows ? parseInt(numTotalRows) : numTotalRows
 
-        suggestedChartRevisions.map(
-            (suggestedChartRevision: SuggestedChartRevision) => {
-                suggestedChartRevision.suggestedConfig = JSON.parse(
-                    suggestedChartRevision.suggestedConfig
-                )
-                suggestedChartRevision.existingConfig = JSON.parse(
-                    suggestedChartRevision.existingConfig
-                )
-                suggestedChartRevision.originalConfig = JSON.parse(
-                    suggestedChartRevision.originalConfig
-                )
-                suggestedChartRevision.experimental = JSON.parse(
-                    suggestedChartRevision.experimental
-                )
-                suggestedChartRevision.canApprove =
-                    SuggestedChartRevision.checkCanApprove(
-                        suggestedChartRevision
-                    )
-                suggestedChartRevision.canReject =
-                    SuggestedChartRevision.checkCanReject(
-                        suggestedChartRevision
-                    )
-                suggestedChartRevision.canFlag =
-                    SuggestedChartRevision.checkCanFlag(suggestedChartRevision)
-                suggestedChartRevision.canPending =
-                    SuggestedChartRevision.checkCanPending(
-                        suggestedChartRevision
-                    )
-            }
+        const numTotalRows =
+            await getNumSuggestedChartRevisionsWithStatus(status)
+
+        const parsed = suggestedChartRevisions.map(
+            (suggestedChartRevision): SuggestedChartRevision => ({
+                ...suggestedChartRevision,
+                canApprove: checkCanApprove(suggestedChartRevision),
+                canReject: checkCanReject(suggestedChartRevision),
+                canFlag: checkCanFlag(suggestedChartRevision),
+                canPending: checkCanPending(suggestedChartRevision),
+            })
         )
 
         return {
-            suggestedChartRevisions: suggestedChartRevisions,
+            suggestedChartRevisions: parsed,
             numTotalRows: numTotalRows,
         }
     }
@@ -1047,7 +1012,7 @@ apiRouter.post(
             }
         })
 
-        await db.transaction(async (t) => {
+        await db.knexInstance().transaction(async (t) => {
             const whereCond1 = suggestedConfigs
                 .map(
                     (config) =>
@@ -1065,29 +1030,19 @@ apiRouter.post(
                 )
                 .join(" OR ")
             // retrieves original chart configs
-            let rows: any[] = await t.query(
-                `
-                SELECT id, config, 1 as priority
-                FROM charts
-                WHERE ${whereCond1}
-
-                UNION
-
-                SELECT chartId as id, config, 2 as priority
-                FROM chart_revisions
-                WHERE ${whereCond2}
-
-                ORDER BY priority
-                `
+            const rawRows: {
+                id: number
+                config: GrapherInterface | null
+                priority: number
+            }[] = await getConfigFromChartsOrChartRevisionsPrioritized(
+                t,
+                whereCond1,
+                whereCond2
             )
-
-            rows.map((row) => {
-                row.config = JSON.parse(row.config)
-            })
 
             // drops duplicate id-version rows (keeping the row from the
             // `charts` table when available).
-            rows = rows.filter(
+            const filteredRows = rows.filter(
                 (v, i, a) =>
                     a.findIndex(
                         (el) =>
@@ -1095,11 +1050,11 @@ apiRouter.post(
                             el.config.version === v.config.version
                     ) === i
             )
-            if (rows.length < suggestedConfigs.length) {
+            if (filteredRows.length < suggestedConfigs.length) {
                 // identifies which particular chartId-version combinations have
                 // not been found in the DB
                 const missingConfigs = suggestedConfigs.filter((config) => {
-                    const i = rows.findIndex((row) => {
+                    const i = filteredRows.findIndex((row) => {
                         return (
                             row.id === config.id &&
                             row.config.version === config.version
@@ -1119,13 +1074,13 @@ apiRouter.post(
                             "\n"
                         )}\nPlease check that each chartId and version exists.`
                 )
-            } else if (rows.length > suggestedConfigs.length) {
+            } else if (filteredRows.length > suggestedConfigs.length) {
                 throw new JsonError(
                     "Retrieved more chart configs than expected. This may be due to a bug on the server."
                 )
             }
             const originalConfigs: Record<string, GrapherInterface> =
-                rows.reduce(
+                filteredRows.reduce(
                     (obj: any, row: any) => ({
                         ...obj,
                         [row.id]: row.config,
@@ -1238,16 +1193,23 @@ apiRouter.get(
             req.params.suggestedChartRevisionId
         )
 
-        const suggestedChartRevision = await db.mysqlFirst(
-            `-- sql
-            SELECT scr.id, scr.chartId, scr.updatedAt, scr.createdAt,
-                scr.suggestedReason, scr.decisionReason, scr.status,
-                scr.suggestedConfig, scr.changesInDataSummary, scr.originalConfig,
-                createdByUser.id as createdById,
-                updatedByUser.id as updatedById,
+        const suggestedChartRevision: SuggestedChartRevisionsRowWithUsersAndExistingConfigRaw =
+            await db.mysqlFirst(
+                `-- sql
+            SELECT scr.id,
+                scr.chartId,
+                scr.updatedAt,
+                scr.createdAt,
+                scr.suggestedReason, scr.decisionReason,
+                scr.status,
+                scr.suggestedConfig, scr.changesInDataSummary,
+                scr.originalConfig,
+                scr.createdBy,
+                scr.updatedBy,
                 createdByUser.fullName as createdByFullName,
                 updatedByUser.fullName as updatedByFullName,
-                c.config as existingConfig, c.updatedAt as chartUpdatedAt,
+                c.config as existingConfig,
+                c.updatedAt as chartUpdatedAt,
                 c.createdAt as chartCreatedAt
             FROM suggested_chart_revisions as scr
             LEFT JOIN charts c on c.id = scr.chartId
@@ -1255,8 +1217,8 @@ apiRouter.get(
             LEFT JOIN users updatedByUser on updatedByUser.id = scr.updatedBy
             WHERE scr.id = ?
         `,
-            [suggestedChartRevisionId]
-        )
+                [suggestedChartRevisionId]
+            )
 
         if (!suggestedChartRevision) {
             throw new JsonError(

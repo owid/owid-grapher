@@ -12,7 +12,6 @@ export {
     JsonError,
     type SerializedGridProgram,
     SiteFooterContext,
-    SuggestedChartRevisionStatus,
     TaggableType,
     type TopicId,
     type OwidVariableId,
@@ -20,6 +19,11 @@ export {
     type UserCountryInformation,
     type QueryParams,
 } from "./domainTypes/Various.js"
+export {
+    SuggestedChartRevisionStatus,
+    type SuggestedChartRevision,
+    type SuggestedChartRevisionsExperimental,
+} from "./domainTypes/SuggestedChartRevisions.js"
 export {
     type DataValueConfiguration,
     type DataValueProps,
@@ -406,6 +410,8 @@ export {
     ChartsTableName,
     parseChartConfig,
     serializeChartConfig,
+    parseNullableChartConfig,
+    serializeNullableChartConfig,
     parseChartsRow,
     serializeChartsRow,
 } from "./dbTypes/Charts.js"
@@ -562,6 +568,10 @@ export {
     serializeSuggestedChartRevisionsExperimental,
     parseSuggestedChartRevisionsRow,
     serializeSuggestedChartRevisionsRow,
+    type SuggestedChartRevisionsRowWithUsersAndExistingConfigRaw,
+    type SuggestedChartRevisionsRowWithUsersAndExistingConfigEnriched,
+    parseSuggestedChartRevisionsRowWithUsersAndExistingConfig,
+    serializeSuggestedChartRevisionsRowWithUsersAndExistingConfig,
 } from "./dbTypes/SuggestedChartRevisions.js"
 export {
     type DbInsertTag,
@@ -595,10 +605,6 @@ export {
     serializeVariableOriginalMetadata,
     parseVariableLicenses,
     serializeVariableLicenses,
-    parseVariableGrapherConfigAdmin,
-    serializeVariableGrapherConfigAdmin,
-    parseVariableGrapherConfigETL,
-    serializeVariableGrapherConfigETL,
     parseVariableProcessingLog,
     serializeVariableProcessingLog,
     type License,
