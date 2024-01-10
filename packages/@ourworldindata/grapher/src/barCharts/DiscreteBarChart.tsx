@@ -17,6 +17,7 @@ import {
     Color,
     HorizontalAlign,
     AxisAlign,
+    uniqBy,
 } from "@ourworldindata/utils"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
@@ -427,11 +428,6 @@ export class DiscreteBarChart
                         {makeProjectedDataPattern(
                             this.projectedDataColorInLegend
                         )}
-                        {/* used in the external legend when the chart is faceted */}
-                        {makeProjectedDataPattern(
-                            this.projectedDataColorInLegend,
-                            { narrow: true }
-                        )}
                     </defs>
                 )}
                 <rect
@@ -794,28 +790,23 @@ export class DiscreteBarChart
         return HorizontalAlign.center
     }
 
-    projectedDataLegendBin({ useNarrowPattern = false } = {}): CategoricalBin {
-        return new CategoricalBin({
-            color: this.projectedDataColorInLegend,
-            label: "Projected data",
-            index: 0,
-            value: "projected",
-            patternRef: makeProjectedDataPatternId(
-                this.projectedDataColorInLegend,
-                {
-                    narrow: useNarrowPattern,
-                }
-            ),
-        })
-    }
-
     // TODO just pass colorScale to legend and let it figure it out?
     @computed get numericLegendData(): ColorScaleBin[] {
         const legendBins = this.colorScale.legendBins.slice()
 
         // Show a "Projected data" legend item with a striped pattern if appropriate
         if (this.hasProjectedData) {
-            legendBins.push(this.projectedDataLegendBin())
+            legendBins.push(
+                new CategoricalBin({
+                    color: this.projectedDataColorInLegend,
+                    label: "Projected data",
+                    index: 0,
+                    value: "projected",
+                    patternRef: makeProjectedDataPatternId(
+                        this.projectedDataColorInLegend
+                    ),
+                })
+            )
         }
 
         // Move CategoricalBins to end
@@ -823,23 +814,16 @@ export class DiscreteBarChart
     }
 
     @computed get projectedDataColorInLegend(): string {
-        if (this.series.length === 1) return this.series[0].color
+        // if a single color is in use, use that color in the legend
+        if (uniqBy(this.series, "color").length === 1)
+            return this.series[0].color
         return DEFAULT_PROJECTED_DATA_COLOR_IN_LEGEND
     }
 
     @computed get externalLegend(): HorizontalColorLegendManager | undefined {
         if (this.hasColorLegend) {
-            const legendBins = this.colorScale.legendBins.slice()
-            if (this.hasProjectedData) {
-                legendBins.push(
-                    this.projectedDataLegendBin({ useNarrowPattern: true })
-                )
-            }
             return {
-                numericLegendData: sortBy(
-                    legendBins,
-                    (bin) => bin instanceof CategoricalBin
-                ),
+                numericLegendData: this.numericLegendData,
             }
         }
         return undefined
@@ -901,34 +885,33 @@ export class DiscreteBarChart
     }
 }
 
-function makeProjectedDataPatternId(
-    color: string,
-    { narrow = false } = {}
-): string {
-    return `DiscreteBarChart_striped_${color}${narrow ? "_narrow" : ""}`
+// Pattern IDs should be unique per document (!), not just per grapher instance.
+// Including the color in the id guarantees that the pattern uses the correct color,
+// even if it gets resolved to a striped pattern of a different grapher instance.
+function makeProjectedDataPatternId(color: string): string {
+    return `DiscreteBarChart_stripes_${color}`
 }
 
-function makeProjectedDataPattern(
-    color: string,
-    { narrow = false } = {}
-): JSX.Element {
-    const size = narrow ? 5 : 16
-    const strokeWidth = narrow ? 6 : 28
+function makeProjectedDataPattern(color: string): JSX.Element {
+    const size = 7
     return (
         <pattern
-            id={makeProjectedDataPatternId(color, { narrow })}
+            id={makeProjectedDataPatternId(color)}
             patternUnits="userSpaceOnUse"
             width={size}
             height={size}
             patternTransform="rotate(45)"
         >
+            {/* transparent background */}
+            <rect width={size} height={size} fill={color} opacity={0.5} />
+            {/* stripes */}
             <line
                 x1="0"
                 y="0"
                 x2="0"
                 y2={size}
                 stroke={color}
-                stroke-width={strokeWidth}
+                strokeWidth="10"
             />
         </pattern>
     )
