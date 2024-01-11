@@ -5,7 +5,7 @@ ENV=development
 
 # https://dashboard.stripe.com/test/apikeys
 # required by /donation/donate
-STRIPE_SECRET_KEY=
+STRIPE_API_KEY=
 
 # https://www.google.com/recaptcha/admin/site/345413385
 # required by /donation/donate

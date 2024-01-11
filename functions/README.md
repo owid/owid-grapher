@@ -136,10 +136,11 @@ In order to test the webhook function locally, you can use the Stripe CLI to lis
 2. Register a temporary webhook using the Stripe CLI (runs in test mode by default):
 
 ```sh
-stripe listen --latest --forward-to localhost:8788/donation/thank-you
+STRIPE_API_KEY=xxx stripe listen --latest --forward-to localhost:8788/donation/thank-you
 ```
 
-Note: `--latest` is required when development code uses a more recent API version than the one set in the Stripe dashboard (which `stripe listen` will default to).
+-   replace `xxx` with the value of `STRIPE_API_KEY (dev)` in 1password. Alternatively, if you have access to the Stripe dashboard, you can forgo the `STRIPE_API_KEY=xxx` part and let `stripe listen ...` guide you through a one-time login process.
+-   `--latest` is required when development code uses a more recent API version than the one set in the Stripe dashboard (which `stripe listen` will default to).
 
 3. Copy the webhook secret into `STRIPE_WEBHOOK_SECRET` variable in your `.dev.vars` and then restart the development server. This secret is shown when you ran `stripe listen`, and is stable across restarts.
 

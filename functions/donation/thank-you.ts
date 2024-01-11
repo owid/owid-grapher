@@ -14,16 +14,16 @@ interface MessageData {
 
 type ThankYouEnvVars = {
     STRIPE_WEBHOOK_SECRET: string
-    STRIPE_SECRET_KEY: string
+    STRIPE_API_KEY: string
 } & MailgunEnvVars
 
 const hasThankYouEnvVars = (env: unknown): env is ThankYouEnvVars => {
     return (
         typeof env === "object" &&
         "STRIPE_WEBHOOK_SECRET" in env &&
-        "STRIPE_SECRET_KEY" in env &&
+        "STRIPE_API_KEY" in env &&
         !!env.STRIPE_WEBHOOK_SECRET &&
-        !!env.STRIPE_SECRET_KEY
+        !!env.STRIPE_API_KEY
     )
 }
 
@@ -75,11 +75,11 @@ export const onRequestPost: PagesFunction = async ({
     try {
         if (!hasThankYouEnvVars(env))
             throw new JsonError(
-                "Missing environment variables. Please check that both STRIPE_WEBHOOK_SECRET and STRIPE_SECRET_KEY are set.",
+                "Missing environment variables. Please check that both STRIPE_WEBHOOK_SECRET and STRIPE_API_KEY are set.",
                 500
             )
 
-        const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
+        const stripe = new Stripe(env.STRIPE_API_KEY, {
             apiVersion: STRIPE_API_VERSION,
             maxNetworkRetries: 2,
         })
