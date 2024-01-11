@@ -2,6 +2,7 @@ import Stripe from "stripe"
 import { DEFAULT_HEADERS, STRIPE_API_VERSION } from "./_utils/constants.js"
 import { JsonError, stringifyUnknownError } from "@ourworldindata/utils"
 import { MailgunEnvVars, sendMail } from "./_utils/email.js"
+import { SlackEnvVars, logError } from "./_utils/error.js"
 
 interface MessageData {
     email: string
@@ -15,7 +16,10 @@ interface MessageData {
 type ThankYouEnvVars = {
     STRIPE_WEBHOOK_SECRET: string
     STRIPE_API_KEY: string
-} & MailgunEnvVars
+} & MailgunEnvVars &
+    SlackEnvVars
+
+const filePath = "donation/thank-you.ts"
 
 const hasThankYouEnvVars = (env: unknown): env is ThankYouEnvVars => {
     return (
@@ -68,17 +72,19 @@ async function sendThankYouEmail(
 export const onRequestPost: PagesFunction = async ({
     request,
     env,
+    waitUntil,
 }: {
     request: Request
     env: unknown
+    waitUntil: (promise: Promise<any>) => void
 }) => {
     try {
-        if (!hasThankYouEnvVars(env))
+        if (!hasThankYouEnvVars(env)) {
             throw new JsonError(
                 "Missing environment variables. Please check that both STRIPE_WEBHOOK_SECRET and STRIPE_API_KEY are set.",
                 500
             )
-
+        }
         const stripe = new Stripe(env.STRIPE_API_KEY, {
             apiVersion: STRIPE_API_VERSION,
             maxNetworkRetries: 2,
@@ -129,8 +135,11 @@ export const onRequestPost: PagesFunction = async ({
             status: 200,
         })
     } catch (error) {
-        // Reporting to Sentry through the CaptureConsole integration in _middleware.ts
-        console.error("Error in donation/thank-you.ts", error)
+        // Using "waitUntil" to make sure the worker doesn't exit before the
+        // request to Slack is complete. Not using "await" to avoid delaying
+        // sending the response to the client.
+        waitUntil(logError(error, filePath, env))
+
         return new Response(
             JSON.stringify({ error: stringifyUnknownError(error) }),
             {

@@ -9,11 +9,14 @@ import {
 } from "@ourworldindata/utils"
 import { Value } from "@sinclair/typebox/value"
 import { DEFAULT_HEADERS, CORS_HEADERS } from "./_utils/constants.js"
+import { SlackEnvVars, logError } from "./_utils/error.js"
 
-interface DonateEnvVars {
+type DonateEnvVars = {
     STRIPE_API_KEY: string
     RECAPTCHA_SECRET_KEY: string
-}
+} & SlackEnvVars
+
+const filePath = "donation/donate.ts"
 
 const hasDonateEnvVars = (env: any): env is DonateEnvVars => {
     return !!env.STRIPE_API_KEY && !!env.RECAPTCHA_SECRET_KEY
@@ -30,20 +33,21 @@ export const onRequestOptions: PagesFunction = async () => {
 export const onRequestPost: PagesFunction = async ({
     request,
     env,
+    waitUntil,
 }: {
     request: Request
-    env
+    env: unknown
+    waitUntil: (promise: Promise<any>) => void
 }) => {
-    if (!hasDonateEnvVars(env))
-        // This error is not being caught and surfaced to the client voluntarily.
-        throw new Error(
-            "Missing environment variables. Please check that both STRIPE_API_KEY and RECAPTCHA_SECRET_KEY are set."
-        )
-
-    // Parse the body of the request as JSON
-    const donation = await request.json()
-
     try {
+        if (!hasDonateEnvVars(env))
+            throw new JsonError(
+                "Missing environment variables. Please check that both STRIPE_API_KEY and RECAPTCHA_SECRET_KEY are set.",
+                500
+            )
+        // Parse the body of the request as JSON
+        const donation = await request.json()
+
         // Check that the received donation object has the right type. Given that we
         // use the same types in the client and the server, this should never fail
         // when the request is coming from the client. However, it could happen if a
@@ -78,8 +82,11 @@ export const onRequestPost: PagesFunction = async ({
             status: 200,
         })
     } catch (error) {
-        // Reporting to Sentry through the CaptureConsole integration in _middleware.ts
-        console.error("Error in donation/donate.ts", error)
+        // Using "waitUntil" to make sure the worker doesn't exit before the
+        // request to Slack is complete. Not using "await" to avoid delaying
+        // sending the response to the client.
+        waitUntil(logError(error, filePath, env))
+
         return new Response(
             JSON.stringify({ error: stringifyUnknownError(error) }),
             {
