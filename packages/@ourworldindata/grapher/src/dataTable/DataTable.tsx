@@ -725,21 +725,22 @@ export class DataTable extends React.Component<{
                     ? TargetTimeMode.point
                     : TargetTimeMode.range
 
-            const prelimValuesByEntity = this.preliminaryDimensionValues(
+            const prelimValuesByEntity = this.preliminaryDimensionValues({
                 sourceColumn,
-                targetTimes
-            )
-
-            const valueByEntity = this.dataValuesFromPreliminaryValues(
-                prelimValuesByEntity,
-                targetTimeMode,
-                sourceColumn
-            )
-
-            const columns: DimensionColumn[] = this.dimensionColumns(
                 targetTimes,
-                targetTimeMode
-            )
+            })
+
+            const valueByEntity = this.dataValuesFromPreliminaryValues({
+                prelimValuesByEntity,
+                sourceColumn,
+                targetTimeMode,
+            })
+
+            const columns: DimensionColumn[] = this.dimensionColumns({
+                sourceColumn,
+                targetTimes,
+                targetTimeMode,
+            })
 
             return {
                 columns,
@@ -749,18 +750,23 @@ export class DataTable extends React.Component<{
         })
     }
 
-    private dimensionColumns(
-        targetTimes: number[],
+    private dimensionColumns({
+        sourceColumn,
+        targetTimes,
+        targetTimeMode,
+    }: {
+        sourceColumn: CoreColumn
+        targetTimes: number[]
         targetTimeMode: TargetTimeMode
-    ): DimensionColumn[] {
+    }): DimensionColumn[] {
         // Inject delta columns if we have start & end values to compare in the table.
         // One column for absolute difference, another for % difference.
         const deltaColumns: DimensionColumn[] = []
         if (targetTimeMode === TargetTimeMode.range) {
-            const tableDisplay = {} as any
-            if (!tableDisplay?.hideAbsoluteChange)
+            const { tableDisplay = {} } = sourceColumn.display ?? {}
+            if (!tableDisplay.hideAbsoluteChange)
                 deltaColumns.push({ key: RangeValueKey.delta })
-            if (!tableDisplay?.hideRelativeChange)
+            if (!tableDisplay.hideRelativeChange)
                 deltaColumns.push({ key: RangeValueKey.deltaRatio })
         }
 
@@ -777,10 +783,13 @@ export class DataTable extends React.Component<{
         return [...valueColumns, ...deltaColumns]
     }
 
-    private preliminaryDimensionValues(
-        sourceColumn: CoreColumn,
+    private preliminaryDimensionValues({
+        sourceColumn,
+        targetTimes,
+    }: {
+        sourceColumn: CoreColumn
         targetTimes: number[]
-    ): Map<string, (DataValue | undefined)[]> {
+    }): Map<string, (DataValue | undefined)[]> {
         return valuesByEntityAtTimes(
             sourceColumn.valueByEntityNameAndOriginalTime,
             targetTimes,
@@ -788,11 +797,15 @@ export class DataTable extends React.Component<{
         )
     }
 
-    private dataValuesFromPreliminaryValues(
-        prelimValuesByEntity: Map<string, (DataValue | undefined)[]>,
-        targetTimeMode: TargetTimeMode,
+    private dataValuesFromPreliminaryValues({
+        prelimValuesByEntity,
+        targetTimeMode,
+        sourceColumn,
+    }: {
+        prelimValuesByEntity: Map<string, (DataValue | undefined)[]>
+        targetTimeMode: TargetTimeMode
         sourceColumn: CoreColumn
-    ): Map<string, DimensionValue> {
+    }): Map<string, DimensionValue> {
         return es6mapValues(prelimValuesByEntity, (dvs) => {
             // There is always a column, but not always a data value (in the delta column the
             // value needs to be calculated)
