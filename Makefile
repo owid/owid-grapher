@@ -120,6 +120,8 @@ up.full: require create-if-missing.env.full wordpress/.env tmp-downloads/owid_me
 			set remain-on-exit on \; \
 		new-window -n lerna 'yarn startLernaWatcher' \; \
 			set remain-on-exit on \; \
+		new-window -n functions 'yarn startLocalCloudflareFunctions' \; \
+			set remain-on-exit on \; \
 		new-window -n welcome 'devTools/docker/banner.sh; exec $(LOGIN_SHELL)' \; \
 		bind R respawn-pane -k \; \
 		bind X kill-pane \; \
