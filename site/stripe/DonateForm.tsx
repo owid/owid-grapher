@@ -15,6 +15,7 @@ import { Tippy, stringifyUnknownError, titleCase } from "@ourworldindata/utils"
 import { Checkbox } from "@ourworldindata/components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowRight, faInfoCircle } from "@fortawesome/free-solid-svg-icons"
+import Bugsnag from "@bugsnag/js"
 
 type Interval = "once" | "monthly"
 
@@ -205,6 +206,19 @@ export class DonateForm extends React.Component {
 
             runInAction(() => {
                 const prefixedErrorMessage = stringifyUnknownError(error)
+                // Send all errors to Bugsnag. This will help surface issues
+                // with our aging reCAPTCHA setup, and pull the trigger on a
+                // (hook-based?) rewrite if it starts failing. This reporting
+                // also includes form validation errors, which are useful to
+                // identify possible UX improvements or validate UX experiments
+                // (such as the combination of the name field and the "include
+                // my name on the list" checkbox).
+                Bugsnag.notify(
+                    error instanceof Error
+                        ? error
+                        : new Error(prefixedErrorMessage)
+                )
+
                 if (!prefixedErrorMessage) {
                     this.errorMessage =
                         "Something went wrong. Please get in touch with us at donate@ourworldindata.org"
