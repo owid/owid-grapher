@@ -7,8 +7,24 @@ Pages Functions are very similar to Cloudflare Workers; however they will always
 
 ## File-based routing
 
-Pages Functions uses file-based, which means that the file `grapher/[slug].ts` will serve routes like `/grapher/child-mortality`.
+Pages Functions use file-based routing, which means that the file `grapher/[slug].ts` will serve routes like `/grapher/child-mortality`.
 In addition, there's a [`_routes.json`](../_routes.json) file that specifies which routes are to be served dynamically.
+
+## Development
+
+1. Copy `.dev.vars.example` to `.dev.vars` and fill in the required variables.
+
+2. Start the Cloudflare function development server with either:
+
+-   (preferred) `yarn make up.full`: starts the whole local development stack, including the functions development server
+-   `yarn startLocalCloudflareFunctions`: only starts the functions development server
+
+Note: compatibility dates between local development, production and preview environments should be kept in sync:
+
+-   local: defined in `package.json` -> `startLocalCloudflareFunctions`
+-   production & preview : see https://dash.cloudflare.com/078fcdfed9955087315dd86792e71a7e/pages/view/owid/settings/functions
+
+3. _Refer to each function's "Development" section below for further instructions._
 
 # Our dynamic routes
 
@@ -63,7 +79,9 @@ sequenceDiagram
     Donation Form ->>- Stripe Checkout: Redirects
     Donor ->> Stripe Checkout: Proceeds with payment
     Stripe Checkout -->> Cloud Functions: Confirms payment
+    Note over Cloud Functions, Stripe Checkout: A private Slack channel is notified via a <br>Slack app integration
     Cloud Functions ->> Donor: Sends confirmation email via Mailgun
+    Note over Donor, Cloud Functions: A bcc is sent to donate@ourworldindata.org
     Stripe Checkout ->> "Thank you" page: Redirects
     Note right of "Thank you" page: A few weeks/months later
     Lars ->> Donors sheet: ✍️ Exports new donors
@@ -73,21 +91,48 @@ sequenceDiagram
 
 ### Development
 
-1. Copy `.dev.vars.example` to `.dev.vars` and fill in the required variables.
+0. _Follow steps 1 and 2 in the "Development" section to start the functions development server._
 
-2. Start the Cloudflare function development server with either:
+The route is available locally at `http://localhost:8788/donation/donate`.
 
--   (preferred) `yarn make up.full`: starts the whole local development stack, including the functions development server
--   `yarn startLocalCloudflareFunctions`: only starts the functions development server
+1. Go to `http://localhost:3030/donate` and fill in the form. You should be redirected to a Stripe Checkout page. You should use the Stripe VISA test card saved in 1Password (or any other test payment method from https://stripe.com/docs/testing) to complete the donation. Do not use a real card.
 
-The route is available at `http://localhost:8788/donation/donate`.
+## `/donation/thank-you`
 
-Note: compatibility dates between local development and production environments should be kept in sync:
+This route is used to handle incoming Stripe webhook `checkout.session.completed` events.
 
--   local: defined in `package.json` -> `startLocalCloudflareFunctions`
--   production: see https://dash.cloudflare.com/078fcdfed9955087315dd86792e71a7e/pages/view/owid/settings/functions
+This webhook event is fired by Stripe when a user completes a donation on the Stripe checkout page.
 
-3. Go to `http://localhost:3030/donate` and fill in the form. You should be redirected to a Stripe Checkout page. You should use the Stripe VISA test card saved in 1Password (or any other test payment method from https://stripe.com/docs/testing) to complete the donation. Do not use a real card.
+This webhook is registered for production in the Stripe dashboard, at https://dashboard.stripe.com/webhooks. For local development, the webhook is registered using the Stripe CLI (see below).
+
+### Development
+
+In order to test the webhook function locally, you can use the Stripe CLI to listen to incoming events and forward them to your functions development server.
+
+0. _Follow steps 1 and 2 in the "Development" section to start the functions development server._
+
+1. Install Stripe CLI:
+   https://stripe.com/docs/stripe-cli#install
+
+2. Register a temporary webhook using the Stripe CLI (runs in test mode by default):
+
+```sh
+stripe listen --latest --forward-to localhost:8788/donation/thank-you
+```
+
+Note: `--latest` is required when development code uses a more recent API version than the one set in the Stripe dashboard (which `stripe listen` will default to).
+
+3. Copy the webhook secret into `STRIPE_WEBHOOK_SECRET` variable in your `.dev.vars` and then restart the development server. This secret is shown when you ran `stripe listen`, and is stable across restarts.
+
+4. Make a test donation through http://localhost:3030/donate. You should see the event logged in the terminal where you ran `stripe listen`.
+
+Alternatively, you can trigger a test event from the CLI.
+
+```sh
+stripe trigger checkout.session.completed
+```
+
+Note: this will send the `checkout.session.completed` event expected in `/donation/thank-you`. However, I didn't manage to add metadata with `--add checkout.session:metadata.name="John Doe" --add checkout.session:metadata.showOnList=true` to perform a full test.
 
 ## `/grapher/:slug`
 

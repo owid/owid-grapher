@@ -4,6 +4,7 @@ import {
     getErrorMessageDonation,
     JsonError,
 } from "@ourworldindata/utils"
+import { STRIPE_API_VERSION } from "./constants.js"
 
 function getPaymentMethodTypes(
     donation: DonationRequest
@@ -27,7 +28,7 @@ export async function createCheckoutSession(
     key: string
 ) {
     const stripe = new Stripe(key, {
-        apiVersion: "2023-10-16",
+        apiVersion: STRIPE_API_VERSION,
         maxNetworkRetries: 2,
     })
 
@@ -65,6 +66,7 @@ export async function createCheckoutSession(
         success_url: successUrl,
         cancel_url: cancelUrl,
         payment_method_types: getPaymentMethodTypes(donation),
+        metadata, // attach the metadata to the checkout session
     }
 
     const messageInterval =
@@ -77,6 +79,9 @@ export async function createCheckoutSession(
 
     if (interval === "monthly") {
         options.mode = "subscription"
+        // We add the metadata to the subscription - in addition to the checkout
+        // session (see above) - to support exporting donors in owid-donors
+        // until we adapt the exporting code to work with checkout sessions.
         options.subscription_data = {
             metadata,
         }
@@ -112,6 +117,9 @@ export async function createCheckoutSession(
         // donors in owid-donors. Note: this doesn't apply to subscriptions, where
         // customers are always created.
         options.customer_creation = "always"
+        // We add the metadata to the payment intent - in addition to the checkout
+        // session (see above) - to support exporting donors in owid-donors
+        // until we adapt the exporting code to work with checkout sessions.
         options.payment_intent_data = {
             metadata,
         }
