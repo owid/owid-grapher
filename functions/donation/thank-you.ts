@@ -114,7 +114,12 @@ export const onRequestPost: PagesFunction = async ({
                             (session.customer_details.address.country ===
                                 "GB" ||
                                 session.currency === "gbp") &&
-                            session.amount_total >= 3000, // 30 GBP
+                            (session.amount_total >= 3000 || // 30 GBP
+                                // If the donation is monthly, the overall
+                                // amount will likely be more than 30 GBP and
+                                // thus qualifies for Gift Aid processing by our
+                                // definition.
+                                session.mode === "subscription"),
                     },
                     env
                 )
