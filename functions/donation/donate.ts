@@ -11,13 +11,12 @@ import { Value } from "@sinclair/typebox/value"
 import { DEFAULT_HEADERS, CORS_HEADERS } from "./_utils/constants.js"
 
 interface DonateEnvVars {
-    ASSETS: Fetcher
     STRIPE_SECRET_KEY: string
     RECAPTCHA_SECRET_KEY: string
 }
 
 const hasDonateEnvVars = (env: any): env is DonateEnvVars => {
-    return !!env.ASSETS && !!env.STRIPE_SECRET_KEY && !!env.RECAPTCHA_SECRET_KEY
+    return !!env.STRIPE_SECRET_KEY && !!env.RECAPTCHA_SECRET_KEY
 }
 
 // This function is called when the request is a preflight request ("OPTIONS").
@@ -79,6 +78,8 @@ export const onRequestPost: PagesFunction = async ({
             status: 200,
         })
     } catch (error) {
+        // Reporting to Sentry through the CaptureConsole integration in _middleware.ts
+        console.error("Error in donation/donate.ts", error)
         return new Response(
             JSON.stringify({ error: stringifyUnknownError(error) }),
             {
