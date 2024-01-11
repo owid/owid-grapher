@@ -2739,6 +2739,22 @@ export class Grapher
         this.setUpIntersectionObserver()
         this.setUpWindowResizeEventHandler()
         exposeInstanceOnWindow(this, "grapher")
+        // Emit a custom event when the grapher is ready
+        // We can use this in global scripts that depend on the grapher e.g. the site-screenshots tool
+        this.disposers.push(
+            reaction(
+                () => this.isReady,
+                () => {
+                    if (this.isReady) {
+                        document.dispatchEvent(
+                            new CustomEvent("grapherLoaded", {
+                                detail: { grapher: this },
+                            })
+                        )
+                    }
+                }
+            )
+        )
         if (this.props.bindUrlToWindow) this.bindToWindow()
         if (this.props.enableKeyboardShortcuts) this.bindKeyboardShortcuts()
     }
