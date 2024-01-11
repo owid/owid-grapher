@@ -16,6 +16,7 @@ import {
     BlankOwidTable,
     OwidTable,
     CoreColumn,
+    StringColumn,
 } from "@ourworldindata/core-table"
 import {
     capitalize,
@@ -764,9 +765,10 @@ export class DataTable extends React.Component<{
         const deltaColumns: DimensionColumn[] = []
         if (targetTimeMode === TargetTimeMode.range) {
             const { tableDisplay = {} } = sourceColumn.display ?? {}
-            if (!tableDisplay.hideAbsoluteChange)
+            const isStringColumn = sourceColumn instanceof StringColumn
+            if (!isStringColumn && !tableDisplay.hideAbsoluteChange)
                 deltaColumns.push({ key: RangeValueKey.delta })
-            if (!tableDisplay.hideRelativeChange)
+            if (!isStringColumn && !tableDisplay.hideRelativeChange)
                 deltaColumns.push({ key: RangeValueKey.deltaRatio })
         }
 

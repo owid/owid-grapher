@@ -550,7 +550,7 @@ export class MissingColumn extends AbstractCoreColumn<any> {
     }
 }
 
-class StringColumn extends AbstractCoreColumn<string> {
+export class StringColumn extends AbstractCoreColumn<string> {
     jsType = JsTypes.string
 
     formatValue(value: unknown): string {

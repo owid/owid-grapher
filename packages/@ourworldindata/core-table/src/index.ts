@@ -51,6 +51,7 @@ export {
     ColumnTypeMap,
     AbstractCoreColumn,
     TimeColumn,
+    StringColumn,
 } from "./CoreTableColumns.js"
 
 export {
