@@ -117,7 +117,10 @@ export class DonateForm extends React.Component {
 
     async submitDonation(): Promise<void> {
         const requestBodyForClientSideValidation: DonationRequest = {
-            name: this.name,
+            // Don't send the name if the reader doesn't want to appear on the
+            // list of supporters, but keep it in the form in case they change
+            // their mind.
+            name: this.showOnList ? this.name : "",
             showOnList: this.showOnList,
             currency: this.currencyCode,
             amount: this.amount,
