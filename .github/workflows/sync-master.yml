@@ -1,0 +1,28 @@
+# Each foundation server that hosts staging servers needs a master server that is copied
+# to staging servers. foundation-2 uses `master` and foundation-1 uses `master-1`. This
+# action syncs the master branch to master-1 branch which triggers its update.
+# This is much faster than copying `staging-site-master` across our servers with LXC.
+name: Sync Master-1 with Master
+
+on:
+    push:
+        branches:
+            - master
+
+jobs:
+    sync-branch:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v3
+              with:
+                  ref: master-1
+                  fetch-depth: 0 # fetches all history for all branches and tags
+
+            - name: Sync master-1 with master
+              # add an empty commit, otherwise the PR will be automatically merged
+              run: |
+                  git fetch origin master
+                  git reset --hard origin/master
+                  git commit -m ":honeybee: trigger CI" --allow-empty
+                  git push -f origin master-1
