@@ -21,6 +21,7 @@
         "bakeGdocPosts": "node --enable-source-maps ./itsJustJavascript/baker/bakeGdocPosts.js",
         "cleanTsc": "rm -rf itsJustJavascript && tsc -b -clean",
         "deployWordpress": "./wordpress/scripts/deploy.sh",
+        "deployContentPreview": "PREVIEW_BRANCH=${PREVIEW_BRANCH:-} ./ops/buildkite/deploy-content-preview",
         "fetchServerStatus": "node --enable-source-maps ./itsJustJavascript/baker/liveCommit.js",
         "fixLint": "eslint . --fix",
         "fixPrettierAll": "yarn prettier --write \"**/*.{tsx,ts,jsx,js,json,md,html,css,scss,yml}\"",

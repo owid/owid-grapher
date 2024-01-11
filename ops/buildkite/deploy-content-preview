@@ -1,0 +1,170 @@
+#!/bin/bash
+#
+#  deploy-content-preview
+#
+#  Manually deploy the staging bakedSite to Cloudflare Pages in preview mode
+#
+#  See /functions/README.md > "Testing on Fondation staging sites vs Cloudfare
+#  previews" for the rationale behind this script.
+#
+#  USAGE
+#
+#  - $ yarn deploy-content-preview (default, deploys to
+#    https://[YOUR_CURRENT_GIT_BRANCH].owid.pages.dev)
+#  - $ PREVIEW_BRANCH=[PREVIEW_BRANCH] yarn deploy-content-preview (deploys to
+#    https://[PREVIEW_BRANCH].owid.pages.dev)
+#
+#  This script is meant to be run manually and locally. It is not triggered
+#  automatically and run by an Buildkite agent, unlike its production
+#  counterpart `deploy-content`. Instead the script SSH into to the Foundation
+#  staging server and runs the deployment commands from there.
+#
+#  By default, running `yarn deploy-content-preview` will deploy to a preview
+#  URL prefixed with the current git branch name. For example, if you're on the
+#  `donate` branch, the preview URL will be https://donate.owid.pages.dev. This
+#  is mimicking the default Cloudflare Pages preview environment behavior, when
+#  production and preview deploys are triggered by a git push (as a side note,
+#  our setup doesn't use this git integration, and rather deploys manually
+#  through `wrangler`).
+#
+#  Alternatively, you can pass a custom branch name to this script. This is
+#  useful for maintaining a stable review URL across time for a complex feature
+#  spread across multiple stacked PRs. For example, if you want to deploy to
+#  https://donate.owid.pages.dev, while on the `donate-2` branch you can run:
+#
+#  PREVIEW_BRANCH=donate yarn deploy-content-preview
+#
+#  Note that with or without the PREVIEW_BRANCH argument, this script will
+#  deploy from the staging server matching your current git branch name. For
+#  example, if you're on the `donate` branch, the script will SSH into the
+#  `staging-site-donate` staging server and execute the deployment commands from
+#  there.
+#
+#  # SETUP (only once)
+#
+#  ## RE-BAKING CONTENT WITH THE CORRECT BAKED_BASE_URL
+#
+#  This script doesn't bake content, it only deploys the already baked content
+#  in ~/live-date/bakedSite/ after performing some post-bake transformation
+#  steps, and storing the result in ~/dist.
+#
+#  Originally, the content is baked for the staging URL (e.g.
+#  http://staging-site-donate).
+#
+#  Before running this script, you need to rebake the content using the target
+#  preview BAKED_BASE_URL (e.g. https://donate.owid.pages.dev) to avoid CORS
+#  issues. This is done by running the following sequence on the staging server
+#  (not locally):
+#  - in ~/owid-grapher/.env, set BAKED_BASE_URL to
+#    https://[PREVIEW_BRANCH].owid.pages.dev
+#  - `rm ~/.site-baked` (see ops > templates > lxc-manager > grapher-refresh)
+#  - locate the latest Buildkite job for your staging environment and click
+#    "Rebuild". This will run the full site baking sequence with the preview URL
+#    as BAKED_BASE_URL.
+#
+#  You don't need to continuously rebake the site to test iterative changes to
+#  functions code in the preview environment. Functions are not baked, they are
+#  rather merely copied as-is to the `dist` folder to be executed on the server.
+#  When git pushing functions code, the regular staging job will automatically
+#  update them on the staging server. You then just need to run `yarn
+#  deploy-content-preview` to deploy the updated functions code to the preview
+#  URL.
+#
+#  ## CREATING CLOUDFLARE PAGES API TOKEN (optional)
+#
+#  This script requires a Cloudflare API token to deploy to the preview URL.
+#
+#  In particular, `wrangler` uses CLOUDFLARE_ACCOUNT_ID and
+#  CLOUDFLARE_API_TOKEN, read from owid-grapher/.env on the staging server.
+#
+#  These environment variables should be set automatically by the staging server
+#  creation script. If you need to create them manually, follow these steps:
+#
+#  - CLOUDFLARE_ACCOUNT_ID: You can find your account ID at
+#  https://dash.cloudflare.com/ > Our World in Data. The account ID is in the
+#  URL, e.g. https://dash.cloudflare.com/1234567890abcdef1234567890abcdef
+#
+# - CLOUDFLARE_API_TOKEN: You can create your token at
+#  https://dash.cloudflare.com/profile/api-tokens. Use the "Create Custom Token"
+#  template, then give it the "Account > Cloudflare Pages > Edit" permission.
+#  Use a TTL corresponding to the duration of your test (e.g. 2 weeks).
+#
+#  Save both these values in owid-grapher/.env on the staging server (not
+#  locally).
+
+
+set -o errexit
+set -o pipefail
+set -o nounset
+
+GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+HOST="staging-site-$GIT_BRANCH"
+
+as_owid() {
+    ssh -t -o "LogLevel=QUIET" -o "StrictHostKeyChecking=no" "owid@$HOST" "$@"
+}
+
+# Cloudflare Pages settings
+PROJECT_NAME=owid
+
+# Set PREVIEW_BRANCH to the current git branch name if not set
+PREVIEW_BRANCH=${PREVIEW_BRANCH:-$GIT_BRANCH}
+
+# URL of Cloudflare page
+BAKED_BASE_URL="https://$PREVIEW_BRANCH.$PROJECT_NAME.pages.dev"
+
+deploy_site () {
+    echo "--- Deploy site to $BAKED_BASE_URL from $HOST"
+
+    create_dist
+    deploy_to_cloudflare
+
+    echo "--- Site deployed to $BAKED_BASE_URL from $HOST"
+}
+
+create_dist() {
+    echo '--- Creating dist/ folder'
+    # Define a list of excluded directories for rsync
+    EXCLUDES=(grapher/data/variables/ .git/ grapher/exports/ exports/ uploads/)
+
+    # Build rsync command with excluded directories
+    RSYNC_COMMAND=("rsync" "-havzq" "--delete")
+    for EXCLUDE in "${EXCLUDES[@]}"; do
+        RSYNC_COMMAND+=("--exclude=$EXCLUDE")
+    done
+
+    as_owid "${RSYNC_COMMAND[@]}" live-data/bakedSite/ dist/
+
+    # remove .etag of gdoc images from dist
+    as_owid rm dist/images/published/*.etag
+
+    # copy over Pages Functions as-is
+    as_owid rsync -havzq --delete owid-grapher/functions dist/
+
+    # we need node_modules for Pages Functions
+    as_owid rm -rf dist/node_modules
+    as_owid cp -rL owid-grapher/node_modules dist/ # the `L` flag copies over symlinked files, too, which we need for @ourworldindata/utils etc.
+
+    as_owid cp owid-grapher/_routes.json dist/_routes.json
+}
+
+deploy_to_cloudflare() {
+    echo '--- Deploy to Cloudflare'
+    # - Using the `--branch [PREVIEW_BRANCH]` argument creates a deploy preview.
+    #   This doesn't affect production.
+    #
+    # Some gotchas:
+    # - trim \r, they remove previous logs in buildkite
+    # - functions are not deployed if wrangler is not run from the folder
+    #   containing the functions at the root (e.g. `wrangler pages deploy dist`
+    #   fails to deploy functions, silently)
+    #   https://community.cloudflare.com/t/cf-pages-functions-wrangler-dev-405-method-not-allowed-locally/442767/15
+    # - we cannot run `yarn wrangler` from the dist folder because it doesn't
+    #   contain a package.json
+    # - we cannot run `./node_modules/.bin/wrangler` as it fails to resolve some
+    #   paths (similar to running `npx wrangler` when wrangler is present
+    #   locally in node_modules after copying it from owid-grapher with `cp -rL`)
+    as_owid "cd dist && env \$(grep \"^CLOUDFLARE\" ../owid-grapher/.env | xargs -0) ./node_modules/wrangler/bin/wrangler.js pages deploy . --project-name "$PROJECT_NAME" --branch "$PREVIEW_BRANCH" 2>&1 | tr -d '\r'"
+}
+
+deploy_site
