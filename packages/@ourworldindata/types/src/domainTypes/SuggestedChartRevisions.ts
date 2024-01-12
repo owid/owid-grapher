@@ -28,7 +28,7 @@ export interface SuggestedChartRevision {
     chartUpdatedAt?: Date | null
     createdAt?: Date
     createdBy: number
-    createdByFullName: string | null
+    createdByFullName: string
     decisionReason?: string | null
     existingConfig: GrapherInterface
     experimental?: SuggestedChartRevisionsExperimental | null
