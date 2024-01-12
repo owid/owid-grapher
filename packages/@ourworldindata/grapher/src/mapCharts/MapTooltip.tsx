@@ -33,7 +33,8 @@ interface MapTooltipProps {
 
 const SPARKLINE_WIDTH = 250
 const SPARKLINE_HEIGHT = 87
-const SPARKLINE_PADDING = 15 // same as $inset in scss
+const SPARKLINE_PADDING = 15
+const SPARKLINE_NUDGE = 3 // step away from the axis
 
 @observer
 export class MapTooltip extends React.Component<MapTooltipProps> {
@@ -178,6 +179,24 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
         }
     }
 
+    @computed private get sparklineBounds(): Bounds {
+        // Add padding so that the edges of the plot doesn't get clipped.
+        // The plot can go out of boundaries due to line stroke thickness & labels.
+        return new Bounds(0, 0, SPARKLINE_WIDTH, SPARKLINE_HEIGHT).pad({
+            top: 9,
+            left: SPARKLINE_PADDING,
+            right: SPARKLINE_PADDING,
+            bottom: 3,
+        })
+    }
+
+    @computed private get sparklineChart(): LineChart {
+        return new LineChart({
+            manager: this.sparklineManager,
+            bounds: this.sparklineBounds,
+        })
+    }
+
     render(): JSX.Element {
         const { mapTable, datum, lineColorScale } = this
         const {
@@ -216,6 +235,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
             maxLabel = useCustom
                 ? maxCustom
                 : yColumn.formatValueShort(maxVal ?? 0)
+        const { innerBounds: axisBounds } = this.sparklineChart.dualAxis
 
         const notice =
             datum && datum.time !== targetTime ? displayTime : undefined
@@ -256,37 +276,39 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                         >
                             <line
                                 className="max-line"
-                                x1={SPARKLINE_PADDING}
-                                y1={SPARKLINE_PADDING}
-                                x2={SPARKLINE_WIDTH - SPARKLINE_PADDING}
-                                y2={SPARKLINE_PADDING}
+                                x1={axisBounds.left}
+                                y1={axisBounds.y}
+                                x2={axisBounds.right}
+                                y2={axisBounds.y}
                             />
                             <LineChart
                                 manager={this.sparklineManager}
-                                // Add padding so that the edges of the plot doesn't get clipped.
-                                // The plot can go out of boundaries due to line stroke thickness & labels.
-                                bounds={new Bounds(
-                                    0,
-                                    0,
-                                    SPARKLINE_WIDTH,
-                                    SPARKLINE_HEIGHT
-                                ).pad({
-                                    top: SPARKLINE_PADDING,
-                                    left: SPARKLINE_PADDING,
-                                    right: SPARKLINE_PADDING,
-                                    bottom: 3,
-                                })}
+                                bounds={this.sparklineBounds}
                             />
-
                             {maxLabel !== minLabel && (
                                 <g className="max axis-label">
-                                    <text>{maxLabel}</text>
+                                    <text
+                                        x={axisBounds.right}
+                                        y={axisBounds.top - SPARKLINE_NUDGE}
+                                    >
+                                        {maxLabel}
+                                    </text>
                                 </g>
                             )}
-
                             <g className="min axis-label">
-                                <text className="outline">{minLabel}</text>
-                                <text>{minLabel}</text>
+                                <text
+                                    className="outline"
+                                    x={axisBounds.right}
+                                    y={axisBounds.bottom - SPARKLINE_NUDGE}
+                                >
+                                    {minLabel}
+                                </text>
+                                <text
+                                    x={axisBounds.right}
+                                    y={axisBounds.bottom - SPARKLINE_NUDGE}
+                                >
+                                    {minLabel}
+                                </text>
                             </g>
                         </svg>
                     </div>

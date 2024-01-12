@@ -1209,7 +1209,7 @@ export class LineChart
         return axis
     }
 
-    @computed private get dualAxis(): DualAxis {
+    @computed get dualAxis(): DualAxis {
         return new DualAxis({
             bounds: this.boundsWithoutColorLegend
                 .padRight(
