@@ -1,4 +1,4 @@
-.indicator-processing {
+div.indicator-processing {
     .data-processing {
         --content: var(--data-processing-content, #{$blue-60});
         --content-size: var(--data-processing-content-size, 0.875rem);
@@ -43,18 +43,25 @@
         margin: 32px -24px 0;
         padding: 24px;
 
-        &__title {
+        .indicator-processing-callout__title {
             @include overline-black-caps;
             text-transform: uppercase;
             margin: 0 0 8px;
             color: var(--title);
         }
 
-        &__content {
+        .indicator-processing-callout__content {
             @include body-3-medium;
             color: var(--content);
             margin: 0;
             font-size: var(--content-size);
+
+            p,
+            ol,
+            ul {
+                @include body-3-medium;
+                font-size: var(--content-size);
+            }
 
             ol,
             ul {
@@ -74,21 +81,8 @@
                 }
             }
 
-            ol {
-                margin-left: 1em;
-
-                li {
-                    margin: 0.5em 0; // half of the default margin for ordered lists, otherwise like unordered lists above
-                    &:first-child {
-                        margin-top: 0;
-                    }
-                    &:last-child {
-                        margin-bottom: 0;
-                    }
-                    p {
-                        margin: 0;
-                    }
-                }
+            ol li {
+                margin: 0.5em 0;
             }
 
             > *:first-child {

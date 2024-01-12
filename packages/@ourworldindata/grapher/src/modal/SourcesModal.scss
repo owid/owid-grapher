@@ -33,7 +33,7 @@
             }
         }
 
-        h2 + p {
+        .description-below-title p {
             @include body-3-medium;
             margin-top: 8px;
             margin-bottom: 16px;
@@ -131,6 +131,7 @@
 
         .citation__paragraph {
             color: $light-text;
+            font-size: 0.875rem;
         }
 
         .citation__type {
@@ -138,6 +139,7 @@
             line-height: 1.5;
             color: $dark-text;
             font-weight: 500;
+            font-size: 0.875rem;
         }
 
         .indicator-processing .indicator-processing__link {

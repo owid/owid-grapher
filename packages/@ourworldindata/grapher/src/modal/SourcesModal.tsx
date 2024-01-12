@@ -366,11 +366,15 @@ export class Source extends React.Component<{
     }
 
     @computed private get hideSourcesForDisplay(): boolean {
-        // the indictaor with id = 123 is the "Continent" variable curated by OWID.
+        // the indicator with id = 123 is the "Continent" variable curated by OWID.
         // it's used in many charts but doesn't come with useful source information.
         // that's why we hide the sources section for this indicator for now,
         // but we might decide to show it in the future
         return this.def.owidVariableId === 123
+    }
+
+    @computed private get descriptionBelowTitle(): string | undefined {
+        return this.def.descriptionShort || this.def.description
     }
 
     protected renderTitle(): JSX.Element {
@@ -400,11 +404,11 @@ export class Source extends React.Component<{
         return (
             <div className="source">
                 {this.renderTitle()}
-                {this.def.descriptionShort ? (
-                    <SimpleMarkdownText text={this.def.descriptionShort} />
-                ) : this.def.description ? (
-                    <SimpleMarkdownText text={this.def.description} />
-                ) : null}
+                {this.descriptionBelowTitle && (
+                    <div className="description-below-title">
+                        <SimpleMarkdownText text={this.descriptionBelowTitle} />
+                    </div>
+                )}
                 <SourcesKeyDataTable
                     attribution={this.attributions}
                     owidProcessingLevel={this.def.owidProcessingLevel}
