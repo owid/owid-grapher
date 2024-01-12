@@ -5,11 +5,16 @@ usage() {
 
 Export Grapher charts from master and verify them against the current branch.
 
-Options:
-    --ids, -c           Config IDs passed to export-graphs.js and verify-graphs.js
-    --chart-types, -t   Chart types passed to export-graphs.js and verify-graphs.js
+Charts to process:
+    --ids, -c               Config IDs passed to export-graphs.js and verify-graphs.js
+    --chart-types, -t       Chart types passed to export-graphs.js and verify-graphs.js
+    --ids-from-file, -f     File with chart IDs passed to export-graphs.js and verify-graphs.js
+
+Chart configurations to test:
     --query-str, -q     Grapher query string passed to export-graphs.js and verify-graphs.js
     --all-views         Generate all possible views for each grapher id (passed to export-graphs.js and verify-graphs.js)
+
+Other options:
     --skip-export       Skip the export step (useful when running this script multiple times)
     -h, --help          Display this help and exit
 "
@@ -28,6 +33,7 @@ REPORT_FILE=../owid-grapher-svgs/local/differences.html
 # parameter defaults
 CONFIG_IDS_ARG=""
 CHART_TYPES_ARG=""
+IDS_FROM_FILE_ARG=""
 GRAPHER_QUERY_STRING_ARG=""
 ALL_VIEWS_ARG=""
 SKIP_EXPORT=false
@@ -48,6 +54,9 @@ parseArgs() {
                 ;;
             -t | --chart-types)
                 CHART_TYPES_ARG=$([ -z "$VALUE" ] || echo "--chart-types $VALUE")
+                ;;
+            -f | --ids-from-file)
+                IDS_FROM_FILE_ARG=$([ -z "$VALUE" ] || echo "--ids-from-file $VALUE")
                 ;;
             -q | --query-str)
                 GRAPHER_QUERY_STRING_ARG=$([ -z "$VALUE" ] || echo "--query-str $VALUE")
@@ -85,22 +94,20 @@ unstashChanges() {
     rm $TMP_FILE
 }
 
-checkoutMaster() {
-    echo "=> Checking out master"
-    git checkout master
-
+build() {
     echo "=> Build project"
     yarn buildLerna
     yarn buildTsc
 }
 
+checkoutMaster() {
+    echo "=> Checking out master"
+    git checkout master
+}
+
 checkoutLastBranch() {
     echo "=> Checking out last branch"
     git checkout - && echo "=> Checked out $(git branch --show-current)"
-
-    echo "=> Build project"
-    yarn buildLerna
-    yarn buildTsc
 }
 
 runExportScript() {
@@ -113,6 +120,7 @@ runExportScript() {
         -o $LOCAL_REFERENCE_DIR\
         $CONFIG_IDS_ARG\
         $CHART_TYPES_ARG\
+        $IDS_FROM_FILE_ARG\
         $GRAPHER_QUERY_STRING_ARG\
         $ALL_VIEWS_ARG
 }
@@ -125,8 +133,10 @@ runVerifyScript() {
         -o $LOCAL_DIFFERENCES_DIR\
         $CONFIG_IDS_ARG\
         $CHART_TYPES_ARG\
+        $IDS_FROM_FILE_ARG\
         $GRAPHER_QUERY_STRING_ARG\
-        $ALL_VIEWS_ARG
+        $ALL_VIEWS_ARG\
+        --verbose
 }
 
 createHTMLReport() {
@@ -145,11 +155,13 @@ main() {
 
         # run export script on master
         checkoutMaster
+        build
         runExportScript
 
         # restore original state
         checkoutLastBranch
         unstashChanges
+        build
     fi
     
     # verify grapher charts and create an html report if there are differences
