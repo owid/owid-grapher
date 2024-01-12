@@ -1,11 +1,13 @@
 import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
-    getErrorMessageRelatedQuestionUrl,
-    Grapher,
     LogoOption,
     RelatedQuestionsConfig,
     Topic,
+} from "@ourworldindata/types"
+import {
+    Grapher,
+    getErrorMessageRelatedQuestionUrl,
 } from "@ourworldindata/grapher"
 import { getIndexableKeys, slugify } from "@ourworldindata/utils"
 import { action, computed, runInAction } from "mobx"

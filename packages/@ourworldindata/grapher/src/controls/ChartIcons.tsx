@@ -6,7 +6,7 @@ import {
     faChartColumn,
     faEarthAmericas,
 } from "@fortawesome/free-solid-svg-icons"
-import { ChartTypeName } from "../core/GrapherConstants"
+import { ChartTypeName } from "@ourworldindata/types"
 
 export const chartIcons: Record<ChartTypeName, JSX.Element> = {
     // line chart

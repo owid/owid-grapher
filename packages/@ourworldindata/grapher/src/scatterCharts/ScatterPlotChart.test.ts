@@ -7,9 +7,6 @@ import {
     SynthesizeFruitTableWithNonPositives,
     SynthesizeGDPTable,
     ErrorValueTypes,
-    ColumnTypeNames,
-    OwidTableSlugs,
-    Color,
     makeOriginalTimeSlugFromColumnSlug,
     OwidTable,
 } from "@ourworldindata/core-table"
@@ -23,7 +20,10 @@ import {
     EntitySelectionMode,
     ScaleType,
     ScatterPointLabelStrategy,
-} from "../core/GrapherConstants"
+    ColumnTypeNames,
+    OwidTableSlugs,
+    Color,
+} from "@ourworldindata/types"
 import { ContinentColors } from "../color/CustomSchemes"
 import { sortBy, uniq, uniqBy } from "@ourworldindata/utils"
 import { ScatterPointsWithLabels } from "./ScatterPointsWithLabels"

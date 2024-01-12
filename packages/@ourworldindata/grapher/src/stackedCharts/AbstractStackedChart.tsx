@@ -3,11 +3,11 @@ import { AxisConfig, FontSizeManager } from "../axis/AxisConfig"
 import { ChartInterface } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
 import {
-    BASE_FONT_SIZE,
     FacetStrategy,
     MissingDataStrategy,
     SeriesStrategy,
-} from "../core/GrapherConstants"
+} from "@ourworldindata/types"
+import { BASE_FONT_SIZE } from "../core/GrapherConstants"
 import {
     Bounds,
     DEFAULT_BOUNDS,

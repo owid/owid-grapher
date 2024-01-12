@@ -1,24 +1,26 @@
 import { faChartLine } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
-    BlankOwidTable,
     ColumnTypeNames,
     CoreColumnDef,
-    extractPotentialDataSlugsFromTransform,
     OwidColumnDef,
-    OwidTable,
     SortOrder,
     TableSlug,
+    GrapherInterface,
+    GrapherQueryParams,
+    GrapherTabOption,
+} from "@ourworldindata/types"
+import {
+    OwidTable,
+    BlankOwidTable,
+    extractPotentialDataSlugsFromTransform,
 } from "@ourworldindata/core-table"
 import {
     EntityPicker,
     EntityPickerManager,
     Grapher,
-    GrapherInterface,
     GrapherManager,
     GrapherProgrammaticInterface,
-    GrapherQueryParams,
-    GrapherTabOption,
     SelectionArray,
     setSelectedEntityNamesParam,
     SlideShowController,

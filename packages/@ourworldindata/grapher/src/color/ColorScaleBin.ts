@@ -1,4 +1,4 @@
-import { Color, CoreValueType } from "@ourworldindata/core-table"
+import { Color, CoreValueType } from "@ourworldindata/types"
 
 interface BinProps {
     color: Color

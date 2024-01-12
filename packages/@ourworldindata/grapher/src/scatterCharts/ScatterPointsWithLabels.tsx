@@ -1,7 +1,7 @@
 import { select } from "d3-selection"
 import { ScaleLinear } from "d3-scale"
 import { NoDataModal } from "../noDataModal/NoDataModal"
-import { SortOrder } from "@ourworldindata/core-table"
+import { SortOrder } from "@ourworldindata/types"
 import {
     Bounds,
     PointVector,

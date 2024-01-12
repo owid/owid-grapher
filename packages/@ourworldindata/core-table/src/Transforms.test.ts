@@ -5,7 +5,8 @@ import {
     computeRollingAverage,
     extractPotentialDataSlugsFromTransform,
 } from "./Transforms.js"
-import { ErrorValue, ErrorValueTypes } from "./ErrorValues.js"
+import { ErrorValueTypes } from "./ErrorValues.js"
+import { ErrorValue } from "@ourworldindata/types"
 
 describe(insertMissingValuePlaceholders, () => {
     const testCases = [

@@ -1,8 +1,7 @@
 import { DualAxis } from "../axis/Axis"
 import { ChartManager } from "../chart/ChartManager"
-import { SeriesName } from "../core/GrapherConstants"
+import { SeriesName, CoreValueType } from "@ourworldindata/types"
 import { ChartSeries } from "../chart/ChartInterface"
-import { CoreValueType } from "@ourworldindata/core-table"
 import { Color } from "@ourworldindata/utils"
 
 export interface LinePoint {

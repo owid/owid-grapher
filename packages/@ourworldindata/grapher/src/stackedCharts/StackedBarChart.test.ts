@@ -5,11 +5,10 @@ import {
     SynthesizeFruitTableWithStringValues,
     SynthesizeGDPTable,
     OwidTable,
-    ColumnTypeNames,
 } from "@ourworldindata/core-table"
 import { ChartManager } from "../chart/ChartManager"
 import { SelectionArray } from "../selection/SelectionArray"
-import { isNumber } from "@ourworldindata/utils"
+import { isNumber, ColumnTypeNames } from "@ourworldindata/utils"
 import { StackedBarChart } from "./StackedBarChart"
 
 it("can create a chart", () => {

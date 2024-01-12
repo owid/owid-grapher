@@ -6,10 +6,13 @@ import {
     OwidVariableDisplayConfigInterface,
     ColumnSlug,
 } from "@ourworldindata/utils"
-import { TimeRange } from "./CoreTableConstants.js"
-import { ColumnTypeNames } from "./CoreColumnDef.js"
+import {
+    TimeRange,
+    ColumnTypeNames,
+    OwidColumnDef,
+    OwidTableSlugs,
+} from "@ourworldindata/types"
 import { OwidTable } from "./OwidTable.js"
-import { OwidColumnDef, OwidTableSlugs } from "./OwidTableConstants.js"
 
 interface SynthOptions {
     entityCount: number

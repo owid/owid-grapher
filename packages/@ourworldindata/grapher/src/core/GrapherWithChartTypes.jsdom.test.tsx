@@ -8,7 +8,7 @@ import {
 import { Grapher, GrapherProgrammaticInterface } from "../core/Grapher"
 import { MapChart } from "../mapCharts/MapChart"
 import { legacyMapGrapher } from "../mapCharts/MapChart.sample"
-import { ChartTypeName } from "./GrapherConstants"
+import { ChartTypeName } from "@ourworldindata/types"
 
 describe("grapher and map charts", () => {
     describe("map time tolerance plus query string works with a map chart", () => {

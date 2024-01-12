@@ -4,7 +4,7 @@ import { observer } from "mobx-react"
 import classnames from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faTable, faEarthAmericas } from "@fortawesome/free-solid-svg-icons"
-import { ChartTypeName, GrapherTabOption } from "../core/GrapherConstants"
+import { ChartTypeName, GrapherTabOption } from "@ourworldindata/types"
 import { chartIcons } from "./ChartIcons"
 
 export interface ContentSwitchersManager {

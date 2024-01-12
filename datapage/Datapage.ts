@@ -15,7 +15,7 @@ import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { GdocFactory } from "../db/model/Gdoc/GdocFactory.js"
 import { OwidGoogleAuth } from "../db/OwidGoogleAuth.js"
-import { GrapherInterface } from "@ourworldindata/grapher"
+import { GrapherInterface } from "@ourworldindata/types"
 
 export const getDatapageDataV2 = async (
     variableMetadata: OwidVariableWithSource,

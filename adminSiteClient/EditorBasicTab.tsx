@@ -10,11 +10,10 @@ import {
 import { observer } from "mobx-react"
 import {
     ChartTypeName,
-    DimensionSlot,
     EntitySelectionMode,
     StackMode,
-    WorldEntityName,
-} from "@ourworldindata/grapher"
+} from "@ourworldindata/types"
+import { DimensionSlot, WorldEntityName } from "@ourworldindata/grapher"
 import {
     DimensionProperty,
     moveArrayItemToIndex,

@@ -1,6 +1,5 @@
-import { OwidVariableRow } from "@ourworldindata/core-table"
+import { OwidVariableRow, SeriesName } from "@ourworldindata/types"
 import { ChartSeries } from "../chart/ChartInterface"
-import { SeriesName } from "../core/GrapherConstants"
 
 export type StackedPointPositionType = string | number
 

@@ -15,20 +15,19 @@ import {
     CoreMatrix,
     Time,
     CoreValueType,
-} from "./CoreTableConstants.js"
-import { ColumnTypeNames, CoreColumnDef } from "./CoreColumnDef.js"
-import {
+    ColumnTypeNames,
+    CoreColumnDef,
     ErrorValue,
-    ErrorValueTypes,
-    isNotErrorValueOrEmptyCell,
-    DroppedForTesting,
-} from "./ErrorValues.js"
-import {
     OwidEntityCodeColumnDef,
     OwidEntityIdColumnDef,
     OwidEntityNameColumnDef,
     OwidTableSlugs,
-} from "./OwidTableConstants.js"
+} from "@ourworldindata/types"
+import {
+    ErrorValueTypes,
+    isNotErrorValueOrEmptyCell,
+    DroppedForTesting,
+} from "./ErrorValues.js"
 
 export const columnStoreToRows = (
     columnStore: CoreColumnStore

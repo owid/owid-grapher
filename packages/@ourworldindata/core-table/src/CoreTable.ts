@@ -33,9 +33,11 @@ import {
     InputType,
     CoreMatrix,
     TableSlug,
+    ColumnTypeNames,
+    CoreColumnDef,
     JsTypes,
-} from "./CoreTableConstants.js"
-import { ColumnTypeNames, CoreColumnDef } from "./CoreColumnDef.js"
+    OwidTableSlugs,
+} from "@ourworldindata/types"
 import {
     AlignedTextTableOptions,
     toAlignedTextTable,
@@ -66,7 +68,6 @@ import {
     isNotErrorValue,
     DroppedForTesting,
 } from "./ErrorValues.js"
-import { OwidTableSlugs } from "./OwidTableConstants.js"
 import { applyTransforms, extractTransformNameAndParams } from "./Transforms.js"
 
 interface AdvancedOptions {

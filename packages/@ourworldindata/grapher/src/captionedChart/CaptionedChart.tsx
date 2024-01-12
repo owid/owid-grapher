@@ -16,11 +16,7 @@ import {
 } from "../chart/ChartTypeMap"
 import {
     BASE_FONT_SIZE,
-    ChartTypeName,
-    FacetStrategy,
-    GrapherTabOption,
     Patterns,
-    RelatedQuestionsConfig,
     STATIC_EXPORT_DETAIL_SPACING,
     DEFAULT_GRAPHER_FRAME_PADDING,
 } from "../core/GrapherConstants"
@@ -42,7 +38,13 @@ import { SettingsMenu, SettingsMenuManager } from "../controls/SettingsMenu"
 import { FooterManager } from "../footer/FooterManager"
 import { HeaderManager } from "../header/HeaderManager"
 import { SelectionArray } from "../selection/SelectionArray"
-import { EntityName } from "@ourworldindata/core-table"
+import {
+    EntityName,
+    ChartTypeName,
+    FacetStrategy,
+    GrapherTabOption,
+    RelatedQuestionsConfig,
+} from "@ourworldindata/types"
 import { AxisConfig } from "../axis/AxisConfig"
 import { DataTable, DataTableManager } from "../dataTable/DataTable"
 import {

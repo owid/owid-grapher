@@ -4,10 +4,10 @@ import { TextWrap } from "@ourworldindata/components"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import {
-    BASE_FONT_SIZE,
     GRAPHER_FONT_SCALE_11_2,
+    BASE_FONT_SIZE,
 } from "../core/GrapherConstants"
-import { Color } from "@ourworldindata/core-table"
+import { Color } from "@ourworldindata/types"
 
 export interface VerticalColorLegendManager {
     maxLegendWidth?: number

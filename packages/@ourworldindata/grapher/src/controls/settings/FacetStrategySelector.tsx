@@ -1,11 +1,8 @@
 import React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import {
-    FacetStrategy,
-    DEFAULT_GRAPHER_ENTITY_TYPE,
-} from "../../core/GrapherConstants"
-import { range } from "@ourworldindata/utils"
+import { DEFAULT_GRAPHER_ENTITY_TYPE } from "../../core/GrapherConstants"
+import { range, FacetStrategy } from "@ourworldindata/utils"
 import classnames from "classnames"
 
 export interface FacetStrategySelectionManager {

@@ -1,8 +1,4 @@
-import {
-    BASE_FONT_SIZE,
-    FacetAxisDomain,
-    ScaleType,
-} from "../core/GrapherConstants"
+import { BASE_FONT_SIZE } from "../core/GrapherConstants"
 import {
     extend,
     trimObject,
@@ -14,7 +10,12 @@ import {
 } from "@ourworldindata/utils"
 import { observable, computed } from "mobx"
 import { HorizontalAxis, VerticalAxis } from "./Axis"
-import { AxisConfigInterface, Tickmark } from "./AxisConfigInterface"
+import {
+    AxisConfigInterface,
+    FacetAxisDomain,
+    ScaleType,
+    Tickmark,
+} from "@ourworldindata/types"
 
 export interface FontSizeManager {
     fontSize: number

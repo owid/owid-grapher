@@ -3,15 +3,15 @@ import { moveArrayItemToIndex, omit } from "@ourworldindata/utils"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import {
-    Grapher,
     EntitySelectionMode,
     MissingDataStrategy,
-} from "@ourworldindata/grapher"
+    EntityName,
+} from "@ourworldindata/types"
+import { Grapher } from "@ourworldindata/grapher"
 import { ColorBox, SelectField, Section } from "./Forms.js"
 import { ChartEditor } from "./ChartEditor.js"
 import { faArrowsAltV, faTimes } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { EntityName } from "@ourworldindata/core-table"
 import {
     DragDropContext,
     Draggable,

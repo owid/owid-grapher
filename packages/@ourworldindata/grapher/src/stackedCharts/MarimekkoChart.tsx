@@ -19,12 +19,13 @@ import {
     SortConfig,
     SortOrder,
     getRelativeMouse,
+    ColorSchemeName,
+    EntitySelectionMode,
 } from "@ourworldindata/utils"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
 import {
     BASE_FONT_SIZE,
-    EntitySelectionMode,
     GRAPHER_AXIS_LINE_WIDTH_DEFAULT,
     GRAPHER_AXIS_LINE_WIDTH_THICK,
     GRAPHER_FONT_SCALE_12,
@@ -35,12 +36,12 @@ import { NoDataModal } from "../noDataModal/NoDataModal"
 import { AxisConfig } from "../axis/AxisConfig"
 import { ChartInterface } from "../chart/ChartInterface"
 import {
-    OwidTable,
     EntityName,
     OwidVariableRow,
     OwidTableSlugs,
-    CoreColumn,
-} from "@ourworldindata/core-table"
+    colorScaleConfigDefaults,
+} from "@ourworldindata/types"
+import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
 import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
 import { StackedPoint, StackedSeries } from "./StackedConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
@@ -56,7 +57,7 @@ import {
     ColorScaleConfig,
     ColorScaleConfigDefaults,
 } from "../color/ColorScaleConfig"
-import { ColorSchemeName, OwidNoDataGray } from "../color/ColorConstants"
+import { OwidNoDataGray } from "../color/ColorConstants"
 import { color } from "d3-color"
 import { SelectionArray } from "../selection/SelectionArray"
 import { ColorScheme } from "../color/ColorScheme"
@@ -483,8 +484,10 @@ export class MarimekkoChart
 
     @computed get colorScaleConfig(): ColorScaleConfigDefaults | undefined {
         return (
-            ColorScaleConfig.fromDSL(this.colorColumn.def) ??
-            this.manager.colorScale
+            ColorScaleConfig.fromDSL(this.colorColumn.def) ?? {
+                ...colorScaleConfigDefaults,
+                ...this.manager.colorScale,
+            }
         )
     }
 

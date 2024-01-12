@@ -5,17 +5,19 @@ import Select from "react-select"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faPlus, faMinus } from "@fortawesome/free-solid-svg-icons"
 import {
+    ColorSchemeName,
+    BinningStrategy,
+    ChartTypeName,
+    Color,
+} from "@ourworldindata/types"
+import {
     ColorScale,
     ColorScaleBin,
     NumericBin,
     CategoricalBin,
     binningStrategyLabels,
-    ColorSchemeName,
-    BinningStrategy,
-    ChartTypeName,
 } from "@ourworldindata/grapher"
 import { clone, noop, last } from "@ourworldindata/utils"
-import { Color } from "@ourworldindata/core-table"
 import {
     Section,
     Toggle,

@@ -57,7 +57,7 @@ import {
     extractFormattingOptions,
     PostRowRaw,
 } from "@ourworldindata/utils"
-import { FormattingOptions } from "@ourworldindata/types"
+import { FormattingOptions, GrapherInterface } from "@ourworldindata/types"
 import { CountryProfileSpec } from "../site/countryProfileProjects.js"
 import { formatPost } from "./formatWordpressPost.js"
 import {
@@ -78,10 +78,7 @@ import {
 } from "../site/blocks/KeyInsights.js"
 import { formatUrls, KEY_INSIGHTS_H2_CLASSNAME } from "../site/formatting.js"
 
-import {
-    GrapherInterface,
-    GrapherProgrammaticInterface,
-} from "@ourworldindata/grapher"
+import { GrapherProgrammaticInterface } from "@ourworldindata/grapher"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { ExplorerPageUrlMigrationSpec } from "../explorer/urlMigrations/ExplorerPageUrlMigrationSpec.js"
 import { ExplorerPage } from "../site/ExplorerPage.js"

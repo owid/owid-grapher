@@ -1,10 +1,9 @@
-import { ColorSchemeName } from "./ColorConstants"
 import { CustomColorSchemes } from "./CustomSchemes"
 import { ColorBrewerSchemes } from "./ColorBrewerSchemes"
 import { ColorScheme } from "./ColorScheme"
-import { ChartTypeName } from "../core/GrapherConstants"
 import { match } from "ts-pattern"
 import { partition } from "@ourworldindata/utils"
+import { ChartTypeName, ColorSchemeName } from "@ourworldindata/types"
 
 function getPreferredSchemesByType(type: ChartTypeName): ColorSchemeName[] {
     // This function could also be a Map<ChartTypeName, ColorName[]> but

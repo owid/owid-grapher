@@ -12,8 +12,9 @@ import {
     updatePersistables,
     OwidVariableDisplayConfig,
     OwidChartDimensionInterface,
+    Time,
 } from "@ourworldindata/utils"
-import { OwidTable, Time, CoreColumn } from "@ourworldindata/core-table"
+import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
 
 // A chart "dimension" represents a binding between a chart
 // and a particular variable that it requests as data

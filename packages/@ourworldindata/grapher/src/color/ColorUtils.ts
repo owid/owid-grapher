@@ -1,4 +1,4 @@
-import { Color } from "@ourworldindata/core-table"
+import { Color } from "@ourworldindata/types"
 import { rgb, color, RGBColor } from "d3-color"
 import { interpolate } from "d3-interpolate"
 import { difference, groupBy, minBy } from "@ourworldindata/utils"

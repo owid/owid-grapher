@@ -16,15 +16,12 @@ import {
     ScaleType,
     VerticalAlign,
     TickFormattingOptions,
+    Tickmark,
+    ValueRange,
 } from "@ourworldindata/utils"
 import { AxisConfig } from "./AxisConfig"
 import { TextWrap } from "@ourworldindata/components"
-import {
-    ColumnTypeMap,
-    CoreColumn,
-    ValueRange,
-} from "@ourworldindata/core-table"
-import { Tickmark } from "./AxisConfigInterface"
+import { ColumnTypeMap, CoreColumn } from "@ourworldindata/core-table"
 import { GRAPHER_FONT_SCALE_12 } from "../core/GrapherConstants.js"
 
 interface TickLabelPlacement {

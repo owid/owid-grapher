@@ -17,18 +17,18 @@ import {
     SortBy,
     SortConfig,
     HorizontalAlign,
+    EntityName,
     getRelativeMouse,
 } from "@ourworldindata/utils"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
+import { FacetStrategy, SeriesName } from "@ourworldindata/types"
 import {
     BASE_FONT_SIZE,
-    FacetStrategy,
     GRAPHER_AREA_OPACITY_DEFAULT,
     GRAPHER_AXIS_LINE_WIDTH_DEFAULT,
     GRAPHER_AXIS_LINE_WIDTH_THICK,
     GRAPHER_FONT_SCALE_12,
-    SeriesName,
 } from "../core/GrapherConstants"
 import {
     HorizontalAxisComponent,
@@ -38,7 +38,7 @@ import {
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { AxisConfig } from "../axis/AxisConfig"
 import { ChartInterface } from "../chart/ChartInterface"
-import { OwidTable, EntityName, CoreColumn } from "@ourworldindata/core-table"
+import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
 import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
 import {
     stackSeries,

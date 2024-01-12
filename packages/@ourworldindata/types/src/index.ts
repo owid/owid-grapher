@@ -18,6 +18,7 @@ export {
     type OwidVariableId,
     type RawPageview,
     type UserCountryInformation,
+    type QueryParams,
 } from "./domainTypes/Various.js"
 export {
     type DataValueConfiguration,
@@ -78,6 +79,37 @@ export {
     type Time,
     type TimeBound,
     type TimeBounds,
+    type TickFormattingOptions,
+    BinningStrategy,
+    type ColorScaleConfigInterface,
+    ColorSchemeName,
+    colorScaleConfigDefaults,
+    ChartTypeName,
+    GrapherTabOption,
+    StackMode,
+    EntitySelectionMode,
+    ScatterPointLabelStrategy,
+    type RelatedQuestionsConfig,
+    FacetStrategy,
+    type SeriesColorMap,
+    FacetAxisDomain,
+    type AnnotationFieldsInTitle,
+    MissingDataStrategy,
+    SeriesStrategy,
+    type GrapherInterface,
+    type Topic,
+    grapherKeysToSerialize,
+    type GrapherQueryParams,
+    type LegacyGrapherInterface,
+    MapProjectionName,
+    LogoOption,
+    type ComparisonLineConfig,
+    type AxisConfigInterface,
+    type ColorSchemeInterface,
+    type Tickmark,
+    type SeriesName,
+    type LegacyGrapherQueryParams,
+    GrapherStaticFormat,
 } from "./grapherTypes/GrapherTypes.js"
 
 export {
@@ -296,7 +328,6 @@ export {
 } from "./dbTypes/Posts.js"
 
 export type { GDriveImageMetadata, ImageMetadata } from "./gdocTypes/Image.js"
-
 export {
     ALL_CHARTS_ID,
     LICENSE_ID,
@@ -336,3 +367,34 @@ export type {
     OwidVariableDataTableConfigInterface,
     OwidChartDimensionInterface,
 } from "./OwidVariableDisplayConfigInterface.js"
+
+export {
+    type TableSlug,
+    type ColumnSlugs,
+    type TimeTolerance,
+    type CoreRow,
+    InputType,
+    TransformType,
+    JsTypes,
+    type CsvString,
+    type CoreValueType,
+    type CoreColumnStore,
+    type CoreTableInputOption,
+    type CoreQuery,
+    type CoreMatrix,
+    OwidTableSlugs,
+    type EntityName,
+    type EntityCode,
+    type EntityId,
+    type OwidColumnDef,
+    OwidEntityNameColumnDef,
+    OwidEntityIdColumnDef,
+    OwidEntityCodeColumnDef,
+    StandardOwidColumnDefs,
+    type OwidRow,
+    type OwidVariableRow,
+    ColumnTypeNames,
+    type ColumnColorScale,
+    type CoreColumnDef,
+    ErrorValue,
+} from "./domainTypes/CoreTableTypes.js"

@@ -3,12 +3,12 @@ import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { ChartEditor } from "./ChartEditor.js"
 import {
-    Grapher,
     ComparisonLineConfig,
     ColorSchemeName,
     FacetAxisDomain,
     FacetStrategy,
-} from "@ourworldindata/grapher"
+} from "@ourworldindata/types"
+import { Grapher } from "@ourworldindata/grapher"
 import {
     NumberField,
     Toggle,

@@ -1,5 +1,4 @@
-import { SortOrder } from "@ourworldindata/core-table"
-import { GrapherQueryParams } from "@ourworldindata/grapher"
+import { SortOrder, GrapherQueryParams } from "@ourworldindata/types"
 import { ColumnSlug, SerializedGridProgram } from "@ourworldindata/utils"
 
 export enum ExplorerControlType {

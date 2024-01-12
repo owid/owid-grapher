@@ -1,9 +1,10 @@
-import { Color, OwidTable } from "@ourworldindata/core-table"
+import { OwidTable } from "@ourworldindata/core-table"
 import {
     FacetStrategy,
     SeriesName,
     SeriesStrategy,
-} from "../core/GrapherConstants"
+    Color,
+} from "@ourworldindata/types"
 import { ColorScale } from "../color/ColorScale"
 import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends"

@@ -214,11 +214,7 @@ export type {
     utcType,
 } from "./dayjs.js"
 
-export {
-    formatValue,
-    checkIsVeryShortUnit,
-    type TickFormattingOptions,
-} from "./formatValue.js"
+export { formatValue, checkIsVeryShortUnit } from "./formatValue.js"
 
 export {
     timeFromTimebounds,
@@ -266,7 +262,6 @@ export { PointVector } from "./PointVector.js"
 export { OwidVariableDisplayConfig } from "./OwidVariable.js"
 
 export {
-    type QueryParams,
     getQueryParams,
     getWindowQueryParams,
     strToQueryParams,

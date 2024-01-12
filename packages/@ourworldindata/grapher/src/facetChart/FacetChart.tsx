@@ -21,14 +21,15 @@ import {
 } from "@ourworldindata/utils"
 import { shortenForTargetWidth } from "@ourworldindata/components"
 import { action, computed, observable } from "mobx"
+import { BASE_FONT_SIZE } from "../core/GrapherConstants"
 import {
-    BASE_FONT_SIZE,
     ChartTypeName,
     FacetAxisDomain,
     FacetStrategy,
     SeriesColorMap,
     SeriesStrategy,
-} from "../core/GrapherConstants"
+    AxisConfigInterface,
+} from "@ourworldindata/types"
 import {
     ChartComponentClassMap,
     DefaultChartClass,
@@ -45,7 +46,6 @@ import {
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
 import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
 import { SelectionArray } from "../selection/SelectionArray"
-import { AxisConfigInterface } from "../axis/AxisConfigInterface"
 import { AxisConfig } from "../axis/AxisConfig"
 import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import {

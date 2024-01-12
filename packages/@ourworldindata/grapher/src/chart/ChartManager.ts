@@ -1,17 +1,19 @@
 import React from "react"
-import { ColorScaleConfigInterface } from "../color/ColorScaleConfig"
 import {
     EntitySelectionMode,
     FacetStrategy,
     SeriesColorMap,
     SeriesStrategy,
     MissingDataStrategy,
-} from "../core/GrapherConstants"
-import { ComparisonLineConfig } from "../scatterCharts/ComparisonLine"
+    ColorScaleConfigInterface,
+    ComparisonLineConfig,
+    AxisConfigInterface,
+    ColorSchemeName,
+    EntityName,
+} from "@ourworldindata/types"
 import { TooltipManager } from "../tooltip/TooltipProps"
-import { OwidTable, EntityName, CoreColumn } from "@ourworldindata/core-table"
-import { AxisConfigInterface } from "../axis/AxisConfigInterface"
-import { ColorSchemeName } from "../color/ColorConstants"
+import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
+
 import { SelectionArray } from "../selection/SelectionArray"
 import {
     Annotation,

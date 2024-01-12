@@ -1,15 +1,19 @@
 import {
     CoreMatrix,
     ColumnTypeNames,
-    CoreTable,
     CoreTableInputOption,
     CoreValueType,
     OwidColumnDef,
-    OwidTable,
     TableSlug,
+    SubNavId,
+    FacetAxisDomain,
+    GrapherInterface,
+} from "@ourworldindata/types"
+import {
+    CoreTable,
+    OwidTable,
     isNotErrorValue,
 } from "@ourworldindata/core-table"
-import { FacetAxisDomain, GrapherInterface } from "@ourworldindata/grapher"
 import {
     GitCommit,
     PromiseCache,
@@ -17,7 +21,6 @@ import {
     trimObject,
     omit,
 } from "@ourworldindata/utils"
-import { SubNavId } from "@ourworldindata/types"
 import {
     CellDef,
     Grammar,

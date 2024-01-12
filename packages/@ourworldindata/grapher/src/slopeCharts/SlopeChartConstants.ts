@@ -1,7 +1,7 @@
 import { CoreColumn } from "@ourworldindata/core-table"
 import { ChartSeries } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
-import { ScaleType } from "../core/GrapherConstants"
+import { ScaleType } from "@ourworldindata/types"
 import { Bounds } from "@ourworldindata/utils"
 import { TextWrap } from "@ourworldindata/components"
 

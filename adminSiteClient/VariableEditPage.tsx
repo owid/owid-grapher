@@ -30,11 +30,8 @@ import { OriginList } from "./OriginList.js"
 import { SourceList } from "./SourceList.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { Base64 } from "js-base64"
-import {
-    Grapher,
-    GrapherTabOption,
-    GrapherInterface,
-} from "@ourworldindata/grapher"
+import { GrapherTabOption, GrapherInterface } from "@ourworldindata/types"
+import { Grapher } from "@ourworldindata/grapher"
 import { faCircleInfo } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
