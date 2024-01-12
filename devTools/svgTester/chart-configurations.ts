@@ -6,6 +6,7 @@ import {
     FacetStrategy,
     GrapherQueryParams,
 } from "@ourworldindata/grapher"
+import { cartesian } from "@ourworldindata/utils"
 
 export type ViewMatrix = Record<keyof GrapherQueryParams, string[]>
 
@@ -146,15 +147,6 @@ export const queryStringsByChartType = Object.fromEntries(
         return [chartType, queryStrings]
     })
 ) as Record<ChartTypeName, string[]>
-
-// adapted from https://stackoverflow.com/questions/12303989/cartesian-product-of-multiple-arrays-in-javascript
-function cartesian(matrix: any[][]) {
-    if (matrix.length === 0) return []
-    if (matrix.length === 1) return matrix[0].map((i) => [i])
-    return matrix.reduce((acc, curr) =>
-        acc.flatMap((i: any) => curr.map((j: any) => [i, j].flat()))
-    )
-}
 
 function toQueryStr(params: Record<string, string>): string {
     return new URLSearchParams(params).toString()

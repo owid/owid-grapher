@@ -28,6 +28,7 @@ import {
     greatestCommonDivisor,
     findGreatestCommonDivisorOfArray,
     traverseEnrichedBlocks,
+    cartesian,
 } from "./Util.js"
 import {
     BlockImageSize,
@@ -744,6 +745,50 @@ describe(traverseEnrichedBlocks, () => {
             "span-simple-text",
             "span-underline",
             "span-simple-text",
+        ])
+    })
+})
+
+describe(cartesian, () => {
+    it("returns an empty list when no arrays are provided", () => {
+        expect(cartesian([])).toEqual([])
+    })
+
+    it("returns individual items if a single array is given", () => {
+        expect(cartesian([["a", "b"]])).toEqual([["a"], ["b"]])
+    })
+
+    it("returns all possible combinations if multiple arrays are given", () => {
+        expect(cartesian([["a", "b"], ["x"]])).toEqual([
+            ["a", "x"],
+            ["b", "x"],
+        ])
+        expect(
+            cartesian([
+                ["a", "b"],
+                ["x", "y"],
+            ])
+        ).toEqual([
+            ["a", "x"],
+            ["a", "y"],
+            ["b", "x"],
+            ["b", "y"],
+        ])
+        expect(
+            cartesian([
+                ["a", "b"],
+                ["x", "y"],
+                ["+", "-"],
+            ])
+        ).toEqual([
+            ["a", "x", "+"],
+            ["a", "x", "-"],
+            ["a", "y", "+"],
+            ["a", "y", "-"],
+            ["b", "x", "+"],
+            ["b", "x", "-"],
+            ["b", "y", "+"],
+            ["b", "y", "-"],
         ])
     })
 })

@@ -1783,3 +1783,17 @@ export function checkIsDataInsight(
     const type = get(x, "content.type")
     return type === OwidGdocType.DataInsight
 }
+
+/**
+ * Returns the cartesian product of the given arrays.
+ *
+ * For example, `cartesian([["a", "b"], ["x", "y"]])` returns `[["a", "x"], ["a", "y"], ["b", "x"], ["b", "y"]]`
+ */
+export function cartesian<T>(matrix: T[][]): T[][] {
+    if (matrix.length === 0) return []
+    if (matrix.length === 1) return matrix[0].map((i) => [i])
+    return matrix.reduce<T[][]>(
+        (acc, curr) => acc.flatMap((i) => curr.map((j) => [...i, j])),
+        [[]]
+    )
+}
