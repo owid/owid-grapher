@@ -55,6 +55,7 @@ import {
 import {
     GRAPHER_AXIS_LINE_WIDTH_THICK,
     GRAPHER_AXIS_LINE_WIDTH_DEFAULT,
+    BASE_FONT_SIZE,
 } from "../core/GrapherConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { AxisConfig, FontSizeManager } from "../axis/AxisConfig"

@@ -3,7 +3,10 @@ import { sum, max } from "@ourworldindata/utils"
 import { TextWrap } from "@ourworldindata/components"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { GRAPHER_FONT_SCALE_11_2 } from "../core/GrapherConstants"
+import {
+    GRAPHER_FONT_SCALE_11_2,
+    BASE_FONT_SIZE,
+} from "../core/GrapherConstants"
 import { Color } from "@ourworldindata/types"
 
 export interface VerticalColorLegendManager {

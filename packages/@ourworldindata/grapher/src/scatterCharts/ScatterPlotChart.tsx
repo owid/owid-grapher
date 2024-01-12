@@ -45,6 +45,7 @@ import {
 import { observer } from "mobx-react"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import {
+    BASE_FONT_SIZE,
     GRAPHER_AXIS_LINE_WIDTH_DEFAULT,
     GRAPHER_AXIS_LINE_WIDTH_THICK,
 } from "../core/GrapherConstants"
