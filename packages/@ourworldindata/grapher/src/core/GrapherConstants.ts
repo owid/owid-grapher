@@ -13,6 +13,8 @@ export const DEFAULT_GRAPHER_CONFIG_SCHEMA =
 
 export const DEFAULT_GRAPHER_ENTITY_TYPE = "country or region"
 export const DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL = "countries and regions"
+export const GRAPHER_LOADED_EVENT_NAME = "grapherLoaded"
+export const ALL_GRAPHERS_LOADED_EVENT_NAME = "allGraphersLoaded"
 
 export const DEFAULT_GRAPHER_WIDTH = 850
 export const DEFAULT_GRAPHER_HEIGHT = 600
