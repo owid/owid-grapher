@@ -3,7 +3,7 @@
  * the donate Cloudflare function on the server.
  */
 
-import { DonationCurrencyCode, DonationRequest } from "./owidTypes"
+import { DonationCurrencyCode, DonationRequest } from "@ourworldindata/types"
 
 const CURRENCY_SYMBOLS: Record<DonationCurrencyCode, string> = {
     GBP: "£",

@@ -1,4 +1,4 @@
-import { SubNavId } from "@ourworldindata/utils"
+import { SubNavId } from "@ourworldindata/types"
 import {
     CellDef,
     BooleanCellDef,

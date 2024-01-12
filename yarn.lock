@@ -3615,6 +3615,7 @@ __metadata:
     "@fortawesome/free-brands-svg-icons": "npm:^6.4.2"
     "@fortawesome/free-solid-svg-icons": "npm:^6.4.2"
     "@fortawesome/react-fontawesome": "npm:^0.2.0"
+    "@ourworldindata/types": "workspace:^"
     "@ourworldindata/utils": "workspace:^"
     "@types/react": "npm:^17.0.69"
     "@types/react-dom": "npm:^17.0.22"
@@ -3635,6 +3636,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@ourworldindata/core-table@workspace:packages/@ourworldindata/core-table"
   dependencies:
+    "@ourworldindata/types": "workspace:^"
     "@ourworldindata/utils": "workspace:^"
     "@types/d3": "npm:^6"
     d3: "npm:^6.1.1"
@@ -3657,6 +3659,7 @@ __metadata:
     "@fortawesome/react-fontawesome": "npm:^0.2.0"
     "@ourworldindata/components": "workspace:^"
     "@ourworldindata/core-table": "workspace:^"
+    "@ourworldindata/types": "workspace:^"
     "@ourworldindata/utils": "workspace:^"
     "@tippyjs/react": "npm:^4.2.6"
     "@types/colorbrewer": "npm:^1.0.29"
@@ -3703,10 +3706,23 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@ourworldindata/types@workspace:^, @ourworldindata/types@workspace:packages/@ourworldindata/types":
+  version: 0.0.0-use.local
+  resolution: "@ourworldindata/types@workspace:packages/@ourworldindata/types"
+  dependencies:
+    "@sinclair/typebox": "npm:^0.28.5"
+    eslint: "npm:^8.53.0"
+    eslint-plugin-react-hooks: "npm:^4.6.0"
+    jest: "npm:^29.7.0"
+    typescript: "npm:~5.2.2"
+  languageName: unknown
+  linkType: soft
+
 "@ourworldindata/utils@workspace:^, @ourworldindata/utils@workspace:packages/@ourworldindata/utils":
   version: 0.0.0-use.local
   resolution: "@ourworldindata/utils@workspace:packages/@ourworldindata/utils"
   dependencies:
+    "@ourworldindata/types": "workspace:^"
     "@tippyjs/react": "npm:^4.2.6"
     "@types/d3": "npm:^6"
     "@types/d3-format": "npm:^2"
@@ -10809,6 +10825,7 @@ __metadata:
     "@ourworldindata/components": "workspace:^"
     "@ourworldindata/core-table": "workspace:^"
     "@ourworldindata/grapher": "workspace:^"
+    "@ourworldindata/types": "workspace:^"
     "@ourworldindata/utils": "workspace:^"
     "@react-awesome-query-builder/antd": "npm:^6.1.1"
     "@sinclair/typebox": "npm:^0.28.5"

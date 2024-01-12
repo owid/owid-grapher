@@ -21,6 +21,7 @@ export default defineConfig({
             // Idea from https://github.com/LinusBorg/vue-lib-template/blob/3775e49b20a7c3349dd49321cad2ed7f9d575057/packages/playground/vite.config.ts
             "@ourworldindata/grapher": "@ourworldindata/grapher/src/index.ts",
             "@ourworldindata/utils": "@ourworldindata/utils/src/index.ts",
+            "@ourworldindata/types": "@ourworldindata/types/src/index.ts",
             "@ourworldindata/core-table":
                 "@ourworldindata/core-table/src/index.ts",
             "@ourworldindata/components":

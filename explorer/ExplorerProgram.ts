@@ -14,10 +14,10 @@ import {
     GitCommit,
     PromiseCache,
     SerializedGridProgram,
-    SubNavId,
     trimObject,
     omit,
 } from "@ourworldindata/utils"
+import { SubNavId } from "@ourworldindata/types"
 import {
     CellDef,
     Grammar,

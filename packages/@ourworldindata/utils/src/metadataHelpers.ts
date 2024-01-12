@@ -1,13 +1,13 @@
-import { OwidOrigin } from "./OwidOrigin"
 import {
-    IndicatorTitleWithFragments,
-    OwidProcessingLevel,
+    OwidOrigin,
     OwidVariableWithSource,
-} from "./OwidVariable"
-import { DisplaySource } from "./owidTypes"
+    OwidProcessingLevel,
+    DisplaySource,
+    IndicatorTitleWithFragments,
+    OwidSource,
+} from "@ourworldindata/types"
 import { compact, uniq, last, excludeUndefined } from "./Util"
 import dayjs from "./dayjs.js"
-import { OwidSource } from "./OwidSource.js"
 
 export function getOriginAttributionFragments(
     origins: OwidOrigin[] | undefined

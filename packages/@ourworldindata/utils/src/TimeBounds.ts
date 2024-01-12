@@ -1,4 +1,10 @@
 import {
+    EPOCH_DATE,
+    Time,
+    TimeBound,
+    TimeBoundValue,
+} from "@ourworldindata/types"
+import {
     parseIntOrUndefined,
     isString,
     diffDateISOStringInDays,
@@ -6,7 +12,6 @@ import {
     isNegativeInfinity,
     isPositiveInfinity,
 } from "./Util.js"
-import { EPOCH_DATE, Time, TimeBound, TimeBoundValue } from "./owidTypes.js"
 
 enum TimeBoundValueStr {
     unboundedLeft = "earliest",

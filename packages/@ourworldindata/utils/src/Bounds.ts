@@ -1,7 +1,12 @@
 import { isNumber, mapValues, range } from "./Util.js"
 import { PointVector } from "./PointVector.js"
 import pixelWidth from "string-pixel-width"
-import { Box, GridParameters, Position, PositionMap } from "./owidTypes.js"
+import {
+    Box,
+    GridParameters,
+    Position,
+    PositionMap,
+} from "@ourworldindata/types"
 
 // Important utility class for all visualizations
 // Since we want to be able to render charts headlessly and functionally, we

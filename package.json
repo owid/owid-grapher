@@ -64,6 +64,7 @@
         "@ourworldindata/components": "workspace:^",
         "@ourworldindata/core-table": "workspace:^",
         "@ourworldindata/grapher": "workspace:^",
+        "@ourworldindata/types": "workspace:^",
         "@ourworldindata/utils": "workspace:^",
         "@react-awesome-query-builder/antd": "^6.1.1",
         "@sinclair/typebox": "^0.28.5",
