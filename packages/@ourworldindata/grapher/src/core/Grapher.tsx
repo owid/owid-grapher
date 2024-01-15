@@ -378,6 +378,7 @@ export class Grapher
     @observable.ref hasChartTab = true
     @observable.ref hasMapTab = false
     @observable.ref tab = GrapherTabOption.chart
+    @observable.ref isGlobe: boolean = false
     @observable.ref internalNotes = ""
     @observable.ref variantName?: string = undefined
     @observable.ref originUrl = ""

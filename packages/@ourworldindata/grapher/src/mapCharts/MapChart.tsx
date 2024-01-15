@@ -1,62 +1,29 @@
-import React from "react"
+import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 import {
-    anyToString,
-    isNumber,
     Bounds,
+    Color,
     DEFAULT_BOUNDS,
-    flatten,
-    getRelativeMouse,
-    sortBy,
-    guid,
+    HorizontalAlign,
+    PointVector,
+    PrimitiveType,
+    anyToString,
     difference,
     exposeInstanceOnWindow,
+    flatten,
+    getRelativeMouse,
+    guid,
+    isNumber,
     isPresent,
-    PointVector,
-    Color,
-    HorizontalAlign,
-    PrimitiveType,
+    sortBy,
 } from "@ourworldindata/utils"
-import { observable, computed, action } from "mobx"
-import { observer } from "mobx-react"
-import {
-    HorizontalCategoricalColorLegend,
-    HorizontalColorLegendManager,
-    HorizontalNumericColorLegend,
-} from "../horizontalColorLegend/HorizontalColorLegends"
-import { MapProjectionGeos } from "./MapProjections"
-import { GeoPathRoundingContext } from "./GeoPathRoundingContext"
-import { select } from "d3-selection"
+import { Quadtree, geoOrthographic, geoPath } from "d3"
 import { easeCubic } from "d3-ease"
-import { Quadtree, quadtree } from "d3-quadtree"
-import { MapTooltip } from "./MapTooltip"
-import { TooltipState } from "../tooltip/Tooltip.js"
-import { isOnTheMap } from "./EntitiesOnTheMap"
-import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
-import {
-    GeoFeature,
-    MapBracket,
-    MapChartManager,
-    MapEntity,
-    ChoroplethMapManager,
-    RenderFeature,
-    ChoroplethSeries,
-    MAP_HOVER_TARGET_RANGE,
-} from "./MapChartConstants"
-import { MapConfig } from "./MapConfig"
-import { ColorScale, ColorScaleManager } from "../color/ColorScale"
-import { BASE_FONT_SIZE, Patterns } from "../core/GrapherConstants"
-import { ChartInterface } from "../chart/ChartInterface"
-import {
-    CategoricalBin,
-    ColorScaleBin,
-    NumericBin,
-} from "../color/ColorScaleBin"
+import { quadtree } from "d3-quadtree"
+import { select } from "d3-selection"
+import { action, computed, observable } from "mobx"
+import { observer } from "mobx-react"
+import React from "react"
 import * as topojson from "topojson-client"
-import { MapTopology } from "./MapTopology"
-import {
-    WorldRegionName,
-    WorldRegionToProjection,
-} from "./WorldRegionsToProjection"
 import {
     ColorSchemeName,
     MapProjectionName,
@@ -64,15 +31,48 @@ import {
     SeriesName,
     EntityName,
 } from "@ourworldindata/types"
+import { ChartInterface } from "../chart/ChartInterface"
 import {
     autoDetectYColumnSlugs,
     makeClipPath,
     makeSelectionArray,
 } from "../chart/ChartUtils"
-import { NoDataModal } from "../noDataModal/NoDataModal"
+import { ColorScale, ColorScaleManager } from "../color/ColorScale"
+import {
+    CategoricalBin,
+    ColorScaleBin,
+    NumericBin,
+} from "../color/ColorScaleBin"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
+import { BASE_FONT_SIZE, Patterns } from "../core/GrapherConstants"
+import {
+    HorizontalCategoricalColorLegend,
+    HorizontalColorLegendManager,
+    HorizontalNumericColorLegend,
+} from "../horizontalColorLegend/HorizontalColorLegends"
+import { NoDataModal } from "../noDataModal/NoDataModal"
 import { SelectionArray } from "../selection/SelectionArray"
-
+import { TooltipState } from "../tooltip/Tooltip.js"
+import { isOnTheMap } from "./EntitiesOnTheMap"
+import { GeoPathRoundingContext } from "./GeoPathRoundingContext"
+import {
+    ChoroplethMapManager,
+    ChoroplethSeries,
+    GeoFeature,
+    MAP_HOVER_TARGET_RANGE,
+    MapBracket,
+    MapChartManager,
+    MapEntity,
+    RenderFeature,
+} from "./MapChartConstants"
+import { MapConfig } from "./MapConfig"
+import { MapProjectionGeos } from "./MapProjections"
+import { MapTooltip } from "./MapTooltip"
+import { MapTopology } from "./MapTopology"
+import {
+    WorldRegionName,
+    WorldRegionToProjection,
+} from "./WorldRegionsToProjection"
 const DEFAULT_STROKE_COLOR = "#333"
 const CHOROPLETH_MAP_CLASSNAME = "ChoroplethMap"
 
@@ -143,8 +143,13 @@ const geoBoundsFor = (projectionName: MapProjectionName): Bounds[] => {
 // Bundle GeoFeatures with the calculated info needed to render them
 const renderFeaturesCache = new Map<MapProjectionName, RenderFeature[]>()
 const renderFeaturesFor = (
-    projectionName: MapProjectionName
+    projectionName: MapProjectionName,
+    isGlobe = false
 ): RenderFeature[] => {
+    if (isGlobe) {
+        renderFeaturesCache.get(MapProjectionName.World)
+    }
+
     if (renderFeaturesCache.has(projectionName))
         return renderFeaturesCache.get(projectionName)!
     const geoBounds = geoBoundsFor(projectionName)
@@ -307,6 +312,10 @@ export class MapChart
     componentWillUnmount(): void {
         this.onMapMouseLeave()
         this.onLegendMouseLeave()
+    }
+
+    @observable isGlobe(): boolean {
+        return this.manager.isGlobe
     }
 
     @action.bound onLegendMouseOver(bracket: MapBracket): void {
@@ -638,6 +647,9 @@ class ChoroplethMap extends React.Component<{
     manager: ChoroplethMapManager
 }> {
     base: React.RefObject<SVGGElement> = React.createRef()
+    globeProjection: any
+    dragging: any
+    enableDragging: boolean = false
 
     @computed private get uid(): number {
         return guid()
@@ -696,19 +708,62 @@ class ChoroplethMap extends React.Component<{
 
     // Viewport for each projection, defined by center and width+height in fractional coordinates
     @computed private get viewport(): {
+        rotation: any
         x: number
         y: number
         width: number
         height: number
     } {
         const viewports = {
-            World: { x: 0.565, y: 0.5, width: 1, height: 1 },
-            Europe: { x: 0.53, y: 0.22, width: 0.2, height: 0.2 },
-            Africa: { x: 0.49, y: 0.7, width: 0.21, height: 0.38 },
-            NorthAmerica: { x: 0.49, y: 0.4, width: 0.19, height: 0.32 },
-            SouthAmerica: { x: 0.52, y: 0.815, width: 0.1, height: 0.26 },
-            Asia: { x: 0.74, y: 0.45, width: 0.36, height: 0.5 },
-            Oceania: { x: 0.51, y: 0.75, width: 0.1, height: 0.2 },
+            World: {
+                x: 0.565,
+                y: 0.5,
+                width: 1,
+                height: 1,
+                rotation: [30, 0],
+            },
+            Europe: {
+                x: 0.53,
+                y: 0.22,
+                width: 0.2,
+                height: 0.2,
+                rotation: [-30, -50],
+            },
+            Africa: {
+                x: 0.49,
+                y: 0.7,
+                width: 0.21,
+                height: 0.38,
+                rotation: [-30, 0],
+            },
+            NorthAmerica: {
+                x: 0.49,
+                y: 0.4,
+                width: 0.19,
+                height: 0.32,
+                rotation: [70, -50],
+            },
+            SouthAmerica: {
+                x: 0.52,
+                y: 0.815,
+                width: 0.1,
+                height: 0.26,
+                rotation: [70, 20],
+            },
+            Asia: {
+                x: 0.74,
+                y: 0.45,
+                width: 0.36,
+                height: 0.5,
+                rotation: [-80, -20],
+            },
+            Oceania: {
+                x: 0.51,
+                y: 0.75,
+                width: 0.1,
+                height: 0.2,
+                rotation: [-125, 30],
+            },
         }
 
         return viewports[this.manager.projection]
@@ -717,12 +772,50 @@ class ChoroplethMap extends React.Component<{
     // Calculate what scaling should be applied to the untransformed map to match the current viewport to the container
     @computed private get viewportScale(): number {
         const { bounds, viewport, mapBounds } = this
+        if (this.manager.isGlobe()) {
+            return Math.min(
+                bounds.width / mapBounds.width,
+                bounds.height / mapBounds.height
+            )
+        }
         const viewportWidth = viewport.width * mapBounds.width
         const viewportHeight = viewport.height * mapBounds.height
         return Math.min(
             bounds.width / viewportWidth,
             bounds.height / viewportHeight
         )
+    }
+
+    @computed get globeWidth(): number {
+        return (this.bounds.width - 300) / 2
+    }
+
+    @computed get globeHeight(): number {
+        return (this.bounds.height - 150) / 2
+    }
+
+    @computed get globeScale(): number {
+        if (this.bounds.height < this.bounds.width) {
+            return this.bounds.height / 2.3
+        } else {
+            return this.bounds.width / 2.3
+        }
+    }
+
+    getPath(feature: RenderFeature): string {
+        if (!this.globeProjection) {
+            this.dragging = [0, 0]
+            this.globeProjection = geoOrthographic()
+                ?.scale(this.globeScale)
+                .center([0, 0])
+                .rotate([-30, 0])
+                .translate([this.bounds.width / 2, this.bounds.height / 2])
+        }
+        if (this.manager.isGlobe()) {
+            return geoPath().projection(this.globeProjection)(feature.geo) ?? ""
+        } else {
+            return feature.path
+        }
     }
 
     @computed private get matrixTransform(): string {
@@ -746,20 +839,23 @@ class ChoroplethMap extends React.Component<{
         const newOffsetY = boundsCenterY - newCenterY
 
         const matrixStr = `matrix(${viewportScale},0,0,${viewportScale},${newOffsetX},${newOffsetY})`
+        if (this.manager.isGlobe()) {
+            return ``
+        }
         return matrixStr
     }
 
     // Features that aren't part of the current projection (e.g. India if we're showing Africa)
     @computed private get featuresOutsideProjection(): RenderFeature[] {
         return difference(
-            renderFeaturesFor(this.manager.projection),
+            renderFeaturesFor(this.manager.projection, this.manager.isGlobe()),
             this.featuresInProjection
         )
     }
 
     @computed private get featuresInProjection(): RenderFeature[] {
         const { projection } = this.manager
-        const features = renderFeaturesFor(projection)
+        const features = renderFeaturesFor(projection, this.manager.isGlobe())
         if (projection === MapProjectionName.World) return features
 
         return features.filter(
@@ -803,9 +899,11 @@ class ChoroplethMap extends React.Component<{
         if (subunits) {
             const { x, y } = getRelativeMouse(subunits, ev)
             const distance = MAP_HOVER_TARGET_RANGE
-            const feature = this.quadtree.find(x, y, distance)
-
-            if (feature) {
+            let feature = null
+            if (!this.manager.isGlobe()) {
+                feature = this.quadtree.find(x, y, distance)
+            }
+            if (!this.manager.isGlobe() && feature) {
                 if (feature.id !== this.hoverNearbyFeature?.id) {
                     this.hoverNearbyFeature = feature
                     this.manager.onMapMouseOver(feature.geo)
@@ -866,17 +964,51 @@ class ChoroplethMap extends React.Component<{
         // this needs to be referenced here or it will be recomputed on every mousemove
         const _cachedCentroids = this.quadtree
 
+        if (this.manager.isGlobe()) {
+            if (this.manager.projection !== MapProjectionName.World) {
+                this.globeProjection?.scale(this.globeScale * 1.8)
+                this.globeProjection?.center([0, 0])
+                this.globeProjection?.rotate(this.viewport.rotation)
+            } else {
+                this.globeProjection?.scale(this.globeScale)
+
+                this.globeProjection?.translate([
+                    this.bounds.width / 2,
+                    this.bounds.height / 2,
+                ])
+
+                this.globeProjection?.center([0, 0])
+                this.globeProjection?.rotate(this.viewport.rotation)
+                this.globeProjection?.rotate(this?.dragging)
+            }
+        }
+
         return (
             <g
                 ref={this.base}
                 className={CHOROPLETH_MAP_CLASSNAME}
                 clipPath={clipPath.id}
-                onMouseDown={
-                    (ev: SVGMouseEvent): void =>
-                        ev.preventDefault() /* Without this, title may get selected while shift clicking */
-                }
-                onMouseMove={this.onMouseMove}
+                onMouseDown={(ev: SVGMouseEvent): void => {
+                    this.enableDragging = true
+                    ev.preventDefault() /* Without this, title may get selected while shift clicking */
+                }}
+                onMouseMove={(ev: React.MouseEvent<SVGGElement>) => {
+                    if (this.enableDragging) {
+                        const rotate = this.globeProjection.rotate()
+                        const sensitivity = 1.25
+                        const rotateX = rotate[0] + ev.movementX * sensitivity
+                        let rotateY = rotate[1] - ev.movementY * sensitivity
+                        rotateY = Math.max(-90, Math.min(90, rotateY))
+
+                        this.dragging = [rotateX, rotateY]
+                    }
+
+                    this.onMouseMove(ev)
+                }}
                 onMouseLeave={this.onMouseLeave}
+                onMouseUp={() => {
+                    this.enableDragging = false
+                }}
                 style={this.hoverFeature ? { cursor: "pointer" } : {}}
             >
                 <rect
@@ -895,7 +1027,7 @@ class ChoroplethMap extends React.Component<{
                                 return (
                                     <path
                                         key={feature.id}
-                                        d={feature.path}
+                                        d={this.getPath(feature)}
                                         strokeWidth={
                                             defaultStrokeWidth / viewportScale
                                         }
@@ -948,7 +1080,7 @@ class ChoroplethMap extends React.Component<{
                                 return (
                                     <path
                                         key={feature.id}
-                                        d={feature.path}
+                                        d={this.getPath(feature)}
                                         strokeWidth={
                                             (isFocus
                                                 ? focusStrokeWidth
@@ -1002,7 +1134,7 @@ class ChoroplethMap extends React.Component<{
                             return (
                                 <path
                                     key={feature.id}
-                                    d={feature.path}
+                                    d={this.getPath(feature)}
                                     strokeWidth={
                                         (isFocus
                                             ? focusStrokeWidth
