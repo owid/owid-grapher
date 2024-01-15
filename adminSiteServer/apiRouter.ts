@@ -2378,7 +2378,11 @@ apiRouter.post("/posts/:postId/createGdoc", async (req: Request) => {
     const tags =
         tagsByPostId.get(postId)?.map(({ id }) => TagEntity.create({ id })) ||
         []
-    const archieMl = JSON.parse(post.archieml) as OwidGdocPostInterface
+    const archieMl = JSON.parse(
+        // Google Docs interprets &region in grapher URLS as ®ion
+        // So we escape them here
+        post.archieml.replaceAll("&", "&amp;")
+    ) as OwidGdocPostInterface
     const gdocId = await createGdocAndInsertOwidGdocPostContent(
         archieMl.content,
         post.gdocSuccessorId
