@@ -240,6 +240,10 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
         const notice =
             datum && datum.time !== targetTime ? displayTime : undefined
 
+        const labelX = axisBounds.right - SPARKLINE_NUDGE
+        const labelTop = axisBounds.top - SPARKLINE_NUDGE
+        const labelBottom = axisBounds.bottom - SPARKLINE_NUDGE
+
         return (
             <Tooltip
                 id="mapTooltip"
@@ -287,10 +291,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                             />
                             {maxLabel !== minLabel && (
                                 <g className="max axis-label">
-                                    <text
-                                        x={axisBounds.right}
-                                        y={axisBounds.top - SPARKLINE_NUDGE}
-                                    >
+                                    <text x={labelX} y={labelTop}>
                                         {maxLabel}
                                     </text>
                                 </g>
@@ -298,15 +299,12 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                             <g className="min axis-label">
                                 <text
                                     className="outline"
-                                    x={axisBounds.right}
-                                    y={axisBounds.bottom - SPARKLINE_NUDGE}
+                                    x={labelX}
+                                    y={labelBottom}
                                 >
                                     {minLabel}
                                 </text>
-                                <text
-                                    x={axisBounds.right}
-                                    y={axisBounds.bottom - SPARKLINE_NUDGE}
-                                >
+                                <text x={labelX} y={labelBottom}>
                                     {minLabel}
                                 </text>
                             </g>
