@@ -32,6 +32,7 @@ export interface ChoroplethSeries extends ChartSeries {
 }
 
 export interface ChoroplethMapManager {
+    isGlobe: any
     choroplethData: Map<SeriesName, ChoroplethSeries>
     choroplethMapBounds: Bounds
     projection: MapProjectionName
@@ -52,6 +53,7 @@ export interface RenderFeature {
 }
 
 export interface MapChartManager extends ChartManager {
+    isGlobe: boolean
     mapColumnSlug?: ColumnSlug
     mapIsClickable?: boolean
     tab?: GrapherTabOption // Used to switch to chart tab on map click

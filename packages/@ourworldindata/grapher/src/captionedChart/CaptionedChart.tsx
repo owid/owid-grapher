@@ -31,7 +31,7 @@ import { MapChartManager } from "../mapCharts/MapChartConstants"
 import { ChartManager } from "../chart/ChartManager"
 import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
 import { FacetChart } from "../facetChart/FacetChart"
-import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons"
+import { faEarthAmericas, faExternalLinkAlt, faMap } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
     EntitySelectionToggle,
@@ -68,6 +68,7 @@ export interface CaptionedChartManager
         EntitySelectionManager,
         MapProjectionMenuManager,
         SettingsMenuManager {
+    isGlobe: boolean
     containerElement?: HTMLDivElement
     tabBounds?: Bounds
     fontSize?: number
@@ -362,8 +363,44 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
             height: chartHeight,
         }
 
+        const globeSwitcher: React.CSSProperties = {
+            height: "40px",
+            width: "fit-content",
+            margin: "10px",
+            display: "flex",
+            position: "absolute",
+            bottom: "0"
+        }
+
+ 
+        const isGlobe = this.manager.isGlobe
+
         return (
             <div style={containerStyle}>
+                {this.manager.tab === GrapherTabOption.map && (
+                    <>
+                        <div className="ActionButton" style={globeSwitcher}>
+                            {isGlobe ? (
+                                <button
+                                    onClick={() =>
+                                        (this.manager.isGlobe = false)
+                                    }
+                                >
+                                    <FontAwesomeIcon icon={faMap} /> Map View
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={() =>
+                                        (this.manager.isGlobe = true)
+                                    }
+                                >
+                                    <FontAwesomeIcon icon={faEarthAmericas} />{" "}
+                                    Globe View
+                                </button>
+                            )}
+                        </div>
+                    </>
+                )}
                 <svg
                     {...this.svgProps}
                     width={width}
