@@ -26,13 +26,17 @@ export class DeployStatusPage extends React.Component {
 
     componentDidMount() {
         this.getData()
-        this.refreshIntervalId = window.setInterval(() => this.getData(), 30000)
+        document.addEventListener(
+            "visibilitychange",
+            this.handleVisibilityChange
+        )
     }
 
     componentWillUnmount() {
-        if (this.refreshIntervalId) {
-            window.clearInterval(this.refreshIntervalId)
-        }
+        document.removeEventListener(
+            "visibilitychange",
+            this.handleVisibilityChange
+        )
     }
 
     render() {
@@ -113,6 +117,10 @@ export class DeployStatusPage extends React.Component {
                 </main>
             </AdminLayout>
         )
+    }
+
+    @action.bound handleVisibilityChange = () => {
+        if (document.visibilityState === "visible") this.getData()
     }
 
     @action.bound async triggerDeploy() {
